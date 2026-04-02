@@ -1,0 +1,6 @@
+@gtas_vpp_be_HostAddress = http://localhost:5092
+
+GET {{gtas_vpp_be_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
