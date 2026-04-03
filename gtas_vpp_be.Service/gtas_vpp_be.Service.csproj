@@ -27,8 +27,4 @@
     <ProjectReference Include="..\gtas_vpp_be.Model\gtas_vpp_be.Model.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helpers\SQL\" />
-  </ItemGroup>
-
 </Project>
