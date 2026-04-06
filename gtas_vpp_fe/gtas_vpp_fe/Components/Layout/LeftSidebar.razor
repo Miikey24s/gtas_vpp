@@ -17,7 +17,7 @@
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
             <RadzenSidebarToggle class="customburger" Click="@(() => _sideBarExpanded = !_sideBarExpanded)" />
             <RadzenImage Style="width: 100px;" Path="./logoppj-new.png" />
-            <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
+            <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
             <RadzenStack Orientation="Orientation.Horizontal">

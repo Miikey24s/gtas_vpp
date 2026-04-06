@@ -33,6 +33,7 @@ namespace gtas_vpp_fe.Services
         {
             if (_httpClient.BaseAddress == null)
             {
+                if(baseurl != null) 
                 _httpClient.BaseAddress = new Uri(baseurl);
             }
             var url = $"{_rootUrl}sp_Authen?sptype={sptype}";

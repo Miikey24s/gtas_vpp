@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 <!DOCTYPE html>
 <html lang="en">
 
@@ -39,11 +40,11 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; }
 
-    // [Inject]
-    // private ThemeService ThemeService { get; set; }
+    [Inject]
+    private ThemeService ThemeService { get; set; }
 
-    // [Inject]
-    // private ProtectedLocalStorage protectedLocalStorage { get; set; }
+    [Inject]
+    private ProtectedLocalStorage protectedLocalStorage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

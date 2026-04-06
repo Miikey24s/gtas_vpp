@@ -30,7 +30,14 @@ namespace gtas_vpp_fe.Components.Layout
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            await LoadAuthenticationState();
+            try
+            {
+                await LoadAuthenticationState();
+            }
+            catch (Exception)
+            {
+                // Design-time hoặc API chưa sẵn sàng
+            }
 
             currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
             NavigationManager.LocationChanged += OnLocationChanged;
@@ -118,12 +125,12 @@ namespace gtas_vpp_fe.Components.Layout
                 //                                                                            new { userId = glb.UserInfo?.UserID ?? userid, pageCode = "0001" }))?.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage();
 
                 sp_Authentication_GetPermissionSinglePage = new sp_Authentication_GetPermissionSinglePage();
-                string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                var body = new { userId = glb.UserInfo?.UserID ?? userid, pageCode = "0001" };
-                var apiResult = await _apiServices.aPIFrom_sp_Authen(sptype, body);
-                if (apiResult?.IsSuccess == true && !string.IsNullOrWhiteSpace(apiResult.ResData))
+                try
                 {
-                    try
+                    string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
+                    var body = new { userId = glb.UserInfo?.UserID ?? userid, pageCode = "0001" };
+                    var apiResult = await _apiServices.aPIFrom_sp_Authen(sptype, body);
+                    if (apiResult?.IsSuccess == true && !string.IsNullOrWhiteSpace(apiResult.ResData))
                     {
                         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                         var parsedData = JsonSerializer.Deserialize<sp_Authentication_GetPermissionSinglePage>(apiResult.ResData, jsonOptions);
@@ -133,15 +140,16 @@ namespace gtas_vpp_fe.Components.Layout
                             sp_Authentication_GetPermissionSinglePage = parsedData;
                         }
                     }
-                    catch (JsonException ex)
+                    if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
                     {
+                        NavigationManager.NavigateTo("Home", true);
                     }
-                    //catch (Exception ex)
                 }
-                if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
+                catch (Exception)
                 {
-                    NavigationManager.NavigateTo("Home", true);
+                    // API không khả dụng (design-time) → giữ giá trị mặc định
                 }
+
             }
             else
             {
@@ -173,8 +181,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
             catch (Exception ex)
             {
-
-                throw;
+                throw new Exception($"Error loading theme: {ex.Message}");
             }
         }
     }

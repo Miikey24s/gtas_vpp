@@ -4,6 +4,7 @@ using gtas_vpp_fe.Helpers.DTOs.Share;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Radzen;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,8 +46,25 @@ builder.Services.AddHttpClient<IAPIServices, APIServices>(client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
 });
 #endregion
+#region SeriLog
+//Log.Logger = new LoggerConfiguration()
+//    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Fatal) // bỏ log của ASP.NET
+//    .MinimumLevel.Debug() // chỉ nhận log do mình ghi
+//    .Enrich.FromLogContext()
+//    .WriteTo.Console()
+//    .WriteTo.File(
+//        path: Path.Combine("wwwroot", "logs", "log-.txt"),
+//        rollingInterval: RollingInterval.Day,
+//        retainedFileCountLimit: 10,
+//        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+//        shared: true
+//    )
+//    .CreateLogger();
+//builder.Host.UseSerilog();
+#endregion
 
-var app = builder.Build();
+
+var app = builder.Build();///////////////////////////////
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
