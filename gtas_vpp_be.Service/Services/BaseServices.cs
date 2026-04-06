@@ -1,4 +1,5 @@
 ﻿using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Helpers.DTO;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +45,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 switch (typeofdbContext)
                 {
-                    case nameof(Config.EnvConfig.ContextType.VPPMigrationDbContext):
+                    case nameof(Config.EnvConfig.ContextType.VPPContext):
                         sp_ResDTO = (await uow.VPPContext.Set<sp_ResDTO>()
                                     .FromSqlRaw("exec {0} @SpType={1}, @Param={2}", spName, spType, JsonConvert.SerializeObject(param))
                                     .ToListAsync()).FirstOrDefault() ?? new sp_ResDTO();
@@ -75,7 +76,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 switch (typeofdbContext)
                 {
-                    case nameof(Config.EnvConfig.ContextType.VPPMigrationDbContext):
+                    case nameof(Config.EnvConfig.ContextType.VPPContext):
                         sp_ResDTO = (await uow.VPPContext.Set<sp_ResDTO>()
                                     .FromSqlRaw(query)
                                     .ToListAsync()).FirstOrDefault() ?? new sp_ResDTO();

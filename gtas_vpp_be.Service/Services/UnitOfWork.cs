@@ -1,4 +1,5 @@
 ﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Service.Helpers.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +14,7 @@ namespace gtas_vpp_be.Service.Services
 {
     public interface IUnitOfWork : IDisposable
     {
-        VPPMigrationDbContext VPPContext { get; }
+        VPPContext VPPContext { get; }
         void Init(string envKey);
 
         void BeginTransaction();
@@ -35,7 +36,7 @@ namespace gtas_vpp_be.Service.Services
         private string _currentEnv;
         private bool _disposed;
 
-        private VPPMigrationDbContext _VPPContext;
+        private VPPContext _VPPContext;
         private TransactionScope _transactionScope;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User ?? default!;
@@ -89,7 +90,7 @@ namespace gtas_vpp_be.Service.Services
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
             Init(GetEnvironment());
         }
-        public VPPMigrationDbContext VPPContext
+        public VPPContext VPPContext
         {
             get
             {

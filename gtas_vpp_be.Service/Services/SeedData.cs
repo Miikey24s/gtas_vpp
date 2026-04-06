@@ -1,23 +1,49 @@
 ﻿using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.Library;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Service.Services
 {
     public static class SeedData
     {
+
         public static async Task Seed(VPPMigrationDbContext context)
         {
             await P01_Page(context);
             await P02_Group(context);
             await P03_Component(context);
+
+            await LEX02_CompanyDepartmentLocationId_Empty(context);
+
             await P04_UserGroup(context);
             await P05_PageComponentMapping(context);
             await P06_GroupPageComponentMapping(context);
         }
 
+        public static async Task LEX02_CompanyDepartmentLocationId_Empty(VPPMigrationDbContext context)
+        {
+            // 1. Kiểm tra xem bản ghi Guid.Empty đã tồn tại chưa
+            bool isExist = context.LEX02_CompanyDepartmentLocations.Any(x => x.Id == Guid.Empty);
+
+            if (!isExist)
+            {
+                // 2. Ép kiểu Guid.Empty ra chuỗi (00000000-0000-0000-0000-000000000000)
+                string emptyId = Guid.Empty.ToString();
+
+                // 3. Dùng lệnh SQL thuần (Raw SQL) để lách qua cơ chế tự sinh ID của EF Core
+                string sql = $@"
+            INSERT INTO LEX02_CompanyDepartmentLocation 
+            (Id, LEX02Type, LEX02Code, LEX02Name, CreateDate, CreateUserId, UpdateDate, UpdateUserId, IsDeleted)
+            VALUES 
+            ('{emptyId}', 'System', 'SYS_DEFAULT', 'System Default Location', GETDATE(), 5615, GETDATE(), 5615, 0)
+            ";
+                await context.Database.ExecuteSqlRawAsync(sql);
+            }
+        }
 
         public static async Task P01_Page(VPPMigrationDbContext context)
         {
@@ -597,7 +623,8 @@ namespace gtas_vpp_be.Service.Services
                 {
                     new P02_Group
                     {
-                        Id = Guid.NewGuid(),
+                        //Id = Guid.NewGuid(),
+                        Id = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
                         GroupName = "Admin",
                         Description = "Administrators with full access",
                         CreateDate = DateTime.Now,
@@ -608,7 +635,8 @@ namespace gtas_vpp_be.Service.Services
                     },
                     new P02_Group
                     {
-                        Id = Guid.NewGuid(),
+                        //Id = Guid.NewGuid(),
+                        Id = Guid.Parse("388c6c3a-2801-42dc-bfc0-8a7741264596"),
                         GroupName = "User",
                         Description = "Regular users with limited access",
                         CreateDate = DateTime.Now,

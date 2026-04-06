@@ -1,4 +1,5 @@
 ﻿using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Helpers.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,7 +22,7 @@ namespace gtas_vpp_be.Service.Services
             sp_ResDTO sp_ResDTO = new sp_ResDTO();
             try
             {
-                sp_ResDTO = await SP(nameof(Config.EnvConfig.ContextType.VPPMigrationDbContext), sp_Name, sp_Type, Param ?? new { }, timeout);
+                sp_ResDTO = await SP(nameof(Config.EnvConfig.ContextType.VPPContext), sp_Name, sp_Type, Param ?? new { }, timeout);
             }
             catch (Exception ex)
             {
@@ -34,7 +35,7 @@ namespace gtas_vpp_be.Service.Services
             sp_ResDTO sp_ResDTO = new sp_ResDTO();
             try
             {
-                sp_ResDTO = await Query(nameof(Config.EnvConfig.ContextType.VPPMigrationDbContext), query, timeout);
+                sp_ResDTO = await Query(nameof(Config.EnvConfig.ContextType.VPPContext), query, timeout);
             }
             catch (Exception ex)
             {

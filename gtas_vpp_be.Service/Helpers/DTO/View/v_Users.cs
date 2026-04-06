@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace gtas_vpp_be.Model.View
 {
-    [NotMapped]
+    //[NotMapped]
+    [Keyless]
     public class v_Users
     {
         public int UserID { get; set; }
@@ -19,11 +22,11 @@ namespace gtas_vpp_be.Model.View
         public string? PhoneNo2 { get; set; }
         public v_Users()
         {
-            UserID = 4519;
-            UserLogin = "google";
-            PasswordChar = "wiSEc6nf/dK/Vu0E738j8Q==";
-            FullName = "Google";
-            EmailAddress1 = "google@ppj-international.com";
+            //UserID = 4519;
+            //UserLogin = "google";
+            //PasswordChar = "wiSEc6nf/dK/Vu0E738j8Q==";
+            //FullName = "Google";
+            //EmailAddress1 = "google@ppj-international.com";
         }
     }
 }

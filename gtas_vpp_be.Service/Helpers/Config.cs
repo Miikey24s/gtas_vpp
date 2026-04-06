@@ -15,7 +15,8 @@ namespace gtas_vpp_be.Service.Helpers
             }
             public enum ContextType
             {
-                VPPMigrationDbContext
+                VPPMigrationDbContext,
+                VPPContext,
             }
         }
     }

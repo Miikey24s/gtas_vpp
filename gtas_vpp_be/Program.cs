@@ -1,5 +1,6 @@
 using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,13 @@ builder.Services.AddDbContext<VPPMigrationDbContext>(
         o.UseSqlServer(constr, action => action.MigrationsAssembly("gtas_vpp_be.Migrations"));
     }
 );
+builder.Services.AddDbContext<VPPContext>(
+    (sp, o) =>
+    {
+        var constr = Configuration.GetConnectionString(nameof(Config.EnvConfig.EnvType.TestEnv));
+        o.UseSqlServer(constr);
+    }
+);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -30,7 +38,19 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -50,6 +70,7 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
