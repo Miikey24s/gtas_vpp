@@ -1,0 +1,60 @@
+﻿.fieldsetnoti legend {
+    text-align: center;
+    margin: 0 0 1rem 0;
+}
+
+.notificationbuttonread {
+    background-image: none;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--rz-primary) !important;
+    padding: 0 !important;
+    right: 1rem !important;
+}
+
+    .notificationbuttonread:hover {
+        background-image: none !important;
+        box-shadow: none !important;
+        cursor: pointer !important;
+        text-decoration: underline !important;
+    }
+
+        .notificationbuttonread:hover .rz-button-box .rz-button-text {
+            text-decoration: underline !important;
+        }
+
+    .notificationbuttonread:focus-visible {
+        outline: none !important;
+    }
+
+    .notificationbuttonread.header {
+        text-align: left;
+        margin-left: 1rem;
+        font-size: 1.5rem;
+    }
+
+.rightsidebarcustom-expand {
+    padding: 0.5rem !important;
+    width: 500px !important;
+    grid-area: rz-right-sidebar !important;
+    margin-left: 0 !important;
+    margin: var(--rz-layout-body-margin) !important;
+    border-radius: var(--rz-layout-body-border-radius) !important;
+    background-color: var(--rz-layout-body-background-color) !important;
+}
+
+.rightsidebarcustom-collapse {
+    padding: 0 !important;
+    width: 0 !important;
+    grid-area: rz-right-sidebar !important;
+    margin-left: 0 !important;
+    margin: 0 !important;
+    border-radius: var(--rz-layout-body-border-radius) !important;
+    background-color: var(--rz-layout-body-background-color) !important;
+}
+
+ul[role=tablist] {
+    flex-wrap: wrap;
+    justify-content: center;
+}

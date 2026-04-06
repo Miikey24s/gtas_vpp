@@ -1,0 +1,92 @@
+﻿@page "/Account/Login"
+@rendermode InteractiveServer
+@layout LoginLayout
+@inject NavigationManager UriHelper
+@inject NotificationService NotificationService
+
+<PageTitle>GTAS VPP - Login</PageTitle>
+
+<section class="p-0">
+    <div class="loginbg"></div>
+    <RadzenRow class="vh100 mr-0 ml-0">
+        <RadzenColumn Size="12" SizeLG="6" SizeMD="6" SizeSM="12" Offset="0" OffsetLG="6" OffsetMD="6" OffsetSM="0" class="loginbox">
+            <div class="box">
+                <div class="logoppj" />
+                <div class="lg1container">
+                    <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="form" data-enhance>
+                        <AntiforgeryToken></AntiforgeryToken>
+                        <RadzenFormField AllowFloatingLabel="false" Text="Username" Variant="Variant.Text" class="w-100 mt-3">
+                            <Start>
+                                <RadzenIcon Icon="account_circle" />
+                            </Start>
+                            <ChildContent>
+                                <RadzenTextBox Disabled="@isLoading" class="valid-off" @bind-Value=@sp_Authentication_Login.Username @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                            </ChildContent>
+                        </RadzenFormField>
+                        <RadzenFormField AllowFloatingLabel="false" Text="Password" Variant="Variant.Text" class="w-100 mt-3">
+                            <Start>
+                                <RadzenIcon Icon="key" />
+                            </Start>
+                            <ChildContent>
+                                <RadzenTextBox Visible="@(!isShowPass)" class="valid-off" Disabled="@isLoading" @bind-Value=@sp_Authentication_Login.Password @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                                <RadzenPassword Visible="@isShowPass" class="valid-off" Disabled="isLoading" @bind-Value=@sp_Authentication_Login.Password @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                            </ChildContent>
+                            
+                        </RadzenFormField>
+                        @if (isShowServer)
+                        {
+                            <RadzenFormField AllowFloatingLabel="false" Text="Server" Variant="Variant.Text" class="w-100 mt-3">
+                                <Start>
+                                    <RadzenIcon Icon="dns" />
+                                </Start>
+                                <ChildContent>
+                                    <RadzenDropDown Data=@Servers class="text-center valid-off" @bind-Value=@sp_Authentication_Login.selected_server Style="width:100%" />
+                                </ChildContent>
+                            </RadzenFormField>
+                        }
+                        <div class="form-inline text-end mt-3 rz-text-right justify-content-end">
+                            <RadzenButton Text="LOGIN" ButtonType="ButtonType.Submit" IsBusy="@isLoading" class="login_btn float-right text-whitesmoke" />
+                        </div>
+                    </RadzenTemplateForm>
+                </div>
+            </div>
+        </RadzenColumn>
+    </RadzenRow>
+</section>
+@* <section class="p-0">
+    <div class="loginbg"></div>
+    <RadzenRow class="vh100 mr-0 ml-0">
+        <RadzenColumn Size="12" SizeLG="6" SizeMD="6" SizeSM="12" Offset="0" OffsetLG="6" OffsetMD="6" OffsetSM="0" class="loginbox">
+            <div class="box">
+                <div class="logoppj" />
+                
+                <div class="lg1container">                 
+                    <RadzenTemplateForm TItem="LoginModel" Data="@model" Submit="@OnSubmit" class="form">
+                        
+                        <RadzenFormField AllowFloatingLabel="false" Text="Username" Variant="Variant.Text" class="w-100 mt-3">
+                            <Start>
+                                <RadzenIcon Icon="account_circle" />
+                            </Start>
+                            <ChildContent>
+                                <RadzenTextBox @bind-Value="@model.Username" Disabled="@isLoading" class="valid-off w-100" />
+                            </ChildContent>
+                        </RadzenFormField>
+
+                        <RadzenFormField AllowFloatingLabel="false" Text="Password" Variant="Variant.Text" class="w-100 mt-3">
+                            <Start>
+                                <RadzenIcon Icon="key" />
+                            </Start>
+                            <ChildContent>
+                                <RadzenPassword @bind-Value="@model.Password" Disabled="@isLoading" class="valid-off w-100" />
+                            </ChildContent>
+                        </RadzenFormField>
+
+                        <div class="form-inline text-end mt-3 rz-text-right justify-content-end">
+                            <RadzenButton Text="LOGIN" ButtonType="ButtonType.Submit" IsBusy="@isLoading" class="login_btn float-right text-whitesmoke" />
+                        </div>
+                    </RadzenTemplateForm>
+                </div>
+            </div>
+        </RadzenColumn>
+    </RadzenRow>
+</section> *@

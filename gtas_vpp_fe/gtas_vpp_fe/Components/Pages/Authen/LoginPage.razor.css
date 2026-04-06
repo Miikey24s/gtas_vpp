@@ -1,0 +1,21 @@
+﻿.loginbg {
+    position: absolute;
+    opacity: 0.8;
+    background-image: url(../images/Artboard.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.vh100 {
+    min-height: 100vh !important;
+    height: 100vh !important;
+}
+
+.loginbox {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}

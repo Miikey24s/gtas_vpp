@@ -1,0 +1,89 @@
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Radzen.Blazor.Rendering
+@using System.Globalization
+@* @inject Radzen.ThemeService ThemeService *@
+@inject gtas_vpp_fe.Helpers.DTOs.Share.GlobalClass glb
+@inject NavigationManager NavigationManager
+@inject ProtectedLocalStorage ProtectedLocalStore
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP</PageTitle>
+
+<RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" Style="position:absolute; top: 0; left: 0; width: 100vw; z-index:99" />
+
+<RadzenHeader Style="position:static;">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
+            <RadzenSidebarToggle class="customburger" Click="@(() => _sideBarExpanded = !_sideBarExpanded)" />
+            <RadzenImage Style="width: 100px;" Path="./logoppj-new.png" />
+            <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenText Text="@glb.UserInfo.MemberCompanyName?.ToUpper()" class="mb-0" Style="font-weight: 700;" />
+                <RadzenText Text=">" class="mb-0" Style="font-weight: 700;" />
+                <RadzenText Text="@glb.UserInfo.DepartmentCode?.ToUpper()" class="mb-0" Style="font-weight: 700;" />
+                <RadzenText Text=">" class="mb-0" Style="font-weight: 700;" />
+                <RadzenText Text="@glb.UserInfo.FullName?.ToUpper()" class="mb-0 rz-mr-2" Style="font-weight: 700;" />
+                <RadzenIcon Icon="account_circle" Style="font-weight: 700;" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+</RadzenHeader>
+
+<RadzenSidebar Responsive="true" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
+    <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_HD" && x.IsVisible)" Text="Dashboard" Icon="home" class="ppjsidebarmenu" Path="/" />
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_HD" && x.IsVisible)" Text="Consumption" Icon="dashboard" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="Class/Master data" Path="pur" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
+        </RadzenPanelMenuItem>
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_HD" && x.IsVisible)" Text="Counter" Icon="home" class="ppjsidebarmenu" Path="/counter" />
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => (x.ComponentCode?.Contains("0001_LIB") ?? false) && x.IsVisible)" Text="Library" Icon="auto_awesome" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_C" && x.IsVisible)" Text="Class/Master data" Path="library/class" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_OC" && x.IsVisible)" Text="Operation Category" Path="library/operationcat" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_O" && x.IsVisible)" Text="Operation" Path="library/operation" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_E" && x.IsVisible)" Text="Equipment" Path="library/equipment" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_R" && x.IsVisible)" Text="Route" Path="library/route" class="ppjsidebarmenu submenu" Icon="menu_book" />
+        </RadzenPanelMenuItem>
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_R" && x.IsVisible)" Text="Report" Icon="analytics" class="ppjsidebarmenu" Path="/Report" />
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_S" && x.IsVisible)" Text="Permission" Icon="settings" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="permission/user" />
+            <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="permission/pagepermission" />
+            <RadzenPanelMenuItem Text="Department" Icon="apartment" class="ppjsidebarmenu submenu" Path="permission/department" />
+        </RadzenPanelMenuItem>
+        <hr />
+        <RadzenPanelMenuItem Text="Logout" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
+        <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">
+            <h6 class="text-center">@currentTime.ToString("dd-MM-yyyy")</h6>
+            <h6 class="text-center">@currentTime.ToString("HH:mm")</h6>
+        </RadzenStack>
+        <RadzenStack class="customtheme rz-pl-2">
+            @* <RadzenButton Text="Change Language" Click="ToggleLanguage"/> *@
+            <RadzenButton Icon="@(LightTheme ? "dark_mode" : "light_mode")" class="rz-mr-auto rz-ml-auto" Click="ThemeOnChange" ButtonStyle="ButtonStyle.Light" />
+        </RadzenStack>
+    </RadzenPanelMenu>
+</RadzenSidebar>
+
+@code {
+    public bool LightTheme { get; set; } = true;
+    private DateTime currentTime = DateTime.Now;
+    private System.Threading.Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        timer = new System.Threading.Timer(_ =>
+        {
+            currentTime = DateTime.Now;
+            InvokeAsync(StateHasChanged);
+        }, null, 0, 1000);
+    }
+    private void ToggleLanguage()
+    {
+        var currentCulture = CultureInfo.CurrentCulture.Name;
+        var newCulture = currentCulture == "en" ? "vi" : "en";
+        CultureInfo.CurrentCulture = new CultureInfo(newCulture);
+        CultureInfo.CurrentUICulture = new CultureInfo(newCulture);
+        StateHasChanged();
+    }
+}
