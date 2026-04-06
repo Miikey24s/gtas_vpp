@@ -1,8 +1,8 @@
 ﻿using gtas_vpp_be.Model;
-using gtas_vpp_be.Model.View;
+//using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
-using gtas_vpp_be.Service.Helpers.DTO.Res;
+using gtas_vpp_be.Service.Helpers.DTOs.Res;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,7 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest();
+                return BadRequest(new { message = "Username and password are required." });
 
             //var user1 = await _eFService_Authen.BaseService<v_Users>(Config.EF_BASEMETHOD.EF_GetTAsync,null,null,null
             //                        , x=>x.UserLogin == request.Username && x.PasswordChar == PasswordHelpers.Encrypt(request.Password, true));
@@ -128,11 +128,10 @@ namespace gtas_vpp_be.Controllers
 
                 if (!result.IsSuccess || string.IsNullOrEmpty(result.ResData))
                     return Unauthorized(new { message = result.ErrorMess ?? "Login failed" });
-
                 // ResData là JSON từ SP, truyền vào DTO để deserialize
                 var loginData = JsonConvert.DeserializeObject<sp_Authentication_Login>(result.ResData);
                 if (loginData == null)
-                    return Unauthorized();
+                    return Unauthorized(new { message = "Invalid username or password." });
 
                 return Ok(loginData);
             }

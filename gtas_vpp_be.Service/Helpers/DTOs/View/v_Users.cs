@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace gtas_vpp_be.Model.View
+namespace gtas_vpp_be.Service.Helpers.DTOs.Res
 {
     //[NotMapped]
     [Keyless]

@@ -1,5 +1,5 @@
 ﻿using gtas_vpp_be.Service.Helpers;
-using gtas_vpp_be.Service.Helpers.DTO;
+using gtas_vpp_be.Service.Helpers.DTOs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace gtas_vpp_be.Service.Services
 {
@@ -38,7 +39,7 @@ namespace gtas_vpp_be.Service.Services
         /// <exception cref="Exception"></exception>
         public async Task<sp_ResDTO> SP(string typeofdbContext, string spName, string spType, object param, int? timeout = 300, string? env = null)
         {
-            sp_ResDTO sp_ResDTO = new sp_ResDTO();
+            //sp_ResDTO sp_ResDTO = new sp_ResDTO();
             using var uow = _unitOfWork.Create(nameof(Config.EnvConfig.EnvType.TestEnv));
             uow.VPPContext.Database.SetCommandTimeout(timeout);
             try
@@ -46,18 +47,31 @@ namespace gtas_vpp_be.Service.Services
                 switch (typeofdbContext)
                 {
                     case nameof(Config.EnvConfig.ContextType.VPPContext):
-                        sp_ResDTO = (await uow.VPPContext.Set<sp_ResDTO>()
+                        var sp_ResDTO = await uow.VPPContext.Set<sp_ResDTO>()
                                     .FromSqlRaw("exec {0} @SpType={1}, @Param={2}", spName, spType, JsonConvert.SerializeObject(param))
-                                    .ToListAsync()).FirstOrDefault() ?? new sp_ResDTO();
-                        break;
+                                    .ToListAsync();
+                        return sp_ResDTO.FirstOrDefault() ?? new sp_ResDTO
+                        {
+                            IsSuccess = false,
+                            ErrorMess = "No data returned from stored procedure."
+                        };
                     default:
-                        break;
+                        return new sp_ResDTO
+                        {
+                            IsSuccess = false,
+                            ErrorMess = "Unsupported database context."
+                        };
                 }
             }
             catch (Exception ex)
             {
-                sp_ResDTO.IsSuccess = false;
-                sp_ResDTO.ErrorMess = ex.Message;
+                return new sp_ResDTO
+                {
+                    IsSuccess = false,
+                    ErrorMess = ex.Message
+                };
+                //sp_ResDTO.IsSuccess = false;
+                //sp_ResDTO.ErrorMess = ex.Message;
                 //_logger.LogError(ex, "Lỗi khi chạy EFBaseServiceRead " + spName + " - " + spType + " - " + JsonConvert.SerializeObject(param));
                 throw new Exception($"Error in EFBaseServiceRead: {ex.Message}", ex);
             }
@@ -65,7 +79,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 uow.Dispose();
             }
-            return sp_ResDTO;
+            //return sp_ResDTO;
         }
         public async Task<sp_ResDTO> Query(string typeofdbContext, string query, int? timeout = 300, string? env = null)
         {

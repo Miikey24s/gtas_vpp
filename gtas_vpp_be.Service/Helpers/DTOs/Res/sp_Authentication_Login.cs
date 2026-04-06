@@ -1,11 +1,11 @@
-﻿using gtas_vpp_be.Services.Helpers.DTO.Res;
+﻿using gtas_vpp_be.Services.Helpers.DTOs.Res;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace gtas_vpp_be.Service.Helpers.DTO.Res
+namespace gtas_vpp_be.Service.Helpers.DTOs.Res
 {
     [StructLayout(LayoutKind.Auto)]
     [Keyless]

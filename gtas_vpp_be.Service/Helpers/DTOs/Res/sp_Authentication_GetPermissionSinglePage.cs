@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace gtas_vpp_be.Services.Helpers.DTO.Res
+namespace gtas_vpp_be.Services.Helpers.DTOs.Res
 {
     [StructLayout(LayoutKind.Auto)]
     [NotMapped]

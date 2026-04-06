@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace gtas_vpp_be.Service.Helpers.DTO
+namespace gtas_vpp_be.Service.Helpers.DTOs
 {
     [StructLayout(LayoutKind.Auto)]
     [Keyless]

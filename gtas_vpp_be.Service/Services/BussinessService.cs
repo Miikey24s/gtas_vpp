@@ -1,5 +1,5 @@
 ﻿using gtas_vpp_be.Service.Helpers;
-using gtas_vpp_be.Service.Helpers.DTO;
+using gtas_vpp_be.Service.Helpers.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
