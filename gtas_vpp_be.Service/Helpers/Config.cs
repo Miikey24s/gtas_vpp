@@ -8,16 +8,63 @@ namespace gtas_vpp_be.Service.Helpers
     {
         public static class EnvConfig
         {
-            public enum EnvType
+            public class JiraIssueTest
             {
-                LiveEnv,
-                TestEnv
+                public List<string> JiraIssue { get; set; }
+                public JiraIssueTest()
+                {
+                    JiraIssue = new List<string>()
+                    {
+                        "GC2_55"
+                    };
+                }
             }
-            public enum ContextType
+            public class JiraIssueLive
             {
-                VPPMigrationDbContext,
-                VPPContext,
+                public List<string> JiraIssue { get; set; }
+                public JiraIssueLive()
+                {
+                    JiraIssue = new List<string>()
+                    {
+                        ""
+                    };
+                }
             }
+            public enum JrTest
+            {
+                GC2_55
+            }
+            public class DeployEnv
+            {
+                public List<string> JiraIssue { get; set; }
+                public string Title { get; set; }
+                public DeployEnv()
+                {
+                    Title = default!;
+                    JiraIssue = default!;
+                }
+            }
+        }
+        public enum EnvType
+        {
+            LiveEnv,
+            TestEnv
+        }
+        public enum ContextType
+        {
+            VPPMigrationDbContext,
+            VPPContext,
+        }
+        public enum EF_BASEMETHOD
+        {
+            EF_GetTAsync,
+            EF_GetTAsync_Paging,
+            EF_GetTByIdAsync,
+            EF_GetTByIdIncludeAsync,
+            EF_Create,
+            EF_Update,
+            EF_UpdateRange,
+            EF_DeleteAsync
         }
     }
 }

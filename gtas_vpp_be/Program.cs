@@ -17,14 +17,14 @@ builder.Services.AddDbContext<VPPMigrationDbContext>(
     (sp, o) =>
     {
         //var constr = Configuration.GetConnectionString("TestEnv");
-        var constr = Configuration.GetConnectionString(nameof(Config.EnvConfig.EnvType.TestEnv));
+        var constr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
         o.UseSqlServer(constr, action => action.MigrationsAssembly("gtas_vpp_be.Migrations"));
     }
 );
 builder.Services.AddDbContext<VPPContext>(
     (sp, o) =>
     {
-        var constr = Configuration.GetConnectionString(nameof(Config.EnvConfig.EnvType.TestEnv));
+        var constr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
         o.UseSqlServer(constr);
     }
 );

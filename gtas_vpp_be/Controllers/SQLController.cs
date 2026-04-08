@@ -1,8 +1,10 @@
-﻿using gtas_vpp_be.Service.Services;
+﻿using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
 using System.Web;
+using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
 {
