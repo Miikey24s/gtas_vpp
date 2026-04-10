@@ -1,7 +1,9 @@
+using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,7 +49,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
-
+MapsterConfig.Register(TypeAdapterConfig.GlobalSettings);
 var app = builder.Build();
 
 app.UseCors("AllowAll");
