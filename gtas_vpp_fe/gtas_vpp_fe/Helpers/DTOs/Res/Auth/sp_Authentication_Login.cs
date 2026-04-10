@@ -3,10 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
-using gtas_vpp_fe.Helpers.DTOs.Res;
 
 
-namespace gtas_vpp_fe.Helpers.DTOs.Res
+namespace gtas_vpp_fe.Helpers.DTOs.Res.Auth
 {
     [StructLayout(LayoutKind.Auto)]
     [Keyless]

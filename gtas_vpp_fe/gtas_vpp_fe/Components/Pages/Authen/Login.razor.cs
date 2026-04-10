@@ -1,5 +1,5 @@
 ﻿using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Res;
+using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
@@ -79,7 +79,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
                     {
                         var errorMsg = await response.Content.ReadAsStringAsync();
                         NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi đăng nhập", Detail = errorMsg, Duration = 5000 });
-                        return false;
+                        return isLogin = false;
                     }
 
                     var loginData = await response.Content.ReadFromJsonAsync<sp_Authentication_Login>();

@@ -1,0 +1,20 @@
+﻿@page "/permission/{Per?}"
+@layout MainLayout
+@using Microsoft.AspNetCore.Components.Authorization
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager UriHelper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IJSRuntime js
+@inject gtas_vpp_fe.Helpers.DTOs.Share.GlobalClass glb 
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Library</PageTitle>
+
+<h3>Page_Permission</h3>
+
+<Component_Permission claims="@claims" Per="@Per" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>

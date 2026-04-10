@@ -1,5 +1,5 @@
 ﻿using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Res;
+using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
 using gtas_vpp_fe.Helpers.DTOs.Share;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
@@ -129,17 +129,12 @@ namespace gtas_vpp_fe.Components.Layout
                 {
                     string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
                     var body = new { userId = glb.UserInfo?.UserID ?? userid, pageCode = "0001" };
-                    var apiResult = await _apiServices.aPIFrom_sp_Authen(sptype, body);
-                    if (apiResult?.IsSuccess == true && !string.IsNullOrWhiteSpace(apiResult.ResData))
+                    var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
+                    if (parsedData is not null)
                     {
-                        var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                        var parsedData = JsonSerializer.Deserialize<sp_Authentication_GetPermissionSinglePage>(apiResult.ResData, jsonOptions);
-
-                        if (parsedData != null)
-                        {
-                            sp_Authentication_GetPermissionSinglePage = parsedData;
-                        }
+                        sp_Authentication_GetPermissionSinglePage = parsedData;
                     }
+
                     if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
                     {
                         NavigationManager.NavigateTo("Home", true);

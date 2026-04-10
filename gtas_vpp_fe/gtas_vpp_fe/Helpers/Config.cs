@@ -5,6 +5,7 @@
         // HttpClient
         public const string HttpClientName = "VPP_API";
         public const string ApiLoginEndpoint = "/api/Auth/login";
+        public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
 
         // Routes
         public const string LoginPagePath = "/Account/Login";
@@ -46,6 +47,35 @@
                 sp_Authen_CopyFromGroup
             }
         }
-    }
+        public static class Page_ComponentCode
+        {
+            public static class PageCode
+            {
+                public const string Dashboard = "0001";
+                public const string Sidebar = "0002";
+                public const string Permission = "0004";
+            }
 
+            public static class ComponentCode
+            {
+                public const string UserView = "0002_UV";
+                public const string LibraryClass = "0001_LIB_C";
+                public const string LibraryOperation = "0001_LIB_O";
+                public const string PurchaseConsumption = "0001_PUR";
+                public const string BuyerConsumption = "0001_BUY";
+                public const string Report = "0001_R";
+                public const string Setting = "0001_S";
+                public const string LibraryOperationCategory = "0001_LIB_OC";
+                public const string LibraryRoute = "0001_LIB_R";
+                public const string ActualConsumption = "0001_ACT";
+                public const string LibraryEquipment = "0001_LIB_E";
+                public const string HomeDashboard = "0001_HD";
+                public const string AdminView = "0002_ADM";
+                public const string PermissionViewable = "0004_V";
+            }
+            /*
+Config.Page_ComponentCode.ComponentCode.PermissionViewable
+            */
+        }
+    }
 }

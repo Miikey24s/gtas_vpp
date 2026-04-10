@@ -1,0 +1,32 @@
+﻿@using gtas_vpp_fe.Components.Pages.Permission.Tabs
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+<style>
+    ul[role=tablist] {
+        flex-wrap: wrap;
+    }
+</style>
+
+@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.AdminView) && y.IsVisible))
+{
+    <RadzenTabs Change="@TabOnChange"
+                TabPosition="@tabPosition"
+                class="librariestab"
+                RenderMode="TabRenderMode.Client"
+                @bind-SelectedIndex=SelectedIndex>
+        <Tabs>
+            <RadzenTabsItem Text="User Group">
+                @if (SelectedIndex == 0)
+                {
+                    <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Group/Page Permission">
+                @if (SelectedIndex == 1)
+                {
+                    <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+}

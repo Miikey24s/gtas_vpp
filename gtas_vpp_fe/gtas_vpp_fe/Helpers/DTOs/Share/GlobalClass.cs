@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers.DTOs.Res;
+﻿using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
 
 namespace gtas_vpp_fe.Helpers.DTOs.Share
 {
