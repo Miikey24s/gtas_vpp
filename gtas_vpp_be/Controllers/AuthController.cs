@@ -2,12 +2,13 @@
 //using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
-using gtas_vpp_be.Service.Helpers.DTOs.Res;
+using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using gtas_vpp_shared.DTOs.Res.Auth;
 
 namespace gtas_vpp_be.Controllers
 {

@@ -1,6 +1,6 @@
 ﻿using gtas_vpp_be.Model.Auth;
-using gtas_vpp_be.Service.Helpers.DTOs.Req.Permission;
-using gtas_vpp_be.Service.Helpers.DTOs.Res.Permission;
+using gtas_vpp_shared.DTOs.Req.Permission;
+using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_be.Service.Services;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;

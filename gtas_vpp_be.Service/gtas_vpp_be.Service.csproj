@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\gtas_vpp_be.Model\gtas_vpp_be.Model.csproj" />
+    <ProjectReference Include="..\..\gtas_vpp\gtas_vpp_shared\gtas_vpp_shared.csproj" />
   </ItemGroup>
 
 </Project>

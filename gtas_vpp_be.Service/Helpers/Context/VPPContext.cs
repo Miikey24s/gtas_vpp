@@ -3,8 +3,8 @@ using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 //using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Model.VPP;
-using gtas_vpp_be.Service.Helpers.DTOs;
-using gtas_vpp_be.Service.Helpers.DTOs.Res;
+using gtas_vpp_shared.DTOs;
+using gtas_vpp_shared.DTOs.Res;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -87,3 +87,4 @@ namespace gtas_vpp_be.Service.Helpers.Context
         }
     }
 }
+

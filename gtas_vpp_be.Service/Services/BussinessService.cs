@@ -1,7 +1,7 @@
 ﻿using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
-using gtas_vpp_be.Service.Helpers.DTOs;
-using gtas_vpp_be.Service.Helpers.DTOs.Res;
+using gtas_vpp_shared.DTOs;
+using gtas_vpp_shared.DTOs.Res;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -129,3 +129,4 @@ namespace gtas_vpp_be.Service.Services
         }
     }
 }
+
