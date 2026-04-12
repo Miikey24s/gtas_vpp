@@ -1,10 +1,9 @@
 ﻿//using gtas_costing.Model.Models.Auth;
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Req;
-using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
-using gtas_vpp_fe.Helpers.DTOs.Share;
 using gtas_vpp_fe.Services;
-
+using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Share;
 //using gtas_vpp_fe.Services.Services;
 //using gtas_vpp_fe.WebServersideService;
 using Microsoft.AspNetCore.Components;
@@ -13,6 +12,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
+using System.Text.Json;
 using static System.Net.WebRequestMethods;
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
@@ -62,7 +62,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     //                                                            new { userId = glb.UserInfo.UserID, pageCode = "0001" })
                     //                                                .ContinueWith(x => x.Result.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage());
                     string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Sidebar };
+                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.PageHaveAdminView };
                     var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
 
                     if (parsedData is not null)
@@ -138,7 +138,8 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     List<sp_Authen_Permission_GetPageWithComponentByGroupId>
                 >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_Permission_GetPageWithComponentByGroupId),
-                    new { GroupId = group.Id }
+                    new { GroupId = group.Id },
+                    jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
                 ) ?? new List<sp_Authen_Permission_GetPageWithComponentByGroupId>();
             }
             catch (Exception ex)
@@ -318,108 +319,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 StateHasChanged();
             }
         }
-        //protected async Task Submit(P02_GroupResDTO P02_GroupResDTOReqDTO)
-        //{
-        //    IsLoading = true;
-        //    bool isCopy = false;
-        //    if (selected_Group_To_Copy is not null)
-        //    {
-        //        isCopy = true;
-        //        P02_GroupResDTOReqDTO.Id = selected_Group_To_Copy?.Id ?? Guid.Empty;
-        //    }
-        //    else
-        //    {
-        //        P02_GroupResDTOReqDTO.Id = Guid.Empty;
-        //        isCopy = false;
-        //    }
-        //    _ = int.TryParse(claims?.FirstOrDefault(x => x.Type.Equals("UserID"))?.Value, out int userid);
-
-
-        //    sp_ResDTO sp_ResDTO = new sp_ResDTO();
-        //    if (isCopy)
-        //    {
-        //        try
-        //        {
-        //            string? rs = await _bussinessService.SPServiceWrite<string>(Config.SPENUM_ResType.Single,
-        //                                                            nameof(Config.sp_AuthenClass.sp_Authen),
-        //                                                            nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_CopyFromGroup),
-        //                                                            new
-        //                                                            {
-        //                                                                GroupId = P02_GroupResDTOReqDTO.Id,
-        //                                                                GroupName = P02_GroupResDTOReqDTO.GroupName,
-        //                                                                Description = P02_GroupResDTOReqDTO.Description,
-        //                                                                CreateUserId = P02_GroupResDTOReqDTO.CreateUserId
-        //                                                            })
-        //                                                    .ContinueWith(x => x.Result?.FirstOrDefault());
-        //            if (!string.IsNullOrEmpty(rs))
-        //            {
-        //                //_notificationService.CustomContentNotification(NotificationSeverity.Success, "Copy success", "", 15000, true);
-        //            }
-        //            else
-        //            {
-        //                //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Copy failed", "Sp call success, but some thing wrong, check log", 15000, true);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _bussinessService.WriteLog(ex, "sp_Authen_CopyFromGroup", new Dictionary<string, object> { { "Param",
-        //                                                JsonConvert.SerializeObject(new
-        //                                                        {
-        //                                                            GroupId = P02_GroupResDTOReqDTO.Id,
-        //                                                            GroupName = P02_GroupResDTOReqDTO.GroupName,
-        //                                                            Description = P02_GroupResDTOReqDTO.Description,
-        //                                                            CreateUserId = P02_GroupResDTOReqDTO.CreateUserId
-        //                                                        }) } });
-        //            //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Copy failed", ex.Message, 15000, true);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        try
-        //        {
-        //            string? rs = await _bussinessService.SPServiceWrite<string>(Config.SPENUM_ResType.Single,
-        //                                                            nameof(Config.sp_AuthenClass.sp_Authen),
-        //                                                            nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_CreateNewGroup),
-        //                                                            new
-        //                                                            {
-        //                                                                GroupId = P02_GroupResDTOReqDTO.Id,
-        //                                                                GroupName = P02_GroupResDTOReqDTO.GroupName,
-        //                                                                Description = P02_GroupResDTOReqDTO.Description,
-        //                                                                CreateUserId = P02_GroupResDTOReqDTO.CreateUserId
-        //                                                            })
-        //                                                    .ContinueWith(x => x.Result?.FirstOrDefault());
-        //            if (!string.IsNullOrEmpty(rs))
-        //            {
-        //                //_notificationService.CustomContentNotification(NotificationSeverity.Success, "Copy success", "", 15000, true);
-        //            }
-        //            else
-        //            {
-        //                //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Copy failed", "Sp call success, but some thing wrong, check log", 15000, true);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _bussinessService.WriteLog(ex, "sp_Authen_CopyFromGroup", new Dictionary<string, object> { { "Param",
-        //                                                JsonConvert.SerializeObject(new
-        //                                                        {
-        //                                                            GroupId = P02_GroupResDTOReqDTO.Id,
-        //                                                            GroupName = P02_GroupResDTOReqDTO.GroupName,
-        //                                                            Description = P02_GroupResDTOReqDTO.Description,
-        //                                                            CreateUserId = P02_GroupResDTOReqDTO.CreateUserId
-        //                                                        }) } });
-        //            //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Copy failed", ex.Message, 15000, true);
-        //        }
-        //    }
-        //    if (sp_ResDTO.IsSuccess && sp_ResDTO.ResData.Contains("Success"))
-        //    {
-        //        NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = "Create Success", Duration = 10000 });
-        //    }
-        //    if (sp_ResDTO.IsSuccess && sp_ResDTO.ResData.Contains("Failed"))
-        //    {
-        //        NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = "Create Failed", Duration = 10000 });
-        //    }
-        //    await LoadBaseData();
-        //    IsLoading = false;
-        //}
     }
 }
+

@@ -1,6 +1,6 @@
 ﻿using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
-using gtas_vpp_fe.Helpers.DTOs.Share;
+using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Share;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -14,9 +14,9 @@ namespace gtas_vpp_fe.Components.Layout
 {
     public partial class LeftSidebar
     {
-        //[Inject] public IBussinessService _bussinessService { get; set; } = default!;
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public ThemeService ThemeService { get; set; } = default!;
+        [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         public bool _sideBarExpanded { get; set; } = false;
         private string? currentUrl { get; set; }
         public const string QueryParameter = "theme";
@@ -65,7 +65,7 @@ namespace gtas_vpp_fe.Components.Layout
                 if (result.Success && result.Value is not null)
                 {
                     //State = result.Header?.FirstOrDefault(x => x.PageName == "0014")?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
-                    State = result.Value?.Header?.FirstOrDefault(x => x.PageName == "0001")?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
+                    State = result.Value?.Header?.FirstOrDefault(x => x.PageName == Config.Page_ComponentCode.PageCode.Sidebar)?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
                 }
             }
             catch (Exception)
@@ -91,64 +91,21 @@ namespace gtas_vpp_fe.Components.Layout
         }
         protected async Task LoadAuthenticationState()
         {
-            //_apiServices.SetBaseUrl(NavigationManager.BaseUri);
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-            if (user.Identity is not null && user.Identity.IsAuthenticated)
-            {
-                claims = authState.User.Claims;
-                _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userid);
-                _ = bool.TryParse(claims.FirstOrDefault(x => x.Type == "IsAdmin")?.Value, out bool isadmin);
-                _ = Guid.TryParse(claims.FirstOrDefault(x => x.Type == "GroupId")?.Value, out Guid id);
-
-                glb.UserInfo.UserID = userid;
-                glb.UserInfo.UserLogin = claims.FirstOrDefault(x => x.Type == "UserLogin")?.Value ?? "";
-                glb.UserInfo.FullName = claims.FirstOrDefault(x => x.Type == "FullName")?.Value ?? "";
-                glb.UserInfo.Email = claims.FirstOrDefault(x => x.Type == "Email")?.Value ?? "";
-                glb.UserInfo.GoogleEmail = claims.FirstOrDefault(x => x.Type == "GoogleEmail")?.Value ?? "";
-                glb.UserInfo.IsAdmin = isadmin;
-                glb.UserInfo.GroupId = id;
-                glb.UserInfo.GroupName = claims.FirstOrDefault(x => x.Type == "GroupName")?.Value ?? "";
-                glb.UserInfo.MemberCompanyCode = claims.FirstOrDefault(x => x.Type == "MemberCompanyCode")?.Value ?? "";
-                glb.UserInfo.MemberCompanyName = claims.FirstOrDefault(x => x.Type == "MemberCompanyName")?.Value ?? "";
-                glb.UserInfo.MemberCompanyShortName = claims.FirstOrDefault(x => x.Type == "MemberCompanyShortName")?.Value ?? "";
-                glb.UserInfo.DepartmentName = claims.FirstOrDefault(x => x.Type == "DepartmentName")?.Value ?? "";
-                glb.UserInfo.DepartmentCode = claims.FirstOrDefault(x => x.Type == "DepartmentCode")?.Value ?? "";
-                //glb.UserInfo.List_PagePermission = !string.IsNullOrEmpty(claims.FirstOrDefault(x => x.Type == "PermissionJson")?.Value) ? JsonConvert.DeserializeObject<List<sp_Authentication_GetPermissionSinglePage>>(claims.FirstOrDefault(x => x.Type == "PermissionJson")?.Value) : new List<sp_Authentication_GetPermissionSinglePage>();
-                glb.Server = claims.FirstOrDefault(x => x.Type == "Server")?.Value ?? "";
-
-                //sp_Authentication_GetPermissionSinglePage = (await _bussinessService.SPServiceRead<sp_Authentication_GetPermissionSinglePage>(
-                //                                                                            Config.SPENUM_ResType.Single,
-                //                                                                            nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                //                                                                            nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage),
-                //                                                                            new { userId = glb.UserInfo?.UserID ?? userid, pageCode = "0001" }))?.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage();
-
-                sp_Authentication_GetPermissionSinglePage = new sp_Authentication_GetPermissionSinglePage();
-                try
-                {
-                    string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                    var body = new { userId = glb.UserInfo?.UserID ?? userid, pageCode = "0001" };
-                    var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
-                    if (parsedData is not null)
-                    {
-                        sp_Authentication_GetPermissionSinglePage = parsedData;
-                    }
-
-                    if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
-                    {
-                        NavigationManager.NavigateTo("Home", true);
-                    }
-                }
-                catch (Exception)
-                {
-                    // API không khả dụng (design-time) → giữ giá trị mặc định
-                }
-
-            }
-            else
+            // Load Authenticated
+            var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();
+            if (!isAuthenticated)
             {
                 NavigationManager.NavigateTo("logoutprocess", true);
+                return;
+            }
+            claims = userClaims;
+
+            // Load permission
+            sp_Authentication_GetPermissionSinglePage = await AuthHelper.LoadGlbPermissionAsync(Config.Page_ComponentCode.PageCode.Sidebar);
+
+            if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
+            {
+                NavigationManager.NavigateTo("Home", true);
             }
         }
         protected async Task LoadTheme()
@@ -181,3 +138,4 @@ namespace gtas_vpp_fe.Components.Layout
         }
     }
 }
+

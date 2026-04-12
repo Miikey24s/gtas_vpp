@@ -19,17 +19,17 @@
         public const int AuthPropertyExpireHours = 24;
 
         // Claim keys
-        public const string ClaimUserID = "UserID";
-        public const string ClaimUserLogin = "UserLogin";
-        public const string ClaimFullName = "FullName";
-        public const string ClaimEmail = "Email";
-        public const string ClaimIsAdmin = "IsAdmin";
-        public const string ClaimGroupId = "GroupId";
-        public const string ClaimGroupName = "GroupName";
-        public const string ClaimMemberCompanyCode = "MemberCompanyCode";
-        public const string ClaimMemberCompanyName = "MemberCompanyName";
-        public const string ClaimMemberCompanyShortName = "MemberCompanyShortName";
-        public const string ClaimExpired = "Expired";
+        //public const string ClaimUserID = "UserID";
+        //public const string ClaimUserLogin = "UserLogin";
+        //public const string ClaimFullName = "FullName";
+        //public const string ClaimEmail = "Email";
+        //public const string ClaimIsAdmin = "IsAdmin";
+        //public const string ClaimGroupId = "GroupId";
+        //public const string ClaimGroupName = "GroupName";
+        //public const string ClaimMemberCompanyCode = "MemberCompanyCode";
+        //public const string ClaimMemberCompanyName = "MemberCompanyName";
+        //public const string ClaimMemberCompanyShortName = "MemberCompanyShortName";
+        //public const string ClaimExpired = "Expired";
         public static class sp_AuthenClass
         {
             public enum sp_Authen
@@ -51,9 +51,10 @@
         {
             public static class PageCode
             {
-                public const string Dashboard = "0001";
-                public const string Sidebar = "0002";
+                public const string Sidebar = "0001";
+                public const string Dashboard = "0002";
                 public const string Permission = "0004";
+                public const string PageHaveAdminView = "0002";
             }
 
             public static class ComponentCode

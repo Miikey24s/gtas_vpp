@@ -2,7 +2,7 @@
 using Radzen;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using gtas_vpp_fe.Helpers.DTOs.Req;
+using gtas_vpp_shared.DTOs.Req;
 
 namespace gtas_vpp_fe.Components.Pages.Authen
 {
@@ -74,3 +74,4 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         }
     }
 }
+

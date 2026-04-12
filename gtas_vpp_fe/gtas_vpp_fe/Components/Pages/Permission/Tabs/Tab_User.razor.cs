@@ -1,6 +1,6 @@
 ﻿using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Req;
-using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -47,7 +47,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     //                                                            new { userId = glb.UserInfo.UserID, pageCode = "0001" })
                     //                                                .ContinueWith(x => x.Result.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage());
                     string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Sidebar };
+                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.PageHaveAdminView };
                     var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
                     
                     if (parsedData is not null)
@@ -290,3 +290,4 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         #endregion
     }
 }
+

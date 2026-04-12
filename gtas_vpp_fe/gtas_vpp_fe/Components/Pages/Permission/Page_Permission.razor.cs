@@ -1,5 +1,5 @@
 ﻿using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -10,31 +10,35 @@ namespace gtas_vpp_fe.Components.Pages.Permission
     public partial class Page_Permission
     {
         [Parameter] public string? Per { get; set; }
-        //[Inject] public IBussinessService _bussinessService { get; set; }
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         public IEnumerable<Claim> claims { get; set; } = new List<Claim>();
         public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new sp_Authentication_GetPermissionSinglePage();
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            if (user.Identity is null || !user.Identity.IsAuthenticated)
+            try
             {
-                UriHelper.NavigateTo("Account/Login", true);
+                await LoadAuthenticationState();
             }
-
-            if (user.Identity is not null && user.Identity.IsAuthenticated)
+            catch (Exception)
             {
-                claims = user.Claims;
-            }
-            else
-            {
-                UriHelper.NavigateTo("Account/Login", true);
+                // Design-time hoặc API chưa sẵn sàng
             }
         }
+
+        private async Task LoadAuthenticationState()
+        {
+            // Load Authenticated
+            var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();
+            if (!isAuthenticated)
+            {
+                NavigationManager.NavigateTo("logoutprocess", true);
+                return;
+            }
+            claims = userClaims;
+        }
+
         protected override async Task OnParametersSetAsync()
         {
             await base.OnParametersSetAsync();
@@ -46,26 +50,19 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             glb.isBusyPage = true;
             try
             {
-                _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int UserId);
-                //sp_Authentication_GetPermissionSinglePage = await _bussinessService.SPServiceRead<sp_Authentication_GetPermissionSinglePage>(
-                //                                                                Config.SPENUM_ResType.Single,
-                //                                                                nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                //                                                                nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage),
-                //                                                                new { userId = UserId != 0 ? UserId : glb.UserInfo.UserID, pageCode = "0001" })
-                //                                                .ContinueWith(x => x.Result.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage());
-                string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                var body = new { userId = UserId != 0 ? UserId : glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Sidebar };
-                var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
-
-                if (parsedData is not null)
+                var userIdString = claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
+                if (int.TryParse(userIdString, out int validUserId) == true)
                 {
-                    sp_Authentication_GetPermissionSinglePage = parsedData;
-                    StateHasChanged();
+                    glb.UserInfo.UserID = validUserId;
+                    sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.PageHaveAdminView);
+                    if (sp_Authentication_GetPermissionSinglePage is not null)
+                    {
+                        StateHasChanged();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                //_bussinessService.WriteLog(ex, "sp_Authentication_GetPermissionSinglePage", new Dictionary<string, object>() { { "UserId", claims.FirstOrDefault(x => x.Type == "UserID")?.Value }, { "PageCode", "0003" } });
                 Console.WriteLine("Error when call SP sp_Authentication_GetPermissionSinglePage:" + ex.Message);
                 NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
             }
@@ -76,3 +73,4 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         }
     }
 }
+

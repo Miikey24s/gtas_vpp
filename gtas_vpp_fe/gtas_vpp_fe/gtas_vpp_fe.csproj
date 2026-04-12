@@ -25,4 +25,8 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\gtas_vpp\gtas_vpp_shared\gtas_vpp_shared.csproj" />
+  </ItemGroup>
+
 </Project>

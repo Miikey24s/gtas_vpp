@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers.DTOs.Res.Auth;
+﻿using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Radzen;
@@ -36,3 +36,4 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         }
     }
 }
+

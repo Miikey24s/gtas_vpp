@@ -1,6 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
-@using gtas_vpp_fe.Helpers.DTOs.Res.Auth
-@using gtas_vpp_fe.Helpers.DTOs.Share
+@using gtas_vpp_shared.DTOs.Res.Auth
+@using gtas_vpp_shared.DTOs.Share
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager UriHelper
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -10,8 +10,8 @@
 @inject ContextMenuService ContextMenuService
 @inject NotificationService NotificationService
 @inject IJSRuntime js
-@using gtas_vpp_fe.Helpers.DTOs.Res
-@using gtas_vpp_fe.Helpers.DTOs.Res.Auth
+@using gtas_vpp_shared.DTOs.Res
+@using gtas_vpp_shared.DTOs.Res.Auth
 @using gtas_vpp_fe.Helpers
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))

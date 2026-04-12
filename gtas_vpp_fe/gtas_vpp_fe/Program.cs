@@ -1,6 +1,6 @@
-using gtas_vpp_fe.Components;
+﻿using gtas_vpp_fe.Components;
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.Helpers.DTOs.Share;
+using gtas_vpp_shared.DTOs.Share;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Radzen;
@@ -14,15 +14,16 @@ builder.Services.AddRazorComponents()
 builder.Services.AddRadzenComponents();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
+builder.Services.AddScoped<AuthHelper>();
 #region Cookie
-// 1. Thêm cấu hình hỗ trợ Cookie policy
+// 1. ThÃªm cáº¥u hÃ¬nh há»— trá»£ Cookie policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.CheckConsentNeeded = context => true;
     options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 
-// 2. Thêm Authentication với Cookie scheme
+// 2. ThÃªm Authentication vá»›i Cookie scheme
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -32,7 +33,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(Config.CookieExpireMinutes);
     });
 
-// 3. Cấu hình cho Blazor biết đang có Authentication
+// 3. Cáº¥u hÃ¬nh cho Blazor biáº¿t Ä‘ang cÃ³ Authentication
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 #endregion
@@ -48,8 +49,8 @@ builder.Services.AddHttpClient<IAPIServices, APIServices>(client =>
 #endregion
 #region SeriLog
 //Log.Logger = new LoggerConfiguration()
-//    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Fatal) // bỏ log của ASP.NET
-//    .MinimumLevel.Debug() // chỉ nhận log do mình ghi
+//    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Fatal) // bá» log cá»§a ASP.NET
+//    .MinimumLevel.Debug() // chá»‰ nháº­n log do mÃ¬nh ghi
 //    .Enrich.FromLogContext()
 //    .WriteTo.Console()
 //    .WriteTo.File(
@@ -87,3 +88,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
