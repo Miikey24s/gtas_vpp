@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using gtas_vpp_shared.DTOs.Res.Auth;
+using Microsoft.Extensions.Logging;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -19,10 +20,13 @@ namespace gtas_vpp_be.Controllers
         //private readonly IJwtTokenService _jwtTokenService;
         private readonly VPPContext _authDb;
         private readonly IBussinessService _bussinessService;
+
+
         public AuthController(VPPContext authDb, IBussinessService bussinessService)
         {
             _authDb = authDb;
             _bussinessService = bussinessService;
+
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -131,6 +135,8 @@ namespace gtas_vpp_be.Controllers
                     return Unauthorized(new { message = result.ErrorMess ?? "Login failed" });
                 // ResData là JSON từ SP, truyền vào DTO để deserialize
                 var loginData = JsonConvert.DeserializeObject<sp_Authentication_Login>(result.ResData);
+                Console.WriteLine(
+    $"[LOGIN] user={request.Username} | FullName={loginData?.FullName} | MemberCompanyName={loginData?.MemberCompanyName} | DepartmentCode={loginData?.DepartmentCode}");
                 if (loginData == null)
                     return Unauthorized(new { message = "Invalid username or password." });
 
