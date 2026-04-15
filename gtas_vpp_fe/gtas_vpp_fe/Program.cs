@@ -15,6 +15,7 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
 builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
 #region Cookie
 // 1. ThÃªm cáº¥u hÃ¬nh há»— trá»£ Cookie policy
 builder.Services.Configure<CookiePolicyOptions>(options =>

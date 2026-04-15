@@ -1,0 +1,163 @@
+﻿@using System.Reflection
+@using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_fe.Helpers
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+@typeparam TType
+
+<PageTitle>Library</PageTitle>
+
+
+<PageTitle>Library</PageTitle>
+<RadzenDataGrid @ref="DataGrid"
+                AllowFiltering="true"
+                AllowColumnResize="true"
+                AllowMultiColumnSorting="true"
+                AllowVirtualization="true"
+                AllowAlternatingRows="true"
+                AllowGrouping="true"
+                ColumnsPickerAllowFiltering=true
+                AllowColumnPicking=true
+                AllowPickAllColumns="true"
+                ShowMultiColumnSortingIndex=true
+                AllowSorting="true"
+                AllowColumnReorder="true"
+                FilterMode="FilterMode.CheckBoxList"
+                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                AllowPaging="false"
+                class="librarypagegrid"
+                Style="height: calc(100vh - 140px);"
+                TItem="TType"
+                IsLoading="@glb.isBusyPage"
+                @bind-Value="selected_item"
+                Data=@Data
+                RowDoubleClick=@RowDoubleClickHandle
+                ColumnWidth="300px"
+                LogicalFilterOperator="LogicalFilterOperator.And"
+                RowUpdate="@OnUpdateRow"
+                RowCreate="@OnCreateRow"
+                EditMode="DataGridEditMode.Single"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+    <HeaderTemplate>
+        <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Secondary" class="consumptionaddbutton" IsBusy="@glb.isBusyPage" Click="@InsertRow" Disabled="@onEdit" />
+    </HeaderTemplate>
+    <Columns>
+        <RadzenDataGridColumn TItem="TType" Width="50px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="context">
+                @(Data.ToList<TType>().IndexOf(context) + 1)
+            </Template>
+        </RadzenDataGridColumn>
+        @foreach (var prop in typeof(TType).GetProperties())
+        {
+            var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
+            var typeCode = Type.GetTypeCode(prop.PropertyType);
+            var displayName = attr?.DisplayName ?? prop.Name;
+            var width = attr?.Width;
+            if (!(attr?.Ignore ?? false))
+            {
+                @if (attr?.IsDropdownList ?? false)
+                {
+                    <RadzenDataGridColumn TItem="TType"
+                                          Title=@(displayName)
+                                          Width=@width
+                                          Filterable="false">
+                        <Template Context="context">
+                            <p>
+                                @(DicDropdownData[prop.Name].Where(x =>
+                                                    {
+                                                        var data = context.GetPropertyValue(prop.Name, prop.PropertyType)?.ToString();
+                                                        return data.Equals(x.Value);
+                                                    }).FirstOrDefault()?.Name ?? "Not Match")
+                            </p>
+                        </Template>
+                        <EditTemplate Context="context">
+                            <RadzenDropDown TValue="string"
+                                            Data=DicDropdownData[prop.Name]
+                                            ValueProperty="Value"
+                                            TextProperty="Name"
+                                            Value=@(context.GetPropertyValue(prop.Name,prop.PropertyType)?.ToString())
+                                            Change="@(args => ChangeDropdown(args,context, prop))"
+                                            AllowFiltering=true
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                }
+                else
+                {
+                    <RadzenDataGridColumn TItem="TType"
+                                          Property="@prop.Name"
+                                          Title=@displayName
+                                          Width=@width>
+                        <EditTemplate Context="context">
+                            @switch (typeCode)
+                            {
+                                case TypeCode.Double:
+                                case TypeCode.Single:
+                                    <RadzenNumeric TValue="double?" Style="width:100%; display: block" Name="@displayName"
+                                                   Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as double?)"
+                                                   ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
+                                    break;
+                                case TypeCode.Int16:
+                                case TypeCode.Int32:
+                                case TypeCode.Int64:
+                                    <RadzenNumeric TValue="int?" Style="width:100%; display: block" Name="@displayName"
+                                                   Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as int?)"
+                                                   ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
+                                    break;
+
+                                case TypeCode.Boolean:
+                                    <RadzenSwitch Value="@((context.GetPropertyValue(prop.Name, prop.PropertyType) as bool?) ?? false)"
+                                                  ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
+                                    break;
+                                case TypeCode.Empty:
+                                case TypeCode.String:
+                                default:
+                                    <RadzenTextBox Style="width:100%; display: block" Name="@displayName"
+                                                   Value="@(context.GetPropertyValue(prop.Name,prop.PropertyType)?.ToString()??string.Empty)"
+                                                   ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
+                                    break;
+                            }
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                }
+            }
+        }
+        @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+        {
+            <RadzenDataGridColumn TItem="TType" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+                <Template Context="context">
+                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+                    {
+                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@onEdit" Class="m-1" Click="@(args => EditRow(context))" @onclick:stopPropagation="true">
+                        </RadzenButton>
+                    }
+                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Disabled="@onEdit" Class="m-1" Click="@(args => DeleteRow(context))" @onclick:stopPropagation="true">
+                        </RadzenButton>
+                    }
+                </Template>
+                <EditTemplate Context="context">
+                    <RadzenButton Icon="check" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(context))">
+                    </RadzenButton>
+                    <RadzenButton Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(context))">
+                    </RadzenButton>
+                </EditTemplate>
+            </RadzenDataGridColumn>
+        }
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    public IList<TType> selected_item;
+
+    void ChangeDropdown(object args, TType context, System.Reflection.PropertyInfo prop)
+    {
+        var cc = args;
+        if (prop.PropertyType.Name == "Guid")
+        {
+            context.SetPropertyValue(prop.Name, Guid.Parse(cc.ToString()));
+            return;
+        }
+        context.SetPropertyValue(prop.Name, Convert.ChangeType(args, prop.PropertyType));
+    }
+}

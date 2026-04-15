@@ -20,7 +20,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
     public partial class Tab_PagePermission
     {
         //[Inject] public IBussinessService _bussinessService { get; set; }
-        //[Inject] public ICustomNotificationService _notificationService { get; set; }
+        [Inject] public ICustomNotificationService _notificationService { get; set; }
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
@@ -145,7 +145,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             catch (Exception ex)
             {
                 //_bussinessService.WriteLog(ex, "sp_Authentication_Permission_GetPageWithComponentByGroupId", new Dictionary<string, object>() { { "GroupId", group.Id } });
-                //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call sp_Authentication_Permission_GetPageWithComponentByGroupId:" + ex.Message, 10000, true);
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call sp_Authentication_Permission_GetPageWithComponentByGroupId:" + ex.Message, 10000, true);
             }
             IsLoading_Child = false;
             glb.isBusyPage = false;

@@ -1,4 +1,4 @@
-﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Radzen.Blazor.Rendering
 @using System.Globalization
@@ -35,16 +35,10 @@
 <RadzenSidebar Responsive="true" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
     <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
         <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_HD" && x.IsVisible)" Text="Dashboard" Icon="home" class="ppjsidebarmenu" Path="/" />
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_HD" && x.IsVisible)" Text="Consumption" Icon="dashboard" class="ppjsidebarmenu">
-            <RadzenPanelMenuItem Text="Class/Master data" Path="pur" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
-        </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_HD" && x.IsVisible)" Text="Counter" Icon="home" class="ppjsidebarmenu" Path="/counter" />
         <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => (x.ComponentCode?.Contains("0001_LIB") ?? false) && x.IsVisible)" Text="Library" Icon="auto_awesome" class="ppjsidebarmenu">
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_C" && x.IsVisible)" Text="Class/Master data" Path="library/class" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_OC" && x.IsVisible)" Text="Operation Category" Path="library/operationcat" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_O" && x.IsVisible)" Text="Operation" Path="library/operation" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_E" && x.IsVisible)" Text="Equipment" Path="library/equipment" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_R" && x.IsVisible)" Text="Route" Path="library/route" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_C" && x.IsVisible)" Text="Class Definitions" Path="library/class" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_OC" && x.IsVisible)" Text="Operation Categories" Path="library/operationcat" class="ppjsidebarmenu submenu" Icon="menu_book" />
+            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_O" && x.IsVisible)" Text="Operations" Path="library/operation" class="ppjsidebarmenu submenu" Icon="menu_book" />
         </RadzenPanelMenuItem>
         <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_R" && x.IsVisible)" Text="Report" Icon="analytics" class="ppjsidebarmenu" Path="/Report" />
         <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_S" && x.IsVisible)" Text="Permission" Icon="settings" class="ppjsidebarmenu">

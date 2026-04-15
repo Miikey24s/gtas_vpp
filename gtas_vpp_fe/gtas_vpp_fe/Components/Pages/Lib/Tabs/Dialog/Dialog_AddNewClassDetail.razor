@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager UriHelper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService DialogService
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+@inject NavigationManager NavigationManager
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IJSRuntime js
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@try
+{
+    <RadzenTemplateForm Data="l02editmodel" Submit="@(async (L02_ClassDetailResDTO args) => { await SubmitLocationInlineDialog(args); })">
+        <RadzenRow Gap="1rem" RowGap="1rem" class="rz-p-2">
+            <RadzenColumn Size="12" SizeLG="6" SizeMD="6" SizeSM="12">
+                <RadzenFormField AllowFloatingLabel=false Text="Class Code" class="w-100">
+                    <RadzenTextBox @bind-Value=l02editmodel.ClassDetailCode Name="ClassCode" AutoCompleteType="AutoCompleteType.Off" />
+                </RadzenFormField>
+                <RadzenRequiredValidator Component="ClassCode" Text="This field is required" Popup=true Style="position: absolute" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeLG="6" SizeMD="6" SizeSM="12">
+                <RadzenFormField AllowFloatingLabel=false Text="Class Name" class="w-100">
+                    <RadzenTextBox @bind-Value=l02editmodel.ClassDetailValue Name="ClassValue" AutoCompleteType="AutoCompleteType.Off" />
+                </RadzenFormField>
+                <RadzenRequiredValidator Component="ClassValue" Text="This field is required" Popup=true Style="position: absolute" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeLG="4" SizeMD="4" SizeSM="12">
+                <RadzenFormField AllowFloatingLabel=false Text="Extra Field 1" class="w-100">
+                    <RadzenTextBox @bind-Value=l02editmodel.ExtraField1 Name="ExtraField1" AutoCompleteType="AutoCompleteType.Off" />
+                </RadzenFormField>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeLG="4" SizeMD="4" SizeSM="12">
+                <RadzenFormField AllowFloatingLabel=false Text="Extra Field 2" class="w-100">
+                    <RadzenTextBox @bind-Value=l02editmodel.ExtraField2 Name="ExtraField2" AutoCompleteType="AutoCompleteType.Off" />
+                </RadzenFormField>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeLG="4" SizeMD="4" SizeSM="12">
+                <RadzenFormField AllowFloatingLabel=false Text="Extra Field 3" class="w-100">
+                    <RadzenTextBox @bind-Value=l02editmodel.ExtraField3 Name="ExtraField3" AutoCompleteType="AutoCompleteType.Off" />
+                </RadzenFormField>
+            </RadzenColumn>
+            <RadzenColumn Size="12">
+                <RadzenFormField AllowFloatingLabel=false Text="Description" class="w-100">
+                    <RadzenTextArea Rows="3" @bind-Value=l02editmodel.Description />
+                </RadzenFormField>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenStack Orientation="Orientation.Horizontal" class="rz-p-2" AlignItems="AlignItems.End" JustifyContent="JustifyContent.End">
+            @if (isCreateNew)
+            {
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" Click="@(arg => { IsClose_Dialog = false; })" Text="Save" Icon="Save" IsBusy="IsBusy_Dialog" />
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" Click="@(arg => { IsClose_Dialog = true; })" Text="Save & Close" Icon="Save" IsBusy="IsBusy_Dialog" />
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(arg => { DialogService.Close(); })" Text="Close" Icon="close" IsBusy="IsBusy_Dialog" />
+            }
+            else
+            {
+                <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" Click="@(arg => { IsClose_Dialog = true; })" Text="Save & Close" Icon="Save" IsBusy="IsBusy_Dialog" />
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(arg => { DialogService.Close(); })" Text="Close" Icon="close" IsBusy="IsBusy_Dialog" />
+            }
+        </RadzenStack>
+    </RadzenTemplateForm>
+}
+catch (Exception ex)
+{
+    @* _bussinessService.WriteLog(ex, "Load Dialog_AddNewClass.razor"); *@
+    throw;
+}

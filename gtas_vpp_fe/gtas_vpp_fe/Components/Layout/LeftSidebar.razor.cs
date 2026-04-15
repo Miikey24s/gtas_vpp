@@ -99,7 +99,7 @@ namespace gtas_vpp_fe.Components.Layout
                 return;
             }
             claims = userClaims;
-
+            
             // Load permission
             sp_Authentication_GetPermissionSinglePage = await AuthHelper.LoadGlbPermissionAsync(Config.Page_ComponentCode.PageCode.Sidebar);
 

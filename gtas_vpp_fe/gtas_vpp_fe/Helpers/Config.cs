@@ -6,6 +6,16 @@
         public const string HttpClientName = "VPP_API";
         public const string ApiLoginEndpoint = "/api/Auth/login";
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
+        public const string ApiLibraryBase = "/api/Library";
+        public static class LibraryApi
+        {
+            public const string L01_Class = $"{ApiLibraryBase}/l01";
+            public const string L02_ClassDetail = $"{ApiLibraryBase}/l02";
+            public const string L03_Category = $"{ApiLibraryBase}/l03";
+            public const string L04_Item = $"{ApiLibraryBase}/l04";
+            public const string L05_Supplier = $"{ApiLibraryBase}/l05";
+            public const string L06_SupplierMapping = $"{ApiLibraryBase}/l06";
+        }
 
         // Routes
         public const string LoginPagePath = "/Account/Login";
@@ -17,19 +27,6 @@
         public const int CookieExpireMinutes = 30;
         public const int ClaimExpireHours = 12;
         public const int AuthPropertyExpireHours = 24;
-
-        // Claim keys
-        //public const string ClaimUserID = "UserID";
-        //public const string ClaimUserLogin = "UserLogin";
-        //public const string ClaimFullName = "FullName";
-        //public const string ClaimEmail = "Email";
-        //public const string ClaimIsAdmin = "IsAdmin";
-        //public const string ClaimGroupId = "GroupId";
-        //public const string ClaimGroupName = "GroupName";
-        //public const string ClaimMemberCompanyCode = "MemberCompanyCode";
-        //public const string ClaimMemberCompanyName = "MemberCompanyName";
-        //public const string ClaimMemberCompanyShortName = "MemberCompanyShortName";
-        //public const string ClaimExpired = "Expired";
         public static class sp_AuthenClass
         {
             public enum sp_Authen
@@ -75,7 +72,7 @@
                 public const string PermissionViewable = "0004_V";
             }
             /*
-Config.Page_ComponentCode.ComponentCode.PermissionViewable
+Config.Page_ComponentCode.ComponentCode.HomeDashboard
             */
         }
     }

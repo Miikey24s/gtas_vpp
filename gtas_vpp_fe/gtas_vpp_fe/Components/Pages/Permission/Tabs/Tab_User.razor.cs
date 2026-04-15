@@ -1,7 +1,7 @@
 ﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
-using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 {
@@ -110,7 +111,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     List<sp_Authentication_TabUser_UserList>
                 >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                    new {}
+                    new { }
                 );
             }
             catch (Exception ex)
@@ -140,7 +141,8 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     List<sp_Authentication_TabUser_UserList>
                     >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                    new { SearchText = SearchText }
+                    new { SearchText = SearchText },
+                    jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
                     );
                 }
                 else
@@ -154,7 +156,8 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     List<sp_Authentication_TabUser_UserList>
                     >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_SearchUser),
-                    new { SearchText = SearchText }
+                    new { SearchText = SearchText },
+                    jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
                     );
                 }
             }

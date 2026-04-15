@@ -1,0 +1,155 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_fe.Helpers
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager UriHelper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService DialogService
+@inject GlobalClass glb
+@inject NavigationManager NavigationManager
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IJSRuntime js
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@try
+{
+    <RadzenSplitter>
+        <RadzenSplitterPane Size="30%" Min="30%" Max="70%">
+            <RadzenDataGrid @ref="classGrid"
+                            Value=@selectedClasses
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            AllowMultiColumnSorting="true"
+                            AllowVirtualization="true"
+                            AllowAlternatingRows="false"
+                            AllowGrouping="false"
+                            ColumnsPickerAllowFiltering=false
+                            AllowColumnPicking=false
+                            AllowPickAllColumns="false"
+                            ShowMultiColumnSortingIndex=true
+                            AllowSorting="true"
+                            AllowColumnReorder="true"
+                            AllowPaging="false"
+                            IsLoading=@isBusyGrid01
+                            RowSelect="GridL01Selected"
+                            FilterMode="FilterMode.CheckBoxList"
+                            Density="Density.Compact"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            class="librarypagegrid"
+                            ValueChanged="SelectedL01OnChange"
+                            RowDoubleClick="@(arg => ButtonOnClick_AddNewOrUpdateDialog_L01(false, arg))"
+                            Style="height: calc(100vh - 14.5vh);"
+                            TItem="L01_ClassResDTO"
+                            Data=@classList
+                            ColumnWidth="100px"
+                            LogicalFilterOperator="LogicalFilterOperator.And"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                <HeaderTemplate>
+                    <RadzenFormField AllowFloatingLabel=true Text="Search" Variant="Variant.Text">
+                        <ChildContent>
+                            <RadzenTextBox @bind-Value="@SearchTextL01" />
+                        </ChildContent>
+                        <End>
+                            <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Icon="filter_alt_off" Disabled=isBusyGrid01 ButtonStyle="ButtonStyle.Secondary" Click="ButtonOnClick_FilterOffL01" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Icon="search" Disabled=isBusyGrid01 Click="ButtonOnClick_SearchL01"/>
+                            </RadzenStack>
+                        </End>
+                    </RadzenFormField>
+                    <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Disabled=isBusyGrid01 IsBusy=isBusyGrid01 Icon="add" Text="Add new class" class="rz-ml-5" Click="@(arg => ButtonOnClick_AddNewOrUpdateDialog_L01(true, null))" />
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumn TItem="L01_ClassResDTO" Title="#" Width="45px" Filterable=false Groupable=false Pickable=false Reorderable=false Resizable=true Sortable=false>
+                        <Template Context=data>
+                            @(classList.IndexOf(data) + 1)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="L01_ClassResDTO" Width="60px" Title="Is Deleted">
+                        <Template Context="data">
+                            <RadzenSwitch @bind-Value=data.IsDeleted class="isDeleteSwitch" Change="@(arg => SwitchOnChange_IsDeleteL01(data))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="L01_ClassResDTO" Width="150px" Property="@nameof(L01_ClassResDTO.ClassName)" Title="Class Name">
+                        <Template Context="datal01">
+                            <RadzenButton class="buttonlink" Text="@datal01.ClassName" Click="@(arg => ButtonOnClick_LinkDetail(datal01))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="L01_ClassResDTO" Property="@nameof(L01_ClassResDTO.ClassModul)" Title="Class Module" />
+                    <RadzenDataGridColumn TItem="L01_ClassResDTO" Width="250px" Property="@nameof(L01_ClassResDTO.Description)" Title="Description" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenSplitterPane>
+        <RadzenSplitterPane>
+            <RadzenDataGrid @ref="classDetailGrid"
+                            Value=@selectedClassDetails
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            AllowMultiColumnSorting="true"
+                            AllowVirtualization="true"
+                            AllowAlternatingRows="false"
+                            AllowGrouping="false"
+                            ColumnsPickerAllowFiltering=false
+                            AllowColumnPicking=false
+                            AllowPickAllColumns="false"
+                            ShowMultiColumnSortingIndex=true
+                            AllowSorting="true"
+                            AllowColumnReorder="true"
+                            AllowPaging="false"
+                            EmptyText="Please select one class in left side panel"
+                            IsLoading=@isBusyGrid02
+                            RowSelect="GridL01Selected"
+                            FilterMode="FilterMode.CheckBoxList"
+                            Density="Density.Compact"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            class="librarypagegrid"
+                            RowRender="@RowRenderL02"
+                            RowDoubleClick="@(arg => ButtonOnClick_AddNewOrUpdateDialog_L02(false, arg))"
+                            Style="height: calc(100vh - 13vh);"
+                            TItem="L02_ClassDetailResDTO"
+                            Data=@classDetailList
+                            ColumnWidth="100px"
+                            LogicalFilterOperator="LogicalFilterOperator.And"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                <HeaderTemplate>
+                    <RadzenFormField AllowFloatingLabel=true Text="Search" Variant="Variant.Text">
+                        <ChildContent>
+                            <RadzenTextBox @bind-Value="@SearchTextL02" />
+                        </ChildContent>
+                        <End>
+                            <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Icon="filter_alt_off" Disabled=isBusyGrid01 ButtonStyle="ButtonStyle.Secondary" Click="ButtonOnClick_FilterOffL02"/>
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Icon="search" Disabled=isBusyGrid01 Click="ButtonOnClick_SearchL02" />
+                            </RadzenStack>
+                        </End>
+                    </RadzenFormField>
+                    <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Disabled=@((selectedClasses?.FirstOrDefault()?.IsDeleted ?? false) || isBusyGrid01) IsBusy=isBusyGrid01 Icon="add" Text="Add new class detail" class="rz-ml-5" Click="@(arg => ButtonOnClick_AddNewOrUpdateDialog_L02(true, null))" />
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Title="#" Width="45px" Filterable=false Groupable=false Pickable=false Reorderable=false Resizable=true Sortable=false>
+                        <Template Context=data>
+                            @(classDetailList.IndexOf(data) + 1)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Width="60px" Title="Is Deleted">
+                        <Template Context="data">
+                            <RadzenSwitch @bind-Value=data.IsDeleted class="isDeleteSwitch" Disabled=@(selectedClasses?.FirstOrDefault()?.IsDeleted ?? false) Change="@(arg => SwitchOnChange_IsDeleteL02(data))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Property="@nameof(L02_ClassDetailResDTO.ClassDetailCode)" Title="Code" />
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Property="@nameof(L02_ClassDetailResDTO.ClassDetailValue)" Title="Name" />
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Property="@nameof(L02_ClassDetailResDTO.Description)" Title="Description" />
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Property="@nameof(L02_ClassDetailResDTO.ExtraField1)" Title="Extra Field 1" />
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Property="@nameof(L02_ClassDetailResDTO.ExtraField2)" Title="Extra Field 2" />
+                    <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Property="@nameof(L02_ClassDetailResDTO.ExtraField3)" Title="Extra Field 3" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenSplitterPane>
+    </RadzenSplitter>
+}
+catch (Exception ex)
+{
+    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error loading Tab_ClassLibrary: " + ex.Message, 15000, true);
+}
