@@ -1,11 +1,7 @@
-﻿@page "/loginprocess/{username}/{password}/{isremember}/{server}"
+﻿@page "/loginprocess"
+@attribute [AllowAnonymous]
 @layout LoginLayout
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Net.Http
-@using Microsoft.AspNetCore.Http
-@using gtas_vpp_fe.Components.Layout
 
-@inject NotificationService NotificationService
 @inject NavigationManager UriHelper
 
 <PageTitle>GTAS VPP - Login</PageTitle>

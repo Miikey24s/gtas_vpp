@@ -16,6 +16,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
 builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
+builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie
 // 1. ThÃªm cáº¥u hÃ¬nh há»— trá»£ Cookie policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -87,6 +88,50 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapGet("/perform-login", async (
+    string id,
+    string? returnUrl,
+    gtas_vpp_fe.Helpers.LoginTicketCache cache,
+    HttpContext context) =>
+{
+    var data = cache.Get(id);
+    if (data == null)
+    {
+        return Microsoft.AspNetCore.Http.Results.Redirect("/Account/Login");
+    }
+
+    var (loginData, server, rememberMe) = data.Value;
+
+    var claims = loginData.sp_AuthenticationLogin_To_Claims();
+    claims.Add(new System.Security.Claims.Claim(ClaimKeys.Server, server));
+
+    var claimsIdentity = new System.Security.Claims.ClaimsIdentity(claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+    var claimsPrincipal = new System.Security.Claims.ClaimsPrincipal(claimsIdentity);
+
+    var authProperties = new Microsoft.AspNetCore.Authentication.AuthenticationProperties
+    {
+        IsPersistent = rememberMe,
+        AllowRefresh = true,
+    };
+
+    if (rememberMe)
+    {
+        authProperties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(gtas_vpp_fe.Helpers.Config.AuthPropertyExpireHours);
+    }
+
+    await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignInAsync(
+        context,
+        Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme,
+        claimsPrincipal,
+        authProperties);
+
+    if (!string.IsNullOrWhiteSpace(returnUrl))
+    {
+        return Microsoft.AspNetCore.Http.Results.Redirect(returnUrl);
+    }
+    return Microsoft.AspNetCore.Http.Results.Redirect("/");
+});
 
 app.Run();
 

@@ -1,0 +1,191 @@
+﻿@using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_fe.Helpers
+@inject DialogService DialogService
+@inject GlobalClass glb
+@inject NotificationService NotificationService
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@if (CanView)
+{
+    <RadzenStack Gap="0.75rem">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
+            <RadzenFormField Text="Year" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="int?"
+                                Data="@YearOptions"
+                                TextProperty="Text"
+                                ValueProperty="Value"
+                                @bind-Value="YearFilter"
+                                Style="width:120px" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="Month" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="int?"
+                                Data="@MonthOptions"
+                                TextProperty="Text"
+                                ValueProperty="Value"
+                                @bind-Value="MonthFilter"
+                                Style="width:120px" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="Status" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="int?"
+                                Data="@StatusOptions"
+                                TextProperty="Text"
+                                ValueProperty="Value"
+                                @bind-Value="StatusFilter"
+                                Style="width:160px" />
+            </RadzenFormField>
+
+            <RadzenButton Icon="search" Text="Search" Size="ButtonSize.Small" Click="LoadOrdersAsync" Disabled="@IsLoading" />
+            <RadzenButton Icon="refresh" Text="Reload" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="ReloadAsync" Disabled="@IsLoading" />
+            <RadzenButton Icon="add_circle" Text="Add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Click="OpenCreateDialogAsync" Disabled="@IsLoading" />
+            <RadzenButton Icon="content_copy" Text="Copy previous month" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@(async _ => await CopyPreviousMonthAsync())" Disabled="@IsLoading" />
+        </RadzenStack>
+
+        @if (EditorVisible)
+        {
+            <RadzenCard>
+                <RadzenStack Gap="0.5rem">
+                    <RadzenText Text="@(EditorIsEdit ? "Edit order" : "Create order")" TextStyle="TextStyle.H6" />
+
+                    <RadzenRow Gap="0.5rem">
+                        <RadzenColumn Size="2">
+                            <RadzenFormField Text="Year" AllowFloatingLabel="false" class="w-100">
+                                <RadzenNumeric TValue="int" Min="2000" Max="2999" @bind-Value="EditorModel.Y" class="w-100" />
+                            </RadzenFormField>
+                        </RadzenColumn>
+                        <RadzenColumn Size="2">
+                            <RadzenFormField Text="Month" AllowFloatingLabel="false" class="w-100">
+                                <RadzenNumeric TValue="int" Min="1" Max="12" @bind-Value="EditorModel.M" class="w-100" />
+                            </RadzenFormField>
+                        </RadzenColumn>
+                        <RadzenColumn Size="8">
+                            <RadzenFormField Text="Description" AllowFloatingLabel="false" class="w-100">
+                                <RadzenTextBox @bind-Value="EditorModel.Description" class="w-100" />
+                            </RadzenFormField>
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenButton Icon="add" Text="Add item" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddEditorItem" />
+
+                    <RadzenDataGrid TItem="Tab_Orders.EditOrderItem" Data="@EditorModel.Items" AllowPaging="false" AllowSorting="false" Density="Density.Compact">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Title="#" Width="50px" Sortable="false" Filterable="false">
+                                <Template Context="item">@(EditorModel.Items.IndexOf(item) + 1)</Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Title="Product" Width="450px">
+                                <Template Context="item">
+                                    <RadzenDropDown TValue="Guid"
+                                                    Data="@ProductOptions"
+                                                    TextProperty="Display"
+                                                    ValueProperty="Id"
+                                                    @bind-Value="item.VPPId"
+                                                    AllowFiltering="true"
+                                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                    class="w-100" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Title="Qty" Width="120px">
+                                <Template Context="item">
+                                    <RadzenNumeric TValue="int" Min="1" @bind-Value="item.Qty" class="w-100" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Title="Description">
+                                <Template Context="item">
+                                    <RadzenTextBox @bind-Value="item.Description" class="w-100" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Width="60px" Sortable="false" Filterable="false">
+                                <Template Context="item">
+                                    <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Disabled="@(EditorModel.Items.Count <= 1)" Click="@(_ => RemoveEditorItem(item))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" JustifyContent="JustifyContent.End">
+                        <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="CancelEditor" />
+                        <RadzenButton Text="Save" Icon="check" ButtonStyle="ButtonStyle.Success" Click="SaveEditorAsync" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenCard>
+        }
+
+        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO"
+                        Data="@Orders"
+                        AllowPaging="true"
+                        PageSize="15"
+                        AllowSorting="true"
+                        AllowFiltering="false"
+                        AllowColumnResize="true"
+                        ExpandMode="DataGridExpandMode.Single"
+                        IsLoading="@IsLoading"
+                        Density="Density.Compact"
+                        class="librarypagegrid">
+            <Columns>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="60px" Sortable="false" Filterable="false">
+                    <Template Context="row">@(Orders.IndexOf(row) + 1)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Action" Width="160px" Sortable="false" Filterable="false">
+                    <Template Context="row">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                            @if (IsDraft(row))
+                            {
+                                <RadzenButton Icon="edit" Size="ButtonSize.ExtraSmall" Click="@(async _ => await OpenEditDialogAsync(row))" Disabled="@IsLoading" Title="Edit" />
+                                <RadzenButton Icon="send" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Info" Click="@(async _ => await SubmitOrderAsync(row))" Disabled="@IsLoading" Title="Submit" />
+                                <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Click="@(async _ => await DeleteOrderAsync(row))" Disabled="@IsLoading" Title="Delete" />
+                            }
+                            else if (IsSubmitted(row))
+                            {
+                                <RadzenButton Icon="block" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Warning" Click="@(async _ => await CancelOrderAsync(row))" Disabled="@IsLoading" Title="Cancel" />
+                            }
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="150px" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Period" Width="120px">
+                    <Template Context="row">@($"{row.Y}/{row.M:00}")</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="140px">
+                    <Template Context="row">@GetStatusText(row.Status)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Items" Width="90px">
+                    <Template Context="row">@(row.Items?.Count ?? 0)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="UpdateDate" Title="Updated" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Description" Title="Description" />
+            </Columns>
+            <Template Context="row">
+                <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO"
+                                Data="@(row.Items ?? new())"
+                                AllowPaging="false"
+                                AllowSorting="false"
+                                Density="Density.Compact"
+                                Style="margin: .5rem 0 .75rem 0;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Title="#" Width="50px" Sortable="false" Filterable="false">
+                            <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPCode" Title="Item Code" Width="130px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="Item Name" Width="260px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="Qty" Width="90px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMCode" Title="UOM" Width="90px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="CurrentSinglePrice" Title="Price" Width="120px" />
+                    </Columns>
+                </RadzenDataGrid>
+            </Template>
+        </RadzenDataGrid>
+    </RadzenStack>
+}
+else
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat">No permission to view `Orders` tab.</RadzenAlert>
+}
+
+@code {
+    // Define your properties and methods here
+}
+

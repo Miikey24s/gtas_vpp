@@ -1,4 +1,5 @@
 ﻿@page "/logoutprocess"
+@attribute [AllowAnonymous]
 @using gtas_vpp_fe.Components.Layout
 @layout LoginLayout
 @using Microsoft.AspNetCore.Authentication
@@ -27,8 +28,6 @@
         await HttpContext
                 .SignOutAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme);
-        // companyModel.CurrentLocation = string.Empty;
-        //await protectedLocalStore.DeleteAsync("CurrentCompany");
         return true;
     }
 }

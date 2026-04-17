@@ -1,0 +1,33 @@
+﻿@using gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+<style>
+    ul[role=tablist] {
+        flex-wrap: wrap;
+    }
+</style>
+
+@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y =>
+    (y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.RequestOrder) && y.IsVisible)))
+{
+    <RadzenTabs Change="@TabOnChange"
+                TabPosition="@tabPosition"
+                class="librariestab"
+                RenderMode="TabRenderMode.Client"
+                @bind-SelectedIndex=SelectedIndex>
+        <Tabs>
+            <RadzenTabsItem Text="Orders">
+                @if (SelectedIndex == 0)
+                {
+                    <Tab_Orders claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="History">
+                @if (SelectedIndex == 1)
+                {
+                    <Tab_History claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+}

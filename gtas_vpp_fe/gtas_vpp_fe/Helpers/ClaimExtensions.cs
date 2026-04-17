@@ -11,7 +11,12 @@ namespace gtas_vpp_fe.Helpers
     {
         public static string Get(this IEnumerable<Claim> claims, string type)
         {
-            var claim = claims.FirstOrDefault(x => x.Type == type);
+            var claim = claims
+                .Where(x => x.Type == type)
+                .GroupBy(x => x.Type)
+                .Select(g => g.LastOrDefault())
+                .FirstOrDefault();
+
             return claim?.Value ?? "";
         }
 
@@ -51,7 +56,8 @@ namespace gtas_vpp_fe.Helpers
                 new(ClaimKeys.MemberCompanyName, sp_Authentication_Login.MemberCompanyName ?? string.Empty),
                 new(ClaimKeys.MemberCompanyShortName, sp_Authentication_Login.MemberCompanyShortName ?? string.Empty),
                 new(ClaimKeys.DepartmentName, sp_Authentication_Login.DepartmentName ?? string.Empty),
-                new(ClaimKeys.DepartmentCode, sp_Authentication_Login.DepartmentCode ?? string.Empty)
+                new(ClaimKeys.DepartmentCode, sp_Authentication_Login.DepartmentCode ?? string.Empty),
+                new(ClaimKeys.AccessToken, sp_Authentication_Login.AccessToken ?? string.Empty)
             };
         }
 
@@ -74,7 +80,7 @@ namespace gtas_vpp_fe.Helpers
                 MemberCompanyShortName = claims.Get(ClaimKeys.MemberCompanyShortName),
                 DepartmentName = claims.Get(ClaimKeys.DepartmentName),
                 DepartmentCode = claims.Get(ClaimKeys.DepartmentCode),
-                //List_PagePermission = new List<sp_Authentication_GetPermissionSinglePage>()
+                AccessToken = claims.Get(ClaimKeys.AccessToken)
             };
         }
     }

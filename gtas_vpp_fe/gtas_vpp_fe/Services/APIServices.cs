@@ -1,6 +1,10 @@
-﻿using gtas_vpp_shared.DTOs;
+﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_shared.DTOs;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+
 namespace gtas_vpp_fe.Services
 {
     public interface IAPIServices
@@ -18,11 +22,29 @@ namespace gtas_vpp_fe.Services
     public class APIServices : IAPIServices
     {
         private readonly HttpClient _httpClient;
+        private readonly AuthenticationStateProvider _authProvider;
         private readonly string _rootUrl = "api/SQL/StoreProcedure/";
-        public APIServices(HttpClient httpClient)
+        public APIServices(HttpClient httpClient, AuthenticationStateProvider authProvider)
         {
             _httpClient = httpClient;
+            _authProvider = authProvider;
         }
+
+        private async Task ApplyAuthorizationHeaderAsync()
+        {
+            var authState = await _authProvider.GetAuthenticationStateAsync();
+            var token = authState.User.Claims.Get(ClaimKeys.AccessToken);
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+
         public async void SetBaseUrl(string baseUrl)
         {
             if (_httpClient.BaseAddress == null)
@@ -32,19 +54,16 @@ namespace gtas_vpp_fe.Services
         }
         public async Task<string> GetDataFromExternalApiAsync(string endpoint)
         {
+            await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.GetAsync(_rootUrl + endpoint);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
         public async Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
         {
-            //if (_httpClient.BaseAddress == null)
-            //{
-            //    if(baseurl != null) 
-            //    _httpClient.BaseAddress = new Uri(baseurl);
-            //}
             if (url == null) url = $"{_rootUrl}sp_Authen?sptype={sptype}";
 
+            await ApplyAuthorizationHeaderAsync();
             var content = JsonContent.Create(body, options: jsonOptions);
             var response = await _httpClient.PostAsync(url, content);
 
@@ -75,7 +94,7 @@ namespace gtas_vpp_fe.Services
             {
                 return JsonSerializer.Deserialize<T>(
                     apiResult.ResData,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ;
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch (Exception ex)
             {
@@ -85,10 +104,12 @@ namespace gtas_vpp_fe.Services
 
         public async Task<T?> GetFromApiAsync<T>(string endpoint)
         {
+            await ApplyAuthorizationHeaderAsync();
             return await _httpClient.GetFromJsonAsync<T>(endpoint);
         }
         public async Task<T?> PostFromApiAsync<T>(string endpoint, object body)
         {
+            await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PostAsJsonAsync(endpoint, body);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<T>();
@@ -96,6 +117,7 @@ namespace gtas_vpp_fe.Services
 
         public async Task<T?> PutFromApiAsync<T>(string endpoint, object body)
         {
+            await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PutAsJsonAsync(endpoint, body);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<T>();
@@ -103,6 +125,7 @@ namespace gtas_vpp_fe.Services
 
         public async Task<T?> PatchFromApiAsync<T>(string endpoint, object body)
         {
+            await ApplyAuthorizationHeaderAsync();
             var request = new HttpRequestMessage(HttpMethod.Patch, endpoint)
             {
                 Content = JsonContent.Create(body)
@@ -115,6 +138,7 @@ namespace gtas_vpp_fe.Services
 
         public async Task<bool> DeleteFromApiAsync(string endpoint)
         {
+            await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.DeleteAsync(endpoint);
             return response.IsSuccessStatusCode;
         }

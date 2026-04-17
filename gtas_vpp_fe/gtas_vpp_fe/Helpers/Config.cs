@@ -52,6 +52,7 @@
                 public const string Dashboard = "0002";
                 public const string Permission = "0004";
                 public const string PageHaveAdminView = "0002";
+                public const string VPPRequest = "0003";
             }
 
             public static class ComponentCode
@@ -70,9 +71,12 @@
                 public const string HomeDashboard = "0001_HD";
                 public const string AdminView = "0002_ADM";
                 public const string PermissionViewable = "0004_V";
+                public const string RequestOrder = "0003_RQ_O";
+                public const string RequestHistory = "0003_RQ_H";
+                //public const string RequestHistory = "0003_RQ_H";
             }
             /*
-Config.Page_ComponentCode.ComponentCode.HomeDashboard
+Config.Page_ComponentCode.ComponentCode.RequestOrder
             */
         }
     }

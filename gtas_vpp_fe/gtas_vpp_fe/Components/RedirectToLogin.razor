@@ -1,8 +1,9 @@
-﻿@inject NavigationManager Navigation
+﻿@inject NavigationManager NavigationManager
 
 @code {
     protected override void OnInitialized()
     {
-        Navigation.NavigateTo(Config.LoginPagePath, forceLoad: true);
+        var returnUrl = Uri.EscapeDataString(new Uri(NavigationManager.Uri).PathAndQuery);
+        NavigationManager.NavigateTo($"{Config.LoginPagePath}?returnUrl={returnUrl}", true);
     }
 }

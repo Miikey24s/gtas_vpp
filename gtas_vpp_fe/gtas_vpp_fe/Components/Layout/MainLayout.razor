@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@attribute [Authorize]
+@inherits LayoutComponentBase
 
 <RadzenLayout Style="grid-template-columns: auto 1fr auto; grid-template-areas: 'rz-header rz-header rz-header' 'rz-sidebar rz-body rz-right-sidebar'">
     <LeftSidebar />
