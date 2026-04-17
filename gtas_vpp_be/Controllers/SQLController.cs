@@ -1,5 +1,6 @@
 ﻿using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Service.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -9,6 +10,7 @@ using static gtas_vpp_be.Service.Helpers.Config;
 namespace gtas_vpp_be.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     public class SQLController : ControllerBase
     {

@@ -1,11 +1,13 @@
 ﻿using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace gtas_vpp_be.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class LibraryController : BaseGenericController
     {

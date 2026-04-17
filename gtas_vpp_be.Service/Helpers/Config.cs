@@ -1,11 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace gtas_vpp_be.Service.Helpers
 {
     public static class Config
     {
+        private static IConfiguration? _configuration;
+
+        public static void Initialize(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public static class JwtSettings
+        {
+            public static string Key => GetConfigValue("JwtSettings:Key", "GTAS_VPP_BE_DEV_ONLY_KEY_CHANGE_IN_PRODUCTION_2026");
+            public static string Issuer => GetConfigValue("JwtSettings:Issuer", "gtas_vpp_be");
+            public static string Audience => GetConfigValue("JwtSettings:Audience", "gtas_vpp_clients");
+            public static int ClockSkewMinutes => 2;
+        }
+
+        public static class DatabaseSettings
+        {
+            public static string MigrationsAssembly => "gtas_vpp_be.Migrations";
+        }
+
+        private static string GetConfigValue(string key, string defaultValue)
+        {
+            return _configuration?[key] ?? defaultValue;
+        }
+
         public static class EnvConfig
         {
             public class JiraIssueTest

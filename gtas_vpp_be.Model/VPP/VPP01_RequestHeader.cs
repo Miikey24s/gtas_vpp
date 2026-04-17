@@ -15,6 +15,13 @@ namespace gtas_vpp_be.Model.VPP
         public string? VPPCode { get; set; }
         public int Y { get; set; }
         public int M { get; set; }
+
+        // Status & Workflow
+        public int Status { get; set; } = (int)VPPStatus.Draft;
+        public string? DepartmentCode { get; set; }
+        public string? MemberCompanyCode { get; set; }
+        public DateTime? SubmittedDate { get; set; }
+
         public virtual ICollection<VPP02_RequestDetail> VPP02_RequestDetails { get; set; }
         public VPP01_RequestHeader() { }
         [NotMapped]

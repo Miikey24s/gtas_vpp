@@ -1,94 +1,140 @@
-﻿using gtas_vpp_be.Model.VPP;
+﻿using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.DTOs.Req.VPP;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace gtas_vpp_be.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class VPPRequestController : BaseGenericController
     {
-        public VPPRequestController(IBussinessService bussinessService) : base(bussinessService) { }
+        private readonly IVPPRequestService _vppService;
 
-        [HttpGet("{tableCode}")]
-        public async Task<IActionResult> GenericGet(string tableCode, [FromQuery] Guid? id, [FromQuery] string? searchText)
+        public VPPRequestController(IBussinessService bussinessService, IVPPRequestService vppService)
+            : base(bussinessService)
         {
-            string cleanSearch = searchText?.Trim() ?? string.Empty;
-
-            return tableCode.ToLower() switch
-            {
-                "vpp01" => await GetTableDataAsync<VPP01_RequestHeader>(id, cleanSearch,
-                    matchId: x => x.Id == id,
-                    matchSearch: x => x.VPPCode!.Contains(cleanSearch)
-                                   || x.Description!.Contains(cleanSearch)),
-                "vpp02" => await GetTableDataAsync<VPP02_RequestDetail>(id, cleanSearch,
-                    matchId: x => x.Id == id,
-                    matchSearch: x => x.Description!.Contains(cleanSearch)),
-                _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
-            };
+            _vppService = vppService;
         }
 
-        [HttpGet("{tableCode}/{id:guid}")]
-        public async Task<IActionResult> GenericGetById(string tableCode, Guid id)
+        private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
+        private string CurrentDepartmentCode => User.FindFirstValue("DepartmentCode") ?? string.Empty;
+        private string CurrentMemberCompanyCode => User.FindFirstValue("MemberCompanyCode") ?? string.Empty;
+
+        [HttpGet("my-orders")]
+        public async Task<IActionResult> GetMyOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status)
         {
-            return tableCode.ToLower() switch
-            {
-                "vpp01" => await GetByIdAsync<VPP01_RequestHeader>(id),
-                "vpp02" => await GetByIdAsync<VPP02_RequestDetail>(id),
-                _ => BadRequest(new { Message = $"GetById for Table Code '{tableCode}' is not supported." })
-            };
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var data = await _vppService.GetMyOrdersAsync(CurrentUserId.Value, year, month, status);
+            return Ok(data);
         }
 
-        [HttpPost("{tableCode}")]
-        public async Task<IActionResult> GenericCreate(string tableCode, [FromBody] JsonElement payload)
+        [HttpGet("orders/{id:guid}")]
+        public async Task<IActionResult> GetOrderById(Guid id)
         {
-            var json = payload.GetRawText();
-            return tableCode.ToLower() switch
-            {
-                "vpp01" => await CreateAsync<VPP01_RequestHeader>(json),
-                "vpp02" => await CreateAsync<VPP02_RequestDetail>(json),
-                _ => BadRequest(new { Message = $"Create for Table Code '{tableCode}' is not supported." })
-            };
+            var data = await _vppService.GetOrderByIdAsync(id);
+            if (data == null) return NotFound();
+
+            return Ok(data);
         }
 
-        [HttpPut("{tableCode}")]
-        public async Task<IActionResult> GenericUpdate(string tableCode, [FromBody] JsonElement payload)
+        [HttpPost("orders")]
+        public async Task<IActionResult> CreateOrder([FromBody] VPP01_CreateReqDTO req)
         {
-            var json = payload.GetRawText();
-            return tableCode.ToLower() switch
-            {
-                "vpp01" => await UpdateAsync<VPP01_RequestHeader>(json),
-                "vpp02" => await UpdateAsync<VPP02_RequestDetail>(json),
-                _ => BadRequest(new { Message = $"Update for Table Code '{tableCode}' is not supported." })
-            };
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var result = await _vppService.CreateOrderAsync(req, CurrentUserId.Value, CurrentDepartmentCode, CurrentMemberCompanyCode);
+            return Ok(result);
         }
 
-        [HttpPatch("{tableCode}/{id:guid}")]
-        public async Task<IActionResult> GenericPatch(string tableCode, Guid id, [FromBody] JsonElement payload)
+        [HttpPut("orders/{id:guid}")]
+        public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] VPP01_UpdateReqDTO req)
         {
-            if (payload.ValueKind == JsonValueKind.Undefined || payload.ValueKind == JsonValueKind.Null)
-            {
-                return BadRequest(new { Message = "Update payload must not be empty." });
-            }
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            return tableCode.ToLower() switch
-            {
-                "vpp01" => await ApplyPatchAsync<VPP01_RequestHeader>(id, payload),
-                "vpp02" => await ApplyPatchAsync<VPP02_RequestDetail>(id, payload),
-                _ => BadRequest(new { Message = $"Patch for Table Code '{tableCode}' is not supported." })
-            };
+            req.Id = id;
+            req.UpdateUserId = CurrentUserId.Value;
+            var result = await _vppService.UpdateOrderAsync(req);
+            return Ok(result);
         }
 
-        [HttpDelete("{tableCode}/{id:guid}")]
-        public async Task<IActionResult> GenericDelete(string tableCode, Guid id)
+        [HttpPost("orders/{id:guid}/submit")]
+        public async Task<IActionResult> SubmitOrder(Guid id)
         {
-            return tableCode.ToLower() switch
-            {
-                "vpp01" => await DeleteAsync<VPP01_RequestHeader>(id),
-                "vpp02" => await DeleteAsync<VPP02_RequestDetail>(id),
-                _ => BadRequest(new { Message = $"Delete for Table Code '{tableCode}' is not supported." })
-            };
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.SubmitOrderAsync(id, CurrentUserId.Value);
+            return Ok();
         }
+
+        [HttpPost("orders/{id:guid}/cancel")]
+        public async Task<IActionResult> CancelOrder(Guid id)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.CancelOrderAsync(id, CurrentUserId.Value);
+            return Ok();
+        }
+
+        [HttpDelete("orders/{id:guid}")]
+        public async Task<IActionResult> DeleteOrder(Guid id)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.DeleteDraftAsync(id, CurrentUserId.Value);
+            return Ok();
+        }
+
+        [HttpPost("orders/copy-previous")]
+        public async Task<IActionResult> CopyPreviousMonth([FromBody] CopyPreviousMonthReqDTO req)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var result = await _vppService.CopyPreviousMonthAsync(
+                CurrentUserId.Value, req.Year, req.Month,
+                CurrentDepartmentCode, CurrentMemberCompanyCode);
+            return Ok(result);
+        }
+
+        [HttpGet("products")]
+        public async Task<IActionResult> GetProducts([FromQuery] Guid? categoryId, [FromQuery] string? search)
+        {
+            var data = await _bussinessService.BaseService<L04_VPP>(
+                gtas_vpp_be.Service.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
+                true,
+                x => !x.IsDeleted
+                     && (categoryId == null || x.VPPCategoryId == categoryId)
+                     && (search == null || (x.VPPName != null && x.VPPName.Contains(search)) || (x.VPPCode != null && x.VPPCode.Contains(search))),
+                q => q.Include(x => x.UOM).Include(x => x.VPPCategory).Include(x => x.L06_VPPSupplierMappings));
+
+            // Return a flattened payload to avoid EF navigation cycles during JSON serialization.
+            var result = (data ?? new()).Select(x => new
+            {
+                x.Id,
+                x.VPPCode,
+                x.VPPName,
+                x.Description,
+                x.VPPCategoryId,
+                VPPCategoryCode = x.VPPCategory?.VPPCategoryCode,
+                VPPCategoryName = x.VPPCategory?.VPPCategoryName,
+                x.UOMId,
+                UOMCode = x.UOM?.ClassDetailCode,
+                UOMName = x.UOM?.ClassDetailValue,
+                SupplierCount = x.L06_VPPSupplierMappings?.Count ?? 0
+            });
+
+            return Ok(result);
+        }
+    }
+
+    public class CopyPreviousMonthReqDTO
+    {
+        public int Year { get; set; }
+        public int Month { get; set; }
     }
 }

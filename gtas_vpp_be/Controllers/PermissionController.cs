@@ -3,6 +3,7 @@ using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_be.Service.Services;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using static gtas_vpp_be.Service.Helpers.Config;
@@ -10,6 +11,7 @@ using static gtas_vpp_be.Service.Helpers.Config;
 namespace ggtas_vpp_be.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {

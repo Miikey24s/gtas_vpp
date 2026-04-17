@@ -9,6 +9,7 @@ using static gtas_vpp_be.Service.Helpers.Config;
 namespace gtas_vpp_be.Controllers
 {
     public abstract class BaseGenericController : ControllerBase
+
     {
         protected readonly IBussinessService _bussinessService;
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
