@@ -90,6 +90,15 @@ namespace gtas_vpp_be.Controllers
             return Ok();
         }
 
+        [HttpPost("orders/{id:guid}/delete")]
+        public async Task<IActionResult> DeleteOrderByPost(Guid id)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.DeleteDraftAsync(id, CurrentUserId.Value);
+            return Ok();
+        }
+
         [HttpPost("orders/copy-previous")]
         public async Task<IActionResult> CopyPreviousMonth([FromBody] CopyPreviousMonthReqDTO req)
         {
@@ -129,6 +138,31 @@ namespace gtas_vpp_be.Controllers
             });
 
             return Ok(result);
+        }
+
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories()
+        {
+            var data = await _bussinessService.BaseService<L03_VPPCategory>(
+                gtas_vpp_be.Service.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
+                true,
+                x => !x.IsDeleted);
+
+            var result = (data ?? new()).Select(x => new
+            {
+                x.Id,
+                x.VPPCategoryCode,
+                x.VPPCategoryName
+            });
+
+            return Ok(result);
+        }
+
+        [HttpGet("all-orders")]
+        public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode)
+        {
+            var data = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode);
+            return Ok(data);
         }
     }
 
