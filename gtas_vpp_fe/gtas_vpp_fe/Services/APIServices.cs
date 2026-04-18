@@ -112,7 +112,7 @@ namespace gtas_vpp_fe.Services
             await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PostAsJsonAsync(endpoint, body);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<T>();
+            return await ReadResponseAsJsonAsync<T>(response);
         }
 
         public async Task<T?> PutFromApiAsync<T>(string endpoint, object body)
@@ -120,7 +120,7 @@ namespace gtas_vpp_fe.Services
             await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PutAsJsonAsync(endpoint, body);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<T>();
+            return await ReadResponseAsJsonAsync<T>(response);
         }
 
         public async Task<T?> PatchFromApiAsync<T>(string endpoint, object body)
@@ -133,7 +133,26 @@ namespace gtas_vpp_fe.Services
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<T>();
+            return await ReadResponseAsJsonAsync<T>(response);
+        }
+
+        private static async Task<T?> ReadResponseAsJsonAsync<T>(HttpResponseMessage response)
+        {
+            if (response.Content == null)
+            {
+                return default;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return default;
+            }
+
+            return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
         }
 
         public async Task<bool> DeleteFromApiAsync(string endpoint)

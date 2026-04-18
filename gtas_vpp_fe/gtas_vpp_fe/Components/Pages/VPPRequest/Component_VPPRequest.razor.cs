@@ -14,7 +14,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [Inject] NavigationManager? NavigationManager { get; set; }
         TabPosition tabPosition = TabPosition.Top;
         int SelectedIndex = 0;
-        List<string> libStrings = new List<string> { "orders", "history" };
+        List<string> libStrings = new List<string> { "orders", "history", "products", "departments" };
         protected override async Task OnInitializedAsync()
         {
             SelectedIndex = libStrings.IndexOf(Per?.ToLower() ?? "orders");

@@ -73,6 +73,8 @@
                 public const string PermissionViewable = "0004_V";
                 public const string RequestOrder = "0003_RQ_O";
                 public const string RequestHistory = "0003_RQ_H";
+                public const string RequestProductCatalog = "0003_RQ_PC";
+                public const string RequestDepartmentSummary = "0003_RQ_DS";
                 //public const string RequestHistory = "0003_RQ_H";
             }
             /*

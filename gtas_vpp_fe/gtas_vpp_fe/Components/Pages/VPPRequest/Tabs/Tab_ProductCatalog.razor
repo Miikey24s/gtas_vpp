@@ -1,0 +1,58 @@
+﻿@using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Share
+@inject GlobalClass glb
+@inject NotificationService NotificationService
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@if (CanView)
+{
+    <RadzenStack Gap="0.75rem">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
+            <RadzenFormField Text="Category" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="Guid?"
+                                Data="@CategoryOptions"
+                                TextProperty="Text"
+                                ValueProperty="Value"
+                                @bind-Value="CategoryFilter"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Style="width:280px" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="Search" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenTextBox @bind-Value="SearchText" Style="width:220px" />
+            </RadzenFormField>
+
+            <RadzenButton Icon="search" Text="Search" Size="ButtonSize.Small" Click="LoadProductsAsync" Disabled="@IsLoading" />
+            <RadzenButton Icon="refresh" Text="Reload" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="ReloadAsync" Disabled="@IsLoading" />
+        </RadzenStack>
+
+        <RadzenDataGrid TItem="Tab_ProductCatalog.ProductItem"
+                        Data="@Products"
+                        AllowPaging="true"
+                        PageSize="20"
+                        AllowSorting="true"
+                        AllowFiltering="false"
+                        AllowColumnResize="true"
+                        IsLoading="@IsLoading"
+                        Density="Density.Compact"
+                        class="librarypagegrid">
+            <Columns>
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="60px" Sortable="false" Filterable="false">
+                    <Template Context="row">@(Products.IndexOf(row) + 1)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCode" Title="Product Code" Width="150px" />
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPName" Title="Product Name" Width="280px" />
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCategoryName" Title="Category" Width="200px" />
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UOMName" Title="UOM" Width="100px" />
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="Description" />
+                <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="SupplierCount" Title="Suppliers" Width="100px" />
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenStack>
+}
+else
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat">No permission to view this tab.</RadzenAlert>
+}

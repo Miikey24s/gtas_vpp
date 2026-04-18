@@ -57,6 +57,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool EditorVisible { get; set; }
         public bool EditorIsEdit { get; set; }
         public EditOrderModel EditorModel { get; set; } = new();
+        public Radzen.Blazor.RadzenDataGrid<EditOrderItem>? EditorItemsGrid { get; set; }
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
@@ -166,7 +167,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task OpenEditDialogAsync(VPP01_RequestHeaderResDTO row)
         {
-            if (!IsDraft(row)) return;
+            if (!CanEditOrDelete(row)) return;
 
             EditorIsEdit = true;
             EditorModel = new EditOrderModel
@@ -192,12 +193,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await InvokeAsync(StateHasChanged);
         }
 
-        protected void AddEditorItem() => EditorModel.Items.Add(new EditOrderItem());
+        protected async Task AddEditorItem()
+        {
+            EditorModel.Items.Add(new EditOrderItem());
+            if (EditorItemsGrid != null)
+            {
+                await EditorItemsGrid.Reload();
+            }
+        }
 
-        protected void RemoveEditorItem(EditOrderItem item)
+        protected async Task RemoveEditorItem(EditOrderItem item)
         {
             if (EditorModel.Items.Count <= 1) return;
             EditorModel.Items.Remove(item);
+
+            if (EditorItemsGrid != null)
+            {
+                await EditorItemsGrid.Reload();
+            }
         }
 
         protected void CancelEditor()
@@ -206,7 +219,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             EditorModel = new EditOrderModel();
         }
 
-        protected async Task SaveEditorAsync()
+        protected async Task SaveEditorAsync(bool submit)
         {
             if (EditorModel.Items.Count == 0 || EditorModel.Items.Any(x => x.VPPId == Guid.Empty))
             {
@@ -236,18 +249,23 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
+                var requestItems = EditorModel.Items
+                    .Select(x => new VPP02_ItemReqDTO
+                    {
+                        VPPId = x.VPPId,
+                        Qty = x.Qty,
+                        Description = x.Description
+                    })
+                    .ToList();
+
                 if (EditorIsEdit)
                 {
                     var updateReq = new VPP01_UpdateReqDTO
                     {
                         Id = EditorModel.Id,
+                        Status = submit ? 1 : 0,
                         Description = EditorModel.Description,
-                        Items = EditorModel.Items.Select(x => new VPP02_ItemReqDTO
-                        {
-                            VPPId = x.VPPId,
-                            Qty = x.Qty,
-                            Description = x.Description
-                        }).ToList()
+                        Items = requestItems
                     };
 
                     await _apiServices.PutFromApiAsync<VPP01_RequestHeaderResDTO>($"/api/VPPRequest/orders/{EditorModel.Id}", updateReq);
@@ -258,13 +276,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     {
                         Y = EditorModel.Y,
                         M = EditorModel.M,
+                        Status = submit ? 1 : 0,
                         Description = EditorModel.Description,
-                        Items = EditorModel.Items.Select(x => new VPP02_ItemReqDTO
-                        {
-                            VPPId = x.VPPId,
-                            Qty = x.Qty,
-                            Description = x.Description
-                        }).ToList()
+                        Items = requestItems
                     };
 
                     await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>("/api/VPPRequest/orders", createReq);
@@ -274,7 +288,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
-                    Detail = EditorIsEdit ? "Order updated." : "Order created.",
+                    Detail = EditorIsEdit
+                        ? (submit ? "Order updated and submitted." : "Order updated as draft.")
+                        : (submit ? "Order created and submitted." : "Order created as draft."),
                     Duration = 3000
                 });
 
@@ -301,32 +317,21 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task DeleteOrderAsync(VPP01_RequestHeaderResDTO row)
         {
-            if (!IsDraft(row)) return;
-
-            var confirmed = await DialogService.Confirm("Delete this draft order?", "Confirm", new ConfirmOptions
-            {
-                OkButtonText = "Delete",
-                CancelButtonText = "Cancel"
-            });
-
-            if (confirmed != true) return;
+            if (!CanEditOrDelete(row)) return;
 
             IsLoading = true;
             glb.isBusyPage = true;
             try
             {
-                var ok = await _apiServices.DeleteFromApiAsync($"/api/VPPRequest/orders/{row.Id}");
-                if (ok)
+                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{row.Id}/delete", new { });
+                NotificationService.Notify(new NotificationMessage
                 {
-                    NotificationService.Notify(new NotificationMessage
-                    {
-                        Severity = NotificationSeverity.Success,
-                        Summary = "Order",
-                        Detail = "Order deleted.",
-                        Duration = 3000
-                    });
-                    await LoadOrdersAsync();
-                }
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Order",
+                    Detail = "Order deleted.",
+                    Duration = 3000
+                });
+                await LoadOrdersAsync();
             }
             catch (Exception ex)
             {
@@ -348,17 +353,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected bool IsDraft(VPP01_RequestHeaderResDTO row) => row.Status == 0;
         protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
+        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => IsDraft(row) || IsSubmitted(row);
 
         protected async Task SubmitOrderAsync(VPP01_RequestHeaderResDTO row)
         {
-            var confirmed = await DialogService.Confirm("Submit this order?", "Confirm", new ConfirmOptions
-            {
-                OkButtonText = "Submit",
-                CancelButtonText = "Cancel"
-            });
-
-            if (confirmed != true) return;
-
             IsLoading = true;
             glb.isBusyPage = true;
             try
@@ -393,14 +391,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task CancelOrderAsync(VPP01_RequestHeaderResDTO row)
         {
-            var confirmed = await DialogService.Confirm("Cancel this order?", "Confirm", new ConfirmOptions
-            {
-                OkButtonText = "Cancel",
-                CancelButtonText = "No"
-            });
-
-            if (confirmed != true) return;
-
             IsLoading = true;
             glb.isBusyPage = true;
             try

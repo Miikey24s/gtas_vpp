@@ -70,7 +70,7 @@
 
                     <RadzenButton Icon="add" Text="Add item" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddEditorItem" />
 
-                    <RadzenDataGrid TItem="Tab_Orders.EditOrderItem" Data="@EditorModel.Items" AllowPaging="false" AllowSorting="false" Density="Density.Compact">
+                    <RadzenDataGrid @ref="EditorItemsGrid" TItem="Tab_Orders.EditOrderItem" Data="@EditorModel.Items" AllowPaging="false" AllowSorting="false" Density="Density.Compact">
                         <Columns>
                             <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Title="#" Width="50px" Sortable="false" Filterable="false">
                                 <Template Context="item">@(EditorModel.Items.IndexOf(item) + 1)</Template>
@@ -99,7 +99,7 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="Tab_Orders.EditOrderItem" Width="60px" Sortable="false" Filterable="false">
                                 <Template Context="item">
-                                    <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Disabled="@(EditorModel.Items.Count <= 1)" Click="@(_ => RemoveEditorItem(item))" />
+                                    <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Disabled="@(EditorModel.Items.Count <= 1)" Click="@(async _ => await RemoveEditorItem(item))" />
                                 </Template>
                             </RadzenDataGridColumn>
                         </Columns>
@@ -107,7 +107,8 @@
 
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" JustifyContent="JustifyContent.End">
                         <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="CancelEditor" />
-                        <RadzenButton Text="Save" Icon="check" ButtonStyle="ButtonStyle.Success" Click="SaveEditorAsync" />
+                        <RadzenButton Text="Save draft" Icon="drafts" ButtonStyle="ButtonStyle.Secondary" Click="@(async _ => await SaveEditorAsync(false))" />
+                        <RadzenButton Text="Save" Icon="check" ButtonStyle="ButtonStyle.Success" Click="@(async _ => await SaveEditorAsync(true))" />
                     </RadzenStack>
                 </RadzenStack>
             </RadzenCard>
@@ -131,13 +132,13 @@
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Action" Width="160px" Sortable="false" Filterable="false">
                     <Template Context="row">
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
-                            @if (IsDraft(row))
+                            @if (CanEditOrDelete(row))
                             {
                                 <RadzenButton Icon="edit" Size="ButtonSize.ExtraSmall" Click="@(async _ => await OpenEditDialogAsync(row))" Disabled="@IsLoading" Title="Edit" />
-                                <RadzenButton Icon="send" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Info" Click="@(async _ => await SubmitOrderAsync(row))" Disabled="@IsLoading" Title="Submit" />
                                 <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Click="@(async _ => await DeleteOrderAsync(row))" Disabled="@IsLoading" Title="Delete" />
                             }
-                            else if (IsSubmitted(row))
+
+                            @if (IsSubmitted(row))
                             {
                                 <RadzenButton Icon="block" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Warning" Click="@(async _ => await CancelOrderAsync(row))" Disabled="@IsLoading" Title="Cancel" />
                             }

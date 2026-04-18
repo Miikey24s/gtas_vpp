@@ -28,6 +28,18 @@
                     <Tab_History claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
+            <RadzenTabsItem Text="Product Catalog">
+                @if (SelectedIndex == 2)
+                {
+                    <Tab_ProductCatalog claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Department Summary">
+                @if (SelectedIndex == 3)
+                {
+                    <Tab_DepartmentSummary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
 }

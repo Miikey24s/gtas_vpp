@@ -1,0 +1,69 @@
+﻿@using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Share
+@inject GlobalClass glb
+@inject NotificationService NotificationService
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@if (CanView)
+{
+    <RadzenStack Gap="0.75rem">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
+            <RadzenFormField Text="Year" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="int?" Data="@YearOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="YearFilter" Style="width:120px" />
+            </RadzenFormField>
+            <RadzenFormField Text="Month" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="int?" Data="@MonthOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="MonthFilter" Style="width:120px" />
+            </RadzenFormField>
+            <RadzenFormField Text="Status" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="int?" Data="@StatusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="StatusFilter" Style="width:160px" />
+            </RadzenFormField>
+            <RadzenFormField Text="Department" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenTextBox @bind-Value="DepartmentFilter" Style="width:180px" />
+            </RadzenFormField>
+            <RadzenButton Icon="search" Text="Search" Size="ButtonSize.Small" Click="LoadOrdersAsync" Disabled="@IsLoading" />
+            <RadzenButton Icon="refresh" Text="Reload" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="ReloadAsync" Disabled="@IsLoading" />
+        </RadzenStack>
+
+        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowSorting="true" AllowColumnResize="true" AllowGrouping="true" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" Density="Density.Compact" class="librarypagegrid">
+            <Columns>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="60px" Sortable="false" Filterable="false" Groupable="false">
+                    <Template Context="row">@(Orders.IndexOf(row) + 1)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="DepartmentCode" Title="Department" Width="150px" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="150px" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Period" Width="120px">
+                    <Template Context="row">@($"{row.Y}/{row.M:00}")</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="140px">
+                    <Template Context="row">@GetStatusText(row.Status)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Items" Width="90px">
+                    <Template Context="row">@(row.Items?.Count ?? 0)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="UpdateDate" Title="Updated" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Description" Title="Description" />
+            </Columns>
+            <Template Context="row">
+                <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Data="@(row.Items ?? new())" AllowPaging="false" AllowSorting="false" Density="Density.Compact" Style="margin: .5rem 0 .75rem 0;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Title="#" Width="50px" Sortable="false" Filterable="false">
+                            <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPCode" Title="Item Code" Width="130px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="Item Name" Width="260px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="Qty" Width="90px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMCode" Title="UOM" Width="90px" />
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="CurrentSinglePrice" Title="Price" Width="120px" />
+                    </Columns>
+                </RadzenDataGrid>
+            </Template>
+        </RadzenDataGrid>
+    </RadzenStack>
+}
+else
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat">No permission to view this tab.</RadzenAlert>
+}
