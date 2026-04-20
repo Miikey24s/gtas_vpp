@@ -5,18 +5,13 @@ using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using Radzen.Blazor;
 using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     public partial class Tab_Orders
     {
-        public sealed class OptionItem
-        {
-            public int Value { get; set; }
-            public string Text { get; set; } = string.Empty;
-        }
-
         public sealed class ProductOption
         {
             public Guid Id { get; set; }
@@ -35,14 +30,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public sealed class EditOrderModel
         {
             public Guid Id { get; set; }
-            public int Y { get; set; } = DateTime.Now.Year;
-            public int M { get; set; } = DateTime.Now.Month;
+            public int Y { get; set; }
+            public int M { get; set; }
             public string? Description { get; set; }
             public List<EditOrderItem> Items { get; set; } = new();
         }
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
@@ -50,9 +44,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<ProductOption> ProductOptions { get; set; } = new();
 
         public bool IsLoading { get; set; }
-        public IEnumerable<int> YearFilter { get; set; } = Enumerable.Empty<int>();
-        public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
-        public IEnumerable<int> StatusFilter { get; set; } = Enumerable.Empty<int>();
         public bool ViewerVisible { get; set; }
         public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
 
@@ -60,6 +51,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool EditorIsEdit { get; set; }
         public EditOrderModel EditorModel { get; set; } = new();
         public Radzen.Blazor.RadzenDataGrid<EditOrderItem>? EditorItemsGrid { get; set; }
+        public Guid? LastDeletedOrderId { get; set; }
+        public string? LastDeletedOrderCode { get; set; }
+        protected RadzenDataGrid<VPP01_RequestHeaderResDTO> ordersGrid;
 
         public DateTime CurrentOrderPeriodDate
         {
@@ -77,46 +71,27 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string CurrentDeadlineText => CurrentDeadlineDate.ToString("dd/MM/yyyy");
         public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
 
-        public List<OptionItem> YearOptions { get; } = new();
-        public List<OptionItem> MonthOptions { get; } = new();
-        public List<OptionItem> StatusOptions { get; } = new()
-        {
-            new() { Value = 1, Text = "Submitted" },
-            new() { Value = 4, Text = "Cancelled" },
-            new() { Value = 5, Text = "Closed" }
-        };
-
         private bool CanView =>
             sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
                 (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestOrder)) == true;
 
         protected override async Task OnInitializedAsync()
         {
-            InitFilters();
             await LoadProductsAsync();
             await LoadOrdersAsync();
         }
-
-        private void InitFilters()
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            var currentYear = DateTime.Now.Year;
-            YearOptions.Clear();
-            for (var i = currentYear - 2; i <= currentYear + 1; i++)
+            if (firstRender && Orders != null && Orders.Any())
             {
-                YearOptions.Add(new OptionItem { Value = i, Text = i.ToString() });
+                // Tự động Expand tất cả các dòng hiện có vì số lượng rất ít
+                foreach (var order in Orders)
+                {
+                    await ordersGrid.ExpandRow(order);
+                }
+                StateHasChanged();
             }
-
-            MonthOptions.Clear();
-            for (var i = 1; i <= 12; i++)
-            {
-                MonthOptions.Add(new OptionItem { Value = i, Text = i.ToString("00") });
-            }
-
-            YearFilter = Enumerable.Empty<int>();
-            MonthFilter = Enumerable.Empty<int>();
-            StatusFilter = Enumerable.Empty<int>();
         }
-
         private async Task LoadProductsAsync()
         {
             try
@@ -139,19 +114,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/my-orders");
-                var filtered = (data ?? new()).AsEnumerable();
 
-                if (YearFilter.Any())
-                    filtered = filtered.Where(x => YearFilter.Contains(x.Y));
-                if (MonthFilter.Any())
-                    filtered = filtered.Where(x => MonthFilter.Contains(x.M));
-                if (StatusFilter.Any())
-                    filtered = filtered.Where(x => StatusFilter.Contains(x.Status));
-
-                Orders = filtered
-                    .OrderByDescending(x => x.Y)
-                    .ThenByDescending(x => x.M)
-                    .ThenByDescending(x => x.UpdateDate)
+                // Chỉ lấy dữ liệu của kỳ hiện tại (CurrentOrderPeriod)
+                Orders = (data ?? new())
+                    .Where(x => x.Y == CurrentOrderPeriodDate.Year && x.M == CurrentOrderPeriodDate.Month)
+                    .OrderByDescending(x => x.UpdateDate)
                     .ToList();
             }
             catch (Exception ex)
@@ -174,13 +141,54 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task ReloadAsync() => await LoadOrdersAsync();
 
+        protected async Task UndoLastDeleteAsync()
+        {
+            if (LastDeletedOrderId == null) return;
+
+            IsLoading = true;
+            glb.isBusyPage = true;
+            try
+            {
+                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{LastDeletedOrderId}/undo-delete", new { });
+
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Order",
+                    Detail = "Delete has been undone.",
+                    Duration = 3000
+                });
+
+                LastDeletedOrderId = null;
+                LastDeletedOrderCode = null;
+                await LoadOrdersAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Order",
+                    Detail = $"Undo delete failed: {ex.Message}",
+                    Duration = 6000
+                });
+            }
+            finally
+            {
+                glb.isBusyPage = false;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+
         protected async Task OpenCreateDialogAsync()
         {
             EditorIsEdit = false;
+            // Ép cứng Y và M theo kỳ hiện tại
             EditorModel = new EditOrderModel
             {
-                Y = YearFilter.Any() ? YearFilter.First() : CurrentOrderPeriodDate.Year,
-                M = MonthFilter.Any() ? MonthFilter.First() : CurrentOrderPeriodDate.Month,
+                Y = CurrentOrderPeriodDate.Year,
+                M = CurrentOrderPeriodDate.Month,
                 Items = new List<EditOrderItem> { new() }
             };
             EditorVisible = true;
@@ -243,7 +251,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task SaveEditorAsync()
         {
-            if (DateTime.Now > new DateTime(EditorModel.Y, EditorModel.M, 5))
+            if (DateTime.Now > CurrentDeadlineDate)
             {
                 NotificationService.Notify(new NotificationMessage
                 {
@@ -322,9 +330,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
-                    Detail = EditorIsEdit
-                        ? "Order updated."
-                        : "Order created.",
+                    Detail = EditorIsEdit ? "Order updated." : "Order created.",
                     Duration = 3000
                 });
 
@@ -358,11 +364,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{row.Id}/delete", new { });
+                LastDeletedOrderId = row.Id;
+                LastDeletedOrderCode = row.VPPCode;
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
-                    Detail = "Order deleted.",
+                    Detail = "Order deleted. You can Undo delete.",
                     Duration = 3000
                 });
                 await LoadOrdersAsync();
@@ -456,62 +464,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        protected async Task CopyPreviousMonthAsync()
-        {
-            if (!YearFilter.Any() || !MonthFilter.Any())
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = "Copy",
-                    Detail = "Please select Year and Month.",
-                    Duration = 3000
-                });
-                return;
-            }
-
-            IsLoading = true;
-            glb.isBusyPage = true;
-            try
-            {
-                var body = new
-                {
-                    year = YearFilter.First(),
-                    month = MonthFilter.First()
-                };
-
-                var result = await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>("/api/VPPRequest/orders/copy-previous", body);
-                if (result != null)
-                {
-                    NotificationService.Notify(new NotificationMessage
-                    {
-                        Severity = NotificationSeverity.Success,
-                        Summary = "Copy",
-                        Detail = "Copied from previous month successfully.",
-                        Duration = 4000
-                    });
-                }
-
-                await LoadOrdersAsync();
-            }
-            catch (Exception ex)
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Copy",
-                    Detail = $"Copy failed: {ex.Message}",
-                    Duration = 6000
-                });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                IsLoading = false;
-                StateHasChanged();
-            }
-        }
-
         protected void ViewOrder(VPP01_RequestHeaderResDTO row)
         {
             ViewingOrder = row;
@@ -542,4 +494,3 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         };
     }
 }
-
