@@ -36,6 +36,7 @@ builder.Services.AddDbContext<VPPContext>(
         o.UseSqlServer(constr);
     }
 );
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -5,6 +5,7 @@ using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Service.Services
@@ -66,26 +67,31 @@ namespace gtas_vpp_be.Service.Services
         public async Task<VPP01_RequestHeaderResDTO> CreateOrderAsync(VPP01_CreateReqDTO req, int createUserId, string departmentCode, string memberCompanyCode)
         {
             ValidateItems(req.Items);
+            if (IsDeadlinePassed(req.Y, req.M))
+            {
+                throw new InvalidOperationException("Cannot create order for a period that has passed the deadline.");
+            }
 
             using var uow = _unitOfWork.Create(GetEnvironment());
             await uow.BeginTransactionAsync();
             try
             {
+                var now = DateTime.Now;
                 var header = new VPP01_RequestHeader
                 {
                     Id = Guid.NewGuid(),
                     Y = req.Y,
                     M = req.M,
                     VPPCode = GenerateVPPCode(req.Y, req.M, createUserId),
-                    Status = NormalizeEditableStatus(req.Status, (int)VPPStatus.Submitted),
+                    Status = (int)VPPStatus.Submitted,
                     Description = req.Description,
                     DepartmentCode = departmentCode,
                     MemberCompanyCode = memberCompanyCode,
                     CreateUserId = createUserId,
-                    CreateDate = DateTime.Now,
+                    CreateDate = now,
                     UpdateUserId = createUserId,
-                    UpdateDate = DateTime.Now,
-                    SubmittedDate = NormalizeEditableStatus(req.Status, (int)VPPStatus.Submitted) == (int)VPPStatus.Submitted ? DateTime.Now : null
+                    UpdateDate = now,
+                    SubmittedDate = now
                 };
 
                 header.VPP02_RequestDetails = req.Items.Select(i => new VPP02_RequestDetail
@@ -97,12 +103,20 @@ namespace gtas_vpp_be.Service.Services
                     Description = i.Description,
                     VPP01_RequestHeaderId = header.Id,
                     CreateUserId = createUserId,
-                    CreateDate = DateTime.Now,
+                    CreateDate = now,
                     UpdateUserId = createUserId,
-                    UpdateDate = DateTime.Now
+                    UpdateDate = now
                 }).ToList();
 
                 uow.VPPContext.Set<VPP01_RequestHeader>().Add(header);
+                uow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                {
+                    Id = Guid.NewGuid(),
+                    VPP01_RequestHeaderId = header.Id,
+                    LogTitle = "CREATE",
+                    LogDate = now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails))
+                });
                 await uow.CommitAsync();
 
                 return (await GetOrderByIdAsync(header.Id))!;
@@ -123,19 +137,22 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var header = await uow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
                     .FirstOrDefaultAsync(x => x.Id == req.Id && !x.IsDeleted);
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
                 if (header.CreateUserId != req.UpdateUserId) throw new UnauthorizedAccessException("Cannot update another user's order.");
                 if (header.Status is (int)VPPStatus.Cancelled or (int)VPPStatus.Closed)
-                    throw new InvalidOperationException("Only Draft or Submitted orders can be edited.");
+                    throw new InvalidOperationException("Only Submitted orders can be edited.");
                 if (IsDeadlinePassed(header.Y, header.M)) throw new InvalidOperationException("Deadline has passed.");
 
                 var now = DateTime.Now;
 
-                header.IsDeleted = true;
+                header.Status = (int)VPPStatus.Submitted;
+                header.Description = req.Description;
                 header.UpdateUserId = req.UpdateUserId;
                 header.UpdateDate = now;
+                header.SubmittedDate ??= now;
 
                 await uow.VPPContext.Set<VPP02_RequestDetail>()
                     .Where(x => x.VPP01_RequestHeaderId == header.Id && !x.IsDeleted)
@@ -144,45 +161,32 @@ namespace gtas_vpp_be.Service.Services
                         .SetProperty(x => x.UpdateUserId, req.UpdateUserId)
                         .SetProperty(x => x.UpdateDate, now));
 
-                var newHeaderId = Guid.NewGuid();
-                var targetStatus = NormalizeEditableStatus(req.Status, header.Status);
-                var newHeader = new VPP01_RequestHeader
-                {
-                    Id = newHeaderId,
-                    Y = header.Y,
-                    M = header.M,
-                    VPPCode = header.VPPCode,
-                    Status = targetStatus,
-                    Description = req.Description,
-                    DepartmentCode = header.DepartmentCode,
-                    MemberCompanyCode = header.MemberCompanyCode,
-                    CreateUserId = header.CreateUserId,
-                    CreateDate = now,
-                    UpdateUserId = req.UpdateUserId,
-                    UpdateDate = now,
-                    SubmittedDate = targetStatus == (int)VPPStatus.Submitted
-                        ? (header.SubmittedDate ?? now)
-                        : null
-                };
-
-                newHeader.VPP02_RequestDetails = req.Items.Select(i => new VPP02_RequestDetail
+                var newDetails = req.Items.Select(i => new VPP02_RequestDetail
                 {
                     Id = Guid.NewGuid(),
                     VPPId = i.VPPId,
                     Qty = i.Qty,
                     CurrentSinglePrice = 0,
                     Description = i.Description,
-                    VPP01_RequestHeaderId = newHeaderId,
+                    VPP01_RequestHeaderId = header.Id,
                     CreateUserId = req.UpdateUserId,
                     CreateDate = now,
                     UpdateUserId = req.UpdateUserId,
                     UpdateDate = now
                 }).ToList();
 
-                uow.VPPContext.Set<VPP01_RequestHeader>().Add(newHeader);
+                uow.VPPContext.Set<VPP02_RequestDetail>().AddRange(newDetails);
+                uow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                {
+                    Id = Guid.NewGuid(),
+                    VPP01_RequestHeaderId = header.Id,
+                    LogTitle = "UPDATE",
+                    LogDate = now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, newDetails))
+                });
 
                 await uow.CommitAsync();
-                return (await GetOrderByIdAsync(newHeaderId))!;
+                return (await GetOrderByIdAsync(header.Id))!;
             }
             catch
             {
@@ -198,11 +202,12 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var header = await uow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
                 if (header.CreateUserId != userId) throw new UnauthorizedAccessException("Cannot submit another user's order.");
-                if (header.Status != (int)VPPStatus.Draft) throw new InvalidOperationException("Only Draft orders can be submitted.");
+                if (header.Status == (int)VPPStatus.Submitted) throw new InvalidOperationException("Order has already been submitted.");
                 if (IsDeadlinePassed(header.Y, header.M))
                     throw new InvalidOperationException("Deadline has passed.");
 
@@ -210,6 +215,15 @@ namespace gtas_vpp_be.Service.Services
                 header.SubmittedDate = DateTime.Now;
                 header.UpdateUserId = userId;
                 header.UpdateDate = DateTime.Now;
+
+                uow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                {
+                    Id = Guid.NewGuid(),
+                    VPP01_RequestHeaderId = header.Id,
+                    LogTitle = "SUBMIT",
+                    LogDate = DateTime.Now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()))
+                });
 
                 await uow.CommitAsync();
             }
@@ -227,6 +241,7 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var header = await uow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
@@ -237,6 +252,15 @@ namespace gtas_vpp_be.Service.Services
                 header.Status = (int)VPPStatus.Cancelled;
                 header.UpdateUserId = userId;
                 header.UpdateDate = DateTime.Now;
+
+                uow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                {
+                    Id = Guid.NewGuid(),
+                    VPP01_RequestHeaderId = header.Id,
+                    LogTitle = "CANCEL",
+                    LogDate = DateTime.Now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()))
+                });
 
                 await uow.CommitAsync();
             }
@@ -254,11 +278,12 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var header = await uow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
-                if (header.Status is not ((int)VPPStatus.Draft) and not ((int)VPPStatus.Submitted))
-                    throw new InvalidOperationException("Only Draft or Submitted orders can be deleted.");
+                if (header.Status is not ((int)VPPStatus.Submitted))
+                    throw new InvalidOperationException("Only Submitted orders can be deleted.");
                 if (header.CreateUserId != userId) throw new UnauthorizedAccessException("Cannot delete another user's order.");
 
                 var now = DateTime.Now;
@@ -273,6 +298,32 @@ namespace gtas_vpp_be.Service.Services
                         .SetProperty(x => x.IsDeleted, true)
                         .SetProperty(x => x.UpdateUserId, userId)
                         .SetProperty(x => x.UpdateDate, now));
+
+                var deletedDetails = (header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>())
+                    .Select(x => new VPP02_RequestDetail
+                    {
+                        Id = x.Id,
+                        VPPId = x.VPPId,
+                        Qty = x.Qty,
+                        CurrentSinglePrice = x.CurrentSinglePrice,
+                        Description = x.Description,
+                        VPP01_RequestHeaderId = x.VPP01_RequestHeaderId,
+                        CreateUserId = x.CreateUserId,
+                        CreateDate = x.CreateDate,
+                        UpdateUserId = userId,
+                        UpdateDate = now,
+                        IsDeleted = true
+                    })
+                    .ToList();
+
+                uow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                {
+                    Id = Guid.NewGuid(),
+                    VPP01_RequestHeaderId = header.Id,
+                    LogTitle = "DELETE",
+                    LogDate = now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, deletedDetails))
+                });
 
                 await uow.CommitAsync();
             }
@@ -339,13 +390,40 @@ namespace gtas_vpp_be.Service.Services
         private static bool IsDeadlinePassed(int year, int month)
             => DateTime.Now > new DateTime(year, month, 5);
 
-        private static int NormalizeEditableStatus(int? status, int defaultStatus)
-            => status == (int)VPPStatus.Draft || status == (int)VPPStatus.Submitted
-                ? status.Value
-                : defaultStatus;
-
         private static string GenerateVPPCode(int year, int month, int userId)
             => $"VPP-{year}{month:D2}-{userId}-{DateTime.Now:mmss}";
+
+        private static object BuildLogPayload(VPP01_RequestHeader header, IEnumerable<VPP02_RequestDetail> details)
+            => new
+            {
+                header.Id,
+                header.VPPCode,
+                header.Y,
+                header.M,
+                header.Status,
+                header.Description,
+                header.DepartmentCode,
+                header.MemberCompanyCode,
+                header.CreateUserId,
+                header.CreateDate,
+                header.UpdateUserId,
+                header.UpdateDate,
+                header.SubmittedDate,
+                Detail = details.Select(x => new
+                {
+                    x.Id,
+                    x.VPPId,
+                    x.Qty,
+                    x.CurrentSinglePrice,
+                    x.Description,
+                    x.CreateUserId,
+                    x.CreateDate,
+                    x.UpdateUserId,
+                    x.UpdateDate,
+                    x.IsDeleted,
+                    x.VPP01_RequestHeaderId
+                }).ToList()
+            };
 
         private static void ValidateItems(List<VPP02_ItemReqDTO>? items)
         {

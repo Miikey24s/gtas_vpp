@@ -54,8 +54,6 @@ namespace gtas_vpp_be.Controllers
                     return Unauthorized(new { message = result.ErrorMess ?? "Login failed" });
 
                 var loginData = JsonConvert.DeserializeObject<sp_Authentication_Login>(result.ResData);
-                Console.WriteLine(
-                    $"[LOGIN] user={request.Username} | FullName={loginData?.FullName} | MemberCompanyName={loginData?.MemberCompanyName} | DepartmentCode={loginData?.DepartmentCode}");
 
                 if (loginData == null)
                     return Unauthorized(new { message = "Invalid username or password." });

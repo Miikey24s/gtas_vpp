@@ -17,12 +17,13 @@ namespace gtas_vpp_be.Model.VPP
         public int M { get; set; }
 
         // Status & Workflow
-        public int Status { get; set; } = (int)VPPStatus.Draft;
+        public int Status { get; set; } = (int)VPPStatus.Submitted;
         public string? DepartmentCode { get; set; }
         public string? MemberCompanyCode { get; set; }
         public DateTime? SubmittedDate { get; set; }
 
         public virtual ICollection<VPP02_RequestDetail> VPP02_RequestDetails { get; set; }
+        public virtual ICollection<VPP03_Log> VPP03_Logs { get; set; } = new List<VPP03_Log>();
         public VPP01_RequestHeader() { }
         [NotMapped]
         private bool _isDisposed = false;

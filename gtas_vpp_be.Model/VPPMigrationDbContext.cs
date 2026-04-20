@@ -35,6 +35,7 @@ namespace gtas_vpp_be.Model
         #region Data
         public virtual DbSet<VPP01_RequestHeader> VPP01_RequestHeaders { get; set; }
         public virtual DbSet<VPP02_RequestDetail> VPP02_RequestDetail { get; set; }
+        public virtual DbSet<VPP03_Log> VPP03_Logs { get; set; }
         #endregion
 
         public VPPMigrationDbContext(DbContextOptions<VPPMigrationDbContext> options) : base(options)
@@ -77,6 +78,18 @@ namespace gtas_vpp_be.Model
             modelBuilder.Entity<VPP02_RequestDetail>(en =>
             {
                 en.HasOne(x => x.VPP01_RequestHeader).WithMany(x => x.VPP02_RequestDetails).OnDelete(DeleteBehavior.ClientCascade);
+            });
+            modelBuilder.Entity<VPP03_Log>(en =>
+            {
+                en.HasKey(x => x.Id);
+
+                en.Property(x => x.Id).HasDefaultValueSql("NEWID()");
+                en.Property(x => x.LogDate).HasDefaultValueSql("GETDATE()");
+
+                en.HasOne(x => x.VPP01_RequestHeader)
+                      .WithMany(x => x.VPP03_Logs)
+                      .HasForeignKey(x => x.VPP01_RequestHeaderId)
+                      .OnDelete(DeleteBehavior.ClientCascade);
             });
         }
     }
