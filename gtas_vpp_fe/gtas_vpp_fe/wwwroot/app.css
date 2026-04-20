@@ -89,6 +89,121 @@ h1:focus {
     --rz-input-border-block-end: 1px solid #479cc8 !important;
 }
 
+/* ── Sidebar collapse: hide submenu children, only show parent icon ── */
+.sidebar-collapsed .rz-navigation-item .rz-navigation-menu {
+    display: none !important;
+}
+
+.sidebar-collapsed .rz-panel-menu-item-open > .rz-navigation-menu {
+    display: none !important;
+}
+
+/* Ensure collapsed sidebar icons are centered */
+.sidebar-collapsed .rz-navigation-item-wrapper {
+    justify-content: center;
+}
+
+/* ── User avatar & dropdown ──────────────────────────────────── */
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--rz-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+    transition: box-shadow 0.15s;
+}
+
+.user-avatar:hover {
+    box-shadow: 0 0 0 3px rgba(71, 156, 200, 0.3);
+}
+
+.user-avatar-lg {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--rz-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    min-width: 260px;
+    background: var(--rz-panel-background-color, #fff);
+    border: 1px solid var(--rz-base-300, #e0e0e0);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    padding: 0.75rem 0;
+    animation: userDropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes userDropdownFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.user-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem 0.75rem;
+}
+
+.user-dropdown-divider {
+    height: 1px;
+    background: var(--rz-base-200, #eee);
+    margin: 0.25rem 0;
+}
+
+.user-dropdown-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--rz-base-700, #555);
+}
+
+.user-dropdown-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--rz-danger, #dc3545);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.user-dropdown-logout:hover {
+    background: rgba(220, 53, 69, 0.06);
+}
+
+.user-dropdown-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+}
+
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;

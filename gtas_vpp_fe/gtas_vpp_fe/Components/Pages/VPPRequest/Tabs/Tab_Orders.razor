@@ -9,39 +9,85 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="0.75rem">
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="Year" AllowFloatingLabel="false" Variant="Variant.Text">
-                <RadzenDropDown TValue="int?"
-                                Data="@YearOptions"
-                                TextProperty="Text"
-                                ValueProperty="Value"
-                                @bind-Value="YearFilter"
-                                Style="width:120px" />
-            </RadzenFormField>
+    <RadzenStack Gap="1rem">
+        @* ── Top action: Create new ── *@
+        <RadzenButton Icon="add" Text="Create new" Click="OpenCreateDialogAsync" Disabled="@IsLoading"
+                      Style="width:fit-content; border-radius:8px; font-weight:600;" />
 
+        @* ── Template placeholder (design later) ── *@
+        <RadzenCard Style="border: 2px dashed var(--rz-base-300); background: var(--rz-base-100); min-height: 80px; display:flex; align-items:center; justify-content:center; border-radius:12px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="auto_awesome" Style="color: var(--rz-primary); font-size:1.25rem;" />
+                <RadzenText Text="Order Templates (AI Suggested) — Coming soon" Style="color: var(--rz-base-500); font-style: italic;" />
+            </RadzenStack>
+        </RadzenCard>
+
+        @* ── Order History section header ── *@
+        <RadzenText Text="Order History" TextStyle="TextStyle.H6" Style="font-weight:700; margin-bottom:0;" />
+
+        @* ── Period info cards ── *@
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" Wrap="FlexWrap.Wrap">
+            <RadzenCard Style="border:1px solid var(--rz-primary); border-radius:12px; padding:1rem 1.5rem; min-width:220px;">
+                <div style="font-size:0.8rem; color:var(--rz-primary); font-weight:600;">Order Period</div>
+                <div style="font-size:1.25rem; font-weight:700;">@CurrentOrderPeriodText</div>
+            </RadzenCard>
+            <RadzenCard Style="border:1px solid var(--rz-base-300); border-radius:12px; padding:1rem 1.5rem; min-width:220px;">
+                <div style="font-size:0.8rem; color:var(--rz-base-500);">Deadline</div>
+                <div style="font-size:1.25rem; font-weight:700;">@CurrentDeadlineText</div>
+                <div style="font-size:0.85rem; color:var(--rz-base-600);">@RemainingDeadlineText</div>
+            </RadzenCard>
+        </RadzenStack>
+
+        @* ── Filters ── *@
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
             <RadzenFormField Text="Month" AllowFloatingLabel="false" Variant="Variant.Text">
-                <RadzenDropDown TValue="int?"
+                <RadzenDropDown TValue="IEnumerable<int>"
                                 Data="@MonthOptions"
                                 TextProperty="Text"
                                 ValueProperty="Value"
                                 @bind-Value="MonthFilter"
-                                Style="width:120px" />
+                                Multiple="true"
+                                AllowSelectAll="true"
+                                SelectAllText="Select all"
+                                Placeholder="All"
+                                MaxSelectedLabels="3"
+                                SelectedItemsText="{0} selected"
+                                Style="width:180px" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="Year" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="IEnumerable<int>"
+                                Data="@YearOptions"
+                                TextProperty="Text"
+                                ValueProperty="Value"
+                                @bind-Value="YearFilter"
+                                Multiple="true"
+                                AllowSelectAll="true"
+                                SelectAllText="Select all"
+                                Placeholder="All"
+                                MaxSelectedLabels="2"
+                                SelectedItemsText="{0} selected"
+                                Style="width:180px" />
             </RadzenFormField>
 
             <RadzenFormField Text="Status" AllowFloatingLabel="false" Variant="Variant.Text">
-                <RadzenDropDown TValue="int?"
+                <RadzenDropDown TValue="IEnumerable<int>"
                                 Data="@StatusOptions"
                                 TextProperty="Text"
                                 ValueProperty="Value"
                                 @bind-Value="StatusFilter"
-                                Style="width:160px" />
+                                Multiple="true"
+                                AllowSelectAll="true"
+                                SelectAllText="Select all"
+                                Placeholder="All"
+                                MaxSelectedLabels="2"
+                                SelectedItemsText="{0} selected"
+                                Style="width:200px" />
             </RadzenFormField>
 
             <RadzenButton Icon="search" Text="Search" Size="ButtonSize.Small" Click="LoadOrdersAsync" Disabled="@IsLoading" />
             <RadzenButton Icon="refresh" Text="Reload" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="ReloadAsync" Disabled="@IsLoading" />
-            <RadzenButton Icon="add_circle" Text="Add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Click="OpenCreateDialogAsync" Disabled="@IsLoading" />
-            <RadzenButton Icon="content_copy" Text="Copy previous month" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@(async _ => await CopyPreviousMonthAsync())" Disabled="@IsLoading" />
+            @* <RadzenButton Icon="content_copy" Text="Copy previous month" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@(async _ => await CopyPreviousMonthAsync())" Disabled="@IsLoading" /> *@
         </RadzenStack>
 
         @if (EditorVisible)
@@ -107,8 +153,7 @@
 
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" JustifyContent="JustifyContent.End">
                         <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="CancelEditor" />
-                        <RadzenButton Text="Save draft" Icon="drafts" ButtonStyle="ButtonStyle.Secondary" Click="@(async _ => await SaveEditorAsync(false))" />
-                        <RadzenButton Text="Save" Icon="check" ButtonStyle="ButtonStyle.Success" Click="@(async _ => await SaveEditorAsync(true))" />
+                        <RadzenButton Text="Save" Icon="check" ButtonStyle="ButtonStyle.Success" Click="@(async _ => await SaveEditorAsync())" />
                     </RadzenStack>
                 </RadzenStack>
             </RadzenCard>
@@ -129,35 +174,37 @@
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="60px" Sortable="false" Filterable="false">
                     <Template Context="row">@(Orders.IndexOf(row) + 1)</Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Action" Width="160px" Sortable="false" Filterable="false">
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="200px" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Period" Width="120px">
+                    <Template Context="row">@($"{row.Y}/{row.M:00}")</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Products" Width="90px">
+                    <Template Context="row">@(row.Items?.Count ?? 0)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Total Qty" Width="100px">
+                    <Template Context="row">@(row.Items?.Sum(i => i.Qty) ?? 0)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="130px">
                     <Template Context="row">
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                        <RadzenBadge Text="@GetStatusText(row.Status)"
+                                     BadgeStyle="@GetStatusBadgeStyle(row.Status)"
+                                     IsPill="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="CreateDate" Title="Created" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Action" Width="130px" Sortable="false" Filterable="false">
+                    <Template Context="row">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.15rem">
+                            <RadzenButton Icon="visibility" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Click="@(_ => ViewOrder(row))" Title="View" Style="border:none; box-shadow:none;" />
                             @if (CanEditOrDelete(row))
                             {
-                                <RadzenButton Icon="edit" Size="ButtonSize.ExtraSmall" Click="@(async _ => await OpenEditDialogAsync(row))" Disabled="@IsLoading" Title="Edit" />
-                                <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Click="@(async _ => await DeleteOrderAsync(row))" Disabled="@IsLoading" Title="Delete" />
-                            }
-
-                            @if (IsSubmitted(row))
-                            {
-                                <RadzenButton Icon="block" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Warning" Click="@(async _ => await CancelOrderAsync(row))" Disabled="@IsLoading" Title="Cancel" />
+                                <RadzenButton Icon="edit" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Click="@(async _ => await OpenEditDialogAsync(row))" Disabled="@IsLoading" Title="Edit" Style="border:none; box-shadow:none;" />
+                                <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Click="@(async _ => await DeleteOrderAsync(row))" Disabled="@IsLoading" Title="Delete" Style="border:none; box-shadow:none; background:transparent !important; color:var(--rz-danger) !important;" />
                             }
                         </RadzenStack>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="150px" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Period" Width="120px">
-                    <Template Context="row">@($"{row.Y}/{row.M:00}")</Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="140px">
-                    <Template Context="row">@GetStatusText(row.Status)</Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Items" Width="90px">
-                    <Template Context="row">@(row.Items?.Count ?? 0)</Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="UpdateDate" Title="Updated" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Description" Title="Description" />
             </Columns>
             <Template Context="row">
                 <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO"

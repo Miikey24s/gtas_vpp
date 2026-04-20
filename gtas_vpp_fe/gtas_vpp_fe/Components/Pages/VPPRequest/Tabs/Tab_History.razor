@@ -8,33 +8,52 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="0.75rem">
+    <RadzenStack Gap="1rem">
+        @* ── Filters ── *@
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="Year" AllowFloatingLabel="false" Variant="Variant.Text">
-                <RadzenDropDown TValue="int?"
-                                Data="@YearOptions"
-                                TextProperty="Text"
-                                ValueProperty="Value"
-                                @bind-Value="YearFilter"
-                                Style="width:120px" />
-            </RadzenFormField>
-
             <RadzenFormField Text="Month" AllowFloatingLabel="false" Variant="Variant.Text">
-                <RadzenDropDown TValue="int?"
+                <RadzenDropDown TValue="IEnumerable<int>"
                                 Data="@MonthOptions"
                                 TextProperty="Text"
                                 ValueProperty="Value"
                                 @bind-Value="MonthFilter"
-                                Style="width:120px" />
+                                Multiple="true"
+                                AllowSelectAll="true"
+                                SelectAllText="Select all"
+                                Placeholder="All"
+                                MaxSelectedLabels="3"
+                                SelectedItemsText="{0} selected"
+                                Style="width:180px" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="Year" AllowFloatingLabel="false" Variant="Variant.Text">
+                <RadzenDropDown TValue="IEnumerable<int>"
+                                Data="@YearOptions"
+                                TextProperty="Text"
+                                ValueProperty="Value"
+                                @bind-Value="YearFilter"
+                                Multiple="true"
+                                AllowSelectAll="true"
+                                SelectAllText="Select all"
+                                Placeholder="All"
+                                MaxSelectedLabels="2"
+                                SelectedItemsText="{0} selected"
+                                Style="width:180px" />
             </RadzenFormField>
 
             <RadzenFormField Text="Status" AllowFloatingLabel="false" Variant="Variant.Text">
-                <RadzenDropDown TValue="int?"
+                <RadzenDropDown TValue="IEnumerable<int>"
                                 Data="@StatusOptions"
                                 TextProperty="Text"
                                 ValueProperty="Value"
                                 @bind-Value="StatusFilter"
-                                Style="width:160px" />
+                                Multiple="true"
+                                AllowSelectAll="true"
+                                SelectAllText="Select all"
+                                Placeholder="All"
+                                MaxSelectedLabels="2"
+                                SelectedItemsText="{0} selected"
+                                Style="width:200px" />
             </RadzenFormField>
 
             <RadzenButton Icon="search" Text="Search" Size="ButtonSize.Small" Click="LoadHistoryAsync" Disabled="@IsLoading" />
@@ -55,17 +74,22 @@
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="60px" Sortable="false" Filterable="false">
                     <Template Context="row">@(Orders.IndexOf(row) + 1)</Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="150px" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="200px" />
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Period" Width="120px">
                     <Template Context="row">@($"{row.Y}/{row.M:00}")</Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="140px">
-                    <Template Context="row">@GetStatusText(row.Status)</Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Items" Width="90px">
                     <Template Context="row">@(row.Items?.Count ?? 0)</Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="140px">
+                    <Template Context="row">
+                        <RadzenBadge Text="@GetStatusText(row.Status)"
+                                     BadgeStyle="@GetStatusBadgeStyle(row.Status)"
+                                     IsPill="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="UpdateDate" Title="Updated" Width="170px" FormatString="{0:yyyy-MM-dd HH:mm}" />
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Description" Title="Description" />
             </Columns>
             <Template Context="row">

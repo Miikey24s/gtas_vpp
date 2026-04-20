@@ -13,7 +13,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     {
         public sealed class OptionItem
         {
-            public int? Value { get; set; }
+            public int Value { get; set; }
             public string Text { get; set; } = string.Empty;
         }
 
@@ -50,21 +50,37 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<ProductOption> ProductOptions { get; set; } = new();
 
         public bool IsLoading { get; set; }
-        public int? YearFilter { get; set; }
-        public int? MonthFilter { get; set; }
-        public int? StatusFilter { get; set; }
+        public IEnumerable<int> YearFilter { get; set; } = Enumerable.Empty<int>();
+        public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
+        public IEnumerable<int> StatusFilter { get; set; } = Enumerable.Empty<int>();
+        public bool ViewerVisible { get; set; }
+        public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
 
         public bool EditorVisible { get; set; }
         public bool EditorIsEdit { get; set; }
         public EditOrderModel EditorModel { get; set; } = new();
         public Radzen.Blazor.RadzenDataGrid<EditOrderItem>? EditorItemsGrid { get; set; }
 
+        public DateTime CurrentOrderPeriodDate
+        {
+            get
+            {
+                var now = DateTime.Now;
+                var currentMonth = new DateTime(now.Year, now.Month, 1);
+                return now.Day > 5 ? currentMonth.AddMonths(1) : currentMonth;
+            }
+        }
+
+        public DateTime CurrentDeadlineDate => new(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 5);
+        public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
+        public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
+        public string CurrentDeadlineText => CurrentDeadlineDate.ToString("dd/MM/yyyy");
+        public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
+
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new()
         {
-            new() { Value = null, Text = "All" },
-            new() { Value = 0, Text = "Draft" },
             new() { Value = 1, Text = "Submitted" },
             new() { Value = 4, Text = "Cancelled" },
             new() { Value = 5, Text = "Closed" }
@@ -85,22 +101,20 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             var currentYear = DateTime.Now.Year;
             YearOptions.Clear();
-            YearOptions.Add(new OptionItem { Value = null, Text = "All" });
             for (var i = currentYear - 2; i <= currentYear + 1; i++)
             {
                 YearOptions.Add(new OptionItem { Value = i, Text = i.ToString() });
             }
 
             MonthOptions.Clear();
-            MonthOptions.Add(new OptionItem { Value = null, Text = "All" });
             for (var i = 1; i <= 12; i++)
             {
                 MonthOptions.Add(new OptionItem { Value = i, Text = i.ToString("00") });
             }
 
-            YearFilter = null;
-            MonthFilter = null;
-            StatusFilter = null;
+            YearFilter = Enumerable.Empty<int>();
+            MonthFilter = Enumerable.Empty<int>();
+            StatusFilter = Enumerable.Empty<int>();
         }
 
         private async Task LoadProductsAsync()
@@ -124,9 +138,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var endpoint = BuildMyOrdersEndpoint();
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
-                Orders = (data ?? new())
+                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/my-orders");
+                var filtered = (data ?? new()).AsEnumerable();
+
+                if (YearFilter.Any())
+                    filtered = filtered.Where(x => YearFilter.Contains(x.Y));
+                if (MonthFilter.Any())
+                    filtered = filtered.Where(x => MonthFilter.Contains(x.M));
+                if (StatusFilter.Any())
+                    filtered = filtered.Where(x => StatusFilter.Contains(x.Status));
+
+                Orders = filtered
                     .OrderByDescending(x => x.Y)
                     .ThenByDescending(x => x.M)
                     .ThenByDescending(x => x.UpdateDate)
@@ -157,8 +179,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             EditorIsEdit = false;
             EditorModel = new EditOrderModel
             {
-                Y = YearFilter ?? DateTime.Now.Year,
-                M = MonthFilter ?? DateTime.Now.Month,
+                Y = YearFilter.Any() ? YearFilter.First() : CurrentOrderPeriodDate.Year,
+                M = MonthFilter.Any() ? MonthFilter.First() : CurrentOrderPeriodDate.Month,
                 Items = new List<EditOrderItem> { new() }
             };
             EditorVisible = true;
@@ -219,8 +241,20 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             EditorModel = new EditOrderModel();
         }
 
-        protected async Task SaveEditorAsync(bool submit)
+        protected async Task SaveEditorAsync()
         {
+            if (DateTime.Now > new DateTime(EditorModel.Y, EditorModel.M, 5))
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Order",
+                    Detail = "Cannot create/update order for a period that has passed deadline.",
+                    Duration = 4000
+                });
+                return;
+            }
+
             if (EditorModel.Items.Count == 0 || EditorModel.Items.Any(x => x.VPPId == Guid.Empty))
             {
                 NotificationService.Notify(new NotificationMessage
@@ -263,7 +297,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     var updateReq = new VPP01_UpdateReqDTO
                     {
                         Id = EditorModel.Id,
-                        Status = submit ? 1 : 0,
+                        Status = 1,
                         Description = EditorModel.Description,
                         Items = requestItems
                     };
@@ -276,7 +310,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     {
                         Y = EditorModel.Y,
                         M = EditorModel.M,
-                        Status = submit ? 1 : 0,
+                        Status = 1,
                         Description = EditorModel.Description,
                         Items = requestItems
                     };
@@ -289,8 +323,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
                     Detail = EditorIsEdit
-                        ? (submit ? "Order updated and submitted." : "Order updated as draft.")
-                        : (submit ? "Order created and submitted." : "Order created as draft."),
+                        ? "Order updated."
+                        : "Order created.",
                     Duration = 3000
                 });
 
@@ -351,9 +385,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        protected bool IsDraft(VPP01_RequestHeaderResDTO row) => row.Status == 0;
         protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
-        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => IsDraft(row) || IsSubmitted(row);
+        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => IsSubmitted(row);
 
         protected async Task SubmitOrderAsync(VPP01_RequestHeaderResDTO row)
         {
@@ -425,7 +458,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task CopyPreviousMonthAsync()
         {
-            if (YearFilter is null || MonthFilter is null)
+            if (!YearFilter.Any() || !MonthFilter.Any())
             {
                 NotificationService.Notify(new NotificationMessage
                 {
@@ -443,8 +476,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 var body = new
                 {
-                    year = YearFilter.Value,
-                    month = MonthFilter.Value
+                    year = YearFilter.First(),
+                    month = MonthFilter.First()
                 };
 
                 var result = await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>("/api/VPPRequest/orders/copy-previous", body);
@@ -479,24 +512,33 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        private string BuildMyOrdersEndpoint()
+        protected void ViewOrder(VPP01_RequestHeaderResDTO row)
         {
-            var query = new List<string>();
-            if (YearFilter.HasValue) query.Add($"year={YearFilter.Value}");
-            if (MonthFilter.HasValue) query.Add($"month={MonthFilter.Value}");
-            if (StatusFilter.HasValue) query.Add($"status={StatusFilter.Value}");
+            ViewingOrder = row;
+            ViewerVisible = true;
+            StateHasChanged();
+        }
 
-            if (query.Count == 0) return "/api/VPPRequest/my-orders";
-            return $"/api/VPPRequest/my-orders?{string.Join("&", query)}";
+        protected void CloseViewer()
+        {
+            ViewerVisible = false;
+            ViewingOrder = null;
         }
 
         protected string GetStatusText(int status) => status switch
         {
-            0 => "Draft",
             1 => "Submitted",
             4 => "Cancelled",
             5 => "Closed",
             _ => "-"
+        };
+
+        protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
+        {
+            1 => BadgeStyle.Success,
+            4 => BadgeStyle.Danger,
+            5 => BadgeStyle.Info,
+            _ => BadgeStyle.Light
         };
     }
 }

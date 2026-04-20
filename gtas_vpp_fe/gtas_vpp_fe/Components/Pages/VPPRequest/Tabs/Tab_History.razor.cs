@@ -12,7 +12,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     {
         public sealed class OptionItem
         {
-            public int? Value { get; set; }
+            public int Value { get; set; }
             public string Text { get; set; } = string.Empty;
         }
 
@@ -24,15 +24,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
 
         public bool IsLoading { get; set; }
-        public int? YearFilter { get; set; } = DateTime.Now.Year;
-        public int? MonthFilter { get; set; }
-        public int? StatusFilter { get; set; }
+        public IEnumerable<int> YearFilter { get; set; } = new[] { DateTime.Now.Year };
+        public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
+        public IEnumerable<int> StatusFilter { get; set; } = Enumerable.Empty<int>();
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new()
         {
-            new() { Value = null, Text = "All" },
             new() { Value = 1, Text = "Submitted" },
             new() { Value = 4, Text = "Cancelled" },
             new() { Value = 5, Text = "Closed" }
@@ -52,14 +51,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             var currentYear = DateTime.Now.Year;
             YearOptions.Clear();
-            YearOptions.Add(new OptionItem { Value = null, Text = "All" });
             for (var i = currentYear - 3; i <= currentYear + 1; i++)
             {
                 YearOptions.Add(new OptionItem { Value = i, Text = i.ToString() });
             }
 
             MonthOptions.Clear();
-            MonthOptions.Add(new OptionItem { Value = null, Text = "All" });
             for (var i = 1; i <= 12; i++)
             {
                 MonthOptions.Add(new OptionItem { Value = i, Text = i.ToString("00") });
@@ -75,15 +72,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var endpoint = BuildMyOrdersEndpoint();
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint) ?? new();
+                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/my-orders") ?? new();
 
                 // History tab: hide Draft orders by default
-                var filtered = data.Where(x => x.Status != 0);
-                if (StatusFilter.HasValue)
-                {
-                    filtered = filtered.Where(x => x.Status == StatusFilter.Value);
-                }
+                var filtered = data.Where(x => x.Status != 0).AsEnumerable();
+
+                if (YearFilter.Any())
+                    filtered = filtered.Where(x => YearFilter.Contains(x.Y));
+                if (MonthFilter.Any())
+                    filtered = filtered.Where(x => MonthFilter.Contains(x.M));
+                if (StatusFilter.Any())
+                    filtered = filtered.Where(x => StatusFilter.Contains(x.Status));
 
                 Orders = filtered
                     .OrderByDescending(x => x.Y)
@@ -114,16 +113,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await LoadHistoryAsync();
         }
 
-        private string BuildMyOrdersEndpoint()
-        {
-            var query = new List<string>();
-            if (YearFilter.HasValue) query.Add($"year={YearFilter.Value}");
-            if (MonthFilter.HasValue) query.Add($"month={MonthFilter.Value}");
-
-            if (query.Count == 0) return "/api/VPPRequest/my-orders";
-            return $"/api/VPPRequest/my-orders?{string.Join("&", query)}";
-        }
-
         protected string GetStatusText(int status) => status switch
         {
             0 => "Draft",
@@ -131,6 +120,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             4 => "Cancelled",
             5 => "Closed",
             _ => "-"
+        };
+
+        protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
+        {
+            1 => BadgeStyle.Success,
+            4 => BadgeStyle.Danger,
+            5 => BadgeStyle.Info,
+            _ => BadgeStyle.Light
         };
     }
 }
