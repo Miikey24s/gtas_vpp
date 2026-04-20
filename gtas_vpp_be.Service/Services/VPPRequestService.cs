@@ -19,6 +19,7 @@ namespace gtas_vpp_be.Service.Services
         Task SubmitOrderAsync(Guid id, int userId);
         Task CancelOrderAsync(Guid id, int userId);
         Task DeleteDraftAsync(Guid id, int userId);
+        Task UndoDeleteAsync(Guid id, int userId);
         Task<VPP01_RequestHeaderResDTO> CopyPreviousMonthAsync(int userId, int year, int month, string departmentCode, string memberCompanyCode);
         Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode);
     }
@@ -223,6 +224,67 @@ namespace gtas_vpp_be.Service.Services
                     LogTitle = "SUBMIT",
                     LogDate = DateTime.Now,
                     LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()))
+                });
+
+                await uow.CommitAsync();
+            }
+            catch
+            {
+                uow.Rollback();
+                throw;
+            }
+        }
+
+        public async Task UndoDeleteAsync(Guid id, int userId)
+        {
+            using var uow = _unitOfWork.Create(GetEnvironment());
+            await uow.BeginTransactionAsync();
+            try
+            {
+                var header = await uow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
+                    .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted);
+
+                if (header == null) throw new KeyNotFoundException("Deleted order not found.");
+                if (header.CreateUserId != userId) throw new UnauthorizedAccessException("Cannot undo delete of another user's order.");
+
+                var now = DateTime.Now;
+
+                header.IsDeleted = false;
+                header.UpdateUserId = userId;
+                header.UpdateDate = now;
+
+                await uow.VPPContext.Set<VPP02_RequestDetail>()
+                    .Where(x => x.VPP01_RequestHeaderId == header.Id && x.IsDeleted)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.IsDeleted, false)
+                        .SetProperty(x => x.UpdateUserId, userId)
+                        .SetProperty(x => x.UpdateDate, now));
+
+                var restoredDetails = (header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>())
+                    .Select(x => new VPP02_RequestDetail
+                    {
+                        Id = x.Id,
+                        VPPId = x.VPPId,
+                        Qty = x.Qty,
+                        CurrentSinglePrice = x.CurrentSinglePrice,
+                        Description = x.Description,
+                        VPP01_RequestHeaderId = x.VPP01_RequestHeaderId,
+                        CreateUserId = x.CreateUserId,
+                        CreateDate = x.CreateDate,
+                        UpdateUserId = userId,
+                        UpdateDate = now,
+                        IsDeleted = false
+                    })
+                    .ToList();
+
+                uow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                {
+                    Id = Guid.NewGuid(),
+                    VPP01_RequestHeaderId = header.Id,
+                    LogTitle = "UNDO_DELETE",
+                    LogDate = now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, restoredDetails))
                 });
 
                 await uow.CommitAsync();

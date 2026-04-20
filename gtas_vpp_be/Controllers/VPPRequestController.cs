@@ -99,6 +99,15 @@ namespace gtas_vpp_be.Controllers
             return Ok();
         }
 
+        [HttpPost("orders/{id:guid}/undo-delete")]
+        public async Task<IActionResult> UndoDeleteOrder(Guid id)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.UndoDeleteAsync(id, CurrentUserId.Value);
+            return Ok();
+        }
+
         [HttpPost("orders/copy-previous")]
         public async Task<IActionResult> CopyPreviousMonth([FromBody] CopyPreviousMonthReqDTO req)
         {
