@@ -26,11 +26,42 @@ namespace gtas_vpp_be.Controllers
         private string CurrentMemberCompanyCode => User.FindFirstValue("MemberCompanyCode") ?? string.Empty;
 
         [HttpGet("my-orders")]
-        public async Task<IActionResult> GetMyOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status)
+        public async Task<IActionResult> GetMyOrders(
+            [FromQuery] int? year,
+            [FromQuery] int? month,
+            [FromQuery] int? status,
+            [FromQuery] List<int>? years,
+            [FromQuery] List<int>? months,
+            [FromQuery] List<int>? statuses)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var data = await _vppService.GetMyOrdersAsync(CurrentUserId.Value, year, month, status);
+            var data = await _vppService.GetMyOrdersAsync(
+                CurrentUserId.Value,
+                MergeIntFilters(year, years),
+                MergeIntFilters(month, months),
+                MergeIntFilters(status, statuses));
+
+            return Ok(data);
+        }
+
+        [HttpGet("my-orders-summary")]
+        public async Task<IActionResult> GetMyOrdersSummary(
+            [FromQuery] int? year,
+            [FromQuery] int? month,
+            [FromQuery] int? status,
+            [FromQuery] List<int>? years,
+            [FromQuery] List<int>? months,
+            [FromQuery] List<int>? statuses)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var data = await _vppService.GetMyOrdersSummaryAsync(
+                CurrentUserId.Value,
+                MergeIntFilters(year, years),
+                MergeIntFilters(month, months),
+                MergeIntFilters(status, statuses));
+
             return Ok(data);
         }
 
@@ -172,6 +203,50 @@ namespace gtas_vpp_be.Controllers
         {
             var data = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode);
             return Ok(data);
+        }
+
+        [HttpGet("department-orders")]
+        public async Task<IActionResult> GetDepartmentOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode)
+        {
+            if (string.IsNullOrWhiteSpace(departmentCode))
+            {
+                departmentCode = CurrentDepartmentCode;
+            }
+
+            // Department summary shows Submitted (1), Closed (5), and Approved (7) orders
+            // If no status filter, default to these statuses
+            var allowedStatuses = new[] { 1, 5, 7 }; // Submitted, Closed, Approved
+            
+            // If status is provided and it's one of the allowed statuses, use it
+            // Otherwise, get all allowed statuses
+            int? filteredStatus = null;
+            if (status.HasValue && allowedStatuses.Contains(status.Value))
+            {
+                filteredStatus = status;
+            }
+
+            var data = await _vppService.GetDepartmentOrdersAsync(year, month, filteredStatus, departmentCode, allowedStatuses);
+            return Ok(data);
+        }
+
+        private static IEnumerable<int>? MergeIntFilters(int? singleValue, IEnumerable<int>? listValues)
+        {
+            var values = new HashSet<int>();
+
+            if (singleValue.HasValue)
+            {
+                values.Add(singleValue.Value);
+            }
+
+            if (listValues != null)
+            {
+                foreach (var value in listValues)
+                {
+                    values.Add(value);
+                }
+            }
+
+            return values.Count == 0 ? null : values;
         }
     }
 

@@ -1,8 +1,12 @@
 ﻿using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.DTOs.Res.Library;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using System.Linq.Dynamic.Core;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -14,28 +18,169 @@ namespace gtas_vpp_be.Controllers
         public LibraryController(IBussinessService bussinessService) : base(bussinessService) { }
 
         [HttpGet("{tableCode}")]
-        public async Task<IActionResult> GenericGet(string tableCode, [FromQuery] Guid? id, [FromQuery] string? searchText)
+        public async Task<IActionResult> GenericGet(
+            string tableCode, 
+            [FromQuery] Guid? id, 
+            [FromQuery] string? searchText, 
+            [FromQuery] Guid? classId,
+            [FromQuery] string? filter,
+            [FromQuery] int? skip,
+            [FromQuery] int? top,
+            [FromQuery] string? orderby,
+            [FromQuery] string? distinct)
         {
             string cleanSearch = searchText?.Trim() ?? string.Empty;
 
+            // Check if this is a LoadData request (has any of the advanced parameters)
+            bool isLoadDataRequest = !string.IsNullOrEmpty(filter) || skip.HasValue || top.HasValue || 
+                                     !string.IsNullOrEmpty(orderby) || !string.IsNullOrEmpty(distinct);
+
+            // For L02, if classId is provided without id or searchText, treat as LoadData request
+            if (tableCode.ToLower() == "l02" && classId.HasValue && !id.HasValue && string.IsNullOrEmpty(cleanSearch))
+            {
+                isLoadDataRequest = true;
+            }
+
+            // If using advanced filtering
+            if (isLoadDataRequest)
+            {
+                return tableCode.ToLower() switch
+                {
+                    "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct),
+                    "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, classId),
+                    _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
+                };
+            }
+
+            // Original simple filtering
             return tableCode.ToLower() switch
             {
-                "l01" => await GetTableDataAsync<L01_Class>(id, cleanSearch,
+                "l01" => await GetTableDataAsync<L01_Class, L01_ClassResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => x.ClassName.Contains(cleanSearch)
                                    || x.ClassCode.Contains(cleanSearch)
                                    || x.Description.Contains(cleanSearch)),
-                "l02" => await GetTableDataAsync<L02_ClassDetail>(id, cleanSearch,
+                "l02" => await GetTableDataAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id, cleanSearch, 
                     matchId: x => x.Id == id,
                     matchSearch: x => x.ClassDetailCode.Contains(cleanSearch)
-                                   || x.ClassDetailValue!.Contains(cleanSearch)
+                                   || (x.ClassDetailValue != null && x.ClassDetailValue.Contains(cleanSearch))
                                    || x.Description.Contains(cleanSearch)),
-                "l03" => await GetTableDataAsync<L03_VPPCategory>(id, cleanSearch, matchId: x => x.Id == id),
-                "l04" => await GetTableDataAsync<L04_VPP>(id, cleanSearch, matchId: x => x.Id == id),
-                "l05" => await GetTableDataAsync<L05_VPPSupplier>(id, cleanSearch, matchId: x => x.Id == id),
-                "l06" => await GetTableDataAsync<L06_VPPSupplierMapping>(id, cleanSearch, matchId: x => x.Id == id),
+                "l03" => await GetTableDataAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id),
+                "l04" => await GetTableDataAsync<L04_VPP, L04_VPPResDTO>(id, cleanSearch, matchId: x => x.Id == id),
+                "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id),
+                "l06" => await GetTableDataAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
             };
+        }
+
+        private async Task<IActionResult> GetTableDataWithFilteringAsync<TModel, TDto>(
+            string? filter,
+            int? skip,
+            int? top,
+            string? orderby,
+            string? distinct,
+            Guid? classId = null) where TModel : class
+        {
+            try
+            {
+                // Get all data
+                var allData = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_GetTAsync, true);
+                
+                if (allData == null || !allData.Any())
+                {
+                    Response.Headers.Add("X-Total-Count", "0");
+                    return Ok(new List<TDto>());
+                }
+
+                var query = allData.AsQueryable();
+
+                // Apply classId filter for L02
+                if (classId.HasValue && typeof(TModel) == typeof(L02_ClassDetail))
+                {
+                    query = query.Where(x => ((L02_ClassDetail)(object)x).ClassId == classId.Value);
+                }
+
+                // Apply filter (Radzen filter format)
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    try
+                    {
+                        // Parse Radzen filter format and apply
+                        query = query.Where(filter);
+                    }
+                    catch
+                    {
+                        // If filter parsing fails, ignore it
+                    }
+                }
+
+                // Get total count before paging
+                var totalCount = query.Count();
+
+                // Handle distinct request for filter dropdowns
+                if (!string.IsNullOrEmpty(distinct))
+                {
+                    var propertyInfo = typeof(TModel).GetProperty(distinct);
+                    if (propertyInfo != null)
+                    {
+                        var distinctValues = query
+                            .Select(x => propertyInfo.GetValue(x))
+                            .Where(x => x != null)
+                            .Distinct()
+                            .ToList();
+
+                        var distinctDtos = distinctValues.Select(val =>
+                        {
+                            var dto = Activator.CreateInstance<TDto>();
+                            var dtoProp = typeof(TDto).GetProperty(distinct);
+                            if (dtoProp != null)
+                            {
+                                dtoProp.SetValue(dto, val);
+                            }
+                            return dto;
+                        }).ToList();
+
+                        Response.Headers.Add("X-Total-Count", distinctDtos.Count.ToString());
+                        return Ok(distinctDtos);
+                    }
+                }
+
+                // Apply sorting
+                if (!string.IsNullOrEmpty(orderby))
+                {
+                    try
+                    {
+                        query = query.OrderBy(orderby);
+                    }
+                    catch
+                    {
+                        // If sorting fails, use default ordering
+                    }
+                }
+
+                // Apply paging
+                if (skip.HasValue && skip.Value > 0)
+                {
+                    query = query.Skip(skip.Value);
+                }
+
+                if (top.HasValue && top.Value > 0)
+                {
+                    query = query.Take(top.Value);
+                }
+
+                var result = query.ToList();
+                var dtoList = result.Adapt<List<TDto>>();
+
+                // Add total count to response header
+                Response.Headers.Add("X-Total-Count", totalCount.ToString());
+
+                return Ok(dtoList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = $"Error processing request: {ex.Message}", StackTrace = ex.StackTrace });
+            }
         }
 
         [HttpGet("{tableCode}/{id:guid}")]
@@ -43,12 +188,12 @@ namespace gtas_vpp_be.Controllers
         {
             return tableCode.ToLower() switch
             {
-                "l01" => await GetByIdAsync<L01_Class>(id),
-                "l02" => await GetByIdAsync<L02_ClassDetail>(id),
-                "l03" => await GetByIdAsync<L03_VPPCategory>(id),
-                "l04" => await GetByIdAsync<L04_VPP>(id),
-                "l05" => await GetByIdAsync<L05_VPPSupplier>(id),
-                "l06" => await GetByIdAsync<L06_VPPSupplierMapping>(id),
+                "l01" => await GetByIdAsync<L01_Class, L01_ClassResDTO>(id),
+                "l02" => await GetByIdAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id),
+                "l03" => await GetByIdAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id),
+                "l04" => await GetByIdAsync<L04_VPP, L04_VPPResDTO>(id),
+                "l05" => await GetByIdAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id),
+                "l06" => await GetByIdAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id),
                 _ => BadRequest(new { Message = $"GetById for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -59,12 +204,12 @@ namespace gtas_vpp_be.Controllers
             var json = payload.GetRawText();
             return tableCode.ToLower() switch
             {
-                "l01" => await CreateAsync<L01_Class>(json),
-                "l02" => await CreateAsync<L02_ClassDetail>(json),
-                "l03" => await CreateAsync<L03_VPPCategory>(json),
-                "l04" => await CreateAsync<L04_VPP>(json),
-                "l05" => await CreateAsync<L05_VPPSupplier>(json),
-                "l06" => await CreateAsync<L06_VPPSupplierMapping>(json),
+                "l01" => await CreateAsync<L01_Class, L01_ClassResDTO>(json),
+                "l02" => await CreateAsync<L02_ClassDetail, L02_ClassDetailResDTO>(json),
+                "l03" => await CreateAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(json),
+                "l04" => await CreateAsync<L04_VPP, L04_VPPResDTO>(json),
+                "l05" => await CreateAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(json),
+                "l06" => await CreateAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(json),
                 _ => BadRequest(new { Message = $"Create for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -75,12 +220,12 @@ namespace gtas_vpp_be.Controllers
             var json = payload.GetRawText();
             return tableCode.ToLower() switch
             {
-                "l01" => await UpdateAsync<L01_Class>(json),
-                "l02" => await UpdateAsync<L02_ClassDetail>(json),
-                "l03" => await UpdateAsync<L03_VPPCategory>(json),
-                "l04" => await UpdateAsync<L04_VPP>(json),
-                "l05" => await UpdateAsync<L05_VPPSupplier>(json),
-                "l06" => await UpdateAsync<L06_VPPSupplierMapping>(json),
+                "l01" => await UpdateAsync<L01_Class, L01_ClassResDTO>(json),
+                "l02" => await UpdateAsync<L02_ClassDetail, L02_ClassDetailResDTO>(json),
+                "l03" => await UpdateAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(json),
+                "l04" => await UpdateAsync<L04_VPP, L04_VPPResDTO>(json),
+                "l05" => await UpdateAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(json),
+                "l06" => await UpdateAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(json),
                 _ => BadRequest(new { Message = $"Update for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -95,12 +240,12 @@ namespace gtas_vpp_be.Controllers
 
             return tableCode.ToLower() switch
             {
-                "l01" => await ApplyPatchAsync<L01_Class>(id, payload),
-                "l02" => await ApplyPatchAsync<L02_ClassDetail>(id, payload),
-                "l03" => await ApplyPatchAsync<L03_VPPCategory>(id, payload),
-                "l04" => await ApplyPatchAsync<L04_VPP>(id, payload),
-                "l05" => await ApplyPatchAsync<L05_VPPSupplier>(id, payload),
-                "l06" => await ApplyPatchAsync<L06_VPPSupplierMapping>(id, payload),
+                "l01" => await ApplyPatchAsync<L01_Class, L01_ClassResDTO>(id, payload),
+                "l02" => await ApplyPatchAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id, payload),
+                "l03" => await ApplyPatchAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, payload),
+                "l04" => await ApplyPatchAsync<L04_VPP, L04_VPPResDTO>(id, payload),
+                "l05" => await ApplyPatchAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, payload),
+                "l06" => await ApplyPatchAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, payload),
                 _ => BadRequest(new { Message = $"Patch for Table Code '{tableCode}' is not supported." })
             };
         }

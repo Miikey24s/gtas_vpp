@@ -29,12 +29,14 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.7" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\gtas_vpp_be.Migrations\gtas_vpp_be.Migrations.csproj" />
     <ProjectReference Include="..\gtas_vpp_be.Model\gtas_vpp_be.Model.csproj" />
     <ProjectReference Include="..\gtas_vpp_be.Service\gtas_vpp_be.Service.csproj" />
+    <ProjectReference Include="..\..\gtas_vpp\gtas_vpp_shared\gtas_vpp_shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -12,7 +12,8 @@ namespace gtas_vpp_be.Service.Services
 {
     public interface IVPPRequestService
     {
-        Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, int? year, int? month, int? status);
+        Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses);
+        Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersSummaryAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses);
         Task<VPP01_RequestHeaderResDTO?> GetOrderByIdAsync(Guid id);
         Task<VPP01_RequestHeaderResDTO> CreateOrderAsync(VPP01_CreateReqDTO req, int createUserId, string departmentCode, string memberCompanyCode);
         Task<VPP01_RequestHeaderResDTO> UpdateOrderAsync(VPP01_UpdateReqDTO req);
@@ -22,30 +23,166 @@ namespace gtas_vpp_be.Service.Services
         Task UndoDeleteAsync(Guid id, int userId);
         Task<VPP01_RequestHeaderResDTO> CopyPreviousMonthAsync(int userId, int year, int month, string departmentCode, string memberCompanyCode);
         Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode);
+        Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode, int[] allowedStatuses);
     }
     public class VPPRequestService : BaseServices, IVPPRequestService
     {
         public VPPRequestService(IUnitOfWorkFactory uow, IHttpContextAccessor httpContextAccessor)
             : base(uow, httpContextAccessor) { }
 
-        public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, int? year, int? month, int? status)
+        public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
         {
-            var data = await ReadAsync<VPP01_RequestHeader>(
-                nameof(ContextType.VPPContext),
-                true,
-                x => x.CreateUserId == userId
-                     && !x.IsDeleted
-                     && (year == null || x.Y == year)
-                     && (month == null || x.M == month)
-                     && (status == null || x.Status == status),
-                q => q.Include(x => x.VPP02_RequestDetails)
-                       .ThenInclude(d => d.VPP)
-                       .ThenInclude(v => v.UOM)
-                       .Include(x => x.VPP02_RequestDetails)
-                       .ThenInclude(d => d.VPP)
-                       .ThenInclude(v => v.VPPCategory));
+            using var uow = _unitOfWork.Create(GetEnvironment());
 
-            return (data ?? new()).Select(MapToResDTO).ToList();
+            var yearFilter = years?.Distinct().ToArray();
+            var monthFilter = months?.Distinct().ToArray();
+            var statusFilter = statuses?.Distinct().ToArray();
+
+            var query = uow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => x.CreateUserId == userId && !x.IsDeleted);
+
+            if (yearFilter is { Length: > 0 })
+            {
+                query = query.Where(x => yearFilter.Contains(x.Y));
+            }
+
+            if (monthFilter is { Length: > 0 })
+            {
+                query = query.Where(x => monthFilter.Contains(x.M));
+            }
+
+            if (statusFilter is { Length: > 0 })
+            {
+                query = query.Where(x => statusFilter.Contains(x.Status));
+            }
+
+            var headers = await query
+                .OrderByDescending(x => x.Y)
+                .ThenByDescending(x => x.M)
+                .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
+                .Select(x => new VPP01_RequestHeaderResDTO
+                {
+                    Id = x.Id,
+                    Description = x.Description,
+                    CreateUserId = x.CreateUserId,
+                    CreateDate = x.CreateDate,
+                    UpdateUserId = x.UpdateUserId,
+                    UpdateDate = x.UpdateDate,
+                    IsDeleted = x.IsDeleted,
+                    VPPCode = x.VPPCode,
+                    Y = x.Y,
+                    M = x.M,
+                    Status = x.Status,
+                    DepartmentCode = x.DepartmentCode,
+                    MemberCompanyCode = x.MemberCompanyCode,
+                    SubmittedDate = x.SubmittedDate,
+                    TotalLines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                    TotalQty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0,
+                    Items = new List<VPP02_RequestDetailResDTO>()
+                })
+                .ToListAsync();
+
+            if (headers.Count == 0)
+            {
+                return headers;
+            }
+
+            var headerIds = headers.Select(h => h.Id).ToArray();
+
+            var detailRows = await uow.VPPContext.Set<VPP02_RequestDetail>()
+                .AsNoTracking()
+                .Where(d => !d.IsDeleted && headerIds.Contains(d.VPP01_RequestHeaderId))
+                .Select(d => new
+                {
+                    d.VPP01_RequestHeaderId,
+                    Item = new VPP02_RequestDetailResDTO
+                    {
+                        Id = d.Id,
+                        Description = d.Description,
+                        CreateUserId = d.CreateUserId,
+                        CreateDate = d.CreateDate,
+                        UpdateUserId = d.UpdateUserId,
+                        UpdateDate = d.UpdateDate,
+                        IsDeleted = d.IsDeleted,
+                        VPPId = d.VPPId,
+                        VPPCode = d.VPP != null ? d.VPP.VPPCode : null,
+                        VPPName = d.VPP != null ? d.VPP.VPPName : null,
+                        UOMCode = d.VPP != null && d.VPP.UOM != null ? d.VPP.UOM.ClassDetailCode : null,
+                        UOMName = d.VPP != null && d.VPP.UOM != null ? d.VPP.UOM.ClassDetailValue : null,
+                        CategoryName = d.VPP != null && d.VPP.VPPCategory != null ? d.VPP.VPPCategory.VPPCategoryName : null,
+                        Qty = d.Qty,
+                        CurrentSinglePrice = d.CurrentSinglePrice
+                    }
+                })
+                .ToListAsync();
+
+            var detailLookup = detailRows
+                .GroupBy(x => x.VPP01_RequestHeaderId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.Item).ToList());
+
+            foreach (var header in headers)
+            {
+                header.Items = detailLookup.TryGetValue(header.Id, out var items)
+                    ? items
+                    : new List<VPP02_RequestDetailResDTO>();
+            }
+
+            return headers;
+        }
+
+        public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersSummaryAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
+        {
+            using var uow = _unitOfWork.Create(GetEnvironment());
+
+            var yearFilter = years?.Distinct().ToArray();
+            var monthFilter = months?.Distinct().ToArray();
+            var statusFilter = statuses?.Distinct().ToArray();
+
+            var query = uow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => x.CreateUserId == userId && !x.IsDeleted);
+
+            if (yearFilter is { Length: > 0 })
+            {
+                query = query.Where(x => yearFilter.Contains(x.Y));
+            }
+
+            if (monthFilter is { Length: > 0 })
+            {
+                query = query.Where(x => monthFilter.Contains(x.M));
+            }
+
+            if (statusFilter is { Length: > 0 })
+            {
+                query = query.Where(x => statusFilter.Contains(x.Status));
+            }
+
+            return await query
+                .OrderByDescending(x => x.Y)
+                .ThenByDescending(x => x.M)
+                .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
+                .Select(x => new VPP01_RequestHeaderResDTO
+                {
+                    Id = x.Id,
+                    Description = x.Description,
+                    CreateUserId = x.CreateUserId,
+                    CreateDate = x.CreateDate,
+                    UpdateUserId = x.UpdateUserId,
+                    UpdateDate = x.UpdateDate,
+                    IsDeleted = x.IsDeleted,
+                    VPPCode = x.VPPCode,
+                    Y = x.Y,
+                    M = x.M,
+                    Status = x.Status,
+                    DepartmentCode = x.DepartmentCode,
+                    MemberCompanyCode = x.MemberCompanyCode,
+                    SubmittedDate = x.SubmittedDate,
+                    TotalLines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                    TotalQty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0,
+                    Items = new List<VPP02_RequestDetailResDTO>()
+                })
+                .ToListAsync();
         }
 
         public async Task<VPP01_RequestHeaderResDTO?> GetOrderByIdAsync(Guid id)
@@ -436,6 +573,26 @@ namespace gtas_vpp_be.Service.Services
                      && (year == null || x.Y == year)
                      && (month == null || x.M == month)
                      && (status == null || x.Status == status)
+                     && (departmentCode == null || x.DepartmentCode == departmentCode),
+                q => q.Include(x => x.VPP02_RequestDetails)
+                       .ThenInclude(d => d.VPP)
+                       .ThenInclude(v => v.UOM)
+                       .Include(x => x.VPP02_RequestDetails)
+                       .ThenInclude(d => d.VPP)
+                       .ThenInclude(v => v.VPPCategory));
+
+            return (data ?? new()).Select(MapToResDTO).ToList();
+        }
+
+        public async Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode, int[] allowedStatuses)
+        {
+            var data = await ReadAsync<VPP01_RequestHeader>(
+                nameof(ContextType.VPPContext),
+                true,
+                x => !x.IsDeleted
+                     && (year == null || x.Y == year)
+                     && (month == null || x.M == month)
+                     && (status == null ? allowedStatuses.Contains(x.Status) : x.Status == status)
                      && (departmentCode == null || x.DepartmentCode == departmentCode),
                 q => q.Include(x => x.VPP02_RequestDetails)
                        .ThenInclude(d => d.VPP)
