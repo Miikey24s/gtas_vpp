@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers;
+﻿﻿using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -22,11 +22,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
+        private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
+        private HashSet<Guid> LoadingDetailOrderIds { get; } = new();
 
         public bool IsLoading { get; set; }
         public IEnumerable<int> YearFilter { get; set; } = new[] { DateTime.Now.Year };
         public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
-        public IEnumerable<int> StatusFilter { get; set; } = Enumerable.Empty<int>();
+        public IEnumerable<int> StatusFilter { get; set; } = new[] { 1, 4, 5 };
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
@@ -34,7 +36,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             new() { Value = 1, Text = "Submitted" },
             new() { Value = 4, Text = "Cancelled" },
-            new() { Value = 5, Text = "Closed" }
+            new() { Value = 5, Text = "Closed" },
+            new() { Value = 6, Text = "Pending" },
+            new() { Value = 7, Text = "Approved" },
+            new() { Value = 8, Text = "Rejected" }
         };
 
         private bool CanView =>
@@ -72,23 +77,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/my-orders") ?? new();
+                var endpoint = BuildHistoryEndpoint();
+                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint) ?? new();
 
-                // History tab: hide Draft orders by default
-                var filtered = data.Where(x => x.Status != 0).AsEnumerable();
-
-                if (YearFilter.Any())
-                    filtered = filtered.Where(x => YearFilter.Contains(x.Y));
-                if (MonthFilter.Any())
-                    filtered = filtered.Where(x => MonthFilter.Contains(x.M));
-                if (StatusFilter.Any())
-                    filtered = filtered.Where(x => StatusFilter.Contains(x.Status));
-
-                Orders = filtered
+                Orders = data
                     .OrderByDescending(x => x.Y)
                     .ThenByDescending(x => x.M)
                     .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
                     .ToList();
+
+                LoadedDetailOrderIds.Clear();
+                LoadingDetailOrderIds.Clear();
             }
             catch (Exception ex)
             {
@@ -113,12 +112,74 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await LoadHistoryAsync();
         }
 
+        protected async Task OnRowExpandAsync(VPP01_RequestHeaderResDTO row)
+        {
+            if (row == null || row.Id == Guid.Empty || LoadedDetailOrderIds.Contains(row.Id) || LoadingDetailOrderIds.Contains(row.Id))
+            {
+                return;
+            }
+
+            LoadingDetailOrderIds.Add(row.Id);
+            try
+            {
+                var detail = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"/api/VPPRequest/orders/{row.Id}");
+                row.Items = detail?.Items ?? new List<VPP02_RequestDetailResDTO>();
+                LoadedDetailOrderIds.Add(row.Id);
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "History",
+                    Detail = $"Load details failed: {ex.Message}",
+                    Duration = 6000
+                });
+            }
+            finally
+            {
+                LoadingDetailOrderIds.Remove(row.Id);
+                StateHasChanged();
+            }
+        }
+
+        protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
+
+        private string BuildHistoryEndpoint()
+        {
+            var query = new List<string>();
+
+            AddQueryValues(query, "years", YearFilter);
+            AddQueryValues(query, "months", MonthFilter);
+            AddQueryValues(query, "statuses", StatusFilter);
+
+            return query.Count == 0
+                ? "/api/VPPRequest/my-orders-summary"
+                : $"/api/VPPRequest/my-orders-summary?{string.Join("&", query)}";
+        }
+
+        private static void AddQueryValues(List<string> query, string key, IEnumerable<int>? values)
+        {
+            if (values == null)
+            {
+                return;
+            }
+
+            foreach (var value in values.Distinct())
+            {
+                query.Add($"{key}={value}");
+            }
+        }
+
         protected string GetStatusText(int status) => status switch
         {
             0 => "Draft",
             1 => "Submitted",
             4 => "Cancelled",
             5 => "Closed",
+            6 => "Pending",
+            7 => "Approved",
+            8 => "Rejected",
             _ => "-"
         };
 
@@ -131,4 +192,3 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         };
     }
 }
-

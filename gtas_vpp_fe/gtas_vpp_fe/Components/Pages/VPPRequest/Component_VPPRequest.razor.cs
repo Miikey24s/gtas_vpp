@@ -23,7 +23,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public void OnLocationChanged(object sender, LocationChangedEventArgs args)
         {
             var uri = new Uri(args.Location);
-            if (uri.AbsolutePath.Contains("vpprequest"))
+            if (uri.AbsolutePath.Contains("dashboard"))
             {
                 string currtab = uri.AbsolutePath.Split('/')[uri.AbsolutePath.Split('/').Length - 1];
                 SelectedIndex = libStrings.IndexOf(currtab?.ToLower() ?? "orders");
@@ -32,7 +32,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         }
         void TabOnChange(int index)
         {
-            NavigationManager.NavigateTo($"/vpprequest/{libStrings[index]}");
+            NavigationManager.NavigateTo($"/dashboard/{libStrings[index]}");
         }
     }
 }

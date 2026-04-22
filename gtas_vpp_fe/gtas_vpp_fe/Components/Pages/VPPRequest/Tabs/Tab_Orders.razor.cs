@@ -1,6 +1,5 @@
-﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
@@ -37,23 +36,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
-        public List<ProductOption> ProductOptions { get; set; } = new();
 
         public bool IsLoading { get; set; }
         public bool ViewerVisible { get; set; }
         public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
 
-        public bool EditorVisible { get; set; }
-        public bool EditorIsEdit { get; set; }
-        public EditOrderModel EditorModel { get; set; } = new();
-        public Radzen.Blazor.RadzenDataGrid<EditOrderItem>? EditorItemsGrid { get; set; }
         public Guid? LastDeletedOrderId { get; set; }
         public string? LastDeletedOrderCode { get; set; }
-        protected RadzenDataGrid<VPP01_RequestHeaderResDTO> ordersGrid;
 
         public DateTime CurrentOrderPeriodDate
         {
@@ -61,15 +55,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 var now = DateTime.Now;
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
-                return now.Day > 5 ? currentMonth.AddMonths(1) : currentMonth;
+                return now.Day >= 5 ? currentMonth.AddMonths(1) : currentMonth;
             }
         }
 
         public DateTime CurrentDeadlineDate => new(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 5);
+        public DateTime PeriodEndDate => new DateTime(DateTime.Now.Year, DateTime.Now.Month, 5).AddMonths(2);
+        public string PeriodEndText => PeriodEndDate.ToString("HH:mm dd/MM/yyyy");
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
-        public string CurrentDeadlineText => CurrentDeadlineDate.ToString("dd/MM/yyyy");
+        public string CurrentDeadlineText => CurrentDeadlineDate.ToString("HH:mm dd/MM/yyyy");
         public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
+        public string OrdersTitle => $"Orders - {CurrentOrderPeriodText}";
+        public int TotalOrders => Orders.Count;
+        public string TotalOrdersText => TotalOrders.ToString();
+        public int TotalLines => Orders.Sum(o => o.Items?.Count ?? 0);
+        public string TotalLinesText => TotalLines.ToString();
+        public int TotalQty => Orders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0);
+        public string TotalQtyText => TotalQty.ToString();
+        public int AvgLinesPerOrder => TotalOrders == 0 ? 0 : (int)Math.Round((double)TotalLines / TotalOrders);
+        public string AvgLinesPerOrderText => $"Average {AvgLinesPerOrder} line(s) per order";
 
         private bool CanView =>
             sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
@@ -77,33 +82,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadProductsAsync();
             await LoadOrdersAsync();
         }
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender && Orders != null && Orders.Any())
-            {
-                // Tự động Expand tất cả các dòng hiện có vì số lượng rất ít
-                foreach (var order in Orders)
-                {
-                    await ordersGrid.ExpandRow(order);
-                }
-                StateHasChanged();
-            }
-        }
-        private async Task LoadProductsAsync()
-        {
-            try
-            {
-                ProductOptions = await _apiServices.GetFromApiAsync<List<ProductOption>>("/api/VPPRequest/products") ?? new();
-            }
-            catch
-            {
-                ProductOptions = new();
-            }
-        }
-
         protected async Task LoadOrdersAsync()
         {
             if (!CanView) return;
@@ -113,11 +93,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/my-orders");
+                var endpoint = $"/api/VPPRequest/my-orders?year={CurrentOrderPeriodDate.Year}&month={CurrentOrderPeriodDate.Month}";
+                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
 
-                // Chỉ lấy dữ liệu của kỳ hiện tại (CurrentOrderPeriod)
                 Orders = (data ?? new())
-                    .Where(x => x.Y == CurrentOrderPeriodDate.Year && x.M == CurrentOrderPeriodDate.Month)
                     .OrderByDescending(x => x.UpdateDate)
                     .ToList();
             }
@@ -140,6 +119,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         protected async Task ReloadAsync() => await LoadOrdersAsync();
+
+        protected async Task GoToCreatePage()
+        {
+            NavigationManager.NavigateTo("/dashboard/order-create");
+            await Task.CompletedTask;
+        }
+
+        protected async Task GoToEditPage(VPP01_RequestHeaderResDTO row)
+        {
+            NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}");
+            await Task.CompletedTask;
+        }
 
         protected async Task UndoLastDeleteAsync()
         {
@@ -170,180 +161,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     Severity = NotificationSeverity.Error,
                     Summary = "Order",
                     Detail = $"Undo delete failed: {ex.Message}",
-                    Duration = 6000
-                });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                IsLoading = false;
-                StateHasChanged();
-            }
-        }
-
-        protected async Task OpenCreateDialogAsync()
-        {
-            EditorIsEdit = false;
-            // Ép cứng Y và M theo kỳ hiện tại
-            EditorModel = new EditOrderModel
-            {
-                Y = CurrentOrderPeriodDate.Year,
-                M = CurrentOrderPeriodDate.Month,
-                Items = new List<EditOrderItem> { new() }
-            };
-            EditorVisible = true;
-            await InvokeAsync(StateHasChanged);
-        }
-
-        protected async Task OpenEditDialogAsync(VPP01_RequestHeaderResDTO row)
-        {
-            if (!CanEditOrDelete(row)) return;
-
-            EditorIsEdit = true;
-            EditorModel = new EditOrderModel
-            {
-                Id = row.Id,
-                Y = row.Y,
-                M = row.M,
-                Description = row.Description,
-                Items = (row.Items ?? new()).Select(x => new EditOrderItem
-                {
-                    VPPId = x.VPPId,
-                    Qty = x.Qty,
-                    Description = x.Description
-                }).ToList()
-            };
-
-            if (EditorModel.Items.Count == 0)
-            {
-                EditorModel.Items.Add(new EditOrderItem());
-            }
-
-            EditorVisible = true;
-            await InvokeAsync(StateHasChanged);
-        }
-
-        protected async Task AddEditorItem()
-        {
-            EditorModel.Items.Add(new EditOrderItem());
-            if (EditorItemsGrid != null)
-            {
-                await EditorItemsGrid.Reload();
-            }
-        }
-
-        protected async Task RemoveEditorItem(EditOrderItem item)
-        {
-            if (EditorModel.Items.Count <= 1) return;
-            EditorModel.Items.Remove(item);
-
-            if (EditorItemsGrid != null)
-            {
-                await EditorItemsGrid.Reload();
-            }
-        }
-
-        protected void CancelEditor()
-        {
-            EditorVisible = false;
-            EditorModel = new EditOrderModel();
-        }
-
-        protected async Task SaveEditorAsync()
-        {
-            if (DateTime.Now > CurrentDeadlineDate)
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = "Order",
-                    Detail = "Cannot create/update order for a period that has passed deadline.",
-                    Duration = 4000
-                });
-                return;
-            }
-
-            if (EditorModel.Items.Count == 0 || EditorModel.Items.Any(x => x.VPPId == Guid.Empty))
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = "Order",
-                    Detail = "Please select at least one valid product.",
-                    Duration = 3500
-                });
-                return;
-            }
-
-            if (EditorModel.Items.GroupBy(x => x.VPPId).Any(g => g.Count() > 1))
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = "Order",
-                    Detail = "Duplicate product is not allowed.",
-                    Duration = 3500
-                });
-                return;
-            }
-
-            IsLoading = true;
-            glb.isBusyPage = true;
-            try
-            {
-                var requestItems = EditorModel.Items
-                    .Select(x => new VPP02_ItemReqDTO
-                    {
-                        VPPId = x.VPPId,
-                        Qty = x.Qty,
-                        Description = x.Description
-                    })
-                    .ToList();
-
-                if (EditorIsEdit)
-                {
-                    var updateReq = new VPP01_UpdateReqDTO
-                    {
-                        Id = EditorModel.Id,
-                        Status = 1,
-                        Description = EditorModel.Description,
-                        Items = requestItems
-                    };
-
-                    await _apiServices.PutFromApiAsync<VPP01_RequestHeaderResDTO>($"/api/VPPRequest/orders/{EditorModel.Id}", updateReq);
-                }
-                else
-                {
-                    var createReq = new VPP01_CreateReqDTO
-                    {
-                        Y = EditorModel.Y,
-                        M = EditorModel.M,
-                        Status = 1,
-                        Description = EditorModel.Description,
-                        Items = requestItems
-                    };
-
-                    await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>("/api/VPPRequest/orders", createReq);
-                }
-
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Order",
-                    Detail = EditorIsEdit ? "Order updated." : "Order created.",
-                    Duration = 3000
-                });
-
-                EditorVisible = false;
-                await LoadOrdersAsync();
-            }
-            catch (Exception ex)
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Save failed: {ex.Message}",
                     Duration = 6000
                 });
             }

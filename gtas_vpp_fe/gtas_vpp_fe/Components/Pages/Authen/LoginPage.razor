@@ -16,7 +16,7 @@
                 <div class="lg1container">
                     <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="form" data-enhance>
                         <AntiforgeryToken></AntiforgeryToken>
-                        <RadzenFormField AllowFloatingLabel="false" Text="Username" Variant="Variant.Text" class="w-100 mt-3">
+                        <RadzenFormField AllowFloatingLabel="false" Text="Username" Variant="Variant.Outlined" class="w-100 mt-3">
                             <Start>
                                 <RadzenIcon Icon="account_circle" />
                             </Start>
@@ -24,7 +24,7 @@
                                 <RadzenTextBox Disabled="@isLoading" class="valid-off" @bind-Value=@sp_Authentication_Login.Username @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
                             </ChildContent>
                         </RadzenFormField>
-                        <RadzenFormField AllowFloatingLabel="false" Text="Password" Variant="Variant.Text" class="w-100 mt-3">
+                        <RadzenFormField AllowFloatingLabel="false" Text="Password" Variant="Variant.Outlined" class="w-100 mt-3">
                             <Start>
                                 <RadzenIcon Icon="key" />
                             </Start>
@@ -36,7 +36,7 @@
                         </RadzenFormField>
                         @if (isShowServer)
                         {
-                            <RadzenFormField AllowFloatingLabel="false" Text="Server" Variant="Variant.Text" class="w-100 mt-3">
+                            <RadzenFormField AllowFloatingLabel="false" Text="Server" Variant="Variant.Outlined" class="w-100 mt-3">
                                 <Start>
                                     <RadzenIcon Icon="dns" />
                                 </Start>

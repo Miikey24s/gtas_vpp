@@ -1,0 +1,142 @@
+@page "/dashboard/order-create"
+@layout MainLayout
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Share
+@inject GlobalClass glb
+@inject NotificationService NotificationService
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Order Create</PageTitle>
+
+<RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3 order-create-page" Style="width: 100%; max-width: none; margin: 0; height: calc(100vh - 80px); display: flex; flex-direction: column;">
+    
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Gap="1rem">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Icon="arrow_back" Text="Back to Orders" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
+        </RadzenStack>
+    </RadzenStack>
+
+    <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch" Style="flex: 1; min-height: 0; margin: 0;">
+        
+        <RadzenColumn Size="12" SizeLG="7" Style="display: flex; flex-direction: column; height: 100%;">
+            <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Gap="0.75rem">
+                        <RadzenText Text="Product Catalog" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+                            <RadzenDropDown @bind-Value="SelectedCategoryIds" 
+                                            Data="@Categories" 
+                                            TextProperty="CategoryName" 
+                                            ValueProperty="Id"
+                                            Multiple="true" 
+                                            AllowClear="true" 
+                                            Placeholder="Select categories..." 
+                                            SelectAllText="Select all"
+                                            SelectedItemsText="items selected"
+                                            MaxSelectedLabels="2"
+                                            Change="@(async _ => await ReloadProductGridAsync())" 
+                                            Style="width: 250px;" />
+
+                            <RadzenTextBox Placeholder="Search by code / name" @bind-Value="SearchText" Change="@(async _ => await ReloadProductGridAsync())" Style="width: 320px;" />
+                        </RadzenStack>
+                    </RadzenStack>
+                </div>
+
+                <RadzenDataGrid @ref="productGrid"
+                                TItem="ProductOption"
+                                Data="@FilteredProducts"
+                                IsLoading="@IsLoadingProducts"
+                                AllowPaging="true" PageSize="10"
+                                AllowSorting="true"
+                                AllowVirtualization="true"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                Style="flex: 1; min-height: 0;">
+                    <Columns>
+                        @* <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="Code" Width="140px">
+                            <Template Context="row">
+                                <span style="font-weight: 600; color: var(--vpp-ocean-primary-dark);">@row.VPPCode</span>
+                            </Template>
+                        </RadzenDataGridColumn> *@
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="Name" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMCode" Title="UOM" Width="90px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="ProductOption" Title="" Width="90px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                            <Template Context="row">
+                                <RadzenButton Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
+                                              Disabled="@SelectedItems.Any(x => x.VPPId == row.Id)"
+                                              Click="@(async _ => await AddItemAsync(row))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenCard>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeLG="5" Style="display: flex; flex-direction: column; height: 100%;">
+            <RadzenStack Gap="1rem" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                
+                <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3" Style="background: var(--vpp-ocean-surface-soft); border: 1px solid var(--vpp-ocean-primary-light);">
+                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="0.5rem" AlignItems="AlignItems.Center">
+                        <RadzenBadge Text="@($"{SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                        <RadzenBadge Text="@($"Total Qty: {TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                        @if (LastDraftSavedAt.HasValue)
+                        {
+                            <RadzenText Text="@($"Auto-saved: {LastDraftSavedAt:HH:mm:ss}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-ocean-primary);" />
+                        }
+                    </RadzenStack>
+                    <RadzenFormField Text="Notes" Variant="Variant.Outlined" class="rz-mt-2">
+                        <RadzenTextArea @bind-Value="Description" Rows="3" Style="width: 100%;" @oninput="OnDescriptionInput" Change="@(async _ => await SaveDraftAsync())" />
+                    </RadzenFormField>
+                </RadzenCard>
+
+                <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                    <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">
+                        <RadzenText Text="Selected Items" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                    </div>
+                    
+                    <RadzenDataGrid TItem="SelectedItem"
+                                    Data="@SelectedItems"
+                                    AllowPaging="true" PageSize="10"
+                                    AllowVirtualization="true"
+                                    Density="Density.Compact"
+                                    GridLines="DataGridGridLines.Horizontal"
+                                    Style="flex: 1; min-height: 0;">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="SelectedItem" Property="VPPCode" Title="Code" Width="120px" />
+                            <RadzenDataGridColumn TItem="SelectedItem" Property="VPPName" Title="Name" />
+                            <RadzenDataGridColumn TItem="SelectedItem" Title="Qty" Width="90px" TextAlign="TextAlign.Center">
+                                <Template Context="row">
+                                    <RadzenNumeric @bind-Value="row.Qty" TValue="int" Min="1" Style="width: 70px;" Change="@(async _ => await SaveDraftAsync())" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="SelectedItem" Title="" Width="60px" Sortable="false" Filterable="false">
+                                <Template Context="row">
+                                    <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await RemoveItemAsync(row))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenCard>
+
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" JustifyContent="JustifyContent.End">
+                    <RadzenButton Icon="close" Text="Cancel" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
+                    <RadzenButton Icon="save" Text="Save Draft" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="@(async _ => await SaveDraftAsync(true))" />
+                    <RadzenButton Icon="save" Text="@(IsEdit ? "Update Order" : "Create Order")" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Disabled="@IsSaving" Click="@(async _ => await SubmitAsync())" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>
+
+<style>
+    .order-create-page .ocean-btn {
+        background-color: var(--vpp-ocean-primary);
+        border-color: var(--vpp-ocean-primary);
+    }
+
+    .order-create-page .ocean-btn:hover {
+        background-color: var(--vpp-ocean-primary-dark);
+        border-color: var(--vpp-ocean-primary-dark);
+    }
+</style>
