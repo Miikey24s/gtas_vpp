@@ -10,78 +10,59 @@
 {
     <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
         
-        @* ── Filters Section ── *@
-        <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.25rem;">
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-                
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
-                    <RadzenFormField Text="Month" Variant="Variant.Outlined">
-                        <RadzenDropDown TValue="IEnumerable<int>" Data="@MonthOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="MonthFilter"
-                                        Multiple="true" AllowSelectAll="true" SelectAllText="Select all" Placeholder="All" SelectedItemsText="items selected"
-                                        MaxSelectedLabels="2" Style="width: 130px;" />
-                    </RadzenFormField>
-
-                    <RadzenFormField Text="Year" Variant="Variant.Outlined">
-                        <RadzenDropDown TValue="IEnumerable<int>" Data="@YearOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="YearFilter"
-                                        Multiple="true" AllowSelectAll="true" SelectAllText="Select all" Placeholder="All" SelectedItemsText="items selected"
-                                        MaxSelectedLabels="1" Style="width: 120px;" />
-                    </RadzenFormField>
-
-                    <RadzenFormField Text="Status" Variant="Variant.Outlined">
-                        <RadzenDropDown TValue="IEnumerable<int>" Data="@StatusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="StatusFilter"
-                                        Multiple="true" AllowSelectAll="true" SelectAllText="Select all" Placeholder="All" SelectedItemsText="items selected"
-                                        MaxSelectedLabels="1" Style="width: 160px;" />
-                    </RadzenFormField>
-
-                    <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium" Click="LoadHistoryAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
-                    <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
-                </RadzenStack>
-            </RadzenStack>
-        </RadzenCard>
+        @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+            <RadzenButton Icon="refresh" Text="Reload" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
+        </RadzenStack> *@
 
         @* ── History DataGrid Section ── *@
         <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
-            <div style="padding: 1.25rem 1.25rem 0 1.25rem;">
-                <RadzenText Text="Order Records" TextStyle="TextStyle.H6" Style="font-weight: 700; color: var(--rz-text-color);" />
-            </div>
-
             <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders"
                             AllowPaging="true" PageSize="10" AllowVirtualization="true"
                             AllowSorting="true" AllowAlternatingRows="true"
                             AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync"
+                            AllowFiltering="true"
+                            AllowMultiColumnSorting="true"
+                            AllowGrouping="true"
+                            ColumnsPickerAllowFiltering="true"
+                            AllowColumnPicking="true"
+                            AllowPickAllColumns="true"
+                            ShowMultiColumnSortingIndex="true"
+                            AllowColumnReorder="true"
+                            FilterMode="FilterMode.CheckBoxList"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
                             Style="border: none;">
                 <Columns>
                     <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                         <Template Context="row">@(Orders.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="180px">
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="Order Code" Width="180px">
                         <Template Context="row">
                             <span style="font-weight: 600; color: var(--rz-primary);">@row.VPPCode</span>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Period" Width="100px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Period)" Title="Period" Width="100px" TextAlign="TextAlign.Center">
                         <Template Context="row">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{row.Y}/{row.M:00}")" />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.Period" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Total Line Items" Width="140px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalLines)" Title="Total Line Items" Width="140px" TextAlign="TextAlign.Center">
                         <Template Context="row">
                             <strong>@row.TotalLines</strong>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Total Quantity" Width="140px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalQty)" Title="Total Quantity" Width="140px" TextAlign="TextAlign.Center">
                         <Template Context="row">
                             <strong>@row.TotalQty</strong>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Status" Width="130px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Status)" Title="Status" Width="130px" TextAlign="TextAlign.Center">
                         <Template Context="row">
                             <RadzenBadge Text="@GetStatusText(row.Status)" BadgeStyle="@GetStatusBadgeStyle(row.Status)" IsPill="true" Style="padding: 0.25rem 0.75rem;" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="SubmittedDate" Title="Submitted Date" Width="170px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Description" Title="Note" TextAlign="TextAlign.Left" />
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="Submitted Date" Width="170px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="Note" TextAlign="TextAlign.Left" />
                 </Columns>
                 <Template Context="row">
                     <div style="padding: 1rem; background: var(--rz-base-100); border-radius: 8px;">

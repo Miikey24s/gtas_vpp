@@ -25,7 +25,7 @@
     --rz-input-disabled-border: var(--rz-base-600);
     --rz-border-disabled: var(--rz-border-width) solid var(--rz-base-600);
     --rz-form-field-label-focus-color: var(--vpp-ocean-primary) !important;
-    --rz-input-border-block-end: 1px solid var(--vpp-ocean-primary) !important;
+    --rz-input-border-block-end: 1px solid var(--vpp-ocean-primary);
 }
 
 /* ── Sidebar collapse: hide submenu children, only show parent icon ── */
@@ -1476,57 +1476,61 @@ thead {
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   FIX: Radzen FormField Variant.Outlined - Border bị mất
-   Issue: Border bị mất ở các filter fields (Month, Year, Status)
-   Solution: Force hiển thị border cho Variant.Outlined
-   Note: Class đúng là .rz-formfield (không có dấu gạch ngang)
-   Fix: Dùng box-shadow thay vì border-width để tránh "lung lay" khi focus
+   FIX: Radzen FormField Variant.Outlined - Border bị mất & giật (Jitter)
+   Issue: Border bị mất ở các filter fields (Month, Year, Status) và giật khi hover
+   Solution: Force hiển thị border cho Variant.Outlined trên thẻ wrapper .rz-form-field-content
+   Note: Class đúng là .rz-form-field (có dấu gạch ngang)
+   Fix: Dùng box-shadow: inset thay vì border để vẽ viền lấn vào trong, không làm thay đổi kích thước gây giật
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Fix cho Variant.Outlined - Style trực tiếp dropdown/textbox bên trong */
-.rz-formfield.rz-variant-outlined .rz-dropdown,
-.rz-formfield.rz-variant-outlined .rz-textbox,
-.rz-formfield.rz-variant-outlined .rz-password,
-.rz-formfield.rz-variant-outlined .rz-numeric {
-    border: 1px solid var(--rz-input-border-color, var(--rz-base-400, #dee2e6)) !important;
+/* 1. Trạng thái bình thường: Vẽ viền bằng box-shadow inset cho thẻ wrapper */
+.rz-form-field.rz-variant-outlined .rz-form-field-content {
+    border: none !important; /* Xóa bỏ border vật lý để chống giật */
+    box-shadow: inset 0 0 0 1px var(--rz-input-border-color, var(--rz-base-400, #dee2e6)) !important;
     border-radius: var(--rz-border-radius, 4px) !important;
-    box-sizing: border-box !important; /* Đảm bảo border không làm thay đổi kích thước */
+    transition: box-shadow 0.2s ease !important;
+    background-color: transparent !important; /* Tránh đè nền mặc định */
 }
 
-/* Khi focus, dùng box-shadow để highlight thay vì thay đổi border-width */
-.rz-formfield.rz-variant-outlined .rz-dropdown:focus,
-.rz-formfield.rz-variant-outlined .rz-textbox:focus,
-.rz-formfield.rz-variant-outlined .rz-password:focus,
-.rz-formfield.rz-variant-outlined .rz-numeric:focus,
-.rz-formfield.rz-variant-outlined .rz-dropdown:focus-within,
-.rz-formfield.rz-variant-outlined .rz-textbox:focus-within,
-.rz-formfield.rz-variant-outlined .rz-password:focus-within,
-.rz-formfield.rz-variant-outlined .rz-numeric:focus-within {
-    border-color: var(--rz-primary) !important;
-    /* KHÔNG thay đổi border-width để tránh lung lay */
-    box-shadow: 0 0 0 0.15rem rgba(var(--rz-primary-rgb, 0, 123, 255), 0.25) !important;
+/* Xóa bỏ border thừa của thẻ input/dropdown nằm bên trong để tránh viền kép. CHÚ Ý: KHÔNG XÓA VIỀN CỦA .rz-dropdown-panel HOẶC POPUP */
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-dropdown:not(.rz-dropdown-panel),
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-textbox,
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-password,
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-numeric,
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-colorpicker,
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-datepicker,
+.rz-form-field.rz-variant-outlined .rz-form-field-content .rz-multiselect {
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+/* 2. Trạng thái Hover: Làm đậm viền lên mà không thay đổi kích thước */
+.rz-form-field.rz-variant-outlined:hover .rz-form-field-content {
+    box-shadow: inset 0 0 0 1px var(--rz-text-color) !important;
+}
+
+/* 3. Trạng thái Focus/Focus-within: Đổi màu viền sang màu Primary và dày 2px */
+.rz-form-field.rz-variant-outlined.rz-state-focused .rz-form-field-content,
+.rz-form-field.rz-variant-outlined:focus-within .rz-form-field-content {
+    box-shadow: inset 0 0 0 2px var(--rz-primary) !important;
     outline: none !important;
 }
 
-/* Fix cho disabled state */
-.rz-formfield.rz-variant-outlined .rz-dropdown:disabled,
-.rz-formfield.rz-variant-outlined .rz-textbox:disabled,
-.rz-formfield.rz-variant-outlined .rz-password:disabled,
-.rz-formfield.rz-variant-outlined .rz-numeric:disabled,
-.rz-formfield.rz-variant-outlined .rz-dropdown.rz-state-disabled,
-.rz-formfield.rz-variant-outlined .rz-textbox.rz-state-disabled,
-.rz-formfield.rz-variant-outlined .rz-password.rz-state-disabled,
-.rz-formfield.rz-variant-outlined .rz-numeric.rz-state-disabled {
-    border-color: var(--rz-input-disabled-border, var(--rz-base-600)) !important;
+/* 4. Trạng thái Disabled */
+.rz-form-field.rz-variant-outlined.rz-state-disabled .rz-form-field-content,
+.rz-form-field.rz-variant-outlined .rz-form-field-content:has(:disabled),
+.rz-form-field.rz-variant-outlined .rz-form-field-content:has(.rz-state-disabled) {
+    box-shadow: inset 0 0 0 1px var(--rz-input-disabled-border, var(--rz-base-600)) !important;
     background-color: var(--rz-base-100) !important;
 }
 
-/* Smooth transition - chỉ cho border-color và box-shadow */
-.rz-formfield.rz-variant-outlined .rz-dropdown,
-.rz-formfield.rz-variant-outlined .rz-textbox,
-.rz-formfield.rz-variant-outlined .rz-password,
-.rz-formfield.rz-variant-outlined .rz-numeric {
-    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+/* 5. Fix lỗi viền đè lên chữ (Floating Label overlap) */
+.rz-form-field.rz-variant-outlined .rz-form-field-label {
+    /* Dùng màu nền của trang web để "che" đường viền ở phía dưới text */
+    background-color: var(--rz-body-background-color, var(--rz-base-100, #ffffff)) !important;
+    padding: 0 0.5rem !important; /* Mở rộng nền ra 2 bên chữ để che viền tốt hơn */
+    z-index: 1 !important; /* Đẩy label nổi lên trên viền */
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

@@ -30,12 +30,9 @@
     <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3 order-page" Style="width: 100%; max-width: none; margin: 0;">
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage())" Disabled="@IsLoading" />
-                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage())" Disabled="@IsLoading" />
-                @if (LastDeletedOrderId != null)
-                {
-                    <RadzenButton Icon="undo" Text="Undo" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Click="@(async _ => await UndoLastDeleteAsync())" Disabled="@IsLoading" />
-                }
+                <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage())" Disabled="@(IsLoading || (Orders != null && Orders.Any()))" />
+                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage())" Disabled="@(IsLoading || (Orders != null && Orders.Any()))" />
+                <RadzenButton Icon="undo" Text="Undo" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Click="@(async _ => await UndoLastDeleteAsync())" Disabled="@(IsLoading || LastDeletedOrderId == null)" />
             </RadzenStack>
         </RadzenStack>
         

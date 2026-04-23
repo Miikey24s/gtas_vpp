@@ -60,6 +60,7 @@
                 public const string UserView = "0002_UV";
                 public const string LibraryClass = "0001_LIB_C";
                 public const string LibraryOperation = "0001_LIB_O";
+                public const string LibrarySupplier = "0001_LIB_SUP";
                 public const string PurchaseConsumption = "0001_PUR";
                 public const string BuyerConsumption = "0001_BUY";
                 public const string Report = "0001_R";

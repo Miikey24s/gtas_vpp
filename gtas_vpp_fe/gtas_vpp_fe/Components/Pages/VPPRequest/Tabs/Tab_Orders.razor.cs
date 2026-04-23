@@ -61,7 +61,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         public DateTime CurrentDeadlineDate => new(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 5);
         public DateTime PeriodEndDate => new DateTime(DateTime.Now.Year, DateTime.Now.Month, 5).AddMonths(2);
-        public string PeriodEndText => PeriodEndDate.ToString("HH:mm dd/MM/yyyy");
+        public string PeriodEndText => PeriodEndDate.ToString("dd/MM/yyyy");
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
         public string CurrentDeadlineText => CurrentDeadlineDate.ToString("HH:mm dd/MM/yyyy");

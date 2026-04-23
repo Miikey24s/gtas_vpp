@@ -20,10 +20,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Inject] NavigationManager? NavigationManager { get; set; }
         TabPosition tabPosition = TabPosition.Top;
         int SelectedIndex = 0;
-        List<string> libStrings = new List<string> { "class", "operationcat", "operation" };
+        List<string> libStrings = new List<string> { "class", "operationcat", "operation", "supplier" };
 
         public List<L03_VPPCategoryResDTO> operationCategories = new List<L03_VPPCategoryResDTO>();
         public List<L04_VPPResDTO> operations = new List<L04_VPPResDTO>();
+        public List<L05_VPPSupplierResDTO> suppliers = new List<L05_VPPSupplierResDTO>();
         Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; }
         protected override async Task OnInitializedAsync()
         {
@@ -79,6 +80,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
                 operations = await _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item) ?? new List<L04_VPPResDTO>();
                 operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category) ?? new List<L03_VPPCategoryResDTO>();
+                suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? new List<L05_VPPSupplierResDTO>();
                 var FomulaTask = await GetFormular();
                 var uomList = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail) ?? new List<L02_ClassDetailResDTO>();
 

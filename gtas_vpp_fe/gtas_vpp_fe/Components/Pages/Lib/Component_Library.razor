@@ -34,6 +34,12 @@
                     <Component_ShareGrid TType=L04_VPPResDTO @bind-Data=@operations DicDropdownData=@CategoryDropdownDatas Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
+            <RadzenTabsItem Text="Suppliers">
+                @if (SelectedIndex == 3)
+                {
+                    <Component_ShareGrid TType=L05_VPPSupplierResDTO @bind-Data=@suppliers Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
 }

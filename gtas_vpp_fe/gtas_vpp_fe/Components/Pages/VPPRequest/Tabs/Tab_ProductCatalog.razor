@@ -26,41 +26,27 @@
 @if (CanView)
 {
     <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
-        
-        @* ── Filters Section ── *@
-        <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.25rem;">
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-                <RadzenText Text="Catalog Filters" TextStyle="TextStyle.Subtitle2" Style="font-weight: 700; color: var(--rz-text-tertiary); margin: 0; margin-right: auto;" />
-                
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
-                    <RadzenFormField Text="Category" Variant="Variant.Outlined">
-                        <RadzenDropDown TValue="Guid?" Data="@CategoryOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="CategoryFilter"
-                                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" 
-                                        Placeholder="All Categories" Style="width: 260px;" />
-                    </RadzenFormField>
+        @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+            <RadzenButton Icon="refresh" Text="Reload" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
+        </RadzenStack> *@
 
-                    <RadzenFormField Text="Search Product" Variant="Variant.Outlined">
-                        <RadzenTextBox @bind-Value="SearchText" Placeholder="Code, Name..." Style="width: 220px;" />
-                    </RadzenFormField>
-
-                    <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium" Click="LoadProductsAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
-                    <RadzenButton Icon="refresh" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
-                </RadzenStack>
-            </RadzenStack>
-        </RadzenCard>
-
-        @* ── Catalog DataGrid Section ── *@
+        @* ── DataGrid Section ── *@
         <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
-            <div style="padding: 1.25rem 1.25rem 0 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-                <RadzenText Text="Product List" TextStyle="TextStyle.H6" Style="font-weight: 700; color: var(--rz-text-color); margin: 0;" />
-                <RadzenBadge Text="@($"{Products?.Count ?? 0} items")" BadgeStyle="BadgeStyle.Info" IsPill="true" Style="font-weight: 600; padding: 0.25rem 0.75rem;" />
-            </div>
-
             <RadzenDataGrid TItem="Tab_ProductCatalog.ProductItem" Data="@Products"
                             AllowPaging="true" PageSize="20" AllowVirtualization="true" AllowSorting="true" AllowAlternatingRows="true"
                             AllowColumnResize="true" IsLoading="@IsLoading"
+                            AllowFiltering="true"
+                            AllowMultiColumnSorting="true"
+                            AllowGrouping="true"
+                            ColumnsPickerAllowFiltering="true"
+                            AllowColumnPicking="true"
+                            AllowPickAllColumns="true"
+                            ShowMultiColumnSortingIndex="true"
+                            AllowColumnReorder="true"
+                            FilterMode="FilterMode.CheckBoxList"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                            Style="border: none; margin-top: 0.5rem;">
+                            Style="border: none;">
                 <Columns>
                     <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                         <Template Context="row">@(Products.IndexOf(row) + 1)</Template>
