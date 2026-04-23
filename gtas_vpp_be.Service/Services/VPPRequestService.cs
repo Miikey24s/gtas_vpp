@@ -388,6 +388,7 @@ namespace gtas_vpp_be.Service.Services
                 var now = DateTime.Now;
 
                 header.IsDeleted = false;
+                header.Status = (int)VPPStatus.Submitted; // Undo revert to Submitted
                 header.UpdateUserId = userId;
                 header.UpdateDate = now;
 
@@ -488,6 +489,7 @@ namespace gtas_vpp_be.Service.Services
                 var now = DateTime.Now;
 
                 header.IsDeleted = true;
+                header.Status = (int)VPPStatus.Cancelled; // Update status to Cancelled on delete
                 header.UpdateUserId = userId;
                 header.UpdateDate = now;
 
