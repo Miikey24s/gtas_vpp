@@ -56,6 +56,26 @@ namespace ggtas_vpp_be.Controllers
                 return NotFound("Group not found.");
             }
 
+            // Validate circular reference
+            if (req.ParentGroupId.HasValue && req.ParentGroupId.Value != Guid.Empty)
+            {
+                if (await HasCircularReference(id, req.ParentGroupId.Value))
+                {
+                    return BadRequest(new { 
+                        message = "Cannot set parent group: This would create a circular reference in the group hierarchy." 
+                    });
+                }
+
+                // Validate hierarchy depth (optional - warn if too deep)
+                var depth = await GetHierarchyDepth(req.ParentGroupId.Value);
+                if (depth >= 10)
+                {
+                    return BadRequest(new { 
+                        message = $"Cannot set parent group: This would create a hierarchy that is too deep (current depth: {depth + 1}). Maximum recommended depth is 10 levels." 
+                    });
+                }
+            }
+
             req.Adapt(current);
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
@@ -67,6 +87,63 @@ namespace ggtas_vpp_be.Controllers
             var response = updated.Adapt<P02_GroupResDTO>();
 
             return Ok(response);
+        }
+
+        private async Task<bool> HasCircularReference(Guid groupId, Guid parentId)
+        {
+            // Check if setting parentId as parent of groupId would create a circular reference
+            var visited = new HashSet<Guid> { groupId };
+            var currentId = parentId;
+            int maxDepth = 50; // Prevent infinite loop in case of data corruption
+            int depth = 0;
+
+            while (currentId != Guid.Empty && depth < maxDepth)
+            {
+                // If we've seen this ID before, we have a circular reference
+                if (visited.Contains(currentId))
+                {
+                    return true;
+                }
+
+                visited.Add(currentId);
+
+                // Get the parent of current group
+                var parent = (await _bussinessService.BaseService<P02_Group>(
+                    EF_BASEMETHOD.EF_GetTByIdAsync, false, Param: currentId))?.FirstOrDefault();
+
+                if (parent?.ParentGroupId == null || parent.ParentGroupId == Guid.Empty)
+                {
+                    break; // Reached the top of hierarchy
+                }
+
+                currentId = parent.ParentGroupId.Value;
+                depth++;
+            }
+
+            return false;
+        }
+
+        private async Task<int> GetHierarchyDepth(Guid groupId)
+        {
+            int depth = 0;
+            var currentId = groupId;
+            int maxDepth = 50;
+
+            while (currentId != Guid.Empty && depth < maxDepth)
+            {
+                var group = (await _bussinessService.BaseService<P02_Group>(
+                    EF_BASEMETHOD.EF_GetTByIdAsync, false, Param: currentId))?.FirstOrDefault();
+
+                if (group?.ParentGroupId == null || group.ParentGroupId == Guid.Empty)
+                {
+                    break;
+                }
+
+                currentId = group.ParentGroupId.Value;
+                depth++;
+            }
+
+            return depth;
         }
 
         [HttpPatch("component-mapping")]
