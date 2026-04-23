@@ -20,11 +20,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Inject] NavigationManager? NavigationManager { get; set; }
         TabPosition tabPosition = TabPosition.Top;
         int SelectedIndex = 0;
-        List<string> libStrings = new List<string> { "class", "operationcat", "operation", "supplier" };
+        List<string> libStrings = new List<string> { "class", "operationcat", "operation", "supplier", "department" };
 
         public List<L03_VPPCategoryResDTO> operationCategories = new List<L03_VPPCategoryResDTO>();
         public List<L04_VPPResDTO> operations = new List<L04_VPPResDTO>();
         public List<L05_VPPSupplierResDTO> suppliers = new List<L05_VPPSupplierResDTO>();
+        public List<LEX02_CompanyDepartmentLocationResDTO> departments = new List<LEX02_CompanyDepartmentLocationResDTO>();
         Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; }
         protected override async Task OnInitializedAsync()
         {
@@ -81,6 +82,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 operations = await _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item) ?? new List<L04_VPPResDTO>();
                 operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category) ?? new List<L03_VPPCategoryResDTO>();
                 suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? new List<L05_VPPSupplierResDTO>();
+                departments = await _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>($"{Config.ApiLibraryBase}/lex02") ?? new List<LEX02_CompanyDepartmentLocationResDTO>();
                 var FomulaTask = await GetFormular();
                 var uomList = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail) ?? new List<L02_ClassDetailResDTO>();
 
@@ -125,7 +127,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 //                                        null,
                 //                                        new List<T> { data}
                 //                                    ).ContinueWith(x=>x.Result?.FirstOrDefault()) ?? new T();
-                string tableCode = typeof(T).Name.Substring(0, 3).ToLower();
+                string typeName = typeof(T).Name;
+                string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
                 T result = await _apiServices.PostFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result.Id != Guid.Empty)
@@ -151,8 +154,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 //                                        null,
                 //                                        new List<T> { data }
                 //                                    ).ContinueWith(x => x.Result?.FirstOrDefault()) ?? new T();
-                string tableCode = typeof(T).Name.Substring(0, 3).ToLower();
-                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
+                string typeName = typeof(T).Name;
+                string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
+                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
                 T result = await _apiServices.PatchFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result != null)
                     _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record updated successfully");
@@ -160,9 +164,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when updating record");
                 return result;
             }
-            catch
+            catch(Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when updating record");
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when updating record: {ex.Message}");
                 return null;
             }
         }
@@ -178,19 +182,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 //                                    null,
                 //                                    data.Id
                 //                                );
-                string tableCode = typeof(T).Name.Substring(0, 3).ToLower();
-                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
+                string typeName = typeof(T).Name;
+                string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
+                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
                 var result = await _apiServices.DeleteFromApiAsync(endpoint);
 
                 if (result is true)
-                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success");
+                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record deleted successfully");
                 else
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error");
+                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when deleting record");
                 return result;
             }
             catch(Exception ex)
             {
                 //_bussinessService.WriteLog(ex, "Delete EF error", new Dictionary<string, object> { { "Param", data.Id} });
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
                 return false;
             }
         }

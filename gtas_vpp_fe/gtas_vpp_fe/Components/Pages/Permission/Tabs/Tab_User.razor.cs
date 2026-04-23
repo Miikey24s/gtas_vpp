@@ -127,70 +127,70 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         protected async Task DropdownOnChange_Department(sp_Authentication_TabUser_UserList data) => await Func_CreateOrUpdateP04UserGroup(data);
         protected async Task ButtonOnClick_SearchUser()
         {
+            // Nếu search text trống, gọi clear thay vì search
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                await ButtonOnClick_Clear();
+                return;
+            }
+
             glb.isBusyPage = true;
             try
             {
-                if (string.IsNullOrEmpty(SearchText))
-                {
-                    //_sp_Authentication_TabUser_UserList = await _bussinessService.SPServiceRead<sp_Authentication_TabUser_UserList>(
-                    //                                                                    Config.SPENUM_ResType.Multiple,
-                    //                                                                    nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                    //                                                                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                    //                                                                    new { SearchText = SearchText });
-                    _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
+                _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
                     List<sp_Authentication_TabUser_UserList>
-                    >(
-                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                    new { SearchText = SearchText },
-                    jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
-                    );
-                }
-                else
-                {
-                    //_sp_Authentication_TabUser_UserList = await _bussinessService.SPServiceRead<sp_Authentication_TabUser_UserList>(
-                    //                                                Config.SPENUM_ResType.Multiple,
-                    //                                                nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                    //                                                nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_SearchUser),
-                    //                                                new { SearchText = SearchText });
-                    _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
-                    List<sp_Authentication_TabUser_UserList>
-                    >(
+                >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_SearchUser),
                     new { SearchText = SearchText },
                     jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                //_bussinessService.WriteLog(ex, "sp_Authentication_TabUser_UserList", new Dictionary<string, object> { { "SearchText", SearchText } });
-                //_customNotificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when call sp_Authentication_TabUser_UserList with param Search Text: {SearchText}", 15000, true);
-            }
-            glb.isBusyPage = false;
-        }
-        protected async Task ButtonOnClick_Clear()
-        {
-            glb.isBusyPage = true;
-            try
-            {
-                //_sp_Authentication_TabUser_UserList = await _bussinessService.SPServiceRead<sp_Authentication_TabUser_UserList>(
-                //                                                                    Config.SPENUM_ResType.Multiple,
-                //                                                                    nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                //                                                                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                //                                                                    new { });
-                _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
-                List<sp_Authentication_TabUser_UserList>
-                >(
-                nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                new { }
                 );
             }
             catch (Exception ex)
             {
-                //_bussinessService.WriteLog(ex, "Error when call sp sp_Authen_TabUser_UserList");
-                //_customNotificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call sp_Authen_TabUser_UserList");
+                Console.WriteLine($"Error when search user: {ex.Message}");
+                NotificationService.Notify(new NotificationMessage() 
+                { 
+                    Severity = NotificationSeverity.Error, 
+                    Summary = "Error", 
+                    Detail = $"Error when searching user: {ex.Message}", 
+                    Duration = 5000 
+                });
             }
-            glb.isBusyPage = false;
+            finally
+            {
+                glb.isBusyPage = false;
+                StateHasChanged();
+            }
+        }
+        protected async Task ButtonOnClick_Clear()
+        {
+            SearchText = string.Empty;
+            glb.isBusyPage = true;
+            try
+            {
+                _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
+                    List<sp_Authentication_TabUser_UserList>
+                >(
+                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
+                    new { }
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error when loading user list: {ex.Message}");
+                NotificationService.Notify(new NotificationMessage() 
+                { 
+                    Severity = NotificationSeverity.Error, 
+                    Summary = "Error", 
+                    Detail = $"Error when loading user list: {ex.Message}", 
+                    Duration = 5000 
+                });
+            }
+            finally
+            {
+                glb.isBusyPage = false;
+                StateHasChanged();
+            }
         }
         protected async Task ButtonOnClick_Reload() => await LoadBaseData();
 
@@ -211,11 +211,11 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 {
                     await ButtonOnClick_SearchUser();
                 }
-            }
-            else if (string.IsNullOrEmpty(SearchText))
-            {
-                //await GetDocList();
-                StateHasChanged();
+                else
+                {
+                    // Nếu search text trống, gọi clear thay vì search
+                    await ButtonOnClick_Clear();
+                }
             }
         }
 

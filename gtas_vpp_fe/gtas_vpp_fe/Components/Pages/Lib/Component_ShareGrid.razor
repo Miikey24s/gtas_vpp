@@ -53,8 +53,10 @@
             var displayName = attr?.DisplayName ?? prop.Name;
             var width = attr?.Width;
             
-            // Skip VPPs and L06_VPPSupplierMappings columns
-            if (prop.Name == "VPPs" || prop.Name == "L06_VPPSupplierMappings")
+            // Skip collection navigation properties
+            if (prop.Name == "VPPs" || 
+                prop.Name == "L06_VPPSupplierMappings" || 
+                prop.Name == "P04_UserGroups")
             {
                 continue;
             }
