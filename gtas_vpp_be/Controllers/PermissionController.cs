@@ -1,6 +1,8 @@
 ﻿using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.Library;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
+using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_be.Service.Services;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
@@ -200,6 +202,37 @@ namespace ggtas_vpp_be.Controllers
 
             var created = rs?.FirstOrDefault() ?? entity;
             return Ok(created.Adapt<P04_UserGroupResDTO>());
+        }
+
+        [HttpGet("user-groups")]
+        public async Task<IActionResult> GetUserGroups([FromQuery] int? userId)
+        {
+            try
+            {
+                if (userId.HasValue)
+                {
+                    var userGroups = await _bussinessService.BaseService<P04_UserGroup>(
+                        EF_BASEMETHOD.EF_GetTAsync,
+                        getFullName: true,
+                        expression: x => x.UserId == userId.Value);
+
+                    var dtoList = userGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
+                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
+                }
+                else
+                {
+                    var allUserGroups = await _bussinessService.BaseService<P04_UserGroup>(
+                        EF_BASEMETHOD.EF_GetTAsync,
+                        getFullName: true);
+
+                    var dtoList = allUserGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
+                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = $"Error retrieving user groups: {ex.Message}" });
+            }
         }
 
         [HttpPut("user-groups/{id:guid}")]

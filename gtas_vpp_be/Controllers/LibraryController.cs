@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Linq.Dynamic.Core;
+using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -48,6 +49,7 @@ namespace gtas_vpp_be.Controllers
                 {
                     "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct),
                     "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, classId),
+                    "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct),
                     _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
                 };
             }
@@ -69,6 +71,11 @@ namespace gtas_vpp_be.Controllers
                 "l04" => await GetTableDataAsync<L04_VPP, L04_VPPResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 "l06" => await GetTableDataAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id),
+                "lex02" => await GetTableDataAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id, cleanSearch,
+                    matchId: x => x.Id == id,
+                    matchSearch: x => (x.LEX02Code != null && x.LEX02Code.Contains(cleanSearch))
+                                   || (x.LEX02Name != null && x.LEX02Name.Contains(cleanSearch))
+                                   || x.LEX02Type.Contains(cleanSearch)),
                 _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
             };
         }
@@ -194,6 +201,7 @@ namespace gtas_vpp_be.Controllers
                 "l04" => await GetByIdAsync<L04_VPP, L04_VPPResDTO>(id),
                 "l05" => await GetByIdAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id),
                 "l06" => await GetByIdAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id),
+                "lex02" => await GetByIdAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id),
                 _ => BadRequest(new { Message = $"GetById for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -210,6 +218,7 @@ namespace gtas_vpp_be.Controllers
                 "l04" => await CreateAsync<L04_VPP, L04_VPPResDTO>(json),
                 "l05" => await CreateAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(json),
                 "l06" => await CreateAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(json),
+                "lex02" => await CreateAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(json),
                 _ => BadRequest(new { Message = $"Create for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -226,6 +235,7 @@ namespace gtas_vpp_be.Controllers
                 "l04" => await UpdateAsync<L04_VPP, L04_VPPResDTO>(json),
                 "l05" => await UpdateAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(json),
                 "l06" => await UpdateAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(json),
+                "lex02" => await UpdateAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(json),
                 _ => BadRequest(new { Message = $"Update for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -246,6 +256,7 @@ namespace gtas_vpp_be.Controllers
                 "l04" => await ApplyPatchAsync<L04_VPP, L04_VPPResDTO>(id, payload),
                 "l05" => await ApplyPatchAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, payload),
                 "l06" => await ApplyPatchAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, payload),
+                "lex02" => await ApplyPatchAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id, payload),
                 _ => BadRequest(new { Message = $"Patch for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -261,6 +272,7 @@ namespace gtas_vpp_be.Controllers
                 "l04" => await DeleteAsync<L04_VPP>(id),
                 "l05" => await DeleteAsync<L05_VPPSupplier>(id),
                 "l06" => await DeleteAsync<L06_VPPSupplierMapping>(id),
+                "lex02" => await DeleteAsync<LEX02_CompanyDepartmentLocation>(id),
                 _ => BadRequest(new { Message = $"Delete for Table Code '{tableCode}' is not supported." })
             };
         }
