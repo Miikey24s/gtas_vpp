@@ -54,7 +54,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission
                 if (int.TryParse(userIdString, out int validUserId) == true)
                 {
                     //glb.UserInfo.UserID = validUserId;
-                    sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.PageHaveAdminView);
+                    sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Permission);
                     if (sp_Authentication_GetPermissionSinglePage is not null)
                     {
                         StateHasChanged();

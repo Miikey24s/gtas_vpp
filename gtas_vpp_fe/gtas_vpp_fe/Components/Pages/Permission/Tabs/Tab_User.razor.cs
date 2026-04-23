@@ -48,7 +48,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     //                                                            new { userId = glb.UserInfo.UserID, pageCode = "0001" })
                     //                                                .ContinueWith(x => x.Result.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage());
                     string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.PageHaveAdminView };
+                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Permission };
                     var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
                     
                     if (parsedData is not null)

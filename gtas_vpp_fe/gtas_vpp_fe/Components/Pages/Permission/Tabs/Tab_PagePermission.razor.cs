@@ -62,7 +62,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     //                                                            new { userId = glb.UserInfo.UserID, pageCode = "0001" })
                     //                                                .ContinueWith(x => x.Result.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage());
                     string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.PageHaveAdminView };
+                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Permission };
                     var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
 
                     if (parsedData is not null)
@@ -181,12 +181,67 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 {
                     var idx = list_Group.FindIndex(x => x.Id == res.Id);
                     if (idx >= 0) list_Group[idx] = res;
+
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Group updated",
+                        Detail = "Group information updated successfully",
+                        Duration = 3000
+                    });
                 }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                // Handle HTTP errors (including 400 Bad Request for circular reference)
+                var errorMessage = httpEx.Message;
+                if (errorMessage.Contains("circular reference"))
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Invalid Parent Group",
+                        Detail = "Cannot set parent group: This would create a circular reference in the group hierarchy.",
+                        Duration = 8000
+                    });
+                }
+                else if (errorMessage.Contains("too deep"))
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Hierarchy Too Deep",
+                        Detail = "Cannot set parent group: The hierarchy depth would exceed the maximum allowed (10 levels).",
+                        Duration = 8000
+                    });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Update failed",
+                        Detail = "Error when update group: " + errorMessage,
+                        Duration = 8000
+                    });
+                }
+                
+                // Reload to revert changes
+                await LoadBaseData();
             }
             catch (Exception ex)
             {
                 //_bussinessService.WriteLog(ex, "EF Update P02_GroupResDTO", new Dictionary<string, object> { { "Param", JsonConvert.SerializeObject(group) } });
-                //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when update P02_GroupResDTO " + ex.Message, 15000, true);
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when update group: " + ex.Message,
+                    Duration = 10000
+                });
+                
+                // Reload to revert changes
+                await LoadBaseData();
             }
             glb.isBusyPage = false;
             IsLoading = false;
@@ -194,7 +249,53 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         }
         protected async Task SwitchOnChange(P02_GroupResDTO data)
         {
+            glb.isBusyPage = true;
+            try
+            {
+                _ = int.TryParse(claims?.FirstOrDefault(x => x.Type.Equals("UserID"))?.Value, out int userId);
 
+                var req = new P02_GroupUpdateReqDTO
+                {
+                    GroupName = data.GroupName,
+                    Description = data.Description,
+                    ParentGroupId = data.ParentGroupId,
+                    IsDeleted = data.IsDeleted,
+                    UpdateUserId = userId == 0 ? glb.UserInfo.UserID : userId,
+                    UpdateDate = DateTime.Now
+                };
+
+                var res = await _apiServices.PutFromApiAsync<P02_GroupResDTO>(
+                    $"/api/Permission/groups/{data.Id}",
+                    req);
+
+                if (res is not null)
+                {
+                    var idx = list_Group.FindIndex(x => x.Id == res.Id);
+                    if (idx >= 0) list_Group[idx] = res;
+
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = data.IsDeleted ? "Group deleted" : "Group restored",
+                        Duration = 3000
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when update group: " + ex.Message,
+                    Duration = 10000
+                });
+            }
+            finally
+            {
+                glb.isBusyPage = false;
+                StateHasChanged();
+            }
         }
         protected async Task EditRow(P02_GroupResDTO data)
         {
@@ -224,8 +325,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             glb.isBusyPage = true;
             IsLoading_Child = true;
             _ = int.TryParse(claims?.FirstOrDefault(x => x.Type.Equals("UserID"))?.Value, out int userid);
-            //P06_GroupPageComponentMapping? res = null;
-            //P06_GroupPageComponentMapping req = new P06_GroupPageComponentMapping
+            
             var body = new PatchComponentMappingReqDTO
             {
                 P05_PageComponentMappingId = data.GroupPageComponentMappingId,
@@ -235,29 +335,47 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 UpdateUserId = userid == 0 ? glb.UserInfo.UserID : userid,
                 UpdateDate = DateTime.Now
             };
+            
             try
             {
-                //res = await _bussinessService.BaseService<P06_GroupPageComponentMapping>(
-                //                                Config.EF_BASEMETHOD.EF_Update, null, null, null, new List<P06_GroupPageComponentMapping> { req })
-                //                        .ContinueWith(t => t.Result?.FirstOrDefault());
                 var res = await _apiServices.PatchFromApiAsync<object>("/api/Permission/component-mapping", body);
                 if (res is not null)
                 {
-                    //_notificationService.CustomContentNotification(NotificationSeverity.Success, "Update success", null, 15000, true);
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Permission updated",
+                        Detail = $"Component '{data.ComponentName}' updated successfully",
+                        Duration = 3000
+                    });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Update failed",
+                        Detail = "No response from server",
+                        Duration = 5000
+                    });
                 }
             }
             catch (Exception ex)
             {
-                //_bussinessService.WriteLog(ex, "Error when update EF P06_GroupPageComponentMapping", new Dictionary<string, object> { { "Param", JsonConvert.SerializeObject(req) } });
-                //_notificationService.CustomContentNotification(NotificationSeverity.Error, "Update error", "Error when call EF Update P06 " + ex.Message, 15000, true);
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when update component permission: " + ex.Message,
+                    Duration = 10000
+                });
             }
             finally
             {
-                //req.Dispose();
-                //res?.Dispose();
+                IsLoading_Child = false;
+                glb.isBusyPage = false;
+                StateHasChanged();
             }
-            IsLoading_Child = false;
-            glb.isBusyPage = false;
         }
         protected async Task Submit(P02_GroupResDTO reqDto)
         {

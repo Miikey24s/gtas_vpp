@@ -28,6 +28,37 @@
             border-top: 10px solid red;
             border-left: 10px solid transparent;
         }
+
+    .auto-fit-grid .rz-grid-table {
+        table-layout: auto !important;
+        width: 100% !important;
+    }
+    
+    .col-tight {
+        width: 1% !important;
+        white-space: nowrap !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .col-greedy {
+        width: 100% !important;
+    }
+
+    .permission-page .ocean-btn {
+        background-color: var(--vpp-ocean-primary);
+        border-color: var(--vpp-ocean-primary);
+    }
+
+    .permission-page .ocean-btn:hover {
+        background-color: var(--vpp-ocean-primary-dark);
+        border-color: var(--vpp-ocean-primary-dark);
+    }
+
+    .stat-card {
+        background: var(--vpp-ocean-surface-soft);
+        border: 1px solid var(--vpp-ocean-primary-light);
+    }
 </style>
 
 @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.AdminView) && y.IsVisible))
@@ -53,18 +84,17 @@
                 RowExpand="GroupRowExpand"
                 RowUpdate="@OnUpdateRow"
                 AllowPaging="false"
-                class="librarypagegrid"
-                Style="height: calc(100vh - 14.5vh);"
+                class="auto-fit-grid"
                 TItem="P02_GroupResDTO"
                 @bind-Value="selected_Group"
                 Data=@list_Group
                 ColumnWidth="150px"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <HeaderTemplate>
-        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="Create new group" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.HomeDashboard) && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) && !y.IsEnable))" Click="@ShowInlineDialog" />
+        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="Create new group" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.HomeDashboard) && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) && !y.IsEnable))" Click="@ShowInlineDialog" />
     </HeaderTemplate>
     <Template Context="singlerow">
-        <RadzenRow>
+        <RadzenRow class="rz-p-3">
             <RadzenColumn Size="12">
                 @if (list_PermissionOfGroup.Count > 0)
                 {
@@ -74,6 +104,19 @@
                             @foreach (var item in list_PermissionOfGroup)
                             {
                                 <RadzenTabsItem Text="@(item.PageName + " (" + item.PageCode + ")")">
+                                    <RadzenStack Gap="0.75rem" class="rz-mt-2">
+                                        <RadzenRow Gap="0.5rem">
+                                            <RadzenColumn Size="12" SizeMD="6">
+                                                <RadzenFormField Text="Description" AllowFloatingLabel="false" class="w-100">
+                                                    <RadzenTextBox Value="@item.Description" Disabled="true" />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="6">
+                                                <RadzenFormField Text="Page Id" AllowFloatingLabel="false" class="w-100">
+                                                    <RadzenTextBox Value="@item.PageId.ToString()" Disabled="true" />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                        </RadzenRow>
                                     <RadzenDataGrid AllowGrouping="true"
                                                     AllowFiltering="true"
                                                     AllowColumnResize="true"
@@ -86,46 +129,39 @@
                                                     AllowPaging="false"
                                                     AllowSorting="true"
                                                     AllowVirtualization="true"
-                                                    Style="background-color:lightgray;"
                                                     Density="Density.Compact"
+                                                    GridLines="DataGridGridLines.Horizontal"
                                                     FilterMode="FilterMode.CheckBoxList"
                                                     SelectionMode="DataGridSelectionMode.Single"
                                                     ColumnWidth="150px"
+                                                    class="auto-fit-grid"
                                                     TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
                                                     Data="@item.List_Component"
                                                     @ref=@child_grid
                                                     @bind-Value=@selected_Component>
-                                        <HeaderTemplate>
-                                            <RadzenFormField Text="Description" AllowFloatingLabel="false" class="custom-formfield-disabled">
-                                                <RadzenTextBox Value="@item.Description" Disabled="true" />
-                                            </RadzenFormField>
-                                            <RadzenFormField Text="Page Id" AllowFloatingLabel="false" class="custom-formfield-disabled">
-                                                <RadzenTextBox Value="@item.PageId.ToString()" Disabled="true" />
-                                            </RadzenFormField>
-                                        </HeaderTemplate>
                                         <Columns>
-                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="#" Width="45px" HeaderCssClass="text-center" CssClass="text-center" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true">
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="#" Width="50px" HeaderCssClass="text-center" CssClass="text-center" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true">
                                                 <Template Context="childdata">
                                                     @(item.List_Component.IndexOf(childdata) + 1)
                                                 </Template>
                                             </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentId)" Title="Component Id" />
-                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentCode)" Title="Component Code" />
-                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentName)" Title="Component Name" />
-                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.Description)" Title="Desctiption" />
-                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsEnable)" Title="Is Enable" Visible="@(!item.PageCode?.Equals("0000") ?? false)">
+                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="120px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentId)" Title="Component Id" />
+                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="130px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentCode)" Title="Component Code" />
+                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="150px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentName)" Title="Component Name" />
+                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="200px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.Description)" Title="Description" />
+                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsEnable)" Title="Is Enable" HeaderCssClass="text-center" CssClass="text-center" Visible="@(!item.PageCode?.Equals("0000") ?? false)">
                                                 <Template Context="comdata">
-                                                    <RadzenSwitch @bind-Value=comdata.IsEnable Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0004_V") && y.IsVisible))" />
+                                                    <RadzenSwitch @bind-Value=comdata.IsEnable Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) && y.IsVisible))" />
                                                 </Template>
                                             </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsVisible)" Title="Is Visible">
+                                                <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsVisible)" Title="Is Visible" HeaderCssClass="text-center" CssClass="text-center">
                                                 <Template Context="comdata">
-                                                    <RadzenSwitch @bind-Value=comdata.IsVisible Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0004_V") && y.IsVisible))" />
+                                                    <RadzenSwitch @bind-Value=comdata.IsVisible Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) && y.IsVisible))" />
                                                 </Template>
                                             </RadzenDataGridColumn>
                                         </Columns>
                                     </RadzenDataGrid>
-
+                                    </RadzenStack>
                                 </RadzenTabsItem>
                             }
 
@@ -134,27 +170,25 @@
                 }
                 else
                 {
-                    <RadzenFieldset Text="N/A">
-                        <RadzenText Text="This group have no permission" />
-                    </RadzenFieldset>
+                    <RadzenText TextStyle="TextStyle.Body1" class="rz-p-4 rz-text-align-center">This group has no permission</RadzenText>
                 }
             </RadzenColumn>
         </RadzenRow>
     </Template>
     <Columns>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="#" Width="45px" HeaderCssClass="text-center" CssClass="text-center" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="#" Width="50px" HeaderCssClass="text-center" CssClass="text-center" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true">
             <Template Context="data">
                 @(list_Group.IndexOf(data) + 1)
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Width="60px" Title="Is Delete" HeaderCssClass="text-center" CssClass="text-center" Property="@nameof(P02_GroupResDTO.IsDeleted)">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Width="80px" Title="Is Delete" HeaderCssClass="text-center" CssClass="text-center" Property="@nameof(P02_GroupResDTO.IsDeleted)">
             <Template Context="data">
                 <RadzenSwitch @bind-Value=data.IsDeleted Change="@(arg => SwitchOnChange(data))" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Func" Width="60px" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true" HeaderCssClass="text-center" CssClass="text-center">
+        <RadzenDataGridColumn Title="Func" Width="80px" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true" HeaderCssClass="text-center" CssClass="text-center">
             <Template Context="data">
-                <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(data))" @onclick:stopPropagation="true" Disabled="@isEditing" />
+                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(args => EditRow(data))" @onclick:stopPropagation="true" Disabled="@isEditing" />
             </Template>
             <EditTemplate Context="data">
                 <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@((args) => SaveRow(data))" />
@@ -162,27 +196,27 @@
             </EditTemplate>
         </RadzenDataGridColumn>
         @* <RadzenDataGridColumn TItem="P02_GroupResDTOResDTO" Title="Id" Property="@nameof(P02_GroupResDTOResDTO.Id)" /> *@
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Group Name" Property="@nameof(P02_GroupResDTO.GroupName)">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Group Name" Width="200px" Property="@nameof(P02_GroupResDTO.GroupName)">
             <Template Context="data">
                 <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenText Text="@data.GroupName" class="rz-mb-0" />
+                    <RadzenText Text="@data.GroupName" class="rz-mb-0" Style="font-weight: 600;" />
                 </RadzenStack>
             </Template>
             <EditTemplate Context="data">
-                <RadzenTextBox @bind-Value="data.GroupName" Name="GroupName" aria-label="Enter group name" />
+                <RadzenTextBox @bind-Value="data.GroupName" Name="GroupName" aria-label="Enter group name" Style="width: 100%;" />
             </EditTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Description" Property="@nameof(P02_GroupResDTO.Description)">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Description" Width="250px" Property="@nameof(P02_GroupResDTO.Description)">
             <Template Context="data">
                 <RadzenStack Orientation="Orientation.Horizontal">
                     <RadzenText Text="@data.Description" class="rz-mb-0" />
                 </RadzenStack>
             </Template>
             <EditTemplate Context="data">
-                <RadzenTextBox @bind-Value="data.Description" Name="Description" aria-label="Enter description" />
+                <RadzenTextBox @bind-Value="data.Description" Name="Description" aria-label="Enter description" Style="width: 100%;" />
             </EditTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Parent Group" Property="@nameof(P02_GroupResDTO.ParentGroupId)">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Parent Group" Width="180px" Property="@nameof(P02_GroupResDTO.ParentGroupId)">
             <Template Context="data">
                 <RadzenStack Orientation="Orientation.Horizontal">
                     <RadzenText Text="@(list_Group.FirstOrDefault(x => x.Id == data.ParentGroupId)?.GroupName)" class="rz-mb-0" />
@@ -190,13 +224,21 @@
             </Template>
             <EditTemplate Context="data">
                 <RadzenDropDown @bind-Value="data.ParentGroupId" Data=@(list_Group.Where(x => x.Id != data.Id)) TextProperty="GroupName" ValueProperty="Id" AllowClear=true
-                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" />
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" Style="width: 100%;" />
             </EditTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Create by" Property="@nameof(P02_GroupResDTO.CreateUserName)" />
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Create on" Property="@nameof(P02_GroupResDTO.CreateDate)" />
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Update by" Property="@nameof(P02_GroupResDTO.UpdateUserName)" />
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Update on" Property="@nameof(P02_GroupResDTO.UpdateDate)" />
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Create by" Width="150px" Property="@nameof(P02_GroupResDTO.CreateUserName)" />
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Create on" Width="150px" Property="@nameof(P02_GroupResDTO.CreateDate)">
+            <Template Context="data">
+                @data.CreateDate.ToString("dd/MM/yyyy HH:mm")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Update by" Width="150px" Property="@nameof(P02_GroupResDTO.UpdateUserName)" />
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Update on" Width="150px" Property="@nameof(P02_GroupResDTO.UpdateDate)">
+            <Template Context="data">
+                @data.UpdateDate.ToString("dd/MM/yyyy HH:mm")
+            </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 }
@@ -210,38 +252,43 @@ else
     protected async Task ShowInlineDialog()
     {
         var result = await DialogService.OpenAsync("Add new group", ds =>
-    @<RadzenStack>
+    @<RadzenStack Gap="1rem" class="rz-p-3">
             <RadzenTemplateForm Data="@_P02_GroupResDTOReqDTO" Submit="@((P02_GroupResDTO arg) => { Submit(arg); })">
                 <RadzenRow RowGap="1rem" Gap="1rem">
-                    <RadzenColumn Size="6">
+                    <RadzenColumn Size="12" SizeMD="6">
                         <RadzenFormField Text="Group Name" class="w-100" AllowFloatingLabel="false">
-                            <RadzenTextBox @bind-Value=@_P02_GroupResDTOReqDTO.GroupName Name="GroupName" />
+                            <RadzenTextBox @bind-Value=@_P02_GroupResDTOReqDTO.GroupName Name="GroupName" Style="width: 100%;" />
                         </RadzenFormField>
                         <RadzenRequiredValidator Component="GroupName" Text="Group name is required" />
                     </RadzenColumn>
-                    <RadzenColumn Size="6">
+                    <RadzenColumn Size="12" SizeMD="6">
                         <RadzenFormField Text="Description" class="w-100" AllowFloatingLabel="false">
-                            <RadzenTextBox @bind-Value=@_P02_GroupResDTOReqDTO.Description />
+                            <RadzenTextBox @bind-Value=@_P02_GroupResDTOReqDTO.Description Style="width: 100%;" />
                         </RadzenFormField>
                     </RadzenColumn>
                     <RadzenColumn Size="12">
-                        <RadzenFormField Text="Copy from" class="w-100" AllowFloatingLabel="false">
-                            <RadzenDropDown AllowClear="false"
+                        <RadzenFormField Text="Copy from (optional)" class="w-100" AllowFloatingLabel="false">
+                            <RadzenDropDown AllowClear="true"
                                             AllowVirtualization="true"
                                             AllowFiltering="true"
                                             TValue="P02_GroupResDTO"
                                             Data="list_Group"
                                             class="w-100"
+                                            Placeholder="Select a group to copy permissions from..."
                                             TextProperty="@nameof(P02_GroupResDTO.GroupName)"
-                                            @bind-Value=@selected_Group_To_Copy />
+                                            @bind-Value=@selected_Group_To_Copy 
+                                            Style="width: 100%;" />
                         </RadzenFormField>
                     </RadzenColumn>
-                    <RadzenColumn Size="12" class="text-right">
-                        <RadzenButton ButtonType="ButtonType.Submit" Icon="check" Text="OK" />
+                    <RadzenColumn Size="12">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                            <RadzenButton ButtonType="ButtonType.Button" Icon="close" Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => ds.Close(false))" />
+                            <RadzenButton ButtonType="ButtonType.Submit" Icon="check" Text="Create" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" />
+                        </RadzenStack>
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenTemplateForm>
-        </RadzenStack>);
+        </RadzenStack>, new DialogOptions() { Width = "600px", Height = "auto" });
     }
 }
 
