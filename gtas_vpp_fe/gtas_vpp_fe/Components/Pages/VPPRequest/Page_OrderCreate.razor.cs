@@ -32,6 +32,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         private sealed class OrderDraft
         {
             public string? Description { get; set; }
+            public string? Reason { get; set; }
             public List<SelectedItem> Items { get; set; } = new();
             public DateTime SavedAt { get; set; }
         }
@@ -53,6 +54,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [Inject] public IJSRuntime JS { get; set; } = default!;
 
         [SupplyParameterFromQuery] public Guid? OrderId { get; set; }
+        [SupplyParameterFromQuery(Name = "isAdditional")] public string? IsAdditionalParam { get; set; }
+        
+        private bool _isAdditionalOverride;
+        private bool _hasLoadedOrder;
+        
+        public bool IsAdditional 
+        { 
+            get
+            {
+                // If we've loaded an existing order, use the override value from database
+                if (_hasLoadedOrder)
+                    return _isAdditionalOverride;
+                    
+                // Otherwise, parse from query parameter
+                return !string.IsNullOrWhiteSpace(IsAdditionalParam) && 
+                       (IsAdditionalParam.Equals("true", StringComparison.OrdinalIgnoreCase) || 
+                        IsAdditionalParam == "1");
+            }
+        }
 
         public bool IsLoadingProducts { get; set; }
         public bool IsSaving { get; set; }
@@ -60,6 +80,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public bool IsEdit => OrderId.HasValue;
         public string? SearchText { get; set; }
         public string? Description { get; set; }
+        public string? Reason { get; set; }
         public DateTime? LastDraftSavedAt { get; set; }
         public int TotalQty => SelectedItems.Sum(x => x.Qty);
 
@@ -202,10 +223,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             if (query.Count == 0)
             {
-                return "/api/VPPRequest/products";
+                return Config.VppApi.Products;
             }
 
-            return $"/api/VPPRequest/products?{string.Join("&", query)}";
+            return $"{Config.VppApi.Products}?{string.Join("&", query)}";
         }
 
         private async Task LoadOrderForEditAsync()
@@ -215,8 +236,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             glb.isBusyPage = true;
             try
             {
-                var orders = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/my-orders") ?? new();
-                var editingOrder = orders.FirstOrDefault(x => x.Id == OrderId.Value);
+                var editingOrder = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.Orders}/{OrderId.Value}");
                 if (editingOrder == null)
                 {
                     NotificationService.Notify(new NotificationMessage
@@ -231,6 +251,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
 
                 Description = editingOrder.Description;
+                Reason = editingOrder.Reason;
+                _isAdditionalOverride = editingOrder.IsAdditionalOrder;
+                _hasLoadedOrder = true;
                 SelectedItems = (editingOrder.Items ?? new())
                     .Select(x => new SelectedItem
                     {
@@ -297,6 +320,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             return Task.CompletedTask;
         }
 
+        public Task OnReasonInput(ChangeEventArgs args)
+        {
+            Reason = args.Value?.ToString();
+            MarkDraftDirty();
+            return Task.CompletedTask;
+        }
+
         public async Task SaveDraftAsync(bool showMessage = false)
         {
             if (IsEdit) return;
@@ -306,6 +336,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var draft = new OrderDraft
                 {
                     Description = Description,
+                    Reason = Reason,
                     Items = SelectedItems,
                     SavedAt = DateTime.Now
                 };
@@ -342,6 +373,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 if (draft == null) return;
 
                 Description = draft.Description;
+                Reason = draft.Reason;
                 SelectedItems = draft.Items ?? new();
                 LastDraftSavedAt = draft.SavedAt;
                 DraftRecovered = SelectedItems.Count > 0 || !string.IsNullOrWhiteSpace(Description);
@@ -406,6 +438,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
 
+            if (IsAdditional && string.IsNullOrWhiteSpace(Reason))
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Validation",
+                    Detail = "Reason is required for additional orders.",
+                    Duration = 3000
+                });
+                return;
+            }
+
             IsSaving = true;
             glb.isBusyPage = true;
             try
@@ -413,6 +457,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var now = DateTime.Now;
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
                 var period = now.Day >= 5 ? currentMonth.AddMonths(1) : currentMonth;
+                if (IsAdditional)
+                {
+                    period = now.Day >= 5 ? currentMonth : currentMonth.AddMonths(-1);
+                }
 
                 var requestItems = SelectedItems.Select(x => new VPP02_ItemReqDTO
                 {
@@ -425,12 +473,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     var updateReq = new VPP01_UpdateReqDTO
                     {
                         Id = OrderId!.Value,
-                        Status = 1,
                         Description = Description,
+                        Reason = Reason,
+                        IsAdditionalOrder = IsAdditional,
                         Items = requestItems
                     };
 
-                    await _apiServices.PutFromApiAsync<VPP01_RequestHeaderResDTO>($"/api/VPPRequest/orders/{OrderId}", updateReq);
+                    await _apiServices.PutFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.Orders}/{OrderId}", updateReq);
                 }
                 else
                 {
@@ -438,12 +487,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     {
                         Y = period.Year,
                         M = period.Month,
-                        Status = 1,
                         Description = Description,
+                        Reason = Reason,
+                        IsAdditionalOrder = IsAdditional,
                         Items = requestItems
                     };
 
-                    await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>("/api/VPPRequest/orders", createReq);
+                    await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>(Config.VppApi.Orders, createReq);
                     await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);
                 }
 

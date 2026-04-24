@@ -1,0 +1,117 @@
+@page "/dashboard/admin-approval"
+@layout MainLayout
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_shared.DTOs.Req.VPP
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
+@inject IAPIServices _apiServices
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Admin Approval</PageTitle>
+
+<RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3" Style="width: 100%; max-width: none; margin: 0;">
+    <div style="font-size: 1.5rem; font-weight: 700; color: var(--vpp-ocean-primary-dark); margin-bottom: 1rem;">Admin Approval (Additional Orders)</div>
+
+    <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO"
+                    Data="@PendingOrders"
+                    IsLoading="@IsLoading"
+                    AllowPaging="true" PageSize="10"
+                    AllowSorting="true"
+                    Density="Density.Compact"
+                    GridLines="DataGridGridLines.Horizontal">
+        <Columns>
+            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="VPPCode" Title="Order Code" Width="150px" />
+            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Period" Title="Period" Width="80px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="DepartmentCode" Title="Department" Width="120px" />
+            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="Reason" Title="Reason" />
+            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="TotalQty" Title="Total Qty" Width="100px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Actions" Width="150px" TextAlign="TextAlign.Center">
+                <Template Context="order">
+                    <RadzenButton Icon="check_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" class="rz-mr-2" Click="@(async () => await ApproveOrderAsync(order))" />
+                    <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Click="@(async () => await ShowRejectDialogAsync(order))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>
+
+@code {
+    public List<VPP01_RequestHeaderResDTO> PendingOrders { get; set; } = new();
+    public bool IsLoading { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingOrdersAsync();
+    }
+
+    private async Task LoadPendingOrdersAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>($"{Config.VppApi.ApiVppBase}/additional-orders/pending");
+            PendingOrders = data ?? new();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Failed to load pending orders: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task ApproveOrderAsync(VPP01_RequestHeaderResDTO order)
+    {
+        var confirm = await DialogService.Confirm("Are you sure you want to approve this additional order?", "Approve Order", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        if (confirm != true) return;
+
+        IsLoading = true;
+        try
+        {
+            await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.ApiVppBase}/additional-orders/{order.Id}/approve", new { });
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "Order approved successfully.");
+            await LoadPendingOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Failed to approve order: {ex.Message}");
+            IsLoading = false;
+        }
+    }
+
+    private async Task ShowRejectDialogAsync(VPP01_RequestHeaderResDTO order)
+    {
+        string rejectReason = "";
+        
+        var result = await DialogService.OpenAsync("Reject Order", ds =>
+            @<RadzenStack Gap="1.5rem">
+                <RadzenText>Please provide a reason for rejecting order <b>@order.VPPCode</b>:</RadzenText>
+                <RadzenTextArea @bind-Value="rejectReason" Rows="3" Style="width: 100%;" />
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                    <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Light" />
+                    <RadzenButton Text="Reject" Click="() => ds.Close(true)" ButtonStyle="ButtonStyle.Danger" Disabled="@(string.IsNullOrWhiteSpace(rejectReason))" />
+                </RadzenStack>
+            </RadzenStack>);
+
+        if (result == true)
+        {
+            IsLoading = true;
+            try
+            {
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.ApiVppBase}/additional-orders/{order.Id}/reject", new { Reason = rejectReason });
+                NotificationService.Notify(NotificationSeverity.Success, "Success", "Order rejected successfully.");
+                await LoadPendingOrdersAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Error", $"Failed to reject order: {ex.Message}");
+                IsLoading = false;
+            }
+        }
+    }
+}

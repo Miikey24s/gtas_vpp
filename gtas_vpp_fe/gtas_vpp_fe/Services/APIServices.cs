@@ -52,13 +52,39 @@ namespace gtas_vpp_fe.Services
                 _httpClient.BaseAddress = new Uri(baseUrl);
             }
         }
+        private async Task EnsureSuccessWithDetailsAsync(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var errorMessage = $"API Error: {response.StatusCode}";
+                try
+                {
+                    // Attempt to parse standard ProblemDetails or custom error JSON
+                    var errorObj = JsonSerializer.Deserialize<JsonElement>(content);
+                    if (errorObj.TryGetProperty("message", out var msg))
+                        errorMessage = msg.GetString() ?? errorMessage;
+                    else if (errorObj.TryGetProperty("title", out var title))
+                        errorMessage = title.GetString() ?? errorMessage;
+                }
+                catch
+                {
+                    // If parsing fails, use raw content if it's short, else keep status code
+                    if (!string.IsNullOrWhiteSpace(content) && content.Length < 200)
+                        errorMessage = content;
+                }
+                throw new HttpRequestException(errorMessage);
+            }
+        }
+
         public async Task<string> GetDataFromExternalApiAsync(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.GetAsync(_rootUrl + endpoint);
-            response.EnsureSuccessStatusCode();
+            await EnsureSuccessWithDetailsAsync(response);
             return await response.Content.ReadAsStringAsync();
         }
+
         public async Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
         {
             if (url == null) url = $"{_rootUrl}sp_Authen?sptype={sptype}";
@@ -81,6 +107,7 @@ namespace gtas_vpp_fe.Services
                 };
             }
         }
+
         public async Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
         {
             var apiResult = await aPIFrom_sp_Authen(sptype, body, url, jsonOptions);
@@ -105,13 +132,16 @@ namespace gtas_vpp_fe.Services
         public async Task<T?> GetFromApiAsync<T>(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            return await _httpClient.GetFromJsonAsync<T>(endpoint);
+            var response = await _httpClient.GetAsync(endpoint);
+            await EnsureSuccessWithDetailsAsync(response);
+            return await ReadResponseAsJsonAsync<T>(response);
         }
+
         public async Task<T?> PostFromApiAsync<T>(string endpoint, object body)
         {
             await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PostAsJsonAsync(endpoint, body);
-            response.EnsureSuccessStatusCode();
+            await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
 
@@ -119,7 +149,7 @@ namespace gtas_vpp_fe.Services
         {
             await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PutAsJsonAsync(endpoint, body);
-            response.EnsureSuccessStatusCode();
+            await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
 
@@ -132,7 +162,7 @@ namespace gtas_vpp_fe.Services
             };
 
             var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
 

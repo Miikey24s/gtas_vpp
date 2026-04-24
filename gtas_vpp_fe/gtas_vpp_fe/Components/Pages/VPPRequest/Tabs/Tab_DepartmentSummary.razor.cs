@@ -119,8 +119,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
 
             // Use department-orders endpoint which filters by DepartmentCode at database level
-            if (query.Count == 0) return "/api/VPPRequest/department-orders";
-            return $"/api/VPPRequest/department-orders?{string.Join("&", query)}";
+            if (query.Count == 0) return Config.VppApi.DepartmentOrders;
+            return $"{Config.VppApi.DepartmentOrders}?{string.Join("&", query)}";
         }
 
         protected string GetStatusText(int status) => status switch

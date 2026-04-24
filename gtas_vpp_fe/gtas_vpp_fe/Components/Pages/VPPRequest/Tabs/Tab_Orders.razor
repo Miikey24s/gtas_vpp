@@ -23,6 +23,14 @@
     .col-greedy {
         width: 100% !important;
     }
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--vpp-ocean-primary-dark);
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--vpp-ocean-primary-light);
+        padding-bottom: 0.5rem;
+    }
 </style>
 
 @if (CanView || !CanView)
@@ -30,8 +38,8 @@
     <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3 order-page" Style="width: 100%; max-width: none; margin: 0;">
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage())" Disabled="@(IsLoading || (Orders != null && Orders.Any()))" />
-                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage())" Disabled="@(IsLoading || (Orders != null && Orders.Any()))" />
+                <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
+                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
                 <RadzenButton Icon="undo" Text="Undo" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Click="@(async _ => await UndoLastDeleteAsync())" Disabled="@(IsLoading || LastDeletedOrderId == null)" />
             </RadzenStack>
         </RadzenStack>
@@ -67,75 +75,119 @@
         {
             <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
         }
-        else if (Orders == null || !Orders.Any())
-        {
-            <RadzenCard class="rz-border-none rz-shadow-1 rz-p-4" Style="text-align: center;">
-                <RadzenText TextStyle="TextStyle.Subtitle1">No orders found for the current period.</RadzenText>
-            </RadzenCard>
-        }
         else
         {
-            <RadzenStack Gap="2rem">
-                @foreach (var order in Orders)
-                {
-                    <RadzenCard class="rz-border-none rz-shadow-1 rz-p-4" Style="border: 1px solid var(--vpp-ocean-primary-light);">
-                        <RadzenStack Gap="1rem">
-                            <RadzenRow AlignItems="AlignItems.Center">
-                                <RadzenColumn Size="12" SizeMD="8">
-                                    <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H2" class="rz-m-0" Style="color: var(--vpp-ocean-primary-dark); font-weight: 700;">
-                                        Order Code: @order.VPPCode
-                                    </RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body2" class="rz-color-primary-light">
-                                        Submitted: @(order.SubmittedDate?.ToString("HH:mm dd/MM/yyyy") ?? "-")
-                                    </RadzenText>
-                                </RadzenColumn>
-                                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
-                                        <RadzenBadge Text="@GetStatusText(order.Status)" BadgeStyle="@GetStatusBadgeStyle(order.Status)" IsPill="true" class="rz-px-3" />
-                                        @if (CanEditOrDelete(order))
-                                        {
-                                            <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" />
-                                            <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await DeleteOrderAsync(order))" />
-                                        }
-                                    </RadzenStack>
-                                </RadzenColumn>
-                            </RadzenRow>
+            <div class="section-header">Active Order Period (@CurrentOrderPeriodText)</div>
+            @if (ActiveOrders == null || !ActiveOrders.Any())
+            {
+                <RadzenCard class="rz-border-none rz-shadow-1 rz-p-4" Style="text-align: center;">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">No orders found for the current period.</RadzenText>
+                </RadzenCard>
+            }
+            else
+            {
+                <RadzenStack Gap="2rem">
+                    @foreach (var order in ActiveOrders)
+                    {
+                        @RenderOrderCard(order)
+                    }
+                </RadzenStack>
+            }
 
-                            <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO"
-                                            Data="@(order.Items ?? new())"
-                                            AllowPaging="true" PageSize="10"
-                                            AllowVirtualization="true"
-                                            AllowSorting="false"
-                                            Density="Density.Compact"
-                                            GridLines="DataGridGridLines.Horizontal"
-                                            class="auto-fit-grid"
-                                            Style="border: none !important; box-shadow: none !important; padding: 0;">
-                                <Columns>
-    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center">
-        <Template Context="item">@((order.Items?.IndexOf(item) ?? -1) + 1)</Template>
-    </RadzenDataGridColumn>
-    
-    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPCode" Title="Item Code" Width="130px" TextAlign="TextAlign.Left" />
-    
-    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="Item Name" Width="300px" TextAlign="TextAlign.Left" />
-    
-    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="Quantity" Width="100px" TextAlign="TextAlign.Center" />
-    
-    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMName" Title="Unit of Measure" Width="150px" TextAlign="TextAlign.Center" />
-    
-    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="Note" TextAlign="TextAlign.Left">
-        <Template Context="item">
-            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;" title="@item.Description">
-                @item.Description
-            </div>
-        </Template>
-    </RadzenDataGridColumn>
-</Columns>
-                            </RadzenDataGrid>
-                        </RadzenStack>
-                    </RadzenCard>
-                }
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mt-4 section-header">
+                <div>Previous Order Period (@PreviousOrderPeriodText)</div>
+                <RadzenButton Icon="add_circle" Text="Request Additional" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
             </RadzenStack>
+            
+            @if (PreviousOrders == null || !PreviousOrders.Any())
+            {
+                <RadzenCard class="rz-border-none rz-shadow-1 rz-p-4" Style="text-align: center;">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">No orders found for the previous period.</RadzenText>
+                </RadzenCard>
+            }
+            else
+            {
+                <RadzenStack Gap="2rem">
+                    @foreach (var order in PreviousOrders)
+                    {
+                        @RenderOrderCard(order)
+                    }
+                </RadzenStack>
+            }
         }
     </RadzenStack>
+}
+
+@code {
+    private RenderFragment<VPP01_RequestHeaderResDTO> RenderOrderCard => order => __builder =>
+    {
+        <RadzenCard class="rz-border-none rz-shadow-1 rz-p-4" Style="border: 1px solid var(--vpp-ocean-primary-light);">
+            <RadzenStack Gap="1rem">
+                <RadzenRow AlignItems="AlignItems.Center">
+                    <RadzenColumn Size="12" SizeMD="8">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H2" class="rz-m-0" Style="color: var(--vpp-ocean-primary-dark); font-weight: 700;">
+                                Order Code: @order.VPPCode
+                            </RadzenText>
+                            @if (order.IsAdditionalOrder)
+                            {
+                                <RadzenBadge Text="Additional" BadgeStyle="BadgeStyle.Warning" IsPill="true" class="rz-ml-2" />
+                            }
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.Body2" class="rz-color-primary-light">
+                            Submitted: @(order.SubmittedDate?.ToString("HH:mm dd/MM/yyyy") ?? "-")
+                        </RadzenText>
+                        @if (!string.IsNullOrWhiteSpace(order.Reason))
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-mt-1">
+                                <strong>Reason:</strong> @order.Reason
+                            </RadzenText>
+                        }
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                            <RadzenBadge Text="@GetStatusText(order.Status)" BadgeStyle="@GetStatusBadgeStyle(order.Status)" IsPill="true" class="rz-px-3" />
+                            @if (CanEditOrDelete(order))
+                            {
+                                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" />
+                                <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await DeleteOrderAsync(order))" />
+                            }
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+
+                <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO"
+                                Data="@(order.Items ?? new())"
+                                AllowPaging="true" PageSize="10"
+                                AllowVirtualization="true"
+                                AllowSorting="false"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                class="auto-fit-grid"
+                                Style="border: none !important; box-shadow: none !important; padding: 0;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center">
+                            <Template Context="item">@((order.Items?.IndexOf(item) ?? -1) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPCode" Title="Item Code" Width="130px" TextAlign="TextAlign.Left" />
+                        
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="Item Name" Width="300px" TextAlign="TextAlign.Left" />
+                        
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="Quantity" Width="100px" TextAlign="TextAlign.Center" />
+                        
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMName" Title="Unit of Measure" Width="150px" TextAlign="TextAlign.Center" />
+                        
+                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="Note" TextAlign="TextAlign.Left">
+                            <Template Context="item">
+                                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;" title="@item.Description">
+                                    @item.Description
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
+        </RadzenCard>
+    };
 }

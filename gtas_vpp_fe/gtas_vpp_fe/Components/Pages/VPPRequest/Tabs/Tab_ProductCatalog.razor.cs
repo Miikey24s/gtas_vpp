@@ -54,7 +54,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             try
             {
-                var data = await _apiServices.GetFromApiAsync<List<CategoryItem>>("/api/VPPRequest/categories") ?? new();
+                var data = await _apiServices.GetFromApiAsync<List<CategoryItem>>(Config.VppApi.Categories) ?? new();
                 CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = "All" } };
                 CategoryOptions.AddRange(data.Select(c => new CategoryOption
                 {

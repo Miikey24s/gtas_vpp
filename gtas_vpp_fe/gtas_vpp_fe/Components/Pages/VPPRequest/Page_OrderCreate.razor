@@ -17,6 +17,15 @@
         </RadzenStack>
     </RadzenStack>
 
+    @if (IsAdditional)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" class="rz-mb-0">
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-m-0">
+                <strong>Attention:</strong> The order period has closed. This order will be marked as an <strong>Additional Order</strong> and requires Admin approval.
+            </RadzenText>
+        </RadzenAlert>
+    }
+
     <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch" Style="flex: 1; min-height: 0; margin: 0;">
         
         <RadzenColumn Size="12" SizeLG="7" Style="display: flex; flex-direction: column; height: 100%;">
@@ -54,11 +63,6 @@
                                 GridLines="DataGridGridLines.Horizontal"
                                 Style="flex: 1; min-height: 0;">
                     <Columns>
-                        @* <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="Code" Width="140px">
-                            <Template Context="row">
-                                <span style="font-weight: 600; color: var(--vpp-ocean-primary-dark);">@row.VPPCode</span>
-                            </Template>
-                        </RadzenDataGridColumn> *@
                         <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="Name" />
                         <RadzenDataGridColumn TItem="ProductOption" Property="UOMCode" Title="UOM" Width="90px" TextAlign="TextAlign.Center" />
                         <RadzenDataGridColumn TItem="ProductOption" Title="" Width="90px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
@@ -85,8 +89,16 @@
                             <RadzenText Text="@($"Auto-saved: {LastDraftSavedAt:HH:mm:ss}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-ocean-primary);" />
                         }
                     </RadzenStack>
+
+                    @if (IsAdditional)
+                    {
+                        <RadzenFormField Text="Reason for Additional Order *" Variant="Variant.Outlined" class="rz-mt-3">
+                            <RadzenTextArea @bind-Value="Reason" Rows="2" Style="width: 100%; border-color: var(--rz-warning);" @oninput="OnReasonInput" Change="@(async _ => await SaveDraftAsync())" />
+                        </RadzenFormField>
+                    }
+
                     <RadzenFormField Text="Notes" Variant="Variant.Outlined" class="rz-mt-2">
-                        <RadzenTextArea @bind-Value="Description" Rows="3" Style="width: 100%;" @oninput="OnDescriptionInput" Change="@(async _ => await SaveDraftAsync())" />
+                        <RadzenTextArea @bind-Value="Description" Rows="2" Style="width: 100%;" @oninput="OnDescriptionInput" Change="@(async _ => await SaveDraftAsync())" />
                     </RadzenFormField>
                 </RadzenCard>
 
@@ -122,7 +134,7 @@
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" JustifyContent="JustifyContent.End">
                     <RadzenButton Icon="close" Text="Cancel" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
                     <RadzenButton Icon="save" Text="Save Draft" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="@(async _ => await SaveDraftAsync(true))" />
-                    <RadzenButton Icon="save" Text="@(IsEdit ? "Update Order" : "Create Order")" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Disabled="@IsSaving" Click="@(async _ => await SubmitAsync())" />
+                    <RadzenButton Icon="save" Text="@(IsAdditional ? "Submit for Approval" : (IsEdit ? "Update Order" : "Create Order"))" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Disabled="@IsSaving" Click="@(async _ => await SubmitAsync())" />
                 </RadzenStack>
             </RadzenStack>
         </RadzenColumn>

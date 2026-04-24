@@ -122,7 +122,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             LoadingDetailOrderIds.Add(row.Id);
             try
             {
-                var detail = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"/api/VPPRequest/orders/{row.Id}");
+                var detail = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.Orders}/{row.Id}");
                 row.Items = detail?.Items ?? new List<VPP02_RequestDetailResDTO>();
                 LoadedDetailOrderIds.Add(row.Id);
             }

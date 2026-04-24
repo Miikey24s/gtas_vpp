@@ -40,7 +40,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
-        public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
+        public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
+        public List<VPP01_RequestHeaderResDTO> PreviousOrders { get; set; } = new();
 
         public bool IsLoading { get; set; }
         public bool ViewerVisible { get; set; }
@@ -58,20 +59,23 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 return now.Day >= 5 ? currentMonth.AddMonths(1) : currentMonth;
             }
         }
+        
+        public DateTime PreviousOrderPeriodDate => CurrentOrderPeriodDate.AddMonths(-1);
 
         public DateTime CurrentDeadlineDate => new(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 5);
         public DateTime PeriodEndDate => new DateTime(DateTime.Now.Year, DateTime.Now.Month, 5).AddMonths(2);
         public string PeriodEndText => PeriodEndDate.ToString("dd/MM/yyyy");
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
+        public string PreviousOrderPeriodText => $"{PreviousOrderPeriodDate:MM/yyyy}";
         public string CurrentDeadlineText => CurrentDeadlineDate.ToString("HH:mm dd/MM/yyyy");
         public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
         public string OrdersTitle => $"Orders - {CurrentOrderPeriodText}";
-        public int TotalOrders => Orders.Count;
+        public int TotalOrders => ActiveOrders.Count + PreviousOrders.Count;
         public string TotalOrdersText => TotalOrders.ToString();
-        public int TotalLines => Orders.Sum(o => o.Items?.Count ?? 0);
+        public int TotalLines => ActiveOrders.Sum(o => o.Items?.Count ?? 0) + PreviousOrders.Sum(o => o.Items?.Count ?? 0);
         public string TotalLinesText => TotalLines.ToString();
-        public int TotalQty => Orders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0);
+        public int TotalQty => ActiveOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0) + PreviousOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0);
         public string TotalQtyText => TotalQty.ToString();
         public int AvgLinesPerOrder => TotalOrders == 0 ? 0 : (int)Math.Round((double)TotalLines / TotalOrders);
         public string AvgLinesPerOrderText => $"Average {AvgLinesPerOrder} line(s) per order";
@@ -93,12 +97,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var endpoint = $"/api/VPPRequest/my-orders?year={CurrentOrderPeriodDate.Year}&month={CurrentOrderPeriodDate.Month}";
+                var endpoint = $"{Config.VppApi.MyOrders}?years={CurrentOrderPeriodDate.Year}&months={CurrentOrderPeriodDate.Month}&years={PreviousOrderPeriodDate.Year}&months={PreviousOrderPeriodDate.Month}";
                 var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
 
-                Orders = (data ?? new())
-                    .OrderByDescending(x => x.UpdateDate)
-                    .ToList();
+                var allOrders = (data ?? new()).OrderByDescending(x => x.UpdateDate).ToList();
+                ActiveOrders = allOrders.Where(x => x.Y == CurrentOrderPeriodDate.Year && x.M == CurrentOrderPeriodDate.Month).ToList();
+                PreviousOrders = allOrders.Where(x => x.Y == PreviousOrderPeriodDate.Year && x.M == PreviousOrderPeriodDate.Month).ToList();
             }
             catch (Exception ex)
             {
@@ -120,9 +124,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task ReloadAsync() => await LoadOrdersAsync();
 
-        protected async Task GoToCreatePage()
+        protected async Task GoToCreatePage(bool isAdditional = false)
         {
-            NavigationManager.NavigateTo("/dashboard/order-create");
+            NavigationManager.NavigateTo($"/dashboard/order-create?isAdditional={isAdditional}");
             await Task.CompletedTask;
         }
 
@@ -140,7 +144,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{LastDeletedOrderId}/undo-delete", new { });
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{LastDeletedOrderId}/undo-delete", new { });
 
                 NotificationService.Notify(new NotificationMessage
                 {
@@ -180,7 +184,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{row.Id}/delete", new { });
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/delete", new { });
                 LastDeletedOrderId = row.Id;
                 LastDeletedOrderCode = row.VPPCode;
                 NotificationService.Notify(new NotificationMessage
@@ -219,7 +223,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{row.Id}/submit", new { });
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/submit", new { });
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -253,7 +257,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/orders/{row.Id}/cancel", new { });
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", new { });
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -299,6 +303,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             1 => "Submitted",
             4 => "Cancelled",
             5 => "Closed",
+            6 => "Pending",
+            7 => "Approved",
+            8 => "Rejected",
             _ => "-"
         };
 
@@ -307,6 +314,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             1 => BadgeStyle.Success,
             4 => BadgeStyle.Danger,
             5 => BadgeStyle.Info,
+            6 => BadgeStyle.Warning,
+            7 => BadgeStyle.Success,
+            8 => BadgeStyle.Danger,
             _ => BadgeStyle.Light
         };
     }

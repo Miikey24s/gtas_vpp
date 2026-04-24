@@ -7,6 +7,19 @@
         public const string ApiLoginEndpoint = "/api/Auth/login";
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
         public const string ApiLibraryBase = "/api/Library";
+        public const string ApiVppBase = "/api/VPPRequest";
+        
+        public static class VppApi
+        {
+            public const string ApiVppBase = "/api/VPPRequest";
+            public const string Categories = $"{ApiVppBase}/categories";
+            public const string Products = $"{ApiVppBase}/products";
+            public const string MyOrders = $"{ApiVppBase}/my-orders";
+            public const string MyOrdersSummary = $"{ApiVppBase}/my-orders-summary";
+            public const string DepartmentOrders = $"{ApiVppBase}/department-orders";
+            public const string Orders = $"{ApiVppBase}/orders";
+        }
+
         public static class LibraryApi
         {
             public const string L01_Class = $"{ApiLibraryBase}/l01";
@@ -76,6 +89,7 @@
                 public const string RequestHistory = "0003_RQ_H";
                 public const string RequestProductCatalog = "0003_RQ_PC";
                 public const string RequestDepartmentSummary = "0003_RQ_DS";
+                public const string RequestApproval = "0003_RQ_A";
                 //public const string RequestHistory = "0003_RQ_H";
             }
             /*
