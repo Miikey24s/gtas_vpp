@@ -1,4 +1,7 @@
 ﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Model.Library;
 //using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
@@ -12,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -58,6 +62,9 @@ namespace gtas_vpp_be.Controllers
                 if (loginData == null)
                     return Unauthorized(new { message = "Invalid username or password." });
 
+                // Load department location from LEX02 if missing
+                await LoadDepartmentLocationAsync(loginData);
+
                 loginData.AccessToken = GenerateAccessToken(loginData);
                 return Ok(loginData);
             }
@@ -66,6 +73,55 @@ namespace gtas_vpp_be.Controllers
                 return StatusCode(500, new { message = "An error occurred during login", details = ex.Message });
             }
             #endregion
+        }
+
+        private async Task LoadDepartmentLocationAsync(sp_Authentication_Login loginData)
+        {
+            try
+            {
+                bool isCodeMissing = string.IsNullOrWhiteSpace(loginData.DepartmentCode);
+                bool isNameMissing = string.IsNullOrWhiteSpace(loginData.DepartmentName);
+
+                if (!isCodeMissing && !isNameMissing)
+                    return; // Already have department info
+
+                // Get P04_UserGroup by UserId using BussinessService
+                var userGroups = await _bussinessService.BaseService<P04_UserGroup>(
+                    EF_BASEMETHOD.EF_GetTAsync,
+                    getFullName: true,
+                    expression: x => x.UserId == loginData.UserID);
+
+                var userGroup = userGroups?.FirstOrDefault();
+
+                if (userGroup == null || userGroup.LEX02_CompanyDepartmentLocationId == Guid.Empty)
+                    return;
+
+                // Get LEX02_CompanyDepartmentLocation using BussinessService
+                var departments = await _bussinessService.BaseService<LEX02_CompanyDepartmentLocation>(
+                    EF_BASEMETHOD.EF_GetTAsync,
+                    getFullName: false,
+                    expression: x => x.Id == userGroup.LEX02_CompanyDepartmentLocationId);
+
+                var department = departments?.FirstOrDefault();
+
+                if (department != null)
+                {
+                    if (isCodeMissing && !string.IsNullOrWhiteSpace(department.LEX02Code))
+                    {
+                        loginData.DepartmentCode = department.LEX02Code;
+                    }
+
+                    if (isNameMissing && !string.IsNullOrWhiteSpace(department.LEX02Name))
+                    {
+                        loginData.DepartmentName = department.LEX02Name;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail login
+                Console.WriteLine($"Error loading department location during login: {ex.Message}");
+            }
         }
 
         private string GenerateAccessToken(sp_Authentication_Login loginData)
