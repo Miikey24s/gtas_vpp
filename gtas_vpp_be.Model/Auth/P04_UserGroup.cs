@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Helpers;
+using gtas_vpp_be.Model.Helpers;
 using gtas_vpp_be.Model.Library;
 using System;
 using System.Collections.Generic;
@@ -18,23 +18,5 @@ namespace gtas_vpp_be.Model.Auth
         public Guid LEX02_CompanyDepartmentLocationId { get; set; }
         public LEX02_CompanyDepartmentLocation LEX02_CompanyDepartmentLocation { get; set; }
         public P04_UserGroup() { }
-        [NotMapped]
-        private bool _isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!_isDisposed)
-                {
-                    //Do your unmanaged disposing here
-                    _isDisposed = true;
-                }
-            }
-        }
     }
 }

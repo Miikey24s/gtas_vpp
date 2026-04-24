@@ -38,6 +38,7 @@ builder.Services.AddDbContext<VPPContext>(
 );
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();

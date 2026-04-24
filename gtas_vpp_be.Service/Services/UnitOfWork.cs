@@ -26,7 +26,6 @@ namespace gtas_vpp_be.Service.Services
         int SaveChanges();
         Task<int> SaveChangesAsync();
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-        void Dispose();
     }
     [StructLayout(LayoutKind.Auto)]
     public class UnitOfWork : IUnitOfWork

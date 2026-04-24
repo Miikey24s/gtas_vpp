@@ -229,6 +229,31 @@ namespace gtas_vpp_be.Controllers
             return Ok(data);
         }
 
+        [HttpGet("additional-orders/pending")]
+        public async Task<IActionResult> GetPendingAdditionalOrders()
+        {
+            var data = await _vppService.GetPendingAdditionalOrdersAsync();
+            return Ok(data);
+        }
+
+        [HttpPost("additional-orders/{id:guid}/approve")]
+        public async Task<IActionResult> ApproveAdditionalOrder(Guid id)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.ApproveAdditionalOrderAsync(id, CurrentUserId.Value);
+            return Ok();
+        }
+
+        [HttpPost("additional-orders/{id:guid}/reject")]
+        public async Task<IActionResult> RejectAdditionalOrder(Guid id, [FromBody] RejectOrderReqDTO req)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _vppService.RejectAdditionalOrderAsync(id, CurrentUserId.Value, req.Reason);
+            return Ok();
+        }
+
         private static IEnumerable<int>? MergeIntFilters(int? singleValue, IEnumerable<int>? listValues)
         {
             var values = new HashSet<int>();
@@ -254,5 +279,10 @@ namespace gtas_vpp_be.Controllers
     {
         public int Year { get; set; }
         public int Month { get; set; }
+    }
+
+    public class RejectOrderReqDTO
+    {
+        public string? Reason { get; set; }
     }
 }

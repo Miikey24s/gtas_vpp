@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Helpers;
+using gtas_vpp_be.Model.Helpers;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.InteropServices;
 
@@ -22,23 +22,5 @@ namespace gtas_vpp_be.Model.Library
         public string? CreateUserName { get; set; }
         [NotMapped]
         public string? UpdateUserName { get; set; }
-        [NotMapped]
-        private bool _isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!_isDisposed)
-                {
-                    //Do your unmanaged disposing here
-                    _isDisposed = true;
-                }
-            }
-        }
     }
 }

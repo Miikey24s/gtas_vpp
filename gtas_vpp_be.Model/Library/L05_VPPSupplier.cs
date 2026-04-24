@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Helpers;
+using gtas_vpp_be.Model.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -20,23 +20,5 @@ namespace gtas_vpp_be.Model.Library
         public string? City { get; set; }
         public virtual ICollection<L06_VPPSupplierMapping>? L06_VPPSupplierMappings { get; set; }
         public L05_VPPSupplier() { }
-        [NotMapped]
-        private bool _isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!_isDisposed)
-                {
-                    //Do your unmanaged disposing here
-                    _isDisposed = true;
-                }
-            }
-        }
     }
 }

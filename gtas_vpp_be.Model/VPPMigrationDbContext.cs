@@ -47,37 +47,37 @@ namespace gtas_vpp_be.Model
             modelBuilder.Entity<P05_PageComponentMapping>(en =>
             {
                 en.HasKey(x => x.Id);
-                en.HasOne(x => x.P03_Component).WithMany(x => x.P05_PageComponentMappings).OnDelete(DeleteBehavior.ClientCascade);
-                en.HasOne(x => x.P01_Page).WithMany(x => x.P05_PageComponentMappings).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.P03_Component).WithMany(x => x.P05_PageComponentMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.P01_Page).WithMany(x => x.P05_PageComponentMappings).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<P04_UserGroup>(en =>
             {
-                en.HasOne(x => x.P02_Group).WithMany(x => x.P04_UserGroups).OnDelete(DeleteBehavior.ClientCascade);
-                en.HasOne(x => x.LEX02_CompanyDepartmentLocation).WithMany(x => x.P04_UserGroups).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.P02_Group).WithMany(x => x.P04_UserGroups).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.LEX02_CompanyDepartmentLocation).WithMany(x => x.P04_UserGroups).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<P06_GroupPageComponentMapping>(en =>
             {
                 en.HasKey(x => new { x.P02_GroupId, x.P05_PageComponentMappingId, x.MemberCompanyCode });
-                en.HasOne(x => x.P05_PageComponentMapping).WithMany(x => x.P06_GroupPageComponentMappings).OnDelete(DeleteBehavior.ClientCascade);
-                en.HasOne(x => x.P02_Group).WithMany(x => x.P06_GroupPageComponentMapping).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.P05_PageComponentMapping).WithMany(x => x.P06_GroupPageComponentMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.P02_Group).WithMany(x => x.P06_GroupPageComponentMapping).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<L02_ClassDetail>(en =>
             {
-                en.HasOne(x => x.Class).WithMany(x => x.L02_ClassDetails).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.Class).WithMany(x => x.L02_ClassDetails).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<L04_VPP>(en =>
             {
-                en.HasOne(x => x.UOM).WithMany(x => x.VPPs_UOM).OnDelete(DeleteBehavior.ClientCascade);
-                en.HasOne(x => x.VPPCategory).WithMany(x => x.VPPs).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.UOM).WithMany(x => x.VPPs_UOM).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.VPPCategory).WithMany(x => x.VPPs).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<L06_VPPSupplierMapping>(en =>
             {
-                en.HasOne(x => x.L04_VPP).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.ClientCascade);
-                en.HasOne(x => x.L05_VPPSupplier).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.L04_VPP).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.L05_VPPSupplier).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<VPP02_RequestDetail>(en =>
             {
-                en.HasOne(x => x.VPP01_RequestHeader).WithMany(x => x.VPP02_RequestDetails).OnDelete(DeleteBehavior.ClientCascade);
+                en.HasOne(x => x.VPP01_RequestHeader).WithMany(x => x.VPP02_RequestDetails).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<VPP03_Log>(en =>
             {
@@ -89,7 +89,7 @@ namespace gtas_vpp_be.Model
                 en.HasOne(x => x.VPP01_RequestHeader)
                       .WithMany(x => x.VPP03_Logs)
                       .HasForeignKey(x => x.VPP01_RequestHeaderId)
-                      .OnDelete(DeleteBehavior.ClientCascade);
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

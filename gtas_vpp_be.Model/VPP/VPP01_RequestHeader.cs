@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Helpers;
+using gtas_vpp_be.Model.Helpers;
 using gtas_vpp_be.Model.Library;
 using System;
 using System.Collections.Generic;
@@ -22,26 +22,14 @@ namespace gtas_vpp_be.Model.VPP
         public string? MemberCompanyCode { get; set; }
         public DateTime? SubmittedDate { get; set; }
 
+        public bool IsAdditionalOrder { get; set; } = false;
+        public string? Reason { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Timestamp]
+        public byte[]? RowVersion { get; set; }
+
         public virtual ICollection<VPP02_RequestDetail> VPP02_RequestDetails { get; set; }
         public virtual ICollection<VPP03_Log> VPP03_Logs { get; set; } = new List<VPP03_Log>();
         public VPP01_RequestHeader() { }
-        [NotMapped]
-        private bool _isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!_isDisposed)
-                {
-                    //Do your unmanaged disposing here
-                    _isDisposed = true;
-                }
-            }
-        }
     }
 }

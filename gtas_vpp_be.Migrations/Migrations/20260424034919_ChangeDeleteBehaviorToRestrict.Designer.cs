@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using gtas_vpp_be.Model;
 
@@ -11,9 +12,11 @@ using gtas_vpp_be.Model;
 namespace gtas_vpp_be.Migrations.Migrations
 {
     [DbContext(typeof(VPPMigrationDbContext))]
-    partial class VPPMigrationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260424034919_ChangeDeleteBehaviorToRestrict")]
+    partial class ChangeDeleteBehaviorToRestrict
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -578,9 +581,6 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsAdditionalOrder")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -589,14 +589,6 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.Property<string>("MemberCompanyCode")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

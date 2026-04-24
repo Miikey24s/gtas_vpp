@@ -20,6 +20,7 @@ using static gtas_vpp_be.Service.Helpers.Config;
 namespace gtas_vpp_be.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {

@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Helpers;
+using gtas_vpp_be.Model.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -15,23 +15,5 @@ namespace gtas_vpp_be.Model.Library
         public string? VPPCategoryName { get; set; }
         public virtual ICollection<L04_VPP>? VPPs { get; set; }
         public L03_VPPCategory() { }
-        [NotMapped]
-        private bool _isDisposed = false;
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!_isDisposed)
-                {
-                    //Do your unmanaged disposing here
-                    _isDisposed = true;
-                }
-            }
-        }
     }
 }

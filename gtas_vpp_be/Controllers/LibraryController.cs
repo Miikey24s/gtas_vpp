@@ -276,5 +276,70 @@ namespace gtas_vpp_be.Controllers
                 _ => BadRequest(new { Message = $"Delete for Table Code '{tableCode}' is not supported." })
             };
         }
+
+        private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+        private async Task<IActionResult> CreateAsync<TModel, TDto>(string json) where TModel : gtas_vpp_be.Model.Helpers.BaseModel where TDto : class
+        {
+            var dto = JsonSerializer.Deserialize<TDto>(json, _jsonOptions);
+            if (dto == null) return BadRequest();
+            
+            var obj = dto.Adapt<TModel>();
+            obj.Id = Guid.Empty;
+            obj.CreateDate = DateTime.Now;
+            obj.UpdateDate = DateTime.Now;
+            
+            var rs = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Create, objs: new List<TModel> { obj });
+            var resultDto = rs?.FirstOrDefault()?.Adapt<TDto>();
+            return Ok(resultDto);
+        }
+
+        private async Task<IActionResult> UpdateAsync<TModel, TDto>(string json) where TModel : gtas_vpp_be.Model.Helpers.BaseModel where TDto : class
+        {
+            var dto = JsonSerializer.Deserialize<TDto>(json, _jsonOptions);
+            if (dto == null) return BadRequest();
+            
+            var obj = dto.Adapt<TModel>();
+            obj.UpdateDate = DateTime.Now;
+            
+            var rs = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Update, objs: new List<TModel> { obj });
+            var resultDto = rs?.FirstOrDefault()?.Adapt<TDto>();
+            return Ok(resultDto);
+        }
+
+        private async Task<IActionResult> ApplyPatchAsync<TModel, TDto>(Guid id, JsonElement payload) where TModel : class where TDto : class
+        {
+            var existingData = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id);
+            var entity = existingData?.FirstOrDefault();
+
+            if (entity == null)
+                return NotFound(new { Message = $"Record with ID {id} not found." });
+
+            var type = typeof(TModel);
+            foreach (var jsonProperty in payload.EnumerateObject())
+            {
+                if (jsonProperty.Name.Equals("Id", StringComparison.OrdinalIgnoreCase)) continue;
+
+                var prop = type.GetProperty(jsonProperty.Name, System.Reflection.BindingFlags.IgnoreCase
+                                                             | System.Reflection.BindingFlags.Public
+                                                             | System.Reflection.BindingFlags.Instance);
+
+                if (prop != null && prop.CanWrite)
+                {
+                    var value = JsonSerializer.Deserialize(jsonProperty.Value.GetRawText(), prop.PropertyType);
+                    prop.SetValue(entity, value);
+                }
+            }
+
+            var updateDateProp = type.GetProperty("UpdateDate");
+            if (updateDateProp != null && updateDateProp.CanWrite)
+            {
+                updateDateProp.SetValue(entity, DateTime.Now);
+            }
+
+            var result = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Update, objs: new List<TModel> { entity });
+            var resultDto = result?.FirstOrDefault()?.Adapt<TDto>();
+            return Ok(resultDto);
+        }
     }
 }

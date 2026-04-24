@@ -24,16 +24,20 @@ namespace gtas_vpp_be.Service.Services
     }
     public class BaseServices : IBaseServices
     {
-        [Inject] public IUnitOfWorkFactory _unitOfWork { get; set; } = default!;
+        [Inject] public IUnitOfWorkFactory _unitOfWorkFactory { get; set; } = default!;
+        protected readonly IUnitOfWork _unitOfWork;
         public DeployEnv DeployEnv { get; set; } = new DeployEnv();
         public JiraIssueLive _JiraIssueLive { get; set; } = new JiraIssueLive();
         public JiraIssueTest _JiraIssueTest { get; set; } = new JiraIssueTest();
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public BaseServices(IUnitOfWorkFactory unitOfWork, IHttpContextAccessor httpContextAccessor)
+
+        public BaseServices(IUnitOfWorkFactory unitOfWorkFactory, IHttpContextAccessor httpContextAccessor)
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWorkFactory = unitOfWorkFactory;
             _httpContextAccessor = httpContextAccessor;
+            _unitOfWork = _unitOfWorkFactory.Create(GetEnvironment());
         }
+
         protected ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
         public IEnumerable<Claim> Claims
         {
@@ -43,100 +47,62 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        /// <summary>
-        /// Gọi SP
-        /// </summary>
-        /// <param name="typeofdbContext"></param>
-        /// <param name="spName"></param>
-        /// <param name="spType"></param>
-        /// <param name="param"></param>
-        /// <param name="env"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-
         public async Task<bool> DeleteAsync<T>(object Id, string typeofdbContext, string? env = null) where T : class
         {
-            using var uow = _unitOfWork.Create(GetEnvironment());
             try
             {
-                await uow.BeginTransactionAsync();
-                // Xác định context
+                await _unitOfWork.BeginTransactionAsync();
                 DbContext context;
-                //DbContext context = typeofdbContext switch
-                //{
-                //    "AuthenticationContext" => uow.AuthenticationContext,
-                //    "TransportationContext" => uow.TransportationContext,
-                //    _ => throw new ArgumentException("Invalid DbContext type")
-                //};
                 switch (typeofdbContext)
                 {
-                    //case "AuthenticationContext":
-                    //    context = uow.AuthenticationContext;
-                    //    break;
                     case nameof(Config.ContextType.VPPContext):
-                        context = uow.VPPContext;
+                        context = _unitOfWork.VPPContext;
                         break;
                     default:
                         throw new ArgumentException("Invalid DbContext type");
                 }
 
-                // Tìm entity theo Id
                 var entity = await context.Set<T>().FindAsync(Id);
                 if (entity == null)
                 {
-                    return false; // không tìm thấy => không xóa
+                    return false; 
                 }
 
-                // Xóa
                 context.Set<T>().Remove(entity);
-
-                // Lưu thay đổi
-                //await uow.SaveChangesAsync();
-                await uow.CommitAsync();
+                await _unitOfWork.CommitAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                uow.Rollback();
+                _unitOfWork.Rollback();
                 WriteLog(ex, "Delete " + typeof(T).Name + " in " + typeofdbContext);
                 throw new Exception($"Error deleting entity: {ex.Message}", ex);
             }
-            finally
-            {
-                //await uow.CommitAsync();
-                uow.Dispose();
-            }
         }
+        
         public async Task<List<T>> UpdateRangeTAsync<T>(List<T> entities, string typeofdbContext, Expression<Func<T, bool>> expression, string? env = null) where T : class
         {
-            using var uow = _unitOfWork.Create(GetEnvironment());
             try
             {
-                await uow.BeginTransactionAsync();
+                await _unitOfWork.BeginTransactionAsync();
 
                 DbSet<T> dbSet;
                 DbContext dbContext;
                 switch (typeofdbContext)
                 {
-                    //case "AuthenticationContext":
-                    //    dbSet = uow.AuthenticationContext.Set<T>();
-                    //    dbContext = uow.AuthenticationContext;
-                    //break;
-                    case "BudgetContext":
-                        dbSet = uow.VPPContext.Set<T>();
-                        dbContext = uow.VPPContext;
+                    case nameof(Config.ContextType.VPPContext):
+                        dbSet = _unitOfWork.VPPContext.Set<T>();
+                        dbContext = _unitOfWork.VPPContext;
                         break;
                     default:
                         throw new ArgumentException("Invalid DbContext type");
                 }
 
-                // Lấy danh sách theo điều kiện
                 var entitiesToUpdate = await dbSet.Where(expression).ToListAsync();
 
                 if (!entitiesToUpdate.Any())
                     throw new Exception("No entity found to update");
 
-                // Dùng phần tử đầu tiên trong entities làm "mẫu"
                 var templateEntity = entities.First();
                 var entryValues = dbContext.Entry(templateEntity).CurrentValues;
 
@@ -146,38 +112,32 @@ namespace gtas_vpp_be.Service.Services
 
                     foreach (var prop in entryValues.Properties)
                     {
-                        if (prop.IsKey()) continue; // Bỏ qua khóa chính
-
+                        if (prop.IsKey()) continue; 
                         var newValue = entryValues[prop];
                         dbEntry.Property(prop.Name).CurrentValue = newValue;
                     }
                 }
 
-                await uow.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
 
                 return entitiesToUpdate;
             }
             catch (Exception ex)
             {
-                await uow.RollbackAsync();
+                _unitOfWork.Rollback();
                 WriteLog(ex, "Update " + typeof(T).Name + " in " + typeofdbContext);
                 throw new Exception($"Error in UpdateRangeTAsync: {ex.Message}", ex);
             }
-            finally
-            {
-                await uow.CommitAsync();
-                uow.Dispose();
-            }
         }
+        
         public async Task<T> UpdateAsync<T>(T entity, string typeofdbContext, Expression<Func<T, object>>[]? properties = null, string? env = null) where T : class
         {
-            using var uow = _unitOfWork.Create(GetEnvironment());
             try
             {
-                await uow.BeginTransactionAsync();
+                await _unitOfWork.BeginTransactionAsync();
                 var context = typeofdbContext switch
                 {
-                    nameof(Config.ContextType.VPPContext) => uow.VPPContext,
+                    nameof(Config.ContextType.VPPContext) => _unitOfWork.VPPContext,
                     _ => throw new ArgumentException("Invalid DbContext type")
                 };
 
@@ -195,80 +155,46 @@ namespace gtas_vpp_be.Service.Services
                     context.Set<T>().Update(entity);
                 }
 
-                await uow.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
                 return entity;
             }
             catch (Exception ex)
             {
-                await uow.RollbackAsync();
+                _unitOfWork.Rollback();
                 WriteLog(ex, "Update " + typeof(T).Name + " in " + typeofdbContext);
                 throw new Exception($"Error updating entity: {ex.Message}", ex);
             }
-            finally
-            {
-                await uow.CommitAsync();
-                uow.Dispose();
-            }
         }
+        
         public virtual void WriteLog(Exception ex, string spname, Dictionary<string, object>? properties = null)
         {
-            //string Mess = $"Error when call ef {spname} - User call: {glb?.UserInfo?.UserID} - {glb?.UserInfo?.FullName}";
-            //string key = string.Empty;
-            //string value = string.Empty;
-            //if (properties != null)
-            //{
-            //    foreach (var item in properties)
-            //    {
-            //        key += item.Key + "|::|";
-            //        value += item.Value + "|::|";
-            //    }
-            //    if (!string.IsNullOrEmpty(key))
-            //    {
-            //        key = key.Remove(key.Length - 4, 4);
-            //    }
-            //    if (!string.IsNullOrEmpty(value))
-            //    {
-            //        value = value.Remove(value.Length - 4);
-            //    }
-            //    Mess = Mess + " with param(s): " + key + " and value(s) " + value;
-            //}
-
-            //Log.Error(ex, Mess);
-            //Console.WriteLine(Mess);
         }
+        
         public async Task<T?> AddAsync<T>(T? entity, string typeofdbContext, string? env = null) where T : class
         {
-            using var uow = _unitOfWork.Create(GetEnvironment());
             try
             {
-                await uow.BeginTransactionAsync();
+                await _unitOfWork.BeginTransactionAsync();
                 switch (typeofdbContext)
                 {
-                    //case "AuthenticationContext":
-                    //    await uow.AuthenticationContext.Set<T>().AddAsync(entity);
-                    //    break;
                     case nameof(Config.ContextType.VPPContext):
-                        await uow.VPPContext.Set<T>().AddAsync(entity);
+                        await _unitOfWork.VPPContext.Set<T>().AddAsync(entity);
                         break;
                     default:
                         throw new ArgumentException("Invalid DbContext type");
                 }
-                await uow.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
-                uow.Rollback();
+                _unitOfWork.Rollback();
                 entity = null;
                 WriteLog(ex, "Create " + typeof(T).Name + " in " + typeofdbContext);
                 throw new Exception($"Error adding entity: {ex.Message}", ex);
             }
-            finally
-            {
-                await uow.CommitAsync();
-                uow.Dispose();
-            }
             return entity;
         }
+        
         private static async Task SetUserNameIfExists<T>(
                                                             IUnitOfWork uow,
                                                             T entity,
@@ -294,6 +220,7 @@ namespace gtas_vpp_be.Service.Services
 
             userNameProp.SetValue(entity, userName);
         }
+        
         private static async Task IncludeUserInfoIfNeeded<T>(
                                                                 IUnitOfWork uow,
                                                                 string contextType,
@@ -320,19 +247,17 @@ namespace gtas_vpp_be.Service.Services
                 cancellationToken
             );
         }
+        
         private static IQueryable<T> GetQueryable<T>(IUnitOfWork uow, string contextType) where T : class
         {
             return contextType switch
             {
                 nameof(Config.ContextType.VPPContext)
                     => uow.VPPContext.Set<T>(),
-
-                // nameof(Config.ContextType.AuthenticationContext)
-                //     => uow.AuthenticationContext.Set<T>(),
-
                 _ => throw new ArgumentException("Invalid DbContext type")
             };
         }
+        
         public async Task<T?> GetByIdIncludeAsync<T>(
                                                 string typeOfDbContext,
                                                 object id,
@@ -342,13 +267,10 @@ namespace gtas_vpp_be.Service.Services
                                                 CancellationToken cancellationToken = default
                                             ) where T : class
         {
-            using var uow = _unitOfWork.Create(GetEnvironment());
-
             try
             {
-                IQueryable<T> queryable = GetQueryable<T>(uow, typeOfDbContext);
+                IQueryable<T> queryable = GetQueryable<T>(_unitOfWork, typeOfDbContext);
 
-                // Apply include
                 if (include != null)
                     queryable = include(queryable);
 
@@ -360,7 +282,7 @@ namespace gtas_vpp_be.Service.Services
                 if (entity == null || includeUser != true)
                     return entity;
 
-                await IncludeUserInfoIfNeeded(uow, typeOfDbContext, entity, cancellationToken);
+                await IncludeUserInfoIfNeeded(_unitOfWork, typeOfDbContext, entity, cancellationToken);
 
                 return entity;
             }
@@ -369,16 +291,16 @@ namespace gtas_vpp_be.Service.Services
                 throw new Exception($"Error getting entity: {ex.Message}", ex);
             }
         }
+        
         public async Task<T?> GetByIdAsync<T>(string typeofdbContext, object id, bool? includeUser = null, string? env = null, CancellationToken cancellationToken = default) where T : class
         {
-            using var uow = _unitOfWork.Create(GetEnvironment());
             T? query;
             try
             {
                 switch (typeofdbContext)
                 {
                     case nameof(Config.ContextType.VPPContext):
-                        query = await uow.VPPContext.Set<T>().FindAsync(id);
+                        query = await _unitOfWork.VPPContext.Set<T>().FindAsync(id);
                         break;
                     default:
                         throw new ArgumentException("Invalid DbContext type");
@@ -394,7 +316,7 @@ namespace gtas_vpp_be.Service.Services
                                 if (createUserIdProp != null)
                                 {
                                     var createUserId = (int?)createUserIdProp.GetValue(query);
-                                    var createUserName = await uow.VPPContext.Set<v_Users>()
+                                    var createUserName = await _unitOfWork.VPPContext.Set<v_Users>()
                                         .Where(u => u.UserID == createUserId)
                                         .Select(u => u.FullName)
                                         .FirstOrDefaultAsync();
@@ -404,7 +326,7 @@ namespace gtas_vpp_be.Service.Services
                                 if (updateUserIdProp != null)
                                 {
                                     var updateUserId = (int?)updateUserIdProp.GetValue(query);
-                                    var updateUserName = await uow.VPPContext.Set<v_Users>()
+                                    var updateUserName = await _unitOfWork.VPPContext.Set<v_Users>()
                                         .Where(u => u.UserID == updateUserId)
                                         .Select(u => u.FullName)
                                         .FirstOrDefaultAsync();
@@ -413,9 +335,6 @@ namespace gtas_vpp_be.Service.Services
                                 }
                                 break;
                             }
-                        //case "BudgetContext":
-                        //    // Similar logic for TransportationContext if needed
-                        //    break;
                         default:
                             throw new ArgumentException("Invalid DbContext type");
                     }
@@ -427,6 +346,7 @@ namespace gtas_vpp_be.Service.Services
             }
             return query;
         }
+        
         public async Task<List<T>> WithUserNames<T>(List<T> list, DbContext context) where T : class
         {
             var userlist = await context.Set<v_Users>().ToListAsync();
@@ -490,6 +410,7 @@ namespace gtas_vpp_be.Service.Services
             }
             return env;
         }
+        
         public async Task<List<T>> ReadAsync<T>(
                                             string typeofdbContext,
                                             bool? getFullName = null,
@@ -499,18 +420,15 @@ namespace gtas_vpp_be.Service.Services
                                             CancellationToken cancellationToken = default
                                         ) where T : class
         {
-            using var uow = _unitOfWork.Create(env ?? GetEnvironment());
             IQueryable<T> query = typeofdbContext switch
             {
-                nameof(Config.ContextType.VPPContext) => uow.VPPContext.Set<T>().AsNoTracking(),
+                nameof(Config.ContextType.VPPContext) => _unitOfWork.VPPContext.Set<T>().AsNoTracking(),
                 _ => throw new ArgumentException("Invalid DbContext type")
             };
 
-            // lấy data bảng con nếu có
             if (include != null)
                 query = include(query);
 
-            // điều kiện where lọc nếu có
             if (expression != null)
                 query = query.Where(expression);
 
@@ -519,24 +437,22 @@ namespace gtas_vpp_be.Service.Services
             {
                 result = typeofdbContext switch
                 {
-                    //"AuthenticationContext" => await WithUserNames(result, uow.AuthenticationContext),
-                    nameof(Config.ContextType.VPPContext) => await WithUserNames<T>(result, uow.VPPContext),
+                    nameof(Config.ContextType.VPPContext) => await WithUserNames<T>(result, _unitOfWork.VPPContext),
                     _ => throw new ArgumentException("Invalid DbContext type")
                 };
             }
             return result;
         }
+        
         public async Task<sp_ResDTO> SP(string typeofdbContext, string spName, string spType, object param, int? timeout = 300, string? env = null)
         {
-            //sp_ResDTO sp_ResDTO = new sp_ResDTO();
-            using var uow = _unitOfWork.Create(nameof(Config.EnvType.TestEnv));
-            uow.VPPContext.Database.SetCommandTimeout(timeout);
+            _unitOfWork.VPPContext.Database.SetCommandTimeout(timeout);
             try
             {
                 switch (typeofdbContext)
                 {
                     case nameof(Config.ContextType.VPPContext):
-                        var sp_ResDTO = await uow.VPPContext.Set<sp_ResDTO>()
+                        var sp_ResDTO = await _unitOfWork.VPPContext.Set<sp_ResDTO>()
                                     .FromSqlRaw("exec {0} @SpType={1}, @Param={2}", spName, spType, JsonConvert.SerializeObject(param))
                                     .ToListAsync();
                         return sp_ResDTO.FirstOrDefault() ?? new sp_ResDTO
@@ -559,28 +475,19 @@ namespace gtas_vpp_be.Service.Services
                     IsSuccess = false,
                     ErrorMess = ex.Message
                 };
-                //sp_ResDTO.IsSuccess = false;
-                //sp_ResDTO.ErrorMess = ex.Message;
-                //_logger.LogError(ex, "Lỗi khi chạy EFBaseServiceRead " + spName + " - " + spType + " - " + JsonConvert.SerializeObject(param));
-                throw new Exception($"Error in EFBaseServiceRead: {ex.Message}", ex);
             }
-            finally
-            {
-                uow.Dispose();
-            }
-            //return sp_ResDTO;
         }
+        
         public async Task<sp_ResDTO> Query(string typeofdbContext, string query, int? timeout = 300, string? env = null)
         {
             sp_ResDTO sp_ResDTO = new sp_ResDTO();
-            using var uow = _unitOfWork.Create(nameof(Config.EnvType.TestEnv));
-            uow.VPPContext.Database.SetCommandTimeout(timeout);
+            _unitOfWork.VPPContext.Database.SetCommandTimeout(timeout);
             try
             {
                 switch (typeofdbContext)
                 {
                     case nameof(Config.ContextType.VPPContext):
-                        sp_ResDTO = (await uow.VPPContext.Set<sp_ResDTO>()
+                        sp_ResDTO = (await _unitOfWork.VPPContext.Set<sp_ResDTO>()
                                     .FromSqlRaw(query)
                                     .ToListAsync()).FirstOrDefault() ?? new sp_ResDTO();
                         break;
@@ -592,12 +499,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 sp_ResDTO.IsSuccess = false;
                 sp_ResDTO.ErrorMess = ex.Message;
-                //_logger.LogError(ex, "Lỗi khi chạy EFBaseServiceRead " + spName + " - " + spType + " - " + JsonConvert.SerializeObject(param));
                 throw new Exception($"Error in EFBaseServiceRead: {ex.Message}", ex);
-            }
-            finally
-            {
-                uow.Dispose();
             }
             return sp_ResDTO;
         }
