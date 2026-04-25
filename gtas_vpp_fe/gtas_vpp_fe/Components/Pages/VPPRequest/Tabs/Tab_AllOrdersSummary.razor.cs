@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
-    public partial class Tab_DepartmentSummary
+    public partial class Tab_AllOrdersSummary
     {
         public sealed class OptionItem
         {
@@ -27,22 +27,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int? YearFilter { get; set; } = DateTime.Now.Year;
         public int? MonthFilter { get; set; }
         public int? StatusFilter { get; set; }
-        
-        private string CurrentDepartmentCode => claims?.FirstOrDefault(c => c.Type == "DepartmentCode")?.Value ?? string.Empty;
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new()
         {
             new() { Value = null, Text = "All" },
+            new() { Value = 0, Text = "Draft" },
             new() { Value = 1, Text = "Submitted" },
+            new() { Value = 2, Text = "Pending Approval" },
+            new() { Value = 3, Text = "Rejected" },
+            new() { Value = 4, Text = "Cancelled" },
             new() { Value = 5, Text = "Closed" },
+            new() { Value = 6, Text = "Deleted" },
             new() { Value = 7, Text = "Approved" }
         };
 
         private bool CanView =>
             sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestDepartmentSummary && x.IsVisible)) == true;
+                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestAllOrdersSummary && x.IsVisible)) == true;
 
         protected override async Task OnInitializedAsync()
         {
@@ -89,7 +92,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Department Summary",
+                    Summary = "All Orders Summary",
                     Detail = $"Load failed: {ex.Message}",
                     Duration = 6000
                 });
@@ -111,22 +114,21 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (YearFilter.HasValue) query.Add($"year={YearFilter.Value}");
             if (MonthFilter.HasValue) query.Add($"month={MonthFilter.Value}");
             if (StatusFilter.HasValue) query.Add($"status={StatusFilter.Value}");
-            
-            // Always filter by current user's department at database level
-            if (!string.IsNullOrWhiteSpace(CurrentDepartmentCode))
-            {
-                query.Add($"departmentCode={Uri.EscapeDataString(CurrentDepartmentCode)}");
-            }
 
-            // Use department-orders endpoint which filters by DepartmentCode at database level
-            if (query.Count == 0) return Config.VppApi.DepartmentOrders;
-            return $"{Config.VppApi.DepartmentOrders}?{string.Join("&", query)}";
+            // Use all-orders endpoint which returns ALL orders from ALL departments
+            if (query.Count == 0) return Config.VppApi.AllOrders;
+            return $"{Config.VppApi.AllOrders}?{string.Join("&", query)}";
         }
 
         protected string GetStatusText(int status) => status switch
         {
+            0 => "Draft",
             1 => "Submitted",
+            2 => "Pending Approval",
+            3 => "Rejected",
+            4 => "Cancelled",
             5 => "Closed",
+            6 => "Deleted",
             7 => "Approved",
             _ => "-"
         };

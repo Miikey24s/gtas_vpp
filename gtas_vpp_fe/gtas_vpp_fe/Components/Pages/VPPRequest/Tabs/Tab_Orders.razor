@@ -77,7 +77,6 @@
         }
         else
         {
-            <div class="section-header">Active Order Period (@CurrentOrderPeriodText)</div>
             @if (ActiveOrders == null || !ActiveOrders.Any())
             {
                 <RadzenCard class="rz-border-none rz-shadow-1 rz-p-4" Style="text-align: center;">
@@ -114,6 +113,20 @@
                     }
                 </RadzenStack>
             }
+
+            @if (AdditionalOrders != null && AdditionalOrders.Any())
+            {
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mt-4 section-header">
+                    <div>Additional Orders</div>
+                </RadzenStack>
+                
+                <RadzenStack Gap="2rem">
+                    @foreach (var order in AdditionalOrders)
+                    {
+                        @RenderOrderCard(order)
+                    }
+                </RadzenStack>
+            }
         }
     </RadzenStack>
 }
@@ -137,12 +150,6 @@
                         <RadzenText TextStyle="TextStyle.Body2" class="rz-color-primary-light">
                             Submitted: @(order.SubmittedDate?.ToString("HH:mm dd/MM/yyyy") ?? "-")
                         </RadzenText>
-                        @if (!string.IsNullOrWhiteSpace(order.Reason))
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-mt-1">
-                                <strong>Reason:</strong> @order.Reason
-                            </RadzenText>
-                        }
                     </RadzenColumn>
                     <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">

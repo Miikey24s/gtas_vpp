@@ -42,7 +42,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private bool CanView =>
             sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestProductCatalog)) == true;
+                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestProductCatalog && x.IsVisible)) == true;
 
         protected override async Task OnInitializedAsync()
         {

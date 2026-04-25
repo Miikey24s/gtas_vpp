@@ -17,6 +17,7 @@
             public const string MyOrders = $"{ApiVppBase}/my-orders";
             public const string MyOrdersSummary = $"{ApiVppBase}/my-orders-summary";
             public const string DepartmentOrders = $"{ApiVppBase}/department-orders";
+            public const string AllOrders = $"{ApiVppBase}/all-orders";
             public const string Orders = $"{ApiVppBase}/orders";
         }
 
@@ -89,7 +90,8 @@
                 public const string RequestHistory = "0003_RQ_H";
                 public const string RequestProductCatalog = "0003_RQ_PC";
                 public const string RequestDepartmentSummary = "0003_RQ_DS";
-                public const string RequestApproval = "0003_RQ_A";
+                public const string RequestAllOrdersSummary = "0003_RQ_AOS";
+                public const string RequestApproval = "0003_RQ_AA";
                 //public const string RequestHistory = "0003_RQ_H";
             }
             /*

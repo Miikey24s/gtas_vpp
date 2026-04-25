@@ -28,12 +28,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool IsLoading { get; set; }
         public IEnumerable<int> YearFilter { get; set; } = new[] { DateTime.Now.Year };
         public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
-        public IEnumerable<int> StatusFilter { get; set; } = new[] { 1, 4, 5 };
+        public IEnumerable<int> StatusFilter { get; set; } = new[] { 0, 1, 4, 5, 6, 7, 8 }; // All statuses
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new()
         {
+            new() { Value = 0, Text = "Draft" },
             new() { Value = 1, Text = "Submitted" },
             new() { Value = 4, Text = "Cancelled" },
             new() { Value = 5, Text = "Closed" },
@@ -44,7 +45,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private bool CanView =>
             sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestHistory)) == true;
+                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestHistory && x.IsVisible)) == true;
 
         protected override async Task OnInitializedAsync()
         {
@@ -185,9 +186,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
         {
-            1 => BadgeStyle.Success,
-            4 => BadgeStyle.Danger,
-            5 => BadgeStyle.Info,
+            0 => BadgeStyle.Light,      // Draft
+            1 => BadgeStyle.Success,    // Submitted
+            4 => BadgeStyle.Danger,     // Cancelled
+            5 => BadgeStyle.Info,       // Closed
+            6 => BadgeStyle.Warning,    // Pending
+            7 => BadgeStyle.Success,    // Approved
+            8 => BadgeStyle.Danger,     // Rejected
             _ => BadgeStyle.Light
         };
     }

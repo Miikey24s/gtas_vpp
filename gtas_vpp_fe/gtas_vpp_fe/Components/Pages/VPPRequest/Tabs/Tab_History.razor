@@ -10,10 +10,6 @@
 {
     <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
         
-        @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
-            <RadzenButton Icon="refresh" Text="Reload" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
-        </RadzenStack> *@
-
         @* ── History DataGrid Section ── *@
         <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
             <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders"
@@ -56,7 +52,7 @@
                             <strong>@row.TotalQty</strong>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Status)" Title="Status" Width="130px" TextAlign="TextAlign.Center">
+                    <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="Status" Width="130px" TextAlign="TextAlign.Center">
                         <Template Context="row">
                             <RadzenBadge Text="@GetStatusText(row.Status)" BadgeStyle="@GetStatusBadgeStyle(row.Status)" IsPill="true" Style="padding: 0.25rem 0.75rem;" />
                         </Template>

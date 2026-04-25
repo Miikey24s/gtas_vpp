@@ -42,6 +42,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
         public List<VPP01_RequestHeaderResDTO> PreviousOrders { get; set; } = new();
+        public List<VPP01_RequestHeaderResDTO> AdditionalOrders { get; set; } = new();
 
         public bool IsLoading { get; set; }
         public bool ViewerVisible { get; set; }
@@ -71,18 +72,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string CurrentDeadlineText => CurrentDeadlineDate.ToString("HH:mm dd/MM/yyyy");
         public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
         public string OrdersTitle => $"Orders - {CurrentOrderPeriodText}";
-        public int TotalOrders => ActiveOrders.Count + PreviousOrders.Count;
+        public int TotalOrders => ActiveOrders.Count + PreviousOrders.Count + AdditionalOrders.Count;
         public string TotalOrdersText => TotalOrders.ToString();
-        public int TotalLines => ActiveOrders.Sum(o => o.Items?.Count ?? 0) + PreviousOrders.Sum(o => o.Items?.Count ?? 0);
+        public int TotalLines => ActiveOrders.Sum(o => o.Items?.Count ?? 0) + PreviousOrders.Sum(o => o.Items?.Count ?? 0) + AdditionalOrders.Sum(o => o.Items?.Count ?? 0);
         public string TotalLinesText => TotalLines.ToString();
-        public int TotalQty => ActiveOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0) + PreviousOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0);
+        public int TotalQty => ActiveOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0) + PreviousOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0) + AdditionalOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0);
         public string TotalQtyText => TotalQty.ToString();
         public int AvgLinesPerOrder => TotalOrders == 0 ? 0 : (int)Math.Round((double)TotalLines / TotalOrders);
         public string AvgLinesPerOrderText => $"Average {AvgLinesPerOrder} line(s) per order";
 
         private bool CanView =>
             sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestOrder)) == true;
+                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestOrder && x.IsVisible)) == true;
 
         protected override async Task OnInitializedAsync()
         {
@@ -101,8 +102,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
 
                 var allOrders = (data ?? new()).OrderByDescending(x => x.UpdateDate).ToList();
-                ActiveOrders = allOrders.Where(x => x.Y == CurrentOrderPeriodDate.Year && x.M == CurrentOrderPeriodDate.Month).ToList();
-                PreviousOrders = allOrders.Where(x => x.Y == PreviousOrderPeriodDate.Year && x.M == PreviousOrderPeriodDate.Month).ToList();
+                
+                // Separate orders by type
+                ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Y == CurrentOrderPeriodDate.Year && x.M == CurrentOrderPeriodDate.Month).ToList();
+                PreviousOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Y == PreviousOrderPeriodDate.Year && x.M == PreviousOrderPeriodDate.Month).ToList();
+                AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdateDate).ToList();
             }
             catch (Exception ex)
             {
@@ -215,7 +219,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
-        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => IsSubmitted(row);
+        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => 
+            IsSubmitted(row) || (row.IsAdditionalOrder && row.Status == 6); // Allow edit/delete for Submitted orders or Pending additional orders
 
         protected async Task SubmitOrderAsync(VPP01_RequestHeaderResDTO row)
         {

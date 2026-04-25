@@ -40,6 +40,18 @@
                     <Tab_DepartmentSummary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
+            <RadzenTabsItem Text="All Orders Summary">
+                @if (SelectedIndex == 4)
+                {
+                    <Tab_AllOrdersSummary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Admin Approval">
+                @if (SelectedIndex == 5)
+                {
+                    <Tab_AdminApproval claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                }
+            </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
 }

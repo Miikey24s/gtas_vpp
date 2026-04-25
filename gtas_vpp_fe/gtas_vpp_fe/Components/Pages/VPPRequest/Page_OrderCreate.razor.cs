@@ -19,6 +19,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             public string? VPPCode { get; set; }
             public string? VPPName { get; set; }
             public string? UOMCode { get; set; }
+            public string? UOMName { get; set; }
+            public string? VPPCategoryName { get; set; }
         }
 
         public sealed class SelectedItem
@@ -27,12 +29,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             public string? VPPCode { get; set; }
             public string? VPPName { get; set; }
             public int Qty { get; set; } = 1;
+            public string? Description { get; set; }
         }
 
         private sealed class OrderDraft
         {
             public string? Description { get; set; }
-            public string? Reason { get; set; }
             public List<SelectedItem> Items { get; set; } = new();
             public DateTime SavedAt { get; set; }
         }
@@ -78,18 +80,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public bool IsSaving { get; set; }
         public bool DraftRecovered { get; set; }
         public bool IsEdit => OrderId.HasValue;
-        public string? SearchText { get; set; }
         public string? Description { get; set; }
-        public string? Reason { get; set; }
         public DateTime? LastDraftSavedAt { get; set; }
         public int TotalQty => SelectedItems.Sum(x => x.Qty);
 
         public List<ProductOption> ProductOptions { get; set; } = new();
         public List<SelectedItem> SelectedItems { get; set; } = new();
-        public List<CategoryOption> Categories { get; set; } = new();
-        public IEnumerable<Guid>? SelectedCategoryIds { get; set; } = new List<Guid>();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
         public RadzenDataGrid<ProductOption>? productGrid;
+        public RadzenDataGrid<SelectedItem>? selectedItemsGrid;
         private PeriodicTimer? _draftAutoSaveTimer;
         private CancellationTokenSource? _draftAutoSaveCts;
         private volatile bool _draftDirty;
@@ -99,14 +98,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             get
             {
                 var userId = Claims.FirstOrDefault(x => x.Type == "UserID")?.Value ?? "anonymous";
-                return $"vpp.order.draft.{userId}.{OrderId?.ToString() ?? "new"}";
+                var orderType = IsAdditional ? "additional" : "new";
+                return $"vpp.order.draft.{userId}.{orderType}.{OrderId?.ToString() ?? "new"}";
             }
         }
-
-        public IEnumerable<ProductOption> FilteredProducts => ProductOptions
-            .Where(x => string.IsNullOrWhiteSpace(SearchText)
-                || (x.VPPCode?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (x.VPPName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
 
         protected override async Task OnInitializedAsync()
         {
@@ -118,7 +113,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
 
             Claims = userClaims;
-            await LoadCategoriesAsync();
             await LoadProductsAsync();
             if (IsEdit)
             {
@@ -133,7 +127,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (!firstRender || IsEdit) return;
+            
             await TryRestoreDraftAsync();
+            
             await InvokeAsync(StateHasChanged);
         }
 
@@ -143,29 +139,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             glb.isBusyPage = true;
             try
             {
-                var selectedCategoryIds = SelectedCategoryIds?.Where(x => x != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
-
-                if (selectedCategoryIds.Count <= 1)
-                {
-                    var endpoint = BuildProductsEndpoint(selectedCategoryIds.FirstOrDefault());
-                    ProductOptions = await _apiServices.GetFromApiAsync<List<ProductOption>>(endpoint) ?? new();
-                }
-                else
-                {
-                    var merged = new Dictionary<Guid, ProductOption>();
-                    foreach (var categoryId in selectedCategoryIds)
-                    {
-                        var endpoint = BuildProductsEndpoint(categoryId);
-                        var products = await _apiServices.GetFromApiAsync<List<ProductOption>>(endpoint) ?? new();
-                        foreach (var product in products)
-                        {
-                            merged[product.Id] = product;
-                        }
-                    }
-
-                    ProductOptions = merged.Values.ToList();
-                }
-
+                // Load all products without filtering (filtering will be done by DataGrid)
+                ProductOptions = await _apiServices.GetFromApiAsync<List<ProductOption>>("/api/VPPRequest/products") ?? new();
+                
                 ProductOptions = ProductOptions
                     .OrderBy(x => x.VPPCode)
                     .ToList();
@@ -186,47 +162,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 IsLoadingProducts = false;
                 StateHasChanged();
             }
-        }
-
-        private async Task LoadCategoriesAsync()
-        {
-            try
-            {
-                var categories = await _apiServices.GetFromApiAsync<List<CategoryItem>>("/api/VPPRequest/categories") ?? new();
-                Categories = categories
-                    .Select(x => new CategoryOption
-                    {
-                        Id = x.Id,
-                        CategoryName = $"{x.VPPCategoryCode} - {x.VPPCategoryName}"
-                    })
-                    .OrderBy(x => x.CategoryName)
-                    .ToList();
-            }
-            catch
-            {
-                Categories = new();
-            }
-        }
-
-        private string BuildProductsEndpoint(Guid? categoryId = null)
-        {
-            var query = new List<string>();
-            if (categoryId.HasValue)
-            {
-                query.Add($"categoryId={categoryId.Value}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(SearchText))
-            {
-                query.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-            }
-
-            if (query.Count == 0)
-            {
-                return Config.VppApi.Products;
-            }
-
-            return $"{Config.VppApi.Products}?{string.Join("&", query)}";
         }
 
         private async Task LoadOrderForEditAsync()
@@ -251,7 +186,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
 
                 Description = editingOrder.Description;
-                Reason = editingOrder.Reason;
                 _isAdditionalOverride = editingOrder.IsAdditionalOrder;
                 _hasLoadedOrder = true;
                 SelectedItems = (editingOrder.Items ?? new())
@@ -260,7 +194,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         VPPId = x.VPPId,
                         VPPCode = x.VPPCode,
                         VPPName = x.VPPName,
-                        Qty = x.Qty
+                        Qty = x.Qty,
+                        Description = x.Description
                     })
                     .ToList();
             }
@@ -280,16 +215,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
         }
 
-        public async Task ReloadProductGridAsync()
-        {
-            await LoadProductsAsync();
-
-            if (productGrid != null)
-            {
-                await productGrid.Reload();
-            }
-        }
-
         public async Task AddItemAsync(ProductOption product)
         {
             if (SelectedItems.Any(x => x.VPPId == product.Id)) return;
@@ -304,6 +229,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             MarkDraftDirty();
             await SaveDraftAsync();
+            
+            // Refresh both grids to update UI
+            await InvokeAsync(StateHasChanged);
+            if (selectedItemsGrid != null)
+            {
+                await selectedItemsGrid.Reload();
+            }
+            if (productGrid != null)
+            {
+                await productGrid.Reload();
+            }
         }
 
         public async Task RemoveItemAsync(SelectedItem row)
@@ -311,18 +247,53 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             SelectedItems.Remove(row);
             MarkDraftDirty();
             await SaveDraftAsync();
+            
+            // Refresh both grids to update UI
+            await InvokeAsync(StateHasChanged);
+            if (selectedItemsGrid != null)
+            {
+                await selectedItemsGrid.Reload();
+            }
+            if (productGrid != null)
+            {
+                await productGrid.Reload();
+            }
+        }
+
+        public async Task ClearAllItemsAsync()
+        {
+            if (SelectedItems.Count == 0) return;
+
+            var confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to clear all selected items?");
+            if (!confirmed) return;
+
+            SelectedItems.Clear();
+            MarkDraftDirty();
+            await SaveDraftAsync();
+            
+            // Refresh both grids to update UI
+            await InvokeAsync(StateHasChanged);
+            if (selectedItemsGrid != null)
+            {
+                await selectedItemsGrid.Reload();
+            }
+            if (productGrid != null)
+            {
+                await productGrid.Reload();
+            }
+
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Info,
+                Summary = "Selected Items",
+                Detail = "All items have been cleared.",
+                Duration = 2500
+            });
         }
 
         public Task OnDescriptionInput(ChangeEventArgs args)
         {
             Description = args.Value?.ToString();
-            MarkDraftDirty();
-            return Task.CompletedTask;
-        }
-
-        public Task OnReasonInput(ChangeEventArgs args)
-        {
-            Reason = args.Value?.ToString();
             MarkDraftDirty();
             return Task.CompletedTask;
         }
@@ -336,7 +307,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var draft = new OrderDraft
                 {
                     Description = Description,
-                    Reason = Reason,
                     Items = SelectedItems,
                     SavedAt = DateTime.Now
                 };
@@ -373,7 +343,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 if (draft == null) return;
 
                 Description = draft.Description;
-                Reason = draft.Reason;
                 SelectedItems = draft.Items ?? new();
                 LastDraftSavedAt = draft.SavedAt;
                 DraftRecovered = SelectedItems.Count > 0 || !string.IsNullOrWhiteSpace(Description);
@@ -438,18 +407,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
 
-            if (IsAdditional && string.IsNullOrWhiteSpace(Reason))
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = "Validation",
-                    Detail = "Reason is required for additional orders.",
-                    Duration = 3000
-                });
-                return;
-            }
-
             IsSaving = true;
             glb.isBusyPage = true;
             try
@@ -465,7 +422,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var requestItems = SelectedItems.Select(x => new VPP02_ItemReqDTO
                 {
                     VPPId = x.VPPId,
-                    Qty = x.Qty
+                    Qty = x.Qty,
+                    Description = x.Description
                 }).ToList();
 
                 if (IsEdit)
@@ -474,7 +432,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     {
                         Id = OrderId!.Value,
                         Description = Description,
-                        Reason = Reason,
                         IsAdditionalOrder = IsAdditional,
                         Items = requestItems
                     };
@@ -488,7 +445,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Y = period.Year,
                         M = period.Month,
                         Description = Description,
-                        Reason = Reason,
                         IsAdditionalOrder = IsAdditional,
                         Items = requestItems
                     };
@@ -516,6 +472,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     Detail = $"Failed to save order: {ex.Message}",
                     Duration = 6000
                 });
+                
+                // Log to console for debugging
+                await JS.InvokeVoidAsync("console.error", "Order submission error:", ex.Message, ex.StackTrace);
             }
             finally
             {
