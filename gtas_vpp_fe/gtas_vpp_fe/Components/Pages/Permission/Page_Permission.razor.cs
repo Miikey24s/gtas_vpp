@@ -55,6 +55,22 @@ namespace gtas_vpp_fe.Components.Pages.Permission
                 {
                     //glb.UserInfo.UserID = validUserId;
                     sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Permission);
+                    
+                    // CHECK PERMISSION: Nếu không có quyền vào page này, redirect về dashboard
+                    if (sp_Authentication_GetPermissionSinglePage?.List_Component == null || 
+                        !sp_Authentication_GetPermissionSinglePage.List_Component.Any())
+                    {
+                        NotificationService.Notify(new NotificationMessage() 
+                        { 
+                            Severity = NotificationSeverity.Warning, 
+                            Summary = "Access Denied", 
+                            Detail = "You do not have permission to access this page.", 
+                            Duration = 5000 
+                        });
+                        NavigationManager.NavigateTo("/dashboard/orders", true);
+                        return;
+                    }
+                    
                     if (sp_Authentication_GetPermissionSinglePage is not null)
                     {
                         StateHasChanged();

@@ -36,9 +36,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Sidebar);
                 }
 
+                // CHECK PERMISSION: Nếu không có quyền vào Library, redirect về dashboard
                 if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
                 {
-                    NavigationManager.NavigateTo("Home", true);
+                    NotificationService.Notify(new NotificationMessage() 
+                    { 
+                        Severity = NotificationSeverity.Warning, 
+                        Summary = "Access Denied", 
+                        Detail = "You do not have permission to access Library.", 
+                        Duration = 5000 
+                    });
+                    NavigationManager.NavigateTo("/dashboard/orders", true);
+                    return;
                 }
             }
             catch (Exception ex)

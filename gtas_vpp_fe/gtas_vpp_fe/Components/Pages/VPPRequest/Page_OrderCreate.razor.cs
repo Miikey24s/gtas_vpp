@@ -113,6 +113,31 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
 
             Claims = userClaims;
+            
+            // CHECK PERMISSION: Kiểm tra quyền tạo/sửa order
+            var userId = Claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
+            if (int.TryParse(userId, out int validUserId))
+            {
+                var permission = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.VPPRequest);
+                
+                // Kiểm tra có quyền Request Order không
+                var hasOrderPermission = permission?.List_Component?.Any(x => 
+                    x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestOrder && x.IsVisible) == true;
+                
+                if (!hasOrderPermission)
+                {
+                    NotificationService.Notify(new NotificationMessage() 
+                    { 
+                        Severity = NotificationSeverity.Warning, 
+                        Summary = "Access Denied", 
+                        Detail = "You do not have permission to create or edit orders.", 
+                        Duration = 5000 
+                    });
+                    NavigationManager.NavigateTo("/dashboard/orders", true);
+                    return;
+                }
+            }
+            
             await LoadProductsAsync();
             if (IsEdit)
             {

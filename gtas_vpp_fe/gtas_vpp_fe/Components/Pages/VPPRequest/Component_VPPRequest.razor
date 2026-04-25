@@ -16,37 +16,43 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            <RadzenTabsItem Text="Orders">
+            <RadzenTabsItem Text="Orders" 
+                            Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestOrder && x.IsVisible)">
                 @if (SelectedIndex == 0)
                 {
                     <Tab_Orders claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="History">
+            <RadzenTabsItem Text="History"
+                            Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestHistory && x.IsVisible)">
                 @if (SelectedIndex == 1)
                 {
                     <Tab_History claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Product Catalog">
+            <RadzenTabsItem Text="Product Catalog"
+                            Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestProductCatalog && x.IsVisible)">
                 @if (SelectedIndex == 2)
                 {
                     <Tab_ProductCatalog claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Department Summary">
+            <RadzenTabsItem Text="Department Summary"
+                            Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestDepartmentSummary && x.IsVisible)">
                 @if (SelectedIndex == 3)
                 {
                     <Tab_DepartmentSummary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="All Orders Summary">
+            <RadzenTabsItem Text="All Orders Summary"
+                            Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestAllOrdersSummary && x.IsVisible)">
                 @if (SelectedIndex == 4)
                 {
                     <Tab_AllOrdersSummary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Admin Approval">
+            <RadzenTabsItem Text="Admin Approval"
+                            Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestApproval && x.IsVisible)">
                 @if (SelectedIndex == 5)
                 {
                     <Tab_AdminApproval claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />

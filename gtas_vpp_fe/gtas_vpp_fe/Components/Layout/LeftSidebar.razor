@@ -83,7 +83,7 @@
             <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_D" && x.IsVisible)" Text="Departments" Path="/library/department" class="ppjsidebarmenu submenu" Icon="apartment" />
         </RadzenPanelMenuItem>
         <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_R" && x.IsVisible)" Text="Report" Icon="analytics" class="ppjsidebarmenu" Path="/Report" />
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_S" && x.IsVisible)" Text="Permission" Icon="settings" class="ppjsidebarmenu">
+        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => (x.ComponentCode == "0004_V" || x.ComponentCode == "0002_ADM") && x.IsVisible)" Text="Permission" Icon="settings" class="ppjsidebarmenu">
             <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission/user" />
             <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission/pagepermission" />
         </RadzenPanelMenuItem>
