@@ -141,6 +141,12 @@ namespace gtas_vpp_be.Controllers
                 new("IsAdmin", loginData.IsAdmin.ToString())
             };
 
+            // Add DepartmentCode if available
+            if (!string.IsNullOrWhiteSpace(loginData.DepartmentCode))
+            {
+                claims.Add(new Claim("DepartmentCode", loginData.DepartmentCode));
+            }
+
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 

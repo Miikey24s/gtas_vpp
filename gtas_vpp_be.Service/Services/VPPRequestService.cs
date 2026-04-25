@@ -106,7 +106,9 @@ namespace gtas_vpp_be.Service.Services
         public async Task<VPP01_RequestHeaderResDTO> CreateOrderAsync(VPP01_CreateReqDTO req, int createUserId, string departmentCode, string memberCompanyCode)
         {
             ValidateItems(req.Items);
-            if (IsDeadlinePassed(req.Y, req.M))
+            
+            // Only check deadline for non-additional orders
+            if (!req.IsAdditionalOrder && IsDeadlinePassed(req.Y, req.M))
                 throw new InvalidOperationException("Cannot create order for a period that has passed the deadline.");
 
             await _scopedUow.BeginTransactionAsync();
@@ -119,8 +121,9 @@ namespace gtas_vpp_be.Service.Services
                     Y = req.Y,
                     M = req.M,
                     VPPCode = GenerateVPPCode(req.Y, req.M, createUserId),
-                    Status = (int)VPPStatus.Submitted,
+                    Status = req.IsAdditionalOrder ? (int)VPPStatus.Pending : (int)VPPStatus.Submitted,
                     Description = req.Description,
+                    IsAdditionalOrder = req.IsAdditionalOrder,
                     DepartmentCode = departmentCode,
                     MemberCompanyCode = memberCompanyCode,
                     CreateUserId = createUserId,
@@ -186,7 +189,6 @@ namespace gtas_vpp_be.Service.Services
 
                 header.Status = header.IsAdditionalOrder ? (int)VPPStatus.Pending : (int)VPPStatus.Submitted;
                 header.Description = req.Description;
-                if (header.IsAdditionalOrder) header.Reason = req.Reason;
                 header.UpdateUserId = req.UpdateUserId;
                 header.UpdateDate = now;
                 header.SubmittedDate ??= now;
@@ -378,8 +380,11 @@ namespace gtas_vpp_be.Service.Services
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
-                if (header.Status is not ((int)VPPStatus.Submitted))
-                    throw new InvalidOperationException("Only Submitted orders can be deleted.");
+                
+                // Allow deletion for Submitted orders or Pending additional orders
+                if (header.Status is not ((int)VPPStatus.Submitted or (int)VPPStatus.Pending))
+                    throw new InvalidOperationException("Only Submitted or Pending orders can be deleted.");
+                
                 if (header.CreateUserId != userId) throw new UnauthorizedAccessException("Cannot delete another user's order.");
 
                 var now = _dateTimeProvider.Now;
@@ -502,6 +507,7 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var header = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted && x.IsAdditionalOrder);
 
                 if (header == null) throw new KeyNotFoundException("Order not found or not an additional order.");
@@ -518,7 +524,7 @@ namespace gtas_vpp_be.Service.Services
                     VPP01_RequestHeaderId = header.Id,
                     LogTitle = "APPROVE",
                     LogDate = now,
-                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, new List<VPP02_RequestDetail>()))
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()))
                 });
 
                 await _scopedUow.CommitAsync();
@@ -536,6 +542,7 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var header = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                    .Include(x => x.VPP02_RequestDetails)
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted && x.IsAdditionalOrder);
 
                 if (header == null) throw new KeyNotFoundException("Order not found or not an additional order.");
@@ -552,7 +559,7 @@ namespace gtas_vpp_be.Service.Services
                     VPP01_RequestHeaderId = header.Id,
                     LogTitle = "REJECT",
                     LogDate = now,
-                    LogJS = JsonSerializer.Serialize(new { Reason = reason, Payload = BuildLogPayload(header, new List<VPP02_RequestDetail>()) })
+                    LogJS = JsonSerializer.Serialize(new { Reason = reason, Payload = BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()) })
                 });
 
                 await _scopedUow.CommitAsync();

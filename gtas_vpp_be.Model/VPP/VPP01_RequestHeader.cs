@@ -23,7 +23,6 @@ namespace gtas_vpp_be.Model.VPP
         public DateTime? SubmittedDate { get; set; }
 
         public bool IsAdditionalOrder { get; set; } = false;
-        public string? Reason { get; set; }
 
         [System.ComponentModel.DataAnnotations.Timestamp]
         public byte[]? RowVersion { get; set; }
