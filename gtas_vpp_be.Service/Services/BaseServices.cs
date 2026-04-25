@@ -38,12 +38,12 @@ namespace gtas_vpp_be.Service.Services
             _unitOfWork = _unitOfWorkFactory.Create(GetEnvironment());
         }
 
-        protected ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
+        protected ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
         public IEnumerable<Claim> Claims
         {
             get
             {
-                return User?.Claims;
+                return User?.Claims ?? Enumerable.Empty<Claim>();
             }
         }
 
@@ -178,7 +178,7 @@ namespace gtas_vpp_be.Service.Services
                 switch (typeofdbContext)
                 {
                     case nameof(Config.ContextType.VPPContext):
-                        await _unitOfWork.VPPContext.Set<T>().AddAsync(entity);
+                        await _unitOfWork.VPPContext.Set<T>().AddAsync(entity!);
                         break;
                     default:
                         throw new ArgumentException("Invalid DbContext type");

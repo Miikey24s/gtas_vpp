@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using static gtas_vpp_be.Service.Helpers.Config;
 
-namespace ggtas_vpp_be.Controllers
+namespace gtas_vpp_be.Controllers
 {
     [ApiController]
     [Authorize]

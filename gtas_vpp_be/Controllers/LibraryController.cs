@@ -59,14 +59,14 @@ namespace gtas_vpp_be.Controllers
             {
                 "l01" => await GetTableDataAsync<L01_Class, L01_ClassResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
-                    matchSearch: x => x.ClassName.Contains(cleanSearch)
-                                   || x.ClassCode.Contains(cleanSearch)
-                                   || x.Description.Contains(cleanSearch)),
+                    matchSearch: x => (x.ClassName != null && x.ClassName.Contains(cleanSearch))
+                                   || (x.ClassCode != null && x.ClassCode.Contains(cleanSearch))
+                                   || (x.Description != null && x.Description.Contains(cleanSearch))),
                 "l02" => await GetTableDataAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id, cleanSearch, 
                     matchId: x => x.Id == id,
-                    matchSearch: x => x.ClassDetailCode.Contains(cleanSearch)
+                    matchSearch: x => (x.ClassDetailCode != null && x.ClassDetailCode.Contains(cleanSearch))
                                    || (x.ClassDetailValue != null && x.ClassDetailValue.Contains(cleanSearch))
-                                   || x.Description.Contains(cleanSearch)),
+                                   || (x.Description != null && x.Description.Contains(cleanSearch))),
                 "l03" => await GetTableDataAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 "l04" => await GetTableDataAsync<L04_VPP, L04_VPPResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id),
@@ -95,7 +95,7 @@ namespace gtas_vpp_be.Controllers
                 
                 if (allData == null || !allData.Any())
                 {
-                    Response.Headers.Add("X-Total-Count", "0");
+                    Response.Headers.Append("X-Total-Count", "0");
                     return Ok(new List<TDto>());
                 }
 
@@ -147,7 +147,7 @@ namespace gtas_vpp_be.Controllers
                             return dto;
                         }).ToList();
 
-                        Response.Headers.Add("X-Total-Count", distinctDtos.Count.ToString());
+                        Response.Headers.Append("X-Total-Count", distinctDtos.Count.ToString());
                         return Ok(distinctDtos);
                     }
                 }
@@ -180,7 +180,7 @@ namespace gtas_vpp_be.Controllers
                 var dtoList = result.Adapt<List<TDto>>();
 
                 // Add total count to response header
-                Response.Headers.Add("X-Total-Count", totalCount.ToString());
+                Response.Headers.Append("X-Total-Count", totalCount.ToString());
 
                 return Ok(dtoList);
             }

@@ -89,7 +89,7 @@ namespace gtas_vpp_be.Service.Services
                     result = await GetByIdIncludeAsync<T>(nameof(ContextType.VPPContext), Param!, true, include).ContinueWith(t => new List<T>() { t.Result ?? default! });
                     break;
                 case EF_BASEMETHOD.EF_Create:
-                    result = await AddAsync(objs![0], nameof(ContextType.VPPContext)).ContinueWith(t => new List<T>() { t.Result });
+                    result = await AddAsync(objs![0], nameof(ContextType.VPPContext)).ContinueWith(t => new List<T>() { t.Result! });
                     break;
                 case EF_BASEMETHOD.EF_Update:
                     if (properties is not null)

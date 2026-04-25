@@ -58,11 +58,11 @@ namespace gtas_vpp_be.Controllers
                 //    { "sptype", sptype },
                 //    { "param", param ?? string.Empty }
                 //});
-                base.HttpContext.Response.Headers.Add("script", script);
+                base.HttpContext.Response.Headers.Append("script", script);
                 return BadRequest(ex.Message);
             }
 
-            base.HttpContext.Response.Headers.Add("script", script);
+            base.HttpContext.Response.Headers.Append("script", script);
             return Ok(empty);
         }
 
@@ -79,10 +79,10 @@ namespace gtas_vpp_be.Controllers
             }
             catch (Exception ex)
             {
-                base.HttpContext.Response.Headers.Add("script", script);
+                base.HttpContext.Response.Headers.Append("script", script);
                 return BadRequest(ex.Message);
             }
-            base.HttpContext.Response.Headers.Add("script", script);
+            base.HttpContext.Response.Headers.Append("script", script);
             return Ok(empty);
         }
 

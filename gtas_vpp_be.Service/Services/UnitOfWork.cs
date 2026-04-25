@@ -31,12 +31,11 @@ namespace gtas_vpp_be.Service.Services
     public class UnitOfWork : IUnitOfWork
     {
         private readonly IDynamicDbContextFactory _factory;
-        private readonly IConfiguration _config;
-        private string _currentEnv;
+        private string _currentEnv = string.Empty;
         private bool _disposed;
 
-        private VPPContext _VPPContext;
-        private TransactionScope _transactionScope;
+        private VPPContext? _VPPContext;
+        private TransactionScope? _transactionScope;
         private readonly IHttpContextAccessor _httpContextAccessor;
         protected ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User ?? default!;
         public IEnumerable<Claim> Claims
@@ -165,7 +164,7 @@ namespace gtas_vpp_be.Service.Services
                 _transactionScope.Dispose();
                 _transactionScope = null;
             }
-            catch (Exception ex)
+            catch
             {
 
                 throw;
