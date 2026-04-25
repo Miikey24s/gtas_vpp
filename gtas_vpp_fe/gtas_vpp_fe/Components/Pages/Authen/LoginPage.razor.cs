@@ -46,7 +46,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             Servers = new List<string> { "Test", "Live" };
         }
 
-        private async void LoginOnkeyup(KeyboardEventArgs e, sp_Authentication_LoginReqDTO loginReqDTO)
+        private async Task LoginOnkeyup(KeyboardEventArgs e, sp_Authentication_LoginReqDTO loginReqDTO)
         {
             if (e.Code == "Enter" || e.Code == "NumpadEnter")
             {

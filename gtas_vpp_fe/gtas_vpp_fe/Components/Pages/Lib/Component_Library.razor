@@ -8,7 +8,7 @@
         flex-wrap: wrap;
     }
 </style>
-@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+@if (HasAnyVisibleLibraryTab)
 {
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
@@ -16,31 +16,31 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            <RadzenTabsItem Text="Class Definitions">
+            <RadzenTabsItem Text="Class Definitions" Visible="@HasVisibleComponent(Config.Page_ComponentCode.ComponentCode.LibraryClass)">
                 @if (SelectedIndex == 0)
                 {
                     <Tab_ClassLibrary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Operation Categories">
+            <RadzenTabsItem Text="Operation Categories" Visible="@HasVisibleComponent(Config.Page_ComponentCode.ComponentCode.LibraryOperationCategory)">
                 @if (SelectedIndex == 1)
                 {
                     <Component_ShareGrid TType=L03_VPPCategoryResDTO @bind-Data="@operationCategories" Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Operations">
+            <RadzenTabsItem Text="Operations" Visible="@HasVisibleComponent(Config.Page_ComponentCode.ComponentCode.LibraryOperation)">
                 @if (SelectedIndex == 2)
                 {
                     <Component_ShareGrid TType=L04_VPPResDTO @bind-Data=@operations DicDropdownData=@CategoryDropdownDatas Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Suppliers">
+            <RadzenTabsItem Text="Suppliers" Visible="@HasVisibleComponent(Config.Page_ComponentCode.ComponentCode.LibrarySupplier)">
                 @if (SelectedIndex == 3)
                 {
                     <Component_ShareGrid TType=L05_VPPSupplierResDTO @bind-Data=@suppliers Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Departments">
+            <RadzenTabsItem Text="Departments" Visible="@HasVisibleComponent(LibraryDepartmentComponentCode)">
                 @if (SelectedIndex == 4)
                 {
                     <Component_ShareGrid TType=LEX02_CompanyDepartmentLocationResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />

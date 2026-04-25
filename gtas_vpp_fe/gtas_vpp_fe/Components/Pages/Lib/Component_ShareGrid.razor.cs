@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 {
     public partial class Component_ShareGrid<TType> : ComponentBase where TType : BaseDTO, new ()
     {
-        private List<TType> data;
+        private List<TType> data = new();
         [Parameter]
         public List<TType> Data
         {
@@ -72,19 +72,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             else
             {
-                var result = await Update(context);
+                _ = await Update(context);
                 //if (result != null)
             }
             await DataGrid.Reload();
 
             await Task.WhenAll(DataChanged.InvokeAsync(data), DataGrid.UpdateRow(context));
         }
-        private async void DeleteRow(TType context)
+        private async Task DeleteRow(TType context)
         {
             onEdit = false;
             if (context == item)
             {
-                item = null;
+                item = default!;
             }
 
             if (data.Contains(context))
@@ -103,23 +103,29 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 DataGrid.CancelEditRow(context);
             }
         }
-        private async void CancelEdit(TType context)
+        private Task CancelEdit(TType context)
         {
             onEdit = false;
             if (context == item)
             {
-                item = null;
+                item = default!;
             }
             DataGrid.CancelEditRow(context);
             data = JsonConvert.DeserializeObject<List<TType>>(editItem) ?? new List<TType>();
+            return Task.CompletedTask;
         }
 
         Task RowDoubleClickHandle(DataGridRowMouseEventArgs<TType> args)
         {
+            if (args.Data == null)
+            {
+                return Task.CompletedTask;
+            }
+
             if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => (y.ComponentCode?.Equals("0001_HD")??false) && y.IsVisible))
             {
                 if (onEdit == true)
-                    return null;
+                    return Task.CompletedTask;
                 else
                 {
                     onEdit = true;
@@ -127,7 +133,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     return DataGrid.EditRow(args.Data);
                 }
             }
-            else return null;
+            else return Task.CompletedTask;
         }
     }
 }

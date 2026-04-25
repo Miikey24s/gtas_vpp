@@ -23,7 +23,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         //[Inject] public ICustomNotificationService _customNotificationService { get; set; }
         private string SearchText { get; set; } = string.Empty;
         public List<sp_Authentication_TabUser_UserList> _sp_Authentication_TabUser_UserList { get; set; } = new List<sp_Authentication_TabUser_UserList>();
-        public IList<sp_Authentication_TabUser_UserList> selected_UserList { get; set; }
+        public IList<sp_Authentication_TabUser_UserList> selected_UserList { get; set; } = new List<sp_Authentication_TabUser_UserList>();
         public RadzenDataGrid<sp_Authentication_TabUser_UserList>? griduser { get; set; }
         public List<P02_GroupResDTO> p02_Groups { get; set; } = new List<P02_GroupResDTO>();
         public int UserClaims { get; set; } = 0;
@@ -95,7 +95,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 p02_Groups = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
              ?? new List<P02_GroupResDTO>();
             }
-            catch (Exception ex)
+            catch
             {
                 //_bussinessService.WriteLog(ex, "Load EF P02 Group");
                 //_customNotificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call EF P02 Group", 15000, true);
@@ -112,9 +112,9 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
                     new { }
-                );
+                ) ?? new List<sp_Authentication_TabUser_UserList>();
             }
-            catch (Exception ex)
+            catch
             {
                 //_bussinessService.WriteLog(ex, "Error when call sp sp_Authen_TabUser_UserList");
                 //_customNotificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call sp_Authen_TabUser_UserList");
@@ -143,7 +143,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_SearchUser),
                     new { SearchText = SearchText },
                     jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
-                );
+                ) ?? new List<sp_Authentication_TabUser_UserList>();
             }
             catch (Exception ex)
             {
@@ -173,7 +173,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 >(
                     nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
                     new { }
-                );
+                ) ?? new List<sp_Authentication_TabUser_UserList>();
             }
             catch (Exception ex)
             {
@@ -194,7 +194,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         }
         protected async Task ButtonOnClick_Reload() => await LoadBaseData();
 
-        protected async void TextBoxOnChange(string arg)
+        protected async Task TextBoxOnChange(string arg)
         {
             SearchText = arg;
             if (string.IsNullOrEmpty(SearchText))

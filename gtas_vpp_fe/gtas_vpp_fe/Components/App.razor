@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["gtas_vpp_fe.styles.css"]" />
     <link rel="icon" type="image/x-icon" href="PPJ-Software-Icon.ico" />
-    <link href="css/font-awesome.min.css" rel="stylesheet" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,700" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -27,9 +26,6 @@
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
-    <script src="js/jquery-3.7.1.min.js"></script>
-    <script src="js/jquery-ui.min.js"></script>
-    <script src="js/svghelper.js"></script>
     <script src="https://kit.fontawesome.com/426cde1f31.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js" integrity="sha512-RX/OFugt/bkgwRQg4B22KYE79dQhwaPp2IZaA/YyU3GMo/qY7GrXkiG6Dvvwnds6/DefCfwPTgCXnaC6nAgVYw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
@@ -38,13 +34,13 @@
 </html>
 @code {
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; }
+    private HttpContext HttpContext { get; set; } = default!;
 
     [Inject]
-    private ThemeService ThemeService { get; set; }
+    private ThemeService ThemeService { get; set; } = default!;
 
     [Inject]
-    private ProtectedLocalStorage protectedLocalStorage { get; set; }
+    private ProtectedLocalStorage protectedLocalStorage { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

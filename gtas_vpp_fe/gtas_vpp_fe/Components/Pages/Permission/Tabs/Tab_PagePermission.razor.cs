@@ -13,29 +13,28 @@ using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
 using System.Text.Json;
-using static System.Net.WebRequestMethods;
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 {
     public partial class Tab_PagePermission
     {
         //[Inject] public IBussinessService _bussinessService { get; set; }
-        [Inject] public ICustomNotificationService _notificationService { get; set; }
+        [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
+        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
+        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
 
         public List<P02_GroupResDTO> list_Group { get; set; } = new List<P02_GroupResDTO>();
-        public RadzenDataGrid<P02_GroupResDTO> grid { get; set; }
-        public IList<P02_GroupResDTO> selected_Group { get; set; }
+        public RadzenDataGrid<P02_GroupResDTO> grid { get; set; } = default!;
+        public IList<P02_GroupResDTO> selected_Group { get; set; } = new List<P02_GroupResDTO>();
         public P02_GroupResDTO? selected_Group_To_Copy { get; set; } = new P02_GroupResDTO();
         public List<sp_Authen_Permission_GetPageWithComponentByGroupId> list_PermissionOfGroup { get; set; } = new List<sp_Authen_Permission_GetPageWithComponentByGroupId> { };
-        public IList<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> selected_Component { get; set; }
-        public RadzenDataGrid<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> child_grid { get; set; }
+        public IList<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> selected_Component { get; set; } = new List<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component>();
+        public RadzenDataGrid<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> child_grid { get; set; } = default!;
 
         public bool isEditing { get; set; } = false;
         public List<DropdownModel> list_Company { get; set; } = new List<DropdownModel>();
-        public DropdownModel selected_Company { get; set; }
+        public DropdownModel selected_Company { get; set; } = default!;
         public P02_GroupResDTO _P02_GroupResDTOReqDTO { get; set; } = new P02_GroupResDTO();
         List<P02_GroupResDTO> ordersToUpdate = new List<P02_GroupResDTO>();
         public int selectedTab { get; set; } = 0;
@@ -111,7 +110,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 list_Group = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
              ?? new List<P02_GroupResDTO>();
             }
-            catch (Exception ex)
+            catch
             {
                 throw;
             }

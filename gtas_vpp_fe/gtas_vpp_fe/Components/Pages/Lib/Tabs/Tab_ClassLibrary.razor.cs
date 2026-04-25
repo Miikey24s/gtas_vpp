@@ -12,8 +12,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
     public partial class Tab_ClassLibrary
     {
-        [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = default!;
+        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
+        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
 
@@ -113,6 +113,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
+                if (args.Column == null) return;
+
                 var property = args.Column.GetFilterProperty();
                 
                 // Request distinct values from server
@@ -241,6 +243,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
+                if (args.Column == null) return;
+
                 var property = args.Column.GetFilterProperty();
                 
                 // Request distinct values from server

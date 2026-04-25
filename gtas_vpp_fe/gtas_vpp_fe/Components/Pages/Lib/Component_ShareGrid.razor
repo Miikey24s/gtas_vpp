@@ -74,7 +74,7 @@
                                 @(DicDropdownData[prop.Name].Where(x =>
                                                     {
                                                         var data = context.GetPropertyValue(prop.Name, prop.PropertyType)?.ToString();
-                                                        return data.Equals(x.Code);
+                                                        return data != null && data.Equals(x.Code);
                                                     }).FirstOrDefault()?.Name ?? "Not Match")
                             </p>
                         </Template>
@@ -130,16 +130,16 @@
                 }
             }
         }
-        @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+        @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals("0001_HD") == true && y.IsVisible))
         {
             <RadzenDataGridColumn TItem="TType" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
                 <Template Context="context">
-                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals("0001_HD") == true && y.IsVisible))
                     {
                         <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@onEdit" Class="m-1" Click="@(args => EditRow(context))" @onclick:stopPropagation="true">
                         </RadzenButton>
                     }
-                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals("0001_HD") && y.IsVisible))
+                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals("0001_HD") == true && y.IsVisible))
                     {
                         <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Disabled="@onEdit" Class="m-1" Click="@(args => DeleteRow(context))" @onclick:stopPropagation="true">
                         </RadzenButton>
@@ -157,14 +157,14 @@
 </RadzenDataGrid>
 
 @code {
-    public IList<TType> selected_item;
+    public IList<TType> selected_item = new List<TType>();
 
     void ChangeDropdown(object args, TType context, System.Reflection.PropertyInfo prop)
     {
         var cc = args;
         if (prop.PropertyType.Name == "Guid")
         {
-            context.SetPropertyValue(prop.Name, Guid.Parse(cc.ToString()));
+            context.SetPropertyValue(prop.Name, Guid.Parse(cc?.ToString() ?? string.Empty));
             return;
         }
         context.SetPropertyValue(prop.Name, Convert.ChangeType(args, prop.PropertyType));

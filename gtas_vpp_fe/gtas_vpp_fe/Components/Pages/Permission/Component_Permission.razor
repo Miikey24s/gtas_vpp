@@ -7,7 +7,7 @@
     }
 </style>
 
-@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode.Equals(Config.Page_ComponentCode.ComponentCode.AdminView) && y.IsVisible))
+@if (HasAnyVisiblePermissionTab)
 {
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
@@ -15,13 +15,13 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            <RadzenTabsItem Text="User Group">
+            <RadzenTabsItem Text="User Group" Visible="@HasAdminView">
                 @if (SelectedIndex == 0)
                 {
                     <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                 }
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Group/Page Permission">
+            <RadzenTabsItem Text="Group/Page Permission" Visible="@(HasPermissionView || HasAdminView)">
                 @if (SelectedIndex == 1)
                 {
                     <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />

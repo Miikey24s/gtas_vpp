@@ -9,12 +9,12 @@ namespace gtas_vpp_fe.Services
 {
     public interface IAPIServices
     {
-        void SetBaseUrl(string baseUrl);
+        Task SetBaseUrl(string baseUrl);
         Task<string> GetDataFromExternalApiAsync(string endpoint);
         Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
         Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
         Task<T?> GetFromApiAsync<T>(string endpoint);
-        Task<T?> PostFromApiAsync<T>(string endpoint, object body);
+        Task<T?> PostFromApiAsync<T>(string endpoint, object? body);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
         Task<bool> DeleteFromApiAsync(string endpoint);
@@ -45,12 +45,14 @@ namespace gtas_vpp_fe.Services
             }
         }
 
-        public async void SetBaseUrl(string baseUrl)
+        public Task SetBaseUrl(string baseUrl)
         {
             if (_httpClient.BaseAddress == null)
             {
                 _httpClient.BaseAddress = new Uri(baseUrl);
             }
+
+            return Task.CompletedTask;
         }
         private async Task EnsureSuccessWithDetailsAsync(HttpResponseMessage response)
         {
@@ -123,7 +125,7 @@ namespace gtas_vpp_fe.Services
                     apiResult.ResData,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
-            catch (Exception ex)
+            catch
             {
                 return default;
             }
@@ -137,7 +139,7 @@ namespace gtas_vpp_fe.Services
             return await ReadResponseAsJsonAsync<T>(response);
         }
 
-        public async Task<T?> PostFromApiAsync<T>(string endpoint, object body)
+        public async Task<T?> PostFromApiAsync<T>(string endpoint, object? body)
         {
             await ApplyAuthorizationHeaderAsync();
             var response = await _httpClient.PostAsJsonAsync(endpoint, body);

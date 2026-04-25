@@ -12,39 +12,67 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 {
     public partial class Component_Library
     {
-        [Parameter] public string Lib { get; set; }
+        [Parameter] public string? Lib { get; set; }
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public ICustomNotificationService _notificationService { get; set; }
-        [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
-        [Inject] NavigationManager? NavigationManager { get; set; }
+        [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
+        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
+        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+        [Inject] NavigationManager NavigationManager { get; set; } = default!;
         TabPosition tabPosition = TabPosition.Top;
         int SelectedIndex = 0;
         List<string> libStrings = new List<string> { "class", "operationcat", "operation", "supplier", "department" };
+        private const string LibraryDepartmentComponentCode = "0001_LIB_D";
+        private bool HasVisibleComponent(string componentCode)
+            => sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == componentCode && x.IsVisible);
+
+        private bool HasAnyVisibleLibraryTab => LibraryTabCodes.Any(HasVisibleComponent);
+
+        private string[] LibraryTabCodes =>
+        [
+            Config.Page_ComponentCode.ComponentCode.LibraryClass,
+            Config.Page_ComponentCode.ComponentCode.LibraryOperationCategory,
+            Config.Page_ComponentCode.ComponentCode.LibraryOperation,
+            Config.Page_ComponentCode.ComponentCode.LibrarySupplier,
+            LibraryDepartmentComponentCode
+        ];
+
+        private int ResolveVisibleTabIndex(string? tab)
+        {
+            var index = libStrings.IndexOf(tab?.ToLower() ?? "class");
+            if (index >= 0 && HasVisibleComponent(LibraryTabCodes[index]))
+            {
+                return index;
+            }
+
+            for (var i = 0; i < LibraryTabCodes.Length; i++)
+            {
+                if (HasVisibleComponent(LibraryTabCodes[i]))
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
 
         public List<L03_VPPCategoryResDTO> operationCategories = new List<L03_VPPCategoryResDTO>();
         public List<L04_VPPResDTO> operations = new List<L04_VPPResDTO>();
         public List<L05_VPPSupplierResDTO> suppliers = new List<L05_VPPSupplierResDTO>();
         public List<LEX02_CompanyDepartmentLocationResDTO> departments = new List<LEX02_CompanyDepartmentLocationResDTO>();
-        Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; }
+        Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; } = new();
         protected override async Task OnInitializedAsync()
         {
-            SelectedIndex = ResolveTabIndex(Lib);
+            SelectedIndex = ResolveVisibleTabIndex(Lib);
             NavigationManager.LocationChanged += OnLocationChanged;
             await GetLibraries();
         }
-        private int ResolveTabIndex(string? tab)
-        {
-            var index = libStrings.IndexOf(tab?.ToLower() ?? "class");
-            return index < 0 ? 0 : index;
-        }
-        public void OnLocationChanged(object sender, LocationChangedEventArgs args)
+        public void OnLocationChanged(object? sender, LocationChangedEventArgs args)
         {
             var uri = new Uri(args.Location);
             if (uri.AbsolutePath.Contains("library"))
             {
                 string currtab = uri.AbsolutePath.Split('/')[uri.AbsolutePath.Split('/').Length - 1];
-                SelectedIndex = ResolveTabIndex(currtab);
+                SelectedIndex = ResolveVisibleTabIndex(currtab);
                 StateHasChanged();
             }
         }
@@ -61,10 +89,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib
              ?? new List<L02_ClassDetailResDTO>();
                 foreach (var item in l02_ClassDetail)
                 {
-                    result.Add(item.ClassDetailValue);
+                    result.Add(item.ClassDetailValue!);
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call EF get L02 by Id \"40A06BB8-63D5-424F-98E2-2A0E14FFFFDD\"");
             }
@@ -86,7 +114,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 var FomulaTask = await GetFormular();
                 var uomList = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail) ?? new List<L02_ClassDetailResDTO>();
 
-                CategoryDropdownDatas ??= new Dictionary<string, IList<DropdownModel>>()
+                CategoryDropdownDatas = new Dictionary<string, IList<DropdownModel>>()
                 {
                     {
                     nameof(L04_VPPResDTO.VPPCategoryId),
@@ -102,7 +130,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     }
                 };
             }
-            catch (Exception ex)
+            catch
             {
                 throw;
             }
@@ -135,12 +163,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record added successfully");
                 else
                     _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when adding record");
-                return result;
+                return result!;
             }
             catch
             {
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when adding record");
-                return null;
+                return default!;
             }
         }
         async Task<T> ApiUpdateAsync<T>(T data) where T : BaseResDTO, new()
@@ -162,12 +190,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record updated successfully");
                 else
                     _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when updating record");
-                return result;
+                return result!;
             }
             catch(Exception ex)
             {
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when updating record: {ex.Message}");
-                return null;
+                return default!;
             }
         }
         async Task<bool> ApiDeleteAsync<T>(T data) where T : BaseResDTO, new()

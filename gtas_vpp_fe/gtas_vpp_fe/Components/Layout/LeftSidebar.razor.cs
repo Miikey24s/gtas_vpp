@@ -114,7 +114,7 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 var theme = await ProtectedLocalStore.GetAsync<string>("CostingTheme");
 
-                if (theme.Success)
+                if (theme.Success && !string.IsNullOrWhiteSpace(theme.Value))
                 {
                     ThemeService.SetTheme(theme.Value);
                     if (theme.Value == "material3")
