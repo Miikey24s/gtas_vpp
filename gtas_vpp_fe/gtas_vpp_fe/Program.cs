@@ -2,6 +2,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Share;
 using gtas_vpp_fe.Services;
+using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Radzen;
 using Serilog;
@@ -36,7 +37,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // 3. Cáº¥u hÃ¬nh cho Blazor biáº¿t Ä‘ang cÃ³ Authentication
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in Permissions.All)
+    {
+        options.AddPolicy(permission, policy => policy.RequireClaim(ClaimKeys.Permission, permission));
+    }
+});
 builder.Services.AddCascadingAuthenticationState();
 #endregion
 #region API

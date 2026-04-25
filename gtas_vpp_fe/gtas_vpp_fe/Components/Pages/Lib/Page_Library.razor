@@ -17,7 +17,7 @@
 
 <PageTitle>GTAS VPP - Library</PageTitle>
 
-@if(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => (y.ComponentCode?.Contains("0001_LIB") ?? false) && y.IsVisible))
+@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible))
 {
     <Component_Library claims="@claims" Lib="@Lib" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>
 }

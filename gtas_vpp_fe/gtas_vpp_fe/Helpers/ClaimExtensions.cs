@@ -32,6 +32,13 @@ namespace gtas_vpp_fe.Helpers
             return bool.TryParse(value, out var v) && v;
         }
 
+        public static bool HasPermission(this IEnumerable<Claim>? claims, string permission)
+        {
+            return claims?.Any(x =>
+                x.Type == ClaimKeys.Permission &&
+                string.Equals(x.Value, permission, StringComparison.OrdinalIgnoreCase)) == true;
+        }
+
         public static Guid GetGuid(this IEnumerable<Claim> claims, string type)
         {
             var value = claims.Get(type);
@@ -42,7 +49,7 @@ namespace gtas_vpp_fe.Helpers
         {
             if (sp_Authentication_Login == null) return new List<Claim>();
 
-            return new List<Claim>
+            var claims = new List<Claim>
             {
                 new(ClaimKeys.UserID, sp_Authentication_Login.UserID.ToString()),
                 new(ClaimKeys.UserLogin, sp_Authentication_Login.UserLogin ?? string.Empty),
@@ -59,6 +66,16 @@ namespace gtas_vpp_fe.Helpers
                 new(ClaimKeys.DepartmentCode, sp_Authentication_Login.DepartmentCode ?? string.Empty),
                 new(ClaimKeys.AccessToken, sp_Authentication_Login.AccessToken ?? string.Empty)
             };
+
+            var permissions = (sp_Authentication_Login.List_PagePermission ?? new())
+                .SelectMany(x => x.List_Component ?? new())
+                .Where(x => x.IsVisible && !string.IsNullOrWhiteSpace(x.ComponentCode))
+                .Select(x => x.ComponentCode!)
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            claims.AddRange(permissions.Select(permission => new Claim(ClaimKeys.Permission, permission)));
+
+            return claims;
         }
 
         public static sp_Authentication_Login Claims_To_sp_AuthenticationLogin(this IEnumerable<Claim> claims)

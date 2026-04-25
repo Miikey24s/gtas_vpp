@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Radzen.Blazor.Rendering
 @using System.Globalization
+@using gtas_vpp_shared.Constants
 @* @inject Radzen.ThemeService ThemeService *@
 @inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
 @inject NavigationManager NavigationManager
@@ -67,26 +68,60 @@
 
 <RadzenSidebar Responsive="true" class="@(!_sideBarExpanded ? "sidebar-collapsed" : "")" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
     <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => (x.ComponentCode == "0001_HD" || (x.ComponentCode?.Contains("0003_RQ") ?? false)) && x.IsVisible)" Text="Dashboard" Icon="home" class="ppjsidebarmenu">
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0003_RQ_O" && x.IsVisible)" Text="My Orders" Path="/dashboard/orders" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0003_RQ_H" && x.IsVisible)" Text="History" Path="/dashboard/history" class="ppjsidebarmenu submenu" Icon="history" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0003_RQ_PC" && x.IsVisible)" Text="Product Catalog" Path="/dashboard/products" class="ppjsidebarmenu submenu" Icon="inventory_2" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0003_RQ_DS" && x.IsVisible)" Text="Department Summary" Path="/dashboard/departments" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestAllOrdersSummary && x.IsVisible)" Text="All Orders Summary" Path="/dashboard/all-orders" class="ppjsidebarmenu submenu" Icon="view_list" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestApproval && x.IsVisible)" Text="Admin Approval" Path="/dashboard/admin-approval" class="ppjsidebarmenu submenu" Icon="fact_check" />
-        </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => (x.ComponentCode?.Contains("0001_LIB") ?? false) && x.IsVisible)" Text="Library" Icon="library_books" class="ppjsidebarmenu">
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_C" && x.IsVisible)" Text="Class Definitions" Path="/library/class" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_OC" && x.IsVisible)" Text="Operation Categories" Path="/library/operationcat" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_O" && x.IsVisible)" Text="Operations" Path="/library/operation" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_SUP" && x.IsVisible)" Text="Suppliers" Path="/library/supplier" class="ppjsidebarmenu submenu" Icon="menu_book" />
-            <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_LIB_D" && x.IsVisible)" Text="Departments" Path="/library/department" class="ppjsidebarmenu submenu" Icon="apartment" />
-        </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == "0001_R" && x.IsVisible)" Text="Report" Icon="analytics" class="ppjsidebarmenu" Path="/Report" />
-        <RadzenPanelMenuItem Visible="@sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => (x.ComponentCode == "0004_V" || x.ComponentCode == "0002_ADM") && x.IsVisible)" Text="Permission" Icon="settings" class="ppjsidebarmenu">
-            <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission/user" />
-            <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission/pagepermission" />
-        </RadzenPanelMenuItem>
+        <AuthorizeView Policy="@Permissions.MenuDashboard" Context="dashboardMenuAuth">
+            <RadzenPanelMenuItem Text="Dashboard" Icon="home" class="ppjsidebarmenu">
+                <AuthorizeView Policy="@Permissions.RequestOrder" Context="requestOrderMenuAuth">
+                    <RadzenPanelMenuItem Text="My Orders" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestHistory" Context="requestHistoryMenuAuth">
+                    <RadzenPanelMenuItem Text="History" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="history" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestProductCatalog" Context="requestProductCatalogMenuAuth">
+                    <RadzenPanelMenuItem Text="Product Catalog" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestDepartmentSummary" Context="requestDepartmentSummaryMenuAuth">
+                    <RadzenPanelMenuItem Text="Department Summary" Path="/dashboard?tab=3" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestAllOrdersSummary" Context="requestAllOrdersSummaryMenuAuth">
+                    <RadzenPanelMenuItem Text="All Orders Summary" Path="/dashboard?tab=4" class="ppjsidebarmenu submenu" Icon="view_list" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestAdminApproval" Context="requestAdminApprovalMenuAuth">
+                    <RadzenPanelMenuItem Text="Admin Approval" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="fact_check" />
+                </AuthorizeView>
+            </RadzenPanelMenuItem>
+        </AuthorizeView>
+        <AuthorizeView Policy="@Permissions.MenuLibrary" Context="libraryMenuAuth">
+            <RadzenPanelMenuItem Text="Library" Icon="library_books" class="ppjsidebarmenu">
+                <AuthorizeView Policy="@Permissions.LibraryClass" Context="libraryClassMenuAuth">
+                    <RadzenPanelMenuItem Text="Class Definitions" Path="/library/class" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.LibraryCategory" Context="libraryCategoryMenuAuth">
+                    <RadzenPanelMenuItem Text="Operation Categories" Path="/library/operationcat" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.LibraryItem" Context="libraryItemMenuAuth">
+                    <RadzenPanelMenuItem Text="Operations" Path="/library/operation" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.LibrarySupplier" Context="librarySupplierMenuAuth">
+                    <RadzenPanelMenuItem Text="Suppliers" Path="/library/supplier" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.LibraryDepartment" Context="libraryDepartmentMenuAuth">
+                    <RadzenPanelMenuItem Text="Departments" Path="/library/department" class="ppjsidebarmenu submenu" Icon="apartment" />
+                </AuthorizeView>
+            </RadzenPanelMenuItem>
+        </AuthorizeView>
+        <AuthorizeView Policy="@Permissions.MenuReport" Context="reportMenuAuth">
+            <RadzenPanelMenuItem Text="Report" Icon="analytics" class="ppjsidebarmenu" Path="/report" />
+        </AuthorizeView>
+        <AuthorizeView Policy="@Permissions.MenuPermission" Context="permissionMenuAuth">
+            <RadzenPanelMenuItem Text="Permission" Icon="settings" class="ppjsidebarmenu">
+                <AuthorizeView Policy="@Permissions.PermissionUser" Context="permissionUserMenuAuth">
+                    <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission/user" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.PermissionComponent" Context="permissionComponentMenuAuth">
+                    <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission/pagepermission" />
+                </AuthorizeView>
+            </RadzenPanelMenuItem>
+        </AuthorizeView>
         <hr />
         <RadzenPanelMenuItem Text="Logout" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
         <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">

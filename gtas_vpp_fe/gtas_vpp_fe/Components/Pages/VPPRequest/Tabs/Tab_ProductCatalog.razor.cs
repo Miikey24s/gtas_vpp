@@ -1,6 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using System.Security.Claims;
@@ -31,7 +31,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
 
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
         public List<ProductItem> Products { get; set; } = new();
         public List<CategoryOption> CategoryOptions { get; set; } = new();
@@ -40,9 +39,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public Guid? CategoryFilter { get; set; }
         public string? SearchText { get; set; }
 
-        private bool CanView =>
-            sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestProductCatalog && x.IsVisible)) == true;
+        private bool CanView => claims.HasPermission(Permissions.RequestProductCatalog);
 
         protected override async Task OnInitializedAsync()
         {

@@ -1,6 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -38,7 +38,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
         public List<VPP01_RequestHeaderResDTO> PreviousOrders { get; set; } = new();
@@ -81,9 +80,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int AvgLinesPerOrder => TotalOrders == 0 ? 0 : (int)Math.Round((double)TotalLines / TotalOrders);
         public string AvgLinesPerOrderText => $"Average {AvgLinesPerOrder} line(s) per order";
 
-        private bool CanView =>
-            sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestOrder && x.IsVisible)) == true;
+        private bool CanView => claims.HasPermission(Permissions.RequestOrder);
 
         protected override async Task OnInitializedAsync()
         {

@@ -130,16 +130,16 @@
                 }
             }
         }
-        @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals("0001_HD") == true && y.IsVisible))
+        @if (CanModifyGrid)
         {
             <RadzenDataGridColumn TItem="TType" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
                 <Template Context="context">
-                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals("0001_HD") == true && y.IsVisible))
+                    @if (CanModifyGrid)
                     {
                         <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@onEdit" Class="m-1" Click="@(args => EditRow(context))" @onclick:stopPropagation="true">
                         </RadzenButton>
                     }
-                    @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals("0001_HD") == true && y.IsVisible))
+                    @if (CanModifyGrid)
                     {
                         <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Disabled="@onEdit" Class="m-1" Click="@(args => DeleteRow(context))" @onclick:stopPropagation="true">
                         </RadzenButton>

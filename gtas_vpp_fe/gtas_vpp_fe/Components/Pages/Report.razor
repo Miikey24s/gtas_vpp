@@ -1,0 +1,23 @@
+@page "/report"
+@layout MainLayout
+@using gtas_vpp_shared.Constants
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Report</PageTitle>
+
+<AuthorizeView Policy="@Permissions.ReportView" Context="reportAuth">
+    <Authorized>
+        <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3">
+            <RadzenText Text="Report" TextStyle="TextStyle.H5" class="rz-m-0" />
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" AllowClose="false">
+                Report content has not been configured yet.
+            </RadzenAlert>
+        </RadzenStack>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" AllowClose="false">
+            You do not have permission to view reports.
+        </RadzenAlert>
+    </NotAuthorized>
+</AuthorizeView>

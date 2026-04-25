@@ -1,6 +1,6 @@
 ﻿﻿using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -19,7 +19,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
 
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
         private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
@@ -43,9 +42,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             new() { Value = 8, Text = "Rejected" }
         };
 
-        private bool CanView =>
-            sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestHistory && x.IsVisible)) == true;
+        private bool CanView => claims.HasPermission(Permissions.RequestHistory);
 
         protected override async Task OnInitializedAsync()
         {

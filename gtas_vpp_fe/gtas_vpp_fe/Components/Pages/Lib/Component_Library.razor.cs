@@ -21,7 +21,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         TabPosition tabPosition = TabPosition.Top;
         int SelectedIndex = 0;
         List<string> libStrings = new List<string> { "class", "operationcat", "operation", "supplier", "department" };
-        private const string LibraryDepartmentComponentCode = "0001_LIB_D";
+        private const string LibraryDepartmentComponentCode = Config.Page_ComponentCode.ComponentCode.LibraryDepartment;
         private bool HasVisibleComponent(string componentCode)
             => sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == componentCode && x.IsVisible);
 

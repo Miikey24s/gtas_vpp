@@ -62,36 +62,39 @@
         {
             public static class PageCode
             {
-                public const string Sidebar = "0001";
-                public const string Dashboard = "0002";
-                public const string Permission = "0004";
-                public const string PageHaveAdminView = "0002";
-                public const string VPPRequest = "0003";
+                public const string Sidebar = "SIDEBAR";
+                public const string Dashboard = "DASHBOARD";
+                public const string Library = "LIBRARY";
+                public const string Report = "REPORT";
+                public const string Permission = "PERMISSION";
+                public const string PageHaveAdminView = "PERMISSION";
+                public const string VPPRequest = "DASHBOARD";
             }
 
             public static class ComponentCode
             {
-                public const string UserView = "0002_UV";
-                public const string LibraryClass = "0001_LIB_C";
-                public const string LibraryOperation = "0001_LIB_O";
-                public const string LibrarySupplier = "0001_LIB_SUP";
-                public const string PurchaseConsumption = "0001_PUR";
-                public const string BuyerConsumption = "0001_BUY";
-                public const string Report = "0001_R";
-                public const string Setting = "0001_S";
-                public const string LibraryOperationCategory = "0001_LIB_OC";
-                public const string LibraryRoute = "0001_LIB_R";
-                public const string ActualConsumption = "0001_ACT";
-                public const string LibraryEquipment = "0001_LIB_E";
-                public const string HomeDashboard = "0001_HD";
-                public const string AdminView = "0002_ADM";
-                public const string PermissionViewable = "0004_V";
-                public const string RequestOrder = "0003_RQ_O";
-                public const string RequestHistory = "0003_RQ_H";
-                public const string RequestProductCatalog = "0003_RQ_PC";
-                public const string RequestDepartmentSummary = "0003_RQ_DS";
-                public const string RequestAllOrdersSummary = "0003_RQ_AOS";
-                public const string RequestApproval = "0003_RQ_AA";
+                public const string UserView = "PERMISSION_USER";
+                public const string LibraryClass = "LIBRARY_CLASS";
+                public const string LibraryOperation = "LIBRARY_ITEM";
+                public const string LibrarySupplier = "LIBRARY_SUPPLIER";
+                public const string PurchaseConsumption = "MENU_DASHBOARD";
+                public const string BuyerConsumption = "MENU_DASHBOARD";
+                public const string Report = "REPORT_VIEW";
+                public const string Setting = "MENU_PERMISSION";
+                public const string LibraryOperationCategory = "LIBRARY_CATEGORY";
+                public const string LibraryDepartment = "LIBRARY_DEPARTMENT";
+                public const string LibraryRoute = "LIBRARY_ITEM";
+                public const string ActualConsumption = "MENU_DASHBOARD";
+                public const string LibraryEquipment = "LIBRARY_ITEM";
+                public const string HomeDashboard = "MENU_DASHBOARD";
+                public const string AdminView = "PERMISSION_USER";
+                public const string PermissionViewable = "PERMISSION_COMPONENT";
+                public const string RequestOrder = "REQUEST_ORDER";
+                public const string RequestHistory = "REQUEST_HISTORY";
+                public const string RequestProductCatalog = "REQUEST_PRODUCT_CATALOG";
+                public const string RequestDepartmentSummary = "REQUEST_DEPARTMENT_SUMMARY";
+                public const string RequestAllOrdersSummary = "REQUEST_ALL_ORDERS_SUMMARY";
+                public const string RequestApproval = "REQUEST_ADMIN_APPROVAL";
                 //public const string RequestHistory = "0003_RQ_H";
             }
             /*

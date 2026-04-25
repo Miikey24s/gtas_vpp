@@ -1,20 +1,16 @@
 ﻿using gtas_vpp_fe.Helpers;
-using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Share;
-using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Radzen;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Layout
 {
-    public partial class LeftSidebar
+    public partial class LeftSidebar : IDisposable
     {
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         public bool _sideBarExpanded { get; set; } = false;
@@ -23,7 +19,6 @@ namespace gtas_vpp_fe.Components.Layout
         public string theme = "material3-base";
         public List<DropdownModel> dropdownDataModels_Company { get; set; } = new List<DropdownModel>();
         public DropdownModel selected_Company { get; set; } = default!;
-        public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new sp_Authentication_GetPermissionSinglePage();
         private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
         public string State { get; set; } = "normal";
 
@@ -99,14 +94,6 @@ namespace gtas_vpp_fe.Components.Layout
                 return;
             }
             claims = userClaims;
-            
-            // Load permission
-            sp_Authentication_GetPermissionSinglePage = await AuthHelper.LoadGlbPermissionAsync(Config.Page_ComponentCode.PageCode.Sidebar);
-
-            if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
-            {
-                NavigationManager.NavigateTo("Home", true);
-            }
         }
         protected async Task LoadTheme()
         {
@@ -135,6 +122,12 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 throw new Exception($"Error loading theme: {ex.Message}");
             }
+        }
+
+        public void Dispose()
+        {
+            NavigationManager.LocationChanged -= OnLocationChanged;
+            timer?.Dispose();
         }
     }
 }

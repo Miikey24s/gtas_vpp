@@ -33,6 +33,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private string editItem = "";
 
         private bool onEdit = false;
+        private bool CanModifyGrid =>
+            sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible && y.IsEnable);
+
         protected override Task OnInitializedAsync()
         {
             return base.OnInitializedAsync();
@@ -122,7 +125,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return Task.CompletedTask;
             }
 
-            if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => (y.ComponentCode?.Equals("0001_HD")??false) && y.IsVisible))
+            if (CanModifyGrid)
             {
                 if (onEdit == true)
                     return Task.CompletedTask;

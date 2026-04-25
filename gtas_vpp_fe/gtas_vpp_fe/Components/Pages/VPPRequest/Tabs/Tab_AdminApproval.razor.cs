@@ -1,6 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -15,16 +15,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public NotificationService NotificationService { get; set; } = default!;
 
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> PendingOrders { get; set; } = new();
         public bool IsLoading { get; set; }
         private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
         private HashSet<Guid> LoadingDetailOrderIds { get; } = new();
 
-        private bool CanView =>
-            sp_Authentication_GetPermissionSinglePage?.List_Component?.Any(x =>
-                (x.ComponentCode == Config.Page_ComponentCode.ComponentCode.RequestApproval && x.IsVisible)) == true;
+        private bool CanView => claims.HasPermission(Permissions.RequestAdminApproval);
 
         protected override async Task OnInitializedAsync()
         {

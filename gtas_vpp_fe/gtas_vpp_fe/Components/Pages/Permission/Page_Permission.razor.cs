@@ -67,7 +67,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission
                             Detail = "You do not have permission to access this page.", 
                             Duration = 5000 
                         });
-                        NavigationManager.NavigateTo("/dashboard/orders", true);
+                        NavigationManager.NavigateTo("/dashboard?tab=0", true);
                         return;
                     }
                     
