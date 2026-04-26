@@ -16,7 +16,7 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class LibraryController : BaseGenericController
     {
-        public LibraryController(IBussinessService bussinessService) : base(bussinessService) { }
+        public LibraryController(IBusinessService businessService) : base(businessService) { }
 
         [HttpGet("{tableCode}")]
         public async Task<IActionResult> GenericGet(
@@ -91,7 +91,7 @@ namespace gtas_vpp_be.Controllers
             try
             {
                 // Get all data
-                var allData = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_GetTAsync, true);
+                var allData = await _businessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_GetTAsync, true);
                 
                 if (allData == null || !allData.Any())
                 {
@@ -289,7 +289,7 @@ namespace gtas_vpp_be.Controllers
             obj.CreateDate = DateTime.Now;
             obj.UpdateDate = DateTime.Now;
             
-            var rs = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Create, objs: new List<TModel> { obj });
+            var rs = await _businessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Create, objs: new List<TModel> { obj });
             var resultDto = rs?.FirstOrDefault()?.Adapt<TDto>();
             return Ok(resultDto);
         }
@@ -302,14 +302,14 @@ namespace gtas_vpp_be.Controllers
             var obj = dto.Adapt<TModel>();
             obj.UpdateDate = DateTime.Now;
             
-            var rs = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Update, objs: new List<TModel> { obj });
+            var rs = await _businessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Update, objs: new List<TModel> { obj });
             var resultDto = rs?.FirstOrDefault()?.Adapt<TDto>();
             return Ok(resultDto);
         }
 
         private async Task<IActionResult> ApplyPatchAsync<TModel, TDto>(Guid id, JsonElement payload) where TModel : class where TDto : class
         {
-            var existingData = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id);
+            var existingData = await _businessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id);
             var entity = existingData?.FirstOrDefault();
 
             if (entity == null)
@@ -337,7 +337,7 @@ namespace gtas_vpp_be.Controllers
                 updateDateProp.SetValue(entity, DateTime.Now);
             }
 
-            var result = await _bussinessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Update, objs: new List<TModel> { entity });
+            var result = await _businessService.BaseService<TModel>(Config.EF_BASEMETHOD.EF_Update, objs: new List<TModel> { entity });
             var resultDto = result?.FirstOrDefault()?.Adapt<TDto>();
             return Ok(resultDto);
         }

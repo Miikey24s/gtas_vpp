@@ -1,7 +1,6 @@
 ﻿using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs;
 using gtas_vpp_shared.DTOs.Res;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,7 +23,7 @@ namespace gtas_vpp_be.Service.Services
     }
     public class BaseServices : IBaseServices
     {
-        [Inject] public IUnitOfWorkFactory _unitOfWorkFactory { get; set; } = default!;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
         protected readonly IUnitOfWork _unitOfWork;
         public DeployEnv DeployEnv { get; set; } = new DeployEnv();
         public JiraIssueLive _JiraIssueLive { get; set; } = new JiraIssueLive();

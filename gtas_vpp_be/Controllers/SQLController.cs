@@ -15,11 +15,11 @@ namespace gtas_vpp_be.Controllers
     public class SQLController : ControllerBase
     {
         private readonly IHttpContextAccessor _contextAccessor;
-        private IBussinessService _bussinessService { get; set; }
-        public SQLController(IHttpContextAccessor contextAccessor, IBussinessService bussinessService)
+        private IBusinessService _businessService { get; set; }
+        public SQLController(IHttpContextAccessor contextAccessor, IBusinessService businessService)
         {
             _contextAccessor = contextAccessor;
-            _bussinessService = bussinessService;
+            _businessService = businessService;
         }
         private void SetHeader(string? script)
         {
@@ -45,14 +45,14 @@ namespace gtas_vpp_be.Controllers
             try
             {
                 object? desParam = JsonConvert.DeserializeObject<object>(param?.ToString() ?? "");
-                var rs = await _bussinessService.SP(spName, sptype, param == null ? new { } : desParam, timeout);
+                var rs = await _businessService.SP(spName, sptype, param == null ? new { } : desParam, timeout);
                 empty = JsonConvert.SerializeObject(rs,
                                 new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
                 //empty = JsonConvert.SerializeObject(_jsonRepo.ExecuteStoreProcedure(spName, param, out string _, out script));
             }
             catch (Exception ex)
             {
-                //_bussinessService.WriteLog(ex, sptype, new Dictionary<string, object>
+                //_businessService.WriteLog(ex, sptype, new Dictionary<string, object>
                 //{
                 //    { "spName", spName },
                 //    { "sptype", sptype },
@@ -73,7 +73,7 @@ namespace gtas_vpp_be.Controllers
             string empty = string.Empty;
             try
             {
-                var rs = await _bussinessService.Query(query, timeout);
+                var rs = await _businessService.Query(query, timeout);
                 empty = JsonConvert.SerializeObject(rs,
                                 new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             }

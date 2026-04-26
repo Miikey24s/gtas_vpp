@@ -5,12 +5,10 @@ using gtas_vpp_be.Model.VPP;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace gtas_vpp_be.Model
 {
-    [StructLayout(LayoutKind.Auto)]
     public class VPPMigrationDbContext : DbContext
     {
         #region Auth

@@ -15,8 +15,8 @@ namespace gtas_vpp_be.Controllers
     {
         private readonly IVPPRequestService _vppService;
 
-        public VPPRequestController(IBussinessService bussinessService, IVPPRequestService vppService)
-            : base(bussinessService)
+        public VPPRequestController(IBusinessService businessService, IVPPRequestService vppService)
+            : base(businessService)
         {
             _vppService = vppService;
         }
@@ -153,7 +153,7 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("products")]
         public async Task<IActionResult> GetProducts([FromQuery] Guid? categoryId, [FromQuery] string? search)
         {
-            var data = await _bussinessService.BaseService<L04_VPP>(
+            var data = await _businessService.BaseService<L04_VPP>(
                 gtas_vpp_be.Service.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
                 true,
                 x => !x.IsDeleted
@@ -183,7 +183,7 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories()
         {
-            var data = await _bussinessService.BaseService<L03_VPPCategory>(
+            var data = await _businessService.BaseService<L03_VPPCategory>(
                 gtas_vpp_be.Service.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
                 true,
                 x => !x.IsDeleted);
@@ -273,16 +273,5 @@ namespace gtas_vpp_be.Controllers
 
             return values.Count == 0 ? null : values;
         }
-    }
-
-    public class CopyPreviousMonthReqDTO
-    {
-        public int Year { get; set; }
-        public int Month { get; set; }
-    }
-
-    public class RejectOrderReqDTO
-    {
-        public string? Reason { get; set; }
     }
 }

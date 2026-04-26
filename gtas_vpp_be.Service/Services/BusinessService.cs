@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_shared.DTOs;
 using gtas_vpp_shared.DTOs.Res;
@@ -15,7 +15,7 @@ using static gtas_vpp_be.Service.Helpers.Config.EnvConfig;
 
 namespace gtas_vpp_be.Service.Services
 {
-    public interface IBussinessService
+    public interface IBusinessService
     {
         Task<sp_ResDTO> SP(string sp_Name, string sp_Type, object? Param = null, int? timeout = 300);
         Task<sp_ResDTO> Query(string query, int? timeout = 300);
@@ -28,9 +28,9 @@ namespace gtas_vpp_be.Service.Services
                                                    Expression<Func<T, object>>[]? properties = null
                                                 ) where T : class;
     }
-    public class BussinessService : BaseServices, IBussinessService
+    public class BusinessService : BaseServices, IBusinessService
     {
-        public BussinessService(IUnitOfWorkFactory uow, IHttpContextAccessor httpContextAccessor)
+        public BusinessService(IUnitOfWorkFactory uow, IHttpContextAccessor httpContextAccessor)
                 : base(uow, httpContextAccessor) { }
         public async Task<sp_ResDTO> SP(string sp_Name, string sp_Type, object? Param = null, int? timeout = 300)
         {
@@ -129,4 +129,3 @@ namespace gtas_vpp_be.Service.Services
         }
     }
 }
-

@@ -21,19 +21,19 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {
-        private readonly IBussinessService _bussinessService;
+        private readonly IBusinessService _businessService;
         private readonly IUnitOfWork _unitOfWork;
 
-        public PermissionController(IBussinessService bussinessService, IUnitOfWork unitOfWork)
+        public PermissionController(IBusinessService businessService, IUnitOfWork unitOfWork)
         {
-            _bussinessService = bussinessService;
+            _businessService = businessService;
             _unitOfWork = unitOfWork;
         }
 
         [HttpGet("groups")]
         public async Task<IActionResult> GetGroups([FromQuery] bool getFullName = true)
         {
-            var data = await _bussinessService.BaseService<P02_Group>(
+            var data = await _businessService.BaseService<P02_Group>(
                 EF_BASEMETHOD.EF_GetTAsync, getFullName) ?? new List<P02_Group>();
 
             var rs = data.Adapt<List<P02_GroupResDTO>>();
@@ -43,7 +43,7 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("groups/{id:guid}")]
         public async Task<IActionResult> GetGroupById(Guid id, [FromQuery] bool getFullName = true)
         {
-            var data = await _bussinessService.BaseService<P02_Group>(
+            var data = await _businessService.BaseService<P02_Group>(
                 EF_BASEMETHOD.EF_GetTByIdAsync, getFullName, Param: id);
 
             var entity = data?.FirstOrDefault();
@@ -141,7 +141,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPut("groups/{id:guid}")]
         public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] P02_GroupUpdateReqDTO req)
         {
-            var current = (await _bussinessService.BaseService<P02_Group>(
+            var current = (await _businessService.BaseService<P02_Group>(
                 EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id))?.FirstOrDefault();
 
             if (current is null)
@@ -172,7 +172,7 @@ namespace gtas_vpp_be.Controllers
             req.Adapt(current);
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _bussinessService.BaseService<P02_Group>(
+            var rs = await _businessService.BaseService<P02_Group>(
                 EF_BASEMETHOD.EF_Update,
                 objs: new List<P02_Group> { current });
 
@@ -201,7 +201,7 @@ namespace gtas_vpp_be.Controllers
                 visited.Add(currentId);
 
                 // Get the parent of current group
-                var parent = (await _bussinessService.BaseService<P02_Group>(
+                var parent = (await _businessService.BaseService<P02_Group>(
                     EF_BASEMETHOD.EF_GetTByIdAsync, false, Param: currentId))?.FirstOrDefault();
 
                 if (parent?.ParentGroupId == null || parent.ParentGroupId == Guid.Empty)
@@ -224,7 +224,7 @@ namespace gtas_vpp_be.Controllers
 
             while (currentId != Guid.Empty && depth < maxDepth)
             {
-                var group = (await _bussinessService.BaseService<P02_Group>(
+                var group = (await _businessService.BaseService<P02_Group>(
                     EF_BASEMETHOD.EF_GetTByIdAsync, false, Param: currentId))?.FirstOrDefault();
 
                 if (group?.ParentGroupId == null || group.ParentGroupId == Guid.Empty)
@@ -242,7 +242,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPatch("component-mapping")]
         public async Task<IActionResult> PatchComponentMapping([FromBody] PatchComponentMappingReqDTO req)
         {
-            var current = (await _bussinessService.BaseService<P06_GroupPageComponentMapping>(
+            var current = (await _businessService.BaseService<P06_GroupPageComponentMapping>(
                 EF_BASEMETHOD.EF_GetTAsync,
                 expression: x => x.P05_PageComponentMappingId == req.P05_PageComponentMappingId
                               && x.P02_GroupId == req.P02_GroupId))
@@ -256,7 +256,7 @@ namespace gtas_vpp_be.Controllers
             req.Adapt(current);
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _bussinessService.BaseService<P06_GroupPageComponentMapping>(
+            var rs = await _businessService.BaseService<P06_GroupPageComponentMapping>(
                 EF_BASEMETHOD.EF_Update,
                 objs: new List<P06_GroupPageComponentMapping> { current },
                 properties: new Expression<Func<P06_GroupPageComponentMapping, object>>[]
@@ -273,7 +273,7 @@ namespace gtas_vpp_be.Controllers
         [HttpDelete("groups/{id:guid}")]
         public async Task<IActionResult> DeleteGroup(Guid id)
         {
-            var rs = await _bussinessService.BaseService<P02_Group>(
+            var rs = await _businessService.BaseService<P02_Group>(
                 EF_BASEMETHOD.EF_DeleteAsync, Param: id);
 
             return Ok(new { success = rs is not null });
@@ -287,7 +287,7 @@ namespace gtas_vpp_be.Controllers
             entity.CreateDate = req.CreateDate ?? DateTime.Now;
             entity.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _bussinessService.BaseService<P04_UserGroup>(
+            var rs = await _businessService.BaseService<P04_UserGroup>(
                 EF_BASEMETHOD.EF_Create,
                 objs: new List<P04_UserGroup> { entity });
 
@@ -302,7 +302,7 @@ namespace gtas_vpp_be.Controllers
             {
                 if (userId.HasValue)
                 {
-                    var userGroups = await _bussinessService.BaseService<P04_UserGroup>(
+                    var userGroups = await _businessService.BaseService<P04_UserGroup>(
                         EF_BASEMETHOD.EF_GetTAsync,
                         getFullName: true,
                         expression: x => x.UserId == userId.Value);
@@ -312,7 +312,7 @@ namespace gtas_vpp_be.Controllers
                 }
                 else
                 {
-                    var allUserGroups = await _bussinessService.BaseService<P04_UserGroup>(
+                    var allUserGroups = await _businessService.BaseService<P04_UserGroup>(
                         EF_BASEMETHOD.EF_GetTAsync,
                         getFullName: true);
 
@@ -329,7 +329,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPut("user-groups/{id:guid}")]
         public async Task<IActionResult> UpdateUserGroup(Guid id, [FromBody] P04_UserGroupUpsertReqDTO req)
         {
-            var current = (await _bussinessService.BaseService<P04_UserGroup>(
+            var current = (await _businessService.BaseService<P04_UserGroup>(
                 EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id))?.FirstOrDefault();
 
             if (current is null)
@@ -341,7 +341,7 @@ namespace gtas_vpp_be.Controllers
             current.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _bussinessService.BaseService<P04_UserGroup>(
+            var rs = await _businessService.BaseService<P04_UserGroup>(
                 EF_BASEMETHOD.EF_Update,
                 objs: new List<P04_UserGroup> { current });
 

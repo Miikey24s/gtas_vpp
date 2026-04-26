@@ -43,7 +43,7 @@ builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
-builder.Services.AddScoped<IBussinessService, BussinessService>();
+builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();

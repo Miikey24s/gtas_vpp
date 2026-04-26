@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
 using System.Transactions;
@@ -27,7 +26,6 @@ namespace gtas_vpp_be.Service.Services
         Task<int> SaveChangesAsync();
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
-    [StructLayout(LayoutKind.Auto)]
     public class UnitOfWork : IUnitOfWork
     {
         private readonly IDynamicDbContextFactory _factory;
