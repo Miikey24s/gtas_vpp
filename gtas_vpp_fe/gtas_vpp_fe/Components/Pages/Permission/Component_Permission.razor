@@ -15,18 +15,24 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            <RadzenTabsItem Text="User Group" Visible="@HasAdminView">
-                @if (SelectedIndex == 0)
-                {
-                    <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
-                }
-            </RadzenTabsItem>
-            <RadzenTabsItem Text="Group/Page Permission" Visible="@(HasPermissionView || HasAdminView)">
-                @if (SelectedIndex == 1)
-                {
-                    <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
-                }
-            </RadzenTabsItem>
+            @if (HasAdminView)
+            {
+                <RadzenTabsItem Text="User Group">
+                    @if (IsActiveTab(UserTab))
+                    {
+                        <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (HasPermissionView || HasAdminView)
+            {
+                <RadzenTabsItem Text="Group/Page Permission">
+                    @if (IsActiveTab(PagePermissionTab))
+                    {
+                        <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
         </Tabs>
     </RadzenTabs>
 }

@@ -38,7 +38,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="Department" Width="120px" TextAlign="TextAlign.Center" />
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.RequesterName)" Title="User Name" Width="150px" TextAlign="TextAlign.Left">
-                    <Template Context="row">@glb.UserInfo?.FullName</Template>
+                    <Template Context="row">@row.RequesterName</Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="Order Code" Width="180px" TextAlign="TextAlign.Left" />
                 <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Period)" Title="Period" Width="100px" TextAlign="TextAlign.Center">

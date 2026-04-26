@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 {
@@ -128,23 +127,15 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 
             try
             {
-                //list_PermissionOfGroup = await _bussinessService.SPServiceRead<sp_Authen_Permission_GetPageWithComponentByGroupId>
-                //                                                    (Config.SPENUM_ResType.Multiple,
-                //                                                    nameof(Config.sp_AuthenClass.sp_Authen),
-                //                                                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_Permission_GetPageWithComponentByGroupId),
-                //                                                    new { GroupId = group.Id }) ?? new List<sp_Authen_Permission_GetPageWithComponentByGroupId>();
-                list_PermissionOfGroup = await _apiServices.APIFrom_sp_Authen_Typed<
+                list_PermissionOfGroup = await _apiServices.GetFromApiAsync<
                     List<sp_Authen_Permission_GetPageWithComponentByGroupId>
-                >(
-                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_Permission_GetPageWithComponentByGroupId),
-                    new { GroupId = group.Id },
-                    jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
-                ) ?? new List<sp_Authen_Permission_GetPageWithComponentByGroupId>();
+                >($"/api/Permission/groups/{group.Id}/page-components")
+                ?? new List<sp_Authen_Permission_GetPageWithComponentByGroupId>();
             }
             catch (Exception ex)
             {
                 //_bussinessService.WriteLog(ex, "sp_Authentication_Permission_GetPageWithComponentByGroupId", new Dictionary<string, object>() { { "GroupId", group.Id } });
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call sp_Authentication_Permission_GetPageWithComponentByGroupId:" + ex.Message, 10000, true);
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when load group page permissions:" + ex.Message, 10000, true);
             }
             IsLoading_Child = false;
             glb.isBusyPage = false;
