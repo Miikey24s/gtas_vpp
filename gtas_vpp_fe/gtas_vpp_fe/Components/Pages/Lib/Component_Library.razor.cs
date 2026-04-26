@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib
 {
-    public partial class Component_Library
+    public partial class Component_Library : IDisposable
     {
         [Parameter] public string? Lib { get; set; }
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
@@ -204,6 +204,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
                 return false;
             }
+        }
+
+        public void Dispose()
+        {
+            NavigationManager.LocationChanged -= OnLocationChanged;
         }
     }
 }
