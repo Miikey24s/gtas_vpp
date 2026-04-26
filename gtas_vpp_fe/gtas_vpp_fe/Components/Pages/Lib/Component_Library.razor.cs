@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -148,7 +148,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                //T result = await _bussinessService.BaseService<T>(
+                //T result = await _businessService.BaseService<T>(
                 //                                        Config.EF_BASEMETHOD.EF_Create,
                 //                                        null,
                 //                                        null,
@@ -175,7 +175,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                //T result = await _bussinessService.BaseService<T>(
+                //T result = await _businessService.BaseService<T>(
                 //                                        Config.EF_BASEMETHOD.EF_Update,
                 //                                        null,
                 //                                        null,
@@ -202,7 +202,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                //var result = _bussinessService.BaseService<T>(
+                //var result = _businessService.BaseService<T>(
                 //                                    Config.EF_BASEMETHOD.EF_DeleteAsync,
                 //                                    null,
                 //                                    null,
@@ -223,7 +223,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             catch(Exception ex)
             {
-                //_bussinessService.WriteLog(ex, "Delete EF error", new Dictionary<string, object> { { "Param", data.Id} });
+                //_businessService.WriteLog(ex, "Delete EF error", new Dictionary<string, object> { { "Param", data.Id} });
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
                 return false;
             }

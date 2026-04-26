@@ -9,21 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Component_Library.razor.cs" />
-    <Compile Remove="Component_ShareGrid.razor.cs" />
-    <Compile Remove="Page_Library.razor.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="Components\Pages\Counter.razor" />
-    <Content Remove="Components\Pages\Error.razor" />
-    <Content Remove="Components\Pages\Weather.razor" />
-    <Content Remove="Component_Library.razor" />
-    <Content Remove="Component_ShareGrid.razor" />
-    <Content Remove="Page_Library.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Mapster" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />

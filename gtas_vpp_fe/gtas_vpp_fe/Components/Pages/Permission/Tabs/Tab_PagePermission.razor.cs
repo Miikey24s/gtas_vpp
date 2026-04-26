@@ -1,4 +1,4 @@
-﻿//using gtas_costing.Model.Models.Auth;
+//using gtas_costing.Model.Models.Auth;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
@@ -17,7 +17,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 {
     public partial class Tab_PagePermission
     {
-        //[Inject] public IBussinessService _bussinessService { get; set; }
+        //[Inject] public IBusinessService _businessService { get; set; }
         [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
@@ -54,7 +54,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out var userClaims);
                 try
                 {
-                    //sp_Authentication_GetPermissionSinglePage = await _bussinessService.SPServiceRead<sp_Authentication_GetPermissionSinglePage>(Config.SPENUM_ResType.Single,
+                    //sp_Authentication_GetPermissionSinglePage = await _businessService.SPServiceRead<sp_Authentication_GetPermissionSinglePage>(Config.SPENUM_ResType.Single,
                     //                                                            nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
                     //                                                            nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage),
                     //                                                            new { userId = glb.UserInfo.UserID, pageCode = "0001" })
@@ -77,7 +77,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error when call SP sp_Library_GetL01Class:" + ex.Message);
-                    //_bussinessService.WriteLog(ex, "sp_Authentication_GetPermissionSinglePage", new Dictionary<string, object>() { { "UserId", claims.FirstOrDefault(x => x.Type == "UserID")?.Value }, { "PageCode", "0003" } });
+                    //_businessService.WriteLog(ex, "sp_Authentication_GetPermissionSinglePage", new Dictionary<string, object>() { { "UserId", claims.FirstOrDefault(x => x.Type == "UserID")?.Value }, { "PageCode", "0003" } });
                     NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
                 }
                 finally
@@ -105,7 +105,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             glb.isBusyPage = true;
             try
             {
-                //list_Group = await _bussinessService.BaseService<P02_GroupResDTO>(Config.EF_BASEMETHOD.EF_GetTAsync, true) ?? new List<P02_GroupResDTO>();
+                //list_Group = await _businessService.BaseService<P02_GroupResDTO>(Config.EF_BASEMETHOD.EF_GetTAsync, true) ?? new List<P02_GroupResDTO>();
                 list_Group = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
              ?? new List<P02_GroupResDTO>();
             }
@@ -134,7 +134,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                //_bussinessService.WriteLog(ex, "sp_Authentication_Permission_GetPageWithComponentByGroupId", new Dictionary<string, object>() { { "GroupId", group.Id } });
+                //_businessService.WriteLog(ex, "sp_Authentication_Permission_GetPageWithComponentByGroupId", new Dictionary<string, object>() { { "GroupId", group.Id } });
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when load group page permissions:" + ex.Message, 10000, true);
             }
             IsLoading_Child = false;
@@ -149,7 +149,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             P02_GroupResDTO? res = null;
             try
             {
-                //res = await _bussinessService.BaseService<P02_GroupResDTO>(Config.EF_BASEMETHOD.EF_Update, null, null, null, new List<P02_GroupResDTO> { group })
+                //res = await _businessService.BaseService<P02_GroupResDTO>(Config.EF_BASEMETHOD.EF_Update, null, null, null, new List<P02_GroupResDTO> { group })
                 //                                .ContinueWith(x => x.Result?.FirstOrDefault());
                 _ = int.TryParse(claims?.FirstOrDefault(x => x.Type.Equals("UserID"))?.Value, out int userId);
 
@@ -221,7 +221,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                //_bussinessService.WriteLog(ex, "EF Update P02_GroupResDTO", new Dictionary<string, object> { { "Param", JsonConvert.SerializeObject(group) } });
+                //_businessService.WriteLog(ex, "EF Update P02_GroupResDTO", new Dictionary<string, object> { { "Param", JsonConvert.SerializeObject(group) } });
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
