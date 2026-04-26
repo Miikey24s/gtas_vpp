@@ -3,6 +3,7 @@ using gtas_vpp_be.Model.Library;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
+using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_be.Service.Services;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
@@ -72,6 +73,20 @@ namespace gtas_vpp_be.Controllers
                 return Ok(new List<PermissionPageDto>());
             }
 
+            var memberCompanyCodes = groupMappings
+                .Select(x => x.MemberCompanyCode)
+                .Distinct()
+                .ToList();
+
+            var companyLookup = memberCompanyCodes.Count == 0
+                ? new Dictionary<long, v_WFXCompany>()
+                : (await _unitOfWork.VPPContext.v_WFXCompanies
+                    .AsNoTracking()
+                    .Where(x => memberCompanyCodes.Contains(x.MemberCompanyCode))
+                    .ToListAsync())
+                    .GroupBy(x => x.MemberCompanyCode)
+                    .ToDictionary(x => x.Key, x => x.First());
+
             var result = groupMappings
                 .GroupBy(x => x.P05_PageComponentMapping!.P01_PageId)
                 .OrderBy(x => x.First().P05_PageComponentMapping!.P01_Page!.PageCode)
@@ -97,6 +112,7 @@ namespace gtas_vpp_be.Controllers
                             {
                                 var pageComponentMapping = groupMapping.P05_PageComponentMapping!;
                                 var component = pageComponentMapping.P03_Component!;
+                                companyLookup.TryGetValue(groupMapping.MemberCompanyCode, out var company);
 
                                 return new PermissionComponentDto
                                 {
@@ -110,8 +126,8 @@ namespace gtas_vpp_be.Controllers
                                     GroupId = id,
                                     GroupPageComponentMappingId = pageComponentMapping.Id,
                                     MemberCompanyCode = groupMapping.MemberCompanyCode,
-                                    CompanyName = "PHONG PHU INTERNATIONAL JSC",
-                                    CompanyShortName = "PPJ"
+                                    CompanyName = company?.CompanyName,
+                                    CompanyShortName = company?.CompanyShortName
                                 };
                             })
                             .ToList()

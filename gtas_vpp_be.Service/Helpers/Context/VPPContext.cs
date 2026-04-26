@@ -41,6 +41,7 @@ namespace gtas_vpp_be.Service.Helpers.Context
 
         public virtual DbSet<sp_ResDTO> Sp_ResDTOs { get; set; }
         public virtual DbSet<v_Users> v_Users { get; set; }
+        public virtual DbSet<v_WFXCompany> v_WFXCompanies { get; set; }
         public VPPContext(DbContextOptions<VPPContext> options) : base(options)
         {
         }
@@ -49,6 +50,7 @@ namespace gtas_vpp_be.Service.Helpers.Context
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<v_Users>().ToView("v_Users").HasNoKey();
+            modelBuilder.Entity<v_WFXCompany>().ToView("v_WFXCompany").HasNoKey();
             modelBuilder.Entity<sp_ResDTO>().HasNoKey();
             modelBuilder.Entity<P05_PageComponentMapping>(en =>
             {
