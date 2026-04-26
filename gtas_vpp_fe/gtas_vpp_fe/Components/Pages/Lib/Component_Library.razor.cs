@@ -148,13 +148,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                //T result = await _businessService.BaseService<T>(
-                //                                        Config.EF_BASEMETHOD.EF_Create,
-                //                                        null,
-                //                                        null,
-                //                                        null,
-                //                                        new List<T> { data}
-                //                                    ).ContinueWith(x=>x.Result?.FirstOrDefault()) ?? new T();
                 string typeName = typeof(T).Name;
                 string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
@@ -175,13 +168,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                //T result = await _businessService.BaseService<T>(
-                //                                        Config.EF_BASEMETHOD.EF_Update,
-                //                                        null,
-                //                                        null,
-                //                                        null,
-                //                                        new List<T> { data }
-                //                                    ).ContinueWith(x => x.Result?.FirstOrDefault()) ?? new T();
                 string typeName = typeof(T).Name;
                 string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
@@ -202,14 +188,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                //var result = _businessService.BaseService<T>(
-                //                                    Config.EF_BASEMETHOD.EF_DeleteAsync,
-                //                                    null,
-                //                                    null,
-                //                                    null,
-                //                                    null,
-                //                                    data.Id
-                //                                );
                 string typeName = typeof(T).Name;
                 string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
@@ -223,7 +201,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             catch(Exception ex)
             {
-                //_businessService.WriteLog(ex, "Delete EF error", new Dictionary<string, object> { { "Param", data.Id} });
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
                 return false;
             }

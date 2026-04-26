@@ -53,7 +53,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission
                 var userIdString = claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
                 if (int.TryParse(userIdString, out int validUserId) == true)
                 {
-                    //glb.UserInfo.UserID = validUserId;
                     sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Permission);
                     
                     // CHECK PERMISSION: Nếu không có quyền vào page này, redirect về dashboard

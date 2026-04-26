@@ -9,7 +9,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
     public partial class Page_Library
     {
         [Parameter] public string? Lib { get; set; }
-        //[Inject] public IBusinessService _businessService { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         public IEnumerable<Claim> claims { get; set; } = new List<Claim>();
         public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new sp_Authentication_GetPermissionSinglePage();
@@ -32,7 +31,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 var userIdString = claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
                 if (int.TryParse(userIdString, out int validUserId) == true)
                 {
-                    //glb.UserInfo.UserID = validUserId;
                     sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Library);
                 }
 
@@ -52,7 +50,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             catch (Exception ex)
             {
-                //_businessService.WriteLog(ex, "sp_Authentication_GetPermissionSinglePage", new Dictionary<string, object>() { { "UserId", claims.FirstOrDefault(x => x.Type == "UserID")?.Value }, { "PageCode", "0003" } });
                 Console.WriteLine("Error when call SP sp_Authentication_GetPermissionSinglePage:" + ex.Message);
                 NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
             }

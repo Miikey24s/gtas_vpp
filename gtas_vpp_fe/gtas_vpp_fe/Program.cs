@@ -32,6 +32,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.Cookie.Name = Config.CookieName;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.LoginPath = Config.LoginPagePath;
         options.AccessDeniedPath = Config.LoginPagePath;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(Config.CookieExpireMinutes);

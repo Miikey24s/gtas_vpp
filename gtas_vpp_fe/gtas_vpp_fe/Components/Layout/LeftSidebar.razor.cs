@@ -47,7 +47,6 @@ namespace gtas_vpp_fe.Components.Layout
             if (firstRender)
             {
                 await LoadTheme();
-                //await LoadCompany();
                 await LoadStateAsync();
                 StateHasChanged();
             }
@@ -59,7 +58,6 @@ namespace gtas_vpp_fe.Components.Layout
                 var result = await ProtectedLocalStore.GetAsync<GlobalStorageModel>("CostingSetting");
                 if (result.Success && result.Value is not null)
                 {
-                    //State = result.Header?.FirstOrDefault(x => x.PageName == "0014")?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
                     State = result.Value?.Header?.FirstOrDefault(x => x.PageName == Config.Page_ComponentCode.PageCode.Sidebar)?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
                 }
             }

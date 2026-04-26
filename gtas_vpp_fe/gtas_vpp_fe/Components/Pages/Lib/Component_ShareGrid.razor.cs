@@ -76,7 +76,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             else
             {
                 _ = await Update(context);
-                //if (result != null)
             }
             await DataGrid.Reload();
 
@@ -93,11 +92,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             if (data.Contains(context))
             {
                 var result = await Delete(context);
-                // For demo purposes only
                 if (result == true)
                     data.Remove(context);
-                // For production
-                //dbContext.SaveChanges();
 
                 await Task.WhenAll(DataGrid.Reload());//, DataChanged.InvokeAsync(data));
             }

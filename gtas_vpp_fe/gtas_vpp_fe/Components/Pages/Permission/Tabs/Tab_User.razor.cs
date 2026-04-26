@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http.Extensions;
-//using Newtonsoft.Json;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -19,8 +18,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        //[Inject] public IBusinessService _businessService { get; set; }
-        //[Inject] public ICustomNotificationService _customNotificationService { get; set; }
         private string SearchText { get; set; } = string.Empty;
         public List<sp_Authentication_TabUser_UserList> _sp_Authentication_TabUser_UserList { get; set; } = new List<sp_Authentication_TabUser_UserList>();
         public IList<sp_Authentication_TabUser_UserList> selected_UserList { get; set; } = new List<sp_Authentication_TabUser_UserList>();
@@ -42,11 +39,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 UserClaims = userClaims;
                 try
                 {
-                    //sp_Authentication_GetPermissionSinglePage = await _businessService.SPServiceRead<sp_Authentication_GetPermissionSinglePage>(Config.SPENUM_ResType.Single,
-                    //                                                            nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                    //                                                            nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage),
-                    //                                                            new { userId = glb.UserInfo.UserID, pageCode = "0001" })
-                    //                                                .ContinueWith(x => x.Result.FirstOrDefault() ?? new sp_Authentication_GetPermissionSinglePage());
                     string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
                     var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Permission };
                     var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
@@ -65,7 +57,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error when call SP sp_Library_GetL01Class:" + ex.Message);
-                    //_businessService.WriteLog(ex, "sp_Authentication_GetPermissionSinglePage", new Dictionary<string, object>() { { "UserId", claims.FirstOrDefault(x => x.Type == "UserID")?.Value }, { "PageCode", "0003" } });
                     NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
                 }
                 finally
@@ -90,23 +81,14 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 
             try
             {
-                //p02_Groups = await _businessService.BaseService<P02_Group>(Services.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
-                //                                                    true) ?? new List<P02_Group>();
                 p02_Groups = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
              ?? new List<P02_GroupResDTO>();
             }
             catch
             {
-                //_businessService.WriteLog(ex, "Load EF P02 Group");
-                //_customNotificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call EF P02 Group", 15000, true);
             }
             try
             {
-                //_sp_Authentication_TabUser_UserList = await _businessService.SPServiceRead<sp_Authentication_TabUser_UserList>(
-                //                                                                    Config.SPENUM_ResType.Multiple,
-                //                                                                    nameof(Config.sp_AuthenClass.sp_Authen.sp_Authen),
-                //                                                                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                //                                                                    new { });
                 _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
                     List<sp_Authentication_TabUser_UserList>
                 >(
@@ -116,8 +98,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch
             {
-                //_businessService.WriteLog(ex, "Error when call sp sp_Authen_TabUser_UserList");
-                //_customNotificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call sp_Authen_TabUser_UserList");
             }
             glb.isBusyPage = false;
             StateHasChanged();
@@ -240,7 +220,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                         UpdateDate = DateTime.Now,
                         IsDeleted = data.IsDeleted
                     };
-                    //res = await _businessService.BaseService<P04_UserGroup>(Config.EF_BASEMETHOD.EF_Update, null, null, null, new List<P04_UserGroup> { req }).ContinueWith(x => x.Result?.First());
                     res = await _apiServices.PutFromApiAsync<P04_UserGroupResDTO>(
                         $"/api/Permission/user-groups/{data.Id}",
                         req
@@ -259,7 +238,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                         UpdateDate = DateTime.Now,
                         IsDeleted = data.IsDeleted
                     };
-                    //res = await _businessService.BaseService<P04_UserGroup>(Config.EF_BASEMETHOD.EF_Create, null, null, null, new List<P04_UserGroup> { req }).ContinueWith(x => x.Result?.First());
                     res = await _apiServices.PostFromApiAsync<P04_UserGroupResDTO>(
                         "/api/Permission/user-groups",
                         req
@@ -278,7 +256,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                //_businessService.WriteLog(ex, "EF_Update P04_UserGroup", new Dictionary<string, object>() { { "Oaram", req } });
                 NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call EF_Update P04_UserGroup:" + ex.Message, Duration = 10000 });
                 throw;
             }
