@@ -12,10 +12,10 @@ public class CrudOperationsTests
     public async Task AddAsync_ValidEntity_AddsEntityToDatabase()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = CreateService(context);
+        var repository = CreateRepository(context);
         var entity = CreateCategory("CAT-ADD", "Add category");
 
-        var result = await service.AddAsync(entity, nameof(Config.ContextType.VPPContext));
+        var result = await repository.AddAsync(entity);
 
         Assert.NotNull(result);
         Assert.Single(context.Set<L03_VPPCategory>());
@@ -30,12 +30,9 @@ public class CrudOperationsTests
             CreateCategory("KEEP", "Keep category"),
             CreateCategory("SKIP", "Skip category"));
         await context.SaveChangesAsync();
-        var service = CreateService(context);
+        var repository = CreateRepository(context);
 
-        var result = await service.ReadAsync<L03_VPPCategory>(
-            nameof(Config.ContextType.VPPContext),
-            getFullName: false,
-            expression: x => x.VPPCategoryCode == "KEEP");
+        var result = await repository.ReadAsync(x => x.VPPCategoryCode == "KEEP");
 
         Assert.Single(result);
         Assert.Equal("KEEP", result[0].VPPCategoryCode);
@@ -48,9 +45,9 @@ public class CrudOperationsTests
         var entity = CreateCategory("CAT-DELETE", "Delete category");
         context.Set<L03_VPPCategory>().Add(entity);
         await context.SaveChangesAsync();
-        var service = CreateService(context);
+        var repository = CreateRepository(context);
 
-        var result = await service.DeleteAsync<L03_VPPCategory>(entity.Id, nameof(Config.ContextType.VPPContext));
+        var result = await repository.DeleteAsync(entity.Id);
 
         Assert.True(result);
         Assert.Empty(context.Set<L03_VPPCategory>());
@@ -63,20 +60,18 @@ public class CrudOperationsTests
         var entity = CreateCategory("CAT-UPDATE", "Before update");
         context.Set<L03_VPPCategory>().Add(entity);
         await context.SaveChangesAsync();
-        var service = CreateService(context);
+        var repository = CreateRepository(context);
 
         entity.VPPCategoryName = "After update";
-        await service.UpdateAsync(entity, nameof(Config.ContextType.VPPContext));
+        await repository.UpdateAsync(entity);
 
         Assert.Equal("After update", context.Set<L03_VPPCategory>().Single().VPPCategoryName);
     }
 
-    private static BaseServices CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
+    private static GenericRepository<L03_VPPCategory> CreateRepository(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
-        var factory = ServiceTestHelpers.CreateUnitOfWorkFactoryMock(unitOfWork.Object);
-        var httpContextAccessor = ServiceTestHelpers.CreateHttpContextAccessor();
-        return new BaseServices(factory.Object, httpContextAccessor);
+        return new GenericRepository<L03_VPPCategory>(unitOfWork.Object);
     }
 
     private static L03_VPPCategory CreateCategory(string code, string name)

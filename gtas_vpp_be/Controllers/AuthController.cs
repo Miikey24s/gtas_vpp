@@ -25,13 +25,28 @@ namespace gtas_vpp_be.Controllers
     public class AuthController : ControllerBase
     {
         private readonly VPPContext _authDb;
-        private readonly IBusinessService _businessService;
+        private readonly IStoredProcedureExecutor _storedProcedureExecutor;
+        private readonly IGenericRepository<P04_UserGroup> _userGroupRepository;
+        private readonly IGenericRepository<LEX02_CompanyDepartmentLocation> _departmentRepository;
+        private readonly IUserNameResolver _userNameResolver;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
 
-        public AuthController(VPPContext authDb, IBusinessService businessService, IConfiguration configuration)
+        public AuthController(
+            VPPContext authDb,
+            IStoredProcedureExecutor storedProcedureExecutor,
+            IGenericRepository<P04_UserGroup> userGroupRepository,
+            IGenericRepository<LEX02_CompanyDepartmentLocation> departmentRepository,
+            IUserNameResolver userNameResolver,
+            IUnitOfWork unitOfWork,
+            IConfiguration configuration)
         {
             _authDb = authDb;
-            _businessService = businessService;
+            _storedProcedureExecutor = storedProcedureExecutor;
+            _userGroupRepository = userGroupRepository;
+            _departmentRepository = departmentRepository;
+            _userNameResolver = userNameResolver;
+            _unitOfWork = unitOfWork;
             _configuration = configuration;
         }
 
@@ -45,7 +60,7 @@ namespace gtas_vpp_be.Controllers
             #region SP
             try
             {
-                var result = await _businessService.SP(
+                var result = await _storedProcedureExecutor.ExecuteSPAsync(
                  "sp_Authen",
                  "sp_Authen_Login",
                  new
@@ -86,22 +101,15 @@ namespace gtas_vpp_be.Controllers
                 if (!isCodeMissing && !isNameMissing)
                     return; // Already have department info
 
-                // Get P04_UserGroup by UserId using BusinessService
-                var userGroups = await _businessService.BaseService<P04_UserGroup>(
-                    EF_BASEMETHOD.EF_GetTAsync,
-                    getFullName: true,
-                    expression: x => x.UserId == loginData.UserID);
+                var userGroups = await _userGroupRepository.ReadAsync(x => x.UserId == loginData.UserID);
+                userGroups = await _userNameResolver.WithUserNamesAsync(userGroups, _unitOfWork.VPPContext);
 
                 var userGroup = userGroups?.FirstOrDefault();
 
                 if (userGroup == null || userGroup.LEX02_CompanyDepartmentLocationId == Guid.Empty)
                     return;
 
-                // Get LEX02_CompanyDepartmentLocation using BusinessService
-                var departments = await _businessService.BaseService<LEX02_CompanyDepartmentLocation>(
-                    EF_BASEMETHOD.EF_GetTAsync,
-                    getFullName: false,
-                    expression: x => x.Id == userGroup.LEX02_CompanyDepartmentLocationId);
+                var departments = await _departmentRepository.ReadAsync(x => x.Id == userGroup.LEX02_CompanyDepartmentLocationId);
 
                 var department = departments?.FirstOrDefault();
 

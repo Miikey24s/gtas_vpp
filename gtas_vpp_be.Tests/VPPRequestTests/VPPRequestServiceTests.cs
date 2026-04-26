@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -131,7 +132,7 @@ public class VPPRequestServiceTests
             })
             .Build();
 
-        return new VPPRequestService(factory.Object, httpContextAccessor, unitOfWork.Object, dateTimeProvider, config);
+        return new VPPRequestService(factory.Object, httpContextAccessor, unitOfWork.Object, dateTimeProvider, config, new EnvironmentResolver(), new UserNameResolver());
     }
 
     private static VPP01_CreateReqDTO CreateOrderRequest(bool isAdditionalOrder)

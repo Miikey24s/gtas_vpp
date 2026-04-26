@@ -1,13 +1,14 @@
 ﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
-using System.Transactions;
 
 namespace gtas_vpp_be.Service.Services
 {
@@ -33,58 +34,17 @@ namespace gtas_vpp_be.Service.Services
         private bool _disposed;
 
         private VPPContext? _VPPContext;
-        private TransactionScope? _transactionScope;
+        private IDbContextTransaction? _transaction;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEnvironmentResolver _environmentResolver;
         protected ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User ?? default!;
-        public IEnumerable<Claim> Claims
-        {
-            get
-            {
-                return User?.Claims ?? Enumerable.Empty<Claim>();
-            }
-        }
-        public string GetEnvironment()
-        {
-            string env = string.Empty;
-            if (Claims is not null)
-            {
-                string env1 = Claims?.FirstOrDefault(x => x.Type == "Server")?.Value ?? string.Empty;
-                switch (env1)
-                {
-                    case "Test":
-                        env = "TestEnv";
-                        break;
-                    case "Live":
-                        env = "LiveEnv";
-                        break;
-                    default:
-                        env = "TestEnv";
-                        break;
-                }
-            }
-            else
-            {
-                switch (env)
-                {
-                    case "Test":
-                        env = "TestEnv";
-                        break;
-                    case "Live":
-                        env = "LiveEnv";
-                        break;
-                    default:
-                        env = "TestEnv";
-                        break;
-                }
-            }
-            return env;
-        }
 
-        public UnitOfWork(IDynamicDbContextFactory factory, IHttpContextAccessor httpContextAccessor)
+        public UnitOfWork(IDynamicDbContextFactory factory, IHttpContextAccessor httpContextAccessor, IEnvironmentResolver environmentResolver)
         {
             _factory = factory;
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-            Init(GetEnvironment());
+            _environmentResolver = environmentResolver;
+            Init(_environmentResolver.Resolve(User?.Claims));
         }
         public VPPContext VPPContext
         {
@@ -104,63 +64,47 @@ namespace gtas_vpp_be.Service.Services
 
             _currentEnv = envKey;
 
-            // Clear old contexts nếu có
+            _transaction?.Dispose();
+            _transaction = null;
             _VPPContext?.Dispose();
             _VPPContext = null;
         }
         public void BeginTransaction()
         {
-            _transactionScope = new TransactionScope(
-                TransactionScopeOption.Required,
-                new TransactionOptions
-                {
-                    IsolationLevel = IsolationLevel.ReadCommitted,
-                    Timeout = TransactionManager.DefaultTimeout
-                },
-                TransactionScopeAsyncFlowOption.Enabled
-            );
+            if (_transaction != null)
+                throw new InvalidOperationException("Transaction already started.");
+
+            _transaction = VPPContext.Database.BeginTransaction();
         }
         public async Task BeginTransactionAsync()
         {
-            if (_transactionScope != null)
+            if (_transaction != null)
                 throw new InvalidOperationException("Transaction already started.");
 
-            //_transactionScope = new TransactionScope(
-            //    (TransactionScopeOption)TransactionScopeAsyncFlowOption.Enabled,
-            //    new TransactionOptions
-            //    {
-            //        IsolationLevel = IsolationLevel.ReadCommitted
-            //    });
-
-            _transactionScope = new TransactionScope(
-                TransactionScopeOption.Required,
-                new TransactionOptions
-                {
-                    IsolationLevel = IsolationLevel.ReadCommitted,
-                    Timeout = TransactionManager.DefaultTimeout
-                },
-                TransactionScopeAsyncFlowOption.Enabled
-            );
+            _transaction = await VPPContext.Database.BeginTransactionAsync();
         }
 
         public void Commit()
         {
-            _transactionScope?.Complete();
-            _transactionScope?.Dispose();
-            _transactionScope = null;
+            if (_transaction == null)
+                throw new InvalidOperationException("No transaction to commit.");
+
+            SaveChanges();
+            _transaction.Commit();
+            _transaction.Dispose();
+            _transaction = null;
         }
         public async Task CommitAsync()
         {
-            if (_transactionScope == null)
+            if (_transaction == null)
                 throw new InvalidOperationException("No transaction to commit.");
 
             try
             {
                 await SaveChangesAsync();
-
-                _transactionScope.Complete();
-                _transactionScope.Dispose();
-                _transactionScope = null;
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
             }
             catch
             {
@@ -171,21 +115,23 @@ namespace gtas_vpp_be.Service.Services
 
         public void Rollback()
         {
-            _transactionScope?.Dispose();
-            _transactionScope = null;
+            if (_transaction == null) return;
+
+            _transaction.Rollback();
+            _transaction.Dispose();
+            _transaction = null;
+
+            ClearTrackedEntities();
         }
         public async Task RollbackAsync()
         {
-            if (_transactionScope == null) return;
+            if (_transaction == null) return;
 
-            // Dispose mà không gọi Complete => rollback
-            _transactionScope.Dispose();
-            _transactionScope = null;
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
 
-            // Clear tracked entities
-            if (_VPPContext != null)
-                foreach (var entry in _VPPContext.ChangeTracker.Entries())
-                    entry.State = EntityState.Detached;
+            ClearTrackedEntities();
         }
 
         public int SaveChanges()
@@ -218,7 +164,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 if (disposing)
                 {
-                    _transactionScope?.Dispose();
+                    _transaction?.Dispose();
                     _VPPContext?.Dispose();
                 }
                 _disposed = true;
@@ -229,6 +175,16 @@ namespace gtas_vpp_be.Service.Services
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        private void ClearTrackedEntities()
+        {
+            if (_VPPContext == null) return;
+
+            foreach (var entry in _VPPContext.ChangeTracker.Entries())
+            {
+                entry.State = EntityState.Detached;
+            }
         }
     }
 }

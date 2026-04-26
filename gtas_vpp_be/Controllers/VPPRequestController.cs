@@ -15,8 +15,8 @@ namespace gtas_vpp_be.Controllers
     {
         private readonly IVPPRequestService _vppService;
 
-        public VPPRequestController(IBusinessService businessService, IVPPRequestService vppService)
-            : base(businessService)
+        public VPPRequestController(IServiceProvider serviceProvider, IUserNameResolver userNameResolver, IUnitOfWork unitOfWork, IVPPRequestService vppService)
+            : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
         }
@@ -153,8 +153,7 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("products")]
         public async Task<IActionResult> GetProducts([FromQuery] Guid? categoryId, [FromQuery] string? search)
         {
-            var data = await _businessService.BaseService<L04_VPP>(
-                gtas_vpp_be.Service.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
+            var data = await ReadEntitiesAsync<L04_VPP>(
                 true,
                 x => !x.IsDeleted
                      && (categoryId == null || x.VPPCategoryId == categoryId)
@@ -183,8 +182,7 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories()
         {
-            var data = await _businessService.BaseService<L03_VPPCategory>(
-                gtas_vpp_be.Service.Helpers.Config.EF_BASEMETHOD.EF_GetTAsync,
+            var data = await ReadEntitiesAsync<L03_VPPCategory>(
                 true,
                 x => !x.IsDeleted);
 

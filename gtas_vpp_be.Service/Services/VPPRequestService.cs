@@ -38,8 +38,8 @@ namespace gtas_vpp_be.Service.Services
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly int _deadlineDay;
 
-        public VPPRequestService(IUnitOfWorkFactory uowFactory, IHttpContextAccessor httpContextAccessor, IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider, IConfiguration config)
-            : base(uowFactory, httpContextAccessor) 
+        public VPPRequestService(IUnitOfWorkFactory uowFactory, IHttpContextAccessor httpContextAccessor, IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider, IConfiguration config, IEnvironmentResolver environmentResolver, IUserNameResolver userNameResolver)
+            : base(uowFactory, httpContextAccessor, environmentResolver, userNameResolver) 
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
@@ -48,31 +48,15 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
         {
-            var yearFilter = years?.Distinct().ToArray();
-            var monthFilter = months?.Distinct().ToArray();
-            var statusFilter = statuses?.Distinct().ToArray();
-
-            var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
-                .AsNoTracking()
-                .Where(x => x.CreateUserId == userId && !x.IsDeleted);
-
-            if (yearFilter is { Length: > 0 }) query = query.Where(x => yearFilter.Contains(x.Y));
-            if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.M));
-            if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
-
-            var result = await query
-                .OrderByDescending(x => x.Y)
-                .ThenByDescending(x => x.M)
-                .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
-                .ProjectToType<VPP01_RequestHeaderResDTO>()
-                .AsSplitQuery()
-                .ToListAsync();
-
-            await ApplyRequesterNamesAsync(result);
-            return result;
+            return await GetFilteredOrdersAsync(userId, years, months, statuses);
         }
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersSummaryAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
+        {
+            return await GetFilteredOrdersAsync(userId, years, months, statuses);
+        }
+
+        private async Task<List<VPP01_RequestHeaderResDTO>> GetFilteredOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
         {
             var yearFilter = years?.Distinct().ToArray();
             var monthFilter = months?.Distinct().ToArray();

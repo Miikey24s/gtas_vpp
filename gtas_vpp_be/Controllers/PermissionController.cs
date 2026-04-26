@@ -21,20 +21,30 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {
-        private readonly IBusinessService _businessService;
+        private readonly IGenericRepository<P02_Group> _groupRepository;
+        private readonly IGenericRepository<P06_GroupPageComponentMapping> _groupPageComponentMappingRepository;
+        private readonly IGenericRepository<P04_UserGroup> _userGroupRepository;
+        private readonly IUserNameResolver _userNameResolver;
         private readonly IUnitOfWork _unitOfWork;
 
-        public PermissionController(IBusinessService businessService, IUnitOfWork unitOfWork)
+        public PermissionController(
+            IGenericRepository<P02_Group> groupRepository,
+            IGenericRepository<P06_GroupPageComponentMapping> groupPageComponentMappingRepository,
+            IGenericRepository<P04_UserGroup> userGroupRepository,
+            IUserNameResolver userNameResolver,
+            IUnitOfWork unitOfWork)
         {
-            _businessService = businessService;
+            _groupRepository = groupRepository;
+            _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
+            _userGroupRepository = userGroupRepository;
+            _userNameResolver = userNameResolver;
             _unitOfWork = unitOfWork;
         }
 
         [HttpGet("groups")]
         public async Task<IActionResult> GetGroups([FromQuery] bool getFullName = true)
         {
-            var data = await _businessService.BaseService<P02_Group>(
-                EF_BASEMETHOD.EF_GetTAsync, getFullName) ?? new List<P02_Group>();
+            var data = await ReadAsync(_groupRepository, getFullName);
 
             var rs = data.Adapt<List<P02_GroupResDTO>>();
             return Ok(rs);
@@ -43,10 +53,7 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("groups/{id:guid}")]
         public async Task<IActionResult> GetGroupById(Guid id, [FromQuery] bool getFullName = true)
         {
-            var data = await _businessService.BaseService<P02_Group>(
-                EF_BASEMETHOD.EF_GetTByIdAsync, getFullName, Param: id);
-
-            var entity = data?.FirstOrDefault();
+            var entity = await GetByIdAsync(_groupRepository, id, getFullName);
             if (entity is null) return Ok(null);
 
             var rs = entity.Adapt<P02_GroupResDTO>();
@@ -141,8 +148,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPut("groups/{id:guid}")]
         public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] P02_GroupUpdateReqDTO req)
         {
-            var current = (await _businessService.BaseService<P02_Group>(
-                EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id))?.FirstOrDefault();
+            var current = await GetByIdAsync(_groupRepository, id, true);
 
             if (current is null)
             {
@@ -172,11 +178,7 @@ namespace gtas_vpp_be.Controllers
             req.Adapt(current);
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _businessService.BaseService<P02_Group>(
-                EF_BASEMETHOD.EF_Update,
-                objs: new List<P02_Group> { current });
-
-            var updated = rs?.FirstOrDefault() ?? current;
+            var updated = await _groupRepository.UpdateAsync(current);
             var response = updated.Adapt<P02_GroupResDTO>();
 
             return Ok(response);
@@ -201,8 +203,7 @@ namespace gtas_vpp_be.Controllers
                 visited.Add(currentId);
 
                 // Get the parent of current group
-                var parent = (await _businessService.BaseService<P02_Group>(
-                    EF_BASEMETHOD.EF_GetTByIdAsync, false, Param: currentId))?.FirstOrDefault();
+                var parent = await GetByIdAsync(_groupRepository, currentId, false);
 
                 if (parent?.ParentGroupId == null || parent.ParentGroupId == Guid.Empty)
                 {
@@ -224,8 +225,7 @@ namespace gtas_vpp_be.Controllers
 
             while (currentId != Guid.Empty && depth < maxDepth)
             {
-                var group = (await _businessService.BaseService<P02_Group>(
-                    EF_BASEMETHOD.EF_GetTByIdAsync, false, Param: currentId))?.FirstOrDefault();
+                var group = await GetByIdAsync(_groupRepository, currentId, false);
 
                 if (group?.ParentGroupId == null || group.ParentGroupId == Guid.Empty)
                 {
@@ -242,11 +242,11 @@ namespace gtas_vpp_be.Controllers
         [HttpPatch("component-mapping")]
         public async Task<IActionResult> PatchComponentMapping([FromBody] PatchComponentMappingReqDTO req)
         {
-            var current = (await _businessService.BaseService<P06_GroupPageComponentMapping>(
-                EF_BASEMETHOD.EF_GetTAsync,
-                expression: x => x.P05_PageComponentMappingId == req.P05_PageComponentMappingId
-                              && x.P02_GroupId == req.P02_GroupId))
-                ?.FirstOrDefault();
+            var current = (await ReadAsync(
+                    _groupPageComponentMappingRepository,
+                    expression: x => x.P05_PageComponentMappingId == req.P05_PageComponentMappingId
+                                  && x.P02_GroupId == req.P02_GroupId))
+                .FirstOrDefault();
 
             if (current is null)
             {
@@ -256,10 +256,9 @@ namespace gtas_vpp_be.Controllers
             req.Adapt(current);
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _businessService.BaseService<P06_GroupPageComponentMapping>(
-                EF_BASEMETHOD.EF_Update,
-                objs: new List<P06_GroupPageComponentMapping> { current },
-                properties: new Expression<Func<P06_GroupPageComponentMapping, object>>[]
+            var rs = await _groupPageComponentMappingRepository.UpdateAsync(
+                current,
+                new Expression<Func<P06_GroupPageComponentMapping, object>>[]
                 {
                     x => x.IsEnable,
                     x => x.IsVisible,
@@ -267,16 +266,15 @@ namespace gtas_vpp_be.Controllers
                     x => x.UpdateDate
                 });
 
-            return Ok(rs?.FirstOrDefault() ?? current);
+            return Ok(rs);
         }
 
         [HttpDelete("groups/{id:guid}")]
         public async Task<IActionResult> DeleteGroup(Guid id)
         {
-            var rs = await _businessService.BaseService<P02_Group>(
-                EF_BASEMETHOD.EF_DeleteAsync, Param: id);
+            var success = await _groupRepository.DeleteAsync(id);
 
-            return Ok(new { success = rs is not null });
+            return Ok(new { success });
         }
         [HttpPost("user-groups")]
         public async Task<IActionResult> CreateUserGroup([FromBody] P04_UserGroupUpsertReqDTO req)
@@ -287,11 +285,7 @@ namespace gtas_vpp_be.Controllers
             entity.CreateDate = req.CreateDate ?? DateTime.Now;
             entity.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _businessService.BaseService<P04_UserGroup>(
-                EF_BASEMETHOD.EF_Create,
-                objs: new List<P04_UserGroup> { entity });
-
-            var created = rs?.FirstOrDefault() ?? entity;
+            var created = await _userGroupRepository.AddAsync(entity) ?? entity;
             return Ok(created.Adapt<P04_UserGroupResDTO>());
         }
 
@@ -302,8 +296,8 @@ namespace gtas_vpp_be.Controllers
             {
                 if (userId.HasValue)
                 {
-                    var userGroups = await _businessService.BaseService<P04_UserGroup>(
-                        EF_BASEMETHOD.EF_GetTAsync,
+                    var userGroups = await ReadAsync(
+                        _userGroupRepository,
                         getFullName: true,
                         expression: x => x.UserId == userId.Value);
 
@@ -312,9 +306,7 @@ namespace gtas_vpp_be.Controllers
                 }
                 else
                 {
-                    var allUserGroups = await _businessService.BaseService<P04_UserGroup>(
-                        EF_BASEMETHOD.EF_GetTAsync,
-                        getFullName: true);
+                    var allUserGroups = await ReadAsync(_userGroupRepository, getFullName: true);
 
                     var dtoList = allUserGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
                     return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
@@ -329,8 +321,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPut("user-groups/{id:guid}")]
         public async Task<IActionResult> UpdateUserGroup(Guid id, [FromBody] P04_UserGroupUpsertReqDTO req)
         {
-            var current = (await _businessService.BaseService<P04_UserGroup>(
-                EF_BASEMETHOD.EF_GetTByIdAsync, true, Param: id))?.FirstOrDefault();
+            var current = await GetByIdAsync(_userGroupRepository, id, true);
 
             if (current is null)
             {
@@ -341,12 +332,31 @@ namespace gtas_vpp_be.Controllers
             current.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
             current.UpdateDate = req.UpdateDate ?? DateTime.Now;
 
-            var rs = await _businessService.BaseService<P04_UserGroup>(
-                EF_BASEMETHOD.EF_Update,
-                objs: new List<P04_UserGroup> { current });
-
-            var updated = rs?.FirstOrDefault() ?? current;
+            var updated = await _userGroupRepository.UpdateAsync(current);
             return Ok(updated.Adapt<P04_UserGroupResDTO>());
+        }
+
+        private async Task<List<T>> ReadAsync<T>(
+            IGenericRepository<T> repository,
+            bool getFullName = false,
+            Expression<Func<T, bool>>? expression = null,
+            Func<IQueryable<T>, IQueryable<T>>? include = null) where T : class
+        {
+            var data = await repository.ReadAsync(expression, include);
+            return getFullName
+                ? await _userNameResolver.WithUserNamesAsync(data, _unitOfWork.VPPContext)
+                : data;
+        }
+
+        private async Task<T?> GetByIdAsync<T>(IGenericRepository<T> repository, object id, bool getFullName) where T : class
+        {
+            var entity = await repository.GetByIdAsync(id);
+            if (entity is not null && getFullName)
+            {
+                await _userNameResolver.IncludeUserInfoAsync(entity, _unitOfWork.VPPContext);
+            }
+
+            return entity;
         }
     }
 }
