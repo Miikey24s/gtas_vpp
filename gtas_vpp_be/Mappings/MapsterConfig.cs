@@ -17,28 +17,28 @@ namespace gtas_vpp_be.Mappings
                 .Ignore(d => d.Id)
                 .Ignore(d => d.CreateUserId)
                 .Ignore(d => d.CreateDate)
-                .Ignore(d => d.P04_UserGroups)
-                .Ignore(d => d.P06_GroupPageComponentMapping);
+                .Ignore(d => d.P04_UserGroups!)
+                .Ignore(d => d.P06_GroupPageComponentMapping!);
 
             config.NewConfig<PatchComponentMappingReqDTO, P06_GroupPageComponentMapping>()
-                .Ignore(d => d.P05_PageComponentMapping)
-                .Ignore(d => d.P02_Group)
+                .Ignore(d => d.P05_PageComponentMapping!)
+                .Ignore(d => d.P02_Group!)
                 .Ignore(d => d.CreateUserId)
                 .Ignore(d => d.CreateDate)
                 .Ignore(d => d.MemberCompanyCode);
 
             // Library mappings
             config.NewConfig<L01_Class, L01_ClassResDTO>()
-                .Ignore(dest => dest.L02_ClassDetails);
+                .Ignore(dest => dest.L02_ClassDetails!);
             config.NewConfig<L01_ClassResDTO, L01_Class>()
-                .Ignore(dest => dest.L02_ClassDetails);
+                .Ignore(dest => dest.L02_ClassDetails!);
             
             config.NewConfig<L02_ClassDetail, L02_ClassDetailResDTO>()
-                .Ignore(dest => dest.Class)
-                .Ignore(dest => dest.VPPs_UOM);
+                .Ignore(dest => dest.Class!)
+                .Ignore(dest => dest.VPPs_UOM!);
             config.NewConfig<L02_ClassDetailResDTO, L02_ClassDetail>()
-                .Ignore(dest => dest.Class)
-                .Ignore(dest => dest.VPPs_UOM);
+                .Ignore(dest => dest.Class!)
+                .Ignore(dest => dest.VPPs_UOM!);
             
             config.NewConfig<L03_VPPCategory, L03_VPPCategoryResDTO>();
             config.NewConfig<L03_VPPCategoryResDTO, L03_VPPCategory>();

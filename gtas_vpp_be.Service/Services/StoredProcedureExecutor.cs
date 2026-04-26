@@ -38,24 +38,5 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<sp_ResDTO> ExecuteQueryAsync(string query, int? timeout = 300, params object?[] parameters)
-        {
-            var result = new sp_ResDTO();
-            _unitOfWork.VPPContext.Database.SetCommandTimeout(timeout);
-            try
-            {
-                result = (await _unitOfWork.VPPContext.Set<sp_ResDTO>()
-                    .FromSqlRaw(query, parameters)
-                    .ToListAsync()).FirstOrDefault() ?? new sp_ResDTO();
-            }
-            catch (Exception ex)
-            {
-                result.IsSuccess = false;
-                result.ErrorMess = ex.Message;
-                throw new Exception($"Error in EFBaseServiceRead: {ex.Message}", ex);
-            }
-
-            return result;
-        }
     }
 }

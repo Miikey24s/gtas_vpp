@@ -16,6 +16,9 @@ var Configuration = builder.Configuration;
 
 // Initialize Config with the application configuration
 Config.Initialize(Configuration);
+var jwtKey = Config.JwtSettings.Key;
+var jwtIssuer = Config.JwtSettings.Issuer;
+var jwtAudience = Config.JwtSettings.Audience;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -82,9 +85,9 @@ builder.Services
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
-            ValidIssuer = Config.JwtSettings.Issuer,
-            ValidAudience = Config.JwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config.JwtSettings.Key)),
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ClockSkew = TimeSpan.FromMinutes(Config.JwtSettings.ClockSkewMinutes)
         };
     });

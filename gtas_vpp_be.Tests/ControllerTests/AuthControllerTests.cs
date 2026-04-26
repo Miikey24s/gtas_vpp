@@ -79,7 +79,7 @@ public class AuthControllerTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["JwtSettings:Key"] = "GTAS_VPP_BE_DEV_ONLY_KEY_CHANGE_IN_PRODUCTION_2026",
+                ["JwtSettings:Key"] = "TEST_JWT_KEY_FOR_AUTH_CONTROLLER_TESTS_2026",
                 ["JwtSettings:Issuer"] = "gtas_vpp_be",
                 ["JwtSettings:Audience"] = "gtas_vpp_clients"
             })

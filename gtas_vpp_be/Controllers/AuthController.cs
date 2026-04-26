@@ -135,7 +135,12 @@ namespace gtas_vpp_be.Controllers
 
         private string GenerateAccessToken(sp_Authentication_Login loginData)
         {
-            var jwtKey = _configuration["JwtSettings:Key"] ?? "GTAS_VPP_BE_DEV_ONLY_KEY_CHANGE_IN_PRODUCTION_2026";
+            var jwtKey = _configuration["JwtSettings:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException("JWT Key must be configured via environment variable or user secrets");
+            }
+
             var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? "gtas_vpp_be";
             var jwtAudience = _configuration["JwtSettings:Audience"] ?? "gtas_vpp_clients";
 

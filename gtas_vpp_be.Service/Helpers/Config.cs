@@ -16,7 +16,7 @@ namespace gtas_vpp_be.Service.Helpers
 
         public static class JwtSettings
         {
-            public static string Key => GetConfigValue("JwtSettings:Key", "GTAS_VPP_BE_DEV_ONLY_KEY_CHANGE_IN_PRODUCTION_2026");
+            public static string Key => GetRequiredConfigValue("JwtSettings:Key", "JWT Key must be configured via environment variable or user secrets");
             public static string Issuer => GetConfigValue("JwtSettings:Issuer", "gtas_vpp_be");
             public static string Audience => GetConfigValue("JwtSettings:Audience", "gtas_vpp_clients");
             public static int ClockSkewMinutes => 2;
@@ -30,6 +30,18 @@ namespace gtas_vpp_be.Service.Helpers
         private static string GetConfigValue(string key, string defaultValue)
         {
             return _configuration?[key] ?? defaultValue;
+        }
+
+        private static string GetRequiredConfigValue(string key, string errorMessage)
+        {
+            var value = _configuration?[key];
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException(errorMessage);
+            }
+
+            return value;
         }
 
         public enum EnvType

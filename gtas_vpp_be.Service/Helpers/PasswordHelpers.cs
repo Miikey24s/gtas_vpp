@@ -21,14 +21,14 @@ namespace gtas_vpp_be.Service.Helpers
 
             if (useHashing)
             {
-                MD5CryptoServiceProvider hashmd5 = new MD5CryptoServiceProvider();
+                MD5 hashmd5 = MD5.Create();
                 keyArray = hashmd5.ComputeHash(UTF8Encoding.UTF8.GetBytes(_securitykey));
                 hashmd5.Clear();
             }
             else
                 keyArray = UTF8Encoding.UTF8.GetBytes(_securitykey);
 
-            TripleDESCryptoServiceProvider tdes = new TripleDESCryptoServiceProvider();
+            TripleDES tdes = TripleDES.Create();
             tdes.Key = keyArray;
             tdes.Mode = CipherMode.ECB;
             tdes.Padding = PaddingMode.PKCS7;
@@ -50,14 +50,14 @@ namespace gtas_vpp_be.Service.Helpers
             //System.Windows.Forms.MessageBox.Show(key);
             if (useHashing)
             {
-                MD5CryptoServiceProvider hashmd5 = new MD5CryptoServiceProvider();
+                MD5 hashmd5 = MD5.Create();
                 keyArray = hashmd5.ComputeHash(UTF8Encoding.UTF8.GetBytes(_securitykey));
                 hashmd5.Clear();
             }
             else
                 keyArray = UTF8Encoding.UTF8.GetBytes(_securitykey);
 
-            TripleDESCryptoServiceProvider tdes = new TripleDESCryptoServiceProvider();
+            TripleDES tdes = TripleDES.Create();
             tdes.Key = keyArray;
             tdes.Mode = CipherMode.ECB;
             tdes.Padding = PaddingMode.PKCS7;

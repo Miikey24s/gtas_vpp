@@ -1,12 +1,9 @@
-﻿using gtas_vpp_be.Model.Auth;
-using gtas_vpp_be.Service.Services;
+﻿using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
-using System.Text.Json;
 using System.Web;
-using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -15,11 +12,15 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]/[action]")]
     public class SQLController : ControllerBase
     {
-        private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IStoredProcedureExecutor _storedProcedureExecutor;
-        public SQLController(IHttpContextAccessor contextAccessor, IStoredProcedureExecutor storedProcedureExecutor)
+        private static readonly HashSet<string> AllowedStoredProcedures = new(StringComparer.OrdinalIgnoreCase)
         {
-            _contextAccessor = contextAccessor;
+            "sp_Authen"
+        };
+
+        private readonly IStoredProcedureExecutor _storedProcedureExecutor;
+
+        public SQLController(IStoredProcedureExecutor storedProcedureExecutor)
+        {
             _storedProcedureExecutor = storedProcedureExecutor;
         }
         private void SetHeader(string? script)
@@ -43,6 +44,12 @@ namespace gtas_vpp_be.Controllers
         {
             string script = string.Empty;
             string empty = string.Empty;
+
+            if (!AllowedStoredProcedures.Contains(spName))
+            {
+                return BadRequest("Stored procedure is not allowed.");
+            }
+
             try
             {
                 object? desParam = JsonConvert.DeserializeObject<object>(param?.ToString() ?? "");
@@ -67,52 +74,6 @@ namespace gtas_vpp_be.Controllers
             return Ok(empty);
         }
 
-        [HttpPost]
-        public virtual async Task<IActionResult> Query([FromBody] SqlQueryRequest? request, int? timeout = 300)
-        {
-            string script = string.Empty;
-            string empty = string.Empty;
-            try
-            {
-                if (request is null || string.IsNullOrWhiteSpace(request.Query))
-                {
-                    return BadRequest("Query is required.");
-                }
-
-                var parameters = NormalizeSqlParameters(request.Parameters);
-                var rs = await _storedProcedureExecutor.ExecuteQueryAsync(request.Query, timeout, parameters);
-                empty = JsonConvert.SerializeObject(rs,
-                                new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-            }
-            catch (Exception ex)
-            {
-                base.HttpContext.Response.Headers.Append("script", script);
-                return BadRequest(ex.Message);
-            }
-            base.HttpContext.Response.Headers.Append("script", script);
-            return Ok(empty);
-        }
-
-        private static object?[] NormalizeSqlParameters(IEnumerable<JsonElement>? parameters)
-        {
-            return parameters?.Select(NormalizeSqlParameter).ToArray() ?? Array.Empty<object?>();
-        }
-
-        private static object? NormalizeSqlParameter(JsonElement parameter)
-        {
-            return parameter.ValueKind switch
-            {
-                JsonValueKind.Null or JsonValueKind.Undefined => null,
-                JsonValueKind.String => parameter.GetString(),
-                JsonValueKind.True => true,
-                JsonValueKind.False => false,
-                JsonValueKind.Number when parameter.TryGetInt32(out var intValue) => intValue,
-                JsonValueKind.Number when parameter.TryGetInt64(out var longValue) => longValue,
-                JsonValueKind.Number when parameter.TryGetDecimal(out var decimalValue) => decimalValue,
-                _ => parameter.GetRawText()
-            };
-        }
-
         [HttpGet("test")]
         public IActionResult Test()
         {
@@ -121,9 +82,4 @@ namespace gtas_vpp_be.Controllers
         }
     }
 
-    public sealed class SqlQueryRequest
-    {
-        public string Query { get; init; } = string.Empty;
-        public IReadOnlyList<JsonElement> Parameters { get; init; } = Array.Empty<JsonElement>();
-    }
 }
