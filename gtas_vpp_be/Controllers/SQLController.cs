@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
+using System.Text.Json;
 using System.Web;
 using static gtas_vpp_be.Service.Helpers.Config;
 
@@ -67,13 +68,19 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost]
-        public virtual async Task<IActionResult> Query([FromBody]string query, int? timeout = 300)
+        public virtual async Task<IActionResult> Query([FromBody] SqlQueryRequest? request, int? timeout = 300)
         {
             string script = string.Empty;
             string empty = string.Empty;
             try
             {
-                var rs = await _storedProcedureExecutor.ExecuteQueryAsync(query, timeout);
+                if (request is null || string.IsNullOrWhiteSpace(request.Query))
+                {
+                    return BadRequest("Query is required.");
+                }
+
+                var parameters = NormalizeSqlParameters(request.Parameters);
+                var rs = await _storedProcedureExecutor.ExecuteQueryAsync(request.Query, timeout, parameters);
                 empty = JsonConvert.SerializeObject(rs,
                                 new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             }
@@ -86,11 +93,37 @@ namespace gtas_vpp_be.Controllers
             return Ok(empty);
         }
 
+        private static object?[] NormalizeSqlParameters(IEnumerable<JsonElement>? parameters)
+        {
+            return parameters?.Select(NormalizeSqlParameter).ToArray() ?? Array.Empty<object?>();
+        }
+
+        private static object? NormalizeSqlParameter(JsonElement parameter)
+        {
+            return parameter.ValueKind switch
+            {
+                JsonValueKind.Null or JsonValueKind.Undefined => null,
+                JsonValueKind.String => parameter.GetString(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Number when parameter.TryGetInt32(out var intValue) => intValue,
+                JsonValueKind.Number when parameter.TryGetInt64(out var longValue) => longValue,
+                JsonValueKind.Number when parameter.TryGetDecimal(out var decimalValue) => decimalValue,
+                _ => parameter.GetRawText()
+            };
+        }
+
         [HttpGet("test")]
         public IActionResult Test()
         {
             var username = User.Identity?.Name;
             return Ok($"Hello {username}");
         }
+    }
+
+    public sealed class SqlQueryRequest
+    {
+        public string Query { get; init; } = string.Empty;
+        public IReadOnlyList<JsonElement> Parameters { get; init; } = Array.Empty<JsonElement>();
     }
 }

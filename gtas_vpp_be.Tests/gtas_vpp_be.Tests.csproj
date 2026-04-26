@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\gtas_vpp_be\gtas_vpp_be.csproj" />
     <ProjectReference Include="..\gtas_vpp_be.Service\gtas_vpp_be.Service.csproj" />
   </ItemGroup>
 

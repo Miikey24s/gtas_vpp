@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace gtas_vpp_be.Middleware
 {
@@ -47,7 +48,7 @@ namespace gtas_vpp_be.Middleware
 
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/problem+json";
-            await context.Response.WriteAsJsonAsync(problemDetails);
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails));
         }
     }
 }
