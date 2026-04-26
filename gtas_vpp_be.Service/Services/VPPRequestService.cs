@@ -2,6 +2,7 @@ using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.VPP;
+using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Mapster;
 using Microsoft.AspNetCore.Http;
@@ -59,13 +60,16 @@ namespace gtas_vpp_be.Service.Services
             if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.M));
             if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
 
-            return await query
+            var result = await query
                 .OrderByDescending(x => x.Y)
                 .ThenByDescending(x => x.M)
                 .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return result;
         }
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersSummaryAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
@@ -82,13 +86,16 @@ namespace gtas_vpp_be.Service.Services
             if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.M));
             if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
 
-            return await query
+            var result = await query
                 .OrderByDescending(x => x.Y)
                 .ThenByDescending(x => x.M)
                 .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return result;
         }
 
         public async Task<VPP01_RequestHeaderResDTO?> GetOrderByIdAsync(Guid id)
@@ -99,6 +106,11 @@ namespace gtas_vpp_be.Service.Services
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .FirstOrDefaultAsync();
+
+            if (data is not null)
+            {
+                await ApplyRequesterNamesAsync(new List<VPP01_RequestHeaderResDTO> { data });
+            }
 
             return data;
         }
@@ -465,7 +477,7 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode)
         {
-            return await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted
                      && (year == null || x.Y == year)
@@ -475,11 +487,14 @@ namespace gtas_vpp_be.Service.Services
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return result;
         }
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode, int[] allowedStatuses)
         {
-            return await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted
                      && (year == null || x.Y == year)
@@ -489,16 +504,22 @@ namespace gtas_vpp_be.Service.Services
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return result;
         }
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync()
         {
-            return await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted && x.IsAdditionalOrder && x.Status == (int)VPPStatus.Pending)
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return result;
         }
 
         public async Task ApproveAdditionalOrderAsync(Guid id, int adminId)
@@ -578,6 +599,33 @@ namespace gtas_vpp_be.Service.Services
 
         private string GenerateVPPCode(int year, int month, int userId)
             => $"VPP-{year}{month:D2}-{userId}-{_dateTimeProvider.Now:mmss}";
+
+        private async Task ApplyRequesterNamesAsync(List<VPP01_RequestHeaderResDTO> orders)
+        {
+            var userIds = orders
+                .Select(x => x.CreateUserId)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToArray();
+
+            if (userIds.Length == 0)
+            {
+                return;
+            }
+
+            var users = await _scopedUow.VPPContext.Set<v_Users>()
+                .AsNoTracking()
+                .Where(x => userIds.Contains(x.UserID))
+                .Select(x => new { x.UserID, x.FullName })
+                .ToDictionaryAsync(x => x.UserID, x => x.FullName);
+
+            foreach (var order in orders)
+            {
+                order.RequesterName = users.TryGetValue(order.CreateUserId, out var fullName)
+                    ? fullName
+                    : null;
+            }
+        }
 
         private static object BuildLogPayload(VPP01_RequestHeader header, IEnumerable<VPP02_RequestDetail> details)
             => new

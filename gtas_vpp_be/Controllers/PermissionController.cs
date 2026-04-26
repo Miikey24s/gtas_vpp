@@ -7,8 +7,11 @@ using gtas_vpp_be.Service.Services;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using static gtas_vpp_be.Service.Helpers.Config;
+using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authen_Permission_GetPageWithComponentByGroupId;
+using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -18,10 +21,12 @@ namespace gtas_vpp_be.Controllers
     public class PermissionController : ControllerBase
     {
         private readonly IBussinessService _bussinessService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public PermissionController(IBussinessService bussinessService)
+        public PermissionController(IBussinessService bussinessService, IUnitOfWork unitOfWork)
         {
             _bussinessService = bussinessService;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet("groups")]
@@ -45,6 +50,76 @@ namespace gtas_vpp_be.Controllers
 
             var rs = entity.Adapt<P02_GroupResDTO>();
             return Ok(rs);
+        }
+
+        [HttpGet("groups/{id:guid}/page-components")]
+        public async Task<IActionResult> GetGroupPageComponents(Guid id)
+        {
+            var groupMappings = await _unitOfWork.VPPContext.Set<P06_GroupPageComponentMapping>()
+                .AsNoTracking()
+                .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P01_Page)
+                .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P03_Component)
+                .Where(x => x.P02_GroupId == id
+                            && x.P05_PageComponentMapping != null
+                            && x.P05_PageComponentMapping.P01_Page != null
+                            && x.P05_PageComponentMapping.P03_Component != null
+                            && !x.P05_PageComponentMapping.P01_Page.IsDeleted
+                            && !x.P05_PageComponentMapping.P03_Component.IsDeleted)
+                .ToListAsync();
+
+            if (groupMappings.Count == 0)
+            {
+                return Ok(new List<PermissionPageDto>());
+            }
+
+            var result = groupMappings
+                .GroupBy(x => x.P05_PageComponentMapping!.P01_PageId)
+                .OrderBy(x => x.First().P05_PageComponentMapping!.P01_Page!.PageCode)
+                .Select(pageGroup =>
+                {
+                    var page = pageGroup.First().P05_PageComponentMapping!.P01_Page!;
+
+                    return new PermissionPageDto
+                    {
+                        GroupId = id,
+                        PageId = page.Id,
+                        PageCode = page.PageCode,
+                        PageName = page.PageName,
+                        Description = page.Description,
+                        CreateUserId = page.CreateUserId,
+                        CreateDate = page.CreateDate,
+                        UpdateUserId = page.UpdateUserId,
+                        UpdateDate = page.UpdateDate,
+                        IsDeleted = page.IsDeleted,
+                        List_Component = pageGroup
+                            .OrderBy(x => x.P05_PageComponentMapping!.P03_Component!.ComponentName)
+                            .Select(groupMapping =>
+                            {
+                                var pageComponentMapping = groupMapping.P05_PageComponentMapping!;
+                                var component = pageComponentMapping.P03_Component!;
+
+                                return new PermissionComponentDto
+                                {
+                                    ComponentId = component.Id,
+                                    ComponentCode = component.ComponentCode,
+                                    ComponentName = component.ComponentName,
+                                    Description = component.Description,
+                                    IsVisible = groupMapping.IsVisible,
+                                    IsEnable = groupMapping.IsEnable,
+                                    PageId = page.Id,
+                                    GroupId = id,
+                                    GroupPageComponentMappingId = pageComponentMapping.Id,
+                                    MemberCompanyCode = groupMapping.MemberCompanyCode,
+                                    CompanyName = "PHONG PHU INTERNATIONAL JSC",
+                                    CompanyShortName = "PPJ"
+                                };
+                            })
+                            .ToList()
+                    };
+                })
+                .ToList();
+
+            return Ok(result);
         }
 
         [HttpPut("groups/{id:guid}")]
