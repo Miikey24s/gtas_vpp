@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using gtas_vpp_be.Service.Helpers;
 using Microsoft.AspNetCore.Http;
-using static gtas_vpp_be.Service.Helpers.Config.EnvConfig;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace gtas_vpp_be.Service.Services
 {
@@ -15,18 +16,20 @@ namespace gtas_vpp_be.Service.Services
         protected readonly IUnitOfWork _unitOfWork;
         private readonly IEnvironmentResolver _environmentResolver;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<BaseServices> _logger;
+        private readonly JiraSettings _jiraSettings;
 
-        public DeployEnv DeployEnv { get; set; } = new DeployEnv();
-        public JiraIssueLive _JiraIssueLive { get; set; } = new JiraIssueLive();
-        public JiraIssueTest _JiraIssueTest { get; set; } = new JiraIssueTest();
+        public string JiraIssue { get; private set; } = string.Empty;
 
-        public BaseServices(IUnitOfWorkFactory unitOfWorkFactory, IHttpContextAccessor httpContextAccessor, IEnvironmentResolver environmentResolver, IUserNameResolver userNameResolver)
+        public BaseServices(IUnitOfWorkFactory unitOfWorkFactory, IHttpContextAccessor httpContextAccessor, IEnvironmentResolver environmentResolver, IUserNameResolver userNameResolver, ILogger<BaseServices> logger, IOptions<JiraSettings> jiraSettings)
         {
             _unitOfWorkFactory = unitOfWorkFactory;
             _httpContextAccessor = httpContextAccessor;
             _environmentResolver = environmentResolver;
+            _logger = logger;
+            _jiraSettings = jiraSettings.Value;
             var environment = _environmentResolver.Resolve(Claims);
-            ApplyDeployEnvironment(environment);
+            ApplyJiraSettings(environment);
             _unitOfWork = _unitOfWorkFactory.Create(environment);
         }
 
@@ -34,15 +37,16 @@ namespace gtas_vpp_be.Service.Services
 
         public IEnumerable<Claim> Claims => User?.Claims ?? Enumerable.Empty<Claim>();
 
-        public virtual void WriteLog(Exception ex, string spname, Dictionary<string, object>? properties = null)
+        public virtual void WriteLog(Exception ex, string context, Dictionary<string, object>? properties = null)
         {
+            _logger.LogError(ex, "Error in {Context} {@Properties}", context, properties);
         }
 
-        private void ApplyDeployEnvironment(string environment)
+        private void ApplyJiraSettings(string environment)
         {
-            DeployEnv.JiraIssue = environment == "LiveEnv"
-                ? _JiraIssueLive.JiraIssue
-                : _JiraIssueTest.JiraIssue;
+            JiraIssue = environment == nameof(Config.EnvType.LiveEnv)
+                ? _jiraSettings.LiveJiraIssue
+                : _jiraSettings.TestJiraIssue;
         }
     }
 }

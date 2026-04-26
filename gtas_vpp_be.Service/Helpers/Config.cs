@@ -32,45 +32,6 @@ namespace gtas_vpp_be.Service.Helpers
             return _configuration?[key] ?? defaultValue;
         }
 
-        public static class EnvConfig
-        {
-            public class JiraIssueTest
-            {
-                public List<string> JiraIssue { get; set; }
-                public JiraIssueTest()
-                {
-                    JiraIssue = new List<string>()
-                    {
-                        "GC2_55"
-                    };
-                }
-            }
-            public class JiraIssueLive
-            {
-                public List<string> JiraIssue { get; set; }
-                public JiraIssueLive()
-                {
-                    JiraIssue = new List<string>()
-                    {
-                        ""
-                    };
-                }
-            }
-            public enum JrTest
-            {
-                GC2_55
-            }
-            public class DeployEnv
-            {
-                public List<string> JiraIssue { get; set; }
-                public string Title { get; set; }
-                public DeployEnv()
-                {
-                    Title = default!;
-                    JiraIssue = default!;
-                }
-            }
-        }
         public enum EnvType
         {
             LiveEnv,

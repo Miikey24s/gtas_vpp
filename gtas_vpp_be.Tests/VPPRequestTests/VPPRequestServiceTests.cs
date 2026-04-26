@@ -6,6 +6,8 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.VPPRequestTests;
@@ -132,7 +134,16 @@ public class VPPRequestServiceTests
             })
             .Build();
 
-        return new VPPRequestService(factory.Object, httpContextAccessor, unitOfWork.Object, dateTimeProvider, config, new EnvironmentResolver(), new UserNameResolver());
+        return new VPPRequestService(
+            factory.Object,
+            httpContextAccessor,
+            unitOfWork.Object,
+            dateTimeProvider,
+            config,
+            new EnvironmentResolver(),
+            new UserNameResolver(),
+            NullLogger<BaseServices>.Instance,
+            Options.Create(new JiraSettings()));
     }
 
     private static VPP01_CreateReqDTO CreateOrderRequest(bool isAdditionalOrder)

@@ -8,6 +8,8 @@ using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using static gtas_vpp_be.Service.Helpers.Config;
 
@@ -38,8 +40,8 @@ namespace gtas_vpp_be.Service.Services
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly int _deadlineDay;
 
-        public VPPRequestService(IUnitOfWorkFactory uowFactory, IHttpContextAccessor httpContextAccessor, IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider, IConfiguration config, IEnvironmentResolver environmentResolver, IUserNameResolver userNameResolver)
-            : base(uowFactory, httpContextAccessor, environmentResolver, userNameResolver) 
+        public VPPRequestService(IUnitOfWorkFactory uowFactory, IHttpContextAccessor httpContextAccessor, IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider, IConfiguration config, IEnvironmentResolver environmentResolver, IUserNameResolver userNameResolver, ILogger<BaseServices> baseLogger, IOptions<JiraSettings> jiraSettings)
+            : base(uowFactory, httpContextAccessor, environmentResolver, userNameResolver, baseLogger, jiraSettings) 
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;

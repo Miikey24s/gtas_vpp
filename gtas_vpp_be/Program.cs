@@ -1,4 +1,5 @@
 using gtas_vpp_be.Mappings;
+using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
@@ -7,6 +8,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +16,17 @@ var Configuration = builder.Configuration;
 
 // Initialize Config with the application configuration
 Config.Initialize(Configuration);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/log-.txt",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14)
+    .CreateLogger();
+builder.Host.UseSerilog();
 
 // Add services to the container.
 
@@ -38,6 +51,7 @@ builder.Services.AddDbContext<VPPContext>(
 );
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<JiraSettings>(Configuration.GetSection("JiraSettings"));
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
 builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
@@ -108,6 +122,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
