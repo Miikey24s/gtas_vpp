@@ -1,3 +1,4 @@
+using gtas_vpp_be.AI.DependencyInjection;
 using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Model;
@@ -65,6 +66,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
+builder.Services.AddGtasAIServices(Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
