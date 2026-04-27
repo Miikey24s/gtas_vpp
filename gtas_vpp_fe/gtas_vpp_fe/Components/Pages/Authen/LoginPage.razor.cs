@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Authentication;

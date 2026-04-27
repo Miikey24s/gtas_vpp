@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Components;
+using gtas_vpp_fe.Components;
 using gtas_vpp_fe.Endpoints;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Share;
