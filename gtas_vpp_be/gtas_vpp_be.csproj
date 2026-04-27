@@ -36,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\gtas_vpp_be.AI\gtas_vpp_be.AI.csproj" />
     <ProjectReference Include="..\gtas_vpp_be.Migrations\gtas_vpp_be.Migrations.csproj" />
     <ProjectReference Include="..\gtas_vpp_be.Model\gtas_vpp_be.Model.csproj" />
     <ProjectReference Include="..\gtas_vpp_be.Service\gtas_vpp_be.Service.csproj" />
