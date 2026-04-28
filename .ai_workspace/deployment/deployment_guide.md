@@ -1,240 +1,195 @@
-# 🚀 GTAS VPP – Hướng dẫn Deploy lên DigitalOcean
+# 🚀 GTAS VPP – Hướng dẫn Deploy VPS Live Demo
 
-## Kiến trúc tổng quan
+**Domain**: `gtas_vpp.annam.id.vn`  
+**Server**: DigitalOcean 8GB RAM
+
+---
+
+## Kiến trúc
 
 ```mermaid
 graph TB
     Internet["🌐 Internet"] --> Nginx["Nginx (Host)<br/>SSL + Reverse Proxy"]
-    
+
     subgraph Docker["Docker Compose"]
         Nginx --> FE["Frontend<br/>Blazor Server<br/>:5000 | 384MB"]
         Nginx --> BE["Backend<br/>.NET 10 API<br/>:8080 | 512MB"]
         BE --> DB["SQL Server<br/>Express 2022<br/>:1433 | 2GB"]
         BE -->|"Google AI"| Google["☁️ Google Gemini API"]
-        BE -.->|"Ollama (tùy chọn)"| Ollama["Ollama<br/>CPU Only<br/>3GB"]
     end
-    
+
     style Google fill:#4285f4,color:#fff
-    style Ollama fill:#666,color:#fff,stroke-dasharray: 5 5
 ```
 
-## Phân bổ RAM (8GB Droplet)
+### Cách hệ thống chọn DB
 
-### Mode 1: Google AI (Khuyến nghị ✅)
+| URL chứa | `selected_server` | Connection String | DB |
+|-----------|-------------------|-------------------|----|
+| `localhost`, `dev.` | `Test` → `TestEnv` | Local dev DB | `GTAS_VPP_TEST` |
+| `annam.id.vn`, IP | `Live` → `LiveEnv` | VPS Docker DB | `GTAS_VPP_LIVE` |
 
-| Component | RAM | Ghi chú |
-|-----------|-----|---------|
-| OS + Docker | ~1.0 GB | Ubuntu overhead |
-| SQL Server Express | 1.5 GB | `MSSQL_MEMORY_LIMIT_MB=1536` |
-| Backend (.NET 10) | 0.5 GB | Workstation GC |
-| Frontend (Blazor Server) | 0.4 GB | Workstation GC |
-| **Tổng sử dụng** | **~3.4 GB** | |
-| **Còn trống** | **~4.6 GB** | Rất thoải mái! |
-
-### Mode 2: Ollama Self-hosted (Tùy chọn)
-
-| Component | RAM | Ghi chú |
-|-----------|-----|---------|
-| OS + Docker | ~1.0 GB | |
-| SQL Server Express | 1.5 GB | |
-| Ollama + models | ~1.5 GB | gemma:2b + nomic-embed-text |
-| Backend (.NET 10) | 0.5 GB | |
-| Frontend (Blazor Server) | 0.4 GB | |
-| **Tổng sử dụng** | **~4.9 GB** | |
-| **Còn trống** | **~3.1 GB** | Đủ dùng |
-
-> [!IMPORTANT]
-> **Google AI được khuyến nghị cho DigitalOcean** vì tiết kiệm ~3GB RAM, phản hồi nhanh hơn nhiều so với CPU-only Ollama, và dùng `gemini-2.5-flash` (free tier) rất nhanh, nhẹ.
+> Trên VPS, cả `TestEnv` lẫn `LiveEnv` đều trỏ `GTAS_VPP_LIVE` (vì EF Migration hardcode `TestEnv`).
 
 ---
 
-## Step-by-step Deploy
-
-### Bước 1: Tạo Droplet trên DigitalOcean
+## Step 1: Tạo Droplet
 
 ```
 - Image: Ubuntu 24.04 LTS
-- Size: 8GB RAM / 4 vCPUs ($48/tháng) hoặc tương đương
+- Size: 8GB RAM / 4 vCPUs
 - Region: Singapore (SGP1)
-- SSH Key: Thêm public key của bạn
+- SSH Key: Thêm public key
 ```
 
-### Bước 2: SSH vào server & cài đặt
+## Step 2: Cài đặt server
 
 ```bash
 ssh root@YOUR_DROPLET_IP
-```
 
-```bash
-# Update hệ thống
 apt update && apt upgrade -y
-
-# Cài Docker
 curl -fsSL https://get.docker.com | sh
-
-# Cài Nginx (host-level reverse proxy)
 apt install -y nginx certbot python3-certbot-nginx
-
-# Tạo thư mục project
 mkdir -p /opt/gtas-vpp
 ```
 
-### Bước 3: Upload code lên server
+## Step 3: Upload code
 
-Chạy từ máy Windows (PowerShell):
+```bash
+# Option A: Git clone (khuyến nghị)
+cd /opt/gtas-vpp && git clone YOUR_REPO_URL .
 
-```powershell
-# Từ thư mục gốc project (c:\ANNAM\TT\SRS\backup)
+# Option B: SCP từ local
 scp -r ./* root@YOUR_DROPLET_IP:/opt/gtas-vpp/
 ```
 
-> [!TIP]
-> Nếu dùng Git, push code lên repo rồi clone trên server sẽ nhanh và sạch hơn:
-> ```bash
-> cd /opt/gtas-vpp && git clone YOUR_REPO_URL .
-> ```
-
-### Bước 4: Cấu hình .env
+## Step 4: Cấu hình .env
 
 ```bash
 cd /opt/gtas-vpp
-
-# Copy template
 cp .env.example .env
-
-# Chỉnh sửa
 nano .env
 ```
-
-**Nội dung `.env` cho Google AI (mặc định):**
 
 ```env
 DB_SA_PASSWORD=ThayDoiMatKhauManh!2026
 MSSQL_MEMORY_LIMIT_MB=1536
-JWT_KEY=GTAS_VPP_PRODUCTION_KEY_DO_2026_CHANGE_ME_MIN32
+JWT_KEY=$(openssl rand -base64 48)
 
 AI_PROVIDER=Google
-GOOGLE_AI_API_KEY=AIzaSy...your-key-here...
+GOOGLE_AI_API_KEY=AIzaSy...KEY-MỚI...
 AI_CHAT_MODEL=gemini-2.5-flash
 AI_EMBEDDING_MODEL=text-embedding-004
 AI_TIMEOUT_SECONDS=60
 ```
 
-**Hoặc cho Ollama (self-hosted):**
+> [!CAUTION]
+> **Tạo Google AI key MỚI** tại https://aistudio.google.com/apikey. Key cũ đã lộ trong git → revoke ngay!
 
-```env
-DB_SA_PASSWORD=ThayDoiMatKhauManh!2026
-MSSQL_MEMORY_LIMIT_MB=1536
-JWT_KEY=GTAS_VPP_PRODUCTION_KEY_DO_2026_CHANGE_ME_MIN32
+## Step 5: Import Database từ Local
 
-AI_PROVIDER=Ollama
-AI_CHAT_MODEL=gemma:2b
-AI_EMBEDDING_MODEL=nomic-embed-text
-OLLAMA_BASE_URL=http://ollama:11434
-AI_TIMEOUT_SECONDS=120
-```
-
-### Bước 5: Cấu hình Nginx (Host-level)
+### 5.1 Dọn rác trên Local (tùy chọn)
 
 ```bash
-# Copy config
-cp /opt/gtas-vpp/nginx/gtas-vpp.conf /etc/nginx/sites-available/gtas-vpp
+# Mở SSMS, chạy scripts/cleanup_test_data.sql trên DB GTAS_VPP_TEST
+# Bỏ comment các block DELETE phù hợp, sửa điều kiện WHERE
+```
 
-# Enable site
+### 5.2 Backup từ Local
+
+**SSMS**: Right-click `GTAS_VPP_TEST` → Tasks → Back Up → chọn Full → OK → file `.bak`
+
+**Hoặc dùng sqlcmd**:
+```cmd
+sqlcmd -S . -Q "BACKUP DATABASE [GTAS_VPP_TEST] TO DISK='C:\Backup\GTAS_VPP_TEST.bak' WITH COMPRESSION"
+```
+
+### 5.3 Upload & Restore trên VPS
+
+```bash
+# Upload file .bak lên VPS
+scp C:\Backup\GTAS_VPP_TEST.bak root@YOUR_DROPLET_IP:/opt/gtas-vpp/
+
+# Khởi động DB container trước
+cd /opt/gtas-vpp
+docker compose up -d db
+sleep 30   # Đợi SQL Server sẵn sàng
+
+# Copy .bak vào container
+docker cp GTAS_VPP_TEST.bak gtas-vpp-db:/var/opt/mssql/
+
+# Restore với tên mới GTAS_VPP_LIVE
+docker exec gtas-vpp-db /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'YOUR_DB_SA_PASSWORD' -C -Q "
+RESTORE DATABASE [GTAS_VPP_LIVE]
+FROM DISK = '/var/opt/mssql/GTAS_VPP_TEST.bak'
+WITH MOVE 'GTAS_VPP_TEST' TO '/var/opt/mssql/data/GTAS_VPP_LIVE.mdf',
+     MOVE 'GTAS_VPP_TEST_log' TO '/var/opt/mssql/data/GTAS_VPP_LIVE_log.ldf',
+     REPLACE;"
+```
+
+> [!TIP]
+> Nếu tên logical file khác, chạy lệnh này để kiểm tra:
+> ```bash
+> docker exec gtas-vpp-db /opt/mssql-tools18/bin/sqlcmd \
+>   -S localhost -U sa -P 'YOUR_PASSWORD' -C -Q \
+>   "RESTORE FILELISTONLY FROM DISK = '/var/opt/mssql/GTAS_VPP_TEST.bak'"
+> ```
+
+## Step 6: Nginx + SSL
+
+```bash
+cp /opt/gtas-vpp/nginx/gtas-vpp.conf /etc/nginx/sites-available/gtas-vpp
 ln -sf /etc/nginx/sites-available/gtas-vpp /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
-
-# Test & reload
 nginx -t && systemctl reload nginx
+
+# SSL
+certbot --nginx -d gtas_vpp.annam.id.vn
 ```
 
-### Bước 6: SSL Certificate (Let's Encrypt)
+## Step 7: Khởi chạy Docker
 
-```bash
-certbot --nginx -d annam.id.vn
-```
-
-### Bước 7: Khởi chạy Docker
-
-````carousel
-**Mode 1: Google AI (Khuyến nghị)**
 ```bash
 cd /opt/gtas-vpp
 docker compose up -d --build
 ```
-Xong! Không cần thêm bước nào.
-<!-- slide -->
-**Mode 2: Ollama Self-hosted**
-```bash
-cd /opt/gtas-vpp
 
-# Khởi chạy với Ollama profile
-docker compose --profile ollama up -d --build
-
-# Đợi Ollama container sẵn sàng (~30s)
-docker compose --profile ollama logs -f ollama
-# Ctrl+C khi thấy "Listening on..."
-
-# Pull 2 model nhẹ
-docker exec gtas-vpp-ollama ollama pull gemma:2b
-docker exec gtas-vpp-ollama ollama pull nomic-embed-text
-```
-````
-
-### Bước 8: Kiểm tra
+## Step 8: Kiểm tra
 
 ```bash
-# Xem tất cả container
-docker compose ps
-
-# Xem logs
-docker compose logs -f
-
-# Test API
-curl http://localhost:8080/api/health
-
-# Test từ bên ngoài
-curl https://annam.id.vn/api/health
+docker compose ps                     # Tất cả container running
+docker compose logs backend           # Không lỗi
+curl http://localhost:8080/api/health  # 200 OK
+curl https://gtas_vpp.annam.id.vn     # Test từ bên ngoài
 ```
-
----
-
-## Các file đã tạo/cập nhật
-
-| File | Mô tả |
-|------|--------|
-| [docker-compose.yml](file:///c:/ANNAM/TT/SRS/backup/docker-compose.yml) | Orchestration chính – 4 services, Ollama là optional profile |
-| [.env.example](file:///c:/ANNAM/TT/SRS/backup/.env.example) | Template biến môi trường với 2 AI modes |
-| [gtas_vpp_be/Dockerfile](file:///c:/ANNAM/TT/SRS/backup/gtas_vpp_be/Dockerfile) | Backend multi-stage (giữ nguyên, đã tốt) |
-| [gtas_vpp_fe/Dockerfile](file:///c:/ANNAM/TT/SRS/backup/gtas_vpp_fe/Dockerfile) | Frontend multi-stage (giữ nguyên, đã tốt) |
-| [nginx/gtas-vpp.conf](file:///c:/ANNAM/TT/SRS/backup/nginx/gtas-vpp.conf) | Host Nginx reverse proxy (giữ nguyên) |
-| [.dockerignore](file:///c:/ANNAM/TT/SRS/backup/.dockerignore) | Fix bug loại trừ Migrations |
-| [DefaultAIOrchestrator.cs](file:///c:/ANNAM/TT/SRS/backup/gtas_vpp_be/gtas_vpp_be.AI/Services/DefaultAIOrchestrator.cs) | Fix health check cho Docker hostname |
 
 ---
 
 ## Lệnh thường dùng
 
 ```bash
-# Restart tất cả
-docker compose restart
+docker compose restart                                # Restart all
+docker compose up -d --build                          # Rebuild
+docker stats --no-stream                              # RAM check
+docker compose logs -f backend                        # Xem log
+docker image prune -f                                 # Dọn images cũ
 
-# Rebuild sau khi thay đổi code
-docker compose up -d --build
-
-# Xem RAM usage
-docker stats --no-stream
-
-# Dọn dẹp images cũ
-docker image prune -f
-
-# Backup database
-docker exec gtas-vpp-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YOUR_PASSWORD' -Q "BACKUP DATABASE GTAS_VPP TO DISK='/var/opt/mssql/backup.bak'" -C
-
-# Xem log của 1 service
-docker compose logs -f backend
+# Backup DB trên VPS
+docker exec gtas-vpp-db /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'YOUR_PASSWORD' -C -Q \
+  "BACKUP DATABASE [GTAS_VPP_LIVE] TO DISK='/var/opt/mssql/backup_live.bak' WITH COMPRESSION"
 ```
 
+---
+
+## File đã tạo/cập nhật
+
+| File | Mô tả |
+|------|--------|
+| [docker-compose.yml](file:///c:/ANNAM/TT/SRS/gtas_vpp/docker-compose.yml) | TestEnv + LiveEnv → `GTAS_VPP_LIVE`, CORS `gtas_vpp.annam.id.vn` |
+| [.env.example](file:///c:/ANNAM/TT/SRS/gtas_vpp/.env.example) | Template env vars |
+| [nginx/gtas-vpp.conf](file:///c:/ANNAM/TT/SRS/gtas_vpp/nginx/gtas-vpp.conf) | Domain `gtas_vpp.annam.id.vn` |
+| [scripts/cleanup_test_data.sql](file:///c:/ANNAM/TT/SRS/gtas_vpp/scripts/cleanup_test_data.sql) | Script dọn rác data test |
+
 > [!WARNING]
-> **Bảo mật**: File `.env` chứa mật khẩu và API key. KHÔNG commit lên Git!  
-> File `.dockerignore` đã có `**/.env` để ngăn Docker copy file này vào image.
+> File `.env` chứa mật khẩu và API key. KHÔNG commit lên Git!
