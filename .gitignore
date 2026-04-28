@@ -361,3 +361,18 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# .NET Local Home
+.dotnet-home/
+
+# Local DB Exports
+scripts/db_export/
+scripts/export_db_full.sql
+
+# Local AI/Dev Tools
+.ai_workspace/
+.codex/
+.gemini/
+.mcp.json
+
+# Local Configuration
+appsettings.Development.json
