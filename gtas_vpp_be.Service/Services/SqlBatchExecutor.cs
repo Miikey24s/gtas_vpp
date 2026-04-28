@@ -15,10 +15,8 @@ namespace gtas_vpp_be.Service.Services
         /// <summary>
         /// Reads a SQL file from the application's base directory and executes it.
         /// Handles GO separators by splitting into batches.
-        /// Strips USE [database] statements since the connection string determines the DB.
+        /// Escapes { and } to prevent EF Core from treating them as parameter placeholders.
         /// </summary>
-        /// <param name="database">The DatabaseFacade from DbContext</param>
-        /// <param name="relativePath">Path relative to AppContext.BaseDirectory (e.g., "Helpers/SQL/01_Views.sql")</param>
         public static async Task ExecuteSqlFileAsync(DatabaseFacade database, string relativePath)
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, relativePath);
@@ -41,7 +39,9 @@ namespace gtas_vpp_be.Service.Services
                 {
                     try
                     {
-                        await database.ExecuteSqlRawAsync(batch);
+                        // Escape { and } so EF Core doesn't treat them as format parameters
+                        var safeBatch = batch.Replace("{", "{{").Replace("}", "}}");
+                        await database.ExecuteSqlRawAsync(safeBatch);
                         batchCount++;
                     }
                     catch (Exception ex)
@@ -59,17 +59,10 @@ namespace gtas_vpp_be.Service.Services
 
         /// <summary>
         /// Splits SQL content by GO batch separator.
-        /// Also strips USE [database] statements for portability.
+        /// NOTE: Does NOT strip USE statements — some scripts need USE to target other databases.
         /// </summary>
         private static IEnumerable<string> SplitIntoBatches(string sqlContent)
         {
-            // Remove USE [DatabaseName] statements (we rely on connection string)
-            sqlContent = Regex.Replace(
-                sqlContent,
-                @"^\s*USE\s+\[?[\w]+\]?\s*;?\s*$",
-                string.Empty,
-                RegexOptions.Multiline | RegexOptions.IgnoreCase);
-
             // Split by GO on its own line (standard SSMS batch separator)
             var batches = Regex.Split(
                 sqlContent,

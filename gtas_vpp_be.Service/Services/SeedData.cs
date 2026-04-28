@@ -236,9 +236,12 @@ namespace gtas_vpp_be.Service.Services
             if (context.P04_UserGroups.Any()) return;
 
             // Lookup department IDs by code (dynamic, không hardcode GUID)
+            // Dùng GroupBy vì có thể có duplicate LEX02Code (e.g. "SOURCING")
             var deptLookup = context.LEX02_CompanyDepartmentLocations
                 .Where(x => !x.IsDeleted)
-                .ToDictionary(x => x.LEX02Code ?? "", x => x.Id);
+                .AsEnumerable()
+                .GroupBy(x => x.LEX02Code ?? "")
+                .ToDictionary(g => g.Key, g => g.First().Id);
 
             // Fallback: nếu không tìm thấy department → dùng Guid.Empty
             Guid GetDept(string code) => deptLookup.GetValueOrDefault(code, Guid.Empty);
