@@ -205,11 +205,11 @@ curl https://annam.id.vn/api/health
 |------|--------|
 | [docker-compose.yml](file:///c:/ANNAM/TT/SRS/backup/docker-compose.yml) | Orchestration chính – 4 services, Ollama là optional profile |
 | [.env.example](file:///c:/ANNAM/TT/SRS/backup/.env.example) | Template biến môi trường với 2 AI modes |
-| [code-be/Dockerfile](file:///c:/ANNAM/TT/SRS/backup/code-be/Dockerfile) | Backend multi-stage (giữ nguyên, đã tốt) |
-| [code-fe/Dockerfile](file:///c:/ANNAM/TT/SRS/backup/code-fe/Dockerfile) | Frontend multi-stage (giữ nguyên, đã tốt) |
+| [gtas_vpp_be/Dockerfile](file:///c:/ANNAM/TT/SRS/backup/gtas_vpp_be/Dockerfile) | Backend multi-stage (giữ nguyên, đã tốt) |
+| [gtas_vpp_fe/Dockerfile](file:///c:/ANNAM/TT/SRS/backup/gtas_vpp_fe/Dockerfile) | Frontend multi-stage (giữ nguyên, đã tốt) |
 | [nginx/gtas-vpp.conf](file:///c:/ANNAM/TT/SRS/backup/nginx/gtas-vpp.conf) | Host Nginx reverse proxy (giữ nguyên) |
 | [.dockerignore](file:///c:/ANNAM/TT/SRS/backup/.dockerignore) | Fix bug loại trừ Migrations |
-| [DefaultAIOrchestrator.cs](file:///c:/ANNAM/TT/SRS/backup/code-be/gtas_vpp_be.AI/Services/DefaultAIOrchestrator.cs) | Fix health check cho Docker hostname |
+| [DefaultAIOrchestrator.cs](file:///c:/ANNAM/TT/SRS/backup/gtas_vpp_be/gtas_vpp_be.AI/Services/DefaultAIOrchestrator.cs) | Fix health check cho Docker hostname |
 
 ---
 
