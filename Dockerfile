@@ -1,27 +1,27 @@
 # ─────────────────────────────────────────────────────────────
 # GTAS VPP Frontend (Blazor Server) – Multi-stage Docker Build
-# Build context: repo root (.)  |  Dockerfile: code-fe/Dockerfile
+# Build context: repo root (.)  |  Dockerfile: gtas_vpp_fe/Dockerfile
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: Restore + Publish ────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy shared project (referenced by FE)
-COPY gtas_vpp/gtas_vpp_shared/gtas_vpp_shared.csproj gtas_vpp/gtas_vpp_shared/
+# Copy shared project (referenced by FE via ../../../gtas_vpp_be/gtas_vpp_shared/)
+COPY gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj gtas_vpp_be/gtas_vpp_shared/
 
 # Copy FE project file for restore layer caching
-COPY code-fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj code-fe/gtas_vpp_fe/gtas_vpp_fe/
+COPY gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/
 
 # Restore (cached unless .csproj files change)
-RUN dotnet restore code-fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj
+RUN dotnet restore gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj
 
 # Copy all source code
-COPY gtas_vpp/gtas_vpp_shared/ gtas_vpp/gtas_vpp_shared/
-COPY code-fe/ code-fe/
+COPY gtas_vpp_be/gtas_vpp_shared/ gtas_vpp_be/gtas_vpp_shared/
+COPY gtas_vpp_fe/ gtas_vpp_fe/
 
 # Publish in Release mode
-RUN dotnet publish code-fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
+RUN dotnet publish gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
     -c Release \
     -o /app/publish \
     --no-restore
