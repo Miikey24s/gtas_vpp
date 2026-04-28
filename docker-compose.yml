@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────
 # GTAS VPP – Docker Compose (DigitalOcean 8GB / CPU Only)
-# Domain: gtas_vpp.annam.id.vn
+# Domain: gtas-vpp.annam.id.vn
 # ─────────────────────────────────────────────────────────────
 #
 # MODE 1 – Google AI (Mặc định, khuyến nghị cho DO):
@@ -87,8 +87,8 @@ services:
       JwtSettings__Key: "${JWT_KEY:-CHANGE_THIS_TO_A_STRONG_PRODUCTION_KEY_MIN_32_CHARS}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
-      CorsSettings__AllowedOrigins__0: "https://gtas_vpp.annam.id.vn"
-      CorsSettings__AllowedOrigins__1: "http://gtas_vpp.annam.id.vn"
+      CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
+      CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
       # ── AI Configuration (điều khiển qua .env) ──
       AISettings__Provider: "${AI_PROVIDER:-Google}"
       AISettings__GoogleApiKey: "${GOOGLE_AI_API_KEY:-}"
