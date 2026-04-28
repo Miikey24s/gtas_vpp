@@ -1,0 +1,407 @@
+{
+  "meta": {
+    "project": "GTAS VPP Refactor",
+    "orchestrator": "Antigravity (Claude)",
+    "created": "2026-04-26",
+    "context_file": ".ai_workspace/context.md",
+    "architecture_file": ".ai_workspace/architecture.md",
+    "reports_dir": ".ai_workspace/reports/",
+    "solution": "gtas_vpp/gtas_vpp.slnx",
+    "build_command": "dotnet build gtas_vpp/gtas_vpp.slnx",
+    "worker_workflow": [
+      "1. Đọc context.md để hiểu project",
+      "2. Đọc architecture.md để biết chuẩn tuân thủ",
+      "3. Đọc tasks.json, tìm task có status=pending được giao cho mình",
+      "4. Thực thi task (CHỈ sửa file liên quan, tối ưu token)",
+      "5. Cập nhật tasks.json: status→done, thêm completedAt + notes",
+      "6. Nếu task phức tạp: ghi report vào reports/{task_id}.md",
+      "7. Chạy build verify: dotnet build gtas_vpp/gtas_vpp.slnx"
+    ]
+  },
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Cleanup",
+      "risk": "low",
+      "description": "Dọn dẹp template files, fix typo, di chuyển DTO. KHÔNG thay đổi logic.",
+      "tasks": [
+        {
+          "id": "P1.1",
+          "action": "DELETE",
+          "description": "Xóa template files không dùng",
+          "targets": [
+            "code-be/gtas_vpp_be/WeatherForecast.cs",
+            "code-be/gtas_vpp_be/Controllers/WeatherForecastController.cs",
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Counter.razor",
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Weather.razor"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26"
+        },
+        {
+          "id": "P1.2",
+          "action": "RENAME",
+          "description": "Fix typo: BussinessService → BusinessService (class, interface, file, DI, all references)",
+          "scope": "solution-wide",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26"
+        },
+        {
+          "id": "P1.3",
+          "action": "MOVE",
+          "description": "Di chuyển inline DTOs (CopyPreviousMonthReqDTO, RejectOrderReqDTO) từ cuối VPPRequestController.cs ra gtas_vpp_shared/DTOs/Req/VPP/",
+          "from": "code-be/gtas_vpp_be/Controllers/VPPRequestController.cs",
+          "to": "gtas_vpp/gtas_vpp_shared/DTOs/Req/VPP/",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26"
+        },
+        {
+          "id": "P1.4",
+          "action": "REMOVE",
+          "description": "Xóa [StructLayout(LayoutKind.Auto)] + using System.Runtime.InteropServices khỏi UnitOfWork.cs và VPPMigrationDbContext.cs",
+          "targets": [
+            "code-be/gtas_vpp_be.Service/Services/UnitOfWork.cs",
+            "code-be/gtas_vpp_be.Model/VPPMigrationDbContext.cs"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26"
+        },
+        {
+          "id": "P1.5",
+          "action": "REMOVE",
+          "description": "Xóa [Inject] attribute trên BaseServices._unitOfWorkFactory (line 27), đổi thành private readonly. Xóa using Microsoft.AspNetCore.Components",
+          "target": "code-be/gtas_vpp_be.Service/Services/BaseServices.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26"
+        },
+        {
+          "id": "P1.6",
+          "action": "CLEANUP",
+          "description": "Xóa csproj exclude rules cho Counter.razor, Weather.razor trong gtas_vpp_fe.csproj (các dòng Compile Remove và Content Remove)",
+          "target": "code-fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Service Layer Refactor",
+      "risk": "medium",
+      "description": "Tách God Class BaseServices, refactor UnitOfWork, loại bỏ BusinessService wrapper",
+      "prerequisite": "P1 hoàn thành + bổ sung unit tests",
+      "tasks": [
+        {
+          "id": "P2.0",
+          "action": "WRITE_TESTS",
+          "description": "Viết unit tests cho BaseServices CRUD (AddAsync, UpdateAsync, DeleteAsync, ReadAsync, SP, Query) để có safety net trước khi tách",
+          "target": "code-be/gtas_vpp_be.Tests/",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added BaseServices environment/CRUD tests and VPPRequestService business-rule tests. dotnet test code-be/gtas_vpp_be.Tests/ passed 17/17. dotnet build gtas_vpp/gtas_vpp.slnx passed with existing Mapster nullable warnings."
+        },
+        {
+          "id": "P2.1",
+          "action": "EXTRACT",
+          "description": "Tách GetEnvironment() từ BaseServices + UnitOfWork thành IEnvironmentResolver/EnvironmentResolver. Xóa duplicate. Single source of truth.",
+          "from": ["BaseServices.cs (GetEnvironment)", "UnitOfWork.cs (GetEnvironment)"],
+          "to": "code-be/gtas_vpp_be.Service/Helpers/IEnvironmentResolver.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Extracted IEnvironmentResolver/EnvironmentResolver, wired BaseServices/UnitOfWork/UnitOfWorkFactory and DI. Build passed after task."
+        },
+        {
+          "id": "P2.2",
+          "action": "EXTRACT",
+          "description": "Tách WithUserNames + SetUserNameIfExists + IncludeUserInfoIfNeeded thành IUserNameResolver. Thay reflection bằng generic constraint hoặc cache PropertyInfo.",
+          "from": "BaseServices.cs",
+          "to": "code-be/gtas_vpp_be.Service/Services/IUserNameResolver.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Extracted IUserNameResolver/UserNameResolver with cached reflection and moved username enrichment out of BaseServices. Build passed after task."
+        },
+        {
+          "id": "P2.3",
+          "action": "EXTRACT",
+          "description": "Tách CRUD (AddAsync, UpdateAsync, DeleteAsync, ReadAsync, GetByIdAsync) thành IGenericRepository<T>. Xóa string-based context switching.",
+          "from": "BaseServices.cs",
+          "to": "code-be/gtas_vpp_be.Service/Services/IGenericRepository.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added IGenericRepository/GenericRepository, moved CRUD out of BaseServices, registered open generic repository, updated CRUD tests. Build passed after task."
+        },
+        {
+          "id": "P2.4",
+          "action": "EXTRACT",
+          "description": "Tách SP() + Query() thành IStoredProcedureExecutor. Giữ FromSqlRaw pattern nhưng tách riêng class.",
+          "from": "BaseServices.cs",
+          "to": "code-be/gtas_vpp_be.Service/Services/IStoredProcedureExecutor.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added IStoredProcedureExecutor/StoredProcedureExecutor and removed SP/Query from BaseServices. Build passed after task."
+        },
+        {
+          "id": "P2.5",
+          "action": "REFACTOR",
+          "description": "UnitOfWork: bỏ TransactionScope, dùng DbContext.Database.BeginTransactionAsync(). Inject IEnvironmentResolver thay vì tự resolve.",
+          "target": "code-be/gtas_vpp_be.Service/Services/UnitOfWork.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Replaced TransactionScope with EF Core IDbContextTransaction while keeping IUnitOfWork method signatures. Build passed after task."
+        },
+        {
+          "id": "P2.6",
+          "action": "REMOVE",
+          "description": "Loại bỏ BusinessService wrapper. Thay tất cả _bussinessService.BaseService<T>() calls trong controllers bằng inject trực tiếp IGenericRepository + IStoredProcedureExecutor.",
+          "affected": ["LibraryController.cs", "PermissionController.cs", "SQLController.cs", "VPPRequestController.cs", "BaseGenericController.cs"],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Removed BusinessService/IBusinessService and DI registration. Controllers now use IGenericRepository, IStoredProcedureExecutor, IUserNameResolver, or direct UnitOfWork where relation queries already existed. AuthController was also updated because it referenced BusinessService. Build passed after task."
+        },
+        {
+          "id": "P2.7",
+          "action": "DRY",
+          "description": "Merge GetMyOrdersAsync + GetMyOrdersSummaryAsync thành 1 private method trong VPPRequestService (code gần giống hệt nhau)",
+          "target": "code-be/gtas_vpp_be.Service/Services/VPPRequestService.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added shared GetFilteredOrdersAsync and kept both public interface methods for API compatibility. Build passed after task."
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Cross-cutting Concerns",
+      "risk": "low-medium",
+      "description": "Error handling, logging, Jira config extraction",
+      "prerequisite": "P2 hoàn thành",
+      "tasks": [
+        {
+          "id": "P3.1",
+          "action": "CREATE",
+          "description": "Tạo ExceptionHandlingMiddleware trả ProblemDetails (RFC 7807). Map KeyNotFoundException→404, UnauthorizedAccessException→403, InvalidOperationException→400.",
+          "to": "code-be/gtas_vpp_be/Middleware/ExceptionHandlingMiddleware.cs",
+          "worker": "Gemini",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Created ExceptionHandlingMiddleware with ProblemDetails mapping and registered it before authentication. Build passed after task."
+        },
+        {
+          "id": "P3.2",
+          "action": "ENABLE",
+          "description": "Enable Serilog trên BE project (hiện chỉ FE có, và đã comment out). Cấu hình trong Program.cs.",
+          "target": "code-be/gtas_vpp_be/Program.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added Serilog.AspNetCore, Console, and File sinks to BE and configured Program.cs. FE logging comments unchanged. Build passed after task."
+        },
+        {
+          "id": "P3.3",
+          "action": "IMPLEMENT",
+          "description": "Implement BaseServices.WriteLog() — hiện method rỗng. Inject ILogger<T>, ghi structured log.",
+          "target": "code-be/gtas_vpp_be.Service/Services/BaseServices.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Injected ILogger<BaseServices>, implemented structured WriteLog, and updated VPPRequestService/test construction. Build passed after task."
+        },
+        {
+          "id": "P3.4",
+          "action": "EXTRACT",
+          "description": "Tách JiraIssueLive/JiraIssueTest config từ BaseServices thành IOptions<JiraSettings>. Giữ code, chỉ refactor cấu trúc (chưa dùng nhưng sẽ dùng).",
+          "from": "BaseServices.cs",
+          "to": "code-be/gtas_vpp_be.Service/Helpers/JiraSettings.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added JiraSettings, registered options binding, removed JiraIssueLive/JiraIssueTest/DeployEnv config classes, and updated BaseServices. Build passed after task."
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Frontend Cleanup",
+      "risk": "low",
+      "description": "Dọn FE Program.cs, xóa template leftovers",
+      "prerequisite": "P1 hoàn thành",
+      "tasks": [
+        {
+          "id": "P4.1",
+          "action": "EXTRACT",
+          "description": "Di chuyển inline /perform-login MapGet (40+ dòng) từ FE Program.cs ra LoginEndpoints.cs (Minimal API extension method)",
+          "from": "code-fe/gtas_vpp_fe/gtas_vpp_fe/Program.cs (lines 99-141)",
+          "to": "code-fe/gtas_vpp_fe/gtas_vpp_fe/Endpoints/LoginEndpoints.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Moved /perform-login MapGet into LoginEndpoints extension without changing login logic. Build passed after task."
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Security Fixes + Cleanup",
+      "risk": "high",
+      "description": "Fix SQL injection risk, restrict CORS, harden cookies, clean commented FE code, and add controller/middleware tests.",
+      "prerequisite": "Post-refactor review hoàn thành",
+      "tasks": [
+        {
+          "id": "P5.1",
+          "action": "SECURITY_FIX",
+          "description": "Fix SQL Injection trong StoredProcedureExecutor.ExecuteQueryAsync bằng parameterized FromSqlRaw overload và cập nhật call site SQLController.",
+          "targets": [
+            "code-be/gtas_vpp_be.Service/Services/IStoredProcedureExecutor.cs",
+            "code-be/gtas_vpp_be.Service/Services/StoredProcedureExecutor.cs",
+            "code-be/gtas_vpp_be/Controllers/SQLController.cs"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "ExecuteQueryAsync now requires params object?[] and SQLController.Query accepts a parameterized payload instead of raw body string."
+        },
+        {
+          "id": "P5.2",
+          "action": "SECURITY_FIX",
+          "description": "Fix CORS policy: load AllowedOrigins from appsettings and replace AllowAll with AllowFrontend.",
+          "targets": [
+            "code-be/gtas_vpp_be/Program.cs",
+            "code-be/gtas_vpp_be/appsettings.json",
+            "code-be/gtas_vpp_be/appsettings.Development.json"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Removed AllowAnyOrigin and configured WithOrigins(...).AllowCredentials() from CorsSettings."
+        },
+        {
+          "id": "P5.3",
+          "action": "SECURITY_FIX",
+          "description": "Fix cookie security on FE.",
+          "target": "code-fe/gtas_vpp_fe/gtas_vpp_fe/Program.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Set HttpOnly, SameSite=None, and SecurePolicy=Always for auth cookie."
+        },
+        {
+          "id": "P5.4",
+          "action": "CLEANUP",
+          "description": "Xóa commented-out code cũ trong FE Components, giữ comments giải thích logic.",
+          "target": "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Removed stale BusinessService/BaseService/SPServiceRead/ContinueWith comment blocks; scan confirms no leftover commented anti-patterns in .razor.cs Components."
+        },
+        {
+          "id": "P5.5",
+          "action": "WRITE_TESTS",
+          "description": "Viết tests cho ExceptionHandlingMiddleware, VPPRequestController, AuthController.",
+          "target": "code-be/gtas_vpp_be.Tests/",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Added 10 controller/middleware tests. dotnet test code-be/gtas_vpp_be.Tests/ passed 27/27. dotnet build gtas_vpp/gtas_vpp.slnx passed."
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "name": "Final Fixes",
+      "risk": "medium-high",
+      "description": "Remove raw SQL endpoint, clear obsolete crypto warnings, and verify nullable/Mapster warning cleanup.",
+      "prerequisite": "Post-refactor review v2 hoàn thành",
+      "tasks": [
+        {
+          "id": "P6.1",
+          "action": "SECURITY_FIX",
+          "description": "Loại bỏ SQLController.Query endpoint và xác minh FE không gọi api/SQL/Query; đánh giá whitelist cho api/SQL/{spName}.",
+          "targets": [
+            "code-be/gtas_vpp_be/Controllers/SQLController.cs",
+            "code-fe/"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Verified SQLController has no Query action, FE has no api/SQL/Query usage, IStoredProcedureExecutor has no ExecuteQueryAsync surface, and StoreProcedure rejects spName values outside AllowedStoredProcedures."
+        },
+        {
+          "id": "P6.2",
+          "action": "WARNING_FIX",
+          "description": "Thay obsolete MD5CryptoServiceProvider/TripleDESCryptoServiceProvider bằng MD5.Create()/TripleDES.Create() trong PasswordHelpers.cs.",
+          "target": "code-be/gtas_vpp_be.Service/Helpers/PasswordHelpers.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Verified PasswordHelpers uses MD5.Create() and TripleDES.Create(); solution build passed with 0 SYSLIB0021 warnings."
+        },
+        {
+          "id": "P6.3",
+          "action": "WARNING_FIX",
+          "description": "Fix nullable CS8618 warnings in Model entities and Mapster nullability warnings.",
+          "targets": [
+            "code-be/gtas_vpp_be.Model/Auth/",
+            "code-be/gtas_vpp_be.Model/Library/",
+            "code-be/gtas_vpp_be.Model/VPP/",
+            "code-be/gtas_vpp_be.Model/Helpers/",
+            "code-be/gtas_vpp_be/Mappings/MapsterConfig.cs"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Verified dotnet build gtas_vpp/gtas_vpp.slnx passes with 0 warnings, including no CS8618 or Mapster nullable warnings."
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "name": "Final Polish",
+      "risk": "medium",
+      "description": "Fix Blazor event subscription cleanup and remove hardcoded JWT key fallback.",
+      "prerequisite": "Final review v3 hoàn thành",
+      "tasks": [
+        {
+          "id": "P7.1",
+          "action": "MEMORY_LEAK_FIX",
+          "description": "Implement IDisposable for Component_Library and unsubscribe NavigationManager.LocationChanged; scan other .razor.cs event subscriptions.",
+          "target": "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Lib/Component_Library.razor.cs",
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "Component_Library now implements IDisposable and unsubscribes NavigationManager.LocationChanged. Other .razor.cs event subscribers already had unsubscribe handling."
+        },
+        {
+          "id": "P7.2",
+          "action": "SECURITY_FIX",
+          "description": "Remove hardcoded JWT key fallback and require JwtSettings:Key configuration at startup.",
+          "targets": [
+            "code-be/gtas_vpp_be.Service/Helpers/Config.cs",
+            "code-be/gtas_vpp_be/Program.cs",
+            "code-be/gtas_vpp_be/Controllers/AuthController.cs",
+            "code-be/gtas_vpp_be/appsettings.json",
+            "code-be/gtas_vpp_be/appsettings.Development.json"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-26",
+          "notes": "JwtSettings:Key now throws InvalidOperationException when missing or blank, Program evaluates it during startup, AuthController no longer falls back to a hardcoded key, production appsettings has an empty Key, and development appsettings keeps the local dev key."
+        }
+      ]
+    }
+  ]
+}

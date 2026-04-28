@@ -1,0 +1,8 @@
+[mcp_servers.radzen-blazor]
+url = "https://app.radzen.com/mcp"
+
+[mcp_servers.radzen-blazor.http_headers]
+X-Radzen-Key = "f8207f185e43a3f08a29e9f8110453cfb0e57357c5baaec02f7efca5d1492249"
+
+[mcp_servers.radzen-blazor.tools.search]
+approval_mode = "approve"

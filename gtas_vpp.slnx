@@ -5,37 +5,37 @@
     <BuildType Name="FE" />
     <BuildType Name="Release" />
   </Configurations>
-  <Project Path="../code-be/gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj">
+  <Project Path="gtas_vpp_be/gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="../code-be/gtas_vpp_be.Model/gtas_vpp_be.Model.csproj">
+  <Project Path="gtas_vpp_be/gtas_vpp_be.Model/gtas_vpp_be.Model.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="../code-be/gtas_vpp_be.Service/gtas_vpp_be.Service.csproj">
+  <Project Path="gtas_vpp_be/gtas_vpp_be.Service/gtas_vpp_be.Service.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="../code-be/gtas_vpp_be.AI/gtas_vpp_be.AI.csproj">
+  <Project Path="gtas_vpp_be/gtas_vpp_be.AI/gtas_vpp_be.AI.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="../code-be/gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj">
+  <Project Path="gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="../code-be/gtas_vpp_be/gtas_vpp_be.csproj">
+  <Project Path="gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="../code-fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj">
+  <Project Path="gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="BE|*" Project="false" />
@@ -44,7 +44,7 @@
     <BuildType Solution="BE|*" Project="Debug" />
     <BuildType Solution="FE|*" Project="Debug" />
   </Project>
-  <Project Path="gtas_vpp_shared/gtas_vpp_shared.csproj">
+  <Project Path="gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj">
     <BuildType Solution="BE|*" Project="Debug" />
     <BuildType Solution="FE|*" Project="Debug" />
   </Project>

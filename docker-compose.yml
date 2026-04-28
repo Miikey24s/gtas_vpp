@@ -1,0 +1,137 @@
+# ─────────────────────────────────────────────────────────────
+# GTAS VPP – Docker Compose (DigitalOcean 8GB / CPU Only)
+# Domain: annam.id.vn
+# ─────────────────────────────────────────────────────────────
+#
+# MODE 1 – Google AI (Mặc định, khuyến nghị cho DO):
+#   docker compose up -d --build
+#
+# MODE 2 – Self-hosted Ollama AI:
+#   docker compose --profile ollama up -d --build
+#   docker exec gtas-vpp-ollama ollama pull gemma:2b
+#   docker exec gtas-vpp-ollama ollama pull nomic-embed-text
+#
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── SQL Server Database ──────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gtas-vpp-db
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD:-YourStrong!Passw0rd}"
+      MSSQL_PID: "Express"
+      MSSQL_MEMORY_LIMIT_MB: "${MSSQL_MEMORY_LIMIT_MB:-1536}"
+    ports:
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -C -b
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    networks:
+      - vpp-internal
+
+  # ── Ollama AI Server (Tùy chọn – CPU only) ──────────────
+  # Chỉ chạy khi dùng: docker compose --profile ollama up -d
+  ollama:
+    image: ollama/ollama:latest
+    container_name: gtas-vpp-ollama
+    profiles: ["ollama"]
+    restart: unless-stopped
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    networks:
+      - vpp-internal
+
+  # ── Backend (.NET 10 Web API) ────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: code-be/Dockerfile
+    container_name: gtas-vpp-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP;User Id=sa;Password=${DB_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;Encrypt=False;"
+      JwtSettings__Key: "${JWT_KEY:-CHANGE_THIS_TO_A_STRONG_PRODUCTION_KEY_MIN_32_CHARS}"
+      JwtSettings__Issuer: "gtas_vpp_be"
+      JwtSettings__Audience: "gtas_vpp_clients"
+      CorsSettings__AllowedOrigins__0: "https://annam.id.vn"
+      CorsSettings__AllowedOrigins__1: "http://annam.id.vn"
+      # ── AI Configuration (điều khiển qua .env) ──
+      AISettings__Provider: "${AI_PROVIDER:-Google}"
+      AISettings__GoogleApiKey: "${GOOGLE_AI_API_KEY:-}"
+      AISettings__ChatModel: "${AI_CHAT_MODEL:-gemini-2.5-flash}"
+      AISettings__EmbeddingModel: "${AI_EMBEDDING_MODEL:-text-embedding-004}"
+      AISettings__OllamaBaseUrl: "${OLLAMA_BASE_URL:-http://ollama:11434}"
+      AISettings__TimeoutSeconds: "${AI_TIMEOUT_SECONDS:-60}"
+      DOTNET_gcServer: "0"
+      DOTNET_GCConserveMemory: "9"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - vpp-internal
+
+  # ── Frontend (Blazor Server) ─────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: code-fe/Dockerfile
+    container_name: gtas-vpp-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ApiSettings__BaseUrl: "http://backend:8080"
+      DOTNET_gcServer: "0"
+      DOTNET_GCConserveMemory: "9"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    ports:
+      - "127.0.0.1:5000:5000"
+    networks:
+      - vpp-internal
+
+volumes:
+  sqlserver-data:
+    driver: local
+  ollama-data:
+    driver: local
+
+networks:
+  vpp-internal:
+    driver: bridge

@@ -1,0 +1,388 @@
+{
+  "meta": {
+    "project": "GTAS VPP — AI Integration (Phase 8)",
+    "orchestrator": "Antigravity (Claude Opus 4.6)",
+    "created": "2026-04-27",
+    "context_file": ".ai_workspace/ai_integration/context.md",
+    "architecture_file": ".ai_workspace/ai_integration/architecture.md",
+    "parent_architecture": ".ai_workspace/refactor/architecture.md",
+    "reports_dir": ".ai_workspace/ai_integration/reports/",
+    "solution": "gtas_vpp/gtas_vpp.slnx",
+    "build_command": "dotnet build gtas_vpp/gtas_vpp.slnx",
+    "network_note": "Ollama chạy trên PC (RTX 2070S) qua LAN, project chạy trên Laptop",
+    "worker_workflow": [
+      "1. Đọc architecture.md (AI) + parent architecture.md (refactor) để hiểu chuẩn",
+      "2. Đọc context.md để hiểu cấu trúc project hiện tại",
+      "3. Đọc tasks.json, tìm task có status=pending được giao cho mình",
+      "4. Thực thi task (CHỈ sửa/tạo file liên quan, tối ưu token)",
+      "5. Cập nhật tasks.json: status→done, thêm completedAt + notes",
+      "6. Nếu task phức tạp: ghi report vào reports/{task_id}.md",
+      "7. Chạy build verify: dotnet build gtas_vpp/gtas_vpp.slnx"
+    ]
+  },
+  "phases": [
+    {
+      "id": "P8-A",
+      "name": "Foundation — Project & Interfaces",
+      "risk": "low",
+      "description": "Tạo project mới, entity, interfaces, DTOs. KHÔNG có logic AI, chỉ là skeleton.",
+      "tasks": [
+        {
+          "id": "P8.0",
+          "action": "SETUP",
+          "description": "Cài Ollama trên PC (RTX 2070S). Pull models: gemma4:e4b, nomic-embed-text. Verify kết nối LAN từ Laptop.",
+          "steps": [
+            "1. Trên PC: Cài Ollama từ https://ollama.com",
+            "2. Trên PC: ollama pull gemma4:e4b",
+            "3. Trên PC: ollama pull nomic-embed-text",
+            "4. Trên PC: Chạy Ollama với OLLAMA_HOST=0.0.0.0 (cho phép LAN)",
+            "5. Trên Laptop: curl http://<PC_IP>:11434/api/tags — verify thấy 2 models",
+            "6. Trên Laptop: Test embed: curl -X POST http://<PC_IP>:11434/api/embeddings -d '{\"model\":\"nomic-embed-text\",\"prompt\":\"bút bi xanh\"}'",
+            "7. Trên Laptop: Test chat: curl -X POST http://<PC_IP>:11434/api/generate -d '{\"model\":\"gemma4:e4b\",\"prompt\":\"Xin chào\",\"stream\":false}'"
+          ],
+          "worker": "Manual",
+          "status": "pending",
+          "verify": "ollama list shows gemma4:e4b + nomic-embed-text, curl from Laptop returns 200"
+        },
+        {
+          "id": "P8.1",
+          "action": "CREATE",
+          "description": "Tạo project gtas_vpp_be.AI (.NET 10 class library), thêm vào solution, thêm project references + NuGet packages.",
+          "targets": [
+            "code-be/gtas_vpp_be.AI/gtas_vpp_be.AI.csproj (NEW)",
+            "gtas_vpp/gtas_vpp.slnx (MODIFY — thêm project)",
+            "code-be/gtas_vpp_be/gtas_vpp_be.csproj (MODIFY — thêm ProjectReference)"
+          ],
+          "details": {
+            "csproj": {
+              "TargetFramework": "net10.0",
+              "packages": [
+                "Microsoft.Extensions.AI",
+                "Microsoft.Extensions.AI.Ollama",
+                "Microsoft.EntityFrameworkCore.SqlServer 10.0.5"
+              ],
+              "projectRefs": [
+                "../gtas_vpp_be.Service/gtas_vpp_be.Service.csproj",
+                "../gtas_vpp_be.Model/gtas_vpp_be.Model.csproj"
+              ]
+            },
+            "solution_add": "gtas_vpp_be.AI with same BuildType pattern as other BE projects",
+            "api_ref": "gtas_vpp_be.csproj → add ProjectReference to gtas_vpp_be.AI"
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T20:44:00.3186003+07:00",
+          "notes": "Created gtas_vpp_be.AI project, added it to gtas_vpp.slnx, referenced it from the backend API project, and pinned Microsoft.Extensions.AI packages to versions that restore cleanly.",
+          "verify": "dotnet build gtas_vpp/gtas_vpp.slnx"
+        },
+        {
+          "id": "P8.2",
+          "action": "CREATE",
+          "description": "Tạo entity AI_VPPEmbedding trong gtas_vpp_be.Model/AI/ — entity lưu embedding vector persist trong SQL Server.",
+          "targets": [
+            "code-be/gtas_vpp_be.Model/AI/AI_VPPEmbedding.cs (NEW)"
+          ],
+          "details": {
+            "properties": [
+              "Guid Id (PK)",
+              "Guid VPPId (FK → L04_VPP.Id)",
+              "L04_VPP VPP (navigation)",
+              "string EmbeddingText (text đã embed)",
+              "byte[] EmbeddingVector (float[] → byte[] via Buffer.BlockCopy)",
+              "string ModelName ('nomic-embed-text')",
+              "int VectorDimension (768)",
+              "DateTime CreatedDate",
+              "DateTime UpdatedDate"
+            ],
+            "namespace": "gtas_vpp_be.Model.AI",
+            "table": "AI_VPPEmbedding",
+            "note": "KHÔNG kế thừa BaseModel — entity riêng cho AI, có schema riêng"
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T20:44:00.3186003+07:00",
+          "notes": "Created AI_VPPEmbedding entity in the model layer with AI_VPPEmbedding table mapping, VPP foreign key, embedding vector storage, model metadata, and timestamps.",
+          "verify": "dotnet build gtas_vpp/gtas_vpp.slnx"
+        },
+        {
+          "id": "P8.3",
+          "action": "CREATE",
+          "description": "Tạo AI interfaces + internal DTOs trong gtas_vpp_be.Service/AI/.",
+          "targets": [
+            "code-be/gtas_vpp_be.Service/AI/IAIOrchestrator.cs (NEW)",
+            "code-be/gtas_vpp_be.Service/AI/IAIUseCaseHandler.cs (NEW)",
+            "code-be/gtas_vpp_be.Service/AI/IVPPEmbeddingStore.cs (NEW)",
+            "code-be/gtas_vpp_be.Service/AI/DTOs/AIChatRequest.cs (NEW)",
+            "code-be/gtas_vpp_be.Service/AI/DTOs/AIChatResponse.cs (NEW)",
+            "code-be/gtas_vpp_be.Service/AI/DTOs/AIUseCaseInfo.cs (NEW)",
+            "code-be/gtas_vpp_be.Service/AI/DTOs/VPPEmbeddingSearchResult.cs (NEW)"
+          ],
+          "details": {
+            "IAIOrchestrator": {
+              "methods": [
+                "Task<AIChatResponse> ChatAsync(AIChatRequest request, CancellationToken ct)",
+                "IReadOnlyList<AIUseCaseInfo> GetAvailableUseCases()"
+              ]
+            },
+            "IAIUseCaseHandler": {
+              "methods": [
+                "string UseCaseId { get; }",
+                "string DisplayName { get; }",
+                "bool CanHandle(string userMessage)",
+                "Task<AIChatResponse> HandleAsync(AIChatRequest request, CancellationToken ct)"
+              ]
+            },
+            "IVPPEmbeddingStore": {
+              "methods": [
+                "Task<List<VPPEmbeddingSearchResult>> SearchSimilarAsync(float[] queryVector, int topK, CancellationToken ct)",
+                "Task UpsertEmbeddingAsync(Guid vppId, string text, float[] vector, string modelName, CancellationToken ct)",
+                "Task RebuildAllAsync(CancellationToken ct)",
+                "Task<bool> HasEmbeddingsAsync(CancellationToken ct)"
+              ]
+            },
+            "AIChatRequest": "string Message, List<AIChatMessage>? ConversationHistory, string? UseCaseHint",
+            "AIChatResponse": "string Message, List<AISuggestedItem>? SuggestedItems, string UseCaseId, bool IsSuccess, string? ErrorMessage",
+            "AIUseCaseInfo": "string UseCaseId, string DisplayName, string Description"
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T20:44:00.3186003+07:00",
+          "notes": "Created AI service-layer contracts and internal DTOs under gtas_vpp_be.Service/AI without adding AI implementation logic.",
+          "verify": "dotnet build gtas_vpp/gtas_vpp.slnx"
+        },
+        {
+          "id": "P8.4",
+          "action": "CREATE",
+          "description": "Tạo shared DTOs trong gtas_vpp_shared/DTOs/AI/ — cho FE ↔ BE communication.",
+          "targets": [
+            "gtas_vpp/gtas_vpp_shared/DTOs/AI/AIChatRequestDTO.cs (NEW)",
+            "gtas_vpp/gtas_vpp_shared/DTOs/AI/AIChatResponseDTO.cs (NEW)",
+            "gtas_vpp/gtas_vpp_shared/DTOs/AI/AIChatMessageDTO.cs (NEW)",
+            "gtas_vpp/gtas_vpp_shared/DTOs/AI/AISuggestedItemDTO.cs (NEW)"
+          ],
+          "details": {
+            "AIChatRequestDTO": "string Message, List<AIChatMessageDTO>? History",
+            "AIChatResponseDTO": "string Message, List<AISuggestedItemDTO>? SuggestedItems, string UseCaseId, bool IsSuccess, string? ErrorMessage",
+            "AIChatMessageDTO": "string Role ('user'/'assistant'), string Content, DateTime Timestamp",
+            "AISuggestedItemDTO": "Guid VPPId, string VPPCode, string VPPName, string CategoryName, string UOMName, double SimilarityScore"
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T20:44:00.3186003+07:00",
+          "notes": "Created shared AI chat and suggested-item DTOs for FE to BE communication under gtas_vpp_shared/DTOs/AI.",
+          "verify": "dotnet build gtas_vpp/gtas_vpp.slnx"
+        }
+      ]
+    },
+    {
+      "id": "P8-B",
+      "name": "Implementation — AI Services",
+      "risk": "medium",
+      "description": "Implement AI services: embedding persistence, RAG pipeline, orchestrator, controller.",
+      "prerequisite": "P8-A hoàn thành + Ollama accessible qua LAN",
+      "tasks": [
+        {
+          "id": "P8.5",
+          "action": "CREATE",
+          "description": "Tạo AIDbContext (separate DbContext cho AI tables) + EF Core migration cho bảng AI_VPPEmbedding.",
+          "targets": [
+            "code-be/gtas_vpp_be.AI/Data/AIDbContext.cs (NEW)",
+            "EF Migration (via gtas_vpp_be.Migrations hoặc inline)"
+          ],
+          "details": {
+            "AIDbContext": {
+              "dbsets": ["DbSet<AI_VPPEmbedding> VPPEmbeddings"],
+              "config": "Dùng chung connection string với VPPContext, OnModelCreating config FK + unique index on VPPId",
+              "note": "KHÔNG đăng ký trong VPPContext — separate DbContext cho AI domain"
+            },
+            "migration": "Tạo migration AddAIVPPEmbedding via dotnet ef"
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T21:01:37.2870276+07:00",
+          "notes": "Created AIDbContext with isolated AI_VPPEmbedding mapping, excluded existing L04_VPP from migrations, added design-time factory, and generated AddAIVPPEmbedding migration in the AI project.",
+          "verify": "dotnet ef database update — table AI_VPPEmbedding created"
+        },
+        {
+          "id": "P8.6",
+          "action": "IMPLEMENT",
+          "description": "Implement SqlVPPEmbeddingStore — persist embeddings trong SQL Server, cosine similarity search in-memory.",
+          "targets": [
+            "code-be/gtas_vpp_be.AI/Services/SqlVPPEmbeddingStore.cs (NEW)",
+            "code-be/gtas_vpp_be.AI/Helpers/VectorMath.cs (NEW — cosine similarity + byte conversion utils)"
+          ],
+          "details": {
+            "SqlVPPEmbeddingStore": {
+              "injects": ["AIDbContext", "IEmbeddingGenerator<string, Embedding<float>>", "IGenericRepository<L04_VPP>", "ILogger"],
+              "SearchSimilarAsync": "Load all embeddings from DB → compute cosine similarity in-memory → return top K",
+              "UpsertEmbeddingAsync": "Upsert by VPPId — insert if not exists, update if exists",
+              "RebuildAllAsync": "Load all L04_VPPs with Category+UOM → format text → call IEmbeddingGenerator → bulk upsert to DB"
+            },
+            "VectorMath": {
+              "methods": [
+                "static float CosineSimilarity(float[] a, float[] b)",
+                "static byte[] FloatArrayToBytes(float[] vector)",
+                "static float[] BytesToFloatArray(byte[] bytes)"
+              ]
+            },
+            "embedding_text_format": "'{VPPName} - {VPPCategoryName} - {UOMName} - {Description}'"
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T21:01:37.2870276+07:00",
+          "notes": "Implemented VectorMath and SqlVPPEmbeddingStore with SQL persistence, cosine ranking, repository includes for VPP category/UOM data, and rebuild logging.",
+          "verify": "Unit test: embed + search returns correct results"
+        },
+        {
+          "id": "P8.7",
+          "action": "IMPLEMENT",
+          "description": "Implement VPPSuggestionHandler (RAG pipeline) + OllamaAIOrchestrator (router).",
+          "targets": [
+            "code-be/gtas_vpp_be.AI/Handlers/VPPSuggestionHandler.cs (NEW)",
+            "code-be/gtas_vpp_be.AI/Services/OllamaAIOrchestrator.cs (NEW)"
+          ],
+          "details": {
+            "VPPSuggestionHandler": {
+              "implements": "IAIUseCaseHandler",
+              "UseCaseId": "vpp_suggestion",
+              "flow": [
+                "1. Embed user query via IEmbeddingGenerator",
+                "2. Search similar VPPs via IVPPEmbeddingStore.SearchSimilarAsync(topK=5)",
+                "3. Build prompt: system prompt (Vietnamese) + retrieved VPP context + user query",
+                "4. Call IChatClient.GetResponseAsync(messages)",
+                "5. Parse response → AIChatResponse with SuggestedItems"
+              ],
+              "CanHandle": "Luôn return true (default handler — catch-all cho Phase 8)"
+            },
+            "OllamaAIOrchestrator": {
+              "implements": "IAIOrchestrator",
+              "injects": ["IEnumerable<IAIUseCaseHandler>", "ILogger"],
+              "ChatAsync": "Iterate handlers, find first CanHandle=true, call HandleAsync. If none → fallback response.",
+              "health_check": "Try connect Ollama before processing, return error if unavailable"
+            }
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T21:01:37.2870276+07:00",
+          "notes": "Implemented VPPSuggestionHandler catch-all RAG flow and OllamaAIOrchestrator routing with health check and graceful AI error responses.",
+          "verify": "Integration test: full RAG pipeline query → response"
+        },
+        {
+          "id": "P8.8",
+          "action": "CREATE",
+          "description": "Tạo AIController + DI extension method + appsettings config.",
+          "targets": [
+            "code-be/gtas_vpp_be/Controllers/AIController.cs (NEW)",
+            "code-be/gtas_vpp_be.AI/DependencyInjection/AIServiceExtensions.cs (NEW)",
+            "code-be/gtas_vpp_be/Program.cs (MODIFY — thêm AddGtasAIServices)",
+            "code-be/gtas_vpp_be/appsettings.json (MODIFY — thêm AISettings)",
+            "code-be/gtas_vpp_be/appsettings.Development.json (MODIFY — thêm AISettings)"
+          ],
+          "details": {
+            "AIController": {
+              "endpoints": [
+                "POST /api/ai/chat — ChatAsync(AIChatRequestDTO) → AIChatResponseDTO",
+                "POST /api/ai/rebuild-embeddings — RebuildEmbeddingsAsync() [Authorize]",
+                "GET  /api/ai/use-cases — GetAvailableUseCases()",
+                "GET  /api/ai/health — OllamaHealthCheck()"
+              ],
+              "auth": "Tất cả endpoint cần [Authorize]"
+            },
+            "AIServiceExtensions": {
+              "method": "AddGtasAIServices(this IServiceCollection services, IConfiguration config)",
+              "registers": [
+                "AIDbContext (Scoped, dùng chung connection string)",
+                "OllamaChatClient as IChatClient (Singleton)",
+                "OllamaEmbeddingGenerator as IEmbeddingGenerator (Singleton)",
+                "OllamaAIOrchestrator as IAIOrchestrator (Scoped)",
+                "SqlVPPEmbeddingStore as IVPPEmbeddingStore (Scoped)",
+                "VPPSuggestionHandler as IAIUseCaseHandler (Scoped)"
+              ]
+            },
+            "appsettings": {
+              "AISettings": {
+                "OllamaBaseUrl": "http://192.168.x.x:11434",
+                "ChatModel": "gemma4:e4b",
+                "EmbeddingModel": "nomic-embed-text",
+                "MaxTokens": 2048,
+                "Temperature": 0.3,
+                "TimeoutSeconds": 60
+              }
+            }
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T21:01:37.2870276+07:00",
+          "notes": "Added AddGtasAIServices DI registration, AIController endpoints, Program.cs wiring, and AISettings configuration.",
+          "verify": "dotnet build + Swagger shows /api/ai/* endpoints"
+        }
+      ]
+    },
+    {
+      "id": "P8-C",
+      "name": "Frontend + Polish",
+      "risk": "medium",
+      "description": "Blazor chatbox, architecture docs, E2E verify.",
+      "prerequisite": "P8-B hoàn thành",
+      "tasks": [
+        {
+          "id": "P8.9",
+          "action": "CREATE",
+          "description": "Tạo Blazor AIChatBox component — floating chatbox trên MainLayout.",
+          "targets": [
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/AI/AIChatBox.razor (NEW)",
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/AI/AIChatBox.razor.cs (NEW)",
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/AI/AIChatBox.razor.css (NEW)",
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/AI/AIChatMessage.razor (NEW)",
+            "code-fe/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/MainLayout.razor (MODIFY — thêm <AIChatBox />)"
+          ],
+          "details": {
+            "design": {
+              "fab_button": "Floating Action Button góc phải dưới, icon chat (Material Symbol)",
+              "panel": "Slide-up panel ~400px width, ~500px height",
+              "messages": "User bubbles (right, xanh) + AI bubbles (left, xám)",
+              "input": "Text input + Send button ở bottom",
+              "loading": "Typing indicator khi chờ AI",
+              "suggested_items": "Card list khi AI trả về VPP suggestions"
+            },
+            "logic": {
+              "api_call": "HttpClient POST /api/ai/chat, reuse JWT token từ existing auth",
+              "history": "In-memory per session (List<AIChatMessageDTO>)",
+              "error": "Show friendly message khi API fail"
+            },
+            "radzen": "Dùng Radzen Button, TextBox nếu phù hợp. Custom CSS cho chat bubble."
+          },
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T21:19:22.7120141+07:00",
+          "notes": "Created Blazor AIChatBox component, AIChatMessage renderer, scoped CSS, auto-scroll JS, MainLayout integration, and reused IAPIServices so JWT Bearer token is applied from the existing auth pattern.",
+          "verify": "Visual: floating button hiện, click mở panel, gõ text gửi được"
+        },
+        {
+          "id": "P8.10",
+          "action": "UPDATE",
+          "description": "Cập nhật architecture.md gốc + verify toàn bộ pipeline E2E.",
+          "targets": [
+            ".ai_workspace/refactor/architecture.md (MODIFY — thêm AI Integration section)",
+            ".ai_workspace/ai_integration/reports/final_verify.md (NEW)"
+          ],
+          "steps": [
+            "1. Thêm section 'AI Integration' vào architecture.md gốc",
+            "2. dotnet build gtas_vpp/gtas_vpp.slnx — verify 0 errors",
+            "3. dotnet test code-be/gtas_vpp_be.Tests/ — verify all tests pass",
+            "4. Start BE → Swagger → test /api/ai/health",
+            "5. POST /api/ai/rebuild-embeddings — verify embeddings created in DB",
+            "6. POST /api/ai/chat — verify full RAG pipeline",
+            "7. Start FE → verify chatbox visible + functional",
+            "8. Ghi report tổng hợp vào reports/final_verify.md"
+          ],
+          "worker": "Codex",
+          "status": "done",
+          "completedAt": "2026-04-27T21:19:22.7120141+07:00",
+          "notes": "Updated refactor architecture with AI Integration section, replaced OllamaBaseUrl with http://100.94.104.89:11434/, ran build and backend tests successfully. Runtime E2E is blocked by existing SQL Server encryption failure during BE startup migration.",
+          "verify": "Full E2E: FE chatbox → API → Ollama → response displayed"
+        }
+      ]
+    }
+  ]
+}

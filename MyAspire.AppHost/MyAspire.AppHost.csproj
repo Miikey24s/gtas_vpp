@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\code-be\gtas_vpp_be\gtas_vpp_be.csproj" />
-    <ProjectReference Include="..\..\code-fe\gtas_vpp_fe\gtas_vpp_fe\gtas_vpp_fe.csproj" />
+    <ProjectReference Include="..\gtas_vpp_be\gtas_vpp_be\gtas_vpp_be.csproj" />
+    <ProjectReference Include="..\gtas_vpp_fe\gtas_vpp_fe\gtas_vpp_fe\gtas_vpp_fe.csproj" />
   </ItemGroup>
 
 </Project>
