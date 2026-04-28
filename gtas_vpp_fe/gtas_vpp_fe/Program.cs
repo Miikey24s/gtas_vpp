@@ -5,10 +5,19 @@ using gtas_vpp_shared.DTOs.Share;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Radzen;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── 1. Forwarded Headers Service (phải đăng ký trước) ────
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -20,27 +29,27 @@ builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie
-// 1. ThÃªm cáº¥u hÃ¬nh há»— trá»£ Cookie policy
+// Cấu hình hỗ trợ Cookie policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.CheckConsentNeeded = context => true;
-    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.MinimumSameSitePolicy = SameSiteMode.Lax;
 });
 
-// 2. ThÃªm Authentication vá»›i Cookie scheme
+// Authentication với Cookie scheme
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.Cookie.Name = Config.CookieName;
         options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.LoginPath = Config.LoginPagePath;
         options.AccessDeniedPath = Config.LoginPagePath;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(Config.CookieExpireMinutes);
     });
 
-// 3. Cáº¥u hÃ¬nh cho Blazor biáº¿t Ä‘ang cÃ³ Authentication
+// Cấu hình cho Blazor biết đang có Authentication
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in Permissions.All)
@@ -60,52 +69,27 @@ builder.Services.AddHttpClient<IAPIServices, APIServices>(client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
 });
 #endregion
-#region SeriLog
-//Log.Logger = new LoggerConfiguration()
-//    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Fatal) // bá» log cá»§a ASP.NET
-//    .MinimumLevel.Debug() // chá»‰ nháº­n log do mÃ¬nh ghi
-//    .Enrich.FromLogContext()
-//    .WriteTo.Console()
-//    .WriteTo.File(
-//        path: Path.Combine("wwwroot", "logs", "log-.txt"),
-//        rollingInterval: RollingInterval.Day,
-//        retainedFileCountLimit: 10,
-//        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
-//        shared: true
-//    )
-//    .CreateLogger();
-//builder.Host.UseSerilog();
-#endregion
 
 
 var app = builder.Build();///////////////////////////////
+
+// ══════════════════════════════════════════════════════════
+// MIDDLEWARE PIPELINE - THỨ TỰ RẤT QUAN TRỌNG!
+// ══════════════════════════════════════════════════════════
+
+// ── PHẢI ĐẶT ĐẦU TIÊN: Forwarded Headers từ Nginx ──────
+// Blazor SignalR cần biết scheme thật (https) để tạo wss:// URL
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    // BỎ UseHsts() - Nginx đã xử lý HSTS
+    // BỎ UseHttpsRedirection() - Nginx đã xử lý SSL termination
 }
-
-// Behind nginx reverse proxy: trust forwarded headers (X-Forwarded-Proto = https)
-var forwardedHeadersOptions = new ForwardedHeadersOptions
-{
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
-                     | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
-};
-// Clear defaults so Docker bridge network IPs are trusted
-forwardedHeadersOptions.KnownNetworks.Clear();
-forwardedHeadersOptions.KnownProxies.Clear();
-app.UseForwardedHeaders(forwardedHeadersOptions);
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-
-// Only redirect to HTTPS in development; in production nginx handles SSL termination
-if (app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
 
 app.UseCookiePolicy();
 app.UseAuthentication();
@@ -120,4 +104,3 @@ app.MapRazorComponents<App>()
 app.MapLoginEndpoints();
 
 app.Run();
-

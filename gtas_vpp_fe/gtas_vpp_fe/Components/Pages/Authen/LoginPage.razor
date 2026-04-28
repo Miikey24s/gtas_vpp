@@ -1,4 +1,4 @@
-﻿@page "/Account/Login"
+@page "/Account/Login"
 @attribute [AllowAnonymous]
 @rendermode InteractiveServer
 @layout LoginLayout
@@ -14,7 +14,7 @@
             <div class="box">
                 <div class="logoppj" />
                 <div class="lg1container">
-                    <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="form" data-enhance>
+                    <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="form">
                         <AntiforgeryToken></AntiforgeryToken>
                         <RadzenFormField AllowFloatingLabel="false" Text="Username" Variant="Variant.Outlined" class="w-100 mt-3">
                             <Start>
