@@ -1,4 +1,4 @@
-﻿namespace gtas_vpp_fe.Helpers
+namespace gtas_vpp_fe.Helpers
 {
     public class Config
     {
@@ -19,6 +19,9 @@
             public const string DepartmentOrders = $"{ApiVppBase}/department-orders";
             public const string AllOrders = $"{ApiVppBase}/all-orders";
             public const string Orders = $"{ApiVppBase}/orders";
+            public const string PeriodInfo = $"{ApiVppBase}/period-info";
+            public const string PreviousItems = $"{ApiVppBase}/orders/previous-items";
+            public const string PendingAdditional = $"{ApiVppBase}/additional-orders/pending";
         }
 
         public static class LibraryApi

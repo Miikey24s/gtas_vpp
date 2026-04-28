@@ -1,4 +1,4 @@
-﻿﻿using gtas_vpp_fe.Helpers;
+﻿using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -27,16 +27,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool IsLoading { get; set; }
         public IEnumerable<int> YearFilter { get; set; } = new[] { DateTime.Now.Year };
         public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
-        public IEnumerable<int> StatusFilter { get; set; } = new[] { 0, 1, 4, 5, 6, 7, 8 }; // All statuses
+        public IEnumerable<int> StatusFilter { get; set; } = new[] { 1, 4, 6, 7, 8 }; // All statuses
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new()
         {
-            new() { Value = 0, Text = "Draft" },
             new() { Value = 1, Text = "Submitted" },
             new() { Value = 4, Text = "Cancelled" },
-            new() { Value = 5, Text = "Closed" },
             new() { Value = 6, Text = "Pending" },
             new() { Value = 7, Text = "Approved" },
             new() { Value = 8, Text = "Rejected" }
@@ -171,10 +169,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected string GetStatusText(int status) => status switch
         {
-            0 => "Draft",
             1 => "Submitted",
             4 => "Cancelled",
-            5 => "Closed",
             6 => "Pending",
             7 => "Approved",
             8 => "Rejected",
@@ -183,10 +179,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
         {
-            0 => BadgeStyle.Light,      // Draft
             1 => BadgeStyle.Success,    // Submitted
             4 => BadgeStyle.Danger,     // Cancelled
-            5 => BadgeStyle.Info,       // Closed
             6 => BadgeStyle.Warning,    // Pending
             7 => BadgeStyle.Success,    // Approved
             8 => BadgeStyle.Danger,     // Rejected

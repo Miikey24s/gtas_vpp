@@ -3,6 +3,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -37,6 +38,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] public IJSRuntime JS { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
@@ -49,6 +51,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         public Guid? LastDeletedOrderId { get; set; }
         public string? LastDeletedOrderCode { get; set; }
+        public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
 
         public DateTime CurrentOrderPeriodDate
         {
@@ -85,6 +88,31 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected override async Task OnInitializedAsync()
         {
             await LoadOrdersAsync();
+            await LoadPeriodInfoAsync();
+            await RestoreUndoStateAsync();
+        }
+
+        private async Task LoadPeriodInfoAsync()
+        {
+            try
+            {
+                PeriodInfo = await _apiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
+            }
+            catch { }
+        }
+
+        private async Task RestoreUndoStateAsync()
+        {
+            try
+            {
+                var idStr = await JS.InvokeAsync<string>("localStorage.getItem", "vpp.lastCancelledOrderId");
+                if (!string.IsNullOrWhiteSpace(idStr) && Guid.TryParse(idStr, out var id))
+                {
+                    LastDeletedOrderId = id;
+                    LastDeletedOrderCode = await JS.InvokeAsync<string>("localStorage.getItem", "vpp.lastCancelledOrderCode");
+                }
+            }
+            catch { }
         }
         protected async Task LoadOrdersAsync()
         {
@@ -131,13 +159,19 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await Task.CompletedTask;
         }
 
+        protected async Task CopyPreviousAsync()
+        {
+            NavigationManager.NavigateTo("/dashboard/order-create?copyFrom=previous");
+            await Task.CompletedTask;
+        }
+
         protected async Task GoToEditPage(VPP01_RequestHeaderResDTO row)
         {
             NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}");
             await Task.CompletedTask;
         }
 
-        protected async Task UndoLastDeleteAsync()
+        protected async Task UndoLastCancelAsync()
         {
             if (LastDeletedOrderId == null) return;
 
@@ -145,18 +179,20 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{LastDeletedOrderId}/undo-delete", new { });
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{LastDeletedOrderId}/undo-cancel", new { });
 
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
-                    Detail = "Delete has been undone.",
+                    Detail = "Cancel has been undone.",
                     Duration = 3000
                 });
 
                 LastDeletedOrderId = null;
                 LastDeletedOrderCode = null;
+                await JS.InvokeVoidAsync("localStorage.removeItem", "vpp.lastCancelledOrderId");
+                await JS.InvokeVoidAsync("localStorage.removeItem", "vpp.lastCancelledOrderCode");
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
@@ -165,83 +201,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Order",
-                    Detail = $"Undo delete failed: {ex.Message}",
-                    Duration = 6000
-                });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                IsLoading = false;
-                StateHasChanged();
-            }
-        }
-
-        protected async Task DeleteOrderAsync(VPP01_RequestHeaderResDTO row)
-        {
-            if (!CanEditOrDelete(row)) return;
-
-            IsLoading = true;
-            glb.isBusyPage = true;
-            try
-            {
-                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/delete", new { });
-                LastDeletedOrderId = row.Id;
-                LastDeletedOrderCode = row.VPPCode;
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Order",
-                    Detail = "Order deleted. You can Undo delete.",
-                    Duration = 3000
-                });
-                await LoadOrdersAsync();
-            }
-            catch (Exception ex)
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Delete failed: {ex.Message}",
-                    Duration = 6000
-                });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                IsLoading = false;
-                StateHasChanged();
-            }
-        }
-
-        protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
-        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => 
-            IsSubmitted(row) || (row.IsAdditionalOrder && row.Status == 6); // Allow edit/delete for Submitted orders or Pending additional orders
-
-        protected async Task SubmitOrderAsync(VPP01_RequestHeaderResDTO row)
-        {
-            IsLoading = true;
-            glb.isBusyPage = true;
-            try
-            {
-                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/submit", new { });
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Order",
-                    Detail = "Order submitted.",
-                    Duration = 3000
-                });
-                await LoadOrdersAsync();
-            }
-            catch (Exception ex)
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Submit failed: {ex.Message}",
+                    Detail = $"Undo cancel failed: {ex.Message}",
                     Duration = 6000
                 });
             }
@@ -255,18 +215,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task CancelOrderAsync(VPP01_RequestHeaderResDTO row)
         {
+            if (!CanEditOrDelete(row)) return;
+
             IsLoading = true;
             glb.isBusyPage = true;
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", new { });
+                LastDeletedOrderId = row.Id;
+                LastDeletedOrderCode = row.VPPCode;
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
-                    Detail = "Order cancelled.",
+                    Detail = "Order cancelled. You can Undo.",
                     Duration = 3000
                 });
+                // Persist undo state to localStorage
+                await JS.InvokeVoidAsync("localStorage.setItem", "vpp.lastCancelledOrderId", row.Id.ToString());
+                await JS.InvokeVoidAsync("localStorage.setItem", "vpp.lastCancelledOrderCode", row.VPPCode ?? "");
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
@@ -287,6 +254,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
+        protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
+        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => row.CanCancel;
+
         protected void ViewOrder(VPP01_RequestHeaderResDTO row)
         {
             ViewingOrder = row;
@@ -304,7 +274,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             1 => "Submitted",
             4 => "Cancelled",
-            5 => "Closed",
             6 => "Pending",
             7 => "Approved",
             8 => "Rejected",
@@ -315,7 +284,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             1 => BadgeStyle.Success,
             4 => BadgeStyle.Danger,
-            5 => BadgeStyle.Info,
             6 => BadgeStyle.Warning,
             7 => BadgeStyle.Success,
             8 => BadgeStyle.Danger,

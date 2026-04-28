@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="../../gtas_vpp/gtas_vpp_shared/gtas_vpp_shared.csproj" />
+  <Project Path="../../code-be/gtas_vpp_shared/gtas_vpp_shared.csproj" />
   <Project Path="gtas_vpp_fe/gtas_vpp_fe.csproj" />
 </Solution>

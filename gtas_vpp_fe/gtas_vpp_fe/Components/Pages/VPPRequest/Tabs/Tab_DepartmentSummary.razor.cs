@@ -35,8 +35,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             new() { Value = null, Text = "All" },
             new() { Value = 1, Text = "Submitted" },
-            new() { Value = 5, Text = "Closed" },
-            new() { Value = 7, Text = "Approved" }
+            new() { Value = 4, Text = "Cancelled" },
+            new() { Value = 6, Text = "Pending" },
+            new() { Value = 7, Text = "Approved" },
+            new() { Value = 8, Text = "Rejected" }
         };
 
         private bool CanView => claims.HasPermission(Permissions.RequestDepartmentSummary);
@@ -123,8 +125,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected string GetStatusText(int status) => status switch
         {
             1 => "Submitted",
-            5 => "Closed",
+            4 => "Cancelled",
+            6 => "Pending",
             7 => "Approved",
+            8 => "Rejected",
             _ => "-"
         };
     }

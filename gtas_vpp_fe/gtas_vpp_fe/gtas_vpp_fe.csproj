@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\gtas_vpp\gtas_vpp_shared\gtas_vpp_shared.csproj" />
+    <ProjectReference Include="..\..\..\code-be\gtas_vpp_shared\gtas_vpp_shared.csproj" />
   </ItemGroup>
 
 </Project>

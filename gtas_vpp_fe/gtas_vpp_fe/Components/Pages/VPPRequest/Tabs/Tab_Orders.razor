@@ -39,8 +39,8 @@
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
                 <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
-                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
-                <RadzenButton Icon="undo" Text="Undo" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Click="@(async _ => await UndoLastDeleteAsync())" Disabled="@(IsLoading || LastDeletedOrderId == null)" />
+                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
+                <RadzenButton Icon="undo" Text="Undo" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Click="@(async _ => await UndoLastCancelAsync())" Disabled="@(IsLoading || LastDeletedOrderId == null)" />
             </RadzenStack>
         </RadzenStack>
         
@@ -157,7 +157,7 @@
                             @if (CanEditOrDelete(order))
                             {
                                 <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" />
-                                <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await DeleteOrderAsync(order))" />
+                                <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" />
                             }
                         </RadzenStack>
                     </RadzenColumn>

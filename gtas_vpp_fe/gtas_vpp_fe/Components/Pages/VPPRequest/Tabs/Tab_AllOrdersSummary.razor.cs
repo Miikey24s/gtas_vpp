@@ -32,14 +32,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<OptionItem> StatusOptions { get; } = new()
         {
             new() { Value = null, Text = "All" },
-            new() { Value = 0, Text = "Draft" },
             new() { Value = 1, Text = "Submitted" },
-            new() { Value = 2, Text = "Pending Approval" },
-            new() { Value = 3, Text = "Rejected" },
             new() { Value = 4, Text = "Cancelled" },
-            new() { Value = 5, Text = "Closed" },
-            new() { Value = 6, Text = "Deleted" },
-            new() { Value = 7, Text = "Approved" }
+            new() { Value = 6, Text = "Pending" },
+            new() { Value = 7, Text = "Approved" },
+            new() { Value = 8, Text = "Rejected" }
         };
 
         private bool CanView => claims.HasPermission(Permissions.RequestAllOrdersSummary);
@@ -119,14 +116,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected string GetStatusText(int status) => status switch
         {
-            0 => "Draft",
             1 => "Submitted",
-            2 => "Pending Approval",
-            3 => "Rejected",
             4 => "Cancelled",
-            5 => "Closed",
-            6 => "Deleted",
+            6 => "Pending",
             7 => "Approved",
+            8 => "Rejected",
             _ => "-"
         };
     }

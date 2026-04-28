@@ -39,6 +39,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             public List<SelectedItem> Items { get; set; } = new();
             public DateTime SavedAt { get; set; }
         }
+
         public sealed class CategoryOption
         {
             public Guid Id { get; set; }
@@ -51,6 +52,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             public string? VPPCategoryCode { get; set; }
             public string? VPPCategoryName { get; set; }
         }
+
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
@@ -58,6 +60,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         [SupplyParameterFromQuery] public Guid? OrderId { get; set; }
         [SupplyParameterFromQuery(Name = "isAdditional")] public string? IsAdditionalParam { get; set; }
+        [SupplyParameterFromQuery(Name = "copyFrom")] public string? CopyFromParam { get; set; }
         
         private bool _isAdditionalOverride;
         private bool _hasLoadedOrder;
@@ -81,6 +84,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public bool IsSaving { get; set; }
         public bool DraftRecovered { get; set; }
         public bool IsEdit => OrderId.HasValue;
+        public bool IsCopyFromPrevious => !string.IsNullOrWhiteSpace(CopyFromParam) && CopyFromParam.Equals("previous", StringComparison.OrdinalIgnoreCase);
         public string? Description { get; set; }
         public DateTime? LastDraftSavedAt { get; set; }
         public int TotalQty => SelectedItems.Sum(x => x.Qty);
@@ -118,9 +122,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             // CHECK PERMISSION: Kiểm tra quyền tạo/sửa order
             if (!Claims.HasPermission(Permissions.RequestOrder))
             {
-                
-                // Kiểm tra có quyền Request Order không
-                
                 NotificationService.Notify(new NotificationMessage()
                 {
                     Severity = NotificationSeverity.Warning,
@@ -136,6 +137,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             if (IsEdit)
             {
                 await LoadOrderForEditAsync();
+            }
+            else if (IsCopyFromPrevious)
+            {
+                await LoadPreviousOrderItemsAsync();
+                StartDraftAutoSave();
             }
             else
             {
@@ -231,6 +237,61 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             finally
             {
                 glb.isBusyPage = false;
+            }
+        }
+
+        private async Task LoadPreviousOrderItemsAsync()
+        {
+            glb.isBusyPage = true;
+            try
+            {
+                var previousOrder = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.ApiVppBase}/orders/previous-items");
+                if (previousOrder == null)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Info,
+                        Summary = "Copy Previous",
+                        Detail = "No previous order found to copy from.",
+                        Duration = 4000
+                    });
+                    return;
+                }
+
+                Description = previousOrder.Description;
+                SelectedItems = (previousOrder.Items ?? new())
+                    .Select(x => new SelectedItem
+                    {
+                        VPPId = x.VPPId,
+                        VPPCode = x.VPPCode,
+                        VPPName = x.VPPName,
+                        Qty = x.Qty,
+                        Description = x.Description
+                    })
+                    .ToList();
+
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Copy Previous",
+                    Detail = $"Copied {SelectedItems.Count} item(s) from previous order. Review and submit.",
+                    Duration = 4000
+                });
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Copy Previous",
+                    Detail = $"Failed to load previous order: {ex.Message}",
+                    Duration = 5000
+                });
+            }
+            finally
+            {
+                glb.isBusyPage = false;
+                StateHasChanged();
             }
         }
 
