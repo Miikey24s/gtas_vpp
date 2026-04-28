@@ -79,7 +79,8 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = true;
+        // In production, Nginx handles SSL termination; backend runs HTTP internally
+        options.RequireHttpsMetadata = !builder.Environment.IsProduction();
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -128,7 +129,9 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+// HTTPS redirection handled by Nginx reverse proxy in production
+if (!app.Environment.IsProduction())
+    app.UseHttpsRedirection();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
