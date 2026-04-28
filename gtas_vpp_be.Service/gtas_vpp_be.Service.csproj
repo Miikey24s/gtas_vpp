@@ -34,4 +34,8 @@
     <ProjectReference Include="..\gtas_vpp_shared\gtas_vpp_shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Helpers\SQL\*.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

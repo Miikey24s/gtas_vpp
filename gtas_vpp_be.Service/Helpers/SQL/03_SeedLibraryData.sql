@@ -1,4 +1,11 @@
-USE GTAS_VPP_TEST;
+﻿-- ============================================================================
+-- 03_SeedLibraryData.sql - Library data: L01-L06, LEX02 departments
+-- Combined from: 04_AddVPP.sql + 05_AddSuppliers.sql + 06_AddLEX.sql
+-- Idempotent: Uses NOT EXISTS checks
+-- ============================================================================
+
+-- PART 1: VPP Categories + Items + UOM (from 04_AddVPP.sql)
+
 GO
 
 SET NOCOUNT ON;
@@ -678,4 +685,136 @@ BEGIN TRAN;
 -- 5. DỌN DẸP BẢNG TẠM
 -- =========================================================================================
 IF OBJECT_ID('tempdb..#RawData') IS NOT NULL DROP TABLE #RawData;
+GO
+
+
+-- PART 2: Suppliers + Mapping (from 05_AddSuppliers.sql)
+BEGIN TRANSACTION;
+BEGIN TRY
+    -- 1. Khai báo bảng tạm chứa 3 nhà cung cấp mới
+    DECLARE @NewSuppliers TABLE (Id UNIQUEIDENTIFIER, Name NVARCHAR(MAX), ShortName NVARCHAR(MAX), City NVARCHAR(MAX));
+    
+    INSERT INTO @NewSuppliers (Id, Name, ShortName, City)
+    VALUES     
+    (NEWID(), N'VPP Thăng Long', 'VPP_HN', N'Hà Nội'),    
+    (NEWID(), N'VPP Sông Hàn', 'VPP_DN', N'Đà Nẵng'),    
+    (NEWID(), N'VPP Gia Định', 'VPP_HCM', N'Hồ Chí Minh');
+
+    -- 2. Thêm vào bảng L05_VPPSupplier 
+    -- (Bổ sung UpdateUserId và UpdateDate)
+    INSERT INTO dbo.L05_VPPSupplier (
+        Id, SupplierShortName, SupplierName, City, 
+        CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
+    )
+    SELECT 
+        Id, ShortName, Name, City, 
+        5615, GETDATE(), 5615, GETDATE(), 0
+    FROM @NewSuppliers;
+
+    -- 3. Bulk Map: Nhân 3 NCC này với TẤT CẢ VPP đang hoạt động vào bảng L06
+    -- (Bổ sung UpdateUserId và UpdateDate)
+    INSERT INTO dbo.L06_VPPSupplierMapping (
+        Id, Price, L04_VPPId, L05_VPPSupplierId, Description, 
+        CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
+    )
+    SELECT 
+        NEWID(), 
+        0,              -- Giá mặc định khởi tạo
+        V.Id,           -- Id từ bảng VPP hiện có
+        S.Id,           -- Id của 3 NCC vừa tạo
+        N'Thiết lập giá mặc định theo khu vực ' + S.City,
+        5615, 
+        GETDATE(), 
+        5615,           -- Gán giá trị bắt buộc cho UpdateUserId
+        GETDATE(),      -- Gán giá trị bắt buộc cho UpdateDate
+        0
+    FROM dbo.L04_VPP V
+    CROSS JOIN @NewSuppliers S 
+    WHERE V.IsDeleted = 0;
+
+    COMMIT TRANSACTION;
+    PRINT N'Thành công: Đã thêm 3 NCC và tự động tạo Mapping cho toàn bộ danh mục VPP.';
+END TRY
+BEGIN CATCH
+    ROLLBACK TRANSACTION;
+    SELECT ERROR_MESSAGE() AS Error;
+END CATCH
+-------------------------------------
+BEGIN TRANSACTION;
+BEGIN TRY
+    -- Cập nhật giá ngẫu nhiên cho những dòng mapping vừa tạo (CreateUserId = 5615)
+    UPDATE dbo.L06_VPPSupplierMapping
+    SET 
+        Price = (ABS(CHECKSUM(NEWID())) % 495001) + 5000, -- Công thức: (Random % (Max-Min+1)) + Min
+        UpdateDate = GETDATE()
+    WHERE CreateUserId = 5615 
+      AND Price = 0; -- Chỉ cập nhật những dòng đang bị bằng 0
+
+    COMMIT TRANSACTION;
+    PRINT N'Thành công: Đã cập nhật giá ngẫu nhiên cho toàn bộ dữ liệu!';
+END TRY
+BEGIN CATCH
+    ROLLBACK TRANSACTION;
+    SELECT ERROR_MESSAGE() AS Error;
+END CATCH
+
+-- PART 3: Departments (from 06_AddLEX.sql)
+-- Idempotent wrapper for LEX02 departments
+IF NOT EXISTS (SELECT 1 FROM LEX02_CompanyDepartmentLocation WHERE LEX02Code = 'IT')
+BEGIN
+BEGIN TRAN;
+
+INSERT INTO LEX02_CompanyDepartmentLocation 
+    (Id, LEX02Code, LEX02Name, LEX02Type, ParentId, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+VALUES
+    (NEWID(), 'CBSX', N'CBSX', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'CONGNGHEMAY', N'CÔNG NGHỆ MAY', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'CONGNGHEWASH', N'CÔNG NGHỆ WASH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'SOURCING', N'SOURCING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'CPD', N'CPD', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'DAUTU', N'ĐẦU TƯ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'DINHMUC', N'ĐỊNH MỨC', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'FD', N'FD', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'FQM', N'FQM', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'GIAMDINH', N'GIÁM ĐỊNH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'HCQT', N'HCQT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'HOANTATPHUOCLONG', N'HOÀN TẤT PHƯỚC LONG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'IT', N'IT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD5+6', N'KD5+6', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD25', N'KD25', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD26', N'KD26', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD27', N'KD27', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD1', N'KD1', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD17', N'KD17+KD16+PPJW1', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD19', N'KD19', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD2', N'KD2', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD3', N'KD3', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD4', N'KD4', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD7', N'KD7', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD8', N'KD8', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KEHOACH', N'KẾ HOẠCH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KEHOACHPNC', N'KẾ HOẠCH PNC', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KHOTONG', N'KHO TỔNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'LONGAN', N'LONG AN', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'MAULONGAN', N'MAY MẪU LONG AN', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'NHOMFITTECH Rap', N'NHÓM FITTECH RẬP', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'NSTL', N'NSTL', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'PHAPCHE', N'PHÁP CHẾ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'PURCHASING', N'PURCHASING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'QA', N'QA', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'QLTBMAY', N'QLTB MAY', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'R&D', N'R&D', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'SOURCING', N'SOURCING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TCKT', N'TCKT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TCKTKHO', N'TCKT KHO', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TCKTVTJ', N'TCKT VTJ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'c', N'THÊU MẪU', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TQM', N'TQM', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TTHTLINHTRUNG', N'TTHT LINH TRUNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'WASHLINHTRUNG', N'WASH LINH TRUNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'XNK', N'XNK', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'XUONGMAYMAU', N'XƯỞNG MAY MẪU', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0);
+
+COMMIT TRAN;
+END
 GO

@@ -18,6 +18,7 @@
   <ItemGroup>
     <Folder Include="DTOs\Res\Library\Library\" />
     <Folder Include="images\" />
+    <Folder Include="SQL\" />
   </ItemGroup>
 
 </Project>

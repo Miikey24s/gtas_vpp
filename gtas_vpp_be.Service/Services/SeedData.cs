@@ -1,654 +1,359 @@
-﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace gtas_vpp_be.Service.Services
 {
     public static class SeedData
     {
+        // ── Constants ──────────────────────────────────────────────
+        private const int DefaultUserId = 5615;
+        private static readonly Guid AdminGroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C");
+        private static readonly Guid UserGroupId  = Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596");
 
+        // ── Page IDs ───────────────────────────────────────────────
+        private static readonly Guid PageDashboard  = Guid.Parse("DE4FCAAE-E585-4B10-9E4E-DBC41D9629D2");
+        private static readonly Guid PageSidebar    = Guid.Parse("A9825502-EC31-4AB2-9CC5-7A810F9B7BE8");
+        private static readonly Guid PageLibrary    = Guid.Parse("5D88463F-CC1C-40E7-BAAD-018DE589D596");
+        private static readonly Guid PagePermission = Guid.Parse("20B988D3-7C9A-41EB-BCA0-D94ACE25AC43");
+        private static readonly Guid PageReport     = Guid.Parse("F4C3AECB-7100-48CA-AA37-EAA65EBA8752");
+
+        // ── Component IDs ──────────────────────────────────────────
+        private static readonly Guid CompMenuDashboard      = Guid.Parse("127B705A-44E1-42F9-9B64-E77BAD63605F");
+        private static readonly Guid CompMenuLibrary        = Guid.Parse("78796E6D-FD41-4ADF-8A43-1100F0FE4D7F");
+        private static readonly Guid CompMenuReport         = Guid.Parse("B2F10C28-E04F-457B-B41B-43CD604DB529");
+        private static readonly Guid CompMenuPermission     = Guid.Parse("9A96C843-43A2-4F8B-AE13-F5B511D8A9D2");
+        private static readonly Guid CompRequestOrder       = Guid.Parse("DF771279-8491-4C09-872E-A860474C340E");
+        private static readonly Guid CompRequestCatalog     = Guid.Parse("22A7CA16-2FE3-46F2-9D19-CE4D0D225552");
+        private static readonly Guid CompRequestHistory     = Guid.Parse("14670749-6D7E-4815-910E-EA649E61CF2E");
+        private static readonly Guid CompRequestDeptSummary = Guid.Parse("F3DDBF74-BFAB-4BF7-9F63-DEE5A1D9EE89");
+        private static readonly Guid CompRequestAllSummary  = Guid.Parse("3D32B4E5-10E3-4D3F-8E8C-39E72959849F");
+        private static readonly Guid CompRequestApproval    = Guid.Parse("B7132472-913E-40E4-AFAE-1972FB8FA77A");
+        private static readonly Guid CompLibClass           = Guid.Parse("8657EA31-D139-4E61-B597-64C4E8E88615");
+        private static readonly Guid CompLibCategory        = Guid.Parse("B1F59264-AB93-4E39-BB4C-2397726C69BE");
+        private static readonly Guid CompLibItem            = Guid.Parse("A88BF4B4-F5BB-4E5A-8ADA-73C27606E7E2");
+        private static readonly Guid CompLibSupplier        = Guid.Parse("02C64E1C-FDB0-4FEB-B788-CEBB06CF94C9");
+        private static readonly Guid CompLibDepartment      = Guid.Parse("3179CAE5-10AF-4F8A-BED1-F8AB7C68D881");
+        private static readonly Guid CompPermUser           = Guid.Parse("7A1EF33F-FAB9-47D6-88BF-9D69E90DC519");
+        private static readonly Guid CompPermComponent      = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
+        private static readonly Guid CompReportView         = Guid.Parse("70603737-45C6-4937-A422-4E4FB0EC52CD");
+
+        // ── P05 Mapping IDs ────────────────────────────────────────
+        private static readonly Guid P05_SB_Dashboard  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
+        private static readonly Guid P05_SB_Library    = Guid.Parse("26AF4773-9D60-4AE6-B014-33D623FBA968");
+        private static readonly Guid P05_SB_Report     = Guid.Parse("97E6C9EE-CFFB-4332-AEC3-56824BF2FEFD");
+        private static readonly Guid P05_SB_Permission = Guid.Parse("CAB28621-070E-417A-8780-9F0835B0AD5F");
+        private static readonly Guid P05_DB_Order      = Guid.Parse("9347D472-AD40-40A5-BAD4-DFC4176531A7");
+        private static readonly Guid P05_DB_Catalog    = Guid.Parse("0CEA22F8-2463-4C6D-887A-AA4344B08F93");
+        private static readonly Guid P05_DB_History    = Guid.Parse("98D45C13-9637-4BB6-8351-19164FB2627A");
+        private static readonly Guid P05_DB_DeptSum    = Guid.Parse("EE872A0B-737E-4D10-87D4-68E567814623");
+        private static readonly Guid P05_DB_AllSum     = Guid.Parse("3625955F-4E4B-466D-A56D-A5EC08346F67");
+        private static readonly Guid P05_DB_Approval   = Guid.Parse("0FA7B816-82ED-49A1-A7E8-35443175778F");
+        private static readonly Guid P05_LB_Class      = Guid.Parse("4C2F1AD1-637B-4DDF-95C5-0D84F5D42ABD");
+        private static readonly Guid P05_LB_Category   = Guid.Parse("25B3721D-CDF2-41B2-A5F1-A24A5826E3C4");
+        private static readonly Guid P05_LB_Item       = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
+        private static readonly Guid P05_LB_Supplier   = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
+        private static readonly Guid P05_LB_Dept       = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
+        private static readonly Guid P05_PM_User       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
+        private static readonly Guid P05_PM_Component  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
+        private static readonly Guid P05_RP_View       = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
+
+        // ════════════════════════════════════════════════════════════
+        //  MAIN ENTRY POINT
+        //  Luồng tối ưu: SQL infra → SQL data (LEX02 departments) → C# auth
+        // ════════════════════════════════════════════════════════════
         public static async Task Seed(VPPMigrationDbContext context)
         {
-            await P01_Page(context);
-            await P02_Group(context);
-            await P03_Component(context);
+            Log.Information("[SeedData] Starting database seeding...");
 
-            await LEX02_CompanyDepartmentLocationId_Empty(context);
+            // ── PHASE 1: Infrastructure SQL ──────────────────────
+            // Tạo GTAS_MENU DB + tblUsers (cần cho Views + SPs)
+            await RunSqlSafe(context, "Helpers/SQL/00_Init_GTAS_MENU.sql");
 
-            await P04_UserGroup(context);
-            await P05_PageComponentMapping(context);
-            await P06_GroupPageComponentMapping(context);
+            // Views (dùng cross-database query tới GTAS_MENU, không cần Linked Server)
+            await RunSqlSafe(context, "Helpers/SQL/01_Views.sql");
+
+            // Stored Procedures (12 SPs, CREATE OR ALTER)
+            await RunSqlSafe(context, "Helpers/SQL/02_StoredProcedures.sql");
+
+            // ── PHASE 2: Library + LEX02 data (SQL) ─────────────
+            // PHẢI chạy trước P04_UserGroup vì P04 cần LEX02 department IDs
+            await SeedLEX02_Empty(context);
+            await RunSqlSafe(context, "Helpers/SQL/03_SeedLibraryData.sql");
+
+            // ── PHASE 3: Auth data (C#) ─────────────────────────
+            // P01 → P02 → P03 → P04 (lookup LEX02 IDs) → P05 → P06
+            await SeedP01_Page(context);
+            await SeedP02_Group(context);
+            await SeedP03_Component(context);
+            await SeedP04_UserGroup(context); // Lookup LEX02 department IDs dynamically
+            await SeedP05_PageComponentMapping(context);
+            await SeedP06_GroupPageComponentMapping(context);
+
+            Log.Information("[SeedData] Database seeding completed.");
         }
 
-        public static async Task LEX02_CompanyDepartmentLocationId_Empty(VPPMigrationDbContext context)
+        /// <summary>
+        /// Chạy SQL file an toàn — log warning nếu lỗi, không crash app.
+        /// </summary>
+        private static async Task RunSqlSafe(VPPMigrationDbContext context, string path)
         {
-            // 1. Kiểm tra xem bản ghi Guid.Empty đã tồn tại chưa
-            bool isExist = context.LEX02_CompanyDepartmentLocations.Any(x => x.Id == Guid.Empty);
+            try
+            {
+                await SqlBatchExecutor.ExecuteSqlFileAsync(context.Database, path);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "[SeedData] {File} failed. Skipping...", Path.GetFileName(path));
+            }
+        }
 
+        // ════════════════════════════════════════════════════════════
+        //  LEX02 — Guid.Empty row (bypass EF auto-gen)
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedLEX02_Empty(VPPMigrationDbContext context)
+        {
+            bool isExist = context.LEX02_CompanyDepartmentLocations.Any(x => x.Id == Guid.Empty);
             if (!isExist)
             {
-                // 2. Ép kiểu Guid.Empty ra chuỗi (00000000-0000-0000-0000-000000000000)
                 string emptyId = Guid.Empty.ToString();
-
-                // 3. Dùng lệnh SQL thuần (Raw SQL) để lách qua cơ chế tự sinh ID của EF Core
                 string sql = $@"
-            INSERT INTO LEX02_CompanyDepartmentLocation 
-            (Id, LEX02Type, LEX02Code, LEX02Name, CreateDate, CreateUserId, UpdateDate, UpdateUserId, IsDeleted)
-            VALUES 
-            ('{emptyId}', 'System', 'SYS_DEFAULT', 'System Default Location', GETDATE(), 5615, GETDATE(), 5615, 0)
-            ";
+                    INSERT INTO LEX02_CompanyDepartmentLocation 
+                    (Id, LEX02Type, LEX02Code, LEX02Name, CreateDate, CreateUserId, UpdateDate, UpdateUserId, IsDeleted)
+                    VALUES 
+                    ('{emptyId}', 'System', 'SYS_DEFAULT', 'System Default Location', GETDATE(), {DefaultUserId}, GETDATE(), {DefaultUserId}, 0)
+                ";
                 await context.Database.ExecuteSqlRawAsync(sql);
+                Log.Information("[SeedData] LEX02: Seeded Guid.Empty row");
             }
         }
 
-        public static async Task P01_Page(VPPMigrationDbContext context)
+        // ════════════════════════════════════════════════════════════
+        //  P01_Page — 5 pages
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedP01_Page(VPPMigrationDbContext context)
         {
-            if (!context.P01_Pages.Any())
+            if (context.P01_Pages.Any()) return;
+
+            var now = DateTime.Now;
+            var pages = new List<P01_Page>
             {
-                var page = new List<P01_Page>
-                {
-                    new P01_Page
-                    {
-                        Id = Guid.Parse("19AB0B41-568C-4357-942D-092019EC08E8"),
-                        PageCode = "0002",
-                        PageName = "Dashboard",
-                        Type = "Page",
-                        Description = "Dashboard page",
-                        CreateDate = DateTime.Now,
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Now,
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P01_Page
-                    {
-                        Id = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        PageCode = "0001",
-                        PageName = "Sidebar",
-                        Type = "Component",
-                        Description = "Left Sidebar menu",
-                        CreateDate = DateTime.Now,
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Now,
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    }
-                };
-                await context.P01_Pages.AddRangeAsync(page);
-                await context.SaveChangesAsync();
-            }
+                new() { Id = PageSidebar, PageCode = "SIDEBAR", PageName = "Sidebar Menu", Type = "Menu",
+                        Description = "Root Sidebar", CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                new() { Id = PageDashboard, PageCode = "DASHBOARD", PageName = "Dashboard", Type = "Page",
+                        Description = "Request Workspace", CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                new() { Id = PageLibrary, PageCode = "LIBRARY", PageName = "Library", Type = "Page",
+                        Description = "Categories", CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                new() { Id = PagePermission, PageCode = "PERMISSION", PageName = "Permission", Type = "Page",
+                        Description = "Security", CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                new() { Id = PageReport, PageCode = "REPORT", PageName = "Report", Type = "Page",
+                        Description = "System Reports", CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
+            };
+            await context.P01_Pages.AddRangeAsync(pages);
+            await context.SaveChangesAsync();
+            Log.Information("[SeedData] P01_Page: {Count} pages", pages.Count);
         }
-        public static async Task P06_GroupPageComponentMapping(VPPMigrationDbContext context)
+
+        // ════════════════════════════════════════════════════════════
+        //  P02_Group — 2 groups
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedP02_Group(VPPMigrationDbContext context)
         {
-            if (!context.P06_GroupPageComponentMappings.Any())
+            if (context.P02_Groups.Any()) return;
+
+            var now = DateTime.Now;
+            var groups = new List<P02_Group>
             {
-                var mapping = new List<P06_GroupPageComponentMapping>
-                {
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("42067CBC-B2EC-4543-AEEE-06E313CEE46F"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("ACE34EF0-E02A-4861-8046-0A2EC35F44FD"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("48ABBF62-83FA-4B5C-891B-0E20AAB06795"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("AC2EDDB5-785D-44BA-AD13-1C6521C9CB2F"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("1B15372C-F610-4EAC-8FB6-1EA06C9B0E3D"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("034B7FF3-E711-4A12-85E5-4458138DA63A"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("319934A3-4EB2-4943-8650-4B49694CAB05"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("A49D5F82-0510-4D42-B65B-508933A6A8F4"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("0A85AA3C-745D-40C7-8D74-830058F72457"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("9E9276EB-76C1-4899-89B1-8CDE36636CAB"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("33C23B23-3A69-4846-9DFD-98877FB13EF6"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("3C2549AC-F423-41C9-9ECA-A2786FFFAA0B"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("F10938F0-33AC-48B3-B385-A2AB9D889F1B"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("74E95ACD-0ED8-4186-B180-CE4493705D48"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    },
-                    new P06_GroupPageComponentMapping
-                    {
-                        P05_PageComponentMappingId = Guid.Parse("8DF1C069-B427-4E17-99A4-D6576B4B8307"),
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        MemberCompanyCode = 77500,
-                        CreateUserId = 5615,
-                        CreateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        UpdateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:36:57.5633333"),
-                        IsEnable = true,
-                        IsVisible = true
-                    }
-                };
-                await context.P06_GroupPageComponentMappings.AddRangeAsync(mapping);
-                await context.SaveChangesAsync();
-            }
-        }
-        public static async Task P05_PageComponentMapping(VPPMigrationDbContext context)
-        {
-            if (!context.P05_PageComponentMappings.Any())
-            {
-                var mapping = new List<P05_PageComponentMapping>
-                {
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("42067CBC-B2EC-4543-AEEE-06E313CEE46F"),
-                        P01_PageId = Guid.Parse("19AB0B41-568C-4357-942D-092019EC08E8"),
-                        P03_ComponentId = Guid.Parse("0EF1CE18-6C51-4A12-BC33-02AEF29E2666")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("ACE34EF0-E02A-4861-8046-0A2EC35F44FD"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("B5CB8388-31F7-477B-99E2-3F142B5D84D8")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("48ABBF62-83FA-4B5C-891B-0E20AAB06795"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("9F9C5354-2980-4714-BA43-AB3BDF899466")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("AC2EDDB5-785D-44BA-AD13-1C6521C9CB2F"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("B8534954-D739-4AA6-954E-F1390D010EE7")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("1B15372C-F610-4EAC-8FB6-1EA06C9B0E3D"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("E572C24C-B0BA-4C3A-8196-55C518B13770")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("034B7FF3-E711-4A12-85E5-4458138DA63A"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("FA30BCD6-3050-4677-B492-696DA0179799")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("319934A3-4EB2-4943-8650-4B49694CAB05"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("53123EA1-5151-4CDB-97AC-C463854EAE27")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("A49D5F82-0510-4D42-B65B-508933A6A8F4"),
-                        P01_PageId = Guid.Parse("19AB0B41-568C-4357-942D-092019EC08E8"),
-                        P03_ComponentId = Guid.Parse("2D9CF8C6-0BB5-4C60-A2CD-FC90CF9B38C2")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("0A85AA3C-745D-40C7-8D74-830058F72457"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("A333DE48-7ADB-43EC-A973-CDF71296A7A1")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("9E9276EB-76C1-4899-89B1-8CDE36636CAB"),
-                        P01_PageId = Guid.Parse("19AB0B41-568C-4357-942D-092019EC08E8"),
-                        P03_ComponentId = Guid.Parse("AFF80218-702F-4ADB-9856-389AD9FC2B36")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("33C23B23-3A69-4846-9DFD-98877FB13EF6"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("9A9B83CC-42B5-4394-95B7-6B69D6F6E642")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("3C2549AC-F423-41C9-9ECA-A2786FFFAA0B"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("9346DEE1-B59C-4C8E-B03D-D6FF0A8E8B44")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("F10938F0-33AC-48B3-B385-A2AB9D889F1B"),
-                        P01_PageId = Guid.Parse("19AB0B41-568C-4357-942D-092019EC08E8"),
-                        P03_ComponentId = Guid.Parse("0B315726-8B21-4116-BEA5-A63944FD7ECB")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("74E95ACD-0ED8-4186-B180-CE4493705D48"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("4F3B116B-8DFD-471C-8561-74261791CD46")
-                    },
-                    new P05_PageComponentMapping
-                    {
-                        Id = Guid.Parse("8DF1C069-B427-4E17-99A4-D6576B4B8307"),
-                        P01_PageId = Guid.Parse("FEAB06D3-2884-45F2-ABCF-44B6C117A001"),
-                        P03_ComponentId = Guid.Parse("F8AD016A-2328-4A52-A91D-6C6677FCA224")
-                    }
-                };
-                await context.P05_PageComponentMappings.AddRangeAsync(mapping);
-                await context.SaveChangesAsync();
-            }
-        }
-        public static async Task P04_UserGroup(VPPMigrationDbContext context)
-        {
-            if (!context.P04_UserGroups.Any())
-            {
-                var userGroup = new List<P04_UserGroup>
-                {
-                    new P04_UserGroup
-                    {
-                        Id = Guid.Parse("C1876CAC-863A-410E-A760-870DA4FA45FB"),
-                        UserId = 306,
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        Description = string.Empty,
-                        LEX02_CompanyDepartmentLocationId = Guid.Empty,
-                        CreateDate = DateTime.Parse("2026-02-28 09:57:09.2333333"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-02-28 09:57:09.2333333"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P04_UserGroup
-                    {
-                        Id = Guid.Parse("03C99B4A-5CEF-46DE-8ECC-E1EF6EC4C36D"),
-                        UserId = 5615,
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        Description = string.Empty,
-                        LEX02_CompanyDepartmentLocationId = Guid.Empty,
-                        CreateDate = DateTime.Parse("2026-01-28 09:34:26.6666667"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:34:26.6666667"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P04_UserGroup
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = 4519,
-                        P02_GroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        Description = string.Empty,
-                        LEX02_CompanyDepartmentLocationId = Guid.Empty,
-                        CreateDate = DateTime.Parse("2026-01-28 09:34:26.6666667"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-28 09:34:26.6666667"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    }
-                };
-                await context.P04_UserGroups.AddRangeAsync(userGroup);
-                await context.SaveChangesAsync();
-            }
-        }
-        public static async Task P03_Component(VPPMigrationDbContext context)
-        {
-            if (!context.P03_Components.Any())
-            {
-                var component = new List<P03_Component>
-                {
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("0EF1CE18-6C51-4A12-BC33-02AEF29E2666"),
-                        ComponentName = "User view",
-                        ComponentCode = "0002_UV",
-                        Description = "User view",
-                        CreateDate = DateTime.Parse("2026-01-27 10:21:06.0167337"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:21:06.0167337"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("AFF80218-702F-4ADB-9856-389AD9FC2B36"),
-                        ComponentName = "Library - Class",
-                        ComponentCode = "0001_LIB_C",
-                        Description = "Library - Class",
-                        CreateDate = DateTime.Parse("2026-01-27 10:30:56.2208124"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:30:56.2208124"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("B5CB8388-31F7-477B-99E2-3F142B5D84D8"),
-                        ComponentName = "Library - Operation",
-                        ComponentCode = "0001_LIB_O",
-                        Description = "Library - Operation",
-                        CreateDate = DateTime.Parse("2026-01-27 10:17:50.7835963"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:17:50.7835963"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("E572C24C-B0BA-4C3A-8196-55C518B13770"),
-                        ComponentName = "Library - Class",
-                        ComponentCode = "0001_LIB_C",
-                        Description = "Library - Class",
-                        CreateDate = DateTime.Parse("2026-01-27 10:18:30.4239677"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:18:30.4239677"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("FA30BCD6-3050-4677-B492-696DA0179799"),
-                        ComponentName = "Purchase Consumption",
-                        ComponentCode = "0001_PUR",
-                        Description = "Purchase Consumption",
-                        CreateDate = DateTime.Parse("2026-01-27 10:15:45.7531516"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:15:45.7531516"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("9A9B83CC-42B5-4394-95B7-6B69D6F6E642"),
-                        ComponentName = "Buyer Consumption",
-                        ComponentCode = "0001_BUY",
-                        Description = "Buyer Consumption",
-                        CreateDate = DateTime.Parse("2026-01-27 10:16:02.9092955"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:16:02.9092955"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("F8AD016A-2328-4A52-A91D-6C6677FCA224"),
-                        ComponentName = "Report",
-                        ComponentCode = "0001_R",
-                        Description = "Report",
-                        CreateDate = DateTime.Parse("2026-01-27 10:19:14.7674391"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:19:14.7674391"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("4F3B116B-8DFD-471C-8561-74261791CD46"),
-                        ComponentName = "Setting",
-                        ComponentCode = "0001_S",
-                        Description = "Setting",
-                        CreateDate = DateTime.Parse("2026-01-27 10:19:03.6737571"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:19:03.6737571"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("0B315726-8B21-4116-BEA5-A63944FD7ECB"),
-                        ComponentName = "Library - Operation",
-                        ComponentCode = "0001_LIB_O",
-                        Description = "Library - Operation",
-                        CreateDate = DateTime.Parse("2026-01-27 10:35:05.2518922"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:35:05.2518922"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("9F9C5354-2980-4714-BA43-AB3BDF899466"),
-                        ComponentName = "Library - Operation Category",
-                        ComponentCode = "0001_LIB_OC",
-                        Description = "Library - Operation Category",
-                        CreateDate = DateTime.Parse("2026-01-27 10:17:38.6430541"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:17:38.6430541"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("53123EA1-5151-4CDB-97AC-C463854EAE27"),
-                        ComponentName = "Library - Route",
-                        ComponentCode = "0001_LIB_R",
-                        Description = "Library - Route",
-                        CreateDate = DateTime.Parse("2026-01-27 10:18:04.2053890"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:18:04.2053890"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("A333DE48-7ADB-43EC-A973-CDF71296A7A1"),
-                        ComponentName = "Actual Consumption",
-                        ComponentCode = "0001_ACT",
-                        Description = "Actual Consumption",
-                        CreateDate = DateTime.Parse("2026-01-27 10:16:17.9560674"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:16:17.9560674"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("9346DEE1-B59C-4C8E-B03D-D6FF0A8E8B44"),
-                        ComponentName = "Library - Equipment",
-                        ComponentCode = "0001_LIB_E",
-                        Description = "Library - Equipment",
-                        CreateDate = DateTime.Parse("2026-01-27 10:18:17.4709258"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:18:17.4709258"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("B8534954-D739-4AA6-954E-F1390D010EE7"),
-                        ComponentName = "Home/Dashboard",
-                        ComponentCode = "0001_HD",
-                        Description = "Home/Dashboard",
-                        CreateDate = DateTime.Parse("2026-01-27 10:15:10.0814992"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:15:10.0814992"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P03_Component
-                    {
-                        Id = Guid.Parse("2D9CF8C6-0BB5-4C60-A2CD-FC90CF9B38C2"),
-                        ComponentName = "Admin view",
-                        ComponentCode = "0002_ADM",
-                        Description = "Admin view",
-                        CreateDate = DateTime.Parse("2026-01-27 10:26:54.6723684"),
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Parse("2026-01-27 10:26:54.6723684"),
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    }
-                };
-                await context.P03_Components.AddRangeAsync(component);
-                await context.SaveChangesAsync();
-            }
-        }
-        public static async Task P02_Group(VPPMigrationDbContext context)
-        {
-            if (!context.P02_Groups.Any())
-            {
-                var group = new List<P02_Group>
-                {
-                    new P02_Group
-                    {
-                        //Id = Guid.NewGuid(),
-                        Id = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-                        GroupName = "Admin",
+                new() { Id = AdminGroupId, GroupName = "Admin",
                         Description = "Administrators with full access",
-                        CreateDate = DateTime.Now,
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Now,
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    },
-                    new P02_Group
-                    {
-                        //Id = Guid.NewGuid(),
-                        Id = Guid.Parse("388c6c3a-2801-42dc-bfc0-8a7741264596"),
-                        GroupName = "User",
+                        CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                new() { Id = UserGroupId, GroupName = "User",
                         Description = "Regular users with limited access",
-                        CreateDate = DateTime.Now,
-                        CreateUserId = 5615,
-                        UpdateDate = DateTime.Now,
-                        UpdateUserId = 5615,
-                        IsDeleted = false
-                    }
-                };
-                await context.P02_Groups.AddRangeAsync(group);
-                await context.SaveChangesAsync();
-            }
+                        CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
+            };
+            await context.P02_Groups.AddRangeAsync(groups);
+            await context.SaveChangesAsync();
+            Log.Information("[SeedData] P02_Group: {Count} groups", groups.Count);
         }
+
+        // ════════════════════════════════════════════════════════════
+        //  P03_Component — 18 components
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedP03_Component(VPPMigrationDbContext context)
+        {
+            if (context.P03_Components.Any()) return;
+
+            var now = DateTime.Now;
+            var components = new List<P03_Component>
+            {
+                C("MENU_DASHBOARD",           "Menu - Dashboard",           "View Dashboard",   CompMenuDashboard, now),
+                C("MENU_LIBRARY",             "Menu - Library",             "View Library",     CompMenuLibrary, now),
+                C("MENU_REPORT",              "Menu - Report",              "View Report",      CompMenuReport, now),
+                C("MENU_PERMISSION",          "Menu - Permission",          "View Permission",  CompMenuPermission, now),
+                C("REQUEST_ORDER",            "Request Order",              "Orders Tab",       CompRequestOrder, now),
+                C("REQUEST_PRODUCT_CATALOG",  "Request Product Catalog",    "Catalog Tab",      CompRequestCatalog, now),
+                C("REQUEST_HISTORY",          "Request History",            "History Tab",      CompRequestHistory, now),
+                C("REQUEST_DEPARTMENT_SUMMARY","Request Dept Summary",      "Dept Summary Tab", CompRequestDeptSummary, now),
+                C("REQUEST_ALL_ORDERS_SUMMARY","Request All Orders Summary","Admin Summary",    CompRequestAllSummary, now),
+                C("REQUEST_ADMIN_APPROVAL",   "Request Admin Approval",     "Admin Approval",   CompRequestApproval, now),
+                C("LIBRARY_CLASS",            "Library - Class",            "Class",            CompLibClass, now),
+                C("LIBRARY_CATEGORY",         "Library - Category",         "Category",         CompLibCategory, now),
+                C("LIBRARY_ITEM",             "Library - Item",             "Item",             CompLibItem, now),
+                C("LIBRARY_SUPPLIER",         "Library - Supplier",         "Supplier",         CompLibSupplier, now),
+                C("LIBRARY_DEPARTMENT",       "Library - Department",       "Dept",             CompLibDepartment, now),
+                C("PERMISSION_USER",          "Permission - User",          "User Auth",        CompPermUser, now),
+                C("PERMISSION_COMPONENT",     "Permission - Component",     "Comp Mapping",     CompPermComponent, now),
+                C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now)
+            };
+            await context.P03_Components.AddRangeAsync(components);
+            await context.SaveChangesAsync();
+            Log.Information("[SeedData] P03_Component: {Count} components", components.Count);
+        }
+
+        private static P03_Component C(string code, string name, string desc, Guid id, DateTime now)
+            => new() { Id = id, ComponentCode = code, ComponentName = name, Description = desc,
+                       CreateUserId = DefaultUserId, CreateDate = now,
+                       UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false };
+
+        // ════════════════════════════════════════════════════════════
+        //  P04_UserGroup — 12 users, lookup department IDs dynamically
+        //  Tại thời điểm này, 03_SeedLibraryData.sql đã chạy → LEX02 departments đã tồn tại
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedP04_UserGroup(VPPMigrationDbContext context)
+        {
+            if (context.P04_UserGroups.Any()) return;
+
+            // Lookup department IDs by code (dynamic, không hardcode GUID)
+            var deptLookup = context.LEX02_CompanyDepartmentLocations
+                .Where(x => !x.IsDeleted)
+                .ToDictionary(x => x.LEX02Code ?? "", x => x.Id);
+
+            // Fallback: nếu không tìm thấy department → dùng Guid.Empty
+            Guid GetDept(string code) => deptLookup.GetValueOrDefault(code, Guid.Empty);
+
+            var now = DateTime.Now;
+            var userGroups = new List<P04_UserGroup>
+            {
+                // google → Admin, IT
+                UG(4519, AdminGroupId, GetDept("IT"), now),
+                // test_admin_1-5 → Admin, mỗi người 1 phòng ban
+                UG(4520, AdminGroupId, GetDept("HCQT"), now),
+                UG(4521, AdminGroupId, GetDept("TCKT"), now),
+                UG(4522, AdminGroupId, GetDept("PURCHASING"), now),
+                UG(4523, AdminGroupId, GetDept("KD1"), now),
+                UG(4524, AdminGroupId, GetDept("QA"), now),
+                // test_user_11-15 → User, paired departments
+                UG(4530, UserGroupId, GetDept("HCQT"), now),
+                UG(4531, UserGroupId, GetDept("TCKT"), now),
+                UG(4532, UserGroupId, GetDept("PURCHASING"), now),
+                UG(4533, UserGroupId, GetDept("KD1"), now),
+                UG(4534, UserGroupId, GetDept("QA"), now),
+                // admin (user 1) → User, IT (extra IT user)
+                UG(1, UserGroupId, GetDept("IT"), now),
+            };
+            await context.P04_UserGroups.AddRangeAsync(userGroups);
+            await context.SaveChangesAsync();
+            Log.Information("[SeedData] P04_UserGroup: {Count} user-group mappings", userGroups.Count);
+        }
+
+        private static P04_UserGroup UG(int userId, Guid groupId, Guid deptId, DateTime now)
+            => new() { Id = Guid.NewGuid(), UserId = userId, P02_GroupId = groupId,
+                       LEX02_CompanyDepartmentLocationId = deptId,
+                       Description = "Auto seeded",
+                       CreateUserId = DefaultUserId, CreateDate = now,
+                       UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false };
+
+        // ════════════════════════════════════════════════════════════
+        //  P05_PageComponentMapping — 18 mappings
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedP05_PageComponentMapping(VPPMigrationDbContext context)
+        {
+            if (context.P05_PageComponentMappings.Any()) return;
+
+            var mappings = new List<P05_PageComponentMapping>
+            {
+                P5(P05_SB_Dashboard,  PageSidebar,    CompMenuDashboard),
+                P5(P05_SB_Library,    PageSidebar,    CompMenuLibrary),
+                P5(P05_SB_Report,     PageSidebar,    CompMenuReport),
+                P5(P05_SB_Permission, PageSidebar,    CompMenuPermission),
+                P5(P05_DB_Order,      PageDashboard,  CompRequestOrder),
+                P5(P05_DB_Catalog,    PageDashboard,  CompRequestCatalog),
+                P5(P05_DB_History,    PageDashboard,  CompRequestHistory),
+                P5(P05_DB_DeptSum,    PageDashboard,  CompRequestDeptSummary),
+                P5(P05_DB_AllSum,     PageDashboard,  CompRequestAllSummary),
+                P5(P05_DB_Approval,   PageDashboard,  CompRequestApproval),
+                P5(P05_LB_Class,      PageLibrary,    CompLibClass),
+                P5(P05_LB_Category,   PageLibrary,    CompLibCategory),
+                P5(P05_LB_Item,       PageLibrary,    CompLibItem),
+                P5(P05_LB_Supplier,   PageLibrary,    CompLibSupplier),
+                P5(P05_LB_Dept,       PageLibrary,    CompLibDepartment),
+                P5(P05_PM_User,       PagePermission, CompPermUser),
+                P5(P05_PM_Component,  PagePermission, CompPermComponent),
+                P5(P05_RP_View,       PageReport,     CompReportView)
+            };
+            await context.P05_PageComponentMappings.AddRangeAsync(mappings);
+            await context.SaveChangesAsync();
+            Log.Information("[SeedData] P05_PageComponentMapping: {Count} mappings", mappings.Count);
+        }
+
+        private static P05_PageComponentMapping P5(Guid id, Guid pageId, Guid componentId)
+            => new() { Id = id, P01_PageId = pageId, P03_ComponentId = componentId };
+
+        // ════════════════════════════════════════════════════════════
+        //  P06_GroupPageComponentMapping — 25 mappings
+        //  Admin: all 18, User: 7 selected
+        // ════════════════════════════════════════════════════════════
+        private static async Task SeedP06_GroupPageComponentMapping(VPPMigrationDbContext context)
+        {
+            if (context.P06_GroupPageComponentMappings.Any()) return;
+
+            var now = DateTime.Now;
+            var mappings = new List<P06_GroupPageComponentMapping>();
+
+            // Admin group → ALL 18 page-component mappings
+            var allP05Ids = new[]
+            {
+                P05_SB_Dashboard, P05_SB_Library, P05_SB_Report, P05_SB_Permission,
+                P05_DB_Order, P05_DB_Catalog, P05_DB_History, P05_DB_DeptSum,
+                P05_DB_AllSum, P05_DB_Approval,
+                P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Dept,
+                P05_PM_User, P05_PM_Component,
+                P05_RP_View
+            };
+            foreach (var p05Id in allP05Ids)
+                mappings.Add(P6(p05Id, AdminGroupId, now));
+
+            // User group → 7 limited mappings
+            var userP05Ids = new[]
+            {
+                P05_SB_Dashboard, P05_SB_Report, P05_SB_Library,
+                P05_DB_Order, P05_DB_Catalog, P05_DB_History,
+                P05_DB_DeptSum
+            };
+            foreach (var p05Id in userP05Ids)
+                mappings.Add(P6(p05Id, UserGroupId, now));
+
+            await context.P06_GroupPageComponentMappings.AddRangeAsync(mappings);
+            await context.SaveChangesAsync();
+            Log.Information("[SeedData] P06_GroupPageComponentMapping: {Count} mappings", mappings.Count);
+        }
+
+        private static P06_GroupPageComponentMapping P6(Guid p05Id, Guid groupId, DateTime now)
+            => new() { P05_PageComponentMappingId = p05Id, P02_GroupId = groupId,
+                       MemberCompanyCode = 77500, IsEnable = true, IsVisible = true,
+                       CreateUserId = DefaultUserId, CreateDate = now,
+                       UpdateUserId = DefaultUserId, UpdateDate = now };
     }
 }
