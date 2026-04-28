@@ -59,12 +59,13 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             isLoading = true;
             try
             {
-                if (UriHelper.BaseUri.Contains("dev."))
+                if (UriHelper.BaseUri.Contains("dev.") || UriHelper.BaseUri.Contains("localhost"))
                 {
                     loginReqDTO.selected_server = "Test";
                 }
-                else if (UriHelper.BaseUri.Contains("transport."))
+                else if (UriHelper.BaseUri.Contains("transport.") || UriHelper.BaseUri.Contains("annam.id.vn") || UriHelper.BaseUri.Contains("209.") || UriHelper.BaseUri.Contains("172.") || UriHelper.BaseUri.Contains("100.") || UriHelper.BaseUri.Contains("128.") || UriHelper.BaseUri.Contains("192.") || UriHelper.BaseUri.Contains("10.") || System.Text.RegularExpressions.Regex.IsMatch(UriHelper.BaseUri, @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"))
                 {
+                    // Fallback to Live for production domains or any IP address (like DigitalOcean droplet IP)
                     loginReqDTO.selected_server = "Live";
                 }
 
