@@ -1,4 +1,4 @@
-namespace gtas_vpp_be.Model.VPP
+namespace gtas_vpp_shared.Enums
 {
     public enum VPPStatus
     {

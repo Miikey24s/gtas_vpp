@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.AspNetCore.Authorization;
@@ -94,15 +94,6 @@ namespace gtas_vpp_be.Controllers
             return Ok(result);
         }
 
-        [HttpPost("orders/{id:guid}/submit")]
-        public async Task<IActionResult> SubmitOrder(Guid id)
-        {
-            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
-
-            await _vppService.SubmitOrderAsync(id, CurrentUserId.Value);
-            return Ok();
-        }
-
         [HttpPost("orders/{id:guid}/cancel")]
         public async Task<IActionResult> CancelOrder(Guid id)
         {
@@ -112,42 +103,32 @@ namespace gtas_vpp_be.Controllers
             return Ok();
         }
 
-        [HttpDelete("orders/{id:guid}")]
-        public async Task<IActionResult> DeleteOrder(Guid id)
+        [HttpPost("orders/{id:guid}/undo-cancel")]
+        public async Task<IActionResult> UndoCancelOrder(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            await _vppService.DeleteDraftAsync(id, CurrentUserId.Value);
+            await _vppService.UndoCancelAsync(id, CurrentUserId.Value);
             return Ok();
         }
 
-        [HttpPost("orders/{id:guid}/delete")]
-        public async Task<IActionResult> DeleteOrderByPost(Guid id)
+        [HttpGet("orders/previous-items")]
+        public async Task<IActionResult> GetPreviousOrderItems()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            await _vppService.DeleteDraftAsync(id, CurrentUserId.Value);
-            return Ok();
-        }
-
-        [HttpPost("orders/{id:guid}/undo-delete")]
-        public async Task<IActionResult> UndoDeleteOrder(Guid id)
-        {
-            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
-
-            await _vppService.UndoDeleteAsync(id, CurrentUserId.Value);
-            return Ok();
-        }
-
-        [HttpPost("orders/copy-previous")]
-        public async Task<IActionResult> CopyPreviousMonth([FromBody] CopyPreviousMonthReqDTO req)
-        {
-            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
-
-            var result = await _vppService.CopyPreviousMonthAsync(
-                CurrentUserId.Value, req.Year, req.Month,
-                CurrentDepartmentCode, CurrentMemberCompanyCode);
+            var result = await _vppService.GetPreviousOrderItemsAsync(CurrentUserId.Value);
+            if (result == null) return NotFound(new { Message = "No previous order found." });
             return Ok(result);
+        }
+
+        [HttpGet("period-info")]
+        public async Task<IActionResult> GetPeriodInfo()
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var info = await _vppService.GetCurrentPeriodInfoAsync(CurrentUserId.Value);
+            return Ok(info);
         }
 
         [HttpGet("products")]
@@ -211,19 +192,7 @@ namespace gtas_vpp_be.Controllers
                 departmentCode = CurrentDepartmentCode;
             }
 
-            // Department summary shows Submitted (1), Closed (5), and Approved (7) orders
-            // If no status filter, default to these statuses
-            var allowedStatuses = new[] { 1, 5, 7 }; // Submitted, Closed, Approved
-            
-            // If status is provided and it's one of the allowed statuses, use it
-            // Otherwise, get all allowed statuses
-            int? filteredStatus = null;
-            if (status.HasValue && allowedStatuses.Contains(status.Value))
-            {
-                filteredStatus = status;
-            }
-
-            var data = await _vppService.GetDepartmentOrdersAsync(year, month, filteredStatus, departmentCode, allowedStatuses);
+            var data = await _vppService.GetDepartmentOrdersAsync(year, month, status, departmentCode);
             return Ok(data);
         }
 

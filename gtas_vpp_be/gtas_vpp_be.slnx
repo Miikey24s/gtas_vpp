@@ -4,6 +4,5 @@
   </Project>
   <Project Path="../gtas_vpp_be.Model/gtas_vpp_be.Model.csproj" />
   <Project Path="../gtas_vpp_be.Service/gtas_vpp_be.Service.csproj" />
-  <Project Path="../gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj" />
   <Project Path="gtas_vpp_be.csproj" />
 </Solution>

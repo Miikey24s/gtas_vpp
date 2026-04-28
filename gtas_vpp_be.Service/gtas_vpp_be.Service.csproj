@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\gtas_vpp_be.Model\gtas_vpp_be.Model.csproj" />
-    <ProjectReference Include="..\..\gtas_vpp\gtas_vpp_shared\gtas_vpp_shared.csproj" />
+    <ProjectReference Include="..\gtas_vpp_shared\gtas_vpp_shared.csproj" />
   </ItemGroup>
 
 </Project>
