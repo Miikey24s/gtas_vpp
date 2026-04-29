@@ -22,6 +22,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid PageLibrary    = Guid.Parse("5D88463F-CC1C-40E7-BAAD-018DE589D596");
         private static readonly Guid PagePermission = Guid.Parse("20B988D3-7C9A-41EB-BCA0-D94ACE25AC43");
         private static readonly Guid PageReport     = Guid.Parse("F4C3AECB-7100-48CA-AA37-EAA65EBA8752");
+        private static readonly Guid PageAI         = Guid.Parse("D8D5B1DE-6B9E-4B07-A96C-9A8E8B6239C1");
 
         // ── Component IDs ──────────────────────────────────────────
         private static readonly Guid CompMenuDashboard      = Guid.Parse("127B705A-44E1-42F9-9B64-E77BAD63605F");
@@ -42,6 +43,8 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid CompPermUser           = Guid.Parse("7A1EF33F-FAB9-47D6-88BF-9D69E90DC519");
         private static readonly Guid CompPermComponent      = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
         private static readonly Guid CompReportView         = Guid.Parse("70603737-45C6-4937-A422-4E4FB0EC52CD");
+        private static readonly Guid CompMenuAI             = Guid.Parse("E5EAC402-A00A-4FEE-8C3C-D8A3C1BE6B4D");
+        private static readonly Guid CompRequestAIKeyManage = Guid.Parse("71A3F5B8-28CE-4A82-9D72-B1389D66CC3B");
 
         // ── P05 Mapping IDs ────────────────────────────────────────
         private static readonly Guid P05_SB_Dashboard  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
@@ -62,6 +65,8 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid P05_PM_User       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
         private static readonly Guid P05_PM_Component  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
         private static readonly Guid P05_RP_View       = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
+        private static readonly Guid P05_SB_AI         = Guid.Parse("A891BC3A-32F9-41C8-97F2-4F1E0BB3F84A");
+        private static readonly Guid P05_AI_KeyManage  = Guid.Parse("9B8164F0-C9C9-4C59-A1B4-3F572C413158");
 
         // ════════════════════════════════════════════════════════════
         //  MAIN ENTRY POINT
@@ -157,6 +162,9 @@ namespace gtas_vpp_be.Service.Services
                         UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
                 new() { Id = PageReport, PageCode = "REPORT", PageName = "Report", Type = "Page",
                         Description = "System Reports", CreateUserId = DefaultUserId, CreateDate = now,
+                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                new() { Id = PageAI, PageCode = "AI", PageName = "AI Management", Type = "Page",
+                        Description = "AI Management Dashboard", CreateUserId = DefaultUserId, CreateDate = now,
                         UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
             };
             await context.P01_Pages.AddRangeAsync(pages);
@@ -215,7 +223,9 @@ namespace gtas_vpp_be.Service.Services
                 C("LIBRARY_DEPARTMENT",       "Library - Department",       "Dept",             CompLibDepartment, now),
                 C("PERMISSION_USER",          "Permission - User",          "User Auth",        CompPermUser, now),
                 C("PERMISSION_COMPONENT",     "Permission - Component",     "Comp Mapping",     CompPermComponent, now),
-                C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now)
+                C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now),
+                C("MENU_AI",                  "Menu - AI",                  "View AI Menu",     CompMenuAI, now),
+                C("REQUEST_AI_KEY_MANAGE",    "Request AI Key Manage",      "Key Manage Tab",   CompRequestAIKeyManage, now)
             };
             await context.P03_Components.AddRangeAsync(components);
             await context.SaveChangesAsync();
@@ -304,7 +314,9 @@ namespace gtas_vpp_be.Service.Services
                 P5(P05_LB_Dept,       PageLibrary,    CompLibDepartment),
                 P5(P05_PM_User,       PagePermission, CompPermUser),
                 P5(P05_PM_Component,  PagePermission, CompPermComponent),
-                P5(P05_RP_View,       PageReport,     CompReportView)
+                P5(P05_RP_View,       PageReport,     CompReportView),
+                P5(P05_SB_AI,         PageSidebar,    CompMenuAI),
+                P5(P05_AI_KeyManage,  PageAI,         CompRequestAIKeyManage)
             };
             await context.P05_PageComponentMappings.AddRangeAsync(mappings);
             await context.SaveChangesAsync();
@@ -333,7 +345,7 @@ namespace gtas_vpp_be.Service.Services
                 P05_DB_AllSum, P05_DB_Approval,
                 P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Dept,
                 P05_PM_User, P05_PM_Component,
-                P05_RP_View
+                P05_RP_View, P05_SB_AI, P05_AI_KeyManage
             };
             foreach (var p05Id in allP05Ids)
                 mappings.Add(P6(p05Id, AdminGroupId, now));
@@ -343,7 +355,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 P05_SB_Dashboard, P05_SB_Report, P05_SB_Library,
                 P05_DB_Order, P05_DB_Catalog, P05_DB_History,
-                P05_DB_DeptSum
+                P05_DB_DeptSum, P05_RP_View
             };
             foreach (var p05Id in userP05Ids)
                 mappings.Add(P6(p05Id, UserGroupId, now));

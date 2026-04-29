@@ -1,4 +1,5 @@
 using gtas_vpp_be.AI.DependencyInjection;
+using gtas_vpp_be.AI.KeyManagement.Interfaces;
 using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Model;
@@ -73,6 +74,7 @@ builder.Services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddGtasAIServices(Configuration);
+builder.Services.AddGeminiKeyManagement();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -127,6 +129,24 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 var app = builder.Build();
+
+// Khởi tạo danh sách Gemini API Keys từ cấu hình (.env / docker-compose)
+var rawKeys = Configuration["AISettings:GeminiApiKeys"];
+if (!string.IsNullOrWhiteSpace(rawKeys))
+{
+    var keys = rawKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    
+    var rawAccounts = Configuration["AISettings:GeminiApiAccounts"];
+    var accounts = !string.IsNullOrWhiteSpace(rawAccounts) 
+        ? rawAccounts.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) 
+        : new string[0];
+
+    var keyRotationService = app.Services.GetRequiredService<IApiKeyRotationService>();
+    keyRotationService.InitializeKeys(keys);
+    
+    var geminiKeyManager = app.Services.GetRequiredService<gtas_vpp_be.AI.KeyManagement.Interfaces.IGeminiKeyManager>();
+    geminiKeyManager.InitializeKeys(keys, accounts);
+}
 
 app.UseForwardedHeaders();
 

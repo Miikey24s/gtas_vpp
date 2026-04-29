@@ -1,3 +1,4 @@
+using gtas_vpp_be.AI.KeyManagement.Interfaces;
 using gtas_vpp_be.Service.AI;
 using gtas_vpp_shared.DTOs.AI;
 using Microsoft.AspNetCore.Authorization;
@@ -14,17 +15,20 @@ public class AIController : ControllerBase
     private readonly IVPPEmbeddingStore _embeddingStore;
     private readonly HttpClient _httpClient;
     private readonly ILogger<AIController> _logger;
+    private readonly IGeminiKeyManager _keyManager;
 
     public AIController(
         IAIOrchestrator orchestrator,
         IVPPEmbeddingStore embeddingStore,
         HttpClient httpClient,
-        ILogger<AIController> logger)
+        ILogger<AIController> logger,
+        IGeminiKeyManager keyManager)
     {
         _orchestrator = orchestrator;
         _embeddingStore = embeddingStore;
         _httpClient = httpClient;
         _logger = logger;
+        _keyManager = keyManager;
     }
 
     [HttpPost("chat")]
@@ -108,5 +112,11 @@ public class AIController : ControllerBase
                 Message = "Dịch vụ AI tạm thời không khả dụng"
             });
         }
+    }
+
+    [HttpGet("keys")]
+    public IActionResult GetAIKeys()
+    {
+        return Ok(_keyManager.GetAllKeyInfos());
     }
 }

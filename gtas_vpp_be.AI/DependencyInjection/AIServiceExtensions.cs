@@ -86,30 +86,39 @@ public static class AIServiceExtensions
         string chatModel,
         string embedModel)
     {
-        var apiKey = aiSettings["GoogleApiKey"]
-            ?? Environment.GetEnvironmentVariable("GOOGLE_AI_API_KEY")
-            ?? throw new InvalidOperationException(
-                "Google AI API key is not configured. Set 'AISettings:GoogleApiKey' in appsettings.json " +
-                "or the 'GOOGLE_AI_API_KEY' environment variable.");
-
         // Gemini exposes an OpenAI-compatible endpoint
         var geminiEndpoint = new Uri("https://generativelanguage.googleapis.com/v1beta/openai/");
 
-        var credential = new ApiKeyCredential(apiKey);
-        var clientOptions = new OpenAIClientOptions { Endpoint = geminiEndpoint };
-        var openAIClient = new OpenAIClient(credential, clientOptions);
+        // Use a dummy key because the actual API Key will be injected via interceptor
+        var credential = new ApiKeyCredential("DUMMY_KEY");
 
-        // Register a no-op HttpClient so DefaultAIOrchestrator health check works gracefully
-        services.AddSingleton(new HttpClient
+        services.AddSingleton(sp => 
         {
-            BaseAddress = geminiEndpoint,
-            Timeout = TimeSpan.FromSeconds(30)
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient("GeminiClient");
+            
+            var clientOptions = new OpenAIClientOptions 
+            { 
+                Endpoint = geminiEndpoint,
+                Transport = new System.ClientModel.Primitives.HttpClientPipelineTransport(httpClient)
+            };
+            return new OpenAIClient(credential, clientOptions);
         });
 
-        services.AddSingleton<IChatClient>(openAIClient.GetChatClient(chatModel).AsIChatClient());
+        // Register a no-op HttpClient so DefaultAIOrchestrator health check works gracefully
+        services.AddSingleton(sp => 
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient("GeminiClient");
+            httpClient.BaseAddress = geminiEndpoint;
+            return httpClient;
+        });
 
-        services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(
-            openAIClient.GetEmbeddingClient(embedModel).AsIEmbeddingGenerator());
+        services.AddSingleton<IChatClient>(sp => 
+            sp.GetRequiredService<OpenAIClient>().GetChatClient(chatModel).AsIChatClient());
+
+        services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
+            sp.GetRequiredService<OpenAIClient>().GetEmbeddingClient(embedModel).AsIEmbeddingGenerator());
     }
 
     private static string NormalizeBaseUrl(string url)

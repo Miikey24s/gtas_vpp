@@ -7,6 +7,7 @@ namespace gtas_vpp_shared.Constants
         public const string MenuLibrary = "MENU_LIBRARY";
         public const string MenuPermission = "MENU_PERMISSION";
         public const string MenuReport = "MENU_REPORT";
+        public const string MenuAI = "MENU_AI";
 
         // Requests
         public const string RequestOrder = "REQUEST_ORDER";
@@ -26,6 +27,7 @@ namespace gtas_vpp_shared.Constants
         // Permissions
         public const string PermissionUser = "PERMISSION_USER";
         public const string PermissionComponent = "PERMISSION_COMPONENT";
+        public const string RequestAIKeyManage = "REQUEST_AI_KEY_MANAGE";
 
         // Reports
         public const string ReportView = "REPORT_VIEW";
@@ -49,7 +51,9 @@ namespace gtas_vpp_shared.Constants
             LibraryDepartment,
             PermissionUser,
             PermissionComponent,
-            ReportView
+            ReportView,
+            MenuAI,
+            RequestAIKeyManage
         ];
     }
 }
