@@ -99,12 +99,9 @@ namespace gtas_vpp_fe.Helpers
                 public const string RequestDepartmentSummary = "REQUEST_DEPARTMENT_SUMMARY";
                 public const string RequestAllOrdersSummary = "REQUEST_ALL_ORDERS_SUMMARY";
                 public const string RequestApproval = "REQUEST_ADMIN_APPROVAL";
-                public const string RequestAIKeyManage = "REQUEST_AI_KEY_MANAGE";
-                //public const string RequestHistory = "0003_RQ_H";
+                public const string RequestAIKeyManage = "AI_KEY_MANAGE";
+                public const string RequestAIChat = "AI_CHAT";
             }
-            /*
-Config.Page_ComponentCode.ComponentCode.RequestOrder
-            */
         }
     }
 }

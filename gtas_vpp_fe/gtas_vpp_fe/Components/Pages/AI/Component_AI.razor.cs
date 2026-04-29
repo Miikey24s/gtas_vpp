@@ -49,6 +49,17 @@ namespace gtas_vpp_fe.Components.Pages.AI
                     Path = "keymanage"
                 });
             }
+
+            if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIChat))
+            {
+                TabPermissions.Add(new TabPermissionInfo
+                {
+                    ComponentCode = Config.Page_ComponentCode.ComponentCode.RequestAIChat,
+                    Title = "AI Chat",
+                    Icon = "chat",
+                    Path = "chat"
+                });
+            }
         }
 
         private void SetSelectedTabFromUrl()

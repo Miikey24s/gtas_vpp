@@ -127,6 +127,9 @@
                 <AuthorizeView Policy="@Permissions.RequestAIKeyManage" Context="aiKeyManageAuth">
                     <RadzenPanelMenuItem Text="API Keys" Icon="vpn_key" class="ppjsidebarmenu submenu" Path="/ai/keymanage" />
                 </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestAIChat" Context="aiChatAuth">
+                    <RadzenPanelMenuItem Text="AI Chat" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
+                </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
         <hr />
