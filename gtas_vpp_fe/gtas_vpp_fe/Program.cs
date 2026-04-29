@@ -6,6 +6,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.DataProtection;
 using Radzen;
 using Serilog;
 
@@ -15,13 +16,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
+// Configure Data Protection for Docker so cookies don't get invalidated on restart
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"/app/keys"))
+    .SetApplicationName("gtas_vpp");
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddHubOptions(options =>
+    {
+        // Tăng giới hạn payload của SignalR lên 50MB để tránh lỗi khi gửi/nhận dữ liệu lớn
+        options.MaximumReceiveMessageSize = 50 * 1024 * 1024;
+    });
 builder.Services.AddRadzenComponents();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
