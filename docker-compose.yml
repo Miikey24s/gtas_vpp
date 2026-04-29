@@ -103,7 +103,8 @@ services:
       CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
       # ── AI Configuration (điều khiển qua .env) ──
       AISettings__Provider: "${AI_PROVIDER:-Google}"
-      AISettings__GoogleApiKey: "${GOOGLE_AI_API_KEY:-}"
+      AISettings__GeminiApiKeys: "${GEMINI_API_KEYS:-}"
+      AISettings__GeminiApiAccounts: "${GEMINI_API_ACCOUNTS:-}"
       AISettings__ChatModel: "${AI_CHAT_MODEL:-gemini-2.5-flash}"
       AISettings__EmbeddingModel: "${AI_EMBEDDING_MODEL:-text-embedding-004}"
       AISettings__OllamaBaseUrl: "${OLLAMA_BASE_URL:-http://ollama:11434}"
