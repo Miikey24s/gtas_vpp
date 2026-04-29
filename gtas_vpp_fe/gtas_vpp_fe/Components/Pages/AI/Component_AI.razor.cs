@@ -1,0 +1,75 @@
+using gtas_vpp_shared.DTOs.Res.Auth;
+using Microsoft.AspNetCore.Components;
+using System.Security.Claims;
+using gtas_vpp_fe.Helpers;
+
+namespace gtas_vpp_fe.Components.Pages.AI
+{
+    public partial class Component_AI
+    {
+        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
+        [Parameter] public string? Per { get; set; }
+        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+
+        public int selectedTab = 0;
+
+        public class TabPermissionInfo
+        {
+            public string ComponentCode { get; set; } = string.Empty;
+            public string Title { get; set; } = string.Empty;
+            public string Icon { get; set; } = string.Empty;
+            public string Path { get; set; } = string.Empty;
+        }
+
+        private List<TabPermissionInfo> TabPermissions = new();
+
+        protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+            UpdateTabPermissions();
+            SetSelectedTabFromUrl();
+        }
+
+        private void UpdateTabPermissions()
+        {
+            TabPermissions.Clear();
+            if (sp_Authentication_GetPermissionSinglePage?.List_Component == null) return;
+
+            var compCodes = sp_Authentication_GetPermissionSinglePage.List_Component
+                .Select(c => c.ComponentCode)
+                .ToHashSet();
+
+            if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIKeyManage))
+            {
+                TabPermissions.Add(new TabPermissionInfo
+                {
+                    ComponentCode = Config.Page_ComponentCode.ComponentCode.RequestAIKeyManage,
+                    Title = "API Keys",
+                    Icon = "vpn_key",
+                    Path = "keymanage"
+                });
+            }
+        }
+
+        private void SetSelectedTabFromUrl()
+        {
+            if (string.IsNullOrEmpty(Per) || TabPermissions.Count == 0)
+            {
+                selectedTab = 0;
+                return;
+            }
+
+            var index = TabPermissions.FindIndex(t => string.Equals(t.Path, Per, StringComparison.OrdinalIgnoreCase));
+            selectedTab = index >= 0 ? index : 0;
+        }
+
+        public void OnChange(int index)
+        {
+            if (index >= 0 && index < TabPermissions.Count)
+            {
+                var targetPath = TabPermissions[index].Path;
+                NavigationManager.NavigateTo($"/ai/{targetPath}");
+            }
+        }
+    }
+}

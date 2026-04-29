@@ -122,6 +122,13 @@
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
+        <AuthorizeView Policy="@Permissions.MenuAI" Context="aiMenuAuth">
+            <RadzenPanelMenuItem Text="AI Management" Icon="smart_toy" class="ppjsidebarmenu">
+                <AuthorizeView Policy="@Permissions.RequestAIKeyManage" Context="aiKeyManageAuth">
+                    <RadzenPanelMenuItem Text="API Keys" Icon="vpn_key" class="ppjsidebarmenu submenu" Path="/ai/keymanage" />
+                </AuthorizeView>
+            </RadzenPanelMenuItem>
+        </AuthorizeView>
         <hr />
         <RadzenPanelMenuItem Text="Logout" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
         <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">

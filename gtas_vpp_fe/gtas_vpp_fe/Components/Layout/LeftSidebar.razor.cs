@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -73,13 +73,13 @@ namespace gtas_vpp_fe.Components.Layout
             if (LightTheme)
             {
                 ThemeService.SetTheme("material3");
-                await ProtectedLocalStore.SetAsync("TransTheme", "material3");
+                await ProtectedLocalStore.SetAsync("VPPTheme", "material3");
 
             }
             else
             {
                 ThemeService.SetTheme("material3-dark");
-                await ProtectedLocalStore.SetAsync("TransTheme", "material3-dark");
+                await ProtectedLocalStore.SetAsync("VPPTheme", "material3-dark");
             }
         }
         protected async Task LoadAuthenticationState()
@@ -97,7 +97,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             try
             {
-                var theme = await ProtectedLocalStore.GetAsync<string>("CostingTheme");
+                var theme = await ProtectedLocalStore.GetAsync<string>("VPPTheme");
 
                 if (theme.Success && !string.IsNullOrWhiteSpace(theme.Value))
                 {
