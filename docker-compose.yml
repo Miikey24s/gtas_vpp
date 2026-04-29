@@ -26,7 +26,7 @@ services:
       MSSQL_PID: "Express"
       MSSQL_MEMORY_LIMIT_MB: "${MSSQL_MEMORY_LIMIT_MB:-1536}"
     ports:
-      - "127.0.0.1:1433:1433"
+      - "1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     deploy:
