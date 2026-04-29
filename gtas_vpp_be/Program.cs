@@ -11,9 +11,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
+});
 
 // Initialize Config with the application configuration
 Config.Initialize(Configuration);
@@ -70,6 +76,7 @@ builder.Services.AddGtasAIServices(Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks();
 
 builder.Services
     .AddAuthentication(options =>
@@ -109,29 +116,71 @@ builder.Services.AddCors(options =>
     });
 });
 MapsterConfig.Register(TypeAdapterConfig.GlobalSettings);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Clearing known networks and proxies allows it to work behind Nginx in Docker Compose
+    // where the proxy IP might be dynamic.
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 app.UseCors("AllowFrontend");
 
-using (var scope = app.Services.CreateScope())
+// WARNING: Running Migrate() automatically in Program.cs with multiple replicas (Docker Swarm/K8s) can cause race conditions.
+// The best solution is to use a separate container that only runs "dotnet ef database update" and then exits.
+// Below is the "safest possible" approach if kept in Program.cs: applying a Retry policy.
+var environments = new[] { Config.EnvType.TestEnv, Config.EnvType.LiveEnv };
+foreach (var env in environments)
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<VPPMigrationDbContext>();
-    dbContext.Database.Migrate();
+    var constr = Configuration.GetConnectionString(env.ToString());
+    if (!string.IsNullOrEmpty(constr))
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<VPPMigrationDbContext>();
+        optionsBuilder.UseSqlServer(constr, action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
 
-    await SeedData.Seed(dbContext);
+        using var dbContext = new VPPMigrationDbContext(optionsBuilder.Options);
+        
+        int maxRetries = 5;
+        for (int retry = 0; retry < maxRetries; retry++)
+        {
+            try
+            {
+                // Add log to track progress in Docker logs
+                Console.WriteLine($"[Migration] Applying migration for environment {env}...");
+                dbContext.Database.Migrate();
+                await SeedData.Seed(dbContext);
+                Console.WriteLine($"[Migration] Environment {env} completed successfully.");
+                break;
+            }
+            catch (Exception ex)
+            {
+                if (retry == maxRetries - 1)
+                {
+                    Console.WriteLine($"[Migration] Migration for {env} failed after {maxRetries} attempts. Exception: {ex.Message}");
+                    throw;
+                }
+                Console.WriteLine($"[Migration] DB {env} is not ready, retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
+                await Task.Delay(5000);
+            }
+        }
+    }
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    //app.MapOpenApi();
-}
-app.UseSwagger();
-app.UseSwaggerUI();
-
-// HTTPS redirection handled by Nginx reverse proxy in production
 if (!app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    
+    // HTTPS redirection handled by Nginx reverse proxy in production
     app.UseHttpsRedirection();
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -139,5 +188,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

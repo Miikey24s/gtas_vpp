@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace gtas_vpp_be.Middleware
@@ -29,8 +30,10 @@ namespace gtas_vpp_be.Middleware
 
         private static async Task WriteProblemDetailsAsync(HttpContext context, Exception exception)
         {
+            var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
             var (statusCode, title) = exception switch
             {
+                DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Conflict"),
                 KeyNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "Bad Request"),
@@ -43,7 +46,9 @@ namespace gtas_vpp_be.Middleware
                 Type = "https://tools.ietf.org/html/rfc7807",
                 Title = title,
                 Status = statusCode,
-                Detail = exception.Message
+                Detail = exception is DbUpdateConcurrencyException 
+                    ? "The data has been modified by another user. Please refresh the page and try again." 
+                    : (env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please contact support.")
             };
 
             context.Response.StatusCode = statusCode;

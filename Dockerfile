@@ -33,9 +33,12 @@ RUN dotnet publish gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Low-memory tuning: Workstation GC + conservative memory
-ENV DOTNET_gcServer=0
-ENV DOTNET_GCConserveMemory=9
+# Cài đặt curl để hỗ trợ Docker Healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Optimized for performance (Server GC for 8GB RAM VPS)
+ENV DOTNET_gcServer=1
+# ENV DOTNET_GCConserveMemory=9 (Removed for better CPU throughput)
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
