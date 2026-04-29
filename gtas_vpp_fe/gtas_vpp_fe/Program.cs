@@ -91,6 +91,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
+app.UseStaticFiles();
 app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -102,5 +103,15 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapLoginEndpoints();
+
+app.MapGet("/debug/endpoints", (IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> endpointSources) =>
+{
+    var endpoints = endpointSources.SelectMany(es => es.Endpoints).Select(e => new 
+    {
+        DisplayName = e.DisplayName,
+        RoutePattern = (e as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern.RawText
+    });
+    return endpoints;
+});
 
 app.Run();
