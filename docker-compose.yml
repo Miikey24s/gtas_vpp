@@ -106,7 +106,7 @@ services:
       AISettings__GeminiApiKeys: "${GEMINI_API_KEYS:-}"
       AISettings__GeminiApiAccounts: "${GEMINI_API_ACCOUNTS:-}"
       AISettings__ChatModel: "${AI_CHAT_MODEL:-gemini-2.5-flash}"
-      AISettings__EmbeddingModel: "${AI_EMBEDDING_MODEL:-text-embedding-004}"
+      AISettings__EmbeddingModel: "${AI_EMBEDDING_MODEL:-gemini-embedding-001}"
       AISettings__OllamaBaseUrl: "${OLLAMA_BASE_URL:-http://ollama:11434}"
       AISettings__TimeoutSeconds: "${AI_TIMEOUT_SECONDS:-60}"
     ports:
