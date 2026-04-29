@@ -118,7 +118,18 @@ public static class AIServiceExtensions
             sp.GetRequiredService<OpenAIClient>().GetChatClient(chatModel).AsIChatClient());
 
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
-            sp.GetRequiredService<OpenAIClient>().GetEmbeddingClient(embedModel).AsIEmbeddingGenerator());
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var rawKeys = config["AISettings:GeminiApiKeys"] ?? string.Empty;
+            var firstKey = rawKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                               .FirstOrDefault() ?? string.Empty;
+            
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient("GeminiClient");
+            httpClient.Timeout = TimeSpan.FromSeconds(60);
+
+            return new gtas_vpp_be.AI.Services.GeminiEmbeddingGenerator(httpClient, embedModel, firstKey);
+        });
     }
 
     private static string NormalizeBaseUrl(string url)

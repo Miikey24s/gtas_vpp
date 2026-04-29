@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using gtas_vpp_be.AI.KeyManagement.Interfaces;
-
-using gtas_vpp_shared.Constants;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace gtas_vpp_be.AI.KeyManagement.Services;
@@ -16,29 +14,27 @@ public class ApiKeyRotationService : IApiKeyRotationService
         _serviceProvider = serviceProvider;
     }
 
-    public (string Key, string Model) GetNextKeyAndModel(bool autoMode, string fixedModel)
+    public string GetNextKeyForModel(string targetModel)
     {
         if (_keys.IsEmpty)
             throw new InvalidOperationException("No API keys available in the rotation pool.");
 
         var keyManager = _serviceProvider.GetRequiredService<IGeminiKeyManager>();
         int totalKeys = _keys.Count;
-        
-        string model = "gemini-3.1-flash-lite-preview"; // Hardcoded to Gemini 3.1 Flash Lite
 
         for (int i = 0; i < totalKeys; i++)
         {
             if (_keys.TryDequeue(out var key))
             {
                 _keys.Enqueue(key); // Round Robin
-                if (!keyManager.IsKeyExhausted(key, model))
+                if (!keyManager.IsKeyExhausted(key, targetModel))
                 {
-                    return (key, model);
+                    return key;
                 }
             }
         }
         
-        throw new InvalidOperationException($"All {totalKeys} keys are exhausted for model {model}.");
+        throw new InvalidOperationException($"All {totalKeys} keys are exhausted for model {targetModel}.");
     }
 
     public string GetNextKey()

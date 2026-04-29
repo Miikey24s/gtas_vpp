@@ -192,6 +192,38 @@ foreach (var env in environments)
     }
 }
 
+// AI Database Migration (AIDbContext)
+var aiConstr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
+if (!string.IsNullOrEmpty(aiConstr))
+{
+    var aiOptionsBuilder = new DbContextOptionsBuilder<gtas_vpp_be.AI.Data.AIDbContext>();
+    aiOptionsBuilder.UseSqlServer(aiConstr, action => action.MigrationsAssembly("gtas_vpp_be.AI"));
+
+    using var aiDbContext = new gtas_vpp_be.AI.Data.AIDbContext(aiOptionsBuilder.Options);
+    
+    int maxRetries = 5;
+    for (int retry = 0; retry < maxRetries; retry++)
+    {
+        try
+        {
+            Console.WriteLine("[Migration] Applying AI database migration...");
+            aiDbContext.Database.Migrate();
+            Console.WriteLine("[Migration] AI database migration completed successfully.");
+            break;
+        }
+        catch (Exception ex)
+        {
+            if (retry == maxRetries - 1)
+            {
+                Console.WriteLine($"[Migration] AI migration failed after {maxRetries} attempts. Exception: {ex.Message}");
+                throw;
+            }
+            Console.WriteLine($"[Migration] AI DB is not ready, retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
+            await Task.Delay(5000);
+        }
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsProduction())
 {

@@ -28,7 +28,7 @@ public class VPPSuggestionHandler : IAIUseCaseHandler
 
     public string UseCaseId => "vpp_suggestion";
 
-    public string DisplayName => "Đề xuất Văn phòng phẩm";
+    public string DisplayName => "VPP Suggestion";
 
     public bool CanHandle(string userMessage) => true;
 
@@ -40,21 +40,64 @@ public class VPPSuggestionHandler : IAIUseCaseHandler
         {
             if (!await _embeddingStore.HasEmbeddingsAsync(ct))
             {
-                return AIChatResponse.Error("Chưa có dữ liệu embedding. Vui lòng chạy rebuild embeddings trước khi sử dụng AI.");
+                return AIChatResponse.Error("No embedding data found. Please rebuild embeddings before using AI.");
             }
 
             var queryEmbedding = await _embeddingGenerator.GenerateAsync(request.Message, options: null, cancellationToken: ct);
             var searchResults = await _embeddingStore.SearchSimilarAsync(queryEmbedding.Vector.ToArray(), TopK, ct);
 
             var messages = BuildMessages(request, searchResults);
-            var chatResponse = await _chatClient.GetResponseAsync(
-                messages,
-                new ChatOptions
+            
+            // STEP 1: ROUTING (Determine primary model)
+            string primaryModel = "gemini-3.1-flash-lite-preview"; // Default (Daily driver)
+            
+            if (request.Message.Length > 8000 || request.Message.Contains("phân tích code", StringComparison.OrdinalIgnoreCase) || request.Message.Contains("analyze code", StringComparison.OrdinalIgnoreCase))
+            {
+                primaryModel = "gemma-4-31b"; // Heavy Duty
+            }
+
+            var options = new ChatOptions
+            {
+                ModelId = primaryModel,
+                MaxOutputTokens = 2048,
+                Temperature = 0.3f,
+                AdditionalProperties = new AdditionalPropertiesDictionary
                 {
-                    MaxOutputTokens = 2048,
-                    Temperature = 0.3f
-                },
-                ct);
+                    // Pass virtual header down to DelegatingHandler for key rotation tracking
+                    ["HttpRequestHeaders"] = new Dictionary<string, string> { { "x-target-model", primaryModel } }
+                }
+            };
+
+            ChatResponse chatResponse;
+            try
+            {
+                // STEP 2: CALL CHAT (DelegatingHandler will handle Key Swapping seamlessly)
+                chatResponse = await _chatClient.GetResponseAsync(messages, options, ct);
+            }
+            catch (Exception ex) when (ex.Message.Contains("ALL_KEYS_EXHAUSTED_FOR_MODEL"))
+            {
+                _logger.LogWarning("All 8 keys exhausted (429 Rate Limit) for primary model {Model}. ACTIVATING FALLBACK!", primaryModel);
+
+                // STEP 3: SWAP MODEL TO ULTIMATE FALLBACK (Gemma 3 27B)
+                string fallbackModel = "gemma-3-27b";
+                options.ModelId = fallbackModel;
+                
+                if (options.AdditionalProperties?["HttpRequestHeaders"] is Dictionary<string, string> headers)
+                {
+                    headers["x-target-model"] = fallbackModel; // Update virtual header
+                }
+
+                try
+                {
+                    // Second attempt with Fallback model. DelegatingHandler will test 8 keys for this new model.
+                    chatResponse = await _chatClient.GetResponseAsync(messages, options, ct);
+                }
+                catch (Exception fallbackEx)
+                {
+                    _logger.LogError(fallbackEx, "Total failure! Fallback model has also collapsed!");
+                    return AIChatResponse.Error("AI Service is currently overloaded. Please try again later.");
+                }
+            }
 
             var suggestedItems = searchResults
                 .Select(x => new AISuggestedItem
@@ -69,19 +112,19 @@ public class VPPSuggestionHandler : IAIUseCaseHandler
                 .ToList();
 
             stopwatch.Stop();
-            _logger.LogInformation("AI {UseCaseId} processed in {ElapsedMs}ms", UseCaseId, stopwatch.ElapsedMilliseconds);
+            _logger.LogInformation("AI {UseCaseId} processed in {ElapsedMs}ms using model {ModelId}", UseCaseId, stopwatch.ElapsedMilliseconds, options.ModelId);
 
             return AIChatResponse.Success(chatResponse.Text, UseCaseId, suggestedItems);
         }
         catch (OperationCanceledException ex)
         {
             _logger.LogWarning(ex, "AI {UseCaseId} timed out or was cancelled", UseCaseId);
-            return AIChatResponse.Error("Dịch vụ AI phản hồi quá thời gian chờ");
+            return AIChatResponse.Error("AI Service response timed out.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "AI {UseCaseId} failed", UseCaseId);
-            return AIChatResponse.Error("Dịch vụ AI tạm thời không khả dụng");
+            return AIChatResponse.Error("AI Service is temporarily unavailable.");
         }
     }
 
@@ -111,17 +154,17 @@ public class VPPSuggestionHandler : IAIUseCaseHandler
 
         foreach (var item in searchResults)
         {
-            context.AppendLine($"- {item.VPPCode} | {item.VPPName} | Loại: {item.CategoryName} | Đơn vị: {item.UOMName} | Điểm: {item.SimilarityScore:0.000}");
-            context.AppendLine($"  Nội dung embed: {item.EmbeddingText}");
+            context.AppendLine($"- {item.VPPCode} | {item.VPPName} | Category: {item.CategoryName} | Unit: {item.UOMName} | Score: {item.SimilarityScore:0.000}");
+            context.AppendLine($"  Embedding text: {item.EmbeddingText}");
         }
 
         return $"""
-Bạn là trợ lý AI chuyên về văn phòng phẩm (VPP) trong hệ thống GTAS VPP.
-Nhiệm vụ: Dựa vào danh sách VPP bên dưới, đề xuất sản phẩm phù hợp nhất cho yêu cầu người dùng.
-Trả lời bằng tiếng Việt, ngắn gọn, chuyên nghiệp.
-Nếu không tìm thấy VPP phù hợp, hãy nói rõ.
+You are an AI assistant specialized in office supplies (VPP) within the GTAS VPP system.
+Task: Based on the relevant VPP list below, suggest the most suitable product for the user's request.
+Reply in English, concisely and professionally.
+If no suitable VPP is found, state it clearly.
 
-Danh sách VPP liên quan:
+Relevant VPP list:
 {context}
 """;
     }

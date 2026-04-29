@@ -99,22 +99,71 @@ public class SqlVPPEmbeddingStore : IVPPEmbeddingStore
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task UpsertEmbeddingsBatchAsync(List<(Guid VPPId, string Text, float[] Vector)> batch, string modelName, CancellationToken ct = default)
+    {
+        if (batch.Count == 0) return;
+
+        var vppIds = batch.Select(x => x.VPPId).ToList();
+        var existings = await _db.VPPEmbeddings.Where(x => vppIds.Contains(x.VPPId)).ToListAsync(ct);
+        var existingDict = existings.ToDictionary(x => x.VPPId);
+
+        foreach (var item in batch)
+        {
+            var bytes = VectorMath.FloatArrayToBytes(item.Vector);
+            if (existingDict.TryGetValue(item.VPPId, out var existing))
+            {
+                existing.EmbeddingText = item.Text;
+                existing.EmbeddingVector = bytes;
+                existing.ModelName = modelName;
+                existing.VectorDimension = item.Vector.Length;
+                existing.UpdatedDate = DateTime.UtcNow;
+            }
+            else
+            {
+                await _db.VPPEmbeddings.AddAsync(new AI_VPPEmbedding
+                {
+                    VPPId = item.VPPId,
+                    EmbeddingText = item.Text,
+                    EmbeddingVector = bytes,
+                    ModelName = modelName,
+                    VectorDimension = item.Vector.Length
+                }, ct);
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+    }
+
     public async Task RebuildAllAsync(CancellationToken ct = default)
     {
         var stopwatch = Stopwatch.StartNew();
         var vpps = await _vppRepository.ReadAsync(
             x => !x.IsDeleted,
-            q => q.Include(x => x.VPPCategory).Include(x => x.UOM));
+            q => q.Include(x => x.VPPCategory).Include(x => x.UOM).AsNoTracking());
 
         var count = 0;
-        foreach (var vpp in vpps)
+        var chunks = vpps.Chunk(100);
+
+        foreach (var chunk in chunks)
         {
             ct.ThrowIfCancellationRequested();
 
-            var text = BuildEmbeddingText(vpp);
-            var embedding = await _embeddingGenerator.GenerateAsync(text, options: null, cancellationToken: ct);
-            await UpsertEmbeddingAsync(vpp.Id, text, embedding.Vector.ToArray(), "nomic-embed-text", ct);
-            count++;
+            var texts = chunk.Select(BuildEmbeddingText).ToList();
+            var embeddings = await _embeddingGenerator.GenerateAsync(texts, options: null, cancellationToken: ct);
+
+            var batch = new List<(Guid VPPId, string Text, float[] Vector)>();
+            for (int i = 0; i < chunk.Length; i++)
+            {
+                batch.Add((chunk[i].Id, texts[i], embeddings[i].Vector.ToArray()));
+            }
+
+            await UpsertEmbeddingsBatchAsync(batch, "gemini-embedding-001", ct);
+
+            count += chunk.Length;
+            Console.WriteLine($"[GeminiEmbed] Đã nhúng xong {count}/{vpps.Count} VPPs.");
+
+            // ~60 req/min to stay under free tier limit of 100 req/min
+            await Task.Delay(1000, ct);
         }
 
         stopwatch.Stop();
