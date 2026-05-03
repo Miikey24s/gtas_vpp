@@ -1,4 +1,5 @@
 ﻿@using gtas_vpp_fe.Components.Pages.Permission.Tabs
+@using gtas_vpp_shared.Constants
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <style>
@@ -15,24 +16,22 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            @if (HasAdminView)
-            {
+            <AuthorizeView Policy="@Permissions.PermissionUser" Context="userTabAuth">
                 <RadzenTabsItem Text="User Group">
-                    @if (IsActiveTab(UserTab))
+                    @if (IsActiveTab(0))
                     {
                         <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                     }
                 </RadzenTabsItem>
-            }
-            @if (HasPermissionView || HasAdminView)
-            {
+            </AuthorizeView>
+            <AuthorizeView Policy="@Permissions.PermissionComponent" Context="componentTabAuth">
                 <RadzenTabsItem Text="Group/Page Permission">
-                    @if (IsActiveTab(PagePermissionTab))
+                    @if (IsActiveTab(1))
                     {
                         <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                     }
                 </RadzenTabsItem>
-            }
+            </AuthorizeView>
         </Tabs>
     </RadzenTabs>
 }

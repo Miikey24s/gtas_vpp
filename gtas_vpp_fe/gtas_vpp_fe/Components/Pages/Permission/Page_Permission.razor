@@ -1,4 +1,4 @@
-﻿@page "/permission/{Per?}"
+﻿@page "/permission"
 @layout MainLayout
 @using Microsoft.AspNetCore.Components.Authorization
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -13,6 +13,6 @@
 
 @rendermode InteractiveServer
 
-<PageTitle>GTAS VPP - Library</PageTitle>
+<PageTitle>GTAS VPP - Permission</PageTitle>
 
-<Component_Permission claims="@claims" Per="@Per" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>
+<Component_Permission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>

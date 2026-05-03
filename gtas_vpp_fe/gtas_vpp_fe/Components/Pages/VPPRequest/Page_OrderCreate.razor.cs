@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.AI;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
@@ -89,6 +90,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public DateTime? LastDraftSavedAt { get; set; }
         public int TotalQty => SelectedItems.Sum(x => x.Qty);
 
+        // AI Properties
+        public bool IsAILoading { get; set; }
+        public string? AISearchText { get; set; }
+        public List<AISuggestedItemDTO> AISuggestions { get; set; } = new();
+
         public List<ProductOption> ProductOptions { get; set; } = new();
         public List<SelectedItem> SelectedItems { get; set; } = new();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
@@ -146,6 +152,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             else
             {
                 StartDraftAutoSave();
+                // AI: Gợi ý ban đầu các văn phòng phẩm cơ bản
+                _ = GetAISuggestionsAsync("Hãy gợi ý các văn phòng phẩm cơ bản và thiết yếu cho nhân viên văn phòng.");
             }
         }
 
@@ -320,6 +328,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             {
                 await productGrid.Reload();
             }
+
+            // AI: Gợi ý món đồ mua kèm (không chặn UI)
+            _ = GetAISuggestionsAsync($"Người dùng vừa mua món {product.VPPName}. Hãy gợi ý các món đồ thường được mua kèm với nó.");
         }
 
         public async Task RemoveItemAsync(SelectedItem row)
@@ -567,6 +578,58 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public void GoBack()
         {
             NavigationManager.NavigateTo("/dashboard?tab=0");
+        }
+
+        public async Task GetAISuggestionsAsync(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(prompt)) return;
+
+            IsAILoading = true;
+            await InvokeAsync(StateHasChanged);
+
+            try
+            {
+                var request = new AIChatRequestDTO { Message = prompt };
+                var response = await _apiServices.PostFromApiAsync<AIChatResponseDTO>("/api/AI/chat", request);
+
+                if (response?.IsSuccess == true && response.SuggestedItems != null)
+                {
+                    // Lấy top 5 items có SimilarityScore cao nhất
+                    AISuggestions = response.SuggestedItems
+                        .OrderByDescending(x => x.SimilarityScore)
+                        .Take(5)
+                        .ToList();
+                }
+                else
+                {
+                    AISuggestions = new();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silent fail - AI là tính năng phụ, không làm gián đoạn workflow chính
+                await JS.InvokeVoidAsync("console.warn", "AI suggestion failed:", ex.Message);
+                AISuggestions = new();
+            }
+            finally
+            {
+                IsAILoading = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        public async Task AddSuggestedItemAsync(AISuggestedItemDTO suggestedItem)
+        {
+            var product = ProductOptions.FirstOrDefault(x => x.Id == suggestedItem.VPPId);
+            if (product == null) return;
+
+            await AddItemAsync(product);
+        }
+
+        public async Task OnAISearchAsync()
+        {
+            if (string.IsNullOrWhiteSpace(AISearchText)) return;
+            await GetAISuggestionsAsync(AISearchText);
         }
 
         public void Dispose()

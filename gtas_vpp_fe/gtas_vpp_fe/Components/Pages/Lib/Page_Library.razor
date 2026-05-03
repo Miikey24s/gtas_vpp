@@ -1,5 +1,4 @@
-﻿@page "/library/{Lib?}"
-@* @page "/library" *@
+﻿@page "/library"
 @layout MainLayout
 @using Microsoft.AspNetCore.Components.Authorization
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -19,5 +18,5 @@
 
 @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible))
 {
-    <Component_Library claims="@claims" Lib="@Lib" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>
+    <Component_Library claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>
 }

@@ -1,10 +1,12 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
 using System.Security.Claims;
 
@@ -12,73 +14,112 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 {
     public partial class Component_Library : IDisposable
     {
-        [Parameter] public string? Lib { get; set; }
+        private sealed record LibraryTabDefinition(int QueryIndex, string Permission);
+
+        private static readonly LibraryTabDefinition[] LibraryTabs =
+        [
+            new(0, Permissions.LibraryClass),
+            new(1, Permissions.LibraryCategory),
+            new(2, Permissions.LibraryItem),
+            new(3, Permissions.LibrarySupplier),
+            new(4, Permissions.LibraryDepartment)
+        ];
+
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
-        [Inject] NavigationManager NavigationManager { get; set; } = default!;
-        TabPosition tabPosition = TabPosition.Top;
-        int SelectedIndex = 0;
-        List<string> libStrings = new List<string> { "class", "operationcat", "operation", "supplier", "department" };
-        private const string LibraryDepartmentComponentCode = Config.Page_ComponentCode.ComponentCode.LibraryDepartment;
-        private bool HasVisibleComponent(string componentCode)
-            => sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == componentCode && x.IsVisible);
+        [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-        private bool HasAnyVisibleLibraryTab => LibraryTabCodes.Any(HasVisibleComponent);
+        private readonly TabPosition tabPosition = TabPosition.Top;
+        private int SelectedIndex { get; set; }
 
-        private string[] LibraryTabCodes =>
-        [
-            Config.Page_ComponentCode.ComponentCode.LibraryClass,
-            Config.Page_ComponentCode.ComponentCode.LibraryOperationCategory,
-            Config.Page_ComponentCode.ComponentCode.LibraryOperation,
-            Config.Page_ComponentCode.ComponentCode.LibrarySupplier,
-            LibraryDepartmentComponentCode
-        ];
+        private IReadOnlyList<LibraryTabDefinition> AuthorizedTabs =>
+            LibraryTabs.Where(tab => claims.HasPermission(tab.Permission)).ToArray();
 
-        private int ResolveVisibleTabIndex(string? tab)
-        {
-            var index = libStrings.IndexOf(tab?.ToLower() ?? "class");
-            if (index >= 0 && HasVisibleComponent(LibraryTabCodes[index]))
-            {
-                return index;
-            }
-
-            for (var i = 0; i < LibraryTabCodes.Length; i++)
-            {
-                if (HasVisibleComponent(LibraryTabCodes[i]))
-                {
-                    return i;
-                }
-            }
-
-            return 0;
-        }
+        private bool HasAnyVisibleLibraryTab => AuthorizedTabs.Count > 0;
 
         public List<L03_VPPCategoryResDTO> operationCategories = new List<L03_VPPCategoryResDTO>();
         public List<L04_VPPResDTO> operations = new List<L04_VPPResDTO>();
         public List<L05_VPPSupplierResDTO> suppliers = new List<L05_VPPSupplierResDTO>();
         public List<LEX02_CompanyDepartmentLocationResDTO> departments = new List<LEX02_CompanyDepartmentLocationResDTO>();
         Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; } = new();
+
         protected override async Task OnInitializedAsync()
         {
-            SelectedIndex = ResolveVisibleTabIndex(Lib);
             NavigationManager.LocationChanged += OnLocationChanged;
+            SetSelectedIndexFromUri(NavigationManager.Uri);
             await GetLibraries();
         }
-        public void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+
+        protected override void OnParametersSet()
         {
-            var uri = new Uri(args.Location);
-            if (uri.AbsolutePath.Contains("library"))
-            {
-                string currtab = uri.AbsolutePath.Split('/')[uri.AbsolutePath.Split('/').Length - 1];
-                SelectedIndex = ResolveVisibleTabIndex(currtab);
-                StateHasChanged();
-            }
+            SetSelectedIndexFromUri(NavigationManager.Uri);
         }
-        void TabOnChange(int index)
+
+        private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
         {
-            NavigationManager.NavigateTo($"/library/{libStrings[index]}");
+            if (!IsLibraryUri(args.Location))
+            {
+                return;
+            }
+
+            SetSelectedIndexFromUri(args.Location);
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void TabOnChange(int index)
+        {
+            var tab = AuthorizedTabs.ElementAtOrDefault(index);
+            if (tab is null)
+            {
+                return;
+            }
+
+            SelectedIndex = index;
+            NavigationManager.NavigateTo($"/library?tab={tab.QueryIndex}");
+        }
+
+        private bool IsActiveTab(int queryIndex)
+        {
+            return AuthorizedTabs.ElementAtOrDefault(SelectedIndex)?.QueryIndex == queryIndex;
+        }
+
+        private void SetSelectedIndexFromUri(string location)
+        {
+            var authorizedTabs = AuthorizedTabs;
+            if (authorizedTabs.Count == 0)
+            {
+                SelectedIndex = 0;
+                return;
+            }
+
+            var requestedTab = GetRequestedTabIndex(location);
+            var selectedIndex = requestedTab.HasValue
+                ? authorizedTabs.ToList().FindIndex(tab => tab.QueryIndex == requestedTab.Value)
+                : 0;
+
+            SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+        }
+
+        private int? GetRequestedTabIndex(string location)
+        {
+            var uri = NavigationManager.ToAbsoluteUri(location);
+            var query = QueryHelpers.ParseQuery(uri.Query);
+
+            if (query.TryGetValue("tab", out var values) &&
+                int.TryParse(values.FirstOrDefault(), out var tabIndex))
+            {
+                return tabIndex;
+            }
+
+            return null;
+        }
+
+        private bool IsLibraryUri(string location)
+        {
+            var uri = NavigationManager.ToAbsoluteUri(location);
+            return uri.AbsolutePath.TrimEnd('/').EndsWith("/library", StringComparison.OrdinalIgnoreCase);
         }
         public async Task<List<string>> GetFormular()
         {
@@ -139,10 +180,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 glb.isBusyPage = false;
                 StateHasChanged();
             }
-        }
-        void OnChange(int index)
-        {
-            NavigationManager.NavigateTo($"/Library/{libStrings[index]}");
         }
         async Task<T> ApiAddAsync<T>(T data) where T : BaseResDTO, new()
         {

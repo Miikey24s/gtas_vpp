@@ -1,8 +1,8 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Radzen.Blazor.Rendering
 @using System.Globalization
 @using gtas_vpp_shared.Constants
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @* @inject Radzen.ThemeService ThemeService *@
 @inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
 @inject NavigationManager NavigationManager
@@ -93,19 +93,19 @@
         <AuthorizeView Policy="@Permissions.MenuLibrary" Context="libraryMenuAuth">
             <RadzenPanelMenuItem Text="Library" Icon="library_books" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.LibraryClass" Context="libraryClassMenuAuth">
-                    <RadzenPanelMenuItem Text="Class Definitions" Path="/library/class" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="Class Definitions" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="menu_book" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibraryCategory" Context="libraryCategoryMenuAuth">
-                    <RadzenPanelMenuItem Text="Operation Categories" Path="/library/operationcat" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="Operation Categories" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="menu_book" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibraryItem" Context="libraryItemMenuAuth">
-                    <RadzenPanelMenuItem Text="Operations" Path="/library/operation" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="Operations" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="menu_book" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibrarySupplier" Context="librarySupplierMenuAuth">
-                    <RadzenPanelMenuItem Text="Suppliers" Path="/library/supplier" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="Suppliers" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="menu_book" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibraryDepartment" Context="libraryDepartmentMenuAuth">
-                    <RadzenPanelMenuItem Text="Departments" Path="/library/department" class="ppjsidebarmenu submenu" Icon="apartment" />
+                    <RadzenPanelMenuItem Text="Departments" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="apartment" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
@@ -115,10 +115,10 @@
         <AuthorizeView Policy="@Permissions.MenuPermission" Context="permissionMenuAuth">
             <RadzenPanelMenuItem Text="Permission" Icon="settings" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.PermissionUser" Context="permissionUserMenuAuth">
-                    <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission/user" />
+                    <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission?tab=0" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.PermissionComponent" Context="permissionComponentMenuAuth">
-                    <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission/pagepermission" />
+                    <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission?tab=1" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>

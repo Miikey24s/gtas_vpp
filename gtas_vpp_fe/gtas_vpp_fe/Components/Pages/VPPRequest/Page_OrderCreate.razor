@@ -29,6 +29,47 @@
     <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch" Style="flex: 1; min-height: 0; margin: 0;">
         
         <RadzenColumn Size="12" SizeLG="7" Style="display: flex; flex-direction: column; height: 100%;">
+            
+            @* AI Assistant Card *@
+            <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 rz-mb-3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <RadzenStack Gap="0.75rem">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenIcon Icon="auto_awesome" Style="font-size: 1.5rem;" />
+                        <RadzenText Text="AI Smart Search" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
+                    </RadzenStack>
+                    
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                        <RadzenTextBox @bind-Value="AISearchText" Placeholder="Tìm kiếm bằng ngôn ngữ tự nhiên (VD: bút viết màu xanh, giấy A4...)" 
+                                       Style="flex: 1; background: white; color: black;" 
+                                       @onkeydown="@(async (KeyboardEventArgs e) => { if (e.Key == "Enter") await OnAISearchAsync(); })" />
+                        <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Light" Click="@OnAISearchAsync" Disabled="@IsAILoading" />
+                    </RadzenStack>
+
+                    @if (IsAILoading)
+                    {
+                        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
+                    }
+
+                    @if (AISuggestions.Any())
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="0.5rem">
+                            @foreach (var item in AISuggestions)
+                            {
+                                var isAlreadySelected = SelectedItems.Any(x => x.VPPId == item.VPPId);
+                                <RadzenButton Text="@($"+ {item.VPPName}")" 
+                                              Icon="@(isAlreadySelected ? "check" : "add")"
+                                              ButtonStyle="@(isAlreadySelected ? ButtonStyle.Success : ButtonStyle.Light)" 
+                                              Variant="Variant.Outlined" 
+                                              Size="ButtonSize.Small"
+                                              Disabled="@isAlreadySelected"
+                                              Click="@(async _ => await AddSuggestedItemAsync(item))"
+                                              Style="@(isAlreadySelected ? "opacity: 0.6;" : "")" />
+                            }
+                        </RadzenStack>
+                    }
+                </RadzenStack>
+            </RadzenCard>
+
             <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
                 <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">
                     <RadzenText Text="Product Catalog" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />

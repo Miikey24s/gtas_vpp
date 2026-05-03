@@ -20,8 +20,10 @@
     --cons-receive: #7ec8e3;
     --rz-layout-body-padding-1: 0.5rem;
     --rz-input-height-1: 2rem;
-    --rz-primary-dark: var(--vpp-ocean-primary-dark);
-    --rz-primary: var(--vpp-ocean-primary);
+    --vpp-ocean-primary: var(--rz-primary);
+    --vpp-ocean-primary-dark: var(--rz-primary-dark);
+    --vpp-ocean-primary-light: var(--rz-primary-light);
+    --vpp-ocean-surface-soft: var(--rz-base-200);
     --rz-input-disabled-border: var(--rz-base-600);
     --rz-border-disabled: var(--rz-border-width) solid var(--rz-base-600);
     --rz-form-field-label-focus-color: var(--vpp-ocean-primary) !important;

@@ -1,4 +1,3 @@
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,7 +17,7 @@
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
-    <RadzenTheme Theme="material3"/>
+    <RadzenTheme Theme="@currentTheme"/>
 </head>
 
 <body>
@@ -40,20 +39,16 @@
     [Inject]
     private ThemeService ThemeService { get; set; } = default!;
 
-    [Inject]
-    private ProtectedLocalStorage protectedLocalStorage { get; set; } = default!;
+    private string currentTheme = "material3";
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        
+        // Đọc theme từ cookie
+        if (HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var themeCookie))
         {
-            await base.OnAfterRenderAsync(firstRender);
-
+            currentTheme = themeCookie;
         }
     }
 }

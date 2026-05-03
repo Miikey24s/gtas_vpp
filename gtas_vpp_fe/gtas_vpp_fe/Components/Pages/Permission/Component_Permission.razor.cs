@@ -1,7 +1,9 @@
-﻿using gtas_vpp_shared.DTOs.Res.Auth;
+﻿using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using gtas_vpp_fe.Helpers;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
 using System.Security.Claims;
 
@@ -9,81 +11,49 @@ namespace gtas_vpp_fe.Components.Pages.Permission
 {
     public partial class Component_Permission : IDisposable
     {
-        private const string UserTab = "user";
-        private const string PagePermissionTab = "pagepermission";
+        private sealed record PermissionTabDefinition(int QueryIndex, string Permission);
 
-        [Parameter] public string? Per { get; set; }
+        private static readonly PermissionTabDefinition[] PermissionTabs =
+        [
+            new(0, Permissions.PermissionUser),
+            new(1, Permissions.PermissionComponent)
+        ];
+
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
-        [Inject] NavigationManager NavigationManager { get; set; } = default!;
-        TabPosition tabPosition = TabPosition.Top;
-        int SelectedIndex = 0;
-        private IReadOnlyList<string> AuthorizedTabs
-        {
-            get
-            {
-                var tabs = new List<string>();
+        [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-                if (HasAdminView)
-                {
-                    tabs.Add(UserTab);
-                }
+        private readonly TabPosition tabPosition = TabPosition.Top;
+        private int SelectedIndex { get; set; }
 
-                if (HasPermissionView || HasAdminView)
-                {
-                    tabs.Add(PagePermissionTab);
-                }
+        private IReadOnlyList<PermissionTabDefinition> AuthorizedTabs =>
+            PermissionTabs.Where(tab => claims.HasPermission(tab.Permission)).ToArray();
 
-                return tabs;
-            }
-        }
-
-        private bool HasVisibleComponent(string componentCode)
-            => sp_Authentication_GetPermissionSinglePage.List_Component.Any(x => x.ComponentCode == componentCode && x.IsVisible);
-
-        private bool HasAdminView => HasVisibleComponent(Config.Page_ComponentCode.ComponentCode.AdminView);
-        private bool HasPermissionView => HasVisibleComponent(Config.Page_ComponentCode.ComponentCode.PermissionViewable);
         private bool HasAnyVisiblePermissionTab => AuthorizedTabs.Count > 0;
-
-        private int ResolveTabIndex(string? tab)
-        {
-            var tabs = AuthorizedTabs;
-            if (tabs.Count == 0)
-            {
-                return 0;
-            }
-
-            var requestedTab = string.IsNullOrWhiteSpace(tab) ? null : tab.ToLowerInvariant();
-            var index = requestedTab is null ? 0 : tabs.ToList().FindIndex(x => x == requestedTab);
-
-            return index >= 0 ? index : 0;
-        }
 
         protected override void OnInitialized()
         {
-            SelectedIndex = ResolveTabIndex(Per);
             NavigationManager.LocationChanged += OnLocationChanged;
+            SetSelectedIndexFromUri(NavigationManager.Uri);
         }
 
         protected override void OnParametersSet()
         {
-            SelectedIndex = ResolveTabIndex(Per);
+            SetSelectedIndexFromUri(NavigationManager.Uri);
         }
 
-        private bool IsActiveTab(string tab)
-            => AuthorizedTabs.ElementAtOrDefault(SelectedIndex) == tab;
-
-        public void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+        private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
         {
-            var uri = new Uri(args.Location);
-            if (uri.AbsolutePath.Contains("permission"))
+            if (!IsPermissionUri(args.Location))
             {
-                string currtab = uri.AbsolutePath.Split('/')[uri.AbsolutePath.Split('/').Length - 1];
-                SelectedIndex = ResolveTabIndex(currtab);
-                StateHasChanged();
+                return;
             }
+
+            SetSelectedIndexFromUri(args.Location);
+            _ = InvokeAsync(StateHasChanged);
         }
-        void TabOnChange(int index)
+
+        private void TabOnChange(int index)
         {
             var tab = AuthorizedTabs.ElementAtOrDefault(index);
             if (tab is null)
@@ -92,7 +62,49 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             }
 
             SelectedIndex = index;
-            NavigationManager.NavigateTo($"/permission/{tab}");
+            NavigationManager.NavigateTo($"/permission?tab={tab.QueryIndex}");
+        }
+
+        private bool IsActiveTab(int queryIndex)
+        {
+            return AuthorizedTabs.ElementAtOrDefault(SelectedIndex)?.QueryIndex == queryIndex;
+        }
+
+        private void SetSelectedIndexFromUri(string location)
+        {
+            var authorizedTabs = AuthorizedTabs;
+            if (authorizedTabs.Count == 0)
+            {
+                SelectedIndex = 0;
+                return;
+            }
+
+            var requestedTab = GetRequestedTabIndex(location);
+            var selectedIndex = requestedTab.HasValue
+                ? authorizedTabs.ToList().FindIndex(tab => tab.QueryIndex == requestedTab.Value)
+                : 0;
+
+            SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+        }
+
+        private int? GetRequestedTabIndex(string location)
+        {
+            var uri = NavigationManager.ToAbsoluteUri(location);
+            var query = QueryHelpers.ParseQuery(uri.Query);
+
+            if (query.TryGetValue("tab", out var values) &&
+                int.TryParse(values.FirstOrDefault(), out var tabIndex))
+            {
+                return tabIndex;
+            }
+
+            return null;
+        }
+
+        private bool IsPermissionUri(string location)
+        {
+            var uri = NavigationManager.ToAbsoluteUri(location);
+            return uri.AbsolutePath.TrimEnd('/').EndsWith("/permission", StringComparison.OrdinalIgnoreCase);
         }
 
         public void Dispose()

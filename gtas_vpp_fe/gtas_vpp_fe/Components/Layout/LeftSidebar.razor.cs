@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
 using Radzen;
 using System.Security.Claims;
 
@@ -13,6 +14,9 @@ namespace gtas_vpp_fe.Components.Layout
     {
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
+        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
+        [CascadingParameter] public HttpContext? HttpContext { get; set; }
+        
         public bool _sideBarExpanded { get; set; } = false;
         private string? currentUrl { get; set; }
         public const string QueryParameter = "theme";
@@ -21,6 +25,7 @@ namespace gtas_vpp_fe.Components.Layout
         public DropdownModel selected_Company { get; set; } = default!;
         private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
         public string State { get; set; } = "normal";
+        private bool _isPrerendering = true;
 
         protected override async Task OnInitializedAsync()
         {
@@ -46,6 +51,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             if (firstRender)
             {
+                _isPrerendering = false;
                 await LoadTheme();
                 await LoadStateAsync();
                 StateHasChanged();
@@ -70,16 +76,14 @@ namespace gtas_vpp_fe.Components.Layout
         protected async Task ThemeOnChange()
         {
             LightTheme = !LightTheme;
-            if (LightTheme)
+            var newTheme = LightTheme ? "material3" : "material3-dark";
+            
+            ThemeService.SetTheme(newTheme);
+            
+            // Set cookie chỉ khi không prerendering
+            if (!_isPrerendering)
             {
-                ThemeService.SetTheme("material3");
-                await ProtectedLocalStore.SetAsync("VPPTheme", "material3");
-
-            }
-            else
-            {
-                ThemeService.SetTheme("material3-dark");
-                await ProtectedLocalStore.SetAsync("VPPTheme", "material3-dark");
+                await JSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'VPPTheme={newTheme}; path=/; max-age=31536000'");
             }
         }
         protected async Task LoadAuthenticationState()
@@ -97,23 +101,17 @@ namespace gtas_vpp_fe.Components.Layout
         {
             try
             {
-                var theme = await ProtectedLocalStore.GetAsync<string>("VPPTheme");
-
-                if (theme.Success && !string.IsNullOrWhiteSpace(theme.Value))
+                // Đọc theme từ cookie thông qua HttpContext
+                string? themeCookie = null;
+                if (HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out themeCookie))
                 {
-                    ThemeService.SetTheme(theme.Value);
-                    if (theme.Value == "material3")
-                    {
-                        LightTheme = true;
-                    }
-                    else
-                    {
-                        LightTheme = false;
-                    }
+                    ThemeService.SetTheme(themeCookie);
+                    LightTheme = themeCookie == "material3";
                 }
                 else
                 {
                     ThemeService.SetTheme("material3");
+                    LightTheme = true;
                 }
             }
             catch (Exception ex)
