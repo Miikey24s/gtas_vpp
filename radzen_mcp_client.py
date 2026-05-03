@@ -25,54 +25,67 @@ def load_api_key():
     
     return None
 
-def mcp_request(method, params=None, api_key=None):
-    """Send JSON-RPC request to MCP server"""
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json, text/event-stream",
-        "X-Radzen-Key": api_key or "YOUR-LICENSE-KEY"
-    }
+class MCPSession:
+    """MCP session manager"""
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.session_id = None
     
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": method,
-        "params": params or {}
-    }
-    
-    response = requests.post(MCP_URL, json=payload, headers=headers)
-    response.raise_for_status()
-    
-    # Handle SSE response
-    if response.headers.get('Content-Type') == 'text/event-stream':
-        for line in response.text.split('\n'):
-            if line.startswith('data: '):
-                return json.loads(line[6:])  # Remove 'data: ' prefix
-    
-    # Handle plain JSON
-    return response.json()
-
-def initialize(api_key):
-    """Initialize MCP session"""
-    return mcp_request("initialize", {
-        "protocolVersion": "2025-03-26",
-        "capabilities": {},
-        "clientInfo": {
-            "name": "kiro-cli-test",
-            "version": "1.0.0"
+    def request(self, method, params=None):
+        """Send JSON-RPC request with session management"""
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "X-Radzen-Key": self.api_key
         }
-    }, api_key)
-
-def list_tools(api_key):
-    """List available tools"""
-    return mcp_request("tools/list", {}, api_key)
-
-def call_tool(tool_name, arguments, api_key):
-    """Call a specific tool"""
-    return mcp_request("tools/call", {
-        "name": tool_name,
-        "arguments": arguments
-    }, api_key)
+        
+        # Add session ID for non-initialize requests
+        if self.session_id and method != "initialize":
+            headers["Mcp-Session-Id"] = self.session_id
+        
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params or {}
+        }
+        
+        response = requests.post(MCP_URL, json=payload, headers=headers)
+        response.raise_for_status()
+        
+        # Capture session ID from initialize response
+        if method == "initialize" and "Mcp-Session-Id" in response.headers:
+            self.session_id = response.headers["Mcp-Session-Id"]
+        
+        # Handle SSE response
+        if response.headers.get('Content-Type') == 'text/event-stream':
+            for line in response.text.split('\n'):
+                if line.startswith('data: '):
+                    return json.loads(line[6:])
+        
+        return response.json()
+    
+    def initialize(self):
+        """Initialize MCP session"""
+        return self.request("initialize", {
+            "protocolVersion": "2025-03-26",
+            "capabilities": {},
+            "clientInfo": {
+                "name": "kiro-cli-radzen",
+                "version": "1.0.0"
+            }
+        })
+    
+    def list_tools(self):
+        """List available tools"""
+        return self.request("tools/list", {})
+    
+    def call_tool(self, tool_name, arguments):
+        """Call a specific tool"""
+        return self.request("tools/call", {
+            "name": tool_name,
+            "arguments": arguments
+        })
 
 def main():
     # Load API key from .env or argument
@@ -100,17 +113,21 @@ def main():
         sys.exit(1)
     
     try:
+        session = MCPSession(api_key)
+        
         if command == "init":
-            result = initialize(api_key)
+            result = session.initialize()
             print(json.dumps(result, indent=2))
         
         elif command == "tools":
-            result = list_tools(api_key)
+            session.initialize()  # Must initialize first
+            result = session.list_tools()
             print(json.dumps(result, indent=2))
         
         elif command == "search":
+            session.initialize()  # Must initialize first
             query = sys.argv[query_arg_index] if len(sys.argv) > query_arg_index else "RadzenDataGrid"
-            result = call_tool("search", {"query": query}, api_key)
+            result = session.call_tool("search", {"query": query})
             print(json.dumps(result, indent=2))
         
         else:
