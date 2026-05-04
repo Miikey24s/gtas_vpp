@@ -1,0 +1,453 @@
+# GTAS VPP — UI/UX Refactoring Plan (Final)
+
+Refactor toàn bộ frontend Blazor Server app, sử dụng Radzen Blazor v10.2.0 + MCP docs reference.
+
+> [!NOTE]
+> Tất cả câu hỏi đã được giải đáp. Plan sẵn sàng thực thi.
+
+---
+
+## Quyết định đã xác nhận
+
+| # | Quyết định | Giá trị |
+|---|-----------|---------|
+| 1 | AI Toggle | Via `GlobalClass.IsAIEnabled` + `Permissions` system — mọi AI component check trước khi render |
+| 2 | Default language | **Vietnamese (vi)** |
+| 3 | Charts | Pie chart (VPP by category) + Column chart (orders by department) |
+| 4 | Login background | **Giữ nguyên** background cũ |
+| 5 | Tab navigation | **Hybrid** — giữ Tabs, sync URL `?tab=orders` |
+| 6 | Execution order | Phase 0 → 1 → 6 → 3 → 4 → 2 → 5 |
+| 7 | Review process | Sau mỗi phase, user dùng Gemini CLI check lại |
+
+---
+
+## Model Recommendation (Opus 4.6 vs Sonnet 4.5)
+
+> [!IMPORTANT]
+> **Khuyến nghị dùng model nào cho từng phase:**
+>
+> | Phase | Recommended Model | Lý do |
+> |-------|------------------|-------|
+> | **Phase 0** (Foundation) | **Opus 4.6 (bạn)** | Kiến trúc phức tạp: i18n setup, AI toggle qua permission system, design token refactoring. Cần reasoning sâu để không break existing patterns |
+> | **Phase 1** (Layout) | **Opus 4.6** | Thay đổi Layout ảnh hưởng toàn bộ app. `RadzenAppearanceToggle`, breadcrumb, sidebar animation — cần hiểu context đầy đủ |
+> | **Phase 6** (DataGrid) | **Sonnet 4.5 (Kiro)** | CSS changes + shared skeleton components. Pattern rõ ràng, lặp lại, Sonnet nhanh hơn |
+> | **Phase 3** (Dashboard) | **Sonnet 4.5** | Cải thiện UI cho từng tab — pattern giống nhau, lặp lại skeleton + i18n labels. Opus quá overkill |
+> | **Phase 4** (Order Create) | **Opus 4.6** | Page phức tạp nhất, AI integration, draft system, nhiều logic. Cần Opus reasoning |
+> | **Phase 2** (Login) | **Sonnet 4.5** | Redesign 1 page, pattern rõ ràng từ Radzen MCP docs |
+> | **Phase 5** (Secondary) | **Sonnet 4.5** | Nhiều page nhưng pattern giống nhau (tab + grid + skeleton). Sonnet nhanh hơn |
+>
+> **Tóm tắt:** Opus cho **Phase 0, 1, 4** (kiến trúc + phức tạp) • Sonnet cho **Phase 2, 3, 5, 6** (lặp lại + UI)
+
+---
+
+## AI Toggle Design (Chi tiết)
+
+Hệ thống hiện tại đã có:
+- `Permissions.MenuAI` = `"MENU_AI"` — control sidebar menu
+- `Permissions.RequestAIKeyManage` = `"AI_KEY_MANAGE"` — control AI key tab
+- `Permissions.RequestAIChat` = `"AI_CHAT"` — control AI chat tab
+- `AuthorizeView Policy="@Permissions.MenuAI"` — trong sidebar
+
+**Approach: 2-layer toggle**
+
+```
+Layer 1: GlobalClass.IsAIEnabled (system-wide kill switch)
+    └── Khi false → ẩn TẤT CẢ AI components, không gọi API AI
+    └── Lưu trong DB (backend setting), cache trong GlobalClass
+
+Layer 2: Permissions (existing) — per-user/group
+    └── Khi user không có MENU_AI permission → ẩn AI menu
+    └── Khi user không có AI_KEY_MANAGE → ẩn AI Key tab
+    └── Khi user không có AI_CHAT → ẩn AI Chat tab
+```
+
+**Affected components khi `IsAIEnabled == false`:**
+
+| Component | File | Hành vi khi AI tắt |
+|-----------|------|-------------------|
+| AI Smart Search card | `Page_OrderCreate.razor` | Ẩn hoàn toàn (đã có `@if`) |
+| AI suggestion on AddItem | `Page_OrderCreate.razor.cs` | Skip `GetAISuggestionsAsync()` call |
+| AI Management sidebar menu | `LeftSidebar.razor` | Ẩn `RadzenPanelMenuItem "AI Management"` |
+| AI page routing | `Page_AI.razor.cs` | Redirect to dashboard nếu AI disabled |
+| AIChatBox (commented) | `MainLayout.razor` | Giữ commented |
+
+**Toggle UI:** Admin toggle AI qua **`/permission` page** — thêm 1 toggle switch trong Permission settings (không cần page mới).
+
+---
+
+## Proposed Changes
+
+### Phase 0: Foundation ⚡ (Dùng Opus 4.6)
+
+Setup nền tảng: Design System, i18n, AI toggle.
+
+---
+
+#### [MODIFY] [GlobalClass (shared)](file:///opt/gtas_vpp/gtas_vpp_be/gtas_vpp_shared) — DTOs/Share
+- Thêm `bool IsAIEnabled { get; set; } = true;`
+- Thêm `string CurrentLanguage { get; set; } = "vi";`
+
+#### [NEW] Resources/SharedResource.cs
+```csharp
+namespace gtas_vpp_fe.Resources
+{
+    // Marker class for IStringLocalizer<SharedResource>
+    public class SharedResource { }
+}
+```
+
+#### [NEW] Resources/SharedResource.vi.resx
+- Menu labels: "Trang chủ", "Thư viện", "Báo cáo", "Phân quyền", "Quản lý AI"
+- Button text: "Tạo mới", "Cập nhật", "Xóa", "Hủy", "Lưu"
+- Messages: "Tải thành công", "Lỗi xảy ra", etc.
+
+#### [NEW] Resources/SharedResource.en.resx
+- English equivalents of all above
+
+#### [MODIFY] [Program.cs](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Program.cs)
+```csharp
+// Thêm sau AddRadzenComponents()
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "vi", "en" };
+    options.SetDefaultCulture("vi");
+    options.AddSupportedCultures(supportedCultures);
+    options.AddSupportedUICultures(supportedCultures);
+});
+
+// Thêm sau UseAuthentication()
+app.UseRequestLocalization();
+```
+
+#### [MODIFY] [app.css](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/app.css)
+**Design System Tokens:**
+```css
+:root {
+    /* Spacing system */
+    --vpp-space-xs: 0.25rem;
+    --vpp-space-sm: 0.5rem;
+    --vpp-space-md: 1rem;
+    --vpp-space-lg: 1.5rem;
+    --vpp-space-xl: 2rem;
+    
+    /* Card system */
+    --vpp-card-radius: 12px;
+    --vpp-card-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --vpp-card-shadow-hover: 0 4px 12px rgba(0,0,0,0.1);
+    
+    /* Transitions */
+    --vpp-transition-fast: 0.15s ease;
+    --vpp-transition-normal: 0.25s ease;
+    
+    /* Stat card */
+    --vpp-stat-icon-size: 48px;
+    --vpp-stat-icon-radius: 12px;
+}
+```
+- Cleanup: Remove duplicate `.my-popup` rules, commented-out code
+- Remove `..rz-textbox` (double dot syntax error at line 1220)
+- Remove `..rz-fieldset-legend` (double dot syntax error at line 1040)
+
+---
+
+### Phase 1: Layout & Navigation ⚡ (Dùng Opus 4.6)
+
+---
+
+#### [MODIFY] [App.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/App.razor)
+- Đọc language cookie và set culture
+
+#### [MODIFY] [MainLayout.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/MainLayout.razor)
+- Wrap `@Body` với `CascadingValue` cho `IsAIEnabled`
+- Thêm breadcrumb area (optional — depends on time)
+
+#### [MODIFY] [LeftSidebar.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor)
+**Header:**
+- Replace manual dark mode button → `RadzenAppearanceToggle`
+  ```razor
+  <!-- Từ Radzen MCP: -->
+  <RadzenAppearanceToggle />
+  ```
+- Language toggle: EN ↔ VI working button
+  ```razor
+  <RadzenButton Text="@(glb.CurrentLanguage == "vi" ? "VI" : "EN")" 
+                Click="@ToggleLanguage" ButtonStyle="ButtonStyle.Light"
+                Style="border-radius:50%; width:36px; height:36px; padding:0; font-size:0.75rem; font-weight:700;" />
+  ```
+- AI toggle (Admin only, khi có quyền `MENU_AI`):
+  ```razor
+  <AuthorizeView Policy="@Permissions.MenuAI">
+      <RadzenSwitch @bind-Value="glb.IsAIEnabled" Change="@OnAIToggleChange" 
+                    Title="@(glb.IsAIEnabled ? "AI: ON" : "AI: OFF")" />
+  </AuthorizeView>
+  ```
+
+**Sidebar menu:**
+- Wrap AI Management menu item thêm `@if (glb.IsAIEnabled)`:
+  ```razor
+  @if (glb.IsAIEnabled)
+  {
+      <AuthorizeView Policy="@Permissions.MenuAI">
+          <RadzenPanelMenuItem Text="AI Management" Icon="smart_toy" ...>
+  ```
+- Đổi duplicate icons: Library submenu đang dùng `menu_book` cho tất cả → đổi sang `class`, `category`, `inventory`, `local_shipping`, `apartment`
+- i18n labels cho tất cả menu items
+
+#### [MODIFY] [LeftSidebar.razor.cs](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor.cs)
+- `ToggleLanguage()`: Set cookie `VPPLanguage`, refresh page
+- `OnAIToggleChange()`: Gọi backend API lưu AI setting, update `glb.IsAIEnabled`
+- Replace manual `ThemeOnChange()` nếu dùng `RadzenAppearanceToggle`
+
+#### [MODIFY] [ReconnectModal.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/ReconnectModal.razor)
+- Redesign: Animated reconnect icon, retry progress, friendlier message
+- i18n messages
+
+---
+
+### Phase 6: DataGrid & Shared Components 🔧 (Dùng Sonnet 4.5)
+
+*Làm sớm vì cải thiện mọi page cùng lúc.*
+
+---
+
+#### [MODIFY] [app.css](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/app.css) (continued)
+```css
+/* Enhanced DataGrid */
+.rz-datatable-thead > tr > th {
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: var(--rz-base-700);
+}
+
+.rz-datatable-tbody > tr {
+    transition: background var(--vpp-transition-fast);
+}
+
+.rz-datatable-tbody > tr:hover {
+    background: rgba(var(--rz-primary-rgb, 103, 58, 183), 0.04) !important;
+}
+
+/* Stat Card */
+.vpp-stat-card {
+    transition: transform var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast);
+    border-radius: var(--vpp-card-radius);
+}
+.vpp-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--vpp-card-shadow-hover);
+}
+
+.vpp-stat-icon {
+    width: var(--vpp-stat-icon-size);
+    height: var(--vpp-stat-icon-size);
+    border-radius: var(--vpp-stat-icon-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+```
+
+#### [NEW] Components/Shared/SkeletonGrid.razor
+Reusable skeleton loading cho DataGrid (dùng `RadzenSkeleton` từ MCP docs):
+```razor
+@* Skeleton loading state cho DataGrid *@
+<RadzenTable Style="height: @Height">
+    <RadzenTableHeader>
+        <RadzenTableHeaderRow>
+            @for (int i = 0; i < ColumnCount; i++)
+            {
+                <RadzenTableHeaderCell>
+                    <RadzenSkeleton Style="width: 60%;" />
+                </RadzenTableHeaderCell>
+            }
+        </RadzenTableHeaderRow>
+    </RadzenTableHeader>
+    <RadzenTableBody>
+        @for (int row = 0; row < RowCount; row++)
+        {
+            <RadzenTableRow>
+                @for (int col = 0; col < ColumnCount; col++)
+                {
+                    <RadzenTableCell>
+                        <RadzenSkeleton Animation="SkeletonAnimation.Wave" 
+                                        Style="width: @(Random.Shared.Next(40, 90))%;" />
+                    </RadzenTableCell>
+                }
+            </RadzenTableRow>
+        }
+    </RadzenTableBody>
+</RadzenTable>
+
+@code {
+    [Parameter] public int ColumnCount { get; set; } = 5;
+    [Parameter] public int RowCount { get; set; } = 8;
+    [Parameter] public string Height { get; set; } = "400px";
+}
+```
+
+#### [NEW] Components/Shared/SkeletonStatCards.razor
+Skeleton cho stat cards
+
+#### [MODIFY] [Component_ShareGrid.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Lib/Component_ShareGrid.razor)
+- Thêm `<LoadingTemplate>` với `SkeletonGrid`
+- Row hover CSS class
+- i18n column headers
+
+---
+
+### Phase 3: Dashboard & Orders 📊 (Dùng Sonnet 4.5)
+
+---
+
+#### [MODIFY] [Component_VPPRequest.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/VPPRequest/Component_VPPRequest.razor)
+- Thêm icons cho tabs: `shopping_cart`, `history`, `inventory_2`, `corporate_fare`, `view_list`, `fact_check`
+- Named tab params: `?tab=orders`, `?tab=history`, etc.
+- i18n tab labels
+
+#### [MODIFY] [Component_VPPRequest.razor.cs](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/VPPRequest/Component_VPPRequest.razor.cs)
+- URL ↔ tab sync logic
+
+#### [MODIFY] [Tab_Orders.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/VPPRequest/Tabs/Tab_Orders.razor)
+- **Stat cards redesign:** Thêm icon, background tint, hover animation
+- **Chart section:** `RadzenChart` + `RadzenPieSeries` (VPP by category) + `RadzenColumnSeries` (by department)
+- **Skeleton loading:** Replace `RadzenProgressBar` → `SkeletonGrid` + `SkeletonStatCards`
+- **Order cards:** Better visual hierarchy
+- i18n
+
+#### [MODIFY] Remaining tabs (Tab_History, Tab_ProductCatalog, Tab_DepartmentSummary, Tab_AllOrdersSummary, Tab_AdminApproval)
+- Skeleton loading cho tất cả
+- i18n labels
+- Improved grid styling (inherits from Phase 6 CSS)
+
+---
+
+### Phase 4: Order Create/Edit 🧠 (Dùng Opus 4.6)
+
+---
+
+#### [MODIFY] [Page_OrderCreate.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/VPPRequest/Page_OrderCreate.razor)
+- **AI card:** Wrap toàn bộ AI section với `@if (glb.IsAIEnabled)`
+  ```razor
+  @if (glb.IsAIEnabled)
+  {
+      <RadzenCard class="ai-smart-search-card" ...>
+          ...
+      </RadzenCard>
+  }
+  ```
+- **AI card redesign:** Glassmorphism → subtle gradient với icon animation
+- **Product grid:** Skeleton loading, better row hover
+- **Selected items:** Better inline edit, real-time total
+- **Breadcrumb:** Dashboard > Orders > Create
+- i18n labels
+
+#### [MODIFY] [Page_OrderCreate.razor.cs](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/VPPRequest/Page_OrderCreate.razor.cs)
+- Guard AI calls: `if (!glb.IsAIEnabled) return;` trong `GetAISuggestionsAsync()`
+- Guard initial AI suggestion: `if (glb.IsAIEnabled) _ = GetAISuggestionsAsync(...);`
+- Guard AddItem AI: `if (glb.IsAIEnabled) _ = GetAISuggestionsAsync(...);`
+- i18n inject
+
+---
+
+### Phase 2: Login Redesign 🎨 (Dùng Sonnet 4.5)
+
+---
+
+#### [MODIFY] [LoginPage.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Authen/LoginPage.razor)
+Redesign theo Radzen horizontal login pattern (từ MCP docs), **giữ background cũ**:
+```razor
+<section class="p-0">
+    <div class="loginbg"></div>  <!-- KEEP existing background -->
+    <RadzenRow Gap="0" class="vh100 mr-0 ml-0 login-container">
+        <RadzenColumn Size="12" SizeMD="6" class="login-branding-col">
+            <!-- Branding: Logo + tagline, updated styling -->
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6" class="loginbox">
+            <!-- Form: modernized with RadzenFormField, better spacing -->
+        </RadzenColumn>
+    </RadzenRow>
+</section>
+```
+- Modernize form fields styling
+- Add i18n labels
+- Better error feedback
+
+#### [MODIFY] [LoginPage.razor.css](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Authen/LoginPage.razor.css)
+- Polish existing styles
+- Better card shadow/border
+
+---
+
+### Phase 5: Secondary Pages 📄 (Dùng Sonnet 4.5)
+
+---
+
+#### Library pages
+- [Component_Library.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Lib/Component_Library.razor): Tab icons, named params, i18n
+- [Tab_ClassLibrary.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Lib/Tabs/Tab_ClassLibrary.razor): Skeleton, i18n
+
+#### Permission pages
+- [Component_Permission.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Component_Permission.razor): Tab icons, i18n
+- [Tab_User.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Tabs/Tab_User.razor): Skeleton, i18n
+- [Tab_PagePermission.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Tabs/Tab_PagePermission.razor): Skeleton, i18n, **thêm AI toggle switch**
+
+#### AI pages
+- [Component_AI.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/AI/Component_AI.razor): Check `glb.IsAIEnabled`, i18n
+- [Page_AI.razor.cs](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/AI/Page_AI.razor.cs): Redirect if AI disabled
+
+#### Report page
+- [Report.razor](file:///opt/gtas_vpp/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Report.razor): "Coming Soon" with illustration, i18n
+
+---
+
+## Verification Plan
+
+### After Each Phase
+```bash
+# Build
+cd /opt/gtas_vpp
+docker compose build --no-cache frontend
+
+# Deploy
+docker compose up -d frontend
+
+# Verify container
+docker ps | grep frontend
+docker logs gtas-vpp-frontend --tail 20
+```
+
+### Checklist per Phase
+- [ ] Build succeeds without errors
+- [ ] Container starts and healthy
+- [ ] Dark mode toggle works
+- [ ] Language toggle works (Phase 1+)
+- [ ] AI toggle works (Phase 1+): On → show AI, Off → hide AI cleanly without errors
+- [ ] No console errors in browser DevTools
+- [ ] All existing functionality still works (permissions, CRUD, etc.)
+
+### Radzen MCP Usage
+- Dùng `python3 radzen_query.py` khi cần examples cụ thể
+- Free tier: 50 requests / 15 ngày
+- Nếu hết, thông báo user để bổ sung API key
+
+---
+
+## Summary
+
+```
+Phase 0 (Foundation)    → Opus 4.6  → i18n + AI toggle + design tokens
+Phase 1 (Layout)        → Opus 4.6  → Header, Sidebar, Breadcrumb
+Phase 6 (DataGrid)      → Sonnet 4.5 → Global CSS + Skeleton components
+Phase 3 (Dashboard)     → Sonnet 4.5 → Stat cards + Charts + Tabs
+Phase 4 (Order Create)  → Opus 4.6  → AI integration + UX polish
+Phase 2 (Login)         → Sonnet 4.5 → Redesign login page
+Phase 5 (Secondary)     → Sonnet 4.5 → Library, Permission, AI, Report
+```
+
+> [!TIP]
+> Sau mỗi phase, bạn dùng Gemini CLI check lại → confirm OK → chuyển phase tiếp.
+> Nếu dùng Kiro (Sonnet 4.5), share plan này làm context để Kiro hiểu project structure.
