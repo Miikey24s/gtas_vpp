@@ -1,5 +1,6 @@
 @attribute [Authorize]
 @inherits LayoutComponentBase
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
 
 <RadzenDialog />
 <RadzenNotification />
@@ -11,4 +12,8 @@
     </RadzenBody>
 </RadzenLayout>
 
-@* <AIChatBox /> *@
+@if (glb.IsAIEnabled)
+{
+    <AIChatBox />
+}
+

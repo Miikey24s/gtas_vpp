@@ -102,6 +102,7 @@ namespace gtas_vpp_fe.Helpers
                 public const string RequestAIKeyManage = "AI_KEY_MANAGE";
                 public const string RequestAIChat = "AI_CHAT";
                 public const string RequestAIVppChat = "AI_VPP_CHAT";
+                public const string AIToggle = "AI_TOGGLE";
             }
         }
     }

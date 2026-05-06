@@ -42,6 +42,20 @@ namespace gtas_vpp_fe.Components.Pages.AI
         {
             await base.OnAfterRenderAsync(firstRender);
             if (!firstRender) return;
+            
+            if (!glb.IsAIEnabled)
+            {
+                NotificationService.Notify(new NotificationMessage() 
+                { 
+                    Severity = NotificationSeverity.Warning, 
+                    Summary = "AI Disabled", 
+                    Detail = "AI features are currently disabled by the administrator.", 
+                    Duration = 5000 
+                });
+                NavigationManager.NavigateTo("/dashboard?tab=0", true);
+                return;
+            }
+            
             glb.isBusyPage = true;
             try
             {

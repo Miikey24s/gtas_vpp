@@ -21,8 +21,15 @@
             <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem">
-            @* Language toggle (placeholder - not yet implemented) *@
+            @* Language toggle *@
             <RadzenButton Text="@(CultureInfo.CurrentCulture.Name.StartsWith("en") ? "VI" : "EN")" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0; font-size:0.75rem; font-weight:700;" Click="@(async () => await ToggleLanguage())" Title="@Loc["Language"]" />
+            @* AI Toggle — Admin only *@
+            <AuthorizeView Policy="@Permissions.AIToggle">
+                <div style="display:flex; align-items:center; gap:4px;" Title="@(glb.IsAIEnabled ? Loc["AIEnabled"] : Loc["AIDisabled"])">
+                    <RadzenIcon Icon="smart_toy" Style="font-size:1rem; color: var(--rz-base-600);" />
+                    <RadzenSwitch @bind-Value="glb.IsAIEnabled" Change="@OnAIToggleChange" Style="margin:0;" />
+                </div>
+            </AuthorizeView>
             <RadzenButton Icon="@(LightTheme ? "dark_mode" : "light_mode")" Click="ThemeOnChange" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Title="Toggle theme" />
             @* Notification bell (placeholder - not yet implemented) *@
             <div style="position:relative;">
@@ -122,16 +129,19 @@
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
-        <AuthorizeView Policy="@Permissions.MenuAI" Context="aiMenuAuth">
-            <RadzenPanelMenuItem Text="@Loc["AIManagement"]" Icon="smart_toy" class="ppjsidebarmenu">
-                <AuthorizeView Policy="@Permissions.RequestAIChat" Context="aiChatAuth">
-                    <RadzenPanelMenuItem Text="@Loc["AIChat"]" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
+        @if (glb.IsAIEnabled)
+        {
+            <AuthorizeView Policy="@Permissions.MenuAI" Context="aiMenuAuth">
+                <RadzenPanelMenuItem Text="@Loc["AIManagement"]" Icon="smart_toy" class="ppjsidebarmenu">
+                    <AuthorizeView Policy="@Permissions.RequestAIChat" Context="aiChatAuth">
+                        <RadzenPanelMenuItem Text="@Loc["AIChat"]" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestAIVppChat" Context="aiVppChatAuth">
                     <RadzenPanelMenuItem Text="@Loc["VPPChat"]" Icon="inventory_2" class="ppjsidebarmenu submenu" Path="/ai/vpp-chat" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
+        }
         <hr />
         <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
         <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">

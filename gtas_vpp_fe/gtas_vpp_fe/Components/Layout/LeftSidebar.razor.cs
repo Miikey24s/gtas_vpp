@@ -66,6 +66,7 @@ namespace gtas_vpp_fe.Components.Layout
                 _isPrerendering = false;
                 await LoadTheme();
                 await LoadStateAsync();
+                await LoadAIStateAsync();
                 StateHasChanged();
             }
         }
@@ -136,6 +137,28 @@ namespace gtas_vpp_fe.Components.Layout
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
             timer?.Dispose();
+        }
+
+        private async Task LoadAIStateAsync()
+        {
+            try
+            {
+                var result = await ProtectedLocalStore.GetAsync<bool>("VPP_AIEnabled");
+                if (result.Success)
+                {
+                    glb.IsAIEnabled = result.Value;
+                }
+            }
+            catch (Exception)
+            {
+                // Default: true
+            }
+        }
+
+        public async Task OnAIToggleChange(bool value)
+        {
+            glb.IsAIEnabled = value;
+            await ProtectedLocalStore.SetAsync("VPP_AIEnabled", value);
         }
 
         public async Task ToggleLanguage()

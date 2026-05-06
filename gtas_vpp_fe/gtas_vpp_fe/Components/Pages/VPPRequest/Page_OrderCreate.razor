@@ -31,6 +31,8 @@
         <RadzenColumn Size="12" SizeLG="7" Style="display: flex; flex-direction: column; height: 100%;">
             
             @* AI Assistant Card *@
+            @if (glb.IsAIEnabled)
+            {
             <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 rz-mb-3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                 <RadzenStack Gap="0.75rem">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
@@ -69,6 +71,7 @@
                     }
                 </RadzenStack>
             </RadzenCard>
+            }
 
             <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
                 <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">

@@ -114,4 +114,9 @@
   <data name="ExtraField3" xml:space="preserve"><value>Trường bổ sung 3</value></data>
   <data name="SortOrder" xml:space="preserve"><value>Thứ tự sắp xếp</value></data>
   <data name="Additional" xml:space="preserve"><value>Bổ sung</value></data>
+  <data name="AIEnabled" xml:space="preserve"><value>AI đang bật</value></data>
+  <data name="AIDisabled" xml:space="preserve"><value>AI đã tắt</value></data>
+  <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
+  <data name="Permissions" xml:space="preserve"><value>Phân quyền</value></data>
+  <data name="AIManagement" xml:space="preserve"><value>Quản lý AI</value></data>
 </root>

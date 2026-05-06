@@ -113,4 +113,9 @@
   <data name="ExtraField3" xml:space="preserve"><value>Extra Field 3</value></data>
   <data name="SortOrder" xml:space="preserve"><value>Sort Order</value></data>
   <data name="Additional" xml:space="preserve"><value>Additional</value></data>
+  <data name="AIEnabled" xml:space="preserve"><value>AI Enabled</value></data>
+  <data name="AIDisabled" xml:space="preserve"><value>AI Disabled</value></data>
+  <data name="Reports" xml:space="preserve"><value>Reports</value></data>
+  <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
+  <data name="AIManagement" xml:space="preserve"><value>AI Management</value></data>
 </root>

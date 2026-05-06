@@ -624,6 +624,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public async Task GetAISuggestionsAsync(string prompt)
         {
+            if (!glb.IsAIEnabled) return;
             if (string.IsNullOrWhiteSpace(prompt)) return;
 
             IsAILoading = true;
