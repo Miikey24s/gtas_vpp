@@ -30,6 +30,7 @@ namespace gtas_vpp_shared.Constants
         public const string RequestAIKeyManage = "AI_KEY_MANAGE";
         public const string RequestAIChat = "AI_CHAT";
         public const string RequestAIVppChat = "AI_VPP_CHAT";
+        public const string AIToggle = "AI_TOGGLE";
 
         // Reports
         public const string ReportView = "REPORT_VIEW";
@@ -57,7 +58,8 @@ namespace gtas_vpp_shared.Constants
             MenuAI,
             RequestAIKeyManage,
             RequestAIChat,
-            RequestAIVppChat
+            RequestAIVppChat,
+            AIToggle
         ];
     }
 }

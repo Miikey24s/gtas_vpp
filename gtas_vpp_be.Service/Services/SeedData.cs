@@ -47,6 +47,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid CompRequestAIKeyManage = Guid.Parse("71A3F5B8-28CE-4A82-9D72-B1389D66CC3B");
         private static readonly Guid CompRequestAIChat      = Guid.Parse("C2A4D7E1-3F8B-4C91-A5D6-8E2F1B9C0A47");
         private static readonly Guid CompRequestAIVPPChat   = Guid.Parse("7E8C4B13-1F6D-4BA6-A65E-2E97249D1BC8");
+        private static readonly Guid CompAIToggle           = Guid.Parse("4F2B9C81-5D7E-4A1B-B3C6-8E9F0A2D1C5B");
 
         // ── P05 Mapping IDs ────────────────────────────────────────
         private static readonly Guid P05_SB_Dashboard  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
@@ -71,6 +72,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid P05_AI_KeyManage  = Guid.Parse("9B8164F0-C9C9-4C59-A1B4-3F572C413158");
         private static readonly Guid P05_AI_Chat       = Guid.Parse("D3B5E8F2-4A9C-4D02-B6E7-9F3A2C1D5B68");
         private static readonly Guid P05_AI_VPP_Chat   = Guid.Parse("E4A1A25C-1D7F-4A1B-987D-2204FA451C76");
+        private static readonly Guid P05_AI_Toggle     = Guid.Parse("8E6D3F2A-4B1C-4D7E-9A5F-1C2B3D4E5F6A");
 
         // ════════════════════════════════════════════════════════════
         //  MAIN ENTRY POINT
@@ -233,7 +235,8 @@ namespace gtas_vpp_be.Service.Services
                 C("MENU_AI",                  "Menu - AI",                  "View AI Menu",     CompMenuAI, now),
                 C("AI_KEY_MANAGE",            "Request AI Key Manage",      "Key Manage Tab",   CompRequestAIKeyManage, now),
                 C("AI_CHAT",                  "Request AI Chat",            "AI Chat Tab",      CompRequestAIChat, now),
-                C("AI_VPP_CHAT",              "Request AI VPP Chat",        "VPP Chat Tab",     CompRequestAIVPPChat, now)
+                C("AI_VPP_CHAT",              "Request AI VPP Chat",        "VPP Chat Tab",     CompRequestAIVPPChat, now),
+                C("AI_TOGGLE",                "AI Toggle Switch",           "Enable/Disable AI",CompAIToggle, now)
             };
             await context.P03_Components.AddRangeAsync(components);
             await context.SaveChangesAsync();
@@ -326,7 +329,8 @@ namespace gtas_vpp_be.Service.Services
                 P5(P05_SB_AI,         PageSidebar,    CompMenuAI),
                 P5(P05_AI_KeyManage,  PageAI,         CompRequestAIKeyManage),
                 P5(P05_AI_Chat,       PageAI,         CompRequestAIChat),
-                P5(P05_AI_VPP_Chat,   PageAI,         CompRequestAIVPPChat)
+                P5(P05_AI_VPP_Chat,   PageAI,         CompRequestAIVPPChat),
+                P5(P05_AI_Toggle,     PageSidebar,    CompAIToggle)
             };
             await context.P05_PageComponentMappings.AddRangeAsync(mappings);
             await context.SaveChangesAsync();
@@ -355,7 +359,7 @@ namespace gtas_vpp_be.Service.Services
                 P05_DB_AllSum, P05_DB_Approval,
                 P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Dept,
                 P05_PM_User, P05_PM_Component,
-                P05_RP_View, P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat, P05_AI_VPP_Chat
+                P05_RP_View, P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat, P05_AI_VPP_Chat, P05_AI_Toggle
             };
             foreach (var p05Id in allP05Ids)
                 mappings.Add(P6(p05Id, AdminGroupId, now));
@@ -411,6 +415,9 @@ namespace gtas_vpp_be.Service.Services
                 if (comp3 != null && comp3.ComponentCode != "AI_VPP_CHAT") { comp3.ComponentCode = "AI_VPP_CHAT"; context.P03_Components.Update(comp3); }
             }
 
+            if (!context.P03_Components.Any(c => c.Id == CompAIToggle))
+                await context.P03_Components.AddAsync(C("AI_TOGGLE", "AI Toggle Switch", "Enable/Disable AI", CompAIToggle, now));
+
             // 2. Page Component Mappings
             if (!context.P05_PageComponentMappings.Any(m => m.Id == P05_SB_AI))
                 await context.P05_PageComponentMappings.AddAsync(P5(P05_SB_AI, PageSidebar, CompMenuAI));
@@ -420,9 +427,11 @@ namespace gtas_vpp_be.Service.Services
                 await context.P05_PageComponentMappings.AddAsync(P5(P05_AI_Chat, PageAI, CompRequestAIChat));
             if (!context.P05_PageComponentMappings.Any(m => m.Id == P05_AI_VPP_Chat))
                 await context.P05_PageComponentMappings.AddAsync(P5(P05_AI_VPP_Chat, PageAI, CompRequestAIVPPChat));
+            if (!context.P05_PageComponentMappings.Any(m => m.Id == P05_AI_Toggle))
+                await context.P05_PageComponentMappings.AddAsync(P5(P05_AI_Toggle, PageSidebar, CompAIToggle));
 
             // 3. Group Page Component Mappings
-            var adminP05Ids = new[] { P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat, P05_AI_VPP_Chat };
+            var adminP05Ids = new[] { P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat, P05_AI_VPP_Chat, P05_AI_Toggle };
             foreach (var p05Id in adminP05Ids)
             {
                 if (!context.P06_GroupPageComponentMappings.Any(m => m.P05_PageComponentMappingId == p05Id && m.P02_GroupId == AdminGroupId))
