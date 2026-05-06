@@ -7,6 +7,8 @@ using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 using Radzen;
 using Serilog;
 
@@ -26,6 +28,8 @@ builder.Services.AddDataProtection()
     .SetApplicationName("gtas_vpp");
 
 // Add services to the container.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddHubOptions(options =>
@@ -91,6 +95,14 @@ var app = builder.Build();///////////////////////////////
 // ── PHẢI ĐẶT ĐẦU TIÊN: Forwarded Headers từ Nginx ──────
 // Blazor SignalR cần biết scheme thật (https) để tạo wss:// URL
 app.UseForwardedHeaders();
+
+var supportedCultures = new[] { new CultureInfo("vi"), new CultureInfo("en") };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("vi"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

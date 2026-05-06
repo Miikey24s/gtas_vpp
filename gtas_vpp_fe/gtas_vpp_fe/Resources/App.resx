@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve"><value>GTAS VPP</value></data>
+  <data name="Login" xml:space="preserve"><value>Đăng nhập</value></data>
+  <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
+  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>
+  <data name="Orders" xml:space="preserve"><value>Đơn hàng</value></data>
+  <data name="Library" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
+  <data name="Permissions" xml:space="preserve"><value>Phân quyền</value></data>
+  <data name="Settings" xml:space="preserve"><value>Cài đặt</value></data>
+  <data name="Save" xml:space="preserve"><value>Lưu</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Delete" xml:space="preserve"><value>Xóa</value></data>
+  <data name="Edit" xml:space="preserve"><value>Sửa</value></data>
+  <data name="Create" xml:space="preserve"><value>Tạo mới</value></data>
+  <data name="Search" xml:space="preserve"><value>Tìm kiếm</value></data>
+  <data name="Export" xml:space="preserve"><value>Xuất file</value></data>
+  <data name="Loading" xml:space="preserve"><value>Đang tải...</value></data>
+  <data name="NoData" xml:space="preserve"><value>Không có dữ liệu</value></data>
+  <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="Success" xml:space="preserve"><value>Thành công</value></data>
+  <data name="Warning" xml:space="preserve"><value>Cảnh báo</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="ConfirmDelete" xml:space="preserve"><value>Bạn có chắc muốn xóa?</value></data>
+  <data name="PleaseWait" xml:space="preserve"><value>Vui lòng đợi...</value></data>
+  <data name="ServerError" xml:space="preserve"><value>Lỗi máy chủ</value></data>
+  <data name="AIEnabled" xml:space="preserve"><value>AI đang bật</value></data>
+  <data name="AIDisabled" xml:space="preserve"><value>AI đã tắt</value></data>
+  <data name="AIManagement" xml:space="preserve"><value>Quản lý AI</value></data>
+  <data name="Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Nền tối</value></data>
+  <data name="LightMode" xml:space="preserve"><value>Nền sáng</value></data>
+  <data name="Profile" xml:space="preserve"><value>Hồ sơ</value></data>
+  <data name="Notifications" xml:space="preserve"><value>Thông báo</value></data>
+  <data name="History" xml:space="preserve"><value>Lịch sử</value></data>
+  <data name="Approval" xml:space="preserve"><value>Phê duyệt</value></data>
+  <data name="Department" xml:space="preserve"><value>Phòng ban</value></data>
+  <data name="Supplier" xml:space="preserve"><value>Nhà cung cấp</value></data>
+  <data name="Class" xml:space="preserve"><value>Phân lớp</value></data>
+  <data name="Category" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="Operation" xml:space="preserve"><value>Công đoạn</value></data>
+  <data name="Page" xml:space="preserve"><value>Trang</value></data>
+  <data name="Component" xml:space="preserve"><value>Thành phần</value></data>
+  <data name="Group" xml:space="preserve"><value>Nhóm</value></data>
+  <data name="Mapping" xml:space="preserve"><value>Ánh xạ</value></data>
+  <data name="Active" xml:space="preserve"><value>Hoạt động</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Không hoạt động</value></data>
+  <data name="Status" xml:space="preserve"><value>Trạng thái</value></data>
+  <data name="Date" xml:space="preserve"><value>Ngày</value></data>
+  <data name="Amount" xml:space="preserve"><value>Số tiền</value></data>
+  <data name="Quantity" xml:space="preserve"><value>Số lượng</value></data>
+  <data name="Total" xml:space="preserve"><value>Tổng cộng</value></data>
+  <data name="Description" xml:space="preserve"><value>Mô tả</value></data>
+  <data name="Name" xml:space="preserve"><value>Tên</value></data>
+  <data name="Code" xml:space="preserve"><value>Mã</value></data>
+</root>
