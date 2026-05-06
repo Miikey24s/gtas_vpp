@@ -376,3 +376,5 @@ scripts/export_db_full.sql
 
 # Local Configuration
 appsettings.Development.json
+.env
+api-key.txt
