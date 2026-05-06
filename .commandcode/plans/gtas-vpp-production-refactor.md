@@ -80,20 +80,20 @@
 
 ---
 
-## PHASE 1 — BACKEND FOUNDATION
+## PHASE 1 — BACKEND FOUNDATION ✅ COMPLETED
 
-### 1.1 GlobalClass: IsAIEnabled + CurrentLanguage
-- **EDIT** `gtas_vpp_shared/DTOs/Share/GlobalClass.cs`:
+### Build verified: `docker compose build backend frontend` PASS
+
+### 1.1 GlobalClass: IsAIEnabled + CurrentLanguage ✅
 ```csharp
 public bool IsAIEnabled { get; set; } = true;
 public string CurrentLanguage { get; set; } = "vi";
 ```
 
-### 1.2 Login Audit Logging
-- **EDIT** `AuthController.cs`: Serilog all login attempts (IP, username, success/fail, timestamp) — already done in Phase 0.3
+### 1.2 Login Audit Logging ✅ (done in Phase 0.3)
 
-### 1.3 Fix v_WFXCompany View
-- **EDIT** `01_Views.sql`: populate CompanyName tu P06 table thay vi NULL
+### 1.3 Fix v_WFXCompany View ✅
+- Join GTAS_MENU.dbo.tblUsers to populate CompanyName instead of NULL
 
 ---
 
@@ -295,7 +295,8 @@ Phase 0 (DONE) → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → P
 | Phase | `docker compose build backend frontend` | Date |
 |-------|----------------------------------------|------|
 | 0 | ✅ PASS | 2026-05-06 |
-| 1 | ⏳ Pending | |
+| 1 | ✅ PASS | 2026-05-06 |
+| 2 | ⏳ Pending | |
 | 2 | ⏳ Pending | |
 | 3 | ⏳ Pending | |
 | 4 | ⏳ Pending | |
