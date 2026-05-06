@@ -7,10 +7,26 @@ CREATE OR ALTER PROCEDURE dbo.sp_Authen
     @SpType NVARCHAR(MAX),
     @Param NVARCHAR(MAX)
 AS
---SET XACT_ABORT ON;
---SET NOCOUNT ON;
 BEGIN TRY
-    DECLARE @Query NVARCHAR(MAX) = N'Execute dbo.' + @SpType + N' @Param = N''' + @Param + N''';';
+    -- Whitelist: only allow known sub-procedures
+    IF @SpType NOT IN (
+        N'sp_Authen_Login',
+        N'sp_Authen_GetPermissionSinglePage',
+        N'sp_Authen_TabUser_UserList',
+        N'sp_Authen_TabUser_SearchUser',
+        N'sp_Authen_Permission_GetPageWithComponentByGroupId',
+        N'sp_Authen_CreateNewGroup',
+        N'sp_Authen_CopyFromGroup'
+    )
+    BEGIN
+        SELECT IsSuccess = CAST(0 AS BIT),
+               ErrorMess = 'Invalid SpType',
+               ResData = '';
+        RETURN;
+    END;
+
+    DECLARE @Query NVARCHAR(MAX) = N'Execute dbo.' + @SpType + N' @Param = @Param;';
+
     IF (
            CHARINDEX('Copy', @SpType) > 0
            OR CHARINDEX('Create', @SpType) > 0
@@ -22,24 +38,26 @@ BEGIN TRY
         SET XACT_ABORT ON;
         SET NOCOUNT ON;
         BEGIN TRAN;
-        EXECUTE sys.sp_executesql @Query;
+        EXECUTE sys.sp_executesql @Query, N'@Param NVARCHAR(MAX)', @Param = @Param;
         COMMIT;
         RETURN;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK;
+        SELECT IsSuccess = CAST(0 AS BIT),
+               ErrorMess = ERROR_MESSAGE(),
+               ResData = '';
+        RETURN;
     END CATCH;
     ELSE
     BEGIN
-        EXECUTE sys.sp_executesql @Query;
+        EXECUTE sys.sp_executesql @Query, N'@Param NVARCHAR(MAX)', @Param = @Param;
     END;
 END TRY
 BEGIN CATCH
-
     SELECT IsSuccess = CAST(0 AS BIT),
-           ErrorMess = 'Error number ' + CAST(ERROR_NUMBER() AS NVARCHAR(MAX)) + ' of ' + ERROR_PROCEDURE()
-                       + ' at line number ' + CAST(ERROR_LINE() AS NVARCHAR(MAX)) + ' with message ' + ERROR_MESSAGE(),
+           ErrorMess = ERROR_MESSAGE(),
            ResData = '';
 END CATCH;
 

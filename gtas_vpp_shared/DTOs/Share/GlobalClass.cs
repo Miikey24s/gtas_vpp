@@ -9,17 +9,18 @@ namespace gtas_vpp_shared.DTOs.Share
         private int _busyCounter = 0;
         public bool isBusyPage
         {
-            get => _busyCounter > 0;
+            get => Interlocked.CompareExchange(ref _busyCounter, 0, 0) > 0;
             set
             {
                 if (value)
                 {
-                    _busyCounter++;
+                    Interlocked.Increment(ref _busyCounter);
                 }
                 else
                 {
-                    _busyCounter--;
-                    if (_busyCounter < 0) _busyCounter = 0;
+                    var newValue = Interlocked.Decrement(ref _busyCounter);
+                    if (newValue < 0)
+                        Interlocked.Exchange(ref _busyCounter, 0);
                 }
             }
         }

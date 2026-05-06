@@ -4,6 +4,7 @@ using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Linq.Dynamic.Core;
 using System.Security.Claims;
 
@@ -162,9 +163,9 @@ namespace gtas_vpp_be.Controllers
                 {
                     query = query.Where(filter);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore malformed client filters and fall back to the base query.
+                    Serilog.Log.Warning(ex, "VPP filter parse failed, using base query");
                 }
             }
 
@@ -176,8 +177,9 @@ namespace gtas_vpp_be.Controllers
                 {
                     query = query.OrderBy(orderby);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Serilog.Log.Warning(ex, "VPP orderby parse failed, falling back to VPPCode");
                     query = query.OrderBy(x => x.VPPCode);
                 }
             }

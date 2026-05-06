@@ -74,7 +74,7 @@ public class AIController : ControllerBase
         catch (OperationCanceledException ex)
         {
             _logger.LogWarning(ex, "AI {Action} timed out or was cancelled", "AdminChat");
-            return Ok(new AIChatResponseDTO
+            return StatusCode(504, new AIChatResponseDTO
             {
                 IsSuccess = false,
                 Message = "AI response timed out.",
@@ -85,7 +85,7 @@ public class AIController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "AI {Action} failed", "AdminChat");
-            return Ok(new AIChatResponseDTO
+            return StatusCode(503, new AIChatResponseDTO
             {
                 IsSuccess = false,
                 Message = "AI service is temporarily unavailable.",
@@ -140,12 +140,12 @@ public class AIController : ControllerBase
         catch (OperationCanceledException ex)
         {
             _logger.LogWarning(ex, "AI {Action} timed out or was cancelled", "RebuildEmbeddings");
-            return Ok(new { IsSuccess = false, Message = "Rebuild embeddings bị hủy hoặc quá thời gian chờ" });
+            return StatusCode(504, new { IsSuccess = false, Message = "Rebuild embeddings bị hủy hoặc quá thời gian chờ" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "AI {Action} failed", "RebuildEmbeddings");
-            return Ok(new { IsSuccess = false, Message = "Không thể rebuild embeddings lúc này" });
+            return StatusCode(503, new { IsSuccess = false, Message = "Không thể rebuild embeddings lúc này" });
         }
     }
 

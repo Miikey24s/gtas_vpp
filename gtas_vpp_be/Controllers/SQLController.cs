@@ -60,14 +60,9 @@ namespace gtas_vpp_be.Controllers
             }
             catch (Exception ex)
             {
-                //_storedProcedureExecutor.WriteLog(ex, sptype, new Dictionary<string, object>
-                //{
-                //    { "spName", spName },
-                //    { "sptype", sptype },
-                //    { "param", param ?? string.Empty }
-                //});
+                Serilog.Log.Warning(ex, "SQL execution failed: SP={SpName}, Type={SpType}", spName, sptype);
                 base.HttpContext.Response.Headers.Append("script", script);
-                return BadRequest(ex.Message);
+                return BadRequest("An error occurred while executing the query.");
             }
 
             base.HttpContext.Response.Headers.Append("script", script);

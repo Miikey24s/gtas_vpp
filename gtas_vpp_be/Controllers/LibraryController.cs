@@ -5,6 +5,7 @@ using gtas_vpp_shared.DTOs.Res.Library;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Text.Json;
 using System.Linq.Dynamic.Core;
 using static gtas_vpp_be.Service.Helpers.Config;
@@ -187,7 +188,8 @@ namespace gtas_vpp_be.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = $"Error processing request: {ex.Message}", StackTrace = ex.StackTrace });
+                Serilog.Log.Warning(ex, "Library query failed: Table={TableCode}", tableCode);
+                return BadRequest(new { Message = "An error occurred while processing the request." });
             }
         }
 
