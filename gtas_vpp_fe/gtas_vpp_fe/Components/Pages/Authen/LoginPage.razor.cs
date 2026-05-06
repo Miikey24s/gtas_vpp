@@ -16,6 +16,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         [Inject] public IHttpContextAccessor? HttpContextAccessor { get; set; }
         [Inject] public IHttpClientFactory HttpClientFactory { get; set; } = default!;
         [Inject] public LoginTicketCache TicketCache { get; set; } = default!;
+        [Inject] public IWebHostEnvironment env { get; set; } = default!;
         [SupplyParameterFromQuery(Name = "returnUrl")]
         public string? ReturnUrl { get; set; }
 
@@ -30,6 +31,8 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             await base.OnInitializedAsync();
 
             isShowServer = UriHelper.BaseUri.Contains("localhost");
+            // Force off in production — even if localhost due to reverse proxy
+            if (!env.IsDevelopment()) isShowServer = false;
             SetupServerEnv();
 
             if (HttpContextAccessor?.HttpContext?.User?.Identity?.IsAuthenticated == true)

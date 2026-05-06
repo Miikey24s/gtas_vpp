@@ -1037,7 +1037,7 @@ h1:focus {
 /*.rz-colorpicker, .rz-lookup-search input, .rz-numeric, .rz-datepicker > .rz-inputtext, .rz-multiselect, .rz-dropdown, .mask, .rz-textarea, .rz-textbox {
     height: var(--rz-input-height-1) !important;
 }*/
-..rz-fieldset-legend {
+.rz-fieldset-legend {
     margin-block: unset !important;
 }
 
@@ -1217,7 +1217,7 @@ h1:focus {
 .mandatory {
 }
 
-..rz-textbox {
+.rz-textbox {
     height: 2rem !important;
 }
 
