@@ -5,7 +5,7 @@
 @inject NavigationManager UriHelper
 @inject NotificationService NotificationService
 
-<PageTitle>GTAS VPP - Login</PageTitle>
+<PageTitle>GTAS VPP - @Loc["Login"]</PageTitle>
 
 <section class="p-0">
     <div class="loginbg"></div>
@@ -16,7 +16,7 @@
                 <div class="lg1container">
                     <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="form">
                         <AntiforgeryToken></AntiforgeryToken>
-                        <RadzenFormField AllowFloatingLabel="false" Text="Username" Variant="Variant.Outlined" class="w-100 mt-3">
+                        <RadzenFormField AllowFloatingLabel="false" Text="@Loc["Username"]" Variant="Variant.Outlined" class="w-100 mt-3">
                             <Start>
                                 <RadzenIcon Icon="account_circle" />
                             </Start>
@@ -24,7 +24,7 @@
                                 <RadzenTextBox Disabled="@isLoading" class="valid-off" @bind-Value=@sp_Authentication_Login.Username @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
                             </ChildContent>
                         </RadzenFormField>
-                        <RadzenFormField AllowFloatingLabel="false" Text="Password" Variant="Variant.Outlined" class="w-100 mt-3">
+                        <RadzenFormField AllowFloatingLabel="false" Text="@Loc["Password"]" Variant="Variant.Outlined" class="w-100 mt-3">
                             <Start>
                                 <RadzenIcon Icon="key" />
                             </Start>
@@ -36,7 +36,7 @@
                         </RadzenFormField>
                         @if (isShowServer)
                         {
-                            <RadzenFormField AllowFloatingLabel="false" Text="Server" Variant="Variant.Outlined" class="w-100 mt-3">
+                            <RadzenFormField AllowFloatingLabel="false" Text="@Loc["Server"]" Variant="Variant.Outlined" class="w-100 mt-3">
                                 <Start>
                                     <RadzenIcon Icon="dns" />
                                 </Start>
@@ -46,7 +46,7 @@
                             </RadzenFormField>
                         }
                         <div class="form-inline text-end mt-3 rz-text-right justify-content-end">
-                            <RadzenButton Text="LOGIN" ButtonType="ButtonType.Submit" IsBusy="@isLoading" class="login_btn float-right text-whitesmoke" />
+                            <RadzenButton Text="@Loc["Login"]" ButtonType="ButtonType.Submit" IsBusy="@isLoading" class="login_btn float-right text-whitesmoke" />
                         </div>
                     </RadzenTemplateForm>
                 </div>

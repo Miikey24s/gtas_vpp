@@ -9,7 +9,7 @@
 <RadzenStack Gap="1rem">
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="Class Code" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ClassCode"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ClassCode" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
@@ -17,7 +17,7 @@
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="Class Name *" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ClassName"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ClassName" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
@@ -25,7 +25,7 @@
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="Class Module" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ClassModule"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ClassModul" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
@@ -33,7 +33,7 @@
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="Description" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
                 <RadzenTextArea @bind-Value="@Model.Description" Style="width: 100%;" Rows="3" />
             </RadzenFormField>
         </RadzenColumn>
@@ -41,8 +41,8 @@
     
     <RadzenRow>
         <RadzenColumn Size="12" class="rz-text-align-end">
-            <RadzenButton Text="Cancel" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
-            <RadzenButton Text="Save" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
+            <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
+            <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
         </RadzenColumn>
     </RadzenRow>
 </RadzenStack>

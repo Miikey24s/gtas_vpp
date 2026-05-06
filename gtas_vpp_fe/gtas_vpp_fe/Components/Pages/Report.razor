@@ -9,7 +9,7 @@
 <AuthorizeView Policy="@Permissions.ReportView" Context="reportAuth">
     <Authorized>
         <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3">
-            <RadzenText Text="Report" TextStyle="TextStyle.H5" class="rz-m-0" />
+            <RadzenText Text="@Loc["Reports"]" TextStyle="TextStyle.H5" class="rz-m-0" />
             <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" AllowClose="false">
                 Report content has not been configured yet.
             </RadzenAlert>

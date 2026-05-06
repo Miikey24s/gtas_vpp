@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.JSInterop;
 using Radzen;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Layout
@@ -18,6 +19,10 @@ namespace gtas_vpp_fe.Components.Layout
         [CascadingParameter] public HttpContext? HttpContext { get; set; }
         
         public bool _sideBarExpanded { get; set; } = false;
+        public bool LightTheme { get; set; } = true;
+        public bool _userMenuOpen = false;
+        public DateTime currentTime = DateTime.Now;
+        public System.Threading.Timer? timer;
         private string? currentUrl { get; set; }
         public const string QueryParameter = "theme";
         public string theme = "material3-base";
@@ -30,6 +35,13 @@ namespace gtas_vpp_fe.Components.Layout
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
+            
+            timer = new System.Threading.Timer(_ =>
+            {
+                currentTime = DateTime.Now;
+                InvokeAsync(StateHasChanged);
+            }, null, 0, 1000);
+            
             try
             {
                 await LoadAuthenticationState();
@@ -124,6 +136,26 @@ namespace gtas_vpp_fe.Components.Layout
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
             timer?.Dispose();
+        }
+
+        public async Task ToggleLanguage()
+        {
+            var currentCulture = CultureInfo.CurrentCulture.Name;
+            var newCulture = currentCulture.StartsWith("en") ? "vi" : "en";
+            
+            await ProtectedLocalStore.SetAsync("VPP_Language", newCulture);
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+
+        public string GetUserInitials()
+        {
+            var name = glb.UserInfo.FullName ?? "";
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2)
+                return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+            if (parts.Length == 1)
+                return parts[0][..Math.Min(2, parts[0].Length)].ToUpper();
+            return "U";
         }
     }
 }

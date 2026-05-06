@@ -18,7 +18,7 @@
 {
     <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
         @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
-            <RadzenButton Icon="refresh" Text="Reload" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
+            <RadzenButton Icon="refresh" Text="@Loc["Reload"]" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
         </RadzenStack> *@
 
         <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowVirtualization="true" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync" Density="Density.Compact" class="librarypagegrid"
@@ -58,7 +58,7 @@
             </Columns>
             <Template Context="row">
                 <div style="padding: 1rem; background-color: #f8f9fa;">
-                    <RadzenText Text="Order Items" TextStyle="TextStyle.Subtitle2" Style="font-weight: 600; margin-bottom: 0.5rem; color: var(--rz-text-color);" />
+                    <RadzenText Text="@Loc["OrderItems"]" TextStyle="TextStyle.Subtitle2" Style="font-weight: 600; margin-bottom: 0.5rem; color: var(--rz-text-color);" />
                     @if (IsRowDetailLoading(row.Id))
                     {
                         <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />

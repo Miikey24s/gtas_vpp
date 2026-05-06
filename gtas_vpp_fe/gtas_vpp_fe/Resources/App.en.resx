@@ -68,4 +68,49 @@
   <data name="Description" xml:space="preserve"><value>Description</value></data>
   <data name="Name" xml:space="preserve"><value>Name</value></data>
   <data name="Code" xml:space="preserve"><value>Code</value></data>
+  <data name="MyOrders" xml:space="preserve"><value>My Orders</value></data>
+  <data name="ProductCatalog" xml:space="preserve"><value>Product Catalog</value></data>
+  <data name="DepartmentSummary" xml:space="preserve"><value>Department Summary</value></data>
+  <data name="AllOrdersSummary" xml:space="preserve"><value>All Orders Summary</value></data>
+  <data name="AdminApproval" xml:space="preserve"><value>Admin Approval</value></data>
+  <data name="ClassDefinitions" xml:space="preserve"><value>Class Definitions</value></data>
+  <data name="OperationCategories" xml:space="preserve"><value>Operation Categories</value></data>
+  <data name="Operations" xml:space="preserve"><value>Operations</value></data>
+  <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
+  <data name="Departments" xml:space="preserve"><value>Departments</value></data>
+  <data name="AIChat" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="VPPChat" xml:space="preserve"><value>VPP Chat</value></data>
+  <data name="User" xml:space="preserve"><value>User</value></data>
+  <data name="BackToOrders" xml:space="preserve"><value>Back to Orders</value></data>
+  <data name="AISmartSearch" xml:space="preserve"><value>AI Smart Search</value></data>
+  <data name="SelectedItems" xml:space="preserve"><value>Selected Items</value></data>
+  <data name="ClearAll" xml:space="preserve"><value>Clear All</value></data>
+  <data name="OrderDetails" xml:space="preserve"><value>Order Details</value></data>
+  <data name="OrderItems" xml:space="preserve"><value>Order Items</value></data>
+  <data name="Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="NewOrder" xml:space="preserve"><value>New Order</value></data>
+  <data name="CopyPreviousOrder" xml:space="preserve"><value>Copy Previous Order</value></data>
+  <data name="ActiveOrderPeriod" xml:space="preserve"><value>Active Order Period</value></data>
+  <data name="PeriodEnd" xml:space="preserve"><value>Period End</value></data>
+  <data name="TotalLineItems" xml:space="preserve"><value>Total Line Items</value></data>
+  <data name="TotalQuantity" xml:space="preserve"><value>Total Quantity</value></data>
+  <data name="RequestAdditional" xml:space="preserve"><value>Request Additional</value></data>
+  <data name="NoPermission" xml:space="preserve"><value>You do not have permission to view this page.</value></data>
+  <data name="UserGroup" xml:space="preserve"><value>User Group</value></data>
+  <data name="GroupPagePermission" xml:space="preserve"><value>Group/Page Permission</value></data>
+  <data name="GroupName" xml:space="preserve"><value>Group Name</value></data>
+  <data name="GroupNameRequired" xml:space="preserve"><value>Group name is required</value></data>
+  <data name="CopyFrom" xml:space="preserve"><value>Copy from (optional)</value></data>
+  <data name="CreateNewGroup" xml:space="preserve"><value>Create new group</value></data>
+  <data name="Server" xml:space="preserve"><value>Server</value></data>
+  <data name="ClassCode" xml:space="preserve"><value>Class Code</value></data>
+  <data name="ClassName" xml:space="preserve"><value>Class Name *</value></data>
+  <data name="ClassModule" xml:space="preserve"><value>Class Module</value></data>
+  <data name="ClassDetailCode" xml:space="preserve"><value>Class Detail Code *</value></data>
+  <data name="ClassDetailValue" xml:space="preserve"><value>Class Detail Value *</value></data>
+  <data name="ExtraField1" xml:space="preserve"><value>Extra Field 1</value></data>
+  <data name="ExtraField2" xml:space="preserve"><value>Extra Field 2</value></data>
+  <data name="ExtraField3" xml:space="preserve"><value>Extra Field 3</value></data>
+  <data name="SortOrder" xml:space="preserve"><value>Sort Order</value></data>
+  <data name="Additional" xml:space="preserve"><value>Additional</value></data>
 </root>

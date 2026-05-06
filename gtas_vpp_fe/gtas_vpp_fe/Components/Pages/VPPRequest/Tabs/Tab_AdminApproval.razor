@@ -91,7 +91,7 @@
             </Columns>
             <Template Context="row">
                 <div style="padding: 1rem; background: var(--rz-base-100); border-radius: 8px;">
-                    <RadzenText Text="Order Details" TextStyle="TextStyle.Subtitle2" Style="font-weight: 600; margin-bottom: 0.5rem;" />
+                    <RadzenText Text="@Loc["OrderDetails"]" TextStyle="TextStyle.Subtitle2" Style="font-weight: 600; margin-bottom: 0.5rem;" />
                     @if (IsRowDetailLoading(row.Id))
                     {
                         <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />

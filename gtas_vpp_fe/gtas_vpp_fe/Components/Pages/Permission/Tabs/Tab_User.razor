@@ -47,7 +47,7 @@
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Orientation.Horizontal">
-                        <RadzenFormField AllowFloatingLabel=true Text="Search" Variant="Variant.Text">
+                        <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text">
                             <ChildContent>
                                 <RadzenTextBox Value="@SearchText"
                                                Change="@(arg => TextBoxOnChange(arg))"
@@ -63,7 +63,7 @@
                                 </RadzenStack>
                             </End>
                         </RadzenFormField>
-                        <RadzenButton Icon="refresh" Text="Reload" Size="ButtonSize.Small" class="rz-mb-auto rz-mt-auto" Click="ButtonOnClick_Reload" />
+                        <RadzenButton Icon="refresh" Text="@Loc["Reload"]" Size="ButtonSize.Small" class="rz-mb-auto rz-mt-auto" Click="ButtonOnClick_Reload" />
                     </RadzenStack>
                 </HeaderTemplate>
                 <Columns>
@@ -113,5 +113,5 @@
 }
 else
 {
-    <RadzenAlert AlertStyle="AlertStyle.Warning" class="m-3" Text="You do not have permission to view this page." />
+    <RadzenAlert AlertStyle="AlertStyle.Warning" class="m-3" Text="@Loc["NoPermission"]" />
 }

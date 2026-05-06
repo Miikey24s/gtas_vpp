@@ -22,7 +22,7 @@
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem">
             @* Language toggle (placeholder - not yet implemented) *@
-            <RadzenButton Text="EN" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0; font-size:0.75rem; font-weight:700;" Disabled="true" Title="Language switch (coming soon)" />
+            <RadzenButton Text="@(CultureInfo.CurrentCulture.Name.StartsWith("en") ? "VI" : "EN")" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0; font-size:0.75rem; font-weight:700;" Click="@(async () => await ToggleLanguage())" Title="@Loc["Language"]" />
             <RadzenButton Icon="@(LightTheme ? "dark_mode" : "light_mode")" Click="ThemeOnChange" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Title="Toggle theme" />
             @* Notification bell (placeholder - not yet implemented) *@
             <div style="position:relative;">
@@ -69,110 +69,74 @@
 <RadzenSidebar Responsive="true" class="@(!_sideBarExpanded ? "sidebar-collapsed" : "")" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
     <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
         <AuthorizeView Policy="@Permissions.MenuDashboard" Context="dashboardMenuAuth">
-            <RadzenPanelMenuItem Text="Dashboard" Icon="home" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="home" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.RequestOrder" Context="requestOrderMenuAuth">
-                    <RadzenPanelMenuItem Text="My Orders" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
+                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestHistory" Context="requestHistoryMenuAuth">
-                    <RadzenPanelMenuItem Text="History" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="history" />
+                    <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="history" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestProductCatalog" Context="requestProductCatalogMenuAuth">
-                    <RadzenPanelMenuItem Text="Product Catalog" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
+                    <RadzenPanelMenuItem Text="@Loc["ProductCatalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestDepartmentSummary" Context="requestDepartmentSummaryMenuAuth">
-                    <RadzenPanelMenuItem Text="Department Summary" Path="/dashboard?tab=3" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
+                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="/dashboard?tab=3" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestAllOrdersSummary" Context="requestAllOrdersSummaryMenuAuth">
-                    <RadzenPanelMenuItem Text="All Orders Summary" Path="/dashboard?tab=4" class="ppjsidebarmenu submenu" Icon="view_list" />
+                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="/dashboard?tab=4" class="ppjsidebarmenu submenu" Icon="view_list" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestAdminApproval" Context="requestAdminApprovalMenuAuth">
-                    <RadzenPanelMenuItem Text="Admin Approval" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="fact_check" />
+                    <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="fact_check" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
         <AuthorizeView Policy="@Permissions.MenuLibrary" Context="libraryMenuAuth">
-            <RadzenPanelMenuItem Text="Library" Icon="library_books" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="library_books" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.LibraryClass" Context="libraryClassMenuAuth">
-                    <RadzenPanelMenuItem Text="Class Definitions" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="class" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibraryCategory" Context="libraryCategoryMenuAuth">
-                    <RadzenPanelMenuItem Text="Operation Categories" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="@Loc["OperationCategories"]" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="category" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibraryItem" Context="libraryItemMenuAuth">
-                    <RadzenPanelMenuItem Text="Operations" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="@Loc["Operations"]" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="inventory" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibrarySupplier" Context="librarySupplierMenuAuth">
-                    <RadzenPanelMenuItem Text="Suppliers" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="menu_book" />
+                    <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.LibraryDepartment" Context="libraryDepartmentMenuAuth">
-                    <RadzenPanelMenuItem Text="Departments" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="apartment" />
+                    <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="apartment" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
         <AuthorizeView Policy="@Permissions.MenuReport" Context="reportMenuAuth">
-            <RadzenPanelMenuItem Text="Report" Icon="analytics" class="ppjsidebarmenu" Path="/report" />
+            <RadzenPanelMenuItem Text="@Loc["Reports"]" Icon="analytics" class="ppjsidebarmenu" Path="/report" />
         </AuthorizeView>
         <AuthorizeView Policy="@Permissions.MenuPermission" Context="permissionMenuAuth">
-            <RadzenPanelMenuItem Text="Permission" Icon="settings" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="settings" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.PermissionUser" Context="permissionUserMenuAuth">
-                    <RadzenPanelMenuItem Text="User" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission?tab=0" />
+                    <RadzenPanelMenuItem Text="@Loc["User"]" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission?tab=0" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.PermissionComponent" Context="permissionComponentMenuAuth">
-                    <RadzenPanelMenuItem Text="Page" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission?tab=1" />
+                    <RadzenPanelMenuItem Text="@Loc["Page"]" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission?tab=1" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
         <AuthorizeView Policy="@Permissions.MenuAI" Context="aiMenuAuth">
-            <RadzenPanelMenuItem Text="AI Management" Icon="smart_toy" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="@Loc["AIManagement"]" Icon="smart_toy" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.RequestAIChat" Context="aiChatAuth">
-                    <RadzenPanelMenuItem Text="AI Chat" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
+                    <RadzenPanelMenuItem Text="@Loc["AIChat"]" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
                 </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestAIVppChat" Context="aiVppChatAuth">
-                    <RadzenPanelMenuItem Text="VPP Chat" Icon="inventory_2" class="ppjsidebarmenu submenu" Path="/ai/vpp-chat" />
+                    <RadzenPanelMenuItem Text="@Loc["VPPChat"]" Icon="inventory_2" class="ppjsidebarmenu submenu" Path="/ai/vpp-chat" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>
         <hr />
-        <RadzenPanelMenuItem Text="Logout" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
+        <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
         <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">
             <h6 class="text-center">@currentTime.ToString("dd-MM-yyyy")</h6>
             <h6 class="text-center">@currentTime.ToString("HH:mm")</h6>
         </RadzenStack>
     </RadzenPanelMenu>
 </RadzenSidebar>
-
-@code {
-    public bool LightTheme { get; set; } = true;
-    private bool _userMenuOpen = false;
-    private DateTime currentTime = DateTime.Now;
-    private System.Threading.Timer? timer;
-
-    protected override void OnInitialized()
-    {
-        timer = new System.Threading.Timer(_ =>
-        {
-            currentTime = DateTime.Now;
-            InvokeAsync(StateHasChanged);
-        }, null, 0, 1000);
-    }
-
-    private string GetUserInitials()
-    {
-        var name = glb.UserInfo.FullName ?? "";
-        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2)
-            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
-        if (parts.Length == 1)
-            return parts[0][..Math.Min(2, parts[0].Length)].ToUpper();
-        return "U";
-    }
-
-    private void ToggleLanguage()
-    {
-        var currentCulture = CultureInfo.CurrentCulture.Name;
-        var newCulture = currentCulture == "en" ? "vi" : "en";
-        CultureInfo.CurrentCulture = new CultureInfo(newCulture);
-        CultureInfo.CurrentUICulture = new CultureInfo(newCulture);
-        StateHasChanged();
-    }
-}

@@ -17,7 +17,7 @@
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
             <AuthorizeView Policy="@Permissions.PermissionUser" Context="userTabAuth">
-                <RadzenTabsItem Text="User Group">
+                <RadzenTabsItem Text="@Loc["UserGroup"]">
                     @if (IsActiveTab(0))
                     {
                         <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
@@ -25,7 +25,7 @@
                 </RadzenTabsItem>
             </AuthorizeView>
             <AuthorizeView Policy="@Permissions.PermissionComponent" Context="componentTabAuth">
-                <RadzenTabsItem Text="Group/Page Permission">
+                <RadzenTabsItem Text="@Loc["GroupPagePermission"]">
                     @if (IsActiveTab(1))
                     {
                         <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />

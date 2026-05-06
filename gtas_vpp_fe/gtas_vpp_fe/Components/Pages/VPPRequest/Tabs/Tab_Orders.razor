@@ -38,33 +38,33 @@
     <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3 order-page" Style="width: 100%; max-width: none; margin: 0;">
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
-                <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
+                <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
+                <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
             </RadzenStack>
         </RadzenStack>
         
         <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch">
             <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
                 <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 h-100 stat-card">
-                    <RadzenText Text="Active Order Period" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                    <RadzenText Text="@Loc["ActiveOrderPeriod"]" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
                     <RadzenText Text="@CurrentOrderPeriodText" TextStyle="TextStyle.H5" class="rz-m-0" Style="font-weight: 800; color: var(--vpp-ocean-primary-dark);" />
                 </RadzenCard>
             </RadzenColumn>
             <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
                 <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 h-100 stat-card">
-                    <RadzenText Text="Period End" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                    <RadzenText Text="@Loc["PeriodEnd"]" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
                     <RadzenText Text="@PeriodEndText" TextStyle="TextStyle.H5" class="rz-m-0" Style="font-weight: 800; color: var(--vpp-ocean-primary-dark);" />
                 </RadzenCard>
             </RadzenColumn>
             <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
                 <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 h-100 stat-card">
-                    <RadzenText Text="Total Line Items" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                    <RadzenText Text="@Loc["TotalLineItems"]" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
                     <RadzenText Text="@TotalLinesText" TextStyle="TextStyle.H5" class="rz-m-0" Style="font-weight: 800; color: var(--vpp-ocean-primary-dark);" />
                 </RadzenCard>
             </RadzenColumn>
             <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
                 <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 h-100 stat-card">
-                    <RadzenText Text="Total Quantity" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                    <RadzenText Text="@Loc["TotalQuantity"]" TextStyle="TextStyle.Overline" class="rz-mb-1" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
                     <RadzenText Text="@TotalQtyText" TextStyle="TextStyle.H5" class="rz-m-0" Style="font-weight: 800; color: var(--vpp-ocean-primary-dark);" />
                 </RadzenCard>
             </RadzenColumn>
@@ -94,7 +94,7 @@
 
             <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mt-4 section-header">
                 <div>Previous Order Period (@PreviousOrderPeriodText)</div>
-                <RadzenButton Icon="add_circle" Text="Request Additional" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
+                <RadzenButton Icon="add_circle" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
             </RadzenStack>
             
             @if (PreviousOrders == null || !PreviousOrders.Any())
@@ -143,7 +143,7 @@
                             </RadzenText>
                             @if (order.IsAdditionalOrder)
                             {
-                                <RadzenBadge Text="Additional" BadgeStyle="BadgeStyle.Warning" IsPill="true" class="rz-ml-2" />
+                                <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" class="rz-ml-2" />
                             }
                         </RadzenStack>
                         <RadzenText TextStyle="TextStyle.Body2" class="rz-color-primary-light">

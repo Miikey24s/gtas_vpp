@@ -9,12 +9,12 @@
 <RadzenStack Gap="1rem">
     <RadzenRow>
         <RadzenColumn Size="12" SizeMD="6">
-            <RadzenFormField Text="Class Detail Code *" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ClassDetailCode"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ClassDetailCode" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="6">
-            <RadzenFormField Text="Class Detail Value *" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ClassDetailValue"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ClassDetailValue" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
@@ -22,17 +22,17 @@
     
     <RadzenRow>
         <RadzenColumn Size="12" SizeMD="4">
-            <RadzenFormField Text="Extra Field 1" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ExtraField1"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ExtraField1" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="4">
-            <RadzenFormField Text="Extra Field 2" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ExtraField2"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ExtraField2" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="4">
-            <RadzenFormField Text="Extra Field 3" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["ExtraField3"]" Variant="Variant.Outlined">
                 <RadzenTextBox @bind-Value="@Model.ExtraField3" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
@@ -40,7 +40,7 @@
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="Sort Order" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["SortOrder"]" Variant="Variant.Outlined">
                 <RadzenNumeric @bind-Value="@Model.Sort" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
@@ -48,7 +48,7 @@
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="Description" Variant="Variant.Outlined">
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
                 <RadzenTextArea @bind-Value="@Model.Description" Style="width: 100%;" Rows="3" />
             </RadzenFormField>
         </RadzenColumn>
@@ -56,8 +56,8 @@
     
     <RadzenRow>
         <RadzenColumn Size="12" class="rz-text-align-end">
-            <RadzenButton Text="Cancel" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
-            <RadzenButton Text="Save" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
+            <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
+            <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
         </RadzenColumn>
     </RadzenRow>
 </RadzenStack>

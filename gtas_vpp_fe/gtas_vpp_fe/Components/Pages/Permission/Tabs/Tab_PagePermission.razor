@@ -94,7 +94,7 @@
                 ColumnWidth="150px"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <HeaderTemplate>
-        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="Create new group" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.HomeDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
+        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="@Loc["CreateNewGroup"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.HomeDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
     </HeaderTemplate>
     <Template Context="singlerow">
         <RadzenRow class="rz-p-3">
@@ -110,12 +110,12 @@
                                     <RadzenStack Gap="0.75rem" class="rz-mt-2">
                                         <RadzenRow Gap="0.5rem">
                                             <RadzenColumn Size="12" SizeMD="6">
-                                                <RadzenFormField Text="Description" AllowFloatingLabel="false" class="w-100">
+                                                <RadzenFormField Text="@Loc["Description"]" AllowFloatingLabel="false" class="w-100">
                                                     <RadzenTextBox Value="@item.Description" Disabled="true" />
                                                 </RadzenFormField>
                                             </RadzenColumn>
                                             <RadzenColumn Size="12" SizeMD="6">
-                                                <RadzenFormField Text="Page Id" AllowFloatingLabel="false" class="w-100">
+                                                <RadzenFormField Text="Page ID" AllowFloatingLabel="false" class="w-100">
                                                     <RadzenTextBox Value="@item.PageId.ToString()" Disabled="true" />
                                                 </RadzenFormField>
                                             </RadzenColumn>
@@ -247,7 +247,7 @@
 }
 else
 {
-    <RadzenAlert AlertStyle="AlertStyle.Warning" class="m-3" Text="You do not have permission to view this page." />
+    <RadzenAlert AlertStyle="AlertStyle.Warning" class="m-3" Text="@Loc["NoPermission"]" />
 }
 
 
@@ -259,18 +259,18 @@ else
             <RadzenTemplateForm Data="@_P02_GroupResDTOReqDTO" Submit="@((P02_GroupResDTO arg) => Submit(arg))">
                 <RadzenRow RowGap="1rem" Gap="1rem">
                     <RadzenColumn Size="12" SizeMD="6">
-                        <RadzenFormField Text="Group Name" class="w-100" AllowFloatingLabel="false">
+                        <RadzenFormField Text="@Loc["GroupName"]" class="w-100" AllowFloatingLabel="false">
                             <RadzenTextBox @bind-Value=@_P02_GroupResDTOReqDTO.GroupName Name="GroupName" Style="width: 100%;" />
                         </RadzenFormField>
-                        <RadzenRequiredValidator Component="GroupName" Text="Group name is required" />
+                        <RadzenRequiredValidator Component="GroupName" Text="@Loc["GroupNameRequired"]" />
                     </RadzenColumn>
                     <RadzenColumn Size="12" SizeMD="6">
-                        <RadzenFormField Text="Description" class="w-100" AllowFloatingLabel="false">
+                        <RadzenFormField Text="@Loc["Description"]" class="w-100" AllowFloatingLabel="false">
                             <RadzenTextBox @bind-Value=@_P02_GroupResDTOReqDTO.Description Style="width: 100%;" />
                         </RadzenFormField>
                     </RadzenColumn>
                     <RadzenColumn Size="12">
-                        <RadzenFormField Text="Copy from (optional)" class="w-100" AllowFloatingLabel="false">
+                        <RadzenFormField Text="@Loc["CopyFrom"]" class="w-100" AllowFloatingLabel="false">
                             <RadzenDropDown AllowClear="true"
                                             AllowVirtualization="true"
                                             AllowFiltering="true"
@@ -286,7 +286,7 @@ else
                     <RadzenColumn Size="12">
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
                             <RadzenButton ButtonType="ButtonType.Button" Icon="close" Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => ds.Close(false))" />
-                            <RadzenButton ButtonType="ButtonType.Submit" Icon="check" Text="Create" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" />
+                            <RadzenButton ButtonType="ButtonType.Submit" Icon="check" Text="@Loc["Create"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" />
                         </RadzenStack>
                     </RadzenColumn>
                 </RadzenRow>

@@ -13,7 +13,7 @@
     
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Gap="1rem">
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-            <RadzenButton Icon="arrow_back" Text="Back to Orders" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
+            <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
         </RadzenStack>
     </RadzenStack>
 
@@ -35,7 +35,7 @@
                 <RadzenStack Gap="0.75rem">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenIcon Icon="auto_awesome" Style="font-size: 1.5rem;" />
-                        <RadzenText Text="AI Smart Search" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
+                        <RadzenText Text="@Loc["AISmartSearch"]" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
                     </RadzenStack>
                     
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
@@ -136,8 +136,8 @@
                 <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-                            <RadzenText Text="Selected Items" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
-                            <RadzenButton Icon="clear_all" Text="Clear All" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" 
+                            <RadzenText Text="@Loc["SelectedItems"]" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                            <RadzenButton Icon="clear_all" Text="@Loc["ClearAll"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" 
                                           Disabled="@(SelectedItems.Count == 0)" 
                                           Click="@(async _ => await ClearAllItemsAsync())" />
                         </RadzenStack>
@@ -174,7 +174,7 @@
                 </RadzenCard>
 
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" JustifyContent="JustifyContent.End">
-                    <RadzenButton Icon="close" Text="Cancel" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
+                    <RadzenButton Icon="close" Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
                     <RadzenButton Icon="save" Text="@(IsAdditional ? "Submit for Approval" : (IsEdit ? "Update Order" : "Create Order"))" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Disabled="@IsSaving" Click="@(async _ => await SubmitAsync())" />
                 </RadzenStack>
             </RadzenStack>
