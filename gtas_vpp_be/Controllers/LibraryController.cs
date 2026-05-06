@@ -188,7 +188,7 @@ namespace gtas_vpp_be.Controllers
             }
             catch (Exception ex)
             {
-                Serilog.Log.Warning(ex, "Library query failed: Table={TableCode}", tableCode);
+                Serilog.Log.Warning(ex, "Library query failed");
                 return BadRequest(new { Message = "An error occurred while processing the request." });
             }
         }

@@ -2,9 +2,9 @@
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Model.Library;
-//using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
+using gtas_vpp_shared.DTOs;
 using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Serilog;
 using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
