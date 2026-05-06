@@ -3,7 +3,6 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -38,7 +37,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
-        [Inject] public IJSRuntime JS { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
@@ -48,9 +46,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool IsLoading { get; set; }
         public bool ViewerVisible { get; set; }
         public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
-
-        public Guid? LastDeletedOrderId { get; set; }
-        public string? LastDeletedOrderCode { get; set; }
         public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
 
         public DateTime CurrentOrderPeriodDate
@@ -89,7 +84,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             await LoadOrdersAsync();
             await LoadPeriodInfoAsync();
-            await RestoreUndoStateAsync();
         }
 
         private async Task LoadPeriodInfoAsync()
@@ -97,20 +91,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 PeriodInfo = await _apiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
-            }
-            catch { }
-        }
-
-        private async Task RestoreUndoStateAsync()
-        {
-            try
-            {
-                var idStr = await JS.InvokeAsync<string>("localStorage.getItem", "vpp.lastCancelledOrderId");
-                if (!string.IsNullOrWhiteSpace(idStr) && Guid.TryParse(idStr, out var id))
-                {
-                    LastDeletedOrderId = id;
-                    LastDeletedOrderCode = await JS.InvokeAsync<string>("localStorage.getItem", "vpp.lastCancelledOrderCode");
-                }
             }
             catch { }
         }
@@ -171,48 +151,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await Task.CompletedTask;
         }
 
-        protected async Task UndoLastCancelAsync()
-        {
-            if (LastDeletedOrderId == null) return;
-
-            IsLoading = true;
-            glb.isBusyPage = true;
-            try
-            {
-                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{LastDeletedOrderId}/undo-cancel", new { });
-
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Order",
-                    Detail = "Cancel has been undone.",
-                    Duration = 3000
-                });
-
-                LastDeletedOrderId = null;
-                LastDeletedOrderCode = null;
-                await JS.InvokeVoidAsync("localStorage.removeItem", "vpp.lastCancelledOrderId");
-                await JS.InvokeVoidAsync("localStorage.removeItem", "vpp.lastCancelledOrderCode");
-                await LoadOrdersAsync();
-            }
-            catch (Exception ex)
-            {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Undo cancel failed: {ex.Message}",
-                    Duration = 6000
-                });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                IsLoading = false;
-                StateHasChanged();
-            }
-        }
-
         protected async Task CancelOrderAsync(VPP01_RequestHeaderResDTO row)
         {
             if (!CanEditOrDelete(row)) return;
@@ -222,18 +160,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", new { });
-                LastDeletedOrderId = row.Id;
-                LastDeletedOrderCode = row.VPPCode;
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Order",
-                    Detail = "Order cancelled. You can Undo.",
+                    Detail = "Order cancelled.",
                     Duration = 3000
                 });
-                // Persist undo state to localStorage
-                await JS.InvokeVoidAsync("localStorage.setItem", "vpp.lastCancelledOrderId", row.Id.ToString());
-                await JS.InvokeVoidAsync("localStorage.setItem", "vpp.lastCancelledOrderCode", row.VPPCode ?? "");
                 await LoadOrdersAsync();
             }
             catch (Exception ex)

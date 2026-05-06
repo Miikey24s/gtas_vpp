@@ -8,14 +8,13 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.AI.Tabs
 {
-    public partial class Tab_AIChat
+    public partial class Tab_AIVPPChat
     {
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
 
         [Inject] public IAPIServices ApiServices { get; set; } = default!;
         [Inject] public IJSRuntime JS { get; set; } = default!;
-
 
         private string _userInput = string.Empty;
         private bool _isLoading;
@@ -48,7 +47,7 @@ namespace gtas_vpp_fe.Components.Pages.AI.Tabs
 
             try
             {
-                var result = await ApiServices.PostFromApiAsync<AIChatResponseDTO>("api/AI/admin-chat", new AIChatRequestDTO
+                var result = await ApiServices.PostFromApiAsync<AIChatResponseDTO>("api/AI/chat", new AIChatRequestDTO
                 {
                     Message = userMessage,
                     History = history

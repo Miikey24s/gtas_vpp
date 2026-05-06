@@ -124,11 +124,11 @@
         </AuthorizeView>
         <AuthorizeView Policy="@Permissions.MenuAI" Context="aiMenuAuth">
             <RadzenPanelMenuItem Text="AI Management" Icon="smart_toy" class="ppjsidebarmenu">
-                <AuthorizeView Policy="@Permissions.RequestAIKeyManage" Context="aiKeyManageAuth">
-                    <RadzenPanelMenuItem Text="API Keys" Icon="vpn_key" class="ppjsidebarmenu submenu" Path="/ai/keymanage" />
-                </AuthorizeView>
                 <AuthorizeView Policy="@Permissions.RequestAIChat" Context="aiChatAuth">
                     <RadzenPanelMenuItem Text="AI Chat" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
+                </AuthorizeView>
+                <AuthorizeView Policy="@Permissions.RequestAIVppChat" Context="aiVppChatAuth">
+                    <RadzenPanelMenuItem Text="VPP Chat" Icon="inventory_2" class="ppjsidebarmenu submenu" Path="/ai/vpp-chat" />
                 </AuthorizeView>
             </RadzenPanelMenuItem>
         </AuthorizeView>

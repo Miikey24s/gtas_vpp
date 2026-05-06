@@ -5,7 +5,7 @@
     <div class="ai-chat-messages" @ref="_messagesContainer" style="flex:1; overflow-y:auto; padding:1rem;">
         @if (_messages.Count == 0)
         {
-            <div class="ai-empty-state" style="color:var(--rz-text-secondary-color); text-align:center; margin-top:2rem;">Chat trực tiếp với AI, không giới hạn theo dữ liệu VPP.</div>
+            <div class="ai-empty-state" style="color:var(--rz-text-secondary-color); text-align:center; margin-top:2rem;">Hỏi AI để tìm và gợi ý VPP phù hợp.</div>
         }
         @foreach (var msg in _messages)
         {
@@ -21,10 +21,8 @@
                @bind="_userInput" @bind:event="oninput"
                @onkeydown="HandleKey"
                disabled="@_isLoading"
-             placeholder="Nhập câu hỏi bất kỳ..." />
+               placeholder="Nhập yêu cầu về VPP..." />
         <RadzenButton Icon="send" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium"
                       Click="@Send" Disabled="@(_isLoading || string.IsNullOrWhiteSpace(_userInput))" />
     </div>
 </div>
-
-

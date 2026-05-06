@@ -89,6 +89,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public string? Description { get; set; }
         public DateTime? LastDraftSavedAt { get; set; }
         public int TotalQty => SelectedItems.Sum(x => x.Qty);
+        public int ProductCount { get; set; }
 
         // AI Properties
         public bool IsAILoading { get; set; }
@@ -139,7 +140,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
             
-            await LoadProductsAsync();
             if (IsEdit)
             {
                 await LoadOrderForEditAsync();
@@ -159,28 +159,41 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (!firstRender || IsEdit) return;
-            
-            await TryRestoreDraftAsync();
-            
+            if (!firstRender) return;
+
+            var initialTasks = new List<Task>();
+
+            if (productGrid != null)
+            {
+                initialTasks.Add(productGrid.Reload());
+            }
+
+            if (!IsEdit)
+            {
+                initialTasks.Add(TryRestoreDraftAsync());
+            }
+
+            if (initialTasks.Count == 0) return;
+
+            await Task.WhenAll(initialTasks);
             await InvokeAsync(StateHasChanged);
         }
 
-        private async Task LoadProductsAsync()
+        private async Task LoadProductsAsync(LoadDataArgs args)
         {
             IsLoadingProducts = true;
             glb.isBusyPage = true;
             try
             {
-                // Load all products without filtering (filtering will be done by DataGrid)
-                ProductOptions = await _apiServices.GetFromApiAsync<List<ProductOption>>("/api/VPPRequest/products") ?? new();
-                
-                ProductOptions = ProductOptions
-                    .OrderBy(x => x.VPPCode)
-                    .ToList();
+                var endpoint = BuildProductsEndpoint(args);
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(endpoint);
+                ProductOptions = result.Data ?? new();
+                ProductCount = result.TotalCount;
             }
             catch (Exception ex)
             {
+                ProductOptions = new();
+                ProductCount = 0;
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
@@ -195,6 +208,35 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 IsLoadingProducts = false;
                 StateHasChanged();
             }
+        }
+
+        private static string BuildProductsEndpoint(LoadDataArgs args)
+        {
+            var query = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(args.Filter))
+            {
+                query.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+            }
+
+            if (args.Skip.HasValue)
+            {
+                query.Add($"skip={args.Skip.Value}");
+            }
+
+            if (args.Top.HasValue)
+            {
+                query.Add($"top={args.Top.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(args.OrderBy))
+            {
+                query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
+            }
+
+            return query.Count == 0
+                ? "/api/VPPRequest/products"
+                : $"/api/VPPRequest/products?{string.Join("&", query)}";
         }
 
         private async Task LoadOrderForEditAsync()
@@ -620,8 +662,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public async Task AddSuggestedItemAsync(AISuggestedItemDTO suggestedItem)
         {
-            var product = ProductOptions.FirstOrDefault(x => x.Id == suggestedItem.VPPId);
-            if (product == null) return;
+            var product = ProductOptions.FirstOrDefault(x => x.Id == suggestedItem.VPPId)
+                ?? new ProductOption
+                {
+                    Id = suggestedItem.VPPId,
+                    VPPCode = suggestedItem.VPPCode,
+                    VPPName = suggestedItem.VPPName,
+                    UOMName = suggestedItem.UOMName,
+                    VPPCategoryName = suggestedItem.CategoryName
+                };
 
             await AddItemAsync(product);
         }

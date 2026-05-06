@@ -40,7 +40,6 @@
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
                 <RadzenButton Icon="add" Text="New Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
                 <RadzenButton Icon="add" Text="Copy Previous Order" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
-                <RadzenButton Icon="undo" Text="Undo" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Click="@(async _ => await UndoLastCancelAsync())" Disabled="@(IsLoading || LastDeletedOrderId == null)" />
             </RadzenStack>
         </RadzenStack>
         

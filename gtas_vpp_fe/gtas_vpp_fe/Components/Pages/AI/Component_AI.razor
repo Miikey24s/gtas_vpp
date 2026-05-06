@@ -13,11 +13,11 @@
                 <RadzenTabsItem Text="@tab.Title" Icon="@tab.Icon">
                     @switch (tab.ComponentCode)
                     {
-                        case gtas_vpp_fe.Helpers.Config.Page_ComponentCode.ComponentCode.RequestAIKeyManage:
-                            <Tab_KeyManage claims="claims" sp_Authentication_GetPermissionSinglePage="sp_Authentication_GetPermissionSinglePage" />
-                            break;
                         case gtas_vpp_fe.Helpers.Config.Page_ComponentCode.ComponentCode.RequestAIChat:
                             <Tab_AIChat claims="claims" sp_Authentication_GetPermissionSinglePage="sp_Authentication_GetPermissionSinglePage" />
+                            break;
+                        case gtas_vpp_fe.Helpers.Config.Page_ComponentCode.ComponentCode.RequestAIVppChat:
+                            <Tab_AIVPPChat claims="claims" sp_Authentication_GetPermissionSinglePage="sp_Authentication_GetPermissionSinglePage" />
                             break;
                     }
                 </RadzenTabsItem>

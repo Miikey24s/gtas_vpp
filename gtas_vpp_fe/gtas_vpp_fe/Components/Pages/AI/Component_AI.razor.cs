@@ -39,17 +39,6 @@ namespace gtas_vpp_fe.Components.Pages.AI
                 .Select(c => c.ComponentCode)
                 .ToHashSet();
 
-            if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIKeyManage))
-            {
-                TabPermissions.Add(new TabPermissionInfo
-                {
-                    ComponentCode = Config.Page_ComponentCode.ComponentCode.RequestAIKeyManage,
-                    Title = "API Keys",
-                    Icon = "vpn_key",
-                    Path = "keymanage"
-                });
-            }
-
             if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIChat))
             {
                 TabPermissions.Add(new TabPermissionInfo
@@ -58,6 +47,17 @@ namespace gtas_vpp_fe.Components.Pages.AI
                     Title = "AI Chat",
                     Icon = "chat",
                     Path = "chat"
+                });
+            }
+
+            if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIVppChat))
+            {
+                TabPermissions.Add(new TabPermissionInfo
+                {
+                    ComponentCode = Config.Page_ComponentCode.ComponentCode.RequestAIVppChat,
+                    Title = "VPP Chat",
+                    Icon = "inventory_2",
+                    Path = "vpp-chat"
                 });
             }
         }

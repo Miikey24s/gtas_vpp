@@ -41,6 +41,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public Guid? CategoryFilter { get; set; }
         public string? SearchText { get; set; }
         public RadzenDataGrid<ProductItem>? productGrid { get; set; }
+        private int _currentSkip;
 
         private bool CanView => claims.HasPermission(Permissions.RequestProductCatalog);
 
@@ -81,6 +82,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             IsLoading = true;
             glb.isBusyPage = true;
+            _currentSkip = args.Skip ?? 0;
             try
             {
                 var endpoint = BuildProductsEndpoint(args);
