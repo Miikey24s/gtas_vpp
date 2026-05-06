@@ -4,6 +4,7 @@ using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 using System.Security.Claims;
 
 namespace gtas_vpp_be.Controllers
@@ -132,30 +133,81 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("products")]
-        public async Task<IActionResult> GetProducts([FromQuery] Guid? categoryId, [FromQuery] string? search)
+        public async Task<IActionResult> GetProducts(
+            [FromQuery] Guid? categoryId,
+            [FromQuery] string? search,
+            [FromQuery] string? filter,
+            [FromQuery] int? skip,
+            [FromQuery] int? top,
+            [FromQuery] string? orderby)
         {
-            var data = await ReadEntitiesAsync<L04_VPP>(
-                true,
-                x => !x.IsDeleted
-                     && (categoryId == null || x.VPPCategoryId == categoryId)
-                     && (search == null || (x.VPPName != null && x.VPPName.Contains(search)) || (x.VPPCode != null && x.VPPCode.Contains(search))),
-                q => q.Include(x => x.UOM).Include(x => x.VPPCategory).Include(x => x.L06_VPPSupplierMappings));
+            search = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
 
-            // Return a flattened payload to avoid EF navigation cycles during JSON serialization.
-            var result = (data ?? new()).Select(x => new
+            var query = _unitOfWork.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                     && (categoryId == null || x.VPPCategoryId == categoryId)
+                     && (search == null || (x.VPPName != null && x.VPPName.Contains(search)) || (x.VPPCode != null && x.VPPCode.Contains(search))))
+                .Select(x => new
+                {
+                    x.Id,
+                    x.VPPCode,
+                    x.VPPName,
+                    x.Description,
+                    x.VPPCategoryId,
+                    VPPCategoryCode = x.VPPCategory != null ? x.VPPCategory.VPPCategoryCode : null,
+                    VPPCategoryName = x.VPPCategory != null ? x.VPPCategory.VPPCategoryName : null,
+                    x.UOMId,
+                    UOMCode = x.UOM != null ? x.UOM.ClassDetailCode : null,
+                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null,
+                    SupplierCount = x.L06_VPPSupplierMappings != null
+                        ? x.L06_VPPSupplierMappings.Count(mapping => !mapping.IsDeleted)
+                        : 0
+                });
+
+            if (!string.IsNullOrWhiteSpace(filter))
             {
-                x.Id,
-                x.VPPCode,
-                x.VPPName,
-                x.Description,
-                x.VPPCategoryId,
-                VPPCategoryCode = x.VPPCategory?.VPPCategoryCode,
-                VPPCategoryName = x.VPPCategory?.VPPCategoryName,
-                x.UOMId,
-                UOMCode = x.UOM?.ClassDetailCode,
-                UOMName = x.UOM?.ClassDetailValue,
-                SupplierCount = x.L06_VPPSupplierMappings?.Count ?? 0
-            });
+                try
+                {
+                    query = query.Where(filter);
+                }
+                catch
+                {
+                    // Ignore malformed client filters and fall back to the base query.
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(orderby))
+            {
+                try
+                {
+                    query = query.OrderBy(orderby);
+                }
+                catch
+                {
+                    query = query.OrderBy(x => x.VPPCode);
+                }
+            }
+            else
+            {
+                query = query.OrderBy(x => x.VPPCode);
+            }
+
+            if (skip.HasValue && skip.Value > 0)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (top.HasValue && top.Value > 0)
+            {
+                query = query.Take(top.Value);
+            }
+
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+
+            var result = await query.ToListAsync();
 
             return Ok(result);
         }

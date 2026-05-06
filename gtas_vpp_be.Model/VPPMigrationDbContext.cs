@@ -77,6 +77,13 @@ namespace gtas_vpp_be.Model
             {
                 en.HasOne(x => x.VPP01_RequestHeader).WithMany(x => x.VPP02_RequestDetails).OnDelete(DeleteBehavior.Restrict);
             });
+            modelBuilder.Entity<VPP01_RequestHeader>(en =>
+            {
+                en.HasIndex(x => new { x.CreateUserId, x.Y, x.M, x.IsDeleted, x.IsAdditionalOrder, x.Status })
+                    .HasDatabaseName("IX_VPP01_RequestHeader_User_Period_Status");
+                en.HasIndex(x => new { x.Y, x.M, x.IsDeleted, x.Status, x.IsAdditionalOrder })
+                    .HasDatabaseName("IX_VPP01_RequestHeader_Period_Status");
+            });
             modelBuilder.Entity<VPP03_Log>(en =>
             {
                 en.HasKey(x => x.Id);
