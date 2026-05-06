@@ -97,26 +97,19 @@ public string CurrentLanguage { get; set; } = "vi";
 
 ---
 
-## PHASE 2 — i18n INFRASTRUCTURE
+## PHASE 2 — i18n INFRASTRUCTURE ✅ COMPLETED
 
-### 2.1 Localization in Program.cs
-- **EDIT** `gtas_vpp_fe/Program.cs`:
-```csharp
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-// ...
-var supportedCultures = new[] { "vi", "en" };
-app.UseRequestLocalization(new RequestLocalizationOptions()
-    .SetDefaultCulture("vi")
-    .AddSupportedCultures(supportedCultures)
-    .AddSupportedUICultures(supportedCultures));
-```
+### Build verified: `docker compose build backend frontend` PASS
 
-### 2.2 Resource Files
-- **NEW** `Resources/App.resx` — Vietnamese (default)
-- **NEW** `Resources/App.en.resx` — English
+### 2.1 Localization in Program.cs ✅
+- Added `AddLocalization`, `UseRequestLocalization` (default "vi", support "en")
 
-### 2.3 _Imports
-- **EDIT** `_Imports.razor`: `@using Microsoft.Extensions.Localization` + `@inject IStringLocalizer<App> Loc`
+### 2.2 Resource Files ✅
+- Created `Resources/App.resx` (Vietnamese, 64 keys)
+- Created `Resources/App.en.resx` (English, 64 keys)
+
+### 2.3 _Imports ✅
+- Added `@using Microsoft.Extensions.Localization` + `@inject IStringLocalizer<App> Loc`
 
 ---
 
@@ -296,7 +289,7 @@ Phase 0 (DONE) → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → P
 |-------|----------------------------------------|------|
 | 0 | ✅ PASS | 2026-05-06 |
 | 1 | ✅ PASS | 2026-05-06 |
-| 2 | ⏳ Pending | |
+| 2 | ✅ PASS | 2026-05-06 |
 | 2 | ⏳ Pending | |
 | 3 | ⏳ Pending | |
 | 4 | ⏳ Pending | |
