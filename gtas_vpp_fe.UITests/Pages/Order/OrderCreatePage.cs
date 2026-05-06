@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace gtas_vpp_fe.UITests.Pages.Order
@@ -10,6 +11,23 @@ namespace gtas_vpp_fe.UITests.Pages.Order
         public OrderCreatePage(IPage page)
         {
             _page = page;
+        }
+
+        public async Task WaitForLoadedAsync()
+        {
+            await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Back to Orders", RegexOptions.IgnoreCase) }).WaitForAsync();
+            await _page.GetByRole(AriaRole.Heading, new() { Name = "Product Catalog" }).WaitForAsync();
+            await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Create Order", RegexOptions.IgnoreCase) }).WaitForAsync();
+        }
+
+        public async Task ClickBackToOrdersAsync()
+        {
+            await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Back to Orders", RegexOptions.IgnoreCase) }).ClickAsync();
+        }
+
+        public async Task<bool> IsEmptyCatalogVisibleAsync()
+        {
+            return await _page.GetByText("No records to display.").First.IsVisibleAsync();
         }
 
         public async Task ClickAddFirstProductAsync()
@@ -25,12 +43,12 @@ namespace gtas_vpp_fe.UITests.Pages.Order
 
         public async Task SubmitOrderAsync()
         {
-            await _page.Locator("button.ocean-btn").ClickAsync();
+            await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Create Order", RegexOptions.IgnoreCase) }).ClickAsync();
         }
         
         public async Task ClickClearAllAsync()
         {
-            await _page.Locator("button", new PageLocatorOptions { HasTextString = "Clear All" }).ClickAsync();
+            await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Clear All", RegexOptions.IgnoreCase) }).ClickAsync();
         }
     }
 }

@@ -1,6 +1,7 @@
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Playwright;
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -13,6 +14,9 @@ namespace gtas_vpp_fe.UITests.Core
         private DistributedApplication? _app;
         private IPlaywright? _playwright;
         private IBrowser? _browser;
+
+        protected const string DefaultUsername = "google";
+        protected const string DefaultPassword = "abc*123@";
         
         protected IPage Page { get; private set; } = null!;
         protected string BaseUrl { get; private set; } = null!;
@@ -29,10 +33,12 @@ namespace gtas_vpp_fe.UITests.Core
             _playwright = await Playwright.CreateAsync();
             _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
-                Headless = false,
-                SlowMo = 500
+                Headless = GetHeadlessMode(),
+                SlowMo = GetSlowMo()
             });
             Page = await _browser.NewPageAsync();
+            Page.SetDefaultTimeout(15000);
+            Page.SetDefaultNavigationTimeout(30000);
         }
 
         public async Task DisposeAsync()
@@ -52,6 +58,26 @@ namespace gtas_vpp_fe.UITests.Core
             {
                 await _app.DisposeAsync();
             }
+        }
+
+        protected async Task LoginAsDefaultUserAsync()
+        {
+            var loginPage = new Pages.Auth.LoginPage(Page);
+            await loginPage.GotoAsync(BaseUrl);
+            await loginPage.LoginWithDefaultCredentialsAsync();
+            await loginPage.WaitForDashboardAsync();
+        }
+
+        private static bool GetHeadlessMode()
+        {
+            var value = Environment.GetEnvironmentVariable("PLAYWRIGHT_HEADLESS");
+            return !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static float? GetSlowMo()
+        {
+            var value = Environment.GetEnvironmentVariable("PLAYWRIGHT_SLOWMO_MS");
+            return float.TryParse(value, out var slowMo) ? slowMo : 0;
         }
     }
 }

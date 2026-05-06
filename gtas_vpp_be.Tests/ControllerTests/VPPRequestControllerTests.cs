@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using gtas_vpp_be.Controllers;
+using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -99,9 +101,152 @@ public class VPPRequestControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
+    [Fact]
+    public async Task GetProducts_ReturnsFlattenedProducts_WithActiveSupplierCountOnly()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 4, 8, 0, 0);
+        var uomId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+
+        context.Add(new L02_ClassDetail
+        {
+            Id = uomId,
+            ClassDetailCode = "BOX",
+            ClassDetailValue = "Box",
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
+        context.Add(new L03_VPPCategory
+        {
+            Id = categoryId,
+            VPPCategoryCode = "CAT",
+            VPPCategoryName = "Category",
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
+        context.Add(new L04_VPP
+        {
+            Id = productId,
+            VPPCode = "VPP-001",
+            VPPName = "Blue Pen",
+            UOMId = uomId,
+            VPPCategoryId = categoryId,
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
+        context.AddRange(
+            new L06_VPPSupplierMapping
+            {
+                Id = Guid.NewGuid(),
+                L04_VPPId = productId,
+                L05_VPPSupplierId = Guid.NewGuid(),
+                Price = 100,
+                CreateUserId = 1,
+                CreateDate = now,
+                UpdateUserId = 1,
+                UpdateDate = now
+            },
+            new L06_VPPSupplierMapping
+            {
+                Id = Guid.NewGuid(),
+                L04_VPPId = productId,
+                L05_VPPSupplierId = Guid.NewGuid(),
+                Price = 200,
+                IsDeleted = true,
+                CreateUserId = 1,
+                CreateDate = now,
+                UpdateUserId = 1,
+                UpdateDate = now
+            });
+
+        await context.SaveChangesAsync();
+
+        var controller = CreateController(Mock.Of<IVPPRequestService>(), context, new Claim("UserID", "5615"));
+
+        var result = await controller.GetProducts(categoryId, "  Blue ", null, null, null, null);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var products = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value).ToList();
+        var product = Assert.Single(products);
+
+        Assert.Equal(productId, GetPropertyValue<Guid>(product, "Id"));
+        Assert.Equal("VPP-001", GetPropertyValue<string>(product, "VPPCode"));
+        Assert.Equal("Blue Pen", GetPropertyValue<string>(product, "VPPName"));
+        Assert.Equal("CAT", GetPropertyValue<string>(product, "VPPCategoryCode"));
+        Assert.Equal("Category", GetPropertyValue<string>(product, "VPPCategoryName"));
+        Assert.Equal("BOX", GetPropertyValue<string>(product, "UOMCode"));
+        Assert.Equal("Box", GetPropertyValue<string>(product, "UOMName"));
+        Assert.Equal(1, GetPropertyValue<int>(product, "SupplierCount"));
+        Assert.Equal("1", controller.Response.Headers["X-Total-Count"].ToString());
+    }
+
+    [Fact]
+    public async Task GetProducts_LoadDataRequest_AppliesPagingAndSetsTotalCountHeader()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 4, 8, 0, 0);
+        var uomId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+
+        context.Add(new L02_ClassDetail
+        {
+            Id = uomId,
+            ClassDetailCode = "PCS",
+            ClassDetailValue = "Piece",
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
+        context.Add(new L03_VPPCategory
+        {
+            Id = categoryId,
+            VPPCategoryCode = "CAT",
+            VPPCategoryName = "Category",
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
+        context.AddRange(
+            CreateProduct(Guid.NewGuid(), "VPP-001", "Alpha", uomId, categoryId, now),
+            CreateProduct(Guid.NewGuid(), "VPP-002", "Bravo", uomId, categoryId, now));
+
+        await context.SaveChangesAsync();
+
+        var controller = CreateController(Mock.Of<IVPPRequestService>(), context, new Claim("UserID", "5615"));
+
+        var result = await controller.GetProducts(categoryId, null, null, 0, 1, "VPPCode desc");
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var products = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value).ToList();
+        var product = Assert.Single(products);
+
+        Assert.Equal("2", controller.Response.Headers["X-Total-Count"].ToString());
+        Assert.Equal("VPP-002", GetPropertyValue<string>(product, "VPPCode"));
+    }
+
     private static VPPRequestController CreateController(IVPPRequestService service, params Claim[] claims)
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        return CreateController(service, context, claims);
+    }
+
+    private static VPPRequestController CreateController(IVPPRequestService service, VPPContext context, params Claim[] claims)
+    {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
         var controller = new VPPRequestController(
             new ServiceCollection().BuildServiceProvider(),
@@ -119,4 +264,21 @@ public class VPPRequestControllerTests
 
         return controller;
     }
+
+    private static T GetPropertyValue<T>(object instance, string propertyName)
+        => (T)instance.GetType().GetProperty(propertyName)!.GetValue(instance)!;
+
+    private static L04_VPP CreateProduct(Guid id, string code, string name, Guid uomId, Guid categoryId, DateTime now)
+        => new()
+        {
+            Id = id,
+            VPPCode = code,
+            VPPName = name,
+            UOMId = uomId,
+            VPPCategoryId = categoryId,
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        };
 }
