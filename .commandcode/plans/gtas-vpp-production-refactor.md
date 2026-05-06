@@ -113,17 +113,31 @@ public string CurrentLanguage { get; set; } = "vi";
 
 ---
 
-## PHASE 3 — LANGUAGE TOGGLE + ALL i18n
+## PHASE 3 — LANGUAGE TOGGLE + ALL i18n ✅ COMPLETED
 
-### 3.1 Working Language Toggle
-- **EDIT** `LeftSidebar.razor`: replace disabled button with VI↔EN toggle
-- **EDIT** `LeftSidebar.razor.cs`: `ToggleLanguage()` — set cookie, refresh
+### Build verified: `docker compose build backend frontend` PASS
 
-### 3.2 Localize All Pages (~26 files)
-All hardcoded strings → `@Loc["Key"]` in every .razor file
+### 3.1 Working Language Toggle ✅
+- Enabled VI↔EN button in header with `ToggleLanguage()` — persist to ProtectedLocalStore, force reload
+- Moved code from `@code` block to `LeftSidebar.razor.cs` (proper partial class)
 
-### 3.3 Sidebar Icon Fixes
-Library submenu: Class→`class`, Category→`category`, Operations→`inventory`, Suppliers→`local_shipping`
+### 3.2 Sidebar Icon Fixes ✅
+- Library submenu: Class→`class`, Category→`category`, Operations→`inventory`, Suppliers→`local_shipping`
+
+### 3.3-3.6 Localized All Pages ✅ (~20 files, 60+ keys)
+- **LoginPage**: Username, Password, Login button
+- **LeftSidebar**: All 20+ menu items, logout, dates
+- **Library tabs**: ClassDefinitions, OperationCategories, Operations, Suppliers, Departments
+- **Library dialogs**: ClassCode, ClassName, ClassModule, ClassDetailCode, ClassDetailValue, ExtraField1-3, SortOrder, Description, Save, Cancel
+- **VPPRequest tabs**: MyOrders, History, ProductCatalog, DepartmentSummary, AllOrdersSummary, AdminApproval
+- **OrderCreate**: BackToOrders, AISmartSearch, SelectedItems, ClearAll, Cancel, ProductCatalog
+- **Tab_Orders**: NewOrder, CopyPreviousOrder, ActiveOrderPeriod, PeriodEnd, TotalLineItems, TotalQuantity, RequestAdditional, Additional, Reload
+- **Tab_History/Tab_AdminApproval**: OrderDetails
+- **Tab_DepartmentSummary/Tab_AllOrdersSummary**: OrderItems, Reload
+- **Permission pages**: UserGroup, GroupPagePermission, GroupName, GroupNameRequired, CopyFrom, CreateNewGroup, Create, Description, NoPermission, Search, Reload
+- **Report**: Reports
+- **Tab_User**: Search, Reload, NoPermission
+- **Resource files**: 96 keys each (VI + EN)
 
 ---
 
@@ -291,7 +305,7 @@ Phase 0 (DONE) → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → P
 | 1 | ✅ PASS | 2026-05-06 |
 | 2 | ✅ PASS | 2026-05-06 |
 | 2 | ⏳ Pending | |
-| 3 | ⏳ Pending | |
+| 3 | ✅ PASS | 2026-05-06 |
 | 4 | ⏳ Pending | |
 | 5 | ⏳ Pending | |
 | 6 | ⏳ Pending | |
