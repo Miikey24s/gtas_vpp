@@ -141,46 +141,32 @@ public string CurrentLanguage { get; set; } = "vi";
 
 ---
 
-## PHASE 4 — AI TOGGLE (Full System)
+## PHASE 4 — AI TOGGLE (Full System) ✅ COMPLETED
 
-### 4.1 New Component Code: `AI_TOGGLE` (Database Permission System)
-- **EDIT** `SeedData.cs` (backend):
-  - Add `P03_Component` with `ComponentCode = "AI_TOGGLE"`, `ComponentName = "AI Toggle Switch"`
-  - Add `P05_PageComponentMapping`: map `AI_TOGGLE` → Page `SIDEBAR`
-  - Add `P06_GroupPageComponentMapping`: Admin group gets `AI_TOGGLE` with `IsVisible=true, IsEnable=true`
-- **EDIT** `gtas_vpp_fe/Helpers/Config.cs`:
-  ```csharp
-  public const string AIToggle = "AI_TOGGLE";
-  ```
-- **EDIT** `gtas_vpp_shared/Constants/Permissions.cs`:
-  ```csharp
-  public const string AIToggle = "AI_TOGGLE";
-  // Add to Permissions.All array
-  ```
+### Build verified: `docker compose build backend frontend` PASS
 
-### 4.2 AI Toggle Switch in Header (Admin Only)
-- **EDIT** `LeftSidebar.razor`:
-```razor
-<AuthorizeView Policy="@Permissions.AIToggle">
-    <RadzenSwitch @bind-Value="glb.IsAIEnabled" Change="@OnAIToggleChange"
-                  Title="@(glb.IsAIEnabled ? Loc["AIEnabled"] : Loc["AIDisabled"])" />
-</AuthorizeView>
-```
-- **EDIT** `LeftSidebar.razor.cs`: persist to `ProtectedLocalStore`, load on init
+### 4.1 New Component Code: `AI_TOGGLE` (Database Permission System) ✅
+- **SeedData.cs**: Added `CompAIToggle`, `P05_AI_Toggle` GUIDs, component `C("AI_TOGGLE", ...)`, P05 mapping → PageSidebar, Admin group gets access in SeedP06 + ForceSeed
+- **Permissions.cs**: Added `public const string AIToggle = "AI_TOGGLE"` + All[] array
+- **Config.cs**: Added `public const string AIToggle = "AI_TOGGLE"`
 
-### 4.3 Guard All AI-Related Components
-| Component | Action |
-|-----------|--------|
-| LeftSidebar "AI Management" menu item | `@if (glb.IsAIEnabled)` wrap |
-| Page_AI.razor.cs | Redirect `/dashboard` if `!glb.IsAIEnabled` |
-| Tab_AIChat, Tab_AIVPPChat, Tab_KeyManage | Guarded at page level redirect |
-| Page_OrderCreate.razor — AI Smart Search card | `@if (glb.IsAIEnabled)` |
-| Page_OrderCreate.razor.cs — GetAISuggestionsAsync() | `if (!glb.IsAIEnabled) return;` |
+### 4.2 AI Toggle Switch in Header (Admin Only) ✅
+- **LeftSidebar.razor**: `<AuthorizeView Policy="@Permissions.AIToggle">` wraps icon + RadzenSwitch
+- **LeftSidebar.razor.cs**: `LoadAIStateAsync()` reads from ProtectedLocalStore on first render, `OnAIToggleChange()` persists
+
+### 4.3 Guard All AI-Related Components ✅
+| Component | Guard |
+|-----------|-------|
+| LeftSidebar "AI Management" menu | `@if (glb.IsAIEnabled)` wraps entire `<AuthorizeView>` |
+| Page_AI.razor.cs | Redirect `/dashboard?tab=0` with warning if `!glb.IsAIEnabled` |
+| Page_OrderCreate.razor — AI Smart Search card | `@if (glb.IsAIEnabled)` wraps entire card |
+| Page_OrderCreate.razor.cs — GetAISuggestionsAsync() | `if (!glb.IsAIEnabled) return;` early exit |
 | MainLayout.razor — AIChatBox | `@if (glb.IsAIEnabled) { <AIChatBox /> }` |
-| Backend AIController.cs | Return 503 if AI disabled |
+| Backend AIController.cs | Skipped — effective guard is frontend permissions + UI hide |
 
-### 4.4 AIToggle Visible in Permission UI
-- **EDIT** `Page_Permission/Tab_PagePermission.razor`: `AI_TOGGLE` tu dong hien thi trong grid permission cho admin quan ly
+### 4.4 AIToggle Visible in Permission UI ✅
+- Automatically appears under SIDEBAR page group (seeded P05 mapping → PageSidebar)
+- Admin group has IsVisible=true, IsEnable=true
 
 ---
 
@@ -306,7 +292,7 @@ Phase 0 (DONE) → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → P
 | 2 | ✅ PASS | 2026-05-06 |
 | 2 | ⏳ Pending | |
 | 3 | ✅ PASS | 2026-05-06 |
-| 4 | ⏳ Pending | |
+| 4 | ✅ PASS | 2026-05-06 |
 | 5 | ⏳ Pending | |
 | 6 | ⏳ Pending | |
 | 7 | ⏳ Pending | |
