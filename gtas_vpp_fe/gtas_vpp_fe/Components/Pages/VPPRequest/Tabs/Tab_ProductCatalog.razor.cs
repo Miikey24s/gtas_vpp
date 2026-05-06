@@ -3,6 +3,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using Radzen.Blazor;
 using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
@@ -34,17 +35,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         public List<ProductItem> Products { get; set; } = new();
         public List<CategoryOption> CategoryOptions { get; set; } = new();
+        public int ProductCount { get; set; }
 
         public bool IsLoading { get; set; }
         public Guid? CategoryFilter { get; set; }
         public string? SearchText { get; set; }
+        public RadzenDataGrid<ProductItem>? productGrid { get; set; }
 
         private bool CanView => claims.HasPermission(Permissions.RequestProductCatalog);
 
         protected override async Task OnInitializedAsync()
         {
             await LoadCategoriesAsync();
-            await LoadProductsAsync();
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender && CanView && productGrid != null)
+            {
+                await productGrid.Reload();
+            }
         }
 
         private async Task LoadCategoriesAsync()
@@ -65,7 +75,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        protected async Task LoadProductsAsync()
+        protected async Task LoadProductsAsync(LoadDataArgs args)
         {
             if (!CanView) return;
 
@@ -73,11 +83,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             glb.isBusyPage = true;
             try
             {
-                var endpoint = BuildProductsEndpoint();
-                Products = await _apiServices.GetFromApiAsync<List<ProductItem>>(endpoint) ?? new();
+                var endpoint = BuildProductsEndpoint(args);
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(endpoint);
+                Products = result.Data ?? new();
+                ProductCount = result.TotalCount;
             }
             catch (Exception ex)
             {
+                Products = new();
+                ProductCount = 0;
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
@@ -94,13 +108,23 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        protected async Task ReloadAsync() => await LoadProductsAsync();
+        protected async Task ReloadAsync()
+        {
+            if (productGrid != null)
+            {
+                await productGrid.Reload();
+            }
+        }
 
-        private string BuildProductsEndpoint()
+        private string BuildProductsEndpoint(LoadDataArgs args)
         {
             var query = new List<string>();
             if (CategoryFilter.HasValue) query.Add($"categoryId={CategoryFilter.Value}");
             if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText)}");
+            if (!string.IsNullOrWhiteSpace(args.Filter)) query.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+            if (args.Skip.HasValue) query.Add($"skip={args.Skip.Value}");
+            if (args.Top.HasValue) query.Add($"top={args.Top.Value}");
+            if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
 
             if (query.Count == 0) return "/api/VPPRequest/products";
             return $"/api/VPPRequest/products?{string.Join("&", query)}";

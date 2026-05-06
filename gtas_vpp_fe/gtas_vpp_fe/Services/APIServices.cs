@@ -14,6 +14,7 @@ namespace gtas_vpp_fe.Services
         Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
         Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
         Task<T?> GetFromApiAsync<T>(string endpoint);
+        Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint);
         Task<T?> PostFromApiAsync<T>(string endpoint, object? body);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
@@ -137,6 +138,22 @@ namespace gtas_vpp_fe.Services
             var response = await _httpClient.GetAsync(endpoint);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
+        }
+
+        public async Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint)
+        {
+            await ApplyAuthorizationHeaderAsync();
+            var response = await _httpClient.GetAsync(endpoint);
+            await EnsureSuccessWithDetailsAsync(response);
+
+            var totalCount = 0;
+            if (response.Headers.TryGetValues("X-Total-Count", out var headerValues))
+            {
+                int.TryParse(headerValues.FirstOrDefault(), out totalCount);
+            }
+
+            var data = await ReadResponseAsJsonAsync<T>(response);
+            return (data, totalCount);
         }
 
         public async Task<T?> PostFromApiAsync<T>(string endpoint, object? body)

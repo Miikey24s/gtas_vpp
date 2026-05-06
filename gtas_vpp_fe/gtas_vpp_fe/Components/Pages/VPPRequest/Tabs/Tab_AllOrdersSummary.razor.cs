@@ -23,6 +23,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
 
         public bool IsLoading { get; set; }
+        private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
+        private HashSet<Guid> LoadingDetailOrderIds { get; } = new();
         public int? YearFilter { get; set; } = DateTime.Now.Year;
         public int? MonthFilter { get; set; }
         public int? StatusFilter { get; set; }
@@ -113,6 +115,39 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (query.Count == 0) return Config.VppApi.AllOrders;
             return $"{Config.VppApi.AllOrders}?{string.Join("&", query)}";
         }
+
+        protected async Task OnRowExpandAsync(VPP01_RequestHeaderResDTO row)
+        {
+            if (row == null || row.Id == Guid.Empty || LoadedDetailOrderIds.Contains(row.Id) || LoadingDetailOrderIds.Contains(row.Id))
+            {
+                return;
+            }
+
+            LoadingDetailOrderIds.Add(row.Id);
+            try
+            {
+                var detail = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"/api/VPPRequest/orders/{row.Id}");
+                row.Items = detail?.Items ?? new List<VPP02_RequestDetailResDTO>();
+                LoadedDetailOrderIds.Add(row.Id);
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "All Orders Summary",
+                    Detail = $"Load details failed: {ex.Message}",
+                    Duration = 6000
+                });
+            }
+            finally
+            {
+                LoadingDetailOrderIds.Remove(row.Id);
+                StateHasChanged();
+            }
+        }
+
+        protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
 
         protected string GetStatusText(int status) => status switch
         {

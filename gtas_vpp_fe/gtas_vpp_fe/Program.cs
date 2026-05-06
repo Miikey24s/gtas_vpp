@@ -102,14 +102,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
+// ── STATIC FILES TRƯỚC AUTH - để _framework/blazor.web.js không bị auth chặn ──
 app.UseStaticFiles();
+app.MapStaticAssets();
+
 app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

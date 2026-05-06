@@ -21,7 +21,7 @@
             <RadzenButton Icon="refresh" Text="Reload" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
         </RadzenStack> *@
 
-        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowVirtualization="true" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" Density="Density.Compact" class="librarypagegrid"
+        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowVirtualization="true" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync" Density="Density.Compact" class="librarypagegrid"
                         AllowFiltering="true"
                         AllowMultiColumnSorting="true"
                         AllowGrouping="true"
@@ -59,6 +59,10 @@
             <Template Context="row">
                 <div style="padding: 1rem; background-color: #f8f9fa;">
                     <RadzenText Text="Order Items" TextStyle="TextStyle.Subtitle2" Style="font-weight: 600; margin-bottom: 0.5rem; color: var(--rz-text-color);" />
+                    @if (IsRowDetailLoading(row.Id))
+                    {
+                        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                    }
                     <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Data="@(row.Items ?? new())" 
                                     AllowPaging="false" AllowVirtualization="false" AllowSorting="false" 
                                     Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
