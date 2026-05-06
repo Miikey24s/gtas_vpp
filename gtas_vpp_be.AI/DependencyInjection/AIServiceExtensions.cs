@@ -64,7 +64,7 @@ public static class AIServiceExtensions
         string embedModel,
         int timeoutSeconds)
     {
-        var ollamaUrl = NormalizeBaseUrl(aiSettings["OllamaBaseUrl"] ?? "http://localhost:11434");
+        var ollamaUrl = NormalizeBaseUrl(aiSettings["OllamaBaseUrl"] ?? "http://ollama.annam.id.vn");
 
         services.AddSingleton(new HttpClient
         {

@@ -104,15 +104,6 @@ namespace gtas_vpp_be.Controllers
             return Ok();
         }
 
-        [HttpPost("orders/{id:guid}/undo-cancel")]
-        public async Task<IActionResult> UndoCancelOrder(Guid id)
-        {
-            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
-
-            await _vppService.UndoCancelAsync(id, CurrentUserId.Value);
-            return Ok();
-        }
-
         [HttpGet("orders/previous-items")]
         public async Task<IActionResult> GetPreviousOrderItems()
         {

@@ -1,8 +1,12 @@
 using gtas_vpp_be.AI.KeyManagement.Interfaces;
 using gtas_vpp_be.Service.AI;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.AI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace gtas_vpp_be.Controllers;
 
@@ -12,26 +16,87 @@ namespace gtas_vpp_be.Controllers;
 public class AIController : ControllerBase
 {
     private readonly IAIOrchestrator _orchestrator;
+    private readonly IChatClient _chatClient;
     private readonly IVPPEmbeddingStore _embeddingStore;
     private readonly HttpClient _httpClient;
     private readonly ILogger<AIController> _logger;
-    private readonly IGeminiKeyManager _keyManager;
+    private readonly IConfiguration _configuration;
+    private readonly IServiceProvider _serviceProvider;
 
     public AIController(
         IAIOrchestrator orchestrator,
+        IChatClient chatClient,
         IVPPEmbeddingStore embeddingStore,
         HttpClient httpClient,
         ILogger<AIController> logger,
-        IGeminiKeyManager keyManager)
+        IConfiguration configuration,
+        IServiceProvider serviceProvider)
     {
         _orchestrator = orchestrator;
+        _chatClient = chatClient;
         _embeddingStore = embeddingStore;
         _httpClient = httpClient;
         _logger = logger;
-        _keyManager = keyManager;
+        _configuration = configuration;
+        _serviceProvider = serviceProvider;
+    }
+
+    [HttpPost("admin-chat")]
+    [Authorize(Policy = Permissions.RequestAIChat)]
+    public async Task<IActionResult> AdminChatAsync([FromBody] AIChatRequestDTO request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Message))
+        {
+            return Ok(new AIChatResponseDTO
+            {
+                IsSuccess = false,
+                Message = "Message is required.",
+                ErrorMessage = "Message is required."
+            });
+        }
+
+        try
+        {
+            var messages = BuildDirectChatMessages(request);
+            var response = await _chatClient.GetResponseAsync(messages, new ChatOptions
+            {
+                MaxOutputTokens = 4096,
+                Temperature = 0.7f
+            }, ct);
+
+            return Ok(new AIChatResponseDTO
+            {
+                IsSuccess = true,
+                Message = string.IsNullOrWhiteSpace(response.Text) ? "No response from AI." : response.Text,
+                UseCaseId = "admin_chat"
+            });
+        }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogWarning(ex, "AI {Action} timed out or was cancelled", "AdminChat");
+            return Ok(new AIChatResponseDTO
+            {
+                IsSuccess = false,
+                Message = "AI response timed out.",
+                ErrorMessage = "AI response timed out.",
+                UseCaseId = "admin_chat"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "AI {Action} failed", "AdminChat");
+            return Ok(new AIChatResponseDTO
+            {
+                IsSuccess = false,
+                Message = "AI service is temporarily unavailable.",
+                ErrorMessage = "AI service is temporarily unavailable.",
+                UseCaseId = "admin_chat"
+            });
+        }
     }
 
     [HttpPost("chat")]
+    [Authorize(Policy = Permissions.RequestAIVppChat)]
     public async Task<IActionResult> ChatAsync([FromBody] AIChatRequestDTO request, CancellationToken ct)
     {
         var internalRequest = new AIChatRequest
@@ -96,6 +161,15 @@ public class AIController : ControllerBase
     {
         try
         {
+            if (!IsSelfHostedAiEndpoint())
+            {
+                return Ok(new
+                {
+                    IsAvailable = true,
+                    StatusCode = StatusCodes.Status200OK
+                });
+            }
+
             using var response = await _httpClient.GetAsync("api/tags", ct);
             return Ok(new
             {
@@ -117,6 +191,50 @@ public class AIController : ControllerBase
     [HttpGet("keys")]
     public IActionResult GetAIKeys()
     {
-        return Ok(_keyManager.GetAllKeyInfos());
+        if (!string.Equals(_configuration["AISettings:Provider"], "Google", StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound(new { Message = "Google API key management is disabled. Configure Ollama instead." });
+        }
+
+        var keyManager = _serviceProvider.GetService<IGeminiKeyManager>();
+        if (keyManager is null)
+        {
+            return NotFound(new { Message = "Google API key management is not registered." });
+        }
+
+        return Ok(keyManager.GetAllKeyInfos());
+    }
+
+    private bool IsSelfHostedAiEndpoint()
+    {
+        var host = _httpClient.BaseAddress?.Host ?? string.Empty;
+        return host.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+            || host.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase)
+            || host.StartsWith("100.", StringComparison.OrdinalIgnoreCase)
+            || host.Contains("ollama", StringComparison.OrdinalIgnoreCase)
+            || host.Contains("annam.id.vn", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<Microsoft.Extensions.AI.ChatMessage> BuildDirectChatMessages(AIChatRequestDTO request)
+    {
+        var messages = new List<Microsoft.Extensions.AI.ChatMessage>();
+
+        if (request.History is not null)
+        {
+            messages.AddRange(request.History
+                .Where(x => !string.IsNullOrWhiteSpace(x.Content))
+                .TakeLast(20)
+                .Select(x => new Microsoft.Extensions.AI.ChatMessage(MapDirectChatRole(x.Role), x.Content)));
+        }
+
+        messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, request.Message));
+        return messages;
+    }
+
+    private static ChatRole MapDirectChatRole(string role)
+    {
+        return role.Equals("assistant", StringComparison.OrdinalIgnoreCase)
+            ? ChatRole.Assistant
+            : ChatRole.User;
     }
 }

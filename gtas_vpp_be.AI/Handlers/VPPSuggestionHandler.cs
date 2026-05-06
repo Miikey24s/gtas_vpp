@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using gtas_vpp_be.Service.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -13,17 +14,22 @@ public class VPPSuggestionHandler : IAIUseCaseHandler
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IChatClient _chatClient;
     private readonly ILogger<VPPSuggestionHandler> _logger;
+    private readonly string _aiProvider;
+    private readonly string _chatModel;
 
     public VPPSuggestionHandler(
         IVPPEmbeddingStore embeddingStore,
         IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         IChatClient chatClient,
-        ILogger<VPPSuggestionHandler> logger)
+        ILogger<VPPSuggestionHandler> logger,
+        IConfiguration configuration)
     {
         _embeddingStore = embeddingStore;
         _embeddingGenerator = embeddingGenerator;
         _chatClient = chatClient;
         _logger = logger;
+        _aiProvider = configuration["AISettings:Provider"] ?? "Ollama";
+        _chatModel = configuration["AISettings:ChatModel"] ?? "gemma4:e4b";
     }
 
     public string UseCaseId => "vpp_suggestion";
@@ -47,55 +53,59 @@ public class VPPSuggestionHandler : IAIUseCaseHandler
             var searchResults = await _embeddingStore.SearchSimilarAsync(queryEmbedding.Vector.ToArray(), TopK, ct);
 
             var messages = BuildMessages(request, searchResults);
-            
-            // STEP 1: ROUTING (Determine primary model)
-            string primaryModel = "gemini-3.1-flash-lite-preview"; // Default (Daily driver)
-            
-            if (request.Message.Length > 8000 || request.Message.Contains("phân tích code", StringComparison.OrdinalIgnoreCase) || request.Message.Contains("analyze code", StringComparison.OrdinalIgnoreCase))
-            {
-                primaryModel = "gemma-4-31b"; // Heavy Duty
-            }
 
             var options = new ChatOptions
             {
-                ModelId = primaryModel,
+                ModelId = _chatModel,
                 MaxOutputTokens = 2048,
-                Temperature = 0.3f,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    // Pass virtual header down to DelegatingHandler for key rotation tracking
-                    ["HttpRequestHeaders"] = new Dictionary<string, string> { { "x-target-model", primaryModel } }
-                }
+                Temperature = 0.3f
             };
 
             ChatResponse chatResponse;
-            try
+            if (!string.Equals(_aiProvider, "Google", StringComparison.OrdinalIgnoreCase))
             {
-                // STEP 2: CALL CHAT (DelegatingHandler will handle Key Swapping seamlessly)
                 chatResponse = await _chatClient.GetResponseAsync(messages, options, ct);
             }
-            catch (Exception ex) when (ex.Message.Contains("ALL_KEYS_EXHAUSTED_FOR_MODEL"))
+            else
             {
-                _logger.LogWarning("All 8 keys exhausted (429 Rate Limit) for primary model {Model}. ACTIVATING FALLBACK!", primaryModel);
-
-                // STEP 3: SWAP MODEL TO ULTIMATE FALLBACK (Gemma 3 27B)
-                string fallbackModel = "gemma-3-27b";
-                options.ModelId = fallbackModel;
-                
-                if (options.AdditionalProperties?["HttpRequestHeaders"] is Dictionary<string, string> headers)
+                // STEP 1: ROUTING (Determine primary model)
+                string primaryModel = "gemini-3.1-flash-lite-preview";
+                if (request.Message.Length > 8000 || request.Message.Contains("phân tích code", StringComparison.OrdinalIgnoreCase) || request.Message.Contains("analyze code", StringComparison.OrdinalIgnoreCase))
                 {
-                    headers["x-target-model"] = fallbackModel; // Update virtual header
+                    primaryModel = "gemma-4-31b";
                 }
+
+                options.ModelId = primaryModel;
+                options.AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    ["HttpRequestHeaders"] = new Dictionary<string, string> { { "x-target-model", primaryModel } }
+                };
 
                 try
                 {
-                    // Second attempt with Fallback model. DelegatingHandler will test 8 keys for this new model.
                     chatResponse = await _chatClient.GetResponseAsync(messages, options, ct);
                 }
-                catch (Exception fallbackEx)
+                catch (Exception ex) when (ex.Message.Contains("ALL_KEYS_EXHAUSTED_FOR_MODEL"))
                 {
-                    _logger.LogError(fallbackEx, "Total failure! Fallback model has also collapsed!");
-                    return AIChatResponse.Error("AI Service is currently overloaded. Please try again later.");
+                    _logger.LogWarning("All 8 keys exhausted (429 Rate Limit) for primary model {Model}. ACTIVATING FALLBACK!", primaryModel);
+
+                    string fallbackModel = "gemma-3-27b";
+                    options.ModelId = fallbackModel;
+
+                    if (options.AdditionalProperties?["HttpRequestHeaders"] is Dictionary<string, string> headers)
+                    {
+                        headers["x-target-model"] = fallbackModel;
+                    }
+
+                    try
+                    {
+                        chatResponse = await _chatClient.GetResponseAsync(messages, options, ct);
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        _logger.LogError(fallbackEx, "Total failure! Fallback model has also collapsed!");
+                        return AIChatResponse.Error("AI Service is currently overloaded. Please try again later.");
+                    }
                 }
             }
 

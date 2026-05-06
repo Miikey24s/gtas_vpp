@@ -46,6 +46,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid CompMenuAI             = Guid.Parse("E5EAC402-A00A-4FEE-8C3C-D8A3C1BE6B4D");
         private static readonly Guid CompRequestAIKeyManage = Guid.Parse("71A3F5B8-28CE-4A82-9D72-B1389D66CC3B");
         private static readonly Guid CompRequestAIChat      = Guid.Parse("C2A4D7E1-3F8B-4C91-A5D6-8E2F1B9C0A47");
+        private static readonly Guid CompRequestAIVPPChat   = Guid.Parse("7E8C4B13-1F6D-4BA6-A65E-2E97249D1BC8");
 
         // ── P05 Mapping IDs ────────────────────────────────────────
         private static readonly Guid P05_SB_Dashboard  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
@@ -69,6 +70,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid P05_SB_AI         = Guid.Parse("A891BC3A-32F9-41C8-97F2-4F1E0BB3F84A");
         private static readonly Guid P05_AI_KeyManage  = Guid.Parse("9B8164F0-C9C9-4C59-A1B4-3F572C413158");
         private static readonly Guid P05_AI_Chat       = Guid.Parse("D3B5E8F2-4A9C-4D02-B6E7-9F3A2C1D5B68");
+        private static readonly Guid P05_AI_VPP_Chat   = Guid.Parse("E4A1A25C-1D7F-4A1B-987D-2204FA451C76");
 
         // ════════════════════════════════════════════════════════════
         //  MAIN ENTRY POINT
@@ -230,7 +232,8 @@ namespace gtas_vpp_be.Service.Services
                 C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now),
                 C("MENU_AI",                  "Menu - AI",                  "View AI Menu",     CompMenuAI, now),
                 C("AI_KEY_MANAGE",            "Request AI Key Manage",      "Key Manage Tab",   CompRequestAIKeyManage, now),
-                C("AI_CHAT",                  "Request AI Chat",            "AI Chat Tab",      CompRequestAIChat, now)
+                C("AI_CHAT",                  "Request AI Chat",            "AI Chat Tab",      CompRequestAIChat, now),
+                C("AI_VPP_CHAT",              "Request AI VPP Chat",        "VPP Chat Tab",     CompRequestAIVPPChat, now)
             };
             await context.P03_Components.AddRangeAsync(components);
             await context.SaveChangesAsync();
@@ -322,7 +325,8 @@ namespace gtas_vpp_be.Service.Services
                 P5(P05_RP_View,       PageReport,     CompReportView),
                 P5(P05_SB_AI,         PageSidebar,    CompMenuAI),
                 P5(P05_AI_KeyManage,  PageAI,         CompRequestAIKeyManage),
-                P5(P05_AI_Chat,       PageAI,         CompRequestAIChat)
+                P5(P05_AI_Chat,       PageAI,         CompRequestAIChat),
+                P5(P05_AI_VPP_Chat,   PageAI,         CompRequestAIVPPChat)
             };
             await context.P05_PageComponentMappings.AddRangeAsync(mappings);
             await context.SaveChangesAsync();
@@ -351,7 +355,7 @@ namespace gtas_vpp_be.Service.Services
                 P05_DB_AllSum, P05_DB_Approval,
                 P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Dept,
                 P05_PM_User, P05_PM_Component,
-                P05_RP_View, P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat
+                P05_RP_View, P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat, P05_AI_VPP_Chat
             };
             foreach (var p05Id in allP05Ids)
                 mappings.Add(P6(p05Id, AdminGroupId, now));
@@ -361,7 +365,8 @@ namespace gtas_vpp_be.Service.Services
             {
                 P05_SB_Dashboard, P05_SB_Report, P05_SB_Library,
                 P05_DB_Order, P05_DB_Catalog, P05_DB_History,
-                P05_DB_DeptSum, P05_RP_View
+                P05_DB_DeptSum, P05_RP_View,
+                P05_SB_AI, P05_AI_VPP_Chat
             };
             foreach (var p05Id in userP05Ids)
                 mappings.Add(P6(p05Id, UserGroupId, now));
@@ -399,6 +404,12 @@ namespace gtas_vpp_be.Service.Services
                 var comp2 = await context.P03_Components.FindAsync(CompRequestAIChat);
                 if (comp2 != null && comp2.ComponentCode != "AI_CHAT") { comp2.ComponentCode = "AI_CHAT"; context.P03_Components.Update(comp2); }
             }
+            if (!context.P03_Components.Any(c => c.Id == CompRequestAIVPPChat))
+                await context.P03_Components.AddAsync(C("AI_VPP_CHAT", "Request AI VPP Chat", "VPP Chat Tab", CompRequestAIVPPChat, now));
+            else {
+                var comp3 = await context.P03_Components.FindAsync(CompRequestAIVPPChat);
+                if (comp3 != null && comp3.ComponentCode != "AI_VPP_CHAT") { comp3.ComponentCode = "AI_VPP_CHAT"; context.P03_Components.Update(comp3); }
+            }
 
             // 2. Page Component Mappings
             if (!context.P05_PageComponentMappings.Any(m => m.Id == P05_SB_AI))
@@ -407,14 +418,25 @@ namespace gtas_vpp_be.Service.Services
                 await context.P05_PageComponentMappings.AddAsync(P5(P05_AI_KeyManage, PageAI, CompRequestAIKeyManage));
             if (!context.P05_PageComponentMappings.Any(m => m.Id == P05_AI_Chat))
                 await context.P05_PageComponentMappings.AddAsync(P5(P05_AI_Chat, PageAI, CompRequestAIChat));
+            if (!context.P05_PageComponentMappings.Any(m => m.Id == P05_AI_VPP_Chat))
+                await context.P05_PageComponentMappings.AddAsync(P5(P05_AI_VPP_Chat, PageAI, CompRequestAIVPPChat));
 
-            // 3. Group Page Component Mappings (Admin Group only)
-            var p05Ids = new[] { P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat };
-            foreach (var p05Id in p05Ids)
+            // 3. Group Page Component Mappings
+            var adminP05Ids = new[] { P05_SB_AI, P05_AI_KeyManage, P05_AI_Chat, P05_AI_VPP_Chat };
+            foreach (var p05Id in adminP05Ids)
             {
                 if (!context.P06_GroupPageComponentMappings.Any(m => m.P05_PageComponentMappingId == p05Id && m.P02_GroupId == AdminGroupId))
                 {
                     await context.P06_GroupPageComponentMappings.AddAsync(P6(p05Id, AdminGroupId, now));
+                }
+            }
+
+            var userP05Ids = new[] { P05_SB_AI, P05_AI_VPP_Chat };
+            foreach (var p05Id in userP05Ids)
+            {
+                if (!context.P06_GroupPageComponentMappings.Any(m => m.P05_PageComponentMappingId == p05Id && m.P02_GroupId == UserGroupId))
+                {
+                    await context.P06_GroupPageComponentMappings.AddAsync(P6(p05Id, UserGroupId, now));
                 }
             }
 

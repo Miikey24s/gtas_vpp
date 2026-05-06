@@ -1,3 +1,4 @@
+using gtas_vpp_be.Authorization;
 using gtas_vpp_be.AI.DependencyInjection;
 using gtas_vpp_be.AI.KeyManagement.Interfaces;
 using gtas_vpp_be.Mappings;
@@ -6,7 +7,9 @@ using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -27,6 +30,8 @@ Config.Initialize(Configuration);
 var jwtKey = Config.JwtSettings.Key;
 var jwtIssuer = Config.JwtSettings.Issuer;
 var jwtAudience = Config.JwtSettings.Audience;
+var aiProvider = Configuration["AISettings:Provider"] ?? "Ollama";
+var isGoogleAiProvider = string.Equals(aiProvider, "Google", StringComparison.OrdinalIgnoreCase);
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -74,7 +79,10 @@ builder.Services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddGtasAIServices(Configuration);
-builder.Services.AddGeminiKeyManagement();
+if (isGoogleAiProvider)
+{
+    builder.Services.AddGeminiKeyManagement();
+}
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -104,7 +112,18 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in Permissions.All)
+    {
+        options.AddPolicy(permission, policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.Requirements.Add(new PermissionRequirement(permission));
+        });
+    }
+});
 
 var allowedOrigins = Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(options =>
@@ -130,9 +149,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-// Khởi tạo danh sách Gemini API Keys từ cấu hình (.env / docker-compose)
+// Legacy Gemini key management is only initialized when the Google provider is explicitly enabled.
 var rawKeys = Configuration["AISettings:GeminiApiKeys"];
-if (!string.IsNullOrWhiteSpace(rawKeys))
+if (isGoogleAiProvider && !string.IsNullOrWhiteSpace(rawKeys))
 {
     var keys = rawKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     

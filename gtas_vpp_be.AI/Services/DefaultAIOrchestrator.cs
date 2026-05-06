@@ -68,7 +68,8 @@ public class DefaultAIOrchestrator : IAIOrchestrator
             var isSelfHosted = host.Contains("localhost")
                 || host.Contains("127.0.0.1")
                 || host.StartsWith("100.")      // Tailscale
-                || host.Contains("ollama");      // Docker service
+                || host.Contains("ollama")
+                || host.Contains("annam.id.vn");
             if (!isSelfHosted)
             {
                 return true;

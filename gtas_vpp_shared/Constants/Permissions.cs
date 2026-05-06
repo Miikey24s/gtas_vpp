@@ -29,6 +29,7 @@ namespace gtas_vpp_shared.Constants
         public const string PermissionComponent = "PERMISSION_COMPONENT";
         public const string RequestAIKeyManage = "AI_KEY_MANAGE";
         public const string RequestAIChat = "AI_CHAT";
+        public const string RequestAIVppChat = "AI_VPP_CHAT";
 
         // Reports
         public const string ReportView = "REPORT_VIEW";
@@ -55,7 +56,8 @@ namespace gtas_vpp_shared.Constants
             ReportView,
             MenuAI,
             RequestAIKeyManage,
-            RequestAIChat
+            RequestAIChat,
+            RequestAIVppChat
         ];
     }
 }

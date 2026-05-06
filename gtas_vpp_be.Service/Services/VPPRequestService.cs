@@ -23,7 +23,6 @@ namespace gtas_vpp_be.Service.Services
         Task<VPP01_RequestHeaderResDTO> CreateOrderAsync(VPP01_CreateReqDTO req, int createUserId, string departmentCode, string memberCompanyCode);
         Task<VPP01_RequestHeaderResDTO> UpdateOrderAsync(VPP01_UpdateReqDTO req);
         Task CancelOrderAsync(Guid id, int userId);
-        Task UndoCancelAsync(Guid id, int userId);
         Task<VPP01_RequestHeaderResDTO?> GetPreviousOrderItemsAsync(int userId);
         Task<VPP_PeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId);
         Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode);
@@ -261,55 +260,6 @@ namespace gtas_vpp_be.Service.Services
 
                 await _scopedUow.CommitAsync();
                 return (await GetOrderByIdAsync(header.Id))!;
-            }
-            catch
-            {
-                _scopedUow.Rollback();
-                throw;
-            }
-        }
-
-        public async Task UndoCancelAsync(Guid id, int userId)
-        {
-            await _scopedUow.BeginTransactionAsync();
-            try
-            {
-                var header = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
-                    .Include(x => x.VPP02_RequestDetails)
-                    .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted);
-
-                if (header == null) throw new KeyNotFoundException("Cancelled order not found.");
-                if (header.CreateUserId != userId) throw new UnauthorizedAccessException("Cannot undo cancel of another user's order.");
-                
-                // Cannot undo if period is closed (for regular orders)
-                if (!header.IsAdditionalOrder && IsDeadlinePassed(header.Y, header.M))
-                    throw new InvalidOperationException("Cannot undo cancel for a closed period.");
-
-                var now = _dateTimeProvider.Now;
-
-                // Restore to original status
-                header.IsDeleted = false;
-                header.Status = header.IsAdditionalOrder ? (int)VPPStatus.Pending : (int)VPPStatus.Submitted;
-                header.UpdateUserId = userId;
-                header.UpdateDate = now;
-
-                await _scopedUow.VPPContext.Set<VPP02_RequestDetail>()
-                    .Where(x => x.VPP01_RequestHeaderId == header.Id && x.IsDeleted)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(x => x.IsDeleted, false)
-                        .SetProperty(x => x.UpdateUserId, userId)
-                        .SetProperty(x => x.UpdateDate, now));
-
-                _scopedUow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
-                {
-                    Id = Guid.NewGuid(),
-                    VPP01_RequestHeaderId = header.Id,
-                    LogTitle = "UNDO_CANCEL",
-                    LogDate = now,
-                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()))
-                });
-
-                await _scopedUow.CommitAsync();
             }
             catch
             {

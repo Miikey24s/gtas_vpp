@@ -7,6 +7,7 @@ using gtas_vpp_be.Service.AI;
 using gtas_vpp_be.Service.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace gtas_vpp_be.AI.Services;
@@ -17,26 +18,45 @@ public class SqlVPPEmbeddingStore : IVPPEmbeddingStore
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IGenericRepository<L04_VPP> _vppRepository;
     private readonly ILogger<SqlVPPEmbeddingStore> _logger;
+    private readonly string _embeddingModelName;
 
     public SqlVPPEmbeddingStore(
         AIDbContext db,
         IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
         IGenericRepository<L04_VPP> vppRepository,
-        ILogger<SqlVPPEmbeddingStore> logger)
+        ILogger<SqlVPPEmbeddingStore> logger,
+        IConfiguration configuration)
     {
         _db = db;
         _embeddingGenerator = embeddingGenerator;
         _vppRepository = vppRepository;
         _logger = logger;
+        _embeddingModelName = configuration["AISettings:EmbeddingModel"] ?? "nomic-embed-text";
     }
 
     public async Task<List<VPPEmbeddingSearchResult>> SearchSimilarAsync(float[] queryVector, int topK, CancellationToken ct = default)
     {
         var embeddings = await _db.VPPEmbeddings
             .AsNoTracking()
+            .Where(x => x.VectorDimension == queryVector.Length)
             .ToListAsync(ct);
 
-        var ranked = embeddings
+        var compatibleEmbeddings = embeddings
+            .Where(x => string.IsNullOrWhiteSpace(x.ModelName)
+                || string.Equals(x.ModelName, _embeddingModelName, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (compatibleEmbeddings.Count == 0)
+        {
+            _logger.LogWarning(
+                "AI {Action} found no embeddings compatible with model {ModelName} and vector dimension {VectorDimension}",
+                "SearchSimilar",
+                _embeddingModelName,
+                queryVector.Length);
+            return new List<VPPEmbeddingSearchResult>();
+        }
+
+        var ranked = compatibleEmbeddings
             .Select(x => new
             {
                 Embedding = x,
@@ -157,10 +177,10 @@ public class SqlVPPEmbeddingStore : IVPPEmbeddingStore
                 batch.Add((chunk[i].Id, texts[i], embeddings[i].Vector.ToArray()));
             }
 
-            await UpsertEmbeddingsBatchAsync(batch, "gemini-embedding-001", ct);
+            await UpsertEmbeddingsBatchAsync(batch, _embeddingModelName, ct);
 
             count += chunk.Length;
-            Console.WriteLine($"[GeminiEmbed] Đã nhúng xong {count}/{vpps.Count} VPPs.");
+            Console.WriteLine($"[EmbeddingRebuild] Completed {count}/{vpps.Count} VPP embeddings using {_embeddingModelName}.");
 
             // ~60 req/min to stay under free tier limit of 100 req/min
             await Task.Delay(1000, ct);
