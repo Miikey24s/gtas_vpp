@@ -17,8 +17,11 @@ CREATE OR ALTER VIEW dbo.v_WFXCompany
 AS
 SELECT DISTINCT
     p06.MemberCompanyCode,
-    CAST(NULL AS NVARCHAR(250)) AS CompanyName,
+    COALESCE(u.MemberCompanyName, p06.MemberCompanyCode) AS CompanyName,
     CAST(NULL AS NVARCHAR(100)) AS CompanyShortName
 FROM dbo.P06_GroupPageComponentMapping p06
+LEFT JOIN GTAS_MENU.dbo.tblUsers u
+    ON u.MemberCompanyCode = p06.MemberCompanyCode
+   AND u.IsInactiveFlg = 0
 WHERE p06.MemberCompanyCode IS NOT NULL;
 GO

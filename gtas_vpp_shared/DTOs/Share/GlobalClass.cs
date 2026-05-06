@@ -25,6 +25,8 @@ namespace gtas_vpp_shared.DTOs.Share
             }
         }
         public string BaseUrl { get; set; } = string.Empty;
+        public bool IsAIEnabled { get; set; } = true;
+        public string CurrentLanguage { get; set; } = "vi";
     }
 }
 
