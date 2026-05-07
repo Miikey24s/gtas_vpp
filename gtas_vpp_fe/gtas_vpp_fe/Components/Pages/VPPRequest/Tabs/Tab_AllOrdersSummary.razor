@@ -21,10 +21,16 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
-        <div style="font-size: 1.5rem; font-weight: 700; color: var(--vpp-ocean-primary-dark); margin-bottom: 1rem;">All Orders Summary (All Departments)</div>
+    @if (IsLoading)
+    {
+        <SkeletonGrid Rows="10" Cols="6" />
+    }
+    else
+    {
+        <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--vpp-ocean-primary-dark); margin-bottom: 1rem;">All Orders Summary (All Departments)</div>
 
-        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowVirtualization="true" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync" Density="Density.Compact" class="librarypagegrid"
+        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync" Density="Density.Compact" class="librarypagegrid"
                         AllowFiltering="true"
                         AllowMultiColumnSorting="true"
                         AllowGrouping="true"
@@ -85,6 +91,7 @@
             </Template>
         </RadzenDataGrid>
     </RadzenStack>
+    }
 }
 else
 {

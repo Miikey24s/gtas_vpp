@@ -25,7 +25,13 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
+    @if (IsLoading)
+    {
+        <SkeletonGrid Rows="10" Cols="5" />
+    }
+    else
+    {
+        <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
         @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
             <RadzenButton Icon="refresh" Text="@Loc["Reload"]" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
         </RadzenStack> *@
@@ -76,6 +82,7 @@
             </RadzenDataGrid>
         </RadzenCard>
     </RadzenStack>
+    }
 }
 else
 {

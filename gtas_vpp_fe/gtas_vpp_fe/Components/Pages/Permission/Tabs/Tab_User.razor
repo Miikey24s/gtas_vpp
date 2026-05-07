@@ -17,9 +17,15 @@
 
 @if (sp_Authentication_GetPermissionSinglePage!.List_Component.Any(y => y.ComponentCode!.Equals(Config.Page_ComponentCode.ComponentCode.AdminView) && y.IsVisible))
 {
-    <RadzenRow>
-        <RadzenColumn Size="12">
-            <RadzenDataGrid @ref="griduser"
+    @if (glb.isBusyPage)
+    {
+        <SkeletonGrid Rows="8" Cols="7" />
+    }
+    else
+    {
+        <RadzenRow>
+            <RadzenColumn Size="12">
+                <RadzenDataGrid @ref="griduser"
                             @bind-Value=@selected_UserList
                             AllowFiltering="true"
                             AllowColumnResize="true"
@@ -110,6 +116,7 @@
             </RadzenDataGrid>
         </RadzenColumn>
     </RadzenRow>
+    }
 }
 else
 {

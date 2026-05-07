@@ -16,12 +16,18 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
+    @if (IsLoading)
+    {
+        <SkeletonGrid Rows="10" Cols="6" />
+    }
+    else
+    {
+        <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
         @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
             <RadzenButton Icon="refresh" Text="@Loc["Reload"]" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Medium" Click="ReloadAsync" Disabled="@IsLoading" Style="border-radius: 6px;" />
         </RadzenStack> *@
 
-        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowVirtualization="true" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync" Density="Density.Compact" class="librarypagegrid"
+        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders" AllowPaging="true" PageSize="20" AllowSorting="true" AllowColumnResize="false" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync" Density="Density.Compact" class="librarypagegrid"
                         AllowFiltering="true"
                         AllowMultiColumnSorting="true"
                         AllowGrouping="true"
@@ -82,6 +88,7 @@
             </Template>
         </RadzenDataGrid>
     </RadzenStack>
+    }
 }
 else
 {

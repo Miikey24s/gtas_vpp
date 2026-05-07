@@ -607,7 +607,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 });
                 
                 // Log to console for debugging
-                await JS.InvokeVoidAsync("console.error", "Order submission error:", ex.Message, ex.StackTrace);
+                await JS.InvokeVoidAsync("console.error", "Order submission error:", ex.Message);
             }
             finally
             {

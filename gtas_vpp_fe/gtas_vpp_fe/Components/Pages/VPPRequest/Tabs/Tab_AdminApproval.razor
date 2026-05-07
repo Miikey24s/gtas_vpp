@@ -18,11 +18,17 @@
     {
         <div style="font-size: 1.5rem; font-weight: 700; color: var(--vpp-ocean-primary-dark); margin-bottom: 1rem;">Admin Approval (Additional Orders)</div>
 
+    @if (IsLoading)
+    {
+        <SkeletonGrid Rows="5" Cols="6" />
+    }
+    else
+    {
     <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
         <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO"
                         Data="@PendingOrders"
                         IsLoading="@IsLoading"
-                        AllowPaging="true" PageSize="10" AllowVirtualization="true"
+                        AllowPaging="true" PageSize="10"
                         AllowSorting="true" AllowAlternatingRows="true"
                         AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single" RowExpand="OnRowExpandAsync"
                         AllowFiltering="true"
@@ -115,6 +121,7 @@
             </Template>
         </RadzenDataGrid>
     </RadzenCard>
+    }
     }
     else
     {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@_htmlLang">
 
 <head>
     <meta charset="utf-8" />
@@ -16,11 +16,20 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700%7CPoppins:400,500" rel="stylesheet">
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <script>
+        // FOUC prevention — apply theme before paint
+        (function(){
+            var m = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
+            var t = m ? m[1] : 'material3';
+            if (t.indexOf('dark') !== -1) document.documentElement.classList.add('rz-theme-dark');
+        })();
+    </script>
     <HeadOutlet />
     <RadzenTheme Theme="@currentTheme"/>
 </head>
 
 <body>
+    <ThemeInitializer />
     <Routes />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
@@ -40,10 +49,17 @@
     private ThemeService ThemeService { get; set; } = default!;
 
     private string currentTheme = "material3";
+    private string _htmlLang = "vi";
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        
+        var cultureFeature = HttpContext?.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
+        if (cultureFeature != null)
+        {
+            _htmlLang = cultureFeature.RequestCulture.UICulture.TwoLetterISOLanguageName;
+        }
         
         // Đọc theme từ cookie
         if (HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var themeCookie))

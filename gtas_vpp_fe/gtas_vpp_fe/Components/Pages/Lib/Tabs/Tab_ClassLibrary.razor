@@ -35,6 +35,12 @@
     }
 </style>
 
+@if (isLoadingL01)
+{
+    <SkeletonGrid Rows="8" Cols="3" />
+}
+else
+{
 <RadzenSplitter>
     <RadzenSplitterPane Size="50%" Min="30%" Max="70%">
         <RadzenStack Gap="1rem">
@@ -136,3 +142,4 @@
         </RadzenStack>
     </RadzenSplitterPane>
 </RadzenSplitter>
+}

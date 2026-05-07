@@ -8,12 +8,18 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
+    @if (IsLoading)
+    {
+        <SkeletonGrid Rows="8" Cols="6" />
+    }
+    else
+    {
+        <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-2">
         
         @* ── History DataGrid Section ── *@
         <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
             <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders"
-                            AllowPaging="true" PageSize="10" AllowVirtualization="true"
+                            AllowPaging="true" PageSize="10"
                             AllowSorting="true" AllowAlternatingRows="true"
                             AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single" IsLoading="@IsLoading" RowExpand="OnRowExpandAsync"
                             AllowFiltering="true"
@@ -87,6 +93,7 @@
             </RadzenDataGrid>
         </RadzenCard>
     </RadzenStack>
+    }
 }
 else
 {

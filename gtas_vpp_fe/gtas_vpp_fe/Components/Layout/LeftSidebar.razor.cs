@@ -167,7 +167,7 @@ namespace gtas_vpp_fe.Components.Layout
             var newCulture = currentCulture.StartsWith("en") ? "vi" : "en";
             
             await ProtectedLocalStore.SetAsync("VPP_Language", newCulture);
-            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+            NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
         }
 
         public string GetUserInitials()

@@ -1,6 +1,7 @@
 @page "/report"
 @layout MainLayout
 @using gtas_vpp_shared.Constants
+@using gtas_vpp_shared.DTOs.Share
 
 @rendermode InteractiveServer
 
@@ -8,10 +9,35 @@
 
 <AuthorizeView Policy="@Permissions.ReportView" Context="reportAuth">
     <Authorized>
-        <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3">
-            <RadzenText Text="@Loc["Reports"]" TextStyle="TextStyle.H5" class="rz-m-0" />
-            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" AllowClose="false">
-                Report content has not been configured yet.
+        <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-3">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                <RadzenText Text="@Loc["Reports"]" TextStyle="TextStyle.H4" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                <RadzenButton Icon="file_download" Text="Export Report" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Disabled="true" />
+            </RadzenStack>
+
+            <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch">
+                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
+                    <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 stat-card">
+                        <RadzenText Text="Total Orders" TextStyle="TextStyle.Overline" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0" Style="font-weight: 800;" />
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
+                    <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 stat-card">
+                        <RadzenText Text="Total Quantity" TextStyle="TextStyle.Overline" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0" Style="font-weight: 800;" />
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
+                    <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 stat-card">
+                        <RadzenText Text="Departments" TextStyle="TextStyle.Overline" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
+                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0" Style="font-weight: 800;" />
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" AllowClose="false" Style="border-radius: 8px;">
+                Report content has not been configured yet. Export functionality coming soon.
             </RadzenAlert>
         </RadzenStack>
     </Authorized>

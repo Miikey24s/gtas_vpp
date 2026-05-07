@@ -1,0 +1,27 @@
+<RadzenStack Gap="0.75rem" class="skeleton-grid">
+    <RadzenRow Gap="0.5rem" AlignItems="AlignItems.Center" class="skeleton-header">
+        <RadzenColumn Size="3">
+            <div class="shimmer shimmer-bar shimmer-h-24 shimmer-w-50"></div>
+        </RadzenColumn>
+        <RadzenColumn Size="9" class="rz-text-align-right">
+            <div class="shimmer shimmer-bar shimmer-h-24 shimmer-w-30" style="margin-left: auto;"></div>
+        </RadzenColumn>
+    </RadzenRow>
+    @for (int i = 0; i < Rows; i++)
+    {
+        <RadzenRow Gap="0.5rem" AlignItems="AlignItems.Center">
+            @for (int j = 0; j < Cols; j++)
+            {
+                var w = j == 0 ? "90%" : (j == Cols - 1 ? "60%" : "75%");
+                <RadzenColumn Size="@(12 / Cols)">
+                    <div class="shimmer shimmer-bar shimmer-h-16" style="width: @w;"></div>
+                </RadzenColumn>
+            }
+        </RadzenRow>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter] public int Rows { get; set; } = 5;
+    [Parameter] public int Cols { get; set; } = 4;
+}

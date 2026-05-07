@@ -70,9 +70,35 @@
             </RadzenColumn>
         </RadzenRow>
 
+        @if (!IsLoading && ChartMonthlyData.Any())
+        {
+            <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch">
+                <RadzenColumn Size="12" SizeLG="8">
+                    <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3">
+                        <RadzenText Text="Monthly Trends" TextStyle="TextStyle.Subtitle1" class="rz-mb-2" Style="font-weight: 700;" />
+                        <RadzenChart>
+                            <RadzenColumnSeries Data="@ChartMonthlyData" CategoryProperty="Month" ValueProperty="OrderCount" Title="Orders" LineType="LineType.Solid" />
+                            <RadzenCategoryAxis />
+                            <RadzenValueAxis />
+                        </RadzenChart>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeLG="4">
+                    <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3">
+                        <RadzenText Text="Status Distribution" TextStyle="TextStyle.Subtitle1" class="rz-mb-2" Style="font-weight: 700;" />
+                        <RadzenChart>
+                            <RadzenPieSeries Data="@ChartStatusData" CategoryProperty="Status" ValueProperty="Count" />
+                            <RadzenValueAxis Visible="false" />
+                        </RadzenChart>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+        }
+
         @if (IsLoading)
         {
-            <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <SkeletonStatCards Cards="4" />
+            <SkeletonGrid Rows="5" Cols="4" />
         }
         else
         {

@@ -101,7 +101,12 @@
             <RadzenColumn Size="12">
                 @if (list_PermissionOfGroup.Count > 0)
                 {
-                    <Component_Loading isActive=@IsLoading_Child />
+                    @if (IsLoading_Child)
+                    {
+                        <SkeletonGrid Rows="6" Cols="5" />
+                    }
+                    else
+                    {
                     <RadzenTabs RenderMode="TabRenderMode.Client" @bind-SelectedIndex=@selectedTab>
                         <Tabs>
                             @foreach (var item in list_PermissionOfGroup)
@@ -170,6 +175,7 @@
 
                         </Tabs>
                     </RadzenTabs>
+                    }
                 }
                 else
                 {

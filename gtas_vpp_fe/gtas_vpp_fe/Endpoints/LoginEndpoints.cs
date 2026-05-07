@@ -53,6 +53,16 @@ namespace gtas_vpp_fe.Endpoints
 
                 return Results.Redirect("/");
             });
+
+            app.MapGet("/set-language", (string culture, string? returnUrl, HttpContext context) =>
+            {
+                context.Response.Cookies.Append(
+                    ".AspNetCore.Culture",
+                    $"c={culture}|uic={culture}",
+                    new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), Path = "/", IsEssential = true }
+                );
+                return Results.Redirect(returnUrl ?? "/");
+            });
         }
     }
 }
