@@ -1,3 +1,0 @@
-hãy dựa vào /root/.gemini/antigravity/brain/55d83770-287f-4d0d-b053-667d5ae33eb1/implementation_plan.md.resolved ( bỏ AI toogle đi)
-đây là plan cũ, code cũng thay đổi kha khá rồi, hãy thiết kế lại plan, và , bạn ko có làm trong này nữa nhé, thiết kế chi tiết, tối ưu, chuyên gia
-đồng thời kiểm tra toàn bộ project (tất cả mọi thứ xem) tất cả mọi thứ ổn, cho production chưa

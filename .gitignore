@@ -374,6 +374,9 @@ scripts/export_db_full.sql
 .gemini/
 .mcp.json
 
+# Blazor framework assets (SDK-generated, do not commit)
+wwwroot/_framework/
+
 # Local Configuration
 appsettings.Development.json
 .env

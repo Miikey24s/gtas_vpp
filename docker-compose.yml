@@ -23,7 +23,7 @@ services:
       MSSQL_PID: "Express"
       MSSQL_MEMORY_LIMIT_MB: "${MSSQL_MEMORY_LIMIT_MB:-4096}"
     ports:
-      - "1433:1433"
+      - "127.0.0.1:1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     logging:
@@ -75,8 +75,9 @@ services:
       AISettings__TimeoutSeconds: "${AI_TIMEOUT_SECONDS:-60}"
     ports:
       - "127.0.0.1:8080:8080"
+    mem_limit: 512m
     volumes:
-      - backend-logs:/app/logs
+      - backend-logs:/app/logs:rw
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -112,8 +113,15 @@ services:
         max-file: "3"
     ports:
       - "127.0.0.1:5000:5000"
+    mem_limit: 512m
     volumes:
-      - frontend-keys:/app/keys
+      - frontend-keys:/app/keys:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - vpp-internal
 
