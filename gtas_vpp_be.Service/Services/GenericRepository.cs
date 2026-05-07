@@ -125,7 +125,7 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<List<T>> ReadAsync(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IQueryable<T>>? include = null)
+        public async Task<List<T>> ReadAsync(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IQueryable<T>>? include = null, int? take = null)
         {
             IQueryable<T> query = _unitOfWork.VPPContext.Set<T>().AsNoTracking();
 
@@ -137,6 +137,11 @@ namespace gtas_vpp_be.Service.Services
             if (filter != null)
             {
                 query = query.Where(filter);
+            }
+
+            if (take.HasValue)
+            {
+                query = query.Take(take.Value);
             }
 
             return await query.ToListAsync();

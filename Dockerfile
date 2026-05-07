@@ -42,6 +42,7 @@ ENV DOTNET_gcServer=1
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+USER app
 EXPOSE 8080
 
 COPY --from=build /app/publish .

@@ -248,6 +248,62 @@ namespace gtas_vpp_be.Controllers
             return Ok(data);
         }
 
+        [HttpGet("dashboard-charts")]
+        public async Task<IActionResult> GetDashboardCharts()
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var orders = await _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted && x.CreateUserId == CurrentUserId.Value)
+                .Select(x => new
+                {
+                    x.SubmittedDate,
+                    x.Status,
+                    Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                    Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0,
+                    x.VPPCode
+                })
+                .ToListAsync();
+
+            var monthlyData = orders
+                .Where(x => x.SubmittedDate.HasValue)
+                .GroupBy(x => new { x.SubmittedDate!.Value.Year, x.SubmittedDate.Value.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => new
+                {
+                    Month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    OrderCount = g.Count(),
+                    TotalQty = g.Sum(x => x.Qty),
+                    TotalLines = g.Sum(x => x.Lines)
+                })
+                .ToList();
+
+            var statusData = orders
+                .GroupBy(x => x.Status)
+                .Select(g => new
+                {
+                    Status = g.Key switch
+                    {
+                        1 => "Submitted",
+                        4 => "Cancelled",
+                        6 => "Pending",
+                        7 => "Approved",
+                        8 => "Rejected",
+                        _ => "Unknown"
+                    },
+                    Count = g.Count()
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                Monthly = monthlyData,
+                StatusDistribution = statusData,
+                TotalOrders = orders.Count
+            });
+        }
+
         [HttpPost("additional-orders/{id:guid}/approve")]
         public async Task<IActionResult> ApproveAdditionalOrder(Guid id)
         {

@@ -46,7 +46,7 @@ namespace gtas_vpp_be.Controllers
                 return Ok(dtoList ?? new List<TDto>());
             }
 
-            var allData = await ReadEntitiesAsync<TModel>(true);
+            var allData = await ReadEntitiesAsync<TModel>(true, take: 1000);
             var allDtoList = allData?.Adapt<List<TDto>>();
             return Ok(allDtoList ?? new List<TDto>());
         }
@@ -72,9 +72,10 @@ namespace gtas_vpp_be.Controllers
         protected async Task<List<TModel>> ReadEntitiesAsync<TModel>(
             bool getFullName,
             Expression<Func<TModel, bool>>? filter = null,
-            Func<IQueryable<TModel>, IQueryable<TModel>>? include = null) where TModel : class
+            Func<IQueryable<TModel>, IQueryable<TModel>>? include = null,
+            int? take = null) where TModel : class
         {
-            var data = await GetRepository<TModel>().ReadAsync(filter, include);
+            var data = await GetRepository<TModel>().ReadAsync(filter, include, take);
             return getFullName
                 ? await _userNameResolver.WithUserNamesAsync(data, _unitOfWork.VPPContext)
                 : data;

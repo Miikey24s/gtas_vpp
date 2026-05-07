@@ -63,6 +63,8 @@ namespace gtas_vpp_be.AI.Migrations
                     b.HasIndex("VPPId")
                         .IsUnique();
 
+                    b.HasIndex("VectorDimension", "ModelName");
+
                     b.ToTable("AI_VPPEmbedding");
                 });
 

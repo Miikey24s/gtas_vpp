@@ -93,7 +93,7 @@ namespace gtas_vpp_be.Controllers
             try
             {
                 // Get all data
-                var allData = await ReadEntitiesAsync<TModel>(true);
+                var allData = await ReadEntitiesAsync<TModel>(true, take: 1000);
                 
                 if (allData == null || !allData.Any())
                 {
@@ -117,9 +117,9 @@ namespace gtas_vpp_be.Controllers
                         // Parse Radzen filter format and apply
                         query = query.Where(filter);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // If filter parsing fails, ignore it
+                        Serilog.Log.Warning(ex, "Library filter parse failed");
                     }
                 }
 

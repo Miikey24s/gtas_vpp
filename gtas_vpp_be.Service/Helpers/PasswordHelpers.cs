@@ -22,8 +22,9 @@ namespace gtas_vpp_be.Service.Helpers
             {
                 return BCrypt.Net.BCrypt.Verify(plainPassword, hash);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[PasswordHelpers] BCrypt verification error: {ex.Message}");
                 return false;
             }
         }

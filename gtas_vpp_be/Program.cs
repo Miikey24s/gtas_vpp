@@ -141,10 +141,9 @@ MapsterConfig.Register(TypeAdapterConfig.GlobalSettings);
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    // Clearing known networks and proxies allows it to work behind Nginx in Docker Compose
-    // where the proxy IP might be dynamic.
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
+    // Only trust proxy from Docker bridge network
+    options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(System.Net.IPAddress.Parse("172.16.0.0"), 12));
+    options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(System.Net.IPAddress.Parse("10.0.0.0"), 8));
 });
 
 var app = builder.Build();

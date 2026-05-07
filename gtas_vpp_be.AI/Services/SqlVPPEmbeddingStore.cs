@@ -39,6 +39,8 @@ public class SqlVPPEmbeddingStore : IVPPEmbeddingStore
         var embeddings = await _db.VPPEmbeddings
             .AsNoTracking()
             .Where(x => x.VectorDimension == queryVector.Length)
+            .OrderBy(x => x.Id)
+            .Take(1000)
             .ToListAsync(ct);
 
         var compatibleEmbeddings = embeddings
