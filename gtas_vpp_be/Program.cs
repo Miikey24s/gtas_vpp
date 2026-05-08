@@ -13,9 +13,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Serilog;
 using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
@@ -87,6 +89,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
+
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.EnableForHttps = true;
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+});
 
 builder.Services
     .AddAuthentication(options =>
@@ -169,6 +177,7 @@ if (isGoogleAiProvider && !string.IsNullOrWhiteSpace(rawKeys))
 app.UseForwardedHeaders();
 
 app.UseCors("AllowFrontend");
+app.UseResponseCompression();
 
 // WARNING: Running Migrate() automatically in Program.cs with multiple replicas (Docker Swarm/K8s) can cause race conditions.
 // The best solution is to use a separate container that only runs "dotnet ef database update" and then exits.
@@ -215,7 +224,8 @@ var aiConstr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv))
 if (!string.IsNullOrEmpty(aiConstr))
 {
     var aiOptionsBuilder = new DbContextOptionsBuilder<gtas_vpp_be.AI.Data.AIDbContext>();
-    aiOptionsBuilder.UseSqlServer(aiConstr, action => action.MigrationsAssembly("gtas_vpp_be.AI"));
+    aiOptionsBuilder.UseSqlServer(aiConstr, action => action.MigrationsAssembly("gtas_vpp_be.AI"))
+                    .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
 
     using var aiDbContext = new gtas_vpp_be.AI.Data.AIDbContext(aiOptionsBuilder.Options);
     
