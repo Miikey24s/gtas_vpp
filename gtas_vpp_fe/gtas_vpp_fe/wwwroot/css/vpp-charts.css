@@ -1,0 +1,49 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP CHART ENHANCEMENTS — Phase 14
+   RadzenChart color mapping, tooltip styling
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Chart Container ──────────────────────────────────────────── */
+.vpp-chart-card {
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    padding: var(--vpp-space-5);
+}
+
+/* ── Chart Color Palette ─────────────────────────────────────── */
+.vpp-chart-card .rz-chart .rz-series-item:nth-child(1) { fill: var(--vpp-primary-500); }
+.vpp-chart-card .rz-chart .rz-series-item:nth-child(2) { fill: #8B5CF6; }
+.vpp-chart-card .rz-chart .rz-series-item:nth-child(3) { fill: #10B981; }
+.vpp-chart-card .rz-chart .rz-series-item:nth-child(4) { fill: #F59E0B; }
+.vpp-chart-card .rz-chart .rz-series-item:nth-child(5) { fill: #14B8A6; }
+
+/* ── Chart Axis ──────────────────────────────────────────────── */
+.vpp-chart-card .rz-chart .rz-axis line,
+.vpp-chart-card .rz-chart .rz-axis path {
+    stroke: var(--vpp-border-default);
+}
+
+.vpp-chart-card .rz-chart .rz-axis text {
+    fill: var(--vpp-text-tertiary);
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-xs);
+}
+
+/* ── Chart Legend ─────────────────────────────────────────────── */
+.vpp-chart-card .rz-chart .rz-legend {
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-xs);
+    color: var(--vpp-text-secondary);
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────── */
+.vpp-chart-card .rz-chart-tooltip {
+    background: var(--vpp-bg-tooltip);
+    color: var(--vpp-text-on-surface);
+    border-radius: var(--vpp-radius-md);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-xs);
+    box-shadow: var(--vpp-shadow-lg);
+}

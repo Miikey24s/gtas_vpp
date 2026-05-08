@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP POLISH — Phase 15
+   Scrollbar, selection color, print, cursor
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Custom Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--vpp-border-default);
+    border-radius: var(--vpp-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--vpp-border-strong);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--vpp-border-default) transparent;
+}
+
+/* ── Selection Color ─────────────────────────────────────────── */
+::selection {
+    background: rgba(14, 165, 233, 0.2);
+    color: var(--vpp-text-primary);
+}
+
+/* ── Print Styles ─────────────────────────────────────────────── */
+@media print {
+    .vpp-sidebar,
+    .vpp-header-glass,
+    .vpp-ai-chatbox,
+    .rz-notification-message {
+        display: none !important;
+    }
+
+    .vpp-layout-body {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .vpp-content {
+        max-width: 100% !important;
+    }
+
+    .rz-datatable-row {
+        break-inside: avoid;
+    }
+}
+
+/* ── Smooth Scroll ────────────────────────────────────────────── */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ── Image Handling ───────────────────────────────────────────── */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── Link Defaults ─────────────────────────────────────────────── */
+a {
+    color: var(--vpp-primary-400);
+    text-decoration: none;
+    transition: color var(--vpp-transition-fast);
+}
+
+a:hover {
+    color: var(--vpp-primary-300);
+    text-decoration: underline;
+}

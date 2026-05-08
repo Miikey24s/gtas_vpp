@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP ACCESSIBILITY — Phase 13
+   WCAG 2.1 AA: focus, contrast, reduced motion, screen reader
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Focus Visible ────────────────────────────────────────────── */
+:focus-visible {
+    outline: 2px solid var(--vpp-primary-500) !important;
+    outline-offset: 2px !important;
+}
+
+.rz-button:focus-visible,
+.rz-textbox:focus-visible,
+.rz-dropdown:focus-visible,
+.rz-numeric:focus-visible,
+.rz-textarea:focus-visible {
+    outline: 2px solid var(--vpp-primary-500) !important;
+    outline-offset: 1px !important;
+    border-color: var(--vpp-primary-400) !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* ── Reduced Motion ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ── High Contrast Mode ──────────────────────────────────────── */
+@media (forced-colors: active) {
+    .vpp-header-glass {
+        border: 1px solid CanvasText;
+    }
+    .rz-button {
+        border: 1px solid ButtonText;
+    }
+}
+
+/* ── Screen Reader Only ──────────────────────────────────────── */
+.vpp-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── Skip Link ───────────────────────────────────────────────── */
+.vpp-skip-link {
+    position: absolute;
+    top: -100%;
+    left: var(--vpp-space-4);
+    background: var(--vpp-primary-500);
+    color: #fff;
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    border-radius: var(--vpp-radius-sm);
+    z-index: 9999;
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-skip-link:focus {
+    top: var(--vpp-space-2);
+}
+
+/* ── Touch Targets ───────────────────────────────────────────── */
+@media (pointer: coarse) {
+    .rz-button,
+    .rz-navigation-item-wrapper,
+    .user-avatar {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}

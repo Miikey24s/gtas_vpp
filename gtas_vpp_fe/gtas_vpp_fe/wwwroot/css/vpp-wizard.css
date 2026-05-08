@@ -1,0 +1,133 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP ORDER CREATE WIZARD — Phase 8
+   3-step wizard with progress indicator, transitions
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Wizard Container ─────────────────────────────────────────── */
+.vpp-wizard {
+    max-width: var(--vpp-wizard-width, 1100px);
+    margin: 0 auto;
+    width: 100%;
+}
+
+.vpp-wizard .rz-stepper {
+    margin-bottom: var(--vpp-space-6);
+}
+
+/* ── Step Content ─────────────────────────────────────────────── */
+.vpp-wizard .wizard-step {
+    min-height: 400px;
+    animation: vpp-step-enter var(--vpp-transition-base) ease-out;
+}
+
+@keyframes vpp-step-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Step 1: Header ──────────────────────────────────────────── */
+.wizard-step-header {
+    padding: var(--vpp-space-4);
+}
+
+.wizard-step-title {
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-xl);
+    font-weight: var(--vpp-font-weight-bold);
+    color: var(--vpp-text-primary);
+    margin-bottom: var(--vpp-space-2);
+}
+
+/* ── Step 2: Products ────────────────────────────────────────── */
+.wizard-step-products {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.vpp-card-ai {
+    border: none;
+    border-radius: var(--vpp-radius-lg);
+    padding: var(--vpp-space-5);
+    transition: all var(--vpp-transition-base);
+}
+
+.vpp-card-ai:hover {
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+}
+
+/* ── Step 3: Review ──────────────────────────────────────────── */
+.wizard-step-review {
+    padding: var(--vpp-space-4);
+}
+
+.wizard-review-notes {
+    background: var(--vpp-bg-surface);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    padding: var(--vpp-space-3);
+    margin-top: var(--vpp-space-2);
+}
+
+/* ── Wizard Navigation Buttons ───────────────────────────────── */
+.vpp-wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--vpp-space-6);
+    gap: var(--vpp-space-4);
+}
+
+.vpp-wizard-nav-left {
+    display: flex;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-wizard-nav-right {
+    display: flex;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-wizard-btn-next {
+    background: linear-gradient(135deg, var(--vpp-primary-500), var(--vpp-primary-700));
+    border: none;
+    color: #fff;
+}
+
+.vpp-wizard-btn-next:hover {
+    background: linear-gradient(135deg, var(--vpp-primary-600), var(--vpp-primary-800));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+/* ── Step Indicator Override ─────────────────────────────────── */
+.vpp-wizard .rz-stepper .rz-step-item {
+    transition: all var(--vpp-transition-fast);
+}
+
+.vpp-wizard .rz-stepper .rz-step-item.rzi-expanded .rz-step-item-title {
+    color: var(--vpp-primary-400);
+}
+
+/* ── Selected Items Badge Area ──────────────────────────────── */
+.vpp-wizard-badge-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    flex-wrap: wrap;
+    padding: var(--vpp-space-2);
+}
+
+.vpp-wizard-badge-bar .rz-badge {
+    font-size: var(--vpp-text-xs);
+}
+
+/* ── Save/Submit Footer ──────────────────────────────────────── */
+.vpp-wizard-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4) 0;
+}

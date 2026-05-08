@@ -1,198 +1,69 @@
 @page "/dashboard/order-create"
 @layout MainLayout
 @using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Share
-@inject GlobalClass glb
-@inject NotificationService NotificationService
+@using gtas_vpp_shared.DTOs.AI
 
 @rendermode InteractiveServer
 
-<PageTitle>GTAS VPP - Order Create</PageTitle>
+<PageTitle>GTAS VPP - @(IsEdit ? "Edit Order" : (IsCopyFromPrevious ? "Copy Order" : (IsAdditional ? "Additional Order" : "Create Order")))</PageTitle>
 
-<RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3 order-create-page" Style="width: 100%; max-width: none; margin: 0; height: calc(100vh - 80px); display: flex; flex-direction: column;">
-    
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Gap="1rem">
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-            <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
+<div class="vpp-wizard">
+    <RadzenStack Gap="1rem" Style="padding: var(--vpp-space-4);">
+
+        @* Back button *@
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+            <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
+            <div class="vpp-wizard-badge-bar">
+                @if (Context.SelectedItems.Count > 0)
+                {
+                    <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                    <RadzenBadge Text="@($"Total: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                }
+                @if (LastDraftSavedAt.HasValue)
+                {
+                    <RadzenText Text="@($"Auto-saved {LastDraftSavedAt:HH:mm:ss}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-tertiary);" />
+                }
+            </div>
         </RadzenStack>
+
+        @* 3-Step Wizard *@
+        <RadzenSteps @bind-SelectedIndex="currentStep" Change="@((i) => Context.NotifyStateChanged())">
+            <Steps>
+                <RadzenStep Text="@Loc["OrderContext"]">
+                    <OrderCreateStep1 />
+                </RadzenStep>
+                <RadzenStep Text="@Loc["SelectProducts"]">
+                    <OrderCreateStep2 />
+                </RadzenStep>
+                <RadzenStep Text="@Loc["ReviewSubmit"]">
+                    <OrderCreateStep3 />
+                </RadzenStep>
+            </Steps>
+        </RadzenSteps>
+
+        @* Navigation buttons *@
+        <div class="vpp-wizard-nav">
+            <div class="vpp-wizard-nav-left">
+                <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
+            </div>
+            <div class="vpp-wizard-nav-right">
+                @if (currentStep > 0)
+                {
+                    <RadzenButton Icon="arrow_back" Text="@Loc["Previous"]" ButtonStyle="ButtonStyle.Base" Click="@(() => currentStep--)"/>
+                }
+                @if (currentStep < 2)
+                {
+                    <RadzenButton Icon="arrow_forward" Text="@Loc["Next"]" ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next" 
+                                  Click="@(() => currentStep++)" />
+                }
+                else
+                {
+                    <RadzenButton Icon="save" Text="@(IsAdditional ? "Submit for Approval" : (IsEdit ? "Update Order" : "Create Order"))" 
+                                  ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next" Disabled="@IsSaving" Click="@SubmitAsync" />
+                }
+            </div>
+        </div>
     </RadzenStack>
-
-    @if (IsAdditional)
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" class="rz-mb-0">
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-m-0">
-                <strong>Attention:</strong> The order period has closed. This order will be marked as an <strong>Additional Order</strong> and requires Admin approval.
-            </RadzenText>
-        </RadzenAlert>
-    }
-
-    <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch" Style="flex: 1; min-height: 0; margin: 0;">
-        
-        <RadzenColumn Size="12" SizeLG="7" Style="display: flex; flex-direction: column; height: 100%;">
-            
-            @* AI Assistant Card *@
-            @if (glb.IsAIEnabled)
-            {
-            <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3 rz-mb-3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                <RadzenStack Gap="0.75rem">
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                        <RadzenIcon Icon="auto_awesome" Style="font-size: 1.5rem;" />
-                        <RadzenText Text="@Loc["AISmartSearch"]" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
-                    </RadzenStack>
-                    
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                        <RadzenTextBox @bind-Value="AISearchText" Placeholder="Tìm kiếm bằng ngôn ngữ tự nhiên (VD: bút viết màu xanh, giấy A4...)" 
-                                       Style="flex: 1; background: white; color: black;" 
-                                       @onkeydown="@(async (KeyboardEventArgs e) => { if (e.Key == "Enter") await OnAISearchAsync(); })" />
-                        <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Light" Click="@OnAISearchAsync" Disabled="@IsAILoading" />
-                    </RadzenStack>
-
-                    @if (IsAILoading)
-                    {
-                        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
-                    }
-
-                    @if (AISuggestions.Any())
-                    {
-                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="0.5rem">
-                            @foreach (var item in AISuggestions)
-                            {
-                                var isAlreadySelected = SelectedItems.Any(x => x.VPPId == item.VPPId);
-                                <RadzenButton Text="@($"+ {item.VPPName}")" 
-                                              Icon="@(isAlreadySelected ? "check" : "add")"
-                                              ButtonStyle="@(isAlreadySelected ? ButtonStyle.Success : ButtonStyle.Light)" 
-                                              Variant="Variant.Outlined" 
-                                              Size="ButtonSize.Small"
-                                              Disabled="@isAlreadySelected"
-                                              Click="@(async _ => await AddSuggestedItemAsync(item))"
-                                              Style="@(isAlreadySelected ? "opacity: 0.6;" : "")" />
-                            }
-                        </RadzenStack>
-                    }
-                </RadzenStack>
-            </RadzenCard>
-            }
-
-            <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">
-                    <RadzenText Text="Product Catalog" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
-                </div>
-
-                <RadzenDataGrid @ref="productGrid"
-                                TItem="ProductOption"
-                                Data="@ProductOptions"
-                                Count="@ProductCount"
-                                LoadData="@LoadProductsAsync"
-                                IsLoading="@IsLoadingProducts"
-                                AllowPaging="true"
-                                PageSize="30"
-                                AllowSorting="true"
-                                AllowFiltering="true"
-                                AllowMultiColumnSorting="true"
-                                AllowGrouping="true"
-                                AllowColumnResize="true"
-                                AllowColumnPicking="true"
-                                AllowPickAllColumns="true"
-                                AllowColumnReorder="true"
-                                ColumnsPickerAllowFiltering="true"
-                                ShowMultiColumnSortingIndex="true"
-                                FilterMode="FilterMode.CheckBoxList"
-                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                                Density="Density.Compact"
-                                GridLines="DataGridGridLines.Horizontal"
-                                Style="flex: 1; min-height: 0; overflow-y: auto;">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="Code" Width="130px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="Name" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="Category" Width="180px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="UOM" Width="120px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="ProductOption" Title="" Width="90px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
-                            <Template Context="row">
-                                <RadzenButton Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
-                                              Disabled="@SelectedItems.Any(x => x.VPPId == row.Id)"
-                                              Click="@(async _ => await AddItemAsync(row))" />
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
-            </RadzenCard>
-        </RadzenColumn>
-
-        <RadzenColumn Size="12" SizeLG="5" Style="display: flex; flex-direction: column; height: 100%;">
-            <RadzenStack Gap="1rem" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                
-                <RadzenCard class="rz-border-none rz-shadow-1 rz-p-3" Style="background: var(--vpp-ocean-surface-soft); border: 1px solid var(--vpp-ocean-primary-light);">
-                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="0.5rem" AlignItems="AlignItems.Center">
-                        <RadzenBadge Text="@($"{SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                        <RadzenBadge Text="@($"Total Quantity: {TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
-                        @if (LastDraftSavedAt.HasValue)
-                        {
-                            <RadzenText Text="@($"Auto-saved: {LastDraftSavedAt:HH:mm:ss}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-ocean-primary);" />
-                        }
-                    </RadzenStack>
-
-                    <RadzenFormField Text="@(IsAdditional ? "Notes (Reason for Additional Order) *" : "Notes")" Variant="Variant.Outlined" class="rz-mt-2">
-                        <RadzenTextArea @bind-Value="Description" Rows="3" Style="@(IsAdditional ? "width: 100%; border-color: var(--rz-warning);" : "width: 100%;")" @oninput="OnDescriptionInput" Change="@(async _ => await SaveDraftAsync())" />
-                    </RadzenFormField>
-                </RadzenCard>
-
-                <RadzenCard class="rz-border-none rz-shadow-1 rz-p-0" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                    <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-ocean-primary-light);">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-                            <RadzenText Text="@Loc["SelectedItems"]" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
-                            <RadzenButton Icon="clear_all" Text="@Loc["ClearAll"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" 
-                                          Disabled="@(SelectedItems.Count == 0)" 
-                                          Click="@(async _ => await ClearAllItemsAsync())" />
-                        </RadzenStack>
-                    </div>
-                    
-                    <RadzenDataGrid @ref="selectedItemsGrid"
-                                    TItem="SelectedItem"
-                                    Data="@SelectedItems"
-                                    AllowPaging="false"
-                                    AllowVirtualization="true"
-                                    Density="Density.Compact"
-                                    GridLines="DataGridGridLines.Horizontal"
-                                    Style="flex: 1; min-height: 0; overflow-y: auto;">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="SelectedItem" Property="VPPCode" Title="Code" Width="120px" />
-                            <RadzenDataGridColumn TItem="SelectedItem" Property="VPPName" Title="Name" />
-                            <RadzenDataGridColumn TItem="SelectedItem" Title="Qty" Width="90px" TextAlign="TextAlign.Center">
-                                <Template Context="row">
-                                    <RadzenNumeric @bind-Value="row.Qty" TValue="int" Min="1" Style="width: 70px;" Change="@(async _ => await SaveDraftAsync())" />
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="SelectedItem" Title="Notes" Width="200px">
-                                <Template Context="row">
-                                    <RadzenTextBox @bind-Value="row.Description" Placeholder="Add notes..." Style="width: 100%;" Change="@(async _ => await SaveDraftAsync())" />
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="SelectedItem" Title="" Width="60px" Sortable="false" Filterable="false">
-                                <Template Context="row">
-                                    <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await RemoveItemAsync(row))" />
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                </RadzenCard>
-
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" JustifyContent="JustifyContent.End">
-                    <RadzenButton Icon="close" Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@(_ => GoBack())" />
-                    <RadzenButton Icon="save" Text="@(IsAdditional ? "Submit for Approval" : (IsEdit ? "Update Order" : "Create Order"))" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Disabled="@IsSaving" Click="@(async _ => await SubmitAsync())" />
-                </RadzenStack>
-            </RadzenStack>
-        </RadzenColumn>
-    </RadzenRow>
-</RadzenStack>
-
-<style>
-    .order-create-page .ocean-btn {
-        background-color: var(--vpp-ocean-primary);
-        border-color: var(--vpp-ocean-primary);
-    }
-
-    .order-create-page .ocean-btn:hover {
-        background-color: var(--vpp-ocean-primary-dark);
-        border-color: var(--vpp-ocean-primary-dark);
-    }
-</style>
+</div>

@@ -1,0 +1,39 @@
+<CascadingValue Value="Context">
+    <div class="wizard-step wizard-step-review">
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                    <RadzenBadge Text="@($"Total Quantity: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                </RadzenStack>
+
+                @if (!string.IsNullOrEmpty(Context.Description))
+                {
+                    <div class="wizard-review-notes">
+                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary);">Notes</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
+                    </div>
+                }
+
+                <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
+                                Data="@Context.SelectedItems"
+                                AllowPaging="false"
+                                AllowVirtualization="true"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                Style="max-height: 400px; overflow-y: auto;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="Code" Width="120px" />
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="Name" />
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Qty" Title="Qty" Width="80px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="Notes" Width="200px" />
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
+        </RadzenCard>
+    </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+}

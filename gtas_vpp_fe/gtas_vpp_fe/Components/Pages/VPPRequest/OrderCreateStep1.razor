@@ -1,0 +1,36 @@
+@using gtas_vpp_shared.DTOs.Share
+@inject GlobalClass glb
+
+<CascadingValue Value="Context">
+    <div class="wizard-step wizard-step-header">
+        @if (Context.IsEdit)
+        {
+            <RadzenText Text="@($"Editing Order")" TextStyle="TextStyle.Subtitle1" class="wizard-step-title" />
+        }
+        else if (Context.IsCopy)
+        {
+            <RadzenText Text="Copy from Previous Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title" />
+        }
+        else if (Context.IsAdditional)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" class="rz-mb-3">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-m-0">
+                    <strong>Attention:</strong> The order period has closed. This order will be marked as an <strong>Additional Order</strong> and requires Admin approval.
+                </RadzenText>
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenText Text="Create New Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title" />
+        }
+
+        <RadzenFormField Text="@(Context.IsAdditional ? "Reason for Additional Order *" : "Notes")" Variant="Variant.Outlined" class="rz-mt-3">
+            <RadzenTextArea @bind-Value="Context.Description" Rows="3" 
+                            Style="@(Context.IsAdditional ? "width: 100%; border-color: var(--rz-warning);" : "width: 100%;")" />
+        </RadzenFormField>
+    </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+}

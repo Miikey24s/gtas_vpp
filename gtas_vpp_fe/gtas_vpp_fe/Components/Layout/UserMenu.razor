@@ -1,0 +1,54 @@
+@using gtas_vpp_shared.DTOs.Share
+@inject NavigationManager NavigationManager
+
+<div style="position:relative;">
+    <div class="user-avatar" @onclick="@ToggleMenu" title="@UserFullName">
+        @GetInitials()
+    </div>
+
+    @if (_isOpen)
+    {
+        <div class="user-dropdown">
+            <div class="user-dropdown-header">
+                <div class="user-avatar-lg">@GetInitials()</div>
+                <div>
+                    <div style="font-weight: var(--vpp-font-weight-semibold);">@UserFullName</div>
+                    <div style="font-size: var(--vpp-text-xs); color: var(--vpp-text-tertiary);">@Department</div>
+                </div>
+            </div>
+            <div class="user-dropdown-divider"></div>
+            @if (!string.IsNullOrEmpty(Department))
+            {
+                <div class="user-dropdown-info">
+                    <span class="material-symbols-outlined" style="font-size:1rem; color: var(--vpp-text-tertiary);">apartment</span>
+                    <span>@Department</span>
+                </div>
+                <div class="user-dropdown-divider"></div>
+            }
+            <a href="/logoutprocess" class="user-dropdown-logout">
+                <span class="material-symbols-outlined" style="font-size:1rem;">logout</span>
+                <span>Logout</span>
+            </a>
+        </div>
+        <div class="user-dropdown-backdrop" @onclick="@(() => _isOpen = false)"></div>
+    }
+</div>
+
+@code {
+    [Parameter] public string UserFullName { get; set; } = "";
+    [Parameter] public string Department { get; set; } = "";
+
+    private bool _isOpen;
+
+    private void ToggleMenu() => _isOpen = !_isOpen;
+
+    private string GetInitials()
+    {
+        var parts = (UserFullName ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        if (parts.Length == 1)
+            return parts[0][..Math.Min(2, parts[0].Length)].ToUpper();
+        return "U";
+    }
+}

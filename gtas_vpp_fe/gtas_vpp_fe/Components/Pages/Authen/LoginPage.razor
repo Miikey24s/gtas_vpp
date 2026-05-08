@@ -7,50 +7,70 @@
 
 <PageTitle>GTAS VPP - @Loc["Login"]</PageTitle>
 
-<section class="p-0">
-    <div class="loginbg"></div>
-    <RadzenRow class="vh100 mr-0 ml-0">
-        <RadzenColumn Size="12" SizeLG="6" SizeMD="6" SizeSM="12" Offset="0" OffsetLG="6" OffsetMD="6" OffsetSM="0" class="loginbox">
-            <div class="box">
-                <div class="logoppj" />
-                <div class="lg1container">
-                    <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="form">
-                        <AntiforgeryToken></AntiforgeryToken>
-                        <RadzenFormField AllowFloatingLabel="false" Text="@Loc["Username"]" Variant="Variant.Outlined" class="w-100 mt-3">
-                            <Start>
-                                <RadzenIcon Icon="account_circle" />
-                            </Start>
-                            <ChildContent>
-                                <RadzenTextBox Disabled="@isLoading" class="valid-off" @bind-Value=@sp_Authentication_Login.Username @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
-                            </ChildContent>
-                        </RadzenFormField>
-                        <RadzenFormField AllowFloatingLabel="false" Text="@Loc["Password"]" Variant="Variant.Outlined" class="w-100 mt-3">
-                            <Start>
-                                <RadzenIcon Icon="key" />
-                            </Start>
-                            <ChildContent>
-                                <RadzenTextBox Visible="@(!isShowPass)" class="valid-off" Disabled="@isLoading" @bind-Value=@sp_Authentication_Login.Password @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
-                                <RadzenPassword Visible="@isShowPass" class="valid-off" Disabled="isLoading" @bind-Value=@sp_Authentication_Login.Password @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
-                            </ChildContent>
-                            
-                        </RadzenFormField>
-                        @if (isShowServer)
-                        {
-                            <RadzenFormField AllowFloatingLabel="false" Text="@Loc["Server"]" Variant="Variant.Outlined" class="w-100 mt-3">
-                                <Start>
-                                    <RadzenIcon Icon="dns" />
-                                </Start>
-                                <ChildContent>
-                                    <RadzenDropDown Data=@Servers class="text-center valid-off" @bind-Value=@sp_Authentication_Login.selected_server Style="width:100%" />
-                                </ChildContent>
-                            </RadzenFormField>
-                        }
-                        <div class="form-inline text-end mt-3 rz-text-right justify-content-end">
-                            <RadzenButton Text="@Loc["Login"]" ButtonType="ButtonType.Submit" IsBusy="@isLoading" class="login_btn float-right text-whitesmoke" />
-                        </div>
-                    </RadzenTemplateForm>
+<div class="vpp-login-page">
+    <div class="vpp-login-shell">
+        <div class="vpp-login-art" aria-hidden="true">
+            <img class="vpp-login-art-image" src="@Assets["images/login-bg.jpeg"]" alt="" />
+        </div>
+
+        <section class="vpp-login-card" aria-labelledby="vpp-login-title">
+            <div class="vpp-login-card-inner">
+                <div class="vpp-login-header">
+                    <h1 class="vpp-login-title" id="vpp-login-title">
+                        @Loc["Login"]
+                        <span class="vpp-login-title-accent">GTAS VPP</span>
+                    </h1>
                 </div>
+
+                <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="vpp-login-form">
+                    <AntiforgeryToken></AntiforgeryToken>
+
+                    <div class="vpp-login-field">
+                        <label class="vpp-login-label">@Loc["Username"]</label>
+                        <RadzenTextBox class="vpp-login-control"
+                                       Name="Username"
+                                       Disabled="@isLoading"
+                                       Style="width: 100%;"
+                                       @bind-Value=@sp_Authentication_Login.Username
+                                       @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                    </div>
+
+                    <div class="vpp-login-field">
+                        <label class="vpp-login-label">@Loc["Password"]</label>
+                        <RadzenTextBox Visible="@(!isShowPass)"
+                                       class="vpp-login-control"
+                                       Name="PasswordText"
+                                       Disabled="@isLoading"
+                                       Style="width: 100%;"
+                                       @bind-Value=@sp_Authentication_Login.Password
+                                       @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                        <RadzenPassword Visible="@isShowPass"
+                                        class="vpp-login-control"
+                                        Name="Password"
+                                        Disabled="@isLoading"
+                                        Style="width: 100%;"
+                                        @bind-Value=@sp_Authentication_Login.Password
+                                        @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                    </div>
+
+                    @if (isShowServer)
+                    {
+                        <div class="vpp-login-field">
+                            <label class="vpp-login-label">@Loc["Server"]</label>
+                            <RadzenDropDown Data=@Servers
+                                            class="vpp-login-control"
+                                            @bind-Value=@sp_Authentication_Login.selected_server
+                                            Style="width: 100%;" />
+                        </div>
+                    }
+
+                    <RadzenButton Text="@Loc["Login"]"
+                                  ButtonType="ButtonType.Submit"
+                                  IsBusy="@isLoading"
+                                  Style="width: 100%; height: 35px; border: none; border-radius: 8px; --rz-button-border-radius: 8px;"
+                                  class="vpp-login-btn" />
+                </RadzenTemplateForm>
             </div>
-        </RadzenColumn>
-    </RadzenRow>
-</section>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,173 @@
+@using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_shared.DTOs.AI
+@using gtas_vpp_fe.Services
+
+<CascadingValue Value="Context">
+    <div class="wizard-step wizard-step-products">
+
+        @* AI Smart Search *@
+        @if (glb.IsAIEnabled)
+        {
+            <RadzenCard class="vpp-card-ai" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <RadzenStack Gap="0.75rem">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenIcon Icon="auto_awesome" Style="font-size: 1.5rem;" />
+                        <RadzenText Text="@Loc["AISmartSearch"]" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
+                    </RadzenStack>
+                    
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                        <RadzenTextBox @bind-Value="AISearchText" Placeholder="@Loc["AiSearchPlaceholder"]"
+                                       Style="flex: 1; background: white; color: black;" 
+                                       @onkeydown="@OnEnter" />
+                        <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Light" Click="@OnAISearchAsync" Disabled="@IsAILoading" />
+                    </RadzenStack>
+
+                    @if (IsAILoading)
+                    {
+                        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
+                    }
+
+                    @if (AISuggestions.Any())
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="0.5rem">
+                            @foreach (var item in AISuggestions)
+                            {
+                                var isAlreadySelected = Context.SelectedItems.Any(x => x.VPPId == item.VPPId);
+                                <RadzenButton Text="@($"+ {item.VPPName}")" 
+                                              Icon="@(isAlreadySelected ? "check" : "add")"
+                                              ButtonStyle="@(isAlreadySelected ? ButtonStyle.Success : ButtonStyle.Light)" 
+                                              Variant="Variant.Outlined" 
+                                              Size="ButtonSize.Small"
+                                              Disabled="@isAlreadySelected"
+                                              Click="@(async _ => await AddSuggestedItemAsync(item))"
+                                              Style="@(isAlreadySelected ? "opacity: 0.6;" : "")" />
+                            }
+                        </RadzenStack>
+                    }
+                </RadzenStack>
+            </RadzenCard>
+        }
+
+        @* Product Catalog Grid *@
+        <RadzenCard class="rz-mt-3" Style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+            <div class="rz-p-3" style="border-bottom: 1px solid var(--vpp-border-default);">
+                <RadzenText Text="Product Catalog" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
+            </div>
+
+            <RadzenDataGrid @ref="productGrid"
+                            TItem="ProductOption"
+                            Data="@ProductOptions"
+                            Count="@ProductCount"
+                            LoadData="@LoadProductsAsync"
+                            IsLoading="@IsLoadingProducts"
+                            AllowPaging="true"
+                            PageSize="30"
+                            AllowSorting="true"
+                            AllowFiltering="true"
+                            FilterMode="FilterMode.CheckBoxList"
+                            Density="Density.Compact"
+                            GridLines="DataGridGridLines.Horizontal"
+                            Style="flex: 1; min-height: 0; overflow-y: auto;">
+                <Columns>
+                    <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="Code" Width="120px" />
+                    <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="Name" />
+                    <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="Category" Width="150px" />
+                    <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="UOM" Width="100px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn TItem="ProductOption" Title="" Width="80px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
+                                          Disabled="@Context.SelectedItems.Any(x => x.VPPId == row.Id)"
+                                          Click="@(async _ => { Context.SelectedItems.Add(new() { VPPId = row.Id, VPPCode = row.VPPCode, VPPName = row.VPPName, Qty = 1 }); Context.NotifyStateChanged(); })" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenCard>
+    </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+    [Inject] public IAPIServices _apiServices { get; set; } = default!;
+    [Inject] public GlobalClass glb { get; set; } = default!;
+
+    public sealed class ProductOption
+    {
+        public Guid Id { get; set; }
+        public string? VPPCode { get; set; }
+        public string? VPPName { get; set; }
+        public string? UOMCode { get; set; }
+        public string? UOMName { get; set; }
+        public string? VPPCategoryName { get; set; }
+    }
+
+    public bool IsLoadingProducts { get; set; }
+    public int ProductCount { get; set; }
+    public bool IsAILoading { get; set; }
+    public string? AISearchText { get; set; }
+    public List<AISuggestedItemDTO> AISuggestions { get; set; } = new();
+    public List<ProductOption> ProductOptions { get; set; } = new();
+    public RadzenDataGrid<ProductOption>? productGrid;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && productGrid != null)
+            await productGrid.Reload();
+    }
+
+    private async Task LoadProductsAsync(LoadDataArgs args)
+    {
+        IsLoadingProducts = true;
+        glb.isBusyPage = true;
+        try
+        {
+            var queryParams = new Dictionary<string, string>();
+            var sort = args.Sorts.FirstOrDefault();
+            if (sort != null)
+                queryParams["sort"] = $"{sort.Property} {sort.SortOrder?.ToString().ToLowerInvariant()}";
+            queryParams["page"] = (args.Skip / (args.Top ?? 30) + 1).ToString();
+            queryParams["pageSize"] = (args.Top ?? 30).ToString();
+            var filterQ = args.Filters?.FirstOrDefault()?.FilterValue?.ToString() ?? "";
+            if (!string.IsNullOrEmpty(filterQ))
+                queryParams["search"] = filterQ;
+            queryParams["Available"] = "1";
+            queryParams["Fields"] = "Id,VPPCode,VPPName,UOMCode,UOMName,VPPCategoryName";
+
+            var endpoint = $"VPP/Products?{string.Join("&", queryParams.Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value)}"))}";
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(endpoint);
+            ProductOptions = result.Data ?? new();
+            ProductCount = result.TotalCount;
+        }
+        finally
+        {
+            IsLoadingProducts = false;
+            glb.isBusyPage = false;
+        }
+    }
+
+    private async Task OnEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await OnAISearchAsync();
+    }
+
+    private async Task OnAISearchAsync()
+    {
+        if (string.IsNullOrWhiteSpace(AISearchText)) return;
+        IsAILoading = true;
+        try
+        {
+            AISuggestions = await _apiServices.GetFromApiAsync<List<AISuggestedItemDTO>>($"VPP/ai/suggest?query={Uri.EscapeDataString(AISearchText)}") ?? new();
+        }
+        finally { IsAILoading = false; }
+    }
+
+    private async Task AddSuggestedItemAsync(AISuggestedItemDTO item)
+    {
+        if (!Context.SelectedItems.Any(x => x.VPPId == item.VPPId))
+        {
+            Context.SelectedItems.Add(new() { VPPId = item.VPPId, VPPCode = item.VPPCode, VPPName = item.VPPName, Qty = 1 });
+            Context.NotifyStateChanged();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

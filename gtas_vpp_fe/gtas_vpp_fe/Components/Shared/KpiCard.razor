@@ -1,0 +1,44 @@
+<div class="kpi-card @GetVariantClass() @GetAdditionalClass()" style="@Style">
+    <div class="kpi-card-bg"></div>
+    <div class="kpi-card-content">
+        <div class="kpi-card-header">
+            <span class="kpi-card-label">@Label</span>
+            <span class="kpi-card-icon material-symbols-outlined">@Icon</span>
+        </div>
+        <div class="kpi-card-value">@Value</div>
+        @if (!string.IsNullOrEmpty(Trend))
+        {
+            <div class="kpi-card-trend @GetTrendClass()">
+                <span class="kpi-card-trend-arrow">@GetTrendArrow()</span>
+                <span>@Trend</span>
+            </div>
+        }
+    </div>
+    <div class="kpi-card-shine"></div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Trend { get; set; } = "";
+    [Parameter] public bool TrendUp { get; set; }
+    [Parameter] public KpiVariant Variant { get; set; } = KpiVariant.Blue;
+    [Parameter] public string AdditionalClass { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+
+    private string GetVariantClass() => Variant switch
+    {
+        KpiVariant.Blue => "kpi-blue",
+        KpiVariant.Purple => "kpi-purple",
+        KpiVariant.Emerald => "kpi-emerald",
+        KpiVariant.Amber => "kpi-amber",
+        KpiVariant.Teal => "kpi-teal",
+        _ => "kpi-blue"
+    };
+
+    private string GetAdditionalClass() => AdditionalClass;
+
+    private string GetTrendClass() => TrendUp ? "trend-up" : "trend-down";
+    private string GetTrendArrow() => TrendUp ? "↑" : "↓";
+}

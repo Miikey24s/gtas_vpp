@@ -1,0 +1,116 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP SIDEBAR ENHANCEMENTS — Phase 4
+   Active indicator, hover animations, icon fill
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel Menu Item — Base ──────────────────────────────────── */
+.rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
+    border-radius: var(--vpp-radius-md);
+    margin: 2px var(--vpp-space-2);
+    transition: background-color var(--vpp-transition-fast),
+                transform var(--vpp-transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Active Indicator — left border highlight */
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-wrapper::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 60%;
+    background: var(--vpp-primary-500);
+    border-radius: 0 var(--vpp-radius-full) var(--vpp-radius-full) 0;
+    animation: vpp-active-indicator-in var(--vpp-transition-base) forwards;
+}
+
+@keyframes vpp-active-indicator-in {
+    from { transform: translateY(-50%) scaleY(0); }
+    to   { transform: translateY(-50%) scaleY(1); }
+}
+
+/* Hover — subtle background + slide */
+.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    transform: translateX(2px);
+}
+
+/* Active item background */
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-wrapper {
+    background-color: rgba(14, 165, 233, 0.08);
+}
+
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-wrapper:hover {
+    background-color: rgba(14, 165, 233, 0.12);
+    transform: none;
+}
+
+/* Icon color enhancement */
+.rz-navigation-item.ppjsidebarmenu .rzi.rz-navigation-item-icon {
+    transition: color var(--vpp-transition-fast);
+}
+
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon {
+    color: var(--vpp-primary-400);
+}
+
+.rz-navigation-item.ppjsidebarmenu:hover .rzi.rz-navigation-item-icon {
+    color: var(--vpp-text-primary);
+}
+
+/* ── Submenu — indent + smaller font ─────────────────────────── */
+.rz-navigation-item.ppjsidebarmenu.submenu {
+    font-size: var(--vpp-text-sm);
+}
+
+.rz-navigation-item.ppjsidebarmenu.submenu .rz-navigation-item-wrapper {
+    margin-left: var(--vpp-space-8);
+    border-radius: var(--vpp-radius-sm);
+}
+
+.rz-navigation-item.ppjsidebarmenu.submenu .rzi.rz-navigation-item-icon {
+    font-size: 1rem;
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.rz-navigation-item.ppjsidebarmenu.lastchild {
+    margin-top: var(--vpp-space-3);
+    padding-top: var(--vpp-space-3);
+    border-top: 1px solid var(--vpp-border-default);
+}
+
+/* ── Collapsed Sidebar ───────────────────────────────────────── */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
+    justify-content: center;
+    margin: 2px var(--vpp-space-1);
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {
+    display: none;
+}
+
+.sidebar-collapsed .rz-navigation-item-wrapper {
+    justify-content: center;
+}
+
+.sidebar-collapsed .rz-navigation-menu {
+    display: none !important;
+}
+
+/* ── Clock Footer ────────────────────────────────────────────── */
+.vpp-sidebar-clock {
+    font-family: var(--vpp-font-mono);
+    font-size: var(--vpp-text-sm);
+    color: var(--vpp-text-tertiary);
+    text-align: center;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+}
+
+.vpp-sidebar-clock .time {
+    font-size: var(--vpp-text-lg);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-secondary);
+}

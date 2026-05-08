@@ -1,0 +1,43 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using gtas_vpp_shared.Constants
+@using System.Globalization
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+@inject NavigationManager NavigationManager
+
+<div class="vpp-header-controls">
+    @* Language Toggle *@
+    <button class="vpp-ctrl-btn" @onclick="OnLanguageToggle" title="@Loc["Language"]">
+        <span style="font-size:0.7rem; font-weight:700;">
+            @(CultureInfo.CurrentCulture.Name.StartsWith("en") ? "VI" : "EN")
+        </span>
+    </button>
+
+    @* AI Toggle — Admin only, no layout shift when hidden *@
+    <AuthorizeView Policy="@Permissions.AIToggle">
+        <div class="vpp-ai-toggle-wrapper" title="@(glb.IsAIEnabled ? Loc["AIEnabled"] : Loc["AIDisabled"])">
+            <span class="material-symbols-outlined" style="font-size:1rem; color: var(--vpp-text-tertiary);">smart_toy</span>
+            <RadzenSwitch @bind-Value="glb.IsAIEnabled" Change="@OnAIToggleChangeCallback" Style="margin:0;" />
+        </div>
+    </AuthorizeView>
+
+    @* Dark Mode Toggle *@
+    <button class="vpp-ctrl-btn" @onclick="OnThemeToggle" title="@(IsLightTheme ? "Dark mode" : "Light mode")">
+        <span class="material-symbols-outlined" style="font-size:1.15rem;">
+            @(IsLightTheme ? "dark_mode" : "light_mode")
+        </span>
+    </button>
+</div>
+
+@code {
+    [Parameter] public bool IsLightTheme { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsLightThemeChanged { get; set; }
+    [Parameter] public EventCallback<bool> OnAIToggleChange { get; set; }
+    [Parameter] public EventCallback OnThemeToggle { get; set; }
+    [Parameter] public EventCallback OnLanguageToggle { get; set; }
+
+    private async Task OnAIToggleChangeCallback(bool value)
+    {
+        glb.IsAIEnabled = value;
+        await OnAIToggleChange.InvokeAsync(value);
+    }
+}

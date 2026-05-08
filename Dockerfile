@@ -30,8 +30,9 @@ RUN dotnet publish gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Cài đặt curl để hỗ trợ Docker Healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /app/keys && chown app:app /app/keys
 
 # Optimized for performance (Server GC for 8GB RAM VPS)
 ENV DOTNET_gcServer=1

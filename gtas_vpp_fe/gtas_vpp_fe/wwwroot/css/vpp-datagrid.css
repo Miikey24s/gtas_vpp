@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP DATA TABLE ENHANCEMENTS — Phase 9
+   Card-style rows, hover effects, loading states
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── DataGrid Row Enhancements ───────────────────────────────── */
+.vpp-datagrid .rz-datatable-row {
+    transition: background-color var(--vpp-transition-fast);
+}
+
+.vpp-datagrid .rz-datatable-row:hover {
+    background-color: var(--vpp-bg-elevated);
+}
+
+/* Card-style row (thay table truyền thống) */
+.vpp-datagrid-card .rz-datatable-row {
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    margin-bottom: var(--vpp-space-3);
+    padding: var(--vpp-space-3);
+    box-shadow: var(--vpp-shadow-xs);
+    transition: all var(--vpp-transition-fast);
+}
+
+.vpp-datagrid-card .rz-datatable-row:hover {
+    border-color: var(--vpp-border-strong);
+    box-shadow: var(--vpp-shadow-sm);
+    transform: translateY(-1px);
+}
+
+.vpp-datagrid-card .rz-datatable-data {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-4);
+    align-items: center;
+}
+
+/* ── Table Header Styling ────────────────────────────────────── */
+.vpp-datagrid .rz-datatable-thead th {
+    background: var(--vpp-bg-surface);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: 2px solid var(--vpp-border-default);
+}
+
+/* ── Loading Skeleton ────────────────────────────────────────── */
+.vpp-dg-skeleton-row {
+    display: flex;
+    gap: var(--vpp-space-4);
+    padding: var(--vpp-space-4);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-dg-skeleton-cell {
+    height: 14px;
+    border-radius: var(--vpp-radius-sm);
+    animation: vpp-shimmer 1.5s infinite;
+}
+
+@keyframes vpp-shimmer {
+    0%   { background: var(--vpp-bg-surface); }
+    50%  { background: var(--vpp-bg-elevated); }
+    100% { background: var(--vpp-bg-surface); }
+}
+
+/* ── Compact Density Override ────────────────────────────────── */
+.vpp-datagrid .rz-datatable-tbody td {
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    font-size: var(--vpp-text-sm);
+    vertical-align: middle;
+}
+
+/* ── Status Column ───────────────────────────────────────────── */
+.vpp-datagrid .rz-datatable-tbody td .vpp-badge {
+    white-space: nowrap;
+}
+
+/* ── Action Buttons in Grid ──────────────────────────────────── */
+.vpp-datagrid .rz-datatable-tbody .rz-button-text {
+    opacity: 0;
+    transition: opacity var(--vpp-transition-fast);
+}
+
+.vpp-datagrid .rz-datatable-row:hover .rz-button-text {
+    opacity: 1;
+}
+
+/* ── Pagination ──────────────────────────────────────────────── */
+.vpp-datagrid .rz-paginator {
+    padding: var(--vpp-space-3);
+    background: transparent;
+}
+
+.vpp-datagrid .rz-paginator .rz-paginator-pages button:hover {
+    background: var(--vpp-bg-elevated);
+    border-radius: var(--vpp-radius-sm);
+}
+
+/* ── Empty Datagrid ──────────────────────────────────────────── */
+.vpp-datagrid .rz-datatable-empty {
+    padding: var(--vpp-space-12);
+    text-align: center;
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-base);
+}

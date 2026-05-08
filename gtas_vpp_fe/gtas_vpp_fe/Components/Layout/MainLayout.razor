@@ -5,10 +5,12 @@
 <RadzenDialog />
 <RadzenNotification />
 
-<RadzenLayout Style="grid-template-columns: auto 1fr auto; grid-template-areas: 'rz-header rz-header rz-header' 'rz-sidebar rz-body rz-right-sidebar'">
+<RadzenLayout class="vpp-layout" Style="">
     <LeftSidebar />
-    <RadzenBody>
-        @Body
+    <RadzenBody class="vpp-layout-body">
+        <div class="vpp-content">
+            @Body
+        </div>
     </RadzenBody>
 </RadzenLayout>
 

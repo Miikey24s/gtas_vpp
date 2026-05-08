@@ -13,7 +13,7 @@
 
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" Style="position:absolute; top: 0; left: 0; width: 100vw; z-index:99" />
 
-<RadzenHeader Style="position:static;">
+<RadzenHeader class="vpp-header-glass" Style="position:static;">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2" Style="width:100%;">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
             <RadzenSidebarToggle class="customburger" Click="@(() => _sideBarExpanded = !_sideBarExpanded)" />
@@ -21,59 +21,22 @@
             <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem">
-            @* Language toggle *@
-            <RadzenButton Text="@(CultureInfo.CurrentCulture.Name.StartsWith("en") ? "VI" : "EN")" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0; font-size:0.75rem; font-weight:700;" Click="@(async () => await ToggleLanguage())" Title="@Loc["Language"]" />
-            @* AI Toggle — Admin only *@
-            <AuthorizeView Policy="@Permissions.AIToggle">
-                <div style="display:flex; align-items:center; gap:4px;" Title="@(glb.IsAIEnabled ? Loc["AIEnabled"] : Loc["AIDisabled"])">
-                    <RadzenIcon Icon="smart_toy" Style="font-size:1rem; color: var(--rz-base-600);" />
-                    <RadzenSwitch @bind-Value="glb.IsAIEnabled" Change="@OnAIToggleChange" Style="margin:0;" />
-                </div>
-            </AuthorizeView>
-            <RadzenButton Icon="@(LightTheme ? "dark_mode" : "light_mode")" Click="ThemeOnChange" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Title="Toggle theme" />
-            @* Notification bell (placeholder - not yet implemented) *@
+            <HeaderControls IsLightTheme="@LightTheme"
+                            IsLightThemeChanged="@(isLight => LightTheme = isLight)"
+                            OnThemeToggle="ThemeOnChange"
+                            OnLanguageToggle="ToggleLanguage"
+                            OnAIToggleChange="OnAIToggleChange" />
+            @* Notification bell *@
             <div style="position:relative;">
                 <RadzenButton Icon="notifications" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Disabled="true" Title="Notifications (coming soon)" />
-                @* Badge dot placeholder *@
                 <span style="position:absolute; top:2px; right:2px; width:8px; height:8px; background:var(--rz-danger); border-radius:50%; border:2px solid var(--rz-header-background-color, #fff);"></span>
             </div>
-            <div style="position:relative;">
-                <div class="user-avatar" @onclick="@(() => _userMenuOpen = !_userMenuOpen)" title="@glb.UserInfo.FullName">
-                    @GetUserInitials()
-                </div>
-                @if (_userMenuOpen)
-                {
-                    <div class="user-dropdown">
-                        <div class="user-dropdown-header">
-                            <div class="user-avatar-lg">@GetUserInitials()</div>
-                            <div>
-                                <div style="font-weight:600;">@glb.UserInfo.FullName</div>
-                                <div style="font-size:0.8rem; color:var(--rz-base-600);">@glb.UserInfo.DepartmentCode</div>
-                            </div>
-                        </div>
-                        <div class="user-dropdown-divider"></div>
-                        <div class="user-dropdown-info">
-                            <RadzenIcon Icon="apartment" Style="font-size:1rem; color:var(--rz-base-600);" />
-                            <span>@glb.UserInfo.DepartmentCode</span>
-                        </div>
-                        @* <div class="user-dropdown-info">
-                            <RadzenIcon Icon="business" Style="font-size:1rem; color:var(--rz-base-600);" />
-                            <span>@glb.UserInfo.MemberCompanyName</span>
-                        </div> *@
-                        <div class="user-dropdown-divider"></div>
-                        <a href="/logoutprocess" class="user-dropdown-logout">
-                            <RadzenIcon Icon="logout" Style="font-size:1rem;" />
-                            <span>Logout</span>
-                        </a>
-                    </div>
-                    <div class="user-dropdown-backdrop" @onclick="@(() => _userMenuOpen = false)"></div>
-                }
-            </div>
+            <UserMenu UserFullName="@glb.UserInfo.FullName" Department="@glb.UserInfo.DepartmentCode" />
         </RadzenStack>
     </RadzenStack>
 </RadzenHeader>
 
-<RadzenSidebar Responsive="true" class="@(!_sideBarExpanded ? "sidebar-collapsed" : "")" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
+<RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
     <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
         <AuthorizeView Policy="@Permissions.MenuDashboard" Context="dashboardMenuAuth">
             <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="home" class="ppjsidebarmenu">

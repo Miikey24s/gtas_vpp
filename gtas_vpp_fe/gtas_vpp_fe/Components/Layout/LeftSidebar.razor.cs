@@ -180,6 +180,8 @@ namespace gtas_vpp_fe.Components.Layout
                 return parts[0][..Math.Min(2, parts[0].Length)].ToUpper();
             return "U";
         }
+
+        public string GetSidebarClass() => $"vpp-sidebar {(!_sideBarExpanded ? "sidebar-collapsed" : "")}";
     }
 }
 

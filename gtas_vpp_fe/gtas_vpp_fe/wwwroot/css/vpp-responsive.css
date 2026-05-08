@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP RESPONSIVE — Phase 12
+   Mobile-first breakpoints, fluid layout helpers
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Breakpoint Utilities ─────────────────────────────────────── */
+.vpp-hide-mobile { display: none; }
+.vpp-hide-tablet { }
+.vpp-hide-desktop { }
+.vpp-show-mobile { display: block; }
+.vpp-show-tablet { }
+.vpp-show-desktop { display: none; }
+
+/* Tablet (≥768px) */
+@media (min-width: 768px) {
+    .vpp-hide-mobile { display: revert; }
+    .vpp-show-mobile { display: none; }
+    .vpp-hide-tablet { display: none; }
+    .vpp-show-tablet { display: block; }
+
+    .vpp-layout { gap: var(--vpp-space-6); }
+}
+
+/* Desktop (≥1200px) */
+@media (min-width: 1200px) {
+    .vpp-hide-desktop { display: none; }
+    .vpp-show-desktop { display: revert; }
+    .vpp-show-tablet { display: none; }
+
+    .vpp-content {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}
+
+/* ── Sidebar Responsive ──────────────────────────────────────── */
+@media (max-width: 767px) {
+    .vpp-sidebar {
+        position: fixed;
+        z-index: 100;
+        width: 280px !important;
+        transform: translateX(-100%);
+        transition: transform var(--vpp-transition-base);
+    }
+
+    .vpp-sidebar:not(.sidebar-collapsed) {
+        transform: translateX(0);
+    }
+
+    .vpp-sidebar.sidebar-collapsed {
+        transform: translateX(-100%);
+        width: 0 !important;
+    }
+
+    .vpp-layout-body {
+        width: 100% !important;
+    }
+}
+
+/* ── Fluid Typography ─────────────────────────────────────────── */
+@media (max-width: 767px) {
+    :root {
+        --vpp-text-3xl: 1.75rem;
+        --vpp-text-2xl: 1.5rem;
+        --vpp-text-xl: 1.25rem;
+    }
+}
+
+/* ── Login Responsive ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .vpp-login-card {
+        padding: 28px 20px 32px;
+    }
+
+    .vpp-login-art {
+        align-items: stretch;
+    }
+
+    .vpp-login-art-image {
+        object-position: 18% top;
+    }
+
+    .vpp-login-title {
+        font-size: 1.85rem;
+    }
+
+    .vpp-login-title-accent {
+        font-size: 0.76rem;
+    }
+}

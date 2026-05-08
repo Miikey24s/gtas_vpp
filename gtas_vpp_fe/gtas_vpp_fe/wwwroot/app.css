@@ -1,5 +1,3 @@
-@import url('app.css');
-
 :root {
     --rz-root-font-size: 14px !important;
     --ppj-logo-primary-color: #001836;
@@ -8,9 +6,9 @@
     --dark: black;
     --white: white;
     --custom-base-1: #efefef;
-    --consumption-base-1: var(--vpp-ocean-primary);
+    --consumption-base-1: var(--vpp-primary-500);
     --consumption-grid-header-padding0-5: 0.5rem;
-    --consumption-main-color: var(--vpp-ocean-primary);
+    --consumption-main-color: var(--vpp-primary-500);
     --cyanpastell: #99ffff;
     --cons-wfx: #60e4ff91;
     --cons-pur: #ffe4c4b5;
@@ -20,14 +18,14 @@
     --cons-receive: #7ec8e3;
     --rz-layout-body-padding-1: 0.5rem;
     --rz-input-height-1: 2rem;
-    --vpp-ocean-primary: var(--rz-primary);
-    --vpp-ocean-primary-dark: var(--rz-primary-dark);
-    --vpp-ocean-primary-light: var(--rz-primary-light);
-    --vpp-ocean-surface-soft: var(--rz-base-200);
+    --vpp-ocean-primary: var(--vpp-primary-500);
+    --vpp-ocean-primary-dark: var(--vpp-primary-700);
+    --vpp-ocean-primary-light: var(--vpp-primary-200);
+    --vpp-ocean-surface-soft: var(--vpp-bg-surface);
     --rz-input-disabled-border: var(--rz-base-600);
     --rz-border-disabled: var(--rz-border-width) solid var(--rz-base-600);
-    --rz-form-field-label-focus-color: var(--vpp-ocean-primary) !important;
-    --rz-input-border-block-end: 1px solid var(--vpp-ocean-primary);
+    --rz-form-field-label-focus-color: var(--vpp-primary-500) !important;
+    --rz-input-border-block-end: 1px solid var(--vpp-primary-500);
 }
 
 /* ── Sidebar collapse: hide submenu children, only show parent icon ── */
@@ -145,32 +143,6 @@
     z-index: 999;
 }
 
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    -webkit-box-shadow: none;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
-}
-
-    ::-webkit-scrollbar-thumb:window-inactive {
-        background: rgba(255, 255, 255, 0.3);
-    }
-
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
 hr {
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -249,231 +221,6 @@ h1:focus {
 .vh100 {
     min-height: 100vh !important;
     height: 100vh !important;
-}
-
-.loginbox {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-}
-
-.box {
-    display: flex;
-    position: absolute;
-    /* justify-content: center; */
-    /* align-items: center; */
-    /* float: right; */
-    /* right: 40em; */
-    /* top: 5em; */
-}
-
-    .box .square {
-        position: absolute;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-right: 1px solid rgba(255, 255, 255, 0.2);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(178, 178, 178, 0.5);
-        border-radius: 10px;
-        /*animation: animate 10s linear infinite;
-        animation-delay: calc(-1s* var(--i));*/
-    }
-
-        .box .square:nth-child(1) {
-            top: -50px;
-            right: -60px;
-            width: 100px;
-            height: 100px;
-        }
-
-        .box .square:nth-child(2) {
-            top: 150px;
-            left: -100px;
-            width: 120px;
-            height: 120px;
-            z-index: 2;
-        }
-
-        .box .square:nth-child(3) {
-            bottom: 50px;
-            right: -60px;
-            width: 80px;
-            height: 80px;
-            z-index: 2;
-        }
-
-        .box .square:nth-child(4) {
-            bottom: -80px;
-            left: 100px;
-            width: 50px;
-            height: 50px;
-        }
-
-        .box .square:nth-child(5) {
-            top: -80px;
-            left: 140px;
-            width: 60px;
-            height: 60px;
-        }
-
-@keyframes animate {
-    0%, 100% {
-        transform: translateY(-40px);
-    }
-
-    50% {
-        transform: translateY(40px);
-    }
-}
-
-.form {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: 40px;
-}
-
-    .form h2 {
-        text-align: center;
-        position: relative;
-        color: var(--white);
-        font-size: 24px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        margin-bottom: 40px;
-    }
-
-        .form h2::before {
-            content: '';
-            text-align: center;
-            position: absolute;
-            bottom: -10px;
-            width: 225px;
-            height: 4px;
-            background: var(--white);
-        }
-
-    .form .inputBox {
-        width: 100%;
-        margin-top: 20px;
-    }
-
-        .form .inputBox input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            outline: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 16px;
-            letter-spacing: 1px;
-            color: var(--dark);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-            .form .inputBox input::placeholder {
-                color: var(--dark);
-            }
-
-            .form .inputBox input[type="submit"] {
-                background: #fff;
-                color: #666;
-                max-width: 100px;
-                cursor: pointer;
-                margin-bottom: 20px;
-                font-weight: 600;
-                margin-bottom: 0;
-            }
-
-        .form .inputBox:last-child {
-            justify-self: end;
-            text-align: end;
-            align-items: flex-end;
-            margin-bottom: 0;
-            margin-top: 0;
-        }
-
-.divbox {
-    /* position: absolute; */
-    margin-left: 1em;
-    z-index: 2;
-    color: var(--white);
-}
-
-    .divbox input[type="checkbox"] {
-        display: none;
-    }
-
-    .divbox label {
-        position: relative;
-        display: inline-block;
-        color: var(--dark);
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-        .divbox label span {
-            position: relative;
-            top: 2px;
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--dark);
-        }
-
-    .divbox input[type="checkbox"]:checked + label span::before {
-        content: '';
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        right: 3px;
-        bottom: 3px;
-        background: var(--white);
-        animation: animate1 2s linear infinite;
-    }
-
-@keyframes animate1 {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.logoppj {
-    position: absolute;
-    background-image: url(../logoppj-new.png);
-    background-size: 100%;
-    background-repeat: no-repeat;
-    background-position: center;
-    width: 38%;
-    height: 16%;
-    top: -1.5em;
-    left: 2em;
-    z-index: 9;
-    border-radius: 10px;
-}
-
-.lg1container {
-    position: relative;
-    width: 450px;
-    min-height: 220px;
-    background: rgb(255 255 255);
-    border-radius: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 25px 45px rgb(0 0 0 / 10%);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ppjsidebarmenu.lastchild:before {
@@ -1570,40 +1317,18 @@ thead {
     transition: border-bottom-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-/* ── Dark Mode Smooth Transition ─────────────────────────────── */
+/* ── Dark/Light Mode Transition ──────────────────────────────── */
 body, .rz-panel, .rz-card, .rz-dialog, .rz-data-grid, .rz-menu,
 .rz-button, .rz-tab, .rz-tabs-item, .rz-badge,
 .rz-form-field-label, .rz-textbox, .rz-password, .rz-numeric,
 .rz-dropdown, .rz-multiselect, .rz-inputtext, .rz-chips {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    transition: background-color var(--vpp-transition-slow),
+                color var(--vpp-transition-slow),
+                border-color var(--vpp-transition-slow),
+                box-shadow var(--vpp-transition-slow);
 }
 
-/* ── VPP Design Tokens ───────────────────────────────────────── */
-:root {
-    --vpp-primary-rgb: 30, 136, 229;
-    --vpp-bg: #f5f7fa;
-    --vpp-surface: #ffffff;
-    --vpp-text-primary: #1a1a2e;
-    --vpp-text-secondary: #525f7f;
-    --vpp-border: #e4e8f0;
-    --vpp-shadow: rgba(0, 0, 0, 0.06);
-}
-
-.rz-theme-dark {
-    --vpp-bg: #0f172a;
-    --vpp-surface: #1e293b;
-    --vpp-text-primary: #e2e8f0;
-    --vpp-text-secondary: #94a3b8;
-    --vpp-border: #334155;
-    --vpp-shadow: rgba(0, 0, 0, 0.25);
-}
-
-body {
-    background-color: var(--vpp-bg);
-    color: var(--vpp-text-primary);
-}
-
-/* ── Shimmer Skeleton Loading ────────────────────────────────── */
+/* ── Legacy Shimmer Classes (backward compat, use .vpp-skeleton for new code) ── */
 @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
@@ -1611,15 +1336,15 @@ body {
 
 .shimmer {
     background: linear-gradient(90deg,
-        var(--vpp-border) 25%,
-        var(--vpp-surface) 50%,
-        var(--vpp-border) 75%);
+        var(--vpp-border-default) 25%,
+        var(--vpp-bg-elevated) 50%,
+        var(--vpp-border-default) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
-    border-radius: 6px;
+    border-radius: var(--vpp-radius-sm);
 }
 
-.shimmer-bar { border-radius: 6px; }
+.shimmer-bar { border-radius: var(--vpp-radius-sm); }
 .shimmer-h-12 { height: 12px; }
 .shimmer-h-16 { height: 16px; }
 .shimmer-h-24 { height: 24px; }
@@ -1629,11 +1354,5 @@ body {
 .shimmer-w-50 { width: 50%; }
 .shimmer-w-60 { width: 60%; }
 
-.skeleton-grid {
-    padding: 1rem;
-}
-
-.skeleton-stat-card {
-    border-radius: 12px;
-    min-height: 80px;
-}
+.skeleton-grid { padding: 1rem; }
+.skeleton-stat-card { border-radius: var(--vpp-radius-lg); min-height: 80px; }
