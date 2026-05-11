@@ -62,9 +62,10 @@ services:
       # LiveEnv: dùng runtime (EnvironmentResolver chọn qua JWT claim "Server")
       ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;Encrypt=False;"
       ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;Encrypt=False;"
-      JwtSettings__Key: "${JWT_KEY:-CHANGE_THIS_TO_A_STRONG_PRODUCTION_KEY_MIN_32_CHARS}"
+      JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required and must be set.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
+      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:-ttpsolutions}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
       CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
       # ── AI Configuration (điều khiển qua .env) ──

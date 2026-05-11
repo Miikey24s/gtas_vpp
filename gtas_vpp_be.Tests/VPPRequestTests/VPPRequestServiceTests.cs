@@ -80,16 +80,9 @@ public class VPPRequestServiceTests
         Assert.True(result);
     }
 
-    [Fact]
-    public void GenerateVPPCode_ValidInput_ReturnsExpectedFormat()
-    {
-        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
-
-        var result = InvokeGenerateVPPCode(service, 2026, 4, 5615);
-
-        Assert.Equal("VPP-202604-5615-0708", result);
-    }
+    // NOTE: Obsolete test removed — VPPCode format đã đổi sang
+    // "VPP-{Y:D4}{M:D2}-{Guid:N}" (24 chars, no userId leak) trong P0.3.
+    // Coverage chuyển sang VPPCodeGeneratorTests.cs (3 test: format/uniqueness/no-userId).
 
     [Fact]
     public async Task CreateOrderAsync_RegularOrder_CreatesSubmittedHeader()

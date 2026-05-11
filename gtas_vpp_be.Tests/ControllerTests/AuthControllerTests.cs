@@ -1,6 +1,7 @@
 using gtas_vpp_be.Controllers;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs;
@@ -92,6 +93,7 @@ public class AuthControllerTests
             Mock.Of<IGenericRepository<LEX02_CompanyDepartmentLocation>>(),
             Mock.Of<IUserNameResolver>(),
             unitOfWork.Object,
-            configuration);
+            configuration,
+            Mock.Of<IPasswordEncoder>());
     }
 }
