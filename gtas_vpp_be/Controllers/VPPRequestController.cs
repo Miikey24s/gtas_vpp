@@ -54,16 +54,23 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] int? status,
             [FromQuery] List<int>? years,
             [FromQuery] List<int>? months,
-            [FromQuery] List<int>? statuses)
+            [FromQuery] List<int>? statuses,
+            [FromQuery] int? skip,
+            [FromQuery] int? top)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var data = await _vppService.GetMyOrdersSummaryAsync(
+            var (data, totalCount, totalLines, totalQty) = await _vppService.GetMyOrdersSummaryPagedAsync(
                 CurrentUserId.Value,
                 MergeIntFilters(year, years),
                 MergeIntFilters(month, months),
-                MergeIntFilters(status, statuses));
+                MergeIntFilters(status, statuses),
+                skip,
+                top);
 
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+            Response.Headers.Append("X-Total-Lines", totalLines.ToString());
+            Response.Headers.Append("X-Total-Qty", totalQty.ToString());
             return Ok(data);
         }
 
@@ -151,10 +158,7 @@ namespace gtas_vpp_be.Controllers
                     VPPCategoryName = x.VPPCategory != null ? x.VPPCategory.VPPCategoryName : null,
                     x.UOMId,
                     UOMCode = x.UOM != null ? x.UOM.ClassDetailCode : null,
-                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null,
-                    SupplierCount = x.L06_VPPSupplierMappings != null
-                        ? x.L06_VPPSupplierMappings.Count(mapping => !mapping.IsDeleted)
-                        : 0
+                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null
                 });
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -223,28 +227,37 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("all-orders")]
-        public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode)
+        public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top)
         {
-            var data = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode);
+            var (data, totalCount, totalLines, totalQty) = await _vppService.GetAllOrdersPagedAsync(year, month, status, departmentCode, skip, top);
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+            Response.Headers.Append("X-Total-Lines", totalLines.ToString());
+            Response.Headers.Append("X-Total-Qty", totalQty.ToString());
             return Ok(data);
         }
 
         [HttpGet("department-orders")]
-        public async Task<IActionResult> GetDepartmentOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode)
+        public async Task<IActionResult> GetDepartmentOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top)
         {
             if (string.IsNullOrWhiteSpace(departmentCode))
             {
                 departmentCode = CurrentDepartmentCode;
             }
 
-            var data = await _vppService.GetDepartmentOrdersAsync(year, month, status, departmentCode);
+            var (data, totalCount, totalLines, totalQty) = await _vppService.GetDepartmentOrdersPagedAsync(year, month, status, departmentCode, skip, top);
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+            Response.Headers.Append("X-Total-Lines", totalLines.ToString());
+            Response.Headers.Append("X-Total-Qty", totalQty.ToString());
             return Ok(data);
         }
 
         [HttpGet("additional-orders/pending")]
-        public async Task<IActionResult> GetPendingAdditionalOrders()
+        public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top)
         {
-            var data = await _vppService.GetPendingAdditionalOrdersAsync();
+            var (data, totalCount, totalLines, totalQty) = await _vppService.GetPendingAdditionalOrdersPagedAsync(skip, top);
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+            Response.Headers.Append("X-Total-Lines", totalLines.ToString());
+            Response.Headers.Append("X-Total-Qty", totalQty.ToString());
             return Ok(data);
         }
 

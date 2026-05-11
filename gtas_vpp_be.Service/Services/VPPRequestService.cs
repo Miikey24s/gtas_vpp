@@ -19,6 +19,7 @@ namespace gtas_vpp_be.Service.Services
     {
         Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses);
         Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersSummaryAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetMyOrdersSummaryPagedAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses, int? skip, int? top);
         Task<VPP01_RequestHeaderResDTO?> GetOrderByIdAsync(Guid id);
         Task<VPP01_RequestHeaderResDTO> CreateOrderAsync(VPP01_CreateReqDTO req, int createUserId, string departmentCode, string memberCompanyCode);
         Task<VPP01_RequestHeaderResDTO> UpdateOrderAsync(VPP01_UpdateReqDTO req);
@@ -26,8 +27,11 @@ namespace gtas_vpp_be.Service.Services
         Task<VPP01_RequestHeaderResDTO?> GetPreviousOrderItemsAsync(int userId);
         Task<VPP_PeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId);
         Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
         Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
         Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync();
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(int? skip, int? top);
         Task ApproveAdditionalOrderAsync(Guid id, int adminId);
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason);
     }
@@ -56,6 +60,11 @@ namespace gtas_vpp_be.Service.Services
             return await GetFilteredOrdersAsync(userId, years, months, statuses);
         }
 
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetMyOrdersSummaryPagedAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses, int? skip, int? top)
+        {
+            return await GetFilteredOrdersPagedAsync(userId, years, months, statuses, skip, top);
+        }
+
         private async Task<List<VPP01_RequestHeaderResDTO>> GetFilteredOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
         {
             var yearFilter = years?.Distinct().ToArray();
@@ -80,6 +89,54 @@ namespace gtas_vpp_be.Service.Services
 
             await ApplyRequesterNamesAsync(result);
             return result;
+        }
+
+        private async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetFilteredOrdersPagedAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses, int? skip, int? top)
+        {
+            var yearFilter = years?.Distinct().ToArray();
+            var monthFilter = months?.Distinct().ToArray();
+            var statusFilter = statuses?.Distinct().ToArray();
+
+            var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => x.CreateUserId == userId && !x.IsDeleted);
+
+            if (yearFilter is { Length: > 0 }) query = query.Where(x => yearFilter.Contains(x.Y));
+            if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.M));
+            if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
+
+            // Aggregate stats in a single DB query
+            var stats = await query.Select(x => new
+            {
+                Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0
+            }).GroupBy(x => 1).Select(g => new
+            {
+                TotalCount = g.Count(),
+                TotalLines = g.Sum(x => x.Lines),
+                TotalQty = g.Sum(x => x.Qty)
+            }).FirstOrDefaultAsync();
+
+            var totalCount = stats?.TotalCount ?? 0;
+            var totalLines = stats?.TotalLines ?? 0;
+            var totalQty = stats?.TotalQty ?? 0;
+
+            var orderedQuery = query
+                .OrderByDescending(x => x.Y)
+                .ThenByDescending(x => x.M)
+                .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate);
+
+            IQueryable<VPP01_RequestHeader> pagedQuery = orderedQuery;
+            if (skip.HasValue && skip.Value > 0) pagedQuery = pagedQuery.Skip(skip.Value);
+            if (top.HasValue && top.Value > 0) pagedQuery = pagedQuery.Take(top.Value);
+
+            var result = await pagedQuery
+                .ProjectToType<VPP01_RequestHeaderResDTO>()
+                .AsSplitQuery()
+                .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return (result, totalCount, totalLines, totalQty);
         }
 
         public async Task<VPP01_RequestHeaderResDTO?> GetOrderByIdAsync(Guid id)
@@ -360,6 +417,49 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top)
+        {
+            var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                     && (year == null || x.Y == year)
+                     && (month == null || x.M == month)
+                     && (status == null || x.Status == status)
+                     && (departmentCode == null || x.DepartmentCode == departmentCode));
+
+            var stats = await query.Select(x => new
+            {
+                Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0
+            }).GroupBy(x => 1).Select(g => new
+            {
+                TotalCount = g.Count(),
+                TotalLines = g.Sum(x => x.Lines),
+                TotalQty = g.Sum(x => x.Qty)
+            }).FirstOrDefaultAsync();
+
+            var totalCount = stats?.TotalCount ?? 0;
+            var totalLines = stats?.TotalLines ?? 0;
+            var totalQty = stats?.TotalQty ?? 0;
+
+            var orderedQuery = query
+                .OrderByDescending(x => x.Y)
+                .ThenByDescending(x => x.M)
+                .ThenByDescending(x => x.UpdateDate);
+
+            IQueryable<VPP01_RequestHeader> pagedQuery = orderedQuery;
+            if (skip.HasValue && skip.Value > 0) pagedQuery = pagedQuery.Skip(skip.Value);
+            if (top.HasValue && top.Value > 0) pagedQuery = pagedQuery.Take(top.Value);
+
+            var result = await pagedQuery
+                .ProjectToType<VPP01_RequestHeaderResDTO>()
+                .AsSplitQuery()
+                .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return (result, totalCount, totalLines, totalQty);
+        }
+
         public async Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode)
         {
             var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
@@ -377,6 +477,50 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top)
+        {
+            var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                     && (year == null || x.Y == year)
+                     && (month == null || x.M == month)
+                     && (status == null || x.Status == status)
+                     && (departmentCode == null || x.DepartmentCode == departmentCode));
+
+            // Aggregate stats in a single DB query
+            var stats = await query.Select(x => new
+            {
+                Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0
+            }).GroupBy(x => 1).Select(g => new
+            {
+                TotalCount = g.Count(),
+                TotalLines = g.Sum(x => x.Lines),
+                TotalQty = g.Sum(x => x.Qty)
+            }).FirstOrDefaultAsync();
+
+            var totalCount = stats?.TotalCount ?? 0;
+            var totalLines = stats?.TotalLines ?? 0;
+            var totalQty = stats?.TotalQty ?? 0;
+
+            var orderedQuery = query
+                .OrderByDescending(x => x.Y)
+                .ThenByDescending(x => x.M)
+                .ThenByDescending(x => x.UpdateDate);
+
+            IQueryable<VPP01_RequestHeader> pagedQuery = orderedQuery;
+            if (skip.HasValue && skip.Value > 0) pagedQuery = pagedQuery.Skip(skip.Value);
+            if (top.HasValue && top.Value > 0) pagedQuery = pagedQuery.Take(top.Value);
+
+            var result = await pagedQuery
+                .ProjectToType<VPP01_RequestHeaderResDTO>()
+                .AsSplitQuery()
+                .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return (result, totalCount, totalLines, totalQty);
+        }
+
         public async Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync()
         {
             var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
@@ -388,6 +532,38 @@ namespace gtas_vpp_be.Service.Services
 
             await ApplyRequesterNamesAsync(result);
             return result;
+        }
+
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(int? skip, int? top)
+        {
+            var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted && x.IsAdditionalOrder && x.Status == (int)VPPStatus.Pending);
+
+            var stats = await query.Select(x => new
+            {
+                Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
+                Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0
+            }).GroupBy(x => 1).Select(g => new
+            {
+                TotalCount = g.Count(),
+                TotalLines = g.Sum(x => x.Lines),
+                TotalQty = g.Sum(x => x.Qty)
+            }).FirstOrDefaultAsync();
+
+            var orderedQuery = query.OrderByDescending(x => x.UpdateDate);
+
+            IQueryable<VPP01_RequestHeader> pagedQuery = orderedQuery;
+            if (skip.HasValue && skip.Value > 0) pagedQuery = pagedQuery.Skip(skip.Value);
+            if (top.HasValue && top.Value > 0) pagedQuery = pagedQuery.Take(top.Value);
+
+            var result = await pagedQuery
+                .ProjectToType<VPP01_RequestHeaderResDTO>()
+                .AsSplitQuery()
+                .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0, stats?.TotalQty ?? 0);
         }
 
         public async Task ApproveAdditionalOrderAsync(Guid id, int adminId)
@@ -513,7 +689,10 @@ namespace gtas_vpp_be.Service.Services
         {
             var now = _dateTimeProvider.Now;
             var currentMonth = new DateTime(now.Year, now.Month, 1);
-            var currentPeriod = now.Day >= _deadlineDay ? currentMonth.AddMonths(1) : currentMonth;
+            // Kỳ tháng N: ngày 5/N → ngày 4/(N+1)
+            // Ngày >= deadline → kỳ hiện tại = tháng hiện tại
+            // Ngày < deadline  → vẫn trong kỳ tháng trước
+            var currentPeriod = now.Day >= _deadlineDay ? currentMonth : currentMonth.AddMonths(-1);
             var previousPeriod = currentPeriod.AddMonths(-1);
             return (currentPeriod.Year, currentPeriod.Month, previousPeriod.Year, previousPeriod.Month);
         }
