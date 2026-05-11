@@ -79,10 +79,19 @@ namespace gtas_vpp_be.Model
             });
             modelBuilder.Entity<VPP01_RequestHeader>(en =>
             {
+                en.Property(x => x.VPPCode).HasMaxLength(64);
                 en.HasIndex(x => new { x.CreateUserId, x.Y, x.M, x.IsDeleted, x.IsAdditionalOrder, x.Status })
                     .HasDatabaseName("IX_VPP01_RequestHeader_User_Period_Status");
                 en.HasIndex(x => new { x.Y, x.M, x.IsDeleted, x.Status, x.IsAdditionalOrder })
                     .HasDatabaseName("IX_VPP01_RequestHeader_Period_Status");
+                en.HasIndex(x => new { x.CreateUserId, x.Y, x.M })
+                    .HasDatabaseName("UX_VPP01_OneRegularPerUserPeriod")
+                    .HasFilter("[IsDeleted] = 0 AND [IsAdditionalOrder] = 0")
+                    .IsUnique();
+                en.HasIndex(x => x.VPPCode)
+                    .HasDatabaseName("UX_VPP01_VPPCode")
+                    .HasFilter("[VPPCode] IS NOT NULL")
+                    .IsUnique();
             });
             modelBuilder.Entity<VPP03_Log>(en =>
             {

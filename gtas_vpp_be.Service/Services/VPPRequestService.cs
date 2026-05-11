@@ -1,11 +1,13 @@
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -251,9 +253,14 @@ namespace gtas_vpp_be.Service.Services
 
                 return (await GetOrderByIdAsync(header.Id))!;
             }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                await _scopedUow.RollbackAsync();
+                throw new ConflictException("Bạn đã có đơn cho kỳ này.", ex);
+            }
             catch
             {
-                _scopedUow.Rollback();
+                await _scopedUow.RollbackAsync();
                 throw;
             }
         }
@@ -683,7 +690,7 @@ namespace gtas_vpp_be.Service.Services
             => _dateTimeProvider.Now >= new DateTime(year, month, _deadlineDay);
 
         private string GenerateVPPCode(int year, int month, int userId)
-            => $"VPP-{year}{month:D2}-{userId}-{_dateTimeProvider.Now:mmss}";
+            => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}".Substring(0, 24);
 
         private (int curYear, int curMonth, int prevYear, int prevMonth) GetCurrentAndPreviousPeriod()
         {
@@ -755,6 +762,10 @@ namespace gtas_vpp_be.Service.Services
                     x.VPP01_RequestHeaderId
                 }).ToList()
             };
+
+        private static bool IsUniqueViolation(DbUpdateException exception)
+            => exception.InnerException is SqlException sqlException
+               && (sqlException.Number == 2601 || sqlException.Number == 2627);
 
         private static void ValidateItems(List<VPP02_ItemReqDTO>? items)
         {

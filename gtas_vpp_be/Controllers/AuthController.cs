@@ -32,6 +32,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IUserNameResolver _userNameResolver;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly IPasswordEncoder _passwordEncoder;
 
         public AuthController(
             VPPContext authDb,
@@ -40,7 +41,8 @@ namespace gtas_vpp_be.Controllers
             IGenericRepository<LEX02_CompanyDepartmentLocation> departmentRepository,
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IPasswordEncoder passwordEncoder)
         {
             _authDb = authDb;
             _storedProcedureExecutor = storedProcedureExecutor;
@@ -49,6 +51,7 @@ namespace gtas_vpp_be.Controllers
             _userNameResolver = userNameResolver;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _passwordEncoder = passwordEncoder;
         }
 
         [AllowAnonymous]
@@ -60,8 +63,7 @@ namespace gtas_vpp_be.Controllers
 
             try
             {
-                // Try bcrypt first, fallback to legacy TripleDES
-                var result = await TryLoginWithPassword(request.Username, request.Password);
+                var result = await LoginWithTripleDesAsync(request.Username, request.Password);
 
                 if (!result.IsSuccess || string.IsNullOrEmpty(result.ResData))
                     return Unauthorized(new { message = result.ErrorMess ?? "Login failed" });
@@ -86,26 +88,13 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private async Task<sp_ResDTO> TryLoginWithPassword(string username, string password)
+        private async Task<sp_ResDTO> LoginWithTripleDesAsync(string username, string password)
         {
-            // 1) Try bcrypt hash
-            var encrypted = PasswordHelpers.Encrypt(password, true);
+            var encrypted = _passwordEncoder.Encrypt(password);
             var result = await _storedProcedureExecutor.ExecuteSPAsync(
                 "sp_Authen", "sp_Authen_Login",
                 new { UserLogin = username, PasswordChar = encrypted }
             );
-
-            if (result.IsSuccess && !string.IsNullOrEmpty(result.ResData))
-                return result;
-
-            // 2) Fallback: legacy TripleDES password (for pre-migration accounts)
-            // The encrypted value above is the new bcrypt hash.
-            // Legacy accounts have passwords triple-DES encrypted in the DB,
-            // so we need to test with the encrypted version.
-            // In practice: the SP compares against PasswordChar column which has
-            // been pre-populated with TripleDES ciphertext. We already tried that above.
-            // The bcrypt migration means we'd store bcrypt in PasswordChar column
-            // going forward. For now, this is just the existing flow.
 
             return result;
         }

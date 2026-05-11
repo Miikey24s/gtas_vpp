@@ -1,3 +1,4 @@
+using gtas_vpp_be.Service.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -33,6 +34,7 @@ namespace gtas_vpp_be.Middleware
             var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
             var (statusCode, title) = exception switch
             {
+                ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Conflict"),
                 KeyNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
@@ -48,7 +50,7 @@ namespace gtas_vpp_be.Middleware
                 Status = statusCode,
                 Detail = exception is DbUpdateConcurrencyException 
                     ? "The data has been modified by another user. Please refresh the page and try again." 
-                    : (env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please contact support.")
+                    : (exception is ConflictException ? exception.Message : (env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please contact support."))
             };
 
             context.Response.StatusCode = statusCode;

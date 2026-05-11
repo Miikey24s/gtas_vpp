@@ -608,7 +608,8 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("VPPCode")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<int>("Y")
                         .HasColumnType("int");
@@ -620,6 +621,16 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.HasIndex("CreateUserId", "Y", "M", "IsDeleted", "IsAdditionalOrder", "Status")
                         .HasDatabaseName("IX_VPP01_RequestHeader_User_Period_Status");
+
+                    b.HasIndex("CreateUserId", "Y", "M")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP01_OneRegularPerUserPeriod")
+                        .HasFilter("[IsDeleted] = 0 AND [IsAdditionalOrder] = 0");
+
+                    b.HasIndex("VPPCode")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP01_VPPCode")
+                        .HasFilter("[VPPCode] IS NOT NULL");
 
                     b.ToTable("VPP01_RequestHeader");
                 });

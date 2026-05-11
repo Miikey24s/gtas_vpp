@@ -70,8 +70,10 @@ builder.Services.AddDbContext<VPPContext>(
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JiraSettings>(Configuration.GetSection("JiraSettings"));
+builder.Services.Configure<PasswordEncoderOptions>(builder.Configuration.GetSection("PasswordEncryption"));
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
+builder.Services.AddSingleton<IPasswordEncoder, TripleDesPasswordEncoder>();
 builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
