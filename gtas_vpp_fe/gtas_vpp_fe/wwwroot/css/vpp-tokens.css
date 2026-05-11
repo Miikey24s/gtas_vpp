@@ -6,7 +6,7 @@
 
 /* ── Typography ──────────────────────────────────────────────── */
 :root {
-    --vpp-font-display: 'Poppins', system-ui, -apple-system, sans-serif;
+    --vpp-font-display: 'Inter', system-ui, -apple-system, sans-serif;
     --vpp-font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --vpp-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 
@@ -124,7 +124,7 @@
     --vpp-sidebar-width: 260px;
     --vpp-sidebar-collapsed-width: 68px;
     --vpp-header-height: 60px;
-    --vpp-content-max-width: 1400px;
+    --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;
 
     /* Layout Magic Numbers (legacy migration) */

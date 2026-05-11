@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
@@ -55,14 +54,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 var now = DateTime.Now;
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
-                return now.Day >= 5 ? currentMonth.AddMonths(1) : currentMonth;
+                // Kỳ tháng N: từ ngày 5/N đến ngày 4/(N+1)
+                // Ngày >= 5 → đang trong kỳ tháng hiện tại
+                // Ngày < 5  → vẫn trong kỳ tháng trước
+                return now.Day >= 5 ? currentMonth : currentMonth.AddMonths(-1);
             }
         }
         
         public DateTime PreviousOrderPeriodDate => CurrentOrderPeriodDate.AddMonths(-1);
 
         public DateTime CurrentDeadlineDate => new(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 5);
-        public DateTime PeriodEndDate => new DateTime(DateTime.Now.Year, DateTime.Now.Month, 5).AddMonths(2);
+        // Kết thúc kỳ = ngày 4 của tháng kế tiếp so với kỳ
+        public DateTime PeriodEndDate => new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 4).AddMonths(1);
         public string PeriodEndText => PeriodEndDate.ToString("dd/MM/yyyy");
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
@@ -79,22 +82,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int AvgLinesPerOrder => TotalOrders == 0 ? 0 : (int)Math.Round((double)TotalLines / TotalOrders);
         public string AvgLinesPerOrderText => $"Average {AvgLinesPerOrder} line(s) per order";
 
-        public List<ChartMonthItem> ChartMonthlyData { get; set; } = new();
-        public List<ChartStatusItem> ChartStatusData { get; set; } = new();
 
-        public class ChartMonthItem
-        {
-            public string Month { get; set; } = "";
-            public int OrderCount { get; set; }
-            public int TotalQty { get; set; }
-            public int TotalLines { get; set; }
-        }
-
-        public class ChartStatusItem
-        {
-            public string Status { get; set; } = "";
-            public int Count { get; set; }
-        }
 
         private bool CanView => claims.HasPermission(Permissions.RequestOrder);
 
@@ -102,7 +90,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             await LoadOrdersAsync();
             await LoadPeriodInfoAsync();
-            await LoadChartDataAsync();
         }
 
         private async Task LoadPeriodInfoAsync()
@@ -245,21 +232,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             _ => BadgeStyle.Light
         };
 
-        private async Task LoadChartDataAsync()
-        {
-            try
-            {
-                var data = await _apiServices.GetFromApiAsync<JsonElement>($"{Config.VppApi.ApiVppBase}/dashboard-charts");
-                if (data.TryGetProperty("monthly", out var monthly))
-                {
-                    ChartMonthlyData = System.Text.Json.JsonSerializer.Deserialize<List<ChartMonthItem>>(monthly.GetRawText()) ?? new();
-                }
-                if (data.TryGetProperty("statusDistribution", out var statusDist))
-                {
-                    ChartStatusData = System.Text.Json.JsonSerializer.Deserialize<List<ChartStatusItem>>(statusDist.GetRawText()) ?? new();
-                }
-            }
-            catch { }
-        }
+
     }
 }

@@ -17,10 +17,19 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> PendingOrders { get; set; } = new();
-        public bool IsLoading { get; set; }
         private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
         private HashSet<Guid> LoadingDetailOrderIds { get; } = new();
 
+        public bool IsLoading { get; set; } = true;
+        public bool IsGridLoading { get; set; }
+        public bool IsActionLoading { get; set; }
+        public int TotalCount { get; set; }
+        public int TotalLines { get; set; }
+        public int TotalQty { get; set; }
+        public int PageSize { get; set; } = 20;
+        public int CurrentSkip { get; set; }
+
+        private bool _isFirstLoad = true;
         private bool CanView => claims.HasPermission(Permissions.RequestAdminApproval);
 
         protected override async Task OnInitializedAsync()
@@ -28,30 +37,37 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await LoadPendingOrdersAsync();
         }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+        protected async Task OnLoadData(Radzen.LoadDataArgs args)
         {
-            await base.OnAfterRenderAsync(firstRender);
-        }
-
-        private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)
-        {
-            await ApproveOrderAsync(order);
-        }
-
-        private async Task HandleRejectClick(VPP01_RequestHeaderResDTO order)
-        {
-            await ShowRejectDialogAsync(order);
+            CurrentSkip = args.Skip ?? 0;
+            if (args.Top.HasValue && args.Top.Value > 0) PageSize = args.Top.Value;
+            await LoadPendingOrdersAsync();
         }
 
         private async Task LoadPendingOrdersAsync()
         {
             if (!CanView) return;
 
-            IsLoading = true;
+            if (_isFirstLoad)
+            {
+                IsLoading = true;
+                glb.isBusyPage = true;
+            }
+            else
+            {
+                IsGridLoading = true;
+            }
+
             try
             {
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>("/api/VPPRequest/additional-orders/pending");
+                var endpoint = $"/api/VPPRequest/additional-orders/pending?skip={CurrentSkip}&top={PageSize}";
+                var (data, totalCount, totalLines, totalQty) = await _apiServices.GetFromApiWithStatsAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
+
                 PendingOrders = data ?? new();
+                TotalCount = totalCount;
+                TotalLines = totalLines;
+                TotalQty = totalQty;
+
                 LoadedDetailOrderIds.Clear();
                 LoadingDetailOrderIds.Clear();
             }
@@ -61,16 +77,21 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
+                if (_isFirstLoad)
+                {
+                    glb.isBusyPage = false;
+                    _isFirstLoad = false;
+                }
                 IsLoading = false;
+                IsGridLoading = false;
+                StateHasChanged();
             }
         }
 
         protected async Task OnRowExpandAsync(VPP01_RequestHeaderResDTO row)
         {
             if (row == null || row.Id == Guid.Empty || LoadedDetailOrderIds.Contains(row.Id) || LoadingDetailOrderIds.Contains(row.Id))
-            {
                 return;
-            }
 
             LoadingDetailOrderIds.Add(row.Id);
             try
@@ -81,13 +102,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Admin Approval",
-                    Detail = $"Load details failed: {ex.Message}",
-                    Duration = 6000
-                });
+                NotificationService.Notify(NotificationSeverity.Error, "Admin Approval", $"Load details failed: {ex.Message}");
             }
             finally
             {
@@ -98,32 +113,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
 
-        private async Task ApproveOrderAsync(VPP01_RequestHeaderResDTO order)
+        private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)
         {
+            if (order == null) return;
+
+            var confirm = await DialogService.Confirm(
+                "Are you sure you want to approve this additional order?",
+                "Approve Order",
+                new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+
+            if (confirm != true) return;
+
+            IsActionLoading = true;
+            StateHasChanged();
             try
             {
-                if (order == null)
-                {
-                    NotificationService.Notify(NotificationSeverity.Error, "Error", "Order data is invalid.");
-                    return;
-                }
-
-                var confirm = await DialogService.Confirm(
-                    "Are you sure you want to approve this additional order?", 
-                    "Approve Order", 
-                    new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
-                
-                if (confirm != true)
-                {
-                    return;
-                }
-
-                IsLoading = true;
-                StateHasChanged();
-                
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", null);
-                
                 NotificationService.Notify(NotificationSeverity.Success, "Success", "Order approved successfully.");
+                _isFirstLoad = false;
                 await LoadPendingOrdersAsync();
             }
             catch (Exception ex)
@@ -132,38 +139,30 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                IsLoading = false;
+                IsActionLoading = false;
                 StateHasChanged();
             }
         }
 
-        private async Task ShowRejectDialogAsync(VPP01_RequestHeaderResDTO order)
+        private async Task HandleRejectClick(VPP01_RequestHeaderResDTO order)
         {
+            if (order == null) return;
+
+            var confirm = await DialogService.Confirm(
+                $"Are you sure you want to reject order {order.VPPCode}?",
+                "Reject Order",
+                new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+
+            if (confirm != true) return;
+
+            IsActionLoading = true;
+            StateHasChanged();
             try
             {
-                if (order == null)
-                {
-                    NotificationService.Notify(NotificationSeverity.Error, "Error", "Order data is invalid.");
-                    return;
-                }
-
-                string rejectReason = "";
-                
-                var confirm = await DialogService.Confirm(
-                    $"Are you sure you want to reject order {order.VPPCode}? You can optionally provide a reason.",
-                    "Reject Order",
-                    new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
-
-                if (confirm == true)
-                {
-                    IsLoading = true;
-                    StateHasChanged();
-                    
-                    await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", new { Reason = rejectReason });
-                    
-                    NotificationService.Notify(NotificationSeverity.Success, "Success", "Order rejected successfully.");
-                    await LoadPendingOrdersAsync();
-                }
+                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", new { Reason = "" });
+                NotificationService.Notify(NotificationSeverity.Success, "Success", "Order rejected successfully.");
+                _isFirstLoad = false;
+                await LoadPendingOrdersAsync();
             }
             catch (Exception ex)
             {
@@ -171,7 +170,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                IsLoading = false;
+                IsActionLoading = false;
                 StateHasChanged();
             }
         }

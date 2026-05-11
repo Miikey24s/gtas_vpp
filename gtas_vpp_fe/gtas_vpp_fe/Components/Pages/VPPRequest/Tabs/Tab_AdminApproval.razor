@@ -1,130 +1,173 @@
-@layout MainLayout
 @using gtas_vpp_shared.DTOs.Res.VPP
-@using gtas_vpp_shared.DTOs.Req.VPP
-@using gtas_vpp_shared.DTOs.Res.Auth
 @using gtas_vpp_fe.Helpers
-@using gtas_vpp_fe.Services
-@using System.Security.Claims
+@using gtas_vpp_shared.DTOs.Share
+@inject GlobalClass glb
 
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>GTAS VPP - Admin Approval</PageTitle>
+@if (CanView)
+{
+    <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-2">
 
-<RadzenDialog />
-<RadzenNotification />
-
-<RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3" Style="width: 100%; max-width: none; margin: 0;">
-    @if (CanView)
-    {
-        <div style="font-size: 1.5rem; font-weight: 700; color: var(--vpp-ocean-primary-dark); margin-bottom: 1rem;">Admin Approval (Additional Orders)</div>
-
-    @if (IsLoading)
-    {
-        <SkeletonGrid Rows="5" Cols="6" />
-    }
-    else
-    {
-    <RadzenCard Style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
-        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO"
-                        Data="@PendingOrders"
-                        IsLoading="@IsLoading"
-                        AllowPaging="true" PageSize="10"
-                        AllowSorting="true" AllowAlternatingRows="true"
-                        AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single" RowExpand="OnRowExpandAsync"
-                        AllowFiltering="true"
-                        AllowMultiColumnSorting="true"
-                        AllowGrouping="true"
-                        ColumnsPickerAllowFiltering="true"
-                        AllowColumnPicking="true"
-                        AllowPickAllColumns="true"
-                        ShowMultiColumnSortingIndex="true"
-                        AllowColumnReorder="true"
-                        FilterMode="FilterMode.CheckBoxList"
-                        FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                        Density="Density.Compact"
-                        GridLines="DataGridGridLines.Horizontal"
-                        Style="border: none;">
-            <Columns>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                    <Template Context="row">@(PendingOrders.IndexOf(row) + 1)</Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="Order Code" Width="180px">
-                    <Template Context="row">
-                        <span style="font-weight: 600; color: var(--rz-primary);">@row.VPPCode</span>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Period)" Title="Period" Width="100px" TextAlign="TextAlign.Center">
-                    <Template Context="row">
-                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.Period" />
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="Department" Width="120px" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.CreateUserId)" Title="Create User ID" Width="120px" TextAlign="TextAlign.Center" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalLines)" Title="Total Lines" Width="110px" TextAlign="TextAlign.Center">
-                    <Template Context="row">
-                        <strong>@row.TotalLines</strong>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalQty)" Title="Total Qty" Width="110px" TextAlign="TextAlign.Center">
-                    <Template Context="row">
-                        <strong>@row.TotalQty</strong>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="Submitted Date" Width="170px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="Notes (Reason)" TextAlign="TextAlign.Left" />
-                <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Actions" Width="150px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                    <Template Context="order">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem">
-                            <RadzenButton Icon="check_circle" 
-                                          Size="ButtonSize.Small" 
-                                          ButtonStyle="ButtonStyle.Success" 
-                                          Variant="Variant.Flat"
-                                          Click="@(async () => await HandleApproveClick(order))" 
-                                          Title="Approve" 
-                                          Disabled="@IsLoading"
-                                          Style="pointer-events: auto; cursor: pointer;" />
-                            <RadzenButton Icon="cancel" 
-                                          Size="ButtonSize.Small" 
-                                          ButtonStyle="ButtonStyle.Danger" 
-                                          Variant="Variant.Flat"
-                                          Click="@(async () => await HandleRejectClick(order))" 
-                                          Title="Reject" 
-                                          Disabled="@IsLoading"
-                                          Style="pointer-events: auto; cursor: pointer;" />
-                        </RadzenStack>
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-            <Template Context="row">
-                <div style="padding: 1rem; background: var(--rz-base-100); border-radius: 8px;">
-                    <RadzenText Text="@Loc["OrderDetails"]" TextStyle="TextStyle.Subtitle2" Style="font-weight: 600; margin-bottom: 0.5rem;" />
-                    @if (IsRowDetailLoading(row.Id))
-                    {
-                        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-                    }
-                    <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Data="@(row.Items ?? new())"
-                                    AllowPaging="true" PageSize="10" AllowVirtualization="true"
-                                    AllowSorting="false" Density="Density.Compact"
-                                    GridLines="DataGridGridLines.Horizontal" Style="border: 1px solid var(--rz-base-300); border-radius: 6px;">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false">
-                                <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPCode" Title="Item Code" Width="130px" />
-                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="Item Name" />
-                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="Quantity" Width="90px" TextAlign="TextAlign.Center" />
-                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMName" Title="Unit of Measure" Width="120px" TextAlign="TextAlign.Center" />
-                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="Note" />
-                        </Columns>
-                    </RadzenDataGrid>
+        @* ── KPI Summary ────────────────────────────────────── *@
+        @if (IsLoading)
+        {
+            <SkeletonStatCards Cards="3" />
+        }
+        else
+        {
+            <div class="kpi-grid" style="--kpi-cols: 3;">
+                <div class="kpi-card kpi-amber">
+                    <div class="kpi-card-shine"></div>
+                    <div class="kpi-card-content">
+                        <div class="kpi-card-header">
+                            <span class="kpi-card-label">Pending Orders</span>
+                            <span class="kpi-card-icon rzi rzi-pending-actions"></span>
+                        </div>
+                        <div class="kpi-card-value">@TotalCount</div>
+                    </div>
                 </div>
-            </Template>
-        </RadzenDataGrid>
-    </RadzenCard>
-    }
-    }
-    else
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat">No permission to view this tab.</RadzenAlert>
-    }
-</RadzenStack>
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-card-shine"></div>
+                    <div class="kpi-card-content">
+                        <div class="kpi-card-header">
+                            <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
+                            <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
+                        </div>
+                        <div class="kpi-card-value">@TotalLines</div>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-emerald">
+                    <div class="kpi-card-shine"></div>
+                    <div class="kpi-card-content">
+                        <div class="kpi-card-header">
+                            <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
+                            <span class="kpi-card-icon rzi rzi-inventory-2"></span>
+                        </div>
+                        <div class="kpi-card-value">@TotalQty</div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* ── DataGrid ───────────────────────────────────────── *@
+        @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
+        {
+            <div class="vpp-empty-state">
+                <span class="vpp-empty-state-icon rzi rzi-check-circle"></span>
+                <div class="vpp-empty-state-title">All Clear!</div>
+                <div class="vpp-empty-state-desc">No pending additional orders require approval.</div>
+            </div>
+        }
+        else
+        {
+            <div class="vpp-data-card" style="padding: 0; overflow: hidden;">
+                <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@PendingOrders"
+                                Count="@TotalCount" LoadData="@OnLoadData"
+                                AllowPaging="true" PageSize="@PageSize"
+                                PageSizeOptions="@(new int[] { 10, 20, 50 })"
+                                PageSizeText="items per page"
+                                ShowPagingSummary="true"
+                                PagerHorizontalAlign="HorizontalAlign.Left"
+                                AllowSorting="true" AllowAlternatingRows="true"
+                                AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single"
+                                RowExpand="OnRowExpandAsync"
+                                IsLoading="@IsGridLoading"
+                                AllowFiltering="true"
+                                AllowMultiColumnSorting="true"
+                                ShowMultiColumnSortingIndex="true"
+                                AllowColumnReorder="true"
+                                FilterMode="FilterMode.CheckBoxList"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
+                                class="vpp-order-grid"
+                                Style="border: none;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                            <Template Context="row">@(CurrentSkip + PendingOrders.IndexOf(row) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="@Loc["OrderCode"]" MinWidth="160px">
+                            <Template Context="row">
+                                <span class="vpp-link-text">@row.VPPCode</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Period)" Title="@Loc["Period"]" MinWidth="90px" TextAlign="TextAlign.Center">
+                            <Template Context="row">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.Period" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="@Loc["Department"]" MinWidth="100px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.RequesterName)" Title="@Loc["UserName"]" MinWidth="140px" TextAlign="TextAlign.Left">
+                            <Template Context="row">
+                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.RequesterName</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalLines)" Title="@Loc["TotalLineItems"]" MinWidth="100px" TextAlign="TextAlign.Center">
+                            <Template Context="row"><strong>@row.TotalLines</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" MinWidth="100px" TextAlign="TextAlign.Center">
+                            <Template Context="row"><strong>@row.TotalQty</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="Notes (Reason)" TextAlign="TextAlign.Left" MinWidth="120px" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Actions" Width="130px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                            <Template Context="order">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.25rem">
+                                    <RadzenButton Icon="check_circle"
+                                                  Size="ButtonSize.Small"
+                                                  ButtonStyle="ButtonStyle.Success"
+                                                  Variant="Variant.Flat"
+                                                  Click="@(async () => await HandleApproveClick(order))"
+                                                  Title="Approve"
+                                                  Disabled="@IsActionLoading" />
+                                    <RadzenButton Icon="cancel"
+                                                  Size="ButtonSize.Small"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Variant="Variant.Flat"
+                                                  Click="@(async () => await HandleRejectClick(order))"
+                                                  Title="Reject"
+                                                  Disabled="@IsActionLoading" />
+                                </RadzenStack>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                    <Template Context="row">
+                        <div class="vpp-expand-detail">
+                            <div class="vpp-expand-detail-header">
+                                <span class="rzi rzi-list-alt"></span>
+                                @Loc["OrderDetails"]
+                            </div>
+                            @if (IsRowDetailLoading(row.Id))
+                            {
+                                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
+                            }
+                            <RadzenDataGrid TItem="VPP02_RequestDetailResDTO" Data="@(row.Items ?? new())"
+                                            AllowPaging="false" AllowSorting="false"
+                                            Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
+                                            Style="background: white; border-radius: 6px; overflow: hidden;">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                                        <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="120px" TextAlign="TextAlign.Left" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="200px" TextAlign="TextAlign.Left" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" MinWidth="80px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" MinWidth="100px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Description" Title="Note" TextAlign="TextAlign.Left" MinWidth="120px" />
+                                </Columns>
+                            </RadzenDataGrid>
+                        </div>
+                    </Template>
+                </RadzenDataGrid>
+            </div>
+        }
+    </RadzenStack>
+}
+else
+{
+    <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
+        <span class="vpp-empty-state-icon rzi rzi-lock"></span>
+        <div class="vpp-empty-state-title">Access Denied</div>
+        <div class="vpp-empty-state-desc">You do not have permission to view the Admin Approval tab.</div>
+    </div>
+}

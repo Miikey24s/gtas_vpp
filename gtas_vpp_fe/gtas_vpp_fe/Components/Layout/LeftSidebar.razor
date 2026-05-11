@@ -37,7 +37,7 @@
 </RadzenHeader>
 
 <RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
-    <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
+    <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
         <AuthorizeView Policy="@Permissions.MenuDashboard" Context="dashboardMenuAuth">
             <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="home" class="ppjsidebarmenu">
                 <AuthorizeView Policy="@Permissions.RequestOrder" Context="requestOrderMenuAuth">

@@ -352,10 +352,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             {
                 var now = DateTime.Now;
                 var currentMonth = new DateTime(now.Year, now.Month, 1);
-                var period = now.Day >= 5 ? currentMonth.AddMonths(1) : currentMonth;
+                // Kỳ tháng N: ngày 5/N → ngày 4/(N+1)
+                var period = now.Day >= 5 ? currentMonth : currentMonth.AddMonths(-1);
                 if (IsAdditional)
                 {
-                    period = now.Day >= 5 ? currentMonth : currentMonth.AddMonths(-1);
+                    period = period.AddMonths(-1);
                 }
 
                 var requestItems = Context.SelectedItems.Select(x => new VPP02_ItemReqDTO

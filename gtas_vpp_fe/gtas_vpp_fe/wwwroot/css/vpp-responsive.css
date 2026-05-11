@@ -26,11 +26,6 @@
     .vpp-hide-desktop { display: none; }
     .vpp-show-desktop { display: revert; }
     .vpp-show-tablet { display: none; }
-
-    .vpp-content {
-        max-width: 1400px;
-        margin: 0 auto;
-    }
 }
 
 /* ── Sidebar Responsive ──────────────────────────────────────── */

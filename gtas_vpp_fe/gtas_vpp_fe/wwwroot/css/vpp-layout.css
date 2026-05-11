@@ -129,6 +129,11 @@
     background: var(--vpp-bg-surface);
     color: var(--vpp-text-primary);
     border-color: var(--vpp-border-strong);
+    transform: scale(1.05);
+}
+
+.vpp-ctrl-btn:active {
+    transform: scale(0.95);
 }
 
 .vpp-ctrl-btn.active {
@@ -137,7 +142,7 @@
     color: var(--vpp-primary-400);
 }
 
-/* ── AI Toggle: no layout shift ───────────────────────────────── */
+/* ── AI Toggle: smooth hide/show ─────────────────────────────── */
 .vpp-ai-toggle-wrapper {
     display: flex;
     align-items: center;
@@ -145,6 +150,13 @@
     min-width: 48px;
     min-height: 36px;
     justify-content: center;
+    padding: 2px var(--vpp-space-2);
+    border-radius: var(--vpp-radius-full);
+    transition: all var(--vpp-transition-base);
+}
+
+.vpp-ai-toggle-wrapper:hover {
+    background: rgba(14, 165, 233, 0.06);
 }
 
 .vpp-ai-toggle-wrapper.hidden {
@@ -159,8 +171,6 @@
 
 /* ── Content Area ──────────────────────────────────────────────── */
 .vpp-content {
-    max-width: var(--vpp-content-max-width);
-    margin: 0 auto;
     width: 100%;
 }
 

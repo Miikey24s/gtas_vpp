@@ -182,6 +182,27 @@ namespace gtas_vpp_fe.Components.Layout
         }
 
         public string GetSidebarClass() => $"vpp-sidebar {(!_sideBarExpanded ? "sidebar-collapsed" : "")}";
+
+        public void OnMenuItemClick(MenuItemEventArgs args)
+        {
+            // When collapsed and clicking a parent item (no Path), navigate to default tab
+            if (!_sideBarExpanded && string.IsNullOrEmpty(args.Path))
+            {
+                string? defaultPath = args.Text switch
+                {
+                    var t when t == Loc["Dashboard"].Value => "/dashboard?tab=0",
+                    var t when t == Loc["Library"].Value => "/library?tab=0",
+                    var t when t == Loc["Permissions"].Value => "/permission?tab=0",
+                    var t when t == Loc["AIManagement"].Value => "/ai/chat",
+                    _ => null
+                };
+
+                if (defaultPath != null)
+                {
+                    NavigationManager.NavigateTo(defaultPath);
+                }
+            }
+        }
     }
 }
 

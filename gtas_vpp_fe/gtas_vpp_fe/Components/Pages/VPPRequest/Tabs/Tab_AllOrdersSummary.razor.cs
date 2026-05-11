@@ -21,10 +21,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
-
-        public bool IsLoading { get; set; }
         private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
         private HashSet<Guid> LoadingDetailOrderIds { get; } = new();
+
+        public bool IsLoading { get; set; } = true;
+        public bool IsGridLoading { get; set; }
+        public int TotalCount { get; set; }
+        public int TotalLines { get; set; }
+        public int TotalQty { get; set; }
+        public int PageSize { get; set; } = 20;
+        public int CurrentSkip { get; set; }
+
         public int? YearFilter { get; set; } = DateTime.Now.Year;
         public int? MonthFilter { get; set; }
         public int? StatusFilter { get; set; }
@@ -40,6 +47,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             new() { Value = 7, Text = "Approved" },
             new() { Value = 8, Text = "Rejected" }
         };
+
+        private CancellationTokenSource? _filterDebounce;
+        private bool _isFirstLoad = true;
 
         private bool CanView => claims.HasPermission(Permissions.RequestAllOrdersSummary);
 
@@ -67,21 +77,50 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
+        protected async Task OnFilterChanged()
+        {
+            _filterDebounce?.Cancel();
+            _filterDebounce = new CancellationTokenSource();
+            var token = _filterDebounce.Token;
+
+            try
+            {
+                await Task.Delay(300, token);
+                if (!token.IsCancellationRequested)
+                {
+                    CurrentSkip = 0;
+                    await LoadOrdersAsync();
+                }
+            }
+            catch (TaskCanceledException) { }
+        }
+
         protected async Task LoadOrdersAsync()
         {
             if (!CanView) return;
 
-            IsLoading = true;
-            glb.isBusyPage = true;
+            if (_isFirstLoad)
+            {
+                IsLoading = true;
+                glb.isBusyPage = true;
+            }
+            else
+            {
+                IsGridLoading = true;
+            }
+
             try
             {
                 var endpoint = BuildEndpoint();
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint) ?? new();
-                Orders = data
-                    .OrderByDescending(x => x.Y)
-                    .ThenByDescending(x => x.M)
-                    .ThenByDescending(x => x.UpdateDate)
-                    .ToList();
+                var (data, totalCount, totalLines, totalQty) = await _apiServices.GetFromApiWithStatsAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
+
+                Orders = data ?? new();
+                TotalCount = totalCount;
+                TotalLines = totalLines;
+                TotalQty = totalQty;
+
+                LoadedDetailOrderIds.Clear();
+                LoadingDetailOrderIds.Clear();
             }
             catch (Exception ex)
             {
@@ -95,24 +134,35 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                glb.isBusyPage = false;
+                if (_isFirstLoad)
+                {
+                    glb.isBusyPage = false;
+                    _isFirstLoad = false;
+                }
                 IsLoading = false;
+                IsGridLoading = false;
                 StateHasChanged();
             }
         }
 
-        protected async Task ReloadAsync() => await LoadOrdersAsync();
+        protected async Task OnLoadData(Radzen.LoadDataArgs args)
+        {
+            CurrentSkip = args.Skip ?? 0;
+            if (args.Top.HasValue && args.Top.Value > 0) PageSize = args.Top.Value;
+            await LoadOrdersAsync();
+        }
 
         private string BuildEndpoint()
         {
             var query = new List<string>();
-            
+
             if (YearFilter.HasValue) query.Add($"year={YearFilter.Value}");
             if (MonthFilter.HasValue) query.Add($"month={MonthFilter.Value}");
             if (StatusFilter.HasValue) query.Add($"status={StatusFilter.Value}");
 
-            // Use all-orders endpoint which returns ALL orders from ALL departments
-            if (query.Count == 0) return Config.VppApi.AllOrders;
+            query.Add($"skip={CurrentSkip}");
+            query.Add($"top={PageSize}");
+
             return $"{Config.VppApi.AllOrders}?{string.Join("&", query)}";
         }
 
@@ -157,6 +207,16 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             7 => "Approved",
             8 => "Rejected",
             _ => "-"
+        };
+
+        protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
+        {
+            1 => BadgeStyle.Success,
+            4 => BadgeStyle.Danger,
+            6 => BadgeStyle.Warning,
+            7 => BadgeStyle.Success,
+            8 => BadgeStyle.Danger,
+            _ => BadgeStyle.Light
         };
     }
 }

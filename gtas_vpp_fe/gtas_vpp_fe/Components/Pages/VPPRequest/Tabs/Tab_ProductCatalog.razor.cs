@@ -37,11 +37,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<CategoryOption> CategoryOptions { get; set; } = new();
         public int ProductCount { get; set; }
 
-        public bool IsLoading { get; set; }
+        public bool IsFirstLoading { get; set; } = true;
+        public bool IsGridLoading { get; set; }
         public Guid? CategoryFilter { get; set; }
         public string? SearchText { get; set; }
         public RadzenDataGrid<ProductItem>? productGrid { get; set; }
         private int _currentSkip;
+        private bool _isFirstLoad = true;
 
         private bool CanView => claims.HasPermission(Permissions.RequestProductCatalog);
 
@@ -80,8 +82,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             if (!CanView) return;
 
-            IsLoading = true;
-            glb.isBusyPage = true;
+            if (_isFirstLoad)
+            {
+                glb.isBusyPage = true;
+            }
+            IsGridLoading = true;
             _currentSkip = args.Skip ?? 0;
             try
             {
@@ -104,8 +109,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                glb.isBusyPage = false;
-                IsLoading = false;
+                if (_isFirstLoad)
+                {
+                    glb.isBusyPage = false;
+                    _isFirstLoad = false;
+                    IsFirstLoading = false;
+                }
+                IsGridLoading = false;
                 StateHasChanged();
             }
         }

@@ -9,6 +9,7 @@
 
 <PageTitle>GTAS VPP - @(IsEdit ? "Edit Order" : (IsCopyFromPrevious ? "Copy Order" : (IsAdditional ? "Additional Order" : "Create Order")))</PageTitle>
 
+<CascadingValue Value="Context">
 <div class="vpp-wizard">
     <RadzenStack Gap="1rem" Style="padding: var(--vpp-space-4);">
 
@@ -67,3 +68,4 @@
         </div>
     </RadzenStack>
 </div>
+</CascadingValue>

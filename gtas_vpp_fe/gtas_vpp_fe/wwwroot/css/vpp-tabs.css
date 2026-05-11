@@ -1,0 +1,122 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP TABS — Phase 3
+   Modern horizontal scroll tabs, hover/active states, clean underline
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tab List — Horizontal Scroll (no wrap) ──────────────────── */
+.rz-tabview-nav,
+ul[role="tablist"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;          /* Firefox */
+    gap: var(--vpp-space-1);
+    padding-bottom: 2px;
+}
+
+/* Hide scrollbar (Webkit) */
+.rz-tabview-nav::-webkit-scrollbar,
+ul[role="tablist"]::-webkit-scrollbar {
+    display: none;
+}
+
+/* ── Tab Item — Base ─────────────────────────────────────────── */
+.rz-tabview-nav .rz-tabview-nav-link,
+.rz-tabs-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    color: var(--vpp-text-secondary);
+    border: none !important;
+    background: transparent !important;
+    border-radius: var(--vpp-radius-md) var(--vpp-radius-md) 0 0;
+    position: relative;
+    transition: color var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast);
+    cursor: pointer;
+}
+
+/* ── Tab Item — Hover ────────────────────────────────────────── */
+.rz-tabview-nav .rz-tabview-nav-link:hover,
+.rz-tabs-item:hover {
+    color: var(--vpp-text-primary);
+    background: rgba(14, 165, 233, 0.04) !important;
+}
+
+:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-nav-link:hover,
+:root:not(.rz-theme-dark) .rz-tabs-item:hover {
+    background: rgba(14, 165, 233, 0.06) !important;
+}
+
+/* ── Tab Item — Active ───────────────────────────────────────── */
+.rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
+.rz-tabs-item.rz-state-active,
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    color: var(--vpp-primary-400) !important;
+    font-weight: var(--vpp-font-weight-semibold);
+    background: transparent !important;
+}
+
+/* Active underline — smooth animated bar */
+.rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
+.rz-tabs-item.rz-state-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: var(--vpp-space-2);
+    right: var(--vpp-space-2);
+    height: 2px;
+    background: var(--vpp-primary-400);
+    border-radius: var(--vpp-radius-full) var(--vpp-radius-full) 0 0;
+    animation: vpp-tab-underline-in var(--vpp-transition-fast) forwards;
+}
+
+@keyframes vpp-tab-underline-in {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+
+/* ── Tab Content Divider — subtle bottom border ──────────────── */
+.rz-tabview-nav-container {
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+/* ── Tab Panel — clean spacing ───────────────────────────────── */
+.rz-tabview-panel {
+    padding-top: var(--vpp-space-4);
+}
+
+/* ── librariestab (shared class) — ensure full width ─────────── */
+.librariestab {
+    width: 100%;
+}
+
+.librariestab .rz-tabview-nav {
+    width: 100%;
+}
+
+/* ── Scroll Fade Indicators (optional visual cue) ────────────── */
+.rz-tabview-nav-container {
+    position: relative;
+}
+
+.rz-tabview-nav-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 32px;
+    background: linear-gradient(to right, transparent, var(--vpp-bg-surface));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--vpp-transition-fast);
+}
+
+/* Show fade only when scrollable (controlled via JS if needed, or always subtle) */
+.rz-tabview-nav-container:has(.rz-tabview-nav:hover)::after {
+    opacity: 0.6;
+}

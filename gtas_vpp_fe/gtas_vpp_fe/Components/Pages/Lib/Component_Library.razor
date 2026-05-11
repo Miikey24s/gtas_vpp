@@ -1,14 +1,11 @@
-﻿@using gtas_vpp_fe.Components.Pages.Lib.Tabs
+@using gtas_vpp_fe.Components.Pages.Lib.Tabs
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Library
 @inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<style>
-    ul[role=tablist] {
-        flex-wrap: wrap;
-    }
-</style>
+
+
 @if (HasAnyVisibleLibraryTab)
 {
     <RadzenTabs Change="@TabOnChange"

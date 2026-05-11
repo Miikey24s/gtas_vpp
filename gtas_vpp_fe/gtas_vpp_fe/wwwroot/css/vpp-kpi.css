@@ -260,3 +260,108 @@
     transform: translateY(-1px);
     box-shadow: var(--vpp-shadow-sm);
 }
+
+/* ── Section Divider ─────────────────────────────────────────── */
+.vpp-section-divider {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--vpp-space-3) 0;
+    margin-top: var(--vpp-space-4);
+    border-bottom: 2px solid var(--vpp-primary-400);
+}
+
+.vpp-section-title {
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-lg);
+    font-weight: var(--vpp-font-weight-bold);
+    color: var(--vpp-primary-500);
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-section-title .rzi {
+    font-size: 1.25rem;
+    opacity: 0.7;
+}
+
+/* ── Order Grid Clean ────────────────────────────────────────── */
+.vpp-order-grid .rz-grid-table {
+    table-layout: auto !important;
+    width: 100% !important;
+}
+
+/* ── Filter Bar ──────────────────────────────────────────────── */
+.vpp-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--vpp-space-4);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+}
+
+.vpp-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-filter-label {
+    font-size: var(--vpp-text-xs) !important;
+    font-weight: var(--vpp-font-weight-medium) !important;
+    color: var(--vpp-text-secondary) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.vpp-filter-reload {
+    margin-left: auto;
+}
+
+/* ── Expand Detail (row expand in DataGrid) ──────────────────── */
+.vpp-expand-detail {
+    padding: var(--vpp-space-4);
+    background: var(--vpp-bg-surface);
+    border-radius: var(--vpp-radius-md);
+}
+
+.vpp-expand-detail-header {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-primary);
+    margin-bottom: var(--vpp-space-3);
+}
+
+.vpp-expand-detail-header .rzi {
+    color: var(--vpp-primary-400);
+}
+
+/* ── Link Text (clickable-looking text) ──────────────────────── */
+.vpp-link-text {
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-primary-500);
+}
+
+/* ── KPI Grid Column Control ─────────────────────────────────── */
+.kpi-grid[style*="--kpi-cols: 2"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+}
+
+.kpi-grid[style*="--kpi-cols: 3"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+@media (max-width: 768px) {
+    .kpi-grid[style*="--kpi-cols: 2"],
+    .kpi-grid[style*="--kpi-cols: 3"] {
+        grid-template-columns: 1fr !important;
+    }
+}

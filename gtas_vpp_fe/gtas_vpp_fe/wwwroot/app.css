@@ -28,7 +28,7 @@
     --rz-input-border-block-end: 1px solid var(--vpp-primary-500);
 }
 
-/* ── Sidebar collapse: hide submenu children, only show parent icon ── */
+/* ── Sidebar collapse: hide submenu in collapsed, auto-expand handles nav ── */
 .sidebar-collapsed .rz-navigation-item .rz-navigation-menu {
     display: none !important;
 }
@@ -56,11 +56,16 @@
     font-size: 0.85rem;
     cursor: pointer;
     user-select: none;
-    transition: box-shadow 0.15s;
+    transition: box-shadow var(--vpp-transition-fast), transform var(--vpp-transition-fast);
 }
 
 .user-avatar:hover {
     box-shadow: 0 0 0 3px rgba(var(--vpp-ocean-primary-rgb), 0.3);
+    transform: scale(1.05);
+}
+
+.user-avatar:active {
+    transform: scale(0.95);
 }
 
 .user-avatar-lg {
@@ -83,17 +88,18 @@
     right: 0;
     min-width: 260px;
     background: var(--rz-panel-background-color, #fff);
-    border: 1px solid var(--rz-base-300, #e0e0e0);
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    box-shadow: var(--vpp-shadow-lg);
     z-index: 1000;
     padding: 0.75rem 0;
-    animation: userDropdownFadeIn 0.15s ease-out;
+    animation: userDropdownIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: top right;
 }
 
-@keyframes userDropdownFadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes userDropdownIn {
+    from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .user-dropdown-header {

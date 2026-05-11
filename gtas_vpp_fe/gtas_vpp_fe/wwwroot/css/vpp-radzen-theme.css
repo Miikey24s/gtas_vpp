@@ -64,10 +64,27 @@
     --rz-base-700: var(--vpp-text-secondary);
     --rz-base-800: #3F3F46;
     --rz-base-900: var(--vpp-text-primary);
+
+    --rz-body-background-color: var(--vpp-bg-base);
+    --rz-panel-background-color: var(--vpp-bg-elevated);
+    --rz-card-background-color: var(--vpp-bg-elevated);
+    --rz-input-background-color: #FFFFFF;
+    --rz-menu-background-color: #FFFFFF;
+    --rz-dialog-background-color: #FFFFFF;
 }
 
 /* ── Text Colors ──────────────────────────────────────────────── */
 .rz-theme-dark {
+    --rz-text-color: var(--vpp-text-primary);
+    --rz-text-title-color: var(--vpp-text-primary);
+    --rz-text-body1-color: var(--vpp-text-primary);
+    --rz-text-body2-color: var(--vpp-text-secondary);
+    --rz-text-secondary-color: var(--vpp-text-secondary);
+    --rz-text-tertiary-color: var(--vpp-text-tertiary);
+    --rz-text-disabled-color: var(--vpp-text-tertiary);
+}
+
+:root:not(.rz-theme-dark) {
     --rz-text-color: var(--vpp-text-primary);
     --rz-text-title-color: var(--vpp-text-primary);
     --rz-text-body1-color: var(--vpp-text-primary);

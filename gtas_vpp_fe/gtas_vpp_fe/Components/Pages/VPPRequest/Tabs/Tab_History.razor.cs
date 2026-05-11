@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -24,7 +24,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private HashSet<Guid> LoadedDetailOrderIds { get; } = new();
         private HashSet<Guid> LoadingDetailOrderIds { get; } = new();
 
-        public bool IsLoading { get; set; }
+        public bool IsLoading { get; set; } = true;
+        public bool IsGridLoading { get; set; }
+        public int TotalCount { get; set; }
+        public int TotalLines { get; set; }
+        public int TotalQty { get; set; }
+        public int PageSize { get; set; } = 10;
+        public int CurrentSkip { get; set; }
         public IEnumerable<int> YearFilter { get; set; } = new[] { DateTime.Now.Year };
         public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
         public IEnumerable<int> StatusFilter { get; set; } = new[] { 1, 4, 6, 7, 8 }; // All statuses
@@ -39,6 +45,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             new() { Value = 7, Text = "Approved" },
             new() { Value = 8, Text = "Rejected" }
         };
+
+        private CancellationTokenSource? _filterDebounce;
+        private bool _isFirstLoad = true;
 
         private bool CanView => claims.HasPermission(Permissions.RequestHistory);
 
@@ -64,23 +73,47 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
+        protected async Task OnFilterChanged()
+        {
+            _filterDebounce?.Cancel();
+            _filterDebounce = new CancellationTokenSource();
+            var token = _filterDebounce.Token;
+
+            try
+            {
+                await Task.Delay(300, token);
+                if (!token.IsCancellationRequested)
+                {
+                    CurrentSkip = 0;
+                    await LoadHistoryAsync();
+                }
+            }
+            catch (TaskCanceledException) { }
+        }
+
         protected async Task LoadHistoryAsync()
         {
             if (!CanView) return;
 
-            IsLoading = true;
-            glb.isBusyPage = true;
+            if (_isFirstLoad)
+            {
+                IsLoading = true;
+                glb.isBusyPage = true;
+            }
+            else
+            {
+                IsGridLoading = true;
+            }
 
             try
             {
                 var endpoint = BuildHistoryEndpoint();
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint) ?? new();
+                var (data, totalCount, totalLines, totalQty) = await _apiServices.GetFromApiWithStatsAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
 
-                Orders = data
-                    .OrderByDescending(x => x.Y)
-                    .ThenByDescending(x => x.M)
-                    .ThenByDescending(x => x.SubmittedDate ?? x.UpdateDate)
-                    .ToList();
+                Orders = data ?? new();
+                TotalCount = totalCount;
+                TotalLines = totalLines;
+                TotalQty = totalQty;
 
                 LoadedDetailOrderIds.Clear();
                 LoadingDetailOrderIds.Clear();
@@ -97,10 +130,22 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                glb.isBusyPage = false;
+                if (_isFirstLoad)
+                {
+                    glb.isBusyPage = false;
+                    _isFirstLoad = false;
+                }
                 IsLoading = false;
+                IsGridLoading = false;
                 StateHasChanged();
             }
+        }
+
+        protected async Task OnLoadData(Radzen.LoadDataArgs args)
+        {
+            CurrentSkip = args.Skip ?? 0;
+            if (args.Top.HasValue && args.Top.Value > 0) PageSize = args.Top.Value;
+            await LoadHistoryAsync();
         }
 
         protected async Task ReloadAsync()
@@ -149,9 +194,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             AddQueryValues(query, "months", MonthFilter);
             AddQueryValues(query, "statuses", StatusFilter);
 
-            return query.Count == 0
-                ? "/api/VPPRequest/my-orders-summary"
-                : $"/api/VPPRequest/my-orders-summary?{string.Join("&", query)}";
+            query.Add($"skip={CurrentSkip}");
+            query.Add($"top={PageSize}");
+
+            return $"/api/VPPRequest/my-orders-summary?{string.Join("&", query)}";
         }
 
         private static void AddQueryValues(List<string> query, string key, IEnumerable<int>? values)
