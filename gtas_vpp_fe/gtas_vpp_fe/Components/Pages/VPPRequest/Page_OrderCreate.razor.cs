@@ -49,6 +49,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public OrderCreateContext Context { get; set; } = new();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
 
+        // P1: BE owns the period truth — FE never derives Y/M from DateTime.Now.
+        public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
+
         private readonly ProductOptionEqualityComparer _productComparer = new();
 
         private sealed class ProductOptionEqualityComparer : IEqualityComparer<OrderCreateStep2.ProductOption>
@@ -102,6 +105,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
 
+            // P1: Pull period truth from BE before doing anything period-sensitive.
+            await LoadPeriodInfoAsync();
+
             // Initialize context
             Context.Mode = IsEdit ? "edit" : (IsCopyFromPrevious ? "copy" : (IsAdditional ? "additional" : "new"));
             Context.EditOrderId = OrderId;
@@ -133,6 +139,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             Context.OnStateChanged += () => MarkDraftDirty();
             await InvokeAsync(StateHasChanged);
+        }
+
+        private async Task LoadPeriodInfoAsync()
+        {
+            try
+            {
+                PeriodInfo = await _apiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Page_OrderCreate] Failed to load period info: {ex.Message}");
+            }
         }
 
         private async Task LoadOrderForEditAsync()
@@ -350,14 +368,28 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             glb.isBusyPage = true;
             try
             {
-                var now = DateTime.Now;
-                var currentMonth = new DateTime(now.Year, now.Month, 1);
-                // Kỳ tháng N: ngày 5/N → ngày 4/(N+1)
-                var period = now.Day >= 5 ? currentMonth : currentMonth.AddMonths(-1);
-                if (IsAdditional)
+                // P1: Pull Y/M from BE-authoritative PeriodInfo (loaded in OnInitializedAsync).
+                // Falls back to a single fresh fetch in case the wizard sat open across the
+                // deadline boundary — BE will still re-validate via PeriodCalculator on submit.
+                if (PeriodInfo is null)
                 {
-                    period = period.AddMonths(-1);
+                    await LoadPeriodInfoAsync();
                 }
+                if (PeriodInfo is null)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Order",
+                        Detail = "Could not determine the current period. Please reload the page.",
+                        Duration = 5000
+                    });
+                    return;
+                }
+
+                var period = IsAdditional
+                    ? new DateTime(PeriodInfo.PreviousPeriodYear, PeriodInfo.PreviousPeriodMonth, 1)
+                    : new DateTime(PeriodInfo.CurrentPeriodYear, PeriodInfo.CurrentPeriodMonth, 1);
 
                 var requestItems = Context.SelectedItems.Select(x => new VPP02_ItemReqDTO
                 {

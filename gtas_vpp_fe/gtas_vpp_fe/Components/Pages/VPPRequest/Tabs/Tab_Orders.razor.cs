@@ -48,24 +48,22 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
         public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
 
-        public DateTime CurrentOrderPeriodDate
-        {
-            get
-            {
-                var now = DateTime.Now;
-                var currentMonth = new DateTime(now.Year, now.Month, 1);
-                // Kỳ tháng N: từ ngày 5/N đến ngày 4/(N+1)
-                // Ngày >= 5 → đang trong kỳ tháng hiện tại
-                // Ngày < 5  → vẫn trong kỳ tháng trước
-                return now.Day >= 5 ? currentMonth : currentMonth.AddMonths(-1);
-            }
-        }
-        
-        public DateTime PreviousOrderPeriodDate => CurrentOrderPeriodDate.AddMonths(-1);
+        // P1: Period dates are derived from PeriodInfo (BE truth) — never DateTime.Now.
+        // Fallback to "current calendar month" only while PeriodInfo is still loading,
+        // never to drive submit/edit logic (which is BE-validated anyway).
+        public DateTime CurrentOrderPeriodDate => PeriodInfo is { } p
+            ? new DateTime(p.CurrentPeriodYear, p.CurrentPeriodMonth, 1)
+            : new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
-        public DateTime CurrentDeadlineDate => new(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 5);
-        // Kết thúc kỳ = ngày 4 của tháng kế tiếp so với kỳ
-        public DateTime PeriodEndDate => new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 4).AddMonths(1);
+        public DateTime PreviousOrderPeriodDate => PeriodInfo is { } p
+            ? new DateTime(p.PreviousPeriodYear, p.PreviousPeriodMonth, 1)
+            : CurrentOrderPeriodDate.AddMonths(-1);
+
+        public DateTime CurrentDeadlineDate => PeriodInfo?.DeadlineDate
+            ?? new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 1).AddMonths(1).AddDays(4);
+
+        // Kết thúc kỳ = ngày trước deadline (1 day before DeadlineDate)
+        public DateTime PeriodEndDate => CurrentDeadlineDate.AddDays(-1);
         public string PeriodEndText => PeriodEndDate.ToString("dd/MM/yyyy");
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
@@ -88,8 +86,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadOrdersAsync();
+            // P1: Load PeriodInfo FIRST so derived dates (CurrentOrderPeriodDate etc.)
+            // reflect BE truth before badges/headers render.
             await LoadPeriodInfoAsync();
+            await LoadOrdersAsync();
         }
 
         private async Task LoadPeriodInfoAsync()
