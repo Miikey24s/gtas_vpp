@@ -1,18 +1,28 @@
 @using gtas_vpp_shared.DTOs.Share
 @inject GlobalClass glb
 
-<CascadingValue Value="Context">
-    <div class="wizard-step wizard-step-header">
+<div class="wizard-step wizard-step-header">
+    <div class="vpp-data-card" style="padding: var(--vpp-space-5);">
         @if (Context.IsEdit)
         {
-            <RadzenText Text="@($"Editing Order")" TextStyle="TextStyle.Subtitle1" class="wizard-step-title" />
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
+                <RadzenIcon Icon="edit" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenText Text="Editing Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
+            </RadzenStack>
         }
         else if (Context.IsCopy)
         {
-            <RadzenText Text="Copy from Previous Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title" />
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
+                <RadzenIcon Icon="content_copy" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenText Text="Copy from Previous Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
+            </RadzenStack>
         }
         else if (Context.IsAdditional)
         {
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
+                <RadzenIcon Icon="add_circle" Style="color: var(--rz-warning); font-size: 1.5rem;" />
+                <RadzenText Text="Additional Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
+            </RadzenStack>
             <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" class="rz-mb-3">
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-m-0">
                     <strong>Attention:</strong> The order period has closed. This order will be marked as an <strong>Additional Order</strong> and requires Admin approval.
@@ -21,15 +31,18 @@
         }
         else
         {
-            <RadzenText Text="Create New Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title" />
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
+                <RadzenIcon Icon="note_add" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenText Text="Create New Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
+            </RadzenStack>
         }
 
-        <RadzenFormField Text="@(Context.IsAdditional ? "Reason for Additional Order *" : "Notes")" Variant="Variant.Outlined" class="rz-mt-3">
-            <RadzenTextArea @bind-Value="Context.Description" Rows="3" 
+        <RadzenFormField Text="@(Context.IsAdditional ? "Reason for Additional Order *" : "Notes")" Variant="Variant.Outlined" Style="width: 100%;">
+            <RadzenTextArea @bind-Value="Context.Description" Rows="3"
                             Style="@(Context.IsAdditional ? "width: 100%; border-color: var(--rz-warning);" : "width: 100%;")" />
         </RadzenFormField>
     </div>
-</CascadingValue>
+</div>
 
 @code {
     [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;

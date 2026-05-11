@@ -1,39 +1,78 @@
-<CascadingValue Value="Context">
-    <div class="wizard-step wizard-step-review">
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                    <RadzenBadge Text="@($"Total Quantity: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
-                </RadzenStack>
+<div class="wizard-step wizard-step-review">
 
-                @if (!string.IsNullOrEmpty(Context.Description))
-                {
-                    <div class="wizard-review-notes">
-                        <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary);">Notes</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
-                    </div>
-                }
-
-                <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
-                                Data="@Context.SelectedItems"
-                                AllowPaging="false"
-                                AllowVirtualization="true"
-                                Density="Density.Compact"
-                                GridLines="DataGridGridLines.Horizontal"
-                                Style="max-height: 400px; overflow-y: auto;">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="Code" Width="120px" />
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="Name" />
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Qty" Title="Qty" Width="80px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="Notes" Width="200px" />
-                    </Columns>
-                </RadzenDataGrid>
+    @* Summary KPI *@
+    <div class="vpp-data-card rz-mb-3" style="padding: var(--vpp-space-4);">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Wrap="FlexWrap.Wrap" Gap="0.75rem">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenText Text="Order Review" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
             </RadzenStack>
-        </RadzenCard>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                <RadzenBadge Text="@($"Total Qty: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+            </RadzenStack>
+        </RadzenStack>
+
+        @if (!string.IsNullOrEmpty(Context.Description))
+        {
+            <div class="wizard-review-notes rz-mt-3">
+                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">Notes</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
+            </div>
+        }
     </div>
-</CascadingValue>
+
+    @* Items Grid *@
+    @if (Context.SelectedItems.Count == 0)
+    {
+        <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
+            <span class="vpp-empty-state-icon rzi rzi-remove-shopping-cart"></span>
+            <div class="vpp-empty-state-title">No items to submit</div>
+            <div class="vpp-empty-state-desc">Go back to Step 2 and add products to your order.</div>
+        </div>
+    }
+    else
+    {
+        <div class="vpp-data-card" style="padding: 0; overflow: hidden;">
+            <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
+                            Data="@Context.SelectedItems"
+                            AllowPaging="false"
+                            Density="Density.Compact"
+                            GridLines="DataGridGridLines.Horizontal"
+                            Style="border: none;">
+                <Columns>
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="45px" TextAlign="TextAlign.Center" Sortable="false">
+                        <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="Code" MinWidth="110px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="Name" MinWidth="180px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="Qty" Width="100px" TextAlign="TextAlign.Center" Sortable="false">
+                        <Template Context="item">
+                            <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
+                                           Style="width: 70px;" ShowUpDown="true"
+                                           Change="@(_ => Context.NotifyStateChanged())" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="Notes" MinWidth="140px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="50px" TextAlign="TextAlign.Center" Sortable="false">
+                        <Template Context="item">
+                            <RadzenButton Icon="close" Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+                                          Click="@(_ => RemoveItem(item))" Title="Remove" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </div>
+    }
+</div>
 
 @code {
     [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+
+    private void RemoveItem(OrderCreateContext.SelectedItem item)
+    {
+        Context.SelectedItems.Remove(item);
+        Context.NotifyStateChanged();
+    }
 }

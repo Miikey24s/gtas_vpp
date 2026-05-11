@@ -1,11 +1,10 @@
 @page "/dashboard/order-create"
-@layout MainLayout
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_shared.DTOs.AI
 
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>GTAS VPP - @(IsEdit ? "Edit Order" : (IsCopyFromPrevious ? "Copy Order" : (IsAdditional ? "Additional Order" : "Create Order")))</PageTitle>
 
@@ -13,7 +12,7 @@
 <div class="vpp-wizard">
     <RadzenStack Gap="1rem" Style="padding: var(--vpp-space-4);">
 
-        @* Back button *@
+        @* Back button + badges *@
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
             <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
             <div class="vpp-wizard-badge-bar">
@@ -29,18 +28,15 @@
             </div>
         </RadzenStack>
 
-        @* 3-Step Wizard *@
+        @* 2-Step Wizard *@
         <RadzenSteps @bind-SelectedIndex="currentStep" Change="@((i) => Context.NotifyStateChanged())">
             <Steps>
-                <RadzenStep Text="@Loc["OrderContext"]">
-                    <OrderCreateStep1 />
-                </RadzenStep>
-                <RadzenStep Text="@Loc["SelectProducts"]">
+                <RadzenStepsItem Text="@Loc["SelectProducts"]">
                     <OrderCreateStep2 />
-                </RadzenStep>
-                <RadzenStep Text="@Loc["ReviewSubmit"]">
+                </RadzenStepsItem>
+                <RadzenStepsItem Text="@Loc["ReviewSubmit"]">
                     <OrderCreateStep3 />
-                </RadzenStep>
+                </RadzenStepsItem>
             </Steps>
         </RadzenSteps>
 
@@ -54,7 +50,7 @@
                 {
                     <RadzenButton Icon="arrow_back" Text="@Loc["Previous"]" ButtonStyle="ButtonStyle.Base" Click="@(() => currentStep--)"/>
                 }
-                @if (currentStep < 2)
+                @if (currentStep < 1)
                 {
                     <RadzenButton Icon="arrow_forward" Text="@Loc["Next"]" ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next" 
                                   Click="@(() => currentStep++)" />
