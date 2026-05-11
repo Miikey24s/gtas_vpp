@@ -30,9 +30,10 @@ public class CreateOrderRaceConditionTests
         var request2 = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
         var barrier = new AsyncBarrier(2);
 
+        // P1: Clock at day 10 ⇒ current period = April 2026, matching the requests' Y/M.
         var results = await Task.WhenAll(
-            CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 1, 9, 0, 0), barrier).CreateOrderAsync(request1, userId, "IT", "77500")),
-            CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 1, 9, 0, 0), barrier).CreateOrderAsync(request2, userId, "IT", "77500")));
+            CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0), barrier).CreateOrderAsync(request1, userId, "IT", "77500")),
+            CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0), barrier).CreateOrderAsync(request2, userId, "IT", "77500")));
 
         Assert.Equal(1, results.Count(x => x.Success));
         Assert.Equal(1, results.Count(x => x.Exception is ConflictException));
@@ -50,8 +51,9 @@ public class CreateOrderRaceConditionTests
         var first = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
         var second = CreateOrderRequest(2026, 5, isAdditionalOrder: false);
 
-        await CreateService(database, new DateTime(2026, 4, 1, 9, 0, 0)).CreateOrderAsync(first, userId, "IT", "77500");
-        await CreateService(database, new DateTime(2026, 5, 1, 9, 0, 0)).CreateOrderAsync(second, userId, "IT", "77500");
+        // P1: Use mid-month clocks so each Y/M matches the BE-computed current period.
+        await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0)).CreateOrderAsync(first, userId, "IT", "77500");
+        await CreateService(database, new DateTime(2026, 5, 10, 9, 0, 0)).CreateOrderAsync(second, userId, "IT", "77500");
 
         using var verifyContext = database.CreateContext();
         Assert.Equal(2, await verifyContext.Set<VPP01_RequestHeader>()
@@ -66,7 +68,9 @@ public class CreateOrderRaceConditionTests
         var regular = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
         var additional = CreateOrderRequest(2026, 4, isAdditionalOrder: true);
 
-        await CreateService(database, new DateTime(2026, 4, 1, 9, 0, 0)).CreateOrderAsync(regular, userId, "IT", "77500");
+        // P1: Regular submitted mid-April (current period = 2026-04).
+        // Additional submitted mid-May (current = 2026-05, previous = 2026-04).
+        await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0)).CreateOrderAsync(regular, userId, "IT", "77500");
         await CreateService(database, new DateTime(2026, 5, 10, 9, 0, 0)).CreateOrderAsync(additional, userId, "IT", "77500");
 
         using var verifyContext = database.CreateContext();
