@@ -1,5 +1,6 @@
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -42,14 +43,26 @@ namespace gtas_vpp_be.Service.Services
     {
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly PeriodCalculator _periodCalculator;
         private readonly int _deadlineDay;
 
-        public VPPRequestService(IUnitOfWorkFactory uowFactory, IHttpContextAccessor httpContextAccessor, IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider, IConfiguration config, IEnvironmentResolver environmentResolver, IUserNameResolver userNameResolver, ILogger<BaseServices> baseLogger, IOptions<JiraSettings> jiraSettings)
-            : base(uowFactory, httpContextAccessor, environmentResolver, userNameResolver, baseLogger, jiraSettings) 
+        public VPPRequestService(
+            IUnitOfWorkFactory uowFactory,
+            IHttpContextAccessor httpContextAccessor,
+            IUnitOfWork scopedUow,
+            IDateTimeProvider dateTimeProvider,
+            IConfiguration config,
+            IEnvironmentResolver environmentResolver,
+            IUserNameResolver userNameResolver,
+            ILogger<BaseServices> baseLogger,
+            IOptions<JiraSettings> jiraSettings,
+            PeriodCalculator? periodCalculator = null)
+            : base(uowFactory, httpContextAccessor, environmentResolver, userNameResolver, baseLogger, jiraSettings)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
             _deadlineDay = config.GetValue<int>("VPPDeadlineDay", 5);
+            _periodCalculator = periodCalculator ?? new PeriodCalculator(_deadlineDay);
         }
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
@@ -90,6 +103,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return result;
         }
 
@@ -138,6 +152,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return (result, totalCount, totalLines, totalQty);
         }
 
@@ -153,6 +168,7 @@ namespace gtas_vpp_be.Service.Services
             if (data is not null)
             {
                 await ApplyRequesterNamesAsync(new List<VPP01_RequestHeaderResDTO> { data });
+                ApplyPeriodFlags(new[] { data });
             }
 
             return data;
@@ -162,12 +178,17 @@ namespace gtas_vpp_be.Service.Services
         {
             ValidateItems(req.Items);
 
+            // F-09: Reject obviously invalid Y/M from client (e.g. Y=2099) — caller cannot
+            // pick an arbitrary period; BE owns the truth via PeriodCalculator.
+            ValidateRequestedPeriod(req);
+
             if (req.IsAdditionalOrder)
             {
                 // Additional orders: only for the previous (just closed) period
-                var (_, _, prevYear, prevMonth) = GetCurrentAndPreviousPeriod();
-                if (req.Y != prevYear || req.M != prevMonth)
-                    throw new InvalidOperationException("Additional orders can only be created for the previous (just closed) period.");
+                var prev = _periodCalculator.Previous(_dateTimeProvider.Now);
+                if (req.Y != prev.Year || req.M != prev.Month)
+                    throw new BusinessException(
+                        $"Additional orders can only be created for period {prev.Year:D4}-{prev.Month:D2}.");
 
                 // Max 3 additional orders total per user per period
                 var additionalCount = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
@@ -176,7 +197,7 @@ namespace gtas_vpp_be.Service.Services
                                   && x.Y == req.Y && x.M == req.M
                                   && x.IsAdditionalOrder && !x.IsDeleted);
                 if (additionalCount >= 3)
-                    throw new InvalidOperationException("Maximum 3 additional orders per period.");
+                    throw new BusinessException("Maximum 3 additional orders per period.");
 
                 // Cannot create if there's a pending additional order
                 var hasPending = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
@@ -186,13 +207,19 @@ namespace gtas_vpp_be.Service.Services
                                 && x.IsAdditionalOrder && !x.IsDeleted
                                 && x.Status == (int)VPPStatus.Pending);
                 if (hasPending)
-                    throw new InvalidOperationException("Cannot create additional order while another is pending approval.");
+                    throw new BusinessException("Cannot create additional order while another is pending approval.");
             }
             else
             {
-                // Regular orders: check deadline
+                // Regular orders: must target the current open period
+                var current = _periodCalculator.Current(_dateTimeProvider.Now);
+                if (req.Y != current.Year || req.M != current.Month)
+                    throw new BusinessException(
+                        $"Regular orders can only be created for the current period {current.Year:D4}-{current.Month:D2}.");
+
+                // Defence in depth — should be impossible if Y/M validation above passed.
                 if (IsDeadlinePassed(req.Y, req.M))
-                    throw new InvalidOperationException("Cannot create order for a period that has passed the deadline.");
+                    throw new BusinessException("Cannot create order for a period that has passed the deadline.");
 
                 // Only 1 regular order per user per period
                 var hasExisting = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
@@ -404,6 +431,7 @@ namespace gtas_vpp_be.Service.Services
 
             var result = prevHeader.Adapt<VPP01_RequestHeaderResDTO>();
             result.Items = result.Items.Where(i => activeVppIds.Contains(i.VPPId)).ToList();
+            ApplyPeriodFlags(new[] { result });
             return result;
         }
 
@@ -421,6 +449,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return result;
         }
 
@@ -464,6 +493,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return (result, totalCount, totalLines, totalQty);
         }
 
@@ -481,6 +511,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return result;
         }
 
@@ -525,6 +556,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return (result, totalCount, totalLines, totalQty);
         }
 
@@ -538,6 +570,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return result;
         }
 
@@ -570,6 +603,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
             return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0, stats?.TotalQty ?? 0);
         }
 
@@ -687,7 +721,7 @@ namespace gtas_vpp_be.Service.Services
         // ─── Private helpers ───────────────────────────────────────────────
 
         private bool IsDeadlinePassed(int year, int month)
-            => _dateTimeProvider.Now >= new DateTime(year, month, _deadlineDay);
+            => _periodCalculator.IsDeadlinePassed(_dateTimeProvider.Now, new Period(year, month));
 
         private string GenerateVPPCode(int year, int month, int userId)
             => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}".Substring(0, 24);
@@ -695,13 +729,50 @@ namespace gtas_vpp_be.Service.Services
         private (int curYear, int curMonth, int prevYear, int prevMonth) GetCurrentAndPreviousPeriod()
         {
             var now = _dateTimeProvider.Now;
-            var currentMonth = new DateTime(now.Year, now.Month, 1);
-            // Kỳ tháng N: ngày 5/N → ngày 4/(N+1)
-            // Ngày >= deadline → kỳ hiện tại = tháng hiện tại
-            // Ngày < deadline  → vẫn trong kỳ tháng trước
-            var currentPeriod = now.Day >= _deadlineDay ? currentMonth : currentMonth.AddMonths(-1);
-            var previousPeriod = currentPeriod.AddMonths(-1);
-            return (currentPeriod.Year, currentPeriod.Month, previousPeriod.Year, previousPeriod.Month);
+            var current = _periodCalculator.Current(now);
+            var previous = _periodCalculator.Previous(now);
+            return (current.Year, current.Month, previous.Year, previous.Month);
+        }
+
+        /// <summary>
+        /// Reject obviously invalid Y/M from the client (F-09). Order Y/M must fall
+        /// inside [current period - 12 months, current period + 1 month] — anything
+        /// outside is a malformed request.
+        /// </summary>
+        private void ValidateRequestedPeriod(VPP01_CreateReqDTO req)
+        {
+            if (req.Y < 1900 || req.Y > 9999)
+                throw new BusinessException($"Invalid year {req.Y}.");
+            if (req.M < 1 || req.M > 12)
+                throw new BusinessException($"Invalid month {req.M}.");
+
+            var requested = new Period(req.Y, req.M);
+            var current = _periodCalculator.Current(_dateTimeProvider.Now);
+            var monthsDiff = ((requested.Year - current.Year) * 12) + (requested.Month - current.Month);
+            if (monthsDiff < -12 || monthsDiff > 1)
+            {
+                throw new BusinessException(
+                    $"Period {requested} is too far from the current period {current}.");
+            }
+        }
+
+        /// <summary>
+        /// P1: Materialize period-derived flags on response DTOs so FE never recomputes
+        /// them with its own clock (was F-02 / F-33 root cause). Pure in-memory pass.
+        /// </summary>
+        private void ApplyPeriodFlags(IEnumerable<VPP01_RequestHeaderResDTO> orders)
+        {
+            var now = _dateTimeProvider.Now;
+            foreach (var order in orders)
+            {
+                var deadlinePassed = _periodCalculator.IsDeadlinePassed(
+                    now, new Period(order.Y, order.M));
+                order.IsDeadlinePassed = deadlinePassed;
+                order.CanEdit = order.IsAdditionalOrder
+                    ? order.Status == (int)VPPStatus.Pending
+                    : (order.Status == (int)VPPStatus.Submitted && !deadlinePassed);
+                order.CanCancel = order.CanEdit;
+            }
         }
 
         private async Task ApplyRequesterNamesAsync(List<VPP01_RequestHeaderResDTO> orders)

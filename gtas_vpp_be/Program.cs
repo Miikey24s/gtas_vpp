@@ -4,6 +4,7 @@ using gtas_vpp_be.AI.KeyManagement.Interfaces;
 using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Model;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
@@ -74,6 +75,8 @@ builder.Services.Configure<PasswordEncoderOptions>(builder.Configuration.GetSect
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
 builder.Services.AddSingleton<IPasswordEncoder, TripleDesPasswordEncoder>();
+builder.Services.AddSingleton(sp => new PeriodCalculator(
+    sp.GetRequiredService<IConfiguration>().GetValue("VPPDeadlineDay", 5)));
 builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

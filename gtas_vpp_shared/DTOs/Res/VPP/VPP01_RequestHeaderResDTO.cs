@@ -15,7 +15,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public int TotalQty { get; set; }
         public bool IsAdditionalOrder { get; set; }
 
-        // Computed
+        // Display-only computed properties (no clock dependency)
         public string Period => $"{M:00}/{Y}";
         public string StatusText => Status switch
         {
@@ -27,11 +27,12 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
             _ => "-"
         };
         public string? RequesterName { get; set; }
-        public bool IsDeadlinePassed => DateTime.Now >= new DateTime(Y, M, 5);
-        public bool CanEdit => IsAdditionalOrder
-            ? Status == 6 // Pending
-            : (Status == 1 && !IsDeadlinePassed); // Submitted & period open
-        public bool CanCancel => CanEdit; // Same logic as CanEdit
+
+        // P1: BE materializes these flags using PeriodCalculator + IDateTimeProvider so
+        // FE doesn't recompute them with its own clock (was F-02 / F-33 root cause).
+        public bool IsDeadlinePassed { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanCancel { get; set; }
 
         public List<VPP02_RequestDetailResDTO> Items { get; set; } = new();
     }

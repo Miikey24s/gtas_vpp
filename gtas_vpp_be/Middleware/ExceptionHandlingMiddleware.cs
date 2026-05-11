@@ -36,6 +36,7 @@ namespace gtas_vpp_be.Middleware
             {
                 ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
                 DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "Conflict"),
+                BusinessException => (StatusCodes.Status422UnprocessableEntity, "Unprocessable Entity"),
                 KeyNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
                 UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 InvalidOperationException => (StatusCodes.Status400BadRequest, "Bad Request"),
@@ -48,9 +49,11 @@ namespace gtas_vpp_be.Middleware
                 Type = "https://tools.ietf.org/html/rfc7807",
                 Title = title,
                 Status = statusCode,
-                Detail = exception is DbUpdateConcurrencyException 
-                    ? "The data has been modified by another user. Please refresh the page and try again." 
-                    : (exception is ConflictException ? exception.Message : (env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please contact support."))
+                Detail = exception is DbUpdateConcurrencyException
+                    ? "The data has been modified by another user. Please refresh the page and try again."
+                    : (exception is ConflictException || exception is BusinessException
+                        ? exception.Message
+                        : (env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please contact support."))
             };
 
             context.Response.StatusCode = statusCode;
