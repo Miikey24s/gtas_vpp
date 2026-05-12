@@ -1,6 +1,7 @@
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.DTOs.Req.VPP;
+using gtas_vpp_shared.UI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -309,15 +310,8 @@ namespace gtas_vpp_be.Controllers
             var statusData = statusRaw
                 .Select(g => new
                 {
-                    Status = g.Status switch
-                    {
-                        1 => "Submitted",
-                        4 => "Cancelled",
-                        6 => "Pending",
-                        7 => "Approved",
-                        8 => "Rejected",
-                        _ => "Unknown"
-                    },
+                    // P4/F-16: Shared label table instead of a local switch copy.
+                    Status = StatusDisplay.GetText(g.Status),
                     g.Count
                 })
                 .ToList();

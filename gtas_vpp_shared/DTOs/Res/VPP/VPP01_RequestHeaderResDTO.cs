@@ -1,4 +1,5 @@
 using gtas_vpp_shared.DTOs.Share;
+using gtas_vpp_shared.UI;
 
 namespace gtas_vpp_shared.DTOs.Res.VPP
 {
@@ -17,15 +18,13 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
 
         // Display-only computed properties (no clock dependency)
         public string Period => $"{M:00}/{Y}";
-        public string StatusText => Status switch
-        {
-            1 => IsDeadlinePassed && !IsAdditionalOrder ? "Submitted (Period Closed)" : "Submitted",
-            4 => "Cancelled",
-            6 => "Pending",
-            7 => "Approved",
-            8 => "Rejected",
-            _ => "-"
-        };
+        // P4/F-16: Delegate to the shared StatusDisplay helper; the only
+        // DTO-specific twist is the "Period Closed" annotation when a
+        // regular submitted order has passed its deadline.
+        public string StatusText =>
+            Status == 1 && IsDeadlinePassed && !IsAdditionalOrder
+                ? "Submitted (Period Closed)"
+                : StatusDisplay.GetText(Status);
         public string? RequesterName { get; set; }
 
         // P1: BE materializes these flags using PeriodCalculator + IDateTimeProvider so
