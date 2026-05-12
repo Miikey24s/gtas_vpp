@@ -214,10 +214,13 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                         UserId = data.UserId,
                         P02_GroupId = data.UserGroup?.Id ?? data.GroupId,
                         Id = data.Id,
-                        CreateDate = data.CreateDate ?? DateTime.Now,
+                        // P5/timezone: send the original CreateDate from the server load
+                        // (no host-time fallback). UpdateDate is set authoritatively
+                        // by the BE via IDateTimeProvider, so we leave it default.
+                        CreateDate = data.CreateDate ?? default,
                         CreateUserId = data.CreateUserId,
                         UpdateUserId = UserClaims == 0 ? glb.UserInfo.UserID : UserClaims,
-                        UpdateDate = DateTime.Now,
+                        UpdateDate = default,
                         IsDeleted = data.IsDeleted
                     };
                     res = await _apiServices.PutFromApiAsync<P04_UserGroupResDTO>(
@@ -232,10 +235,12 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                         UserId = data.UserId,
                         P02_GroupId = data.UserGroup?.Id ?? data.GroupId,
                         Id = data.Id,
-                        CreateDate = DateTime.Now,
+                        // P5/timezone: BE assigns CreateDate/UpdateDate via the
+                        // shared IDateTimeProvider, so we don't send host time here.
+                        CreateDate = default,
                         CreateUserId = UserClaims == 0 ? glb.UserInfo.UserID : UserClaims,
                         UpdateUserId = UserClaims == 0 ? glb.UserInfo.UserID : UserClaims,
-                        UpdateDate = DateTime.Now,
+                        UpdateDate = default,
                         IsDeleted = data.IsDeleted
                     };
                     res = await _apiServices.PostFromApiAsync<P04_UserGroupResDTO>(

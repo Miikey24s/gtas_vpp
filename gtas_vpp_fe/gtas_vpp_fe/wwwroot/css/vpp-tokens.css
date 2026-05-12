@@ -4,6 +4,53 @@
    Reference: Linear.app, Vercel Dashboard
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── Self-hosted fonts (F-31) ────────────────────────────────────
+   Inter (sans display/body) + JetBrains Mono (code) shipped from
+   /fonts so rendering is identical across Windows/Linux/macOS and
+   removes the Google Fonts CDN runtime dependency. */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/Inter-Medium.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/Inter-SemiBold.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/Inter-Bold.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/JetBrainsMono-Medium.woff2') format('woff2');
+}
+
 /* ── Typography ──────────────────────────────────────────────── */
 :root {
     --vpp-font-display: 'Inter', system-ui, -apple-system, sans-serif;

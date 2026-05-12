@@ -4,7 +4,7 @@
     <div class="vpp-data-card rz-mb-3" style="padding: var(--vpp-space-4);">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Wrap="FlexWrap.Wrap" Gap="0.75rem">
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" aria-hidden="true" />
                 <RadzenText Text="Order Review" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
             </RadzenStack>
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
@@ -56,9 +56,10 @@
                     <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="Notes" MinWidth="140px" />
                     <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="50px" TextAlign="TextAlign.Center" Sortable="false">
                         <Template Context="item">
+                            @* F-28: icon-only buttons need an explicit aria-label for screen readers. *@
                             <RadzenButton Icon="close" Size="ButtonSize.Small"
                                           ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                                          Click="@(_ => RemoveItem(item))" Title="Remove" />
+                                          Click="@(_ => RemoveItem(item))" Title="Remove" aria-label="Remove item from order" />
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>

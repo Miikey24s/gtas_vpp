@@ -108,17 +108,24 @@
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" MinWidth="100px" TextAlign="TextAlign.Center">
                             <Template Context="row"><strong>@row.TotalQty</strong></Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />
+                        @* F-29: route through DateFormatter so the culture (vi-VN) is enforced consistently with the rest of the order tabs. *@
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center">
+                            <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="Notes (Reason)" TextAlign="TextAlign.Left" MinWidth="120px" />
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Actions" Width="130px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="order">
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.25rem">
+                                    @* F-28: icon-only buttons must expose an accessible name to screen readers (aria-label)
+                                       in addition to the visible Title tooltip. Include the order code so screen-reader
+                                       users hear which row they are about to approve/reject. *@
                                     <RadzenButton Icon="check_circle"
                                                   Size="ButtonSize.Small"
                                                   ButtonStyle="ButtonStyle.Success"
                                                   Variant="Variant.Flat"
                                                   Click="@(async () => await HandleApproveClick(order))"
                                                   Title="Approve"
+                                                  aria-label="@($"Approve order {order.VPPCode}")"
                                                   Disabled="@IsActionLoading" />
                                     <RadzenButton Icon="cancel"
                                                   Size="ButtonSize.Small"
@@ -126,6 +133,7 @@
                                                   Variant="Variant.Flat"
                                                   Click="@(async () => await HandleRejectClick(order))"
                                                   Title="Reject"
+                                                  aria-label="@($"Reject order {order.VPPCode}")"
                                                   Disabled="@IsActionLoading" />
                                 </RadzenStack>
                             </Template>

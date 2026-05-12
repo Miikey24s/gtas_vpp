@@ -62,13 +62,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public DateTime CurrentDeadlineDate => PeriodInfo?.DeadlineDate
             ?? new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 1).AddMonths(1).AddDays(4);
 
-        // Kết thúc kỳ = ngày trước deadline (1 day before DeadlineDate)
+        // Period end = day before the deadline. F-29: all date strings go through DateFormatter.
         public DateTime PeriodEndDate => CurrentDeadlineDate.AddDays(-1);
-        public string PeriodEndText => PeriodEndDate.ToString("dd/MM/yyyy");
+        public string PeriodEndText => DateFormatter.Format(PeriodEndDate, DateFormatter.ShortDate);
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
-        public string CurrentOrderPeriodText => $"{CurrentOrderPeriodDate:MM/yyyy}";
-        public string PreviousOrderPeriodText => $"{PreviousOrderPeriodDate:MM/yyyy}";
-        public string CurrentDeadlineText => CurrentDeadlineDate.ToString("HH:mm dd/MM/yyyy");
+        public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
+        public string PreviousOrderPeriodText => DateFormatter.Format(PreviousOrderPeriodDate, DateFormatter.MonthYear);
+        public string CurrentDeadlineText => DateFormatter.Format(CurrentDeadlineDate, DateFormatter.LongDate);
         public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
         public string OrdersTitle => $"Orders - {CurrentOrderPeriodText}";
         public int TotalOrders => ActiveOrders.Count + PreviousOrders.Count + AdditionalOrders.Count;

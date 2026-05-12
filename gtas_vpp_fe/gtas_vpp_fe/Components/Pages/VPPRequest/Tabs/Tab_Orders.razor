@@ -155,7 +155,7 @@
                     <div class="vpp-data-card-meta">
                         <span class="vpp-data-card-meta-item">
                             <span class="rzi rzi-schedule"></span>
-                            Submitted: @(order.SubmittedDate?.ToString("HH:mm dd/MM/yyyy") ?? "-")
+                            Submitted: @DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate)
                         </span>
                     </div>
                 </div>
@@ -163,8 +163,10 @@
                     <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@StatusDisplay.GetText(order.Status)</span>
                     @if (CanEditOrDelete(order))
                     {
-                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" />
-                        <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" />
+                        @* F-28: icon-only buttons need a visible tooltip + screen-reader label. The aria-label
+                           includes the order code so screen-reader users hear context (e.g. "Edit order VPP-202604-..."). *@
+                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" Title="@Loc["Edit"]" aria-label="@($"Edit order {order.VPPCode}")" />
+                        <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" Title="@Loc["Cancel"]" aria-label="@($"Cancel order {order.VPPCode}")" />
                     }
                 </RadzenStack>
             </div>

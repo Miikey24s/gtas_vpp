@@ -1,31 +1,56 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   VPP ACCESSIBILITY — Phase 13
+   VPP ACCESSIBILITY — Phase 13 / F-28
    WCAG 2.1 AA: focus, contrast, reduced motion, screen reader
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Focus Visible ────────────────────────────────────────────── */
+/* ── Focus Visible ────────────────────────────────────────────────
+   Every keyboard-focusable element must show a 2px ring in the brand's
+   primary colour. We deliberately scope per-Radzen-control to override
+   Radzen's default focus styles, which otherwise win the CSS cascade. */
 :focus-visible {
     outline: 2px solid var(--vpp-primary-500) !important;
     outline-offset: 2px !important;
+    border-radius: 2px;
 }
 
 .rz-button:focus-visible,
 .rz-textbox:focus-visible,
 .rz-dropdown:focus-visible,
 .rz-numeric:focus-visible,
-.rz-textarea:focus-visible {
+.rz-textarea:focus-visible,
+.rz-listbox-item:focus-visible,
+.rz-tabview-nav-link:focus-visible,
+.rz-datatable-data > tr:focus-visible {
     outline: 2px solid var(--vpp-primary-500) !important;
     outline-offset: 1px !important;
     border-color: var(--vpp-primary-400) !important;
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
 }
 
-/* ── Reduced Motion ──────────────────────────────────────────── */
+a:focus-visible {
+    outline: 2px solid var(--vpp-primary-500) !important;
+    outline-offset: 3px !important;
+    text-decoration: underline;
+}
+
+/* ── Reduced Motion ──────────────────────────────────────────────
+   W3C-recommended 0.01ms duration keeps event semantics intact while
+   making motion imperceptible. The `animation: none` / `transition: none`
+   fallbacks (F-28 task spec) defeat decorative-only shimmer effects
+   (kpi-card-shine, vanilla-tilt etc.) that don't fire end-events anyway. */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .kpi-card-shine,
+    [data-tilt],
+    .vpp-card-ai {
+        animation: none !important;
+        transition: none !important;
     }
 }
 

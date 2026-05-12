@@ -26,7 +26,10 @@
     <link rel="stylesheet" href="@Assets["css/vpp-polish.css"]" />
     <link rel="stylesheet" href="@Assets["gtas_vpp_fe.styles.css"]" />
     <link rel="icon" type="image/x-icon" href="@Assets["PPJ-Software-Icon.ico"]" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500;600&family=Material+Symbols+Outlined&display=swap" rel="stylesheet" />
+    @* F-31: Inter + JetBrains Mono are self-hosted via @@font-face in vpp-tokens.css.
+       Material Symbols stays on the CDN because it ships an icon-font glyph set we
+       don't currently bundle locally; replacing it requires a separate task. *@
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet" />
     <ImportMap />
     <link rel="icon" type="image/png" href="@Assets["favicon.png"]" />
     <script>

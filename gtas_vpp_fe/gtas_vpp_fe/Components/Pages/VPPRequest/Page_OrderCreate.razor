@@ -23,7 +23,7 @@
                 }
                 @if (LastDraftSavedAt.HasValue)
                 {
-                    <RadzenText Text="@($"Auto-saved {LastDraftSavedAt:HH:mm:ss}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-tertiary);" />
+                    <RadzenText Text="@($"Auto-saved {DateFormatter.Format(LastDraftSavedAt, DateFormatter.TimeOnly)}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-tertiary);" />
                 }
             </div>
         </RadzenStack>

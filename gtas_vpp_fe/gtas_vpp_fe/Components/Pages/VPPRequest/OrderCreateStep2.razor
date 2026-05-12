@@ -9,17 +9,17 @@
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-2">
             @if (Context.IsEdit)
             {
-                <RadzenIcon Icon="edit" Style="color: var(--vpp-primary-500);" />
+                <RadzenIcon Icon="edit" Style="color: var(--vpp-primary-500);" aria-hidden="true" />
                 <RadzenText Text="Editing Order" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
             }
             else if (Context.IsAdditional)
             {
-                <RadzenIcon Icon="add_circle" Style="color: var(--rz-warning);" />
+                <RadzenIcon Icon="add_circle" Style="color: var(--rz-warning);" aria-hidden="true" />
                 <RadzenText Text="Additional Order" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
             }
             else
             {
-                <RadzenIcon Icon="note_add" Style="color: var(--vpp-primary-500);" />
+                <RadzenIcon Icon="note_add" Style="color: var(--vpp-primary-500);" aria-hidden="true" />
                 <RadzenText Text="New Order" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
             }
         </RadzenStack>
@@ -41,10 +41,13 @@
     @* ── AI Smart Search ──────────────────────────────────────── *@
     @if (glb.IsAIEnabled)
     {
-        <RadzenCard class="vpp-card-ai rz-mb-3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        @* F-28 (audit): the previous gradient #667eea→#764ba2 produced ~3.2:1 contrast on white text at the
+           lighter end, failing WCAG AA (4.5:1). Switched to the project's primary-700→primary-900 token pair,
+           which scores ≥ 5.9:1 across the full gradient and keeps brand consistency with the sidebar/buttons. *@
+        <RadzenCard class="vpp-card-ai rz-mb-3" Style="background: linear-gradient(135deg, var(--vpp-primary-700) 0%, var(--vpp-primary-900) 100%); color: white;">
             <RadzenStack Gap="0.5rem">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenIcon Icon="auto_awesome" Style="font-size: 1.25rem;" />
+                    <RadzenIcon Icon="auto_awesome" Style="font-size: 1.25rem;" aria-hidden="true" />
                     <RadzenText Text="@Loc["AISmartSearch"]" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 700;" />
                 </RadzenStack>
 
@@ -52,7 +55,8 @@
                     <RadzenTextBox @bind-Value="AISearchText" Placeholder="@Loc["AiSearchPlaceholder"]"
                                    Style="flex: 1; background: white; color: black;"
                                    @onkeydown="@OnEnter" />
-                    <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Light" Click="@OnAISearchAsync" Disabled="@IsAILoading" />
+                    @* F-28: icon-only search trigger gets an explicit accessible name. *@
+                    <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Light" Click="@OnAISearchAsync" Disabled="@IsAILoading" Title="@Loc["AISmartSearch"]" aria-label="@Loc["AISmartSearch"]" />
                 </RadzenStack>
 
                 @if (IsAILoading)
@@ -90,7 +94,7 @@
                 <div style="padding: var(--vpp-space-2) var(--vpp-space-3); border-bottom: 1px solid var(--vpp-border-default);">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
-                            <RadzenIcon Icon="inventory_2" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" />
+                            <RadzenIcon Icon="inventory_2" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
                             <RadzenText Text="Product Catalog" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
                         </RadzenStack>
                         @if (ProductCount > 0)
@@ -130,10 +134,13 @@
                                 @{
                                     var isSelected = Context.SelectedItems.Any(x => x.VPPId == row.Id);
                                 }
+                                @* F-28: icon-only add/added toggle gets an explicit aria-label that reflects the current state. *@
                                 <RadzenButton Icon="@(isSelected ? "check" : "add")"
                                               Size="ButtonSize.Small"
                                               ButtonStyle="@(isSelected ? ButtonStyle.Success : ButtonStyle.Primary)"
                                               Variant="Variant.Text"
+                                              Title="@(isSelected ? "Already added" : "Add to order")"
+                                              aria-label="@(isSelected ? "Already added to order" : "Add product to order")"
                                               Disabled="@isSelected"
                                               Click="@(_ => AddProduct(row))" />
                             </Template>
@@ -149,7 +156,7 @@
                 <div style="padding: var(--vpp-space-2) var(--vpp-space-3); border-bottom: 1px solid var(--vpp-border-default);">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
-                            <RadzenIcon Icon="shopping_cart" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" />
+                            <RadzenIcon Icon="shopping_cart" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
                             <RadzenText Text="Selected" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
                         </RadzenStack>
                         @if (Context.SelectedItems.Count > 0)
@@ -194,9 +201,10 @@
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="40px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
+                                        @* F-28: icon-only remove button needs an explicit aria-label. *@
                                         <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall"
                                                       ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                                                      Click="@(_ => RemoveItem(item))" Title="Remove" />
+                                                      Click="@(_ => RemoveItem(item))" Title="Remove" aria-label="Remove item from order" />
                                     </Template>
                                 </RadzenDataGridColumn>
                             </Columns>

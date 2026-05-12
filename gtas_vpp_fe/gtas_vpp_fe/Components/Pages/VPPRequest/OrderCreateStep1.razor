@@ -6,21 +6,21 @@
         @if (Context.IsEdit)
         {
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
-                <RadzenIcon Icon="edit" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenIcon Icon="edit" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" aria-hidden="true" />
                 <RadzenText Text="Editing Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
             </RadzenStack>
         }
         else if (Context.IsCopy)
         {
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
-                <RadzenIcon Icon="content_copy" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenIcon Icon="content_copy" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" aria-hidden="true" />
                 <RadzenText Text="Copy from Previous Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
             </RadzenStack>
         }
         else if (Context.IsAdditional)
         {
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
-                <RadzenIcon Icon="add_circle" Style="color: var(--rz-warning); font-size: 1.5rem;" />
+                <RadzenIcon Icon="add_circle" Style="color: var(--rz-warning); font-size: 1.5rem;" aria-hidden="true" />
                 <RadzenText Text="Additional Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
             </RadzenStack>
             <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" class="rz-mb-3">
@@ -32,7 +32,7 @@
         else
         {
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-mb-3">
-                <RadzenIcon Icon="note_add" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" />
+                <RadzenIcon Icon="note_add" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" aria-hidden="true" />
                 <RadzenText Text="Create New Order" TextStyle="TextStyle.Subtitle1" class="wizard-step-title rz-m-0" />
             </RadzenStack>
         }
