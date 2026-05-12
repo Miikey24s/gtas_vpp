@@ -26,13 +26,13 @@
 
 ## 1. Executive Summary
 
-GTAS VPP là hệ thống đặt mua **văn phòng phẩm theo kỳ tháng** với chu kỳ ngày 5 hàng tháng cho công ty Việt Nam (kiến trúc .NET 10 Web API + Blazor Server, EF Core, SQL Server, tích hợp AI gợi ý sản phẩm qua Ollama/Gemini). Codebase đã đạt **mức MVP có chất lượng UI khá tốt** (design tokens style Linear/Vercel, dark mode mặc định, sidebar có theme switcher, AI suggestion card), nhưng **lớp domain logic và data access có 7 lỗ hổng critical** cần xử lý trước khi đưa ra production thật.
+GTAS VPP là hệ thống đặt mua **văn phòng phẩm theo kỳ tháng** cho công ty Việt Nam, trong đó kỳ tháng N chạy từ `00:00:00` ngày `05/N` đến `23:59:59` ngày `04/(N+1)` (kiến trúc .NET 10 Web API + Blazor Server, EF Core, SQL Server, tích hợp AI gợi ý sản phẩm qua Ollama/Gemini). Codebase đã đạt **mức MVP có chất lượng UI khá tốt** (design tokens style Linear/Vercel, dark mode mặc định, sidebar có theme switcher, AI suggestion card), nhưng **lớp domain logic và data access có 7 lỗ hổng critical** cần xử lý trước khi đưa ra production thật.
 
 ### 1.1 Kết luận chính
 
 | # | Vấn đề | Tác động | Ưu tiên |
 |---|---|---|---|
-| 1 | Logic kỳ tháng (ngày 5) bị **lặp ở 3 nơi** với 3 đồng hồ khác nhau (BE config, FE hardcode, DTO `DateTime.Now` client) → user có thể submit sai kỳ khi đồng hồ FE/BE lệch | Sai dữ liệu, không thể audit | 🔴 P0/P1 |
+| 1 | Logic kỳ tháng (`00:00` ngày 5 → `23:59:59` ngày 4 tháng sau) bị **lặp ở 3 nơi** với 3 đồng hồ khác nhau (BE config, FE hardcode, DTO `DateTime.Now` client) → user có thể submit sai kỳ khi đồng hồ FE/BE lệch | Sai dữ liệu, không thể audit | 🔴 P0/P1 |
 | 2 | `CreateOrderAsync` check unique **ngoài transaction** → 2 request đồng thời cùng pass, tạo trùng order trong cùng kỳ | Mất tính toàn vẹn dữ liệu | 🔴 P0 |
 | 3 | `GenericRepository.AddAsync/UpdateAsync/DeleteAsync` mỗi method tự `BeginTransactionAsync` → khi service gọi qua repo trong cùng tx sẽ throw `InvalidOperationException("Transaction already started")` | Crash runtime | 🔴 P0 |
 | 4 | 2 `DbContext` (`VPPContext` + `VPPMigrationDbContext`) trùng `OnModelCreating` nhưng **chỉ migration context được track** → schema drift âm thầm | Production khác dev | 🔴 P2 |
@@ -259,7 +259,7 @@ await _scopedUow.BeginTransactionAsync();  // ← tx mới bắt đầu sau khi 
   - FE **chỉ** consume `GET /period-info` ở mount + cache 60s, không tự tính lại.
   - Xoá `IsDeadlinePassed`/`CanEdit`/`CanCancel` ra khỏi DTO; BE trả về sẵn dưới dạng property thường (đã materialize, không phải computed).
 - **Effort**: M.
-- **🟢 Deadline definition (user-confirmed)**: `now.Day >= 5` (`>= 00:00:00 ngày 5`) ≡ `> 23:59:59 ngày 4` — cuối ngày 4 hết hạn, ngày 5 là kỳ mới. Giữ nguyên semantic hiện tại. Edge case "đúng `00:00:00` ngày 5" → vào kỳ mới ngay (intent xác nhận).
+- **🟢 Deadline definition (user-confirmed)**: `now.Day >= 5` (`>= 00:00:00 ngày 5`) ≡ `> 23:59:59 ngày 4` — tức kỳ tháng N luôn là `00:00:00` ngày `05/N` → `23:59:59` ngày `04/(N+1)`. Ví dụ: kỳ `05/2026` chạy từ `00:00:00 05/05/2026` đến `23:59:59 04/06/2026`; kỳ `06/2026` chạy từ `00:00:00 05/06/2026` đến `23:59:59 04/07/2026`.
 
 #### F-03 · `GenericRepository` mở transaction nested → throw runtime
 
@@ -1012,7 +1012,7 @@ Hiện tại path #3 dùng cho mọi `IUnitOfWork`, path #1 chỉ dùng cho `Aut
 
 **Edge cases** chưa được handle:
 1. Tháng 1 → tháng 12 năm trước: `currentMonth.AddMonths(-1)` của tháng 1/2026 cho ra `12/2025` — OK trong cả BE và FE, nhưng test chưa cover.
-2. Đúng `00:00:00` ngày 5: `now.Day >= 5` true ngay từ giây đầu tiên → user vừa qua midnight phải vào kỳ mới. Có thể không phải intent (intent có thể là deadline đến **cuối ngày 4**).
+2. Đúng `00:00:00` ngày 5: `now.Day >= 5` true ngay từ giây đầu tiên → user vừa qua midnight phải vào kỳ mới. Đây là intent đã được user confirm vì kỳ mới bắt đầu ngay sau `23:59:59` ngày 4.
 3. Năm nhuận / tháng 28-31 ngày — không liên quan vì luôn check `day 5`.
 
 #### Order lifecycle — workflow đơn giản nhưng audit nghèo
@@ -1566,7 +1566,7 @@ public void Encrypt_KnownPlaintext_MatchesProductionCiphertext()
 #### P1 — Test coverage
 ```csharp
 [Theory]
-[InlineData("2026-04-04 23:59:59", 2026, 4, 2026, 3)]  // chưa qua deadline
+[InlineData("2026-04-04 23:59:59", 2026, 3, 2026, 2)]  // chưa qua deadline, vẫn là kỳ tháng 3
 [InlineData("2026-04-05 00:00:00", 2026, 4, 2026, 3)]  // đúng deadline
 [InlineData("2026-05-04 23:59:59", 2026, 4, 2026, 3)]  // cuối kỳ
 [InlineData("2026-01-04 12:00:00", 2025, 12, 2025, 11)] // năm rollover

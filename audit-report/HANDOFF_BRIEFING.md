@@ -39,7 +39,7 @@
 
 ## 3. Business rules đã được USER confirm
 
-- **Deadline mỗi kỳ**: Ngày 5 hằng tháng `>= 00:00:00`. Từ midnight 4→5, kỳ mới bắt đầu.
+- **Deadline mỗi kỳ**: Kỳ tháng N chạy từ `00:00:00` ngày `05/N` đến `23:59:59` ngày `04/(N+1)`; đúng `00:00:00` ngày 5 thì kỳ mới bắt đầu.
 - **Order type**:
   - Regular order: cho kỳ **hiện tại**, status `Submitted(1)` → user edit/cancel trước deadline.
   - Additional order: cho kỳ **vừa đóng**, status `Pending(6)` → admin Approve/Reject.

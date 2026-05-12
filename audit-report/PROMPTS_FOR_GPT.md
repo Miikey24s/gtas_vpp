@@ -219,9 +219,9 @@ PROBLEM:
 Period logic ("kỳ hiện tại là tháng nào?") tính ở 4 chỗ với clock khác nhau → drift. User submit order với Y/M khác BE expect.
 
 BUSINESS RULE (user đã confirm):
-- Deadline: ngày 5 hằng tháng `>= 00:00:00`
-- Từ 00:00 ngày 5/N: kỳ hiện tại = tháng N, kỳ trước = tháng N-1
-- Trước 00:00 ngày 5/N: kỳ hiện tại = tháng N-1, kỳ trước = tháng N-2
+- Kỳ tháng N chạy từ `00:00:00` ngày `05/N` đến `23:59:59` ngày `04/(N+1)`
+- Từ `00:00:00` ngày `05/N`: kỳ hiện tại = tháng N, kỳ trước = tháng N-1
+- Trước thời điểm đó: kỳ hiện tại = tháng N-1, kỳ trước = tháng N-2
 - Edge case năm rollover (tháng 1 → tháng 12 năm trước) phải work.
 
 GOAL:
@@ -815,7 +815,7 @@ TASK: P5.C · Re-layout Wizard 3 step + Empty state CTA + Loading state thống 
 A. Wizard re-layout (F-43):
 - /opt/gtas_vpp/gtas_vpp_fe/.../OrderCreateStep1.razor: 
   Thêm vào Step 1:
-  - Period info (call API /period-info, hiển thị "Đặt cho kỳ {Y}/{M}, hạn chót ngày 4")
+  - Period info (call API /period-info, hiển thị rõ kỳ chạy từ `00:00` ngày `05/M` đến `23:59` ngày `04/(M+1)`, ví dụ: "Đặt cho kỳ {Y}/{M}, hết hạn lúc 23:59 ngày 04 tháng sau")
   - Type indicator (New / Additional / Copy)
   - Nếu IsAdditional → bắt buộc nhập Reason (required validator).
 - /opt/gtas_vpp/gtas_vpp_fe/.../OrderCreateStep2.razor:

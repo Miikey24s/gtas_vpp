@@ -75,7 +75,7 @@ public class VPPRequestServiceTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 6));
 
-        var result = InvokeIsDeadlinePassed(service, 2026, 4);
+        var result = InvokeIsDeadlinePassed(service, 2026, 3);
 
         Assert.True(result);
     }
@@ -89,7 +89,7 @@ public class VPPRequestServiceTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
-        var request = CreateOrderRequest(isAdditionalOrder: false);
+        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: false);
 
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
@@ -104,7 +104,7 @@ public class VPPRequestServiceTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 10, 9, 7, 8));
-        var request = CreateOrderRequest(isAdditionalOrder: true);
+        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: true);
 
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
@@ -112,6 +112,20 @@ public class VPPRequestServiceTests
         var header = Assert.Single(context.Set<VPP01_RequestHeader>());
         Assert.Equal((int)VPPStatus.Pending, header.Status);
         Assert.True(header.IsAdditionalOrder);
+    }
+
+    [Fact]
+    public async Task GetCurrentPeriodInfoAsync_CurrentPeriodUsesNextMonthDeadline()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateService(context, new DateTime(2026, 5, 12, 8, 0, 0));
+
+        var result = await service.GetCurrentPeriodInfoAsync(5615);
+
+        Assert.Equal(2026, result.CurrentPeriodYear);
+        Assert.Equal(5, result.CurrentPeriodMonth);
+        Assert.Equal(new DateTime(2026, 6, 5), result.DeadlineDate);
+        Assert.False(result.IsDeadlinePassed);
     }
 
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
@@ -139,11 +153,11 @@ public class VPPRequestServiceTests
             Options.Create(new JiraSettings()));
     }
 
-    private static VPP01_CreateReqDTO CreateOrderRequest(bool isAdditionalOrder)
+    private static VPP01_CreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder)
         => new()
         {
-            Y = 2026,
-            M = 4,
+            Y = year,
+            M = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
             Items = new List<VPP02_ItemReqDTO>
