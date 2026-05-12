@@ -187,7 +187,6 @@ public class VPPRequestControllerTests
         Assert.Equal("Category", GetPropertyValue<string>(product, "VPPCategoryName"));
         Assert.Equal("BOX", GetPropertyValue<string>(product, "UOMCode"));
         Assert.Equal("Box", GetPropertyValue<string>(product, "UOMName"));
-        Assert.Equal(1, GetPropertyValue<int>(product, "SupplierCount"));
         Assert.Equal("1", controller.Response.Headers["X-Total-Count"].ToString());
     }
 

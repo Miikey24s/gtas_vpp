@@ -6,10 +6,12 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs;
 using gtas_vpp_shared.DTOs.Res.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Newtonsoft.Json;
+using System.Net;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.ControllerTests;
@@ -86,7 +88,7 @@ public class AuthControllerTests
             })
             .Build();
 
-        return new AuthController(
+        var controller = new AuthController(
             context,
             storedProcedureExecutor,
             Mock.Of<IGenericRepository<P04_UserGroup>>(),
@@ -95,5 +97,13 @@ public class AuthControllerTests
             unitOfWork.Object,
             configuration,
             Mock.Of<IPasswordEncoder>());
+
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        controller.HttpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
+
+        return controller;
     }
 }
