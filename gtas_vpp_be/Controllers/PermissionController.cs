@@ -4,6 +4,7 @@ using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
@@ -26,19 +27,24 @@ namespace gtas_vpp_be.Controllers
         private readonly IGenericRepository<P04_UserGroup> _userGroupRepository;
         private readonly IUserNameResolver _userNameResolver;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         public PermissionController(
             IGenericRepository<P02_Group> groupRepository,
             IGenericRepository<P06_GroupPageComponentMapping> groupPageComponentMappingRepository,
             IGenericRepository<P04_UserGroup> userGroupRepository,
             IUserNameResolver userNameResolver,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IDateTimeProvider dateTimeProvider)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
             _userGroupRepository = userGroupRepository;
             _userNameResolver = userNameResolver;
             _unitOfWork = unitOfWork;
+            // P5/timezone: always pin audit timestamps to Asia/Ho_Chi_Minh, regardless
+            // of host timezone or client-supplied values.
+            _dateTimeProvider = dateTimeProvider;
         }
 
         [HttpGet("groups")]
@@ -176,7 +182,7 @@ namespace gtas_vpp_be.Controllers
             }
 
             req.Adapt(current);
-            current.UpdateDate = req.UpdateDate ?? DateTime.Now;
+            current.UpdateDate = _dateTimeProvider.Now;
 
             var updated = await _groupRepository.UpdateAsync(current);
             var response = updated.Adapt<P02_GroupResDTO>();
@@ -254,7 +260,7 @@ namespace gtas_vpp_be.Controllers
             }
 
             req.Adapt(current);
-            current.UpdateDate = req.UpdateDate ?? DateTime.Now;
+            current.UpdateDate = _dateTimeProvider.Now;
 
             var rs = await _groupPageComponentMappingRepository.UpdateAsync(
                 current,
@@ -282,8 +288,9 @@ namespace gtas_vpp_be.Controllers
             var entity = req.Adapt<P04_UserGroup>();
             entity.Id = Guid.Empty;
             entity.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
-            entity.CreateDate = req.CreateDate ?? DateTime.Now;
-            entity.UpdateDate = req.UpdateDate ?? DateTime.Now;
+            var now = _dateTimeProvider.Now;
+            entity.CreateDate = now;
+            entity.UpdateDate = now;
 
             var created = await _userGroupRepository.AddAsync(entity) ?? entity;
             return Ok(created.Adapt<P04_UserGroupResDTO>());
@@ -330,7 +337,7 @@ namespace gtas_vpp_be.Controllers
 
             req.Adapt(current);
             current.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
-            current.UpdateDate = req.UpdateDate ?? DateTime.Now;
+            current.UpdateDate = _dateTimeProvider.Now;
 
             var updated = await _userGroupRepository.UpdateAsync(current);
             return Ok(updated.Adapt<P04_UserGroupResDTO>());

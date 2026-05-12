@@ -33,14 +33,23 @@ RUN dotnet publish gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Cài đặt curl để hỗ trợ Docker Healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Cài đặt curl để hỗ trợ Docker Healthcheck + tzdata để pin container về VN time
+# (P5/timezone: app already uses IDateTimeProvider for business timestamps,
+# but TZ env makes Serilog logs, GETDATE() defaults, and *nix tools display
+# Asia/Ho_Chi_Minh consistently — important when deploying to non-VN clouds
+# such as Singapore/Tokyo/etc.)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl tzdata \
+    && ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime \
+    && dpkg-reconfigure --frontend noninteractive tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 # Optimized for performance (Server GC for 8GB RAM VPS)
 ENV DOTNET_gcServer=1
 # ENV DOTNET_GCConserveMemory=9 (Removed for better CPU throughput)
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV TZ=Asia/Ho_Chi_Minh
 
 USER app
 EXPOSE 8080

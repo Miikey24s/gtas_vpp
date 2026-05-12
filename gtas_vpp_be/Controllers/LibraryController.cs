@@ -18,8 +18,19 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class LibraryController : BaseGenericController
     {
-        public LibraryController(IServiceProvider serviceProvider, IUserNameResolver userNameResolver, IUnitOfWork unitOfWork)
-            : base(serviceProvider, userNameResolver, unitOfWork) { }
+        private readonly IDateTimeProvider _dateTimeProvider;
+
+        public LibraryController(
+            IServiceProvider serviceProvider,
+            IUserNameResolver userNameResolver,
+            IUnitOfWork unitOfWork,
+            IDateTimeProvider dateTimeProvider)
+            : base(serviceProvider, userNameResolver, unitOfWork)
+        {
+            // P5/timezone: use shared provider so timestamps stay in Asia/Ho_Chi_Minh
+            // even when the host runs in a different timezone (e.g. SGP cloud, UTC).
+            _dateTimeProvider = dateTimeProvider;
+        }
 
         [HttpGet("{tableCode}")]
         public async Task<IActionResult> GenericGet(
@@ -295,8 +306,9 @@ namespace gtas_vpp_be.Controllers
             
             var obj = dto.Adapt<TModel>();
             obj.Id = Guid.Empty;
-            obj.CreateDate = DateTime.Now;
-            obj.UpdateDate = DateTime.Now;
+            var now = _dateTimeProvider.Now;
+            obj.CreateDate = now;
+            obj.UpdateDate = now;
             
             var created = await GetRepository<TModel>().AddAsync(obj);
             var resultDto = created?.Adapt<TDto>();
@@ -309,7 +321,7 @@ namespace gtas_vpp_be.Controllers
             if (dto == null) return BadRequest();
             
             var obj = dto.Adapt<TModel>();
-            obj.UpdateDate = DateTime.Now;
+            obj.UpdateDate = _dateTimeProvider.Now;
             
             var updated = await GetRepository<TModel>().UpdateAsync(obj);
             var resultDto = updated.Adapt<TDto>();
@@ -342,7 +354,7 @@ namespace gtas_vpp_be.Controllers
             var updateDateProp = type.GetProperty("UpdateDate");
             if (updateDateProp != null && updateDateProp.CanWrite)
             {
-                updateDateProp.SetValue(entity, DateTime.Now);
+                updateDateProp.SetValue(entity, _dateTimeProvider.Now);
             }
 
             var result = await GetRepository<TModel>().UpdateAsync(entity);
