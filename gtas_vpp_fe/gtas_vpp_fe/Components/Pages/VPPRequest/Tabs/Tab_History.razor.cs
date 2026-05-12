@@ -213,24 +213,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        protected string GetStatusText(int status) => status switch
-        {
-            1 => "Submitted",
-            4 => "Cancelled",
-            6 => "Pending",
-            7 => "Approved",
-            8 => "Rejected",
-            _ => "-"
-        };
-
-        protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
-        {
-            1 => BadgeStyle.Success,    // Submitted
-            4 => BadgeStyle.Danger,     // Cancelled
-            6 => BadgeStyle.Warning,    // Pending
-            7 => BadgeStyle.Success,    // Approved
-            8 => BadgeStyle.Danger,     // Rejected
-            _ => BadgeStyle.Light
-        };
+        // P4/F-16: status presentation moved to shared StatusDisplay + FE StatusDisplayRadzen.
     }
 }

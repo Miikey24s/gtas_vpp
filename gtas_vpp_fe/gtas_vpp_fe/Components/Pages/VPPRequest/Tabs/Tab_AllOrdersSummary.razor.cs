@@ -199,24 +199,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
 
-        protected string GetStatusText(int status) => status switch
-        {
-            1 => "Submitted",
-            4 => "Cancelled",
-            6 => "Pending",
-            7 => "Approved",
-            8 => "Rejected",
-            _ => "-"
-        };
-
-        protected BadgeStyle GetStatusBadgeStyle(int status) => status switch
-        {
-            1 => BadgeStyle.Success,
-            4 => BadgeStyle.Danger,
-            6 => BadgeStyle.Warning,
-            7 => BadgeStyle.Success,
-            8 => BadgeStyle.Danger,
-            _ => BadgeStyle.Light
-        };
+        // P4/F-16: status presentation moved to shared StatusDisplay + FE StatusDisplayRadzen.
     }
 }

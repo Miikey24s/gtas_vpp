@@ -1,5 +1,6 @@
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_shared.UI
 @using gtas_vpp_fe.Helpers
 @inject DialogService DialogService
 @inject GlobalClass glb
@@ -159,7 +160,7 @@
                     </div>
                 </div>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenBadge Text="@GetStatusText(order.Status)" BadgeStyle="@GetStatusBadgeStyle(order.Status)" IsPill="true" class="rz-px-3" />
+                    <RadzenBadge Text="@StatusDisplay.GetText(order.Status)" BadgeStyle="@StatusDisplayRadzen.BadgeStyleFor(order.Status)" IsPill="true" class="rz-px-3" />
                     @if (CanEditOrDelete(order))
                     {
                         <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" />

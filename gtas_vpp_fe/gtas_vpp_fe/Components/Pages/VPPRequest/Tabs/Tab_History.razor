@@ -1,5 +1,6 @@
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_shared.UI
 @using gtas_vpp_fe.Helpers
 @inject GlobalClass glb
 @inject NotificationService NotificationService
@@ -130,7 +131,7 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="Status" MinWidth="100px" TextAlign="TextAlign.Center" Sortable="true">
                                 <Template Context="row">
-                                    <RadzenBadge Text="@GetStatusText(row.Status)" BadgeStyle="@GetStatusBadgeStyle(row.Status)" IsPill="true" />
+                                    <RadzenBadge Text="@StatusDisplay.GetText(row.Status)" BadgeStyle="@StatusDisplayRadzen.BadgeStyleFor(row.Status)" IsPill="true" />
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />
