@@ -21,6 +21,18 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
+var dotEnvValues = LoadDotEnvValues(builder.Environment.ContentRootPath);
+if (dotEnvValues.Count > 0)
+{
+    builder.Configuration.AddInMemoryCollection(dotEnvValues);
+}
+
+var localConnectionOverrides = GetLocalDevelopmentConnectionOverrides(builder.Environment, builder.Configuration);
+if (localConnectionOverrides.Count > 0)
+{
+    builder.Configuration.AddInMemoryCollection(localConnectionOverrides);
+}
+
 var Configuration = builder.Configuration;
 
 builder.WebHost.ConfigureKestrel(options =>
@@ -276,3 +288,65 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+static Dictionary<string, string?> LoadDotEnvValues(string contentRootPath)
+{
+    var dotEnvPath = Path.GetFullPath(Path.Combine(contentRootPath, "..", "..", ".env"));
+    if (!File.Exists(dotEnvPath))
+    {
+        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    foreach (var rawLine in File.ReadLines(dotEnvPath))
+    {
+        var line = rawLine.Trim();
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#", StringComparison.Ordinal))
+        {
+            continue;
+        }
+
+        var separatorIndex = line.IndexOf('=');
+        if (separatorIndex <= 0)
+        {
+            continue;
+        }
+
+        var key = line[..separatorIndex].Trim();
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            continue;
+        }
+
+        var value = line[(separatorIndex + 1)..].Trim().Trim('"');
+        values[key] = value;
+    }
+
+    return values;
+}
+
+static Dictionary<string, string?> GetLocalDevelopmentConnectionOverrides(IHostEnvironment environment, IConfiguration configuration)
+{
+    if (!environment.IsDevelopment())
+    {
+        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    var currentTestEnv = configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
+    var dbSaPassword = configuration["DB_SA_PASSWORD"];
+
+    if (string.IsNullOrWhiteSpace(dbSaPassword)
+        || string.IsNullOrWhiteSpace(currentTestEnv)
+        || !currentTestEnv.Contains("Trusted_Connection=True", StringComparison.OrdinalIgnoreCase))
+    {
+        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    var localDockerConnection = $"Server=127.0.0.1,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password={dbSaPassword};TrustServerCertificate=True;Encrypt=False;";
+
+    return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+    {
+        [$"ConnectionStrings:{nameof(Config.EnvType.TestEnv)}"] = localDockerConnection,
+        [$"ConnectionStrings:{nameof(Config.EnvType.LiveEnv)}"] = localDockerConnection
+    };
+}

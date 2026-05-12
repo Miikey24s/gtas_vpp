@@ -253,19 +253,7 @@ namespace gtas_vpp_be.Service.Services
                     SubmittedDate = now
                 };
 
-                header.VPP02_RequestDetails = req.Items.Select(i => new VPP02_RequestDetail
-                {
-                    Id = Guid.NewGuid(),
-                    VPPId = i.VPPId,
-                    Qty = i.Qty,
-                    CurrentSinglePrice = 0,
-                    Description = i.Description,
-                    VPP01_RequestHeaderId = header.Id,
-                    CreateUserId = createUserId,
-                    CreateDate = now,
-                    UpdateUserId = createUserId,
-                    UpdateDate = now
-                }).ToList();
+                header.VPP02_RequestDetails = await BuildRequestDetailsAsync(req.Items, createUserId, header.Id, now);
 
                 _scopedUow.VPPContext.Set<VPP01_RequestHeader>().Add(header);
                 _scopedUow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
@@ -305,14 +293,12 @@ namespace gtas_vpp_be.Service.Services
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
                 if (header.CreateUserId != req.UpdateUserId) throw new UnauthorizedAccessException("Cannot update another user's order.");
-                if (header.Status is (int)VPPStatus.Cancelled or (int)VPPStatus.Approved or (int)VPPStatus.Rejected)
-                    throw new InvalidOperationException("Cannot edit order in this status.");
                 if (!header.IsAdditionalOrder && IsDeadlinePassed(header.Y, header.M)) 
                     throw new InvalidOperationException("Deadline has passed.");
 
                 var now = _dateTimeProvider.Now;
 
-                header.Status = header.IsAdditionalOrder ? (int)VPPStatus.Pending : (int)VPPStatus.Submitted;
+                header.Status = TransitionStatus(header.Status, OrderAction.Update, "Cannot edit order in this status.");
                 header.Description = req.Description;
                 header.UpdateUserId = req.UpdateUserId;
                 header.UpdateDate = now;
@@ -325,19 +311,7 @@ namespace gtas_vpp_be.Service.Services
                         .SetProperty(x => x.UpdateUserId, req.UpdateUserId)
                         .SetProperty(x => x.UpdateDate, now));
 
-                var newDetails = req.Items.Select(i => new VPP02_RequestDetail
-                {
-                    Id = Guid.NewGuid(),
-                    VPPId = i.VPPId,
-                    Qty = i.Qty,
-                    CurrentSinglePrice = 0,
-                    Description = i.Description,
-                    VPP01_RequestHeaderId = header.Id,
-                    CreateUserId = req.UpdateUserId,
-                    CreateDate = now,
-                    UpdateUserId = req.UpdateUserId,
-                    UpdateDate = now
-                }).ToList();
+                var newDetails = await BuildRequestDetailsAsync(req.Items, req.UpdateUserId, header.Id, now);
 
                 _scopedUow.VPPContext.Set<VPP02_RequestDetail>().AddRange(newDetails);
                 _scopedUow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
@@ -370,11 +344,7 @@ namespace gtas_vpp_be.Service.Services
 
                 if (header == null) throw new KeyNotFoundException("Order not found.");
                 if (header.CreateUserId != userId) throw new UnauthorizedAccessException("Cannot cancel another user's order.");
-                
-                // Only Submitted or Pending orders can be cancelled
-                if (header.Status is not ((int)VPPStatus.Submitted or (int)VPPStatus.Pending))
-                    throw new InvalidOperationException("Only Submitted or Pending orders can be cancelled.");
-                
+
                 // Regular orders: check period still open
                 if (!header.IsAdditionalOrder && IsDeadlinePassed(header.Y, header.M))
                     throw new InvalidOperationException("Cannot cancel order for a closed period.");
@@ -382,7 +352,7 @@ namespace gtas_vpp_be.Service.Services
                 var now = _dateTimeProvider.Now;
 
                 header.IsDeleted = true;
-                header.Status = (int)VPPStatus.Cancelled;
+                header.Status = TransitionStatus(header.Status, OrderAction.Cancel, "Only Submitted or Pending orders can be cancelled.");
                 header.UpdateUserId = userId;
                 header.UpdateDate = now;
 
@@ -617,10 +587,12 @@ namespace gtas_vpp_be.Service.Services
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted && x.IsAdditionalOrder);
 
                 if (header == null) throw new KeyNotFoundException("Order not found or not an additional order.");
-                if (header.Status != (int)VPPStatus.Pending) throw new InvalidOperationException("Order must be in Pending status.");
 
                 var now = _dateTimeProvider.Now;
-                header.Status = (int)VPPStatus.Approved;
+                header.Status = TransitionStatus(header.Status, OrderAction.Approve, "Order must be in Pending status.");
+                header.ApprovedById = adminId;
+                header.ApprovedAt = now;
+                header.RejectReason = null;
                 header.UpdateUserId = adminId;
                 header.UpdateDate = now;
 
@@ -652,10 +624,12 @@ namespace gtas_vpp_be.Service.Services
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted && x.IsAdditionalOrder);
 
                 if (header == null) throw new KeyNotFoundException("Order not found or not an additional order.");
-                if (header.Status != (int)VPPStatus.Pending) throw new InvalidOperationException("Order must be in Pending status.");
 
                 var now = _dateTimeProvider.Now;
-                header.Status = (int)VPPStatus.Rejected;
+                header.Status = TransitionStatus(header.Status, OrderAction.Reject, "Order must be in Pending status.");
+                header.RejectedById = adminId;
+                header.RejectedAt = now;
+                header.RejectReason = reason;
                 header.UpdateUserId = adminId;
                 header.UpdateDate = now;
 
@@ -665,7 +639,7 @@ namespace gtas_vpp_be.Service.Services
                     VPP01_RequestHeaderId = header.Id,
                     LogTitle = "REJECT",
                     LogDate = now,
-                    LogJS = JsonSerializer.Serialize(new { Reason = reason, Payload = BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()) })
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(header, header.VPP02_RequestDetails ?? new List<VPP02_RequestDetail>()))
                 });
 
                 await _scopedUow.CommitAsync();
@@ -723,6 +697,18 @@ namespace gtas_vpp_be.Service.Services
         private bool IsDeadlinePassed(int year, int month)
             => _periodCalculator.IsDeadlinePassed(_dateTimeProvider.Now, new Period(year, month));
 
+        private static int TransitionStatus(int currentStatus, OrderAction action, string invalidMessage)
+        {
+            try
+            {
+                return OrderStateMachine.Transition(currentStatus, action);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new InvalidOperationException(invalidMessage, ex);
+            }
+        }
+
         private string GenerateVPPCode(int year, int month, int userId)
             => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}".Substring(0, 24);
 
@@ -754,6 +740,45 @@ namespace gtas_vpp_be.Service.Services
                 throw new BusinessException(
                     $"Period {requested} is too far from the current period {current}.");
             }
+        }
+
+        private async Task<List<VPP02_RequestDetail>> BuildRequestDetailsAsync(IEnumerable<VPP02_ItemReqDTO> items, int userId, Guid headerId, DateTime now)
+        {
+            var requestedItems = items.ToList();
+            var currentPrices = await GetCurrentSinglePricesAsync(requestedItems.Select(x => x.VPPId));
+
+            return requestedItems.Select(item => new VPP02_RequestDetail
+            {
+                Id = Guid.NewGuid(),
+                VPPId = item.VPPId,
+                Qty = item.Qty,
+                CurrentSinglePrice = currentPrices.TryGetValue(item.VPPId, out var price) ? price : 0,
+                Description = item.Description,
+                VPP01_RequestHeaderId = headerId,
+                CreateUserId = userId,
+                CreateDate = now,
+                UpdateUserId = userId,
+                UpdateDate = now
+            }).ToList();
+        }
+
+        private async Task<Dictionary<Guid, long>> GetCurrentSinglePricesAsync(IEnumerable<Guid> vppIds)
+        {
+            var distinctVppIds = vppIds.Distinct().ToArray();
+            if (distinctVppIds.Length == 0)
+            {
+                return new Dictionary<Guid, long>();
+            }
+
+            var priceRows = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
+                .AsNoTracking()
+                .Where(x => distinctVppIds.Contains(x.L04_VPPId) && !x.IsDeleted)
+                .Select(x => new { VPPId = x.L04_VPPId, x.Price })
+                .ToListAsync();
+
+            return priceRows
+                .GroupBy(x => x.VPPId)
+                .ToDictionary(g => g.Key, g => (long)g.Select(x => x.Price).FirstOrDefault());
         }
 
         /// <summary>

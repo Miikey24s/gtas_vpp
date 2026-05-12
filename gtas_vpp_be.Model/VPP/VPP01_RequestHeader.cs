@@ -21,6 +21,11 @@ namespace gtas_vpp_be.Model.VPP
         public string? DepartmentCode { get; set; }
         public string? MemberCompanyCode { get; set; }
         public DateTime? SubmittedDate { get; set; }
+        public int? ApprovedById { get; set; }
+        public DateTime? ApprovedAt { get; set; }
+        public int? RejectedById { get; set; }
+        public DateTime? RejectedAt { get; set; }
+        public string? RejectReason { get; set; }
 
         public bool IsAdditionalOrder { get; set; } = false;
 

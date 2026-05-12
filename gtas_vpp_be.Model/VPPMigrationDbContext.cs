@@ -80,6 +80,7 @@ namespace gtas_vpp_be.Model
             modelBuilder.Entity<VPP01_RequestHeader>(en =>
             {
                 en.Property(x => x.VPPCode).HasMaxLength(64);
+                en.Property(x => x.RejectReason).HasMaxLength(500);
                 en.HasIndex(x => new { x.CreateUserId, x.Y, x.M, x.IsDeleted, x.IsAdditionalOrder, x.Status })
                     .HasDatabaseName("IX_VPP01_RequestHeader_User_Period_Status");
                 en.HasIndex(x => new { x.Y, x.M, x.IsDeleted, x.Status, x.IsAdditionalOrder })
