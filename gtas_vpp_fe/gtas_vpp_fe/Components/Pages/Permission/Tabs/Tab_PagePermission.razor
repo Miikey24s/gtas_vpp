@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Share
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager UriHelper
@@ -62,8 +63,8 @@
 </style>
 
 @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y =>
-    (y.ComponentCode == Config.Page_ComponentCode.ComponentCode.PermissionViewable
-     || y.ComponentCode == Config.Page_ComponentCode.ComponentCode.AdminView)
+    (y.ComponentCode == Permissions.PermissionComponent
+     || y.ComponentCode == Permissions.PermissionUser)
     && y.IsVisible))
 {
     <RadzenDataGrid @ref="grid"
@@ -94,7 +95,7 @@
                 ColumnWidth="150px"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <HeaderTemplate>
-        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="@Loc["CreateNewGroup"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.HomeDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
+        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="@Loc["CreateNewGroup"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.MenuDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
     </HeaderTemplate>
     <Template Context="singlerow">
         <RadzenRow class="rz-p-3">
@@ -159,12 +160,12 @@
                                                 <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="200px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.Description)" Title="Description" />
                                                 <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsEnable)" Title="Is Enable" HeaderCssClass="text-center" CssClass="text-center" Visible="@(!item.PageCode?.Equals("0000") ?? false)">
                                                 <Template Context="comdata">
-                                                    <RadzenSwitch @bind-Value=comdata.IsEnable Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) == true && y.IsVisible))" />
+                                                    <RadzenSwitch @bind-Value=comdata.IsEnable Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && y.IsVisible))" />
                                                 </Template>
                                             </RadzenDataGridColumn>
                                                 <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="100px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsVisible)" Title="Is Visible" HeaderCssClass="text-center" CssClass="text-center">
                                                 <Template Context="comdata">
-                                                    <RadzenSwitch @bind-Value=comdata.IsVisible Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Config.Page_ComponentCode.ComponentCode.PermissionViewable) == true && y.IsVisible))" />
+                                                    <RadzenSwitch @bind-Value=comdata.IsVisible Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && y.IsVisible))" />
                                                 </Template>
                                             </RadzenDataGridColumn>
                                         </Columns>

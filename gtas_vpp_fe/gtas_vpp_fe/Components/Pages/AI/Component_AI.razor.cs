@@ -1,3 +1,4 @@
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using System.Security.Claims;
@@ -39,22 +40,22 @@ namespace gtas_vpp_fe.Components.Pages.AI
                 .Select(c => c.ComponentCode)
                 .ToHashSet();
 
-            if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIChat))
+            if (compCodes.Contains(Permissions.RequestAIChat))
             {
                 TabPermissions.Add(new TabPermissionInfo
                 {
-                    ComponentCode = Config.Page_ComponentCode.ComponentCode.RequestAIChat,
+                    ComponentCode = Permissions.RequestAIChat,
                     Title = "AI Chat",
                     Icon = "chat",
                     Path = "chat"
                 });
             }
 
-            if (compCodes.Contains(Config.Page_ComponentCode.ComponentCode.RequestAIVppChat))
+            if (compCodes.Contains(Permissions.RequestAIVppChat))
             {
                 TabPermissions.Add(new TabPermissionInfo
                 {
-                    ComponentCode = Config.Page_ComponentCode.ComponentCode.RequestAIVppChat,
+                    ComponentCode = Permissions.RequestAIVppChat,
                     Title = "VPP Chat",
                     Icon = "inventory_2",
                     Path = "vpp-chat"

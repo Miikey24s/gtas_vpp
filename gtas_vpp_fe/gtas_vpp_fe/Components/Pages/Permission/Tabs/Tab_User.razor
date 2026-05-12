@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
 @using gtas_vpp_shared.DTOs.Share
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -15,7 +16,7 @@
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-@if (sp_Authentication_GetPermissionSinglePage!.List_Component.Any(y => y.ComponentCode!.Equals(Config.Page_ComponentCode.ComponentCode.AdminView) && y.IsVisible))
+@if (sp_Authentication_GetPermissionSinglePage!.List_Component.Any(y => y.ComponentCode!.Equals(Permissions.PermissionUser) && y.IsVisible))
 {
     @if (glb.isBusyPage)
     {

@@ -1,5 +1,6 @@
 @using System.Security.Claims
 @using gtas_vpp_fe.Components.Pages.AI.Tabs
+@using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
 @inject NavigationManager NavigationManager
 @inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
@@ -13,10 +14,10 @@
                 <RadzenTabsItem Text="@tab.Title" Icon="@tab.Icon">
                     @switch (tab.ComponentCode)
                     {
-                        case gtas_vpp_fe.Helpers.Config.Page_ComponentCode.ComponentCode.RequestAIChat:
+                        case Permissions.RequestAIChat:
                             <Tab_AIChat claims="claims" sp_Authentication_GetPermissionSinglePage="sp_Authentication_GetPermissionSinglePage" />
                             break;
-                        case gtas_vpp_fe.Helpers.Config.Page_ComponentCode.ComponentCode.RequestAIVppChat:
+                        case Permissions.RequestAIVppChat:
                             <Tab_AIVPPChat claims="claims" sp_Authentication_GetPermissionSinglePage="sp_Authentication_GetPermissionSinglePage" />
                             break;
                     }
