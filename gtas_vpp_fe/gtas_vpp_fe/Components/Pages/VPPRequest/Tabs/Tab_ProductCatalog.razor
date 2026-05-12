@@ -43,9 +43,9 @@
         @if (!IsFirstLoading && ProductCount == 0 && !IsGridLoading)
         {
             <VppEmptyState Icon="inventory_2"
-                           Title="No products found"
-                           Description="No catalog products matched the current query."
-                           PrimaryText="Reload catalog"
+                           Title="@Loc["NoData"]"
+                           Description="@Loc["NoCatalogProductsMatchQuery"]"
+                           PrimaryText="@Loc["Reload"]"
                            PrimaryAction="@(async _ => await ReloadAsync())" />
         }
         else
@@ -56,7 +56,7 @@
                                 LoadData="@LoadProductsAsync"
                                 AllowPaging="true" PageSize="20"
                                 PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
-                                PageSizeText="items per page"
+                                PageSizeText="@Loc["ItemsPerPage"]"
                                 AllowSorting="true" AllowAlternatingRows="true"
                                 AllowColumnResize="true" IsLoading="@IsGridLoading"
                                 AllowFiltering="true"
@@ -100,6 +100,6 @@
 else
 {
     <VppEmptyState Icon="lock"
-                   Title="Access denied"
-                   Description="You do not have permission to view the Product Catalog tab." />
+                   Title="@Loc["AccessDenied"]"
+                   Description="@Loc["NoPermission"]" />
 }

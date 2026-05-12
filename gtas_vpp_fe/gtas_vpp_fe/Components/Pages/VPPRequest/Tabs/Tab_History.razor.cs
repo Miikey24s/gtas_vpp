@@ -17,17 +17,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();
-        public List<OptionItem> StatusOptions { get; } = new()
-        {
-            new() { Value = 1, Text = "Submitted" },
-            new() { Value = 4, Text = "Cancelled" },
-            new() { Value = 6, Text = "Pending" },
-            new() { Value = 7, Text = "Approved" },
-            new() { Value = 8, Text = "Rejected" }
-        };
+        public List<OptionItem> StatusOptions { get; } = new();
 
         protected override bool CanView => claims.HasPermission(Permissions.RequestHistory);
-        protected override string ErrorSummary => "History";
+        protected override string ErrorSummary => Loc["History"];
 
         // History uses a default page size of 10 (smaller than the other tabs).
         public Tab_History()
@@ -49,6 +42,16 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 MonthOptions.Add(new OptionItem { Value = i, Text = i.ToString("00") });
             }
+
+            StatusOptions.Clear();
+            StatusOptions.AddRange(new[]
+            {
+                new OptionItem { Value = 1, Text = Loc["Submitted"] },
+                new OptionItem { Value = 4, Text = Loc["Cancelled"] },
+                new OptionItem { Value = 6, Text = Loc["Pending"] },
+                new OptionItem { Value = 7, Text = Loc["Approved"] },
+                new OptionItem { Value = 8, Text = Loc["Rejected"] }
+            });
         }
 
         protected override string BuildEndpoint()

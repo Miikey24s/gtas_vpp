@@ -21,7 +21,7 @@
                     <div class="kpi-card-shine"></div>
                     <div class="kpi-card-content">
                         <div class="kpi-card-header">
-                            <span class="kpi-card-label">Pending Orders</span>
+                            <span class="kpi-card-label">@Loc["PendingOrders"]</span>
                             <span class="kpi-card-icon rzi rzi-pending-actions"></span>
                         </div>
                         <div class="kpi-card-value">@TotalCount</div>
@@ -54,19 +54,23 @@
         @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
         {
             <VppEmptyState Icon="check_circle"
-                           Title="All clear"
-                           Description="No pending additional orders require approval."
-                           PrimaryText="Refresh queue"
+                           Title="@Loc["AllClear"]"
+                           Description="@Loc["NoPendingAdditionalOrders"]"
+                           PrimaryText="@Loc["RefreshQueue"]"
                            PrimaryAction="@(async _ => await ReloadAsync())" />
         }
         else
         {
-            <div class="vpp-data-card" style="padding: 0; overflow: hidden;">
+            <div class="vpp-mobile-cards">
+                <VppMobileCard Items="@PendingOrders" Actions="@RenderMobileActions" />
+            </div>
+
+            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
                 <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@PendingOrders"
                                 Count="@TotalCount" LoadData="@OnLoadData"
                                 AllowPaging="true" PageSize="@PageSize"
                                 PageSizeOptions="@(new int[] { 10, 20, 50 })"
-                                PageSizeText="items per page"
+                                PageSizeText="@Loc["ItemsPerPage"]"
                                 ShowPagingSummary="true"
                                 PagerHorizontalAlign="HorizontalAlign.Left"
                                 AllowSorting="true" AllowAlternatingRows="true"
@@ -97,7 +101,7 @@
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="@Loc["Department"]" MinWidth="100px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.RequesterName)" Title="@Loc["UserName"]" MinWidth="140px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.RequesterName)" Title="@Loc["Username"]" MinWidth="140px" TextAlign="TextAlign.Left">
                             <Template Context="row">
                                 <span style="font-weight: var(--vpp-font-weight-medium);">@row.RequesterName</span>
                             </Template>
@@ -112,8 +116,8 @@
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center">
                             <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="Notes (Reason)" TextAlign="TextAlign.Left" MinWidth="120px" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="Actions" Width="130px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Description"]" TextAlign="TextAlign.Left" MinWidth="120px" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="@Loc["Actions"]" Width="130px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="order">
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.25rem">
                                     @* F-28: icon-only buttons must expose an accessible name to screen readers (aria-label)
@@ -124,16 +128,16 @@
                                                   ButtonStyle="ButtonStyle.Success"
                                                   Variant="Variant.Flat"
                                                   Click="@(async () => await HandleApproveClick(order))"
-                                                  Title="Approve"
-                                                  aria-label="@($"Approve order {order.VPPCode}")"
+                                                  Title="@Loc["Approve"]"
+                                                  aria-label="@string.Format(Loc["ApproveOrderAria"], order.VPPCode)"
                                                   Disabled="@IsActionLoading" />
                                     <RadzenButton Icon="cancel"
                                                   Size="ButtonSize.Small"
                                                   ButtonStyle="ButtonStyle.Danger"
                                                   Variant="Variant.Flat"
                                                   Click="@(async () => await HandleRejectClick(order))"
-                                                  Title="Reject"
-                                                  aria-label="@($"Reject order {order.VPPCode}")"
+                                                  Title="@Loc["Reject"]"
+                                                  aria-label="@string.Format(Loc["RejectOrderAria"], order.VPPCode)"
                                                   Disabled="@IsActionLoading" />
                                 </RadzenStack>
                             </Template>
@@ -161,7 +165,7 @@
                                     <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="200px" TextAlign="TextAlign.Left" />
                                     <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" MinWidth="80px" TextAlign="TextAlign.Center" />
                                     <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" MinWidth="100px" TextAlign="TextAlign.Center" />
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Description" Title="Note" TextAlign="TextAlign.Left" MinWidth="120px" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Description" Title="@Loc["Note"]" TextAlign="TextAlign.Left" MinWidth="120px" />
                                 </Columns>
                             </RadzenDataGrid>
                         </div>
@@ -174,6 +178,27 @@
 else
 {
     <VppEmptyState Icon="lock"
-                   Title="Access denied"
-                   Description="You do not have permission to view the Admin Approval tab." />
+                   Title="@Loc["AccessDenied"]"
+                   Description="@Loc["NoPermission"]" />
+}
+
+@code {
+    private RenderFragment<VPP01_RequestHeaderResDTO> RenderMobileActions => order => @<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Icon="check_circle"
+                      Size="ButtonSize.Small"
+                      ButtonStyle="ButtonStyle.Success"
+                      Variant="Variant.Flat"
+                      Click="@(async () => await HandleApproveClick(order))"
+                      Title="@Loc["Approve"]"
+                      aria-label="@string.Format(Loc["ApproveOrderAria"], order.VPPCode)"
+                      Disabled="@IsActionLoading" />
+        <RadzenButton Icon="cancel"
+                      Size="ButtonSize.Small"
+                      ButtonStyle="ButtonStyle.Danger"
+                      Variant="Variant.Flat"
+                      Click="@(async () => await HandleRejectClick(order))"
+                      Title="@Loc["Reject"]"
+                      aria-label="@string.Format(Loc["RejectOrderAria"], order.VPPCode)"
+                      Disabled="@IsActionLoading" />
+    </RadzenStack>;
 }

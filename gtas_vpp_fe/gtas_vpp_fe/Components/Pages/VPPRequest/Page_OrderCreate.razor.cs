@@ -87,28 +87,28 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public int SelectedItemCount => Context.SelectedItems.Count;
 
         public string OrderModeTitle => IsEdit
-            ? "Edit order"
+            ? Loc["EditOrder"].Value
             : IsCopyFromPrevious
-                ? "Copy previous order"
+                ? Loc["CopyOrder"].Value
                 : Context.IsAdditional
-                    ? "Additional order"
-                    : "Create new order";
+                    ? Loc["AdditionalOrder"].Value
+                    : Loc["CreateOrder"].Value;
 
         public string OrderModeBadgeText => IsEdit
-            ? "Editing existing request"
+            ? Loc["WizardEditingExistingRequest"].Value
             : IsCopyFromPrevious
-                ? "Copied from previous order"
+                ? Loc["WizardCopiedFromPreviousOrder"].Value
                 : Context.IsAdditional
-                    ? "Additional approval flow"
-                    : "Regular request";
+                    ? Loc["WizardModeAdditionalFlow"].Value
+                    : Loc["WizardRegularRequest"].Value;
 
         public string OrderModeSummary => IsEdit
-            ? "Review the request details and update quantities before saving the existing order."
+            ? Loc["WizardOrderModeSummaryEdit"].Value
             : IsCopyFromPrevious
-                ? "Previous items are preloaded so you can adjust them quickly before resubmitting."
+                ? Loc["WizardOrderModeSummaryCopy"].Value
                 : Context.IsAdditional
-                    ? "This request targets a closed period and will move through the admin approval flow."
-                    : "Search the catalog, build the basket, and do one final check before submitting the request.";
+                    ? Loc["WizardOrderModeSummaryAdditional"].Value
+                    : Loc["WizardOrderModeSummaryCreate"].Value;
 
         public DateTime TargetPeriodDate => PeriodInfo is { } p
             ? Context.IsAdditional
@@ -122,48 +122,48 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public string TargetWindowText => $"{DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)} - {DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)}";
 
         public string DraftStatusTitle => IsEdit
-            ? "Live update"
+            ? Loc["LiveUpdate"].Value
             : DraftRecovered
-                ? "Restored draft"
-                : "Auto-save active";
+                ? Loc["RestoredDraft"].Value
+                : Loc["AutoSaveActive"].Value;
 
         public string DraftStatusText => IsEdit
-            ? "Changes are stored when you update the existing request."
+            ? Loc["ChangesStoredWhenUpdateExistingRequest"].Value
             : LastDraftSavedAt.HasValue
-                ? $"Last saved at {DateFormatter.Format(LastDraftSavedAt, DateFormatter.TimeOnly)}"
-                : "This browser keeps a local draft while you work.";
+                ? string.Format(Loc["LastSavedAtFormat"], DateFormatter.Format(LastDraftSavedAt, DateFormatter.TimeOnly))
+                : Loc["BrowserKeepsLocalDraftWhileYouWork"].Value;
 
         public string CurrentStepTitle => currentStep switch
         {
-            0 => "Set request context",
-            1 => "Select products",
-            _ => "Review and submit"
+            0 => Loc["SetRequestContext"].Value,
+            1 => Loc["SelectProducts"].Value,
+            _ => Loc["ReviewSubmit"].Value
         };
 
         public string CurrentStepHint => currentStep switch
         {
-            0 => "Confirm the period window, request type, and the note or reason before continuing.",
-            1 => "Choose products, adjust quantities, and build the request basket.",
-            _ => "Do a final review of quantities and notes before sending the order."
+            0 => Loc["CurrentStepHintContext"].Value,
+            1 => Loc["CurrentStepHintProducts"].Value,
+            _ => Loc["CurrentStepHintReview"].Value
         };
 
         public string FooterStatusText => currentStep switch
         {
             0 when Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description)
-                => "Additional orders require a reason before you can continue.",
-            0 => $"Target window: {TargetWindowText}.",
-            1 when SelectedItemCount == 0 => "No items selected yet. Start with the catalog on the left.",
-            1 => $"{SelectedItemCount} item(s) selected with total quantity {Context.TotalQty}.",
+                => Loc["AdditionalOrdersRequireReasonBeforeContinue"].Value,
+            0 => string.Format(Loc["TargetWindowFormat"], TargetWindowText),
+            1 when SelectedItemCount == 0 => Loc["NoItemsSelectedYetStartCatalogLeft"].Value,
+            1 => string.Format(Loc["SelectedItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty),
             _ => SelectedItemCount == 0
-                ? "Add at least one item before submitting the request."
-                : $"Ready to submit {SelectedItemCount} item(s) with total quantity {Context.TotalQty}."
+                ? Loc["AddAtLeastOneItemBeforeSubmitting"].Value
+                : string.Format(Loc["ReadyToSubmitItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty)
         };
 
         public string PrimaryActionText => Context.IsAdditional
-            ? "Submit for approval"
+            ? Loc["SubmitForApproval"].Value
             : IsEdit
-                ? "Update order"
-                : "Create order";
+                ? Loc["UpdateOrder"].Value
+                : Loc["CreateOrder"].Value;
 
         protected override async Task OnInitializedAsync()
         {
@@ -183,8 +183,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     NotificationService.Notify(new NotificationMessage()
                     {
                         Severity = NotificationSeverity.Warning,
-                        Summary = "Access Denied",
-                        Detail = "You do not have permission to create or edit orders.",
+                        Summary = Loc["AccessDenied"],
+                        Detail = Loc["NoPermissionCreateOrEditOrders"],
                         Duration = 5000
                     });
                     NavigationManager.NavigateTo("/dashboard?tab=0", true);
@@ -276,8 +276,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = "Order",
-                    Detail = "Please provide a reason for the additional order before continuing.",
+                    Summary = Loc["Order"],
+                    Detail = Loc["ProvideReasonBeforeContinue"],
                     Duration = 3500
                 });
             }
@@ -309,8 +309,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Warning,
-                        Summary = "Order",
-                        Detail = "Order to update was not found.",
+                        Summary = Loc["Order"],
+                        Detail = Loc["OrderToUpdateNotFound"],
                         Duration = 4000
                     });
                     GoBack();
@@ -337,8 +337,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Load order failed: {ex.Message}",
+                    Summary = Loc["Order"],
+                    Detail = string.Format(Loc["LoadOrderFailedFormat"], ex.Message),
                     Duration = 5000
                 });
             }
@@ -354,8 +354,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Info,
-                        Summary = "Copy Previous",
-                        Detail = "No previous order found to copy from.",
+                        Summary = Loc["CopyPrevious"],
+                        Detail = Loc["NoPreviousOrderFoundToCopy"],
                         Duration = 4000
                     });
                     return;
@@ -376,8 +376,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
-                    Summary = "Copy Previous",
-                    Detail = $"Copied {Context.SelectedItems.Count} item(s) from previous order. Review and submit.",
+                    Summary = Loc["CopyPrevious"],
+                    Detail = string.Format(Loc["CopiedItemsFromPreviousOrderFormat"], Context.SelectedItems.Count),
                     Duration = 4000
                 });
             }
@@ -386,8 +386,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Copy Previous",
-                    Detail = $"Failed to load previous order: {ex.Message}",
+                    Summary = Loc["CopyPrevious"],
+                    Detail = string.Format(Loc["FailedToLoadPreviousOrderFormat"], ex.Message),
                     Duration = 5000
                 });
             }
@@ -420,8 +420,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Info,
-                        Summary = "Order Draft",
-                        Detail = "Draft saved in browser storage.",
+                        Summary = Loc["OrderDraft"],
+                        Detail = Loc["DraftSavedInBrowserStorage"],
                         Duration = 2500
                     });
                 }
@@ -488,8 +488,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = "Order",
-                    Detail = "Please select at least one product.",
+                    Summary = Loc["Order"],
+                    Detail = Loc["PleaseSelectAtLeastOneProduct"],
                     Duration = 3000
                 });
                 return;
@@ -500,8 +500,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = "Order",
-                    Detail = "Invalid product or quantity.",
+                    Summary = Loc["Order"],
+                    Detail = Loc["InvalidProductOrQuantity"],
                     Duration = 3000
                 });
                 return;
@@ -522,8 +522,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
-                        Summary = "Order",
-                        Detail = "Could not determine the current period. Please reload the page.",
+                        Summary = Loc["Order"],
+                        Detail = Loc["CouldNotDetermineCurrentPeriodPleaseReload"],
                         Duration = 5000
                     });
                     return;
@@ -570,8 +570,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
-                    Summary = "Order",
-                    Detail = IsEdit ? "Order updated successfully." : "Order created successfully.",
+                    Summary = Loc["Order"],
+                    Detail = IsEdit ? Loc["OrderUpdatedSuccessfully"] : Loc["OrderCreatedSuccessfully"],
                     Duration = 3000
                 });
 
@@ -582,8 +582,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Failed to save order: {ex.Message}",
+                    Summary = Loc["Order"],
+                    Detail = string.Format(Loc["FailedToSaveOrderFormat"], ex.Message),
                     Duration = 6000
                 });
 

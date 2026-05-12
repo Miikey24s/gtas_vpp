@@ -6,7 +6,7 @@
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>GTAS VPP - @(IsEdit ? "Edit Order" : (IsCopyFromPrevious ? "Copy Order" : (IsAdditional ? "Additional Order" : "Create Order")))</PageTitle>
+<PageTitle>GTAS VPP - @OrderModeTitle</PageTitle>
 
 <CascadingValue Value="Context">
 @if (IsPageLoading)
@@ -24,11 +24,11 @@ else
                 <RadzenBadge Text="@OrderModeBadgeText" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
                 @if (DraftRecovered)
                 {
-                    <RadzenBadge Text="Draft restored" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                    <RadzenBadge Text="@Loc["DraftRestored"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
                 }
                 @if (SelectedItemCount > 0)
                 {
-                    <RadzenBadge Text="@($"{SelectedItemCount} items")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                    <RadzenBadge Text="@Loc["WizardItemsBadgeFormat", SelectedItemCount]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
                 }
             </div>
         </div>
@@ -36,7 +36,7 @@ else
         <section class="vpp-data-card vpp-wizard-stage">
             <RadzenSteps class="vpp-wizard-steps" SelectedIndex="@currentStep" Change="@OnWizardStepChange">
                 <Steps>
-                    <RadzenStepsItem Text="Order context">
+                    <RadzenStepsItem Text="@Loc["OrderContext"]">
                         <OrderCreateStep1 @ref="_step1"
                                           TargetPeriodText="@TargetPeriodText"
                                           TargetWindowText="@TargetWindowText"
@@ -76,7 +76,7 @@ else
                                       ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
                                       Disabled="@(IsSaving || SelectedItemCount == 0)"
                                       IsBusy="@IsSaving"
-                                      BusyText="Đang lưu..."
+                                      BusyText="@Loc["Saving"]"
                                       Click="@SubmitAsync" />
                     }
                 </div>

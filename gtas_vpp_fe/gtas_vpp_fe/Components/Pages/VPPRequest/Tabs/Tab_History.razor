@@ -21,19 +21,19 @@
                 <div class="vpp-filter-group">
                     <RadzenLabel Text="@Loc["Year"]" class="vpp-filter-label" />
                     <RadzenDropDown TValue="IEnumerable<int>" Data="@YearOptions" TextProperty="Text" ValueProperty="Value"
-                                    @bind-Value="YearFilter" Multiple="true" Placeholder="All Years"
+                                    @bind-Value="YearFilter" Multiple="true" Placeholder="@Loc["All"]"
                                     Style="min-width: 140px;" Change="@(async _ => await OnFilterChanged())" />
                 </div>
                 <div class="vpp-filter-group">
                     <RadzenLabel Text="@Loc["Month"]" class="vpp-filter-label" />
                     <RadzenDropDown TValue="IEnumerable<int>" Data="@MonthOptions" TextProperty="Text" ValueProperty="Value"
-                                    @bind-Value="MonthFilter" Multiple="true" Placeholder="All Months"
+                                    @bind-Value="MonthFilter" Multiple="true" Placeholder="@Loc["All"]"
                                     Style="min-width: 140px;" Change="@(async _ => await OnFilterChanged())" />
                 </div>
                 <div class="vpp-filter-group">
-                    <RadzenLabel Text="Status" class="vpp-filter-label" />
+                    <RadzenLabel Text="@Loc["Status"]" class="vpp-filter-label" />
                     <RadzenDropDown TValue="IEnumerable<int>" Data="@StatusOptions" TextProperty="Text" ValueProperty="Value"
-                                    @bind-Value="StatusFilter" Multiple="true" Placeholder="All"
+                                    @bind-Value="StatusFilter" Multiple="true" Placeholder="@Loc["All"]"
                                     Style="min-width: 160px;" Change="@(async _ => await OnFilterChanged())" />
                 </div>
                 <RadzenButton Icon="refresh" Text="@Loc["Reload"]" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
@@ -78,19 +78,23 @@
             @if (TotalCount == 0 && !IsGridLoading)
             {
                 <VppEmptyState Icon="history"
-                               Title="No order history"
-                               Description="No orders match the selected filters."
-                               PrimaryText="Reload history"
+                               Title="@Loc["NoHistoryOrders"]"
+                               Description="@Loc["NoOrdersMatchSelectedFilters"]"
+                               PrimaryText="@Loc["Reload"]"
                                PrimaryAction="@(async _ => await ReloadAsync())" />
             }
             else
             {
-                <div class="vpp-data-card" style="padding: 0; overflow: hidden;">
+                <div class="vpp-mobile-cards">
+                    <VppMobileCard Items="@Orders" />
+                </div>
+
+                <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
                     <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@Orders"
                                     Count="@TotalCount" LoadData="@OnLoadData"
                                     AllowPaging="true" PageSize="@PageSize"
                                     PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
-                                    PageSizeText="items per page"
+                                    PageSizeText="@Loc["ItemsPerPage"]"
                                     ShowPagingSummary="true"
                                     PagerHorizontalAlign="HorizontalAlign.Left"
                                     AllowSorting="true" AllowAlternatingRows="true"
@@ -127,16 +131,16 @@
                                     <strong>@row.TotalQty</strong>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="Status" MinWidth="100px" TextAlign="TextAlign.Center" Sortable="true">
+                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" MinWidth="100px" TextAlign="TextAlign.Center" Sortable="true">
                                 <Template Context="row">
-                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@StatusDisplay.GetText(row.Status)</span>
+                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span>
                                 </Template>
                             </RadzenDataGridColumn>
                             @* F-29: route through DateFormatter so the culture (vi-VN) is enforced consistently with the rest of the order tabs. *@
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center">
                                 <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="Note" TextAlign="TextAlign.Left" />
+                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Note"]" TextAlign="TextAlign.Left" />
                         </Columns>
                         <Template Context="row">
                             <div class="vpp-expand-detail">
@@ -162,7 +166,7 @@
                                         <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="@Loc["ItemName"]" />
                                         <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
                                         <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" Width="120px" TextAlign="TextAlign.Center" />
-                                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="Note" />
+                                        <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="@Loc["Note"]" />
                                     </Columns>
                                 </RadzenDataGrid>
                             </div>
@@ -176,6 +180,6 @@
 else
 {
     <VppEmptyState Icon="lock"
-                   Title="Access denied"
-                   Description="You do not have permission to view the History tab." />
+                   Title="@Loc["AccessDenied"]"
+                   Description="@Loc["NoPermission"]" />
 }

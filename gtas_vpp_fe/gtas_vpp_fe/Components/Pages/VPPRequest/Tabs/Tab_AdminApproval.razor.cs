@@ -17,7 +17,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<VPP01_RequestHeaderResDTO> PendingOrders => Orders;
 
         protected override bool CanView => claims.HasPermission(Permissions.RequestAdminApproval);
-        protected override string ErrorSummary => "Admin Approval";
+        protected override string ErrorSummary => Loc["AdminApproval"];
 
         protected override string BuildEndpoint()
             => $"/api/VPPRequest/additional-orders/pending?skip={CurrentSkip}&top={PageSize}";
@@ -27,9 +27,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (order == null) return;
 
             var confirm = await DialogService.Confirm(
-                "Are you sure you want to approve this additional order?",
-                "Approve Order",
-                new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+                Loc["ApproveOrderConfirm"],
+                Loc["ApproveOrderTitle"],
+                new ConfirmOptions() { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
 
             if (confirm != true) return;
 
@@ -38,12 +38,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", null);
-                NotificationService.Notify(NotificationSeverity.Success, "Success", "Order approved successfully.");
+                NotificationService.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
                 await ReloadAsync();
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", $"Failed to approve order: {ex.Message}");
+                NotificationService.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["ApproveOrderFailedFormat"], ex.Message));
             }
             finally
             {
@@ -57,9 +57,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (order == null) return;
 
             var confirm = await DialogService.Confirm(
-                $"Are you sure you want to reject order {order.VPPCode}?",
-                "Reject Order",
-                new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+                string.Format(Loc["RejectOrderConfirm"], order.VPPCode),
+                Loc["RejectOrderTitle"],
+                new ConfirmOptions() { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
 
             if (confirm != true) return;
 
@@ -68,12 +68,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", new { Reason = "" });
-                NotificationService.Notify(NotificationSeverity.Success, "Success", "Order rejected successfully.");
+                NotificationService.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
                 await ReloadAsync();
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", $"Failed to reject order: {ex.Message}");
+                NotificationService.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["RejectOrderFailedFormat"], ex.Message));
             }
             finally
             {

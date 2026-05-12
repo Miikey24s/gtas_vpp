@@ -69,8 +69,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
         public string PreviousOrderPeriodText => DateFormatter.Format(PreviousOrderPeriodDate, DateFormatter.MonthYear);
         public string CurrentDeadlineText => DateFormatter.Format(CurrentDeadlineDate, DateFormatter.LongDate);
-        public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? "Deadline is today" : $"Remaining: {RemainingDeadlineDays} day(s)";
-        public string OrdersTitle => $"Orders - {CurrentOrderPeriodText}";
+        public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? Loc["DeadlineIsToday"].Value : string.Format(Loc["RemainingDeadlineDaysFormat"], RemainingDeadlineDays);
+        public string OrdersTitle => string.Format(Loc["OrdersTitleFormat"], CurrentOrderPeriodText);
         public int TotalOrders => ActiveOrders.Count + PreviousOrders.Count + AdditionalOrders.Count;
         public string TotalOrdersText => TotalOrders.ToString();
         public int TotalLines => ActiveOrders.Sum(o => o.Items?.Count ?? 0) + PreviousOrders.Sum(o => o.Items?.Count ?? 0) + AdditionalOrders.Sum(o => o.Items?.Count ?? 0);
@@ -78,7 +78,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int TotalQty => ActiveOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0) + PreviousOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0) + AdditionalOrders.Sum(o => o.Items?.Sum(i => i.Qty) ?? 0);
         public string TotalQtyText => TotalQty.ToString();
         public int AvgLinesPerOrder => TotalOrders == 0 ? 0 : (int)Math.Round((double)TotalLines / TotalOrders);
-        public string AvgLinesPerOrderText => $"Average {AvgLinesPerOrder} line(s) per order";
+        public string AvgLinesPerOrderText => string.Format(Loc["AverageLinesPerOrderFormat"], AvgLinesPerOrder);
 
 
 
@@ -126,8 +126,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Orders",
-                    Detail = $"Load orders failed: {ex.Message}",
+                    Summary = Loc["Orders"],
+                    Detail = string.Format(Loc["LoadOrdersFailedFormat"], ex.Message),
                     Duration = 6000
                 });
             }
@@ -169,8 +169,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
-                    Summary = "Order",
-                    Detail = "Order cancelled.",
+                    Summary = Loc["Order"],
+                    Detail = Loc["OrderCancelledSuccess"],
                     Duration = 3000
                 });
                 await LoadOrdersAsync();
@@ -180,8 +180,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Order",
-                    Detail = $"Cancel failed: {ex.Message}",
+                    Summary = Loc["Order"],
+                    Detail = string.Format(Loc["CancelFailedFormat"], ex.Message),
                     Duration = 6000
                 });
             }

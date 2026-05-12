@@ -13,7 +13,7 @@
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                             <RadzenIcon Icon="inventory_2" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
-                            <RadzenText Text="Product Catalog" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
+                            <RadzenText Text="@Loc["WizardProductCatalog"]" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
                         </RadzenStack>
                         @if (ProductCount > 0)
                         {
@@ -31,7 +31,7 @@
                                     <RadzenIcon Icon="auto_awesome" Style="color: var(--vpp-primary-600); font-size: 1.15rem;" aria-hidden="true" />
                                     <span class="vpp-wizard-panel-title">@Loc["AISmartSearch"]</span>
                                 </div>
-                                <p class="vpp-wizard-panel-copy">Ask with natural language, mixed keywords, or partial product names.</p>
+                                <p class="vpp-wizard-panel-copy">@Loc["WizardAISearchCopy"]</p>
                             </div>
                         </div>
 
@@ -67,7 +67,7 @@
                         }
                         else if (!IsAILoading && !string.IsNullOrWhiteSpace(AISearchText))
                         {
-                            <div class="vpp-card-ai-empty">No AI suggestions yet. Try product code, product name, or Vietnamese keywords.</div>
+                            <div class="vpp-card-ai-empty">@Loc["WizardNoAISuggestionsYet"]</div>
                         }
                     </RadzenCard>
                 }
@@ -93,10 +93,10 @@
                                 RowRender="@OnRowRender"
                                 Style="border: none; flex: 1; min-height: 0;">
                     <Columns>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="Code" MinWidth="100px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="Name" MinWidth="150px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="Category" MinWidth="110px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="UOM" MinWidth="70px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="100px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="150px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="110px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="@Loc["UOM"]" MinWidth="70px" TextAlign="TextAlign.Center" />
                         <RadzenDataGridColumn TItem="ProductOption" Title="" Width="55px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 @{
@@ -107,8 +107,8 @@
                                               Size="ButtonSize.Small"
                                               ButtonStyle="@(isSelected ? ButtonStyle.Success : ButtonStyle.Primary)"
                                               Variant="Variant.Text"
-                                              Title="@(isSelected ? "Already added" : "Add to order")"
-                                              aria-label="@(isSelected ? "Already added to order" : "Add product to order")"
+                                              Title="@(isSelected ? Loc["AlreadyAdded"] : Loc["AddToOrder"])"
+                                              aria-label="@(isSelected ? Loc["AlreadyAddedToOrder"] : Loc["AddProductToOrder"])"
                                               Disabled="@isSelected"
                                               Click="@(async _ => await AddProductAsync(row))" />
                             </Template>
@@ -117,7 +117,7 @@
                 </RadzenDataGrid>
 
                 <div class="vpp-wizard-panel-card-foot">
-                    Rows already added to the order stay highlighted so you can keep browsing without losing context.
+                    @Loc["WizardRowsAddedFoot"]
                 </div>
             </div>
         </div>
@@ -129,14 +129,14 @@
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                             <RadzenIcon Icon="shopping_cart" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
-                            <RadzenText Text="Selected" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
+                            <RadzenText Text="@Loc["Selected"]" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
                         </RadzenStack>
                         @if (Context.SelectedItems.Count > 0)
                         {
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                                 <RadzenBadge Text="@($"{Context.SelectedItems.Count}")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                                <RadzenBadge Text="@($"Qty: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
-                                <RadzenButton Text="Clear all" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@ClearSelectionAsync" />
+                                <RadzenBadge Text="@Loc["WizardQtyBadgeFormat", Context.TotalQty]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                                <RadzenButton Text="@Loc["ClearAll"]" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@ClearSelectionAsync" />
                             </RadzenStack>
                         }
                     </RadzenStack>
@@ -146,8 +146,8 @@
                 {
                     <div class="vpp-empty-state vpp-wizard-selection-empty">
                         <span class="vpp-empty-state-icon rzi rzi-add-shopping-cart"></span>
-                        <div class="vpp-empty-state-title">No items selected</div>
-                        <div class="vpp-empty-state-desc">Use the catalog to add products, then adjust quantities here.</div>
+                        <div class="vpp-empty-state-title">@Loc["WizardNoItemsSelected"]</div>
+                        <div class="vpp-empty-state-desc">@Loc["WizardNoItemsSelectedDesc"]</div>
                     </div>
                 }
                 else
@@ -164,9 +164,9 @@
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="35px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="Code" MinWidth="90px" />
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="Name" MinWidth="120px" />
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="Qty" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="90px" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="120px" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
                                         <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
                                                        Style="width: 60px;" ShowUpDown="true"
@@ -178,7 +178,7 @@
                                         @* F-28: icon-only remove button needs an explicit aria-label. *@
                                         <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall"
                                                       ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                                                      Click="@(async _ => await RemoveItemAsync(item))" Title="Remove" aria-label="Remove item from order" />
+                                                      Click="@(async _ => await RemoveItemAsync(item))" Title="@Loc["Remove"]" aria-label="@Loc["RemoveItemFromOrder"]" />
                                     </Template>
                                 </RadzenDataGridColumn>
                             </Columns>
@@ -187,8 +187,8 @@
                 }
 
                 <div class="vpp-wizard-panel-card-foot vpp-wizard-selection-foot">
-                    <span>Quantities update instantly and carry straight into the review step.</span>
-                    <strong>@($"Total quantity {Context.TotalQty}")</strong>
+                    <span>@Loc["WizardSelectionFootCopy"]</span>
+                    <strong>@Loc["WizardTotalQuantityFormat", Context.TotalQty]</strong>
                 </div>
             </div>
         </div>

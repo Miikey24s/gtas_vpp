@@ -65,7 +65,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 var data = await _apiServices.GetFromApiAsync<List<CategoryItem>>(Config.VppApi.Categories) ?? new();
-                CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = "All" } };
+                CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = Loc["All"] } };
                 CategoryOptions.AddRange(data.Select(c => new CategoryOption
                 {
                     Value = c.Id,
@@ -74,7 +74,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch
             {
-                CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = "All" } };
+                CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = Loc["All"] } };
             }
         }
 
@@ -102,8 +102,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Product Catalog",
-                    Detail = $"Load failed: {ex.Message}",
+                    Summary = Loc["ProductCatalog"],
+                    Detail = string.Format(Loc["LoadFailedFormat"], ex.Message),
                     Duration = 6000
                 });
             }

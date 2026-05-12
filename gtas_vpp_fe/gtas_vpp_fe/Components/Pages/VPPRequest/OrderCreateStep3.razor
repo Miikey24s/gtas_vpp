@@ -5,39 +5,39 @@
             <div>
                 <div class="vpp-wizard-panel-title-row">
                     <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.3rem;" aria-hidden="true" />
-                    <span class="vpp-wizard-panel-title">Order review</span>
+                    <span class="vpp-wizard-panel-title">@Loc["WizardOrderReviewTitle"]</span>
                 </div>
-                <p class="vpp-wizard-panel-copy">Validate the basket, notes, and quantities before the request is submitted.</p>
+                <p class="vpp-wizard-panel-copy">@Loc["WizardOrderReviewCopy"]</p>
             </div>
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                <RadzenBadge Text="@($"Total Qty: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                <RadzenBadge Text="@Loc["WizardItemsBadgeFormat", Context.SelectedItems.Count]" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                <RadzenBadge Text="@Loc["WizardTotalQtyBadgeFormat", Context.TotalQty]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
                 @if (Context.IsAdditional)
                 {
-                    <RadzenBadge Text="Approval required" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                    <RadzenBadge Text="@Loc["WizardApprovalRequired"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
                 }
             </RadzenStack>
         </div>
 
         <div class="vpp-wizard-review-metrics">
             <div class="vpp-wizard-review-metric">
-                <span>Lines</span>
+                <span>@Loc["Lines"]</span>
                 <strong>@Context.SelectedItems.Count</strong>
             </div>
             <div class="vpp-wizard-review-metric">
-                <span>Total quantity</span>
+                <span>@Loc["TotalQuantity"]</span>
                 <strong>@Context.TotalQty</strong>
             </div>
             <div class="vpp-wizard-review-metric">
-                <span>Mode</span>
-                <strong>@(Context.IsAdditional ? "Additional" : (Context.IsEdit ? "Edit" : "Regular"))</strong>
+                <span>@Loc["Mode"]</span>
+                <strong>@(Context.IsAdditional ? Loc["Additional"] : (Context.IsEdit ? Loc["Edit"] : Loc["Regular"]))</strong>
             </div>
         </div>
 
         @if (!string.IsNullOrEmpty(Context.Description))
         {
             <div class="wizard-review-notes">
-                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">Notes</RadzenText>
+                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">@Loc["Notes"]</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
             </div>
         }
@@ -48,8 +48,8 @@
     {
         <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
             <span class="vpp-empty-state-icon rzi rzi-remove-shopping-cart"></span>
-            <div class="vpp-empty-state-title">No items to submit</div>
-            <div class="vpp-empty-state-desc">Go back to Step 2 and add products to your order.</div>
+            <div class="vpp-empty-state-title">@Loc["WizardNoItemsToSubmit"]</div>
+            <div class="vpp-empty-state-desc">@Loc["WizardNoItemsToSubmitDesc"]</div>
         </div>
     }
     else
@@ -65,30 +65,30 @@
                     <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="45px" TextAlign="TextAlign.Center" Sortable="false">
                         <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="Code" MinWidth="110px" />
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="Name" MinWidth="180px" />
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="Qty" Width="100px" TextAlign="TextAlign.Center" Sortable="false">
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="110px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="180px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="100px" TextAlign="TextAlign.Center" Sortable="false">
                         <Template Context="item">
                             <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
                                            Style="width: 70px;" ShowUpDown="true"
                                            Change="@(_ => Context.NotifyStateChanged())" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="Notes" MinWidth="140px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="@Loc["Notes"]" MinWidth="140px" />
                     <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="50px" TextAlign="TextAlign.Center" Sortable="false">
                         <Template Context="item">
                             @* F-28: icon-only buttons need an explicit aria-label for screen readers. *@
                             <RadzenButton Icon="close" Size="ButtonSize.Small"
                                           ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                                          Click="@(_ => RemoveItem(item))" Title="Remove" aria-label="Remove item from order" />
+                                          Click="@(_ => RemoveItem(item))" Title="@Loc["Remove"]" aria-label="@Loc["RemoveItemFromOrder"]" />
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
 
             <div class="vpp-wizard-panel-card-foot vpp-wizard-selection-foot">
-                <span>You can still adjust quantity or remove a line here before the final submit action.</span>
-                <strong>@($"{Context.SelectedItems.Count} item(s)")</strong>
+                <span>@Loc["WizardReviewFooterCopy"]</span>
+                <strong>@Loc["ItemsCountFormat", Context.SelectedItems.Count]</strong>
             </div>
         </div>
     }

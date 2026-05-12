@@ -1,8 +1,10 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Components;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using Radzen;
 using System.Security.Claims;
 
@@ -26,6 +28,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     {
         // ─── Injected services (base-owned; derived razor/cs can use directly) ───
         [Inject] protected IAPIServices _apiServices { get; set; } = default!;
+        [Inject] protected IStringLocalizer<App> BaseLoc { get; set; } = default!;
         [Inject] protected NotificationService NotificationService { get; set; } = default!;
 
         // ─── Cascaded from the host page ─────────────────────────────────────
@@ -146,7 +149,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = ErrorSummary,
-                    Detail = $"Load failed: {ex.Message}",
+                    Detail = string.Format(BaseLoc["LoadFailedFormat"], ex.Message),
                     Duration = 6000
                 });
             }
@@ -189,7 +192,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = ErrorSummary,
-                    Detail = $"Load details failed: {ex.Message}",
+                    Detail = string.Format(BaseLoc["LoadDetailsFailedFormat"], ex.Message),
                     Duration = 6000
                 });
             }

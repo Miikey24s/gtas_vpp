@@ -9,9 +9,9 @@
                 <div>
                     <div class="vpp-wizard-panel-title-row">
                         <RadzenIcon Icon="@CurrentModeIcon" Style="color: var(--vpp-primary-500);" aria-hidden="true" />
-                        <span class="vpp-wizard-panel-title">Request context</span>
+                        <span class="vpp-wizard-panel-title">@Loc["WizardRequestContextTitle"]</span>
                     </div>
-                    <p class="vpp-wizard-panel-copy">Confirm the target cycle, request type, and the note that approvers will see before you start building the cart.</p>
+                    <p class="vpp-wizard-panel-copy">@Loc["WizardRequestContextCopy"]</p>
                 </div>
                 <RadzenBadge Text="@CurrentModeText" BadgeStyle="@CurrentModeBadgeStyle" IsPill="true" />
             </div>
@@ -20,22 +20,22 @@
                 <div class="vpp-wizard-type-pill @(GetTypeClass("new"))">
                     <RadzenIcon Icon="note_add" aria-hidden="true" />
                     <div>
-                        <strong>New</strong>
-                        <span>Regular monthly request for the active period.</span>
+                        <strong>@Loc["New"]</strong>
+                        <span>@Loc["WizardModeNewDesc"]</span>
                     </div>
                 </div>
                 <div class="vpp-wizard-type-pill @(GetTypeClass("copy"))">
                     <RadzenIcon Icon="content_copy" aria-hidden="true" />
                     <div>
-                        <strong>Copy</strong>
-                        <span>Start from the latest order and adjust only what changed.</span>
+                        <strong>@Loc["Copy"]</strong>
+                        <span>@Loc["WizardModeCopyDesc"]</span>
                     </div>
                 </div>
                 <div class="vpp-wizard-type-pill @(GetTypeClass("additional"))">
                     <RadzenIcon Icon="playlist_add" aria-hidden="true" />
                     <div>
-                        <strong>Additional</strong>
-                        <span>Closed period request that moves through admin approval.</span>
+                        <strong>@Loc["Additional"]</strong>
+                        <span>@Loc["WizardModeAdditionalDesc"]</span>
                     </div>
                 </div>
             </div>
@@ -43,11 +43,11 @@
             @if (Context.IsAdditional)
             {
                 <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" class="rz-mb-3">
-                    <span>This cycle is already closed. Provide a reason so the additional request can be routed for approval.</span>
+                    <span>@Loc["WizardAdditionalCycleClosedAlert"]</span>
                 </RadzenAlert>
             }
 
-            <RadzenFormField Text="@(Context.IsAdditional ? "Reason for additional order *" : "Notes for approver")" Variant="Variant.Outlined" Style="width: 100%;">
+            <RadzenFormField Text="@(Context.IsAdditional ? Loc["WizardAdditionalReasonLabel"] : Loc["WizardApproverNotesLabel"])" Variant="Variant.Outlined" Style="width: 100%;">
                 <ChildContent>
                     <RadzenTextArea Name="Description"
                                     @bind-Value="Context.Description"
@@ -57,17 +57,17 @@
                 <Helper>
                     @if (Context.IsAdditional)
                     {
-                        <span class="vpp-wizard-field-hint">This field is required for additional orders.</span>
+                        <span class="vpp-wizard-field-hint">@Loc["WizardAdditionalReasonHint"]</span>
                     }
                     else
                     {
-                        <span class="vpp-wizard-field-hint">Optional note for delivery context, department needs, or reviewer guidance.</span>
+                        <span class="vpp-wizard-field-hint">@Loc["WizardApproverNotesHint"]</span>
                     }
                 </Helper>
             </RadzenFormField>
 
             <RadzenRequiredValidator Component="Description"
-                                     Text="Reason is required for additional orders."
+                                     Text="@Loc["WizardAdditionalReasonRequired"]"
                                      Visible="@Context.IsAdditional"
                                      Style="position: absolute;" />
         </section>
@@ -77,14 +77,14 @@
                 <div>
                     <div class="vpp-wizard-panel-title-row">
                         <RadzenIcon Icon="schedule" Style="color: var(--vpp-primary-500);" aria-hidden="true" />
-                        <span class="vpp-wizard-panel-title">Period window</span>
+                        <span class="vpp-wizard-panel-title">@Loc["WizardPeriodWindowTitle"]</span>
                     </div>
-                    <p class="vpp-wizard-panel-copy">The backend period service already resolved the correct cycle. This request will be submitted against the window below.</p>
+                    <p class="vpp-wizard-panel-copy">@Loc["WizardPeriodWindowCopy"]</p>
                 </div>
             </div>
 
             <div class="vpp-wizard-period-window">
-                <span class="vpp-wizard-summary-label">Target period</span>
+                <span class="vpp-wizard-summary-label">@Loc["WizardTargetPeriod"]</span>
                 <strong>@TargetPeriodText</strong>
                 <span class="vpp-wizard-summary-meta">@TargetWindowText</span>
             </div>
@@ -93,22 +93,22 @@
                 <div class="vpp-wizard-brief-item">
                     <span class="vpp-wizard-brief-index">1</span>
                     <div>
-                        <strong>Cycle opens</strong>
-                        <span>@($"00:00 on {DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)}")</span>
+                        <strong>@Loc["WizardCycleOpens"]</strong>
+                        <span>@Loc["WizardCycleOpensAtFormat", DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)]</span>
                     </div>
                 </div>
                 <div class="vpp-wizard-brief-item">
                     <span class="vpp-wizard-brief-index">2</span>
                     <div>
-                        <strong>Cycle closes</strong>
-                        <span>@($"23:59 on {DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)}")</span>
+                        <strong>@Loc["WizardCycleCloses"]</strong>
+                        <span>@Loc["WizardCycleClosesAtFormat", DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)]</span>
                     </div>
                 </div>
                 <div class="vpp-wizard-brief-item">
                     <span class="vpp-wizard-brief-index">3</span>
                     <div>
-                        <strong>Boundary rule</strong>
-                        <span>Exactly at 00:00 on day 5, the system moves into the new monthly period.</span>
+                        <strong>@Loc["WizardBoundaryRule"]</strong>
+                        <span>@Loc["WizardBoundaryRuleDesc"]</span>
                     </div>
                 </div>
             </div>
@@ -136,12 +136,12 @@
                 : "note_add";
 
     private string CurrentModeText => Context.IsEdit
-        ? "Editing existing order"
+        ? Loc["WizardModeEditingExistingOrder"].Value
         : Context.IsCopy
-            ? "Copy from previous"
+            ? Loc["WizardModeCopyPrevious"].Value
             : Context.IsAdditional
-                ? "Additional approval flow"
-                : "Regular monthly request";
+                ? Loc["WizardModeAdditionalFlow"].Value
+                : Loc["WizardModeRegularRequest"].Value;
 
     private BadgeStyle CurrentModeBadgeStyle => Context.IsAdditional ? BadgeStyle.Warning : BadgeStyle.Primary;
 
