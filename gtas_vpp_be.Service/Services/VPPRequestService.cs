@@ -705,7 +705,7 @@ namespace gtas_vpp_be.Service.Services
                 CurrentPeriodMonth = curMonth,
                 PreviousPeriodYear = prevYear,
                 PreviousPeriodMonth = prevMonth,
-                DeadlineDate = new DateTime(curYear, curMonth, _deadlineDay),
+                DeadlineDate = _periodCalculator.DeadlineFor(new Period(curYear, curMonth)),
                 IsDeadlinePassed = deadlinePassed,
                 HasCurrentPeriodOrder = hasCurrentOrder,
                 AdditionalOrderCount = additionalCount,
