@@ -266,37 +266,50 @@ namespace gtas_vpp_be.Controllers
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var orders = await _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VPP01_RequestHeader>()
+            // P3.3 (F-13): GroupBy executed on the database side (Monthly + StatusDistribution +
+            // TotalOrders) so we never materialize the full order set per dashboard load.
+            // Previously: ToListAsync() pulled every order of the user (200/year × 1000 user
+            // × n requests/day) and grouped in memory — biggest dashboard hot path.
+            var baseQuery = _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VPP01_RequestHeader>()
                 .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.CreateUserId == CurrentUserId.Value)
-                .Select(x => new
-                {
-                    x.SubmittedDate,
-                    x.Status,
-                    Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
-                    Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0,
-                    x.VPPCode
-                })
-                .ToListAsync();
+                .Where(x => !x.IsDeleted && x.CreateUserId == CurrentUserId.Value);
 
-            var monthlyData = orders
+            var monthlyRaw = await baseQuery
                 .Where(x => x.SubmittedDate.HasValue)
                 .GroupBy(x => new { x.SubmittedDate!.Value.Year, x.SubmittedDate.Value.Month })
                 .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
                 .Select(g => new
                 {
-                    Month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    g.Key.Year,
+                    g.Key.Month,
                     OrderCount = g.Count(),
-                    TotalQty = g.Sum(x => x.Qty),
-                    TotalLines = g.Sum(x => x.Lines)
+                    TotalQty = g.Sum(x => x.VPP02_RequestDetails
+                        .Where(d => !d.IsDeleted)
+                        .Sum(d => (int?)d.Qty) ?? 0),
+                    TotalLines = g.Sum(x => x.VPP02_RequestDetails.Count(d => !d.IsDeleted))
+                })
+                .ToListAsync();
+
+            // Format the period label in-memory (string interpolation isn't translatable).
+            var monthlyData = monthlyRaw
+                .Select(g => new
+                {
+                    Month = $"{g.Year}-{g.Month:D2}",
+                    g.OrderCount,
+                    g.TotalQty,
+                    g.TotalLines
                 })
                 .ToList();
 
-            var statusData = orders
+            var statusRaw = await baseQuery
                 .GroupBy(x => x.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var statusData = statusRaw
                 .Select(g => new
                 {
-                    Status = g.Key switch
+                    Status = g.Status switch
                     {
                         1 => "Submitted",
                         4 => "Cancelled",
@@ -305,15 +318,17 @@ namespace gtas_vpp_be.Controllers
                         8 => "Rejected",
                         _ => "Unknown"
                     },
-                    Count = g.Count()
+                    g.Count
                 })
                 .ToList();
+
+            var totalOrders = await baseQuery.CountAsync();
 
             return Ok(new
             {
                 Monthly = monthlyData,
                 StatusDistribution = statusData,
-                TotalOrders = orders.Count
+                TotalOrders = totalOrders
             });
         }
 

@@ -5,6 +5,7 @@ using gtas_vpp_shared.DTOs.Res.Library;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json;
 using System.Linq.Dynamic.Core;
@@ -90,31 +91,27 @@ namespace gtas_vpp_be.Controllers
             string? distinct,
             Guid? classId = null) where TModel : class
         {
+            // P3.2 (F-12): Build query directly on IQueryable<TModel> so filter/orderby/
+            // count/skip/take all translate to SQL. Previously this method materialized
+            // up to 1000 rows then filtered in-memory — broken pagination + heap pressure
+            // under load (1000 user × 1000 row materialised per request).
             try
             {
-                // Get all data
-                var allData = await ReadEntitiesAsync<TModel>(true, take: 1000);
-                
-                if (allData == null || !allData.Any())
-                {
-                    Response.Headers.Append("X-Total-Count", "0");
-                    return Ok(new List<TDto>());
-                }
+                IQueryable<TModel> query = _unitOfWork.VPPContext.Set<TModel>().AsNoTracking();
 
-                var query = allData.AsQueryable();
-
-                // Apply classId filter for L02
+                // Apply classId filter for L02 (typed, not Dynamic LINQ)
                 if (classId.HasValue && typeof(TModel) == typeof(L02_ClassDetail))
                 {
-                    query = query.Where(x => ((L02_ClassDetail)(object)x).ClassId == classId.Value);
+                    query = (IQueryable<TModel>)((IQueryable<L02_ClassDetail>)query)
+                        .Where(x => x.ClassId == classId.Value);
                 }
 
-                // Apply filter (Radzen filter format)
+                // Apply Radzen filter expression via Dynamic LINQ (translates to SQL when
+                // the source is an EF IQueryable; falls back gracefully on parse errors).
                 if (!string.IsNullOrEmpty(filter))
                 {
                     try
                     {
-                        // Parse Radzen filter format and apply
                         query = query.Where(filter);
                     }
                     catch (Exception ex)
@@ -123,38 +120,42 @@ namespace gtas_vpp_be.Controllers
                     }
                 }
 
-                // Get total count before paging
-                var totalCount = query.Count();
-
-                // Handle distinct request for filter dropdowns
+                // ── Distinct branch: pull only the column the FE asked for. ───────────
                 if (!string.IsNullOrEmpty(distinct))
                 {
                     var propertyInfo = typeof(TModel).GetProperty(distinct);
                     if (propertyInfo != null)
                     {
-                        var distinctValues = query
-                            .Select(x => propertyInfo.GetValue(x))
-                            .Where(x => x != null)
+                        // Dynamic LINQ: SELECT DISTINCT property values directly in SQL.
+                        var distinctValues = await query
+                            .Select(distinct)
                             .Distinct()
-                            .ToList();
+                            .ToDynamicListAsync();
 
-                        var distinctDtos = distinctValues.Select(val =>
-                        {
-                            var dto = Activator.CreateInstance<TDto>();
-                            var dtoProp = typeof(TDto).GetProperty(distinct);
-                            if (dtoProp != null)
+                        var distinctDtos = distinctValues
+                            .Where(val => val != null)
+                            .Select(val =>
                             {
-                                dtoProp.SetValue(dto, val);
-                            }
-                            return dto;
-                        }).ToList();
+                                var dto = Activator.CreateInstance<TDto>();
+                                var dtoProp = typeof(TDto).GetProperty(distinct);
+                                if (dtoProp != null)
+                                {
+                                    dtoProp.SetValue(dto, val);
+                                }
+                                return dto;
+                            })
+                            .ToList();
 
                         Response.Headers.Append("X-Total-Count", distinctDtos.Count.ToString());
                         return Ok(distinctDtos);
                     }
                 }
 
-                // Apply sorting
+                // Total count BEFORE paging — translates to COUNT(*) in SQL.
+                var totalCount = await query.CountAsync();
+
+                // Apply sorting (default to deterministic order to satisfy SQL Server when
+                // Skip/Take is used).
                 if (!string.IsNullOrEmpty(orderby))
                 {
                     try
@@ -163,11 +164,15 @@ namespace gtas_vpp_be.Controllers
                     }
                     catch
                     {
-                        // If sorting fails, use default ordering
+                        // Fall back to default order below if Dynamic LINQ rejects the clause.
+                        query = query.OrderBy("Id");
                     }
                 }
+                else
+                {
+                    query = query.OrderBy("Id");
+                }
 
-                // Apply paging
                 if (skip.HasValue && skip.Value > 0)
                 {
                     query = query.Skip(skip.Value);
@@ -178,10 +183,11 @@ namespace gtas_vpp_be.Controllers
                     query = query.Take(top.Value);
                 }
 
-                var result = query.ToList();
-                var dtoList = result.Adapt<List<TDto>>();
+                // Materialize the (small) page only, then map.
+                var pageEntities = await query.ToListAsync();
+                var enriched = await _userNameResolver.WithUserNamesAsync(pageEntities, _unitOfWork.VPPContext);
+                var dtoList = enriched.Adapt<List<TDto>>();
 
-                // Add total count to response header
                 Response.Headers.Append("X-Total-Count", totalCount.ToString());
 
                 return Ok(dtoList);
