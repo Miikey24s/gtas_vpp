@@ -160,7 +160,7 @@
                     </div>
                 </div>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenBadge Text="@StatusDisplay.GetText(order.Status)" BadgeStyle="@StatusDisplayRadzen.BadgeStyleFor(order.Status)" IsPill="true" class="rz-px-3" />
+                    <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@StatusDisplay.GetText(order.Status)</span>
                     @if (CanEditOrDelete(order))
                     {
                         <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" />
@@ -176,8 +176,7 @@
                             AllowSorting="false"
                             Density="Density.Compact"
                             GridLines="DataGridGridLines.Horizontal"
-                            class="vpp-order-grid"
-                            Style="border: none !important; box-shadow: none !important; padding: 0;">
+                            class="vpp-order-grid vpp-order-grid-embedded">
                 <Columns>
                     <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center">
                         <Template Context="item">@((order.Items?.IndexOf(item) ?? -1) + 1)</Template>

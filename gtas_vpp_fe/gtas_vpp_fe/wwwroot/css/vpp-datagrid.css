@@ -108,3 +108,15 @@
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-base);
 }
+
+/* ── F-41: Embedded order-detail grid ────────────────────────────
+   Replaces the inline `Style="border: none !important; box-shadow: none !important; padding: 0;"`
+   that lived on Tab_Orders.razor's inner RadzenDataGrid. The descendant
+   selector (.vpp-data-card > grid) has specificity (0,2,0) which beats
+   Radzen's single-class rules on .rz-data-grid (0,1,0) without !important. */
+.vpp-data-card .vpp-order-grid,
+.vpp-order-grid.vpp-order-grid-embedded {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}

@@ -130,7 +130,7 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="Status" MinWidth="100px" TextAlign="TextAlign.Center" Sortable="true">
                                 <Template Context="row">
-                                    <RadzenBadge Text="@StatusDisplay.GetText(row.Status)" BadgeStyle="@StatusDisplayRadzen.BadgeStyleFor(row.Status)" IsPill="true" />
+                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@StatusDisplay.GetText(row.Status)</span>
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}" />

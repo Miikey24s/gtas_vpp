@@ -1,44 +1,36 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   VPP KPI CARDS — Phase 6
-   Gradient backgrounds, hover effects, trend indicators
+   VPP KPI CARDS — F-30 (minimal flat redesign)
+   Previous state: 4 playful gradient variants (blue/purple/emerald/amber) +
+   shine animation + white text. Distracted from the data itself and did not
+   match the Linear/Vercel reference declared in vpp-tokens.css.
+   New state: one neutral flat card, accent via icon opacity only.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── KPI Card Base ────────────────────────────────────────────── */
+/* .vpp-kpi-card is the canonical name; .kpi-card kept as alias so existing
+   razor markup (class="kpi-card") continues to work without mass rename. */
+.vpp-kpi-card,
 .kpi-card {
     position: relative;
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-xl);
     padding: var(--vpp-space-6);
     overflow: hidden;
     cursor: default;
-    transition: transform var(--vpp-transition-base),
-                box-shadow var(--vpp-transition-base);
+    transition: border-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
 }
 
+.vpp-kpi-card:hover,
 .kpi-card:hover {
-    transform: scale(1.02);
-    box-shadow: var(--vpp-shadow-glow);
-}
-
-.kpi-card-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
+    border-color: var(--vpp-border-strong);
+    box-shadow: var(--vpp-shadow-sm);
 }
 
 .kpi-card-content {
     position: relative;
     z-index: 1;
-}
-
-.kpi-card-shine {
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 70% 20%, rgba(255,255,255,0.08) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
 }
 
 /* Header — label + icon */
@@ -55,13 +47,13 @@
     font-weight: var(--vpp-font-weight-medium);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    opacity: 0.75;
-    color: #fff;
+    color: var(--vpp-text-secondary);
 }
 
 .kpi-card-icon {
-    font-size: 2.5rem;
-    opacity: 0.15;
+    font-size: 1.75rem;
+    opacity: 0.4;
+    color: var(--vpp-text-secondary);
 }
 
 /* Value */
@@ -69,7 +61,7 @@
     font-family: var(--vpp-font-display);
     font-size: var(--vpp-text-3xl);
     font-weight: var(--vpp-font-weight-bold);
-    color: #fff;
+    color: var(--vpp-text-primary);
     line-height: 1.1;
     margin-bottom: var(--vpp-space-2);
 }
@@ -81,36 +73,20 @@
     display: flex;
     align-items: center;
     gap: var(--vpp-space-1);
-    opacity: 0.85;
+    color: var(--vpp-text-secondary);
 }
 
 .kpi-card-trend-arrow {
     font-weight: var(--vpp-font-weight-bold);
 }
 
-.trend-up { color: #4ADE80; }
-.trend-down { color: #F87171; }
+.trend-up   { color: var(--vpp-success); }
+.trend-down { color: var(--vpp-danger); }
 
-/* ── Gradient Variants ────────────────────────────────────────── */
-.kpi-blue {
-    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
-}
-
-.kpi-purple {
-    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-}
-
-.kpi-emerald {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-}
-
-.kpi-amber {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-}
-
-.kpi-teal {
-    background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-}
+/* F-30: Gradient variants (.kpi-blue/.kpi-purple/.kpi-emerald/.kpi-amber/.kpi-teal)
+   and the .kpi-card-shine overlay have been removed. If any legacy razor markup
+   still carries those class names, they are now no-ops — the neutral flat
+   .vpp-kpi-card base style wins. */
 
 /* ── KPI Card Grid ────────────────────────────────────────────── */
 .kpi-grid {
