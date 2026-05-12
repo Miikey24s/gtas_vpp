@@ -12,7 +12,7 @@
         @* ── KPI Summary ────────────────────────────────────── *@
         @if (IsLoading)
         {
-            <SkeletonStatCards Cards="3" />
+            <SkeletonPage Cards="3" Rows="6" Cols="8" />
         }
         else
         {
@@ -53,11 +53,11 @@
         @* ── DataGrid ───────────────────────────────────────── *@
         @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
         {
-            <div class="vpp-empty-state">
-                <span class="vpp-empty-state-icon rzi rzi-check-circle"></span>
-                <div class="vpp-empty-state-title">All Clear!</div>
-                <div class="vpp-empty-state-desc">No pending additional orders require approval.</div>
-            </div>
+            <VppEmptyState Icon="check_circle"
+                           Title="All clear"
+                           Description="No pending additional orders require approval."
+                           PrimaryText="Refresh queue"
+                           PrimaryAction="@(async _ => await ReloadAsync())" />
         }
         else
         {
@@ -173,9 +173,7 @@
 }
 else
 {
-    <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
-        <span class="vpp-empty-state-icon rzi rzi-lock"></span>
-        <div class="vpp-empty-state-title">Access Denied</div>
-        <div class="vpp-empty-state-desc">You do not have permission to view the Admin Approval tab.</div>
-    </div>
+    <VppEmptyState Icon="lock"
+                   Title="Access denied"
+                   Description="You do not have permission to view the Admin Approval tab." />
 }

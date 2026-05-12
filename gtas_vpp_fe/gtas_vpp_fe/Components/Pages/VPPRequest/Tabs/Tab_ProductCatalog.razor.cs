@@ -84,7 +84,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             if (_isFirstLoad)
             {
-                glb.isBusyPage = true;
+                IsFirstLoading = true;
             }
             IsGridLoading = true;
             _currentSkip = args.Skip ?? 0;
@@ -111,7 +111,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 if (_isFirstLoad)
                 {
-                    glb.isBusyPage = false;
                     _isFirstLoad = false;
                     IsFirstLoading = false;
                 }

@@ -9,59 +9,79 @@
 <PageTitle>GTAS VPP - @(IsEdit ? "Edit Order" : (IsCopyFromPrevious ? "Copy Order" : (IsAdditional ? "Additional Order" : "Create Order")))</PageTitle>
 
 <CascadingValue Value="Context">
-<div class="vpp-wizard">
-    <RadzenStack Gap="1rem" Style="padding: var(--vpp-space-4);">
-
-        @* Back button + badges *@
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+@if (IsPageLoading)
+{
+    <div class="vpp-wizard">
+        <SkeletonPage Cards="0" Rows="8" Cols="4" />
+    </div>
+}
+else
+{
+    <div class="vpp-wizard">
+        <div class="vpp-wizard-toolbar">
             <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
             <div class="vpp-wizard-badge-bar">
-                @if (Context.SelectedItems.Count > 0)
+                <RadzenBadge Text="@OrderModeBadgeText" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                @if (DraftRecovered)
                 {
-                    <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                    <RadzenBadge Text="@($"Total: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                    <RadzenBadge Text="Draft restored" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
                 }
-                @if (LastDraftSavedAt.HasValue)
+                @if (SelectedItemCount > 0)
                 {
-                    <RadzenText Text="@($"Auto-saved {DateFormatter.Format(LastDraftSavedAt, DateFormatter.TimeOnly)}")" TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-tertiary);" />
-                }
-            </div>
-        </RadzenStack>
-
-        @* 2-Step Wizard *@
-        <RadzenSteps @bind-SelectedIndex="currentStep" Change="@((i) => Context.NotifyStateChanged())">
-            <Steps>
-                <RadzenStepsItem Text="@Loc["SelectProducts"]">
-                    <OrderCreateStep2 />
-                </RadzenStepsItem>
-                <RadzenStepsItem Text="@Loc["ReviewSubmit"]">
-                    <OrderCreateStep3 />
-                </RadzenStepsItem>
-            </Steps>
-        </RadzenSteps>
-
-        @* Navigation buttons *@
-        <div class="vpp-wizard-nav">
-            <div class="vpp-wizard-nav-left">
-                <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
-            </div>
-            <div class="vpp-wizard-nav-right">
-                @if (currentStep > 0)
-                {
-                    <RadzenButton Icon="arrow_back" Text="@Loc["Previous"]" ButtonStyle="ButtonStyle.Base" Click="@(() => currentStep--)"/>
-                }
-                @if (currentStep < 1)
-                {
-                    <RadzenButton Icon="arrow_forward" Text="@Loc["Next"]" ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next" 
-                                  Click="@(() => currentStep++)" />
-                }
-                else
-                {
-                    <RadzenButton Icon="save" Text="@(IsAdditional ? "Submit for Approval" : (IsEdit ? "Update Order" : "Create Order"))" 
-                                  ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next" Disabled="@IsSaving" Click="@SubmitAsync" />
+                    <RadzenBadge Text="@($"{SelectedItemCount} items")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
                 }
             </div>
         </div>
-    </RadzenStack>
-</div>
+
+        <section class="vpp-data-card vpp-wizard-stage">
+            <RadzenSteps class="vpp-wizard-steps" SelectedIndex="@currentStep" Change="@OnWizardStepChange">
+                <Steps>
+                    <RadzenStepsItem Text="Order context">
+                        <OrderCreateStep1 @ref="_step1"
+                                          TargetPeriodText="@TargetPeriodText"
+                                          TargetWindowText="@TargetWindowText"
+                                          TargetPeriodStartDate="@TargetPeriodStartDate"
+                                          TargetPeriodEndDate="@TargetPeriodEndDate" />
+                    </RadzenStepsItem>
+                    <RadzenStepsItem Text="@Loc["SelectProducts"]">
+                        <OrderCreateStep2 />
+                    </RadzenStepsItem>
+                    <RadzenStepsItem Text="@Loc["ReviewSubmit"]">
+                        <OrderCreateStep3 />
+                    </RadzenStepsItem>
+                </Steps>
+            </RadzenSteps>
+
+            <div class="vpp-wizard-nav">
+                <div class="vpp-wizard-nav-left">
+                    <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
+                    <div class="vpp-wizard-nav-status">
+                        <span class="vpp-wizard-nav-status-title">@CurrentStepTitle</span>
+                        <span class="vpp-wizard-nav-status-text">@FooterStatusText</span>
+                    </div>
+                </div>
+                <div class="vpp-wizard-nav-right">
+                    @if (currentStep > 0)
+                    {
+                        <RadzenButton Icon="arrow_back" Text="@Loc["Previous"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoPreviousStep" />
+                    }
+                    @if (currentStep < StepCount - 1)
+                    {
+                        <RadzenButton Icon="arrow_forward" Text="@Loc["Next"]" ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
+                                      Click="@GoNextStepAsync" />
+                    }
+                    else
+                    {
+                        <RadzenButton Icon="save" Text="@PrimaryActionText"
+                                      ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
+                                      Disabled="@(IsSaving || SelectedItemCount == 0)"
+                                      IsBusy="@IsSaving"
+                                      BusyText="Đang lưu..."
+                                      Click="@SubmitAsync" />
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+}
 </CascadingValue>

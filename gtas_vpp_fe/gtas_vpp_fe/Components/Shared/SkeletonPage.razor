@@ -1,0 +1,20 @@
+<div class="vpp-skeleton-page @Class">
+    @if (Cards > 0)
+    {
+        <SkeletonStatCards Cards="@Cards" />
+    }
+
+    @if (Rows > 0 && Cols > 0)
+    {
+        <div class="vpp-data-card vpp-skeleton-page-grid">
+            <SkeletonGrid Rows="@Rows" Cols="@Cols" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Cards { get; set; } = 3;
+    [Parameter] public int Rows { get; set; } = 6;
+    [Parameter] public int Cols { get; set; } = 5;
+    [Parameter] public string Class { get; set; } = string.Empty;
+}

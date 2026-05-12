@@ -1,6 +1,5 @@
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_shared.DTOs.Share
-@inject GlobalClass glb
 @inject NotificationService NotificationService
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
@@ -12,7 +11,7 @@
         @* ── KPI Summary ────────────────────────────────────── *@
         @if (IsFirstLoading)
         {
-            <SkeletonStatCards Cards="3" />
+            <SkeletonPage Cards="3" Rows="6" Cols="5" />
         }
         else
         {
@@ -41,57 +40,66 @@
         }
 
         @* ── DataGrid Section ── *@
-        <div class="vpp-data-card" style="padding: 0; overflow: hidden;">
-            <RadzenDataGrid @ref="productGrid" TItem="Tab_ProductCatalog.ProductItem" Data="@Products"
-                            Count="@ProductCount"
-                            LoadData="@LoadProductsAsync"
-                            AllowPaging="true" PageSize="20"
-                            PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
-                            PageSizeText="items per page"
-                            AllowSorting="true" AllowAlternatingRows="true"
-                            AllowColumnResize="true" IsLoading="@IsGridLoading"
-                            AllowFiltering="true"
-                            AllowMultiColumnSorting="true"
-                            ShowMultiColumnSortingIndex="true"
-                            AllowColumnReorder="true"
-                            FilterMode="FilterMode.CheckBoxList"
-                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                            ShowPagingSummary="true"
-                            PagerHorizontalAlign="HorizontalAlign.Left"
-                            Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                            class="vpp-order-grid"
-                            Style="border: none;">
-                <Columns>
-                    <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                        <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="120px" TextAlign="TextAlign.Left">
-                        <Template Context="row">
-                            <span class="vpp-link-text">@row.VPPCode</span>
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="200px" TextAlign="TextAlign.Left">
-                        <Template Context="row">
-                            <span style="font-weight: var(--vpp-font-weight-medium);">@row.VPPName</span>
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="140px" TextAlign="TextAlign.Left">
-                        <Template Context="row">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.VPPCategoryName" IsPill="true" />
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UOMName" Title="@Loc["UOM"]" MinWidth="100px" TextAlign="TextAlign.Center" />
-                    <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" MinWidth="200px" TextAlign="TextAlign.Left" />
-                </Columns>
-            </RadzenDataGrid>
-        </div>
+        @if (!IsFirstLoading && ProductCount == 0 && !IsGridLoading)
+        {
+            <VppEmptyState Icon="inventory_2"
+                           Title="No products found"
+                           Description="No catalog products matched the current query."
+                           PrimaryText="Reload catalog"
+                           PrimaryAction="@(async _ => await ReloadAsync())" />
+        }
+        else
+        {
+            <div class="vpp-data-card" style="padding: 0; overflow: hidden; @(IsFirstLoading ? "display: none;" : string.Empty)">
+                <RadzenDataGrid @ref="productGrid" TItem="Tab_ProductCatalog.ProductItem" Data="@Products"
+                                Count="@ProductCount"
+                                LoadData="@LoadProductsAsync"
+                                AllowPaging="true" PageSize="20"
+                                PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
+                                PageSizeText="items per page"
+                                AllowSorting="true" AllowAlternatingRows="true"
+                                AllowColumnResize="true" IsLoading="@IsGridLoading"
+                                AllowFiltering="true"
+                                AllowMultiColumnSorting="true"
+                                ShowMultiColumnSortingIndex="true"
+                                AllowColumnReorder="true"
+                                FilterMode="FilterMode.CheckBoxList"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                ShowPagingSummary="true"
+                                PagerHorizontalAlign="HorizontalAlign.Left"
+                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
+                                class="vpp-order-grid"
+                                Style="border: none;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                            <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="120px" TextAlign="TextAlign.Left">
+                            <Template Context="row">
+                                <span class="vpp-link-text">@row.VPPCode</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="200px" TextAlign="TextAlign.Left">
+                            <Template Context="row">
+                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.VPPName</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="140px" TextAlign="TextAlign.Left">
+                            <Template Context="row">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.VPPCategoryName" IsPill="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UOMName" Title="@Loc["UOM"]" MinWidth="100px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" MinWidth="200px" TextAlign="TextAlign.Left" />
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+        }
     </RadzenStack>
 }
 else
 {
-    <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
-        <span class="vpp-empty-state-icon rzi rzi-lock"></span>
-        <div class="vpp-empty-state-title">Access Denied</div>
-        <div class="vpp-empty-state-desc">You do not have permission to view the Product Catalog tab.</div>
-    </div>
+    <VppEmptyState Icon="lock"
+                   Title="Access denied"
+                   Description="You do not have permission to view the Product Catalog tab." />
 }

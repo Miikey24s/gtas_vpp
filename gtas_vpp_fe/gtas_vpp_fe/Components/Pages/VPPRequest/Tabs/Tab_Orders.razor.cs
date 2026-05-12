@@ -108,7 +108,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (!CanView) return;
 
             IsLoading = true;
-            glb.isBusyPage = true;
 
             try
             {
@@ -134,7 +133,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                glb.isBusyPage = false;
                 IsLoading = false;
                 StateHasChanged();
             }
@@ -165,7 +163,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (!CanEditOrDelete(row)) return;
 
             IsLoading = true;
-            glb.isBusyPage = true;
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", new { });
@@ -190,7 +187,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                glb.isBusyPage = false;
                 IsLoading = false;
                 StateHasChanged();
             }

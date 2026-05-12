@@ -10,8 +10,7 @@
 {
     @if (IsLoading)
     {
-        <SkeletonStatCards Cards="3" />
-        <SkeletonGrid Rows="8" Cols="6" />
+        <SkeletonPage Cards="3" Rows="8" Cols="6" />
     }
     else
     {
@@ -78,11 +77,11 @@
             @* ── History DataGrid ───────────────────────────────── *@
             @if (TotalCount == 0 && !IsGridLoading)
             {
-                <div class="vpp-empty-state">
-                    <span class="vpp-empty-state-icon rzi rzi-history"></span>
-                    <div class="vpp-empty-state-title">No order history</div>
-                    <div class="vpp-empty-state-desc">No orders match the selected filters.</div>
-                </div>
+                <VppEmptyState Icon="history"
+                               Title="No order history"
+                               Description="No orders match the selected filters."
+                               PrimaryText="Reload history"
+                               PrimaryAction="@(async _ => await ReloadAsync())" />
             }
             else
             {
@@ -176,9 +175,7 @@
 }
 else
 {
-    <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
-        <span class="vpp-empty-state-icon rzi rzi-lock"></span>
-        <div class="vpp-empty-state-title">Access Denied</div>
-        <div class="vpp-empty-state-desc">You do not have permission to view the History tab.</div>
-    </div>
+    <VppEmptyState Icon="lock"
+                   Title="Access denied"
+                   Description="You do not have permission to view the History tab." />
 }

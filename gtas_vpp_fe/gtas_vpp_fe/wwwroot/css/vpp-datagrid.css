@@ -120,3 +120,76 @@
     box-shadow: none;
     padding: 0;
 }
+
+.vpp-data-card-grid-shell {
+    padding: 0;
+    overflow: hidden;
+    cursor: default;
+}
+
+.vpp-data-card-grid-shell .vpp-data-card-header {
+    padding: var(--vpp-space-5) var(--vpp-space-5) var(--vpp-space-3);
+    margin-bottom: 0;
+}
+
+.vpp-order-grid.rz-datatable,
+.vpp-order-grid.rz-data-grid,
+.vpp-wizard-panel-card .rz-datatable,
+.vpp-wizard-panel-card .rz-data-grid {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.vpp-order-grid .rz-data-grid-data,
+.vpp-order-grid .rz-datatable-scrollable-header,
+.vpp-order-grid .rz-datatable-scrollable-body,
+.vpp-order-grid .rz-datatable-scrollable-wrapper,
+.vpp-order-grid .rz-datatable-tablewrapper,
+.vpp-order-grid .rz-paginator,
+.vpp-order-grid .rz-pager,
+.vpp-wizard-panel-card .rz-data-grid-data,
+.vpp-wizard-panel-card .rz-datatable-scrollable-header,
+.vpp-wizard-panel-card .rz-datatable-scrollable-body,
+.vpp-wizard-panel-card .rz-datatable-scrollable-wrapper,
+.vpp-wizard-panel-card .rz-datatable-tablewrapper,
+.vpp-wizard-panel-card .rz-paginator,
+.vpp-wizard-panel-card .rz-pager {
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+    border: 0;
+}
+
+.vpp-order-grid .rz-grid-table,
+.vpp-wizard-panel-card .rz-grid-table {
+    border-spacing: 0;
+}
+
+.vpp-order-grid .rz-grid-table thead th,
+.vpp-wizard-panel-card .rz-grid-table thead th {
+    background: var(--vpp-bg-surface);
+    border-bottom-color: var(--vpp-border-default);
+}
+
+.vpp-order-grid .rz-grid-table thead th:not(:last-child),
+.vpp-wizard-panel-card .rz-grid-table thead th:not(:last-child) {
+    border-inline-end: none;
+}
+
+.vpp-order-grid .rz-grid-table td,
+.vpp-wizard-panel-card .rz-grid-table td {
+    border-bottom-color: var(--vpp-border-default);
+}
+
+.vpp-order-grid .rz-grid-table td:not(:last-child),
+.vpp-wizard-panel-card .rz-grid-table td:not(:last-child) {
+    border-inline-end: none;
+}
+
+.vpp-order-grid .rz-paginator,
+.vpp-wizard-panel-card .rz-paginator {
+    border-top: 1px solid var(--vpp-border-default);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+}

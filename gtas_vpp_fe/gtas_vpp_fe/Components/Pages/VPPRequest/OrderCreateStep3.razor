@@ -1,21 +1,42 @@
 <div class="wizard-step wizard-step-review">
 
-    @* Summary KPI *@
-    <div class="vpp-data-card rz-mb-3" style="padding: var(--vpp-space-4);">
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Wrap="FlexWrap.Wrap" Gap="0.75rem">
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.5rem;" aria-hidden="true" />
-                <RadzenText Text="Order Review" TextStyle="TextStyle.Subtitle1" class="rz-m-0" Style="font-weight: 700;" />
-            </RadzenStack>
+    <div class="vpp-data-card vpp-wizard-review-card rz-mb-3">
+        <div class="vpp-wizard-panel-head">
+            <div>
+                <div class="vpp-wizard-panel-title-row">
+                    <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.3rem;" aria-hidden="true" />
+                    <span class="vpp-wizard-panel-title">Order review</span>
+                </div>
+                <p class="vpp-wizard-panel-copy">Validate the basket, notes, and quantities before the request is submitted.</p>
+            </div>
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
                 <RadzenBadge Text="@($"{Context.SelectedItems.Count} items")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
                 <RadzenBadge Text="@($"Total Qty: {Context.TotalQty}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                @if (Context.IsAdditional)
+                {
+                    <RadzenBadge Text="Approval required" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                }
             </RadzenStack>
-        </RadzenStack>
+        </div>
+
+        <div class="vpp-wizard-review-metrics">
+            <div class="vpp-wizard-review-metric">
+                <span>Lines</span>
+                <strong>@Context.SelectedItems.Count</strong>
+            </div>
+            <div class="vpp-wizard-review-metric">
+                <span>Total quantity</span>
+                <strong>@Context.TotalQty</strong>
+            </div>
+            <div class="vpp-wizard-review-metric">
+                <span>Mode</span>
+                <strong>@(Context.IsAdditional ? "Additional" : (Context.IsEdit ? "Edit" : "Regular"))</strong>
+            </div>
+        </div>
 
         @if (!string.IsNullOrEmpty(Context.Description))
         {
-            <div class="wizard-review-notes rz-mt-3">
+            <div class="wizard-review-notes">
                 <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">Notes</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
             </div>
@@ -33,7 +54,7 @@
     }
     else
     {
-        <div class="vpp-data-card" style="padding: 0; overflow: hidden;">
+        <div class="vpp-data-card vpp-wizard-panel-card">
             <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
                             Data="@Context.SelectedItems"
                             AllowPaging="false"
@@ -64,6 +85,11 @@
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
+
+            <div class="vpp-wizard-panel-card-foot vpp-wizard-selection-foot">
+                <span>You can still adjust quantity or remove a line here before the final submit action.</span>
+                <strong>@($"{Context.SelectedItems.Count} item(s)")</strong>
+            </div>
         </div>
     }
 </div>

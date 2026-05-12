@@ -69,18 +69,19 @@
         @* ── Orders Content ─────────────────────────────────────────── *@
         @if (IsLoading)
         {
-            <SkeletonStatCards Cards="4" />
-            <SkeletonGrid Rows="5" Cols="4" />
+            <SkeletonPage Cards="4" Rows="5" Cols="4" />
         }
         else
         {
             @if (ActiveOrders == null || !ActiveOrders.Any())
             {
-                <div class="vpp-empty-state">
-                    <span class="vpp-empty-state-icon rzi rzi-inbox"></span>
-                    <div class="vpp-empty-state-title">No orders found</div>
-                    <div class="vpp-empty-state-desc">No orders for the current period.</div>
-                </div>
+                <VppEmptyState Icon="inventory_2"
+                               Title="No orders found"
+                               Description="No orders were submitted for the current period yet."
+                               PrimaryText="Create new order"
+                               PrimaryAction="@(async _ => await GoToCreatePage(false))"
+                               SecondaryText="Copy previous order"
+                               SecondaryAction="@(async _ => await CopyPreviousAsync())" />
             }
             else
             {
@@ -103,9 +104,12 @@
 
             @if (PreviousOrders == null || !PreviousOrders.Any())
             {
-                <div class="vpp-empty-state" style="padding: var(--vpp-space-8) var(--vpp-space-4);">
-                    <div class="vpp-empty-state-desc">No orders found for the previous period.</div>
-                </div>
+                <VppEmptyState Icon="history"
+                               Title="No previous-period orders"
+                               Description="No regular orders were found for the previous cycle."
+                               PrimaryText="Request additional"
+                               PrimaryAction="@(async _ => await GoToCreatePage(true))"
+                               Class="rz-mt-3" />
             }
             else
             {
@@ -141,7 +145,7 @@
 @code {
     private RenderFragment<VPP01_RequestHeaderResDTO> RenderOrderCard => order => __builder =>
     {
-        <div class="vpp-data-card">
+        <div class="vpp-data-card vpp-data-card-grid-shell">
             <div class="vpp-data-card-header">
                 <div>
                     <div class="vpp-data-card-title">

@@ -11,7 +11,7 @@ public class OrderCreateContext
     public Guid? CopyFromId { get; set; }
     public bool IsAdditional { get; set; }
     public bool IsEdit => EditOrderId.HasValue;
-    public bool IsCopy => CopyFromId.HasValue;
+    public bool IsCopy => string.Equals(Mode, "copy", StringComparison.OrdinalIgnoreCase) || CopyFromId.HasValue;
 
     public string? Description { get; set; }
     public List<SelectedItem> SelectedItems { get; set; } = new();

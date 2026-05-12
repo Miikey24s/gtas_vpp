@@ -13,7 +13,7 @@
         @* ── KPI Summary ────────────────────────────────────── *@
         @if (IsLoading)
         {
-            <SkeletonStatCards Cards="3" />
+            <SkeletonPage Cards="3" Rows="6" Cols="7" />
         }
         else
         {
@@ -54,11 +54,11 @@
         @* ── DataGrid ───────────────────────────────────────── *@
         @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
         {
-            <div class="vpp-empty-state">
-                <span class="vpp-empty-state-icon rzi rzi-business"></span>
-                <div class="vpp-empty-state-title">@Loc["NoData"]</div>
-                <div class="vpp-empty-state-desc">No department orders found for the selected filters.</div>
-            </div>
+            <VppEmptyState Icon="business"
+                           Title="@Loc["NoData"]"
+                           Description="No department orders found for the selected filters."
+                           PrimaryText="Reload summary"
+                           PrimaryAction="@(async _ => await ReloadAsync())" />
         }
         else
         {
@@ -157,9 +157,7 @@
 }
 else
 {
-    <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
-        <span class="vpp-empty-state-icon rzi rzi-lock"></span>
-        <div class="vpp-empty-state-title">Access Denied</div>
-        <div class="vpp-empty-state-desc">You do not have permission to view the Department Summary tab.</div>
-    </div>
+    <VppEmptyState Icon="lock"
+                   Title="Access denied"
+                   Description="You do not have permission to view the Department Summary tab." />
 }

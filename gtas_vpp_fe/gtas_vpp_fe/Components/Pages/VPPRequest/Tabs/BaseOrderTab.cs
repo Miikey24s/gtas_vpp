@@ -26,7 +26,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     {
         // ─── Injected services (base-owned; derived razor/cs can use directly) ───
         [Inject] protected IAPIServices _apiServices { get; set; } = default!;
-        [Inject] protected GlobalClass glb { get; set; } = default!;
         [Inject] protected NotificationService NotificationService { get; set; } = default!;
 
         // ─── Cascaded from the host page ─────────────────────────────────────
@@ -121,7 +120,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (_isFirstLoad)
             {
                 IsLoading = true;
-                glb.isBusyPage = true;
             }
             else
             {
@@ -156,7 +154,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 if (_isFirstLoad)
                 {
-                    glb.isBusyPage = false;
                     _isFirstLoad = false;
                 }
                 IsLoading = false;
