@@ -6,9 +6,9 @@
 
 <div class="vpp-header-controls">
     @* Language Toggle *@
-    <button class="vpp-ctrl-btn" @onclick="OnLanguageToggle" title="@Loc["Language"]">
+    <button class="vpp-ctrl-btn" @onclick="OnLanguageToggle" title="@LanguageToggleTitle" aria-label="@LanguageToggleTitle">
         <span style="font-size:0.7rem; font-weight:700;">
-            @(CultureInfo.CurrentCulture.Name.StartsWith("en") ? "VI" : "EN")
+            @LanguageToggleCode
         </span>
     </button>
 
@@ -21,9 +21,9 @@
     </AuthorizeView>
 
     @* Dark Mode Toggle *@
-    <button class="vpp-ctrl-btn" @onclick="OnThemeToggle" title="@(IsLightTheme ? "Dark mode" : "Light mode")">
+    <button class="vpp-ctrl-btn" @onclick="OnThemeToggle" title="@ThemeToggleTitle" aria-label="@ThemeToggleTitle">
         <span class="material-symbols-outlined" style="font-size:1.15rem;">
-            @(IsLightTheme ? "dark_mode" : "light_mode")
+            @ThemeToggleIcon
         </span>
     </button>
 </div>
@@ -40,4 +40,14 @@
         glb.IsAIEnabled = value;
         await OnAIToggleChange.InvokeAsync(value);
     }
+
+    private bool IsEnglishUi => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+
+    private string LanguageToggleCode => IsEnglishUi ? "VI" : "EN";
+
+    private string LanguageToggleTitle => IsEnglishUi ? Loc["SwitchToVietnamese"] : Loc["SwitchToEnglish"];
+
+    private string ThemeToggleTitle => IsLightTheme ? Loc["SwitchToDarkMode"] : Loc["SwitchToLightMode"];
+
+    private string ThemeToggleIcon => IsLightTheme ? "dark_mode" : "light_mode";
 }

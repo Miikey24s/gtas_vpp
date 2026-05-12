@@ -178,9 +178,50 @@
     border-inline-end: none;
 }
 
+/* Keep shared VPP grids visually consistent when header text and cell data
+   are meant to follow the same left/center/right alignment. */
+.vpp-order-grid .rz-grid-table thead th.rz-text-align-left .rz-column-title,
+.vpp-wizard-panel-card .rz-grid-table thead th.rz-text-align-left .rz-column-title {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.vpp-order-grid .rz-grid-table thead th.rz-text-align-center .rz-column-title,
+.vpp-wizard-panel-card .rz-grid-table thead th.rz-text-align-center .rz-column-title {
+    justify-content: center;
+    text-align: center;
+}
+
+.vpp-order-grid .rz-grid-table thead th.rz-text-align-right .rz-column-title,
+.vpp-wizard-panel-card .rz-grid-table thead th.rz-text-align-right .rz-column-title {
+    justify-content: flex-end;
+    text-align: right;
+}
+
 .vpp-order-grid .rz-grid-table td,
 .vpp-wizard-panel-card .rz-grid-table td {
     border-bottom-color: var(--vpp-border-default);
+}
+
+.vpp-order-grid .rz-grid-table td.rz-text-align-left,
+.vpp-wizard-panel-card .rz-grid-table td.rz-text-align-left,
+.vpp-order-grid .rz-grid-table td.rz-text-align-left .rz-cell-data,
+.vpp-wizard-panel-card .rz-grid-table td.rz-text-align-left .rz-cell-data {
+    text-align: left;
+}
+
+.vpp-order-grid .rz-grid-table td.rz-text-align-center,
+.vpp-wizard-panel-card .rz-grid-table td.rz-text-align-center,
+.vpp-order-grid .rz-grid-table td.rz-text-align-center .rz-cell-data,
+.vpp-wizard-panel-card .rz-grid-table td.rz-text-align-center .rz-cell-data {
+    text-align: center;
+}
+
+.vpp-order-grid .rz-grid-table td.rz-text-align-right,
+.vpp-wizard-panel-card .rz-grid-table td.rz-text-align-right,
+.vpp-order-grid .rz-grid-table td.rz-text-align-right .rz-cell-data,
+.vpp-wizard-panel-card .rz-grid-table td.rz-text-align-right .rz-cell-data {
+    text-align: right;
 }
 
 .vpp-order-grid .rz-grid-table td:not(:last-child),

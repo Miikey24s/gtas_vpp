@@ -96,6 +96,11 @@ namespace gtas_vpp_fe.Components.Layout
             // Set cookie chỉ khi không prerendering
             if (!_isPrerendering)
             {
+                var themeClassScript = LightTheme
+                    ? "document.documentElement.classList.remove('rz-theme-dark');"
+                    : "document.documentElement.classList.add('rz-theme-dark');";
+
+                await JSRuntime.InvokeVoidAsync("eval", themeClassScript);
                 await JSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'VPPTheme={newTheme}; path=/; max-age=31536000'");
             }
         }
@@ -163,8 +168,8 @@ namespace gtas_vpp_fe.Components.Layout
 
         public async Task ToggleLanguage()
         {
-            var currentCulture = CultureInfo.CurrentCulture.Name;
-            var newCulture = currentCulture.StartsWith("en") ? "vi" : "en";
+            var currentCulture = CultureInfo.CurrentUICulture.Name;
+            var newCulture = currentCulture.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "vi" : "en";
             
             await ProtectedLocalStore.SetAsync("VPP_Language", newCulture);
             NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);

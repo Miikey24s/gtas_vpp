@@ -90,7 +90,7 @@
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="row">@(CurrentSkip + PendingOrders.IndexOf(row) + 1)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="@Loc["OrderCode"]" MinWidth="160px">
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="@Loc["OrderCode"]" MinWidth="160px" TextAlign="TextAlign.Left">
                             <Template Context="row">
                                 <span class="vpp-link-text">@row.VPPCode</span>
                             </Template>

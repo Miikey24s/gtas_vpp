@@ -11,6 +11,7 @@
 
 /* ── Panel Menu Item — Base ──────────────────────────────────── */
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
+    border: 1px solid transparent;
     border-radius: var(--vpp-radius-md);
     margin: 2px var(--vpp-space-2);
     transition: background-color var(--vpp-transition-fast),
@@ -40,18 +41,20 @@
 
 /* Hover — subtle background + micro-slide */
 .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
-    background-color: rgba(255, 255, 255, 0.04);
+    background-color: rgba(14, 165, 233, 0.06);
+    border-color: rgba(14, 165, 233, 0.12);
     transform: translateX(2px);
 }
 
 :root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(14, 165, 233, 0.08);
 }
 
 /* Active item background — F-40: primary-500 tinted at 15% alpha (0x26).
    rgba() form kept (instead of color-mix) for broadest browser support. */
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper {
     background-color: rgba(14, 165, 233, 0.15);
+    border-color: rgba(14, 165, 233, 0.18);
 }
 
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper:hover {
@@ -66,6 +69,11 @@
 
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon {
     color: var(--vpp-primary-400);
+}
+
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text {
+    color: var(--vpp-primary-700);
 }
 
 .rz-navigation-item.ppjsidebarmenu:hover .rzi.rz-navigation-item-icon {
@@ -159,7 +167,7 @@
 
 /* Collapsed: hover effect on icons */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
-    background: rgba(0, 0, 0, 0.04) !important;
+    background: rgba(14, 165, 233, 0.08) !important;
     border-radius: var(--vpp-radius-md);
 }
 

@@ -1,8 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   VPP DESIGN TOKEN FOUNDATION — Phase 1
-   Modern Playful | Bright Blue/Teal | Dark Mode Default
-   Reference: Linear.app, Vercel Dashboard
-   ═══════════════════════════════════════════════════════════════════════════ */
+    VPP DESIGN TOKEN FOUNDATION — Phase 1
+    Enterprise Modern | Sky Blue/Teal | Light Mode Default
+    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Self-hosted fonts (F-31) ────────────────────────────────────
    Inter (sans display/body) + JetBrains Mono (code) shipped from
@@ -82,7 +81,7 @@
     --vpp-tracking-wide: 0.02em;
 }
 
-/* ── Colors: Dark Mode (default) ──────────────────────────────── */
+/* ── Colors: Dark Mode ───────────────────────────────────────── */
 :root,
 .rz-theme-dark {
     /* Primary — Bright Blue */
@@ -118,14 +117,14 @@
     /* Background Layers */
     --vpp-bg-base: #0A0A0A;
     --vpp-bg-elevated: #141414;
-    --vpp-bg-surface: #1A1A1A;
+    --vpp-bg-surface: #1C2128;
     --vpp-bg-overlay: rgba(0, 0, 0, 0.6);
     --vpp-bg-tooltip: #27272A;
 
     /* Text */
     --vpp-text-primary: #FAFAFA;
-    --vpp-text-secondary: #A1A1AA;
-    --vpp-text-tertiary: #71717A;
+    --vpp-text-secondary: #B5BDC9;
+    --vpp-text-tertiary: #7A869A;
     --vpp-text-inverse: #0A0A0A;
     --vpp-text-on-surface: #FFFFFF;
     --vpp-text-link: var(--vpp-primary-400);
@@ -138,21 +137,21 @@
 
 /* ── Colors: Light Mode ───────────────────────────────────────── */
 :root:not(.rz-theme-dark) {
-    --vpp-bg-base: #FAFAFA;
+    --vpp-bg-base: #F7F8F9;
     --vpp-bg-elevated: #FFFFFF;
-    --vpp-bg-surface: #F4F4F5;
+    --vpp-bg-surface: #FFFFFF;
     --vpp-bg-overlay: rgba(0, 0, 0, 0.4);
     --vpp-bg-tooltip: #18181B;
 
-    --vpp-text-primary: #18181B;
-    --vpp-text-secondary: #52525B;
-    --vpp-text-tertiary: #A1A1AA;
+    --vpp-text-primary: #172B4D;
+    --vpp-text-secondary: #44526C;
+    --vpp-text-tertiary: #6B778C;
     --vpp-text-inverse: #FAFAFA;
     --vpp-text-on-surface: #FFFFFF;
     --vpp-text-link: var(--vpp-primary-600);
 
-    --vpp-border-default: rgba(0, 0, 0, 0.08);
-    --vpp-border-strong: rgba(0, 0, 0, 0.12);
+    --vpp-border-default: rgba(9, 30, 66, 0.08);
+    --vpp-border-strong: rgba(9, 30, 66, 0.14);
 }
 
 /* ── Spacing Scale (4px base) ─────────────────────────────────── */
@@ -185,18 +184,18 @@
 /* ── Border Radius ────────────────────────────────────────────── */
 :root {
     --vpp-radius-none: 0;
-    --vpp-radius-sm: 6px;
-    --vpp-radius-md: 10px;
-    --vpp-radius-lg: 14px;
-    --vpp-radius-xl: 18px;
-    --vpp-radius-2xl: 24px;
+    --vpp-radius-sm: 4px;
+    --vpp-radius-md: 6px;
+    --vpp-radius-lg: 8px;
+    --vpp-radius-xl: 10px;
+    --vpp-radius-2xl: 12px;
     --vpp-radius-full: 9999px;
 
     /* Component-specific */
-    --vpp-radius-card: var(--vpp-radius-lg);
+    --vpp-radius-card: var(--vpp-radius-md);
     --vpp-radius-button: var(--vpp-radius-md);
     --vpp-radius-input: var(--vpp-radius-md);
-    --vpp-radius-modal: var(--vpp-radius-xl);
+    --vpp-radius-modal: 8px;
     --vpp-radius-badge: var(--vpp-radius-full);
     --vpp-radius-avatar: var(--vpp-radius-full);
 }

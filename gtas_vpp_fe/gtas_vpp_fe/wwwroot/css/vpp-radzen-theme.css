@@ -113,6 +113,12 @@
     --rz-border-radius-lg: var(--vpp-radius-lg);
     --rz-border-radius-sm: var(--vpp-radius-sm);
     --rz-input-border-radius: var(--vpp-radius-input);
+    --rz-dialog-border-radius: var(--vpp-radius-modal);
+    --rz-card-border-radius: var(--vpp-radius-card);
+    --rz-panel-border-radius: var(--vpp-radius-card);
+    --rz-grid-border-radius: var(--vpp-radius-card);
+    --rz-button-border-radius: var(--vpp-radius-button);
+    --rz-notification-border-radius: var(--vpp-radius-md);
 }
 
 /* ── Shadows ──────────────────────────────────────────────────── */
@@ -121,6 +127,13 @@
     --rz-panel-shadow: var(--vpp-shadow-md);
     --rz-card-shadow: var(--vpp-shadow-sm);
     --rz-dialog-shadow: var(--vpp-shadow-xl);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-shadow: var(--vpp-shadow-xs);
+    --rz-panel-shadow: var(--vpp-shadow-sm);
+    --rz-card-shadow: var(--vpp-shadow-xs);
+    --rz-dialog-shadow: var(--vpp-shadow-lg);
 }
 
 /* ── Typography ───────────────────────────────────────────────── */
@@ -152,8 +165,25 @@
     --rz-navigation-item-icon-active-color: var(--vpp-primary-400);
 }
 
+:root:not(.rz-theme-dark) {
+    --rz-sidebar-background-color: var(--vpp-bg-elevated);
+    --rz-sidebar-border: 1px solid var(--vpp-border-default);
+    --rz-navigation-item-color: var(--vpp-text-secondary);
+    --rz-navigation-item-hover-background-color: rgba(14, 165, 233, 0.06);
+    --rz-navigation-item-hover-color: var(--vpp-text-primary);
+    --rz-navigation-item-active-background-color: rgba(14, 165, 233, 0.08);
+    --rz-navigation-item-active-color: var(--vpp-primary-700);
+    --rz-navigation-item-icon-color: var(--vpp-text-tertiary);
+    --rz-navigation-item-icon-active-color: var(--vpp-primary-700);
+}
+
 /* ── Header ───────────────────────────────────────────────────── */
 .rz-theme-dark {
+    --rz-header-background-color: transparent;
+    --rz-header-color: var(--vpp-text-primary);
+}
+
+:root:not(.rz-theme-dark) {
     --rz-header-background-color: transparent;
     --rz-header-color: var(--vpp-text-primary);
 }
@@ -162,10 +192,28 @@
 .rz-theme-dark {
     --rz-grid-header-background-color: var(--vpp-bg-surface);
     --rz-grid-header-color: var(--vpp-text-secondary);
+    --rz-grid-background-color: var(--vpp-bg-elevated);
     --rz-grid-cell-color: var(--vpp-text-primary);
     --rz-grid-stripe-background-color: rgba(255, 255, 255, 0.02);
     --rz-grid-hover-background-color: rgba(14, 165, 233, 0.05);
     --rz-grid-selected-background-color: rgba(14, 165, 233, 0.08);
+    --rz-grid-hover-color: var(--vpp-text-primary);
+    --rz-grid-selected-color: var(--vpp-text-primary);
+    --rz-grid-border-color: var(--vpp-border-default);
+    --rz-grid-cell-font-size: var(--vpp-text-sm);
+    --rz-grid-header-font-size: var(--vpp-text-xs);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-grid-header-background-color: #F7FAFC;
+    --rz-grid-header-color: var(--vpp-text-secondary);
+    --rz-grid-background-color: var(--vpp-bg-elevated);
+    --rz-grid-cell-color: var(--vpp-text-primary);
+    --rz-grid-stripe-background-color: rgba(14, 165, 233, 0.025);
+    --rz-grid-hover-background-color: rgba(14, 165, 233, 0.05);
+    --rz-grid-selected-background-color: rgba(14, 165, 233, 0.08);
+    --rz-grid-hover-color: var(--vpp-text-primary);
+    --rz-grid-selected-color: var(--vpp-text-primary);
     --rz-grid-border-color: var(--vpp-border-default);
     --rz-grid-cell-font-size: var(--vpp-text-sm);
     --rz-grid-header-font-size: var(--vpp-text-xs);
@@ -179,9 +227,22 @@
     --rz-button-border-radius: var(--vpp-radius-button);
 }
 
+:root:not(.rz-theme-dark) {
+    --rz-button-primary-background-color: var(--vpp-primary-600);
+    --rz-button-primary-hover-background-color: var(--vpp-primary-700);
+    --rz-button-primary-active-background-color: var(--vpp-primary-800);
+    --rz-button-border-radius: var(--vpp-radius-button);
+}
+
 /* ── Dialog ───────────────────────────────────────────────────── */
-.rz-theme-dark {
+.rz-theme-dark,
+:root:not(.rz-theme-dark) {
     --rz-dialog-border-radius: var(--vpp-radius-modal);
+    --rz-dialog-title-background-color: var(--rz-dialog-background-color);
+    --rz-dialog-title-border: 1px solid var(--vpp-border-default);
+    --rz-dialog-title-padding-block: 1rem 0.875rem;
+    --rz-dialog-title-padding-inline: 1.25rem;
+    --rz-dialog-content-padding: 1.25rem;
 }
 
 /* ── Badge ────────────────────────────────────────────────────── */
@@ -190,13 +251,37 @@
     --rz-badge-font-size: var(--vpp-text-xs);
 }
 
+:root:not(.rz-theme-dark) {
+    --rz-badge-background-color: var(--vpp-primary-600);
+    --rz-badge-font-size: var(--vpp-text-xs);
+}
+
 /* ── Switch / Toggle ──────────────────────────────────────────── */
 .rz-theme-dark {
     --rz-switch-checked-background-color: var(--vpp-primary-500);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-switch-checked-background-color: var(--vpp-primary-600);
 }
 
 /* ── Tooltip ──────────────────────────────────────────────────── */
 .rz-theme-dark {
     --rz-tooltip-background-color: var(--vpp-bg-surface);
     --rz-tooltip-color: var(--vpp-text-primary);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-tooltip-background-color: var(--vpp-bg-tooltip);
+    --rz-tooltip-color: var(--vpp-text-inverse);
+}
+
+.rz-dialog,
+.rz-dialog-side {
+    border: 1px solid var(--vpp-border-default);
+}
+
+.rz-dialog-confirm,
+.rz-dialog-alert {
+    margin: 0;
 }

@@ -33,6 +33,7 @@
     z-index: var(--vpp-z-header);
     display: flex;
     align-items: center;
+    min-width: 0;
     padding: 0 var(--vpp-space-6);
 }
 
@@ -40,22 +41,27 @@
     grid-area: body;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: var(--vpp-space-6);
+    min-width: 0;
+    padding: var(--vpp-space-4) var(--vpp-space-5);
     background-color: var(--vpp-bg-base);
 }
 
 /* ── Glass Header ─────────────────────────────────────────────── */
 .vpp-header-glass {
-    background: rgba(26, 26, 26, 0.65);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--vpp-border-default);
 }
 
+.rz-theme-dark .vpp-header-glass {
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
 :root:not(.rz-theme-dark) .vpp-header-glass {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 1px 0 rgba(9, 30, 66, 0.05);
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
@@ -119,10 +125,18 @@
     height: 36px;
     border-radius: var(--vpp-radius-full);
     border: 1px solid var(--vpp-border-default);
-    background: transparent;
+    background: var(--vpp-bg-elevated);
     color: var(--vpp-text-secondary);
     cursor: pointer;
     transition: all var(--vpp-transition-fast);
+}
+
+.rz-theme-dark .vpp-ctrl-btn {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+:root:not(.rz-theme-dark) .vpp-ctrl-btn {
+    background: rgba(255, 255, 255, 0.88);
 }
 
 .vpp-ctrl-btn:hover {
@@ -151,7 +165,9 @@
     min-height: 36px;
     justify-content: center;
     padding: 2px var(--vpp-space-2);
+    border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-full);
+    background: var(--vpp-bg-elevated);
     transition: all var(--vpp-transition-base);
 }
 
@@ -172,6 +188,7 @@
 /* ── Content Area ──────────────────────────────────────────────── */
 .vpp-content {
     width: 100%;
+    min-width: 0;
 }
 
 /* ── Page Title ────────────────────────────────────────────────── */

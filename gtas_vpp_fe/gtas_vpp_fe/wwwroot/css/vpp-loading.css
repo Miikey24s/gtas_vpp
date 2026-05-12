@@ -14,10 +14,21 @@
 }
 
 .vpp-empty-state-shell {
-    min-height: 240px;
-    border: 1px dashed rgba(14, 165, 233, 0.24);
+    position: relative;
+    min-height: 220px;
+    overflow: hidden;
+    border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-md);
-    background: linear-gradient(180deg, rgba(14, 165, 233, 0.05) 0%, var(--vpp-bg-surface) 100%);
+    background: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(14, 165, 233, 0.025) 32%, transparent 100%), var(--vpp-bg-elevated);
+}
+
+:root:not(.rz-theme-dark) .vpp-empty-state-shell {
+    background: linear-gradient(180deg, rgba(14, 165, 233, 0.06) 0%, rgba(14, 165, 233, 0.018) 34%, transparent 100%), var(--vpp-bg-elevated);
+}
+
+.vpp-empty-state-shell > * {
+    position: relative;
+    z-index: 1;
 }
 
 .vpp-empty-state-shell .vpp-empty-state-icon {
@@ -27,7 +38,8 @@
     width: 4.5rem;
     height: 4.5rem;
     border-radius: 999px;
-    background: rgba(14, 165, 233, 0.08);
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(14, 165, 233, 0.16);
     color: var(--vpp-primary-600);
     opacity: 1;
 }
@@ -45,7 +57,7 @@
 }
 
 .vpp-empty-state-link {
-    color: var(--vpp-primary-700);
+    color: var(--vpp-text-link);
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-semibold);
     text-decoration: none;
@@ -53,7 +65,7 @@
 }
 
 .vpp-empty-state-link:hover {
-    color: var(--vpp-primary-800);
+    color: var(--vpp-primary-700);
     text-decoration: underline;
 }
 

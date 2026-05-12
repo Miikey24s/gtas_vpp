@@ -32,7 +32,7 @@ ul[role="tablist"]::-webkit-scrollbar {
     color: var(--vpp-text-secondary);
     border: none !important;
     background: transparent !important;
-    border-radius: var(--vpp-radius-md) var(--vpp-radius-md) 0 0;
+    border-radius: var(--vpp-radius-md);
     position: relative;
     transition: color var(--vpp-transition-fast),
                 background-color var(--vpp-transition-fast);
@@ -55,9 +55,15 @@ ul[role="tablist"]::-webkit-scrollbar {
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
 .rz-tabs-item.rz-state-active,
 .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    background: rgba(14, 165, 233, 0.08) !important;
     color: var(--vpp-primary-400) !important;
     font-weight: var(--vpp-font-weight-semibold);
-    background: transparent !important;
+}
+
+:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
+:root:not(.rz-theme-dark) .rz-tabs-item.rz-state-active,
+:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    color: var(--vpp-primary-700) !important;
 }
 
 /* Active underline — smooth animated bar */
@@ -81,7 +87,10 @@ ul[role="tablist"]::-webkit-scrollbar {
 
 /* ── Tab Content Divider — subtle bottom border ──────────────── */
 .rz-tabview-nav-container {
+    padding: 0 var(--vpp-space-1);
     border-bottom: 1px solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+    border-radius: var(--vpp-radius-md);
 }
 
 /* ── Tab Panel — clean spacing ───────────────────────────────── */
@@ -110,7 +119,7 @@ ul[role="tablist"]::-webkit-scrollbar {
     top: 0;
     bottom: 0;
     width: 32px;
-    background: linear-gradient(to right, transparent, var(--vpp-bg-surface));
+    background: linear-gradient(to right, transparent, var(--vpp-bg-elevated));
     pointer-events: none;
     opacity: 0;
     transition: opacity var(--vpp-transition-fast);

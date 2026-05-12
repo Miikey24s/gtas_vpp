@@ -10,7 +10,7 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-3 order-page" Style="width: 100%; max-width: none; margin: 0;">
+    <RadzenStack Gap="1rem" class="rz-p-0 order-page" Style="width: 100%; max-width: none; margin: 0;">
         @* ── Action Buttons ─────────────────────────────────────────── *@
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
@@ -148,22 +148,22 @@
         <div class="vpp-data-card vpp-data-card-grid-shell">
             <div class="vpp-data-card-header">
                 <div>
-                    <div class="vpp-data-card-title">
-                        <span class="rzi rzi-description" style="margin-right: 4px; opacity: 0.6;"></span>
-                        @Loc["OrderCodeLabel"] @order.VPPCode
-                        @if (order.IsAdditionalOrder)
-                        {
-                            <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" class="rz-ml-2" />
-                        }
-                    </div>
-                    <div class="vpp-data-card-meta">
-                        <span class="vpp-data-card-meta-item">
-                            <span class="rzi rzi-schedule"></span>
-                            @Loc["SubmittedLabel"] @DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate)
-                        </span>
+                    <div class="vpp-data-card-summary">
+                        <span class="rzi rzi-description vpp-data-card-summary-icon" aria-hidden="true"></span>
+                        <span class="vpp-data-card-label">@Loc["OrderCodeLabel"]</span>
+                        <div class="vpp-data-card-value-row">
+                            <span class="vpp-data-card-value">@order.VPPCode</span>
+                            @if (order.IsAdditionalOrder)
+                            {
+                                <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                            }
+                        </div>
+                        <span class="rzi rzi-schedule vpp-data-card-summary-icon" aria-hidden="true"></span>
+                        <span class="vpp-data-card-label">@Loc["SubmittedLabel"]</span>
+                        <span class="vpp-data-card-value">@DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate)</span>
                     </div>
                 </div>
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="vpp-data-card-actions">
                     <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@Loc[StatusDisplay.GetResourceKey(order.Status, order.IsDeadlinePassed, order.IsAdditionalOrder)]</span>
                     @if (CanEditOrDelete(order))
                     {
