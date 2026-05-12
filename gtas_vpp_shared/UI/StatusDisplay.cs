@@ -13,6 +13,19 @@ namespace gtas_vpp_shared.UI
     /// </summary>
     public static class StatusDisplay
     {
+        public static string GetResourceKey(int status, bool isDeadlinePassed = false, bool isAdditionalOrder = false) =>
+            status == 1 && isDeadlinePassed && !isAdditionalOrder
+                ? "SubmittedPeriodClosed"
+                : status switch
+                {
+                    1 => "Submitted",
+                    4 => "Cancelled",
+                    6 => "Pending",
+                    7 => "Approved",
+                    8 => "Rejected",
+                    _ => "StatusUnknown"
+                };
+
         public static string GetText(int status) => status switch
         {
             1 => "Submitted",
