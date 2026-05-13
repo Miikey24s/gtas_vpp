@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -13,7 +14,17 @@ namespace gtas_vpp_fe.Components.Layout
 {
     public partial class LeftSidebar : IDisposable
     {
+        private const string BrowserThemeScript = """
+            (() => {
+                const match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
+                const theme = match ? decodeURIComponent(match[1]) : 'material3';
+                document.documentElement.classList.toggle('rz-theme-dark', theme.includes('dark'));
+                return theme;
+            })()
+            """;
+
         [Inject] public ThemeService ThemeService { get; set; } = default!;
+        [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [CascadingParameter] public HttpContext? HttpContext { get; set; }
@@ -68,6 +79,7 @@ namespace gtas_vpp_fe.Components.Layout
                 await LoadStateAsync();
                 await LoadAIStateAsync();
                 StateHasChanged();
+                return;
             }
         }
         protected async Task LoadStateAsync()
@@ -91,6 +103,7 @@ namespace gtas_vpp_fe.Components.Layout
             LightTheme = !LightTheme;
             var newTheme = LightTheme ? "material3" : "material3-dark";
             
+            ThemeState.SetTheme(newTheme);
             ThemeService.SetTheme(newTheme);
             
             // Set cookie chỉ khi không prerendering
@@ -119,22 +132,46 @@ namespace gtas_vpp_fe.Components.Layout
         {
             try
             {
-                // Đọc theme từ cookie thông qua HttpContext
                 string? themeCookie = null;
-                if (HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out themeCookie))
+
+                if (!_isPrerendering)
                 {
-                    ThemeService.SetTheme(themeCookie);
-                    LightTheme = themeCookie == "material3";
+                    themeCookie = await GetBrowserThemeAsync();
                 }
-                else
+
+                if (string.IsNullOrWhiteSpace(themeCookie) && HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var requestTheme))
                 {
-                    ThemeService.SetTheme("material3");
-                    LightTheme = true;
+                    themeCookie = requestTheme;
                 }
+
+                if (string.IsNullOrWhiteSpace(themeCookie))
+                {
+                    themeCookie = "material3";
+                }
+
+                ThemeState.SetTheme(themeCookie);
+                ThemeService.SetTheme(themeCookie);
+                LightTheme = themeCookie == "material3";
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error loading theme: {ex.Message}");
+            }
+        }
+
+        private async Task<string?> GetBrowserThemeAsync()
+        {
+            try
+            {
+                return await JSRuntime.InvokeAsync<string>("eval", BrowserThemeScript);
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+            catch (JSDisconnectedException)
+            {
+                return null;
             }
         }
 

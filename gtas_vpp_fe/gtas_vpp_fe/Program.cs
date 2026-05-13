@@ -40,6 +40,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddRadzenComponents();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
+builder.Services.AddScoped<ThemeState>();
 builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
 builder.Services.AddSingleton<LoginTicketCache>();

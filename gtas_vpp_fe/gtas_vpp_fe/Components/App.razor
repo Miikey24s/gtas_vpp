@@ -1,5 +1,8 @@
+@using gtas_vpp_fe.Services
+@implements IDisposable
+
 <!DOCTYPE html>
-<html lang="@_htmlLang">
+<html lang="@_htmlLang" class="@HtmlThemeClass">
 
 <head>
     <meta charset="utf-8" />
@@ -42,7 +45,7 @@
         })();
     </script>
     <HeadOutlet />
-    <RadzenTheme Theme="@currentTheme"/>
+    <RadzenTheme Theme="@ThemeState.CurrentTheme"/>
 </head>
 
 <body>
@@ -58,18 +61,36 @@
 
 </html>
 @code {
+    private const string BrowserThemeScript = """
+        (() => {
+            const match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
+            const theme = match ? decodeURIComponent(match[1]) : 'material3';
+            document.documentElement.classList.toggle('rz-theme-dark', theme.includes('dark'));
+            return theme;
+        })()
+        """;
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
     [Inject]
     private ThemeService ThemeService { get; set; } = default!;
 
-    private string currentTheme = "material3";
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private ThemeState ThemeState { get; set; } = default!;
+
     private string _htmlLang = "vi";
+
+    private string HtmlThemeClass => ThemeState.IsDark ? "rz-theme-dark" : string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        ThemeState.Changed += OnThemeChanged;
         
         var cultureFeature = HttpContext?.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
         if (cultureFeature != null)
@@ -80,7 +101,45 @@
         // Đọc theme từ cookie
         if (HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var themeCookie))
         {
-            currentTheme = themeCookie;
+            ThemeState.SetTheme(themeCookie);
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var browserTheme = await GetBrowserThemeAsync();
+        if (string.IsNullOrWhiteSpace(browserTheme) || string.Equals(browserTheme, ThemeState.CurrentTheme, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        ThemeState.SetTheme(browserTheme);
+        ThemeService.SetTheme(ThemeState.CurrentTheme);
+    }
+
+    private void OnThemeChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<string?> GetBrowserThemeAsync()
+    {
+        try
+        {
+            return await JS.InvokeAsync<string>("eval", BrowserThemeScript);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+        catch (JSDisconnectedException)
+        {
+            return null;
+        }
+    }
+
+    public void Dispose()
+    {
+        ThemeState.Changed -= OnThemeChanged;
     }
 }
