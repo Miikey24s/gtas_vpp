@@ -1,11 +1,11 @@
-{
-  "servers": {
-    "radzen-blazor": {
-      "type": "http",
-      "url": "https://app.radzen.com/mcp",
-      "headers": {
-        "X-Radzen-Key": "f26dc111b2b524df46ef3da9802fcece388a544ec87eb6b770ab5f52279965f0"
-      }
-    }
-  }
-}
+// {
+//   "servers": {
+//     "radzen-blazor": {
+//       "type": "http",
+//       "url": "https://app.radzen.com/mcp",
+//       "headers": {
+//         "X-Radzen-Key": ""
+//       }
+//     }
+//   }
+// }
