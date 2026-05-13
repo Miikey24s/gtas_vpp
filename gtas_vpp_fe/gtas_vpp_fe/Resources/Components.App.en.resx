@@ -78,8 +78,8 @@
   <data name="AllOrdersSummary" xml:space="preserve"><value>All Orders</value></data>
   <data name="AdminApproval" xml:space="preserve"><value>Additional Approval</value></data>
   <data name="ClassDefinitions" xml:space="preserve"><value>Class Definitions</value></data>
-  <data name="OperationCategories" xml:space="preserve"><value>Operation Categories</value></data>
-  <data name="Operations" xml:space="preserve"><value>Operations</value></data>
+  <data name="OperationCategories" xml:space="preserve"><value>Categories</value></data>
+  <data name="Operations" xml:space="preserve"><value>Items</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
   <data name="Departments" xml:space="preserve"><value>Departments</value></data>
   <data name="AIChat" xml:space="preserve"><value>AI Chat</value></data>

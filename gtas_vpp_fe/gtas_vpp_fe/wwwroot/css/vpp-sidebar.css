@@ -108,6 +108,10 @@
 }
 
 /* ── Collapsed Sidebar ───────────────────────────────────────── */
+:root:not(.rz-theme-dark) .vpp-sidebar.sidebar-collapsed {
+    background-color: var(--vpp-bg-base);
+}
+
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
     justify-content: center;
     align-items: center;

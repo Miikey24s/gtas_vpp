@@ -163,7 +163,7 @@
                         <span class="vpp-data-card-value">@DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate)</span>
                     </div>
                 </div>
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" class="vpp-data-card-actions">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem" class="vpp-data-card-actions">
                     <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@Loc[StatusDisplay.GetResourceKey(order.Status, order.IsDeadlinePassed, order.IsAdditionalOrder)]</span>
                     @if (CanEditOrDelete(order))
                     {

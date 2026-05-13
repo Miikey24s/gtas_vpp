@@ -46,15 +46,36 @@
     background-color: var(--vpp-bg-base);
 }
 
+.rz-layout.vpp-layout > .rz-body.vpp-layout-body {
+    margin: 0 var(--vpp-space-3) var(--vpp-space-3);
+    padding: var(--vpp-space-4);
+    background-color: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
 /* ── Glass Header ─────────────────────────────────────────────── */
 .vpp-header-glass {
     border-bottom: 1px solid var(--vpp-border-default);
 }
 
 .rz-theme-dark .vpp-header-glass {
-    background: rgba(10, 10, 10, 0.9);
+    background: rgba(28, 33, 40, 0.9);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(16px) saturate(160%);
     -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+.rz-theme-dark .vpp-sidebar {
+    background-color: var(--vpp-bg-surface);
+    border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+.rz-theme-dark .rz-layout.vpp-layout > .rz-body.vpp-layout-body {
+    background-color: #121518;
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32), 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
 :root:not(.rz-theme-dark) .vpp-header-glass {

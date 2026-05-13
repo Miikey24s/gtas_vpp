@@ -132,6 +132,18 @@
     margin-bottom: 0;
 }
 
+.vpp-data-card.vpp-datagrid {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    cursor: default;
+}
+
+.vpp-data-card.vpp-datagrid:hover {
+    border-color: transparent;
+    box-shadow: none;
+}
+
 .vpp-order-grid.rz-datatable,
 .vpp-order-grid.rz-data-grid,
 .vpp-wizard-panel-card .rz-datatable,

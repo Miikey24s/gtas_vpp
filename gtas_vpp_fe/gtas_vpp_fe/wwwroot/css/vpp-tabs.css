@@ -98,6 +98,10 @@ ul[role="tablist"]::-webkit-scrollbar {
     padding-top: var(--vpp-space-4);
 }
 
+.librariestab .rz-tabview-panel {
+    padding-bottom: 0;
+}
+
 /* ── librariestab (shared class) — ensure full width ─────────── */
 .librariestab {
     width: 100%;

@@ -19,7 +19,7 @@
 }
 
 #components-reconnect-modal {
-    background: var(--vpp-surface, #fff);
+    background: var(--vpp-bg-surface);
     color: var(--vpp-text-primary, #1a1a2e);
     width: 22rem;
     margin: 20vh auto;
