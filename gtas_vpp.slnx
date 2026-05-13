@@ -44,6 +44,11 @@
     <BuildType Solution="BE|*" Project="Debug" />
     <BuildType Solution="FE|*" Project="Debug" />
   </Project>
+  <Project Path="gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj">
+    <BuildType Solution="BE|*" Project="Debug-BE" />
+    <BuildType Solution="FE|*" Project="Debug-FE" />
+    <Build Solution="BE|*" Project="false" />
+  </Project>
   <Project Path="gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj">
     <BuildType Solution="BE|*" Project="Debug" />
     <BuildType Solution="FE|*" Project="Debug" />

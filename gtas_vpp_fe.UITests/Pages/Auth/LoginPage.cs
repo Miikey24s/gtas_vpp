@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace gtas_vpp_fe.UITests.Pages.Auth
@@ -13,9 +14,26 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
         public LoginPage(IPage page)
         {
             _page = page;
-            _usernameInput = _page.Locator("input.valid-off").First;
-            _passwordInput = _page.Locator("input.valid-off").Nth(1);
-            _loginButton = _page.Locator(".login_btn");
+            _usernameInput = _page.GetByRole(AriaRole.Textbox).First;
+            _passwordInput = _page.GetByRole(AriaRole.Textbox).Nth(1);
+            _loginButton = _page.GetByRole(AriaRole.Button, new() { Name = "LOGIN" });
+        }
+
+        public async Task GotoAsync(string baseUrl)
+        {
+            await _page.GotoAsync($"{baseUrl}Account/Login");
+            await _loginButton.WaitForAsync();
+        }
+
+        public async Task LoginWithDefaultCredentialsAsync()
+        {
+            await LoginAsync("google", "abc*123@");
+        }
+
+        public async Task WaitForDashboardAsync()
+        {
+            await _page.WaitForURLAsync(new Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
+            await _page.GetByRole(AriaRole.Tab, new() { Name = "My Orders" }).WaitForAsync();
         }
 
         public async Task LoginAsync(string username, string password, string serverName = "Test")
