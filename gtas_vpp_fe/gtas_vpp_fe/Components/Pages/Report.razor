@@ -1,14 +1,17 @@
 @page "/report"
 @layout MainLayout
+@implements IDisposable
+@using gtas_vpp_fe.Services
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Share
+@inject PermissionState PermissionState
 
 @rendermode InteractiveServer
 
 <PageTitle>GTAS VPP - Report</PageTitle>
 
-<AuthorizeView Policy="@Permissions.ReportView" Context="reportAuth">
-    <Authorized>
+@if (CanViewReport)
+{
         <RadzenStack Gap="1.5rem" class="rz-p-0 rz-p-md-3">
             <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
                 <RadzenText Text="@Loc["Reports"]" TextStyle="TextStyle.H4" class="rz-m-0" Style="font-weight: 700; color: var(--vpp-ocean-primary-dark);" />
@@ -40,10 +43,30 @@
                 Report content has not been configured yet. Export functionality coming soon.
             </RadzenAlert>
         </RadzenStack>
-    </Authorized>
-    <NotAuthorized>
+}
+else
+{
         <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" AllowClose="false">
             You do not have permission to view reports.
         </RadzenAlert>
-    </NotAuthorized>
-</AuthorizeView>
+}
+
+@code {
+    private bool CanViewReport => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
+
+    protected override async Task OnInitializedAsync()
+    {
+        PermissionState.Changed += OnPermissionStateChanged;
+        await PermissionState.EnsureLoadedAsync();
+    }
+
+    private void OnPermissionStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        PermissionState.Changed -= OnPermissionStateChanged;
+    }
+}

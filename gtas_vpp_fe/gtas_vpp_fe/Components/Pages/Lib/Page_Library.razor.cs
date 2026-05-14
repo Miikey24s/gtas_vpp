@@ -1,4 +1,6 @@
+using gtas_vpp_fe.Components.Pages;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -6,56 +8,30 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib
 {
-    public partial class Page_Library
+    public partial class Page_Library : PermissionAwarePageBase, IDisposable
     {
+        private static readonly string LibraryPageCode = Config.Page_ComponentCode.PageCode.Library;
+        private static readonly PermissionPageOptions PageOptions = new(
+            LibraryPageCode,
+            "You do not have permission to access Library.",
+            ErrorDetailPrefix: "Error when call api sp_Library_GetL01Class:");
+
         [Parameter] public string? Lib { get; set; }
-        [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         public IEnumerable<Claim> claims { get; set; } = new List<Claim>();
         public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new sp_Authentication_GetPermissionSinglePage();
 
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            // Load Authenticated
-            var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();
-            if (!isAuthenticated)
-            {
-                NavigationManager.NavigateTo("logoutprocess", true);
-                return;
-            }
-            claims = userClaims;
-
-            glb.isBusyPage = true;
             try
             {
-                var userIdString = claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
-                if (int.TryParse(userIdString, out int validUserId) == true)
+                if (await LoadPageAccessAsync(PageOptions))
                 {
-                    sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Library);
-                }
-
-                // CHECK PERMISSION: Nếu không có quyền vào Library, redirect về dashboard
-                if (sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
-                {
-                    NotificationService.Notify(new NotificationMessage() 
-                    { 
-                        Severity = NotificationSeverity.Warning, 
-                        Summary = "Access Denied", 
-                        Detail = "You do not have permission to access Library.", 
-                        Duration = 5000 
-                    });
-                    NavigationManager.NavigateTo("/dashboard?tab=0", true);
-                    return;
+                    PagePermissionState.Changed += OnPermissionStateChanged;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("Error when call SP sp_Authentication_GetPermissionSinglePage:" + ex.Message);
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
             }
         }
         protected override async Task OnParametersSetAsync()
@@ -66,6 +42,26 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             await base.OnAfterRenderAsync(firstRender);
             
+        }
+
+        private void OnPermissionStateChanged()
+        {
+            HandlePermissionStateChanged(PageOptions);
+        }
+
+        protected override void ApplyClaims(IEnumerable<Claim> newClaims)
+        {
+            claims = newClaims;
+        }
+
+        protected override void ApplyPagePermission(sp_Authentication_GetPermissionSinglePage permission)
+        {
+            sp_Authentication_GetPermissionSinglePage = permission;
+        }
+
+        public void Dispose()
+        {
+            PagePermissionState.Changed -= OnPermissionStateChanged;
         }
     }
 }

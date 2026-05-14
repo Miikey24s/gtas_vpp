@@ -1,10 +1,20 @@
 ﻿@page "/"
 @attribute [Authorize]
 @inject NavigationManager NavigationManager
+@inject gtas_vpp_fe.Helpers.AuthHelper AuthHelper
+@inject gtas_vpp_fe.Services.PermissionState PermissionState
 
 @code {
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        NavigationManager.NavigateTo("/dashboard?tab=0");
+        var (isAuthenticated, _) = await AuthHelper.EnsureAuthenticatedAsync();
+        if (!isAuthenticated)
+        {
+            NavigationManager.NavigateTo(Config.LoginPagePath, true);
+            return;
+        }
+
+        await PermissionState.EnsureLoadedAsync();
+        NavigationManager.NavigateTo(PermissionState.GetFirstAccessibleRoute() ?? "/not-found", replace: true);
     }
 }

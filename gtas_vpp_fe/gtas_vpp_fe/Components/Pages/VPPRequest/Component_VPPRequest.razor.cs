@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
@@ -24,18 +25,21 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] private PermissionState PermissionState { get; set; } = default!;
 
         private readonly TabPosition tabPosition = TabPosition.Top;
         private int SelectedIndex { get; set; }
 
         private IReadOnlyList<DashboardTabDefinition> AuthorizedTabs =>
-            DashboardTabs.Where(tab => claims.HasPermission(tab.Permission)).ToArray();
+            DashboardTabs.Where(tab => CanViewDashboardTab(tab.Permission)).ToArray();
 
         private bool HasAnyAuthorizedDashboardTab => AuthorizedTabs.Count > 0;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
             NavigationManager.LocationChanged += OnLocationChanged;
+            PermissionState.Changed += OnPermissionStateChanged;
+            await PermissionState.EnsureLoadedAsync();
             SetSelectedIndexFromUri(NavigationManager.Uri);
         }
 
@@ -52,6 +56,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
 
             SetSelectedIndexFromUri(args.Location);
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void OnPermissionStateChanged()
+        {
+            SetSelectedIndexFromUri(NavigationManager.Uri);
             _ = InvokeAsync(StateHasChanged);
         }
 
@@ -109,9 +119,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             return uri.AbsolutePath.TrimEnd('/').EndsWith("/dashboard", StringComparison.OrdinalIgnoreCase);
         }
 
+        private bool CanViewDashboardTab(string permission)
+        {
+            return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);
+        }
+
         public void Dispose()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
+            PermissionState.Changed -= OnPermissionStateChanged;
         }
     }
 }

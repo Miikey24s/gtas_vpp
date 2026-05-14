@@ -1,7 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
-using gtas_vpp_shared.DTOs.AI;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.DTOs.Share;
@@ -19,6 +18,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
+        [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JS { get; set; } = default!;
         [Inject] public NotificationService NotificationService { get; set; } = default!;
 
@@ -46,11 +46,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public DateTime? LastDraftSavedAt { get; set; }
         public bool DraftRecovered { get; set; }
         public int currentStep { get; set; }
-        public int StepCount => 3;
+        public int StepCount => 2;
 
         public OrderCreateContext Context { get; set; } = new();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
-        private OrderCreateStep1? _step1;
+
 
         // P1: BE owns the period truth — FE never derives Y/M from DateTime.Now.
         public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
@@ -135,25 +135,20 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public string CurrentStepTitle => currentStep switch
         {
-            0 => Loc["SetRequestContext"].Value,
-            1 => Loc["SelectProducts"].Value,
+            0 => Loc["SelectProducts"].Value,
             _ => Loc["ReviewSubmit"].Value
         };
 
         public string CurrentStepHint => currentStep switch
         {
-            0 => Loc["CurrentStepHintContext"].Value,
-            1 => Loc["CurrentStepHintProducts"].Value,
+            0 => Loc["CurrentStepHintProducts"].Value,
             _ => Loc["CurrentStepHintReview"].Value
         };
 
         public string FooterStatusText => currentStep switch
         {
-            0 when Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description)
-                => Loc["AdditionalOrdersRequireReasonBeforeContinue"].Value,
-            0 => string.Format(Loc["TargetWindowFormat"], TargetWindowText),
-            1 when SelectedItemCount == 0 => Loc["NoItemsSelectedYetStartCatalogLeft"].Value,
-            1 => string.Format(Loc["SelectedItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty),
+            0 when SelectedItemCount == 0 => Loc["NoItemsSelectedYetStartCatalogLeft"].Value,
+            0 => string.Format(Loc["SelectedItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty),
             _ => SelectedItemCount == 0
                 ? Loc["AddAtLeastOneItemBeforeSubmitting"].Value
                 : string.Format(Loc["ReadyToSubmitItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty)
@@ -177,8 +172,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
 
                 Claims = userClaims;
+                await PermissionState.EnsureLoadedAsync();
+                if (PermissionState.IdentityClaims.Any())
+                {
+                    Claims = PermissionState.IdentityClaims;
+                }
 
-                if (!Claims.HasPermission(Permissions.RequestOrder))
+                if (!PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestOrder))
                 {
                     NotificationService.Notify(new NotificationMessage()
                     {
@@ -234,11 +234,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private Task OnWizardStepChange(int step)
         {
-            if (step > currentStep && currentStep == 0 && !ValidateStep1())
-            {
-                return Task.CompletedTask;
-            }
-
             currentStep = step;
             Context.NotifyStateChanged();
             return Task.CompletedTask;
@@ -246,11 +241,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private Task GoNextStepAsync()
         {
-            if (currentStep == 0 && !ValidateStep1())
-            {
-                return Task.CompletedTask;
-            }
-
             if (currentStep < StepCount - 1)
             {
                 currentStep++;
@@ -268,10 +258,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             Context.NotifyStateChanged();
         }
 
-        private bool ValidateStep1()
+        private bool ValidateBeforeSubmit()
         {
-            var isValid = _step1?.ValidateStep() ?? !Context.IsAdditional || !string.IsNullOrWhiteSpace(Context.Description);
-            if (!isValid)
+            // Additional orders require a description/reason
+            if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
             {
                 NotificationService.Notify(new NotificationMessage
                 {
@@ -280,9 +270,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     Detail = Loc["ProvideReasonBeforeContinue"],
                     Duration = 3500
                 });
+                return false;
             }
-
-            return isValid;
+            return true;
         }
 
         private async Task LoadPeriodInfoAsync()
@@ -477,9 +467,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public async Task SubmitAsync()
         {
-            if (!ValidateStep1())
+            if (!ValidateBeforeSubmit())
             {
-                currentStep = 0;
                 return;
             }
 

@@ -2,7 +2,6 @@
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Share
-@using gtas_vpp_shared.DTOs.AI
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
@@ -36,13 +35,6 @@ else
         <section class="vpp-data-card vpp-wizard-stage">
             <RadzenSteps class="vpp-wizard-steps" SelectedIndex="@currentStep" Change="@OnWizardStepChange">
                 <Steps>
-                    <RadzenStepsItem Text="@Loc["OrderContext"]">
-                        <OrderCreateStep1 @ref="_step1"
-                                          TargetPeriodText="@TargetPeriodText"
-                                          TargetWindowText="@TargetWindowText"
-                                          TargetPeriodStartDate="@TargetPeriodStartDate"
-                                          TargetPeriodEndDate="@TargetPeriodEndDate" />
-                    </RadzenStepsItem>
                     <RadzenStepsItem Text="@Loc["SelectProducts"]">
                         <OrderCreateStep2 />
                     </RadzenStepsItem>

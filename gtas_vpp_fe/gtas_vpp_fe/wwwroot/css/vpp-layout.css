@@ -177,35 +177,6 @@
     color: var(--vpp-primary-400);
 }
 
-/* ── AI Toggle: smooth hide/show ─────────────────────────────── */
-.vpp-ai-toggle-wrapper {
-    display: flex;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    min-width: 48px;
-    min-height: 36px;
-    justify-content: center;
-    padding: 2px var(--vpp-space-2);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-full);
-    background: var(--vpp-bg-elevated);
-    transition: all var(--vpp-transition-base);
-}
-
-.vpp-ai-toggle-wrapper:hover {
-    background: rgba(14, 165, 233, 0.06);
-}
-
-.vpp-ai-toggle-wrapper.hidden {
-    opacity: 0;
-    pointer-events: none;
-    min-width: 0;
-    width: 0;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-}
-
 /* ── Content Area ──────────────────────────────────────────────── */
 .vpp-content {
     width: 100%;

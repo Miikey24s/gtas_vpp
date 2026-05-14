@@ -24,12 +24,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         public RadzenDataGrid<L01_ClassResDTO> gridL01 { get; set; } = default!;
         private bool isLoadingL01 { get; set; } = false;
         private int countL01 { get; set; } = 0;
+        private string? currentFilterExpressionL01 { get; set; }
+        private int currentSkipL01 { get; set; }
 
         // L02 - Class Detail
         public List<L02_ClassDetailResDTO> classDetailListL02 { get; set; } = new List<L02_ClassDetailResDTO>();
         public RadzenDataGrid<L02_ClassDetailResDTO> gridL02 { get; set; } = default!;
         private bool isLoadingL02 { get; set; } = false;
         private int countL02 { get; set; } = 0;
+        private string? currentFilterExpressionL02 { get; set; }
+        private int currentSkipL02 { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -63,6 +67,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         protected async Task LoadDataL01(LoadDataArgs args)
         {
             isLoadingL01 = true;
+            currentFilterExpressionL01 = args.Filter;
+            currentSkipL01 = args.Skip ?? 0;
             StateHasChanged();
             try
             {
@@ -95,8 +101,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     apiUrl += "?" + string.Join("&", queryParams);
                 }
 
-                classListL01 = await _apiServices.GetFromApiAsync<List<L01_ClassResDTO>>(apiUrl) ?? [];
-                countL01 = classListL01.Count;
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L01_ClassResDTO>>(apiUrl);
+                classListL01 = result.Data ?? [];
+                countL01 = result.TotalCount;
             }
             catch (Exception ex)
             {
@@ -120,19 +127,34 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 // Request distinct values from server
                 var queryParams = new List<string>
                 {
-                    $"distinct={property}"
+                    $"distinct={Uri.EscapeDataString(property)}"
                 };
-                
-                if (!string.IsNullOrEmpty(args.Filter))
+
+                if (!string.IsNullOrWhiteSpace(currentFilterExpressionL01))
                 {
-                    queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+                    queryParams.Add($"filter={Uri.EscapeDataString(currentFilterExpressionL01)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(args.Filter))
+                {
+                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+                }
+
+                if (args.Skip.HasValue)
+                {
+                    queryParams.Add($"skip={args.Skip.Value}");
+                }
+
+                if (args.Top.HasValue)
+                {
+                    queryParams.Add($"top={args.Top.Value}");
                 }
 
                 string apiUrl = $"{Config.LibraryApi.L01_Class}?{string.Join("&", queryParams)}";
-                var distinctValues = await _apiServices.GetFromApiAsync<List<L01_ClassResDTO>>(apiUrl) ?? [];
-                
-                args.Data = distinctValues;
-                args.Count = distinctValues.Count;
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L01_ClassResDTO>>(apiUrl);
+
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
             }
             catch (Exception ex)
             {
@@ -189,10 +211,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 classDetailListL02 = new List<L02_ClassDetailResDTO>();
                 countL02 = 0;
+                currentFilterExpressionL02 = null;
+                currentSkipL02 = 0;
                 return;
             }
 
             isLoadingL02 = true;
+            currentFilterExpressionL02 = args.Filter;
+            currentSkipL02 = args.Skip ?? 0;
             StateHasChanged();
             try
             {
@@ -223,8 +249,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 }
 
                 string apiUrl = $"{Config.LibraryApi.L02_ClassDetail}?{string.Join("&", queryParams)}";
-                classDetailListL02 = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(apiUrl) ?? [];
-                countL02 = classDetailListL02.Count;
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L02_ClassDetailResDTO>>(apiUrl);
+                classDetailListL02 = result.Data ?? [];
+                countL02 = result.TotalCount;
             }
             catch (Exception ex)
             {
@@ -251,19 +278,34 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var queryParams = new List<string>
                 {
                     $"classId={selectedClassL01.Id}",
-                    $"distinct={property}"
+                    $"distinct={Uri.EscapeDataString(property)}"
                 };
-                
-                if (!string.IsNullOrEmpty(args.Filter))
+
+                if (!string.IsNullOrWhiteSpace(currentFilterExpressionL02))
                 {
-                    queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+                    queryParams.Add($"filter={Uri.EscapeDataString(currentFilterExpressionL02)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(args.Filter))
+                {
+                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+                }
+
+                if (args.Skip.HasValue)
+                {
+                    queryParams.Add($"skip={args.Skip.Value}");
+                }
+
+                if (args.Top.HasValue)
+                {
+                    queryParams.Add($"top={args.Top.Value}");
                 }
 
                 string apiUrl = $"{Config.LibraryApi.L02_ClassDetail}?{string.Join("&", queryParams)}";
-                var distinctValues = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(apiUrl) ?? [];
-                
-                args.Data = distinctValues;
-                args.Count = distinctValues.Count;
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L02_ClassDetailResDTO>>(apiUrl);
+
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
             }
             catch (Exception ex)
             {

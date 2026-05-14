@@ -24,8 +24,7 @@
             <HeaderControls IsLightTheme="@LightTheme"
                             IsLightThemeChanged="@(isLight => LightTheme = isLight)"
                             OnThemeToggle="ThemeOnChange"
-                            OnLanguageToggle="ToggleLanguage"
-                            OnAIToggleChange="OnAIToggleChange" />
+                            OnLanguageToggle="ToggleLanguage" />
             @* Notification bell *@
             <div style="position:relative;">
                 <RadzenButton Icon="notifications" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Disabled="true" Title="Notifications (coming soon)" />
@@ -38,72 +37,76 @@
 
 <RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: max-content" : "width: 60px;")">
     <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
-        <AuthorizeView Policy="@Permissions.MenuDashboard" Context="dashboardMenuAuth">
-            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="home" class="ppjsidebarmenu">
-                <AuthorizeView Policy="@Permissions.RequestOrder" Context="requestOrderMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.RequestHistory" Context="requestHistoryMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="history" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.RequestProductCatalog" Context="requestProductCatalogMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["ProductCatalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.RequestDepartmentSummary" Context="requestDepartmentSummaryMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="/dashboard?tab=3" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.RequestAllOrdersSummary" Context="requestAllOrdersSummaryMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="/dashboard?tab=4" class="ppjsidebarmenu submenu" Icon="view_list" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.RequestAdminApproval" Context="requestAdminApprovalMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="fact_check" />
-                </AuthorizeView>
-            </RadzenPanelMenuItem>
-        </AuthorizeView>
-        <AuthorizeView Policy="@Permissions.MenuLibrary" Context="libraryMenuAuth">
-            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="library_books" class="ppjsidebarmenu">
-                <AuthorizeView Policy="@Permissions.LibraryClass" Context="libraryClassMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="class" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.LibraryCategory" Context="libraryCategoryMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["OperationCategories"]" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="category" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.LibraryItem" Context="libraryItemMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["Operations"]" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="inventory" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.LibrarySupplier" Context="librarySupplierMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.LibraryDepartment" Context="libraryDepartmentMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="apartment" />
-                </AuthorizeView>
-            </RadzenPanelMenuItem>
-        </AuthorizeView>
-        <AuthorizeView Policy="@Permissions.MenuReport" Context="reportMenuAuth">
-            <RadzenPanelMenuItem Text="@Loc["Reports"]" Icon="analytics" class="ppjsidebarmenu" Path="/report" />
-        </AuthorizeView>
-        <AuthorizeView Policy="@Permissions.MenuPermission" Context="permissionMenuAuth">
-            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="settings" class="ppjsidebarmenu">
-                <AuthorizeView Policy="@Permissions.PermissionUser" Context="permissionUserMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["User"]" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission?tab=0" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.PermissionComponent" Context="permissionComponentMenuAuth">
-                    <RadzenPanelMenuItem Text="@Loc["Page"]" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission?tab=1" />
-                </AuthorizeView>
-            </RadzenPanelMenuItem>
-        </AuthorizeView>
-        @if (glb.IsAIEnabled)
+        @if (CanViewDashboardMenu)
         {
-            <AuthorizeView Policy="@Permissions.MenuAI" Context="aiMenuAuth">
-                <RadzenPanelMenuItem Text="@Loc["AIManagement"]" Icon="smart_toy" class="ppjsidebarmenu">
-                    <AuthorizeView Policy="@Permissions.RequestAIChat" Context="aiChatAuth">
-                        <RadzenPanelMenuItem Text="@Loc["AIChat"]" Icon="forum" class="ppjsidebarmenu submenu" Path="/ai/chat" />
-                </AuthorizeView>
-                <AuthorizeView Policy="@Permissions.RequestAIVppChat" Context="aiVppChatAuth">
-                    <RadzenPanelMenuItem Text="@Loc["VPPChat"]" Icon="inventory_2" class="ppjsidebarmenu submenu" Path="/ai/vpp-chat" />
-                </AuthorizeView>
+            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="home" class="ppjsidebarmenu">
+                @if (CanViewDashboardItem(Permissions.RequestOrder))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestHistory))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="history" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["ProductCatalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="/dashboard?tab=3" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="/dashboard?tab=4" class="ppjsidebarmenu submenu" Icon="view_list" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestAdminApproval))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="fact_check" />
+                }
             </RadzenPanelMenuItem>
-        </AuthorizeView>
+        }
+        @if (CanViewLibraryMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="library_books" class="ppjsidebarmenu">
+                @if (CanViewLibraryItem(Permissions.LibraryClass))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="class" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryCategory))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["OperationCategories"]" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="category" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryItem))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Operations"]" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="inventory" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibrarySupplier))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryDepartment))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="apartment" />
+                }
+            </RadzenPanelMenuItem>
+        }
+        @if (CanViewReportMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Reports"]" Icon="analytics" class="ppjsidebarmenu" Path="/report" />
+        }
+        @if (CanViewPermissionMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="settings" class="ppjsidebarmenu">
+                @if (CanViewPermissionItem(Permissions.PermissionUser))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["User"]" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission?tab=0" />
+                }
+                @if (CanViewPermissionItem(Permissions.PermissionComponent))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Page"]" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission?tab=1" />
+                }
+            </RadzenPanelMenuItem>
         }
         <hr />
         <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />

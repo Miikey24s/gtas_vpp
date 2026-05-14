@@ -13,6 +13,9 @@ using Radzen;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+var authCookieSecurePolicy = builder.Environment.IsDevelopment()
+    ? CookieSecurePolicy.SameAsRequest
+    : CookieSecurePolicy.Always;
 
 // ── 1. Forwarded Headers Service (phải đăng ký trước) ────
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -42,6 +45,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
 builder.Services.AddScoped<ThemeState>();
 builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped<PermissionState>();
 builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie
@@ -59,20 +63,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = Config.CookieName;
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = authCookieSecurePolicy;
         options.LoginPath = Config.LoginPagePath;
         options.AccessDeniedPath = Config.LoginPagePath;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(Config.CookieExpireMinutes);
     });
 
 // Cấu hình cho Blazor biết đang có Authentication
-builder.Services.AddAuthorization(options =>
-{
-    foreach (var permission in Permissions.All)
-    {
-        options.AddPolicy(permission, policy => policy.RequireClaim(ClaimKeys.Permission, permission));
-    }
-});
+builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 #endregion
 #region API

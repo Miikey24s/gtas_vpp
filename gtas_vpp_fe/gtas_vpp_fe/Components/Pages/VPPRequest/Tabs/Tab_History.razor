@@ -105,7 +105,7 @@
                                     Style="border: none;">
                         <Columns>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                                <Template Context="row">@(Orders.IndexOf(row) + 1)</Template>
+                                <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="@Loc["OrderCode"]" MinWidth="160px" TextAlign="TextAlign.Left">
                                 <Template Context="row">
@@ -133,11 +133,11 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" MinWidth="100px" TextAlign="TextAlign.Center" Sortable="true">
                                 <Template Context="row">
-                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span>
+                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
                                 </Template>
                             </RadzenDataGridColumn>
                             @* F-29: route through DateFormatter so the culture (vi-VN) is enforced consistently with the rest of the order tabs. *@
-                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center">
+                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" FilterProperty="@nameof(VPP01_RequestHeaderResDTO.SubmittedDateText)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
                                 <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Note"]" TextAlign="TextAlign.Left" />

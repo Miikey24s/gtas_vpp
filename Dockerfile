@@ -13,15 +13,17 @@ COPY gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj gtas_vpp_be/gtas_vpp_sha
 # Copy FE project file for restore layer caching
 COPY gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/
 
-# Restore (cached unless .csproj files change)
-RUN dotnet restore gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj
+# Restore (cached unless .csproj files change; BuildKit mount reuses NuGet cache)
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet restore gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj
 
 # Copy all source code
 COPY gtas_vpp_be/gtas_vpp_shared/ gtas_vpp_be/gtas_vpp_shared/
 COPY gtas_vpp_fe/ gtas_vpp_fe/
 
 # Publish in Release mode
-RUN dotnet publish gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
     -c Release \
     -o /app/publish \
     --no-restore
@@ -31,8 +33,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # P5/timezone: install tzdata and pin container to Asia/Ho_Chi_Minh so
-# server-rendered Blazor timestamps (sidebar clock, notifications, AI chat
-# bubbles) display VN time even when deployed to non-VN clouds (e.g. SGP).
+# server-rendered Blazor timestamps (sidebar clock, notifications)
+# display VN time even when deployed to non-VN clouds (e.g. SGP).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl tzdata \
     && ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime \

@@ -22,7 +22,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new();
 
-        protected override bool CanView => claims.HasPermission(Permissions.RequestDepartmentSummary);
+        protected override bool CanView => HasDashboardPermission(Permissions.RequestDepartmentSummary);
         protected override string ErrorSummary => Loc["DepartmentSummary"];
 
         protected override void OnInit()
@@ -66,10 +66,22 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 query.Add($"departmentCode={Uri.EscapeDataString(CurrentDepartmentCode)}");
             }
 
+            if (!string.IsNullOrWhiteSpace(CurrentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
+            if (!string.IsNullOrWhiteSpace(CurrentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(CurrentOrderByExpression)}");
+
             query.Add($"skip={CurrentSkip}");
             query.Add($"top={PageSize}");
 
             return $"{Config.VppApi.DepartmentOrders}?{string.Join("&", query)}";
+        }
+
+        protected override void AppendFilterScopeQuery(List<string> query)
+        {
+            query.Add("scope=department");
+            if (YearFilter.HasValue) query.Add($"year={YearFilter.Value}");
+            if (MonthFilter.HasValue) query.Add($"month={MonthFilter.Value}");
+            if (StatusFilter.HasValue) query.Add($"status={StatusFilter.Value}");
+            if (!string.IsNullOrWhiteSpace(CurrentDepartmentCode)) query.Add($"departmentCode={Uri.EscapeDataString(CurrentDepartmentCode)}");
         }
     }
 }

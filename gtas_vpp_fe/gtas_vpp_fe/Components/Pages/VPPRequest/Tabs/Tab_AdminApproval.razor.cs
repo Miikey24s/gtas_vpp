@@ -16,11 +16,27 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         // Convenience alias so the razor template keeps its existing PendingOrders name.
         public List<VPP01_RequestHeaderResDTO> PendingOrders => Orders;
 
-        protected override bool CanView => claims.HasPermission(Permissions.RequestAdminApproval);
+        protected override bool CanView => HasDashboardPermission(Permissions.RequestAdminApproval);
         protected override string ErrorSummary => Loc["AdminApproval"];
 
         protected override string BuildEndpoint()
-            => $"/api/VPPRequest/additional-orders/pending?skip={CurrentSkip}&top={PageSize}";
+        {
+            var query = new List<string>
+            {
+                $"skip={CurrentSkip}",
+                $"top={PageSize}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(CurrentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
+            if (!string.IsNullOrWhiteSpace(CurrentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(CurrentOrderByExpression)}");
+
+            return $"/api/VPPRequest/additional-orders/pending?{string.Join("&", query)}";
+        }
+
+        protected override void AppendFilterScopeQuery(List<string> query)
+        {
+            query.Add("scope=pending");
+        }
 
         private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)
         {

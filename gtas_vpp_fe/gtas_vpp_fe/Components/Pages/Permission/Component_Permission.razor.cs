@@ -2,6 +2,7 @@
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
@@ -22,18 +23,21 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] private PermissionState PermissionState { get; set; } = default!;
 
         private readonly TabPosition tabPosition = TabPosition.Top;
         private int SelectedIndex { get; set; }
 
         private IReadOnlyList<PermissionTabDefinition> AuthorizedTabs =>
-            PermissionTabs.Where(tab => claims.HasPermission(tab.Permission)).ToArray();
+            PermissionTabs.Where(tab => CanViewPermissionTab(tab.Permission)).ToArray();
 
         private bool HasAnyVisiblePermissionTab => AuthorizedTabs.Count > 0;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
             NavigationManager.LocationChanged += OnLocationChanged;
+            PermissionState.Changed += OnPermissionStateChanged;
+            await PermissionState.EnsureLoadedAsync();
             SetSelectedIndexFromUri(NavigationManager.Uri);
         }
 
@@ -50,6 +54,12 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             }
 
             SetSelectedIndexFromUri(args.Location);
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void OnPermissionStateChanged()
+        {
+            SetSelectedIndexFromUri(NavigationManager.Uri);
             _ = InvokeAsync(StateHasChanged);
         }
 
@@ -107,9 +117,15 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             return uri.AbsolutePath.TrimEnd('/').EndsWith("/permission", StringComparison.OrdinalIgnoreCase);
         }
 
+        private bool CanViewPermissionTab(string permission)
+        {
+            return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
+        }
+
         public void Dispose()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
+            PermissionState.Changed -= OnPermissionStateChanged;
         }
     }
 }

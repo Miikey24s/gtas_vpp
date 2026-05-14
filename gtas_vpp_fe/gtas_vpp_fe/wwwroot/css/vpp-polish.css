@@ -38,7 +38,6 @@
 @media print {
     .vpp-sidebar,
     .vpp-header-glass,
-    .vpp-ai-chatbox,
     .rz-notification-message {
         display: none !important;
     }

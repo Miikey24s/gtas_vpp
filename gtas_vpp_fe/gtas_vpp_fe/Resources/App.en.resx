@@ -39,9 +39,6 @@
   <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete?</value></data>
   <data name="PleaseWait" xml:space="preserve"><value>Please wait...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Server Error</value></data>
-  <data name="AIEnabled" xml:space="preserve"><value>AI Enabled</value></data>
-  <data name="AIDisabled" xml:space="preserve"><value>AI Disabled</value></data>
-  <data name="AIManagement" xml:space="preserve"><value>AI Management</value></data>
   <data name="Language" xml:space="preserve"><value>Language</value></data>
   <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
   <data name="LightMode" xml:space="preserve"><value>Light Mode</value></data>
@@ -78,11 +75,9 @@
   <data name="Operations" xml:space="preserve"><value>Items</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
   <data name="Departments" xml:space="preserve"><value>Departments</value></data>
-  <data name="AIChat" xml:space="preserve"><value>AI Chat</value></data>
   <data name="VPPChat" xml:space="preserve"><value>VPP Chat</value></data>
   <data name="User" xml:space="preserve"><value>User</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Back to Orders</value></data>
-  <data name="AISmartSearch" xml:space="preserve"><value>AI Smart Search</value></data>
   <data name="SelectedItems" xml:space="preserve"><value>Selected Items</value></data>
   <data name="ClearAll" xml:space="preserve"><value>Clear All</value></data>
   <data name="OrderDetails" xml:space="preserve"><value>Order Details</value></data>
@@ -255,7 +250,6 @@
   <data name="WizardModeEditingExistingOrder" xml:space="preserve"><value>Editing existing order</value></data>
   <data name="WizardModeNewDesc" xml:space="preserve"><value>Regular request for the active period.</value></data>
   <data name="WizardModeRegularRequest" xml:space="preserve"><value>Regular monthly request</value></data>
-  <data name="WizardNoAISuggestionsYet" xml:space="preserve"><value>No AI suggestions yet. Try product code, product name, or Vietnamese keywords.</value></data>
   <data name="WizardNoItemsSelected" xml:space="preserve"><value>No items selected</value></data>
   <data name="WizardNoItemsSelectedDesc" xml:space="preserve"><value>Use the catalog to add products, then adjust quantities here.</value></data>
   <data name="WizardNoItemsToSubmit" xml:space="preserve"><value>No items to submit</value></data>

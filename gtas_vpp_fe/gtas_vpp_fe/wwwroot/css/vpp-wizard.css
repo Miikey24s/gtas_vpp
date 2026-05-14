@@ -385,37 +385,6 @@
     display: block;
     margin-bottom: 0.25rem;
     color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-sm);
-}
-
-.vpp-wizard-brief-item span:last-child {
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-sm);
-    line-height: 1.5;
-}
-
-/* ── AI Search ──────────────────────────────────────────────── */
-.vpp-card-ai {
-    padding: var(--vpp-space-4);
-    border-radius: var(--vpp-radius-md);
-    border-top: 3px solid var(--vpp-primary-500);
-    background: linear-gradient(180deg, rgba(14, 165, 233, 0.06) 0%, var(--vpp-bg-elevated) 100%);
-}
-
-.vpp-card-ai-inline {
-    margin: var(--vpp-space-4) var(--vpp-space-4) 0;
-}
-
-.vpp-card-ai-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--vpp-space-2);
-}
-
-.vpp-card-ai-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
     margin-top: var(--vpp-space-3);
 }
 
@@ -423,6 +392,11 @@
     margin-top: var(--vpp-space-3);
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-sm);
+}
+
+/* ── Inline Notes (Order Description) ────────────────────────── */
+.vpp-wizard-notes-inline {
+    padding: var(--vpp-space-3) var(--vpp-space-4) 0;
 }
 
 /* ── Split Layout: Catalog | Selected ────────────────────────── */

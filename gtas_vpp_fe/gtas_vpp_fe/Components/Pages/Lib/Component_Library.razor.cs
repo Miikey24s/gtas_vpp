@@ -30,12 +30,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] private PermissionState PermissionState { get; set; } = default!;
 
         private readonly TabPosition tabPosition = TabPosition.Top;
         private int SelectedIndex { get; set; }
 
         private IReadOnlyList<LibraryTabDefinition> AuthorizedTabs =>
-            LibraryTabs.Where(tab => claims.HasPermission(tab.Permission)).ToArray();
+            LibraryTabs.Where(tab => CanViewLibraryTab(tab.Permission)).ToArray();
 
         private bool HasAnyVisibleLibraryTab => AuthorizedTabs.Count > 0;
 
@@ -48,6 +49,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         protected override async Task OnInitializedAsync()
         {
             NavigationManager.LocationChanged += OnLocationChanged;
+            PermissionState.Changed += OnPermissionStateChanged;
+            await PermissionState.EnsureLoadedAsync();
             SetSelectedIndexFromUri(NavigationManager.Uri);
             await GetLibraries();
         }
@@ -65,6 +68,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
 
             SetSelectedIndexFromUri(args.Location);
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void OnPermissionStateChanged()
+        {
+            SetSelectedIndexFromUri(NavigationManager.Uri);
             _ = InvokeAsync(StateHasChanged);
         }
 
@@ -120,6 +129,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             var uri = NavigationManager.ToAbsoluteUri(location);
             return uri.AbsolutePath.TrimEnd('/').EndsWith("/library", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool CanViewLibraryTab(string permission)
+        {
+            return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission);
         }
         public async Task<List<string>> GetFormular()
         {
@@ -246,6 +260,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         public void Dispose()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
+            PermissionState.Changed -= OnPermissionStateChanged;
         }
     }
 }

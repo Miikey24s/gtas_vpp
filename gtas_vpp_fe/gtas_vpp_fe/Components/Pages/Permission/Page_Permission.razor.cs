@@ -1,4 +1,5 @@
-﻿using gtas_vpp_fe.Helpers;
+﻿using gtas_vpp_fe.Components.Pages;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
@@ -7,11 +8,15 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Permission
 {
-    public partial class Page_Permission
+    public partial class Page_Permission : PermissionAwarePageBase, IDisposable
     {
+        private static readonly string PermissionPageCode = Config.Page_ComponentCode.PageCode.Permission;
+        private static readonly PermissionPageOptions PageOptions = new(
+            PermissionPageCode,
+            "You do not have permission to access this page.",
+            ErrorDetailPrefix: "Error when call api sp_Library_GetL01Class:");
+
         [Parameter] public string? Per { get; set; }
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         public IEnumerable<Claim> claims { get; set; } = new List<Claim>();
         public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new sp_Authentication_GetPermissionSinglePage();
         protected override async Task OnInitializedAsync()
@@ -19,7 +24,10 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             await base.OnInitializedAsync();
             try
             {
-                await LoadAuthenticationState();
+                if (await LoadPageAccessAsync(PageOptions))
+                {
+                    PagePermissionState.Changed += OnPermissionStateChanged;
+                }
             }
             catch (Exception)
             {
@@ -27,64 +35,24 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             }
         }
 
-        private async Task LoadAuthenticationState()
+        private void OnPermissionStateChanged()
         {
-            // Load Authenticated
-            var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();
-            if (!isAuthenticated)
-            {
-                NavigationManager.NavigateTo("logoutprocess", true);
-                return;
-            }
-            claims = userClaims;
+            HandlePermissionStateChanged(PageOptions);
         }
 
-        protected override async Task OnParametersSetAsync()
+        protected override void ApplyClaims(IEnumerable<Claim> newClaims)
         {
-            await base.OnParametersSetAsync();
+            claims = newClaims;
         }
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+
+        protected override void ApplyPagePermission(sp_Authentication_GetPermissionSinglePage permission)
         {
-            await base.OnAfterRenderAsync(firstRender);
-            if (!firstRender) return;
-            glb.isBusyPage = true;
-            try
-            {
-                var userIdString = claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
-                if (int.TryParse(userIdString, out int validUserId) == true)
-                {
-                    sp_Authentication_GetPermissionSinglePage = await AuthHelper.GetPermissionSinglePageAsync(validUserId, Config.Page_ComponentCode.PageCode.Permission);
-                    
-                    // CHECK PERMISSION: Nếu không có quyền vào page này, redirect về dashboard
-                    if (sp_Authentication_GetPermissionSinglePage?.List_Component == null || 
-                        !sp_Authentication_GetPermissionSinglePage.List_Component.Any())
-                    {
-                        NotificationService.Notify(new NotificationMessage() 
-                        { 
-                            Severity = NotificationSeverity.Warning, 
-                            Summary = "Access Denied", 
-                            Detail = "You do not have permission to access this page.", 
-                            Duration = 5000 
-                        });
-                        NavigationManager.NavigateTo("/dashboard?tab=0", true);
-                        return;
-                    }
-                    
-                    if (sp_Authentication_GetPermissionSinglePage is not null)
-                    {
-                        StateHasChanged();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error when call SP sp_Authentication_GetPermissionSinglePage:" + ex.Message);
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-            }
+            sp_Authentication_GetPermissionSinglePage = permission;
+        }
+
+        public void Dispose()
+        {
+            PagePermissionState.Changed -= OnPermissionStateChanged;
         }
     }
 }

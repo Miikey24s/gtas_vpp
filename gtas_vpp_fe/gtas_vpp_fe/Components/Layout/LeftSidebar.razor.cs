@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -14,6 +15,31 @@ namespace gtas_vpp_fe.Components.Layout
 {
     public partial class LeftSidebar : IDisposable
     {
+        private static readonly (string Permission, string Path)[] DashboardMenuRoutes =
+        [
+            (Permissions.RequestOrder, "/dashboard?tab=0"),
+            (Permissions.RequestHistory, "/dashboard?tab=1"),
+            (Permissions.RequestProductCatalog, "/dashboard?tab=2"),
+            (Permissions.RequestDepartmentSummary, "/dashboard?tab=3"),
+            (Permissions.RequestAllOrdersSummary, "/dashboard?tab=4"),
+            (Permissions.RequestAdminApproval, "/dashboard?tab=5")
+        ];
+
+        private static readonly (string Permission, string Path)[] LibraryMenuRoutes =
+        [
+            (Permissions.LibraryClass, "/library?tab=0"),
+            (Permissions.LibraryCategory, "/library?tab=1"),
+            (Permissions.LibraryItem, "/library?tab=2"),
+            (Permissions.LibrarySupplier, "/library?tab=3"),
+            (Permissions.LibraryDepartment, "/library?tab=4")
+        ];
+
+        private static readonly (string Permission, string Path)[] PermissionMenuRoutes =
+        [
+            (Permissions.PermissionUser, "/permission?tab=0"),
+            (Permissions.PermissionComponent, "/permission?tab=1")
+        ];
+
         private const string BrowserThemeScript = """
             (() => {
                 const match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
@@ -26,6 +52,7 @@ namespace gtas_vpp_fe.Components.Layout
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
+        [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [CascadingParameter] public HttpContext? HttpContext { get; set; }
         
@@ -43,6 +70,11 @@ namespace gtas_vpp_fe.Components.Layout
         public string State { get; set; } = "normal";
         private bool _isPrerendering = true;
 
+        private bool CanViewDashboardMenu => HasSidebarMenu(Permissions.MenuDashboard) && DashboardMenuRoutes.Any(route => CanViewDashboardItem(route.Permission));
+        private bool CanViewLibraryMenu => HasSidebarMenu(Permissions.MenuLibrary) && LibraryMenuRoutes.Any(route => CanViewLibraryItem(route.Permission));
+        private bool CanViewReportMenu => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
+        private bool CanViewPermissionMenu => HasSidebarMenu(Permissions.MenuPermission) && PermissionMenuRoutes.Any(route => CanViewPermissionItem(route.Permission));
+
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
@@ -56,6 +88,7 @@ namespace gtas_vpp_fe.Components.Layout
             try
             {
                 await LoadAuthenticationState();
+                PermissionState.Changed += OnPermissionStateChanged;
             }
             catch (Exception)
             {
@@ -77,7 +110,6 @@ namespace gtas_vpp_fe.Components.Layout
                 _isPrerendering = false;
                 await LoadTheme();
                 await LoadStateAsync();
-                await LoadAIStateAsync();
                 StateHasChanged();
                 return;
             }
@@ -126,7 +158,13 @@ namespace gtas_vpp_fe.Components.Layout
                 NavigationManager.NavigateTo("logoutprocess", true);
                 return;
             }
+
             claims = userClaims;
+            await PermissionState.EnsureLoadedAsync();
+            if (PermissionState.IdentityClaims.Any())
+            {
+                claims = PermissionState.IdentityClaims;
+            }
         }
         protected async Task LoadTheme()
         {
@@ -178,29 +216,8 @@ namespace gtas_vpp_fe.Components.Layout
         public void Dispose()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
+            PermissionState.Changed -= OnPermissionStateChanged;
             timer?.Dispose();
-        }
-
-        private async Task LoadAIStateAsync()
-        {
-            try
-            {
-                var result = await ProtectedLocalStore.GetAsync<bool>("VPP_AIEnabled");
-                if (result.Success)
-                {
-                    glb.IsAIEnabled = result.Value;
-                }
-            }
-            catch (Exception)
-            {
-                // Default: true
-            }
-        }
-
-        public async Task OnAIToggleChange(bool value)
-        {
-            glb.IsAIEnabled = value;
-            await ProtectedLocalStore.SetAsync("VPP_AIEnabled", value);
         }
 
         public async Task ToggleLanguage()
@@ -232,10 +249,9 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 string? defaultPath = args.Text switch
                 {
-                    var t when t == Loc["Dashboard"].Value => "/dashboard?tab=0",
-                    var t when t == Loc["Library"].Value => "/library?tab=0",
-                    var t when t == Loc["Permissions"].Value => "/permission?tab=0",
-                    var t when t == Loc["AIManagement"].Value => "/ai/chat",
+                    var t when t == Loc["Dashboard"].Value => GetFirstAccessiblePath(DashboardMenuRoutes, CanViewDashboardItem),
+                    var t when t == Loc["Library"].Value => GetFirstAccessiblePath(LibraryMenuRoutes, CanViewLibraryItem),
+                    var t when t == Loc["Permissions"].Value => GetFirstAccessiblePath(PermissionMenuRoutes, CanViewPermissionItem),
                     _ => null
                 };
 
@@ -244,6 +260,45 @@ namespace gtas_vpp_fe.Components.Layout
                     NavigationManager.NavigateTo(defaultPath);
                 }
             }
+        }
+
+        private bool CanViewDashboardItem(string permission)
+            => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);
+
+        private bool CanViewLibraryItem(string permission)
+            => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission);
+
+        private bool CanViewPermissionItem(string permission)
+            => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
+
+        private bool HasSidebarMenu(string permission)
+        {
+            var sidebarPermission = PermissionState.GetPagePermission(Config.Page_ComponentCode.PageCode.Sidebar);
+            return sidebarPermission.List_Component.Count == 0
+                || PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Sidebar, permission);
+        }
+
+        private void OnPermissionStateChanged()
+        {
+            if (PermissionState.IdentityClaims.Any())
+            {
+                claims = PermissionState.IdentityClaims;
+            }
+
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private static string? GetFirstAccessiblePath(IEnumerable<(string Permission, string Path)> routes, Func<string, bool> canView)
+        {
+            foreach (var route in routes)
+            {
+                if (canView(route.Permission))
+                {
+                    return route.Path;
+                }
+            }
+
+            return null;
         }
     }
 }

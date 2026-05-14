@@ -82,6 +82,7 @@
                                 ShowMultiColumnSortingIndex="true"
                                 AllowColumnReorder="true"
                                 FilterMode="FilterMode.CheckBoxList"
+                                LoadColumnFilterData="@OnLoadColumnFilterData"
                                 FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
                                 class="vpp-order-grid"
@@ -113,7 +114,7 @@
                             <Template Context="row"><strong>@row.TotalQty</strong></Template>
                         </RadzenDataGridColumn>
                         @* F-29: route through DateFormatter so the culture (vi-VN) is enforced consistently with the rest of the order tabs. *@
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center">
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" FilterProperty="@nameof(VPP01_RequestHeaderResDTO.SubmittedDateText)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
                             <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Description"]" TextAlign="TextAlign.Left" MinWidth="120px" />

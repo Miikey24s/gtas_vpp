@@ -19,7 +19,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new();
 
-        protected override bool CanView => claims.HasPermission(Permissions.RequestHistory);
+        protected override bool CanView => HasDashboardPermission(Permissions.RequestHistory);
         protected override string ErrorSummary => Loc["History"];
 
         // History uses a default page size of 10 (smaller than the other tabs).
@@ -62,10 +62,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             AddQueryValues(query, "months", MonthFilter);
             AddQueryValues(query, "statuses", StatusFilter);
 
+            if (!string.IsNullOrWhiteSpace(CurrentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
+            if (!string.IsNullOrWhiteSpace(CurrentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(CurrentOrderByExpression)}");
+
             query.Add($"skip={CurrentSkip}");
             query.Add($"top={PageSize}");
 
             return $"/api/VPPRequest/my-orders-summary?{string.Join("&", query)}";
+        }
+
+        protected override void AppendFilterScopeQuery(List<string> query)
+        {
         }
 
         private static void AddQueryValues(List<string> query, string key, IEnumerable<int>? values)

@@ -30,6 +30,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public PermissionState PermissionState { get; set; } = default!;
 
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
@@ -43,9 +44,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string? SearchText { get; set; }
         public RadzenDataGrid<ProductItem>? productGrid { get; set; }
         private int _currentSkip;
+        private string? _currentFilterExpression;
         private bool _isFirstLoad = true;
 
-        private bool CanView => claims.HasPermission(Permissions.RequestProductCatalog);
+        private bool CanView => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestProductCatalog);
 
         protected override async Task OnInitializedAsync()
         {
@@ -88,6 +90,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             IsGridLoading = true;
             _currentSkip = args.Skip ?? 0;
+            _currentFilterExpression = args.Filter;
             try
             {
                 var endpoint = BuildProductsEndpoint(args);
@@ -124,6 +127,54 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (productGrid != null)
             {
                 await productGrid.Reload();
+            }
+        }
+
+        protected async Task LoadColumnFilterDataProducts(DataGridLoadColumnFilterDataEventArgs<ProductItem> args)
+        {
+            try
+            {
+                if (args.Column == null) return;
+
+                var property = args.Column.GetFilterProperty();
+                if (string.IsNullOrWhiteSpace(property)) return;
+
+                var query = new List<string> { $"distinct={Uri.EscapeDataString(property)}" };
+                if (CategoryFilter.HasValue) query.Add($"categoryId={CategoryFilter.Value}");
+                if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText)}");
+                if (!string.IsNullOrWhiteSpace(_currentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(_currentFilterExpression)}");
+                if (!string.IsNullOrWhiteSpace(args.Filter)) query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+
+                var apiUrl = $"/api/VPPRequest/products?{string.Join("&", query)}";
+                var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
+
+                if (response != null && response.Count > 0)
+                {
+                    var distinctDtos = response
+                        .Select(dict =>
+                        {
+                            var dto = new ProductItem();
+                            var propInfo = typeof(ProductItem).GetProperty(property);
+                            if (propInfo != null && dict.TryGetValue(property, out var val) && val != null)
+                            {
+                                try
+                                {
+                                    var converted = Convert.ChangeType(val.ToString(), propInfo.PropertyType);
+                                    propInfo.SetValue(dto, converted);
+                                }
+                                catch { }
+                            }
+                            return dto;
+                        })
+                        .ToList();
+
+                    args.Data = distinctDtos;
+                    args.Count = distinctDtos.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Tab_ProductCatalog] LoadColumnFilterData failed: {ex.Message}");
             }
         }
 

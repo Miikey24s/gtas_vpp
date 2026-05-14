@@ -15,6 +15,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
     {
         [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
 
@@ -315,6 +316,17 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 var res = await _apiServices.PatchFromApiAsync<object>("/api/Permission/component-mapping", body);
                 if (res is not null)
                 {
+                    if (data.GroupId == PermissionState.CurrentGroupId)
+                    {
+                        await PermissionState.RefreshAsync();
+
+                        if (!PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Permission))
+                        {
+                            NavigationManager.NavigateTo("/dashboard?tab=0", true);
+                            return;
+                        }
+                    }
+
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,

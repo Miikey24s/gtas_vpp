@@ -37,6 +37,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
@@ -82,7 +83,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
 
 
-        private bool CanView => claims.HasPermission(Permissions.RequestOrder);
+        private bool CanView => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestOrder);
 
         protected override async Task OnInitializedAsync()
         {

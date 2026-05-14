@@ -1,5 +1,4 @@
 @using gtas_vpp_shared.DTOs.Share
-@using gtas_vpp_shared.DTOs.AI
 @using gtas_vpp_fe.Services
 
 <div class="wizard-step wizard-step-products">
@@ -22,55 +21,24 @@
                     </RadzenStack>
                 </div>
 
-                @if (glb.IsAIEnabled)
-                {
-                    <RadzenCard class="vpp-card-ai vpp-card-ai-inline" Variant="Variant.Outlined">
-                        <div class="vpp-wizard-panel-head">
-                            <div>
-                                <div class="vpp-wizard-panel-title-row">
-                                    <RadzenIcon Icon="auto_awesome" Style="color: var(--vpp-primary-600); font-size: 1.15rem;" aria-hidden="true" />
-                                    <span class="vpp-wizard-panel-title">@Loc["AISmartSearch"]</span>
-                                </div>
-                                <p class="vpp-wizard-panel-copy">@Loc["WizardAISearchCopy"]</p>
-                            </div>
-                        </div>
-
-                        <div class="vpp-card-ai-shell">
-                            <RadzenTextBox @bind-Value="AISearchText" Placeholder="@Loc["AiSearchPlaceholder"]"
-                                           Style="width: 100%;"
-                                           @onkeydown="@OnEnter" />
-                            @* F-28: icon-only search trigger gets an explicit accessible name. *@
-                            <RadzenButton Icon="search" ButtonStyle="ButtonStyle.Primary" Click="@OnAISearchAsync" Disabled="@IsAILoading" Title="@Loc["AISmartSearch"]" aria-label="@Loc["AISmartSearch"]" />
-                        </div>
-
-                        @if (IsAILoading)
-                        {
-                            <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="vpp-inline-progress" />
-                        }
-
-                        @if (AISuggestions.Any())
-                        {
-                            <div class="vpp-card-ai-chips">
-                                @foreach (var item in AISuggestions)
-                                {
-                                    var isAlreadySelected = Context.SelectedItems.Any(x => x.VPPId == item.VPPId);
-                                    <RadzenButton Text="@($"+ {item.VPPName}")"
-                                                  Icon="@(isAlreadySelected ? "check" : "add")"
-                                                  ButtonStyle="@(isAlreadySelected ? ButtonStyle.Success : ButtonStyle.Light)"
-                                                  Variant="Variant.Outlined"
-                                                  Size="ButtonSize.Small"
-                                                  Disabled="@isAlreadySelected"
-                                                  Click="@(async _ => await AddSuggestedItemAsync(item))"
-                                                  Style="@(isAlreadySelected ? "opacity: 0.65;" : "")" />
-                                }
-                            </div>
-                        }
-                        else if (!IsAILoading && !string.IsNullOrWhiteSpace(AISearchText))
-                        {
-                            <div class="vpp-card-ai-empty">@Loc["WizardNoAISuggestionsYet"]</div>
-                        }
-                    </RadzenCard>
-                }
+                @* ── Notes / Description for Header ────────────── *@
+                <div class="vpp-wizard-notes-inline">
+                    <RadzenFormField Text="@(Context.IsAdditional ? Loc["WizardAdditionalReasonLabel"] : Loc["WizardApproverNotesLabel"])" Variant="Variant.Outlined" Style="width: 100%;">
+                        <ChildContent>
+                            <RadzenTextArea @bind-Value="Context.Description"
+                                            Rows="2"
+                                            Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
+                                            Style="width: 100%;"
+                                            Change="@(_ => Context.NotifyStateChanged())" />
+                        </ChildContent>
+                    </RadzenFormField>
+                    @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Size="AlertSize.ExtraSmall" class="rz-mt-1">
+                            <span style="font-size: 0.8rem;">@Loc["WizardAdditionalReasonRequired"]</span>
+                        </RadzenAlert>
+                    }
+                </div>
 
                 <RadzenDataGrid @ref="productGrid"
                                 TItem="ProductOption"
@@ -86,6 +54,7 @@
                                 AllowSorting="true"
                                 AllowFiltering="true"
                                 FilterMode="FilterMode.CheckBoxList"
+                                LoadColumnFilterData="@LoadColumnFilterDataProducts"
                                 FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 AllowColumnResize="true"
                                 Density="Density.Compact"
@@ -212,12 +181,10 @@
 
     public bool IsLoadingProducts { get; set; }
     public int ProductCount { get; set; }
-    public bool IsAILoading { get; set; }
-    public string? AISearchText { get; set; }
-    public List<AISuggestedItemDTO> AISuggestions { get; set; } = new();
     public List<ProductOption> ProductOptions { get; set; } = new();
     public RadzenDataGrid<ProductOption>? productGrid;
     public RadzenDataGrid<OrderCreateContext.SelectedItem>? selectedGrid;
+    private string? _currentFilterExpression;
     private bool _pendingSelectedGridReload;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -241,14 +208,14 @@
         try
         {
             var queryParams = new List<string>();
+            _currentFilterExpression = args.Filter;
 
             if (args.Skip.HasValue && args.Skip.Value > 0)
                 queryParams.Add($"skip={args.Skip.Value}");
             queryParams.Add($"top={args.Top ?? 20}");
 
-            var search = args.Filters?.FirstOrDefault()?.FilterValue?.ToString();
-            if (!string.IsNullOrWhiteSpace(search))
-                queryParams.Add($"search={Uri.EscapeDataString(search)}");
+            if (!string.IsNullOrWhiteSpace(args.Filter))
+                queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
 
             var sort = args.Sorts?.FirstOrDefault();
             if (sort != null)
@@ -262,6 +229,56 @@
         finally
         {
             IsLoadingProducts = false;
+        }
+    }
+
+    private async Task LoadColumnFilterDataProducts(DataGridLoadColumnFilterDataEventArgs<ProductOption> args)
+    {
+        try
+        {
+            if (args.Column == null) return;
+
+            var property = args.Column.GetFilterProperty();
+            if (string.IsNullOrWhiteSpace(property)) return;
+
+            var query = new List<string> { $"distinct={Uri.EscapeDataString(property)}" };
+
+            if (!string.IsNullOrWhiteSpace(_currentFilterExpression))
+                query.Add($"filter={Uri.EscapeDataString(_currentFilterExpression)}");
+
+            if (!string.IsNullOrWhiteSpace(args.Filter))
+                query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+
+            var apiUrl = $"/api/VPPRequest/products?{string.Join("&", query)}";
+            var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
+
+            if (response != null && response.Count > 0)
+            {
+                var distinctDtos = response
+                    .Select(dict =>
+                    {
+                        var dto = new ProductOption();
+                        var propInfo = typeof(ProductOption).GetProperty(property);
+                        if (propInfo != null && dict.TryGetValue(property, out var val) && val != null)
+                        {
+                            try
+                            {
+                                var converted = Convert.ChangeType(val.ToString(), propInfo.PropertyType);
+                                propInfo.SetValue(dto, converted);
+                            }
+                            catch { }
+                        }
+                        return dto;
+                    })
+                    .ToList();
+
+                args.Data = distinctDtos;
+                args.Count = distinctDtos.Count;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[OrderCreateStep2] LoadColumnFilterData failed: {ex.Message}");
         }
     }
 
@@ -297,31 +314,6 @@
         if (args.Data is not null && Context.SelectedItems.Any(x => x.VPPId == args.Data.Id))
         {
             args.Attributes.Add("class", "vpp-wizard-row-selected");
-        }
-    }
-
-    private async Task OnEnter(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await OnAISearchAsync();
-    }
-
-    private async Task OnAISearchAsync()
-    {
-        if (string.IsNullOrWhiteSpace(AISearchText)) return;
-        IsAILoading = true;
-        try
-        {
-            AISuggestions = await _apiServices.GetFromApiAsync<List<AISuggestedItemDTO>>($"VPP/ai/suggest?query={Uri.EscapeDataString(AISearchText)}") ?? new();
-        }
-        finally { IsAILoading = false; }
-    }
-
-    private async Task AddSuggestedItemAsync(AISuggestedItemDTO item)
-    {
-        if (!Context.SelectedItems.Any(x => x.VPPId == item.VPPId))
-        {
-            Context.SelectedItems.Add(new() { VPPId = item.VPPId, VPPCode = item.VPPCode, VPPName = item.VPPName, Qty = 1 });
-            await RefreshSelectionAsync();
         }
     }
 

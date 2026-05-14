@@ -39,9 +39,6 @@
   <data name="ConfirmDelete" xml:space="preserve"><value>Bạn có chắc muốn xóa?</value></data>
   <data name="PleaseWait" xml:space="preserve"><value>Vui lòng đợi...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Lỗi máy chủ</value></data>
-  <data name="AIEnabled" xml:space="preserve"><value>AI đang bật</value></data>
-  <data name="AIDisabled" xml:space="preserve"><value>AI đã tắt</value></data>
-  <data name="AIManagement" xml:space="preserve"><value>Quản lý AI</value></data>
   <data name="Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
   <data name="DarkMode" xml:space="preserve"><value>Nền tối</value></data>
   <data name="LightMode" xml:space="preserve"><value>Nền sáng</value></data>
@@ -82,11 +79,9 @@
   <data name="Operations" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Nhà cung cấp</value></data>
   <data name="Departments" xml:space="preserve"><value>Phòng ban</value></data>
-  <data name="AIChat" xml:space="preserve"><value>Trò chuyện AI</value></data>
   <data name="VPPChat" xml:space="preserve"><value>Trò chuyện VPP</value></data>
   <data name="User" xml:space="preserve"><value>Người dùng</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Trở về đơn hàng</value></data>
-  <data name="AISmartSearch" xml:space="preserve"><value>Tìm kiếm AI thông minh</value></data>
   <data name="SelectedItems" xml:space="preserve"><value>Mục đã chọn</value></data>
   <data name="ClearAll" xml:space="preserve"><value>Xóa tất cả</value></data>
   <data name="OrderDetails" xml:space="preserve"><value>Chi tiết đơn hàng</value></data>
@@ -257,7 +252,6 @@
   <data name="WizardModeEditingExistingOrder" xml:space="preserve"><value>Đang sửa đơn hiện có</value></data>
   <data name="WizardModeNewDesc" xml:space="preserve"><value>Yêu cầu định kỳ cho kỳ đang mở.</value></data>
   <data name="WizardModeRegularRequest" xml:space="preserve"><value>Yêu cầu định kỳ</value></data>
-  <data name="WizardNoAISuggestionsYet" xml:space="preserve"><value>Chưa có gợi ý AI. Hãy thử mã sản phẩm, tên sản phẩm hoặc từ khóa tiếng Việt.</value></data>
   <data name="WizardNoItemsSelected" xml:space="preserve"><value>Chưa chọn sản phẩm</value></data>
   <data name="WizardNoItemsSelectedDesc" xml:space="preserve"><value>Dùng danh mục để thêm sản phẩm, rồi điều chỉnh số lượng tại đây.</value></data>
   <data name="WizardNoItemsToSubmit" xml:space="preserve"><value>Không có sản phẩm để gửi</value></data>

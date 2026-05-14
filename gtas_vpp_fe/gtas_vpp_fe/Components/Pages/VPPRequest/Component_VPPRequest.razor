@@ -13,54 +13,60 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex="@SelectedIndex">
         <Tabs>
-            <AuthorizeView Policy="@Permissions.RequestOrder" Context="ordersTabAuth">
+            @if (CanViewDashboardTab(Permissions.RequestOrder))
+            {
                 <RadzenTabsItem Text="@Loc["MyOrders"]">
                     @if (IsActiveTab(0))
                     {
                         <Tab_Orders claims="@claims" />
                     }
                 </RadzenTabsItem>
-            </AuthorizeView>
-            <AuthorizeView Policy="@Permissions.RequestHistory" Context="historyTabAuth">
+            }
+            @if (CanViewDashboardTab(Permissions.RequestHistory))
+            {
                 <RadzenTabsItem Text="@Loc["History"]">
                     @if (IsActiveTab(1))
                     {
                         <Tab_History claims="@claims" />
                     }
                 </RadzenTabsItem>
-            </AuthorizeView>
-            <AuthorizeView Policy="@Permissions.RequestProductCatalog" Context="productCatalogTabAuth">
+            }
+            @if (CanViewDashboardTab(Permissions.RequestProductCatalog))
+            {
                 <RadzenTabsItem Text="@Loc["ProductCatalog"]">
                     @if (IsActiveTab(2))
                     {
                         <Tab_ProductCatalog claims="@claims" />
                     }
                 </RadzenTabsItem>
-            </AuthorizeView>
-            <AuthorizeView Policy="@Permissions.RequestDepartmentSummary" Context="departmentSummaryTabAuth">
+            }
+            @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary))
+            {
                 <RadzenTabsItem Text="@Loc["DepartmentSummary"]">
                     @if (IsActiveTab(3))
                     {
                         <Tab_DepartmentSummary claims="@claims" />
                     }
                 </RadzenTabsItem>
-            </AuthorizeView>
-            <AuthorizeView Policy="@Permissions.RequestAllOrdersSummary" Context="allOrdersSummaryTabAuth">
+            }
+            @if (CanViewDashboardTab(Permissions.RequestAllOrdersSummary))
+            {
                 <RadzenTabsItem Text="@Loc["AllOrdersSummary"]">
                     @if (IsActiveTab(4))
                     {
                         <Tab_AllOrdersSummary claims="@claims" />
                     }
                 </RadzenTabsItem>
-            </AuthorizeView>
-            <AuthorizeView Policy="@Permissions.RequestAdminApproval" Context="adminApprovalTabAuth">
+            }
+            @if (CanViewDashboardTab(Permissions.RequestAdminApproval))
+            {
                 <RadzenTabsItem Text="@Loc["AdminApproval"]">
                     @if (IsActiveTab(5))
                     {
                         <Tab_AdminApproval claims="@claims" />
                     }
                 </RadzenTabsItem>
-            </AuthorizeView>
+            }
         </Tabs>
     </RadzenTabs>
 }

@@ -6,7 +6,10 @@ using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 using Radzen;
+using System.Collections;
+using System.Globalization;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
@@ -30,6 +33,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] protected IAPIServices _apiServices { get; set; } = default!;
         [Inject] protected IStringLocalizer<App> BaseLoc { get; set; } = default!;
         [Inject] protected NotificationService NotificationService { get; set; } = default!;
+        [Inject] protected PermissionState PermissionState { get; set; } = default!;
 
         // ─── Cascaded from the host page ─────────────────────────────────────
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
@@ -47,6 +51,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int TotalQty { get; set; }
         public int PageSize { get; set; } = 20;
         public int CurrentSkip { get; set; }
+        protected string? CurrentFilterExpression { get; private set; }
+        protected string? CurrentOrderByExpression { get; private set; }
+        protected IReadOnlyList<FilterDescriptor> CurrentFilters { get; private set; } = Array.Empty<FilterDescriptor>();
 
         // ─── Private plumbing ─────────────────────────────────────────────────
         private CancellationTokenSource? _filterDebounce;
@@ -66,6 +73,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         /// "/api/VPPRequest/my-orders-summary?year=2026&skip=0&top=20".
         /// </summary>
         protected abstract string BuildEndpoint();
+
+        /// <summary>Appends tab-specific scope values so filter popup data matches the current dataset.</summary>
+        protected abstract void AppendFilterScopeQuery(List<string> query);
 
         /// <summary>Hook invoked once before the first load. Use to seed filter option lists.</summary>
         protected virtual void OnInit() { }
@@ -105,7 +115,206 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             CurrentSkip = args.Skip ?? 0;
             if (args.Top.HasValue && args.Top.Value > 0) PageSize = args.Top.Value;
+            CurrentFilterExpression = args.Filter;
+            CurrentOrderByExpression = args.OrderBy;
+            CurrentFilters = args.Filters?.ToList() ?? new List<FilterDescriptor>();
             await LoadAsync();
+        }
+
+        /// <summary>
+        /// Loads distinct column values for CheckBoxList filters so they show
+        /// all possible values across all pages, not just the current page.
+        /// </summary>
+        protected async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VPP01_RequestHeaderResDTO> args)
+        {
+            try
+            {
+                if (args.Column == null) return;
+
+                var property = args.Column.GetFilterProperty();
+                if (string.IsNullOrWhiteSpace(property)) return;
+
+                var query = new List<string>
+                {
+                    $"column={Uri.EscapeDataString(property)}"
+                };
+                AppendFilterScopeQuery(query);
+
+                var scopedFilters = CurrentFilters
+                    .Where(filter => !TargetsCurrentColumn(filter, property))
+                    .Select(BuildColumnFilterScope)
+                    .Where(filter => filter != null)
+                    .Cast<ColumnFilterScope>()
+                    .ToList();
+
+                if (scopedFilters.Count > 0)
+                {
+                    query.Add($"filters={Uri.EscapeDataString(JsonSerializer.Serialize(scopedFilters))}");
+                }
+                else if (!string.IsNullOrWhiteSpace(CurrentFilterExpression))
+                {
+                    query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(args.Filter))
+                {
+                    query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+                }
+
+                var apiUrl = $"/api/VPPRequest/order-filter-values?{string.Join("&", query)}";
+                var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
+
+                if (response != null)
+                {
+                    var distinctDtos = response
+                        .Select(BuildFilterValueDto)
+                        .ToList();
+
+                    args.Data = distinctDtos;
+                    args.Count = distinctDtos.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BaseOrderTab] LoadColumnFilterData failed: {ex.Message}");
+            }
+        }
+
+        private static VPP01_RequestHeaderResDTO BuildFilterValueDto(Dictionary<string, object?> dict)
+        {
+            var dto = new VPP01_RequestHeaderResDTO();
+
+            if (dict.TryGetValue("Y", out var yearVal) && int.TryParse(yearVal?.ToString(), out var year))
+            {
+                dto.Y = year;
+            }
+
+            if (dict.TryGetValue("M", out var monthVal) && int.TryParse(monthVal?.ToString(), out var month))
+            {
+                dto.M = month;
+            }
+
+            if (dict.TryGetValue("Status", out var statusVal) && int.TryParse(statusVal?.ToString(), out var status))
+            {
+                dto.Status = status;
+            }
+
+            if (dict.TryGetValue(nameof(VPP01_RequestHeaderResDTO.TotalLines), out var totalLinesVal) && int.TryParse(totalLinesVal?.ToString(), out var totalLines))
+            {
+                dto.TotalLines = totalLines;
+            }
+
+            if (dict.TryGetValue(nameof(VPP01_RequestHeaderResDTO.TotalQty), out var totalQtyVal) && int.TryParse(totalQtyVal?.ToString(), out var totalQty))
+            {
+                dto.TotalQty = totalQty;
+            }
+
+            if (dict.TryGetValue(nameof(VPP01_RequestHeaderResDTO.SubmittedDate), out var submittedDateVal)
+                && DateTime.TryParse(submittedDateVal?.ToString(), out var submittedDate))
+            {
+                dto.SubmittedDate = submittedDate;
+            }
+
+            if (dict.TryGetValue("IsAdditionalOrder", out var additionalVal) && bool.TryParse(additionalVal?.ToString(), out var isAdditional))
+            {
+                dto.IsAdditionalOrder = isAdditional;
+            }
+
+            if (dict.TryGetValue("IsDeadlinePassed", out var deadlineVal) && bool.TryParse(deadlineVal?.ToString(), out var isDeadlinePassed))
+            {
+                dto.IsDeadlinePassed = isDeadlinePassed;
+            }
+
+            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.VPPCode));
+            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.DepartmentCode));
+            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.MemberCompanyCode));
+            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.RequesterName));
+            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.Description));
+
+            return dto;
+        }
+
+        private static void SetStringProperty(Dictionary<string, object?> dict, VPP01_RequestHeaderResDTO dto, string propertyName)
+        {
+            if (!dict.TryGetValue(propertyName, out var value) || value == null)
+            {
+                return;
+            }
+
+            var property = typeof(VPP01_RequestHeaderResDTO).GetProperty(propertyName);
+            property?.SetValue(dto, value.ToString());
+        }
+
+        private static bool TargetsCurrentColumn(FilterDescriptor filter, string property)
+        {
+            return string.Equals(filter.FilterProperty, property, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(filter.Property, property, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static ColumnFilterScope? BuildColumnFilterScope(FilterDescriptor filter)
+        {
+            var property = !string.IsNullOrWhiteSpace(filter.FilterProperty)
+                ? filter.FilterProperty
+                : filter.Property;
+
+            if (string.IsNullOrWhiteSpace(property))
+            {
+                return null;
+            }
+
+            var values = GetFilterValues(filter.FilterValue)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return values.Count == 0
+                ? null
+                : new ColumnFilterScope
+                {
+                    Property = property,
+                    Values = values
+                };
+        }
+
+        private static IEnumerable<string> GetFilterValues(object? filterValue)
+        {
+            if (filterValue is IEnumerable values && filterValue is not string)
+            {
+                foreach (var value in values.Cast<object?>())
+                {
+                    var formatted = FormatFilterValue(value);
+                    if (!string.IsNullOrWhiteSpace(formatted))
+                    {
+                        yield return formatted;
+                    }
+                }
+
+                yield break;
+            }
+
+            var singleValue = FormatFilterValue(filterValue);
+            if (!string.IsNullOrWhiteSpace(singleValue))
+            {
+                yield return singleValue;
+            }
+        }
+
+        private static string? FormatFilterValue(object? value)
+        {
+            return value switch
+            {
+                null => null,
+                DateTime dateTime => dateTime.ToString(DateFormatter.LongDate, CultureInfo.GetCultureInfo("vi-VN")),
+                DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(DateFormatter.LongDate, CultureInfo.GetCultureInfo("vi-VN")),
+                IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+                _ => value.ToString()
+            };
+        }
+
+        private sealed class ColumnFilterScope
+        {
+            public string Property { get; set; } = string.Empty;
+            public List<string> Values { get; set; } = new();
         }
 
         /// <summary>Forces a reload (e.g. after approve / reject in admin tab).</summary>
@@ -204,6 +413,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
+
+        protected bool HasDashboardPermission(string permission)
+        {
+            return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);
+        }
 
         public void Dispose()
         {

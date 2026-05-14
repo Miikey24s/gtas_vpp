@@ -41,8 +41,8 @@ namespace gtas_vpp_fe.Helpers
 
         // Cookie
         public const string CookieName = "VPP_AuthCookie";
-        public const int CookieExpireMinutes = 30;
-        public const int ClaimExpireHours = 12;
+        public const int CookieExpireMinutes = 1440;
+        public const int ClaimExpireHours = 24;
         public const int AuthPropertyExpireHours = 24;
         public static class sp_AuthenClass
         {
@@ -77,7 +77,6 @@ namespace gtas_vpp_fe.Helpers
                 public const string Permission = "PERMISSION";
                 public const string PageHaveAdminView = "PERMISSION";
                 public const string VPPRequest = "DASHBOARD";
-                public const string AI = "AI";
             }
         }
     }

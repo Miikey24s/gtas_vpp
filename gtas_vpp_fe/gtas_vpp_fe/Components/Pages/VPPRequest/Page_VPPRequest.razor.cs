@@ -1,10 +1,12 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.Pages;
+using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest
 {
-    public partial class Page_VPPRequest
+    public partial class Page_VPPRequest : PermissionAwarePageBase, IDisposable
     {
         private static readonly Dictionary<string, int> LegacyDashboardTabs = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -16,7 +18,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             ["admin-approval"] = 5
         };
 
-        [Inject] public AuthHelper AuthHelper { get; set; } = default!;
+        private static readonly string DashboardPageCode = Config.Page_ComponentCode.PageCode.Dashboard;
+        private static readonly PermissionPageOptions PageOptions = new(
+            DashboardPageCode,
+            string.Empty,
+            RedirectPath: "/",
+            NotifyOnAccessDenied: false);
         [Parameter] public string? Per { get; set; }
 
         public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
@@ -27,7 +34,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             try
             {
-                await LoadAuthenticationState();
+                if (await LoadPageAccessAsync(PageOptions))
+                {
+                    PagePermissionState.Changed += OnPermissionStateChanged;
+                }
             }
             catch (Exception)
             {
@@ -44,16 +54,19 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
         }
 
-        private async Task LoadAuthenticationState()
+        private void OnPermissionStateChanged()
         {
-            var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();
-            if (!isAuthenticated)
-            {
-                NavigationManager.NavigateTo("logoutprocess", true);
-                return;
-            }
+            HandlePermissionStateChanged(PageOptions);
+        }
 
-            claims = userClaims;
+        protected override void ApplyClaims(IEnumerable<Claim> newClaims)
+        {
+            claims = newClaims;
+        }
+
+        public void Dispose()
+        {
+            PagePermissionState.Changed -= OnPermissionStateChanged;
         }
     }
 }
