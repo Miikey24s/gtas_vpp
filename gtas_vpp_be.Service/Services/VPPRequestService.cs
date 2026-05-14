@@ -253,6 +253,7 @@ namespace gtas_vpp_be.Service.Services
                     SubmittedDate = now
                 };
 
+                await ValidateActiveProductsAsync(req.Items);
                 header.VPP02_RequestDetails = await BuildRequestDetailsAsync(req.Items, createUserId, header.Id, now);
 
                 _scopedUow.VPPContext.Set<VPP01_RequestHeader>().Add(header);
@@ -311,6 +312,7 @@ namespace gtas_vpp_be.Service.Services
                         .SetProperty(x => x.UpdateUserId, req.UpdateUserId)
                         .SetProperty(x => x.UpdateDate, now));
 
+                await ValidateActiveProductsAsync(req.Items);
                 var newDetails = await BuildRequestDetailsAsync(req.Items, req.UpdateUserId, header.Id, now);
 
                 _scopedUow.VPPContext.Set<VPP02_RequestDetail>().AddRange(newDetails);
@@ -739,6 +741,43 @@ namespace gtas_vpp_be.Service.Services
             {
                 throw new BusinessException(
                     $"Period {requested} is too far from the current period {current}.");
+            }
+        }
+
+        /// <summary>
+        /// Validates that all requested product IDs are active (not soft-deleted)
+        /// and their categories are also active. Prevents orders with deleted products.
+        /// </summary>
+        private async Task ValidateActiveProductsAsync(IEnumerable<VPP02_ItemReqDTO> items)
+        {
+            var requestedIds = items.Select(x => x.VPPId).Distinct().ToArray();
+            if (requestedIds.Length == 0) return;
+
+            var activeProducts = await _scopedUow.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .Where(x => requestedIds.Contains(x.Id) && !x.IsDeleted)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.VPPName,
+                    CategoryDeleted = x.VPPCategory != null && x.VPPCategory.IsDeleted
+                })
+                .ToListAsync();
+
+            // Check for missing/deleted products
+            var activeIds = activeProducts.Select(x => x.Id).ToHashSet();
+            var missingIds = requestedIds.Where(id => !activeIds.Contains(id)).ToArray();
+            if (missingIds.Length > 0)
+                throw new BusinessException(
+                    $"The following products have been disabled and cannot be added to the order. Please remove them and try again.");
+
+            // Check for products whose category has been deleted
+            var categoryDeletedItems = activeProducts.Where(x => x.CategoryDeleted).ToArray();
+            if (categoryDeletedItems.Length > 0)
+            {
+                var names = string.Join(", ", categoryDeletedItems.Select(x => x.VPPName));
+                throw new BusinessException(
+                    $"The category for the following products has been disabled: {names}. Please remove them and try again.");
             }
         }
 

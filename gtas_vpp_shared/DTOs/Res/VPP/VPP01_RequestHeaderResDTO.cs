@@ -1,5 +1,6 @@
 using gtas_vpp_shared.DTOs.Share;
 using gtas_vpp_shared.UI;
+using System.Globalization;
 
 namespace gtas_vpp_shared.DTOs.Res.VPP
 {
@@ -21,10 +22,8 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         // P4/F-16: Delegate to the shared StatusDisplay helper; the only
         // DTO-specific twist is the "Period Closed" annotation when a
         // regular submitted order has passed its deadline.
-        public string StatusText =>
-            Status == 1 && IsDeadlinePassed && !IsAdditionalOrder
-                ? "Submitted (Period Closed)"
-                : StatusDisplay.GetText(Status);
+        public string StatusText => StatusDisplay.GetText(Status, IsDeadlinePassed, IsAdditionalOrder);
+        public string SubmittedDateText => SubmittedDate?.ToString("HH:mm dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN")) ?? "-";
         public string? RequesterName { get; set; }
 
         // P1: BE materializes these flags using PeriodCalculator + IDateTimeProvider so

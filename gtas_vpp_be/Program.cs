@@ -1,6 +1,4 @@
 using gtas_vpp_be.Authorization;
-using gtas_vpp_be.AI.DependencyInjection;
-using gtas_vpp_be.AI.KeyManagement.Interfaces;
 using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Model;
@@ -45,8 +43,6 @@ Config.Initialize(Configuration);
 var jwtKey = Config.JwtSettings.Key;
 var jwtIssuer = Config.JwtSettings.Issuer;
 var jwtAudience = Config.JwtSettings.Audience;
-var aiProvider = Configuration["AISettings:Provider"] ?? "Ollama";
-var isGoogleAiProvider = string.Equals(aiProvider, "Google", StringComparison.OrdinalIgnoreCase);
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -97,11 +93,6 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
-builder.Services.AddGtasAIServices(Configuration);
-if (isGoogleAiProvider)
-{
-    builder.Services.AddGeminiKeyManagement();
-}
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -173,24 +164,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-// Legacy Gemini key management is only initialized when the Google provider is explicitly enabled.
-var rawKeys = Configuration["AISettings:GeminiApiKeys"];
-if (isGoogleAiProvider && !string.IsNullOrWhiteSpace(rawKeys))
-{
-    var keys = rawKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    
-    var rawAccounts = Configuration["AISettings:GeminiApiAccounts"];
-    var accounts = !string.IsNullOrWhiteSpace(rawAccounts) 
-        ? rawAccounts.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) 
-        : new string[0];
-
-    var keyRotationService = app.Services.GetRequiredService<IApiKeyRotationService>();
-    keyRotationService.InitializeKeys(keys);
-    
-    var geminiKeyManager = app.Services.GetRequiredService<gtas_vpp_be.AI.KeyManagement.Interfaces.IGeminiKeyManager>();
-    geminiKeyManager.InitializeKeys(keys, accounts);
-}
-
 app.UseForwardedHeaders();
 
 app.UseCors("AllowFrontend");
@@ -232,39 +205,6 @@ foreach (var env in environments)
                 Console.WriteLine($"[Migration] DB {env} is not ready, retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
                 await Task.Delay(5000);
             }
-        }
-    }
-}
-
-// AI Database Migration (AIDbContext)
-var aiConstr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
-if (!string.IsNullOrEmpty(aiConstr))
-{
-    var aiOptionsBuilder = new DbContextOptionsBuilder<gtas_vpp_be.AI.Data.AIDbContext>();
-    aiOptionsBuilder.UseSqlServer(aiConstr, action => action.MigrationsAssembly("gtas_vpp_be.AI"))
-                    .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
-
-    using var aiDbContext = new gtas_vpp_be.AI.Data.AIDbContext(aiOptionsBuilder.Options);
-    
-    int maxRetries = 5;
-    for (int retry = 0; retry < maxRetries; retry++)
-    {
-        try
-        {
-            Console.WriteLine("[Migration] Applying AI database migration...");
-            aiDbContext.Database.Migrate();
-            Console.WriteLine("[Migration] AI database migration completed successfully.");
-            break;
-        }
-        catch (Exception ex)
-        {
-            if (retry == maxRetries - 1)
-            {
-                Console.WriteLine($"[Migration] AI migration failed after {maxRetries} attempts. Exception: {ex.Message}");
-                throw;
-            }
-            Console.WriteLine($"[Migration] AI DB is not ready, retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
-            await Task.Delay(5000);
         }
     }
 }

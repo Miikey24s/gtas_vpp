@@ -13,18 +13,19 @@ COPY gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj          gtas_vpp_be/gta
 # Copy all backend project files for restore layer caching
 COPY gtas_vpp_be/gtas_vpp_be.Model/gtas_vpp_be.Model.csproj             gtas_vpp_be/gtas_vpp_be.Model/
 COPY gtas_vpp_be/gtas_vpp_be.Service/gtas_vpp_be.Service.csproj         gtas_vpp_be/gtas_vpp_be.Service/
-COPY gtas_vpp_be/gtas_vpp_be.AI/gtas_vpp_be.AI.csproj                   gtas_vpp_be/gtas_vpp_be.AI/
 COPY gtas_vpp_be/gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj   gtas_vpp_be/gtas_vpp_be.Migrations/
 COPY gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj                         gtas_vpp_be/gtas_vpp_be/
 
-# Restore (cached unless .csproj files change)
-RUN dotnet restore gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj
+# Restore (cached unless .csproj files change; BuildKit mount reuses NuGet cache)
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet restore gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj
 
 # Copy all source code
 COPY gtas_vpp_be/ gtas_vpp_be/
 
 # Publish in Release mode
-RUN dotnet publish gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
     -c Release \
     -o /app/publish \
     --no-restore

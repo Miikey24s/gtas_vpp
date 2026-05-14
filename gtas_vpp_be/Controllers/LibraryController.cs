@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json;
 using System.Linq.Dynamic.Core;
+using System.Globalization;
 using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
@@ -42,13 +43,15 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] int? skip,
             [FromQuery] int? top,
             [FromQuery] string? orderby,
-            [FromQuery] string? distinct)
+            [FromQuery] string? distinct,
+            [FromQuery] string? distinctFilter)
         {
             string cleanSearch = searchText?.Trim() ?? string.Empty;
 
             // Check if this is a LoadData request (has any of the advanced parameters)
             bool isLoadDataRequest = !string.IsNullOrEmpty(filter) || skip.HasValue || top.HasValue || 
-                                     !string.IsNullOrEmpty(orderby) || !string.IsNullOrEmpty(distinct);
+                                     !string.IsNullOrEmpty(orderby) || !string.IsNullOrEmpty(distinct) ||
+                                     !string.IsNullOrEmpty(distinctFilter);
 
             // For L02, if classId is provided without id or searchText, treat as LoadData request
             if (tableCode.ToLower() == "l02" && classId.HasValue && !id.HasValue && string.IsNullOrEmpty(cleanSearch))
@@ -61,9 +64,9 @@ namespace gtas_vpp_be.Controllers
             {
                 return tableCode.ToLower() switch
                 {
-                    "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct),
-                    "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, classId),
-                    "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct),
+                    "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct, distinctFilter),
+                    "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, distinctFilter, classId),
+                    "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct, distinctFilter),
                     _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
                 };
             }
@@ -100,6 +103,7 @@ namespace gtas_vpp_be.Controllers
             int? top,
             string? orderby,
             string? distinct,
+            string? distinctFilter,
             Guid? classId = null) where TModel : class
         {
             // P3.2 (F-12): Build query directly on IQueryable<TModel> so filter/orderby/
@@ -143,8 +147,26 @@ namespace gtas_vpp_be.Controllers
                             .Distinct()
                             .ToDynamicListAsync();
 
-                        var distinctDtos = distinctValues
+                        var filteredValues = distinctValues
                             .Where(val => val != null)
+                            .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
+                                || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                            .ToList();
+
+                        var totalDistinctCount = filteredValues.Count;
+
+                        IEnumerable<object> pagedValues = filteredValues.Cast<object>();
+                        if (skip.HasValue && skip.Value > 0)
+                        {
+                            pagedValues = pagedValues.Skip(skip.Value);
+                        }
+
+                        if (top.HasValue && top.Value > 0)
+                        {
+                            pagedValues = pagedValues.Take(top.Value);
+                        }
+
+                        var distinctDtos = pagedValues
                             .Select(val =>
                             {
                                 var dto = Activator.CreateInstance<TDto>();
@@ -157,7 +179,7 @@ namespace gtas_vpp_be.Controllers
                             })
                             .ToList();
 
-                        Response.Headers.Append("X-Total-Count", distinctDtos.Count.ToString());
+                        Response.Headers.Append("X-Total-Count", totalDistinctCount.ToString());
                         return Ok(distinctDtos);
                     }
                 }

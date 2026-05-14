@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Model.Library;
@@ -117,7 +117,7 @@ namespace gtas_vpp_be.Controllers
                 if (userGroup == null || userGroup.LEX02_CompanyDepartmentLocationId == Guid.Empty)
                     return;
 
-                var departments = await _departmentRepository.ReadAsync(x => x.Id == userGroup.LEX02_CompanyDepartmentLocationId);
+                var departments = await _departmentRepository.ReadAsync(x => x.Id == userGroup.LEX02_CompanyDepartmentLocationId && !x.IsDeleted);
 
                 var department = departments?.FirstOrDefault();
 
@@ -174,7 +174,7 @@ namespace gtas_vpp_be.Controllers
                 issuer: jwtIssuer,
                 audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(12),
+                expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
