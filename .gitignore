@@ -368,7 +368,7 @@ FodyWeavers.xsd
 scripts/db_export/
 scripts/export_db_full.sql
 
-# Local AI/Dev Tools
+# Local Dev Tools
 .ai_workspace/
 .codex/
 .gemini/

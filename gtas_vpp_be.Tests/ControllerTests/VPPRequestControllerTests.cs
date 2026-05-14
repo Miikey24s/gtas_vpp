@@ -174,7 +174,7 @@ public class VPPRequestControllerTests
 
         var controller = CreateController(Mock.Of<IVPPRequestService>(), context, new Claim("UserID", "5615"));
 
-        var result = await controller.GetProducts(categoryId, "  Blue ", null, null, null, null);
+        var result = await controller.GetProducts(categoryId, "  Blue ", null, null, null, null, null, null);
 
         var okResult = Assert.IsType<OkObjectResult>(result);
         var products = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value).ToList();
@@ -228,7 +228,7 @@ public class VPPRequestControllerTests
 
         var controller = CreateController(Mock.Of<IVPPRequestService>(), context, new Claim("UserID", "5615"));
 
-        var result = await controller.GetProducts(categoryId, null, null, 0, 1, "VPPCode desc");
+        var result = await controller.GetProducts(categoryId, null, null, 0, 1, "VPPCode desc", null, null);
 
         var okResult = Assert.IsType<OkObjectResult>(result);
         var products = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value).ToList();
@@ -236,6 +236,41 @@ public class VPPRequestControllerTests
 
         Assert.Equal("2", controller.Response.Headers["X-Total-Count"].ToString());
         Assert.Equal("VPP-002", GetPropertyValue<string>(product, "VPPCode"));
+    }
+
+    [Fact]
+    public async Task GetOrderFilterValues_ExcludesCurrentColumnSelectionFromPopupScope()
+    {
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetAllOrdersAsync(null, null, null, null))
+            .ReturnsAsync(new List<VPP01_RequestHeaderResDTO>
+            {
+                new() { Id = Guid.NewGuid(), DepartmentCode = "IT", Status = 1 },
+                new() { Id = Guid.NewGuid(), DepartmentCode = "IT", Status = 7 },
+                new() { Id = Guid.NewGuid(), DepartmentCode = "HR", Status = 1 },
+                new() { Id = Guid.NewGuid(), DepartmentCode = "HR", Status = 8 }
+            });
+
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+        const string filtersJson = "[{\"property\":\"DepartmentCode\",\"values\":[\"IT\"]}]";
+
+        var result = await controller.GetOrderFilterValues(
+            "StatusText",
+            null,
+            null,
+            null,
+            null,
+            null,
+            "StatusText == \"Submitted\"",
+            filtersJson,
+            null);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var values = Assert.IsAssignableFrom<IEnumerable<Dictionary<string, object?>>>(okResult.Value)
+            .Select(item => item["StatusText"]?.ToString())
+            .ToList();
+
+        Assert.Equal(new[] { "Submitted", "Approved" }, values);
     }
 
     private static VPPRequestController CreateController(IVPPRequestService service, params Claim[] claims)

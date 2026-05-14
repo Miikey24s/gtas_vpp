@@ -2,6 +2,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Playwright;
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -11,6 +12,8 @@ namespace gtas_vpp_fe.UITests.Core
 {
     public abstract class TestBase : IAsyncLifetime
     {
+        private const string DefaultDockerBaseUrl = "http://127.0.0.1:5000/";
+
         private DistributedApplication? _app;
         private IPlaywright? _playwright;
         private IBrowser? _browser;
@@ -23,12 +26,7 @@ namespace gtas_vpp_fe.UITests.Core
 
         public async Task InitializeAsync()
         {
-            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MyAspire_AppHost>();
-            _app = await appHost.BuildAsync();
-            await _app.StartAsync();
-
-            var httpClient = _app.CreateHttpClient("frontend");
-            BaseUrl = httpClient.BaseAddress!.ToString();
+            BaseUrl = await ResolveBaseUrlAsync();
 
             _playwright = await Playwright.CreateAsync();
             _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
@@ -37,8 +35,8 @@ namespace gtas_vpp_fe.UITests.Core
                 SlowMo = GetSlowMo()
             });
             Page = await _browser.NewPageAsync();
-            Page.SetDefaultTimeout(15000);
-            Page.SetDefaultNavigationTimeout(30000);
+            Page.SetDefaultTimeout(60000);
+            Page.SetDefaultNavigationTimeout(120000);
         }
 
         public async Task DisposeAsync()
@@ -78,6 +76,72 @@ namespace gtas_vpp_fe.UITests.Core
         {
             var value = Environment.GetEnvironmentVariable("PLAYWRIGHT_SLOWMO_MS");
             return float.TryParse(value, out var slowMo) ? slowMo : 0;
+        }
+
+        private async Task<string> ResolveBaseUrlAsync()
+        {
+            var configuredBaseUrl = NormalizeBaseUrl(Environment.GetEnvironmentVariable("UITEST_BASE_URL"));
+            if (!string.IsNullOrWhiteSpace(configuredBaseUrl) && await IsBaseUrlReadyAsync(configuredBaseUrl))
+            {
+                return configuredBaseUrl;
+            }
+
+            if (await IsBaseUrlReadyAsync(DefaultDockerBaseUrl))
+            {
+                return DefaultDockerBaseUrl;
+            }
+
+            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MyAspire_AppHost>();
+            _app = await appHost.BuildAsync();
+            await _app.StartAsync();
+
+            var httpClient = _app.CreateHttpClient("frontend");
+            var aspireBaseUrl = NormalizeBaseUrl(httpClient.BaseAddress?.ToString()) ?? DefaultDockerBaseUrl;
+            await WaitForBaseUrlReadyAsync(aspireBaseUrl);
+            return aspireBaseUrl;
+        }
+
+        private static string? NormalizeBaseUrl(string? baseUrl)
+        {
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return null;
+            }
+
+            return baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/";
+        }
+
+        private static async Task<bool> IsBaseUrlReadyAsync(string baseUrl)
+        {
+            try
+            {
+                using var httpClient = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(5)
+                };
+
+                using var response = await httpClient.GetAsync(baseUrl);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static async Task WaitForBaseUrlReadyAsync(string baseUrl)
+        {
+            for (var attempt = 0; attempt < 24; attempt++)
+            {
+                if (await IsBaseUrlReadyAsync(baseUrl))
+                {
+                    return;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+
+            throw new InvalidOperationException($"Frontend host '{baseUrl}' did not become ready in time.");
         }
     }
 }

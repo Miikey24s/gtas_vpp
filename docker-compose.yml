@@ -1,11 +1,10 @@
 # ─────────────────────────────────────────────────────────────
-# GTAS VPP – Docker Compose (DigitalOcean 8GB / Remote Ollama)
+# GTAS VPP – Docker Compose (DigitalOcean 8GB)
 # Domain: gtas-vpp.annam.id.vn
 # ─────────────────────────────────────────────────────────────
 #
-# MODE – Remote Ollama qua domain công khai đã được Nginx/FRP route sẵn:
+# MODE:
 #   docker compose up -d --build
-#   OLLAMA_BASE_URL mặc định: http://ollama.annam.id.vn
 #
 # ─────────────────────────────────────────────────────────────
 
@@ -68,12 +67,6 @@ services:
       PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:-ttpsolutions}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
       CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
-      # ── AI Configuration (điều khiển qua .env) ──
-      AISettings__Provider: "${AI_PROVIDER:-Ollama}"
-      AISettings__ChatModel: "${AI_CHAT_MODEL:-gemma4:e4b}"
-      AISettings__EmbeddingModel: "${AI_EMBEDDING_MODEL:-nomic-embed-text}"
-      AISettings__OllamaBaseUrl: "${OLLAMA_BASE_URL:-http://ollama.annam.id.vn}"
-      AISettings__TimeoutSeconds: "${AI_TIMEOUT_SECONDS:-60}"
     ports:
       - "127.0.0.1:8080:8080"
     mem_limit: 512m

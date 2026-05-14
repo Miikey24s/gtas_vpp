@@ -1,4 +1,5 @@
 using gtas_vpp_shared.UI;
+using System.Globalization;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.UI;
@@ -20,6 +21,24 @@ public class StatusDisplayTests
     public void GetText_ReturnsExpectedLabel(int status, string expected)
     {
         Assert.Equal(expected, StatusDisplay.GetText(status));
+    }
+
+    [Theory]
+    [InlineData(1, false, false, "Submitted")]
+    [InlineData(1, true, false, "Submitted (Period Closed)")]
+    [InlineData(4, false, false, "Cancelled")]
+    public void GetText_WithCulture_ReturnsEnglishLabels(int status, bool isDeadlinePassed, bool isAdditionalOrder, string expected)
+    {
+        Assert.Equal(expected, StatusDisplay.GetText(status, isDeadlinePassed, isAdditionalOrder, CultureInfo.GetCultureInfo("en-US")));
+    }
+
+    [Theory]
+    [InlineData(1, false, false, "Đã gửi")]
+    [InlineData(1, true, false, "Đã gửi (đã khóa kỳ)")]
+    [InlineData(6, false, false, "Chờ duyệt")]
+    public void GetText_WithCulture_ReturnsVietnameseLabels(int status, bool isDeadlinePassed, bool isAdditionalOrder, string expected)
+    {
+        Assert.Equal(expected, StatusDisplay.GetText(status, isDeadlinePassed, isAdditionalOrder, CultureInfo.GetCultureInfo("vi-VN")));
     }
 
     [Theory]

@@ -20,11 +20,6 @@
     <BuildType Solution="FE|*" Project="Debug-FE" />
     <Build Solution="FE|*" Project="false" />
   </Project>
-  <Project Path="gtas_vpp_be/gtas_vpp_be.AI/gtas_vpp_be.AI.csproj">
-    <BuildType Solution="BE|*" Project="Debug-BE" />
-    <BuildType Solution="FE|*" Project="Debug-FE" />
-    <Build Solution="FE|*" Project="false" />
-  </Project>
   <Project Path="gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj">
     <BuildType Solution="BE|*" Project="Debug-BE" />
     <BuildType Solution="FE|*" Project="Debug-FE" />

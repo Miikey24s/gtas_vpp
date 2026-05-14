@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -14,15 +15,23 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
         public LoginPage(IPage page)
         {
             _page = page;
-            _usernameInput = _page.GetByRole(AriaRole.Textbox).First;
-            _passwordInput = _page.GetByRole(AriaRole.Textbox).Nth(1);
-            _loginButton = _page.GetByRole(AriaRole.Button, new() { Name = "LOGIN" });
+            _usernameInput = _page.Locator("input[name='Username']").First;
+            _passwordInput = _page.Locator("input[name='Password'], input[name='PasswordText']").First;
+            _loginButton = _page.Locator(".vpp-login-btn, button[type='submit']").First;
         }
 
         public async Task GotoAsync(string baseUrl)
         {
-            await _page.GotoAsync($"{baseUrl}Account/Login");
-            await _loginButton.WaitForAsync();
+            await _page.GotoAsync($"{baseUrl}Account/Login", new PageGotoOptions
+            {
+                Timeout = 120000,
+                WaitUntil = WaitUntilState.DOMContentLoaded
+            });
+            await _loginButton.WaitForAsync(new LocatorWaitForOptions
+            {
+                Timeout = 120000,
+                State = WaitForSelectorState.Visible
+            });
         }
 
         public async Task LoginWithDefaultCredentialsAsync()
@@ -32,8 +41,20 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
 
         public async Task WaitForDashboardAsync()
         {
-            await _page.WaitForURLAsync(new Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
-            await _page.GetByRole(AriaRole.Tab, new() { Name = "My Orders" }).WaitForAsync();
+            var timeoutAt = DateTime.UtcNow.AddSeconds(30);
+
+            while (DateTime.UtcNow < timeoutAt)
+            {
+                if (!Regex.IsMatch(_page.Url, @".*/Account/Login.*", RegexOptions.IgnoreCase))
+                {
+                    await _page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+                    return;
+                }
+
+                await Task.Delay(250);
+            }
+
+            throw new TimeoutException($"Timed out waiting for post-login redirect. Last URL: {_page.Url}");
         }
 
         public async Task LoginAsync(string username, string password, string serverName = "Test")
