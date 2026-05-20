@@ -79,7 +79,6 @@
   <data name="Operations" xml:space="preserve"><value>Items</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
   <data name="Departments" xml:space="preserve"><value>Departments</value></data>
-  <data name="VPPChat" xml:space="preserve"><value>VPP Chat</value></data>
   <data name="User" xml:space="preserve"><value>User</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Back to Orders</value></data>
   <data name="SelectedItems" xml:space="preserve"><value>Selected Items</value></data>
