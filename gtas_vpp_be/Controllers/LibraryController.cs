@@ -10,6 +10,7 @@ using Serilog;
 using System.Text.Json;
 using System.Linq.Dynamic.Core;
 using System.Globalization;
+using System.Security.Claims;
 using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
@@ -320,6 +321,15 @@ namespace gtas_vpp_be.Controllers
         }
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+        private static readonly HashSet<string> _writeDeniedFields = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Id",
+            "CreateUserId",
+            "CreateDate",
+            "UpdateUserId",
+            "UpdateDate",
+            "IsDeleted"
+        };
 
         private async Task<IActionResult> CreateAsync<TModel, TDto>(string json) where TModel : gtas_vpp_be.Model.Helpers.BaseModel where TDto : class
         {
@@ -329,8 +339,12 @@ namespace gtas_vpp_be.Controllers
             var obj = dto.Adapt<TModel>();
             obj.Id = Guid.Empty;
             var now = _dateTimeProvider.Now;
+            var uid = int.TryParse(User.FindFirstValue("UserID"), out var x) ? x : 0;
             obj.CreateDate = now;
             obj.UpdateDate = now;
+            obj.CreateUserId = uid;
+            obj.UpdateUserId = uid;
+            obj.IsDeleted = false;
             
             var created = await GetRepository<TModel>().AddAsync(obj);
             var resultDto = created?.Adapt<TDto>();
@@ -343,7 +357,18 @@ namespace gtas_vpp_be.Controllers
             if (dto == null) return BadRequest();
             
             var obj = dto.Adapt<TModel>();
+            var existing = await GetEntityByIdAsync<TModel>(obj.Id, false);
+            if (existing == null)
+                return NotFound(new { Message = $"Record with ID {obj.Id} not found." });
+
+            var uid = int.TryParse(User.FindFirstValue("UserID"), out var x) ? x : 0;
+            obj.CreateUserId = existing.CreateUserId;
+            obj.CreateDate = existing.CreateDate;
+            obj.IsDeleted = existing.IsDeleted;
             obj.UpdateDate = _dateTimeProvider.Now;
+            obj.UpdateUserId = uid;
+
+            _unitOfWork.VPPContext.Entry(existing).State = EntityState.Detached;
             
             var updated = await GetRepository<TModel>().UpdateAsync(obj);
             var resultDto = updated.Adapt<TDto>();
@@ -360,7 +385,7 @@ namespace gtas_vpp_be.Controllers
             var type = typeof(TModel);
             foreach (var jsonProperty in payload.EnumerateObject())
             {
-                if (jsonProperty.Name.Equals("Id", StringComparison.OrdinalIgnoreCase)) continue;
+                if (_writeDeniedFields.Contains(jsonProperty.Name)) continue;
 
                 var prop = type.GetProperty(jsonProperty.Name, System.Reflection.BindingFlags.IgnoreCase
                                                              | System.Reflection.BindingFlags.Public
