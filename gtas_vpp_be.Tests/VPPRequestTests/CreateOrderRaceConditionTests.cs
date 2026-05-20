@@ -26,8 +26,14 @@ public class CreateOrderRaceConditionTests
     {
         using var database = new SqliteTestDatabase();
         var userId = 5615;
-        var request1 = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
-        var request2 = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
+        var vppId = Guid.NewGuid();
+        using (var context = database.CreateContext())
+        {
+            await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        }
+
+        var request1 = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
+        var request2 = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
         var barrier = new AsyncBarrier(2);
 
         // P1: Clock at day 10 ⇒ current period = April 2026, matching the requests' Y/M.
@@ -48,8 +54,14 @@ public class CreateOrderRaceConditionTests
     {
         using var database = new SqliteTestDatabase();
         var userId = 5615;
-        var first = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
-        var second = CreateOrderRequest(2026, 5, isAdditionalOrder: false);
+        var vppId = Guid.NewGuid();
+        using (var context = database.CreateContext())
+        {
+            await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        }
+
+        var first = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
+        var second = CreateOrderRequest(2026, 5, isAdditionalOrder: false, vppId);
 
         // P1: Use mid-month clocks so each Y/M matches the BE-computed current period.
         await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0)).CreateOrderAsync(first, userId, "IT", "77500");
@@ -65,8 +77,14 @@ public class CreateOrderRaceConditionTests
     {
         using var database = new SqliteTestDatabase();
         var userId = 5615;
-        var regular = CreateOrderRequest(2026, 4, isAdditionalOrder: false);
-        var additional = CreateOrderRequest(2026, 4, isAdditionalOrder: true);
+        var vppId = Guid.NewGuid();
+        using (var context = database.CreateContext())
+        {
+            await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        }
+
+        var regular = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
+        var additional = CreateOrderRequest(2026, 4, isAdditionalOrder: true, vppId);
 
         // P1: Regular submitted mid-April (current period = 2026-04).
         // Additional submitted mid-May (current = 2026-05, previous = 2026-04).
@@ -115,7 +133,7 @@ public class CreateOrderRaceConditionTests
             Options.Create(new JiraSettings()));
     }
 
-    private static VPP01_CreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder)
+    private static VPP01_CreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)
         => new()
         {
             Y = year,
@@ -124,7 +142,7 @@ public class CreateOrderRaceConditionTests
             IsAdditionalOrder = isAdditionalOrder,
             Items = new List<VPP02_ItemReqDTO>
             {
-                new() { VPPId = Guid.NewGuid(), Qty = 1, Description = "Item" }
+                new() { VPPId = vppId, Qty = 1, Description = "Item" }
             }
         };
 

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +10,8 @@ namespace gtas_vpp_be.Tests.TestSupport;
 
 internal static class ServiceTestHelpers
 {
+    private static readonly Guid FakeUomId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
     public static VPPContext CreateInMemoryContext(string databaseName)
     {
         var options = new DbContextOptionsBuilder<VPPContext>()
@@ -16,6 +19,39 @@ internal static class ServiceTestHelpers
             .Options;
 
         return new VPPContext(options);
+    }
+
+    public static async Task SeedActiveVPPAsync(VPPContext context, params Guid[] vppIds)
+    {
+        var idsToSeed = vppIds.Distinct().ToArray();
+        var category = new L03_VPPCategory
+        {
+            Id = Guid.NewGuid(),
+            VPPCategoryCode = "TEST-CATEGORY",
+            VPPCategoryName = "Test Category",
+            CreateUserId = 1,
+            CreateDate = DateTime.UtcNow,
+            UpdateUserId = 1,
+            UpdateDate = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+        context.Set<L03_VPPCategory>().Add(category);
+        context.Set<L04_VPP>().AddRange(idsToSeed.Select(id => new L04_VPP
+        {
+            Id = id,
+            VPPCode = $"TEST-VPP-{id:N}",
+            VPPName = "Test VPP",
+            UOMId = FakeUomId,
+            VPPCategoryId = category.Id,
+            CreateUserId = 1,
+            CreateDate = DateTime.UtcNow,
+            UpdateUserId = 1,
+            UpdateDate = DateTime.UtcNow,
+            IsDeleted = false
+        }));
+
+        await context.SaveChangesAsync();
     }
 
     public static IHttpContextAccessor CreateHttpContextAccessor(params Claim[] claims)

@@ -90,7 +90,9 @@ public class VPPRequestServiceTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
-        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: false);
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: false, vppId: vppId);
 
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
@@ -105,7 +107,9 @@ public class VPPRequestServiceTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 10, 9, 7, 8));
-        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: true);
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: true, vppId: vppId);
 
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
@@ -121,6 +125,7 @@ public class VPPRequestServiceTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 4, 1, 9, 7, 8);
         var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
         {
             Id = Guid.NewGuid(),
