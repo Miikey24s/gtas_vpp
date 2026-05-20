@@ -1,0 +1,57 @@
+@using gtas_vpp_shared.DTOs.Res.Library
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<RadzenStack Gap="1rem">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap">
+        <RadzenFormField Text="@Loc["SelectVPPItem"]" Style="min-width:320px;">
+            <RadzenDropDown TValue="Guid?"
+                            Data="@vppItems"
+                            TextProperty="VPPName"
+                            ValueProperty="Id"
+                            @bind-Value="selectedVppId"
+                            Change="@(async _ => await LoadPricesAsync())"
+                            AllowClear="true"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Style="width:100%" />
+        </RadzenFormField>
+        <RadzenButton Icon="add_circle"
+                      Text="@Loc["AddNewPrice"]"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Disabled="@(!selectedVppId.HasValue)"
+                      Click="@AddPriceAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid @ref="grid"
+                    TItem="L06_VPPSupplierMappingResDTO"
+                    Data="@prices"
+                    IsLoading="@isLoading"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    PageSize="20"
+                    Density="Density.Compact"
+                    EmptyText="@(selectedVppId.HasValue ? Loc["NoPricesFound"] : Loc["LoadPricesPrompt"])"
+                    GridLines="DataGridGridLines.Horizontal"
+                    Style="height: calc(100vh - 230px);">
+        <Columns>
+            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="L05_SupplierName" Title="@Loc["Supplier"]" />
+            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="Price" Title="@Loc["Price"]" Width="140px" TextAlign="TextAlign.Right" FormatString="{0:N0}" />
+            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="130px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="Description" Title="@Loc["Description"]" />
+            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Title="@Loc["Actions"]" Width="260px" Sortable="false" Filterable="false">
+                <Template Context="row">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.35rem" JustifyContent="JustifyContent.End">
+                        <RadzenButton Icon="edit" Text="@Loc["Edit"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => EditPriceAsync(row))" />
+                        <RadzenButton Icon="star" Text="@Loc["SetDefault"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Disabled="@row.IsDefault" Click="@(() => SetDefaultAsync(row))" />
+                        <RadzenButton Icon="delete" Text="@Loc["Delete"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@(() => DeletePriceAsync(row))" />
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>

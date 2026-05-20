@@ -6,6 +6,7 @@ namespace gtas_vpp_fe.Helpers
         public const string HttpClientName = "VPP_API";
         public const string ApiLoginEndpoint = "/api/Auth/login";
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
+        public const string ApiBase = "/api";
         public const string ApiLibraryBase = "/api/Library";
         public const string ApiVppBase = "/api/VPPRequest";
         
@@ -32,6 +33,9 @@ namespace gtas_vpp_fe.Helpers
             public const string L04_Item = $"{ApiLibraryBase}/l04";
             public const string L05_Supplier = $"{ApiLibraryBase}/l05";
             public const string L06_SupplierMapping = $"{ApiLibraryBase}/l06";
+            public const string VPPPriceBase = $"{ApiBase}/vppprice";
+            public const string VPPPrice_ByVpp = $"{VPPPriceBase}/by-vpp";
+            public const string VPPPrice_SetDefault = $"{VPPPriceBase}/{{0}}/set-default";
         }
 
         // Routes

@@ -30,6 +30,7 @@ public sealed class PermissionState
         new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryCategory, "/library?tab=1"),
         new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryItem, "/library?tab=2"),
         new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibrarySupplier, "/library?tab=3"),
+        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryPrice, "/library?tab=5"),
         new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryDepartment, "/library?tab=4"),
         new(Config.Page_ComponentCode.PageCode.Permission, Permissions.PermissionUser, "/permission?tab=0"),
         new(Config.Page_ComponentCode.PageCode.Permission, Permissions.PermissionComponent, "/permission?tab=1"),

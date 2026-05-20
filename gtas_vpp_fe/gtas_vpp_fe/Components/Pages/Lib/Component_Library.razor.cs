@@ -22,7 +22,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             new(1, Permissions.LibraryCategory),
             new(2, Permissions.LibraryItem),
             new(3, Permissions.LibrarySupplier),
-            new(4, Permissions.LibraryDepartment)
+            new(4, Permissions.LibraryDepartment),
+            new(5, Permissions.LibraryPrice)
         ];
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
@@ -36,7 +37,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private int SelectedIndex { get; set; }
 
         private IReadOnlyList<LibraryTabDefinition> AuthorizedTabs =>
-            LibraryTabs.Where(tab => CanViewLibraryTab(tab.Permission)).ToArray();
+            LibraryTabs
+                .Where(tab => CanViewLibraryTab(tab.Permission))
+                .OrderBy(GetVisualTabOrder)
+                .ToArray();
 
         private bool HasAnyVisibleLibraryTab => AuthorizedTabs.Count > 0;
 
@@ -135,6 +139,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission);
         }
+
+        private static int GetVisualTabOrder(LibraryTabDefinition tab)
+        {
+            return tab.Permission switch
+            {
+                Permissions.LibraryPrice => 4,
+                Permissions.LibraryDepartment => 5,
+                _ => tab.QueryIndex
+            };
+        }
+
         public async Task<List<string>> GetFormular()
         {
             List<string> result = new List<string>();

@@ -74,6 +74,7 @@
   <data name="OperationCategories" xml:space="preserve"><value>Categories</value></data>
   <data name="Operations" xml:space="preserve"><value>Items</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
+  <data name="Prices" xml:space="preserve"><value>Prices</value></data>
   <data name="Departments" xml:space="preserve"><value>Departments</value></data>
   <data name="User" xml:space="preserve"><value>User</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Back to Orders</value></data>
@@ -108,6 +109,19 @@
   <data name="SortOrder" xml:space="preserve"><value>Sort Order</value></data>
   <data name="Additional" xml:space="preserve"><value>Additional</value></data>
   <data name="AccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="SelectVPPItem" xml:space="preserve"><value>Select VPP item</value></data>
+  <data name="AddNewPrice" xml:space="preserve"><value>Add new price</value></data>
+  <data name="EditPrice" xml:space="preserve"><value>Edit price</value></data>
+  <data name="Price" xml:space="preserve"><value>Price</value></data>
+  <data name="DefaultPrice" xml:space="preserve"><value>Default price</value></data>
+  <data name="SetDefault" xml:space="preserve"><value>Set Default</value></data>
+  <data name="PriceSaved" xml:space="preserve"><value>Price saved</value></data>
+  <data name="DefaultUpdated" xml:space="preserve"><value>Default updated</value></data>
+  <data name="PriceDeleted" xml:space="preserve"><value>Price deleted</value></data>
+  <data name="LoadPricesPrompt" xml:space="preserve"><value>Select a VPP item to load prices.</value></data>
+  <data name="NoPricesFound" xml:space="preserve"><value>No prices found.</value></data>
+  <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Only one default per VPP is allowed.</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Delete failed</value></data>
   <data name="Actions" xml:space="preserve"><value>Actions</value></data>
   <data name="All" xml:space="preserve"><value>All</value></data>
   <data name="AllClear" xml:space="preserve"><value>All clear</value></data>

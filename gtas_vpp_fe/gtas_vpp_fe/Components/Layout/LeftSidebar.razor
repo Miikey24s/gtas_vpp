@@ -85,6 +85,10 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" />
                 }
+                @if (CanViewLibraryItem(Permissions.LibraryPrice))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Prices"]" Path="/library?tab=5" class="ppjsidebarmenu submenu" Icon="payments" />
+                }
                 @if (CanViewLibraryItem(Permissions.LibraryDepartment))
                 {
                     <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="apartment" />

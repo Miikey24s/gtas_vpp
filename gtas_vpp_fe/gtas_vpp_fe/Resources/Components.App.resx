@@ -78,6 +78,7 @@
   <data name="OperationCategories" xml:space="preserve"><value>Nhóm hàng</value></data>
   <data name="Operations" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Nhà cung cấp</value></data>
+  <data name="Prices" xml:space="preserve"><value>Giá</value></data>
   <data name="Departments" xml:space="preserve"><value>Phòng ban</value></data>
   <data name="User" xml:space="preserve"><value>Người dùng</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Trở về đơn hàng</value></data>
@@ -112,6 +113,19 @@
   <data name="SortOrder" xml:space="preserve"><value>Thứ tự sắp xếp</value></data>
   <data name="Additional" xml:space="preserve"><value>Bổ sung</value></data>
   <data name="AccessDenied" xml:space="preserve"><value>Truy cập bị từ chối</value></data>
+  <data name="SelectVPPItem" xml:space="preserve"><value>Chọn mặt hàng VPP</value></data>
+  <data name="AddNewPrice" xml:space="preserve"><value>Thêm giá mới</value></data>
+  <data name="EditPrice" xml:space="preserve"><value>Sửa giá</value></data>
+  <data name="Price" xml:space="preserve"><value>Giá</value></data>
+  <data name="DefaultPrice" xml:space="preserve"><value>Giá mặc định</value></data>
+  <data name="SetDefault" xml:space="preserve"><value>Đặt mặc định</value></data>
+  <data name="PriceSaved" xml:space="preserve"><value>Đã lưu giá</value></data>
+  <data name="DefaultUpdated" xml:space="preserve"><value>Đã cập nhật mặc định</value></data>
+  <data name="PriceDeleted" xml:space="preserve"><value>Đã xóa giá</value></data>
+  <data name="LoadPricesPrompt" xml:space="preserve"><value>Chọn một mặt hàng VPP để tải giá.</value></data>
+  <data name="NoPricesFound" xml:space="preserve"><value>Không có giá.</value></data>
+  <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Chỉ được có một giá mặc định cho mỗi VPP.</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Xóa thất bại</value></data>
   <data name="Actions" xml:space="preserve"><value>Thao tác</value></data>
   <data name="All" xml:space="preserve"><value>Tất cả</value></data>
   <data name="AllClear" xml:space="preserve"><value>Không có mục chờ</value></data>

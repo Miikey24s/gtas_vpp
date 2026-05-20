@@ -31,6 +31,7 @@ namespace gtas_vpp_fe.Components.Layout
             (Permissions.LibraryCategory, "/library?tab=1"),
             (Permissions.LibraryItem, "/library?tab=2"),
             (Permissions.LibrarySupplier, "/library?tab=3"),
+            (Permissions.LibraryPrice, "/library?tab=5"),
             (Permissions.LibraryDepartment, "/library?tab=4")
         ];
 
@@ -302,4 +303,3 @@ namespace gtas_vpp_fe.Components.Layout
         }
     }
 }
-
