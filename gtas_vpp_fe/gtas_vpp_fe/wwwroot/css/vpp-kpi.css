@@ -109,7 +109,7 @@
     border-radius: var(--vpp-radius-card);
     padding: var(--vpp-space-5);
     transition: all var(--vpp-transition-fast);
-    cursor: pointer;
+    cursor: default;
 }
 
 .order-page {
