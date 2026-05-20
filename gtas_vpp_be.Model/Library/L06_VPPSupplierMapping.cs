@@ -13,6 +13,7 @@ namespace gtas_vpp_be.Model.Library
     {
         [Column(TypeName = "bigint")]
         public decimal Price { get; set; }
+        public bool IsDefault { get; set; }
         public Guid L04_VPPId { get; set; }
         public L04_VPP? L04_VPP { get; set; }
         public Guid L05_VPPSupplierId { get; set; }

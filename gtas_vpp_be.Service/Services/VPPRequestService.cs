@@ -812,12 +812,12 @@ namespace gtas_vpp_be.Service.Services
             var priceRows = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
                 .AsNoTracking()
                 .Where(x => distinctVppIds.Contains(x.L04_VPPId) && !x.IsDeleted)
-                .Select(x => new { VPPId = x.L04_VPPId, x.Price })
+                .Select(x => new { VPPId = x.L04_VPPId, x.Price, x.IsDefault })
                 .ToListAsync();
 
             return priceRows
                 .GroupBy(x => x.VPPId)
-                .ToDictionary(g => g.Key, g => (long)g.Select(x => x.Price).FirstOrDefault());
+                .ToDictionary(g => g.Key, g => (long)(g.FirstOrDefault(x => x.IsDefault)?.Price ?? g.First().Price));
         }
 
         /// <summary>

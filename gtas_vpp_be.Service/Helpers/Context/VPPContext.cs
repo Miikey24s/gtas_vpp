@@ -82,6 +82,10 @@ namespace gtas_vpp_be.Service.Helpers.Context
             {
                 en.HasOne(x => x.L04_VPP).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.L05_VPPSupplier).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.L04_VPPId })
+                    .HasDatabaseName("UX_L06_OneDefaultPerVPP")
+                    .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
+                    .IsUnique();
             });
             modelBuilder.Entity<VPP02_RequestDetail>(en =>
             {
@@ -119,4 +123,3 @@ namespace gtas_vpp_be.Service.Helpers.Context
         }
     }
 }
-

@@ -21,6 +21,7 @@ namespace gtas_vpp_shared.Constants
         public const string LibraryCategory = "LIBRARY_CATEGORY";
         public const string LibraryItem = "LIBRARY_ITEM";
         public const string LibrarySupplier = "LIBRARY_SUPPLIER";
+        public const string LibraryPrice = "LIBRARY_PRICE";
         public const string LibraryDepartment = "LIBRARY_DEPARTMENT";
 
         // Permissions
@@ -46,6 +47,7 @@ namespace gtas_vpp_shared.Constants
             LibraryCategory,
             LibraryItem,
             LibrarySupplier,
+            LibraryPrice,
             LibraryDepartment,
             PermissionUser,
             PermissionComponent,

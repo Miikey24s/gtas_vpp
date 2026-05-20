@@ -38,6 +38,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid CompLibCategory        = Guid.Parse("B1F59264-AB93-4E39-BB4C-2397726C69BE");
         private static readonly Guid CompLibItem            = Guid.Parse("A88BF4B4-F5BB-4E5A-8ADA-73C27606E7E2");
         private static readonly Guid CompLibSupplier        = Guid.Parse("02C64E1C-FDB0-4FEB-B788-CEBB06CF94C9");
+        private static readonly Guid CompLibPrice           = Guid.Parse("2FFBB515-BF2A-42ED-B4B1-34FBA41017FF");
         private static readonly Guid CompLibDepartment      = Guid.Parse("3179CAE5-10AF-4F8A-BED1-F8AB7C68D881");
         private static readonly Guid CompPermUser           = Guid.Parse("7A1EF33F-FAB9-47D6-88BF-9D69E90DC519");
         private static readonly Guid CompPermComponent      = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
@@ -58,6 +59,7 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid P05_LB_Category   = Guid.Parse("25B3721D-CDF2-41B2-A5F1-A24A5826E3C4");
         private static readonly Guid P05_LB_Item       = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
         private static readonly Guid P05_LB_Supplier   = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
+        private static readonly Guid P05_LB_Price      = Guid.Parse("5658FDBD-686D-4BA8-9BB8-8C629671E5FB");
         private static readonly Guid P05_LB_Dept       = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
         private static readonly Guid P05_PM_User       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
         private static readonly Guid P05_PM_Component  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
@@ -189,12 +191,10 @@ namespace gtas_vpp_be.Service.Services
         }
 
         // ════════════════════════════════════════════════════════════
-        //  P03_Component — 18 components
+        //  P03_Component
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP03_Component(VPPMigrationDbContext context)
         {
-            if (context.P03_Components.Any()) return;
-
             var now = DateTime.Now;
             var components = new List<P03_Component>
             {
@@ -212,14 +212,19 @@ namespace gtas_vpp_be.Service.Services
                 C("LIBRARY_CATEGORY",         "Library - Category",         "Category",         CompLibCategory, now),
                 C("LIBRARY_ITEM",             "Library - Item",             "Item",             CompLibItem, now),
                 C("LIBRARY_SUPPLIER",         "Library - Supplier",         "Supplier",         CompLibSupplier, now),
+                C("LIBRARY_PRICE",            "Library - Price",            "Price",            CompLibPrice, now),
                 C("LIBRARY_DEPARTMENT",       "Library - Department",       "Dept",             CompLibDepartment, now),
                 C("PERMISSION_USER",          "Permission - User",          "User Auth",        CompPermUser, now),
                 C("PERMISSION_COMPONENT",     "Permission - Component",     "Comp Mapping",     CompPermComponent, now),
                 C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now)
             };
-            await context.P03_Components.AddRangeAsync(components);
+            var existingCodes = await context.P03_Components.Select(x => x.ComponentCode).ToListAsync();
+            var missing = components.Where(x => !existingCodes.Contains(x.ComponentCode)).ToList();
+            if (missing.Count == 0) return;
+
+            await context.P03_Components.AddRangeAsync(missing);
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P03_Component: {Count} components", components.Count);
+            Log.Information("[SeedData] P03_Component: {Count} components", missing.Count);
         }
 
         private static P03_Component C(string code, string name, string desc, Guid id, DateTime now)
@@ -279,12 +284,10 @@ namespace gtas_vpp_be.Service.Services
                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false };
 
         // ════════════════════════════════════════════════════════════
-        //  P05_PageComponentMapping — 18 mappings
+        //  P05_PageComponentMapping
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP05_PageComponentMapping(VPPMigrationDbContext context)
         {
-            if (context.P05_PageComponentMappings.Any()) return;
-
             var mappings = new List<P05_PageComponentMapping>
             {
                 P5(P05_SB_Dashboard,  PageSidebar,    CompMenuDashboard),
@@ -301,37 +304,40 @@ namespace gtas_vpp_be.Service.Services
                 P5(P05_LB_Category,   PageLibrary,    CompLibCategory),
                 P5(P05_LB_Item,       PageLibrary,    CompLibItem),
                 P5(P05_LB_Supplier,   PageLibrary,    CompLibSupplier),
+                P5(P05_LB_Price,      PageLibrary,    CompLibPrice),
                 P5(P05_LB_Dept,       PageLibrary,    CompLibDepartment),
                 P5(P05_PM_User,       PagePermission, CompPermUser),
                 P5(P05_PM_Component,  PagePermission, CompPermComponent),
                 P5(P05_RP_View,       PageReport,     CompReportView)
             };
-            await context.P05_PageComponentMappings.AddRangeAsync(mappings);
+            var existingIds = await context.P05_PageComponentMappings.Select(x => x.Id).ToListAsync();
+            var missing = mappings.Where(x => !existingIds.Contains(x.Id)).ToList();
+            if (missing.Count == 0) return;
+
+            await context.P05_PageComponentMappings.AddRangeAsync(missing);
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P05_PageComponentMapping: {Count} mappings", mappings.Count);
+            Log.Information("[SeedData] P05_PageComponentMapping: {Count} mappings", missing.Count);
         }
 
         private static P05_PageComponentMapping P5(Guid id, Guid pageId, Guid componentId)
             => new() { Id = id, P01_PageId = pageId, P03_ComponentId = componentId };
 
         // ════════════════════════════════════════════════════════════
-        //  P06_GroupPageComponentMapping — 26 mappings
-        //  Admin: all 18, User: 8 selected
+        //  P06_GroupPageComponentMapping
+        //  Admin: all page-component mappings, User: selected mappings
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP06_GroupPageComponentMapping(VPPMigrationDbContext context)
         {
-            if (context.P06_GroupPageComponentMappings.Any()) return;
-
             var now = DateTime.Now;
             var mappings = new List<P06_GroupPageComponentMapping>();
 
-            // Admin group → ALL 18 page-component mappings
+            // Admin group → all page-component mappings
             var allP05Ids = new[]
             {
                 P05_SB_Dashboard, P05_SB_Library, P05_SB_Report, P05_SB_Permission,
                 P05_DB_Order, P05_DB_Catalog, P05_DB_History, P05_DB_DeptSum,
                 P05_DB_AllSum, P05_DB_Approval,
-                P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Dept,
+                P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Price, P05_LB_Dept,
                 P05_PM_User, P05_PM_Component,
                 P05_RP_View
             };
@@ -348,9 +354,19 @@ namespace gtas_vpp_be.Service.Services
             foreach (var p05Id in userP05Ids)
                 mappings.Add(P6(p05Id, UserGroupId, now));
 
-            await context.P06_GroupPageComponentMappings.AddRangeAsync(mappings);
+            var existingKeys = await context.P06_GroupPageComponentMappings
+                .Select(x => new { x.P05_PageComponentMappingId, x.P02_GroupId, x.MemberCompanyCode })
+                .ToListAsync();
+            var missing = mappings
+                .Where(x => !existingKeys.Any(k => k.P05_PageComponentMappingId == x.P05_PageComponentMappingId
+                                                && k.P02_GroupId == x.P02_GroupId
+                                                && k.MemberCompanyCode == x.MemberCompanyCode))
+                .ToList();
+            if (missing.Count == 0) return;
+
+            await context.P06_GroupPageComponentMappings.AddRangeAsync(missing);
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P06_GroupPageComponentMapping: {Count} mappings", mappings.Count);
+            Log.Information("[SeedData] P06_GroupPageComponentMapping: {Count} mappings", missing.Count);
         }
 
         private static P06_GroupPageComponentMapping P6(Guid p05Id, Guid groupId, DateTime now)

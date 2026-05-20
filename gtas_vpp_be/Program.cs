@@ -93,6 +93,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
+builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
