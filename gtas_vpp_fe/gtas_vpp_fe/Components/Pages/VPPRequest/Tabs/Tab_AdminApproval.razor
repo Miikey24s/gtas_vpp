@@ -1,72 +1,76 @@
 @inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.BaseOrderTab
+@using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_shared.UI
 @using gtas_vpp_fe.Helpers
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 @if (CanView)
 {
-    <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-2">
+    <RadzenStack Gap="2rem" class="rz-p-0 rz-p-md-2">
+        <RadzenFieldset Text="@Loc["PendingApprovals"]">
+            <RadzenStack Gap="1rem">
 
-        @* ── KPI Summary ────────────────────────────────────── *@
-        @if (IsLoading)
-        {
-            <SkeletonPage Cards="3" Rows="6" Cols="8" />
-        }
-        else
-        {
-            <div class="kpi-grid" style="--kpi-cols: 3;">
-                <div class="kpi-card kpi-amber">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["PendingOrders"]</span>
-                            <span class="kpi-card-icon rzi rzi-pending-actions"></span>
+                @* ── KPI Summary ────────────────────────────────────── *@
+                @if (IsLoading)
+                {
+                    <SkeletonPage Cards="3" Rows="6" Cols="8" />
+                }
+                else
+                {
+                    <div class="kpi-grid" style="--kpi-cols: 3;">
+                        <div class="kpi-card kpi-amber">
+                            <div class="kpi-card-shine"></div>
+                            <div class="kpi-card-content">
+                                <div class="kpi-card-header">
+                                    <span class="kpi-card-label">@Loc["PendingOrders"]</span>
+                                    <span class="kpi-card-icon rzi rzi-pending-actions"></span>
+                                </div>
+                                <div class="kpi-card-value">@TotalCount</div>
+                            </div>
                         </div>
-                        <div class="kpi-card-value">@TotalCount</div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-blue">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
-                            <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
+                        <div class="kpi-card kpi-blue">
+                            <div class="kpi-card-shine"></div>
+                            <div class="kpi-card-content">
+                                <div class="kpi-card-header">
+                                    <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
+                                    <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
+                                </div>
+                                <div class="kpi-card-value">@TotalLines</div>
+                            </div>
                         </div>
-                        <div class="kpi-card-value">@TotalLines</div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-emerald">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
-                            <span class="kpi-card-icon rzi rzi-inventory-2"></span>
+                        <div class="kpi-card kpi-emerald">
+                            <div class="kpi-card-shine"></div>
+                            <div class="kpi-card-content">
+                                <div class="kpi-card-header">
+                                    <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
+                                    <span class="kpi-card-icon rzi rzi-inventory-2"></span>
+                                </div>
+                                <div class="kpi-card-value">@TotalQty</div>
+                            </div>
                         </div>
-                        <div class="kpi-card-value">@TotalQty</div>
                     </div>
-                </div>
-            </div>
-        }
+                }
 
-        @* ── DataGrid ───────────────────────────────────────── *@
-        @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
-        {
-            <VppEmptyState Icon="check_circle"
-                           Title="@Loc["AllClear"]"
-                           Description="@Loc["NoPendingAdditionalOrders"]"
-                           PrimaryText="@Loc["RefreshQueue"]"
-                           PrimaryAction="@(async _ => await ReloadAsync())" />
-        }
-        else
-        {
-            <div class="vpp-mobile-cards">
-                <VppMobileCard Items="@PendingOrders" Actions="@RenderMobileActions" />
-            </div>
+                @* ── DataGrid ───────────────────────────────────────── *@
+                @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
+                {
+                    <VppEmptyState Icon="check_circle"
+                                   Title="@Loc["AllClear"]"
+                                   Description="@Loc["NoPendingAdditionalOrders"]"
+                                   PrimaryText="@Loc["RefreshQueue"]"
+                                   PrimaryAction="@(async _ => await ReloadAsync())" />
+                }
+                else
+                {
+                    <div class="vpp-mobile-cards">
+                        <VppMobileCard Items="@PendingOrders" Actions="@RenderMobileActions" />
+                    </div>
 
-            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
-                <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@PendingOrders"
+                    <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
+                        <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@PendingOrders"
                                 Count="@TotalCount" LoadData="@OnLoadData"
                                 AllowPaging="true" PageSize="@PageSize"
                                 PageSizeOptions="@(new int[] { 10, 20, 50 })"
@@ -87,7 +91,7 @@
                                 Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
                                 class="vpp-order-grid"
                                 Style="border: none;">
-                    <Columns>
+                            <Columns>
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="row">@(CurrentSkip + PendingOrders.IndexOf(row) + 1)</Template>
                         </RadzenDataGridColumn>
@@ -99,6 +103,17 @@
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Period)" Title="@Loc["Period"]" MinWidth="90px" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.Period" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" MinWidth="130px" TextAlign="TextAlign.Center" Sortable="true">
+                            <Template Context="row">
+                                <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
+                                @if (row.SettledAt.HasValue)
+                                {
+                                    <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(row.SettledAt, DateFormatter.LongDate)} - {row.SettledByPriceListName}")">
+                                        @Loc["Settled"]
+                                    </span>
+                                }
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="@Loc["Department"]" MinWidth="100px" TextAlign="TextAlign.Center" />
@@ -143,8 +158,8 @@
                                 </RadzenStack>
                             </Template>
                         </RadzenDataGridColumn>
-                    </Columns>
-                    <Template Context="row">
+                            </Columns>
+                            <Template Context="row">
                         <div class="vpp-expand-detail">
                             <div class="vpp-expand-detail-header">
                                 <span class="rzi rzi-list-alt"></span>
@@ -170,9 +185,18 @@
                                 </Columns>
                             </RadzenDataGrid>
                         </div>
-                    </Template>
-                </RadzenDataGrid>
-            </div>
+                            </Template>
+                        </RadzenDataGrid>
+                    </div>
+                }
+            </RadzenStack>
+        </RadzenFieldset>
+
+        @if (CanShowSettlement)
+        {
+            <RadzenFieldset Text="@Loc["PeriodSettlement"]">
+                <PeriodSettlementPanel OnSettled="@OnSettledRefresh" />
+            </RadzenFieldset>
         }
     </RadzenStack>
 }

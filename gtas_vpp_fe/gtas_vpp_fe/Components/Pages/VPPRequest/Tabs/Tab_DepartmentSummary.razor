@@ -120,6 +120,12 @@
                         <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" MinWidth="100px" TextAlign="TextAlign.Center" Sortable="true">
                             <Template Context="row">
                                 <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
+                                @if (row.SettledAt.HasValue)
+                                {
+                                    <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(row.SettledAt, DateFormatter.LongDate)} - {row.SettledByPriceListName}")">
+                                        @Loc["Settled"]
+                                    </span>
+                                }
                             </Template>
                         </RadzenDataGridColumn>
                         @* F-29: route through DateFormatter so the culture (vi-VN) is enforced consistently with the rest of the order tabs. *@

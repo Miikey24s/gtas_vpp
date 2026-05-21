@@ -286,4 +286,28 @@
   <data name="WizardTotalQuantityFormat" xml:space="preserve"><value>Tổng số lượng {0}</value></data>
   <data name="CreateOrder" xml:space="preserve"><value>Tạo đơn</value></data>
   <data name="AdditionalOrder" xml:space="preserve"><value>Đơn bổ sung</value></data>
+  <data name="PriceLists" xml:space="preserve"><value>Bảng giá</value></data>
+  <data name="SelectPriceList" xml:space="preserve"><value>Chọn bảng giá</value></data>
+  <data name="NoPriceListAvailable" xml:space="preserve"><value>Chưa có bảng giá khả dụng.</value></data>
+  <data name="PriceListCode" xml:space="preserve"><value>Mã bảng giá</value></data>
+  <data name="PriceListName" xml:space="preserve"><value>Tên bảng giá</value></data>
+  <data name="ItemCount" xml:space="preserve"><value>Số dòng giá</value></data>
+  <data name="IsDefault" xml:space="preserve"><value>Mặc định</value></data>
+  <data name="SetAsDefault" xml:space="preserve"><value>Đặt làm mặc định</value></data>
+  <data name="Clone" xml:space="preserve"><value>Sao chép</value></data>
+  <data name="AddPriceList" xml:space="preserve"><value>Thêm bảng giá</value></data>
+  <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Xóa bảng giá này?</value></data>
+  <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
+  <data name="PriceListDeleted" xml:space="preserve"><value>Đã xóa bảng giá</value></data>
+  <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Tổng kết kỳ</value></data>
+  <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
+  <data name="PeriodSettlement" xml:space="preserve"><value>Đóng kỳ</value></data>
+  <data name="PriceList" xml:space="preserve"><value>Bảng giá</value></data>
+  <data name="PriceList_UseDefault" xml:space="preserve"><value>(Mặc định)</value></data>
+  <data name="SettlePeriod" xml:space="preserve"><value>Đóng kỳ</value></data>
+  <data name="Settled" xml:space="preserve"><value>Đã đóng kỳ</value></data>
+  <data name="Warning_PendingAdditional" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt. Vui lòng duyệt trước khi đóng kỳ.</value></data>
+  <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã đóng lúc {0} bởi {1} với bảng giá {2}.</value></data>
+  <data name="Confirm_Settle" xml:space="preserve"><value>Đóng kỳ {0}/{1} với bảng giá {2}?</value></data>
 </root>

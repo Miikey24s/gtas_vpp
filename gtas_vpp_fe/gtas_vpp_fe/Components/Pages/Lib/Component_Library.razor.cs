@@ -23,7 +23,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             new(2, Permissions.LibraryItem),
             new(3, Permissions.LibrarySupplier),
             new(4, Permissions.LibraryDepartment),
-            new(5, Permissions.LibraryPrice)
+            new(5, Permissions.LibraryPrice),
+            new(6, Permissions.LibraryPriceList)
         ];
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
@@ -146,6 +147,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
                 Permissions.LibraryPrice => 4,
                 Permissions.LibraryDepartment => 5,
+                Permissions.LibraryPriceList => 6,
                 _ => tab.QueryIndex
             };
         }

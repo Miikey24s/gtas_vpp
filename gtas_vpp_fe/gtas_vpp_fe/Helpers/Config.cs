@@ -36,6 +36,20 @@ namespace gtas_vpp_fe.Helpers
             public const string VPPPriceBase = $"{ApiBase}/vppprice";
             public const string VPPPrice_ByVpp = $"{VPPPriceBase}/by-vpp";
             public const string VPPPrice_SetDefault = $"{VPPPriceBase}/{{0}}/set-default";
+            public const string L07_PriceList = $"{ApiBase}/vpppricelist";
+            public const string L07_PriceList_SetDefault = $"{L07_PriceList}/{{0}}/set-default";
+            public const string L07_PriceList_Clone = $"{L07_PriceList}/clone";
+        }
+
+        public static class RequestApi
+        {
+            public static class PeriodSettlement
+            {
+                public const string Base = $"{ApiBase}/periodsettlement";
+                public const string Settle = $"{Base}/settle";
+                public const string Status = $"{Base}/{{0}}/{{1}}";
+                public const string ListAll = Base;
+            }
         }
 
         // Routes

@@ -17,7 +17,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<VPP01_RequestHeaderResDTO> PendingOrders => Orders;
 
         protected override bool CanView => HasDashboardPermission(Permissions.RequestAdminApproval);
-        protected override string ErrorSummary => Loc["AdminApproval"];
+        protected override string ErrorSummary => Loc["PeriodOperations"];
+
+        private bool CanShowSettlement => PermissionState
+            .GetPagePermission(Config.Page_ComponentCode.PageCode.Dashboard)
+            .List_Component
+            .Any(c => c.ComponentCode == Permissions.PeriodSettle && c.IsVisible);
 
         protected override string BuildEndpoint()
         {
@@ -36,6 +41,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected override void AppendFilterScopeQuery(List<string> query)
         {
             query.Add("scope=pending");
+        }
+
+        private async Task OnSettledRefresh()
+        {
+            await ReloadAsync();
         }
 
         private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)

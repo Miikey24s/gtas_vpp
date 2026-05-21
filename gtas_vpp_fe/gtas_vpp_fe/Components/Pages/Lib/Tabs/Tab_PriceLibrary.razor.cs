@@ -5,6 +5,7 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -18,13 +19,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
+        [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
+        private List<L07_PriceListResDTO> priceLists = [];
         private List<L04_VPPResDTO> vppItems = [];
         private List<L05_VPPSupplierResDTO> suppliers = [];
         private List<L06_VPPSupplierMappingResDTO> prices = [];
         private RadzenDataGrid<L06_VPPSupplierMappingResDTO> grid = default!;
+        private Guid? selectedPriceListId;
         private Guid? selectedVppId;
         private bool isLoading;
+        private bool HasPriceLists => priceLists.Count > 0;
+        private bool HasPriceListSelected => selectedPriceListId.HasValue;
+        private string GridEmptyText => !HasPriceLists
+            ? Loc["NoPriceListAvailable"].Value
+            : selectedVppId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
 
         protected override async Task OnInitializedAsync()
         {
@@ -35,8 +44,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
+                priceLists = await _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [];
                 vppItems = await _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item) ?? [];
                 suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? [];
+                selectedPriceListId = ResolveSelectedPriceListId();
             }
             catch (Exception ex)
             {
@@ -47,7 +58,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task LoadPricesAsync()
         {
             prices = [];
-            if (!selectedVppId.HasValue)
+            if (!selectedVppId.HasValue || !selectedPriceListId.HasValue)
             {
                 await ReloadGridAsync();
                 return;
@@ -57,7 +68,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 prices = await _apiServices.GetFromApiAsync<List<L06_VPPSupplierMappingResDTO>>(
-                    $"{Config.LibraryApi.VPPPrice_ByVpp}/{selectedVppId.Value}") ?? [];
+                    $"{Config.LibraryApi.VPPPrice_ByVpp}/{selectedVppId.Value}?priceListId={selectedPriceListId.Value}") ?? [];
             }
             catch (Exception ex)
             {
@@ -72,9 +83,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task AddPriceAsync()
         {
-            if (!selectedVppId.HasValue) return;
+            if (!selectedVppId.HasValue || !selectedPriceListId.HasValue) return;
 
-            var model = new L06_PriceUpdateReqDTO { L04_VPPId = selectedVppId.Value };
+            var model = new L06_PriceUpdateReqDTO
+            {
+                L04_VPPId = selectedVppId.Value,
+                L07_PriceListId = selectedPriceListId.Value
+            };
             var result = await OpenEditorAsync(Loc["AddNewPrice"].Value, model);
             if (result is null) return;
 
@@ -84,6 +99,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 {
                     L04_VPPId = selectedVppId.Value,
                     L05_VPPSupplierId = result.L05_VPPSupplierId,
+                    L07_PriceListId = selectedPriceListId.Value,
                     Price = result.Price,
                     IsDefault = result.IsDefault,
                     Description = result.Description
@@ -105,6 +121,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 Id = row.Id,
                 L04_VPPId = row.L04_VPPId,
                 L05_VPPSupplierId = row.L05_VPPSupplierId,
+                L07_PriceListId = selectedPriceListId ?? row.L07_PriceListId,
                 Price = row.Price,
                 IsDefault = row.IsDefault,
                 Description = row.Description
@@ -173,6 +190,24 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 new DialogOptions { Width = "520px", Resizable = true, Draggable = true });
 
             return result as L06_PriceUpdateReqDTO;
+        }
+
+        private async Task OnPriceListChangedAsync()
+        {
+            await LoadPricesAsync();
+        }
+
+        private Guid? ResolveSelectedPriceListId()
+        {
+            var query = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);
+            if (query.TryGetValue("priceListId", out var values)
+                && Guid.TryParse(values.FirstOrDefault(), out var requestedId)
+                && priceLists.Any(x => x.Id == requestedId))
+            {
+                return requestedId;
+            }
+
+            return priceLists.FirstOrDefault(x => x.IsDefault)?.Id;
         }
 
         private async Task ReloadGridAsync()

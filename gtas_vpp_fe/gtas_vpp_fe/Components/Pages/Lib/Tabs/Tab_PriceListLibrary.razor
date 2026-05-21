@@ -1,0 +1,54 @@
+@using gtas_vpp_shared.DTOs.Res.Library
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<RadzenStack Gap="1rem">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="0.75rem" Wrap="FlexWrap.Wrap">
+        <RadzenText Text="@Loc["PriceLists"]" TextStyle="TextStyle.H6" />
+        <RadzenButton Icon="add_circle"
+                      Text="@Loc["AddPriceList"]"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@AddAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid @ref="grid"
+                    TItem="L07_PriceListResDTO"
+                    Data="@priceLists"
+                    IsLoading="@isLoading"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    PageSize="20"
+                    Density="Density.Compact"
+                    GridLines="DataGridGridLines.Horizontal"
+                    EmptyText="@Loc["NoPriceListAvailable"]"
+                    Style="height: calc(100vh - 230px);">
+        <Columns>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" MinWidth="140px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" MinWidth="220px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="Description" Title="@Loc["Description"]" MinWidth="220px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="IsDefault" Title="@Loc["IsDefault"]" Width="120px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="120px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    <RadzenButton Text="@row.ItemCount.ToString()"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Size="ButtonSize.Small"
+                                  Click="@(() => OpenPricesAsync(row))" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Title="@Loc["Actions"]" Width="360px" Sortable="false" Filterable="false">
+                <Template Context="row">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.35rem" JustifyContent="JustifyContent.End">
+                        <RadzenButton Icon="edit" Text="@Loc["Edit"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => EditAsync(row))" />
+                        <RadzenButton Icon="star" Text="@Loc["SetAsDefault"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Disabled="@row.IsDefault" Click="@(() => SetDefaultAsync(row))" />
+                        <RadzenButton Icon="content_copy" Text="@Loc["Clone"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@(() => CloneAsync(row))" />
+                        <RadzenButton Icon="delete" Text="@Loc["Delete"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@(() => DeleteAsync(row))" />
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>

@@ -4,6 +4,18 @@
 
 <RadzenStack Gap="1rem">
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap">
+        <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
+            <RadzenDropDown TValue="Guid?"
+                            Data="@priceLists"
+                            TextProperty="PriceListName"
+                            ValueProperty="Id"
+                            @bind-Value="selectedPriceListId"
+                            Change="@(async _ => await OnPriceListChangedAsync())"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Disabled="@(!HasPriceLists)"
+                            Style="width:100%" />
+        </RadzenFormField>
         <RadzenFormField Text="@Loc["SelectVPPItem"]" Style="min-width:320px;">
             <RadzenDropDown TValue="Guid?"
                             Data="@vppItems"
@@ -14,14 +26,22 @@
                             AllowClear="true"
                             AllowFiltering="true"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Disabled="@(!HasPriceListSelected)"
                             Style="width:100%" />
         </RadzenFormField>
         <RadzenButton Icon="add_circle"
                       Text="@Loc["AddNewPrice"]"
                       ButtonStyle="ButtonStyle.Primary"
-                      Disabled="@(!selectedVppId.HasValue)"
+                      Disabled="@(!selectedVppId.HasValue || !HasPriceListSelected)"
                       Click="@AddPriceAsync" />
     </RadzenStack>
+
+    @if (!HasPriceLists)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" Variant="Variant.Flat">
+            @Loc["NoPriceListAvailable"]
+        </RadzenAlert>
+    }
 
     <RadzenDataGrid @ref="grid"
                     TItem="L06_VPPSupplierMappingResDTO"
@@ -31,7 +51,7 @@
                     AllowPaging="true"
                     PageSize="20"
                     Density="Density.Compact"
-                    EmptyText="@(selectedVppId.HasValue ? Loc["NoPricesFound"] : Loc["LoadPricesPrompt"])"
+                    EmptyText="@GridEmptyText"
                     GridLines="DataGridGridLines.Horizontal"
                     Style="height: calc(100vh - 230px);">
         <Columns>

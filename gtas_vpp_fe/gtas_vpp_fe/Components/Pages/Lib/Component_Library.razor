@@ -69,6 +69,16 @@
                     }
                 </RadzenTabsItem>
             }
+            @if (CanViewLibraryTab(Permissions.LibraryPriceList))
+            {
+                <RadzenTabsItem Text="@Loc["PriceLists"]">
+                    @if (IsActiveTab(6))
+                    {
+                        <Tab_PriceListLibrary claims="@claims"
+                                              sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
         </Tabs>
     </RadzenTabs>
 }

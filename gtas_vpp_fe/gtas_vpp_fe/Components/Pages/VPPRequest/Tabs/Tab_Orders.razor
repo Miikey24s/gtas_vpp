@@ -165,6 +165,12 @@
                 </div>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem" class="vpp-data-card-actions">
                     <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@Loc[StatusDisplay.GetResourceKey(order.Status, order.IsDeadlinePassed, order.IsAdditionalOrder)]</span>
+                    @if (order.SettledAt.HasValue)
+                    {
+                        <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(order.SettledAt, DateFormatter.LongDate)} - {order.SettledByPriceListName}")">
+                            @Loc["Settled"]
+                        </span>
+                    }
                     @if (CanEditOrDelete(order))
                     {
                         @* F-28: icon-only buttons need a visible tooltip + screen-reader label. The aria-label

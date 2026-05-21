@@ -1,0 +1,8 @@
+.vpp-badge-settled {
+    background: #2e7d32;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: .75rem;
+    margin-left: 6px;
+}

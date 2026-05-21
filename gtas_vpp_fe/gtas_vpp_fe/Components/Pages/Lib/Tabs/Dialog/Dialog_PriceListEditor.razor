@@ -1,0 +1,26 @@
+@using gtas_vpp_shared.DTOs.Req.Library
+
+<RadzenTemplateForm TItem="L07_PriceListUpdateReqDTO" Data="@Model" Submit="@Save">
+    <RadzenStack Gap="1rem">
+        <RadzenFormField Text="@Loc["PriceListCode"]" class="w-100">
+            <RadzenTextBox Name="Code" @bind-Value="Model.Code" Style="width:100%" />
+        </RadzenFormField>
+        <RadzenFormField Text="@Loc["PriceListName"]" class="w-100">
+            <RadzenTextBox Name="Name" @bind-Value="Model.Name" Style="width:100%" />
+        </RadzenFormField>
+        @if (!IsClone)
+        {
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" />
+                <RadzenText Text="@Loc["IsDefault"]" TextStyle="TextStyle.Body2" />
+            </RadzenStack>
+        }
+        <RadzenFormField Text="@Loc["Description"]" class="w-100">
+            <RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" />
+        </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
+            <RadzenButton Text="@Loc["Save"]" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>

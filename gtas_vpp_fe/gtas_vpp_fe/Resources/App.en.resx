@@ -286,4 +286,28 @@
   <data name="WizardTargetPeriod" xml:space="preserve"><value>Target period</value></data>
   <data name="WizardTotalQtyBadgeFormat" xml:space="preserve"><value>Total Qty: {0}</value></data>
   <data name="WizardTotalQuantityFormat" xml:space="preserve"><value>Total quantity {0}</value></data>
+  <data name="PriceLists" xml:space="preserve"><value>Price Lists</value></data>
+  <data name="SelectPriceList" xml:space="preserve"><value>Select price list</value></data>
+  <data name="NoPriceListAvailable" xml:space="preserve"><value>No price list is available.</value></data>
+  <data name="PriceListCode" xml:space="preserve"><value>Price List Code</value></data>
+  <data name="PriceListName" xml:space="preserve"><value>Price List Name</value></data>
+  <data name="ItemCount" xml:space="preserve"><value>Items</value></data>
+  <data name="IsDefault" xml:space="preserve"><value>Default</value></data>
+  <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>
+  <data name="Clone" xml:space="preserve"><value>Clone</value></data>
+  <data name="AddPriceList" xml:space="preserve"><value>Add Price List</value></data>
+  <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Delete this price list?</value></data>
+  <data name="PriceListSaved" xml:space="preserve"><value>Price list saved</value></data>
+  <data name="PriceListDeleted" xml:space="preserve"><value>Price list deleted</value></data>
+  <data name="PriceListCloned" xml:space="preserve"><value>Price list cloned</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Period Operations</value></data>
+  <data name="PendingApprovals" xml:space="preserve"><value>Pending Approvals</value></data>
+  <data name="PeriodSettlement" xml:space="preserve"><value>Period Settlement</value></data>
+  <data name="PriceList" xml:space="preserve"><value>Price List</value></data>
+  <data name="PriceList_UseDefault" xml:space="preserve"><value>(Default)</value></data>
+  <data name="SettlePeriod" xml:space="preserve"><value>Settle Period</value></data>
+  <data name="Settled" xml:space="preserve"><value>Settled</value></data>
+  <data name="Warning_PendingAdditional" xml:space="preserve"><value>{0} additional order(s) are still pending approval. Approve them before settling.</value></data>
+  <data name="Info_AlreadySettled" xml:space="preserve"><value>Period was settled at {0} by {1} with price list {2}.</value></data>
+  <data name="Confirm_Settle" xml:space="preserve"><value>Settle period {0}/{1} with price list {2}?</value></data>
 </root>

@@ -1,0 +1,51 @@
+@using gtas_vpp_shared.DTOs.Res.Library
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<RadzenStack Gap="1rem">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap">
+        <RadzenFormField Text="@Loc["Year"]" Style="min-width:140px;">
+            <RadzenNumeric TValue="int"
+                           Value="@selectedYear"
+                           ValueChanged="@OnYearChangedAsync"
+                           Min="2024"
+                           Max="2030"
+                           Disabled="@isLoading"
+                           Style="width:100%" />
+        </RadzenFormField>
+        <RadzenFormField Text="@Loc["Month"]" Style="min-width:140px;">
+            <RadzenDropDown TValue="int"
+                            Data="@months"
+                            Value="@selectedMonth"
+                            ValueChanged="@OnMonthChangedAsync"
+                            Disabled="@isLoading"
+                            Style="width:100%" />
+        </RadzenFormField>
+        <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
+            <RadzenDropDown TValue="Guid?"
+                            Data="@priceLists"
+                            TextProperty="PriceListName"
+                            ValueProperty="Id"
+                            Value="@selectedPriceListId"
+                            ValueChanged="@OnPriceListChangedAsync"
+                            AllowClear="true"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Placeholder="@Loc["PriceList_UseDefault"]"
+                            Disabled="@isLoading"
+                            Style="width:100%" />
+        </RadzenFormField>
+        <RadzenButton Icon="lock"
+                      Text="@Loc["SettlePeriod"]"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Disabled="@(!canSettle || isLoading || isSettling)"
+                      Click="@SettleAsync" />
+    </RadzenStack>
+
+    @if (!string.IsNullOrWhiteSpace(alertMessage))
+    {
+        <RadzenAlert AlertStyle="@alertStyle" ShowIcon="true" Variant="Variant.Flat">
+            @alertMessage
+        </RadzenAlert>
+    }
+</RadzenStack>
