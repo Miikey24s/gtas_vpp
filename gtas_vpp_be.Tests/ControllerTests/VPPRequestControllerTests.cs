@@ -109,6 +109,7 @@ public class VPPRequestControllerTests
         var uomId = Guid.NewGuid();
         var categoryId = Guid.NewGuid();
         var productId = Guid.NewGuid();
+        var supplierId = Guid.NewGuid();
 
         context.Add(new L02_ClassDetail
         {
@@ -145,13 +146,25 @@ public class VPPRequestControllerTests
             UpdateDate = now
         });
 
+        context.Add(new L05_VPPSupplier
+        {
+            Id = supplierId,
+            SupplierShortName = "VPP_HCM",
+            SupplierName = "HCM Supplier",
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
         context.AddRange(
             new L06_VPPSupplierMapping
             {
                 Id = Guid.NewGuid(),
                 L04_VPPId = productId,
-                L05_VPPSupplierId = Guid.NewGuid(),
+                L05_VPPSupplierId = supplierId,
                 Price = 100,
+                IsDefault = true,
                 CreateUserId = 1,
                 CreateDate = now,
                 UpdateUserId = 1,
@@ -187,6 +200,9 @@ public class VPPRequestControllerTests
         Assert.Equal("Category", GetPropertyValue<string>(product, "VPPCategoryName"));
         Assert.Equal("BOX", GetPropertyValue<string>(product, "UOMCode"));
         Assert.Equal("Box", GetPropertyValue<string>(product, "UOMName"));
+        Assert.Equal(1, GetPropertyValue<int>(product, "SupplierCount"));
+        Assert.Equal(100m, GetPropertyValue<decimal?>(product, "DefaultPrice"));
+        Assert.Equal("HCM Supplier", GetPropertyValue<string>(product, "DefaultSupplierName"));
         Assert.Equal("1", controller.Response.Headers["X-Total-Count"].ToString());
     }
 
