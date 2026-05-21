@@ -4,7 +4,7 @@ namespace gtas_vpp_shared.DTOs.Share
     public class GridColumnPropertyAttribute : Attribute
     {
         static int count = 0;
-        public GridColumnPropertyAttribute(string? displayname = null, string? width = null, bool ignore = false, int index = 0, bool iscompobox = false)
+        public GridColumnPropertyAttribute(string? displayname = null, string? width = null, bool ignore = false, int index = 0, bool iscompobox = false, bool readOnly = false)
         {
             DisplayName = displayname;
             Width = width;
@@ -13,6 +13,7 @@ namespace gtas_vpp_shared.DTOs.Share
             count = index > 0 ? index : count + 1;
             Index = count;
             IsDropdownList = iscompobox;
+            IsReadOnly = readOnly;
         }
 
         public string? DisplayName { get; private set; }
@@ -20,5 +21,6 @@ namespace gtas_vpp_shared.DTOs.Share
         public bool Ignore { get; private set; }
         public int Index { get; private set; }
         public bool IsDropdownList { get; private set; }
+        public bool IsReadOnly { get; private set; }
     }
 }

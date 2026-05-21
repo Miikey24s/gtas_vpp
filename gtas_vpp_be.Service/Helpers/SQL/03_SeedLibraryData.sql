@@ -9,6 +9,13 @@
 GO
 
 SET NOCOUNT ON;
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET NUMERIC_ROUNDABORT OFF;
 
 -- =========================================================================================
 -- 1. KHAI BÁO BIẾN AUDIT VÀ THỜI GIAN
@@ -691,17 +698,72 @@ GO
 -- PART 2: Suppliers + Mapping (from 05_AddSuppliers.sql)
 BEGIN TRANSACTION;
 BEGIN TRY
-    -- 1. Khai báo bảng tạm chứa 3 nhà cung cấp mới
-    DECLARE @NewSuppliers TABLE (Id UNIQUEIDENTIFIER, Name NVARCHAR(MAX), ShortName NVARCHAR(MAX), City NVARCHAR(MAX));
+    -- 1. Khai báo bảng tạm chứa 3 nhà cung cấp mặc định.
+    -- Dùng Id cố định + NOT EXISTS để seed có thể chạy lại nhiều lần mà không nhân dữ liệu.
+    DECLARE @NewSuppliers TABLE (Id UNIQUEIDENTIFIER, Name NVARCHAR(255), ShortName NVARCHAR(100), City NVARCHAR(100));
+    DECLARE @SeedSuppliers TABLE (Id UNIQUEIDENTIFIER, Name NVARCHAR(255), ShortName NVARCHAR(100), City NVARCHAR(100));
+    DECLARE @DuplicateSuppliers TABLE (Id UNIQUEIDENTIFIER PRIMARY KEY);
+    DECLARE @DefaultMappingsToRestore TABLE (
+        L04_VPPId UNIQUEIDENTIFIER NOT NULL,
+        SupplierShortName NVARCHAR(100) NOT NULL,
+        PRIMARY KEY (L04_VPPId, SupplierShortName)
+    );
     
     INSERT INTO @NewSuppliers (Id, Name, ShortName, City)
     VALUES     
-    (NEWID(), N'VPP Thăng Long', 'VPP_HN', N'Hà Nội'),    
-    (NEWID(), N'VPP Sông Hàn', 'VPP_DN', N'Đà Nẵng'),    
-    (NEWID(), N'VPP Gia Định', 'VPP_HCM', N'Hồ Chí Minh');
+    ('99A2D5B5-5C90-4565-85D9-2772D73A3DA1', N'VPP Thăng Long', 'VPP_HN', N'Hà Nội'),
+    ('53F2E50E-E30A-47BF-9DB2-B606962750AB', N'VPP Sông Hàn', 'VPP_DN', N'Đà Nẵng'),
+    ('A43EF777-6B17-43E0-9FE1-E7D76C682521', N'VPP Gia Định', 'VPP_HCM', N'Hồ Chí Minh');
 
-    -- 2. Thêm vào bảng L05_VPPSupplier 
-    -- (Bổ sung UpdateUserId và UpdateDate)
+    ;WITH RankedDefaultSuppliers AS (
+        SELECT
+            Existing.Id,
+            ROW_NUMBER() OVER (
+                PARTITION BY Existing.SupplierShortName
+                ORDER BY Existing.CreateDate, Existing.Id
+            ) AS RowNumber
+        FROM dbo.L05_VPPSupplier Existing
+        INNER JOIN @NewSuppliers S
+            ON S.ShortName = Existing.SupplierShortName
+        WHERE Existing.IsDeleted = 0
+    )
+    INSERT INTO @DuplicateSuppliers (Id)
+    SELECT Id
+    FROM RankedDefaultSuppliers
+    WHERE RowNumber > 1;
+
+    INSERT INTO @DefaultMappingsToRestore (L04_VPPId, SupplierShortName)
+    SELECT DISTINCT M.L04_VPPId, S.SupplierShortName
+    FROM dbo.L06_VPPSupplierMapping M
+    INNER JOIN @DuplicateSuppliers D
+        ON D.Id = M.L05_VPPSupplierId
+    INNER JOIN dbo.L05_VPPSupplier S
+        ON S.Id = M.L05_VPPSupplierId
+    WHERE M.IsDeleted = 0
+      AND M.IsDefault = 1;
+
+    UPDATE M
+    SET
+        M.IsDeleted = 1,
+        M.IsDefault = 0,
+        M.UpdateUserId = 5615,
+        M.UpdateDate = GETDATE()
+    FROM dbo.L06_VPPSupplierMapping M
+    INNER JOIN @DuplicateSuppliers D
+        ON D.Id = M.L05_VPPSupplierId
+    WHERE M.IsDeleted = 0;
+
+    UPDATE S
+    SET
+        S.IsDeleted = 1,
+        S.UpdateUserId = 5615,
+        S.UpdateDate = GETDATE()
+    FROM dbo.L05_VPPSupplier S
+    INNER JOIN @DuplicateSuppliers D
+        ON D.Id = S.Id
+    WHERE S.IsDeleted = 0;
+
+    -- 2. Thêm vào bảng L05_VPPSupplier nếu chưa có supplier active cùng ShortName.
     INSERT INTO dbo.L05_VPPSupplier (
         Id, SupplierShortName, SupplierName, City, 
         CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
@@ -709,17 +771,41 @@ BEGIN TRY
     SELECT 
         Id, ShortName, Name, City, 
         5615, GETDATE(), 5615, GETDATE(), 0
-    FROM @NewSuppliers;
+    FROM @NewSuppliers S
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM dbo.L05_VPPSupplier Existing
+        WHERE Existing.SupplierShortName = S.ShortName
+          AND Existing.IsDeleted = 0
+    );
 
-    -- 3. Bulk Map: Nhân 3 NCC này với TẤT CẢ VPP đang hoạt động vào bảng L06
-    -- (Bổ sung UpdateUserId và UpdateDate)
+    INSERT INTO @SeedSuppliers (Id, Name, ShortName, City)
+    SELECT Id, Name, ShortName, City
+    FROM (
+        SELECT
+            Existing.Id,
+            S.Name,
+            S.ShortName,
+            S.City,
+            ROW_NUMBER() OVER (
+                PARTITION BY S.ShortName
+                ORDER BY Existing.CreateDate, Existing.Id
+            ) AS RowNumber
+        FROM @NewSuppliers S
+        INNER JOIN dbo.L05_VPPSupplier Existing
+            ON Existing.SupplierShortName = S.ShortName
+           AND Existing.IsDeleted = 0
+    ) CanonicalSupplier
+    WHERE RowNumber = 1;
+
+    -- 3. Bulk Map: chỉ tạo mapping còn thiếu cho các VPP đang hoạt động.
     INSERT INTO dbo.L06_VPPSupplierMapping (
         Id, Price, L04_VPPId, L05_VPPSupplierId, Description, 
         CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
     )
     SELECT 
         NEWID(), 
-        0,              -- Giá mặc định khởi tạo
+        (ABS(CHECKSUM(NEWID())) % 495001) + 5000,
         V.Id,           -- Id từ bảng VPP hiện có
         S.Id,           -- Id của 3 NCC vừa tạo
         N'Thiết lập giá mặc định theo khu vực ' + S.City,
@@ -729,29 +815,39 @@ BEGIN TRY
         GETDATE(),      -- Gán giá trị bắt buộc cho UpdateDate
         0
     FROM dbo.L04_VPP V
-    CROSS JOIN @NewSuppliers S 
-    WHERE V.IsDeleted = 0;
+    CROSS JOIN @SeedSuppliers S
+    WHERE V.IsDeleted = 0
+      AND NOT EXISTS (
+          SELECT 1
+          FROM dbo.L06_VPPSupplierMapping Existing
+          WHERE Existing.L04_VPPId = V.Id
+            AND Existing.L05_VPPSupplierId = S.Id
+            AND Existing.IsDeleted = 0
+      );
+
+    UPDATE M
+    SET
+        M.IsDefault = 1,
+        M.UpdateUserId = 5615,
+        M.UpdateDate = GETDATE()
+    FROM dbo.L06_VPPSupplierMapping M
+    INNER JOIN @SeedSuppliers S
+        ON S.Id = M.L05_VPPSupplierId
+    INNER JOIN @DefaultMappingsToRestore R
+        ON R.L04_VPPId = M.L04_VPPId
+       AND R.SupplierShortName = S.ShortName
+    WHERE M.IsDeleted = 0
+      AND NOT EXISTS (
+          SELECT 1
+          FROM dbo.L06_VPPSupplierMapping ExistingDefault
+          WHERE ExistingDefault.L04_VPPId = M.L04_VPPId
+            AND ExistingDefault.IsDefault = 1
+            AND ExistingDefault.IsDeleted = 0
+            AND ExistingDefault.Id <> M.Id
+      );
 
     COMMIT TRANSACTION;
-    PRINT N'Thành công: Đã thêm 3 NCC và tự động tạo Mapping cho toàn bộ danh mục VPP.';
-END TRY
-BEGIN CATCH
-    ROLLBACK TRANSACTION;
-    SELECT ERROR_MESSAGE() AS Error;
-END CATCH
--------------------------------------
-BEGIN TRANSACTION;
-BEGIN TRY
-    -- Cập nhật giá ngẫu nhiên cho những dòng mapping vừa tạo (CreateUserId = 5615)
-    UPDATE dbo.L06_VPPSupplierMapping
-    SET 
-        Price = (ABS(CHECKSUM(NEWID())) % 495001) + 5000, -- Công thức: (Random % (Max-Min+1)) + Min
-        UpdateDate = GETDATE()
-    WHERE CreateUserId = 5615 
-      AND Price = 0; -- Chỉ cập nhật những dòng đang bị bằng 0
-
-    COMMIT TRANSACTION;
-    PRINT N'Thành công: Đã cập nhật giá ngẫu nhiên cho toàn bộ dữ liệu!';
+    PRINT N'Thành công: Đã seed supplier mặc định và tạo mapping còn thiếu cho danh mục VPP.';
 END TRY
 BEGIN CATCH
     ROLLBACK TRANSACTION;

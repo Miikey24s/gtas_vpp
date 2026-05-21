@@ -1,6 +1,7 @@
-﻿using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
@@ -86,7 +87,7 @@ namespace gtas_vpp_be.Controllers
                                    || (x.ClassDetailValue != null && x.ClassDetailValue.Contains(cleanSearch))
                                    || (x.Description != null && x.Description.Contains(cleanSearch))),
                 "l03" => await GetTableDataAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id),
-                "l04" => await GetTableDataAsync<L04_VPP, L04_VPPResDTO>(id, cleanSearch, matchId: x => x.Id == id),
+                "l04" => await GetVppItemsAsync(id, cleanSearch),
                 "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 "l06" => await GetTableDataAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id),
                 "lex02" => await GetTableDataAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id, cleanSearch,
@@ -96,6 +97,68 @@ namespace gtas_vpp_be.Controllers
                                    || x.LEX02Type.Contains(cleanSearch)),
                 _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
             };
+        }
+
+        private async Task<IActionResult> GetVppItemsAsync(Guid? id, string cleanSearch)
+        {
+            var query = VppItemDtoQuery();
+
+            if (id.HasValue)
+            {
+                query = query.Where(x => x.Id == id.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(cleanSearch))
+            {
+                query = query.Where(x => (x.VPPName != null && x.VPPName.Contains(cleanSearch))
+                                      || (x.VPPCode != null && x.VPPCode.Contains(cleanSearch)));
+            }
+
+            return Ok(await query
+                .OrderBy(x => x.VPPCode)
+                .Take(1000)
+                .ToListAsync());
+        }
+
+        private async Task<IActionResult> GetVppItemByIdAsync(Guid id)
+        {
+            return Ok(await VppItemDtoQuery().FirstOrDefaultAsync(x => x.Id == id));
+        }
+
+        private IQueryable<L04_VPPResDTO> VppItemDtoQuery()
+        {
+            return _unitOfWork.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .Select(x => new L04_VPPResDTO
+                {
+                    Id = x.Id,
+                    Description = x.Description,
+                    CreateUserId = x.CreateUserId,
+                    CreateDate = x.CreateDate,
+                    UpdateUserId = x.UpdateUserId,
+                    UpdateDate = x.UpdateDate,
+                    IsDeleted = x.IsDeleted,
+                    VPPCode = x.VPPCode,
+                    VPPName = x.VPPName,
+                    UOMId = x.UOMId,
+                    VPPCategoryId = x.VPPCategoryId,
+                    DefaultVatRate = VppPricingDefaults.VatRate,
+                    DefaultPrice = x.L06_VPPSupplierMappings!
+                        .Where(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                        .OrderByDescending(m => m.IsDefault)
+                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .Select(m => (decimal?)m.Price)
+                        .FirstOrDefault(),
+                    DefaultSupplierName = x.L06_VPPSupplierMappings!
+                        .Where(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                        .OrderByDescending(m => m.IsDefault)
+                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .Select(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .FirstOrDefault()
+                });
         }
 
         private async Task<IActionResult> GetTableDataWithFilteringAsync<TModel, TDto>(
@@ -114,6 +177,11 @@ namespace gtas_vpp_be.Controllers
             try
             {
                 IQueryable<TModel> query = _unitOfWork.VPPContext.Set<TModel>().AsNoTracking();
+
+                if (typeof(gtas_vpp_be.Model.Helpers.BaseModel).IsAssignableFrom(typeof(TModel)))
+                {
+                    query = query.Where("IsDeleted == false");
+                }
 
                 // Apply classId filter for L02 (typed, not Dynamic LINQ)
                 if (classId.HasValue && typeof(TModel) == typeof(L02_ClassDetail))
@@ -241,7 +309,7 @@ namespace gtas_vpp_be.Controllers
                 "l01" => await GetByIdAsync<L01_Class, L01_ClassResDTO>(id),
                 "l02" => await GetByIdAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id),
                 "l03" => await GetByIdAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id),
-                "l04" => await GetByIdAsync<L04_VPP, L04_VPPResDTO>(id),
+                "l04" => await GetVppItemByIdAsync(id),
                 "l05" => await GetByIdAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id),
                 "l06" => await GetByIdAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id),
                 "lex02" => await GetByIdAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id),

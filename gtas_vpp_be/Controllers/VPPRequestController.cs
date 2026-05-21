@@ -1,5 +1,6 @@
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.UI;
@@ -185,7 +186,23 @@ namespace gtas_vpp_be.Controllers
                     VPPCategoryName = x.VPPCategory != null ? x.VPPCategory.VPPCategoryName : null,
                     x.UOMId,
                     UOMCode = x.UOM != null ? x.UOM.ClassDetailCode : null,
-                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null
+                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null,
+                    SupplierCount = x.L06_VPPSupplierMappings!.Count(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted)),
+                    DefaultVatRate = VppPricingDefaults.VatRate,
+                    DefaultPrice = x.L06_VPPSupplierMappings!
+                        .Where(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                        .OrderByDescending(m => m.IsDefault)
+                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .Select(m => (decimal?)m.Price)
+                        .FirstOrDefault(),
+                    DefaultSupplierName = x.L06_VPPSupplierMappings!
+                        .Where(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                        .OrderByDescending(m => m.IsDefault)
+                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .Select(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .FirstOrDefault()
                 });
 
             if (!string.IsNullOrWhiteSpace(filter))

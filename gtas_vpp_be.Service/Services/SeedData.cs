@@ -1,9 +1,13 @@
 using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_shared.Constants;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -87,6 +91,7 @@ namespace gtas_vpp_be.Service.Services
             // PHẢI chạy trước P04_UserGroup vì P04 cần LEX02 department IDs
             await SeedLEX02_Empty(context);
             await RunSqlSafe(context, "Helpers/SQL/03_SeedLibraryData.sql");
+            await SeedDefaultPricesFromFile(context);
 
             // ── PHASE 3: Auth data (C#) ─────────────────────────
             // P01 → P02 → P03 → P04 (lookup LEX02 IDs) → P05 → P06
@@ -113,6 +118,289 @@ namespace gtas_vpp_be.Service.Services
             {
                 Log.Warning(ex, "[SeedData] {File} failed. Skipping...", Path.GetFileName(path));
             }
+        }
+
+        private sealed record DefaultPriceSeedRow(
+            string CategoryName,
+            string ItemName,
+            string UomName,
+            decimal Price);
+
+        private static async Task SeedDefaultPricesFromFile(VPPMigrationDbContext context)
+        {
+            var priceRows = ReadDefaultPriceRows();
+            if (priceRows.Count == 0)
+            {
+                return;
+            }
+
+            var hcmSupplier = await context.L05_VPPSuppliers
+                .FirstOrDefaultAsync(x => x.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName && !x.IsDeleted);
+            if (hcmSupplier == null)
+            {
+                Log.Warning("[SeedData] Default supplier {SupplierShortName} not found; prices.txt seed skipped.",
+                    VppPricingDefaults.DefaultSupplierShortName);
+                return;
+            }
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            var now = DateTime.Now;
+            var activeProducts = await context.L04_VPPs
+                .Include(x => x.VPPCategory)
+                .Where(x => !x.IsDeleted)
+                .ToListAsync();
+            var productIds = activeProducts.Select(x => x.Id).ToArray();
+
+            var activeMappings = await context.L06_VPPSupplierMappings
+                .Where(x => productIds.Contains(x.L04_VPPId) && !x.IsDeleted)
+                .ToListAsync();
+
+            foreach (var mapping in activeMappings.Where(x => x.IsDefault))
+            {
+                mapping.IsDefault = false;
+                mapping.UpdateUserId = DefaultUserId;
+                mapping.UpdateDate = now;
+            }
+
+            await context.SaveChangesAsync();
+
+            var hcmMappings = activeMappings
+                .Where(x => x.L05_VPPSupplierId == hcmSupplier.Id)
+                .GroupBy(x => x.L04_VPPId)
+                .ToDictionary(x => x.Key, x => x.OrderBy(m => m.CreateDate).First());
+
+            var duplicateHcmMappings = activeMappings
+                .Where(x => x.L05_VPPSupplierId == hcmSupplier.Id)
+                .GroupBy(x => x.L04_VPPId)
+                .SelectMany(x => x.OrderBy(m => m.CreateDate).Skip(1))
+                .ToList();
+            foreach (var duplicate in duplicateHcmMappings)
+            {
+                duplicate.IsDeleted = true;
+                duplicate.IsDefault = false;
+                duplicate.UpdateUserId = DefaultUserId;
+                duplicate.UpdateDate = now;
+            }
+
+            var pricesByItemAndCategory = priceRows
+                .GroupBy(x => (Item: NormalizePriceKey(x.ItemName), Category: NormalizePriceKey(x.CategoryName)))
+                .ToDictionary(x => x.Key, x => x.First());
+            var pricesByItem = priceRows
+                .GroupBy(x => NormalizePriceKey(x.ItemName))
+                .ToDictionary(x => x.Key, x => x.ToList());
+
+            var updatedPriceCount = 0;
+            var defaultedCount = 0;
+            var unmatchedProducts = new List<string>();
+
+            foreach (var product in activeProducts)
+            {
+                var priceRow = FindPriceRow(product, pricesByItemAndCategory, pricesByItem);
+                if (priceRow == null)
+                {
+                    unmatchedProducts.Add(product.VPPName ?? product.Id.ToString());
+                }
+
+                if (!hcmMappings.TryGetValue(product.Id, out var mapping))
+                {
+                    mapping = new L06_VPPSupplierMapping
+                    {
+                        Id = Guid.NewGuid(),
+                        L04_VPPId = product.Id,
+                        L05_VPPSupplierId = hcmSupplier.Id,
+                        Price = priceRow?.Price ?? 0,
+                        IsDefault = true,
+                        Description = "Seeded default price from prices.txt",
+                        CreateUserId = DefaultUserId,
+                        CreateDate = now,
+                        UpdateUserId = DefaultUserId,
+                        UpdateDate = now,
+                        IsDeleted = false
+                    };
+                    context.L06_VPPSupplierMappings.Add(mapping);
+                    hcmMappings[product.Id] = mapping;
+                    defaultedCount++;
+                    if (priceRow != null)
+                    {
+                        updatedPriceCount++;
+                    }
+                    continue;
+                }
+
+                if (priceRow != null && mapping.Price != priceRow.Price)
+                {
+                    mapping.Price = priceRow.Price;
+                    updatedPriceCount++;
+                }
+
+                if (!mapping.IsDefault)
+                {
+                    defaultedCount++;
+                }
+
+                mapping.IsDefault = true;
+                mapping.UpdateUserId = DefaultUserId;
+                mapping.UpdateDate = now;
+            }
+
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            if (unmatchedProducts.Count > 0)
+            {
+                Log.Warning("[SeedData] prices.txt did not match {Count} active VPP item(s): {Items}",
+                    unmatchedProducts.Count,
+                    string.Join(", ", unmatchedProducts.Take(10)));
+            }
+
+            Log.Information(
+                "[SeedData] prices.txt seed completed. Items: {ItemCount}, price updates: {UpdatedPriceCount}, default supplier rows: {DefaultedCount}, VAT source: C# constant {VatRate:P0}.",
+                activeProducts.Count,
+                updatedPriceCount,
+                defaultedCount,
+                VppPricingDefaults.VatRate);
+        }
+
+        private static DefaultPriceSeedRow? FindPriceRow(
+            L04_VPP product,
+            IReadOnlyDictionary<(string Item, string Category), DefaultPriceSeedRow> pricesByItemAndCategory,
+            IReadOnlyDictionary<string, List<DefaultPriceSeedRow>> pricesByItem)
+        {
+            var itemKey = NormalizePriceKey(product.VPPName);
+            var categoryKey = NormalizePriceKey(product.VPPCategory?.VPPCategoryName);
+
+            if (pricesByItemAndCategory.TryGetValue((itemKey, categoryKey), out var categoryMatch))
+            {
+                return categoryMatch;
+            }
+
+            if (!pricesByItem.TryGetValue(itemKey, out var itemMatches))
+            {
+                return null;
+            }
+
+            return itemMatches.Select(x => x.Price).Distinct().Count() == 1
+                ? itemMatches.First()
+                : null;
+        }
+
+        private static List<DefaultPriceSeedRow> ReadDefaultPriceRows()
+        {
+            var filePath = Path.Combine(AppContext.BaseDirectory, "Helpers", "Data", "prices.txt");
+            if (!File.Exists(filePath))
+            {
+                Log.Warning("[SeedData] prices.txt not found at {Path}; default price seed skipped.", filePath);
+                return new List<DefaultPriceSeedRow>();
+            }
+
+            var result = new List<DefaultPriceSeedRow>();
+            string? currentCategory = null;
+            var lineNumber = 0;
+
+            foreach (var line in File.ReadLines(filePath))
+            {
+                lineNumber++;
+                var columns = line.Split('\t');
+                if (columns.Length == 0)
+                {
+                    continue;
+                }
+
+                var itemName = columns.ElementAtOrDefault(0)?.Trim() ?? string.Empty;
+                var uomName = columns.ElementAtOrDefault(1)?.Trim() ?? string.Empty;
+                var vatText = columns.ElementAtOrDefault(2)?.Trim() ?? string.Empty;
+                var priceText = columns.ElementAtOrDefault(3)?.Trim() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(itemName) || itemName.Equals("Tên VPP", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(priceText))
+                {
+                    currentCategory = itemName;
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(currentCategory))
+                {
+                    Log.Warning("[SeedData] prices.txt line {LineNumber} has price without category: {ItemName}", lineNumber, itemName);
+                    continue;
+                }
+
+                if (!TryParsePrice(priceText, out var price))
+                {
+                    Log.Warning("[SeedData] prices.txt line {LineNumber} has invalid price '{PriceText}' for item {ItemName}.",
+                        lineNumber,
+                        priceText,
+                        itemName);
+                    continue;
+                }
+
+                if (TryParseVatRate(vatText, out var vatRate) && vatRate != VppPricingDefaults.VatRate)
+                {
+                    Log.Warning("[SeedData] prices.txt line {LineNumber} has VAT {VatRate:P0}; DB seed uses C# VAT constant {DefaultVatRate:P0}.",
+                        lineNumber,
+                        vatRate,
+                        VppPricingDefaults.VatRate);
+                }
+
+                result.Add(new DefaultPriceSeedRow(currentCategory, itemName, uomName, price));
+            }
+
+            return result;
+        }
+
+        private static bool TryParsePrice(string value, out decimal price)
+        {
+            var normalized = value.Trim().Replace(".", string.Empty).Replace(",", string.Empty);
+            return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out price);
+        }
+
+        private static bool TryParseVatRate(string value, out decimal vatRate)
+        {
+            vatRate = 0;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            var normalized = value.Trim().TrimEnd('%');
+            if (!decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var percent))
+            {
+                return false;
+            }
+
+            vatRate = percent / 100m;
+            return true;
+        }
+
+        private static string NormalizePriceKey(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var normalized = value
+                .Normalize(NormalizationForm.FormC)
+                .Trim()
+                .ToLowerInvariant()
+                .Replace('_', ',')
+                .Replace('’', '\'')
+                .Replace('`', '\'');
+
+            while (normalized.Contains("''", StringComparison.Ordinal))
+            {
+                normalized = normalized.Replace("''", "'", StringComparison.Ordinal);
+            }
+
+            normalized = Regex.Replace(normalized, @"\s+", " ");
+            normalized = Regex.Replace(normalized, @"\s+,", ",");
+            normalized = Regex.Replace(normalized, @",\s*$", string.Empty);
+
+            return normalized;
         }
 
         // ════════════════════════════════════════════════════════════

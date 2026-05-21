@@ -1,4 +1,5 @@
 using gtas_vpp_shared.DTOs.Share;
+using gtas_vpp_shared.Constants;
 
 namespace gtas_vpp_shared.DTOs.Res.Library
 {
@@ -12,6 +13,12 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public L02_ClassDetailResDTO? UOM { get; set; }
         [GridColumnProperty("VPP Category", iscompobox: true)]
         public Guid VPPCategoryId { get; set; }
+        [GridColumnProperty("Supplier", "180px", readOnly: true)]
+        public string? DefaultSupplierName { get; set; }
+        [GridColumnProperty("Price", "140px", readOnly: true)]
+        public decimal? DefaultPrice { get; set; }
+        [GridColumnProperty(ignore: true)]
+        public decimal DefaultVatRate { get; set; } = VppPricingDefaults.VatRate;
         [GridColumnProperty(ignore: true)]
         public L03_VPPCategoryResDTO? VPPCategory { get; set; }
         [GridColumnProperty(ignore: true)]

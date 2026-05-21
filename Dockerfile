@@ -22,6 +22,7 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
 
 # Copy all source code
 COPY gtas_vpp_be/ gtas_vpp_be/
+COPY docs/prices.txt docs/prices.txt
 
 # Publish in Release mode
 RUN --mount=type=cache,target=/root/.nuget/packages \
