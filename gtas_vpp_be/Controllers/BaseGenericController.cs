@@ -30,14 +30,15 @@ namespace gtas_vpp_be.Controllers
             Guid? id,
             string cleanSearch,
             Expression<Func<TModel, bool>> matchId,
-            Expression<Func<TModel, bool>>? matchSearch = null) where TModel : class
+            Expression<Func<TModel, bool>>? matchSearch = null,
+            Func<IQueryable<TModel>, IQueryable<TModel>>? orderBy = null) where TModel : class
         {
             var notDeletedFilter = GetNotDeletedFilter<TModel>();
 
             if (id.HasValue)
             {
                 var filter = CombineExpressions(matchId, notDeletedFilter);
-                var dataById = await ReadEntitiesAsync(true, filter);
+                var dataById = await ReadEntitiesAsync(true, filter, include: orderBy);
                 var dtoList = dataById?.Adapt<List<TDto>>();
                 return Ok(dtoList ?? new List<TDto>());
             }
@@ -45,12 +46,12 @@ namespace gtas_vpp_be.Controllers
             if (!string.IsNullOrEmpty(cleanSearch) && matchSearch != null)
             {
                 var filter = CombineExpressions(matchSearch, notDeletedFilter);
-                var dataBySearch = await ReadEntitiesAsync(true, filter);
+                var dataBySearch = await ReadEntitiesAsync(true, filter, include: orderBy);
                 var dtoList = dataBySearch?.Adapt<List<TDto>>();
                 return Ok(dtoList ?? new List<TDto>());
             }
 
-            var allData = await ReadEntitiesAsync<TModel>(true, filter: notDeletedFilter, take: 1000);
+            var allData = await ReadEntitiesAsync<TModel>(true, filter: notDeletedFilter, include: orderBy, take: 1000);
             var allDtoList = allData?.Adapt<List<TDto>>();
             return Ok(allDtoList ?? new List<TDto>());
         }

@@ -29,6 +29,15 @@ namespace gtas_vpp_be.Controllers
             return Ok(result);
         }
 
+        [HttpGet("by-supplier/{supplierId:guid}")]
+        public async Task<IActionResult> ListBySupplier(Guid supplierId, [FromQuery] Guid? priceListId)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var result = await _priceService.ListBySupplierAsync(supplierId, priceListId);
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] L06_PriceCreateReqDTO req)
         {

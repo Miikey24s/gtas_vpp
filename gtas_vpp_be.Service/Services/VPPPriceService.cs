@@ -37,6 +37,22 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
         }
 
+        public async Task<List<L06_VPPSupplierMappingResDTO>> ListBySupplierAsync(Guid supplierId, Guid? priceListId = null)
+        {
+            var effectivePriceListId = priceListId ?? await GetDefaultPriceListIdAsync();
+            if (!effectivePriceListId.HasValue)
+            {
+                return new List<L06_VPPSupplierMappingResDTO>();
+            }
+
+            return await PriceDtoQuery()
+                .Where(x => x.L05_VPPSupplierId == supplierId && x.L07_PriceListId == effectivePriceListId.Value)
+                .OrderByDescending(x => x.IsDefault)
+                .ThenBy(x => x.L04_VPPName)
+                .ThenBy(x => x.Id)
+                .ToListAsync();
+        }
+
         public async Task<L06_VPPSupplierMappingResDTO> CreateAsync(L06_PriceCreateReqDTO req, int userId)
         {
             ValidatePrice(req.Price);

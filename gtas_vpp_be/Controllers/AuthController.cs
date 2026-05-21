@@ -75,7 +75,7 @@ namespace gtas_vpp_be.Controllers
 
                 await LoadDepartmentLocationAsync(loginData);
 
-                loginData.AccessToken = GenerateAccessToken(loginData);
+                loginData.AccessToken = GenerateAccessToken(loginData, request.Server);
 
                 Serilog.Log.Information("Login success: User={Username}, IP={IP}", request.Username, HttpContext.Connection.RemoteIpAddress);
 
@@ -140,7 +140,7 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private string GenerateAccessToken(sp_Authentication_Login loginData)
+        private string GenerateAccessToken(sp_Authentication_Login loginData, string? server)
         {
             var jwtKey = _configuration["JwtSettings:Key"];
             if (string.IsNullOrWhiteSpace(jwtKey))
@@ -167,6 +167,11 @@ namespace gtas_vpp_be.Controllers
                 claims.Add(new Claim("DepartmentCode", loginData.DepartmentCode));
             }
 
+            if (!string.IsNullOrWhiteSpace(server))
+            {
+                claims.Add(new Claim("Server", server));
+            }
+
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
@@ -180,6 +185,6 @@ namespace gtas_vpp_be.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public record LoginRequest(string Username, string Password);
+        public record LoginRequest(string Username, string Password, string? Server = null);
     }
 }

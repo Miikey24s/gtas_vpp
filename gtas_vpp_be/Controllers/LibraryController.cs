@@ -99,38 +99,80 @@ namespace gtas_vpp_be.Controllers
             };
         }
 
+        private async Task<Guid> GetDefaultPriceListIdAsync()
+        {
+            return await _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.Library.L07_PriceList>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted && x.IsDefault)
+                .Select(x => x.Id)
+                .FirstOrDefaultAsync();
+        }
+
         private async Task<IActionResult> GetVppItemsAsync(Guid? id, string cleanSearch)
         {
-            var query = VppItemDtoQuery();
+            var vppQuery = _unitOfWork.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted);
 
             if (id.HasValue)
             {
-                query = query.Where(x => x.Id == id.Value);
+                vppQuery = vppQuery.Where(x => x.Id == id.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(cleanSearch))
             {
-                query = query.Where(x => (x.VPPName != null && x.VPPName.Contains(cleanSearch))
-                                      || (x.VPPCode != null && x.VPPCode.Contains(cleanSearch)));
+                vppQuery = vppQuery.Where(x => (x.VPPName != null && x.VPPName.Contains(cleanSearch))
+                                            || (x.VPPCode != null && x.VPPCode.Contains(cleanSearch)));
             }
 
-            return Ok(await query
+            var vppList = await vppQuery
                 .OrderBy(x => x.VPPCode)
-                .Take(1000)
-                .ToListAsync());
-        }
+                .Take(5000)
+                .ToListAsync();
 
-        private async Task<IActionResult> GetVppItemByIdAsync(Guid id)
-        {
-            return Ok(await VppItemDtoQuery().FirstOrDefaultAsync(x => x.Id == id));
-        }
+            if (!vppList.Any())
+            {
+                return Ok(new List<L04_VPPResDTO>());
+            }
 
-        private IQueryable<L04_VPPResDTO> VppItemDtoQuery()
-        {
-            return _unitOfWork.VPPContext.Set<L04_VPP>()
+            var defaultPriceListId = await GetDefaultPriceListIdAsync();
+            var vppIds = vppList.Select(v => v.Id).ToList();
+
+            var mappings = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
                 .AsNoTracking()
-                .Where(x => !x.IsDeleted)
-                .Select(x => new L04_VPPResDTO
+                .Where(m => !m.IsDeleted 
+                    && m.L07_PriceListId == defaultPriceListId
+                    && vppIds.Contains(m.L04_VPPId)
+                    && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                .Select(m => new {
+                    m.L04_VPPId,
+                    m.Price,
+                    m.IsDefault,
+                    SupplierShortName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierShortName : null,
+                    SupplierName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null
+                })
+                .ToListAsync();
+
+            var mappingLookup = mappings
+                .GroupBy(m => m.L04_VPPId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => {
+                        var bestMapping = g
+                            .OrderByDescending(m => m.IsDefault)
+                            .ThenBy(m => m.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                            .ThenBy(m => m.SupplierName)
+                            .FirstOrDefault();
+                        return new {
+                            Price = bestMapping?.Price,
+                            SupplierName = bestMapping?.SupplierName
+                        };
+                    }
+                );
+
+            var dtoList = vppList.Select(x => {
+                mappingLookup.TryGetValue(x.Id, out var priceInfo);
+                return new L04_VPPResDTO
                 {
                     Id = x.Id,
                     Description = x.Description,
@@ -144,29 +186,66 @@ namespace gtas_vpp_be.Controllers
                     UOMId = x.UOMId,
                     VPPCategoryId = x.VPPCategoryId,
                     DefaultVatRate = VppPricingDefaults.VatRate,
-                    DefaultPrice = x.L06_VPPSupplierMappings!
-                        .Where(m => !m.IsDeleted
-                            && m.L07_PriceList != null
-                            && m.L07_PriceList.IsDefault
-                            && !m.L07_PriceList.IsDeleted
-                            && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
-                        .OrderByDescending(m => m.IsDefault)
-                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
-                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .Select(m => (decimal?)m.Price)
-                        .FirstOrDefault(),
-                    DefaultSupplierName = x.L06_VPPSupplierMappings!
-                        .Where(m => !m.IsDeleted
-                            && m.L07_PriceList != null
-                            && m.L07_PriceList.IsDefault
-                            && !m.L07_PriceList.IsDeleted
-                            && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
-                        .OrderByDescending(m => m.IsDefault)
-                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
-                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .Select(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .FirstOrDefault()
-                });
+                    DefaultPrice = priceInfo?.Price,
+                    DefaultSupplierName = priceInfo?.SupplierName
+                };
+            }).ToList();
+
+            return Ok(dtoList);
+        }
+
+        private async Task<IActionResult> GetVppItemByIdAsync(Guid id)
+        {
+            var vpp = await _unitOfWork.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+
+            if (vpp == null)
+            {
+                return NotFound(new { Message = $"Record with ID {id} not found." });
+            }
+
+            var defaultPriceListId = await GetDefaultPriceListIdAsync();
+
+            var mappings = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
+                .AsNoTracking()
+                .Where(m => !m.IsDeleted 
+                    && m.L07_PriceListId == defaultPriceListId
+                    && m.L04_VPPId == id
+                    && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                .Select(m => new {
+                    m.Price,
+                    m.IsDefault,
+                    SupplierShortName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierShortName : null,
+                    SupplierName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null
+                })
+                .ToListAsync();
+
+            var bestMapping = mappings
+                .OrderByDescending(m => m.IsDefault)
+                .ThenBy(m => m.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                .ThenBy(m => m.SupplierName)
+                .FirstOrDefault();
+
+            var dto = new L04_VPPResDTO
+            {
+                Id = vpp.Id,
+                Description = vpp.Description,
+                CreateUserId = vpp.CreateUserId,
+                CreateDate = vpp.CreateDate,
+                UpdateUserId = vpp.UpdateUserId,
+                UpdateDate = vpp.UpdateDate,
+                IsDeleted = vpp.IsDeleted,
+                VPPCode = vpp.VPPCode,
+                VPPName = vpp.VPPName,
+                UOMId = vpp.UOMId,
+                VPPCategoryId = vpp.VPPCategoryId,
+                DefaultVatRate = VppPricingDefaults.VatRate,
+                DefaultPrice = bestMapping?.Price,
+                DefaultSupplierName = bestMapping?.SupplierName
+            };
+
+            return Ok(dto);
         }
 
         private async Task<IActionResult> GetTableDataWithFilteringAsync<TModel, TDto>(
@@ -397,14 +476,19 @@ namespace gtas_vpp_be.Controllers
         }
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+        // Audit fields the client must never write. IsDeleted is intentionally NOT here:
+        // Library admin pages (Tab_ClassLibrary, etc.) toggle Enable/Disable via PATCH with
+        // `IsDeleted = true|false`. Access to these admin actions is gated FE-side via
+        // PermissionState.GetPagePermission(PageLibrary) component flags. Adding IsDeleted
+        // back to this list would silently break the toggle (PATCH returns 200 with the
+        // unchanged entity → misleading "Success" toast in FE).
         private static readonly HashSet<string> _writeDeniedFields = new(StringComparer.OrdinalIgnoreCase)
         {
             "Id",
             "CreateUserId",
             "CreateDate",
             "UpdateUserId",
-            "UpdateDate",
-            "IsDeleted"
+            "UpdateDate"
         };
 
         private async Task<IActionResult> CreateAsync<TModel, TDto>(string json) where TModel : gtas_vpp_be.Model.Helpers.BaseModel where TDto : class
@@ -478,6 +562,13 @@ namespace gtas_vpp_be.Controllers
             if (updateDateProp != null && updateDateProp.CanWrite)
             {
                 updateDateProp.SetValue(entity, _dateTimeProvider.Now);
+            }
+
+            var updateUserIdProp = type.GetProperty("UpdateUserId");
+            if (updateUserIdProp != null && updateUserIdProp.CanWrite)
+            {
+                var uid = int.TryParse(User.FindFirstValue("UserID"), out var x) ? x : 0;
+                updateUserIdProp.SetValue(entity, uid);
             }
 
             var result = await GetRepository<TModel>().UpdateAsync(entity);
