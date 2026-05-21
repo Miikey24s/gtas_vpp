@@ -18,6 +18,8 @@ namespace gtas_vpp_be.Model.Library
         public L04_VPP? L04_VPP { get; set; }
         public Guid L05_VPPSupplierId { get; set; }
         public L05_VPPSupplier? L05_VPPSupplier { get; set; }
+        public Guid L07_PriceListId { get; set; }
+        public L07_PriceList? L07_PriceList { get; set; }
         public L06_VPPSupplierMapping() { }
     }
 }

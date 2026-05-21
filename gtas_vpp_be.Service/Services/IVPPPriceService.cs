@@ -5,7 +5,7 @@ namespace gtas_vpp_be.Service.Services
 {
     public interface IVPPPriceService
     {
-        Task<List<L06_VPPSupplierMappingResDTO>> ListByVPPAsync(Guid vppId);
+        Task<List<L06_VPPSupplierMappingResDTO>> ListByVPPAsync(Guid vppId, Guid? priceListId = null);
         Task<L06_VPPSupplierMappingResDTO> CreateAsync(L06_PriceCreateReqDTO req, int userId);
         Task<L06_VPPSupplierMappingResDTO> UpdateAsync(L06_PriceUpdateReqDTO req, int userId);
         Task DeleteAsync(Guid id, int userId);

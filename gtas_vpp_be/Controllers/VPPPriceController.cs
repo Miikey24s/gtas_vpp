@@ -21,11 +21,11 @@ namespace gtas_vpp_be.Controllers
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
 
         [HttpGet("by-vpp/{vppId:guid}")]
-        public async Task<IActionResult> ListByVPP(Guid vppId)
+        public async Task<IActionResult> ListByVPP(Guid vppId, [FromQuery] Guid? priceListId)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var result = await _priceService.ListByVPPAsync(vppId);
+            var result = await _priceService.ListByVPPAsync(vppId, priceListId);
             return Ok(result);
         }
 

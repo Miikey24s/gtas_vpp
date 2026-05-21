@@ -29,6 +29,11 @@ namespace gtas_vpp_be.Model.VPP
 
         public bool IsAdditionalOrder { get; set; } = false;
 
+        public DateTime? SettledAt { get; set; }
+        public int? SettledByUserId { get; set; }
+        public Guid? SettledByPriceListId { get; set; }
+        public L07_PriceList? SettledByPriceList { get; set; }
+
         [System.ComponentModel.DataAnnotations.Timestamp]
         public byte[]? RowVersion { get; set; }
 

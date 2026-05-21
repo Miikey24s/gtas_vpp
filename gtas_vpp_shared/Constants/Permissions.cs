@@ -22,7 +22,11 @@ namespace gtas_vpp_shared.Constants
         public const string LibraryItem = "LIBRARY_ITEM";
         public const string LibrarySupplier = "LIBRARY_SUPPLIER";
         public const string LibraryPrice = "LIBRARY_PRICE";
+        public const string LibraryPriceList = "LIBRARY_PRICE_LIST";
         public const string LibraryDepartment = "LIBRARY_DEPARTMENT";
+
+        // Settlement
+        public const string PeriodSettle = "PERIOD_SETTLE";
 
         // Permissions
         public const string PermissionUser = "PERMISSION_USER";
@@ -48,7 +52,9 @@ namespace gtas_vpp_shared.Constants
             LibraryItem,
             LibrarySupplier,
             LibraryPrice,
+            LibraryPriceList,
             LibraryDepartment,
+            PeriodSettle,
             PermissionUser,
             PermissionComponent,
             ReportView

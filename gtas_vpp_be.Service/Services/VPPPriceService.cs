@@ -21,10 +21,16 @@ namespace gtas_vpp_be.Service.Services
             _dateTimeProvider = dateTimeProvider;
         }
 
-        public async Task<List<L06_VPPSupplierMappingResDTO>> ListByVPPAsync(Guid vppId)
+        public async Task<List<L06_VPPSupplierMappingResDTO>> ListByVPPAsync(Guid vppId, Guid? priceListId = null)
         {
+            var effectivePriceListId = priceListId ?? await GetDefaultPriceListIdAsync();
+            if (!effectivePriceListId.HasValue)
+            {
+                return new List<L06_VPPSupplierMappingResDTO>();
+            }
+
             return await PriceDtoQuery()
-                .Where(x => x.L04_VPPId == vppId)
+                .Where(x => x.L04_VPPId == vppId && x.L07_PriceListId == effectivePriceListId.Value)
                 .OrderByDescending(x => x.IsDefault)
                 .ThenBy(x => x.L05_SupplierName)
                 .ThenBy(x => x.Id)
@@ -38,12 +44,12 @@ namespace gtas_vpp_be.Service.Services
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId);
+                await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId, req.L07_PriceListId);
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
                 {
-                    await DemoteDefaultsAsync(req.L04_VPPId, userId, now);
+                    await DemoteDefaultsAsync(req.L07_PriceListId, req.L04_VPPId, userId, now);
                 }
 
                 var entity = new L06_VPPSupplierMapping
@@ -51,6 +57,7 @@ namespace gtas_vpp_be.Service.Services
                     Id = Guid.NewGuid(),
                     L04_VPPId = req.L04_VPPId,
                     L05_VPPSupplierId = req.L05_VPPSupplierId,
+                    L07_PriceListId = req.L07_PriceListId,
                     Price = req.Price,
                     IsDefault = req.IsDefault,
                     Description = req.Description,
@@ -92,16 +99,17 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price mapping not found.");
                 }
 
-                await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId);
+                await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId, req.L07_PriceListId);
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
                 {
-                    await DemoteDefaultsAsync(req.L04_VPPId, userId, now);
+                    await DemoteDefaultsAsync(req.L07_PriceListId, req.L04_VPPId, userId, now);
                 }
 
                 entity.L04_VPPId = req.L04_VPPId;
                 entity.L05_VPPSupplierId = req.L05_VPPSupplierId;
+                entity.L07_PriceListId = req.L07_PriceListId;
                 entity.Price = req.Price;
                 entity.IsDefault = req.IsDefault;
                 entity.Description = req.Description;
@@ -169,7 +177,7 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var now = _dateTimeProvider.Now;
-                await DemoteDefaultsAsync(entity.L04_VPPId, userId, now);
+                await DemoteDefaultsAsync(entity.L07_PriceListId, entity.L04_VPPId, userId, now);
 
                 entity.IsDefault = true;
                 entity.UpdateUserId = userId;
@@ -208,7 +216,9 @@ namespace gtas_vpp_be.Service.Services
                     L04_VPPId = x.L04_VPPId,
                     L04_VPPName = x.L04_VPP != null ? x.L04_VPP.VPPName : null,
                     L05_VPPSupplierId = x.L05_VPPSupplierId,
-                    L05_SupplierName = x.L05_VPPSupplier != null ? x.L05_VPPSupplier.SupplierName : null
+                    L05_SupplierName = x.L05_VPPSupplier != null ? x.L05_VPPSupplier.SupplierName : null,
+                    L07_PriceListId = x.L07_PriceListId,
+                    L07_PriceListName = x.L07_PriceList != null ? x.L07_PriceList.PriceListName : null
                 });
         }
 
@@ -217,7 +227,7 @@ namespace gtas_vpp_be.Service.Services
             return await PriceDtoQuery().FirstAsync(x => x.Id == id);
         }
 
-        private async Task ValidateReferencesAsync(Guid vppId, Guid supplierId)
+        private async Task ValidateReferencesAsync(Guid vppId, Guid supplierId, Guid priceListId)
         {
             var vppExists = await _scopedUow.VPPContext.Set<L04_VPP>()
                 .AsNoTracking()
@@ -234,12 +244,20 @@ namespace gtas_vpp_be.Service.Services
             {
                 throw new BusinessException("VPP supplier does not exist or has been deleted.");
             }
+
+            var priceListExists = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == priceListId && !x.IsDeleted);
+            if (!priceListExists)
+            {
+                throw new BusinessException("Price list does not exist or has been deleted.");
+            }
         }
 
-        private async Task DemoteDefaultsAsync(Guid vppId, int userId, DateTime now)
+        private async Task DemoteDefaultsAsync(Guid priceListId, Guid vppId, int userId, DateTime now)
         {
             var existingRows = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
-                .Where(x => x.L04_VPPId == vppId && !x.IsDeleted)
+                .Where(x => x.L07_PriceListId == priceListId && x.L04_VPPId == vppId && !x.IsDeleted)
                 .ToListAsync();
 
             foreach (var row in existingRows)
@@ -261,5 +279,14 @@ namespace gtas_vpp_be.Service.Services
         private static bool IsUniqueViolation(DbUpdateException exception)
             => exception.InnerException is SqlException sqlException
                && (sqlException.Number == 2601 || sqlException.Number == 2627);
+
+        private async Task<Guid?> GetDefaultPriceListIdAsync()
+        {
+            return await _scopedUow.VPPContext.Set<L07_PriceList>()
+                .AsNoTracking()
+                .Where(x => x.IsDefault && !x.IsDeleted)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefaultAsync();
+        }
     }
 }

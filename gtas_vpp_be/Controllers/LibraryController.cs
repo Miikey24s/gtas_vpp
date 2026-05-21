@@ -145,14 +145,22 @@ namespace gtas_vpp_be.Controllers
                     VPPCategoryId = x.VPPCategoryId,
                     DefaultVatRate = VppPricingDefaults.VatRate,
                     DefaultPrice = x.L06_VPPSupplierMappings!
-                        .Where(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                        .Where(m => !m.IsDeleted
+                            && m.L07_PriceList != null
+                            && m.L07_PriceList.IsDefault
+                            && !m.L07_PriceList.IsDeleted
+                            && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
                         .OrderByDescending(m => m.IsDefault)
                         .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
                         .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
                         .Select(m => (decimal?)m.Price)
                         .FirstOrDefault(),
                     DefaultSupplierName = x.L06_VPPSupplierMappings!
-                        .Where(m => !m.IsDeleted && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                        .Where(m => !m.IsDeleted
+                            && m.L07_PriceList != null
+                            && m.L07_PriceList.IsDefault
+                            && !m.L07_PriceList.IsDeleted
+                            && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
                         .OrderByDescending(m => m.IsDefault)
                         .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
                         .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)

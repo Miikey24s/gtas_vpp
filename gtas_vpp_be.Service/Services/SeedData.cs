@@ -17,6 +17,7 @@ namespace gtas_vpp_be.Service.Services
     {
         // ── Constants ──────────────────────────────────────────────
         private const int DefaultUserId = 5615;
+        private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
         private static readonly Guid AdminGroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C");
         private static readonly Guid UserGroupId  = Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596");
 
@@ -43,7 +44,9 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid CompLibItem            = Guid.Parse("A88BF4B4-F5BB-4E5A-8ADA-73C27606E7E2");
         private static readonly Guid CompLibSupplier        = Guid.Parse("02C64E1C-FDB0-4FEB-B788-CEBB06CF94C9");
         private static readonly Guid CompLibPrice           = Guid.Parse("2FFBB515-BF2A-42ED-B4B1-34FBA41017FF");
+        private static readonly Guid CompLibPriceList       = Guid.Parse("4C72920C-125F-4923-8408-352030382B26");
         private static readonly Guid CompLibDepartment      = Guid.Parse("3179CAE5-10AF-4F8A-BED1-F8AB7C68D881");
+        private static readonly Guid CompPeriodSettle       = Guid.Parse("E7BA9473-961E-4407-986A-94C0FF206039");
         private static readonly Guid CompPermUser           = Guid.Parse("7A1EF33F-FAB9-47D6-88BF-9D69E90DC519");
         private static readonly Guid CompPermComponent      = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
         private static readonly Guid CompReportView         = Guid.Parse("70603737-45C6-4937-A422-4E4FB0EC52CD");
@@ -64,7 +67,9 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid P05_LB_Item       = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
         private static readonly Guid P05_LB_Supplier   = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
         private static readonly Guid P05_LB_Price      = Guid.Parse("5658FDBD-686D-4BA8-9BB8-8C629671E5FB");
+        private static readonly Guid P05_LB_PriceList  = Guid.Parse("BA035879-1C78-4F48-8297-DA3C8AA7245B");
         private static readonly Guid P05_LB_Dept       = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
+        private static readonly Guid P05_AP_PeriodSettle = Guid.Parse("8D9A6954-56AF-4B5C-B9F2-39E4EDD0AA3F");
         private static readonly Guid P05_PM_User       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
         private static readonly Guid P05_PM_Component  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
         private static readonly Guid P05_RP_View       = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
@@ -134,6 +139,7 @@ namespace gtas_vpp_be.Service.Services
                 return;
             }
 
+            var now = DateTime.Now;
             var hcmSupplier = await context.L05_VPPSuppliers
                 .FirstOrDefaultAsync(x => x.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName && !x.IsDeleted);
             if (hcmSupplier == null)
@@ -143,9 +149,28 @@ namespace gtas_vpp_be.Service.Services
                 return;
             }
 
+            var defaultPriceList = await context.L07_PriceLists
+                .FirstOrDefaultAsync(x => x.Id == DefaultPriceListId && !x.IsDeleted);
+            if (defaultPriceList == null)
+            {
+                defaultPriceList = new L07_PriceList
+                {
+                    Id = DefaultPriceListId,
+                    PriceListCode = "DEFAULT",
+                    PriceListName = "Default Price List",
+                    IsDefault = true,
+                    CreateUserId = DefaultUserId,
+                    CreateDate = now,
+                    UpdateUserId = DefaultUserId,
+                    UpdateDate = now,
+                    IsDeleted = false
+                };
+                context.L07_PriceLists.Add(defaultPriceList);
+                await context.SaveChangesAsync();
+            }
+
             await using var transaction = await context.Database.BeginTransactionAsync();
 
-            var now = DateTime.Now;
             var activeProducts = await context.L04_VPPs
                 .Include(x => x.VPPCategory)
                 .Where(x => !x.IsDeleted)
@@ -153,7 +178,9 @@ namespace gtas_vpp_be.Service.Services
             var productIds = activeProducts.Select(x => x.Id).ToArray();
 
             var activeMappings = await context.L06_VPPSupplierMappings
-                .Where(x => productIds.Contains(x.L04_VPPId) && !x.IsDeleted)
+                .Where(x => x.L07_PriceListId == defaultPriceList.Id
+                         && productIds.Contains(x.L04_VPPId)
+                         && !x.IsDeleted)
                 .ToListAsync();
 
             foreach (var mapping in activeMappings.Where(x => x.IsDefault))
@@ -209,6 +236,7 @@ namespace gtas_vpp_be.Service.Services
                         Id = Guid.NewGuid(),
                         L04_VPPId = product.Id,
                         L05_VPPSupplierId = hcmSupplier.Id,
+                        L07_PriceListId = defaultPriceList.Id,
                         Price = priceRow?.Price ?? 0,
                         IsDefault = true,
                         Description = "Seeded default price from prices.txt",
@@ -501,7 +529,9 @@ namespace gtas_vpp_be.Service.Services
                 C("LIBRARY_ITEM",             "Library - Item",             "Item",             CompLibItem, now),
                 C("LIBRARY_SUPPLIER",         "Library - Supplier",         "Supplier",         CompLibSupplier, now),
                 C("LIBRARY_PRICE",            "Library - Price",            "Price",            CompLibPrice, now),
+                C("LIBRARY_PRICE_LIST",       "Library - Price List",       "Price List",       CompLibPriceList, now),
                 C("LIBRARY_DEPARTMENT",       "Library - Department",       "Dept",             CompLibDepartment, now),
+                C("PERIOD_SETTLE",            "Period Settlement",          "Settle Period",    CompPeriodSettle, now),
                 C("PERMISSION_USER",          "Permission - User",          "User Auth",        CompPermUser, now),
                 C("PERMISSION_COMPONENT",     "Permission - Component",     "Comp Mapping",     CompPermComponent, now),
                 C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now)
@@ -593,7 +623,9 @@ namespace gtas_vpp_be.Service.Services
                 P5(P05_LB_Item,       PageLibrary,    CompLibItem),
                 P5(P05_LB_Supplier,   PageLibrary,    CompLibSupplier),
                 P5(P05_LB_Price,      PageLibrary,    CompLibPrice),
+                P5(P05_LB_PriceList,  PageLibrary,    CompLibPriceList),
                 P5(P05_LB_Dept,       PageLibrary,    CompLibDepartment),
+                P5(P05_AP_PeriodSettle, PageDashboard, CompPeriodSettle),
                 P5(P05_PM_User,       PagePermission, CompPermUser),
                 P5(P05_PM_Component,  PagePermission, CompPermComponent),
                 P5(P05_RP_View,       PageReport,     CompReportView)
@@ -624,8 +656,8 @@ namespace gtas_vpp_be.Service.Services
             {
                 P05_SB_Dashboard, P05_SB_Library, P05_SB_Report, P05_SB_Permission,
                 P05_DB_Order, P05_DB_Catalog, P05_DB_History, P05_DB_DeptSum,
-                P05_DB_AllSum, P05_DB_Approval,
-                P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Price, P05_LB_Dept,
+                P05_DB_AllSum, P05_DB_Approval, P05_AP_PeriodSettle,
+                P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Price, P05_LB_PriceList, P05_LB_Dept,
                 P05_PM_User, P05_PM_Component,
                 P05_RP_View
             };

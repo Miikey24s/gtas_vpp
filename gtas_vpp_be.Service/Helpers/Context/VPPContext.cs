@@ -30,6 +30,7 @@ namespace gtas_vpp_be.Service.Helpers.Context
         public virtual DbSet<L04_VPP> L04_VPPs { get; set; }
         public virtual DbSet<L05_VPPSupplier> L05_VPPSuppliers { get; set; }
         public virtual DbSet<L06_VPPSupplierMapping> L06_VPPSupplierMappings { get; set; }
+        public virtual DbSet<L07_PriceList> L07_PriceLists { get; set; }
         public virtual DbSet<LEX02_CompanyDepartmentLocation> LEX02_CompanyDepartmentLocations { get; set; }
         #endregion
 
@@ -82,8 +83,17 @@ namespace gtas_vpp_be.Service.Helpers.Context
             {
                 en.HasOne(x => x.L04_VPP).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.L05_VPPSupplier).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
-                en.HasIndex(x => new { x.L04_VPPId })
-                    .HasDatabaseName("UX_L06_OneDefaultPerVPP")
+                en.HasOne(x => x.L07_PriceList).WithMany(x => x.L06_VPPSupplierMappings)
+                    .HasForeignKey(x => x.L07_PriceListId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.L07_PriceListId, x.L04_VPPId })
+                    .HasDatabaseName("UX_L06_OneDefaultPerVPPPerList")
+                    .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
+                    .IsUnique();
+            });
+            modelBuilder.Entity<L07_PriceList>(en =>
+            {
+                en.HasIndex(x => x.IsDefault)
+                    .HasDatabaseName("UX_L07_OneDefault")
                     .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
                     .IsUnique();
             });
@@ -107,6 +117,9 @@ namespace gtas_vpp_be.Service.Helpers.Context
                     .HasDatabaseName("UX_VPP01_VPPCode")
                     .HasFilter("[VPPCode] IS NOT NULL")
                     .IsUnique();
+                en.HasOne(x => x.SettledByPriceList).WithMany()
+                    .HasForeignKey(x => x.SettledByPriceListId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<VPP03_Log>(en =>
             {

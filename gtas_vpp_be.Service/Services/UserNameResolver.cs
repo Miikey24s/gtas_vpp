@@ -19,22 +19,25 @@ namespace gtas_vpp_be.Service.Services
 
             var createUserIdProperty = GetProperty<T>("CreateUserId");
             var updateUserIdProperty = GetProperty<T>("UpdateUserId", "UpdaterUserId");
+            var settledByUserIdProperty = GetProperty<T>("SettledByUserId");
             var createUserNameProperty = GetProperty<T>("CreateUserName");
             var updateUserNameProperty = GetProperty<T>("UpdateUserName", "UpdaterUserName");
+            var settledByUserNameProperty = GetProperty<T>("SettledByUserName");
 
-            if (createUserNameProperty == null && updateUserNameProperty == null)
+            if (createUserNameProperty == null && updateUserNameProperty == null && settledByUserNameProperty == null)
             {
                 return entities;
             }
 
             var userNames = await GetUserNamesByIdsAsync(
                 context,
-                GetDistinctUserIds(entities, createUserIdProperty, updateUserIdProperty));
+                GetDistinctUserIds(entities, createUserIdProperty, updateUserIdProperty, settledByUserIdProperty));
 
             foreach (var entity in entities)
             {
                 SetUserName(entity, createUserIdProperty, createUserNameProperty, userNames, useEmptyFallback: true);
                 SetUserName(entity, updateUserIdProperty, updateUserNameProperty, userNames, useEmptyFallback: true);
+                SetUserName(entity, settledByUserIdProperty, settledByUserNameProperty, userNames, useEmptyFallback: true);
             }
 
             return entities;
@@ -44,20 +47,23 @@ namespace gtas_vpp_be.Service.Services
         {
             var createUserIdProperty = GetProperty<T>("CreateUserId");
             var updateUserIdProperty = GetProperty<T>("UpdateUserId", "UpdaterUserId");
+            var settledByUserIdProperty = GetProperty<T>("SettledByUserId");
             var createUserNameProperty = GetProperty<T>("CreateUserName");
             var updateUserNameProperty = GetProperty<T>("UpdateUserName", "UpdaterUserName");
+            var settledByUserNameProperty = GetProperty<T>("SettledByUserName");
 
-            if (createUserNameProperty == null && updateUserNameProperty == null)
+            if (createUserNameProperty == null && updateUserNameProperty == null && settledByUserNameProperty == null)
             {
                 return;
             }
 
             var userNames = await GetUserNamesByIdsAsync(
                 context,
-                GetDistinctUserIds(new[] { entity }, createUserIdProperty, updateUserIdProperty));
+                GetDistinctUserIds(new[] { entity }, createUserIdProperty, updateUserIdProperty, settledByUserIdProperty));
 
             SetUserName(entity, createUserIdProperty, createUserNameProperty, userNames, useEmptyFallback: false);
             SetUserName(entity, updateUserIdProperty, updateUserNameProperty, userNames, useEmptyFallback: false);
+            SetUserName(entity, settledByUserIdProperty, settledByUserNameProperty, userNames, useEmptyFallback: false);
         }
 
         private static async Task<Dictionary<int, string?>> GetUserNamesByIdsAsync(DbContext context, int[] userIds)
@@ -77,12 +83,14 @@ namespace gtas_vpp_be.Service.Services
         private static int[] GetDistinctUserIds<T>(
             IEnumerable<T> entities,
             PropertyInfo? createUserIdProperty,
-            PropertyInfo? updateUserIdProperty) where T : class
+            PropertyInfo? updateUserIdProperty,
+            PropertyInfo? settledByUserIdProperty = null) where T : class
             => entities
                 .SelectMany(entity => new[]
                 {
                     GetIntPropertyValue(createUserIdProperty, entity),
-                    GetIntPropertyValue(updateUserIdProperty, entity)
+                    GetIntPropertyValue(updateUserIdProperty, entity),
+                    GetIntPropertyValue(settledByUserIdProperty, entity)
                 })
                 .Where(userId => userId.HasValue && userId.Value > 0)
                 .Select(userId => userId!.Value)

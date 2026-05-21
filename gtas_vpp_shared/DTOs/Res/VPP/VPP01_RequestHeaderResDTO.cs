@@ -13,6 +13,11 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public string? DepartmentCode { get; set; }
         public string? MemberCompanyCode { get; set; }
         public DateTime? SubmittedDate { get; set; }
+        public DateTime? SettledAt { get; set; }
+        public int? SettledByUserId { get; set; }
+        public string? SettledByUserName { get; set; }
+        public Guid? SettledByPriceListId { get; set; }
+        public string? SettledByPriceListName { get; set; }
         public int TotalLines { get; set; }
         public int TotalQty { get; set; }
         public bool IsAdditionalOrder { get; set; }

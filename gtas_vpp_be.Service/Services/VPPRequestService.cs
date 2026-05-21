@@ -231,6 +231,13 @@ namespace gtas_vpp_be.Service.Services
                     throw new InvalidOperationException("You already have an order for this period.");
             }
 
+            var settled = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .AnyAsync(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted && x.SettledAt != null);
+            if (settled)
+                throw new BusinessException(
+                    $"Period {req.M:D2}/{req.Y} has been settled. No new orders allowed.");
+
             await _scopedUow.BeginTransactionAsync();
             try
             {
@@ -403,6 +410,7 @@ namespace gtas_vpp_be.Service.Services
 
             var result = prevHeader.Adapt<VPP01_RequestHeaderResDTO>();
             result.Items = result.Items.Where(i => activeVppIds.Contains(i.VPPId)).ToList();
+            await ApplyRequesterNamesAsync(new List<VPP01_RequestHeaderResDTO> { result });
             ApplyPeriodFlags(new[] { result });
             return result;
         }
@@ -801,7 +809,7 @@ namespace gtas_vpp_be.Service.Services
             }).ToList();
         }
 
-        private async Task<Dictionary<Guid, long>> GetCurrentSinglePricesAsync(IEnumerable<Guid> vppIds)
+        private async Task<Dictionary<Guid, long>> GetCurrentSinglePricesAsync(IEnumerable<Guid> vppIds, Guid? priceListId = null)
         {
             var distinctVppIds = vppIds.Distinct().ToArray();
             if (distinctVppIds.Length == 0)
@@ -809,9 +817,23 @@ namespace gtas_vpp_be.Service.Services
                 return new Dictionary<Guid, long>();
             }
 
+            var effectivePriceListId = priceListId
+                ?? await _scopedUow.VPPContext.Set<L07_PriceList>()
+                    .AsNoTracking()
+                    .Where(x => x.IsDefault && !x.IsDeleted)
+                    .Select(x => (Guid?)x.Id)
+                    .FirstOrDefaultAsync();
+
+            if (!effectivePriceListId.HasValue)
+            {
+                return new Dictionary<Guid, long>();
+            }
+
             var priceRows = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
                 .AsNoTracking()
-                .Where(x => distinctVppIds.Contains(x.L04_VPPId) && !x.IsDeleted)
+                .Where(x => x.L07_PriceListId == effectivePriceListId.Value
+                         && distinctVppIds.Contains(x.L04_VPPId)
+                         && !x.IsDeleted)
                 .Select(x => new { VPPId = x.L04_VPPId, x.Price, x.IsDefault })
                 .ToListAsync();
 
@@ -842,27 +864,49 @@ namespace gtas_vpp_be.Service.Services
         private async Task ApplyRequesterNamesAsync(List<VPP01_RequestHeaderResDTO> orders)
         {
             var userIds = orders
-                .Select(x => x.CreateUserId)
-                .Where(x => x > 0)
+                .SelectMany(x => new[] { (int?)x.CreateUserId, x.SettledByUserId })
+                .Where(x => x.HasValue && x.Value > 0)
+                .Select(x => x!.Value)
                 .Distinct()
                 .ToArray();
 
-            if (userIds.Length == 0)
-            {
-                return;
-            }
+            var users = userIds.Length == 0
+                ? new Dictionary<int, string?>()
+                : await _scopedUow.VPPContext.Set<v_Users>()
+                    .AsNoTracking()
+                    .Where(x => userIds.Contains(x.UserID))
+                    .Select(x => new { x.UserID, x.FullName })
+                    .ToDictionaryAsync(x => x.UserID, x => x.FullName);
 
-            var users = await _scopedUow.VPPContext.Set<v_Users>()
-                .AsNoTracking()
-                .Where(x => userIds.Contains(x.UserID))
-                .Select(x => new { x.UserID, x.FullName })
-                .ToDictionaryAsync(x => x.UserID, x => x.FullName);
+            var priceListIds = orders
+                .Select(x => x.SettledByPriceListId)
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .Distinct()
+                .ToArray();
+
+            var priceLists = priceListIds.Length == 0
+                ? new Dictionary<Guid, string?>()
+                : await _scopedUow.VPPContext.Set<L07_PriceList>()
+                    .AsNoTracking()
+                    .Where(x => priceListIds.Contains(x.Id))
+                    .Select(x => new { x.Id, x.PriceListName })
+                    .ToDictionaryAsync(x => x.Id, x => x.PriceListName);
 
             foreach (var order in orders)
             {
                 order.RequesterName = users.TryGetValue(order.CreateUserId, out var fullName)
                     ? fullName
                     : null;
+                order.SettledByUserName = order.SettledByUserId.HasValue
+                    && users.TryGetValue(order.SettledByUserId.Value, out var settledByUserName)
+                        ? settledByUserName
+                        : null;
+                if (order.SettledByPriceListId.HasValue
+                    && priceLists.TryGetValue(order.SettledByPriceListId.Value, out var priceListName))
+                {
+                    order.SettledByPriceListName = priceListName;
+                }
             }
         }
 
