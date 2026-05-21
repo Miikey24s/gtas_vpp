@@ -19,8 +19,8 @@ services:
       TZ: "Asia/Ho_Chi_Minh"
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD:-YourStrong!Passw0rd}"
-      MSSQL_PID: "Express"
-      MSSQL_MEMORY_LIMIT_MB: "${MSSQL_MEMORY_LIMIT_MB:-4096}"
+      MSSQL_PID: "Developer"
+      MSSQL_MEMORY_LIMIT_MB: "4096"
     ports:
       - "1433:1433"
     volumes:
@@ -67,6 +67,8 @@ services:
       PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:-ttpsolutions}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
       CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
+      DOTNET_gcServer: "0"
+      DOTNET_GCHeapHardLimitPercent: "75"
     ports:
       - "127.0.0.1:8080:8080"
     mem_limit: 512m
@@ -100,6 +102,8 @@ services:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"
       ApiSettings__BaseUrl: "http://backend:8080"
+      DOTNET_gcServer: "0"
+      DOTNET_GCHeapHardLimitPercent: "75"
     logging:
       driver: "json-file"
       options:

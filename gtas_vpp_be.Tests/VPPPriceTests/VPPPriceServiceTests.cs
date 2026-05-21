@@ -133,6 +133,29 @@ public class VPPPriceServiceTests
     }
 
     [Fact]
+    public async Task ListBySupplier_FiltersCorrectly()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 20, 9, 0, 0);
+        var vppId1 = Guid.NewGuid();
+        var vppId2 = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId1);
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId2);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
+        var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
+        var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
+        var service = CreatePriceService(context, now);
+        
+        await service.CreateAsync(CreateReq(vppId1, supplier1Id, priceListId, 1000, isDefault: true), 5615);
+        await service.CreateAsync(CreateReq(vppId2, supplier1Id, priceListId, 2000, isDefault: false), 5615);
+        await service.CreateAsync(CreateReq(vppId1, supplier2Id, priceListId, 1500, isDefault: true), 5615);
+
+        var listed = await service.ListBySupplierAsync(supplier1Id, priceListId);
+        Assert.Equal(2, listed.Count);
+        Assert.All(listed, x => Assert.Equal(supplier1Id, x.L05_VPPSupplierId));
+    }
+
+    [Fact]
     public async Task GetCurrentSinglePrice_WithDefault_PrefersDefault()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
