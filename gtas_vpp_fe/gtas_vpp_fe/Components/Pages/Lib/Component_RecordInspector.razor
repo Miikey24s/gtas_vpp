@@ -1,0 +1,200 @@
+@using System.Reflection
+@using Radzen
+@using Radzen.Blazor
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Share
+@typeparam TItem
+
+<div style="height: 100%; display: flex; flex-direction: column; background: var(--rz-background-color);">
+    <RadzenTabs RenderMode="TabRenderMode.Client" class="w-100 h-100" Style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+        <Tabs>
+            <RadzenTabsItem Text="Core Data" Icon="info">
+                <div style="max-height: calc(100vh - 120px); overflow-y: auto;" class="rz-p-3">
+                    <RadzenStack Gap="0.75rem">
+                        @if (CoreProperties.Count == 0)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-align-center rz-text-muted rz-my-4">No core properties</RadzenText>
+                        }
+                        else
+                        {
+                            @foreach (var prop in CoreProperties)
+                            {
+                                @RenderPropertyCard(prop)
+                            }
+                        }
+                    </RadzenStack>
+                </div>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Audit Trail" Icon="history">
+                <div style="max-height: calc(100vh - 120px); overflow-y: auto;" class="rz-p-3">
+                    <RadzenStack Gap="0.75rem">
+                        @if (AuditProperties.Count == 0)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-align-center rz-text-muted rz-my-4">No audit properties</RadzenText>
+                        }
+                        else
+                        {
+                            @foreach (var prop in AuditProperties)
+                            {
+                                @RenderPropertyCard(prop)
+                            }
+                        }
+                    </RadzenStack>
+                </div>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="System Keys" Icon="key">
+                <div style="max-height: calc(100vh - 120px); overflow-y: auto;" class="rz-p-3">
+                    <RadzenStack Gap="0.75rem">
+                        @if (SystemProperties.Count == 0)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-align-center rz-text-muted rz-my-4">No system properties</RadzenText>
+                        }
+                        else
+                        {
+                            @foreach (var prop in SystemProperties)
+                            {
+                                @RenderPropertyCard(prop)
+                            }
+                        }
+                    </RadzenStack>
+                </div>
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+</div>
+
+@code {
+    [Parameter] public TItem Record { get; set; } = default!;
+
+    private List<PropertyInfo> CoreProperties { get; set; } = new();
+    private List<PropertyInfo> AuditProperties { get; set; } = new();
+    private List<PropertyInfo> SystemProperties { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        if (Record == null) return;
+
+        var props = typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        foreach (var prop in props)
+        {
+            // Skip collections and complex navigation classes (except string)
+            if ((prop.PropertyType.IsClass && prop.PropertyType != typeof(string)) ||
+                (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string)))
+            {
+                continue;
+            }
+
+            var name = prop.Name;
+            
+            // Check if it's an audit property
+            var isAudit = name == "CreateUserId" || 
+                          name == "CreateDate" || 
+                          name == "CreateUserName" ||
+                          name == "UpdateUserId" || 
+                          name == "UpdateDate" || 
+                          name == "UpdateUserName" ||
+                          name == "IsDeleted";
+                          
+            // Check if it's a system ID (either Id or ends with Id/GUID)
+            var isSystem = name == "Id" || 
+                           name.EndsWith("Id") || 
+                           name.EndsWith("MappingId") ||
+                           name.Contains("Code");
+
+            if (isAudit)
+            {
+                AuditProperties.Add(prop);
+            }
+            else if (isSystem)
+            {
+                SystemProperties.Add(prop);
+            }
+            else
+            {
+                CoreProperties.Add(prop);
+            }
+        }
+    }
+
+    private RenderFragment RenderPropertyCard(PropertyInfo prop) => builder =>
+    {
+        var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
+        var displayName = attr?.DisplayName ?? prop.Name;
+        var val = Record!.GetPropertyValue(prop.Name, prop.PropertyType);
+        var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+        var typeCode = Type.GetTypeCode(effectiveType);
+        var formattedVal = FormatValue(val, typeCode);
+        
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "rz-p-3 rz-border-radius-1");
+        builder.AddAttribute(2, "style", "background: var(--rz-base-50); border: 1px solid var(--rz-base-200); display: flex; flex-direction: column; gap: 0.25rem;");
+
+        // Label
+        builder.OpenElement(3, "div");
+        builder.AddAttribute(4, "style", "font-size: 0.75rem; font-weight: 600; color: var(--rz-text-secondary-color);");
+        builder.AddContent(5, displayName);
+        if (displayName != prop.Name)
+        {
+            builder.OpenElement(6, "span");
+            builder.AddAttribute(7, "style", "font-size: 0.65rem; font-weight: normal; color: var(--rz-text-muted); margin-left: 0.5rem; font-family: monospace;");
+            builder.AddContent(8, $"({prop.Name})");
+            builder.CloseElement(); // span
+        }
+        builder.CloseElement(); // label div
+
+        // Value
+        builder.OpenElement(9, "div");
+        builder.AddAttribute(10, "style", "font-size: 0.85rem; font-weight: 500; word-break: break-all; min-height: 1.2rem;");
+        
+        if (val == null)
+        {
+            builder.OpenElement(11, "span");
+            builder.AddAttribute(12, "class", "rz-text-muted");
+            builder.AddAttribute(13, "style", "font-style: italic;");
+            builder.AddContent(14, "null");
+            builder.CloseElement(); // span
+        }
+        else if (typeCode == TypeCode.Boolean)
+        {
+            var isTrue = (bool)val;
+            builder.OpenElement(15, "span");
+            builder.AddAttribute(16, "style", $"font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; color: #fff; background-color: {(isTrue ? "var(--rz-success)" : "var(--rz-secondary-color)")};");
+            builder.AddContent(17, isTrue ? "True" : "False");
+            builder.CloseElement(); // span
+        }
+        else
+        {
+            var name = prop.Name;
+            var isSystemKey = name == "Id" || name.EndsWith("Id") || name.EndsWith("MappingId") || name.Contains("Code");
+            builder.OpenElement(18, "span");
+            if (isSystemKey)
+            {
+                builder.AddAttribute(19, "style", "font-family: monospace; font-size: 0.8rem; background: var(--rz-base-200); padding: 2px 6px; border-radius: 4px; color: var(--rz-text-primary-color); border: 1px solid var(--rz-base-300);");
+            }
+            builder.AddContent(20, formattedVal);
+            builder.CloseElement(); // span
+        }
+
+        builder.CloseElement(); // value div
+        builder.CloseElement(); // outer div
+    };
+
+    private string FormatValue(object? value, TypeCode typeCode)
+    {
+        if (value == null) return string.Empty;
+
+        if (typeCode == TypeCode.DateTime && value is DateTime dt)
+        {
+            return dt.ToString("dd/MM/yyyy HH:mm:ss.fff");
+        }
+
+        if (typeCode == TypeCode.Decimal || 
+            typeCode == TypeCode.Double || 
+            typeCode == TypeCode.Single)
+        {
+            return string.Format("{0:N0}", value);
+        }
+
+        return value.ToString() ?? string.Empty;
+    }
+}

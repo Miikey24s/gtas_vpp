@@ -15,6 +15,7 @@ public class OrderCreateContext
 
     public string? Description { get; set; }
     public List<SelectedItem> SelectedItems { get; set; } = new();
+    public bool DraftRecovered { get; set; }
 
     public event Action? OnStateChanged;
     public void NotifyStateChanged() => OnStateChanged?.Invoke();
@@ -26,6 +27,8 @@ public class OrderCreateContext
         public Guid VPPId { get; set; }
         public string? VPPCode { get; set; }
         public string? VPPName { get; set; }
+        public string? UOMCode { get; set; }
+        public string? UOMName { get; set; }
         public int Qty { get; set; } = 1;
         public string? Description { get; set; }
     }

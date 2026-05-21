@@ -243,7 +243,7 @@
   <data name="WizardAdditionalReasonRequired" xml:space="preserve"><value>Cần nhập lý do cho đơn bổ sung.</value></data>
   <data name="WizardAISearchCopy" xml:space="preserve"><value>Tìm bằng ngôn ngữ tự nhiên, từ khóa trộn hoặc một phần tên sản phẩm.</value></data>
   <data name="WizardApprovalRequired" xml:space="preserve"><value>Cần duyệt</value></data>
-  <data name="WizardApproverNotesHint" xml:space="preserve"><value>Ghi chú tùy chọn cho bối cảnh giao hàng, nhu cầu phòng ban hoặc hướng dẫn người duyệt.</value></data>
+  <data name="WizardApproverNotesHint" xml:space="preserve"><value>Ghi chú</value></data>
   <data name="WizardApproverNotesLabel" xml:space="preserve"><value>Ghi chú cho người duyệt</value></data>
   <data name="WizardBoundaryRule" xml:space="preserve"><value>Quy tắc chuyển kỳ</value></data>
   <data name="WizardBoundaryRuleDesc" xml:space="preserve"><value>Đúng 00:00 ngày mùng 5, hệ thống chuyển sang kỳ tháng mới.</value></data>
@@ -274,7 +274,7 @@
   <data name="WizardPeriodWindowCopy" xml:space="preserve"><value>Dịch vụ kỳ ở backend đã xác định đúng chu kỳ. Yêu cầu này sẽ được gửi theo khoảng thời gian bên dưới.</value></data>
   <data name="WizardPeriodWindowTitle" xml:space="preserve"><value>Khung thời gian kỳ</value></data>
   <data name="WizardProductCatalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>
-  <data name="WizardQtyBadgeFormat" xml:space="preserve"><value>SL: {0}</value></data>
+  <data name="WizardQtyBadgeFormat" xml:space="preserve"><value>Số lượng: {0}</value></data>
   <data name="WizardRegularRequest" xml:space="preserve"><value>Yêu cầu thông thường</value></data>
   <data name="WizardRequestContextCopy" xml:space="preserve"><value>Xác nhận kỳ đích, loại yêu cầu và ghi chú mà người duyệt sẽ thấy trước khi bạn bắt đầu thêm sản phẩm.</value></data>
   <data name="WizardRequestContextTitle" xml:space="preserve"><value>Bối cảnh yêu cầu</value></data>

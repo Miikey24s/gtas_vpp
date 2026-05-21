@@ -3,6 +3,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Share;
+using gtas_vpp_fe.Components.Pages.Lib;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
@@ -423,6 +424,31 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 StateHasChanged();
             }
         }
+
+        protected async Task OnGroupRowDoubleClick(DataGridRowMouseEventArgs<P02_GroupResDTO> args)
+        {
+            if (args.Data != null)
+            {
+                await DialogService.OpenSideAsync<Component_RecordInspector<P02_GroupResDTO>>(
+                    $"Group: {args.Data.GroupName}",
+                    new Dictionary<string, object?> { { "Record", args.Data } },
+                    options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
+                );
+            }
+        }
+
+        protected async Task OnComponentRowDoubleClick(DataGridRowMouseEventArgs<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> args)
+        {
+            if (args.Data != null)
+            {
+                await DialogService.OpenSideAsync<Component_RecordInspector<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component>>(
+                    $"Component: {args.Data.ComponentName}",
+                    new Dictionary<string, object?> { { "Record", args.Data } },
+                    options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
+                );
+            }
+        }
     }
 }
+
 

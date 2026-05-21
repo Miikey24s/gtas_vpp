@@ -3,6 +3,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
+using gtas_vpp_fe.Components.Pages.Lib;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -173,6 +174,18 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
         }
         protected async Task ButtonOnClick_Reload() => await LoadBaseData();
+
+        protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<sp_Authentication_TabUser_UserList> args)
+        {
+            if (args.Data != null)
+            {
+                await DialogService.OpenSideAsync<Component_RecordInspector<sp_Authentication_TabUser_UserList>>(
+                    $"User: {args.Data.UserLogin}",
+                    new Dictionary<string, object?> { { "Record", args.Data } },
+                    options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
+                );
+            }
+        }
 
         protected async Task TextBoxOnChange(string arg)
         {

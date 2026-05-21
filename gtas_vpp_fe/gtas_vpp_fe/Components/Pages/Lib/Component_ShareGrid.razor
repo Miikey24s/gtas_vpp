@@ -39,6 +39,7 @@
     <HeaderTemplate>
         <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Secondary" class="consumptionaddbutton" IsBusy="@glb.isBusyPage" Click="@InsertRow" Disabled="@onEdit" />
     </HeaderTemplate>
+
     <Columns>
         <RadzenDataGridColumn TItem="TType" Width="50px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
             <Template Context="context">
@@ -53,23 +54,19 @@
             var displayName = attr?.DisplayName ?? prop.Name;
             var width = attr?.Width;
             
-            // Skip system/audit metadata properties
-            if (prop.Name == "Id" || 
-                prop.Name == "CreateUserId" || 
-                prop.Name == "CreateDate" || 
-                prop.Name == "UpdateUserId" || 
-                prop.Name == "UpdateDate" || 
-                prop.Name == "IsDeleted")
-            {
-                continue;
-            }
-            
             // Skip complex properties (except string) and collections
             if ((prop.PropertyType.IsClass && prop.PropertyType != typeof(string)) || 
                 (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string)))
             {
                 continue;
             }
+            
+            var isAuditProperty = prop.Name == "Id" || 
+                                  prop.Name == "CreateUserId" || 
+                                  prop.Name == "CreateDate" || 
+                                  prop.Name == "UpdateUserId" || 
+                                  prop.Name == "UpdateDate" || 
+                                  prop.Name == "IsDeleted";
             
             var isNumeric = typeCode == TypeCode.Decimal || 
                             typeCode == TypeCode.Double || 
@@ -87,18 +84,22 @@
                     ? TextAlign.Center 
                     : TextAlign.Left);
 
-            var formatString = attr?.Ignore == false && typeCode == TypeCode.DateTime
+            var formatString = (attr?.Ignore == false || isAuditProperty) && typeCode == TypeCode.DateTime
                 ? "{0:dd/MM/yyyy HH:mm}"
                 : (isNumeric ? "{0:N0}" : null);
             
-            if (!(attr?.Ignore ?? false))
+            var isIgnored = attr?.Ignore ?? false;
+
+            if (!isIgnored || isAuditProperty)
             {
                 @if (attr?.IsDropdownList ?? false)
                 {
                     <RadzenDataGridColumn TItem="TType"
                                           Title=@(displayName)
                                           Width=@width
-                                          Filterable="false">
+                                          Filterable="false"
+                                          Visible="true"
+                                          Pickable="true">
                         <Template Context="context">
                             <p>
                                 @(DicDropdownData[prop.Name].Where(x =>
@@ -127,9 +128,11 @@
                                           Title=@displayName
                                           FormatString="@formatString"
                                           TextAlign="@textAlign"
+                                          Visible="true"
+                                          Pickable="true"
                                           Width=@width>
                         <EditTemplate Context="context">
-                            @if (attr?.IsReadOnly ?? false)
+                            @if ((attr?.IsReadOnly ?? false) || isAuditProperty)
                             {
                                 <span>@FormatReadOnlyValue(context.GetPropertyValue(prop.Name, prop.PropertyType), typeCode)</span>
                             }
@@ -244,6 +247,28 @@
                         typeCode == TypeCode.UInt64;
 
         if (isNumeric)
+        {
+            return string.Format("{0:N0}", value);
+        }
+
+        return value.ToString() ?? string.Empty;
+    }
+
+    string FormatDetailValue(object? value, TypeCode typeCode)
+    {
+        if (value == null)
+        {
+            return string.Empty;
+        }
+
+        if (typeCode == TypeCode.DateTime && value is DateTime dt)
+        {
+            return dt.ToString("dd/MM/yyyy HH:mm:ss.fff");
+        }
+
+        if (typeCode == TypeCode.Decimal || 
+            typeCode == TypeCode.Double || 
+            typeCode == TypeCode.Single)
         {
             return string.Format("{0:N0}", value);
         }

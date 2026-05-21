@@ -8,53 +8,39 @@
         @* ── LEFT: Product Catalog ───────────────────────────── *@
         <div class="vpp-wizard-split-left">
             <div class="vpp-data-card vpp-wizard-panel-card">
-                <div class="vpp-wizard-panel-card-head">
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                <div class="vpp-wizard-panel-card-head" style="padding: var(--vpp-space-3) var(--vpp-space-4);">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" Style="flex-wrap: wrap;">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                             <RadzenIcon Icon="inventory_2" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
                             <RadzenText Text="@Loc["WizardProductCatalog"]" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
+                            @if (ProductCount > 0)
+                            {
+                                <RadzenBadge Text="@($"{ProductCount}")" BadgeStyle="BadgeStyle.Light" IsPill="true" />
+                            }
                         </RadzenStack>
-                        @if (ProductCount > 0)
-                        {
-                            <RadzenBadge Text="@($"{ProductCount}")" BadgeStyle="BadgeStyle.Light" IsPill="true" />
-                        }
+                        
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="flex: 1; justify-content: flex-end; min-width: 280px;">
+                            <RadzenTextBox @bind-Value="Context.Description"
+                                           Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
+                                           Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
+                                           Change="@(_ => Context.NotifyStateChanged())" />
+                            @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
+                            {
+                                <RadzenIcon Icon="warning" Style="color: var(--vpp-warning-500); font-size: 1.1rem;" Title="@Loc["WizardAdditionalReasonRequired"]" />
+                            }
+                        </RadzenStack>
                     </RadzenStack>
-                </div>
-
-                @* ── Notes / Description for Header ────────────── *@
-                <div class="vpp-wizard-notes-inline">
-                    <RadzenFormField Text="@(Context.IsAdditional ? Loc["WizardAdditionalReasonLabel"] : Loc["WizardApproverNotesLabel"])" Variant="Variant.Outlined" Style="width: 100%;">
-                        <ChildContent>
-                            <RadzenTextArea @bind-Value="Context.Description"
-                                            Rows="2"
-                                            Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
-                                            Style="width: 100%;"
-                                            Change="@(_ => Context.NotifyStateChanged())" />
-                        </ChildContent>
-                    </RadzenFormField>
-                    @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Size="AlertSize.ExtraSmall" class="rz-mt-1">
-                            <span style="font-size: 0.8rem;">@Loc["WizardAdditionalReasonRequired"]</span>
-                        </RadzenAlert>
-                    }
                 </div>
 
                 <RadzenDataGrid @ref="productGrid"
                                 TItem="ProductOption"
                                 Data="@ProductOptions"
-                                Count="@ProductCount"
-                                LoadData="@LoadProductsAsync"
                                 IsLoading="@IsLoadingProducts"
-                                AllowPaging="true"
-                                PageSize="20"
-                                PageSizeOptions="@(new int[] { 10, 20, 50 })"
-                                ShowPagingSummary="true"
-                                PagerHorizontalAlign="HorizontalAlign.Left"
+                                AllowVirtualization="true"
+                                AllowPaging="false"
                                 AllowSorting="true"
                                 AllowFiltering="true"
                                 FilterMode="FilterMode.CheckBoxList"
-                                LoadColumnFilterData="@LoadColumnFilterDataProducts"
                                 FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 AllowColumnResize="true"
                                 Density="Density.Compact"
@@ -62,10 +48,8 @@
                                 RowRender="@OnRowRender"
                                 Style="border: none; flex: 1; min-height: 0;">
                     <Columns>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="100px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="150px" />
                         <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="110px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="@Loc["UOM"]" MinWidth="70px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="150px" />
                         <RadzenDataGridColumn TItem="ProductOption" Title="" Width="55px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 @{
@@ -85,9 +69,7 @@
                     </Columns>
                 </RadzenDataGrid>
 
-                <div class="vpp-wizard-panel-card-foot">
-                    @Loc["WizardRowsAddedFoot"]
-                </div>
+
             </div>
         </div>
 
@@ -103,8 +85,12 @@
                         @if (Context.SelectedItems.Count > 0)
                         {
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                                <RadzenBadge Text="@($"{Context.SelectedItems.Count}")" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                                <RadzenBadge Text="@Loc["WizardItemsBadgeFormat", Context.SelectedItems.Count]" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
                                 <RadzenBadge Text="@Loc["WizardQtyBadgeFormat", Context.TotalQty]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                                @if (Context.DraftRecovered)
+                                {
+                                    <RadzenBadge Text="@Loc["DraftRestored"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                                }
                                 <RadzenButton Text="@Loc["ClearAll"]" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@ClearSelectionAsync" />
                             </RadzenStack>
                         }
@@ -142,6 +128,15 @@
                                                        Change="@(_ => Context.NotifyStateChanged())" />
                                     </Template>
                                 </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UOMName" Title="@Loc["UOM"]" Width="70px" TextAlign="TextAlign.Center" Sortable="false" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Notes"]" MinWidth="120px" Sortable="false">
+                                    <Template Context="item">
+                                        <RadzenTextBox @bind-Value="item.Description"
+                                                       Placeholder="@Loc["Notes"]"
+                                                       Style="width: 100%; font-size: 0.8rem;"
+                                                       Change="@(_ => Context.NotifyStateChanged())" />
+                                    </Template>
+                                </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="40px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
                                         @* F-28: icon-only remove button needs an explicit aria-label. *@
@@ -155,10 +150,7 @@
                     </div>
                 }
 
-                <div class="vpp-wizard-panel-card-foot vpp-wizard-selection-foot">
-                    <span>@Loc["WizardSelectionFootCopy"]</span>
-                    <strong>@Loc["WizardTotalQuantityFormat", Context.TotalQty]</strong>
-                </div>
+
             </div>
         </div>
     </div>
@@ -184,8 +176,27 @@
     public List<ProductOption> ProductOptions { get; set; } = new();
     public RadzenDataGrid<ProductOption>? productGrid;
     public RadzenDataGrid<OrderCreateContext.SelectedItem>? selectedGrid;
-    private string? _currentFilterExpression;
     private bool _pendingSelectedGridReload;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoadingProducts = true;
+        try
+        {
+            var endpoint = "/api/VPPRequest/products/lookup";
+            var result = await _apiServices.GetFromApiAsync<List<ProductOption>>(endpoint);
+            ProductOptions = result ?? new();
+            ProductCount = ProductOptions.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[OrderCreateStep2] LoadProducts failed: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingProducts = false;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -202,86 +213,6 @@
         }
     }
 
-    private async Task LoadProductsAsync(LoadDataArgs args)
-    {
-        IsLoadingProducts = true;
-        try
-        {
-            var queryParams = new List<string>();
-            _currentFilterExpression = args.Filter;
-
-            if (args.Skip.HasValue && args.Skip.Value > 0)
-                queryParams.Add($"skip={args.Skip.Value}");
-            queryParams.Add($"top={args.Top ?? 20}");
-
-            if (!string.IsNullOrWhiteSpace(args.Filter))
-                queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
-
-            var sort = args.Sorts?.FirstOrDefault();
-            if (sort != null)
-                queryParams.Add($"orderby={Uri.EscapeDataString($"{sort.Property} {sort.SortOrder?.ToString().ToLowerInvariant()}")}");
-
-            var endpoint = $"/api/VPPRequest/products?{string.Join("&", queryParams)}";
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(endpoint);
-            ProductOptions = result.Data ?? new();
-            ProductCount = result.TotalCount;
-        }
-        finally
-        {
-            IsLoadingProducts = false;
-        }
-    }
-
-    private async Task LoadColumnFilterDataProducts(DataGridLoadColumnFilterDataEventArgs<ProductOption> args)
-    {
-        try
-        {
-            if (args.Column == null) return;
-
-            var property = args.Column.GetFilterProperty();
-            if (string.IsNullOrWhiteSpace(property)) return;
-
-            var query = new List<string> { $"distinct={Uri.EscapeDataString(property)}" };
-
-            if (!string.IsNullOrWhiteSpace(_currentFilterExpression))
-                query.Add($"filter={Uri.EscapeDataString(_currentFilterExpression)}");
-
-            if (!string.IsNullOrWhiteSpace(args.Filter))
-                query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-
-            var apiUrl = $"/api/VPPRequest/products?{string.Join("&", query)}";
-            var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
-
-            if (response != null && response.Count > 0)
-            {
-                var distinctDtos = response
-                    .Select(dict =>
-                    {
-                        var dto = new ProductOption();
-                        var propInfo = typeof(ProductOption).GetProperty(property);
-                        if (propInfo != null && dict.TryGetValue(property, out var val) && val != null)
-                        {
-                            try
-                            {
-                                var converted = Convert.ChangeType(val.ToString(), propInfo.PropertyType);
-                                propInfo.SetValue(dto, converted);
-                            }
-                            catch { }
-                        }
-                        return dto;
-                    })
-                    .ToList();
-
-                args.Data = distinctDtos;
-                args.Count = distinctDtos.Count;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[OrderCreateStep2] LoadColumnFilterData failed: {ex.Message}");
-        }
-    }
-
     private async Task AddProductAsync(ProductOption row)
     {
         if (!Context.SelectedItems.Any(x => x.VPPId == row.Id))
@@ -291,6 +222,8 @@
                 VPPId = row.Id,
                 VPPCode = row.VPPCode,
                 VPPName = row.VPPName,
+                UOMCode = row.UOMCode,
+                UOMName = row.UOMName,
                 Qty = 1
             });
             await RefreshSelectionAsync();

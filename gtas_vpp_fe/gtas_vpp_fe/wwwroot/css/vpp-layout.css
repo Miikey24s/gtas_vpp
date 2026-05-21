@@ -294,3 +294,18 @@
         display: none;
     }
 }
+
+/* ── Wizard Flex Layout overrides to support full-height scaling ── */
+.vpp-layout:has(.vpp-wizard) .vpp-layout-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.vpp-layout:has(.vpp-wizard) .vpp-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}

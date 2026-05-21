@@ -86,6 +86,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public int SelectedItemCount => Context.SelectedItems.Count;
 
+        public string ItemsStatusText => string.Format(Loc["WizardItemsBadgeFormat"].Value, SelectedItemCount);
+        public string QtyStatusText => string.Format(
+            System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase)
+                ? Loc["WizardTotalQtyBadgeFormat"].Value
+                : Loc["WizardQtyBadgeFormat"].Value,
+            Context.TotalQty);
+        public string DraftRecoveredText => Loc["DraftRestored"].Value.ToLower();
+
         public string OrderModeTitle => IsEdit
             ? Loc["EditOrder"].Value
             : IsCopyFromPrevious
@@ -317,6 +325,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         VPPId = x.VPPId,
                         VPPCode = x.VPPCode,
                         VPPName = x.VPPName,
+                        UOMCode = x.UOMCode,
+                        UOMName = x.UOMName,
                         Qty = x.Qty,
                         Description = x.Description
                     })
@@ -358,6 +368,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         VPPId = x.VPPId,
                         VPPCode = x.VPPCode,
                         VPPName = x.VPPName,
+                        UOMCode = x.UOMCode,
+                        UOMName = x.UOMName,
                         Qty = x.Qty,
                         Description = x.Description
                     })
@@ -433,6 +445,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 Context.SelectedItems = draft.Items ?? new();
                 LastDraftSavedAt = draft.SavedAt;
                 DraftRecovered = Context.SelectedItems.Count > 0 || !string.IsNullOrWhiteSpace(Context.Description);
+                Context.DraftRecovered = DraftRecovered;
                 _draftDirty = false;
             }
             catch { }

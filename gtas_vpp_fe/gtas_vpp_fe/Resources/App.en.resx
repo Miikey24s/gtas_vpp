@@ -245,7 +245,7 @@
   <data name="WizardAdditionalReasonRequired" xml:space="preserve"><value>Reason is required for additional orders.</value></data>
   <data name="WizardAISearchCopy" xml:space="preserve"><value>Ask with natural language, mixed keywords, or partial product names.</value></data>
   <data name="WizardApprovalRequired" xml:space="preserve"><value>Approval required</value></data>
-  <data name="WizardApproverNotesHint" xml:space="preserve"><value>Optional note for delivery context, department needs, or reviewer guidance.</value></data>
+  <data name="WizardApproverNotesHint" xml:space="preserve"><value>Notes</value></data>
   <data name="WizardApproverNotesLabel" xml:space="preserve"><value>Notes for approver</value></data>
   <data name="WizardBoundaryRule" xml:space="preserve"><value>Boundary rule</value></data>
   <data name="WizardBoundaryRuleDesc" xml:space="preserve"><value>Exactly at 00:00 on day 5, the system moves into the new monthly period.</value></data>
@@ -276,7 +276,7 @@
   <data name="WizardPeriodWindowCopy" xml:space="preserve"><value>The backend period service already resolved the correct cycle. This request will be submitted against the window below.</value></data>
   <data name="WizardPeriodWindowTitle" xml:space="preserve"><value>Period window</value></data>
   <data name="WizardProductCatalog" xml:space="preserve"><value>Product Catalog</value></data>
-  <data name="WizardQtyBadgeFormat" xml:space="preserve"><value>Qty: {0}</value></data>
+  <data name="WizardQtyBadgeFormat" xml:space="preserve"><value>Quantity: {0}</value></data>
   <data name="WizardRegularRequest" xml:space="preserve"><value>Regular request</value></data>
   <data name="WizardRequestContextCopy" xml:space="preserve"><value>Confirm the target cycle, request type, and the note that approvers will see before you start building the cart.</value></data>
   <data name="WizardRequestContextTitle" xml:space="preserve"><value>Request context</value></data>

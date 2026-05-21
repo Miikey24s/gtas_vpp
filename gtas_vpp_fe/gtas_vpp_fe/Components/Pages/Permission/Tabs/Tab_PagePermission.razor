@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Share
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
@@ -93,7 +93,8 @@
                 @bind-Value="selected_Group"
                 Data=@list_Group
                 ColumnWidth="150px"
-                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                RowDoubleClick="@OnGroupRowDoubleClick">
     <HeaderTemplate>
         <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="@Loc["CreateNewGroup"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.MenuDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
     </HeaderTemplate>
@@ -147,7 +148,8 @@
                                                     TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
                                                     Data="@item.List_Component"
                                                     @ref=@child_grid
-                                                    @bind-Value=@selected_Component>
+                                                    @bind-Value=@selected_Component
+                                                    RowDoubleClick="@OnComponentRowDoubleClick">
                                         <Columns>
                                             <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="#" Width="50px" HeaderCssClass="text-center" CssClass="text-center" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true">
                                                 <Template Context="childdata">
@@ -168,6 +170,12 @@
                                                     <RadzenSwitch @bind-Value=comdata.IsVisible Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && y.IsVisible))" />
                                                 </Template>
                                             </RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="Page Id" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.PageId)" Width="280px" Visible="true" Pickable="true" />
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="Group Id" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.GroupId)" Width="280px" Visible="true" Pickable="true" />
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="Group Page Component Mapping Id" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.GroupPageComponentMappingId)" Width="280px" Visible="true" Pickable="true" />
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="Member Company Code" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.MemberCompanyCode)" Width="150px" Visible="true" Pickable="true" />
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="Company Name" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.CompanyName)" Width="200px" Visible="true" Pickable="true" />
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="Company Short Name" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.CompanyShortName)" Width="150px" Visible="true" Pickable="true" />
                                         </Columns>
                                     </RadzenDataGrid>
                                     </RadzenStack>
@@ -249,6 +257,10 @@
                 @data.UpdateDate.ToString("dd/MM/yyyy HH:mm")
             </Template>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Id" Property="@nameof(P02_GroupResDTO.Id)" Width="280px" Visible="true" Pickable="true" />
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Create User Id" Property="@nameof(P02_GroupResDTO.CreateUserId)" Width="100px" Visible="true" Pickable="true" />
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Update User Id" Property="@nameof(P02_GroupResDTO.UpdateUserId)" Width="100px" Visible="true" Pickable="true" />
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="Member Company Code" Property="@nameof(P02_GroupResDTO.MemberCompanyCode)" Width="150px" Visible="true" Pickable="true" />
     </Columns>
 </RadzenDataGrid>
 }

@@ -6,7 +6,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--vpp-space-4);
-    padding: var(--vpp-space-4);
+    padding: 0;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
 }
 
 .vpp-wizard .vpp-data-card {
@@ -14,6 +17,9 @@
 }
 
 .vpp-wizard .wizard-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     animation: vpp-step-enter var(--vpp-transition-base) ease-out;
 }
@@ -161,7 +167,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--vpp-space-4);
-    padding: var(--vpp-space-5);
+    padding: 0;
+    flex: 1;
+    min-height: 0;
 }
 
 .vpp-wizard .rz-steps {
@@ -262,7 +270,8 @@
 .vpp-wizard-panel-card {
     padding: 0;
     overflow: hidden;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
 }
@@ -404,7 +413,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.95fr);
     gap: var(--vpp-space-3);
-    min-height: 640px;
+    flex: 1;
+    min-height: 0;
 }
 
 .vpp-wizard-split-left,
@@ -417,7 +427,8 @@
 .vpp-wizard-selection-body {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .vpp-wizard-selection-foot {
@@ -626,5 +637,103 @@
         align-items: stretch;
     }
 }
+
+/* ── Custom Step Indicator ───────────────────────────────────── */
+.vpp-custom-steps {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    margin-left: var(--vpp-space-4);
+}
+
+.vpp-custom-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem var(--vpp-space-2);
+    border-radius: var(--vpp-radius-md);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    user-select: none;
+}
+
+.vpp-custom-step .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-bold);
+    transition: all var(--vpp-transition-base);
+}
+
+.vpp-custom-step.active .step-num {
+    background: var(--vpp-primary-500);
+    color: #fff;
+}
+
+.vpp-custom-step.active .step-text {
+    color: var(--vpp-text-primary);
+}
+
+.vpp-custom-step.inactive .step-num {
+    background: var(--vpp-bg-elevated);
+    color: var(--vpp-text-tertiary);
+    border: 1px solid var(--vpp-border-default);
+}
+
+.vpp-custom-step.inactive .step-text {
+    color: var(--vpp-text-tertiary);
+}
+
+.vpp-custom-step-divider {
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-xs);
+}
+
+@media (max-width: 767px) {
+    .vpp-custom-steps {
+        margin-left: 0;
+        margin-top: var(--vpp-space-2);
+        justify-content: center;
+    }
+}
+
+/* ── Inline Toolbar Status & Warning Styling ── */
+.vpp-wizard-toolbar-status {
+    font-size: var(--vpp-text-sm);
+    color: var(--vpp-text-secondary);
+    font-weight: 500;
+    margin-left: var(--vpp-space-2);
+}
+
+.vpp-wizard-toolbar-status .status-warning {
+    color: var(--vpp-warning);
+    font-weight: 600;
+}
+
+/* ── RadzenDataGrid inside Wizard Panel Cards to stretch to fill height ── */
+.vpp-wizard-panel-card .rz-data-grid {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.vpp-wizard-panel-card .rz-datatable-scrollable-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.vpp-wizard-panel-card .rz-datatable-scrollable-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto !important;
+}
+
 
 

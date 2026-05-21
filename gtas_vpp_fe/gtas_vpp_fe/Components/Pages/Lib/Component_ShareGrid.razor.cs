@@ -15,6 +15,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Inject]
         private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
+        [Inject]
+        private DialogService DialogService { get; set; } = default!;
+
         private List<TType> data = new();
         [Parameter]
         public List<TType> Data
@@ -125,25 +128,30 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return Task.CompletedTask;
         }
 
-        Task RowDoubleClickHandle(DataGridRowMouseEventArgs<TType> args)
+        async Task RowDoubleClickHandle(DataGridRowMouseEventArgs<TType> args)
         {
-            if (args.Data == null)
+            if (args.Data == null || onEdit)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            if (CanModifyGrid)
+            var recordTitle = "Record Details";
+            var nameProp = typeof(TType).GetProperty("Name") ?? 
+                           typeof(TType).GetProperties().FirstOrDefault(p => p.Name.EndsWith("Name") || p.Name.EndsWith("Code"));
+            if (nameProp != null)
             {
-                if (onEdit == true)
-                    return Task.CompletedTask;
-                else
+                var val = nameProp.GetValue(args.Data)?.ToString();
+                if (!string.IsNullOrEmpty(val))
                 {
-                    onEdit = true;
-                    editItem = JsonConvert.SerializeObject(data);
-                    return DataGrid.EditRow(args.Data);
+                    recordTitle = $"{val} - Details";
                 }
             }
-            else return Task.CompletedTask;
+
+            await DialogService.OpenSideAsync<Component_RecordInspector<TType>>(
+                recordTitle,
+                new Dictionary<string, object?> { { "Record", args.Data } },
+                options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
+            );
         }
     }
 }

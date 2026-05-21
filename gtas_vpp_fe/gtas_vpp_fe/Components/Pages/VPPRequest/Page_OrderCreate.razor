@@ -18,39 +18,36 @@ else
 {
     <div class="vpp-wizard">
         <div class="vpp-wizard-toolbar">
-            <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
-            <div class="vpp-wizard-badge-bar">
-                <RadzenBadge Text="@OrderModeBadgeText" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                @if (DraftRecovered)
-                {
-                    <RadzenBadge Text="@Loc["DraftRestored"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
-                }
-                @if (SelectedItemCount > 0)
-                {
-                    <RadzenBadge Text="@Loc["WizardItemsBadgeFormat", SelectedItemCount]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
-                }
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: var(--vpp-space-3);">
+                <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
+                
+                <div class="vpp-custom-steps">
+                    <div class="vpp-custom-step @(currentStep == 0 ? "active" : "inactive")" @onclick="@(() => { currentStep = 0; Context.NotifyStateChanged(); })">
+                        <span class="step-num">1</span>
+                        <span class="step-text">@Loc["SelectProducts"]</span>
+                    </div>
+                    <div class="vpp-custom-step-divider">➔</div>
+                    <div class="vpp-custom-step @(currentStep == 1 ? "active" : "inactive")" @onclick="@(() => { currentStep = 1; Context.NotifyStateChanged(); })">
+                        <span class="step-num">2</span>
+                        <span class="step-text">@Loc["ReviewSubmit"]</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <section class="vpp-data-card vpp-wizard-stage">
-            <RadzenSteps class="vpp-wizard-steps" SelectedIndex="@currentStep" Change="@OnWizardStepChange">
-                <Steps>
-                    <RadzenStepsItem Text="@Loc["SelectProducts"]">
-                        <OrderCreateStep2 />
-                    </RadzenStepsItem>
-                    <RadzenStepsItem Text="@Loc["ReviewSubmit"]">
-                        <OrderCreateStep3 />
-                    </RadzenStepsItem>
-                </Steps>
-            </RadzenSteps>
+        <section class="vpp-wizard-stage">
+            @if (currentStep == 0)
+            {
+                <OrderCreateStep2 />
+            }
+            else if (currentStep == 1)
+            {
+                <OrderCreateStep3 />
+            }
 
             <div class="vpp-wizard-nav">
                 <div class="vpp-wizard-nav-left">
                     <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
-                    <div class="vpp-wizard-nav-status">
-                        <span class="vpp-wizard-nav-status-title">@CurrentStepTitle</span>
-                        <span class="vpp-wizard-nav-status-text">@FooterStatusText</span>
-                    </div>
                 </div>
                 <div class="vpp-wizard-nav-right">
                     @if (currentStep > 0)
