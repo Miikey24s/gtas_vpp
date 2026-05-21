@@ -156,6 +156,30 @@ namespace gtas_vpp_be.Controllers
             return Ok(info);
         }
 
+        [HttpGet("products/lookup")]
+        public async Task<IActionResult> GetProductsLookup()
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var query = await _unitOfWork.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                     && (x.VPPCategory == null || !x.VPPCategory.IsDeleted))
+                .OrderBy(x => x.VPPCode)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.VPPCode,
+                    x.VPPName,
+                    UOMCode = x.UOM != null ? x.UOM.ClassDetailCode : null,
+                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null,
+                    VPPCategoryName = x.VPPCategory != null ? x.VPPCategory.VPPCategoryName : null
+                })
+                .ToListAsync();
+
+            return Ok(query);
+        }
+
         [HttpGet("products")]
         public async Task<IActionResult> GetProducts(
             [FromQuery] Guid? categoryId,
