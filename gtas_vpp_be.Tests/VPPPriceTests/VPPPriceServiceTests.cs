@@ -22,10 +22,11 @@ public class VPPPriceServiceTests
         var now = new DateTime(2026, 5, 20, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
         var supplierId = await SeedSupplierAsync(context, "Supplier 1", now);
         var service = CreatePriceService(context, now);
 
-        var result = await service.CreateAsync(CreateReq(vppId, supplierId, 1000, isDefault: true), 5615);
+        var result = await service.CreateAsync(CreateReq(vppId, supplierId, priceListId, 1000, isDefault: true), 5615);
 
         Assert.True(result.IsDefault);
         var row = Assert.Single(context.Set<L06_VPPSupplierMapping>());
@@ -40,12 +41,13 @@ public class VPPPriceServiceTests
         var now = new DateTime(2026, 5, 20, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
         var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
         var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
         var service = CreatePriceService(context, now);
 
-        var first = await service.CreateAsync(CreateReq(vppId, supplier1Id, 1000, isDefault: true), 5615);
-        var second = await service.CreateAsync(CreateReq(vppId, supplier2Id, 2000, isDefault: true), 5615);
+        var first = await service.CreateAsync(CreateReq(vppId, supplier1Id, priceListId, 1000, isDefault: true), 5615);
+        var second = await service.CreateAsync(CreateReq(vppId, supplier2Id, priceListId, 2000, isDefault: true), 5615);
 
         var rows = await context.Set<L06_VPPSupplierMapping>().OrderBy(x => x.Price).ToListAsync();
         Assert.Equal(2, rows.Count);
@@ -61,17 +63,19 @@ public class VPPPriceServiceTests
         var now = new DateTime(2026, 5, 20, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
         var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
         var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
         var service = CreatePriceService(context, now);
-        var first = await service.CreateAsync(CreateReq(vppId, supplier1Id, 1000, isDefault: true), 5615);
-        var second = await service.CreateAsync(CreateReq(vppId, supplier2Id, 2000, isDefault: false), 5615);
+        var first = await service.CreateAsync(CreateReq(vppId, supplier1Id, priceListId, 1000, isDefault: true), 5615);
+        var second = await service.CreateAsync(CreateReq(vppId, supplier2Id, priceListId, 2000, isDefault: false), 5615);
 
         await service.UpdateAsync(new L06_PriceUpdateReqDTO
         {
             Id = second.Id,
             L04_VPPId = vppId,
             L05_VPPSupplierId = supplier2Id,
+            L07_PriceListId = priceListId,
             Price = 2500,
             IsDefault = true,
             Description = "Updated"
@@ -90,11 +94,12 @@ public class VPPPriceServiceTests
         var now = new DateTime(2026, 5, 20, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
         var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
         var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
         var service = CreatePriceService(context, now);
-        var first = await service.CreateAsync(CreateReq(vppId, supplier1Id, 1000, isDefault: true), 5615);
-        var second = await service.CreateAsync(CreateReq(vppId, supplier2Id, 2000, isDefault: false), 5615);
+        var first = await service.CreateAsync(CreateReq(vppId, supplier1Id, priceListId, 1000, isDefault: true), 5615);
+        var second = await service.CreateAsync(CreateReq(vppId, supplier2Id, priceListId, 2000, isDefault: false), 5615);
 
         await service.SetDefaultAsync(second.Id, 5615);
 
@@ -111,11 +116,12 @@ public class VPPPriceServiceTests
         var now = new DateTime(2026, 5, 20, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
         var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
         var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
         var service = CreatePriceService(context, now);
-        var kept = await service.CreateAsync(CreateReq(vppId, supplier1Id, 1000, isDefault: true), 5615);
-        var deleted = await service.CreateAsync(CreateReq(vppId, supplier2Id, 2000, isDefault: false), 5615);
+        var kept = await service.CreateAsync(CreateReq(vppId, supplier1Id, priceListId, 1000, isDefault: true), 5615);
+        var deleted = await service.CreateAsync(CreateReq(vppId, supplier2Id, priceListId, 2000, isDefault: false), 5615);
 
         await service.DeleteAsync(deleted.Id, 5615);
 
@@ -133,11 +139,12 @@ public class VPPPriceServiceTests
         var now = new DateTime(2026, 4, 1, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
         var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
         var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
         context.Set<L06_VPPSupplierMapping>().AddRange(
-            PriceRow(vppId, supplier1Id, 100000, isDefault: false, now),
-            PriceRow(vppId, supplier2Id, 250000, isDefault: true, now));
+            PriceRow(vppId, supplier1Id, priceListId, 100000, isDefault: false, now),
+            PriceRow(vppId, supplier2Id, priceListId, 250000, isDefault: true, now));
         await context.SaveChangesAsync();
         var service = CreateRequestService(context, now);
         var request = new VPP01_CreateReqDTO
@@ -187,11 +194,12 @@ public class VPPPriceServiceTests
             Options.Create(new JiraSettings()));
     }
 
-    private static L06_PriceCreateReqDTO CreateReq(Guid vppId, Guid supplierId, decimal price, bool isDefault)
+    private static L06_PriceCreateReqDTO CreateReq(Guid vppId, Guid supplierId, Guid priceListId, decimal price, bool isDefault)
         => new()
         {
             L04_VPPId = vppId,
             L05_VPPSupplierId = supplierId,
+            L07_PriceListId = priceListId,
             Price = price,
             IsDefault = isDefault,
             Description = "Seed price"
@@ -215,12 +223,13 @@ public class VPPPriceServiceTests
         return id;
     }
 
-    private static L06_VPPSupplierMapping PriceRow(Guid vppId, Guid supplierId, decimal price, bool isDefault, DateTime now)
+    private static L06_VPPSupplierMapping PriceRow(Guid vppId, Guid supplierId, Guid priceListId, decimal price, bool isDefault, DateTime now)
         => new()
         {
             Id = Guid.NewGuid(),
             L04_VPPId = vppId,
             L05_VPPSupplierId = supplierId,
+            L07_PriceListId = priceListId,
             Price = price,
             IsDefault = isDefault,
             CreateUserId = 1,

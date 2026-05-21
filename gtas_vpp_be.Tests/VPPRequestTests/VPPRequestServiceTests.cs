@@ -126,18 +126,7 @@ public class VPPRequestServiceTests
         var now = new DateTime(2026, 4, 1, 9, 7, 8);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
-        context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
-        {
-            Id = Guid.NewGuid(),
-            L04_VPPId = vppId,
-            L05_VPPSupplierId = Guid.NewGuid(),
-            Price = 125000,
-            CreateUserId = 1,
-            CreateDate = now.AddDays(-1),
-            UpdateUserId = 1,
-            UpdateDate = now.AddDays(-1)
-        });
-        await context.SaveChangesAsync();
+        await ServiceTestHelpers.SeedDefaultPriceListAsync(context, (vppId, 125000));
 
         var service = CreateService(context, now);
         var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: false, vppId: vppId);

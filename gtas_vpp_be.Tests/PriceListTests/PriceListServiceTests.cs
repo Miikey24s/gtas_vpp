@@ -1,0 +1,212 @@
+using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Exceptions;
+using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Services;
+using gtas_vpp_be.Tests.TestSupport;
+using gtas_vpp_shared.DTOs.Req.Library;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace gtas_vpp_be.Tests.PriceListTests;
+
+public class PriceListServiceTests
+{
+    [Fact]
+    public async Task Create_DefaultTrue_DemotesPrevious()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        await SeedListAsync(context, "OLD", "Old", isDefault: true, now);
+        var service = CreateService(context, now);
+
+        var result = await service.CreateAsync(new L07_PriceListCreateReqDTO
+        {
+            Code = "NEW",
+            Name = "New",
+            IsDefault = true
+        }, 5615);
+
+        Assert.True(result.IsDefault);
+        var lists = await context.Set<L07_PriceList>().Where(x => !x.IsDeleted).ToListAsync();
+        Assert.Equal(2, lists.Count);
+        Assert.Single(lists, x => x.IsDefault);
+        Assert.True(lists.Single(x => x.Id == result.Id).IsDefault);
+    }
+
+    [Fact]
+    public async Task SetDefault_FlipsDefaultBetweenLists()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var firstId = await SeedListAsync(context, "A", "A", isDefault: true, now);
+        var secondId = await SeedListAsync(context, "B", "B", isDefault: false, now);
+        var service = CreateService(context, now);
+
+        await service.SetDefaultAsync(secondId, 5615);
+
+        var lists = await context.Set<L07_PriceList>().ToListAsync();
+        Assert.False(lists.Single(x => x.Id == firstId).IsDefault);
+        Assert.True(lists.Single(x => x.Id == secondId).IsDefault);
+    }
+
+    [Fact]
+    public async Task Delete_DefaultList_Throws()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var id = await SeedListAsync(context, "DEFAULT", "Default", isDefault: true, now);
+        var service = CreateService(context, now);
+
+        var ex = await Assert.ThrowsAsync<BusinessException>(() => service.DeleteAsync(id, 5615));
+
+        Assert.Contains("Cannot delete the default price list", ex.Message);
+        Assert.False((await context.Set<L07_PriceList>().SingleAsync(x => x.Id == id)).IsDeleted);
+    }
+
+    [Fact]
+    public async Task Delete_ListWithMappings_Throws()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var listId = await SeedListAsync(context, "LIST", "List", isDefault: false, now);
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var supplierId = await SeedSupplierAsync(context, now);
+        context.Set<L06_VPPSupplierMapping>().Add(PriceRow(listId, vppId, supplierId, 100, isDefault: true, now));
+        await context.SaveChangesAsync();
+        var service = CreateService(context, now);
+
+        var ex = await Assert.ThrowsAsync<BusinessException>(() => service.DeleteAsync(listId, 5615));
+
+        Assert.Contains("Price list has 1 items", ex.Message);
+    }
+
+    [Fact]
+    public async Task Clone_CopiesAllL06Rows_NewIds_NotDefault()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var sourceId = await SeedListAsync(context, "SRC", "Source", isDefault: true, now);
+        var vpp1Id = Guid.NewGuid();
+        var vpp2Id = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vpp1Id, vpp2Id);
+        var supplierId = await SeedSupplierAsync(context, now);
+        var original1 = PriceRow(sourceId, vpp1Id, supplierId, 100, isDefault: true, now);
+        var original2 = PriceRow(sourceId, vpp2Id, supplierId, 200, isDefault: false, now);
+        context.Set<L06_VPPSupplierMapping>().AddRange(original1, original2);
+        await context.SaveChangesAsync();
+        var service = CreateService(context, now);
+
+        var clone = await service.CloneAsync(new L07_PriceListCloneReqDTO
+        {
+            SourceId = sourceId,
+            Code = "CLONE",
+            Name = "Clone"
+        }, 5615);
+
+        Assert.False(clone.IsDefault);
+        Assert.Equal(2, clone.ItemCount);
+        var clonedRows = await context.Set<L06_VPPSupplierMapping>()
+            .Where(x => x.L07_PriceListId == clone.Id)
+            .OrderBy(x => x.Price)
+            .ToListAsync();
+        Assert.Equal(2, clonedRows.Count);
+        Assert.DoesNotContain(clonedRows, x => x.Id == original1.Id || x.Id == original2.Id);
+        Assert.True(clonedRows.Single(x => x.L04_VPPId == vpp1Id).IsDefault);
+        Assert.False(clonedRows.Single(x => x.L04_VPPId == vpp2Id).IsDefault);
+    }
+
+    [Fact]
+    public async Task Update_PromoteToDefault_DemotesPrevious()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var firstId = await SeedListAsync(context, "A", "A", isDefault: true, now);
+        var secondId = await SeedListAsync(context, "B", "B", isDefault: false, now);
+        var service = CreateService(context, now);
+
+        await service.UpdateAsync(new L07_PriceListUpdateReqDTO
+        {
+            Id = secondId,
+            Code = "B2",
+            Name = "B2",
+            IsDefault = true
+        }, 5615);
+
+        var lists = await context.Set<L07_PriceList>().ToListAsync();
+        Assert.False(lists.Single(x => x.Id == firstId).IsDefault);
+        Assert.True(lists.Single(x => x.Id == secondId).IsDefault);
+    }
+
+    private static PriceListService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
+    {
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        return new PriceListService(unitOfWork.Object, new FakeDateTimeProvider(now), new UserNameResolver());
+    }
+
+    private static async Task<Guid> SeedListAsync(
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        string code,
+        string name,
+        bool isDefault,
+        DateTime now)
+    {
+        var id = Guid.NewGuid();
+        context.Set<L07_PriceList>().Add(new L07_PriceList
+        {
+            Id = id,
+            PriceListCode = code,
+            PriceListName = name,
+            IsDefault = isDefault,
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now,
+            IsDeleted = false
+        });
+        await context.SaveChangesAsync();
+        return id;
+    }
+
+    private static async Task<Guid> SeedSupplierAsync(
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        DateTime now)
+    {
+        var id = Guid.NewGuid();
+        context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+        {
+            Id = id,
+            SupplierShortName = "SUP",
+            SupplierName = "Supplier",
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now,
+            IsDeleted = false
+        });
+        await context.SaveChangesAsync();
+        return id;
+    }
+
+    private static L06_VPPSupplierMapping PriceRow(
+        Guid listId,
+        Guid vppId,
+        Guid supplierId,
+        decimal price,
+        bool isDefault,
+        DateTime now)
+        => new()
+        {
+            Id = Guid.NewGuid(),
+            L07_PriceListId = listId,
+            L04_VPPId = vppId,
+            L05_VPPSupplierId = supplierId,
+            Price = price,
+            IsDefault = isDefault,
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now,
+            IsDeleted = false
+        };
+}

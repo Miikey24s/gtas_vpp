@@ -110,6 +110,7 @@ public class VPPRequestControllerTests
         var categoryId = Guid.NewGuid();
         var productId = Guid.NewGuid();
         var supplierId = Guid.NewGuid();
+        var priceListId = Guid.NewGuid();
 
         context.Add(new L02_ClassDetail
         {
@@ -157,12 +158,25 @@ public class VPPRequestControllerTests
             UpdateDate = now
         });
 
+        context.Add(new L07_PriceList
+        {
+            Id = priceListId,
+            PriceListCode = "DEFAULT",
+            PriceListName = "Default Price List",
+            IsDefault = true,
+            CreateUserId = 1,
+            CreateDate = now,
+            UpdateUserId = 1,
+            UpdateDate = now
+        });
+
         context.AddRange(
             new L06_VPPSupplierMapping
             {
                 Id = Guid.NewGuid(),
                 L04_VPPId = productId,
                 L05_VPPSupplierId = supplierId,
+                L07_PriceListId = priceListId,
                 Price = 100,
                 IsDefault = true,
                 CreateUserId = 1,
@@ -175,6 +189,7 @@ public class VPPRequestControllerTests
                 Id = Guid.NewGuid(),
                 L04_VPPId = productId,
                 L05_VPPSupplierId = Guid.NewGuid(),
+                L07_PriceListId = priceListId,
                 Price = 200,
                 IsDeleted = true,
                 CreateUserId = 1,
