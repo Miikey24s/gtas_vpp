@@ -53,7 +53,7 @@
             @if (CanViewLibraryTab(Permissions.LibraryPrice))
             {
                 <RadzenTabsItem Text="@Loc["Prices"]">
-                    @if (IsActiveTab(5))
+                    @if (IsActiveTab(4))
                     {
                         <Tab_PriceLibrary claims="@claims"
                                           sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
@@ -63,7 +63,7 @@
             @if (CanViewLibraryTab(Permissions.LibraryDepartment))
             {
                 <RadzenTabsItem Text="@Loc["Departments"]">
-                    @if (IsActiveTab(4))
+                    @if (IsActiveTab(5))
                     {
                         <Component_ShareGrid TType=LEX02_CompanyDepartmentLocationResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                     }

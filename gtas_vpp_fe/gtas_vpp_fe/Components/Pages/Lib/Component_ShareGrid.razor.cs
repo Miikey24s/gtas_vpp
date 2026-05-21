@@ -1,4 +1,6 @@
 
+using gtas_vpp_fe.Helpers;
+using Microsoft.AspNetCore.Components.Authorization;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
@@ -10,6 +12,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 {
     public partial class Component_ShareGrid<TType> : ComponentBase where TType : BaseDTO, new ()
     {
+        [Inject]
+        private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+
         private List<TType> data = new();
         [Parameter]
         public List<TType> Data
@@ -33,12 +38,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private string editItem = "";
 
         private bool onEdit = false;
+        private bool IsAdminUser { get; set; } = false;
         private bool CanModifyGrid =>
             sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible && y.IsEnable);
 
-        protected override Task OnInitializedAsync()
+        protected override async Task OnInitializedAsync()
         {
-            return base.OnInitializedAsync();
+            await base.OnInitializedAsync();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (authState != null)
+            {
+                IsAdminUser = authState.User.Claims.GetBool(ClaimKeys.IsAdmin);
+            }
         }
         void OnUpdateRow(TType context)
         {

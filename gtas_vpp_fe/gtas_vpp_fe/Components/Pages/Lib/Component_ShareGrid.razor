@@ -31,7 +31,6 @@
                 @bind-Value="selected_item"
                 Data=@Data
                 RowDoubleClick=@RowDoubleClickHandle
-                ColumnWidth="300px"
                 LogicalFilterOperator="LogicalFilterOperator.And"
                 RowUpdate="@OnUpdateRow"
                 RowCreate="@OnCreateRow"
@@ -53,15 +52,44 @@
             var typeCode = Type.GetTypeCode(effectiveType);
             var displayName = attr?.DisplayName ?? prop.Name;
             var width = attr?.Width;
-            var formatString = typeCode == TypeCode.Decimal ? "{0:N0}" : null;
             
-            // Skip collection navigation properties
-            if (prop.Name == "VPPs" || 
-                prop.Name == "L06_VPPSupplierMappings" || 
-                prop.Name == "P04_UserGroups")
+            // Skip system/audit metadata properties
+            if (prop.Name == "Id" || 
+                prop.Name == "CreateUserId" || 
+                prop.Name == "CreateDate" || 
+                prop.Name == "UpdateUserId" || 
+                prop.Name == "UpdateDate" || 
+                prop.Name == "IsDeleted")
             {
                 continue;
             }
+            
+            // Skip complex properties (except string) and collections
+            if ((prop.PropertyType.IsClass && prop.PropertyType != typeof(string)) || 
+                (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string)))
+            {
+                continue;
+            }
+            
+            var isNumeric = typeCode == TypeCode.Decimal || 
+                            typeCode == TypeCode.Double || 
+                            typeCode == TypeCode.Single || 
+                            typeCode == TypeCode.Int16 || 
+                            typeCode == TypeCode.Int32 || 
+                            typeCode == TypeCode.Int64 ||
+                            typeCode == TypeCode.UInt16 ||
+                            typeCode == TypeCode.UInt32 ||
+                            typeCode == TypeCode.UInt64;
+
+            var textAlign = isNumeric 
+                ? TextAlign.Right 
+                : (typeCode == TypeCode.Boolean || typeCode == TypeCode.DateTime 
+                    ? TextAlign.Center 
+                    : TextAlign.Left);
+
+            var formatString = attr?.Ignore == false && typeCode == TypeCode.DateTime
+                ? "{0:dd/MM/yyyy HH:mm}"
+                : (isNumeric ? "{0:N0}" : null);
             
             if (!(attr?.Ignore ?? false))
             {
@@ -98,6 +126,7 @@
                                           Property="@prop.Name"
                                           Title=@displayName
                                           FormatString="@formatString"
+                                          TextAlign="@textAlign"
                                           Width=@width>
                         <EditTemplate Context="context">
                             @if (attr?.IsReadOnly ?? false)
@@ -131,6 +160,13 @@
                                         <RadzenSwitch Value="@((context.GetPropertyValue(prop.Name, prop.PropertyType) as bool?) ?? false)"
                                                       ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
                                         break;
+
+                                    case TypeCode.DateTime:
+                                        <RadzenDatePicker TValue="DateTime?" Style="width:100%; display: block" Name="@displayName" ShowTime="true" HourFormat="24" DateFormat="dd/MM/yyyy HH:mm"
+                                                          Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as DateTime?)"
+                                                          ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
+                                        break;
+
                                     case TypeCode.Empty:
                                     case TypeCode.String:
                                     default:
@@ -192,8 +228,26 @@
             return string.Empty;
         }
 
-        return typeCode == TypeCode.Decimal
-            ? string.Format("{0:N0}", value)
-            : value.ToString() ?? string.Empty;
+        if (typeCode == TypeCode.DateTime && value is DateTime dt)
+        {
+            return dt.ToString("dd/MM/yyyy HH:mm");
+        }
+
+        var isNumeric = typeCode == TypeCode.Decimal || 
+                        typeCode == TypeCode.Double || 
+                        typeCode == TypeCode.Single || 
+                        typeCode == TypeCode.Int16 || 
+                        typeCode == TypeCode.Int32 || 
+                        typeCode == TypeCode.Int64 ||
+                        typeCode == TypeCode.UInt16 ||
+                        typeCode == TypeCode.UInt32 ||
+                        typeCode == TypeCode.UInt64;
+
+        if (isNumeric)
+        {
+            return string.Format("{0:N0}", value);
+        }
+
+        return value.ToString() ?? string.Empty;
     }
 }

@@ -35,6 +35,7 @@ namespace gtas_vpp_fe.Helpers
             public const string L06_SupplierMapping = $"{ApiLibraryBase}/l06";
             public const string VPPPriceBase = $"{ApiBase}/vppprice";
             public const string VPPPrice_ByVpp = $"{VPPPriceBase}/by-vpp";
+            public const string VPPPrice_BySupplier = $"{VPPPriceBase}/by-supplier";
             public const string VPPPrice_SetDefault = $"{VPPPriceBase}/{{0}}/set-default";
             public const string L07_PriceList = $"{ApiBase}/vpppricelist";
             public const string L07_PriceList_SetDefault = $"{L07_PriceList}/{{0}}/set-default";

@@ -171,7 +171,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private Task OpenPricesAsync(L07_PriceListResDTO row)
         {
-            NavigationManager.NavigateTo($"/library?tab=5&priceListId={row.Id}");
+            NavigationManager.NavigateTo($"/library?tab=4&priceListId={row.Id}");
             return Task.CompletedTask;
         }
 

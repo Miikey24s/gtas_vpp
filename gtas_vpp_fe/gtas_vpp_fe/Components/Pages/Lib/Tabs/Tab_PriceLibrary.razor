@@ -16,24 +16,24 @@
                             Disabled="@(!HasPriceLists)"
                             Style="width:100%" />
         </RadzenFormField>
-        <RadzenFormField Text="@Loc["SelectVPPItem"]" Style="min-width:320px;">
+        <RadzenFormField Text="@Loc["Supplier"]" Style="min-width:320px;">
             <RadzenDropDown TValue="Guid?"
-                            Data="@vppItems"
-                            TextProperty="VPPName"
+                            Data="@suppliers"
+                            TextProperty="SupplierName"
                             ValueProperty="Id"
-                            @bind-Value="selectedVppId"
-                            Change="@(async _ => await LoadPricesAsync())"
-                            AllowClear="true"
+                            @bind-Value="selectedSupplierId"
+                            Change="@(async _ => await OnSupplierChangedAsync())"
                             AllowFiltering="true"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             Disabled="@(!HasPriceListSelected)"
                             Style="width:100%" />
         </RadzenFormField>
-        <RadzenButton Icon="add_circle"
-                      Text="@Loc["AddNewPrice"]"
-                      ButtonStyle="ButtonStyle.Primary"
-                      Disabled="@(!selectedVppId.HasValue || !HasPriceListSelected)"
-                      Click="@AddPriceAsync" />
+        <RadzenFormField Text="@Loc["Search"]" Style="min-width:240px;">
+            <RadzenTextBox @bind-Value="searchText"
+                           @oninput="@(args => OnSearchInput(args.Value?.ToString()))"
+                           Placeholder="@Loc["Search"]"
+                           Style="width:100%" />
+        </RadzenFormField>
     </RadzenStack>
 
     @if (!HasPriceLists)
@@ -44,8 +44,8 @@
     }
 
     <RadzenDataGrid @ref="grid"
-                    TItem="L06_VPPSupplierMappingResDTO"
-                    Data="@prices"
+                    TItem="VppItemPriceDisplayModel"
+                    Data="@filteredDisplayItems"
                     IsLoading="@isLoading"
                     AllowSorting="true"
                     AllowPaging="true"
@@ -55,20 +55,48 @@
                     GridLines="DataGridGridLines.Horizontal"
                     Style="height: calc(100vh - 230px);">
         <Columns>
-            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="L05_SupplierName" Title="@Loc["Supplier"]" />
-            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="Price" Title="@Loc["Price"]" Width="140px" TextAlign="TextAlign.Right" FormatString="{0:N0}" />
-            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="130px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="VPPCode" Title="@Loc["ProductCode"]" Width="140px" />
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="VPPName" Title="@Loc["ProductName"]" />
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="CategoryName" Title="@Loc["Category"]" Width="180px" />
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="UOMName" Title="@Loc["UOM"]" Width="100px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="Price" Title="@Loc["Price"]" Width="140px" TextAlign="TextAlign.Right" FormatString="{0:N0}">
+                <Template Context="row">
+                    @if (row.Price.HasValue)
+                    {
+                        <span>@row.Price.Value.ToString("N0")</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted" style="font-style: italic;">--</span>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="130px" TextAlign="TextAlign.Center">
                 <Template Context="row">
                     <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Property="Description" Title="@Loc["Description"]" />
-            <RadzenDataGridColumn TItem="L06_VPPSupplierMappingResDTO" Title="@Loc["Actions"]" Width="260px" Sortable="false" Filterable="false">
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="Description" Title="@Loc["Description"]" />
+            <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Title="@Loc["Actions"]" Width="260px" Sortable="false" Filterable="false">
                 <Template Context="row">
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.35rem" JustifyContent="JustifyContent.End">
-                        <RadzenButton Icon="edit" Text="@Loc["Edit"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => EditPriceAsync(row))" />
-                        <RadzenButton Icon="star" Text="@Loc["SetDefault"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Disabled="@row.IsDefault" Click="@(() => SetDefaultAsync(row))" />
-                        <RadzenButton Icon="delete" Text="@Loc["Delete"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@(() => DeletePriceAsync(row))" />
+                        <RadzenButton Icon="edit" 
+                                      Text="@(row.PriceMappingId.HasValue ? Loc["Edit"] : Loc["Create"])" 
+                                      Size="ButtonSize.Small" 
+                                      ButtonStyle="ButtonStyle.Light" 
+                                      Click="@(() => EditPriceAsync(row))" />
+                        <RadzenButton Icon="star" 
+                                      Text="@Loc["SetDefault"]" 
+                                      Size="ButtonSize.Small" 
+                                      ButtonStyle="ButtonStyle.Info" 
+                                      Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault)" 
+                                      Click="@(() => SetDefaultAsync(row))" />
+                        <RadzenButton Icon="delete" 
+                                      Text="@Loc["Delete"]" 
+                                      Size="ButtonSize.Small" 
+                                      ButtonStyle="ButtonStyle.Danger" 
+                                      Disabled="@(!row.PriceMappingId.HasValue)" 
+                                      Click="@(() => DeletePriceAsync(row))" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>

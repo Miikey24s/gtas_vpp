@@ -22,8 +22,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             new(1, Permissions.LibraryCategory),
             new(2, Permissions.LibraryItem),
             new(3, Permissions.LibrarySupplier),
-            new(4, Permissions.LibraryDepartment),
-            new(5, Permissions.LibraryPrice),
+            new(4, Permissions.LibraryPrice),
+            new(5, Permissions.LibraryDepartment),
             new(6, Permissions.LibraryPriceList)
         ];
 
@@ -57,7 +57,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             PermissionState.Changed += OnPermissionStateChanged;
             await PermissionState.EnsureLoadedAsync();
             SetSelectedIndexFromUri(NavigationManager.Uri);
-            await GetLibraries();
         }
 
         protected override void OnParametersSet()
@@ -114,6 +113,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 : 0;
 
             SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+
+            var activeTab = authorizedTabs.ElementAtOrDefault(SelectedIndex);
+            if (activeTab != null)
+            {
+                _ = LoadTabRepositoryAsync(activeTab.QueryIndex);
+            }
         }
 
         private int? GetRequestedTabIndex(string location)
@@ -174,37 +179,80 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             return result;
         }
-        public async Task GetLibraries()
+        private async Task LoadTabRepositoryAsync(int queryIndex)
         {
-            glb.isBusyPage = true;
             try
             {
-                operations = await _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item) ?? new List<L04_VPPResDTO>();
-                operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category) ?? new List<L03_VPPCategoryResDTO>();
-                suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? new List<L05_VPPSupplierResDTO>();
-                departments = await _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>($"{Config.ApiLibraryBase}/lex02") ?? new List<LEX02_CompanyDepartmentLocationResDTO>();
-                var FomulaTask = await GetFormular();
-                var uomList = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail) ?? new List<L02_ClassDetailResDTO>();
-
-                CategoryDropdownDatas = new Dictionary<string, IList<DropdownModel>>()
+                if (queryIndex == 1) // Categories
                 {
+                    if (operationCategories == null || operationCategories.Count == 0)
                     {
-                    nameof(L04_VPPResDTO.VPPCategoryId),
-                    operationCategories.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.VPPCategoryName }).ToList()
-                    },
-                    {
-                    nameof(L04_VPPResDTO.UOMId),
-                    uomList.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.ClassDetailValue }).ToList()
-                    },
-                    {
-                        nameof(L04_VPPResDTO),
-                        FomulaTask.Select(x => new DropdownModel { Code = x, Name = x }).ToList()
+                        glb.isBusyPage = true;
+                        StateHasChanged();
+
+                        operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category) ?? new List<L03_VPPCategoryResDTO>();
                     }
-                };
+                }
+                else if (queryIndex == 2) // Operations / Items
+                {
+                    if (operations == null || operations.Count == 0 || CategoryDropdownDatas == null || CategoryDropdownDatas.Count == 0)
+                    {
+                        glb.isBusyPage = true;
+                        StateHasChanged();
+
+                        var operationsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item);
+                        var categoriesTask = _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category);
+                        var uomListTask = _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail);
+
+                        await Task.WhenAll(operationsTask, categoriesTask, uomListTask);
+
+                        operations = await operationsTask ?? new List<L04_VPPResDTO>();
+                        var cats = await categoriesTask ?? new List<L03_VPPCategoryResDTO>();
+                        var uoms = await uomListTask ?? new List<L02_ClassDetailResDTO>();
+
+                        var formulaList = uoms.Select(x => x.ClassDetailValue).Where(v => v != null).Cast<string>().ToList();
+
+                        CategoryDropdownDatas = new Dictionary<string, IList<DropdownModel>>()
+                        {
+                            {
+                                nameof(L04_VPPResDTO.VPPCategoryId),
+                                cats.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.VPPCategoryName }).ToList()
+                            },
+                            {
+                                nameof(L04_VPPResDTO.UOMId),
+                                uoms.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.ClassDetailValue }).ToList()
+                            },
+                            {
+                                nameof(L04_VPPResDTO),
+                                formulaList.Select(x => new DropdownModel { Code = x, Name = x }).ToList()
+                            }
+                        };
+                    }
+                }
+                else if (queryIndex == 3) // Suppliers
+                {
+                    if (suppliers == null || suppliers.Count == 0)
+                    {
+                        glb.isBusyPage = true;
+                        StateHasChanged();
+
+                        suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? new List<L05_VPPSupplierResDTO>();
+                    }
+                }
+                else if (queryIndex == 5) // Departments
+                {
+                    if (departments == null || departments.Count == 0)
+                    {
+                        glb.isBusyPage = true;
+                        StateHasChanged();
+
+                        departments = await _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>($"{Config.ApiLibraryBase}/lex02") ?? new List<LEX02_CompanyDepartmentLocationResDTO>();
+                    }
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error loading library tab data: {ex.Message}");
             }
             finally
             {

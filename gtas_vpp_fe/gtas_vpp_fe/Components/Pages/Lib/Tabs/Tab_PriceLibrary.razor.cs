@@ -4,6 +4,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
+using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
@@ -25,15 +26,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private List<L04_VPPResDTO> vppItems = [];
         private List<L05_VPPSupplierResDTO> suppliers = [];
         private List<L06_VPPSupplierMappingResDTO> prices = [];
-        private RadzenDataGrid<L06_VPPSupplierMappingResDTO> grid = default!;
+        private List<VppItemPriceDisplayModel> displayItems = [];
+        private List<VppItemPriceDisplayModel> filteredDisplayItems = [];
+        private RadzenDataGrid<VppItemPriceDisplayModel> grid = default!;
         private Guid? selectedPriceListId;
-        private Guid? selectedVppId;
+        private Guid? selectedSupplierId;
+        private string searchText = "";
         private bool isLoading;
         private bool HasPriceLists => priceLists.Count > 0;
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
-            : selectedVppId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
+            : selectedSupplierId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
 
         protected override async Task OnInitializedAsync()
         {
@@ -44,10 +48,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
-                priceLists = await _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [];
-                vppItems = await _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item) ?? [];
-                suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? [];
+                var priceListsTask = _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList);
+                var vppItemsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item);
+                var suppliersTask = _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier);
+
+                await Task.WhenAll(priceListsTask, vppItemsTask, suppliersTask);
+
+                priceLists = await priceListsTask ?? [];
+                vppItems = await vppItemsTask ?? [];
+                suppliers = await suppliersTask ?? [];
+                
                 selectedPriceListId = ResolveSelectedPriceListId();
+                selectedSupplierId = suppliers.FirstOrDefault(s => s.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName)?.Id
+                                     ?? suppliers.FirstOrDefault()?.Id;
+
+                await LoadPricesAsync();
             }
             catch (Exception ex)
             {
@@ -58,7 +73,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task LoadPricesAsync()
         {
             prices = [];
-            if (!selectedVppId.HasValue || !selectedPriceListId.HasValue)
+            displayItems = [];
+            filteredDisplayItems = [];
+
+            if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
                 await ReloadGridAsync();
                 return;
@@ -68,7 +86,26 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 prices = await _apiServices.GetFromApiAsync<List<L06_VPPSupplierMappingResDTO>>(
-                    $"{Config.LibraryApi.VPPPrice_ByVpp}/{selectedVppId.Value}?priceListId={selectedPriceListId.Value}") ?? [];
+                    $"{Config.LibraryApi.VPPPrice_BySupplier}/{selectedSupplierId.Value}?priceListId={selectedPriceListId.Value}") ?? [];
+
+                displayItems = vppItems.Select(vpp =>
+                {
+                    var mapping = prices.FirstOrDefault(p => p.L04_VPPId == vpp.Id);
+                    return new VppItemPriceDisplayModel
+                    {
+                        VPPId = vpp.Id,
+                        VPPCode = vpp.VPPCode,
+                        VPPName = vpp.VPPName,
+                        CategoryName = vpp.VPPCategory?.VPPCategoryName,
+                        UOMName = vpp.UOM?.ClassDetailValue,
+                        PriceMappingId = mapping?.Id,
+                        Price = mapping?.Price,
+                        IsDefault = mapping?.IsDefault ?? false,
+                        Description = mapping?.Description
+                    };
+                }).ToList();
+
+                FilterDisplayItems();
             }
             catch (Exception ex)
             {
@@ -81,72 +118,104 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task AddPriceAsync()
+        private void FilterDisplayItems()
         {
-            if (!selectedVppId.HasValue || !selectedPriceListId.HasValue) return;
-
-            var model = new L06_PriceUpdateReqDTO
+            if (string.IsNullOrWhiteSpace(searchText))
             {
-                L04_VPPId = selectedVppId.Value,
-                L07_PriceListId = selectedPriceListId.Value
-            };
-            var result = await OpenEditorAsync(Loc["AddNewPrice"].Value, model);
-            if (result is null) return;
-
-            try
+                filteredDisplayItems = [.. displayItems];
+            }
+            else
             {
-                var req = new L06_PriceCreateReqDTO
+                var query = searchText.Trim().ToLowerInvariant();
+                filteredDisplayItems = displayItems.Where(x =>
+                    (x.VPPCode?.ToLowerInvariant().Contains(query) ?? false) ||
+                    (x.VPPName?.ToLowerInvariant().Contains(query) ?? false) ||
+                    (x.CategoryName?.ToLowerInvariant().Contains(query) ?? false) ||
+                    (x.UOMName?.ToLowerInvariant().Contains(query) ?? false)
+                ).ToList();
+            }
+        }
+
+        private void OnSearchInput(string? value)
+        {
+            searchText = value ?? "";
+            FilterDisplayItems();
+        }
+
+        private async Task EditPriceAsync(VppItemPriceDisplayModel row)
+        {
+            if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue) return;
+
+            if (!row.PriceMappingId.HasValue)
+            {
+                var model = new L06_PriceUpdateReqDTO
                 {
-                    L04_VPPId = selectedVppId.Value,
-                    L05_VPPSupplierId = result.L05_VPPSupplierId,
+                    L04_VPPId = row.VPPId,
                     L07_PriceListId = selectedPriceListId.Value,
-                    Price = result.Price,
-                    IsDefault = result.IsDefault,
-                    Description = result.Description
+                    L05_VPPSupplierId = selectedSupplierId.Value,
+                    Price = 0,
+                    IsDefault = false,
+                    Description = ""
                 };
-                await _apiServices.PostFromApiAsync<L06_VPPSupplierMappingResDTO>(Config.LibraryApi.VPPPriceBase, req);
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
-                await LoadPricesAsync();
+                var result = await OpenEditorAsync(Loc["AddNewPrice"].Value, model);
+                if (result is null) return;
+
+                try
+                {
+                    var req = new L06_PriceCreateReqDTO
+                    {
+                        L04_VPPId = row.VPPId,
+                        L05_VPPSupplierId = result.L05_VPPSupplierId,
+                        L07_PriceListId = selectedPriceListId.Value,
+                        Price = result.Price,
+                        IsDefault = result.IsDefault,
+                        Description = result.Description
+                    };
+                    await _apiServices.PostFromApiAsync<L06_VPPSupplierMappingResDTO>(Config.LibraryApi.VPPPriceBase, req);
+                    Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
+                    await LoadPricesAsync();
+                }
+                catch (Exception ex)
+                {
+                    NotifyPriceError(ex);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                NotifyPriceError(ex);
+                var model = new L06_PriceUpdateReqDTO
+                {
+                    Id = row.PriceMappingId.Value,
+                    L04_VPPId = row.VPPId,
+                    L05_VPPSupplierId = selectedSupplierId.Value,
+                    L07_PriceListId = selectedPriceListId.Value,
+                    Price = row.Price ?? 0,
+                    IsDefault = row.IsDefault,
+                    Description = row.Description
+                };
+                var result = await OpenEditorAsync(Loc["EditPrice"].Value, model);
+                if (result is null) return;
+
+                try
+                {
+                    await _apiServices.PutFromApiAsync<L06_VPPSupplierMappingResDTO>(
+                        $"{Config.LibraryApi.VPPPriceBase}/{row.PriceMappingId.Value}", result);
+                    Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
+                    await LoadPricesAsync();
+                }
+                catch (Exception ex)
+                {
+                    NotifyPriceError(ex);
+                }
             }
         }
 
-        private async Task EditPriceAsync(L06_VPPSupplierMappingResDTO row)
+        private async Task DeletePriceAsync(VppItemPriceDisplayModel row)
         {
-            var model = new L06_PriceUpdateReqDTO
-            {
-                Id = row.Id,
-                L04_VPPId = row.L04_VPPId,
-                L05_VPPSupplierId = row.L05_VPPSupplierId,
-                L07_PriceListId = selectedPriceListId ?? row.L07_PriceListId,
-                Price = row.Price,
-                IsDefault = row.IsDefault,
-                Description = row.Description
-            };
-            var result = await OpenEditorAsync(Loc["EditPrice"].Value, model);
-            if (result is null) return;
+            if (!row.PriceMappingId.HasValue) return;
 
             try
             {
-                await _apiServices.PutFromApiAsync<L06_VPPSupplierMappingResDTO>(
-                    $"{Config.LibraryApi.VPPPriceBase}/{row.Id}", result);
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
-                await LoadPricesAsync();
-            }
-            catch (Exception ex)
-            {
-                NotifyPriceError(ex);
-            }
-        }
-
-        private async Task DeletePriceAsync(L06_VPPSupplierMappingResDTO row)
-        {
-            try
-            {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.VPPPriceBase}/{row.Id}");
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.VPPPriceBase}/{row.PriceMappingId.Value}");
                 if (deleted)
                 {
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceDeleted"].Value);
@@ -163,12 +232,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task SetDefaultAsync(L06_VPPSupplierMappingResDTO row)
+        private async Task SetDefaultAsync(VppItemPriceDisplayModel row)
         {
+            if (!row.PriceMappingId.HasValue) return;
+
             try
             {
                 await _apiServices.PostFromApiAsync<object>(
-                    string.Format(Config.LibraryApi.VPPPrice_SetDefault, row.Id), null);
+                    string.Format(Config.LibraryApi.VPPPrice_SetDefault, row.PriceMappingId.Value), null);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["DefaultUpdated"].Value);
                 await LoadPricesAsync();
             }
@@ -193,6 +264,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         }
 
         private async Task OnPriceListChangedAsync()
+        {
+            await LoadPricesAsync();
+        }
+
+        private async Task OnSupplierChangedAsync()
         {
             await LoadPricesAsync();
         }
@@ -231,5 +307,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             _notificationService.CustomContentNotification(severity, summary, detail, 5000, false);
         }
+    }
+
+    public class VppItemPriceDisplayModel
+    {
+        public Guid VPPId { get; set; }
+        public string? VPPCode { get; set; }
+        public string? VPPName { get; set; }
+        public string? CategoryName { get; set; }
+        public string? UOMName { get; set; }
+        public Guid? PriceMappingId { get; set; }
+        public decimal? Price { get; set; }
+        public bool IsDefault { get; set; }
+        public string? Description { get; set; }
     }
 }
