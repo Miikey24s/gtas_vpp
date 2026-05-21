@@ -4,6 +4,7 @@ using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
@@ -27,6 +28,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             public string? UOMCode { get; set; }
             public string? UOMName { get; set; }
             public int SupplierCount { get; set; }
+            public string? DefaultSupplierName { get; set; }
+            public decimal? DefaultPrice { get; set; }
+            public decimal DefaultVatRate { get; set; }
         }
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
@@ -159,7 +163,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                             {
                                 try
                                 {
-                                    var converted = Convert.ChangeType(val.ToString(), propInfo.PropertyType);
+                                    var targetType = Nullable.GetUnderlyingType(propInfo.PropertyType) ?? propInfo.PropertyType;
+                                    var converted = Convert.ChangeType(val.ToString(), targetType, CultureInfo.InvariantCulture);
                                     propInfo.SetValue(dto, converted);
                                 }
                                 catch { }

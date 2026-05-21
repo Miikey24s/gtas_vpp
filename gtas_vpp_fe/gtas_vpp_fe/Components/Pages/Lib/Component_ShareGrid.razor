@@ -49,9 +49,11 @@
         @foreach (var prop in typeof(TType).GetProperties())
         {
             var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
-            var typeCode = Type.GetTypeCode(prop.PropertyType);
+            var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+            var typeCode = Type.GetTypeCode(effectiveType);
             var displayName = attr?.DisplayName ?? prop.Name;
             var width = attr?.Width;
+            var formatString = typeCode == TypeCode.Decimal ? "{0:N0}" : null;
             
             // Skip collection navigation properties
             if (prop.Name == "VPPs" || 
@@ -95,35 +97,48 @@
                     <RadzenDataGridColumn TItem="TType"
                                           Property="@prop.Name"
                                           Title=@displayName
+                                          FormatString="@formatString"
                                           Width=@width>
                         <EditTemplate Context="context">
-                            @switch (typeCode)
+                            @if (attr?.IsReadOnly ?? false)
                             {
-                                case TypeCode.Double:
-                                case TypeCode.Single:
-                                    <RadzenNumeric TValue="double?" Style="width:100%; display: block" Name="@displayName"
-                                                   Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as double?)"
-                                                   ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
-                                    break;
-                                case TypeCode.Int16:
-                                case TypeCode.Int32:
-                                case TypeCode.Int64:
-                                    <RadzenNumeric TValue="int?" Style="width:100%; display: block" Name="@displayName"
-                                                   Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as int?)"
-                                                   ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
-                                    break;
+                                <span>@FormatReadOnlyValue(context.GetPropertyValue(prop.Name, prop.PropertyType), typeCode)</span>
+                            }
+                            else
+                            {
+                                @switch (typeCode)
+                                {
+                                    case TypeCode.Decimal:
+                                        <RadzenNumeric TValue="decimal?" Style="width:100%; display: block" Name="@displayName"
+                                                       Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as decimal?)"
+                                                       ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
+                                        break;
+                                    case TypeCode.Double:
+                                    case TypeCode.Single:
+                                        <RadzenNumeric TValue="double?" Style="width:100%; display: block" Name="@displayName"
+                                                       Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as double?)"
+                                                       ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
+                                        break;
+                                    case TypeCode.Int16:
+                                    case TypeCode.Int32:
+                                    case TypeCode.Int64:
+                                        <RadzenNumeric TValue="int?" Style="width:100%; display: block" Name="@displayName"
+                                                       Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as int?)"
+                                                       ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
+                                        break;
 
-                                case TypeCode.Boolean:
-                                    <RadzenSwitch Value="@((context.GetPropertyValue(prop.Name, prop.PropertyType) as bool?) ?? false)"
-                                                  ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
-                                    break;
-                                case TypeCode.Empty:
-                                case TypeCode.String:
-                                default:
-                                    <RadzenTextBox Style="width:100%; display: block" Name="@displayName"
-                                                   Value="@(context.GetPropertyValue(prop.Name,prop.PropertyType)?.ToString()??string.Empty)"
-                                                   ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
-                                    break;
+                                    case TypeCode.Boolean:
+                                        <RadzenSwitch Value="@((context.GetPropertyValue(prop.Name, prop.PropertyType) as bool?) ?? false)"
+                                                      ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
+                                        break;
+                                    case TypeCode.Empty:
+                                    case TypeCode.String:
+                                    default:
+                                        <RadzenTextBox Style="width:100%; display: block" Name="@displayName"
+                                                       Value="@(context.GetPropertyValue(prop.Name,prop.PropertyType)?.ToString()??string.Empty)"
+                                                       ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args))" />
+                                        break;
+                                }
                             }
                         </EditTemplate>
                     </RadzenDataGridColumn>
@@ -168,5 +183,17 @@
             return;
         }
         context.SetPropertyValue(prop.Name, Convert.ChangeType(args, prop.PropertyType));
+    }
+
+    string FormatReadOnlyValue(object? value, TypeCode typeCode)
+    {
+        if (value == null)
+        {
+            return string.Empty;
+        }
+
+        return typeCode == TypeCode.Decimal
+            ? string.Format("{0:N0}", value)
+            : value.ToString() ?? string.Empty;
     }
 }

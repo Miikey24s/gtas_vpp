@@ -91,6 +91,8 @@
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UOMName" Title="@Loc["UOM"]" MinWidth="100px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultSupplierName" Title="@Loc["Supplier"]" MinWidth="160px" TextAlign="TextAlign.Left" />
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultPrice" Title="@Loc["Price"]" MinWidth="120px" TextAlign="TextAlign.Right" FormatString="{0:N0}" />
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" MinWidth="200px" TextAlign="TextAlign.Left" />
                     </Columns>
                 </RadzenDataGrid>
