@@ -1,0 +1,559 @@
+Tên VPP	Đơn vị	VAT	Đơn giá
+Băng keo, bấm kim, bấm lỗ			
+Acco nhựa UNI	Hộp	8%	14.500
+Acco sắt SDI	Hộp	8%	22.000
+Bấm kim Trio - 50 LA (hãng)	Cái	8%	405.000
+Bấm kim số 10 Plus	Cái	8%	31.500
+Bấm kim Munix - số 3	Cái	8%	41.200
+Bấm kim không dùng kim plus	Cái	8%	115.000
+Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực	Cái	8%	211.500
+Bấm kim 50 SA	Cái	8%	257.000
+Bấm kim 50 LA	Cái	8%	423.000
+Bấm lỗ trung - 837               	Cái	8%	42.100
+Bấm lỗ trung - 970               	Cái	8%	57.900
+Bấm lỗ trung Trio - 978	Cái	8%	91.600
+Bấm lỗ lớn Trio - 9670	Cái	8%	311.700
+Bấm 4 lỗ lớn Trio - 0999D	Cái	8%	153.000
+Băng keo 2 mặt (1.2cm) 14y	Cuộn	8%	2.650
+Băng keo 2 mặt (2.4cm) 14y	Cuộn	8%	5.200
+Băng keo 2 mặt (5cm) 14y	Cuộn	8%	9.600
+Băng keo 2 mặt đen 2F4 Hàn Quốc	Cuộn	8%	18.500
+Băng keo 2 mặt vàng (1.0cm) 50y	Cuộn	8%	15.500
+Băng keo 2 mặt vàng (1.2cm) 50y	Cuộn	8%	18.500
+Băng keo 2 mặt vàng (2.4cm) 50y	Cuộn	8%	29.500
+Lưỡi lam trắng	Cái	8%	2.500
+Băng keo điện NANO- 2cm	Cuộn	8%	7.200
+Băng keo điện NANO- lớn	Cuộn	8%	14.500
+Băng keo giấy kem 1.2 cm	Cuộn	8%	3.150
+Băng keo giấy kem 5 cm 	Cuộn	8%	11.200
+Băng keo giấy kem 2.4 cm	Cuộn	8%	6.000
+Băng keo xốp 2.4cm 12y	Cuộn	8%	14.100
+Băng keo trong 1.2cm 100y	Cuộn	8%	3.900
+Băng Keo Trong 2.4cm 100y 	Cuộn	8%	7.800
+Băng keo VP 1.8x 25y (cuộn nhỏ)     	Cuộn	8%	2.600
+Băng keo dán sách (loại 5 phân)	Cuộn	8%	11.200
+Băng keo si 5 cm (vàng)             	Cuộn	8%	11.200
+Băng keo si 5 cm (xd)             	Cuộn	8%	11.200
+Băng keo si 3,6 cm (xd)             	Cuộn	8%	8.900
+Băng keo vải 5P	Cuộn	8%	22.500
+Băng keo trong 2.4cm 100y	Cuộn	8%	7.800
+Băng keo trong 5cm 100y     	Cuộn	8%	15.600
+Băng keo trong 7cm 100y     	Cuộn	8%	19.900
+Bìa còng, bìa phân trang, trình ký			
+Bìa giấy A4 ĐL  - thơm      	xấp	8%	89.000
+Bìa Mỹ - A3	tờ	8%	2.050
+Bìa còng cua 3f5	Cái	8%	24.700
+Bìa còng 7cm 2Si HTM F4          	Cái	8%	30.100
+Bìa còng 5cm 2Si HTM F4          	Cái	8%	30.100
+Bìa lỗ TQ GM	xấp	8%	44.100
+Bìa lỗ dày A4 500g	xấp	8%	53.100
+Bìa kiếng - A4, dày	xấp	8%	64.000
+Bìa cây (LĐ)     	Cái	8%	5.400
+Bìa 20 lá nhựa A4- LĐ	Cái	8%	26.500
+Bìa 40 lá nhựa A4- LĐ	Cái	8%	35.000
+Bìa 60 lá nhựa A4- LĐ	Cái	8%	44.000
+Bìa 100 lá nhựa A4- LĐ	Cái	8%	64.000
+Bìa Accord giấy CV  (màu hồng)	Cái	8%	10.200
+Bìa Accord giấy CV  (màu xanh)	Cái	8%	10.200
+Cặp 12 ngăn Flexoffice FO-EB01 (FS)	Cái	8%	115.000
+Bìa accord nhựa A4 	Cái	8%	7.500
+Bìa accord nhựa A4 - L1 có lỗ bên gáy	Cái	8%	8.000
+Bìa nút F4 LĐ         	Cái	8%	3.900
+Túi đựng Hồ Sơ	Cái	8%	9.900
+Bìa phân trang mũi tên post - it	xấp	8%	22.500
+Bìa phân trang nhựa 12 số  	Bộ	8%	10.600
+Bìa 2 lá A4 Plus           	Cái	8%	1.950
+Bìa 2 lá F4 Plus           	Cái	8%	2.600
+Bìa  HS 2 ngăn	Cái	8%	8.500
+Bìa Nhẫn trắng 3.5 P	Cái	8%	69.500
+Bìa nhẫn O Ring 3,5 P	Cái	8%	45.000
+File lồng kính 2 còng 3,5P - A4	Cái	8%	42.000
+File lồng kính 2 còng 5P - A5	Cái	8%	29.500
+Dao rọc giấy lớn SDI 0423-2     	Cây	8%	19.700
+Dao rọc giấy nhỏ SDI 0404-2         	Cây	8%	12.900
+Dao rọc giấy nhỏ Inox Deli 2034        	Cây	8%	31.000
+Bìa trình ký đôi mt	Cái	8%	19.500
+Bìa trình ký đơn - mica A4	Cái	8%	31.000
+Bìa trình ký đơn mt	Cái	8%	16.500
+Bìa trình ký đơn nhựa dẻo	Cái	8%	30.500
+Bìa dây kéo A4	Cái	8%	14.500
+Bìa 3 dây caro 7cm 	Cái	8%	12.300
+Bìa 3 dây caro 10cm -TL	Cái	8%	13.200
+Bìa 3 dây caro 15cm -TL	Cái	8%	14.200
+Bìa 3 dây caro 20cm -TL dây dài	Cái	8%	15.900
+Bìa 2 kẹp ngang dọc A4 - đỏ	Cái	8%	24.200
+			
+Bìa 2 kẹp ngang dọc A4 - xanh	Cái	8%	24.200
+Bìa 2 kẹp ngang dọc A4 - xanh lá	Cái	8%	24.200
+Bìa 2 kẹp ngang dọc F4 -xanh (Dài)	Cái	8%	32.500
+Bìa 2 kẹp ngang dọc A4 - vàng	Cái	8%	24.200
+Kẹp bướm, kim bấm, kéo			
+Kẹp bướm 15mm	Hộp	8%	4.200
+Kẹp bướm 19mm	Hộp	8%	5.800
+Kẹp bướm 25 mm	Hộp	8%	8.400
+Kẹp bướm 32mm 	Hộp	8%	13.300
+Kẹp bướm 41mm	Hộp	8%	18.800
+Kẹp bướm 51mm	Hộp	8%	27.500
+Kẹp bướm sắt 12cm	Cái	8%	27.500
+Kẹp bướm sắt 3''	Cái	8%	15.500
+Kệ Tầng Xukiva - nhựa trong ĐL	Cái	8%	161.000
+Kéo cắt giấy 183/180	Cái	8%	15.200
+Kéo Suremark	Cái	8%	48.000
+Kéo mổ túi cán đỏ (kéo cắt cá)	Cái	8%	65.000
+Kéo Sắt P.T số 3 (18cm)	Cái	8%	105.000
+Kéo Sắt mạ inox - A1 (Số 9 - 16cm)	Cái	8%	89.000
+Kéo can cam TN10	Cây	8%	79.000
+Keó cắt passan 	Cái	8%	69.000
+Kéo bấm chỉ 	Cây	8%	5.600
+Kéo bấm chỉ PIN 1423	Cây	8%	12.800
+Kéo răng cưa	Cái	8%	240.000
+Hồ khô 8gr G-36S 	Cây	8%	6.800
+Kim bấm Trio-23/08-24/06	Hộp	8%	9.200
+Kim bấm Trio-23/10	Hộp	8%	10.700
+Kim bấm Trio-23/13	Hộp	8%	12.500
+Kim bấm Trio-23/20	Hộp	8%	17.500
+Kim bấm 3 SDI       	Hộp	8%	4.900
+Kim bấm số 10 plus	Hộp	8%	3.550
+Kẹp giấy C82 TQ         	Hộp	8%	4.200
+Kẹp giấy C62 TQ         	Hộp	8%	3.150
+Cây ghim giấy sắt	Cây	8%	15.000
+Đinh ghim bảng nhung	Hộp	8%	16.200
+Chặn sách - lớn	Cặp	8%	79.000
+Kim khoanh	Vĩ	8%	25.000
+Máy tính FX-570 plus	Cái	8%	590.000
+Máy tính M28	Cái	8%	85.000
+Máy tính Casio 12 số (loại tốt) AX120B	Cái	8%	320.000
+Máy tính casio 12 số JS-120L	Cái	8%	105.000
+Kim bắn thẻ bài KHL-68X	Hộp	8%	85.000
+Keo dán UHU	Cái	8%	35.000
+Bút viết			
+Ruột bút bi xanh 027	Cây	8%	2.250
+Bút bi TL 08 xanh	Cây	8%	3.250
+Bút bi TL 08 đỏ	Cây	8%	3.250
+Bút bi TL 08 đen	Cây	8%	3.250
+Bút bi xanh 027	Cây	8%	3.250
+Bút bi đen 027	Cây	8%	3.250
+Bút bi đỏ 027	Cây	8%	3.250
+Bút bi Double A DBP-107 0.7mm Xanh	Cây	8%	5.200
+Bút gel mini tím	Cây	8%	4.500
+Bút bi 4 màu	Cây	8%	16.500
+Bút Gel B-01 Master	Cây	8%	7.200
+Bút bi Metal Clip - 036, xanh	Cây	8%	9.300
+Bút T.Long đế cắm bàn PH - 02	Bộ	8%	15.000
+Bút Uniball(CH)	Cây	8%	38.500
+Bút ký tên UB 150 xanh	Cây	8%	11.000
+Bút ký tên UB 150 đen	Cây	8%	11.000
+Bút ký tên UB 150 đỏ	Cây	8%	11.000
+Bút Gel mini - đỏ	Cây	8%	2.950
+Bút Gel mini - đen	Cây	8%	2.950
+Bút Gel mini - xanh	Cây	8%	2.950
+Bút lông kim Zebifa Xanh	Cây	8%	4.500
+Bút lông kim Zebifa đen	Cây	8%	4.500
+Bút lông kim Zebifa đỏ	Cây	8%	4.500
+Bút Chì - KOH 2B (Tiệp)      	Cây	8%	2.900
+Bút Chì - KOH 6B (Tiệp)	Cây	8%	3.200
+Bút Chì bấm loại tốt - 125AT	Cây	8%	11.700
+Bút chì bấm Pentel AX-105     	Cây	8%	10.500
+Bút chì bấm Pentel A255	Cây	8%	11.500
+Bút dạ quang ( cam) 28 toyo 	Cây	8%	6.100
+Bút dạ quang ( hồng ) 28 toyo 	Cây	8%	6.100
+Bút dạ quang ( vàng ) 28 toyo 	Cây	8%	6.100
+Bút dạ quang ( xanh lá) 28 toyo 	Cây	8%	6.100
+Bút sáp vặn TL 12 màu (50004912)	Hộp	8%	38.500
+Bút dạ quang TL - HL03, hồng	Cây	8%	6.800
+Bút dạ quang TL - HL03, vàng	Cây	8%	6.800
+Bút dạ quang TL - HL03, x.lá	Cây	8%	6.800
+Bút dạ quang TL - HL03, cam	Cây	8%	6.800
+Bút sáp màu vỏ xé	Hộp	8%	55.000
+Bút Nhũ Bạc Con Gấu      	Cây	8%	4.500
+Bút lông bảng (đỏ) WB 03	Cây	8%	6.600
+Bút lông bảng (đen) WB 03	Cây	8%	6.600
+Bút lông bảng (xanh) WB  03	Cây	8%	6.600
+Bút lông dầu nhỏ T.long PM 04 (Xanh)	Cây	8%	7.900
+Bút lông dầu nhỏ T.long PM 04 (đen)	Cây	8%	7.900
+Bút lông dầu nhỏ T.Long PM 04 (đỏ)	Cây	8%	7.900
+Bút Lông Dầu PM09 (Đen)	Cây	8%	8.200
+Bút Lông Dầu PM09 (Xanh)	Cây	8%	8.200
+Bút Lông Dầu PM09 (Đỏ)	Cây	8%	8.200
+Bút Lông Dầu màu xanh PM01	Cây	8%	7.300
+Bút Lông Dầu màu đen PM01	Cây	8%	7.300
+Bút lông dầu nhỏ MO 120 Xanh	Cây	8%	4.500
+Bút lông dầu nhỏ MO - 120  Đen, 	Cây	8%	4.500
+Bút xóa nước TL CP02       	Cây	8%	18.300
+Bút bi master 01	Cây	8%	7.000
+Bút bay hồng - HQ	Cây	8%	8.200
+Bút xoá kéo hiệu Plus Corection	Cây	8%	19.500
+Bọ cắt băng keo sunny 2004	Cái	8%	45.000
+Bọ cắt băng keo sunny 2003	Cái	8%	16.500
+Bọ cắt băng keo 2001	Cái	8%	13.200
+Bút sơn Century's	Cái	8%	68.000
+Bảng  0,8m x 1,2m	Cái	8%	375.000
+Cắt băng keo DH-5cm	Cái	8%	24.000
+Cắt băng keo DH-7cm	Cái	8%	29.000
+Ruột xóa kéo Plus	Cái	8%	15.200
+Ruột chì ĐL     	Vĩ	8%	4.500
+Ruột chì 0.9mm	Hộp	8%	38.000
+Ruột chì 0.7mm	Vĩ	8%	12.000
+Ruột chì Monami ML-SQ 0.5	Vĩ	8%	14.500
+Bút sơn Demi - vàng	tuýp	8%	68.000
+Chuốt bút chì sắt 	Cái	8%	22.500
+Chuốt bút chì Maped nhỏ	Cái	8%	4.500
+Đồ lau bảng nhung	Chiếc	8%	12.600
+Gở kim kiềm	Cái	8%	27.000
+Dụng cụ gỡ kim Trio	Cái	8%	9.500
+Dụng cụ gỡ kim Eagle 1029        	Cái	8%	8.500
+Tập viết, Thước kẻ			
+Sổ card 320   	Cuốn	8%	55.000
+Sổ card 160	Cuốn	8%	35.000
+Sổ name card loại 194 lá	Cuốn	8%	39.000
+Sổ da A5 - dày	Cuốn	8%	29.500
+Sổ đen A4 bìa da - dày	Cuốn	8%	48.000
+Sổ caro 25x35 (D)         	Cuốn	8%	54.000
+Sổ caro 30x40 (D)         	Cuốn	8%	65.000
+Tập 200tr SV     	Quyển	8%	17.500
+Tập 200tr Tiến phát 	Cuốn	8%	12.500
+Tập 96tr Tiến phát 	Cuốn	8%	6.500
+Tập 96tr ACB	Quyển	8%	9.500
+Thước dẻo 20cm (M)            	Cây	8%	3.200
+Thước dẻo 30cm (M)        	Cây	8%	4.900
+Thước dẻo 50cm (M)        	Cây	8%	18.500
+Thước cứng 20cm 	Cây	8%	3.500
+Thước cứng 30cm 	Cây	8%	5.200
+Thước cứng 50cm 	Cây	8%	15.500
+Thước may nhôm - 1m	Cây	8%	65.000
+Thước may sắt - 50cm	Cây	8%	75.000
+Thước may sắt - 30cm	Cây	8%	35.000
+Thước dây may - Hàng Đức 2 mặt vàng (M)	sợi	8%	28.500
+Thước dây may kéo - tròn	Cái	8%	47.000
+Thước dây may  - Hàng Đức 2 mặt vàng (L)	sợi	8%	36.500
+Thước cuộn sắt	Cái	8%	45.000
+Thước sắt 1m - 1,5li	Cây	8%	95.000
+Thước cuộn DEJ 5m	Cái	8%	27.500
+Thước dây cuộn hoechstmass	Cái	8%	68.850
+Hóa đơn bán lẻ 1 liên	Cuốn	8%	7.000
+Giấy  in các loại			
+Giấy A4 trắng 80 Excell	Ram	8%	62.500
+Giấy A4 trắng 70 Excell	Ram	8%	55.000
+Giấy A5 trắng 80 Excell	Ram	8%	31.900
+Giấy A1 Trắng	Tờ	8%	1.890
+Giấy Niêm Phong (Mỏng)	xấp	8%	48.000
+Giấy in 1 liên chia đôi	Thùng	8%	242.000
+Giấy in 2 liên không chia	Thùng	8%	330.500
+Giấy in 3 liên A4 không chia	Thùng	8%	330.500
+Giấy note vàng 3*3  - UNC    	xấp	8%	6.200
+Giấy note vàng 3*5	xấp	8%	8.900
+Giấy note 4 màu 1*4 (4 màu dạ quang)	xấp	8%	12.500
+Note mũi tên 5 màu	xấp	8%	12.500
+Note 1.5x2 -Pronoti	xấp	8%	4.600
+Note 2x3 - UNC	xấp	8%	4.700
+Note 3x4 - UNC	xấp	8%	8.100
+Giấy note 3x3 5 màu dạ quang	xấp	8%	14.500
+Giấy Decal A4 đế XANH	tờ	8%	780
+Giấy Decal A4 đế vàng	tờ	8%	820
+Giấy Decal A4 da bò	tờ	8%	830
+Giấy A0 Trắng	tờ	8%	3.650
+Giấy Decal Tomy - 100	xấp	8%	14.000
+Giấy Fo 80 - A4, x.dương	Ram	8%	71.000
+Giấy Fo 80 - A4, hồng	Ram	8%	71.000
+Giấy Fo 80 - A4, vàng	Ram	8%	71.000
+Giấy Fo 80 - A4, x.lá	Ram	8%	71.000
+Giấy Fo 70 - A4, hồng	Ram	8%	63.000
+Giay Fo 70 - A4 vàng	Ram	8%	63.000
+Giay Fo 70 - A4 xanh lá	Ram	8%	63.000
+Giấy Fo 70 - A4, xanh dương	Ram	8%	63.000
+Giấy bìa dày - A4 250gam	xấp	8%	68.500
+Giấy bìa cứng trắng A4	xấp	8%	43.500
+Giấy bìa dầy - A4, x.dương	xấp	8%	43.500
+Giấy bìa dầy - A4, trắng	xấp	8%	43.500
+Giấy bìa dầy - A4, hồng	xấp	8%	43.500
+Giấy bìa dầy - A4, xanh lá	xấp	8%	43.500
+Giấy bìa dầy - A4, vàng	xấp	8%	43.500
+Giấy bìa dầy - A3, x.dương	xấp	8%	87.000
+Giấy than Horse - 100 tờ/xấp	xấp	8%	82.000
+Giấy Paper on 80 - A3	Ram	8%	186.000
+Giấy A3 80gsm Excel Indo     	Ram	8%	126.000
+Giấy ép nhựa A4 80 mic	xấp	8%	90.000
+Giấy ép nhựa 80 Mic A3	xấp	8%	180.000
+Giấy in ảnh 2 mặt bóng dày ĐL 230	xấp	8%	125.000
+Giấy in ảnh 2 mặt bóng mỏng A4	xấp	8%	85.000
+Giấy in ảnh decal 135 A4	xấp	8%	105.000
+Giấy in ảnh decal A4 1 mặt  mòng 135	xấp	8%	72.000
+Giấy in ảnh decal A4 1 mặt  dày 150	xấp	8%	90.000
+Giấy in ảnh 1 mặt dày 230g	xấp	8%	105.000
+Bàn cắt giấy A3	Cái	8%	275.000
+Khác			
+Bao thư trắng A4	Cái	8%	1.450
+Bao thư Vàng A4	Cái	8%	1.750
+Bao thư trắng A4 (Có keo 2 mặt)	Cái	8%	1.800
+Bao thư vàng F4	Cái	8%	2.200
+Bao thư trắng A3	Cái	8%	3.800
+Bao thư 12x22 F80 CK - có keo         	Cái	8%	520
+Bao thư Trắng A5 không cửa sổ	Cái	8%	950
+Bao PE 15x25cm	Kg	8%	47.000
+Bao PE 20x35cm không quai	Kg	8%	47.000
+Bao PE 40x50cm không quai	Kg	8%	47.000
+Bao PE 45x60cm không quai	Kg	8%	47.000
+bao xốp 2kg có quai	Kg	8%	49.000
+bao xốp 50 có quai	Kg	8%	49.000
+bao xốp 60x40 có quai	Kg	8%	49.000
+Bao zipper 14x10	Kg	8%	68.000
+Bao zipper đựng mẫu  5*8cm	Kg	8%	68.000
+Bao PE 10x15cm	Cái	8%	47.000
+Rổ 3 ngăn liên hoàn	Cái	8%	44.000
+Rổ đựng HS   	Cái	8%	13.500
+Kệ HS nhựa 3 tầng, thanh trụ	Cái	8%	98.000
+Gôm Paber pentel  Z5	Cục	8%	4.400
+Lưỡi dao rọc giấy lớn  UNI xanh	vĩ	8%	23.600
+Lưỡi dao rọc giấy SDI 1404 - lớn. 18mm	vĩ	8%	12.700
+Lưỡi dao rọc giấy SDI 1403 - nhỏ. 9mm	vĩ	8%	9.100
+Kệ HS mica 3 tầng trụ	Cái	8%	198.000
+Phấn may bay con gấu	Hộp	8%	85.000
+Phấn trắng Mic không bụi - 10 viên/hộp	Hộp	8%	12.000
+Phấn trắng Mic không bụi - 100 viên/hộp	Hộp	8%	49.000
+Phiếu NK Trung 18x20 3L     	Cuốn	8%	29.000
+Phiếu XK Trung 18x20 3L     	Cuốn	8%	29.000
+Hộp bút xoay TTM 3006	Cái	8%	45.000
+Bút sơn Century's	Cái	8%	68.000
+Dụng cụ gỡ chỉ	Cái	8%	6.500
+Kim ghim khoanh	vỉ	8%	22.000
+Kẹp bảng tên sắt	Cái	8%	1.500
+Dây đeo thẻ lụa hồng	Sợi	8%	2.900
+Dây đeo thẻ lụa vàng	Sợi	8%	2.900
+Dây Đeo Nút Xoay Inox  Xanh Dương	Sợi	8%	2.850
+Bảng Tên Dẻo Ngang     	Cái	8%	1.100
+Bảng Tên Dẻo Ngang Lớn	Cái	8%	1.900
+Bảng Tên Dẻo đứng	Cái	8%	1.100
+Bảng Tên cứng đứng lớn	Cái	8%	2.400
+Cọ vệ sinh bàn phím Chổi Vt           	Cái	8%	38.000
+Đạn nhựa 10 cm - 5.000 cái/ hộp	Hộp	8%	90.000
+Đạn nhựa 5 cm - 5.000 cái/ hộp	Hộp	8%	70.000
+Đạn nhựa 7.5 cm - 5.000 cái/hộp	Hộp	8%	70.000
+Đạn nhựa 0.7 cm - 5.000 cái/hộp	Hộp	8%	75.000
+		8%	
+Dây nhựa xỏ vòng Trắng	Hộp	8%	80.000
+Dây nhựa xỏ vòng Đen	Hộp	8%	90.000
+Dụng cụ ghim nhãn Súng bắn ti VP Tool F(Đỏ) - Ti Nhuyễn	Cây	8%	150.000
+Dụng cụ ghim nhãn Súng bắn ti VP Tool S (xanh dương) - Ti tiêu chuẩn	Cây	8%	150.000
+Dụng cụ ghim nhãn Súng bắn ti KHL-8S - Ti tiêu chuẩn (Đen)	Cái	8%	85.000
+Kim ghim nhãn N4-F Saga - Ti nhuyễn sắt	Hộp	8%	85.000
+Kim ghim nhãn KHL N4-P - Ti tiêu chuẩn nhựa	Hộp	8%	45.000
+Lưỡi dao lam	Hộp	8%	15.000
+Phục vụ Văn phòng			
+Hồ nước Keo lỏng TL G08 (30 ml)             	Hộp	8%	4.500
+Hồ khô 8gr G-36S 	Hộp	8%	7.000
+Nước suối lavie 350ml	thùng	8%	82.000
+Mực Lông Bảng TL 25ml    - xanh	Hộp	8%	18.900
+Mực Lông Bảng TL 25ml    - đỏ	Hộp	8%	18.900
+Mực lông dầu - xanh	Hộp	8%	15.000
+Mực lông dầu - đen	Hộp	8%	15.000
+Mực lông dầu - đỏ	Hộp	8%	15.000
+Mực đóng dấu Shiny - đỏ	Hộp	8%	39.500
+Mực đóng dấu Shiny - xanh	Hộp	8%	39.500
+Mực đóng dấu Shiny - đen        	Hộp	8%	39.500
+Tampon Horse - Xanh 	Hộp	8%	58.000
+Tampon dấu tên	Cái	8%	49.500
+Tampon Shiny - No 1, có mực	Hộp	8%	54.000
+Chai chống sét RP07	Chai	8%	85.000
+Pin Vuông 9V Golite/Toshiba/Panasonic       	Viên	8%	12.500
+Pin đồng hồ 2A Maxell       	Viên	8%	2.920
+Pin đồng hồ 3A Maxell           	Viên	8%	2.920
+Pin đồng hồ Pin 2A  Energizer 	Vỉ	8%	29.500
+Pin đồng hồ Pin 3A  Energizer 	Vỉ	8%	29.500
+Pin chuông A23-12V Camelion vỉ/5v	Vĩ	8%	66.000
+Pin nút áo AG13	viên	8%	5.500
+Pin sạc 2A 	Cặp	8%	365.000
+Pin Trung C R14UT/2S Panasonic/Toshiba	Viên	8%	24.000
+Pin cmos loại dày LR927	vỉ	8%	36.000
+Pin cmos CR2025 Maxcell/ panasonic/Toshiba	viên	8%	28.000
+Pin cmos CR2032 Maxcell/ panasonic/Toshiba	viên	8%	35.000
+Pin cmos CR1220 - 3V	viên	8%	8.500
+Pin cmos loại cúc áo AG10	viên	8%	5.500
+Pin Camelion A23	viên	8%	14.800
+Pin Panasonic LR6AA	viên	8%	36.500
+Pin Panasonic 4200 MAH	viên	8%	138.500
+Pin Panasonic 3400 MAH	viên	8%	112.000
+Thun (màu vàng)  cỡ lớn            	Bịch	8%	48.500
+Thun (màu vàng)  cỡ trung            	Bịch	8%	48.500
+Thun (màu vàng)  cỡ tiểu    	Bịch	8%	48.500
+Thun (màu trắng)   Dây Thun XK L1            	Bịch	8%	58.000
+Dây dù - trung	Bó	8%	105.000
+Dây rút nhỏ	Bịch	8%	10.500
+Dây rút 20cm	Bịch	8%	24.000
+Dây rút 30cm	Bịch	8%	35.000
+Dây nilon trắng	Cuộn	8%	62.000
+Dây nilon 3 màu	Cuộn	8%	18.000
+Bảng flipchart 1m2x2m	Cái	8%	2.300.000
+Cây Lau Nhà Thường tròn	Cây	8%	55.200
+Cây Lau Nhà tròn  - inox	Cây	8%	75.000
+Cây Lau Nhà Công Nghiệp 6T	Cây	8%	175.000
+Cây lau nhà Muoss	Cây	8%	165.000
+Bộ lau nhà vắt xoay - 360	Bộ	8%	278.000
+Cây lau nhà vắt xoay - 360	Cái	8%	121.000
+Bông lau nhà 360	Cái	8%	38.000
+Cây lăn chặm bụi	Cái	8%	65.000
+Chổi lông gà (loại nilon)	Cây	8%	20.400
+Chổi lông gà	Cây	8%	20.900
+Chổi Chà Tốt         	Cây	8%	28.500
+Chổi lông cỏ Cán Cây	Cây	8%	30.500
+Chổi lông cỏ cán nhựa	Cây	8%	30.500
+Chổi lông cỏ cán ngắn	Cây	8%	18.500
+Chổi lông cỏ cán cây (ĐB dày)	Cây	8%	48.500
+Chổi chà (chổi dừa quét nước)	Cây	8%	28.500
+Cọ vệ sinh máy vi tính	Cây	8%	38.000
+Chổi quét nhà - nhựa mềm	Cây	8%	52.000
+Bao xốp zin đại 60x100	Kg	8%	54.000
+Bao rác lớn 	Cuộn	8%	18.700
+Bao rác trung     	Cuộn	8%	18.700
+Bao rác tiểu	Cuộn	8%	18.700
+Cây quét trần nhà 3 in 1	Bộ	8%	135.000
+Bao PE 35 x 50cm	Kg	8%	47.000
+Bao PE ( 37 x 47 cm)	Kg	8%	47.000
+Bao PE 40 x 60cm	Kg	8%	47.000
+Bao PE 60 x 100cm	Kg	8%	47.000
+Bao PE 70 x 80cm	Kg	8%	47.000
+Bao PE  0.9x1.2m	Kg	8%	47.000
+Bao PE 50 x 70cm	Kg	8%	47.000
+Bao PE loại 0.5 kg (13x23)cm	Kg	8%	47.000
+Bao PE 9 x 15 cm	Kg	8%	47.000
+Bao zipper 6x8 cm	Kg	8%	68.000
+Bao zipper 12x17 cm	Kg	8%	68.000
+Chổi quét trần nhà	Cái	8%	70.000
+Chổi quét nước nhựa cứng	Cây	8%	65.000
+Cây Cạo Nước	Cây	8%	65.000
+Ky hốt rác cán dài  Ki rác cán dài 70cm          	Cái	8%	22.000
+Ky hốt rác nhỏ         	Cái	8%	21.000
+Ky hốt rác inox	Cái	8%	85.000
+Nước rửa chén Sunlight 750g       	Chai	8%	27.200
+Nước rửa chén Sunlight - 3.5kg	Can	8%	112.200
+Nước lau sàn Sunlight 1L	Chai	8%	29.900
+Nước lau sàn Sunlight 3.5kg	Can	8%	99.500
+Nước lau sàn Gift 1L	Chai	8%	28.500
+Nuớc lau kiếng Gift - 520ml 	Chai	8%	25.300
+Chổi lông gà quyét trần nhà	Cây	8%	70.000
+Cọ vệ sinh - tốt	Cây	8%	16.500
+Long não - lớn	Bịch	8%	49.000
+Nước tẩy vịt Duck 1L tím        	Chai	8%	42.500
+Nước tẩy Vim 500ml 	Chai	8%	27.500
+Nước tẩy sumo	Chai	8%	45.000
+Nước tẩy Sprayway	Chai	8%	220.000
+Nước tẩy quần áo Javel 1L	Chai	8%	22.500
+Sọt rác bầu đại	Cái	8%	145.000
+Sọt rác Đại	Cái	8%	66.000
+Sọt rác Trung Fataco	Cái	8%	45.000
+Sọt rác Tiểu	Cái	8%	32.000
+Khay đựng xà phòng	Cái	8%	18.500
+Thùng rác đại công nghiệp	Cái	8%	950.000
+Thùng rác trung công nghiệp	Cái	8%	750.000
+Thùng rác vệ sinh tiểu	Cái	8%	80.000
+Thùng rác vệ sinh trung	Cái	8%	155.000
+Thùng rác vệ sinh lớn (Xám/ Nâu)	Cái	8%	245.000
+Xà bông Surf  hoa hạ 400g   	Gói	8%	19.200
+Xà bông Surf  hoa hạ 800g   	Gói	8%	27.200
+Xà bông omo bột  770g	Gói	8%	39.500
+Xà bông omo bột  2.9KG	Gói	8%	151.000
+Cây gắp rác	Cái	8%	25.000
+Nước lau tay lightbuoy 180g	Chai	8%	35.200
+Xà bông Lifebuoy (90g)            	Cục	8%	13.500
+Cước xanh nhám lớn (C4)	Cái	8%	4.500
+Miếng Cước - sắt	Cái	8%	4.900
+Cước kim tuyến	Cái	8%	3.400
+Xô đựng nước  - 8 lít	Cái	8%	18.000
+Xô đựng nước lớn - 12 lít	Cái	8%	39.000
+Xô đựng nước lớn - 16 lít	Cái	8%	52.000
+Xịt muỗi Raid max 600 ml           	Chai	8%	65.700
+Xịt phòng Hương lài 280 ml            	Chai	8%	44.200
+Xịt phòng Glade 280ml	Chai	8%	59.200
+Sáp thơm hương lài	Hộp	8%	47.200
+Bao tay cao su dài HQ	Đôi	8%	19.900
+Bao tay cao su HQ  - Loại dày L	Đôi	8%	28.400
+Ca múc nước	Cái	8%	12.500
+Khóa Việt Tiệp 01610	Bộ	8%	195.000
+Khóa dây	Bộ	8%	115.000
+Ổ cắm điện	Cái	8%	195.000
+Ổ điện 3 lỗ	Cái	8%	195.000
+Ổ điện 6 lỗ	Cái	8%	195.000
+Nước lau tay PAX (hương táo, đào)	Chai	8%	55.000
+Nước rửa tay Lifebuoy 4kg	Can	8%	298.000
+Nước lau tay Lifebuoy 450g	Chai	8%	67.800
+Nước lau tay Lifebuoy 180g	Chai	8%	35.200
+Thảm lau chân lớn	tấm	8%	390.000
+Thảm lau chân vải sợi mềm	tấm	8%	80.000
+Thảm welcom nhựa 40cm x 60cm	tấm	8%	80.000
+Thảm lau chân vải thun	tấm	8%	38.000
+Bông lau nhà vắt Mỹ phong	Cái	8%	52.000
+Bông lau nhà tròn 360	Cái	8%	38.000
+Giấy vệ sinh	Cây	8%	30.500
+Bật lữa	Cái	8%	5.000
+Giấy hộp Japani	Hộp	8%	23.500
+Bộ vệ sinh máy tính lap top	Bộ	8%	46.000
+Cây bàn chải nhựa lớn có cán (chà sàn)	Cái	8%	24.500
+Bàn chải giặt đồ	Cái	8%	4.500
+Nước suối LAVIE 500ml	thùng	8%	82.000
+Khăn lau kính	Cái	8%	6.500
+Bột thông cầu	Bịch	8%	54.500
+Cây hút hầm cầu 	Cây	8%	65.000
+Cây lau kính cán dài đa năng 2 in 1	Bộ	8%	145.000
+Bông cây lau kính	Cái	8%	35.000
+Ủng cao su	Đôi	8%	65.000
+Nước xả vaỉ comfort 1L6	Bịch	8%	145.000
+Dây tag nhựa Trắng 13,5cm	Bịch	8%	65.000
+Nước lau kính Happy price 5L	Can	8%	115.000
+Keo chống tưa vải	Chai	8%	270.000
+Cây chà nhà vệ sinh cán dài 1m	Cái	8%	65.000
+Sáp đếm tiền	Hộp	8%	4.500
+Kim bấm gỗ 16/6	Hộp	8%	20.500
+Bao Tay nilong	Hộp	8%	18.500
+Bao Tay len kem 60g	Đôi	8%	6.000
+Mực lông bãng TL -25ml -đỏ	Hộp	8%	18.500
+Bảng Trắng 0.8m x 1.2m thường	Cái	8%	380.000
+Bao PE 6x12cm	Kg	8%	47.000
+Hộp Bút Gỗ GM-6004	Cái	8%	75.000
+Lọ Đựng bút sắt	Cái	8%	42.000
+Ca đựng nước Tulip 2L	Cái	8%	28.500
+Fomex 5mm 60x80 cm	Tấm	8%	45.000
+Băng keo giấy vàng 7mm (40 cuộn/cây)	Cây	8%	82.000
+Bút Chì Bấm 0.7 mm Staedtler 777	Cây	8%	42.000
+Bao PE 4x7 cm	Kg	8%	47.000
+Hộp bút sắt 3 ngăn	Cuốn	8%	135.000
+Dao rọc giấy Deli cao cấp E2043	Cây	8%	62.000
+Bao PE 9x16 cm	Kg	8%	47.000
+Bao PE 30x40 cm	Kg	8%	47.000
+Bao PE 25x35cm	Kg	8%	47.000
+Túi hột xoài PE 40x60 Đen	Kg	8%	59.000
+Tampon Con dấu S829 - Đỏ	Cái	8%	125.000
+Tampon Con dấu S538 - Đỏ	Cái	8%	95.000
+Bút chì khúc 	Cây	8%	5.000
+Kéo VP lớn K20	Cây	8%	27.500
+Menu mica A4 đứng, để bàn 	Cái	8%	48.000
+Kim súng bắn giá (N4-P)	Hộp	8%	45.000
+Decal đánh lỗi mũi tên A5 (25 xấp/lốc)	Lốc	8%	190.000
+Bao zipper 16x23cm	Kg	8%	68.000
+Bao PE 8x14 cm	Kg	8%	47.000
+Bao kiếng 5x8 cm	Kg	8%	57.000
+Bông lau bẹ 80cm	Cái	8%	64.000
+Máy bấm kim gỗ Barker đỏ	Cái	8%	141.000
+Tăm bông S-843	Cái	8%	60.000
+Bao kiếng 32x42cm có keo	Kg	8%	57.000
+Tăm bông S-542 (đỏ)	Cái	8%	75.000
+Ruột bút bi Ceo 2221 1.0mm	Cái	8%	28.000
+Ruột bút lông bi Ceo 0.5mm 	Cái	8%	32.000
+Dây đeo thẻ lụa xanh dương	Cái	8%	4.800
+Bảng tên Enter BT060 xanh dương	Cái	8%	7.200
+Nước rửa chén Sunlight hương thiên nhiên 750g	Chai	8%	33.100
+Nước rửa chén Sunlight hương thiên nhiên 3.5kg	Can	8%	124.800
+Sóng hở 1T9	Cái	8%	83.000
+Khung bằng khen A4	Cái	8%	38.000
+Sóng hở 1T5	Cái	8%	64.000
+Thảm welcome 90x120cm	tấm	8%	390.000
+Thảm welcome 60x90cm	tấm	8%	135.000
+Bảng tên có kim cài	Cái	8%	1.250
+Máy tính CASIO FX580VN X(TL) (A012801)	Cái	8%	645.500
+Bút TL095 xanh	Cây	8%	8.700
+Giấy Fo 80 - A4, cam	Ram	8%	175.000
+Sổ card A5 - 240 lá	cuốn	8%	47.200
+Bìa còng 7cm/F4 Plus	Cái	8%	62.000
+Bìa còng 5cm/F4 Plus	Cái	8%	62.000
+Mực đóng dấu chuyên dụng SI-63- Đỏ	Chai	8%	85.000
+Mực đóng dấu chuyên dụng SI-63- Xanh	Chai	8%	85.000
+Bao bì nhựa thân thiện môi trường tashing 90x120 cm, 51mic	kg	8%	49.200
+Dấu TD T414 58x22mm	Cái	8%	110.000

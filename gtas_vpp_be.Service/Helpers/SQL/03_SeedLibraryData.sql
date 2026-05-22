@@ -703,6 +703,7 @@ BEGIN TRY
     DECLARE @NewSuppliers TABLE (Id UNIQUEIDENTIFIER, Name NVARCHAR(255), ShortName NVARCHAR(100), City NVARCHAR(100));
     DECLARE @SeedSuppliers TABLE (Id UNIQUEIDENTIFIER, Name NVARCHAR(255), ShortName NVARCHAR(100), City NVARCHAR(100));
     DECLARE @DuplicateSuppliers TABLE (Id UNIQUEIDENTIFIER PRIMARY KEY);
+    DECLARE @DefaultPriceListId UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000700';
     DECLARE @DefaultMappingsToRestore TABLE (
         L04_VPPId UNIQUEIDENTIFIER NOT NULL,
         SupplierShortName NVARCHAR(100) NOT NULL,
@@ -800,7 +801,7 @@ BEGIN TRY
 
     -- 3. Bulk Map: chỉ tạo mapping còn thiếu cho các VPP đang hoạt động.
     INSERT INTO dbo.L06_VPPSupplierMapping (
-        Id, Price, L04_VPPId, L05_VPPSupplierId, Description, 
+        Id, Price, L04_VPPId, L05_VPPSupplierId, L07_PriceListId, Description,
         CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
     )
     SELECT 
@@ -808,6 +809,7 @@ BEGIN TRY
         (ABS(CHECKSUM(NEWID())) % 495001) + 5000,
         V.Id,           -- Id từ bảng VPP hiện có
         S.Id,           -- Id của 3 NCC vừa tạo
+        @DefaultPriceListId,
         N'Thiết lập giá mặc định theo khu vực ' + S.City,
         5615, 
         GETDATE(), 
@@ -822,6 +824,7 @@ BEGIN TRY
           FROM dbo.L06_VPPSupplierMapping Existing
           WHERE Existing.L04_VPPId = V.Id
             AND Existing.L05_VPPSupplierId = S.Id
+            AND Existing.L07_PriceListId = @DefaultPriceListId
             AND Existing.IsDeleted = 0
       );
 

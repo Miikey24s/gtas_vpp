@@ -290,7 +290,7 @@ BEGIN TRY
            us.FullName,
            us.EmailAddress1,
            us.GoogleEmail,
-           IsAdmin = IIF(p02.GroupName = 'Administrator', 1, 0),
+           IsAdmin = IIF(p02.GroupName IN ('Admin', 'Administrator'), 1, 0),
            p01.Id AS PageId,
            p01.PageCode,
            p01.PageName,
@@ -408,7 +408,7 @@ BEGIN TRY
                us.FullName,
                us.EmailAddress1,
                us.GoogleEmail,
-               IsAdmin = IIF(p02.GroupName = 'Administrator', 1, 0),
+               IsAdmin = IIF(p02.GroupName IN ('Admin', 'Administrator'), 1, 0),
                p01.Id AS PageId,
                p01.PageCode,
                p01.PageName,
@@ -686,7 +686,7 @@ DECLARE @SearchText_TabUser_SearchUser NVARCHAR(MAX);
                    p01.EmailAddress1 Email,
                    p01.GoogleEmail,
                    p04.Description,
-                   IsAdmin = IIF(p02.GroupName = 'Administrator', CAST(1 AS BIT), CAST(0 AS BIT)),
+                   IsAdmin = IIF(p02.GroupName IN ('Admin', 'Administrator'), CAST(1 AS BIT), CAST(0 AS BIT)),
                    ISNULL(p04.P02_GroupId, CAST(0x0 AS UNIQUEIDENTIFIER)) AS GroupId,
                    GroupName = ISNULL(
                                (
@@ -781,7 +781,7 @@ BEGIN TRY
                    us.FullName,
                    us.EmailAddress1 Email,
                    us.GoogleEmail,
-                   IsAdmin = IIF(p02.GroupName = 'Administrator', CAST(1 AS BIT), CAST(0 AS BIT)),
+                   IsAdmin = IIF(p02.GroupName IN ('Admin', 'Administrator'), CAST(1 AS BIT), CAST(0 AS BIT)),
                    p04.P02_GroupId GroupId,
                    p02.GroupName,
                    p04.CreateUserId,
@@ -1151,4 +1151,3 @@ BEGIN
 END;
 
 GO
-

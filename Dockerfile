@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────
 # GTAS VPP Backend – Multi-stage Docker Build
-# Build context: repo root (.)  |  Dockerfile: gtas_vpp_be/Dockerfile
+# Build context: gtas_vpp_be  |  Dockerfile: Dockerfile
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: Restore + Publish ────────────────────────────────
@@ -8,25 +8,24 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy shared project (referenced by BE)
-COPY gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj          gtas_vpp_be/gtas_vpp_shared/
+COPY gtas_vpp_shared/gtas_vpp_shared.csproj          gtas_vpp_shared/
 
 # Copy all backend project files for restore layer caching
-COPY gtas_vpp_be/gtas_vpp_be.Model/gtas_vpp_be.Model.csproj             gtas_vpp_be/gtas_vpp_be.Model/
-COPY gtas_vpp_be/gtas_vpp_be.Service/gtas_vpp_be.Service.csproj         gtas_vpp_be/gtas_vpp_be.Service/
-COPY gtas_vpp_be/gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj   gtas_vpp_be/gtas_vpp_be.Migrations/
-COPY gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj                         gtas_vpp_be/gtas_vpp_be/
+COPY gtas_vpp_be.Model/gtas_vpp_be.Model.csproj             gtas_vpp_be.Model/
+COPY gtas_vpp_be.Service/gtas_vpp_be.Service.csproj         gtas_vpp_be.Service/
+COPY gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj   gtas_vpp_be.Migrations/
+COPY gtas_vpp_be/gtas_vpp_be.csproj                         gtas_vpp_be/
 
 # Restore (cached unless .csproj files change; BuildKit mount reuses NuGet cache)
 RUN --mount=type=cache,target=/root/.nuget/packages \
-    dotnet restore gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj
+    dotnet restore gtas_vpp_be/gtas_vpp_be.csproj
 
 # Copy all source code
-COPY gtas_vpp_be/ gtas_vpp_be/
-COPY docs/prices.txt docs/prices.txt
+COPY . .
 
 # Publish in Release mode
 RUN --mount=type=cache,target=/root/.nuget/packages \
-    dotnet publish gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
+    dotnet publish gtas_vpp_be/gtas_vpp_be.csproj \
     -c Release \
     -o /app/publish \
     --no-restore

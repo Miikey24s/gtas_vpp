@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <Content Include="Helpers\SQL\*.sql" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\prices.txt" Link="Helpers\Data\prices.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Helpers\Data\prices.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
