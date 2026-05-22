@@ -18,9 +18,14 @@
                     AllowSorting="true"
                     AllowPaging="true"
                     PageSize="20"
+                    PageSizeOptions="@(new int[] { 20, 50, 100 })"
                     Density="Density.Compact"
                     GridLines="DataGridGridLines.Horizontal"
                     EmptyText="@Loc["NoPriceListAvailable"]"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.CheckBoxList"
+                    FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    LogicalFilterOperator="LogicalFilterOperator.And"
                     Style="height: calc(100vh - 230px);">
         <Columns>
             <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" MinWidth="140px" />
@@ -39,9 +44,10 @@
                                   Click="@(() => OpenPricesAsync(row))" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Title="@Loc["Actions"]" Width="360px" Sortable="false" Filterable="false">
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Title="@Loc["Actions"]" Width="480px" Sortable="false" Filterable="false">
                 <Template Context="row">
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.35rem" JustifyContent="JustifyContent.End">
+                        <RadzenButton Icon="payments" Text="@Loc["EditPrice"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Click="@(() => OpenPricesAsync(row))" />
                         <RadzenButton Icon="edit" Text="@Loc["Edit"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => EditAsync(row))" />
                         <RadzenButton Icon="star" Text="@Loc["SetAsDefault"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Disabled="@row.IsDefault" Click="@(() => SetDefaultAsync(row))" />
                         <RadzenButton Icon="content_copy" Text="@Loc["Clone"]" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@(() => CloneAsync(row))" />

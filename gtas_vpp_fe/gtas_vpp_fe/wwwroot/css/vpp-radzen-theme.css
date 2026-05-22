@@ -154,7 +154,7 @@
 
 /* ── Sidebar / Navigation ─────────────────────────────────────── */
 .rz-theme-dark {
-    --rz-sidebar-background-color: var(--vpp-bg-elevated);
+    --rz-sidebar-background-color: var(--vpp-bg-surface);
     --rz-sidebar-border: 1px solid var(--vpp-border-default);
     --rz-navigation-item-color: var(--vpp-text-secondary);
     --rz-navigation-item-hover-background-color: var(--vpp-bg-surface);
@@ -166,7 +166,7 @@
 }
 
 :root:not(.rz-theme-dark) {
-    --rz-sidebar-background-color: var(--vpp-bg-elevated);
+    --rz-sidebar-background-color: var(--vpp-bg-base);
     --rz-sidebar-border: 1px solid var(--vpp-border-default);
     --rz-navigation-item-color: var(--vpp-text-secondary);
     --rz-navigation-item-hover-background-color: rgba(14, 165, 233, 0.06);

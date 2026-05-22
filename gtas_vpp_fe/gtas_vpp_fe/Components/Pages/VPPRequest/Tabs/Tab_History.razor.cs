@@ -73,6 +73,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected override void AppendFilterScopeQuery(List<string> query)
         {
+            query.Add("scope=my-orders");
+            AddQueryValues(query, "years", YearFilter);
+            AddQueryValues(query, "months", MonthFilter);
+            AddQueryValues(query, "statuses", StatusFilter);
         }
 
         private static void AddQueryValues(List<string> query, string key, IEnumerable<int>? values)

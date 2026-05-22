@@ -87,6 +87,7 @@
                 ExpandMode="DataGridExpandMode.Single"
                 RowExpand="GroupRowExpand"
                 RowUpdate="@OnUpdateRow"
+                RowRender="@OnRowRenderGroup"
                 AllowPaging="false"
                 class="auto-fit-grid"
                 TItem="P02_GroupResDTO"
@@ -113,7 +114,7 @@
                         <Tabs>
                             @foreach (var item in list_PermissionOfGroup)
                             {
-                                <RadzenTabsItem Text="@(item.PageName + " (" + item.PageCode + ")")">
+                                <RadzenTabsItem Text="@(item.PageName + " (" + item.PageCode + ")" + (item.IsDeleted ? " [DELETED]" : ""))">
                                     <RadzenStack Gap="0.75rem" class="rz-mt-2">
                                         <RadzenRow Gap="0.5rem">
                                             <RadzenColumn Size="12" SizeMD="6">
@@ -149,6 +150,7 @@
                                                     Data="@item.List_Component"
                                                     @ref=@child_grid
                                                     @bind-Value=@selected_Component
+                                                    RowRender="@OnRowRenderComponent"
                                                     RowDoubleClick="@OnComponentRowDoubleClick">
                                         <Columns>
                                             <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="#" Width="50px" HeaderCssClass="text-center" CssClass="text-center" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" Frozen="true">

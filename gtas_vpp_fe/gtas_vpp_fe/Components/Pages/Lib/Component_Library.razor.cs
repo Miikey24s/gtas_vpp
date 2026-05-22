@@ -150,9 +150,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             return tab.Permission switch
             {
-                Permissions.LibraryPrice => 4,
-                Permissions.LibraryDepartment => 5,
-                Permissions.LibraryPriceList => 6,
+                Permissions.LibraryPriceList => 4,
+                Permissions.LibraryPrice => 5,
+                Permissions.LibraryDepartment => 6,
                 _ => tab.QueryIndex
             };
         }
@@ -190,7 +190,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                         glb.isBusyPage = true;
                         StateHasChanged();
 
-                        operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category) ?? new List<L03_VPPCategoryResDTO>();
+                        operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>($"{Config.LibraryApi.L03_Category}?showDeleted=true") ?? new List<L03_VPPCategoryResDTO>();
                     }
                 }
                 else if (queryIndex == 2) // Operations / Items
@@ -200,9 +200,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                         glb.isBusyPage = true;
                         StateHasChanged();
 
-                        var operationsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item);
-                        var categoriesTask = _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>(Config.LibraryApi.L03_Category);
-                        var uomListTask = _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail);
+                        var operationsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>($"{Config.LibraryApi.L04_Item}?showDeleted=true");
+                        var categoriesTask = _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>($"{Config.LibraryApi.L03_Category}?showDeleted=true");
+                        var uomListTask = _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>($"{Config.LibraryApi.L02_ClassDetail}?showDeleted=true");
 
                         await Task.WhenAll(operationsTask, categoriesTask, uomListTask);
 
@@ -236,7 +236,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                         glb.isBusyPage = true;
                         StateHasChanged();
 
-                        suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier) ?? new List<L05_VPPSupplierResDTO>();
+                        suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>($"{Config.LibraryApi.L05_Supplier}?showDeleted=true") ?? new List<L05_VPPSupplierResDTO>();
                     }
                 }
                 else if (queryIndex == 5) // Departments
@@ -246,7 +246,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                         glb.isBusyPage = true;
                         StateHasChanged();
 
-                        departments = await _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>($"{Config.ApiLibraryBase}/lex02") ?? new List<LEX02_CompanyDepartmentLocationResDTO>();
+                        departments = await _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>($"{Config.ApiLibraryBase}/lex02?showDeleted=true") ?? new List<LEX02_CompanyDepartmentLocationResDTO>();
                     }
                 }
             }

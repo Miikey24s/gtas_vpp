@@ -153,5 +153,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
             );
         }
+
+        protected void OnRowRender(RowRenderEventArgs<TType> args)
+        {
+            var isDeletedProp = typeof(TType).GetProperty("IsDeleted");
+            if (isDeletedProp != null)
+            {
+                var isDeletedVal = isDeletedProp.GetValue(args.Data);
+                if (isDeletedVal is bool isDeleted && isDeleted)
+                {
+                    args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+                }
+            }
+        }
     }
 }

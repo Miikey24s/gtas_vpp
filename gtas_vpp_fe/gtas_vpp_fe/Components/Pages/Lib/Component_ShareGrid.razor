@@ -12,7 +12,7 @@
                 AllowFiltering="true"
                 AllowColumnResize="true"
                 AllowMultiColumnSorting="true"
-                AllowVirtualization="true"
+                AllowVirtualization="false"
                 AllowAlternatingRows="true"
                 AllowGrouping="true"
                 ColumnsPickerAllowFiltering=true
@@ -23,7 +23,9 @@
                 AllowColumnReorder="true"
                 FilterMode="FilterMode.CheckBoxList"
                 FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                AllowPaging="false"
+                AllowPaging="true"
+                PageSize="20"
+                PageSizeOptions="@(new int[] { 20, 50, 100 })"
                 class="librarypagegrid"
                 Style="height: calc(100vh - 140px);"
                 TItem="TType"
@@ -34,6 +36,7 @@
                 LogicalFilterOperator="LogicalFilterOperator.And"
                 RowUpdate="@OnUpdateRow"
                 RowCreate="@OnCreateRow"
+                RowRender="@OnRowRender"
                 EditMode="DataGridEditMode.Single"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <HeaderTemplate>

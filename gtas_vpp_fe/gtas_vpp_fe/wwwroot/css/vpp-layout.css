@@ -21,6 +21,10 @@
     grid-template-columns: var(--vpp-sidebar-collapsed-width) 1fr;
 }
 
+leftsidebar {
+    display: contents;
+}
+
 .vpp-layout-sidebar {
     grid-area: sidebar;
     overflow-y: auto;
@@ -87,7 +91,7 @@
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
 .vpp-sidebar {
-    background-color: var(--vpp-bg-elevated);
+    background-color: var(--vpp-bg-base);
     border-right: 1px solid var(--vpp-border-default);
     display: flex;
     flex-direction: column;
@@ -309,3 +313,185 @@
     min-height: 0;
     height: 100%;
 }
+
+/* ── Period Settle Split-Pane Layout ── */
+.vpp-settle-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--vpp-space-6);
+    background-color: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    padding: var(--vpp-space-6);
+    box-shadow: var(--vpp-shadow-md);
+    margin-top: var(--vpp-space-4);
+}
+
+@media (max-width: 991px) {
+    .vpp-settle-container {
+        grid-template-columns: 1fr;
+        gap: var(--vpp-space-5);
+        padding: var(--vpp-space-5);
+    }
+}
+
+.vpp-settle-params {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vpp-space-4);
+}
+
+.vpp-settle-sub-title {
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-primary);
+    margin-bottom: var(--vpp-space-2);
+}
+
+.vpp-settle-status-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--vpp-bg-base);
+    border: 1px solid var(--vpp-border-default);
+    border-left: 4px solid var(--vpp-primary-500);
+    border-radius: var(--vpp-radius-md);
+    padding: var(--vpp-space-5);
+    min-height: 220px;
+    box-shadow: inset var(--vpp-shadow-xs);
+    transition: all var(--vpp-transition-fast);
+}
+
+.vpp-settle-status-card.status-warning {
+    border-left-color: var(--vpp-warning);
+}
+
+.vpp-settle-status-card.status-danger {
+    border-left-color: var(--vpp-danger);
+}
+
+.vpp-settle-status-card.status-success {
+    border-left-color: var(--vpp-success);
+}
+
+.vpp-settle-status-card.status-info {
+    border-left-color: var(--vpp-info);
+}
+
+.vpp-settle-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--vpp-border-default);
+    padding-bottom: var(--vpp-space-3);
+    margin-bottom: var(--vpp-space-4);
+}
+
+.vpp-settle-status-title {
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--vpp-tracking-wide);
+}
+
+.vpp-settle-period-badge {
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--vpp-primary-400);
+    padding: var(--vpp-space-1) var(--vpp-space-3);
+    border-radius: var(--vpp-radius-full);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-bold);
+    letter-spacing: var(--vpp-tracking-wide);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.vpp-settle-status-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: var(--vpp-space-5);
+}
+
+.vpp-settle-loading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vpp-space-3);
+    align-items: center;
+    text-align: center;
+}
+
+.vpp-settle-alert {
+    display: flex;
+    gap: var(--vpp-space-3);
+    align-items: flex-start;
+    padding: var(--vpp-space-3);
+    border-radius: var(--vpp-radius-md);
+}
+
+.vpp-settle-alert-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.vpp-settle-alert-content {
+    font-size: var(--vpp-text-sm);
+    line-height: var(--vpp-leading-relaxed);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-settle-alert.vpp-alert-warning {
+    background-color: var(--vpp-warning-muted);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+.vpp-settle-alert.vpp-alert-warning .vpp-settle-alert-icon {
+    color: var(--vpp-warning);
+}
+
+.vpp-settle-alert.vpp-alert-danger {
+    background-color: var(--vpp-danger-muted);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.vpp-settle-alert.vpp-alert-danger .vpp-settle-alert-icon {
+    color: var(--vpp-danger);
+}
+
+.vpp-settle-alert.vpp-alert-info {
+    background-color: var(--vpp-info-muted);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+}
+.vpp-settle-alert.vpp-alert-info .vpp-settle-alert-icon {
+    color: var(--vpp-info);
+}
+
+.vpp-settle-status-ready {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-3);
+    border-radius: var(--vpp-radius-md);
+    background-color: var(--vpp-success-muted);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.vpp-settle-ready-icon {
+    font-size: 1.75rem;
+    color: var(--vpp-success);
+    flex-shrink: 0;
+}
+
+.vpp-settle-status-ready .vpp-settle-status-desc {
+    color: var(--vpp-success);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-settle-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.vpp-settle-btn {
+    width: 100%;
+}
+

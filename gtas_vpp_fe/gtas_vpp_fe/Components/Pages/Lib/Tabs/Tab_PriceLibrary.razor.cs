@@ -6,6 +6,7 @@ using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
 using Radzen.Blazor;
@@ -13,7 +14,7 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
-    public partial class Tab_PriceLibrary
+    public partial class Tab_PriceLibrary : IDisposable
     {
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
@@ -41,16 +42,36 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         protected override async Task OnInitializedAsync()
         {
+            NavigationManager.LocationChanged += OnLocationChanged;
             await LoadLookupsAsync();
+        }
+
+        private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+        {
+            var newPriceListId = ResolveSelectedPriceListId();
+            if (newPriceListId != selectedPriceListId)
+            {
+                selectedPriceListId = newPriceListId;
+                _ = InvokeAsync(async () =>
+                {
+                    await LoadPricesAsync();
+                    StateHasChanged();
+                });
+            }
+        }
+
+        public void Dispose()
+        {
+            NavigationManager.LocationChanged -= OnLocationChanged;
         }
 
         private async Task LoadLookupsAsync()
         {
             try
             {
-                var priceListsTask = _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList);
-                var vppItemsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>(Config.LibraryApi.L04_Item);
-                var suppliersTask = _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(Config.LibraryApi.L05_Supplier);
+                var priceListsTask = _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>($"{Config.LibraryApi.L07_PriceList}?showDeleted=true");
+                var vppItemsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>($"{Config.LibraryApi.L04_Item}?showDeleted=true");
+                var suppliersTask = _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>($"{Config.LibraryApi.L05_Supplier}?showDeleted=true");
 
                 await Task.WhenAll(priceListsTask, vppItemsTask, suppliersTask);
 
@@ -86,11 +107,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 prices = await _apiServices.GetFromApiAsync<List<L06_VPPSupplierMappingResDTO>>(
-                    $"{Config.LibraryApi.VPPPrice_BySupplier}/{selectedSupplierId.Value}?priceListId={selectedPriceListId.Value}") ?? [];
+                    $"{Config.LibraryApi.VPPPrice_BySupplier}/{selectedSupplierId.Value}?priceListId={selectedPriceListId.Value}&showDeleted=true") ?? [];
+
+                var priceMap = prices
+                    .GroupBy(p => p.L04_VPPId)
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 displayItems = vppItems.Select(vpp =>
                 {
-                    var mapping = prices.FirstOrDefault(p => p.L04_VPPId == vpp.Id);
+                    priceMap.TryGetValue(vpp.Id, out var mapping);
                     return new VppItemPriceDisplayModel
                     {
                         VPPId = vpp.Id,

@@ -34,7 +34,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             isLoading = true;
             try
             {
-                priceLists = await _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [];
+                priceLists = await _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>($"{Config.LibraryApi.L07_PriceList}?showDeleted=true") ?? [];
             }
             catch (Exception ex)
             {

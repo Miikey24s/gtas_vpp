@@ -219,3 +219,10 @@
 .sidebar-collapsed .rz-navigation-item-icon-children {
     display: none;
 }
+
+/* Ensure panel menu has transparent background to inherit the sidebar's background */
+.vpp-sidebar .rz-panel-menu {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+

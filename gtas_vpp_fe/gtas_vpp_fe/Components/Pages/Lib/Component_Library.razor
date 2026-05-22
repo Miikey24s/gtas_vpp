@@ -50,6 +50,16 @@
                     }
                 </RadzenTabsItem>
             }
+            @if (CanViewLibraryTab(Permissions.LibraryPriceList))
+            {
+                <RadzenTabsItem Text="@Loc["PriceLists"]">
+                    @if (IsActiveTab(6))
+                    {
+                        <Tab_PriceListLibrary claims="@claims"
+                                              sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
             @if (CanViewLibraryTab(Permissions.LibraryPrice))
             {
                 <RadzenTabsItem Text="@Loc["Prices"]">
@@ -66,16 +76,6 @@
                     @if (IsActiveTab(5))
                     {
                         <Component_ShareGrid TType=LEX02_CompanyDepartmentLocationResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
-                    }
-                </RadzenTabsItem>
-            }
-            @if (CanViewLibraryTab(Permissions.LibraryPriceList))
-            {
-                <RadzenTabsItem Text="@Loc["PriceLists"]">
-                    @if (IsActiveTab(6))
-                    {
-                        <Tab_PriceListLibrary claims="@claims"
-                                              sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
                     }
                 </RadzenTabsItem>
             }

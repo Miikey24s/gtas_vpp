@@ -50,9 +50,14 @@
                     AllowSorting="true"
                     AllowPaging="true"
                     PageSize="20"
+                    PageSizeOptions="@(new int[] { 20, 50, 100 })"
                     Density="Density.Compact"
                     EmptyText="@GridEmptyText"
                     GridLines="DataGridGridLines.Horizontal"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.CheckBoxList"
+                    FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    LogicalFilterOperator="LogicalFilterOperator.And"
                     Style="height: calc(100vh - 230px);">
         <Columns>
             <RadzenDataGridColumn TItem="VppItemPriceDisplayModel" Property="VPPCode" Title="@Loc["ProductCode"]" Width="140px" />

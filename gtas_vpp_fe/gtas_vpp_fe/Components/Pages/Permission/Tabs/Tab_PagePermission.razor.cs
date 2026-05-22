@@ -119,7 +119,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             {
                 list_PermissionOfGroup = await _apiServices.GetFromApiAsync<
                     List<sp_Authen_Permission_GetPageWithComponentByGroupId>
-                >($"/api/Permission/groups/{group.Id}/page-components")
+                >($"/api/Permission/groups/{group.Id}/page-components?showDeleted=true")
                 ?? new List<sp_Authen_Permission_GetPageWithComponentByGroupId>();
             }
             catch (Exception ex)
@@ -446,6 +446,22 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     new Dictionary<string, object?> { { "Record", args.Data } },
                     options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
                 );
+            }
+        }
+
+        protected void OnRowRenderGroup(RowRenderEventArgs<P02_GroupResDTO> args)
+        {
+            if (args.Data != null && args.Data.IsDeleted)
+            {
+                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+            }
+        }
+
+        protected void OnRowRenderComponent(RowRenderEventArgs<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> args)
+        {
+            if (args.Data != null && args.Data.IsDeleted)
+            {
+                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
             }
         }
     }

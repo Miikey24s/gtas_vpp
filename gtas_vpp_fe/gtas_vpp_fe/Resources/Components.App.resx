@@ -314,4 +314,8 @@
   <data name="Warning_PendingAdditional" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt. Vui lòng duyệt trước khi đóng kỳ.</value></data>
   <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã đóng lúc {0} bởi {1} với bảng giá {2}.</value></data>
   <data name="Confirm_Settle" xml:space="preserve"><value>Đóng kỳ {0}/{1} với bảng giá {2}?</value></data>
+  <data name="Parameters" xml:space="preserve"><value>Tham số cấu hình</value></data>
+  <data name="PeriodStatus" xml:space="preserve"><value>Trạng thái kỳ</value></data>
+  <data name="CheckingPeriodStatus" xml:space="preserve"><value>Đang kiểm tra trạng thái kỳ...</value></data>
+  <data name="PeriodReadyToSettle" xml:space="preserve"><value>Kỳ sẵn sàng đóng</value></data>
 </root>

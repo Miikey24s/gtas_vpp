@@ -73,7 +73,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 // Build query parameters for server-side filtering
-                var queryParams = new List<string>();
+                var queryParams = new List<string> { "showDeleted=true" };
                 
                 if (!string.IsNullOrEmpty(args.Filter))
                 {
@@ -127,6 +127,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 // Request distinct values from server
                 var queryParams = new List<string>
                 {
+                    "showDeleted=true",
                     $"distinct={Uri.EscapeDataString(property)}"
                 };
 
@@ -225,6 +226,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 // Build query parameters for server-side filtering
                 var queryParams = new List<string>
                 {
+                    "showDeleted=true",
                     $"classId={selectedClassL01.Id}"
                 };
                 
@@ -277,6 +279,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 // Request distinct values from server
                 var queryParams = new List<string>
                 {
+                    "showDeleted=true",
                     $"classId={selectedClassL01.Id}",
                     $"distinct={Uri.EscapeDataString(property)}"
                 };
@@ -346,6 +349,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        protected void OnRowRenderL01(RowRenderEventArgs<L01_ClassResDTO> args)
+        {
+            if (args.Data != null && args.Data.IsDeleted)
+            {
+                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+            }
+        }
+
+        protected void OnRowRenderL02(RowRenderEventArgs<L02_ClassDetailResDTO> args)
+        {
+            if (args.Data != null && args.Data.IsDeleted)
+            {
+                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+            }
+        }
         #endregion
     }
 }

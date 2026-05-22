@@ -10,7 +10,8 @@
 @if (CanView)
 {
     <RadzenStack Gap="2rem" class="rz-p-0 rz-p-md-2">
-        <RadzenFieldset Text="@Loc["PendingApprovals"]">
+        <div class="vpp-section">
+            <h3 class="vpp-section-title">@Loc["PendingApprovals"]</h3>
             <RadzenStack Gap="1rem">
 
                 @* ── KPI Summary ────────────────────────────────────── *@
@@ -190,13 +191,14 @@
                     </div>
                 }
             </RadzenStack>
-        </RadzenFieldset>
+        </div>
 
         @if (CanShowSettlement)
         {
-            <RadzenFieldset Text="@Loc["PeriodSettlement"]">
+            <div class="vpp-section">
+                <h3 class="vpp-section-title">@Loc["PeriodSettlement"]</h3>
                 <PeriodSettlementPanel OnSettled="@OnSettledRefresh" />
-            </RadzenFieldset>
+            </div>
         }
     </RadzenStack>
 }

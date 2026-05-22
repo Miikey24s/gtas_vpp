@@ -2,50 +2,90 @@
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<RadzenStack Gap="1rem">
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap">
-        <RadzenFormField Text="@Loc["Year"]" Style="min-width:140px;">
-            <RadzenNumeric TValue="int"
-                           Value="@selectedYear"
-                           ValueChanged="@OnYearChangedAsync"
-                           Min="2024"
-                           Max="2030"
-                           Disabled="@isLoading"
-                           Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="@Loc["Month"]" Style="min-width:140px;">
-            <RadzenDropDown TValue="int"
-                            Data="@months"
-                            Value="@selectedMonth"
-                            ValueChanged="@OnMonthChangedAsync"
-                            Disabled="@isLoading"
-                            Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
-            <RadzenDropDown TValue="Guid?"
-                            Data="@priceLists"
-                            TextProperty="PriceListName"
-                            ValueProperty="Id"
-                            Value="@selectedPriceListId"
-                            ValueChanged="@OnPriceListChangedAsync"
-                            AllowClear="true"
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Placeholder="@Loc["PriceList_UseDefault"]"
-                            Disabled="@isLoading"
-                            Style="width:100%" />
-        </RadzenFormField>
-        <RadzenButton Icon="lock"
-                      Text="@Loc["SettlePeriod"]"
-                      ButtonStyle="ButtonStyle.Primary"
-                      Disabled="@(!canSettle || isLoading || isSettling)"
-                      Click="@SettleAsync" />
-    </RadzenStack>
+<div class="vpp-settle-container">
+    <!-- Left Pane: Parameter Configuration -->
+    <div class="vpp-settle-params">
+        <h4 class="vpp-settle-sub-title">@Loc["Parameters"]</h4>
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="@Loc["Year"]" Style="width: 100%">
+                <RadzenNumeric TValue="int"
+                               Value="@selectedYear"
+                               ValueChanged="@OnYearChangedAsync"
+                               Min="2024"
+                               Max="2030"
+                               Disabled="@isLoading"
+                               Style="width:100%" />
+            </RadzenFormField>
+            
+            <RadzenFormField Text="@Loc["Month"]" Style="width: 100%">
+                <RadzenDropDown TValue="int"
+                                Data="@months"
+                                Value="@selectedMonth"
+                                ValueChanged="@OnMonthChangedAsync"
+                                Disabled="@isLoading"
+                                Style="width:100%" />
+            </RadzenFormField>
+            
+            <RadzenFormField Text="@Loc["PriceList"]" Style="width: 100%">
+                <RadzenDropDown TValue="Guid?"
+                                Data="@priceLists"
+                                TextProperty="PriceListName"
+                                ValueProperty="Id"
+                                Value="@selectedPriceListId"
+                                ValueChanged="@OnPriceListChangedAsync"
+                                AllowClear="true"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Placeholder="@Loc["PriceList_UseDefault"]"
+                                Disabled="@isLoading"
+                                Style="width:100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </div>
 
-    @if (!string.IsNullOrWhiteSpace(alertMessage))
-    {
-        <RadzenAlert AlertStyle="@alertStyle" ShowIcon="true" Variant="Variant.Flat">
-            @alertMessage
-        </RadzenAlert>
-    }
-</RadzenStack>
+    <!-- Right Pane: Status & Settle Actions -->
+    <div class="vpp-settle-status-card @StatusCardClass">
+        <div class="vpp-settle-status-header">
+            <span class="vpp-settle-status-title">@Loc["PeriodStatus"]</span>
+            <span class="vpp-settle-period-badge">@selectedMonth.ToString("D2")/@selectedYear</span>
+        </div>
+        
+        <div class="vpp-settle-status-body">
+            @if (isLoading)
+            {
+                <div class="vpp-settle-loading">
+                    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 4px; width: 100%;" />
+                    <span class="vpp-settle-status-desc">@Loc["CheckingPeriodStatus"]</span>
+                </div>
+            }
+            else
+            {
+                @if (!string.IsNullOrWhiteSpace(alertMessage))
+                {
+                    <div class="vpp-settle-alert vpp-alert-@alertStyle.ToString().ToLower()">
+                        <span class="vpp-settle-alert-icon rzi @(alertStyle == AlertStyle.Danger ? "rzi-error" : alertStyle == AlertStyle.Warning ? "rzi-warning" : "rzi-info")"></span>
+                        <div class="vpp-settle-alert-content">
+                            @alertMessage
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="vpp-settle-status-ready">
+                        <span class="vpp-settle-ready-icon rzi rzi-check-circle"></span>
+                        <span class="vpp-settle-status-desc">@Loc["PeriodReadyToSettle"]</span>
+                    </div>
+                }
+            }
+        </div>
+        
+        <div class="vpp-settle-actions">
+            <RadzenButton Icon="lock"
+                          Text="@Loc["SettlePeriod"]"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Disabled="@(!canSettle || isLoading || isSettling)"
+                          Click="@SettleAsync"
+                          class="vpp-settle-btn" />
+        </div>
+    </div>
+</div>

@@ -26,6 +26,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private string? alertMessage;
         private AlertStyle alertStyle = AlertStyle.Info;
 
+        private string StatusCardClass
+        {
+            get
+            {
+                if (isLoading) return "status-info";
+                if (!string.IsNullOrWhiteSpace(alertMessage))
+                {
+                    return alertStyle switch
+                    {
+                        AlertStyle.Danger => "status-danger",
+                        AlertStyle.Warning => "status-warning",
+                        AlertStyle.Success => "status-success",
+                        _ => "status-info"
+                    };
+                }
+                return canSettle ? "status-success" : "status-info";
+            }
+        }
+
         protected override async Task OnInitializedAsync()
         {
             await LoadPriceListsAsync();

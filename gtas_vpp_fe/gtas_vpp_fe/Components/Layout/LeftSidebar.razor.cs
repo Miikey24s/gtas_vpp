@@ -31,6 +31,7 @@ namespace gtas_vpp_fe.Components.Layout
             (Permissions.LibraryCategory, "/library?tab=1"),
             (Permissions.LibraryItem, "/library?tab=2"),
             (Permissions.LibrarySupplier, "/library?tab=3"),
+            (Permissions.LibraryPriceList, "/library?tab=6"),
             (Permissions.LibraryPrice, "/library?tab=4"),
             (Permissions.LibraryDepartment, "/library?tab=5")
         ];
@@ -241,7 +242,7 @@ namespace gtas_vpp_fe.Components.Layout
             return "U";
         }
 
-        public string GetSidebarClass() => $"vpp-sidebar {(!_sideBarExpanded ? "sidebar-collapsed" : "")}";
+        public string GetSidebarClass() => $"vpp-sidebar vpp-layout-sidebar {(!_sideBarExpanded ? "sidebar-collapsed" : "")}";
 
         public void OnMenuItemClick(MenuItemEventArgs args)
         {

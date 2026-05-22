@@ -13,7 +13,7 @@
 
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" Style="position:absolute; top: 0; left: 0; width: 100vw; z-index:99" />
 
-<RadzenHeader class="vpp-header-glass" Style="position:static;">
+<RadzenHeader class="vpp-header-glass vpp-layout-header" Style="position:static;">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2" Style="width:100%;">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
             <RadzenSidebarToggle class="customburger" Click="@(() => _sideBarExpanded = !_sideBarExpanded)" />
@@ -62,7 +62,7 @@
                 }
                 @if (CanViewDashboardItem(Permissions.RequestAdminApproval))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="fact_check" />
+                    <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="summarize" />
                 }
             </RadzenPanelMenuItem>
         }
@@ -84,6 +84,10 @@
                 @if (CanViewLibraryItem(Permissions.LibrarySupplier))
                 {
                     <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryPriceList))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="/library?tab=6" class="ppjsidebarmenu submenu" Icon="list_alt" />
                 }
                 @if (CanViewLibraryItem(Permissions.LibraryPrice))
                 {
@@ -112,7 +116,6 @@
                 }
             </RadzenPanelMenuItem>
         }
-        <hr />
         <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" />
         <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">
             <h6 class="text-center">@currentTime.ToString("dd-MM-yyyy")</h6>

@@ -1,16 +1,44 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   VPP TOAST NOTIFICATIONS — Phase 10
-   Enhanced styling for Radzen notifications
+   VPP TOAST NOTIFICATIONS — Phase 11
+   Enhanced solid/translucent styling for Radzen notifications
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Reset outer notification container wrapper */
 .rz-notification {
-    border-radius: var(--vpp-radius-lg) !important;
-    box-shadow: var(--vpp-shadow-glass) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
     animation: vpp-toast-in var(--vpp-transition-base) ease-out;
     font-family: var(--vpp-font-body);
+}
+
+/* Force ALL inner wrappers to be completely transparent with no extra borders or margins */
+.rz-notification-message-content,
+.rz-notification-message-body,
+.rz-notification-content,
+.rz-growl-message,
+.rz-growl-message-content {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Base message container style */
+.rz-notification-message {
+    border-radius: var(--vpp-radius-lg) !important;
+    box-shadow: var(--vpp-shadow-glass) !important;
+    font-family: var(--vpp-font-body);
+    display: flex !important;
+    align-items: center !important;
+    padding: 16px 20px !important;
+    margin-bottom: 8px !important;
+    min-width: 320px;
 }
 
 @keyframes vpp-toast-in {
@@ -18,54 +46,119 @@
     to   { opacity: 1; transform: translateX(0) scale(1); }
 }
 
-/* Success toast */
+/* Premium success notification */
+.rz-notification-message-success,
+.rz-notification-message[class*="-success"],
 .rz-notification-message[style*="--rz-success"] {
-    border-left: 4px solid var(--vpp-success);
+    background: #10b981 !important; /* Premium solid Emerald Green */
+    color: #ffffff !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
 }
 
-/* Error toast */
+/* Premium error/danger notification */
+.rz-notification-message-danger,
+.rz-notification-message-error,
+.rz-notification-message[class*="-danger"],
+.rz-notification-message[class*="-error"],
 .rz-notification-message[style*="--rz-danger"] {
-    border-left: 4px solid var(--vpp-danger);
+    background: #ef4444 !important; /* Premium solid Rose/Red */
+    color: #ffffff !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
 }
 
-/* Warning toast */
+/* Premium warning notification */
+.rz-notification-message-warning,
+.rz-notification-message[class*="-warning"],
 .rz-notification-message[style*="--rz-warning"] {
-    border-left: 4px solid var(--vpp-warning);
+    background: #f59e0b !important; /* Premium solid Amber */
+    color: #ffffff !important;
+    border: 1px solid rgba(245, 158, 11, 0.2) !important;
 }
 
-/* Info toast */
+/* Premium info notification */
+.rz-notification-message-info,
+.rz-notification-message[class*="-info"],
 .rz-notification-message[style*="--rz-info"] {
-    border-left: 4px solid var(--vpp-info);
+    background: #0ea5e9 !important; /* Premium solid Sky Blue */
+    color: #ffffff !important;
+    border: 1px solid rgba(14, 165, 233, 0.2) !important;
 }
 
-/* Dark theme glass effect */
-:root.rz-theme-dark .rz-notification {
-    background: rgba(26, 26, 26, 0.85) !important;
-}
-
-/* Light theme */
-:root:not(.rz-theme-dark) .rz-notification {
-    background: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Toast message text */
+/* Toast title typography */
 .rz-notification .rz-notification-message-body .rz-notification-summary {
     font-family: var(--vpp-font-display);
-    font-weight: var(--vpp-font-weight-semibold);
-    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold) !important;
+    font-size: var(--vpp-text-sm) !important;
+    color: #ffffff !important;
+    display: block !important;
+    margin-bottom: 2px !important;
 }
 
+/* Toast description/detail typography */
 .rz-notification .rz-notification-message-body .rz-notification-detail {
-    font-size: var(--vpp-text-xs);
-    color: var(--vpp-text-secondary);
-    margin-top: 2px;
+    font-size: var(--vpp-text-xs) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
 }
 
-/* Toast close button */
-.rz-notification .rz-notification-close {
-    opacity: 0.5;
-    transition: opacity var(--vpp-transition-fast);
+/* Align and color default Radzen icon inside toast */
+.rz-notification-message .rz-notification-icon {
+    color: #ffffff !important;
+    font-size: 1.5rem !important;
+    margin-right: 14px !important;
+    align-self: center !important;
 }
-.rz-notification .rz-notification-close:hover {
-    opacity: 1;
+
+/* Style and reposition close button inside toast */
+.rz-notification-message .rz-notification-close {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 1.15rem !important;
+    opacity: 0.8 !important;
+    transition: opacity var(--vpp-transition-fast) !important;
+    margin-left: auto !important;
+    align-self: center !important;
+    cursor: pointer;
+}
+
+.rz-notification-message .rz-notification-close:hover {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* Style RadzenText components inside notifications to prevent default margins and colors causing awkward layout and whitespaces */
+.rz-notification-message .rz-text-h6,
+.rz-notification-message .rz-notification-summary,
+.rz-notification-message h6 {
+    margin: 0 0 4px 0 !important;
+    font-family: var(--vpp-font-display) !important;
+    font-weight: var(--vpp-font-weight-semibold) !important;
+    font-size: var(--vpp-text-sm) !important;
+    color: #ffffff !important;
+    line-height: 1.2 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.rz-notification-message .rz-text-body1,
+.rz-notification-message .rz-notification-detail,
+.rz-notification-message p {
+    margin: 0 !important;
+    font-family: var(--vpp-font-body) !important;
+    font-size: var(--vpp-text-xs) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    line-height: 1.4 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Force timestamp inside CustomNotificationService to look neat */
+.rz-notification-message br + span, 
+.rz-notification-message small {
+    display: inline-block !important;
+    margin-top: 4px !important;
+    font-size: 10px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    background: transparent !important;
+    background-color: transparent !important;
 }
