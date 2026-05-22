@@ -1,0 +1,17 @@
+**/.git
+**/.vs
+**/.vscode
+**/.gemini
+**/.ai_workspace
+**/.codex
+**/.dotnet-home
+**/bin
+**/obj
+**/node_modules
+**/.github
+**/*.user
+**/*.suo
+**/TestResults
+**/.env
+**/.env.*
+!**/.env.example

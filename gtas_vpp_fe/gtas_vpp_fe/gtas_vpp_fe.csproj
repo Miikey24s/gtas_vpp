@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\gtas_vpp_be\gtas_vpp_shared\gtas_vpp_shared.csproj" />
+    <ProjectReference Include="..\..\gtas_vpp_shared\gtas_vpp_shared.csproj" />
   </ItemGroup>
 
 </Project>
