@@ -418,6 +418,9 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] int? year,
             [FromQuery] int? month,
             [FromQuery] int? status,
+            [FromQuery] List<int>? years,
+            [FromQuery] List<int>? months,
+            [FromQuery] List<int>? statuses,
             [FromQuery] string? departmentCode,
             [FromQuery] string? filter,
             [FromQuery] string? filters,
@@ -442,7 +445,7 @@ namespace gtas_vpp_be.Controllers
                     departmentCode = CurrentDepartmentCode;
                 }
 
-                var scopedData = await GetScopedOrderDataAsync(scope, year, month, status, departmentCode);
+                var scopedData = await GetScopedOrderDataAsync(scope, year, month, status, departmentCode, years, months, statuses);
                 var filteredData = ApplyPopupFilterScope(scopedData, filters);
 
                 if (!string.IsNullOrWhiteSpace(filter) && !filteredData.Any())
@@ -461,12 +464,27 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private async Task<List<VPP01_RequestHeaderResDTO>> GetScopedOrderDataAsync(string? scope, int? year, int? month, int? status, string? departmentCode)
+        private async Task<List<VPP01_RequestHeaderResDTO>> GetScopedOrderDataAsync(
+            string? scope,
+            int? year,
+            int? month,
+            int? status,
+            string? departmentCode,
+            List<int>? years = null,
+            List<int>? months = null,
+            List<int>? statuses = null)
         {
             return scope?.Trim().ToLowerInvariant() switch
             {
                 "department" => await _vppService.GetDepartmentOrdersAsync(year, month, status, departmentCode),
                 "pending" => await _vppService.GetPendingAdditionalOrdersAsync(),
+                "my-orders" => CurrentUserId.HasValue 
+                    ? await _vppService.GetMyOrdersAsync(
+                        CurrentUserId.Value,
+                        MergeIntFilters(year, years),
+                        MergeIntFilters(month, months),
+                        MergeIntFilters(status, statuses)) 
+                    : new(),
                 _ => await _vppService.GetAllOrdersAsync(year, month, status, departmentCode)
             };
         }

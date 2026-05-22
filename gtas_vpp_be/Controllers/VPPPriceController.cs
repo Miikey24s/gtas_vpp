@@ -30,11 +30,11 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("by-supplier/{supplierId:guid}")]
-        public async Task<IActionResult> ListBySupplier(Guid supplierId, [FromQuery] Guid? priceListId)
+        public async Task<IActionResult> ListBySupplier(Guid supplierId, [FromQuery] Guid? priceListId, [FromQuery] bool? showDeleted = false)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var result = await _priceService.ListBySupplierAsync(supplierId, priceListId);
+            var result = await _priceService.ListBySupplierAsync(supplierId, priceListId, showDeleted ?? false);
             return Ok(result);
         }
 

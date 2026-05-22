@@ -1,4 +1,4 @@
-﻿namespace gtas_vpp_shared.DTOs.Res.Auth
+namespace gtas_vpp_shared.DTOs.Res.Auth
 {
     public class sp_Authen_Permission_GetPageWithComponentByGroupId
     {
@@ -31,6 +31,7 @@
         public long MemberCompanyCode { get; set; }
         public string? CompanyName { get; set; }
         public string? CompanyShortName { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
 

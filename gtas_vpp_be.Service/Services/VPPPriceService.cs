@@ -37,7 +37,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
         }
 
-        public async Task<List<L06_VPPSupplierMappingResDTO>> ListBySupplierAsync(Guid supplierId, Guid? priceListId = null)
+        public async Task<List<L06_VPPSupplierMappingResDTO>> ListBySupplierAsync(Guid supplierId, Guid? priceListId = null, bool showDeleted = false)
         {
             var effectivePriceListId = priceListId ?? await GetDefaultPriceListIdAsync();
             if (!effectivePriceListId.HasValue)
@@ -45,7 +45,7 @@ namespace gtas_vpp_be.Service.Services
                 return new List<L06_VPPSupplierMappingResDTO>();
             }
 
-            return await PriceDtoQuery()
+            return await PriceDtoQuery(showDeleted)
                 .Where(x => x.L05_VPPSupplierId == supplierId && x.L07_PriceListId == effectivePriceListId.Value)
                 .OrderByDescending(x => x.IsDefault)
                 .ThenBy(x => x.L04_VPPName)
@@ -213,11 +213,15 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private IQueryable<L06_VPPSupplierMappingResDTO> PriceDtoQuery()
+        private IQueryable<L06_VPPSupplierMappingResDTO> PriceDtoQuery(bool showDeleted = false)
         {
-            return _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted)
+            var query = _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
+                .AsNoTracking();
+            if (!showDeleted)
+            {
+                query = query.Where(x => !x.IsDeleted);
+            }
+            return query
                 .Select(x => new L06_VPPSupplierMappingResDTO
                 {
                     Id = x.Id,

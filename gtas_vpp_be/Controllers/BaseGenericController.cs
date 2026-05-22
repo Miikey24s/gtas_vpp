@@ -31,9 +31,10 @@ namespace gtas_vpp_be.Controllers
             string cleanSearch,
             Expression<Func<TModel, bool>> matchId,
             Expression<Func<TModel, bool>>? matchSearch = null,
-            Func<IQueryable<TModel>, IQueryable<TModel>>? orderBy = null) where TModel : class
+            Func<IQueryable<TModel>, IQueryable<TModel>>? orderBy = null,
+            bool showDeleted = false) where TModel : class
         {
-            var notDeletedFilter = GetNotDeletedFilter<TModel>();
+            var notDeletedFilter = showDeleted ? null : GetNotDeletedFilter<TModel>();
 
             if (id.HasValue)
             {

@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
@@ -67,19 +67,24 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("groups/{id:guid}/page-components")]
-        public async Task<IActionResult> GetGroupPageComponents(Guid id)
+        public async Task<IActionResult> GetGroupPageComponents(Guid id, [FromQuery] bool? showDeleted = false)
         {
-            var groupMappings = await _unitOfWork.VPPContext.Set<P06_GroupPageComponentMapping>()
+            var query = _unitOfWork.VPPContext.Set<P06_GroupPageComponentMapping>()
                 .AsNoTracking()
                 .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P01_Page)
                 .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P03_Component)
                 .Where(x => x.P02_GroupId == id
                             && x.P05_PageComponentMapping != null
                             && x.P05_PageComponentMapping.P01_Page != null
-                            && x.P05_PageComponentMapping.P03_Component != null
-                            && !x.P05_PageComponentMapping.P01_Page.IsDeleted
-                            && !x.P05_PageComponentMapping.P03_Component.IsDeleted)
-                .ToListAsync();
+                            && x.P05_PageComponentMapping.P03_Component != null);
+
+            if (showDeleted != true)
+            {
+                query = query.Where(x => !x.P05_PageComponentMapping!.P01_Page!.IsDeleted
+                                         && !x.P05_PageComponentMapping!.P03_Component!.IsDeleted);
+            }
+
+            var groupMappings = await query.ToListAsync();
 
             if (groupMappings.Count == 0)
             {
@@ -140,7 +145,8 @@ namespace gtas_vpp_be.Controllers
                                     GroupPageComponentMappingId = pageComponentMapping.Id,
                                     MemberCompanyCode = groupMapping.MemberCompanyCode,
                                     CompanyName = company?.CompanyName,
-                                    CompanyShortName = company?.CompanyShortName
+                                    CompanyShortName = company?.CompanyShortName,
+                                    IsDeleted = component.IsDeleted
                                 };
                             })
                             .ToList()

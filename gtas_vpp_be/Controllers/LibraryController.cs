@@ -46,9 +46,11 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] int? top,
             [FromQuery] string? orderby,
             [FromQuery] string? distinct,
-            [FromQuery] string? distinctFilter)
+            [FromQuery] string? distinctFilter,
+            [FromQuery] bool? showDeleted = false)
         {
             string cleanSearch = searchText?.Trim() ?? string.Empty;
+            bool isShowDeleted = showDeleted ?? false;
 
             // Check if this is a LoadData request (has any of the advanced parameters)
             bool isLoadDataRequest = !string.IsNullOrEmpty(filter) || skip.HasValue || top.HasValue || 
@@ -66,9 +68,9 @@ namespace gtas_vpp_be.Controllers
             {
                 return tableCode.ToLower() switch
                 {
-                    "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct, distinctFilter),
-                    "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, distinctFilter, classId),
-                    "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct, distinctFilter),
+                    "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, distinctFilter, classId, isShowDeleted),
+                    "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
                     _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
                 };
             }
@@ -80,21 +82,24 @@ namespace gtas_vpp_be.Controllers
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.ClassName != null && x.ClassName.Contains(cleanSearch))
                                    || (x.ClassCode != null && x.ClassCode.Contains(cleanSearch))
-                                   || (x.Description != null && x.Description.Contains(cleanSearch))),
+                                   || (x.Description != null && x.Description.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
                 "l02" => await GetTableDataAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id, cleanSearch, 
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.ClassDetailCode != null && x.ClassDetailCode.Contains(cleanSearch))
                                    || (x.ClassDetailValue != null && x.ClassDetailValue.Contains(cleanSearch))
-                                   || (x.Description != null && x.Description.Contains(cleanSearch))),
-                "l03" => await GetTableDataAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id),
-                "l04" => await GetVppItemsAsync(id, cleanSearch),
-                "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id),
-                "l06" => await GetTableDataAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id),
+                                   || (x.Description != null && x.Description.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
+                "l03" => await GetTableDataAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
+                "l04" => await GetVppItemsAsync(id, cleanSearch, isShowDeleted),
+                "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
+                "l06" => await GetTableDataAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
                 "lex02" => await GetTableDataAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.LEX02Code != null && x.LEX02Code.Contains(cleanSearch))
                                    || (x.LEX02Name != null && x.LEX02Name.Contains(cleanSearch))
-                                   || x.LEX02Type.Contains(cleanSearch)),
+                                   || x.LEX02Type.Contains(cleanSearch),
+                    showDeleted: isShowDeleted),
                 _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
             };
         }
@@ -108,11 +113,15 @@ namespace gtas_vpp_be.Controllers
                 .FirstOrDefaultAsync();
         }
 
-        private async Task<IActionResult> GetVppItemsAsync(Guid? id, string cleanSearch)
+        private async Task<IActionResult> GetVppItemsAsync(Guid? id, string cleanSearch, bool showDeleted = false)
         {
             var vppQuery = _unitOfWork.VPPContext.Set<L04_VPP>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted);
+                .AsNoTracking();
+
+            if (!showDeleted)
+            {
+                vppQuery = vppQuery.Where(x => !x.IsDeleted);
+            }
 
             if (id.HasValue)
             {
@@ -140,10 +149,10 @@ namespace gtas_vpp_be.Controllers
 
             var mappings = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
                 .AsNoTracking()
-                .Where(m => !m.IsDeleted 
+                .Where(m => (showDeleted || !m.IsDeleted) 
                     && m.L07_PriceListId == defaultPriceListId
                     && vppIds.Contains(m.L04_VPPId)
-                    && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                    && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
                 .Select(m => new {
                     m.L04_VPPId,
                     m.Price,
@@ -194,11 +203,11 @@ namespace gtas_vpp_be.Controllers
             return Ok(dtoList);
         }
 
-        private async Task<IActionResult> GetVppItemByIdAsync(Guid id)
+        private async Task<IActionResult> GetVppItemByIdAsync(Guid id, bool showDeleted = false)
         {
             var vpp = await _unitOfWork.VPPContext.Set<L04_VPP>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+                .FirstOrDefaultAsync(x => x.Id == id && (showDeleted || !x.IsDeleted));
 
             if (vpp == null)
             {
@@ -209,10 +218,10 @@ namespace gtas_vpp_be.Controllers
 
             var mappings = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
                 .AsNoTracking()
-                .Where(m => !m.IsDeleted 
+                .Where(m => (showDeleted || !m.IsDeleted) 
                     && m.L07_PriceListId == defaultPriceListId
                     && m.L04_VPPId == id
-                    && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
+                    && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
                 .Select(m => new {
                     m.Price,
                     m.IsDefault,
@@ -255,7 +264,8 @@ namespace gtas_vpp_be.Controllers
             string? orderby,
             string? distinct,
             string? distinctFilter,
-            Guid? classId = null) where TModel : class
+            Guid? classId = null,
+            bool showDeleted = false) where TModel : class
         {
             // P3.2 (F-12): Build query directly on IQueryable<TModel> so filter/orderby/
             // count/skip/take all translate to SQL. Previously this method materialized
@@ -267,7 +277,10 @@ namespace gtas_vpp_be.Controllers
 
                 if (typeof(gtas_vpp_be.Model.Helpers.BaseModel).IsAssignableFrom(typeof(TModel)))
                 {
-                    query = query.Where("IsDeleted == false");
+                    if (!showDeleted)
+                    {
+                        query = query.Where("IsDeleted == false");
+                    }
                 }
 
                 // Apply classId filter for L02 (typed, not Dynamic LINQ)
@@ -389,14 +402,15 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("{tableCode}/{id:guid}")]
-        public async Task<IActionResult> GenericGetById(string tableCode, Guid id)
+        public async Task<IActionResult> GenericGetById(string tableCode, Guid id, [FromQuery] bool? showDeleted = false)
         {
+            bool isShowDeleted = showDeleted ?? false;
             return tableCode.ToLower() switch
             {
                 "l01" => await GetByIdAsync<L01_Class, L01_ClassResDTO>(id),
                 "l02" => await GetByIdAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id),
                 "l03" => await GetByIdAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id),
-                "l04" => await GetVppItemByIdAsync(id),
+                "l04" => await GetVppItemByIdAsync(id, isShowDeleted),
                 "l05" => await GetByIdAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id),
                 "l06" => await GetByIdAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id),
                 "lex02" => await GetByIdAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id),
