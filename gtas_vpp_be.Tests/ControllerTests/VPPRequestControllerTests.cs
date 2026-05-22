@@ -291,7 +291,10 @@ public class VPPRequestControllerTests
             null,
             null,
             null,
-            null,
+            null, // years
+            null, // months
+            null, // statuses
+            null, // departmentCode
             "StatusText == \"Submitted\"",
             filtersJson,
             null);
