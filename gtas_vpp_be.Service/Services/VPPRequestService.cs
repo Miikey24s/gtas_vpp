@@ -30,7 +30,7 @@ namespace gtas_vpp_be.Service.Services
         Task<VPP01_RequestHeaderResDTO?> GetPreviousOrderItemsAsync(int userId);
         Task<VPP_PeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId);
         Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode);
-        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
         Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode);
         Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
         Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync();
@@ -433,7 +433,7 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top)
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top)
         {
             var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
@@ -446,17 +446,20 @@ namespace gtas_vpp_be.Service.Services
             var stats = await query.Select(x => new
             {
                 Lines = x.VPP02_RequestDetails.Count(d => !d.IsDeleted),
-                Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0
+                Qty = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0,
+                Amount = x.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (long?)(d.Qty * d.CurrentSinglePrice)) ?? 0
             }).GroupBy(x => 1).Select(g => new
             {
                 TotalCount = g.Count(),
                 TotalLines = g.Sum(x => x.Lines),
-                TotalQty = g.Sum(x => x.Qty)
+                TotalQty = g.Sum(x => x.Qty),
+                TotalAmount = g.Sum(x => x.Amount)
             }).FirstOrDefaultAsync();
 
             var totalCount = stats?.TotalCount ?? 0;
             var totalLines = stats?.TotalLines ?? 0;
             var totalQty = stats?.TotalQty ?? 0;
+            var totalAmount = stats?.TotalAmount ?? 0;
 
             var orderedQuery = query
                 .OrderByDescending(x => x.Y)
@@ -474,7 +477,7 @@ namespace gtas_vpp_be.Service.Services
 
             await ApplyRequesterNamesAsync(result);
             ApplyPeriodFlags(result);
-            return (result, totalCount, totalLines, totalQty);
+            return (result, totalCount, totalLines, totalQty, totalAmount);
         }
 
         public async Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode)

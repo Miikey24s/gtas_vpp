@@ -20,6 +20,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public string? SettledByPriceListName { get; set; }
         public int TotalLines { get; set; }
         public int TotalQty { get; set; }
+        public long TotalAmount { get; set; }
         public bool IsAdditionalOrder { get; set; }
 
         // Display-only computed properties (no clock dependency)

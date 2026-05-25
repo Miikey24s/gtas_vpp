@@ -66,6 +66,7 @@ namespace gtas_vpp_be.Mappings
             config.NewConfig<gtas_vpp_be.Model.VPP.VPP01_RequestHeader, gtas_vpp_shared.DTOs.Res.VPP.VPP01_RequestHeaderResDTO>()
                 .Map(dest => dest.TotalLines, src => src.VPP02_RequestDetails.Count(d => !d.IsDeleted))
                 .Map(dest => dest.TotalQty, src => src.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0)
+                .Map(dest => dest.TotalAmount, src => src.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (long?)(d.Qty * d.CurrentSinglePrice)) ?? 0)
                 .Map(dest => dest.SettledByPriceListName, src => src.SettledByPriceList != null ? src.SettledByPriceList.PriceListName : null)
                 .Map(dest => dest.Items, src => src.VPP02_RequestDetails.Where(d => !d.IsDeleted));
         }

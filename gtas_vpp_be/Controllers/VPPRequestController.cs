@@ -349,16 +349,19 @@ namespace gtas_vpp_be.Controllers
             {
                 var scopedData = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode);
                 var (filteredData, filteredTotalCount, filteredTotalLines, filteredTotalQty) = ApplyOrderGridOperations(scopedData, filter, orderby, skip, top);
+                var filteredTotalAmount = ApplyOrderQuery(scopedData, filter, orderby).Sum(x => x.TotalAmount);
                 Response.Headers.Append("X-Total-Count", filteredTotalCount.ToString());
                 Response.Headers.Append("X-Total-Lines", filteredTotalLines.ToString());
                 Response.Headers.Append("X-Total-Qty", filteredTotalQty.ToString());
+                Response.Headers.Append("X-Total-Amount", filteredTotalAmount.ToString());
                 return Ok(filteredData);
             }
 
-            var (data, totalCount, totalLines, totalQty) = await _vppService.GetAllOrdersPagedAsync(year, month, status, departmentCode, skip, top);
+            var (data, totalCount, totalLines, totalQty, totalAmount) = await _vppService.GetAllOrdersPagedAsync(year, month, status, departmentCode, skip, top);
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             Response.Headers.Append("X-Total-Lines", totalLines.ToString());
             Response.Headers.Append("X-Total-Qty", totalQty.ToString());
+            Response.Headers.Append("X-Total-Amount", totalAmount.ToString());
             return Ok(data);
         }
 
