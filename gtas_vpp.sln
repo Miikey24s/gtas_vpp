@@ -4,11 +4,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAspire.AppHost", "MyAspire.AppHost\MyAspire.AppHost.csproj", "{EAE3F810-2C41-BF1E-B4FE-B0ACD2458BC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gtas_vpp_fe.UITests", "gtas_vpp_fe.UITests\gtas_vpp_fe.UITests.csproj", "{16BEDA23-31B7-1FFB-1755-5EB013258F43}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyAspire.ServiceDefaults", "MyAspire.ServiceDefaults\MyAspire.ServiceDefaults.csproj", "{6F2A864D-C115-7523-33A4-ADBA8CD40471}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gtas_vpp_be.Tests", "gtas_vpp_be.Tests\gtas_vpp_be.Tests.csproj", "{044811D5-5871-7DF1-D817-18714D3EAA23}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gtas_vpp_be", "gtas_vpp_be", "{F7662349-8074-44D4-0D50-561E529AA76F}"
 EndProject
@@ -38,18 +34,10 @@ Global
 		{EAE3F810-2C41-BF1E-B4FE-B0ACD2458BC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EAE3F810-2C41-BF1E-B4FE-B0ACD2458BC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EAE3F810-2C41-BF1E-B4FE-B0ACD2458BC0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{16BEDA23-31B7-1FFB-1755-5EB013258F43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{16BEDA23-31B7-1FFB-1755-5EB013258F43}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{16BEDA23-31B7-1FFB-1755-5EB013258F43}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{16BEDA23-31B7-1FFB-1755-5EB013258F43}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6F2A864D-C115-7523-33A4-ADBA8CD40471}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6F2A864D-C115-7523-33A4-ADBA8CD40471}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F2A864D-C115-7523-33A4-ADBA8CD40471}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F2A864D-C115-7523-33A4-ADBA8CD40471}.Release|Any CPU.Build.0 = Release|Any CPU
-		{044811D5-5871-7DF1-D817-18714D3EAA23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{044811D5-5871-7DF1-D817-18714D3EAA23}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{044811D5-5871-7DF1-D817-18714D3EAA23}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{044811D5-5871-7DF1-D817-18714D3EAA23}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B3F21336-99BA-7BCF-60A2-6E2089BD8B3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B3F21336-99BA-7BCF-60A2-6E2089BD8B3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3F21336-99BA-7BCF-60A2-6E2089BD8B3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
