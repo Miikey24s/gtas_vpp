@@ -50,23 +50,51 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewLibraryTab(Permissions.LibraryPriceList))
+            @if (CanViewLibraryTab(Permissions.LibraryPriceList, Permissions.LibraryPrice))
             {
-                <RadzenTabsItem Text="@Loc["PriceLists"]">
+                <RadzenTabsItem Text="@Loc["Pricing"]">
                     @if (IsActiveTab(6))
                     {
-                        <Tab_PriceListLibrary claims="@claims"
+                        @if (CanShowPricingTabs)
+                        {
+                            <RadzenTabs Change="@PricingTabOnChange"
+                                        RenderMode="TabRenderMode.Client"
+                                        class="vpp-secondary-tabs"
+                                        @bind-SelectedIndex="@PricingSelectedIndex">
+                                <Tabs>
+                                    @if (CanShowPriceLists)
+                                    {
+                                        <RadzenTabsItem Text="@Loc["PriceLists"]">
+                                            @if (IsActivePricingTab(6))
+                                            {
+                                                <Tab_PriceListLibrary claims="@claims"
+                                                                      sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                                            }
+                                        </RadzenTabsItem>
+                                    }
+                                    @if (CanShowPrices)
+                                    {
+                                        <RadzenTabsItem Text="@Loc["Prices"]">
+                                            @if (IsActivePricingTab(4))
+                                            {
+                                                <Tab_PriceLibrary claims="@claims"
+                                                                  sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                                            }
+                                        </RadzenTabsItem>
+                                    }
+                                </Tabs>
+                            </RadzenTabs>
+                        }
+                        else if (CanShowPriceLists)
+                        {
+                            <Tab_PriceListLibrary claims="@claims"
+                                                  sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                        }
+                        else if (CanShowPrices)
+                        {
+                            <Tab_PriceLibrary claims="@claims"
                                               sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
-                    }
-                </RadzenTabsItem>
-            }
-            @if (CanViewLibraryTab(Permissions.LibraryPrice))
-            {
-                <RadzenTabsItem Text="@Loc["Prices"]">
-                    @if (IsActiveTab(4))
-                    {
-                        <Tab_PriceLibrary claims="@claims"
-                                          sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                        }
                     }
                 </RadzenTabsItem>
             }

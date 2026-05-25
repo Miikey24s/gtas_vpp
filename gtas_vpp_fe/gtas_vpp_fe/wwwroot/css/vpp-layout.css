@@ -495,3 +495,22 @@ leftsidebar {
     width: 100%;
 }
 
+.vpp-settle-hint {
+    display: flex;
+    gap: var(--vpp-space-2);
+    align-items: flex-start;
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    font-size: var(--vpp-text-xs);
+    color: var(--vpp-text-secondary);
+    background-color: var(--vpp-info-muted);
+    border-radius: var(--vpp-radius-sm);
+    line-height: var(--vpp-leading-relaxed);
+}
+
+.vpp-settle-hint .rzi {
+    color: var(--vpp-info);
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+

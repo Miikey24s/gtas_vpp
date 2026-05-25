@@ -15,7 +15,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         [Inject] private DialogService DialogService { get; set; } = default!;
         [Parameter] public EventCallback OnSettled { get; set; }
 
-        private readonly List<int> months = Enumerable.Range(1, 12).ToList();
         private List<L07_PriceListResDTO> priceLists = [];
         private Guid? selectedPriceListId;
         private int selectedYear = 2024;
@@ -78,8 +77,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     return false;
                 }
 
-                selectedYear = period.CurrentPeriodYear;
-                selectedMonth = period.CurrentPeriodMonth;
+                // Settlement always targets the just-closed period (Previous), not the
+                // still-open one (Current). The current period is where users are still
+                // submitting orders — locking it would block normal submissions.
+                selectedYear = period.PreviousPeriodYear;
+                selectedMonth = period.PreviousPeriodMonth;
                 return true;
             }
             catch (Exception ex)
@@ -147,18 +149,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
 
             alertMessage = null;
-        }
-
-        private async Task OnYearChangedAsync(int value)
-        {
-            selectedYear = value;
-            await LoadStatusAsync();
-        }
-
-        private async Task OnMonthChangedAsync(int value)
-        {
-            selectedMonth = value;
-            await LoadStatusAsync();
         }
 
         private Task OnPriceListChangedAsync(Guid? value)

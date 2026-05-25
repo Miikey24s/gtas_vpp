@@ -310,4 +310,5 @@
   <data name="Warning_PendingAdditional" xml:space="preserve"><value>{0} additional order(s) are still pending approval. Approve them before settling.</value></data>
   <data name="Info_AlreadySettled" xml:space="preserve"><value>Period was settled at {0} by {1} with price list {2}.</value></data>
   <data name="Confirm_Settle" xml:space="preserve"><value>Settle period {0}/{1} with price list {2}?</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Period Review &amp; Settlement</value></data>
 </root>

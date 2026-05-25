@@ -9,10 +9,25 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="2rem" class="rz-p-0 rz-p-md-2">
-        <div class="vpp-section">
-            <h3 class="vpp-section-title">@Loc["PendingApprovals"]</h3>
-            <RadzenStack Gap="1rem">
+    <RadzenTabs RenderMode="TabRenderMode.Client" class="vpp-secondary-tabs">
+        <Tabs>
+            @if (CanShowSettlement)
+            {
+                <RadzenTabsItem Text="@Loc["PeriodReview"]">
+                    <div class="vpp-section rz-p-0 rz-p-md-2">
+                        <h3 class="vpp-section-title">@Loc["PeriodReview"]</h3>
+                        <PeriodReviewPanel OnSettled="@OnSettledRefresh" />
+                    </div>
+                </RadzenTabsItem>
+            }
+
+            @if (CanShowApprovals)
+            {
+            <RadzenTabsItem Text="@Loc["PendingApprovals"]">
+                <RadzenStack Gap="2rem" class="rz-p-0 rz-p-md-2">
+                    <div class="vpp-section">
+                        <h3 class="vpp-section-title">@Loc["PendingApprovals"]</h3>
+                        <RadzenStack Gap="1rem">
 
                 @* ── KPI Summary ────────────────────────────────────── *@
                 @if (IsLoading)
@@ -190,17 +205,13 @@
                         </RadzenDataGrid>
                     </div>
                 }
-            </RadzenStack>
-        </div>
-
-        @if (CanShowSettlement)
-        {
-            <div class="vpp-section">
-                <h3 class="vpp-section-title">@Loc["PeriodSettlement"]</h3>
-                <PeriodSettlementPanel OnSettled="@OnSettledRefresh" />
-            </div>
-        }
-    </RadzenStack>
+                        </RadzenStack>
+                    </div>
+                </RadzenStack>
+            </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
 }
 else
 {

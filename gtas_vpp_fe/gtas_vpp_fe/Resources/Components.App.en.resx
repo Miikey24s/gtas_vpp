@@ -318,4 +318,7 @@
   <data name="PeriodStatus" xml:space="preserve"><value>Period Status</value></data>
   <data name="CheckingPeriodStatus" xml:space="preserve"><value>Checking period status...</value></data>
   <data name="PeriodReadyToSettle" xml:space="preserve"><value>Period ready to settle</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Period Review &amp; Settlement</value></data>
+  <data name="TargetPeriod" xml:space="preserve"><value>Period to settle</value></data>
+  <data name="Hint_AutoTargetsClosedPeriod" xml:space="preserve"><value>Auto-targets the just-closed period (the one right before the currently open period). The selected price list will apply to all orders of that period.</value></data>
 </root>

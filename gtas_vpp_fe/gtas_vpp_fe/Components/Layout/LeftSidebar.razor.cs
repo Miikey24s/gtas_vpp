@@ -20,9 +20,10 @@ namespace gtas_vpp_fe.Components.Layout
             (Permissions.RequestOrder, "/dashboard?tab=0"),
             (Permissions.RequestHistory, "/dashboard?tab=1"),
             (Permissions.RequestProductCatalog, "/dashboard?tab=2"),
-            (Permissions.RequestDepartmentSummary, "/dashboard?tab=3"),
-            (Permissions.RequestAllOrdersSummary, "/dashboard?tab=4"),
-            (Permissions.RequestAdminApproval, "/dashboard?tab=5")
+            (Permissions.RequestDepartmentSummary, "/dashboard?tab=3&managementTab=department"),
+            (Permissions.RequestAllOrdersSummary, "/dashboard?tab=3&managementTab=all"),
+            (Permissions.RequestAdminApproval, "/dashboard?tab=5"),
+            (Permissions.PeriodSettle, "/dashboard?tab=5")
         ];
 
         private static readonly (string Permission, string Path)[] LibraryMenuRoutes =
@@ -31,8 +32,8 @@ namespace gtas_vpp_fe.Components.Layout
             (Permissions.LibraryCategory, "/library?tab=1"),
             (Permissions.LibraryItem, "/library?tab=2"),
             (Permissions.LibrarySupplier, "/library?tab=3"),
-            (Permissions.LibraryPriceList, "/library?tab=6"),
-            (Permissions.LibraryPrice, "/library?tab=4"),
+            (Permissions.LibraryPriceList, "/library?tab=6&pricingTab=price-lists"),
+            (Permissions.LibraryPrice, "/library?tab=6&pricingTab=prices"),
             (Permissions.LibraryDepartment, "/library?tab=5")
         ];
 

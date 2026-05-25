@@ -39,7 +39,7 @@
     <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="home" class="ppjsidebarmenu">
+            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="assignment" class="ppjsidebarmenu">
                 @if (CanViewDashboardItem(Permissions.RequestOrder))
                 {
                     <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" />
@@ -50,17 +50,24 @@
                 }
                 @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["ProductCatalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
+                    <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" />
                 }
-                @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
+                @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary) && CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="/dashboard?tab=3" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
+                    <RadzenPanelMenuItem Text="@Loc["Management"]" class="ppjsidebarmenu submenu" Icon="manage_accounts">
+                        <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
+                        <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="view_list" />
+                    </RadzenPanelMenuItem>
                 }
-                @if (CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
+                else if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="/dashboard?tab=4" class="ppjsidebarmenu submenu" Icon="view_list" />
+                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="corporate_fare" />
                 }
-                @if (CanViewDashboardItem(Permissions.RequestAdminApproval))
+                else if (CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="view_list" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
                 {
                     <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="summarize" />
                 }
@@ -85,13 +92,18 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" />
                 }
-                @if (CanViewLibraryItem(Permissions.LibraryPriceList))
+                @if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="/library?tab=6" class="ppjsidebarmenu submenu" Icon="list_alt" />
-                }
-                @if (CanViewLibraryItem(Permissions.LibraryPrice))
-                {
-                    <RadzenPanelMenuItem Text="@Loc["Prices"]" Path="/library?tab=4" class="ppjsidebarmenu submenu" Icon="payments" />
+                    <RadzenPanelMenuItem Text="@Loc["Pricing"]" class="ppjsidebarmenu submenu" Icon="payments">
+                        @if (CanViewLibraryItem(Permissions.LibraryPriceList))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="@("/library?tab=6&pricingTab=price-lists")" class="ppjsidebarmenu submenu" Icon="list_alt" />
+                        }
+                        @if (CanViewLibraryItem(Permissions.LibraryPrice))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["Prices"]" Path="@("/library?tab=6&pricingTab=prices")" class="ppjsidebarmenu submenu" Icon="payments" />
+                        }
+                    </RadzenPanelMenuItem>
                 }
                 @if (CanViewLibraryItem(Permissions.LibraryDepartment))
                 {

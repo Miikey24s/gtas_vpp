@@ -111,6 +111,57 @@ ul[role="tablist"]::-webkit-scrollbar {
     width: 100%;
 }
 
+.vpp-secondary-tabs {
+    width: 100%;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav-container {
+    border-bottom: 1px solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+    border-radius: 0;
+    padding: 0 var(--vpp-space-1);
+}
+
+.vpp-secondary-tabs .rz-tabview-nav {
+    width: 100%;
+    gap: var(--vpp-space-1);
+    padding-bottom: 2px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link,
+.vpp-secondary-tabs .rz-tabs-item {
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    font-size: var(--vpp-text-sm);
+    border-radius: 0 !important;
+    transition: none !important;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:hover,
+.vpp-secondary-tabs .rz-tabs-item:hover {
+    background: transparent !important;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
+.vpp-secondary-tabs .rz-tabs-item.rz-state-active,
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
+.vpp-secondary-tabs .rz-tabs-item.rz-state-active::after {
+    border-radius: 0;
+    animation: none;
+}
+
+.vpp-secondary-tabs .rz-tabview-panel {
+    padding-top: var(--vpp-space-3);
+}
+
 /* ── Scroll Fade Indicators (optional visual cue) ────────────── */
 .rz-tabview-nav-container {
     position: relative;

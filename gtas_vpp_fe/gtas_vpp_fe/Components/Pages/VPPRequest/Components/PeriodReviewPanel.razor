@@ -1,0 +1,216 @@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_shared.UI
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<RadzenStack Gap="1rem">
+    <div class="vpp-data-card">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
+            <RadzenFormField Text="@Loc["Year"]" Style="width: 160px">
+                <RadzenNumeric TValue="int"
+                               Value="@selectedYear"
+                               ValueChanged="@OnYearChangedAsync"
+                               Min="2024"
+                               Max="2030"
+                               Disabled="@(isLoading || isSettling)"
+                               Style="width:100%" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="@Loc["Month"]" Style="width: 160px">
+                <RadzenDropDown TValue="int"
+                                Data="@months"
+                                Value="@selectedMonth"
+                                ValueChanged="@OnMonthChangedAsync"
+                                Disabled="@(isLoading || isSettling)"
+                                Style="width:100%" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="@Loc["PriceList"]" Style="min-width: 260px">
+                <RadzenDropDown TValue="Guid?"
+                                Data="@priceLists"
+                                TextProperty="PriceListName"
+                                ValueProperty="Id"
+                                Value="@selectedPriceListId"
+                                ValueChanged="@OnPriceListChangedAsync"
+                                AllowClear="true"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Placeholder="@Loc["PriceList_UseDefault"]"
+                                Disabled="@(isLoading || isSettling)"
+                                Style="width:100%" />
+            </RadzenFormField>
+
+            <RadzenButton Icon="refresh"
+                          Text="@Loc["Reload"]"
+                          ButtonStyle="ButtonStyle.Light"
+                          Disabled="@(isLoading || isSettling)"
+                          Click="@ReloadPeriodAsync" />
+
+            <RadzenButton Icon="lock"
+                          Text="@Loc["SettlePeriod"]"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Disabled="@(!canSettle || isLoading || isSettling)"
+                          Click="@SettleAsync" />
+        </RadzenStack>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(alertMessage))
+    {
+        <div class="vpp-settle-alert vpp-alert-@alertStyle.ToString().ToLower()">
+            <span class="vpp-settle-alert-icon rzi @(alertStyle == AlertStyle.Danger ? "rzi-error" : alertStyle == AlertStyle.Warning ? "rzi-warning" : "rzi-info")"></span>
+            <div class="vpp-settle-alert-content">@alertMessage</div>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <SkeletonPage Cards="4" Rows="6" Cols="8" />
+    }
+    else
+    {
+        <div class="kpi-grid" style="--kpi-cols: 4;">
+            <div class="kpi-card kpi-blue">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["TotalOrders"]</span>
+                        <span class="kpi-card-icon rzi rzi-receipt-long"></span>
+                    </div>
+                    <div class="kpi-card-value">@totalCount</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-emerald">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
+                        <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
+                    </div>
+                    <div class="kpi-card-value">@totalLines</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-amber">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
+                        <span class="kpi-card-icon rzi rzi-inventory-2"></span>
+                    </div>
+                    <div class="kpi-card-value">@totalQty</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["Amount"]</span>
+                        <span class="kpi-card-icon rzi rzi-payments"></span>
+                    </div>
+                    <div class="kpi-card-value">@FormatMoney(totalAmount)</div>
+                </div>
+            </div>
+        </div>
+
+        @if (totalCount == 0 && !isGridLoading)
+        {
+            <VppEmptyState Icon="business"
+                           Title="@Loc["NoData"]"
+                           Description="@Loc["NoOrdersMatchSelectedFilters"]"
+                           PrimaryText="@Loc["Reload"]"
+                           PrimaryAction="@(async _ => await ReloadPeriodAsync())" />
+        }
+        else
+        {
+            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
+                <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@orders"
+                                Count="@totalCount" LoadData="@OnLoadData"
+                                AllowPaging="true" PageSize="@pageSize"
+                                PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
+                                PageSizeText="@Loc["ItemsPerPage"]"
+                                ShowPagingSummary="true"
+                                PagerHorizontalAlign="HorizontalAlign.Left"
+                                AllowSorting="true" AllowAlternatingRows="true"
+                                AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single"
+                                RowExpand="OnRowExpandAsync"
+                                IsLoading="@isGridLoading"
+                                AllowFiltering="true"
+                                AllowMultiColumnSorting="true"
+                                ShowMultiColumnSortingIndex="true"
+                                AllowColumnReorder="true"
+                                FilterMode="FilterMode.CheckBoxList"
+                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
+                                class="vpp-order-grid"
+                                Style="border: none;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                            <Template Context="row">@(currentSkip + orders.IndexOf(row) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="@Loc["Department"]" MinWidth="100px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.RequesterName)" Title="@Loc["Username"]" MinWidth="140px" TextAlign="TextAlign.Left" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="@Loc["OrderCode"]" MinWidth="170px" TextAlign="TextAlign.Left">
+                            <Template Context="row"><span class="vpp-link-text">@row.VPPCode</span></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" MinWidth="130px" TextAlign="TextAlign.Center">
+                            <Template Context="row">
+                                <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
+                                @if (row.SettledAt.HasValue)
+                                {
+                                    <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(row.SettledAt, DateFormatter.LongDate)} - {row.SettledByPriceListName}")">
+                                        @Loc["Settled"]
+                                    </span>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalLines)" Title="@Loc["TotalLineItems"]" MinWidth="100px" TextAlign="TextAlign.Center">
+                            <Template Context="row"><strong>@row.TotalLines</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" MinWidth="100px" TextAlign="TextAlign.Center">
+                            <Template Context="row"><strong>@row.TotalQty</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalAmount)" Title="@Loc["Amount"]" MinWidth="130px" TextAlign="TextAlign.Right">
+                            <Template Context="row"><strong>@FormatMoney(row.TotalAmount)</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" FilterProperty="@nameof(VPP01_RequestHeaderResDTO.SubmittedDateText)" Title="@Loc["SubmittedDate"]" MinWidth="140px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
+                            <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Note"]" TextAlign="TextAlign.Left" MinWidth="120px" />
+                    </Columns>
+                    <Template Context="row">
+                        <div class="vpp-expand-detail">
+                            <div class="vpp-expand-detail-header">
+                                <span class="rzi rzi-list-alt"></span>
+                                @Loc["OrderDetails"]
+                            </div>
+                            @if (IsRowDetailLoading(row.Id))
+                            {
+                                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
+                            }
+                            <RadzenDataGrid TItem="VPP02_RequestDetailResDTO" Data="@(row.Items ?? new())"
+                                            AllowPaging="false" AllowSorting="false"
+                                            Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
+                                            Style="background: white; border-radius: 6px; overflow: hidden;">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                                        <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="120px" TextAlign="TextAlign.Left" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="200px" TextAlign="TextAlign.Left" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" MinWidth="80px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" MinWidth="100px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="CurrentSinglePrice" Title="@Loc["Price"]" MinWidth="120px" TextAlign="TextAlign.Right">
+                                        <Template Context="item">@FormatMoney(item.CurrentSinglePrice)</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="TotalPrice" Title="@Loc["Total"]" MinWidth="120px" TextAlign="TextAlign.Right">
+                                        <Template Context="item"><strong>@FormatMoney(item.TotalPrice)</strong></Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </div>
+                    </Template>
+                </RadzenDataGrid>
+            </div>
+        }
+    }
+</RadzenStack>

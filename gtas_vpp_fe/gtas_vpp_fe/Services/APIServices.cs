@@ -16,6 +16,7 @@ namespace gtas_vpp_fe.Services
         Task<T?> GetFromApiAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint);
+        Task<(T? Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetFromApiWithAmountStatsAsync<T>(string endpoint);
         Task<T?> PostFromApiAsync<T>(string endpoint, object? body);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
@@ -173,6 +174,27 @@ namespace gtas_vpp_fe.Services
 
             var data = await ReadResponseAsJsonAsync<T>(response);
             return (data, totalCount, totalLines, totalQty);
+        }
+
+        public async Task<(T? Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetFromApiWithAmountStatsAsync<T>(string endpoint)
+        {
+            await ApplyAuthorizationHeaderAsync();
+            var response = await _httpClient.GetAsync(endpoint);
+            await EnsureSuccessWithDetailsAsync(response);
+
+            int totalCount = 0, totalLines = 0, totalQty = 0;
+            long totalAmount = 0;
+            if (response.Headers.TryGetValues("X-Total-Count", out var countVals))
+                int.TryParse(countVals.FirstOrDefault(), out totalCount);
+            if (response.Headers.TryGetValues("X-Total-Lines", out var lineVals))
+                int.TryParse(lineVals.FirstOrDefault(), out totalLines);
+            if (response.Headers.TryGetValues("X-Total-Qty", out var qtyVals))
+                int.TryParse(qtyVals.FirstOrDefault(), out totalQty);
+            if (response.Headers.TryGetValues("X-Total-Amount", out var amountVals))
+                long.TryParse(amountVals.FirstOrDefault(), out totalAmount);
+
+            var data = await ReadResponseAsJsonAsync<T>(response);
+            return (data, totalCount, totalLines, totalQty, totalAmount);
         }
 
         public async Task<T?> PostFromApiAsync<T>(string endpoint, object? body)

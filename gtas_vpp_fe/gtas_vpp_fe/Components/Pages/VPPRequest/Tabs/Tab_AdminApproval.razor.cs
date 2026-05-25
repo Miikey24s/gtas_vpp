@@ -16,13 +16,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         // Convenience alias so the razor template keeps its existing PendingOrders name.
         public List<VPP01_RequestHeaderResDTO> PendingOrders => Orders;
 
-        protected override bool CanView => HasDashboardPermission(Permissions.RequestAdminApproval);
+        protected override bool CanView => HasDashboardPermission(Permissions.RequestAdminApproval)
+            || HasDashboardPermission(Permissions.PeriodSettle);
         protected override string ErrorSummary => Loc["PeriodOperations"];
 
-        private bool CanShowSettlement => PermissionState
-            .GetPagePermission(Config.Page_ComponentCode.PageCode.Dashboard)
-            .List_Component
-            .Any(c => c.ComponentCode == Permissions.PeriodSettle && c.IsVisible);
+        private bool CanShowSettlement => HasDashboardPermission(Permissions.PeriodSettle);
+
+        private bool CanShowApprovals => HasDashboardPermission(Permissions.RequestAdminApproval);
+
+        protected override async Task OnInitializedAsync()
+        {
+            if (CanShowApprovals)
+            {
+                await base.OnInitializedAsync();
+                return;
+            }
+
+            IsLoading = false;
+        }
 
         protected override string BuildEndpoint()
         {
@@ -45,7 +56,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private async Task OnSettledRefresh()
         {
-            await ReloadAsync();
+            if (CanShowApprovals)
+            {
+                await ReloadAsync();
+            }
         }
 
         private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)

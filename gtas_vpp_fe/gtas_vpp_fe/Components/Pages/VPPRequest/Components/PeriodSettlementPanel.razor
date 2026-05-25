@@ -7,25 +7,12 @@
     <div class="vpp-settle-params">
         <h4 class="vpp-settle-sub-title">@Loc["Parameters"]</h4>
         <RadzenStack Gap="1rem">
-            <RadzenFormField Text="@Loc["Year"]" Style="width: 100%">
-                <RadzenNumeric TValue="int"
-                               Value="@selectedYear"
-                               ValueChanged="@OnYearChangedAsync"
-                               Min="2024"
-                               Max="2030"
-                               Disabled="@isLoading"
+            <RadzenFormField Text="@Loc["TargetPeriod"]" Style="width: 100%">
+                <RadzenTextBox Value="@($"{selectedMonth:D2}/{selectedYear}")"
+                               ReadOnly="true"
                                Style="width:100%" />
             </RadzenFormField>
-            
-            <RadzenFormField Text="@Loc["Month"]" Style="width: 100%">
-                <RadzenDropDown TValue="int"
-                                Data="@months"
-                                Value="@selectedMonth"
-                                ValueChanged="@OnMonthChangedAsync"
-                                Disabled="@isLoading"
-                                Style="width:100%" />
-            </RadzenFormField>
-            
+
             <RadzenFormField Text="@Loc["PriceList"]" Style="width: 100%">
                 <RadzenDropDown TValue="Guid?"
                                 Data="@priceLists"
@@ -40,6 +27,11 @@
                                 Disabled="@isLoading"
                                 Style="width:100%" />
             </RadzenFormField>
+
+            <div class="vpp-settle-hint">
+                <span class="rzi rzi-info"></span>
+                <span>@Loc["Hint_AutoTargetsClosedPeriod"]</span>
+            </div>
         </RadzenStack>
     </div>
 

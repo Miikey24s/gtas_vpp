@@ -17,7 +17,7 @@
   <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
   <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
   <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
-  <data name="Dashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Requests</value></data>
   <data name="Orders" xml:space="preserve"><value>Đơn hàng</value></data>
   <data name="Library" xml:space="preserve"><value>Danh mục</value></data>
   <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
@@ -67,6 +67,8 @@
   <data name="Code" xml:space="preserve"><value>Mã</value></data>
   <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>
+  <data name="Catalog" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="Management" xml:space="preserve"><value>Quản lý</value></data>
   <data name="DepartmentSummary" xml:space="preserve"><value>Tổng hợp phòng ban</value></data>
   <data name="AllOrdersSummary" xml:space="preserve"><value>Tổng hợp đơn hàng</value></data>
   <data name="AdminApproval" xml:space="preserve"><value>Phê duyệt quản trị</value></data>
@@ -75,6 +77,7 @@
   <data name="Operations" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Nhà cung cấp</value></data>
   <data name="Prices" xml:space="preserve"><value>Giá</value></data>
+  <data name="Pricing" xml:space="preserve"><value>Bảng giá</value></data>
   <data name="Departments" xml:space="preserve"><value>Phòng ban</value></data>
   <data name="User" xml:space="preserve"><value>Người dùng</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Trở về đơn hàng</value></data>
@@ -300,7 +303,7 @@
   <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Đã xóa bảng giá</value></data>
   <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
-  <data name="PeriodOperations" xml:space="preserve"><value>Tổng kết kỳ</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Quản lý kỳ</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Đóng kỳ</value></data>
   <data name="PriceList" xml:space="preserve"><value>Bảng giá</value></data>
@@ -310,4 +313,5 @@
   <data name="Warning_PendingAdditional" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt. Vui lòng duyệt trước khi đóng kỳ.</value></data>
   <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã đóng lúc {0} bởi {1} với bảng giá {2}.</value></data>
   <data name="Confirm_Settle" xml:space="preserve"><value>Đóng kỳ {0}/{1} với bảng giá {2}?</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Tổng kết kỳ &amp; đóng kỳ</value></data>
 </root>

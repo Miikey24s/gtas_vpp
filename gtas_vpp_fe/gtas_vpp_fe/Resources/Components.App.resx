@@ -318,4 +318,7 @@
   <data name="PeriodStatus" xml:space="preserve"><value>Trạng thái kỳ</value></data>
   <data name="CheckingPeriodStatus" xml:space="preserve"><value>Đang kiểm tra trạng thái kỳ...</value></data>
   <data name="PeriodReadyToSettle" xml:space="preserve"><value>Kỳ sẵn sàng đóng</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Tổng kết kỳ &amp; đóng kỳ</value></data>
+  <data name="TargetPeriod" xml:space="preserve"><value>Kỳ cần đóng</value></data>
+  <data name="Hint_AutoTargetsClosedPeriod" xml:space="preserve"><value>Hệ thống tự chọn kỳ vừa hết hạn (kỳ ngay trước kỳ đang mở). Bảng giá sẽ áp cho toàn bộ đơn của kỳ này.</value></data>
 </root>

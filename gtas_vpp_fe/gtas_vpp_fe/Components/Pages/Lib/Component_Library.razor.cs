@@ -14,7 +14,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 {
     public partial class Component_Library : IDisposable
     {
-        private sealed record LibraryTabDefinition(int QueryIndex, string Permission);
+        private const int PriceTabIndex = 4;
+        private const int DepartmentTabIndex = 5;
+        private const int PricingTabIndex = 6;
+        private const int PriceListTabIndex = 6;
+
+        private sealed record LibraryTabDefinition(int QueryIndex, params string[] Permissions);
 
         private static readonly LibraryTabDefinition[] LibraryTabs =
         [
@@ -22,9 +27,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             new(1, Permissions.LibraryCategory),
             new(2, Permissions.LibraryItem),
             new(3, Permissions.LibrarySupplier),
-            new(4, Permissions.LibraryPrice),
-            new(5, Permissions.LibraryDepartment),
-            new(6, Permissions.LibraryPriceList)
+            new(PricingTabIndex, Permissions.LibraryPriceList, Permissions.LibraryPrice),
+            new(DepartmentTabIndex, Permissions.LibraryDepartment)
         ];
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
@@ -36,14 +40,41 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private readonly TabPosition tabPosition = TabPosition.Top;
         private int SelectedIndex { get; set; }
+        private int PricingSelectedIndex { get; set; }
 
         private IReadOnlyList<LibraryTabDefinition> AuthorizedTabs =>
             LibraryTabs
-                .Where(tab => CanViewLibraryTab(tab.Permission))
+                .Where(tab => CanViewLibraryTab(tab.Permissions))
                 .OrderBy(GetVisualTabOrder)
                 .ToArray();
 
         private bool HasAnyVisibleLibraryTab => AuthorizedTabs.Count > 0;
+
+        private IReadOnlyList<int> AuthorizedPricingTabs
+        {
+            get
+            {
+                var tabs = new List<int>();
+
+                if (CanShowPriceLists)
+                {
+                    tabs.Add(PriceListTabIndex);
+                }
+
+                if (CanShowPrices)
+                {
+                    tabs.Add(PriceTabIndex);
+                }
+
+                return tabs;
+            }
+        }
+
+        private bool CanShowPriceLists => CanViewLibraryTab(Permissions.LibraryPriceList);
+
+        private bool CanShowPrices => CanViewLibraryTab(Permissions.LibraryPrice);
+
+        private bool CanShowPricingTabs => AuthorizedPricingTabs.Count > 1;
 
         public List<L03_VPPCategoryResDTO> operationCategories = new List<L03_VPPCategoryResDTO>();
         public List<L04_VPPResDTO> operations = new List<L04_VPPResDTO>();
@@ -90,12 +121,31 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
 
             SelectedIndex = index;
-            NavigationManager.NavigateTo($"/library?tab={tab.QueryIndex}");
+            NavigationManager.NavigateTo(tab.QueryIndex == PricingTabIndex
+                ? BuildPricingUrl()
+                : $"/library?tab={tab.QueryIndex}");
         }
 
         private bool IsActiveTab(int queryIndex)
         {
             return AuthorizedTabs.ElementAtOrDefault(SelectedIndex)?.QueryIndex == queryIndex;
+        }
+
+        private void PricingTabOnChange(int index)
+        {
+            var pricingTabs = AuthorizedPricingTabs;
+            if (index < 0 || index >= pricingTabs.Count)
+            {
+                return;
+            }
+
+            PricingSelectedIndex = index;
+            NavigationManager.NavigateTo(BuildPricingUrl());
+        }
+
+        private bool IsActivePricingTab(int queryIndex)
+        {
+            return AuthorizedPricingTabs.ElementAtOrDefault(PricingSelectedIndex) == queryIndex;
         }
 
         private void SetSelectedIndexFromUri(string location)
@@ -108,11 +158,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
 
             var requestedTab = GetRequestedTabIndex(location);
-            var selectedIndex = requestedTab.HasValue
-                ? authorizedTabs.ToList().FindIndex(tab => tab.QueryIndex == requestedTab.Value)
+            var normalizedRequestedTab = requestedTab == PriceTabIndex ? PricingTabIndex : requestedTab;
+            var selectedIndex = normalizedRequestedTab.HasValue
+                ? authorizedTabs.ToList().FindIndex(tab => tab.QueryIndex == normalizedRequestedTab.Value)
                 : 0;
 
             SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+            SetPricingSelectedIndexFromUri(location, requestedTab);
 
             var activeTab = authorizedTabs.ElementAtOrDefault(SelectedIndex);
             if (activeTab != null)
@@ -135,26 +187,79 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return null;
         }
 
+        private void SetPricingSelectedIndexFromUri(string location, int? requestedTab)
+        {
+            var pricingTabs = AuthorizedPricingTabs;
+            if (pricingTabs.Count == 0)
+            {
+                PricingSelectedIndex = 0;
+                return;
+            }
+
+            var requestedPricingTab = GetRequestedPricingTabIndex(location, requestedTab);
+            var selectedIndex = requestedPricingTab.HasValue
+                ? pricingTabs.ToList().FindIndex(tab => tab == requestedPricingTab.Value)
+                : 0;
+
+            PricingSelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+        }
+
+        private int? GetRequestedPricingTabIndex(string location, int? requestedTab)
+        {
+            var uri = NavigationManager.ToAbsoluteUri(location);
+            var query = QueryHelpers.ParseQuery(uri.Query);
+
+            if (query.TryGetValue("pricingTab", out var values))
+            {
+                return values.FirstOrDefault()?.ToLowerInvariant() switch
+                {
+                    "prices" => PriceTabIndex,
+                    "price-lists" => PriceListTabIndex,
+                    _ => null
+                };
+            }
+
+            if (requestedTab == PriceTabIndex)
+            {
+                return PriceTabIndex;
+            }
+
+            if (requestedTab == PriceListTabIndex)
+            {
+                return PriceListTabIndex;
+            }
+
+            return null;
+        }
+
         private bool IsLibraryUri(string location)
         {
             var uri = NavigationManager.ToAbsoluteUri(location);
             return uri.AbsolutePath.TrimEnd('/').EndsWith("/library", StringComparison.OrdinalIgnoreCase);
         }
 
-        private bool CanViewLibraryTab(string permission)
+        private bool CanViewLibraryTab(params string[] permissions)
         {
-            return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission);
+            return permissions.Any(permission =>
+                PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission));
         }
 
         private static int GetVisualTabOrder(LibraryTabDefinition tab)
         {
-            return tab.Permission switch
+            return tab.QueryIndex switch
             {
-                Permissions.LibraryPriceList => 4,
-                Permissions.LibraryPrice => 5,
-                Permissions.LibraryDepartment => 6,
+                PricingTabIndex => 4,
+                DepartmentTabIndex => 5,
                 _ => tab.QueryIndex
             };
+        }
+
+        private string BuildPricingUrl()
+        {
+            var pricingTab = AuthorizedPricingTabs.ElementAtOrDefault(PricingSelectedIndex);
+            var pricingTabQuery = pricingTab == PriceTabIndex ? "prices" : "price-lists";
+
+            return $"/library?tab={PricingTabIndex}&pricingTab={pricingTabQuery}";
         }
 
         public async Task<List<string>> GetFormular()
