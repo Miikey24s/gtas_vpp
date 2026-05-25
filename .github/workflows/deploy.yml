@@ -44,7 +44,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./gtas_vpp_be
-          file: ./gtas_vpp_be/Dockerfile
           push: true
           tags: |
             ${{ env.BE_IMAGE_LOWER }}:latest
@@ -57,7 +56,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./gtas_vpp_fe
-          file: ./gtas_vpp_fe/Dockerfile
           push: true
           tags: |
             ${{ env.FE_IMAGE_LOWER }}:latest
@@ -95,7 +93,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.prod.yml,nginx/*"
+          source: "docker-compose.prod.yml,nginx/**"
           target: "/app/gtas-vpp"
 
       # 3. Kết nối SSH chạy Docker Compose để Deploy
