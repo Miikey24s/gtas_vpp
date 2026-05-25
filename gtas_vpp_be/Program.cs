@@ -22,6 +22,10 @@ var builder = WebApplication.CreateBuilder(args);
 var dotEnvValues = LoadDotEnvValues(builder.Environment.ContentRootPath);
 if (dotEnvValues.Count > 0)
 {
+    if (dotEnvValues.TryGetValue("JWT_KEY", out var envJwtKey) && !string.IsNullOrWhiteSpace(envJwtKey))
+    {
+        dotEnvValues["JwtSettings:Key"] = envJwtKey;
+    }
     builder.Configuration.AddInMemoryCollection(dotEnvValues);
 }
 
@@ -271,6 +275,11 @@ static Dictionary<string, string?> LoadDotEnvValues(string contentRootPath)
 static Dictionary<string, string?> GetLocalDevelopmentConnectionOverrides(IHostEnvironment environment, IConfiguration configuration)
 {
     if (!environment.IsDevelopment())
+    {
+        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    if (configuration.GetValue<bool>("DISABLE_DOCKER_DB_OVERRIDE", false))
     {
         return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
     }
