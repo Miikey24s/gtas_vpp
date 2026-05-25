@@ -1,0 +1,9 @@
+# Project Context
+- Tech Stack: .NET 10.0, Blazor Server, Radzen Components, Clean Architecture.
+- Local URL: http://localhost:5001
+
+# UI/UX & QA Audit Rules
+- Luôn kiểm tra giao diện trên 3 Viewports: Mobile (390x844), Tablet (768x1024), Desktop (1920x1080).
+- Kiểm tra tính tương phản màu sắc (Accessibility) theo chuẩn WCAG AA.
+- Ưu tiên sử dụng hệ thống Utility CSS của Radzen thay vì lạm dụng inline style.
+- Mọi form nhập liệu bắt buộc phải có Validation đầy đủ trước khi cho phép Submit.

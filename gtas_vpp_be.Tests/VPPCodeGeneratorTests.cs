@@ -19,8 +19,8 @@ public class VPPCodeGeneratorTests
 
         var result = InvokeGenerateVPPCode(service, 2026, 4, 5615);
 
-        Assert.Matches("^VPP-202604-[a-f0-9]{13}$", result);
-        Assert.Equal(24, result.Length);
+        Assert.Matches("^VPP-202604-[a-f0-9]{32}$", result);
+        Assert.Equal(43, result.Length);
     }
 
     [Fact]
