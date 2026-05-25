@@ -1,0 +1,123 @@
+# ─────────────────────────────────────────────────────────────
+# GTAS VPP – Docker Compose (Production - DigitalOcean)
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── SQL Server Database ──────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gtas-vpp-db
+    restart: unless-stopped
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+      MSSQL_MEMORY_LIMIT_MB: "4096"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 5G
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -C -b
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    networks:
+      - vpp-internal
+
+  # ── Backend (.NET 10 Web API) ────────────────────────────
+  backend:
+    image: ghcr.io/miikey24s/gtas-vpp-backend:latest
+    container_name: gtas-vpp-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      JwtSettings__Key: "${JWT_KEY}"
+      JwtSettings__Issuer: "gtas_vpp_be"
+      JwtSettings__Audience: "gtas_vpp_clients"
+      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:-ttpsolutions}"
+      CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
+      CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
+      DOTNET_gcServer: "0"
+      DOTNET_GCHeapHardLimitPercent: "75"
+    ports:
+      - "127.0.0.1:8080:8080"
+    mem_limit: 512m
+    volumes:
+      - backend-logs:/app/logs:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - vpp-internal
+
+  # ── Frontend (Blazor Server) ─────────────────────────────
+  frontend:
+    image: ghcr.io/miikey24s/gtas-vpp-frontend:latest
+    container_name: gtas-vpp-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ApiSettings__BaseUrl: "http://backend:8080"
+      DOTNET_gcServer: "0"
+      DOTNET_GCHeapHardLimitPercent: "75"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:5000:5000"
+    mem_limit: 512m
+    volumes:
+      - frontend-keys:/app/keys:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - vpp-internal
+
+volumes:
+  sqlserver-data:
+    driver: local
+  backend-logs:
+    driver: local
+  frontend-keys:
+    driver: local
+
+networks:
+  vpp-internal:
+    driver: bridge
