@@ -720,7 +720,7 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private string GenerateVPPCode(int year, int month, int userId)
-            => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}".Substring(0, 24);
+            => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}";
 
         private (int curYear, int curMonth, int prevYear, int prevMonth) GetCurrentAndPreviousPeriod()
         {
