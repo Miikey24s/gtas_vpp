@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 using Radzen;
 using Radzen.Blazor;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace gtas_vpp_fe.Components.Pages.Lib
 {
@@ -165,6 +167,85 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
                 }
             }
+        }
+
+        protected string GetColumnMinWidth(
+            PropertyInfo prop,
+            GridColumnPropertyAttribute? attr,
+            TypeCode typeCode,
+            bool isAuditProperty)
+        {
+            var desiredWidth = GetDesiredColumnWidth(prop, typeCode, isAuditProperty);
+            var configuredWidth = ParsePxWidth(attr?.Width);
+
+            return configuredWidth.HasValue && configuredWidth.Value > desiredWidth
+                ? $"{configuredWidth.Value}px"
+                : $"{desiredWidth}px";
+        }
+
+        protected IReadOnlyDictionary<string, object> GetInputAttributes(string label)
+            => new Dictionary<string, object>
+            {
+                ["aria-label"] = label
+            };
+
+        private static int GetDesiredColumnWidth(PropertyInfo prop, TypeCode typeCode, bool isAuditProperty)
+        {
+            if (prop.Name.Equals("Id", StringComparison.OrdinalIgnoreCase))
+            {
+                return 250;
+            }
+
+            if (prop.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase))
+            {
+                return 160;
+            }
+
+            if (typeCode == TypeCode.DateTime)
+            {
+                return 160;
+            }
+
+            if (typeCode == TypeCode.Boolean || prop.Name.StartsWith("Is", StringComparison.OrdinalIgnoreCase))
+            {
+                return 120;
+            }
+
+            if (prop.Name.Contains("Description", StringComparison.OrdinalIgnoreCase))
+            {
+                return 220;
+            }
+
+            if (prop.Name.EndsWith("Name", StringComparison.OrdinalIgnoreCase))
+            {
+                return 180;
+            }
+
+            if (isAuditProperty)
+            {
+                return 150;
+            }
+
+            return typeCode switch
+            {
+                TypeCode.Decimal or TypeCode.Double or TypeCode.Single or
+                TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or
+                TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 => 120,
+                _ => 150
+            };
+        }
+
+        private static int? ParsePxWidth(string? width)
+        {
+            if (string.IsNullOrWhiteSpace(width))
+            {
+                return null;
+            }
+
+            var match = Regex.Match(width, @"^\s*(\d+)\s*px\s*$", RegexOptions.IgnoreCase);
+            return match.Success && int.TryParse(match.Groups[1].Value, out var value)
+                ? value
+                : null;
         }
     }
 }

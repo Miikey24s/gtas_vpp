@@ -45,7 +45,7 @@
                             FilterMode="FilterMode.CheckBoxList"
                             Density="Density.Compact"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                            class="librarypagegrid"
+                            class="librarypagegrid permission-user-grid"
                             Style="height: calc(100vh - 14.5vh);"
                             TItem="sp_Authentication_TabUser_UserList"
                             Data=@_sp_Authentication_TabUser_UserList
@@ -54,10 +54,11 @@
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             RowDoubleClick="@OnRowDoubleClick">
                 <HeaderTemplate>
-                    <RadzenStack Orientation="Orientation.Horizontal">
-                        <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="permission-grid-toolbar">
+                        <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
                             <ChildContent>
                                 <RadzenTextBox Value="@SearchText"
+                                               aria-label="@Loc["Search"]"
                                                Change="@(arg => TextBoxOnChange(arg))"
                                                ValueChanged="@((string value) => SearchText = value)"
                                                ValueExpression="() => SearchText"

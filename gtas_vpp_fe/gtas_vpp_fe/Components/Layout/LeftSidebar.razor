@@ -14,19 +14,22 @@
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" Style="position:absolute; top: 0; left: 0; width: 100vw; z-index:99" />
 
 <RadzenHeader class="vpp-header-glass vpp-layout-header" Style="position:static;">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2" Style="width:100%;">
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2 vpp-header-row" Style="width:100%;">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" class="vpp-header-brand">
             <RadzenSidebarToggle class="customburger" Click="@(() => _sideBarExpanded = !_sideBarExpanded)" />
-            <RadzenImage Style="width: 100px;" Path="./logoppj-new.png" />
-            <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
+            <RadzenImage class="vpp-header-logo" Style="width: 100px;" Path="./logoppj-new.png" />
+            <div class="vpp-header-title" title="@HeaderTitle">
+                <span>GTAS VPP</span>
+                <span class="vpp-header-server"> (@ServerLabel)</span>
+            </div>
         </RadzenStack>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem" class="vpp-header-actions">
             <HeaderControls IsLightTheme="@LightTheme"
                             IsLightThemeChanged="@(isLight => LightTheme = isLight)"
                             OnThemeToggle="ThemeOnChange"
                             OnLanguageToggle="ToggleLanguage" />
             @* Notification bell *@
-            <div style="position:relative;">
+            <div class="vpp-header-notifications" style="position:relative;">
                 <RadzenButton Icon="notifications" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Disabled="true" Title="Notifications (coming soon)" />
                 <span style="position:absolute; top:2px; right:2px; width:8px; height:8px; background:var(--rz-danger); border-radius:50%; border:2px solid var(--rz-header-background-color, #fff);"></span>
             </div>

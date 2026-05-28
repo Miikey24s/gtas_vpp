@@ -32,6 +32,7 @@
             <RadzenTextBox @bind-Value="searchText"
                            @oninput="@(args => OnSearchInput(args.Value?.ToString()))"
                            Placeholder="@Loc["Search"]"
+                           aria-label="@Loc["Search"]"
                            Style="width:100%" />
         </RadzenFormField>
     </RadzenStack>

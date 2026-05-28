@@ -77,6 +77,8 @@ namespace gtas_vpp_fe.Components.Layout
         private bool CanViewLibraryMenu => HasSidebarMenu(Permissions.MenuLibrary) && LibraryMenuRoutes.Any(route => CanViewLibraryItem(route.Permission));
         private bool CanViewReportMenu => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
         private bool CanViewPermissionMenu => HasSidebarMenu(Permissions.MenuPermission) && PermissionMenuRoutes.Any(route => CanViewPermissionItem(route.Permission));
+        private string ServerLabel => $"SERVER {claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper()}";
+        private string HeaderTitle => $"GTAS VPP ({ServerLabel})";
 
         protected override async Task OnInitializedAsync()
         {

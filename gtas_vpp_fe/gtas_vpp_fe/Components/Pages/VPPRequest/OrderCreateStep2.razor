@@ -22,6 +22,7 @@
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="flex: 1; justify-content: flex-end; min-width: 280px;">
                             <RadzenTextBox @bind-Value="Context.Description"
                                            Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
+                                           aria-label="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
                                            Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
                                            Change="@(_ => Context.NotifyStateChanged())" />
                             @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
@@ -124,7 +125,9 @@
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
                                         <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
-                                                       Style="width: 60px;" ShowUpDown="true"
+                                                       Style="width: 72px;"
+                                                       ShowUpDown="false"
+                                                       InputAttributes="@GetQuantityInputAttributes(item)"
                                                        Change="@(_ => Context.NotifyStateChanged())" />
                                     </Template>
                                 </RadzenDataGridColumn>
@@ -133,6 +136,7 @@
                                     <Template Context="item">
                                         <RadzenTextBox @bind-Value="item.Description"
                                                        Placeholder="@Loc["Notes"]"
+                                                       aria-label="@($"{Loc["Notes"].Value}: {GetItemLabel(item)}")"
                                                        Style="width: 100%; font-size: 0.8rem;"
                                                        Change="@(_ => Context.NotifyStateChanged())" />
                                     </Template>
@@ -256,4 +260,15 @@
         Context.NotifyStateChanged();
         await InvokeAsync(StateHasChanged);
     }
+
+    private IReadOnlyDictionary<string, object> GetQuantityInputAttributes(OrderCreateContext.SelectedItem item)
+        => new Dictionary<string, object>
+        {
+            ["aria-label"] = $"{Loc["Quantity"].Value}: {GetItemLabel(item)}"
+        };
+
+    private static string GetItemLabel(OrderCreateContext.SelectedItem item)
+        => !string.IsNullOrWhiteSpace(item.VPPName)
+            ? item.VPPName
+            : item.VPPCode ?? string.Empty;
 }

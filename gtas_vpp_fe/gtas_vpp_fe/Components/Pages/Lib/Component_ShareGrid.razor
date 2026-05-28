@@ -26,7 +26,8 @@
                 AllowPaging="true"
                 PageSize="20"
                 PageSizeOptions="@(new int[] { 20, 50, 100 })"
-                class="librarypagegrid"
+                ColumnWidth="150px"
+                class="librarypagegrid library-share-grid"
                 Style="height: calc(100vh - 140px);"
                 TItem="TType"
                 IsLoading="@glb.isBusyPage"
@@ -92,6 +93,7 @@
                 : (isNumeric ? "{0:N0}" : null);
             
             var isIgnored = attr?.Ignore ?? false;
+            var minWidth = GetColumnMinWidth(prop, attr, typeCode, isAuditProperty);
 
             if (!isIgnored || isAuditProperty)
             {
@@ -100,6 +102,7 @@
                     <RadzenDataGridColumn TItem="TType"
                                           Title=@(displayName)
                                           Width=@width
+                                          MinWidth="@minWidth"
                                           Filterable="false"
                                           Visible="true"
                                           Pickable="true">
@@ -133,6 +136,7 @@
                                           TextAlign="@textAlign"
                                           Visible="true"
                                           Pickable="true"
+                                          MinWidth="@minWidth"
                                           Width=@width>
                         <EditTemplate Context="context">
                             @if ((attr?.IsReadOnly ?? false) || isAuditProperty)
@@ -145,12 +149,14 @@
                                 {
                                     case TypeCode.Decimal:
                                         <RadzenNumeric TValue="decimal?" Style="width:100%; display: block" Name="@displayName"
+                                                       InputAttributes="@GetInputAttributes(displayName)"
                                                        Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as decimal?)"
                                                        ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
                                         break;
                                     case TypeCode.Double:
                                     case TypeCode.Single:
                                         <RadzenNumeric TValue="double?" Style="width:100%; display: block" Name="@displayName"
+                                                       InputAttributes="@GetInputAttributes(displayName)"
                                                        Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as double?)"
                                                        ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
                                         break;
@@ -158,6 +164,7 @@
                                     case TypeCode.Int32:
                                     case TypeCode.Int64:
                                         <RadzenNumeric TValue="int?" Style="width:100%; display: block" Name="@displayName"
+                                                       InputAttributes="@GetInputAttributes(displayName)"
                                                        Value="@(context.GetPropertyValue(prop.Name, prop.PropertyType) as int?)"
                                                        ValueChanged="@(args=>context.SetPropertyValue(prop.Name,args??0))" />
                                         break;
@@ -189,7 +196,7 @@
         }
         @if (CanModifyGrid)
         {
-            <RadzenDataGridColumn TItem="TType" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+            <RadzenDataGridColumn TItem="TType" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px" MinWidth="120px">
                 <Template Context="context">
                     @if (CanModifyGrid)
                     {

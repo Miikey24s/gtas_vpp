@@ -181,6 +181,43 @@ leftsidebar {
     color: var(--vpp-primary-400);
 }
 
+.vpp-header-row,
+.vpp-header-brand,
+.vpp-header-actions {
+    min-width: 0;
+}
+
+.vpp-header-row {
+    align-items: center;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-header-brand {
+    flex: 1 1 auto;
+    gap: var(--vpp-space-3);
+    overflow: hidden;
+}
+
+.vpp-header-logo {
+    flex: 0 0 auto;
+}
+
+.vpp-header-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--vpp-text-primary);
+    font-family: var(--vpp-font-display);
+    font-size: 1.25rem;
+    font-weight: var(--vpp-font-weight-medium);
+    line-height: 1.15;
+}
+
+.vpp-header-actions {
+    flex: 0 0 auto;
+}
+
 /* ── Content Area ──────────────────────────────────────────────── */
 .vpp-content {
     width: 100%;
@@ -252,7 +289,78 @@ leftsidebar {
     }
 
     .vpp-layout-header {
-        padding: 0 var(--vpp-space-4);
+        padding: 0 var(--vpp-space-2);
+    }
+
+    .vpp-header-row {
+        gap: var(--vpp-space-2);
+    }
+
+    .vpp-header-brand {
+        gap: var(--vpp-space-2);
+    }
+
+    .vpp-header-logo {
+        width: 76px !important;
+    }
+
+    .vpp-header-title {
+        font-size: 0.95rem;
+        max-width: 5.2rem;
+    }
+
+    .vpp-header-server,
+    .vpp-header-notifications {
+        display: none;
+    }
+
+    .vpp-header-actions {
+        gap: var(--vpp-space-2) !important;
+    }
+
+    .vpp-header-controls {
+        gap: var(--vpp-space-1);
+    }
+
+    .vpp-ctrl-btn {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 767px) {
+    .permission-user-grid .rz-group-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--vpp-space-2);
+    }
+
+    .permission-user-grid .rz-custom-header {
+        width: 100%;
+    }
+
+    .permission-user-grid .permission-grid-toolbar {
+        align-items: stretch !important;
+        gap: var(--vpp-space-2) !important;
+    }
+
+    .permission-user-grid .permission-search-field {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .permission-user-grid .rz-group-header-drop {
+        display: none;
+    }
+
+    .permission-user-grid .rz-column-picker {
+        position: static;
+        width: 100%;
+    }
+
+    .permission-user-grid .rz-column-picker .rz-dropdown {
+        width: 100% !important;
     }
 }
 
@@ -513,4 +621,3 @@ leftsidebar {
     flex-shrink: 0;
     margin-top: 1px;
 }
-
