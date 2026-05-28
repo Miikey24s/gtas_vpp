@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "permission.user",
+  "viewport": "mobile",
+  "dom": {
+    "url": "http://localhost:5203/permission?tab=0",
+    "title": "GTAS VPP - Permission",
+    "bodyTextLength": 3394,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-body vpp-layout-body",
+        "role": "",
+        "text": "Nhóm người dùng Phân quyền nhóm/trang Tìm kiếm filter_alt_off search refresh Tải lại 20 columns showing # Inactive User Id User login filter_alt Email filter_al",
+        "left": 11,
+        "right": 401,
+        "width": 390
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed   ",
+        "role": "",
+        "text": "# Inactive User Id User login filter_alt Email filter_alt Full Name filter_alt Admin Group filter_alt User Type Id filter_alt Google Email filter_alt Group Id f",
+        "left": 34,
+        "right": 3304,
+        "width": 3270
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 34,
+        "right": 3304,
+        "width": 3270
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 364,
+        "right": 544,
+        "width": 180
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 544,
+        "right": 794,
+        "width": 250
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 794,
+        "right": 884,
+        "width": 90
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 884,
+        "right": 1034,
+        "width": 150
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1034,
+        "right": 1134,
+        "width": 100
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1134,
+        "right": 1414,
+        "width": 280
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1414,
+        "right": 1594,
+        "width": 180
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1594,
+        "right": 1874,
+        "width": 280
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1874,
+        "right": 1974,
+        "width": 100
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 16,
+    "tabCount": 2
+  },
+  "bugs": []
+}

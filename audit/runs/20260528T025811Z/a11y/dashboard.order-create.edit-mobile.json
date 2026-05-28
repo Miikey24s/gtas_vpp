@@ -1,0 +1,230 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "dashboard.order-create.edit",
+  "viewport": "mobile",
+  "dom": {
+    "url": "http://localhost:5203/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020",
+    "title": "GTAS VPP",
+    "bodyTextLength": 5064,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-body vpp-layout-body",
+        "role": "",
+        "text": "arrow_back Trở về đơn hàng 1 SelectProducts ➔ 2 ReviewSubmit inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấ",
+        "left": 11,
+        "right": 401,
+        "width": 390
+      },
+      {
+        "tag": "div",
+        "cls": "vpp-wizard-split-left",
+        "role": "",
+        "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
+        "left": 40,
+        "right": 597,
+        "width": 557
+      },
+      {
+        "tag": "div",
+        "cls": "vpp-data-card vpp-wizard-panel-card",
+        "role": "",
+        "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
+        "left": 40,
+        "right": 597,
+        "width": 557
+      },
+      {
+        "tag": "div",
+        "cls": "vpp-wizard-panel-card-head",
+        "role": "",
+        "text": "inventory_2 Danh mục sản phẩm 542",
+        "left": 41,
+        "right": 596,
+        "width": 555
+      },
+      {
+        "tag": "div",
+        "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-space-between",
+        "role": "",
+        "text": "inventory_2 Danh mục sản phẩm 542",
+        "left": 55,
+        "right": 582,
+        "width": 527
+      },
+      {
+        "tag": "div",
+        "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-normal",
+        "role": "",
+        "text": "",
+        "left": 241,
+        "right": 582,
+        "width": 341
+      },
+      {
+        "tag": "input",
+        "cls": "rz-textbox rz-state-empty",
+        "role": "",
+        "text": "",
+        "left": 241,
+        "right": 561,
+        "width": 320
+      },
+      {
+        "tag": "div",
+        "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact",
+        "role": "",
+        "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
+        "left": 41,
+        "right": 596,
+        "width": 555
+      },
+      {
+        "tag": "div",
+        "cls": "rz-data-grid-data",
+        "role": "",
+        "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
+        "left": 41,
+        "right": 596,
+        "width": 555
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+        "role": "",
+        "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
+        "left": 41,
+        "right": 596,
+        "width": 555
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 41,
+        "right": 596,
+        "width": 555
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 291,
+        "right": 541,
+        "width": 250
+      }
+    ],
+    "clippedControls": [
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-up rz-button",
+        "role": "",
+        "text": "Up",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-down rz-button",
+        "role": "",
+        "text": "Down",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-up rz-button",
+        "role": "",
+        "text": "Up",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-down rz-button",
+        "role": "",
+        "text": "Down",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-up rz-button",
+        "role": "",
+        "text": "Up",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-down rz-button",
+        "role": "",
+        "text": "Down",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      }
+    ],
+    "interactiveWithoutName": [
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      }
+    ],
+    "tableCount": 2,
+    "dialogCount": 2,
+    "tabCount": 0
+  },
+  "bugs": [
+    {
+      "severity": "Medium",
+      "routeKey": "dashboard.order-create.edit",
+      "viewport": "mobile",
+      "type": "clipped-control-text",
+      "repro": "/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020 has clipped interactive/control text: button \"Up\" 14x14->14x18 | button \"Down\" 14x14->14x18 | button \"Up\" 14x14->14x18 | button \"Down\" 14x14->14x18 | button \"Up\" 14x14->14x18 | button \"Down\" 14x14->14x18",
+      "screenshot": "screenshots/dashboard.order-create.edit-mobile.png",
+      "suspectFile": "",
+      "fixed": false
+    },
+    {
+      "severity": "Medium",
+      "routeKey": "dashboard.order-create.edit",
+      "viewport": "mobile",
+      "type": "unnamed-interactive",
+      "repro": "/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020 has interactive elements without accessible names: input.rz-numeric-input rz-inputtext rz-text-align-left | input.rz-numeric-input rz-inputtext rz-text-align-left | input.rz-numeric-input rz-inputtext rz-text-align-left",
+      "screenshot": "screenshots/dashboard.order-create.edit-mobile.png",
+      "suspectFile": "",
+      "fixed": false
+    }
+  ]
+}

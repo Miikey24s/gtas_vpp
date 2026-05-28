@@ -1,0 +1,20 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "dashboard.catalog",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/dashboard?tab=2",
+    "title": "GTAS VPP - VPP Request",
+    "bodyTextLength": 2590,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 7,
+    "tabCount": 5
+  },
+  "bugs": []
+}

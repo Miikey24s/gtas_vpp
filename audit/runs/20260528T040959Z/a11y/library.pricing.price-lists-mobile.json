@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.pricing.price-lists",
+  "viewport": "mobile",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=6&pricingTab=price-lists",
+    "title": "GTAS VPP",
+    "bodyTextLength": 441,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-body vpp-layout-body",
+        "role": "",
+        "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban Bảng giá Giá Bảng giá add_circle Thêm bảng giá Mã bảng giá filter_alt Tên bảng giá filter_alt M",
+        "left": 11,
+        "right": 401,
+        "width": 390
+      },
+      {
+        "tag": "li",
+        "cls": "",
+        "role": "presentation",
+        "text": "Phòng ban",
+        "left": 340,
+        "right": 404,
+        "width": 65
+      },
+      {
+        "tag": "button",
+        "cls": "",
+        "role": "tab",
+        "text": "Phòng ban",
+        "left": 340,
+        "right": 404,
+        "width": 65
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+        "role": "",
+        "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác DEFAULT Default Price List 1626 payments Sửa",
+        "left": 48,
+        "right": 1348,
+        "width": 1300
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 48,
+        "right": 1348,
+        "width": 1300
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 241,
+        "right": 434,
+        "width": 193
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 434,
+        "right": 628,
+        "width": 193
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 628,
+        "right": 748,
+        "width": 120
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 748,
+        "right": 868,
+        "width": 120
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 868,
+        "right": 1348,
+        "width": 480
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác",
+        "left": 48,
+        "right": 1348,
+        "width": 1300
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác",
+        "left": 48,
+        "right": 1348,
+        "width": 1300
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 5,
+    "tabCount": 8
+  },
+  "bugs": []
+}

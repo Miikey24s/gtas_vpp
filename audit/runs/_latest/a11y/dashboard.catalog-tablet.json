@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "dashboard.catalog",
+  "viewport": "tablet",
+  "dom": {
+    "url": "http://localhost:5203/dashboard?tab=2",
+    "title": "GTAS VPP - VPP Request",
+    "bodyTextLength": 2582,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+        "role": "",
+        "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt 1 VPP_00566F Kềm Bấm",
+        "left": 115,
+        "right": 1398,
+        "width": 1284
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 115,
+        "right": 1398,
+        "width": 1284
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 718,
+        "right": 821,
+        "width": 103
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 821,
+        "right": 981,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 981,
+        "right": 1101,
+        "width": 120
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1101,
+        "right": 1398,
+        "width": 298
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
+        "left": 115,
+        "right": 1398,
+        "width": 1284
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
+        "left": 115,
+        "right": 1398,
+        "width": 1284
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+        "role": "",
+        "text": "ĐVT filter_alt",
+        "left": 718,
+        "right": 821,
+        "width": 103
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "ĐVT filter_alt",
+        "left": 718,
+        "right": 821,
+        "width": 103
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title",
+        "role": "",
+        "text": "ĐVT",
+        "left": 730,
+        "right": 789,
+        "width": 59
+      },
+      {
+        "tag": "span",
+        "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
+        "role": "",
+        "text": "",
+        "left": 772,
+        "right": 789,
+        "width": 18
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 7,
+    "tabCount": 5
+  },
+  "bugs": []
+}

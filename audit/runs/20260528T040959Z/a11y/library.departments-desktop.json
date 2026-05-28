@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.departments",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=5",
+    "title": "GTAS VPP",
+    "bodyTextLength": 3098,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
+        "role": "",
+        "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
+        "left": 94,
+        "right": 2164,
+        "width": 2070
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 94,
+        "right": 2164,
+        "width": 2070
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1894,
+        "right": 2044,
+        "width": 150
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2044,
+        "right": 2164,
+        "width": 120
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
+        "left": 94,
+        "right": 2164,
+        "width": 2070
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
+        "left": 94,
+        "right": 2164,
+        "width": 2070
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+        "role": "",
+        "text": "IsDeleted filter_alt",
+        "left": 1894,
+        "right": 2044,
+        "width": 150
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "IsDeleted filter_alt",
+        "left": 1894,
+        "right": 2044,
+        "width": 150
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title",
+        "role": "",
+        "text": "IsDeleted",
+        "left": 1906,
+        "right": 2012,
+        "width": 106
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title-content rz-text-truncate",
+        "role": "",
+        "text": "IsDeleted",
+        "left": 1934,
+        "right": 1980,
+        "width": 46
+      },
+      {
+        "tag": "span",
+        "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
+        "role": "",
+        "text": "",
+        "left": 1984,
+        "right": 2001,
+        "width": 18
+      },
+      {
+        "tag": "div",
+        "cls": "rz-column-resizer",
+        "role": "",
+        "text": "",
+        "left": 2040,
+        "right": 2044,
+        "width": 4
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 11,
+    "tabCount": 6
+  },
+  "bugs": []
+}

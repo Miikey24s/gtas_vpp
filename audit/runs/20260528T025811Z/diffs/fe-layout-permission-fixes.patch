@@ -1,0 +1,206 @@
+diff --git a/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor b/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor
+index 02bda02..ea4d733 100644
+--- a/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor
++++ b/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor
+@@ -14,19 +14,22 @@
+ <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" Style="position:absolute; top: 0; left: 0; width: 100vw; z-index:99" />
+ 
+ <RadzenHeader class="vpp-header-glass vpp-layout-header" Style="position:static;">
+-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2" Style="width:100%;">
+-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start">
++    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mr-2 vpp-header-row" Style="width:100%;">
++        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" class="vpp-header-brand">
+             <RadzenSidebarToggle class="customburger" Click="@(() => _sideBarExpanded = !_sideBarExpanded)" />
+-            <RadzenImage Style="width: 100px;" Path="./logoppj-new.png" />
+-            <RadzenText Text="@("GTAS VPP (SERVER " + claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper() + ")")" TextStyle="TextStyle.DisplayH5" />
++            <RadzenImage class="vpp-header-logo" Style="width: 100px;" Path="./logoppj-new.png" />
++            <div class="vpp-header-title" title="@HeaderTitle">
++                <span>GTAS VPP</span>
++                <span class="vpp-header-server"> (@ServerLabel)</span>
++            </div>
+         </RadzenStack>
+-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem">
++        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem" class="vpp-header-actions">
+             <HeaderControls IsLightTheme="@LightTheme"
+                             IsLightThemeChanged="@(isLight => LightTheme = isLight)"
+                             OnThemeToggle="ThemeOnChange"
+                             OnLanguageToggle="ToggleLanguage" />
+             @* Notification bell *@
+-            <div style="position:relative;">
++            <div class="vpp-header-notifications" style="position:relative;">
+                 <RadzenButton Icon="notifications" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" Style="border-radius:50%; width:36px; height:36px; padding:0;" Disabled="true" Title="Notifications (coming soon)" />
+                 <span style="position:absolute; top:2px; right:2px; width:8px; height:8px; background:var(--rz-danger); border-radius:50%; border:2px solid var(--rz-header-background-color, #fff);"></span>
+             </div>
+diff --git a/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor.cs b/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor.cs
+index e9dd870..ba68275 100644
+--- a/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor.cs
++++ b/gtas_vpp_fe/gtas_vpp_fe/Components/Layout/LeftSidebar.razor.cs
+@@ -77,6 +77,8 @@ namespace gtas_vpp_fe.Components.Layout
+         private bool CanViewLibraryMenu => HasSidebarMenu(Permissions.MenuLibrary) && LibraryMenuRoutes.Any(route => CanViewLibraryItem(route.Permission));
+         private bool CanViewReportMenu => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
+         private bool CanViewPermissionMenu => HasSidebarMenu(Permissions.MenuPermission) && PermissionMenuRoutes.Any(route => CanViewPermissionItem(route.Permission));
++        private string ServerLabel => $"SERVER {claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper()}";
++        private string HeaderTitle => $"GTAS VPP ({ServerLabel})";
+ 
+         protected override async Task OnInitializedAsync()
+         {
+diff --git a/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Tabs/Tab_User.razor b/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Tabs/Tab_User.razor
+index ad21fe6..96e8e24 100644
+--- a/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Tabs/Tab_User.razor
++++ b/gtas_vpp_fe/gtas_vpp_fe/Components/Pages/Permission/Tabs/Tab_User.razor
+@@ -45,7 +45,7 @@
+                             FilterMode="FilterMode.CheckBoxList"
+                             Density="Density.Compact"
+                             FilterPopupRenderMode="PopupRenderMode.OnDemand"
+-                            class="librarypagegrid"
++                            class="librarypagegrid permission-user-grid"
+                             Style="height: calc(100vh - 14.5vh);"
+                             TItem="sp_Authentication_TabUser_UserList"
+                             Data=@_sp_Authentication_TabUser_UserList
+@@ -54,10 +54,11 @@
+                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                             RowDoubleClick="@OnRowDoubleClick">
+                 <HeaderTemplate>
+-                    <RadzenStack Orientation="Orientation.Horizontal">
+-                        <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text">
++                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="permission-grid-toolbar">
++                        <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
+                             <ChildContent>
+                                 <RadzenTextBox Value="@SearchText"
++                                               aria-label="@Loc["Search"]"
+                                                Change="@(arg => TextBoxOnChange(arg))"
+                                                ValueChanged="@((string value) => SearchText = value)"
+                                                ValueExpression="() => SearchText"
+diff --git a/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-layout.css b/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-layout.css
+index 8a05ff0..314371d 100644
+--- a/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-layout.css
++++ b/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-layout.css
+@@ -181,6 +181,43 @@ leftsidebar {
+     color: var(--vpp-primary-400);
+ }
+ 
++.vpp-header-row,
++.vpp-header-brand,
++.vpp-header-actions {
++    min-width: 0;
++}
++
++.vpp-header-row {
++    align-items: center;
++    gap: var(--vpp-space-3);
++}
++
++.vpp-header-brand {
++    flex: 1 1 auto;
++    gap: var(--vpp-space-3);
++    overflow: hidden;
++}
++
++.vpp-header-logo {
++    flex: 0 0 auto;
++}
++
++.vpp-header-title {
++    min-width: 0;
++    overflow: hidden;
++    text-overflow: ellipsis;
++    white-space: nowrap;
++    color: var(--vpp-text-primary);
++    font-family: var(--vpp-font-display);
++    font-size: 1.25rem;
++    font-weight: var(--vpp-font-weight-medium);
++    line-height: 1.15;
++}
++
++.vpp-header-actions {
++    flex: 0 0 auto;
++}
++
+ /* ── Content Area ──────────────────────────────────────────────── */
+ .vpp-content {
+     width: 100%;
+@@ -252,7 +289,78 @@ leftsidebar {
+     }
+ 
+     .vpp-layout-header {
+-        padding: 0 var(--vpp-space-4);
++        padding: 0 var(--vpp-space-2);
++    }
++
++    .vpp-header-row {
++        gap: var(--vpp-space-2);
++    }
++
++    .vpp-header-brand {
++        gap: var(--vpp-space-2);
++    }
++
++    .vpp-header-logo {
++        width: 76px !important;
++    }
++
++    .vpp-header-title {
++        font-size: 0.95rem;
++        max-width: 5.2rem;
++    }
++
++    .vpp-header-server,
++    .vpp-header-notifications {
++        display: none;
++    }
++
++    .vpp-header-actions {
++        gap: var(--vpp-space-2) !important;
++    }
++
++    .vpp-header-controls {
++        gap: var(--vpp-space-1);
++    }
++
++    .vpp-ctrl-btn {
++        width: 34px;
++        height: 34px;
++    }
++}
++
++@media (max-width: 767px) {
++    .permission-user-grid .rz-group-header {
++        display: flex;
++        flex-direction: column;
++        align-items: stretch;
++        gap: var(--vpp-space-2);
++    }
++
++    .permission-user-grid .rz-custom-header {
++        width: 100%;
++    }
++
++    .permission-user-grid .permission-grid-toolbar {
++        align-items: stretch !important;
++        gap: var(--vpp-space-2) !important;
++    }
++
++    .permission-user-grid .permission-search-field {
++        flex: 1 1 100%;
++        min-width: 0;
++    }
++
++    .permission-user-grid .rz-group-header-drop {
++        display: none;
++    }
++
++    .permission-user-grid .rz-column-picker {
++        position: static;
++        width: 100%;
++    }
++
++    .permission-user-grid .rz-column-picker .rz-dropdown {
++        width: 100% !important;
+     }
+ }
+ 
+@@ -513,4 +621,3 @@ leftsidebar {
+     flex-shrink: 0;
+     margin-top: 1px;
+ }
+-

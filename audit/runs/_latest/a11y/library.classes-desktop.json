@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.classes",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=0",
+    "title": "GTAS VPP",
+    "bodyTextLength": 874,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+        "role": "",
+        "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
+        "left": 999,
+        "right": 2377,
+        "width": 1378
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 999,
+        "right": 2377,
+        "width": 1378
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1834,
+        "right": 1961,
+        "width": 127
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1961,
+        "right": 2078,
+        "width": 117
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2078,
+        "right": 2209,
+        "width": 131
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2209,
+        "right": 2330,
+        "width": 120
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2330,
+        "right": 2377,
+        "width": 47
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
+        "left": 999,
+        "right": 2377,
+        "width": 1378
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
+        "left": 999,
+        "right": 2377,
+        "width": 1378
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+        "role": "",
+        "text": "Create User filter_alt",
+        "left": 1834,
+        "right": 1961,
+        "width": 127
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "Create User filter_alt",
+        "left": 1834,
+        "right": 1961,
+        "width": 127
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title",
+        "role": "",
+        "text": "Create User",
+        "left": 1834,
+        "right": 1930,
+        "width": 96
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 2,
+    "dialogCount": 22,
+    "tabCount": 6
+  },
+  "bugs": []
+}

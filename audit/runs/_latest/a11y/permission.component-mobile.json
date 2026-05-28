@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "permission.component",
+  "viewport": "mobile",
+  "dom": {
+    "url": "http://localhost:5203/permission?tab=1",
+    "title": "GTAS VPP - Permission",
+    "bodyTextLength": 734,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-body vpp-layout-body",
+        "role": "",
+        "text": "Nhóm người dùng Phân quyền nhóm/trang Drag a column header here and drop it to group by that column 12 columns showing # Is Delete filter_alt Func Group Name fi",
+        "left": 11,
+        "right": 401,
+        "width": 390
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed   ",
+        "role": "",
+        "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
+        "left": 34,
+        "right": 1873,
+        "width": 1840
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 34,
+        "right": 1873,
+        "width": 1840
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 361,
+        "right": 598,
+        "width": 237
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 598,
+        "right": 727,
+        "width": 129
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 727,
+        "right": 838,
+        "width": 111
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 838,
+        "right": 951,
+        "width": 112
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 951,
+        "right": 1065,
+        "width": 114
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1065,
+        "right": 1180,
+        "width": 115
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1180,
+        "right": 1418,
+        "width": 238
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1418,
+        "right": 1552,
+        "width": 134
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1552,
+        "right": 1690,
+        "width": 137
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 12,
+    "tabCount": 2
+  },
+  "bugs": []
+}

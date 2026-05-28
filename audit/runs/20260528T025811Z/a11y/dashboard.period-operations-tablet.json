@@ -1,0 +1,38 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "dashboard.period-operations",
+  "viewport": "tablet",
+  "dom": {
+    "url": "http://localhost:5203/dashboard?tab=5",
+    "title": "GTAS VPP - VPP Request",
+    "bodyTextLength": 421,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [],
+    "clippedControls": [],
+    "interactiveWithoutName": [
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      }
+    ],
+    "tableCount": 0,
+    "dialogCount": 0,
+    "tabCount": 7
+  },
+  "bugs": [
+    {
+      "severity": "Medium",
+      "routeKey": "dashboard.period-operations",
+      "viewport": "tablet",
+      "type": "unnamed-interactive",
+      "repro": "/dashboard?tab=5 has interactive elements without accessible names: input.rz-numeric-input rz-inputtext rz-text-align-left",
+      "screenshot": "screenshots/dashboard.period-operations-tablet.png",
+      "suspectFile": "",
+      "fixed": false
+    }
+  ]
+}

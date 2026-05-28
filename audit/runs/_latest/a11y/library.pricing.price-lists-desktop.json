@@ -1,0 +1,20 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.pricing.price-lists",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=6&pricingTab=price-lists",
+    "title": "GTAS VPP",
+    "bodyTextLength": 469,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 5,
+    "tabCount": 8
+  },
+  "bugs": []
+}

@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.categories",
+  "viewport": "mobile",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=1",
+    "title": "GTAS VPP",
+    "bodyTextLength": 1719,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-body vpp-layout-body",
+        "role": "",
+        "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban add_circle Drag a column header here and drop it to group by that column 11 columns showing # V",
+        "left": 11,
+        "right": 401,
+        "width": 390
+      },
+      {
+        "tag": "li",
+        "cls": "",
+        "role": "presentation",
+        "text": "Phòng ban",
+        "left": 340,
+        "right": 404,
+        "width": 65
+      },
+      {
+        "tag": "button",
+        "cls": "",
+        "role": "tab",
+        "text": "Phòng ban",
+        "left": 340,
+        "right": 404,
+        "width": 65
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
+        "role": "",
+        "text": "# VPPCategoryCode filter_alt VPPCategoryName filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate filter_alt UpdateUserId filter_a",
+        "left": 34,
+        "right": 1794,
+        "width": 1760
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 34,
+        "right": 1794,
+        "width": 1760
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 234,
+        "right": 414,
+        "width": 180
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 414,
+        "right": 664,
+        "width": 250
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 664,
+        "right": 884,
+        "width": 220
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 884,
+        "right": 1044,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1044,
+        "right": 1204,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1204,
+        "right": 1364,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1364,
+        "right": 1524,
+        "width": 160
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 9,
+    "tabCount": 6
+  },
+  "bugs": []
+}

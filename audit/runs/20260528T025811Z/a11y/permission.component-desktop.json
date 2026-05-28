@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "permission.component",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/permission?tab=1",
+    "title": "GTAS VPP - Permission",
+    "bodyTextLength": 762,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed   ",
+        "role": "",
+        "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1750,
+        "right": 1933,
+        "width": 184
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
+        "role": "",
+        "text": "Member Company Code filter_alt",
+        "left": 1750,
+        "right": 1933,
+        "width": 184
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "Member Company Code filter_alt",
+        "left": 1750,
+        "right": 1933,
+        "width": 184
+      },
+      {
+        "tag": "div",
+        "cls": "rz-column-resizer",
+        "role": "",
+        "text": "",
+        "left": 1930,
+        "right": 1933,
+        "width": 4
+      },
+      {
+        "tag": "tbody",
+        "cls": "",
+        "role": "",
+        "text": "1 edit Admin Administrators with full access 25/05/2026 10:23 25/05/2026 10:23 5823b49b-5925-4a89-846a-09063a36040c 5615 5615 0 2 edit User Regular users with l",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      },
+      {
+        "tag": "tr",
+        "cls": "rz-data-row  ",
+        "role": "",
+        "text": "1 edit Admin Administrators with full access 25/05/2026 10:23 25/05/2026 10:23 5823b49b-5925-4a89-846a-09063a36040c 5615 5615 0",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      },
+      {
+        "tag": "td",
+        "cls": "",
+        "role": "",
+        "text": "0",
+        "left": 1750,
+        "right": 1933,
+        "width": 184
+      },
+      {
+        "tag": "tr",
+        "cls": "rz-data-row  ",
+        "role": "",
+        "text": "2 edit User Regular users with limited access 25/05/2026 10:23 25/05/2026 10:23 388c6c3a-2801-42dc-bfc0-8a7741264596 5615 5615 0",
+        "left": 94,
+        "right": 1933,
+        "width": 1840
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 12,
+    "tabCount": 2
+  },
+  "bugs": []
+}

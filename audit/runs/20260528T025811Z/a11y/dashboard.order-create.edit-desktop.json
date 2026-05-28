@@ -1,0 +1,121 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "dashboard.order-create.edit",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020",
+    "title": "GTAS VPP",
+    "bodyTextLength": 2046,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [],
+    "clippedControls": [
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-up rz-button",
+        "role": "",
+        "text": "Up",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-down rz-button",
+        "role": "",
+        "text": "Down",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-up rz-button",
+        "role": "",
+        "text": "Up",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-down rz-button",
+        "role": "",
+        "text": "Down",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-up rz-button",
+        "role": "",
+        "text": "Up",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      },
+      {
+        "tag": "button",
+        "cls": "rz-numeric-button rz-numeric-down rz-button",
+        "role": "",
+        "text": "Down",
+        "clientWidth": 14,
+        "scrollWidth": 14,
+        "clientHeight": 14,
+        "scrollHeight": 18
+      }
+    ],
+    "interactiveWithoutName": [
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "cls": "rz-numeric-input rz-inputtext rz-text-align-left",
+        "role": ""
+      }
+    ],
+    "tableCount": 2,
+    "dialogCount": 2,
+    "tabCount": 0
+  },
+  "bugs": [
+    {
+      "severity": "Medium",
+      "routeKey": "dashboard.order-create.edit",
+      "viewport": "desktop",
+      "type": "clipped-control-text",
+      "repro": "/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020 has clipped interactive/control text: button \"Up\" 14x14->14x18 | button \"Down\" 14x14->14x18 | button \"Up\" 14x14->14x18 | button \"Down\" 14x14->14x18 | button \"Up\" 14x14->14x18 | button \"Down\" 14x14->14x18",
+      "screenshot": "screenshots/dashboard.order-create.edit-desktop.png",
+      "suspectFile": "",
+      "fixed": false
+    },
+    {
+      "severity": "Medium",
+      "routeKey": "dashboard.order-create.edit",
+      "viewport": "desktop",
+      "type": "unnamed-interactive",
+      "repro": "/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020 has interactive elements without accessible names: input.rz-numeric-input rz-inputtext rz-text-align-left | input.rz-numeric-input rz-inputtext rz-text-align-left | input.rz-numeric-input rz-inputtext rz-text-align-left",
+      "screenshot": "screenshots/dashboard.order-create.edit-desktop.png",
+      "suspectFile": "",
+      "fixed": false
+    }
+  ]
+}

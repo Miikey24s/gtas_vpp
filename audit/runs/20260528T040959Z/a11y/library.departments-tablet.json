@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.departments",
+  "viewport": "tablet",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=5",
+    "title": "GTAS VPP",
+    "bodyTextLength": 3094,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
+        "role": "",
+        "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
+        "left": 115,
+        "right": 2185,
+        "width": 2070
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 115,
+        "right": 2185,
+        "width": 2070
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 645,
+        "right": 805,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 805,
+        "right": 1055,
+        "width": 250
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1055,
+        "right": 1275,
+        "width": 220
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1275,
+        "right": 1435,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1435,
+        "right": 1595,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1595,
+        "right": 1755,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1755,
+        "right": 1915,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1915,
+        "right": 2065,
+        "width": 150
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2065,
+        "right": 2185,
+        "width": 120
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
+        "left": 115,
+        "right": 2185,
+        "width": 2070
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 11,
+    "tabCount": 6
+  },
+  "bugs": []
+}

@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.suppliers",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=3",
+    "title": "GTAS VPP",
+    "bodyTextLength": 981,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
+        "role": "",
+        "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
+        "left": 94,
+        "right": 2634,
+        "width": 2540
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 94,
+        "right": 2634,
+        "width": 2540
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1884,
+        "right": 2044,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2044,
+        "right": 2204,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2204,
+        "right": 2364,
+        "width": 160
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2364,
+        "right": 2514,
+        "width": 150
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 2514,
+        "right": 2634,
+        "width": 120
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
+        "left": 94,
+        "right": 2634,
+        "width": 2540
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
+        "left": 94,
+        "right": 2634,
+        "width": 2540
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+        "role": "",
+        "text": "CreateDate filter_alt",
+        "left": 1884,
+        "right": 2044,
+        "width": 160
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "CreateDate filter_alt",
+        "left": 1884,
+        "right": 2044,
+        "width": 160
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title",
+        "role": "",
+        "text": "CreateDate",
+        "left": 1896,
+        "right": 2012,
+        "width": 116
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 1,
+    "dialogCount": 14,
+    "tabCount": 6
+  },
+  "bugs": []
+}

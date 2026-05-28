@@ -1,0 +1,20 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "report",
+  "viewport": "desktop",
+  "dom": {
+    "url": "http://localhost:5203/report",
+    "title": "GTAS VPP - Report",
+    "bodyTextLength": 273,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 0,
+    "dialogCount": 0,
+    "tabCount": 0
+  },
+  "bugs": []
+}

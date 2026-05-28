@@ -1,0 +1,129 @@
+{
+  "scanner": "mcp-accessibility-scanner unavailable; Playwright DOM heuristic used",
+  "routeKey": "library.classes",
+  "viewport": "mobile",
+  "dom": {
+    "url": "http://localhost:5203/library?tab=0",
+    "title": "GTAS VPP",
+    "bodyTextLength": 846,
+    "visibleBlazorError": false,
+    "visibleReconnect": false,
+    "horizontalOverflow": 0,
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-body vpp-layout-body",
+        "role": "",
+        "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban # ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description",
+        "left": 11,
+        "right": 401,
+        "width": 390
+      },
+      {
+        "tag": "li",
+        "cls": "",
+        "role": "presentation",
+        "text": "Phòng ban",
+        "left": 340,
+        "right": 404,
+        "width": 65
+      },
+      {
+        "tag": "button",
+        "cls": "",
+        "role": "tab",
+        "text": "Phòng ban",
+        "left": 340,
+        "right": 404,
+        "width": 65
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+        "role": "",
+        "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
+        "left": 34,
+        "right": 1435,
+        "width": 1402
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 34,
+        "right": 1435,
+        "width": 1402
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 283,
+        "right": 399,
+        "width": 115
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 399,
+        "right": 517,
+        "width": 118
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 517,
+        "right": 643,
+        "width": 126
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 643,
+        "right": 879,
+        "width": 235
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 879,
+        "right": 1006,
+        "width": 127
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1006,
+        "right": 1123,
+        "width": 117
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1123,
+        "right": 1254,
+        "width": 131
+      }
+    ],
+    "clippedControls": [],
+    "interactiveWithoutName": [],
+    "tableCount": 2,
+    "dialogCount": 22,
+    "tabCount": 6
+  },
+  "bugs": []
+}
