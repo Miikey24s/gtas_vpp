@@ -73,7 +73,7 @@
     color: var(--vpp-primary-700);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
     text-transform: uppercase;
 }
 
@@ -109,7 +109,7 @@
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
 }
 
 .vpp-wizard-hero-step strong {
@@ -145,7 +145,7 @@
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
     text-transform: uppercase;
 }
 
@@ -485,7 +485,7 @@
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
 }
 
 .vpp-wizard-review-metric strong {
@@ -734,6 +734,5 @@
     min-height: 0;
     overflow-y: auto !important;
 }
-
 
 

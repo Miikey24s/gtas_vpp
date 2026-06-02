@@ -46,20 +46,6 @@
         width: 100% !important;
     }
 
-    .permission-page .ocean-btn {
-        background-color: var(--vpp-ocean-primary);
-        border-color: var(--vpp-ocean-primary);
-    }
-
-    .permission-page .ocean-btn:hover {
-        background-color: var(--vpp-ocean-primary-dark);
-        border-color: var(--vpp-ocean-primary-dark);
-    }
-
-    .stat-card {
-        background: var(--vpp-ocean-surface-soft);
-        border: 1px solid var(--vpp-ocean-primary-light);
-    }
 </style>
 
 @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y =>
@@ -97,7 +83,7 @@
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                 RowDoubleClick="@OnGroupRowDoubleClick">
     <HeaderTemplate>
-        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="@Loc["CreateNewGroup"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.MenuDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
+        <RadzenButton Icon="add_circle" Size="ButtonSize.Small" Text="@Loc["CreateNewGroup"]" ButtonStyle="ButtonStyle.Primary" Visible="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.MenuDashboard) == true && y.IsVisible))" Disabled="@(sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && !y.IsEnable))" Click="@ShowInlineDialog" />
     </HeaderTemplate>
     <Template Context="singlerow">
         <RadzenRow class="rz-p-3">
@@ -190,7 +176,7 @@
                 }
                 else
                 {
-                    <RadzenText TextStyle="TextStyle.Body1" class="rz-p-4 rz-text-align-center">This group has no permission</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1" class="rz-p-4 rz-text-align-center">@Loc["NoPermission"]</RadzenText>
                 }
             </RadzenColumn>
         </RadzenRow>
@@ -306,8 +292,8 @@ else
                     </RadzenColumn>
                     <RadzenColumn Size="12">
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-                            <RadzenButton ButtonType="ButtonType.Button" Icon="close" Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => ds.Close(false))" />
-                            <RadzenButton ButtonType="ButtonType.Submit" Icon="check" Text="@Loc["Create"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" />
+                            <RadzenButton ButtonType="ButtonType.Button" Icon="close" Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@(() => ds.Close(false))" />
+                            <RadzenButton ButtonType="ButtonType.Submit" Icon="check" Text="@Loc["Create"]" ButtonStyle="ButtonStyle.Primary" />
                         </RadzenStack>
                     </RadzenColumn>
                 </RadzenRow>
@@ -315,4 +301,3 @@ else
         </RadzenStack>, new DialogOptions() { Width = "600px", Height = "auto" });
     }
 }
-

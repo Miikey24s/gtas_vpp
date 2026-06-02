@@ -113,11 +113,13 @@
 }
 
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
-    justify-content: center;
-    align-items: center;
-    margin: 2px auto;
-    padding: var(--vpp-space-2);
-    width: calc(100% - 8px);
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 2px auto !important;
+    padding: 0 !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: var(--vpp-radius-full) !important;
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -126,14 +128,29 @@
 /* Center the link inside wrapper — also reset background/border on the link div */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-link,
 .sidebar-collapsed .rz-navigation-item .rz-navigation-item-link {
-    justify-content: center;
-    display: flex;
-    width: 100%;
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
     background: transparent !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-icon {
+    margin: 0 !important;
+    margin-right: 0 !important;
+    margin-inline-end: 0 !important;
+    padding: 0 !important;
+    font-size: 24px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 /* Kill ALL pseudo-elements on collapsed parent items (arrow indicators, shadows) */
@@ -164,15 +181,27 @@
     display: none !important;
 }
 
-/* Collapsed: active indicator via box-shadow (higher specificity than reset) */
-.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper {
-    box-shadow: inset 3px 0 0 var(--vpp-primary-400) !important;
+/* Collapsed: active indicator (either the parent is active or parent contains active child) */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper {
+    background-color: rgba(14, 165, 233, 0.15) !important;
+    box-shadow: none !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) .rzi.rz-navigation-item-icon {
+    color: var(--vpp-primary-400) !important;
+}
+
+:root:not(.rz-theme-dark) .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
+:root:not(.rz-theme-dark) .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) .rzi.rz-navigation-item-icon {
+    color: var(--vpp-primary-700) !important;
 }
 
 /* Collapsed: hover effect on icons */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
     background: rgba(14, 165, 233, 0.08) !important;
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-full) !important;
 }
 
 
@@ -225,4 +254,3 @@
     background: transparent !important;
     background-color: transparent !important;
 }
-

@@ -6,10 +6,9 @@ using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 using Radzen;
-using System.Collections;
-using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
@@ -34,6 +33,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] protected IStringLocalizer<App> BaseLoc { get; set; } = default!;
         [Inject] protected NotificationService NotificationService { get; set; } = default!;
         [Inject] protected PermissionState PermissionState { get; set; } = default!;
+        [Inject] protected Microsoft.JSInterop.IJSRuntime JSRuntime { get; set; } = default!;
 
         // ─── Cascaded from the host page ─────────────────────────────────────
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
@@ -140,12 +140,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 };
                 AppendFilterScopeQuery(query);
 
-                var scopedFilters = CurrentFilters
-                    .Where(filter => !TargetsCurrentColumn(filter, property))
-                    .Select(BuildColumnFilterScope)
-                    .Where(filter => filter != null)
-                    .Cast<ColumnFilterScope>()
-                    .ToList();
+                var scopedFilters = VppOrderGridFilterHelper.BuildColumnFilterScopes(CurrentFilters, property);
 
                 if (scopedFilters.Count > 0)
                 {
@@ -167,7 +162,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 if (response != null)
                 {
                     var distinctDtos = response
-                        .Select(BuildFilterValueDto)
+                        .Select(VppOrderGridFilterHelper.BuildFilterValueDto)
                         .ToList();
 
                     args.Data = distinctDtos;
@@ -178,143 +173,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 Console.WriteLine($"[BaseOrderTab] LoadColumnFilterData failed: {ex.Message}");
             }
-        }
-
-        private static VPP01_RequestHeaderResDTO BuildFilterValueDto(Dictionary<string, object?> dict)
-        {
-            var dto = new VPP01_RequestHeaderResDTO();
-
-            if (dict.TryGetValue("Y", out var yearVal) && int.TryParse(yearVal?.ToString(), out var year))
-            {
-                dto.Y = year;
-            }
-
-            if (dict.TryGetValue("M", out var monthVal) && int.TryParse(monthVal?.ToString(), out var month))
-            {
-                dto.M = month;
-            }
-
-            if (dict.TryGetValue("Status", out var statusVal) && int.TryParse(statusVal?.ToString(), out var status))
-            {
-                dto.Status = status;
-            }
-
-            if (dict.TryGetValue(nameof(VPP01_RequestHeaderResDTO.TotalLines), out var totalLinesVal) && int.TryParse(totalLinesVal?.ToString(), out var totalLines))
-            {
-                dto.TotalLines = totalLines;
-            }
-
-            if (dict.TryGetValue(nameof(VPP01_RequestHeaderResDTO.TotalQty), out var totalQtyVal) && int.TryParse(totalQtyVal?.ToString(), out var totalQty))
-            {
-                dto.TotalQty = totalQty;
-            }
-
-            if (dict.TryGetValue(nameof(VPP01_RequestHeaderResDTO.SubmittedDate), out var submittedDateVal)
-                && DateTime.TryParse(submittedDateVal?.ToString(), out var submittedDate))
-            {
-                dto.SubmittedDate = submittedDate;
-            }
-
-            if (dict.TryGetValue("IsAdditionalOrder", out var additionalVal) && bool.TryParse(additionalVal?.ToString(), out var isAdditional))
-            {
-                dto.IsAdditionalOrder = isAdditional;
-            }
-
-            if (dict.TryGetValue("IsDeadlinePassed", out var deadlineVal) && bool.TryParse(deadlineVal?.ToString(), out var isDeadlinePassed))
-            {
-                dto.IsDeadlinePassed = isDeadlinePassed;
-            }
-
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.VPPCode));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.DepartmentCode));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.MemberCompanyCode));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.RequesterName));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.Description));
-
-            return dto;
-        }
-
-        private static void SetStringProperty(Dictionary<string, object?> dict, VPP01_RequestHeaderResDTO dto, string propertyName)
-        {
-            if (!dict.TryGetValue(propertyName, out var value) || value == null)
-            {
-                return;
-            }
-
-            var property = typeof(VPP01_RequestHeaderResDTO).GetProperty(propertyName);
-            property?.SetValue(dto, value.ToString());
-        }
-
-        private static bool TargetsCurrentColumn(FilterDescriptor filter, string property)
-        {
-            return string.Equals(filter.FilterProperty, property, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(filter.Property, property, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static ColumnFilterScope? BuildColumnFilterScope(FilterDescriptor filter)
-        {
-            var property = !string.IsNullOrWhiteSpace(filter.FilterProperty)
-                ? filter.FilterProperty
-                : filter.Property;
-
-            if (string.IsNullOrWhiteSpace(property))
-            {
-                return null;
-            }
-
-            var values = GetFilterValues(filter.FilterValue)
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            return values.Count == 0
-                ? null
-                : new ColumnFilterScope
-                {
-                    Property = property,
-                    Values = values
-                };
-        }
-
-        private static IEnumerable<string> GetFilterValues(object? filterValue)
-        {
-            if (filterValue is IEnumerable values && filterValue is not string)
-            {
-                foreach (var value in values.Cast<object?>())
-                {
-                    var formatted = FormatFilterValue(value);
-                    if (!string.IsNullOrWhiteSpace(formatted))
-                    {
-                        yield return formatted;
-                    }
-                }
-
-                yield break;
-            }
-
-            var singleValue = FormatFilterValue(filterValue);
-            if (!string.IsNullOrWhiteSpace(singleValue))
-            {
-                yield return singleValue;
-            }
-        }
-
-        private static string? FormatFilterValue(object? value)
-        {
-            return value switch
-            {
-                null => null,
-                DateTime dateTime => dateTime.ToString(DateFormatter.LongDate, CultureInfo.GetCultureInfo("vi-VN")),
-                DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(DateFormatter.LongDate, CultureInfo.GetCultureInfo("vi-VN")),
-                IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
-                _ => value.ToString()
-            };
-        }
-
-        private sealed class ColumnFilterScope
-        {
-            public string Property { get; set; } = string.Empty;
-            public List<string> Values { get; set; } = new();
         }
 
         /// <summary>Forces a reload (e.g. after approve / reject in admin tab).</summary>
@@ -417,6 +275,50 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected bool HasDashboardPermission(string permission)
         {
             return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);
+        }
+
+        public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
+
+        public void ToggleOrderCode(Guid orderId)
+        {
+            if (ExpandedOrderIds.Contains(orderId))
+                ExpandedOrderIds.Remove(orderId);
+            else
+                ExpandedOrderIds.Add(orderId);
+        }
+
+        public string GetShortCode(VPP01_RequestHeaderResDTO order)
+        {
+            var code = order.VPPCode;
+            if (string.IsNullOrEmpty(code)) return "";
+            var parts = code.Split('-');
+            if (parts.Length >= 2)
+            {
+                if (order.IsAdditionalOrder)
+                {
+                    return $"{parts[0]}-ADD-{parts[1]}";
+                }
+                return $"{parts[0]}-{parts[1]}";
+            }
+            return code.Length > 10 ? code.Substring(0, 10) : code;
+        }
+
+        public async Task CopyToClipboard(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+                var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = isVi ? "Đã sao chép" : "Copied",
+                    Detail = isVi ? $"Đã sao chép mã đơn hàng: {text}!" : $"Copied order code: {text}!",
+                    Duration = 4000
+                });
+            }
+            catch (Exception) { }
         }
 
         public void Dispose()

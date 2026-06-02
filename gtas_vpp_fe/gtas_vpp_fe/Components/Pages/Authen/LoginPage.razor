@@ -30,7 +30,6 @@
                         <RadzenTextBox class="vpp-login-control"
                                        Name="Username"
                                        Disabled="@isLoading"
-                                       Style="width: 100%;"
                                        @bind-Value=@sp_Authentication_Login.Username
                                        @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
                     </div>
@@ -41,14 +40,12 @@
                                        class="vpp-login-control"
                                        Name="PasswordText"
                                        Disabled="@isLoading"
-                                       Style="width: 100%;"
                                        @bind-Value=@sp_Authentication_Login.Password
                                        @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
                         <RadzenPassword Visible="@isShowPass"
                                         class="vpp-login-control"
                                         Name="Password"
                                         Disabled="@isLoading"
-                                        Style="width: 100%;"
                                         @bind-Value=@sp_Authentication_Login.Password
                                         @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
                     </div>
@@ -59,15 +56,13 @@
                             <label class="vpp-login-label">@Loc["Server"]</label>
                             <RadzenDropDown Data=@Servers
                                             class="vpp-login-control"
-                                            @bind-Value=@sp_Authentication_Login.selected_server
-                                            Style="width: 100%;" />
+                                            @bind-Value=@sp_Authentication_Login.selected_server />
                         </div>
                     }
 
                     <RadzenButton Text="@Loc["Login"]"
                                   ButtonType="ButtonType.Submit"
                                   IsBusy="@isLoading"
-                                  Style="width: 100%; height: 35px; border: none; border-radius: 8px; --rz-button-border-radius: 8px;"
                                   class="vpp-login-btn" />
                 </RadzenTemplateForm>
             </div>

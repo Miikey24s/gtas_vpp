@@ -67,7 +67,7 @@
     font-weight: var(--vpp-font-weight-semibold);
     color: var(--vpp-text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0;
 }
 
 .vpp-mobile-card-grid dd {

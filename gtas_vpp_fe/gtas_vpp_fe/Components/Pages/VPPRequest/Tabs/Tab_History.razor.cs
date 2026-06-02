@@ -11,9 +11,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             public string Text { get; set; } = string.Empty;
         }
 
-        public IEnumerable<int> YearFilter { get; set; } = new[] { DateTime.Now.Year };
+        public IEnumerable<int> YearFilter { get; set; } = Enumerable.Empty<int>();
         public IEnumerable<int> MonthFilter { get; set; } = Enumerable.Empty<int>();
-        public IEnumerable<int> StatusFilter { get; set; } = new[] { 1, 4, 6, 7, 8 }; // all statuses
+        public IEnumerable<int> StatusFilter { get; set; } = Enumerable.Empty<int>();
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();

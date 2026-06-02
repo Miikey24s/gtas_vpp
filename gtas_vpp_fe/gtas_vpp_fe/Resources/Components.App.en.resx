@@ -21,6 +21,8 @@
   <data name="Orders" xml:space="preserve"><value>Orders</value></data>
   <data name="Library" xml:space="preserve"><value>Library</value></data>
   <data name="Reports" xml:space="preserve"><value>Reports</value></data>
+  <data name="ExportReport" xml:space="preserve"><value>Export Report</value></data>
+  <data name="ReportContentNotConfigured" xml:space="preserve"><value>Report content has not been configured yet. Export functionality is coming soon.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Save" xml:space="preserve"><value>Save</value></data>

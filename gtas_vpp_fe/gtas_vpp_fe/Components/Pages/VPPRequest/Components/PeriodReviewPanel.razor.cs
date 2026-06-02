@@ -6,6 +6,8 @@ using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using System.Globalization;
+using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
 {
@@ -14,6 +16,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         [Inject] private IAPIServices ApiServices { get; set; } = default!;
         [Inject] private NotificationService NotificationService { get; set; } = default!;
         [Inject] private DialogService DialogService { get; set; } = default!;
+        [Inject] private Microsoft.JSInterop.IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public EventCallback OnSettled { get; set; }
 
         private readonly List<int> months = Enumerable.Range(1, 12).ToList();
@@ -38,6 +41,30 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private int pageSize = 20;
         private string? currentFilterExpression;
         private string? currentOrderByExpression;
+        private IReadOnlyList<FilterDescriptor> currentFilters = [];
+
+        private string SettlePeriodTitle
+        {
+            get
+            {
+                if (isLoading)
+                {
+                    return Loc["CheckingPeriodStatus"].Value;
+                }
+
+                if (isSettling)
+                {
+                    return Loc["Loading"].Value;
+                }
+
+                if (!canSettle && !string.IsNullOrWhiteSpace(alertMessage))
+                {
+                    return alertMessage;
+                }
+
+                return Loc["SettlePeriod"].Value;
+            }
+        }
 
         protected override async Task OnInitializedAsync()
         {
@@ -185,7 +212,60 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             if (args.Top.HasValue && args.Top.Value > 0) pageSize = args.Top.Value;
             currentFilterExpression = args.Filter;
             currentOrderByExpression = args.OrderBy;
+            currentFilters = args.Filters?.ToList() ?? [];
             await LoadOrdersAsync(firstLoad: false);
+        }
+
+        private async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VPP01_RequestHeaderResDTO> args)
+        {
+            try
+            {
+                if (args.Column == null) return;
+
+                var property = args.Column.GetFilterProperty();
+                if (string.IsNullOrWhiteSpace(property)) return;
+
+                var query = new List<string>
+                {
+                    $"column={Uri.EscapeDataString(property)}",
+                    "scope=all",
+                    $"year={selectedYear}",
+                    $"month={selectedMonth}"
+                };
+
+                var scopedFilters = VppOrderGridFilterHelper.BuildColumnFilterScopes(currentFilters, property);
+
+                if (scopedFilters.Count > 0)
+                {
+                    query.Add($"filters={Uri.EscapeDataString(JsonSerializer.Serialize(scopedFilters))}");
+                }
+                else if (!string.IsNullOrWhiteSpace(currentFilterExpression))
+                {
+                    query.Add($"filter={Uri.EscapeDataString(currentFilterExpression)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(args.Filter))
+                {
+                    query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+                }
+
+                var apiUrl = $"/api/VPPRequest/order-filter-values?{string.Join("&", query)}";
+                var response = await ApiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
+
+                if (response != null)
+                {
+                    var distinctDtos = response
+                        .Select(VppOrderGridFilterHelper.BuildFilterValueDto)
+                        .ToList();
+
+                    args.Data = distinctDtos;
+                    args.Count = distinctDtos.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PeriodReviewPanel] LoadColumnFilterData failed: {ex.Message}");
+            }
         }
 
         private async Task OnYearChangedAsync(int value)
@@ -280,6 +360,50 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private bool IsRowDetailLoading(Guid orderId) => loadingDetailOrderIds.Contains(orderId);
 
         private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
+
+        public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
+
+        public void ToggleOrderCode(Guid orderId)
+        {
+            if (ExpandedOrderIds.Contains(orderId))
+                ExpandedOrderIds.Remove(orderId);
+            else
+                ExpandedOrderIds.Add(orderId);
+        }
+
+        public string GetShortCode(VPP01_RequestHeaderResDTO order)
+        {
+            var code = order.VPPCode;
+            if (string.IsNullOrEmpty(code)) return "";
+            var parts = code.Split('-');
+            if (parts.Length >= 2)
+            {
+                if (order.IsAdditionalOrder)
+                {
+                    return $"{parts[0]}-ADD-{parts[1]}";
+                }
+                return $"{parts[0]}-{parts[1]}";
+            }
+            return code.Length > 10 ? code.Substring(0, 10) : code;
+        }
+
+        public async Task CopyToClipboard(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+                var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = isVi ? "Đã sao chép" : "Copied",
+                    Detail = isVi ? $"Đã sao chép mã đơn hàng: {text}!" : $"Copied order code: {text}!",
+                    Duration = 4000
+                });
+            }
+            catch (Exception) { }
+        }
 
         private void SetAlert(AlertStyle style, string message)
         {

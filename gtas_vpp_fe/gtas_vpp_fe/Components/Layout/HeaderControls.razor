@@ -3,14 +3,14 @@
 <div class="vpp-header-controls">
     @* Language Toggle *@
     <button class="vpp-ctrl-btn" @onclick="OnLanguageToggle" title="@LanguageToggleTitle" aria-label="@LanguageToggleTitle">
-        <span style="font-size:0.7rem; font-weight:700;">
+        <span class="vpp-ctrl-lang">
             @LanguageToggleCode
         </span>
     </button>
 
     @* Dark Mode Toggle *@
     <button class="vpp-ctrl-btn" @onclick="OnThemeToggle" title="@ThemeToggleTitle" aria-label="@ThemeToggleTitle">
-        <span class="material-symbols-outlined" style="font-size:1.15rem;">
+        <span class="material-symbols-outlined vpp-ctrl-icon">
             @ThemeToggleIcon
         </span>
     </button>

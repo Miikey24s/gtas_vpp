@@ -14,8 +14,8 @@
         @* ── Action Buttons ─────────────────────────────────────────── *@
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
-                <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Primary" class="ocean-btn" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
+                <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
+                <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Light" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
             </RadzenStack>
         </RadzenStack>
 
@@ -99,7 +99,10 @@
                     <span class="rzi rzi-history"></span>
                     @Loc["PreviousOrderPeriod"] (@PreviousOrderPeriodText)
                 </div>
-                <RadzenButton Icon="add_circle" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
+                @if (PreviousOrders != null && PreviousOrders.Any())
+                {
+                    <RadzenButton Icon="add_circle" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
+                }
             </div>
 
             @if (PreviousOrders == null || !PreviousOrders.Any())
@@ -109,7 +112,7 @@
                                Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
                                PrimaryText="@Loc["RequestAdditional"]"
                                PrimaryAction="@(async _ => await GoToCreatePage(true))"
-                               Class="rz-mt-3" />
+                               Class="rz-mt-3 vpp-empty-state-compact" />
             }
             else
             {
@@ -149,16 +152,20 @@
             <div class="vpp-data-card-header">
                 <div>
                     <div class="vpp-data-card-summary">
-                        <span class="rzi rzi-description vpp-data-card-summary-icon" aria-hidden="true"></span>
                         <span class="vpp-data-card-label">@Loc["OrderCodeLabel"]</span>
-                        <div class="vpp-data-card-value-row">
-                            <span class="vpp-data-card-value">@order.VPPCode</span>
+                        <div class="vpp-data-card-value-row vpp-order-code-cell">
+                            <span class="vpp-data-card-value vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@order.VPPCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
+                                @GetShortCode(order)
+                            </span>
+                            <div class="vpp-order-code-popover">
+                                <span class="vpp-order-code-popover-text">@order.VPPCode</span>
+                                <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(order.VPPCode))" Title="@Loc["Copy"]" />
+                            </div>
                             @if (order.IsAdditionalOrder)
                             {
                                 <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
                             }
                         </div>
-                        <span class="rzi rzi-schedule vpp-data-card-summary-icon" aria-hidden="true"></span>
                         <span class="vpp-data-card-label">@Loc["SubmittedLabel"]</span>
                         <span class="vpp-data-card-value">@DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate)</span>
                     </div>
@@ -185,6 +192,7 @@
                             Data="@(order.Items ?? new())"
                             AllowPaging="true" PageSize="10"
                             AllowVirtualization="true"
+                            AllowFiltering="false"
                             AllowSorting="false"
                             Density="Density.Compact"
                             GridLines="DataGridGridLines.Horizontal"
@@ -198,11 +206,11 @@
 
                     <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="VPPName" Title="@Loc["ItemName"]" Width="300px" TextAlign="TextAlign.Left" />
 
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="100px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
 
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" Width="150px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" Width="90px" TextAlign="TextAlign.Center" />
 
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="@Loc["Note"]" TextAlign="TextAlign.Left">
+                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="220px" TextAlign="TextAlign.Left">
                         <Template Context="item">
                             <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;" title="@item.Description">
                                 @item.Description

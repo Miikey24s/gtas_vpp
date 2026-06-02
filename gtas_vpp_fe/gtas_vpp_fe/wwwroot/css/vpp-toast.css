@@ -50,9 +50,9 @@
 .rz-notification-message-success,
 .rz-notification-message[class*="-success"],
 .rz-notification-message[style*="--rz-success"] {
-    background: #10b981 !important; /* Premium solid Emerald Green */
-    color: #ffffff !important;
-    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    background: var(--vpp-success) !important;
+    color: var(--vpp-text-on-surface) !important;
+    border: 1px solid rgba(var(--vpp-success-rgb), 0.2) !important;
 }
 
 /* Premium error/danger notification */
@@ -61,27 +61,27 @@
 .rz-notification-message[class*="-danger"],
 .rz-notification-message[class*="-error"],
 .rz-notification-message[style*="--rz-danger"] {
-    background: #ef4444 !important; /* Premium solid Rose/Red */
-    color: #ffffff !important;
-    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    background: var(--vpp-danger) !important;
+    color: var(--vpp-text-on-surface) !important;
+    border: 1px solid rgba(var(--vpp-danger-rgb), 0.2) !important;
 }
 
 /* Premium warning notification */
 .rz-notification-message-warning,
 .rz-notification-message[class*="-warning"],
 .rz-notification-message[style*="--rz-warning"] {
-    background: #f59e0b !important; /* Premium solid Amber */
-    color: #ffffff !important;
-    border: 1px solid rgba(245, 158, 11, 0.2) !important;
+    background: var(--vpp-warning) !important;
+    color: var(--vpp-text-on-surface) !important;
+    border: 1px solid rgba(var(--vpp-warning-rgb), 0.2) !important;
 }
 
 /* Premium info notification */
 .rz-notification-message-info,
 .rz-notification-message[class*="-info"],
 .rz-notification-message[style*="--rz-info"] {
-    background: #0ea5e9 !important; /* Premium solid Sky Blue */
-    color: #ffffff !important;
-    border: 1px solid rgba(14, 165, 233, 0.2) !important;
+    background: var(--vpp-info) !important;
+    color: var(--vpp-text-on-surface) !important;
+    border: 1px solid rgba(var(--vpp-info-rgb), 0.2) !important;
 }
 
 /* Toast title typography */
@@ -89,7 +89,7 @@
     font-family: var(--vpp-font-display);
     font-weight: var(--vpp-font-weight-semibold) !important;
     font-size: var(--vpp-text-sm) !important;
-    color: #ffffff !important;
+    color: var(--vpp-text-on-surface) !important;
     display: block !important;
     margin-bottom: 2px !important;
 }
@@ -104,7 +104,7 @@
 
 /* Align and color default Radzen icon inside toast */
 .rz-notification-message .rz-notification-icon {
-    color: #ffffff !important;
+    color: var(--vpp-text-on-surface) !important;
     font-size: 1.5rem !important;
     margin-right: 14px !important;
     align-self: center !important;
@@ -122,7 +122,7 @@
 }
 
 .rz-notification-message .rz-notification-close:hover {
-    color: #ffffff !important;
+    color: var(--vpp-text-on-surface) !important;
     opacity: 1 !important;
 }
 
@@ -134,7 +134,7 @@
     font-family: var(--vpp-font-display) !important;
     font-weight: var(--vpp-font-weight-semibold) !important;
     font-size: var(--vpp-text-sm) !important;
-    color: #ffffff !important;
+    color: var(--vpp-text-on-surface) !important;
     line-height: 1.2 !important;
     background: transparent !important;
     background-color: transparent !important;

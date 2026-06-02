@@ -18,10 +18,6 @@
     --cons-receive: #7ec8e3;
     --rz-layout-body-padding-1: 0.5rem;
     --rz-input-height-1: 2rem;
-    --vpp-ocean-primary: var(--vpp-primary-500);
-    --vpp-ocean-primary-dark: var(--vpp-primary-700);
-    --vpp-ocean-primary-light: var(--vpp-primary-200);
-    --vpp-ocean-surface-soft: var(--vpp-bg-surface);
     --rz-input-disabled-border: var(--rz-base-600);
     --rz-border-disabled: var(--rz-border-width) solid var(--rz-base-600);
     --rz-form-field-label-focus-color: var(--vpp-primary-500) !important;
@@ -43,12 +39,16 @@
 }
 
 /* ── User avatar & dropdown ──────────────────────────────────── */
+.vpp-user-menu {
+    position: relative;
+}
+
 .user-avatar {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background-color: var(--rz-primary);
-    color: #fff;
+    background-color: var(--vpp-primary-500);
+    color: var(--vpp-text-on-surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,7 +60,7 @@
 }
 
 .user-avatar:hover {
-    box-shadow: 0 0 0 3px rgba(var(--vpp-ocean-primary-rgb), 0.3);
+    box-shadow: 0 0 0 3px rgba(var(--vpp-primary-rgb), 0.3);
     transform: scale(1.05);
 }
 
@@ -72,8 +72,8 @@
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background-color: var(--rz-primary);
-    color: #fff;
+    background-color: var(--vpp-primary-500);
+    color: var(--vpp-text-on-surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -87,7 +87,7 @@
     top: 48px;
     right: 0;
     min-width: 260px;
-    background: var(--rz-panel-background-color, #fff);
+    background: var(--vpp-bg-elevated);
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-lg);
     box-shadow: var(--vpp-shadow-lg);
@@ -109,9 +109,19 @@
     padding: 0.5rem 1rem 0.75rem;
 }
 
+.user-dropdown-name {
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-primary);
+}
+
+.user-dropdown-department {
+    font-size: var(--vpp-text-xs);
+    color: var(--vpp-text-tertiary);
+}
+
 .user-dropdown-divider {
     height: 1px;
-    background: var(--rz-base-200, #eee);
+    background: var(--vpp-border-default);
     margin: 0.25rem 0;
 }
 
@@ -121,7 +131,12 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: var(--rz-base-700, #555);
+    color: var(--vpp-text-secondary);
+}
+
+.user-dropdown-icon {
+    font-size: 1rem;
+    color: currentColor;
 }
 
 .user-dropdown-logout {
@@ -130,14 +145,14 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: var(--rz-danger, #dc3545);
+    color: var(--vpp-danger);
     text-decoration: none;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .user-dropdown-logout:hover {
-    background: rgba(220, 53, 69, 0.06);
+    background: var(--vpp-danger-muted);
 }
 
 .user-dropdown-backdrop {
@@ -243,9 +258,9 @@ h1:focus {
     font-size: 1.5rem !important;
     line-height: 1.25em !important;
     font-weight: 700 !important;
-    letter-spacing: -0.03em !important;
-    color: #262526 !important;
-    border-radius: unset !important;
+    letter-spacing: var(--vpp-tracking-tight) !important;
+    color: var(--vpp-text-primary) !important;
+    border-radius: 0 !important;
     border: none !important;
     box-shadow: none !important;
     height: auto !important;
@@ -649,29 +664,6 @@ h1:focus {
     width: 500px;
 }
 
-.customclosebutton {
-    position: absolute !important;
-    top: 0px !important;
-    right: 5px !important;
-    background-color: transparent !important;
-    color: black !important;
-    font-weight: 700 !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-    .customclosebutton:hover {
-        background-image: none !important;
-    }
-
-    .customclosebutton:active {
-        background-image: none !important;
-    }
-
-    .customclosebutton .rz-button-box i {
-        font-size: 1.75rem !important;
-    }
-
 #ddUpload .rz-fileupload-buttonbar .rz-fileupload-choose {
     width: 100%;
     text-align: center;
@@ -910,7 +902,7 @@ h1:focus {
 }
 
 .material-symbols-outlined {
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 .NotificationFieldSetWioutLine {

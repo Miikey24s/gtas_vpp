@@ -1,7 +1,7 @@
 @using gtas_vpp_shared.DTOs.Share
 @inject NavigationManager NavigationManager
 
-<div style="position:relative;">
+<div class="vpp-user-menu">
     <div class="user-avatar" @onclick="@ToggleMenu" title="@UserFullName">
         @GetInitials()
     </div>
@@ -12,22 +12,22 @@
             <div class="user-dropdown-header">
                 <div class="user-avatar-lg">@GetInitials()</div>
                 <div>
-                    <div style="font-weight: var(--vpp-font-weight-semibold);">@UserFullName</div>
-                    <div style="font-size: var(--vpp-text-xs); color: var(--vpp-text-tertiary);">@Department</div>
+                    <div class="user-dropdown-name">@UserFullName</div>
+                    <div class="user-dropdown-department">@Department</div>
                 </div>
             </div>
             <div class="user-dropdown-divider"></div>
             @if (!string.IsNullOrEmpty(Department))
             {
                 <div class="user-dropdown-info">
-                    <span class="material-symbols-outlined" style="font-size:1rem; color: var(--vpp-text-tertiary);">apartment</span>
+                    <span class="material-symbols-outlined user-dropdown-icon">apartment</span>
                     <span>@Department</span>
                 </div>
                 <div class="user-dropdown-divider"></div>
             }
             <a href="/logoutprocess" class="user-dropdown-logout">
-                <span class="material-symbols-outlined" style="font-size:1rem;">logout</span>
-                <span>Logout</span>
+                <span class="material-symbols-outlined user-dropdown-icon">logout</span>
+                <span>@Loc["Logout"]</span>
             </a>
         </div>
         <div class="user-dropdown-backdrop" @onclick="@(() => _isOpen = false)"></div>

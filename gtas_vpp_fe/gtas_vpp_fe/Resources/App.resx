@@ -21,6 +21,8 @@
   <data name="Orders" xml:space="preserve"><value>Đơn hàng</value></data>
   <data name="Library" xml:space="preserve"><value>Danh mục</value></data>
   <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
+  <data name="ExportReport" xml:space="preserve"><value>Xuất báo cáo</value></data>
+  <data name="ReportContentNotConfigured" xml:space="preserve"><value>Nội dung báo cáo chưa được cấu hình. Chức năng xuất báo cáo sẽ được bổ sung sau.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Phân quyền</value></data>
   <data name="Settings" xml:space="preserve"><value>Cài đặt</value></data>
   <data name="Save" xml:space="preserve"><value>Lưu</value></data>

@@ -3,6 +3,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -38,6 +39,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
+        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
@@ -211,5 +213,49 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         // P4/F-16: Status label + badge style now come from the shared
         // StatusDisplay / StatusDisplayRadzen helpers. Local switch removed.
+
+        public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
+
+        public void ToggleOrderCode(Guid orderId)
+        {
+            if (ExpandedOrderIds.Contains(orderId))
+                ExpandedOrderIds.Remove(orderId);
+            else
+                ExpandedOrderIds.Add(orderId);
+        }
+
+        public string GetShortCode(VPP01_RequestHeaderResDTO order)
+        {
+            var code = order.VPPCode;
+            if (string.IsNullOrEmpty(code)) return "";
+            var parts = code.Split('-');
+            if (parts.Length >= 2)
+            {
+                if (order.IsAdditionalOrder)
+                {
+                    return $"{parts[0]}-ADD-{parts[1]}";
+                }
+                return $"{parts[0]}-{parts[1]}";
+            }
+            return code.Length > 10 ? code.Substring(0, 10) : code;
+        }
+
+        public async Task CopyToClipboard(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+                var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = isVi ? "Đã sao chép" : "Copied",
+                    Detail = isVi ? $"Đã sao chép mã đơn hàng: {text}!" : $"Copied order code: {text}!",
+                    Duration = 4000
+                });
+            }
+            catch (Exception) { }
+        }
     }
 }

@@ -37,7 +37,7 @@ a:focus-visible {
    W3C-recommended 0.01ms duration keeps event semantics intact while
    making motion imperceptible. The `animation: none` / `transition: none`
    fallbacks (F-28 task spec) defeat decorative-only shimmer effects
-   (kpi-card-shine, vanilla-tilt etc.) that don't fire end-events anyway. */
+   (kpi-card-shine etc.) that don't fire end-events anyway. */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;

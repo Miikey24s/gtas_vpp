@@ -72,12 +72,14 @@
         </div>
         
         <div class="vpp-settle-actions">
-            <RadzenButton Icon="lock"
-                          Text="@Loc["SettlePeriod"]"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Disabled="@(!canSettle || isLoading || isSettling)"
-                          Click="@SettleAsync"
-                          class="vpp-settle-btn" />
+            <span class="vpp-disabled-action-help vpp-settle-btn" title="@SettlePeriodTitle">
+                <RadzenButton Icon="lock"
+                              Text="@Loc["SettlePeriod"]"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Disabled="@(!canSettle || isLoading || isSettling)"
+                              Click="@SettleAsync"
+                              class="vpp-settle-btn" />
+            </span>
         </div>
     </div>
 </div>

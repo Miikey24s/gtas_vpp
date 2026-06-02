@@ -25,6 +25,29 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private string? alertMessage;
         private AlertStyle alertStyle = AlertStyle.Info;
 
+        private string SettlePeriodTitle
+        {
+            get
+            {
+                if (isLoading)
+                {
+                    return Loc["CheckingPeriodStatus"].Value;
+                }
+
+                if (isSettling)
+                {
+                    return Loc["Loading"].Value;
+                }
+
+                if (!canSettle && !string.IsNullOrWhiteSpace(alertMessage))
+                {
+                    return alertMessage;
+                }
+
+                return Loc["SettlePeriod"].Value;
+            }
+        }
+
         private string StatusCardClass
         {
             get
@@ -138,6 +161,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             canSettle = true;
             if (status.IsSettled)
             {
+                canSettle = false;
                 SetAlert(
                     AlertStyle.Info,
                     string.Format(

@@ -30,10 +30,6 @@
     <link rel="stylesheet" href="@Assets["css/vpp-polish.css"]" />
     <link rel="stylesheet" href="@Assets["gtas_vpp_fe.styles.css"]" />
     <link rel="icon" type="image/x-icon" href="@Assets["PPJ-Software-Icon.ico"]" />
-    @* F-31: Inter + JetBrains Mono are self-hosted via @@font-face in vpp-tokens.css.
-       Material Symbols stays on the CDN because it ships an icon-font glyph set we
-       don't currently bundle locally; replacing it requires a separate task. *@
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet" />
     <ImportMap />
     <link rel="icon" type="image/png" href="@Assets["favicon.png"]" />
     <script>
@@ -54,7 +50,7 @@
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js" integrity="sha512-RX/OFugt/bkgwRQg4B22KYE79dQhwaPp2IZaA/YyU3GMo/qY7GrXkiG6Dvvwnds6/DefCfwPTgCXnaC6nAgVYw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="@Assets["js/vpp-interactions.js"]"></script>
 
 </body>
 

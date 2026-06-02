@@ -20,13 +20,13 @@
 
 #components-reconnect-modal {
     background: var(--vpp-bg-surface);
-    color: var(--vpp-text-primary, #1a1a2e);
+    color: var(--vpp-text-primary);
     width: 22rem;
     margin: 20vh auto;
     padding: 2.5rem 2rem;
     border: 0;
-    border-radius: 16px;
-    box-shadow: 0 12px 40px var(--vpp-shadow, rgba(0,0,0,0.12));
+    border-radius: var(--vpp-radius-modal);
+    box-shadow: var(--vpp-shadow-lg);
     opacity: 0;
     animation: reconnect-fade-out 0.5s both;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -39,7 +39,7 @@
 }
 
 #components-reconnect-modal::backdrop {
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color: var(--vpp-bg-overlay);
     backdrop-filter: blur(4px);
     animation: reconnect-fade-in 0.5s ease-in-out;
     opacity: 1;
@@ -70,30 +70,30 @@
 #components-reconnect-modal p {
     margin: 0;
     text-align: center;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--vpp-text-secondary, #525f7f);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-medium);
+    color: var(--vpp-text-secondary);
 }
 
 #components-reconnect-modal button {
     border: 0;
-    background-color: var(--rz-primary, #1b6ec2);
-    color: white;
-    padding: 8px 28px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
+    background-color: var(--vpp-primary-500);
+    color: var(--vpp-text-on-surface);
+    padding: var(--vpp-space-2) var(--vpp-space-8);
+    border-radius: var(--vpp-radius-button);
+    font-weight: var(--vpp-font-weight-semibold);
+    font-size: var(--vpp-text-sm);
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color var(--vpp-transition-fast);
     margin-top: 0.5rem;
 }
 
 #components-reconnect-modal button:hover {
-    background-color: var(--rz-primary-dark, #155a9a);
+    background-color: var(--vpp-primary-600);
 }
 
 #components-reconnect-modal button:active {
-    background-color: var(--rz-primary, #1b6ec2);
+    background-color: var(--vpp-primary-500);
 }
 
 .components-rejoining-animation {
@@ -104,7 +104,7 @@
 
 .components-rejoining-animation div {
     position: absolute;
-    border: 3px solid var(--rz-primary, #0087ff);
+    border: 3px solid var(--vpp-primary-500);
     opacity: 1;
     border-radius: 50%;
     animation: reconnect-ripple 1.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
