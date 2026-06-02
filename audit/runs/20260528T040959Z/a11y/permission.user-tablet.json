@@ -15,8 +15,8 @@
         "cls": "rz-grid-table rz-grid-table-fixed   ",
         "role": "",
         "text": "# Inactive User Id User login filter_alt Email filter_alt Full Name filter_alt Admin Group filter_alt User Type Id filter_alt Google Email filter_alt Group Id f",
-        "left": 115,
-        "right": 3385,
+        "left": 103,
+        "right": 3373,
         "width": 3270
       },
       {
@@ -24,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 115,
-        "right": 3385,
+        "left": 103,
+        "right": 3373,
         "width": 3270
       },
       {
@@ -33,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 625,
-        "right": 875,
+        "left": 613,
+        "right": 863,
         "width": 250
       },
       {
@@ -42,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 875,
-        "right": 965,
+        "left": 863,
+        "right": 953,
         "width": 90
       },
       {
@@ -51,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 965,
-        "right": 1115,
+        "left": 953,
+        "right": 1103,
         "width": 150
       },
       {
@@ -60,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1115,
-        "right": 1215,
+        "left": 1103,
+        "right": 1203,
         "width": 100
       },
       {
@@ -69,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1215,
-        "right": 1495,
+        "left": 1203,
+        "right": 1483,
         "width": 280
       },
       {
@@ -78,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1495,
-        "right": 1675,
+        "left": 1483,
+        "right": 1663,
         "width": 180
       },
       {
@@ -87,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1675,
-        "right": 1955,
+        "left": 1663,
+        "right": 1943,
         "width": 280
       },
       {
@@ -96,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1955,
-        "right": 2055,
+        "left": 1943,
+        "right": 2043,
         "width": 100
       },
       {
@@ -105,8 +105,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2055,
-        "right": 2205,
+        "left": 2043,
+        "right": 2193,
         "width": 150
       },
       {
@@ -114,8 +114,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2205,
-        "right": 2355,
+        "left": 2193,
+        "right": 2343,
         "width": 150
       }
     ],

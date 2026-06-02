@@ -1,0 +1,182 @@
+- generic [ref=e2]:
+  - generic [ref=e223]:
+    - generic [ref=e224]:
+      - button "Toggle navigation" [ref=e225] [cursor=pointer]:
+        - generic [ref=e226]: menu
+      - generic [ref=e227]:
+        - img "image" [ref=e228]
+        - generic "GTAS VPP (SERVER TEST)" [ref=e229]:
+          - generic [ref=e230]: GTAS VPP
+          - generic [ref=e231]: SERVER TEST
+    - generic [ref=e232]:
+      - generic [ref=e233]:
+        - button "Switch to Vietnamese" [ref=e234] [cursor=pointer]:
+          - generic [ref=e235]: VI
+        - button "Switch to dark mode" [ref=e236] [cursor=pointer]:
+          - generic [ref=e237]: dark_mode
+      - button "notifications" [disabled] [ref=e239]:
+        - generic [ref=e241]: notifications
+      - generic "Google" [ref=e243] [cursor=pointer]: GO
+  - menu "Menu" [ref=e245]:
+    - menuitem "assignment" [expanded] [ref=e246]:
+      - button "assignment" [expanded] [ref=e248] [cursor=pointer]:
+        - generic [ref=e249]: assignment
+      - region
+    - menuitem "library_books" [ref=e250]:
+      - button "library_books" [ref=e252] [cursor=pointer]:
+        - generic [ref=e253]: library_books
+    - menuitem "analytics" [ref=e254]:
+      - link "analytics" [ref=e256] [cursor=pointer]:
+        - /url: /report
+        - generic [ref=e257]: analytics
+    - menuitem "settings" [ref=e258]:
+      - button "settings" [ref=e260] [cursor=pointer]:
+        - generic [ref=e261]: settings
+    - menuitem "logout" [ref=e262]:
+      - link "logout" [ref=e264] [cursor=pointer]:
+        - /url: /logoutprocess
+        - generic [ref=e265]: logout
+  - generic [ref=e266]:
+    - tablist [ref=e267]:
+      - tab "My Orders" [ref=e268] [cursor=pointer]:
+        - generic [ref=e269]: My Orders
+      - tab "Order History" [selected] [ref=e270] [cursor=pointer]:
+        - generic [ref=e271]: Order History
+      - tab "Catalog" [ref=e272] [cursor=pointer]:
+        - generic [ref=e273]: Catalog
+      - tab "Management" [ref=e274] [cursor=pointer]:
+        - generic [ref=e275]: Management
+      - tab "Period Operations" [ref=e276] [cursor=pointer]:
+        - generic [ref=e277]: Period Operations
+    - tabpanel "Order History" [ref=e279]:
+      - generic [ref=e280]:
+        - generic [ref=e281]:
+          - generic [ref=e283]:
+            - generic [ref=e285]: Total Orders
+            - generic [ref=e287]: "2"
+          - generic [ref=e289]:
+            - generic [ref=e291]: Total Line Items
+            - generic [ref=e293]: "7"
+          - generic [ref=e295]:
+            - generic [ref=e297]: Total Quantity
+            - generic [ref=e299]: "7"
+        - generic [ref=e301]:
+          - table [ref=e303]:
+            - rowgroup [ref=e314]:
+              - row "# Order Code Toggle Period Toggle Total Line Items Toggle Total Quantity Toggle Status Toggle Submitted On Toggle Note Toggle" [ref=e315]:
+                - columnheader [ref=e316]
+                - columnheader "#" [ref=e318]:
+                  - generic "#" [ref=e320]:
+                    - generic [ref=e321]: "#"
+                - columnheader "Order Code Toggle" [ref=e322] [cursor=pointer]:
+                  - button "Order Code Toggle" [ref=e323]:
+                    - generic "Order Code" [ref=e324]:
+                      - generic [ref=e325]: Order Code
+                      - text: sort
+                    - button "Toggle" [ref=e326]: filter_alt
+                - columnheader "Period Toggle" [ref=e327] [cursor=pointer]:
+                  - button "Period Toggle" [ref=e328]:
+                    - generic "Period" [ref=e329]:
+                      - generic [ref=e330]: Period
+                      - text: sort
+                    - button "Toggle" [ref=e331]: filter_alt
+                - columnheader "Total Line Items Toggle" [ref=e332] [cursor=pointer]:
+                  - button "Total Line Items Toggle" [ref=e333]:
+                    - generic "Total Line Items" [ref=e334]:
+                      - generic [ref=e335]: Total Line Items
+                      - text: sort
+                    - button "Toggle" [ref=e336]: filter_alt
+                - columnheader "Total Quantity Toggle" [ref=e337] [cursor=pointer]:
+                  - button "Total Quantity Toggle" [ref=e338]:
+                    - generic "Total Quantity" [ref=e339]:
+                      - generic [ref=e340]: Total Quantity
+                      - text: sort
+                    - button "Toggle" [ref=e341]: filter_alt
+                - columnheader "Status Toggle" [ref=e342] [cursor=pointer]:
+                  - button "Status Toggle" [ref=e343]:
+                    - generic "Status" [ref=e344]:
+                      - generic [ref=e345]: Status
+                      - text: sort
+                    - button "Toggle" [ref=e346]: filter_alt
+                - columnheader "Submitted On Toggle" [ref=e347] [cursor=pointer]:
+                  - button "Submitted On Toggle" [ref=e348]:
+                    - generic "Submitted On" [ref=e349]:
+                      - generic [ref=e350]: Submitted On
+                      - text: sort
+                    - button "Toggle" [ref=e351]: filter_alt
+                - columnheader "Note Toggle" [ref=e352] [cursor=pointer]:
+                  - button "Note Toggle" [ref=e353]:
+                    - generic "Note" [ref=e354]:
+                      - generic [ref=e355]: Note
+                      - text: sort
+                    - button "Toggle" [ref=e356]: filter_alt
+            - rowgroup [ref=e357]:
+              - row "Expand child item 1 VPP-202605 content_copy 05/2026 3 3 Submitted 11:45 25/05/2026" [ref=e358]:
+                - cell "Expand child item" [ref=e359]:
+                  - button "Expand child item" [ref=e360] [cursor=pointer]:
+                    - generic [ref=e361]: arrow_right
+                - cell "1" [ref=e362]:
+                  - generic [ref=e363]: "1"
+                - cell "VPP-202605 content_copy" [ref=e364]:
+                  - generic [ref=e366]:
+                    - generic "VPP-202605-b30edde7943445fa8cb76f512e5f2c73" [ref=e367] [cursor=pointer]: VPP-202605
+                    - button "content_copy" [ref=e368] [cursor=pointer]:
+                      - generic [ref=e370]: content_copy
+                - cell "05/2026" [ref=e371]:
+                  - generic [ref=e373]: 05/2026
+                - cell "3" [ref=e374]:
+                  - strong [ref=e376]: "3"
+                - cell "3" [ref=e377]:
+                  - strong [ref=e379]: "3"
+                - cell "Submitted" [ref=e380]:
+                  - generic [ref=e382]: Submitted
+                - cell "11:45 25/05/2026" [ref=e383]:
+                  - generic [ref=e384]: 11:45 25/05/2026
+                - cell [ref=e385]
+              - row "Expand child item 2 VPP-ADD-202604 content_copy Additional 04/2026 4 4 Pending 12:29 28/05/2026 Hello" [ref=e387]:
+                - cell "Expand child item" [ref=e388]:
+                  - button "Expand child item" [ref=e389] [cursor=pointer]:
+                    - generic [ref=e390]: arrow_right
+                - cell "2" [ref=e391]:
+                  - generic [ref=e392]: "2"
+                - cell "VPP-ADD-202604 content_copy Additional" [ref=e393]:
+                  - generic [ref=e395]:
+                    - generic "VPP-202604-38993afad2dc4a93a3bff5a118af3a15" [ref=e396] [cursor=pointer]: VPP-ADD-202604
+                    - button "content_copy" [ref=e397] [cursor=pointer]:
+                      - generic [ref=e399]: content_copy
+                    - generic [ref=e400]: Additional
+                - cell "04/2026" [ref=e401]:
+                  - generic [ref=e403]: 04/2026
+                - cell "4" [ref=e404]:
+                  - strong [ref=e406]: "4"
+                - cell "4" [ref=e407]:
+                  - strong [ref=e409]: "4"
+                - cell "Pending" [ref=e410]:
+                  - generic [ref=e412]: Pending
+                - cell "12:29 28/05/2026" [ref=e413]:
+                  - generic [ref=e414]: 12:29 28/05/2026
+                - cell "Hello" [ref=e415]:
+                  - generic "Hello" [ref=e416]
+          - navigation "Pagination" [ref=e417]:
+            - generic [ref=e418]: Page 1 of 1 (2 items)
+            - list [ref=e419]:
+              - listitem [ref=e420]:
+                - button "Go to first page." [disabled] [ref=e421]:
+                  - generic [ref=e422]: first_page
+              - listitem [ref=e423]:
+                - button "Go to previous page." [disabled] [ref=e424]:
+                  - generic [ref=e425]: navigate_before
+              - listitem [ref=e426]:
+                - button "Go to page 1." [ref=e427] [cursor=pointer]: "1"
+              - listitem [ref=e428]:
+                - button "Go to next page." [disabled] [ref=e429]:
+                  - generic [ref=e430]: navigate_next
+              - listitem [ref=e431]:
+                - button "Go to last page." [disabled] [ref=e432]:
+                  - generic [ref=e433]: last_page
+            - combobox [ref=e434]:
+              - generic:
+                - textbox "10"
+              - generic [ref=e435]: "10"
+              - generic [ref=e437]: arrow_drop_down
+            - generic [ref=e438]: items per page

@@ -11,39 +11,12 @@
     "horizontalOverflow": 0,
     "overflowOffenders": [
       {
-        "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban Bảng giá Giá Default Price List Bảng giá VPP Gia Định Nhà cung cấp Tìm kiếm Mã sản phẩm filter_",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      },
-      {
-        "tag": "li",
-        "cls": "",
-        "role": "presentation",
-        "text": "Phòng ban",
-        "left": 340,
-        "right": 404,
-        "width": 65
-      },
-      {
-        "tag": "button",
-        "cls": "",
-        "role": "tab",
-        "text": "Phòng ban",
-        "left": 340,
-        "right": 404,
-        "width": 65
-      },
-      {
         "tag": "table",
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác VPP_00566F Kề",
-        "left": 48,
-        "right": 998,
+        "left": 36,
+        "right": 986,
         "width": 950
       },
       {
@@ -51,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 48,
-        "right": 998,
+        "left": 36,
+        "right": 986,
         "width": 950
       },
       {
@@ -60,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 368,
-        "right": 468,
+        "left": 356,
+        "right": 456,
         "width": 100
       },
       {
@@ -69,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 468,
-        "right": 608,
+        "left": 456,
+        "right": 596,
         "width": 140
       },
       {
@@ -78,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 608,
-        "right": 738,
+        "left": 596,
+        "right": 726,
         "width": 130
       },
       {
@@ -87,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 738,
-        "right": 998,
+        "left": 726,
+        "right": 986,
         "width": 260
       },
       {
@@ -96,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác",
-        "left": 48,
-        "right": 998,
+        "left": 36,
+        "right": 986,
         "width": 950
       },
       {
@@ -105,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác",
-        "left": 48,
-        "right": 998,
+        "left": 36,
+        "right": 986,
         "width": 950
       },
       {
@@ -114,9 +87,36 @@
         "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
         "role": "",
         "text": "ĐVT filter_alt",
-        "left": 368,
-        "right": 468,
+        "left": 356,
+        "right": 456,
         "width": 100
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "ĐVT filter_alt",
+        "left": 356,
+        "right": 456,
+        "width": 100
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title",
+        "role": "",
+        "text": "ĐVT",
+        "left": 356,
+        "right": 425,
+        "width": 69
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title-content rz-text-truncate",
+        "role": "",
+        "text": "ĐVT",
+        "left": 378,
+        "right": 399,
+        "width": 20
       }
     ],
     "clippedControls": [],

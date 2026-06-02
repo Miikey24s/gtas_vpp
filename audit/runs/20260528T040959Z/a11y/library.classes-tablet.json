@@ -15,8 +15,8 @@
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-        "left": 115,
-        "right": 1516,
+        "left": 103,
+        "right": 1505,
         "width": 1402
       },
       {
@@ -24,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 115,
-        "right": 1516,
+        "left": 103,
+        "right": 1505,
         "width": 1402
       },
       {
@@ -33,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 724,
-        "right": 960,
+        "left": 713,
+        "right": 948,
         "width": 235
       },
       {
@@ -42,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 960,
-        "right": 1087,
+        "left": 948,
+        "right": 1076,
         "width": 127
       },
       {
@@ -51,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1087,
-        "right": 1204,
+        "left": 1076,
+        "right": 1193,
         "width": 117
       },
       {
@@ -60,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1204,
-        "right": 1335,
+        "left": 1193,
+        "right": 1324,
         "width": 131
       },
       {
@@ -69,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1335,
-        "right": 1456,
+        "left": 1324,
+        "right": 1444,
         "width": 120
       },
       {
@@ -78,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1456,
-        "right": 1516,
+        "left": 1444,
+        "right": 1505,
         "width": 61
       },
       {
@@ -87,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-        "left": 115,
-        "right": 1516,
+        "left": 103,
+        "right": 1505,
         "width": 1402
       },
       {
@@ -96,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-        "left": 115,
-        "right": 1516,
+        "left": 103,
+        "right": 1505,
         "width": 1402
       },
       {
@@ -105,8 +105,8 @@
         "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
         "role": "",
         "text": "Description filter_alt",
-        "left": 724,
-        "right": 960,
+        "left": 713,
+        "right": 948,
         "width": 235
       },
       {
@@ -114,8 +114,8 @@
         "cls": "",
         "role": "button",
         "text": "Description filter_alt",
-        "left": 724,
-        "right": 960,
+        "left": 713,
+        "right": 948,
         "width": 235
       }
     ],

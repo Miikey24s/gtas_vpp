@@ -15,8 +15,8 @@
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
         "role": "",
         "text": "# VPPCode filter_alt VPPName filter_alt UOM VPP Category Supplier filter_alt Price filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt Creat",
-        "left": 115,
-        "right": 2515,
+        "left": 103,
+        "right": 2503,
         "width": 2400
       },
       {
@@ -24,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 115,
-        "right": 2515,
+        "left": 103,
+        "right": 2503,
         "width": 2400
       },
       {
@@ -33,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 655,
-        "right": 815,
+        "left": 643,
+        "right": 803,
         "width": 160
       },
       {
@@ -42,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 815,
-        "right": 995,
+        "left": 803,
+        "right": 983,
         "width": 180
       },
       {
@@ -51,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 995,
-        "right": 1135,
+        "left": 983,
+        "right": 1123,
         "width": 140
       },
       {
@@ -60,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1135,
-        "right": 1385,
+        "left": 1123,
+        "right": 1373,
         "width": 250
       },
       {
@@ -69,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1385,
-        "right": 1605,
+        "left": 1373,
+        "right": 1593,
         "width": 220
       },
       {
@@ -78,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1605,
-        "right": 1765,
+        "left": 1593,
+        "right": 1753,
         "width": 160
       },
       {
@@ -87,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1765,
-        "right": 1925,
+        "left": 1753,
+        "right": 1913,
         "width": 160
       },
       {
@@ -96,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1925,
-        "right": 2085,
+        "left": 1913,
+        "right": 2073,
         "width": 160
       },
       {
@@ -105,8 +105,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2085,
-        "right": 2245,
+        "left": 2073,
+        "right": 2233,
         "width": 160
       },
       {
@@ -114,8 +114,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2245,
-        "right": 2395,
+        "left": 2233,
+        "right": 2383,
         "width": 150
       }
     ],

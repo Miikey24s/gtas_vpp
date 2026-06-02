@@ -5,15 +5,124 @@
   "dom": {
     "url": "http://localhost:5203/dashboard?tab=5",
     "title": "GTAS VPP - VPP Request",
-    "bodyTextLength": 421,
+    "bodyTextLength": 745,
     "visibleBlazorError": false,
     "visibleReconnect": false,
     "horizontalOverflow": 0,
-    "overflowOffenders": [],
+    "overflowOffenders": [
+      {
+        "tag": "div",
+        "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
+        "role": "",
+        "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+        "left": 116,
+        "right": 876,
+        "width": 760
+      },
+      {
+        "tag": "div",
+        "cls": "rz-data-grid-data",
+        "role": "",
+        "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+        "left": 116,
+        "right": 876,
+        "width": 760
+      },
+      {
+        "tag": "table",
+        "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+        "role": "",
+        "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+        "left": 116,
+        "right": 1458,
+        "width": 1342
+      },
+      {
+        "tag": "colgroup",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 116,
+        "right": 1458,
+        "width": 1342
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 754,
+        "right": 916,
+        "width": 162
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 916,
+        "right": 1068,
+        "width": 152
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1068,
+        "right": 1198,
+        "width": 130
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1198,
+        "right": 1338,
+        "width": 140
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1338,
+        "right": 1458,
+        "width": 120
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+        "left": 116,
+        "right": 1458,
+        "width": 1342
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+        "left": 116,
+        "right": 1458,
+        "width": 1342
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+        "role": "",
+        "text": "Tổng dòng hàng filter_alt",
+        "left": 754,
+        "right": 916,
+        "width": 162
+      }
+    ],
     "clippedControls": [],
     "interactiveWithoutName": [],
-    "tableCount": 0,
-    "dialogCount": 0,
+    "tableCount": 2,
+    "dialogCount": 18,
     "tabCount": 7
   },
   "bugs": []

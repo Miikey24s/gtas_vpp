@@ -1,0 +1,157 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Toggle navigation" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: menu
+      - generic [ref=e8]:
+        - img "image" [ref=e9]
+        - generic "GTAS VPP (SERVER TEST)" [ref=e10]:
+          - generic [ref=e11]: GTAS VPP
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - button "Switch to Vietnamese" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: VI
+        - button "Switch to dark mode" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: dark_mode
+      - generic "Google" [ref=e19] [cursor=pointer]: GO
+  - generic:
+    - menu "Menu":
+      - menuitem "assignment" [expanded]:
+        - button "assignment" [expanded] [ref=e21] [cursor=pointer]:
+          - generic [ref=e22]: assignment
+        - region
+      - menuitem "library_books":
+        - button "library_books" [ref=e24] [cursor=pointer]:
+          - generic [ref=e25]: library_books
+      - menuitem "analytics":
+        - link "analytics" [ref=e27] [cursor=pointer]:
+          - /url: /report
+          - generic [ref=e28]: analytics
+      - menuitem "settings":
+        - button "settings" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31]: settings
+      - menuitem "logout":
+        - link "logout" [ref=e33] [cursor=pointer]:
+          - /url: /logoutprocess
+          - generic [ref=e34]: logout
+  - generic [ref=e37]:
+    - tablist [ref=e38]:
+      - tab "My Orders" [selected] [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: My Orders
+      - tab "Order History" [ref=e41] [cursor=pointer]:
+        - generic [ref=e42]: Order History
+      - tab "Catalog" [ref=e43] [cursor=pointer]:
+        - generic [ref=e44]: Catalog
+      - tab "Management" [ref=e45] [cursor=pointer]:
+        - generic [ref=e46]: Management
+      - tab "Period Operations" [ref=e47] [cursor=pointer]:
+        - generic [ref=e48]: Period Operations
+    - tabpanel "My Orders" [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e53]:
+          - button "add Create Order" [disabled] [ref=e54]:
+            - generic [ref=e55]:
+              - generic [ref=e56]: add
+              - generic [ref=e57]: Create Order
+          - button "add Copy Previous Cycle" [disabled] [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]: add
+              - generic [ref=e61]: Copy Previous Cycle
+        - generic [ref=e62]:
+          - generic [ref=e64]:
+            - generic [ref=e66]: Current Order Cycle
+            - generic [ref=e68]: 05/2026
+          - generic [ref=e70]:
+            - generic [ref=e72]: Submission Deadline
+            - generic [ref=e74]: 04/06/2026
+          - generic [ref=e76]:
+            - generic [ref=e78]: Total Line Items
+            - generic [ref=e80]: "7"
+          - generic [ref=e82]:
+            - generic [ref=e84]: Total Quantity
+            - generic [ref=e86]: "7"
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e91]:
+              - generic [ref=e93]: "Order Code:"
+              - generic [ref=e94]:
+                - generic "VPP-202605-b30edde7943445fa8cb76f512e5f2c73" [ref=e95] [cursor=pointer]: VPP-202605
+                - button "content_copy" [ref=e96] [cursor=pointer]:
+                  - generic [ref=e98]: content_copy
+              - generic [ref=e100]: "Submitted on:"
+              - generic [ref=e101]: 11:45 25/05/2026
+            - generic [ref=e102]:
+              - generic [ref=e103]: Submitted
+              - button "EditOrderAria" [ref=e104] [cursor=pointer]:
+                - generic [ref=e106]: edit
+              - button "Cancel order VPP-202605-b30edde7943445fa8cb76f512e5f2c73" [ref=e107] [cursor=pointer]:
+                - generic [ref=e109]: delete
+          - table [ref=e113]:
+            - rowgroup [ref=e121]:
+              - row "# Item Code Item Name Quantity UOM Note" [ref=e122]:
+                - columnheader "#" [ref=e123]:
+                  - generic "#" [ref=e125]:
+                    - generic [ref=e126]: "#"
+                - columnheader "Item Code" [ref=e127]:
+                  - generic "Item Code" [ref=e129]:
+                    - generic [ref=e130]: Item Code
+                - columnheader "Item Name" [ref=e131]:
+                  - generic "Item Name" [ref=e133]:
+                    - generic [ref=e134]: Item Name
+                - columnheader "Quantity" [ref=e135]:
+                  - generic "Quantity" [ref=e137]:
+                    - generic [ref=e138]: Quantity
+                - columnheader "UOM" [ref=e139]:
+                  - generic "UOM" [ref=e141]:
+                    - generic [ref=e142]: UOM
+                - columnheader "Note" [ref=e143]:
+                  - generic "Note" [ref=e145]:
+                    - generic [ref=e146]: Note
+            - rowgroup
+        - generic [ref=e148]: Previous Cycle (04/2026)
+        - generic [ref=e150]:
+          - generic [ref=e151]: history
+          - generic [ref=e152]: No previous-period orders
+          - generic [ref=e153]: No regular orders were found in the previous cycle.
+          - button "Create Additional Order" [ref=e155] [cursor=pointer]:
+            - generic [ref=e157]: Create Additional Order
+        - generic [ref=e159]: Additional Orders
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - generic [ref=e165]:
+              - generic [ref=e167]: "Order Code:"
+              - generic [ref=e168]:
+                - generic "VPP-202604-38993afad2dc4a93a3bff5a118af3a15" [ref=e169] [cursor=pointer]: VPP-ADD-202604
+                - button "content_copy" [ref=e170] [cursor=pointer]:
+                  - generic [ref=e172]: content_copy
+                - generic [ref=e173]: Additional
+              - generic [ref=e175]: "Submitted on:"
+              - generic [ref=e176]: 12:29 28/05/2026
+            - generic [ref=e177]:
+              - generic [ref=e178]: Pending
+              - button "EditOrderAria" [ref=e179] [cursor=pointer]:
+                - generic [ref=e181]: edit
+              - button "Cancel order VPP-202604-38993afad2dc4a93a3bff5a118af3a15" [ref=e182] [cursor=pointer]:
+                - generic [ref=e184]: delete
+          - table [ref=e188]:
+            - rowgroup [ref=e196]:
+              - row "# Item Code Item Name Quantity UOM Note" [ref=e197]:
+                - columnheader "#" [ref=e198]:
+                  - generic "#" [ref=e200]:
+                    - generic [ref=e201]: "#"
+                - columnheader "Item Code" [ref=e202]:
+                  - generic "Item Code" [ref=e204]:
+                    - generic [ref=e205]: Item Code
+                - columnheader "Item Name" [ref=e206]:
+                  - generic "Item Name" [ref=e208]:
+                    - generic [ref=e209]: Item Name
+                - columnheader "Quantity" [ref=e210]:
+                  - generic "Quantity" [ref=e212]:
+                    - generic [ref=e213]: Quantity
+                - columnheader "UOM" [ref=e214]:
+                  - generic "UOM" [ref=e216]:
+                    - generic [ref=e217]: UOM
+                - columnheader "Note" [ref=e218]:
+                  - generic "Note" [ref=e220]:
+                    - generic [ref=e221]: Note
+            - rowgroup

@@ -5,21 +5,11 @@
   "dom": {
     "url": "http://localhost:5203/dashboard?tab=3&managementTab=all",
     "title": "GTAS VPP - VPP Request",
-    "bodyTextLength": 367,
+    "bodyTextLength": 542,
     "visibleBlazorError": false,
     "visibleReconnect": false,
     "horizontalOverflow": 0,
-    "overflowOffenders": [
-      {
-        "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ Đơn theo phòng ban Toàn bộ đơn TỔNG ĐƠN 1 TỔNG DÒNG HÀNG 3 TỔNG SỐ LƯỢNG 3 VPP-202605-b30edde7943445",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      }
-    ],
+    "overflowOffenders": [],
     "clippedControls": [],
     "interactiveWithoutName": [],
     "tableCount": 1,

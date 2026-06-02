@@ -5,7 +5,7 @@
   "dom": {
     "url": "http://localhost:5203/dashboard/order-create",
     "title": "GTAS VPP",
-    "bodyTextLength": 1930,
+    "bodyTextLength": 1991,
     "visibleBlazorError": false,
     "visibleReconnect": false,
     "horizontalOverflow": 0,

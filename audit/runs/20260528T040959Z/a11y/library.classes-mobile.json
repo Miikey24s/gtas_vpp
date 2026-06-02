@@ -11,39 +11,12 @@
     "horizontalOverflow": 0,
     "overflowOffenders": [
       {
-        "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban # ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      },
-      {
-        "tag": "li",
-        "cls": "",
-        "role": "presentation",
-        "text": "Phòng ban",
-        "left": 340,
-        "right": 404,
-        "width": 65
-      },
-      {
-        "tag": "button",
-        "cls": "",
-        "role": "tab",
-        "text": "Phòng ban",
-        "left": 340,
-        "right": 404,
-        "width": 65
-      },
-      {
         "tag": "table",
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-        "left": 34,
-        "right": 1435,
+        "left": 22,
+        "right": 1424,
         "width": 1402
       },
       {
@@ -51,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 34,
-        "right": 1435,
+        "left": 22,
+        "right": 1424,
         "width": 1402
       },
       {
@@ -60,17 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 283,
-        "right": 399,
-        "width": 115
-      },
-      {
-        "tag": "col",
-        "cls": "",
-        "role": "",
-        "text": "",
-        "left": 399,
-        "right": 517,
+        "left": 387,
+        "right": 506,
         "width": 118
       },
       {
@@ -78,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 517,
-        "right": 643,
+        "left": 506,
+        "right": 632,
         "width": 126
       },
       {
@@ -87,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 643,
-        "right": 879,
+        "left": 632,
+        "right": 867,
         "width": 235
       },
       {
@@ -96,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 879,
-        "right": 1006,
+        "left": 867,
+        "right": 995,
         "width": 127
       },
       {
@@ -105,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1006,
-        "right": 1123,
+        "left": 995,
+        "right": 1112,
         "width": 117
       },
       {
@@ -114,9 +78,45 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1123,
-        "right": 1254,
+        "left": 1112,
+        "right": 1243,
         "width": 131
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1243,
+        "right": 1363,
+        "width": 120
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1363,
+        "right": 1424,
+        "width": 61
+      },
+      {
+        "tag": "thead",
+        "cls": "",
+        "role": "",
+        "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
+        "left": 22,
+        "right": 1424,
+        "width": 1402
+      },
+      {
+        "tag": "tr",
+        "cls": "",
+        "role": "",
+        "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
+        "left": 22,
+        "right": 1424,
+        "width": 1402
       }
     ],
     "clippedControls": [],

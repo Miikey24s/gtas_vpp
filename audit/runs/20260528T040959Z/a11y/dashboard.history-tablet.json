@@ -5,7 +5,7 @@
   "dom": {
     "url": "http://localhost:5203/dashboard?tab=1",
     "title": "GTAS VPP - VPP Request",
-    "bodyTextLength": 543,
+    "bodyTextLength": 606,
     "visibleBlazorError": false,
     "visibleReconnect": false,
     "horizontalOverflow": 0,
@@ -14,54 +14,45 @@
         "tag": "div",
         "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
         "role": "",
-        "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605-b",
-        "left": 114,
-        "right": 874,
+        "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605 c",
+        "left": 102,
+        "right": 862,
         "width": 760
       },
       {
         "tag": "div",
         "cls": "rz-data-grid-data",
         "role": "",
-        "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605-b",
-        "left": 114,
-        "right": 874,
+        "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605 c",
+        "left": 102,
+        "right": 862,
         "width": 760
       },
       {
         "tag": "table",
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
-        "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605-b",
-        "left": 114,
-        "right": 1230,
-        "width": 1117
+        "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605 c",
+        "left": 102,
+        "right": 1115,
+        "width": 1013
       },
       {
         "tag": "colgroup",
         "cls": "",
         "role": "",
         "text": "",
-        "left": 114,
-        "right": 1230,
-        "width": 1117
+        "left": 102,
+        "right": 1115,
+        "width": 1013
       },
       {
         "tag": "col",
         "cls": "",
         "role": "",
         "text": "",
-        "left": 705,
-        "right": 857,
-        "width": 152
-      },
-      {
-        "tag": "col",
-        "cls": "",
-        "role": "",
-        "text": "",
-        "left": 857,
-        "right": 988,
+        "left": 742,
+        "right": 873,
         "width": 131
       },
       {
@@ -69,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 988,
-        "right": 1128,
+        "left": 873,
+        "right": 1013,
         "width": 140
       },
       {
@@ -78,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1128,
-        "right": 1230,
+        "left": 1013,
+        "right": 1115,
         "width": 102
       },
       {
@@ -87,36 +78,45 @@
         "cls": "",
         "role": "",
         "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt",
-        "left": 114,
-        "right": 1230,
-        "width": 1117
+        "left": 102,
+        "right": 1115,
+        "width": 1013
       },
       {
         "tag": "tr",
         "cls": "",
         "role": "",
         "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt",
-        "left": 114,
-        "right": 1230,
-        "width": 1117
+        "left": 102,
+        "right": 1115,
+        "width": 1013
       },
       {
         "tag": "th",
         "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
         "role": "",
-        "text": "Tổng số lượng filter_alt",
-        "left": 705,
-        "right": 857,
-        "width": 152
+        "text": "Trạng thái filter_alt",
+        "left": 742,
+        "right": 873,
+        "width": 131
       },
       {
         "tag": "div",
         "cls": "",
         "role": "button",
-        "text": "Tổng số lượng filter_alt",
-        "left": 705,
-        "right": 857,
-        "width": 152
+        "text": "Trạng thái filter_alt",
+        "left": 742,
+        "right": 873,
+        "width": 131
+      },
+      {
+        "tag": "span",
+        "cls": "rz-column-title",
+        "role": "",
+        "text": "Trạng thái",
+        "left": 754,
+        "right": 842,
+        "width": 88
       }
     ],
     "clippedControls": [],

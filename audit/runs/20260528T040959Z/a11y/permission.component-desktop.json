@@ -15,8 +15,8 @@
         "cls": "rz-grid-table rz-grid-table-fixed   ",
         "role": "",
         "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       },
       {
@@ -24,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       },
       {
@@ -33,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1750,
-        "right": 1933,
+        "left": 1746,
+        "right": 1930,
         "width": 184
       },
       {
@@ -42,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       },
       {
@@ -51,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       },
       {
@@ -60,8 +60,8 @@
         "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
         "role": "",
         "text": "Member Company Code filter_alt",
-        "left": 1750,
-        "right": 1933,
+        "left": 1746,
+        "right": 1930,
         "width": 184
       },
       {
@@ -69,8 +69,8 @@
         "cls": "",
         "role": "button",
         "text": "Member Company Code filter_alt",
-        "left": 1750,
-        "right": 1933,
+        "left": 1746,
+        "right": 1930,
         "width": 184
       },
       {
@@ -78,8 +78,8 @@
         "cls": "rz-column-resizer",
         "role": "",
         "text": "",
-        "left": 1930,
-        "right": 1933,
+        "left": 1926,
+        "right": 1930,
         "width": 4
       },
       {
@@ -87,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "1 edit Admin Administrators with full access 25/05/2026 10:23 25/05/2026 10:23 5823b49b-5925-4a89-846a-09063a36040c 5615 5615 0 2 edit User Regular users with l",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       },
       {
@@ -96,8 +96,8 @@
         "cls": "rz-data-row  ",
         "role": "",
         "text": "1 edit Admin Administrators with full access 25/05/2026 10:23 25/05/2026 10:23 5823b49b-5925-4a89-846a-09063a36040c 5615 5615 0",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       },
       {
@@ -105,8 +105,8 @@
         "cls": "",
         "role": "",
         "text": "0",
-        "left": 1750,
-        "right": 1933,
+        "left": 1746,
+        "right": 1930,
         "width": 184
       },
       {
@@ -114,8 +114,8 @@
         "cls": "rz-data-row  ",
         "role": "",
         "text": "2 edit User Regular users with limited access 25/05/2026 10:23 25/05/2026 10:23 388c6c3a-2801-42dc-bfc0-8a7741264596 5615 5615 0",
-        "left": 94,
-        "right": 1933,
+        "left": 90,
+        "right": 1930,
         "width": 1840
       }
     ],

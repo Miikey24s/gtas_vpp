@@ -1,0 +1,284 @@
+- generic [ref=e2]:
+  - generic [ref=e260]:
+    - generic [ref=e261]:
+      - button "Toggle navigation" [ref=e262] [cursor=pointer]:
+        - generic [ref=e263]: menu
+      - generic [ref=e264]:
+        - img "image" [ref=e265]
+        - generic "GTAS VPP (SERVER TEST)" [ref=e266]:
+          - generic [ref=e267]: GTAS VPP
+          - generic [ref=e268]: SERVER TEST
+    - generic [ref=e269]:
+      - generic [ref=e270]:
+        - button "Switch to Vietnamese" [ref=e271] [cursor=pointer]:
+          - generic [ref=e272]: VI
+        - button "Switch to dark mode" [ref=e273] [cursor=pointer]:
+          - generic [ref=e274]: dark_mode
+      - button "notifications" [disabled] [ref=e276]:
+        - generic [ref=e278]: notifications
+      - generic "Google" [ref=e280] [cursor=pointer]: GO
+  - menu "Menu" [ref=e282]:
+    - menuitem "assignment" [expanded] [ref=e283]:
+      - button "assignment" [expanded] [ref=e285] [cursor=pointer]:
+        - generic [ref=e286]: assignment
+      - region
+    - menuitem "library_books" [ref=e287]:
+      - button "library_books" [ref=e289] [cursor=pointer]:
+        - generic [ref=e290]: library_books
+    - menuitem "analytics" [ref=e291]:
+      - link "analytics" [ref=e293] [cursor=pointer]:
+        - /url: /report
+        - generic [ref=e294]: analytics
+    - menuitem "settings" [ref=e295]:
+      - button "settings" [ref=e297] [cursor=pointer]:
+        - generic [ref=e298]: settings
+    - menuitem "logout" [ref=e299]:
+      - link "logout" [ref=e301] [cursor=pointer]:
+        - /url: /logoutprocess
+        - generic [ref=e302]: logout
+  - generic [ref=e303]:
+    - tablist [ref=e304]:
+      - tab "My Orders" [ref=e305] [cursor=pointer]:
+        - generic [ref=e306]: My Orders
+      - tab "Order History" [selected] [ref=e307] [cursor=pointer]:
+        - generic [ref=e308]: Order History
+      - tab "Catalog" [ref=e309] [cursor=pointer]:
+        - generic [ref=e310]: Catalog
+      - tab "Management" [ref=e311] [cursor=pointer]:
+        - generic [ref=e312]: Management
+      - tab "Period Operations" [ref=e313] [cursor=pointer]:
+        - generic [ref=e314]: Period Operations
+    - tabpanel "Order History" [ref=e316]:
+      - generic [ref=e317]:
+        - generic [ref=e318]:
+          - generic [ref=e319]:
+            - generic [ref=e320]: Year
+            - combobox [ref=e321]:
+              - generic:
+                - textbox "Empty": System.Int32[]
+              - generic [ref=e322]: "2026"
+              - generic [ref=e324]: arrow_drop_down
+              - text: check
+          - generic [ref=e325]:
+            - generic [ref=e326]: Month
+            - combobox [ref=e327]:
+              - generic:
+                - textbox "Empty": System.Int32[]
+              - generic [ref=e328]: All
+              - generic [ref=e330]: arrow_drop_down
+          - generic [ref=e331]:
+            - generic [ref=e332]: Status
+            - combobox [ref=e333]:
+              - generic:
+                - textbox "Empty": System.Int32[]
+              - generic [ref=e334]: 5 items selected
+              - generic [ref=e336]: arrow_drop_down
+              - text: check check check check check check
+          - button "refresh Reload" [ref=e337] [cursor=pointer]:
+            - generic [ref=e338]:
+              - generic [ref=e339]: refresh
+              - generic [ref=e340]: Reload
+        - generic [ref=e341]:
+          - generic [ref=e343]:
+            - generic [ref=e345]: Total Orders
+            - generic [ref=e347]: "2"
+          - generic [ref=e349]:
+            - generic [ref=e351]: Total Line Items
+            - generic [ref=e353]: "7"
+          - generic [ref=e355]:
+            - generic [ref=e357]: Total Quantity
+            - generic [ref=e359]: "7"
+        - generic [ref=e361]:
+          - table [ref=e363]:
+            - rowgroup [ref=e374]:
+              - row "# Order Code sort Toggle Period sort Toggle Total Line Items sort Toggle Total Quantity sort Toggle Status sort Toggle Submitted On sort Toggle Note sort Toggle" [ref=e375]:
+                - columnheader [ref=e376]
+                - columnheader "#" [ref=e378]:
+                  - generic "#" [ref=e380]:
+                    - generic [ref=e381]: "#"
+                - columnheader "Order Code sort Toggle" [ref=e383] [cursor=pointer]:
+                  - button "Order Code sort Toggle" [ref=e384]:
+                    - generic "Order Code" [ref=e385]:
+                      - generic [ref=e386]: Order Code
+                      - generic [ref=e387]: sort
+                    - button "Toggle" [ref=e389]: filter_alt
+                - columnheader "Period sort Toggle" [ref=e390] [cursor=pointer]:
+                  - button "Period sort Toggle" [ref=e391]:
+                    - generic "Period" [ref=e392]:
+                      - generic [ref=e393]: Period
+                      - generic [ref=e394]: sort
+                    - button "Toggle" [ref=e396]: filter_alt
+                - columnheader "Total Line Items sort Toggle" [ref=e397] [cursor=pointer]:
+                  - button "Total Line Items sort Toggle" [ref=e398]:
+                    - generic "Total Line Items" [ref=e399]:
+                      - generic [ref=e400]: Total Line Items
+                      - generic [ref=e401]: sort
+                    - button "Toggle" [ref=e403]: filter_alt
+                - columnheader "Total Quantity sort Toggle" [ref=e404] [cursor=pointer]:
+                  - button "Total Quantity sort Toggle" [ref=e405]:
+                    - generic "Total Quantity" [ref=e406]:
+                      - generic [ref=e407]: Total Quantity
+                      - generic [ref=e408]: sort
+                    - button "Toggle" [ref=e410]: filter_alt
+                - columnheader "Status sort Toggle" [ref=e411] [cursor=pointer]:
+                  - button "Status sort Toggle" [ref=e412]:
+                    - generic "Status" [ref=e413]:
+                      - generic [ref=e414]: Status
+                      - generic [ref=e415]: sort
+                    - button "Toggle" [ref=e417]: filter_alt
+                - columnheader "Submitted On sort Toggle" [ref=e418] [cursor=pointer]:
+                  - button "Submitted On sort Toggle" [ref=e419]:
+                    - generic "Submitted On" [ref=e420]:
+                      - generic [ref=e421]: Submitted On
+                      - generic [ref=e422]: sort
+                    - button "Toggle" [ref=e424]: filter_alt
+                - columnheader "Note sort Toggle" [ref=e425] [cursor=pointer]:
+                  - button "Note sort Toggle" [ref=e426]:
+                    - generic "Note" [ref=e427]:
+                      - generic [ref=e428]: Note
+                      - generic [ref=e429]: sort
+                    - button "Toggle" [ref=e431]: filter_alt
+            - rowgroup [ref=e432]:
+              - row "Expand child item 1 VPP-202605 content_copy 05/2026 3 3 Submitted 11:45 25/05/2026" [ref=e433]:
+                - cell "Expand child item" [ref=e434]:
+                  - button "Expand child item" [ref=e435] [cursor=pointer]:
+                    - generic [ref=e436]: arrow_right
+                - cell "1" [ref=e437]:
+                  - generic [ref=e438]: "1"
+                - cell "VPP-202605 content_copy" [ref=e439]:
+                  - generic [ref=e441]:
+                    - generic "VPP-202605-b30edde7943445fa8cb76f512e5f2c73" [ref=e442] [cursor=pointer]: VPP-202605
+                    - button "content_copy" [ref=e443] [cursor=pointer]:
+                      - generic [ref=e445]: content_copy
+                - cell "05/2026" [ref=e446]:
+                  - generic [ref=e448]: 05/2026
+                - cell "3" [ref=e449]:
+                  - strong [ref=e451]: "3"
+                - cell "3" [ref=e452]:
+                  - strong [ref=e454]: "3"
+                - cell "Submitted" [ref=e455]:
+                  - generic [ref=e457]: Submitted
+                - cell "11:45 25/05/2026" [ref=e458]:
+                  - generic [ref=e459]: 11:45 25/05/2026
+                - cell [ref=e460]
+              - row "Expand child item 2 VPP-ADD-202604 content_copy Additional 04/2026 4 4 Pending 12:29 28/05/2026 Hello" [ref=e461]:
+                - cell "Expand child item" [ref=e462]:
+                  - button "Expand child item" [expanded] [active] [ref=e463] [cursor=pointer]:
+                    - generic [ref=e464]: arrow_drop_down
+                - cell "2" [ref=e465]:
+                  - generic [ref=e466]: "2"
+                - cell "VPP-ADD-202604 content_copy Additional" [ref=e467]:
+                  - generic [ref=e469]:
+                    - generic "VPP-202604-38993afad2dc4a93a3bff5a118af3a15" [ref=e470] [cursor=pointer]: VPP-ADD-202604
+                    - button "content_copy" [ref=e471] [cursor=pointer]:
+                      - generic [ref=e473]: content_copy
+                    - generic [ref=e474]: Additional
+                - cell "04/2026" [ref=e475]:
+                  - generic [ref=e477]: 04/2026
+                - cell "4" [ref=e478]:
+                  - strong [ref=e480]: "4"
+                - cell "4" [ref=e481]:
+                  - strong [ref=e483]: "4"
+                - cell "Pending" [ref=e484]:
+                  - generic [ref=e486]: Pending
+                - cell "12:29 28/05/2026" [ref=e487]:
+                  - generic [ref=e488]: 12:29 28/05/2026
+                - cell "Hello" [ref=e489]:
+                  - generic "Hello" [ref=e490]
+              - 'row "Order Details # Item Code Item Name Quantity UOM Note 1 VPP_06FAA5 Bao PE 60 x 100cm 1 Kg 2 VPP_075D12 Chổi lông gà quyét trần nhà 1 Cây 3 VPP_06FB26 Bìa 3 dây caro 7cm 1 Cái 4 VPP_08D042 Sổ card A5 - 240 lá 1 Cuốn" [ref=e491]':
+                - 'cell "Order Details # Item Code Item Name Quantity UOM Note 1 VPP_06FAA5 Bao PE 60 x 100cm 1 Kg 2 VPP_075D12 Chổi lông gà quyét trần nhà 1 Cây 3 VPP_06FB26 Bìa 3 dây caro 7cm 1 Cái 4 VPP_08D042 Sổ card A5 - 240 lá 1 Cuốn" [ref=e492]':
+                  - generic [ref=e494]:
+                    - generic [ref=e495]: Order Details
+                    - table [ref=e499]:
+                      - rowgroup [ref=e507]:
+                        - row "# Item Code Item Name Quantity UOM Note" [ref=e508]:
+                          - columnheader "#" [ref=e509]:
+                            - generic "#" [ref=e511]:
+                              - generic [ref=e512]: "#"
+                          - columnheader "Item Code" [ref=e513]:
+                            - generic "Item Code" [ref=e515]:
+                              - generic [ref=e516]: Item Code
+                          - columnheader "Item Name" [ref=e517]:
+                            - generic "Item Name" [ref=e519]:
+                              - generic [ref=e520]: Item Name
+                          - columnheader "Quantity" [ref=e521]:
+                            - generic "Quantity" [ref=e523]:
+                              - generic [ref=e524]: Quantity
+                          - columnheader "UOM" [ref=e525]:
+                            - generic "UOM" [ref=e527]:
+                              - generic [ref=e528]: UOM
+                          - columnheader "Note" [ref=e529]:
+                            - generic "Note" [ref=e531]:
+                              - generic [ref=e532]: Note
+                      - rowgroup [ref=e533]:
+                        - row "1 VPP_06FAA5 Bao PE 60 x 100cm 1 Kg" [ref=e534]:
+                          - cell "1" [ref=e535]:
+                            - generic [ref=e536]: "1"
+                          - cell "VPP_06FAA5" [ref=e537]:
+                            - generic "VPP_06FAA5" [ref=e538]
+                          - cell "Bao PE 60 x 100cm" [ref=e539]:
+                            - generic "Bao PE 60 x 100cm" [ref=e540]
+                          - cell "1" [ref=e541]:
+                            - generic "1" [ref=e542]
+                          - cell "Kg" [ref=e543]:
+                            - generic "Kg" [ref=e544]
+                          - cell [ref=e545]
+                        - row "2 VPP_075D12 Chổi lông gà quyét trần nhà 1 Cây" [ref=e546]:
+                          - cell "2" [ref=e547]:
+                            - generic [ref=e548]: "2"
+                          - cell "VPP_075D12" [ref=e549]:
+                            - generic "VPP_075D12" [ref=e550]
+                          - cell "Chổi lông gà quyét trần nhà" [ref=e551]:
+                            - generic "Chổi lông gà quyét trần nhà" [ref=e552]
+                          - cell "1" [ref=e553]:
+                            - generic "1" [ref=e554]
+                          - cell "Cây" [ref=e555]:
+                            - generic "Cây" [ref=e556]
+                          - cell [ref=e557]
+                        - row "3 VPP_06FB26 Bìa 3 dây caro 7cm 1 Cái" [ref=e558]:
+                          - cell "3" [ref=e559]:
+                            - generic [ref=e560]: "3"
+                          - cell "VPP_06FB26" [ref=e561]:
+                            - generic "VPP_06FB26" [ref=e562]
+                          - cell "Bìa 3 dây caro 7cm" [ref=e563]:
+                            - generic "Bìa 3 dây caro 7cm" [ref=e564]
+                          - cell "1" [ref=e565]:
+                            - generic "1" [ref=e566]
+                          - cell "Cái" [ref=e567]:
+                            - generic "Cái" [ref=e568]
+                          - cell [ref=e569]
+                        - row "4 VPP_08D042 Sổ card A5 - 240 lá 1 Cuốn" [ref=e570]:
+                          - cell "4" [ref=e571]:
+                            - generic [ref=e572]: "4"
+                          - cell "VPP_08D042" [ref=e573]:
+                            - generic "VPP_08D042" [ref=e574]
+                          - cell "Sổ card A5 - 240 lá" [ref=e575]:
+                            - generic "Sổ card A5 - 240 lá" [ref=e576]
+                          - cell "1" [ref=e577]:
+                            - generic "1" [ref=e578]
+                          - cell "Cuốn" [ref=e579]:
+                            - generic "Cuốn" [ref=e580]
+                          - cell [ref=e581]
+          - navigation "Pagination" [ref=e582]:
+            - generic [ref=e583]: Page 1 of 1 (2 items)
+            - list [ref=e584]:
+              - listitem [ref=e585]:
+                - button "Go to first page." [disabled] [ref=e586]:
+                  - generic [ref=e587]: first_page
+              - listitem [ref=e588]:
+                - button "Go to previous page." [disabled] [ref=e589]:
+                  - generic [ref=e590]: navigate_before
+              - listitem [ref=e591]:
+                - button "Go to page 1." [ref=e592] [cursor=pointer]: "1"
+              - listitem [ref=e593]:
+                - button "Go to next page." [disabled] [ref=e594]:
+                  - generic [ref=e595]: navigate_next
+              - listitem [ref=e596]:
+                - button "Go to last page." [disabled] [ref=e597]:
+                  - generic [ref=e598]: last_page
+            - combobox [ref=e599]:
+              - generic:
+                - textbox "10"
+              - generic [ref=e600]: "10"
+              - generic [ref=e602]: arrow_drop_down
+            - generic [ref=e603]: items per page

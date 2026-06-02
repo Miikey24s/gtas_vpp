@@ -5,7 +5,7 @@
   "dom": {
     "url": "http://localhost:5203/dashboard?tab=3&managementTab=all",
     "title": "GTAS VPP - VPP Request",
-    "bodyTextLength": 564,
+    "bodyTextLength": 637,
     "visibleBlazorError": false,
     "visibleReconnect": false,
     "horizontalOverflow": 0,
@@ -15,8 +15,8 @@
         "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
         "role": "",
         "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-        "left": 128,
-        "right": 888,
+        "left": 116,
+        "right": 876,
         "width": 760
       },
       {
@@ -24,8 +24,8 @@
         "cls": "rz-data-grid-data",
         "role": "",
         "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-        "left": 128,
-        "right": 888,
+        "left": 116,
+        "right": 876,
         "width": 760
       },
       {
@@ -33,35 +33,26 @@
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-        "left": 128,
-        "right": 1537,
-        "width": 1410
+        "left": 116,
+        "right": 1422,
+        "width": 1306
       },
       {
         "tag": "colgroup",
         "cls": "",
         "role": "",
         "text": "",
-        "left": 128,
-        "right": 1537,
-        "width": 1410
+        "left": 116,
+        "right": 1422,
+        "width": 1306
       },
       {
         "tag": "col",
         "cls": "",
         "role": "",
         "text": "",
-        "left": 738,
-        "right": 832,
-        "width": 94
-      },
-      {
-        "tag": "col",
-        "cls": "",
-        "role": "",
-        "text": "",
-        "left": 832,
-        "right": 994,
+        "left": 717,
+        "right": 879,
         "width": 162
       },
       {
@@ -69,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 994,
-        "right": 1146,
+        "left": 879,
+        "right": 1031,
         "width": 152
       },
       {
@@ -78,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1146,
-        "right": 1277,
+        "left": 1031,
+        "right": 1162,
         "width": 131
       },
       {
@@ -87,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1277,
-        "right": 1417,
+        "left": 1162,
+        "right": 1302,
         "width": 140
       },
       {
@@ -96,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1417,
-        "right": 1537,
+        "left": 1302,
+        "right": 1422,
         "width": 120
       },
       {
@@ -105,18 +96,27 @@
         "cls": "",
         "role": "",
         "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-        "left": 128,
-        "right": 1537,
-        "width": 1410
+        "left": 116,
+        "right": 1422,
+        "width": 1306
       },
       {
         "tag": "tr",
         "cls": "",
         "role": "",
         "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-        "left": 128,
-        "right": 1537,
-        "width": 1410
+        "left": 116,
+        "right": 1422,
+        "width": 1306
+      },
+      {
+        "tag": "th",
+        "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+        "role": "",
+        "text": "Tổng dòng hàng filter_alt",
+        "left": 717,
+        "right": 879,
+        "width": 162
       }
     ],
     "clippedControls": [],

@@ -11,21 +11,12 @@
     "horizontalOverflow": 0,
     "overflowOffenders": [
       {
-        "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "Nhóm người dùng Phân quyền nhóm/trang Tìm kiếm filter_alt_off search refresh Tải lại 20 columns showing # Inactive User Id User login filter_alt Email filter_al",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      },
-      {
         "tag": "table",
         "cls": "rz-grid-table rz-grid-table-fixed   ",
         "role": "",
         "text": "# Inactive User Id User login filter_alt Email filter_alt Full Name filter_alt Admin Group filter_alt User Type Id filter_alt Google Email filter_alt Group Id f",
-        "left": 34,
-        "right": 3304,
+        "left": 22,
+        "right": 3292,
         "width": 3270
       },
       {
@@ -33,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 34,
-        "right": 3304,
+        "left": 22,
+        "right": 3292,
         "width": 3270
       },
       {
@@ -42,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 364,
-        "right": 544,
+        "left": 352,
+        "right": 532,
         "width": 180
       },
       {
@@ -51,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 544,
-        "right": 794,
+        "left": 532,
+        "right": 782,
         "width": 250
       },
       {
@@ -60,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 794,
-        "right": 884,
+        "left": 782,
+        "right": 872,
         "width": 90
       },
       {
@@ -69,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 884,
-        "right": 1034,
+        "left": 872,
+        "right": 1022,
         "width": 150
       },
       {
@@ -78,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1034,
-        "right": 1134,
+        "left": 1022,
+        "right": 1122,
         "width": 100
       },
       {
@@ -87,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1134,
-        "right": 1414,
+        "left": 1122,
+        "right": 1402,
         "width": 280
       },
       {
@@ -96,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1414,
-        "right": 1594,
+        "left": 1402,
+        "right": 1582,
         "width": 180
       },
       {
@@ -105,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1594,
-        "right": 1874,
+        "left": 1582,
+        "right": 1862,
         "width": 280
       },
       {
@@ -114,9 +105,18 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1874,
-        "right": 1974,
+        "left": 1862,
+        "right": 1962,
         "width": 100
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1962,
+        "right": 2112,
+        "width": 150
       }
     ],
     "clippedControls": [],

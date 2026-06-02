@@ -136,30 +136,129 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 4804,
+      "elapsedMs": 1951,
       "finalUrl": "http://localhost:5203/dashboard?tab=0",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=0",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 640,
+        "bodyTextLength": 899,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
+            "tag": "table",
+            "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
-            "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ add Tạo đơn mới add Sao chép kỳ trước KỲ ĐẶT HÀNG HIỆN TẠI 05/2026 HẠN GỬI ĐƠN 04/06/2026 TỔNG DÒNG ",
-            "left": 11,
-            "right": 401,
-            "width": 390
+            "text": "# Mã hàng Tên hàng Số lượng ĐVT Ghi chú 1 VPP_08D042 Sổ card A5 - 240 lá 1 Cuốn 2 VPP_06FAA5 Bao PE 60 x 100cm 1 Kg 3 VPP_075D12 Chổi lông gà quyét trần nhà 1 C",
+            "left": 22,
+            "right": 407,
+            "width": 385
+          },
+          {
+            "tag": "colgroup",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 22,
+            "right": 407,
+            "width": 385
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 363,
+            "right": 407,
+            "width": 44
+          },
+          {
+            "tag": "thead",
+            "cls": "",
+            "role": "",
+            "text": "# Mã hàng Tên hàng Số lượng ĐVT Ghi chú",
+            "left": 22,
+            "right": 407,
+            "width": 385
+          },
+          {
+            "tag": "tr",
+            "cls": "",
+            "role": "",
+            "text": "# Mã hàng Tên hàng Số lượng ĐVT Ghi chú",
+            "left": 22,
+            "right": 407,
+            "width": 385
+          },
+          {
+            "tag": "th",
+            "cls": "rz-unselectable-text     rz-text-align-left",
+            "role": "",
+            "text": "Ghi chú",
+            "left": 363,
+            "right": 407,
+            "width": 44
+          },
+          {
+            "tag": "div",
+            "cls": "",
+            "role": "",
+            "text": "Ghi chú",
+            "left": 363,
+            "right": 407,
+            "width": 44
+          },
+          {
+            "tag": "span",
+            "cls": "rz-column-title",
+            "role": "",
+            "text": "Ghi chú",
+            "left": 363,
+            "right": 407,
+            "width": 44
+          },
+          {
+            "tag": "span",
+            "cls": "rz-column-title-content rz-text-truncate",
+            "role": "",
+            "text": "Ghi chú",
+            "left": 370,
+            "right": 407,
+            "width": 37
+          },
+          {
+            "tag": "tbody",
+            "cls": "",
+            "role": "",
+            "text": "1 VPP_08D042 Sổ card A5 - 240 lá 1 Cuốn 2 VPP_06FAA5 Bao PE 60 x 100cm 1 Kg 3 VPP_075D12 Chổi lông gà quyét trần nhà 1 Cây 4 VPP_06FB26 Bìa 3 dây caro 7cm 1 Cái",
+            "left": 22,
+            "right": 407,
+            "width": 385
+          },
+          {
+            "tag": "tr",
+            "cls": "rz-data-row  ",
+            "role": "",
+            "text": "1 VPP_08D042 Sổ card A5 - 240 lá 1 Cuốn",
+            "left": 22,
+            "right": 407,
+            "width": 385
+          },
+          {
+            "tag": "td",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 363,
+            "right": 407,
+            "width": 44
           }
         ],
         "clippedControls": [],
         "interactiveWithoutName": [],
-        "tableCount": 1,
+        "tableCount": 2,
         "dialogCount": 0,
         "tabCount": 5
       },
@@ -173,20 +272,20 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1549,
+      "elapsedMs": 1472,
       "finalUrl": "http://localhost:5203/dashboard?tab=0",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=0",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 668,
+        "bodyTextLength": 927,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
         "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
-        "tableCount": 1,
+        "tableCount": 2,
         "dialogCount": 0,
         "tabCount": 5
       },
@@ -200,20 +299,20 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1514,
+      "elapsedMs": 1495,
       "finalUrl": "http://localhost:5203/dashboard?tab=0",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=0",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 668,
+        "bodyTextLength": 927,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
         "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
-        "tableCount": 1,
+        "tableCount": 2,
         "dialogCount": 0,
         "tabCount": 5
       },
@@ -227,27 +326,17 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1877,
+      "elapsedMs": 1638,
       "finalUrl": "http://localhost:5203/dashboard?tab=1",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=1",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 402,
+        "bodyTextLength": 577,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
-        "overflowOffenders": [
-          {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ NĂM 2026 THÁNG Tất cả TRẠNG THÁI 5 items selected refresh Tải lại TỔNG ĐƠN 1 TỔNG DÒNG HÀNG 3 TỔNG S",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          }
-        ],
+        "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
         "tableCount": 1,
@@ -264,13 +353,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1538,
+      "elapsedMs": 1445,
       "finalUrl": "http://localhost:5203/dashboard?tab=1",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=1",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 543,
+        "bodyTextLength": 606,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -279,54 +368,45 @@
             "tag": "div",
             "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
             "role": "",
-            "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605-b",
-            "left": 114,
-            "right": 874,
+            "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605 c",
+            "left": 102,
+            "right": 862,
             "width": 760
           },
           {
             "tag": "div",
             "cls": "rz-data-grid-data",
             "role": "",
-            "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605-b",
-            "left": 114,
-            "right": 874,
+            "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605 c",
+            "left": 102,
+            "right": 862,
             "width": 760
           },
           {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
-            "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605-b",
-            "left": 114,
-            "right": 1230,
-            "width": 1117
+            "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt 1 VPP-202605 c",
+            "left": 102,
+            "right": 1115,
+            "width": 1013
           },
           {
             "tag": "colgroup",
             "cls": "",
             "role": "",
             "text": "",
-            "left": 114,
-            "right": 1230,
-            "width": 1117
+            "left": 102,
+            "right": 1115,
+            "width": 1013
           },
           {
             "tag": "col",
             "cls": "",
             "role": "",
             "text": "",
-            "left": 705,
-            "right": 857,
-            "width": 152
-          },
-          {
-            "tag": "col",
-            "cls": "",
-            "role": "",
-            "text": "",
-            "left": 857,
-            "right": 988,
+            "left": 742,
+            "right": 873,
             "width": 131
           },
           {
@@ -334,8 +414,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 988,
-            "right": 1128,
+            "left": 873,
+            "right": 1013,
             "width": 140
           },
           {
@@ -343,8 +423,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1128,
-            "right": 1230,
+            "left": 1013,
+            "right": 1115,
             "width": 102
           },
           {
@@ -352,36 +432,45 @@
             "cls": "",
             "role": "",
             "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt",
-            "left": 114,
-            "right": 1230,
-            "width": 1117
+            "left": 102,
+            "right": 1115,
+            "width": 1013
           },
           {
             "tag": "tr",
             "cls": "",
             "role": "",
             "text": "# Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gửi filter_alt Ghi chú filter_alt",
-            "left": 114,
-            "right": 1230,
-            "width": 1117
+            "left": 102,
+            "right": 1115,
+            "width": 1013
           },
           {
             "tag": "th",
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
-            "text": "Tổng số lượng filter_alt",
-            "left": 705,
-            "right": 857,
-            "width": 152
+            "text": "Trạng thái filter_alt",
+            "left": 742,
+            "right": 873,
+            "width": 131
           },
           {
             "tag": "div",
             "cls": "",
             "role": "button",
-            "text": "Tổng số lượng filter_alt",
-            "left": 705,
-            "right": 857,
-            "width": 152
+            "text": "Trạng thái filter_alt",
+            "left": 742,
+            "right": 873,
+            "width": 131
+          },
+          {
+            "tag": "span",
+            "cls": "rz-column-title",
+            "role": "",
+            "text": "Trạng thái",
+            "left": 754,
+            "right": 842,
+            "width": 88
           }
         ],
         "clippedControls": [],
@@ -400,13 +489,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1764,
+      "elapsedMs": 1488,
       "finalUrl": "http://localhost:5203/dashboard?tab=1",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=1",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 543,
+        "bodyTextLength": 606,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -427,7 +516,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1591,
+      "elapsedMs": 1463,
       "finalUrl": "http://localhost:5203/dashboard?tab=2",
       "title": "GTAS VPP - VPP Request",
       "dom": {
@@ -439,21 +528,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ TỔNG SẢN PHẨM 542 NHÓM HÀNG 8 # Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt Đ",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt 1 VPP_00566F Kềm Bấm",
-            "left": 34,
-            "right": 1317,
+            "left": 22,
+            "right": 1306,
             "width": 1284
           },
           {
@@ -461,8 +541,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 1317,
+            "left": 22,
+            "right": 1306,
             "width": 1284
           },
           {
@@ -470,8 +550,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 192,
-            "right": 442,
+            "left": 180,
+            "right": 430,
             "width": 250
           },
           {
@@ -479,8 +559,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 442,
-            "right": 637,
+            "left": 430,
+            "right": 626,
             "width": 195
           },
           {
@@ -488,8 +568,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 637,
-            "right": 740,
+            "left": 626,
+            "right": 728,
             "width": 103
           },
           {
@@ -497,8 +577,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 740,
-            "right": 900,
+            "left": 728,
+            "right": 888,
             "width": 160
           },
           {
@@ -506,8 +586,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 900,
-            "right": 1020,
+            "left": 888,
+            "right": 1008,
             "width": 120
           },
           {
@@ -515,8 +595,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1020,
-            "right": 1317,
+            "left": 1008,
+            "right": 1306,
             "width": 298
           },
           {
@@ -524,8 +604,8 @@
             "cls": "",
             "role": "",
             "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
-            "left": 34,
-            "right": 1317,
+            "left": 22,
+            "right": 1306,
             "width": 1284
           },
           {
@@ -533,8 +613,8 @@
             "cls": "",
             "role": "",
             "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
-            "left": 34,
-            "right": 1317,
+            "left": 22,
+            "right": 1306,
             "width": 1284
           },
           {
@@ -542,8 +622,17 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
             "role": "",
             "text": "Tên sản phẩm filter_alt",
-            "left": 192,
-            "right": 442,
+            "left": 180,
+            "right": 430,
+            "width": 250
+          },
+          {
+            "tag": "div",
+            "cls": "",
+            "role": "button",
+            "text": "Tên sản phẩm filter_alt",
+            "left": 180,
+            "right": 430,
             "width": 250
           }
         ],
@@ -563,7 +652,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1606,
+      "elapsedMs": 1496,
       "finalUrl": "http://localhost:5203/dashboard?tab=2",
       "title": "GTAS VPP - VPP Request",
       "dom": {
@@ -579,8 +668,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt 1 VPP_00566F Kềm Bấm",
-            "left": 115,
-            "right": 1398,
+            "left": 103,
+            "right": 1387,
             "width": 1284
           },
           {
@@ -588,8 +677,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 1398,
+            "left": 103,
+            "right": 1387,
             "width": 1284
           },
           {
@@ -597,8 +686,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 718,
-            "right": 821,
+            "left": 707,
+            "right": 809,
             "width": 103
           },
           {
@@ -606,8 +695,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 821,
-            "right": 981,
+            "left": 809,
+            "right": 969,
             "width": 160
           },
           {
@@ -615,8 +704,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 981,
-            "right": 1101,
+            "left": 969,
+            "right": 1089,
             "width": 120
           },
           {
@@ -624,8 +713,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1101,
-            "right": 1398,
+            "left": 1089,
+            "right": 1387,
             "width": 298
           },
           {
@@ -633,8 +722,8 @@
             "cls": "",
             "role": "",
             "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
-            "left": 115,
-            "right": 1398,
+            "left": 103,
+            "right": 1387,
             "width": 1284
           },
           {
@@ -642,8 +731,8 @@
             "cls": "",
             "role": "",
             "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
-            "left": 115,
-            "right": 1398,
+            "left": 103,
+            "right": 1387,
             "width": 1284
           },
           {
@@ -651,8 +740,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "ĐVT filter_alt",
-            "left": 718,
-            "right": 821,
+            "left": 707,
+            "right": 809,
             "width": 103
           },
           {
@@ -660,8 +749,8 @@
             "cls": "",
             "role": "button",
             "text": "ĐVT filter_alt",
-            "left": 718,
-            "right": 821,
+            "left": 707,
+            "right": 809,
             "width": 103
           },
           {
@@ -669,8 +758,8 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "ĐVT",
-            "left": 730,
-            "right": 789,
+            "left": 719,
+            "right": 778,
             "width": 59
           },
           {
@@ -678,8 +767,8 @@
             "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
             "role": "",
             "text": "",
-            "left": 772,
-            "right": 789,
+            "left": 760,
+            "right": 778,
             "width": 18
           }
         ],
@@ -699,7 +788,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1505,
+      "elapsedMs": 1495,
       "finalUrl": "http://localhost:5203/dashboard?tab=2",
       "title": "GTAS VPP - VPP Request",
       "dom": {
@@ -726,27 +815,17 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1609,
+      "elapsedMs": 1580,
       "finalUrl": "http://localhost:5203/dashboard?tab=3&managementTab=department",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=3&managementTab=department",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 367,
+        "bodyTextLength": 542,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
-        "overflowOffenders": [
-          {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ Đơn theo phòng ban Toàn bộ đơn TỔNG ĐƠN 1 TỔNG DÒNG HÀNG 3 TỔNG SỐ LƯỢNG 3 VPP-202605-b30edde7943445",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          }
-        ],
+        "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
         "tableCount": 1,
@@ -763,13 +842,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1500,
+      "elapsedMs": 1420,
       "finalUrl": "http://localhost:5203/dashboard?tab=3&managementTab=department",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=3&managementTab=department",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 564,
+        "bodyTextLength": 637,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -779,8 +858,8 @@
             "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 888,
+            "left": 116,
+            "right": 876,
             "width": 760
           },
           {
@@ -788,8 +867,8 @@
             "cls": "rz-data-grid-data",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 888,
+            "left": 116,
+            "right": 876,
             "width": 760
           },
           {
@@ -797,35 +876,26 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
           },
           {
             "tag": "colgroup",
             "cls": "",
             "role": "",
             "text": "",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
           },
           {
             "tag": "col",
             "cls": "",
             "role": "",
             "text": "",
-            "left": 738,
-            "right": 832,
-            "width": 94
-          },
-          {
-            "tag": "col",
-            "cls": "",
-            "role": "",
-            "text": "",
-            "left": 832,
-            "right": 994,
+            "left": 717,
+            "right": 879,
             "width": 162
           },
           {
@@ -833,8 +903,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 994,
-            "right": 1146,
+            "left": 879,
+            "right": 1031,
             "width": 152
           },
           {
@@ -842,8 +912,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1146,
-            "right": 1277,
+            "left": 1031,
+            "right": 1162,
             "width": 131
           },
           {
@@ -851,8 +921,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1277,
-            "right": 1417,
+            "left": 1162,
+            "right": 1302,
             "width": 140
           },
           {
@@ -860,8 +930,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1417,
-            "right": 1537,
+            "left": 1302,
+            "right": 1422,
             "width": 120
           },
           {
@@ -869,18 +939,27 @@
             "cls": "",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
           },
           {
             "tag": "tr",
             "cls": "",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
+          },
+          {
+            "tag": "th",
+            "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+            "role": "",
+            "text": "Tổng dòng hàng filter_alt",
+            "left": 717,
+            "right": 879,
+            "width": 162
           }
         ],
         "clippedControls": [],
@@ -899,13 +978,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1476,
+      "elapsedMs": 1519,
       "finalUrl": "http://localhost:5203/dashboard?tab=3&managementTab=department",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=3&managementTab=department",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 564,
+        "bodyTextLength": 637,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -926,27 +1005,17 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1434,
+      "elapsedMs": 1521,
       "finalUrl": "http://localhost:5203/dashboard?tab=3&managementTab=all",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=3&managementTab=all",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 367,
+        "bodyTextLength": 542,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
-        "overflowOffenders": [
-          {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ Đơn theo phòng ban Toàn bộ đơn TỔNG ĐƠN 1 TỔNG DÒNG HÀNG 3 TỔNG SỐ LƯỢNG 3 VPP-202605-b30edde7943445",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          }
-        ],
+        "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
         "tableCount": 1,
@@ -963,13 +1032,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1450,
+      "elapsedMs": 1402,
       "finalUrl": "http://localhost:5203/dashboard?tab=3&managementTab=all",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=3&managementTab=all",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 564,
+        "bodyTextLength": 637,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -979,8 +1048,8 @@
             "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 888,
+            "left": 116,
+            "right": 876,
             "width": 760
           },
           {
@@ -988,8 +1057,8 @@
             "cls": "rz-data-grid-data",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 888,
+            "left": 116,
+            "right": 876,
             "width": 760
           },
           {
@@ -997,35 +1066,26 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
           },
           {
             "tag": "colgroup",
             "cls": "",
             "role": "",
             "text": "",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
           },
           {
             "tag": "col",
             "cls": "",
             "role": "",
             "text": "",
-            "left": 738,
-            "right": 832,
-            "width": 94
-          },
-          {
-            "tag": "col",
-            "cls": "",
-            "role": "",
-            "text": "",
-            "left": 832,
-            "right": 994,
+            "left": 717,
+            "right": 879,
             "width": 162
           },
           {
@@ -1033,8 +1093,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 994,
-            "right": 1146,
+            "left": 879,
+            "right": 1031,
             "width": 152
           },
           {
@@ -1042,8 +1102,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1146,
-            "right": 1277,
+            "left": 1031,
+            "right": 1162,
             "width": 131
           },
           {
@@ -1051,8 +1111,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1277,
-            "right": 1417,
+            "left": 1162,
+            "right": 1302,
             "width": 140
           },
           {
@@ -1060,8 +1120,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1417,
-            "right": 1537,
+            "left": 1302,
+            "right": 1422,
             "width": 120
           },
           {
@@ -1069,18 +1129,27 @@
             "cls": "",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
           },
           {
             "tag": "tr",
             "cls": "",
             "role": "",
             "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Kỳ filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Trạng thái filter_alt Ngày gử",
-            "left": 128,
-            "right": 1537,
-            "width": 1410
+            "left": 116,
+            "right": 1422,
+            "width": 1306
+          },
+          {
+            "tag": "th",
+            "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+            "role": "",
+            "text": "Tổng dòng hàng filter_alt",
+            "left": 717,
+            "right": 879,
+            "width": 162
           }
         ],
         "clippedControls": [],
@@ -1099,13 +1168,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1419,
+      "elapsedMs": 1428,
       "finalUrl": "http://localhost:5203/dashboard?tab=3&managementTab=all",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=3&managementTab=all",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 564,
+        "bodyTextLength": 637,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -1126,31 +1195,21 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1638,
+      "elapsedMs": 1794,
       "finalUrl": "http://localhost:5203/dashboard?tab=5",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=5",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 393,
+        "bodyTextLength": 390,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
-        "overflowOffenders": [
-          {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ Tổng kết kỳ & đóng kỳ Đơn bổ sung chờ duyệt Tổng kết kỳ & đóng kỳ Năm 4 Tháng (Mặc định) Bảng giá re",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          }
-        ],
+        "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
-        "tableCount": 0,
-        "dialogCount": 0,
+        "tableCount": 2,
+        "dialogCount": 18,
         "tabCount": 7
       },
       "failedResponses": [],
@@ -1163,21 +1222,130 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1523,
+      "elapsedMs": 1453,
       "finalUrl": "http://localhost:5203/dashboard?tab=5",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=5",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 421,
+        "bodyTextLength": 745,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
-        "overflowOffenders": [],
+        "overflowOffenders": [
+          {
+            "tag": "div",
+            "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact vpp-order-grid",
+            "role": "",
+            "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+            "left": 116,
+            "right": 876,
+            "width": 760
+          },
+          {
+            "tag": "div",
+            "cls": "rz-data-grid-data",
+            "role": "",
+            "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+            "left": 116,
+            "right": 876,
+            "width": 760
+          },
+          {
+            "tag": "table",
+            "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
+            "role": "",
+            "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+            "left": 116,
+            "right": 1458,
+            "width": 1342
+          },
+          {
+            "tag": "colgroup",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 116,
+            "right": 1458,
+            "width": 1342
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 754,
+            "right": 916,
+            "width": 162
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 916,
+            "right": 1068,
+            "width": 152
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1068,
+            "right": 1198,
+            "width": 130
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1198,
+            "right": 1338,
+            "width": 140
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1338,
+            "right": 1458,
+            "width": 120
+          },
+          {
+            "tag": "thead",
+            "cls": "",
+            "role": "",
+            "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+            "left": 116,
+            "right": 1458,
+            "width": 1342
+          },
+          {
+            "tag": "tr",
+            "cls": "",
+            "role": "",
+            "text": "# Phòng ban filter_alt Tên đăng nhập filter_alt Mã đơn filter_alt Trạng thái filter_alt Tổng dòng hàng filter_alt Tổng số lượng filter_alt Số tiền filter_alt Ng",
+            "left": 116,
+            "right": 1458,
+            "width": 1342
+          },
+          {
+            "tag": "th",
+            "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
+            "role": "",
+            "text": "Tổng dòng hàng filter_alt",
+            "left": 754,
+            "right": 916,
+            "width": 162
+          }
+        ],
         "clippedControls": [],
         "interactiveWithoutName": [],
-        "tableCount": 0,
-        "dialogCount": 0,
+        "tableCount": 2,
+        "dialogCount": 18,
         "tabCount": 7
       },
       "failedResponses": [],
@@ -1190,21 +1358,21 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1708,
+      "elapsedMs": 1514,
       "finalUrl": "http://localhost:5203/dashboard?tab=5",
       "title": "GTAS VPP - VPP Request",
       "dom": {
         "url": "http://localhost:5203/dashboard?tab=5",
         "title": "GTAS VPP - VPP Request",
-        "bodyTextLength": 421,
+        "bodyTextLength": 745,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
         "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
-        "tableCount": 0,
-        "dialogCount": 0,
+        "tableCount": 2,
+        "dialogCount": 18,
         "tabCount": 7
       },
       "failedResponses": [],
@@ -1217,7 +1385,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 2325,
+      "elapsedMs": 1783,
       "finalUrl": "http://localhost:5203/dashboard/order-create",
       "title": "GTAS VPP",
       "dom": {
@@ -1230,20 +1398,11 @@
         "overflowOffenders": [
           {
             "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "arrow_back Trở về đơn hàng 1 SelectProducts ➔ 2 ReviewSubmit inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấ",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "div",
             "cls": "vpp-wizard-split-left",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
-            "left": 40,
-            "right": 449,
+            "left": 28,
+            "right": 438,
             "width": 410
           },
           {
@@ -1251,8 +1410,8 @@
             "cls": "vpp-data-card vpp-wizard-panel-card",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
-            "left": 40,
-            "right": 449,
+            "left": 28,
+            "right": 438,
             "width": 410
           },
           {
@@ -1260,8 +1419,8 @@
             "cls": "vpp-wizard-panel-card-head",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542",
-            "left": 41,
-            "right": 448,
+            "left": 29,
+            "right": 437,
             "width": 408
           },
           {
@@ -1269,8 +1428,8 @@
             "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-space-between",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542",
-            "left": 55,
-            "right": 434,
+            "left": 43,
+            "right": 423,
             "width": 380
           },
           {
@@ -1278,8 +1437,8 @@
             "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-normal",
             "role": "",
             "text": "",
-            "left": 154,
-            "right": 434,
+            "left": 143,
+            "right": 423,
             "width": 280
           },
           {
@@ -1287,8 +1446,8 @@
             "cls": "rz-textbox rz-state-empty",
             "role": "",
             "text": "Ghi chú",
-            "left": 154,
-            "right": 434,
+            "left": 143,
+            "right": 423,
             "width": 280
           },
           {
@@ -1296,8 +1455,8 @@
             "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact",
             "role": "",
             "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-            "left": 41,
-            "right": 448,
+            "left": 29,
+            "right": 437,
             "width": 408
           },
           {
@@ -1305,8 +1464,8 @@
             "cls": "rz-data-grid-data",
             "role": "",
             "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-            "left": 41,
-            "right": 448,
+            "left": 29,
+            "right": 437,
             "width": 408
           },
           {
@@ -1314,8 +1473,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-            "left": 41,
-            "right": 448,
+            "left": 29,
+            "right": 437,
             "width": 408
           },
           {
@@ -1323,8 +1482,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 41,
-            "right": 448,
+            "left": 29,
+            "right": 437,
             "width": 408
           },
           {
@@ -1332,9 +1491,18 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 393,
-            "right": 448,
+            "left": 382,
+            "right": 437,
             "width": 55
+          },
+          {
+            "tag": "thead",
+            "cls": "",
+            "role": "",
+            "text": "Danh mục filter_alt Tên sản phẩm filter_alt",
+            "left": 29,
+            "right": 437,
+            "width": 408
           }
         ],
         "clippedControls": [],
@@ -1353,7 +1521,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1768,
+      "elapsedMs": 1883,
       "finalUrl": "http://localhost:5203/dashboard/order-create",
       "title": "GTAS VPP",
       "dom": {
@@ -1380,13 +1548,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1866,
+      "elapsedMs": 1827,
       "finalUrl": "http://localhost:5203/dashboard/order-create",
       "title": "GTAS VPP",
       "dom": {
         "url": "http://localhost:5203/dashboard/order-create",
         "title": "GTAS VPP",
-        "bodyTextLength": 1930,
+        "bodyTextLength": 1991,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -1407,7 +1575,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1980,
+      "elapsedMs": 1888,
       "finalUrl": "http://localhost:5203/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020",
       "title": "GTAS VPP",
       "dom": {
@@ -1420,20 +1588,11 @@
         "overflowOffenders": [
           {
             "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "arrow_back Trở về đơn hàng 1 SelectProducts ➔ 2 ReviewSubmit inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấ",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "div",
             "cls": "vpp-wizard-split-left",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
-            "left": 40,
-            "right": 597,
+            "left": 28,
+            "right": 585,
             "width": 557
           },
           {
@@ -1441,8 +1600,8 @@
             "cls": "vpp-data-card vpp-wizard-panel-card",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
-            "left": 40,
-            "right": 597,
+            "left": 28,
+            "right": 585,
             "width": 557
           },
           {
@@ -1450,8 +1609,8 @@
             "cls": "vpp-wizard-panel-card-head",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542",
-            "left": 41,
-            "right": 596,
+            "left": 29,
+            "right": 584,
             "width": 555
           },
           {
@@ -1459,8 +1618,8 @@
             "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-space-between",
             "role": "",
             "text": "inventory_2 Danh mục sản phẩm 542",
-            "left": 55,
-            "right": 582,
+            "left": 43,
+            "right": 570,
             "width": 527
           },
           {
@@ -1468,8 +1627,8 @@
             "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-normal",
             "role": "",
             "text": "",
-            "left": 241,
-            "right": 582,
+            "left": 229,
+            "right": 570,
             "width": 341
           },
           {
@@ -1477,8 +1636,8 @@
             "cls": "rz-textbox rz-state-empty",
             "role": "",
             "text": "Ghi chú",
-            "left": 241,
-            "right": 561,
+            "left": 229,
+            "right": 549,
             "width": 320
           },
           {
@@ -1486,8 +1645,8 @@
             "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact",
             "role": "",
             "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-            "left": 41,
-            "right": 596,
+            "left": 29,
+            "right": 584,
             "width": 555
           },
           {
@@ -1495,8 +1654,8 @@
             "cls": "rz-data-grid-data",
             "role": "",
             "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-            "left": 41,
-            "right": 596,
+            "left": 29,
+            "right": 584,
             "width": 555
           },
           {
@@ -1504,8 +1663,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-            "left": 41,
-            "right": 596,
+            "left": 29,
+            "right": 584,
             "width": 555
           },
           {
@@ -1513,8 +1672,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 41,
-            "right": 596,
+            "left": 29,
+            "right": 584,
             "width": 555
           },
           {
@@ -1522,9 +1681,18 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 291,
-            "right": 541,
+            "left": 279,
+            "right": 529,
             "width": 250
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 529,
+            "right": 584,
+            "width": 55
           }
         ],
         "clippedControls": [],
@@ -1543,7 +1711,7 @@
       "pageCode": "DASHBOARD",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1905,
+      "elapsedMs": 1826,
       "finalUrl": "http://localhost:5203/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020",
       "title": "GTAS VPP",
       "dom": {
@@ -1570,13 +1738,13 @@
       "pageCode": "DASHBOARD",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1894,
+      "elapsedMs": 1930,
       "finalUrl": "http://localhost:5203/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020",
       "title": "GTAS VPP",
       "dom": {
         "url": "http://localhost:5203/dashboard/order-create?orderId=5e83b7b1-befa-4f0f-965f-82139a36f020",
         "title": "GTAS VPP",
-        "bodyTextLength": 2046,
+        "bodyTextLength": 2107,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -1597,7 +1765,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1807,
+      "elapsedMs": 1864,
       "finalUrl": "http://localhost:5203/library?tab=0",
       "title": "GTAS VPP",
       "dom": {
@@ -1609,39 +1777,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban # ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-            "left": 34,
-            "right": 1435,
+            "left": 22,
+            "right": 1424,
             "width": 1402
           },
           {
@@ -1649,8 +1790,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 1435,
+            "left": 22,
+            "right": 1424,
             "width": 1402
           },
           {
@@ -1658,17 +1799,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 283,
-            "right": 399,
-            "width": 115
-          },
-          {
-            "tag": "col",
-            "cls": "",
-            "role": "",
-            "text": "",
-            "left": 399,
-            "right": 517,
+            "left": 387,
+            "right": 506,
             "width": 118
           },
           {
@@ -1676,8 +1808,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 517,
-            "right": 643,
+            "left": 506,
+            "right": 632,
             "width": 126
           },
           {
@@ -1685,8 +1817,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 643,
-            "right": 879,
+            "left": 632,
+            "right": 867,
             "width": 235
           },
           {
@@ -1694,8 +1826,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 879,
-            "right": 1006,
+            "left": 867,
+            "right": 995,
             "width": 127
           },
           {
@@ -1703,8 +1835,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1006,
-            "right": 1123,
+            "left": 995,
+            "right": 1112,
             "width": 117
           },
           {
@@ -1712,9 +1844,45 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1123,
-            "right": 1254,
+            "left": 1112,
+            "right": 1243,
             "width": 131
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1243,
+            "right": 1363,
+            "width": 120
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1363,
+            "right": 1424,
+            "width": 61
+          },
+          {
+            "tag": "thead",
+            "cls": "",
+            "role": "",
+            "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
+            "left": 22,
+            "right": 1424,
+            "width": 1402
+          },
+          {
+            "tag": "tr",
+            "cls": "",
+            "role": "",
+            "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
+            "left": 22,
+            "right": 1424,
+            "width": 1402
           }
         ],
         "clippedControls": [],
@@ -1733,7 +1901,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1841,
+      "elapsedMs": 1801,
       "finalUrl": "http://localhost:5203/library?tab=0",
       "title": "GTAS VPP",
       "dom": {
@@ -1749,8 +1917,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-            "left": 115,
-            "right": 1516,
+            "left": 103,
+            "right": 1505,
             "width": 1402
           },
           {
@@ -1758,8 +1926,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 1516,
+            "left": 103,
+            "right": 1505,
             "width": 1402
           },
           {
@@ -1767,8 +1935,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 724,
-            "right": 960,
+            "left": 713,
+            "right": 948,
             "width": 235
           },
           {
@@ -1776,8 +1944,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 960,
-            "right": 1087,
+            "left": 948,
+            "right": 1076,
             "width": 127
           },
           {
@@ -1785,8 +1953,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1087,
-            "right": 1204,
+            "left": 1076,
+            "right": 1193,
             "width": 117
           },
           {
@@ -1794,8 +1962,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1204,
-            "right": 1335,
+            "left": 1193,
+            "right": 1324,
             "width": 131
           },
           {
@@ -1803,8 +1971,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1335,
-            "right": 1456,
+            "left": 1324,
+            "right": 1444,
             "width": 120
           },
           {
@@ -1812,8 +1980,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1456,
-            "right": 1516,
+            "left": 1444,
+            "right": 1505,
             "width": 61
           },
           {
@@ -1821,8 +1989,8 @@
             "cls": "",
             "role": "",
             "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-            "left": 115,
-            "right": 1516,
+            "left": 103,
+            "right": 1505,
             "width": 1402
           },
           {
@@ -1830,8 +1998,8 @@
             "cls": "",
             "role": "",
             "text": "# ID filter_alt Class Code filter_alt Class Name filter_alt Class Module filter_alt Description filter_alt Create User filter_alt Create Date filter_alt Update ",
-            "left": 115,
-            "right": 1516,
+            "left": 103,
+            "right": 1505,
             "width": 1402
           },
           {
@@ -1839,8 +2007,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
             "role": "",
             "text": "Description filter_alt",
-            "left": 724,
-            "right": 960,
+            "left": 713,
+            "right": 948,
             "width": 235
           },
           {
@@ -1848,8 +2016,8 @@
             "cls": "",
             "role": "button",
             "text": "Description filter_alt",
-            "left": 724,
-            "right": 960,
+            "left": 713,
+            "right": 948,
             "width": 235
           }
         ],
@@ -1869,7 +2037,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1823,
+      "elapsedMs": 1799,
       "finalUrl": "http://localhost:5203/library?tab=0",
       "title": "GTAS VPP",
       "dom": {
@@ -1885,8 +2053,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
-            "left": 999,
-            "right": 2377,
+            "left": 998,
+            "right": 2376,
             "width": 1378
           },
           {
@@ -1894,8 +2062,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 999,
-            "right": 2377,
+            "left": 998,
+            "right": 2376,
             "width": 1378
           },
           {
@@ -1903,8 +2071,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1834,
-            "right": 1961,
+            "left": 1833,
+            "right": 1960,
             "width": 127
           },
           {
@@ -1912,8 +2080,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1961,
-            "right": 2078,
+            "left": 1960,
+            "right": 2077,
             "width": 117
           },
           {
@@ -1921,8 +2089,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2078,
-            "right": 2209,
+            "left": 2077,
+            "right": 2208,
             "width": 131
           },
           {
@@ -1930,8 +2098,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2209,
-            "right": 2330,
+            "left": 2208,
+            "right": 2329,
             "width": 120
           },
           {
@@ -1939,8 +2107,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2330,
-            "right": 2377,
+            "left": 2329,
+            "right": 2376,
             "width": 47
           },
           {
@@ -1948,8 +2116,8 @@
             "cls": "",
             "role": "",
             "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
-            "left": 999,
-            "right": 2377,
+            "left": 998,
+            "right": 2376,
             "width": 1378
           },
           {
@@ -1957,8 +2125,8 @@
             "cls": "",
             "role": "",
             "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
-            "left": 999,
-            "right": 2377,
+            "left": 998,
+            "right": 2376,
             "width": 1378
           },
           {
@@ -1966,8 +2134,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "Create User filter_alt",
-            "left": 1834,
-            "right": 1961,
+            "left": 1833,
+            "right": 1960,
             "width": 127
           },
           {
@@ -1975,8 +2143,8 @@
             "cls": "",
             "role": "button",
             "text": "Create User filter_alt",
-            "left": 1834,
-            "right": 1961,
+            "left": 1833,
+            "right": 1960,
             "width": 127
           },
           {
@@ -1984,8 +2152,8 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "Create User",
-            "left": 1834,
-            "right": 1930,
+            "left": 1833,
+            "right": 1929,
             "width": 96
           }
         ],
@@ -2005,7 +2173,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1775,
+      "elapsedMs": 1746,
       "finalUrl": "http://localhost:5203/library?tab=1",
       "title": "GTAS VPP",
       "dom": {
@@ -2017,39 +2185,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban add_circle Drag a column header here and drop it to group by that column 11 columns showing # V",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# VPPCategoryCode filter_alt VPPCategoryName filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate filter_alt UpdateUserId filter_a",
-            "left": 34,
-            "right": 1794,
+            "left": 22,
+            "right": 1782,
             "width": 1760
           },
           {
@@ -2057,8 +2198,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 1794,
+            "left": 22,
+            "right": 1782,
             "width": 1760
           },
           {
@@ -2066,8 +2207,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 234,
-            "right": 414,
+            "left": 222,
+            "right": 402,
             "width": 180
           },
           {
@@ -2075,8 +2216,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 414,
-            "right": 664,
+            "left": 402,
+            "right": 652,
             "width": 250
           },
           {
@@ -2084,8 +2225,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 664,
-            "right": 884,
+            "left": 652,
+            "right": 872,
             "width": 220
           },
           {
@@ -2093,8 +2234,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 884,
-            "right": 1044,
+            "left": 872,
+            "right": 1032,
             "width": 160
           },
           {
@@ -2102,8 +2243,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1044,
-            "right": 1204,
+            "left": 1032,
+            "right": 1192,
             "width": 160
           },
           {
@@ -2111,8 +2252,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1204,
-            "right": 1364,
+            "left": 1192,
+            "right": 1352,
             "width": 160
           },
           {
@@ -2120,9 +2261,36 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1364,
-            "right": 1524,
+            "left": 1352,
+            "right": 1512,
             "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1512,
+            "right": 1662,
+            "width": 150
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1662,
+            "right": 1782,
+            "width": 120
+          },
+          {
+            "tag": "thead",
+            "cls": "",
+            "role": "",
+            "text": "# VPPCategoryCode filter_alt VPPCategoryName filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate filter_alt UpdateUserId filter_a",
+            "left": 22,
+            "right": 1782,
+            "width": 1760
           }
         ],
         "clippedControls": [],
@@ -2141,7 +2309,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1788,
+      "elapsedMs": 1835,
       "finalUrl": "http://localhost:5203/library?tab=1",
       "title": "GTAS VPP",
       "dom": {
@@ -2157,8 +2325,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# VPPCategoryCode filter_alt VPPCategoryName filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate filter_alt UpdateUserId filter_a",
-            "left": 115,
-            "right": 1875,
+            "left": 103,
+            "right": 1863,
             "width": 1760
           },
           {
@@ -2166,8 +2334,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 1875,
+            "left": 103,
+            "right": 1863,
             "width": 1760
           },
           {
@@ -2175,8 +2343,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 745,
-            "right": 965,
+            "left": 733,
+            "right": 953,
             "width": 220
           },
           {
@@ -2184,8 +2352,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 965,
-            "right": 1125,
+            "left": 953,
+            "right": 1113,
             "width": 160
           },
           {
@@ -2193,8 +2361,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1125,
-            "right": 1285,
+            "left": 1113,
+            "right": 1273,
             "width": 160
           },
           {
@@ -2202,8 +2370,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1285,
-            "right": 1445,
+            "left": 1273,
+            "right": 1433,
             "width": 160
           },
           {
@@ -2211,8 +2379,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1445,
-            "right": 1605,
+            "left": 1433,
+            "right": 1593,
             "width": 160
           },
           {
@@ -2220,8 +2388,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1605,
-            "right": 1755,
+            "left": 1593,
+            "right": 1743,
             "width": 150
           },
           {
@@ -2229,8 +2397,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1755,
-            "right": 1875,
+            "left": 1743,
+            "right": 1863,
             "width": 120
           },
           {
@@ -2238,8 +2406,8 @@
             "cls": "",
             "role": "",
             "text": "# VPPCategoryCode filter_alt VPPCategoryName filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate filter_alt UpdateUserId filter_a",
-            "left": 115,
-            "right": 1875,
+            "left": 103,
+            "right": 1863,
             "width": 1760
           },
           {
@@ -2247,8 +2415,8 @@
             "cls": "",
             "role": "",
             "text": "# VPPCategoryCode filter_alt VPPCategoryName filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate filter_alt UpdateUserId filter_a",
-            "left": 115,
-            "right": 1875,
+            "left": 103,
+            "right": 1863,
             "width": 1760
           },
           {
@@ -2256,8 +2424,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
             "role": "",
             "text": "Description filter_alt",
-            "left": 745,
-            "right": 965,
+            "left": 733,
+            "right": 953,
             "width": 220
           }
         ],
@@ -2277,7 +2445,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 2078,
+      "elapsedMs": 1809,
       "finalUrl": "http://localhost:5203/library?tab=1",
       "title": "GTAS VPP",
       "dom": {
@@ -2304,7 +2472,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1895,
+      "elapsedMs": 1755,
       "finalUrl": "http://localhost:5203/library?tab=2",
       "title": "GTAS VPP",
       "dom": {
@@ -2316,39 +2484,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban add_circle Drag a column header here and drop it to group by that column 15 columns showing # V",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# VPPCode filter_alt VPPName filter_alt UOM VPP Category Supplier filter_alt Price filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt Creat",
-            "left": 34,
-            "right": 2434,
+            "left": 22,
+            "right": 2422,
             "width": 2400
           },
           {
@@ -2356,8 +2497,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 2434,
+            "left": 22,
+            "right": 2422,
             "width": 2400
           },
           {
@@ -2365,8 +2506,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 234,
-            "right": 414,
+            "left": 222,
+            "right": 402,
             "width": 180
           },
           {
@@ -2374,8 +2515,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 414,
-            "right": 574,
+            "left": 402,
+            "right": 562,
             "width": 160
           },
           {
@@ -2383,8 +2524,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 574,
-            "right": 734,
+            "left": 562,
+            "right": 722,
             "width": 160
           },
           {
@@ -2392,8 +2533,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 734,
-            "right": 914,
+            "left": 722,
+            "right": 902,
             "width": 180
           },
           {
@@ -2401,8 +2542,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 914,
-            "right": 1054,
+            "left": 902,
+            "right": 1042,
             "width": 140
           },
           {
@@ -2410,8 +2551,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1054,
-            "right": 1304,
+            "left": 1042,
+            "right": 1292,
             "width": 250
           },
           {
@@ -2419,9 +2560,36 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1304,
-            "right": 1524,
+            "left": 1292,
+            "right": 1512,
             "width": 220
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1512,
+            "right": 1672,
+            "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1672,
+            "right": 1832,
+            "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1832,
+            "right": 1992,
+            "width": 160
           }
         ],
         "clippedControls": [],
@@ -2440,7 +2608,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 2268,
+      "elapsedMs": 3836,
       "finalUrl": "http://localhost:5203/library?tab=2",
       "title": "GTAS VPP",
       "dom": {
@@ -2456,8 +2624,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# VPPCode filter_alt VPPName filter_alt UOM VPP Category Supplier filter_alt Price filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt Creat",
-            "left": 115,
-            "right": 2515,
+            "left": 103,
+            "right": 2503,
             "width": 2400
           },
           {
@@ -2465,8 +2633,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 2515,
+            "left": 103,
+            "right": 2503,
             "width": 2400
           },
           {
@@ -2474,8 +2642,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 655,
-            "right": 815,
+            "left": 643,
+            "right": 803,
             "width": 160
           },
           {
@@ -2483,8 +2651,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 815,
-            "right": 995,
+            "left": 803,
+            "right": 983,
             "width": 180
           },
           {
@@ -2492,8 +2660,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 995,
-            "right": 1135,
+            "left": 983,
+            "right": 1123,
             "width": 140
           },
           {
@@ -2501,8 +2669,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1135,
-            "right": 1385,
+            "left": 1123,
+            "right": 1373,
             "width": 250
           },
           {
@@ -2510,8 +2678,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1385,
-            "right": 1605,
+            "left": 1373,
+            "right": 1593,
             "width": 220
           },
           {
@@ -2519,8 +2687,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1605,
-            "right": 1765,
+            "left": 1593,
+            "right": 1753,
             "width": 160
           },
           {
@@ -2528,8 +2696,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1765,
-            "right": 1925,
+            "left": 1753,
+            "right": 1913,
             "width": 160
           },
           {
@@ -2537,8 +2705,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1925,
-            "right": 2085,
+            "left": 1913,
+            "right": 2073,
             "width": 160
           },
           {
@@ -2546,8 +2714,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2085,
-            "right": 2245,
+            "left": 2073,
+            "right": 2233,
             "width": 160
           },
           {
@@ -2555,8 +2723,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2245,
-            "right": 2395,
+            "left": 2233,
+            "right": 2383,
             "width": 150
           }
         ],
@@ -2576,7 +2744,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1945,
+      "elapsedMs": 1834,
       "finalUrl": "http://localhost:5203/library?tab=2",
       "title": "GTAS VPP",
       "dom": {
@@ -2592,8 +2760,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# VPPCode filter_alt VPPName filter_alt UOM VPP Category Supplier filter_alt Price filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt Creat",
-            "left": 94,
-            "right": 2494,
+            "left": 90,
+            "right": 2490,
             "width": 2400
           },
           {
@@ -2601,8 +2769,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 94,
-            "right": 2494,
+            "left": 90,
+            "right": 2490,
             "width": 2400
           },
           {
@@ -2610,8 +2778,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1904,
-            "right": 2064,
+            "left": 1900,
+            "right": 2060,
             "width": 160
           },
           {
@@ -2619,8 +2787,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2064,
-            "right": 2224,
+            "left": 2060,
+            "right": 2220,
             "width": 160
           },
           {
@@ -2628,8 +2796,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2224,
-            "right": 2374,
+            "left": 2220,
+            "right": 2370,
             "width": 150
           },
           {
@@ -2637,8 +2805,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2374,
-            "right": 2494,
+            "left": 2370,
+            "right": 2490,
             "width": 120
           },
           {
@@ -2646,8 +2814,8 @@
             "cls": "",
             "role": "",
             "text": "# VPPCode filter_alt VPPName filter_alt UOM VPP Category Supplier filter_alt Price filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt Creat",
-            "left": 94,
-            "right": 2494,
+            "left": 90,
+            "right": 2490,
             "width": 2400
           },
           {
@@ -2655,8 +2823,8 @@
             "cls": "",
             "role": "",
             "text": "# VPPCode filter_alt VPPName filter_alt UOM VPP Category Supplier filter_alt Price filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt Creat",
-            "left": 94,
-            "right": 2494,
+            "left": 90,
+            "right": 2490,
             "width": 2400
           },
           {
@@ -2664,8 +2832,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-right",
             "role": "",
             "text": "UpdateUserId filter_alt",
-            "left": 1904,
-            "right": 2064,
+            "left": 1900,
+            "right": 2060,
             "width": 160
           },
           {
@@ -2673,8 +2841,8 @@
             "cls": "",
             "role": "button",
             "text": "UpdateUserId filter_alt",
-            "left": 1904,
-            "right": 2064,
+            "left": 1900,
+            "right": 2060,
             "width": 160
           },
           {
@@ -2682,8 +2850,8 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "UpdateUserId",
-            "left": 1916,
-            "right": 2032,
+            "left": 1912,
+            "right": 2029,
             "width": 116
           },
           {
@@ -2691,8 +2859,8 @@
             "cls": "rz-column-title-content rz-text-truncate",
             "role": "",
             "text": "UpdateUserId",
-            "left": 1944,
-            "right": 2011,
+            "left": 1940,
+            "right": 2008,
             "width": 67
           }
         ],
@@ -2712,7 +2880,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1995,
+      "elapsedMs": 1865,
       "finalUrl": "http://localhost:5203/library?tab=3",
       "title": "GTAS VPP",
       "dom": {
@@ -2724,39 +2892,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban add_circle Drag a column header here and drop it to group by that column 16 columns showing # S",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
-            "left": 34,
-            "right": 2574,
+            "left": 22,
+            "right": 2562,
             "width": 2540
           },
           {
@@ -2764,8 +2905,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 2574,
+            "left": 22,
+            "right": 2562,
             "width": 2540
           },
           {
@@ -2773,8 +2914,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 264,
-            "right": 444,
+            "left": 252,
+            "right": 432,
             "width": 180
           },
           {
@@ -2782,8 +2923,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 444,
-            "right": 594,
+            "left": 432,
+            "right": 582,
             "width": 150
           },
           {
@@ -2791,8 +2932,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 594,
-            "right": 744,
+            "left": 582,
+            "right": 732,
             "width": 150
           },
           {
@@ -2800,8 +2941,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 744,
-            "right": 894,
+            "left": 732,
+            "right": 882,
             "width": 150
           },
           {
@@ -2809,8 +2950,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 894,
-            "right": 1044,
+            "left": 882,
+            "right": 1032,
             "width": 150
           },
           {
@@ -2818,8 +2959,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1044,
-            "right": 1194,
+            "left": 1032,
+            "right": 1182,
             "width": 150
           },
           {
@@ -2827,9 +2968,36 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1194,
-            "right": 1444,
+            "left": 1182,
+            "right": 1432,
             "width": 250
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1432,
+            "right": 1652,
+            "width": 220
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1652,
+            "right": 1812,
+            "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1812,
+            "right": 1972,
+            "width": 160
           }
         ],
         "clippedControls": [],
@@ -2848,7 +3016,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1969,
+      "elapsedMs": 1821,
       "finalUrl": "http://localhost:5203/library?tab=3",
       "title": "GTAS VPP",
       "dom": {
@@ -2864,8 +3032,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
-            "left": 115,
-            "right": 2655,
+            "left": 103,
+            "right": 2643,
             "width": 2540
           },
           {
@@ -2873,8 +3041,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 2655,
+            "left": 103,
+            "right": 2643,
             "width": 2540
           },
           {
@@ -2882,8 +3050,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 675,
-            "right": 825,
+            "left": 663,
+            "right": 813,
             "width": 150
           },
           {
@@ -2891,8 +3059,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 825,
-            "right": 975,
+            "left": 813,
+            "right": 963,
             "width": 150
           },
           {
@@ -2900,8 +3068,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 975,
-            "right": 1125,
+            "left": 963,
+            "right": 1113,
             "width": 150
           },
           {
@@ -2909,8 +3077,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1125,
-            "right": 1275,
+            "left": 1113,
+            "right": 1263,
             "width": 150
           },
           {
@@ -2918,8 +3086,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1275,
-            "right": 1525,
+            "left": 1263,
+            "right": 1513,
             "width": 250
           },
           {
@@ -2927,8 +3095,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1525,
-            "right": 1745,
+            "left": 1513,
+            "right": 1733,
             "width": 220
           },
           {
@@ -2936,8 +3104,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1745,
-            "right": 1905,
+            "left": 1733,
+            "right": 1893,
             "width": 160
           },
           {
@@ -2945,8 +3113,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1905,
-            "right": 2065,
+            "left": 1893,
+            "right": 2053,
             "width": 160
           },
           {
@@ -2954,8 +3122,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2065,
-            "right": 2225,
+            "left": 2053,
+            "right": 2213,
             "width": 160
           },
           {
@@ -2963,8 +3131,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2225,
-            "right": 2385,
+            "left": 2213,
+            "right": 2373,
             "width": 160
           }
         ],
@@ -2984,7 +3152,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1927,
+      "elapsedMs": 1791,
       "finalUrl": "http://localhost:5203/library?tab=3",
       "title": "GTAS VPP",
       "dom": {
@@ -3000,8 +3168,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
-            "left": 94,
-            "right": 2634,
+            "left": 90,
+            "right": 2630,
             "width": 2540
           },
           {
@@ -3009,8 +3177,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 94,
-            "right": 2634,
+            "left": 90,
+            "right": 2630,
             "width": 2540
           },
           {
@@ -3018,8 +3186,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1884,
-            "right": 2044,
+            "left": 1880,
+            "right": 2040,
             "width": 160
           },
           {
@@ -3027,8 +3195,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2044,
-            "right": 2204,
+            "left": 2040,
+            "right": 2200,
             "width": 160
           },
           {
@@ -3036,8 +3204,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2204,
-            "right": 2364,
+            "left": 2200,
+            "right": 2360,
             "width": 160
           },
           {
@@ -3045,8 +3213,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2364,
-            "right": 2514,
+            "left": 2360,
+            "right": 2510,
             "width": 150
           },
           {
@@ -3054,8 +3222,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2514,
-            "right": 2634,
+            "left": 2510,
+            "right": 2630,
             "width": 120
           },
           {
@@ -3063,8 +3231,8 @@
             "cls": "",
             "role": "",
             "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
-            "left": 94,
-            "right": 2634,
+            "left": 90,
+            "right": 2630,
             "width": 2540
           },
           {
@@ -3072,8 +3240,8 @@
             "cls": "",
             "role": "",
             "text": "# SupplierShortName filter_alt SupplierName filter_alt Address1 filter_alt Address2 filter_alt Address3 filter_alt Ward filter_alt City filter_alt Id filter_alt",
-            "left": 94,
-            "right": 2634,
+            "left": 90,
+            "right": 2630,
             "width": 2540
           },
           {
@@ -3081,8 +3249,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "CreateDate filter_alt",
-            "left": 1884,
-            "right": 2044,
+            "left": 1880,
+            "right": 2040,
             "width": 160
           },
           {
@@ -3090,8 +3258,8 @@
             "cls": "",
             "role": "button",
             "text": "CreateDate filter_alt",
-            "left": 1884,
-            "right": 2044,
+            "left": 1880,
+            "right": 2040,
             "width": 160
           },
           {
@@ -3099,8 +3267,8 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "CreateDate",
-            "left": 1896,
-            "right": 2012,
+            "left": 1892,
+            "right": 2009,
             "width": 116
           }
         ],
@@ -3120,7 +3288,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1815,
+      "elapsedMs": 1783,
       "finalUrl": "http://localhost:5203/library?tab=5",
       "title": "GTAS VPP",
       "dom": {
@@ -3132,39 +3300,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban add_circle Drag a column header here and drop it to group by that column 13 columns showing # L",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "rz-tabview-selected rz-state-focused",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
-            "left": 34,
-            "right": 2104,
+            "left": 22,
+            "right": 2092,
             "width": 2070
           },
           {
@@ -3172,8 +3313,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 2104,
+            "left": 22,
+            "right": 2092,
             "width": 2070
           },
           {
@@ -3181,8 +3322,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 234,
-            "right": 414,
+            "left": 222,
+            "right": 402,
             "width": 180
           },
           {
@@ -3190,8 +3331,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 414,
-            "right": 564,
+            "left": 402,
+            "right": 552,
             "width": 150
           },
           {
@@ -3199,8 +3340,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 564,
-            "right": 724,
+            "left": 552,
+            "right": 712,
             "width": 160
           },
           {
@@ -3208,8 +3349,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 724,
-            "right": 974,
+            "left": 712,
+            "right": 962,
             "width": 250
           },
           {
@@ -3217,8 +3358,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 974,
-            "right": 1194,
+            "left": 962,
+            "right": 1182,
             "width": 220
           },
           {
@@ -3226,8 +3367,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1194,
-            "right": 1354,
+            "left": 1182,
+            "right": 1342,
             "width": 160
           },
           {
@@ -3235,9 +3376,36 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1354,
-            "right": 1514,
+            "left": 1342,
+            "right": 1502,
             "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1502,
+            "right": 1662,
+            "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1662,
+            "right": 1822,
+            "width": 160
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1822,
+            "right": 1972,
+            "width": 150
           }
         ],
         "clippedControls": [],
@@ -3256,7 +3424,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1902,
+      "elapsedMs": 1742,
       "finalUrl": "http://localhost:5203/library?tab=5",
       "title": "GTAS VPP",
       "dom": {
@@ -3272,8 +3440,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
-            "left": 115,
-            "right": 2185,
+            "left": 103,
+            "right": 2173,
             "width": 2070
           },
           {
@@ -3281,8 +3449,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 2185,
+            "left": 103,
+            "right": 2173,
             "width": 2070
           },
           {
@@ -3290,8 +3458,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 645,
-            "right": 805,
+            "left": 633,
+            "right": 793,
             "width": 160
           },
           {
@@ -3299,8 +3467,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 805,
-            "right": 1055,
+            "left": 793,
+            "right": 1043,
             "width": 250
           },
           {
@@ -3308,8 +3476,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1055,
-            "right": 1275,
+            "left": 1043,
+            "right": 1263,
             "width": 220
           },
           {
@@ -3317,8 +3485,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1275,
-            "right": 1435,
+            "left": 1263,
+            "right": 1423,
             "width": 160
           },
           {
@@ -3326,8 +3494,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1435,
-            "right": 1595,
+            "left": 1423,
+            "right": 1583,
             "width": 160
           },
           {
@@ -3335,8 +3503,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1595,
-            "right": 1755,
+            "left": 1583,
+            "right": 1743,
             "width": 160
           },
           {
@@ -3344,8 +3512,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1755,
-            "right": 1915,
+            "left": 1743,
+            "right": 1903,
             "width": 160
           },
           {
@@ -3353,8 +3521,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1915,
-            "right": 2065,
+            "left": 1903,
+            "right": 2053,
             "width": 150
           },
           {
@@ -3362,8 +3530,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2065,
-            "right": 2185,
+            "left": 2053,
+            "right": 2173,
             "width": 120
           },
           {
@@ -3371,8 +3539,8 @@
             "cls": "",
             "role": "",
             "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
-            "left": 115,
-            "right": 2185,
+            "left": 103,
+            "right": 2173,
             "width": 2070
           }
         ],
@@ -3392,7 +3560,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1928,
+      "elapsedMs": 1809,
       "finalUrl": "http://localhost:5203/library?tab=5",
       "title": "GTAS VPP",
       "dom": {
@@ -3408,8 +3576,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  ",
             "role": "",
             "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
-            "left": 94,
-            "right": 2164,
+            "left": 90,
+            "right": 2160,
             "width": 2070
           },
           {
@@ -3417,8 +3585,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 94,
-            "right": 2164,
+            "left": 90,
+            "right": 2160,
             "width": 2070
           },
           {
@@ -3426,8 +3594,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1894,
-            "right": 2044,
+            "left": 1890,
+            "right": 2040,
             "width": 150
           },
           {
@@ -3435,8 +3603,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2044,
-            "right": 2164,
+            "left": 2040,
+            "right": 2160,
             "width": 120
           },
           {
@@ -3444,8 +3612,8 @@
             "cls": "",
             "role": "",
             "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
-            "left": 94,
-            "right": 2164,
+            "left": 90,
+            "right": 2160,
             "width": 2070
           },
           {
@@ -3453,8 +3621,8 @@
             "cls": "",
             "role": "",
             "text": "# LEX02Code filter_alt LEX02Name filter_alt LEX02Type filter_alt ParentId filter_alt Id filter_alt Description filter_alt CreateUserId filter_alt CreateDate fil",
-            "left": 94,
-            "right": 2164,
+            "left": 90,
+            "right": 2160,
             "width": 2070
           },
           {
@@ -3462,8 +3630,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "IsDeleted filter_alt",
-            "left": 1894,
-            "right": 2044,
+            "left": 1890,
+            "right": 2040,
             "width": 150
           },
           {
@@ -3471,8 +3639,8 @@
             "cls": "",
             "role": "button",
             "text": "IsDeleted filter_alt",
-            "left": 1894,
-            "right": 2044,
+            "left": 1890,
+            "right": 2040,
             "width": 150
           },
           {
@@ -3480,8 +3648,8 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "IsDeleted",
-            "left": 1906,
-            "right": 2012,
+            "left": 1902,
+            "right": 2009,
             "width": 106
           },
           {
@@ -3489,8 +3657,8 @@
             "cls": "rz-column-title-content rz-text-truncate",
             "role": "",
             "text": "IsDeleted",
-            "left": 1934,
-            "right": 1980,
+            "left": 1931,
+            "right": 1977,
             "width": 46
           },
           {
@@ -3498,8 +3666,8 @@
             "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
             "role": "",
             "text": "",
-            "left": 1984,
-            "right": 2001,
+            "left": 1980,
+            "right": 1998,
             "width": 18
           },
           {
@@ -3507,8 +3675,8 @@
             "cls": "rz-column-resizer",
             "role": "",
             "text": "",
-            "left": 2040,
-            "right": 2044,
+            "left": 2037,
+            "right": 2040,
             "width": 4
           }
         ],
@@ -3528,7 +3696,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1869,
+      "elapsedMs": 1766,
       "finalUrl": "http://localhost:5203/library?tab=6&pricingTab=price-lists",
       "title": "GTAS VPP",
       "dom": {
@@ -3540,39 +3708,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban Bảng giá Giá Bảng giá add_circle Thêm bảng giá Mã bảng giá filter_alt Tên bảng giá filter_alt M",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác DEFAULT Default Price List 1626 payments Sửa",
-            "left": 48,
-            "right": 1348,
+            "left": 36,
+            "right": 1336,
             "width": 1300
           },
           {
@@ -3580,8 +3721,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 48,
-            "right": 1348,
+            "left": 36,
+            "right": 1336,
             "width": 1300
           },
           {
@@ -3589,8 +3730,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 241,
-            "right": 434,
+            "left": 229,
+            "right": 423,
             "width": 193
           },
           {
@@ -3598,8 +3739,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 434,
-            "right": 628,
+            "left": 423,
+            "right": 616,
             "width": 193
           },
           {
@@ -3607,8 +3748,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 628,
-            "right": 748,
+            "left": 616,
+            "right": 736,
             "width": 120
           },
           {
@@ -3616,8 +3757,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 748,
-            "right": 868,
+            "left": 736,
+            "right": 856,
             "width": 120
           },
           {
@@ -3625,8 +3766,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 868,
-            "right": 1348,
+            "left": 856,
+            "right": 1336,
             "width": 480
           },
           {
@@ -3634,8 +3775,8 @@
             "cls": "",
             "role": "",
             "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác",
-            "left": 48,
-            "right": 1348,
+            "left": 36,
+            "right": 1336,
             "width": 1300
           },
           {
@@ -3643,9 +3784,36 @@
             "cls": "",
             "role": "",
             "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác",
-            "left": 48,
-            "right": 1348,
+            "left": 36,
+            "right": 1336,
             "width": 1300
+          },
+          {
+            "tag": "th",
+            "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
+            "role": "",
+            "text": "Tên bảng giá filter_alt",
+            "left": 229,
+            "right": 423,
+            "width": 193
+          },
+          {
+            "tag": "div",
+            "cls": "",
+            "role": "button",
+            "text": "Tên bảng giá filter_alt",
+            "left": 229,
+            "right": 423,
+            "width": 193
+          },
+          {
+            "tag": "button",
+            "cls": "notranslate rzi rz-grid-filter-icon ",
+            "role": "",
+            "text": "filter_alt",
+            "left": 391,
+            "right": 409,
+            "width": 18
           }
         ],
         "clippedControls": [],
@@ -3664,7 +3832,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 2101,
+      "elapsedMs": 1753,
       "finalUrl": "http://localhost:5203/library?tab=6&pricingTab=price-lists",
       "title": "GTAS VPP",
       "dom": {
@@ -3680,8 +3848,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác DEFAULT Default Price List 1626 payments Sửa",
-            "left": 129,
-            "right": 1429,
+            "left": 117,
+            "right": 1417,
             "width": 1300
           },
           {
@@ -3689,8 +3857,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 129,
-            "right": 1429,
+            "left": 117,
+            "right": 1417,
             "width": 1300
           },
           {
@@ -3698,8 +3866,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 709,
-            "right": 829,
+            "left": 697,
+            "right": 817,
             "width": 120
           },
           {
@@ -3707,8 +3875,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 829,
-            "right": 949,
+            "left": 817,
+            "right": 937,
             "width": 120
           },
           {
@@ -3716,8 +3884,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 949,
-            "right": 1429,
+            "left": 937,
+            "right": 1417,
             "width": 480
           },
           {
@@ -3725,8 +3893,8 @@
             "cls": "",
             "role": "",
             "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác",
-            "left": 129,
-            "right": 1429,
+            "left": 117,
+            "right": 1417,
             "width": 1300
           },
           {
@@ -3734,8 +3902,8 @@
             "cls": "",
             "role": "",
             "text": "Mã bảng giá filter_alt Tên bảng giá filter_alt Mô tả filter_alt Mặc định filter_alt Số dòng giá filter_alt Thao tác",
-            "left": 129,
-            "right": 1429,
+            "left": 117,
+            "right": 1417,
             "width": 1300
           },
           {
@@ -3743,8 +3911,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "Mặc định filter_alt",
-            "left": 709,
-            "right": 829,
+            "left": 697,
+            "right": 817,
             "width": 120
           },
           {
@@ -3752,8 +3920,8 @@
             "cls": "",
             "role": "button",
             "text": "Mặc định filter_alt",
-            "left": 709,
-            "right": 829,
+            "left": 697,
+            "right": 817,
             "width": 120
           },
           {
@@ -3761,8 +3929,8 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "Mặc định",
-            "left": 709,
-            "right": 797,
+            "left": 697,
+            "right": 786,
             "width": 89
           },
           {
@@ -3770,8 +3938,8 @@
             "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
             "role": "",
             "text": "",
-            "left": 777,
-            "right": 795,
+            "left": 766,
+            "right": 783,
             "width": 18
           },
           {
@@ -3779,8 +3947,8 @@
             "cls": "notranslate rzi rz-grid-filter-icon ",
             "role": "",
             "text": "filter_alt",
-            "left": 797,
-            "right": 815,
+            "left": 786,
+            "right": 803,
             "width": 18
           }
         ],
@@ -3800,7 +3968,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 2220,
+      "elapsedMs": 1765,
       "finalUrl": "http://localhost:5203/library?tab=6&pricingTab=price-lists",
       "title": "GTAS VPP",
       "dom": {
@@ -3827,7 +3995,7 @@
       "pageCode": "LIBRARY",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 2222,
+      "elapsedMs": 1864,
       "finalUrl": "http://localhost:5203/library?tab=6&pricingTab=prices",
       "title": "GTAS VPP",
       "dom": {
@@ -3839,39 +4007,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Định nghĩa lớp Nhóm hàng Mặt hàng Nhà cung cấp Pricing Phòng ban Bảng giá Giá Default Price List Bảng giá VPP Gia Định Nhà cung cấp Tìm kiếm Mã sản phẩm filter_",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
-            "tag": "li",
-            "cls": "",
-            "role": "presentation",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
-            "tag": "button",
-            "cls": "",
-            "role": "tab",
-            "text": "Phòng ban",
-            "left": 340,
-            "right": 404,
-            "width": 65
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác VPP_00566F Kề",
-            "left": 48,
-            "right": 998,
+            "left": 36,
+            "right": 986,
             "width": 950
           },
           {
@@ -3879,8 +4020,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 48,
-            "right": 998,
+            "left": 36,
+            "right": 986,
             "width": 950
           },
           {
@@ -3888,8 +4029,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 368,
-            "right": 468,
+            "left": 356,
+            "right": 456,
             "width": 100
           },
           {
@@ -3897,8 +4038,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 468,
-            "right": 608,
+            "left": 456,
+            "right": 596,
             "width": 140
           },
           {
@@ -3906,8 +4047,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 608,
-            "right": 738,
+            "left": 596,
+            "right": 726,
             "width": 130
           },
           {
@@ -3915,8 +4056,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 738,
-            "right": 998,
+            "left": 726,
+            "right": 986,
             "width": 260
           },
           {
@@ -3924,8 +4065,8 @@
             "cls": "",
             "role": "",
             "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác",
-            "left": 48,
-            "right": 998,
+            "left": 36,
+            "right": 986,
             "width": 950
           },
           {
@@ -3933,8 +4074,8 @@
             "cls": "",
             "role": "",
             "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác",
-            "left": 48,
-            "right": 998,
+            "left": 36,
+            "right": 986,
             "width": 950
           },
           {
@@ -3942,9 +4083,36 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "ĐVT filter_alt",
-            "left": 368,
-            "right": 468,
+            "left": 356,
+            "right": 456,
             "width": 100
+          },
+          {
+            "tag": "div",
+            "cls": "",
+            "role": "button",
+            "text": "ĐVT filter_alt",
+            "left": 356,
+            "right": 456,
+            "width": 100
+          },
+          {
+            "tag": "span",
+            "cls": "rz-column-title",
+            "role": "",
+            "text": "ĐVT",
+            "left": 356,
+            "right": 425,
+            "width": 69
+          },
+          {
+            "tag": "span",
+            "cls": "rz-column-title-content rz-text-truncate",
+            "role": "",
+            "text": "ĐVT",
+            "left": 378,
+            "right": 399,
+            "width": 20
           }
         ],
         "clippedControls": [],
@@ -3963,7 +4131,7 @@
       "pageCode": "LIBRARY",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1998,
+      "elapsedMs": 1774,
       "finalUrl": "http://localhost:5203/library?tab=6&pricingTab=prices",
       "title": "GTAS VPP",
       "dom": {
@@ -3979,8 +4147,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
             "role": "",
             "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác VPP_00566F Kề",
-            "left": 129,
-            "right": 1079,
+            "left": 117,
+            "right": 1067,
             "width": 950
           },
           {
@@ -3988,8 +4156,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 129,
-            "right": 1079,
+            "left": 117,
+            "right": 1067,
             "width": 950
           },
           {
@@ -3997,8 +4165,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 689,
-            "right": 819,
+            "left": 677,
+            "right": 807,
             "width": 130
           },
           {
@@ -4006,8 +4174,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 819,
-            "right": 1079,
+            "left": 807,
+            "right": 1067,
             "width": 260
           },
           {
@@ -4015,8 +4183,8 @@
             "cls": "",
             "role": "",
             "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác",
-            "left": 129,
-            "right": 1079,
+            "left": 117,
+            "right": 1067,
             "width": 950
           },
           {
@@ -4024,8 +4192,8 @@
             "cls": "",
             "role": "",
             "text": "Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Giá filter_alt Giá mặc định filter_alt Mô tả filter_alt Thao tác",
-            "left": 129,
-            "right": 1079,
+            "left": 117,
+            "right": 1067,
             "width": 950
           },
           {
@@ -4033,8 +4201,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
             "role": "",
             "text": "Giá mặc định filter_alt",
-            "left": 689,
-            "right": 819,
+            "left": 677,
+            "right": 807,
             "width": 130
           },
           {
@@ -4042,35 +4210,17 @@
             "cls": "",
             "role": "button",
             "text": "Giá mặc định filter_alt",
-            "left": 689,
-            "right": 819,
+            "left": 677,
+            "right": 807,
             "width": 130
-          },
-          {
-            "tag": "span",
-            "cls": "rz-column-title",
-            "role": "",
-            "text": "Giá mặc định",
-            "left": 689,
-            "right": 787,
-            "width": 99
-          },
-          {
-            "tag": "span",
-            "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
-            "role": "",
-            "text": "",
-            "left": 770,
-            "right": 787,
-            "width": 18
           },
           {
             "tag": "button",
             "cls": "notranslate rzi rz-grid-filter-icon ",
             "role": "",
             "text": "filter_alt",
-            "left": 787,
-            "right": 805,
+            "left": 776,
+            "right": 793,
             "width": 18
           },
           {
@@ -4078,9 +4228,27 @@
             "cls": "rz-column-title",
             "role": "",
             "text": "Mô tả",
-            "left": 819,
-            "right": 826,
+            "left": 807,
+            "right": 814,
             "width": 7
+          },
+          {
+            "tag": "span",
+            "cls": "notranslate rz-sortable-column-icon rzi-grid-sort rzi-sort",
+            "role": "",
+            "text": "",
+            "left": 818,
+            "right": 835,
+            "width": 18
+          },
+          {
+            "tag": "button",
+            "cls": "notranslate rzi rz-grid-filter-icon ",
+            "role": "",
+            "text": "filter_alt",
+            "left": 814,
+            "right": 832,
+            "width": 18
           }
         ],
         "clippedControls": [],
@@ -4099,7 +4267,7 @@
       "pageCode": "LIBRARY",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1914,
+      "elapsedMs": 1828,
       "finalUrl": "http://localhost:5203/library?tab=6&pricingTab=prices",
       "title": "GTAS VPP",
       "dom": {
@@ -4126,7 +4294,7 @@
       "pageCode": "PERMISSION",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1577,
+      "elapsedMs": 1586,
       "finalUrl": "http://localhost:5203/permission?tab=0",
       "title": "GTAS VPP - Permission",
       "dom": {
@@ -4138,21 +4306,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Nhóm người dùng Phân quyền nhóm/trang Tìm kiếm filter_alt_off search refresh Tải lại 20 columns showing # Inactive User Id User login filter_alt Email filter_al",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed   ",
             "role": "",
             "text": "# Inactive User Id User login filter_alt Email filter_alt Full Name filter_alt Admin Group filter_alt User Type Id filter_alt Google Email filter_alt Group Id f",
-            "left": 34,
-            "right": 3304,
+            "left": 22,
+            "right": 3292,
             "width": 3270
           },
           {
@@ -4160,8 +4319,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 3304,
+            "left": 22,
+            "right": 3292,
             "width": 3270
           },
           {
@@ -4169,8 +4328,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 364,
-            "right": 544,
+            "left": 352,
+            "right": 532,
             "width": 180
           },
           {
@@ -4178,8 +4337,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 544,
-            "right": 794,
+            "left": 532,
+            "right": 782,
             "width": 250
           },
           {
@@ -4187,8 +4346,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 794,
-            "right": 884,
+            "left": 782,
+            "right": 872,
             "width": 90
           },
           {
@@ -4196,8 +4355,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 884,
-            "right": 1034,
+            "left": 872,
+            "right": 1022,
             "width": 150
           },
           {
@@ -4205,8 +4364,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1034,
-            "right": 1134,
+            "left": 1022,
+            "right": 1122,
             "width": 100
           },
           {
@@ -4214,8 +4373,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1134,
-            "right": 1414,
+            "left": 1122,
+            "right": 1402,
             "width": 280
           },
           {
@@ -4223,8 +4382,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1414,
-            "right": 1594,
+            "left": 1402,
+            "right": 1582,
             "width": 180
           },
           {
@@ -4232,8 +4391,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1594,
-            "right": 1874,
+            "left": 1582,
+            "right": 1862,
             "width": 280
           },
           {
@@ -4241,9 +4400,18 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1874,
-            "right": 1974,
+            "left": 1862,
+            "right": 1962,
             "width": 100
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1962,
+            "right": 2112,
+            "width": 150
           }
         ],
         "clippedControls": [],
@@ -4262,7 +4430,7 @@
       "pageCode": "PERMISSION",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1591,
+      "elapsedMs": 1440,
       "finalUrl": "http://localhost:5203/permission?tab=0",
       "title": "GTAS VPP - Permission",
       "dom": {
@@ -4278,8 +4446,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed   ",
             "role": "",
             "text": "# Inactive User Id User login filter_alt Email filter_alt Full Name filter_alt Admin Group filter_alt User Type Id filter_alt Google Email filter_alt Group Id f",
-            "left": 115,
-            "right": 3385,
+            "left": 103,
+            "right": 3373,
             "width": 3270
           },
           {
@@ -4287,8 +4455,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 3385,
+            "left": 103,
+            "right": 3373,
             "width": 3270
           },
           {
@@ -4296,8 +4464,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 625,
-            "right": 875,
+            "left": 613,
+            "right": 863,
             "width": 250
           },
           {
@@ -4305,8 +4473,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 875,
-            "right": 965,
+            "left": 863,
+            "right": 953,
             "width": 90
           },
           {
@@ -4314,8 +4482,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 965,
-            "right": 1115,
+            "left": 953,
+            "right": 1103,
             "width": 150
           },
           {
@@ -4323,8 +4491,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1115,
-            "right": 1215,
+            "left": 1103,
+            "right": 1203,
             "width": 100
           },
           {
@@ -4332,8 +4500,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1215,
-            "right": 1495,
+            "left": 1203,
+            "right": 1483,
             "width": 280
           },
           {
@@ -4341,8 +4509,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1495,
-            "right": 1675,
+            "left": 1483,
+            "right": 1663,
             "width": 180
           },
           {
@@ -4350,8 +4518,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1675,
-            "right": 1955,
+            "left": 1663,
+            "right": 1943,
             "width": 280
           },
           {
@@ -4359,8 +4527,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1955,
-            "right": 2055,
+            "left": 1943,
+            "right": 2043,
             "width": 100
           },
           {
@@ -4368,8 +4536,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2055,
-            "right": 2205,
+            "left": 2043,
+            "right": 2193,
             "width": 150
           },
           {
@@ -4377,8 +4545,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2205,
-            "right": 2355,
+            "left": 2193,
+            "right": 2343,
             "width": 150
           }
         ],
@@ -4398,7 +4566,7 @@
       "pageCode": "PERMISSION",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1616,
+      "elapsedMs": 1491,
       "finalUrl": "http://localhost:5203/permission?tab=0",
       "title": "GTAS VPP - Permission",
       "dom": {
@@ -4414,8 +4582,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed   ",
             "role": "",
             "text": "# Inactive User Id User login filter_alt Email filter_alt Full Name filter_alt Admin Group filter_alt User Type Id filter_alt Google Email filter_alt Group Id f",
-            "left": 94,
-            "right": 3364,
+            "left": 90,
+            "right": 3360,
             "width": 3270
           },
           {
@@ -4423,8 +4591,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 94,
-            "right": 3364,
+            "left": 90,
+            "right": 3360,
             "width": 3270
           },
           {
@@ -4432,8 +4600,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1654,
-            "right": 1934,
+            "left": 1650,
+            "right": 1930,
             "width": 280
           },
           {
@@ -4441,8 +4609,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1934,
-            "right": 2034,
+            "left": 1930,
+            "right": 2030,
             "width": 100
           },
           {
@@ -4450,8 +4618,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2034,
-            "right": 2184,
+            "left": 2030,
+            "right": 2180,
             "width": 150
           },
           {
@@ -4459,8 +4627,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2184,
-            "right": 2334,
+            "left": 2180,
+            "right": 2330,
             "width": 150
           },
           {
@@ -4468,8 +4636,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2334,
-            "right": 2434,
+            "left": 2330,
+            "right": 2430,
             "width": 100
           },
           {
@@ -4477,8 +4645,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2434,
-            "right": 2584,
+            "left": 2430,
+            "right": 2580,
             "width": 150
           },
           {
@@ -4486,8 +4654,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2584,
-            "right": 2734,
+            "left": 2580,
+            "right": 2730,
             "width": 150
           },
           {
@@ -4495,8 +4663,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2734,
-            "right": 2934,
+            "left": 2730,
+            "right": 2930,
             "width": 200
           },
           {
@@ -4504,8 +4672,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 2934,
-            "right": 3084,
+            "left": 2930,
+            "right": 3080,
             "width": 150
           },
           {
@@ -4513,8 +4681,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 3084,
-            "right": 3364,
+            "left": 3080,
+            "right": 3360,
             "width": 280
           }
         ],
@@ -4534,7 +4702,7 @@
       "pageCode": "PERMISSION",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1437,
+      "elapsedMs": 1416,
       "finalUrl": "http://localhost:5203/permission?tab=1",
       "title": "GTAS VPP - Permission",
       "dom": {
@@ -4546,21 +4714,12 @@
         "horizontalOverflow": 0,
         "overflowOffenders": [
           {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Nhóm người dùng Phân quyền nhóm/trang Drag a column header here and drop it to group by that column 12 columns showing # Is Delete filter_alt Func Group Name fi",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          },
-          {
             "tag": "table",
             "cls": "rz-grid-table rz-grid-table-fixed   ",
             "role": "",
             "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-            "left": 34,
-            "right": 1873,
+            "left": 22,
+            "right": 1862,
             "width": 1840
           },
           {
@@ -4568,8 +4727,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 34,
-            "right": 1873,
+            "left": 22,
+            "right": 1862,
             "width": 1840
           },
           {
@@ -4577,8 +4736,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 361,
-            "right": 598,
+            "left": 349,
+            "right": 586,
             "width": 237
           },
           {
@@ -4586,8 +4745,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 598,
-            "right": 727,
+            "left": 586,
+            "right": 716,
             "width": 129
           },
           {
@@ -4595,8 +4754,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 727,
-            "right": 838,
+            "left": 716,
+            "right": 827,
             "width": 111
           },
           {
@@ -4604,8 +4763,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 838,
-            "right": 951,
+            "left": 827,
+            "right": 939,
             "width": 112
           },
           {
@@ -4613,8 +4772,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 951,
-            "right": 1065,
+            "left": 939,
+            "right": 1053,
             "width": 114
           },
           {
@@ -4622,8 +4781,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1065,
-            "right": 1180,
+            "left": 1053,
+            "right": 1169,
             "width": 115
           },
           {
@@ -4631,8 +4790,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1180,
-            "right": 1418,
+            "left": 1169,
+            "right": 1407,
             "width": 238
           },
           {
@@ -4640,8 +4799,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1418,
-            "right": 1552,
+            "left": 1407,
+            "right": 1541,
             "width": 134
           },
           {
@@ -4649,9 +4808,18 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1552,
-            "right": 1690,
+            "left": 1541,
+            "right": 1678,
             "width": 137
+          },
+          {
+            "tag": "col",
+            "cls": "",
+            "role": "",
+            "text": "",
+            "left": 1678,
+            "right": 1862,
+            "width": 184
           }
         ],
         "clippedControls": [],
@@ -4670,7 +4838,7 @@
       "pageCode": "PERMISSION",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1615,
+      "elapsedMs": 1485,
       "finalUrl": "http://localhost:5203/permission?tab=1",
       "title": "GTAS VPP - Permission",
       "dom": {
@@ -4686,8 +4854,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed   ",
             "role": "",
             "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-            "left": 115,
-            "right": 1954,
+            "left": 103,
+            "right": 1943,
             "width": 1840
           },
           {
@@ -4695,8 +4863,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 115,
-            "right": 1954,
+            "left": 103,
+            "right": 1943,
             "width": 1840
           },
           {
@@ -4704,8 +4872,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 679,
-            "right": 808,
+            "left": 667,
+            "right": 797,
             "width": 129
           },
           {
@@ -4713,8 +4881,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 808,
-            "right": 919,
+            "left": 797,
+            "right": 908,
             "width": 111
           },
           {
@@ -4722,8 +4890,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 919,
-            "right": 1032,
+            "left": 908,
+            "right": 1020,
             "width": 112
           },
           {
@@ -4731,8 +4899,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1032,
-            "right": 1146,
+            "left": 1020,
+            "right": 1134,
             "width": 114
           },
           {
@@ -4740,8 +4908,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1146,
-            "right": 1261,
+            "left": 1134,
+            "right": 1250,
             "width": 115
           },
           {
@@ -4749,8 +4917,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1261,
-            "right": 1499,
+            "left": 1250,
+            "right": 1488,
             "width": 238
           },
           {
@@ -4758,8 +4926,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1499,
-            "right": 1633,
+            "left": 1488,
+            "right": 1622,
             "width": 134
           },
           {
@@ -4767,8 +4935,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1633,
-            "right": 1771,
+            "left": 1622,
+            "right": 1759,
             "width": 137
           },
           {
@@ -4776,8 +4944,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1771,
-            "right": 1954,
+            "left": 1759,
+            "right": 1943,
             "width": 184
           },
           {
@@ -4785,8 +4953,8 @@
             "cls": "",
             "role": "",
             "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-            "left": 115,
-            "right": 1954,
+            "left": 103,
+            "right": 1943,
             "width": 1840
           }
         ],
@@ -4806,7 +4974,7 @@
       "pageCode": "PERMISSION",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1670,
+      "elapsedMs": 1476,
       "finalUrl": "http://localhost:5203/permission?tab=1",
       "title": "GTAS VPP - Permission",
       "dom": {
@@ -4822,8 +4990,8 @@
             "cls": "rz-grid-table rz-grid-table-fixed   ",
             "role": "",
             "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           },
           {
@@ -4831,8 +4999,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           },
           {
@@ -4840,8 +5008,8 @@
             "cls": "",
             "role": "",
             "text": "",
-            "left": 1750,
-            "right": 1933,
+            "left": 1746,
+            "right": 1930,
             "width": 184
           },
           {
@@ -4849,8 +5017,8 @@
             "cls": "",
             "role": "",
             "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           },
           {
@@ -4858,8 +5026,8 @@
             "cls": "",
             "role": "",
             "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           },
           {
@@ -4867,8 +5035,8 @@
             "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
             "role": "",
             "text": "Member Company Code filter_alt",
-            "left": 1750,
-            "right": 1933,
+            "left": 1746,
+            "right": 1930,
             "width": 184
           },
           {
@@ -4876,8 +5044,8 @@
             "cls": "",
             "role": "button",
             "text": "Member Company Code filter_alt",
-            "left": 1750,
-            "right": 1933,
+            "left": 1746,
+            "right": 1930,
             "width": 184
           },
           {
@@ -4885,8 +5053,8 @@
             "cls": "rz-column-resizer",
             "role": "",
             "text": "",
-            "left": 1930,
-            "right": 1933,
+            "left": 1926,
+            "right": 1930,
             "width": 4
           },
           {
@@ -4894,8 +5062,8 @@
             "cls": "",
             "role": "",
             "text": "1 edit Admin Administrators with full access 25/05/2026 10:23 25/05/2026 10:23 5823b49b-5925-4a89-846a-09063a36040c 5615 5615 0 2 edit User Regular users with l",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           },
           {
@@ -4903,8 +5071,8 @@
             "cls": "rz-data-row  ",
             "role": "",
             "text": "1 edit Admin Administrators with full access 25/05/2026 10:23 25/05/2026 10:23 5823b49b-5925-4a89-846a-09063a36040c 5615 5615 0",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           },
           {
@@ -4912,8 +5080,8 @@
             "cls": "",
             "role": "",
             "text": "0",
-            "left": 1750,
-            "right": 1933,
+            "left": 1746,
+            "right": 1930,
             "width": 184
           },
           {
@@ -4921,8 +5089,8 @@
             "cls": "rz-data-row  ",
             "role": "",
             "text": "2 edit User Regular users with limited access 25/05/2026 10:23 25/05/2026 10:23 388c6c3a-2801-42dc-bfc0-8a7741264596 5615 5615 0",
-            "left": 94,
-            "right": 1933,
+            "left": 90,
+            "right": 1930,
             "width": 1840
           }
         ],
@@ -4942,27 +5110,17 @@
       "pageCode": "REPORT",
       "viewport": "mobile",
       "status": "OK",
-      "elapsedMs": 1573,
+      "elapsedMs": 1359,
       "finalUrl": "http://localhost:5203/report",
       "title": "GTAS VPP - Report",
       "dom": {
         "url": "http://localhost:5203/report",
         "title": "GTAS VPP - Report",
-        "bodyTextLength": 245,
+        "bodyTextLength": 240,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
-        "overflowOffenders": [
-          {
-            "tag": "div",
-            "cls": "rz-body vpp-layout-body",
-            "role": "",
-            "text": "Báo cáo file_download Export Report TOTAL ORDERS - TOTAL QUANTITY - DEPARTMENTS - info Report content has not been configured yet. Export functionality coming s",
-            "left": 11,
-            "right": 401,
-            "width": 390
-          }
-        ],
+        "overflowOffenders": [],
         "clippedControls": [],
         "interactiveWithoutName": [],
         "tableCount": 0,
@@ -4979,13 +5137,13 @@
       "pageCode": "REPORT",
       "viewport": "tablet",
       "status": "OK",
-      "elapsedMs": 1539,
+      "elapsedMs": 1358,
       "finalUrl": "http://localhost:5203/report",
       "title": "GTAS VPP - Report",
       "dom": {
         "url": "http://localhost:5203/report",
         "title": "GTAS VPP - Report",
-        "bodyTextLength": 273,
+        "bodyTextLength": 268,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,
@@ -5006,13 +5164,13 @@
       "pageCode": "REPORT",
       "viewport": "desktop",
       "status": "OK",
-      "elapsedMs": 1493,
+      "elapsedMs": 1429,
       "finalUrl": "http://localhost:5203/report",
       "title": "GTAS VPP - Report",
       "dom": {
         "url": "http://localhost:5203/report",
         "title": "GTAS VPP - Report",
-        "bodyTextLength": 273,
+        "bodyTextLength": 268,
         "visibleBlazorError": false,
         "visibleReconnect": false,
         "horizontalOverflow": 0,

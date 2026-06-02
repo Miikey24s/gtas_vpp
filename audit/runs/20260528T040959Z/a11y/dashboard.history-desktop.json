@@ -5,7 +5,7 @@
   "dom": {
     "url": "http://localhost:5203/dashboard?tab=1",
     "title": "GTAS VPP - VPP Request",
-    "bodyTextLength": 543,
+    "bodyTextLength": 606,
     "visibleBlazorError": false,
     "visibleReconnect": false,
     "horizontalOverflow": 0,

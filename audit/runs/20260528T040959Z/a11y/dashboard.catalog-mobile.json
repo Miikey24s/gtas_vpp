@@ -11,21 +11,12 @@
     "horizontalOverflow": 0,
     "overflowOffenders": [
       {
-        "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "Đơn hàng của tôi Lịch sử đơn Catalog Management Tổng kết kỳ TỔNG SẢN PHẨM 542 NHÓM HÀNG 8 # Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt Đ",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      },
-      {
         "tag": "table",
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt 1 VPP_00566F Kềm Bấm",
-        "left": 34,
-        "right": 1317,
+        "left": 22,
+        "right": 1306,
         "width": 1284
       },
       {
@@ -33,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 34,
-        "right": 1317,
+        "left": 22,
+        "right": 1306,
         "width": 1284
       },
       {
@@ -42,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 192,
-        "right": 442,
+        "left": 180,
+        "right": 430,
         "width": 250
       },
       {
@@ -51,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 442,
-        "right": 637,
+        "left": 430,
+        "right": 626,
         "width": 195
       },
       {
@@ -60,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 637,
-        "right": 740,
+        "left": 626,
+        "right": 728,
         "width": 103
       },
       {
@@ -69,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 740,
-        "right": 900,
+        "left": 728,
+        "right": 888,
         "width": 160
       },
       {
@@ -78,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 900,
-        "right": 1020,
+        "left": 888,
+        "right": 1008,
         "width": 120
       },
       {
@@ -87,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1020,
-        "right": 1317,
+        "left": 1008,
+        "right": 1306,
         "width": 298
       },
       {
@@ -96,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
-        "left": 34,
-        "right": 1317,
+        "left": 22,
+        "right": 1306,
         "width": 1284
       },
       {
@@ -105,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "# Mã sản phẩm filter_alt Tên sản phẩm filter_alt Danh mục filter_alt ĐVT filter_alt Nhà cung cấp filter_alt Giá filter_alt Mô tả filter_alt",
-        "left": 34,
-        "right": 1317,
+        "left": 22,
+        "right": 1306,
         "width": 1284
       },
       {
@@ -114,8 +105,17 @@
         "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-left",
         "role": "",
         "text": "Tên sản phẩm filter_alt",
-        "left": 192,
-        "right": 442,
+        "left": 180,
+        "right": 430,
+        "width": 250
+      },
+      {
+        "tag": "div",
+        "cls": "",
+        "role": "button",
+        "text": "Tên sản phẩm filter_alt",
+        "left": 180,
+        "right": 430,
         "width": 250
       }
     ],

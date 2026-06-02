@@ -12,20 +12,11 @@
     "overflowOffenders": [
       {
         "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "arrow_back Trở về đơn hàng 1 SelectProducts ➔ 2 ReviewSubmit inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấ",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      },
-      {
-        "tag": "div",
         "cls": "vpp-wizard-split-left",
         "role": "",
         "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
-        "left": 40,
-        "right": 597,
+        "left": 28,
+        "right": 585,
         "width": 557
       },
       {
@@ -33,8 +24,8 @@
         "cls": "vpp-data-card vpp-wizard-panel-card",
         "role": "",
         "text": "inventory_2 Danh mục sản phẩm 542 Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ b",
-        "left": 40,
-        "right": 597,
+        "left": 28,
+        "right": 585,
         "width": 557
       },
       {
@@ -42,8 +33,8 @@
         "cls": "vpp-wizard-panel-card-head",
         "role": "",
         "text": "inventory_2 Danh mục sản phẩm 542",
-        "left": 41,
-        "right": 596,
+        "left": 29,
+        "right": 584,
         "width": 555
       },
       {
@@ -51,8 +42,8 @@
         "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-space-between",
         "role": "",
         "text": "inventory_2 Danh mục sản phẩm 542",
-        "left": 55,
-        "right": 582,
+        "left": 43,
+        "right": 570,
         "width": 527
       },
       {
@@ -60,8 +51,8 @@
         "cls": "rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-normal",
         "role": "",
         "text": "",
-        "left": 241,
-        "right": 582,
+        "left": 229,
+        "right": 570,
         "width": 341
       },
       {
@@ -69,8 +60,8 @@
         "cls": "rz-textbox rz-state-empty",
         "role": "",
         "text": "Ghi chú",
-        "left": 241,
-        "right": 561,
+        "left": 229,
+        "right": 549,
         "width": 320
       },
       {
@@ -78,8 +69,8 @@
         "cls": "rz-data-grid rz-has-pager rz-datatable rz-datatable-scrollable rz-density-compact",
         "role": "",
         "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-        "left": 41,
-        "right": 596,
+        "left": 29,
+        "right": 584,
         "width": 555
       },
       {
@@ -87,8 +78,8 @@
         "cls": "rz-data-grid-data",
         "role": "",
         "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-        "left": 41,
-        "right": 596,
+        "left": 29,
+        "right": 584,
         "width": 555
       },
       {
@@ -96,8 +87,8 @@
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "Danh mục filter_alt Tên sản phẩm filter_alt Băng keo_ bấm kim_ bấm lỗ Kềm Bấm Đinh Ghim Có Điều Chỉnh Tăng Lực add Bìa còng_ bìa phân trang_ trình ký Bìa 2 kẹp ",
-        "left": 41,
-        "right": 596,
+        "left": 29,
+        "right": 584,
         "width": 555
       },
       {
@@ -105,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 41,
-        "right": 596,
+        "left": 29,
+        "right": 584,
         "width": 555
       },
       {
@@ -114,9 +105,18 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 291,
-        "right": 541,
+        "left": 279,
+        "right": 529,
         "width": 250
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 529,
+        "right": 584,
+        "width": 55
       }
     ],
     "clippedControls": [],

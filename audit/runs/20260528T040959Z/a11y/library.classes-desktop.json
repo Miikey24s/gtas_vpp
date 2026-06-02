@@ -15,8 +15,8 @@
         "cls": "rz-grid-table rz-grid-table-fixed rz-grid-table-striped  rz-grid-gridlines-horizontal",
         "role": "",
         "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
-        "left": 999,
-        "right": 2377,
+        "left": 998,
+        "right": 2376,
         "width": 1378
       },
       {
@@ -24,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 999,
-        "right": 2377,
+        "left": 998,
+        "right": 2376,
         "width": 1378
       },
       {
@@ -33,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1834,
-        "right": 1961,
+        "left": 1833,
+        "right": 1960,
         "width": 127
       },
       {
@@ -42,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1961,
-        "right": 2078,
+        "left": 1960,
+        "right": 2077,
         "width": 117
       },
       {
@@ -51,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2078,
-        "right": 2209,
+        "left": 2077,
+        "right": 2208,
         "width": 131
       },
       {
@@ -60,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2209,
-        "right": 2330,
+        "left": 2208,
+        "right": 2329,
         "width": 120
       },
       {
@@ -69,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 2330,
-        "right": 2377,
+        "left": 2329,
+        "right": 2376,
         "width": 47
       },
       {
@@ -78,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
-        "left": 999,
-        "right": 2377,
+        "left": 998,
+        "right": 2376,
         "width": 1378
       },
       {
@@ -87,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "# ID filter_alt Class ID filter_alt Code filter_alt Value filter_alt Extra 1 filter_alt Extra 2 filter_alt Extra 3 filter_alt Sort filter_alt Description filter",
-        "left": 999,
-        "right": 2377,
+        "left": 998,
+        "right": 2376,
         "width": 1378
       },
       {
@@ -96,8 +96,8 @@
         "cls": "rz-unselectable-text rz-sortable-column    rz-text-align-center",
         "role": "",
         "text": "Create User filter_alt",
-        "left": 1834,
-        "right": 1961,
+        "left": 1833,
+        "right": 1960,
         "width": 127
       },
       {
@@ -105,8 +105,8 @@
         "cls": "",
         "role": "button",
         "text": "Create User filter_alt",
-        "left": 1834,
-        "right": 1961,
+        "left": 1833,
+        "right": 1960,
         "width": 127
       },
       {
@@ -114,8 +114,8 @@
         "cls": "rz-column-title",
         "role": "",
         "text": "Create User",
-        "left": 1834,
-        "right": 1930,
+        "left": 1833,
+        "right": 1929,
         "width": 96
       }
     ],

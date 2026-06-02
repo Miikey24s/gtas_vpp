@@ -11,21 +11,12 @@
     "horizontalOverflow": 0,
     "overflowOffenders": [
       {
-        "tag": "div",
-        "cls": "rz-body vpp-layout-body",
-        "role": "",
-        "text": "Nhóm người dùng Phân quyền nhóm/trang Drag a column header here and drop it to group by that column 12 columns showing # Is Delete filter_alt Func Group Name fi",
-        "left": 11,
-        "right": 401,
-        "width": 390
-      },
-      {
         "tag": "table",
         "cls": "rz-grid-table rz-grid-table-fixed   ",
         "role": "",
         "text": "# Is Delete filter_alt Func Group Name filter_alt Description filter_alt Parent Group filter_alt Create by filter_alt Create on filter_alt Update by filter_alt ",
-        "left": 34,
-        "right": 1873,
+        "left": 22,
+        "right": 1862,
         "width": 1840
       },
       {
@@ -33,8 +24,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 34,
-        "right": 1873,
+        "left": 22,
+        "right": 1862,
         "width": 1840
       },
       {
@@ -42,8 +33,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 361,
-        "right": 598,
+        "left": 349,
+        "right": 586,
         "width": 237
       },
       {
@@ -51,8 +42,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 598,
-        "right": 727,
+        "left": 586,
+        "right": 716,
         "width": 129
       },
       {
@@ -60,8 +51,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 727,
-        "right": 838,
+        "left": 716,
+        "right": 827,
         "width": 111
       },
       {
@@ -69,8 +60,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 838,
-        "right": 951,
+        "left": 827,
+        "right": 939,
         "width": 112
       },
       {
@@ -78,8 +69,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 951,
-        "right": 1065,
+        "left": 939,
+        "right": 1053,
         "width": 114
       },
       {
@@ -87,8 +78,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1065,
-        "right": 1180,
+        "left": 1053,
+        "right": 1169,
         "width": 115
       },
       {
@@ -96,8 +87,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1180,
-        "right": 1418,
+        "left": 1169,
+        "right": 1407,
         "width": 238
       },
       {
@@ -105,8 +96,8 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1418,
-        "right": 1552,
+        "left": 1407,
+        "right": 1541,
         "width": 134
       },
       {
@@ -114,9 +105,18 @@
         "cls": "",
         "role": "",
         "text": "",
-        "left": 1552,
-        "right": 1690,
+        "left": 1541,
+        "right": 1678,
         "width": 137
+      },
+      {
+        "tag": "col",
+        "cls": "",
+        "role": "",
+        "text": "",
+        "left": 1678,
+        "right": 1862,
+        "width": 184
       }
     ],
     "clippedControls": [],
