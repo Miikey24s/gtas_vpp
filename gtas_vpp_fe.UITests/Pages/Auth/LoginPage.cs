@@ -32,6 +32,7 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
                 Timeout = 120000,
                 State = WaitForSelectorState.Visible
             });
+            await _page.WaitForTimeoutAsync(750);
         }
 
         public async Task LoginWithDefaultCredentialsAsync()
@@ -59,6 +60,7 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
 
         public async Task LoginAsync(string username, string password, string serverName = "Test")
         {
+            await _page.WaitForTimeoutAsync(750);
             await _usernameInput.FillAsync(username);
             await _passwordInput.FillAsync(password);
             
@@ -66,10 +68,11 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
             var serverDropdown = _page.Locator(".rz-dropdown").First;
             if (await serverDropdown.CountAsync() > 0 && await serverDropdown.IsVisibleAsync())
             {
-                await serverDropdown.ClickAsync();
-                // Click option from popup
-                var option = _page.Locator(".rz-dropdown-item").GetByText(serverName, new LocatorGetByTextOptions { Exact = true });
-                await option.WaitForAsync();
+                await serverDropdown.Locator(".rz-dropdown-trigger").ClickAsync();
+                await _page.Locator(".rz-dropdown-panel.rz-open").WaitForAsync(
+                    new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+                var option = _page.Locator($".rz-dropdown-panel.rz-open [role='option'][aria-label='{serverName}']").First;
+                await option.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
                 await option.ClickAsync();
             }
 

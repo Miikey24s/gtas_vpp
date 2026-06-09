@@ -39,7 +39,7 @@ services:
 
   # ── Backend (.NET 10 Web API) ────────────────────────────
   backend:
-    image: ghcr.io/miikey24s/gtas-vpp-backend:latest
+    image: ${BE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-backend:latest}
     container_name: gtas-vpp-backend
     restart: unless-stopped
     depends_on:
@@ -79,7 +79,7 @@ services:
 
   # ── Frontend (Blazor Server) ─────────────────────────────
   frontend:
-    image: ghcr.io/miikey24s/gtas-vpp-frontend:latest
+    image: ${FE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-frontend:latest}
     container_name: gtas-vpp-frontend
     restart: unless-stopped
     depends_on:
