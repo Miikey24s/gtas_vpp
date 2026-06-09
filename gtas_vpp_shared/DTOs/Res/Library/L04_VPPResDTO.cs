@@ -13,9 +13,9 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public L02_ClassDetailResDTO? UOM { get; set; }
         [GridColumnProperty("VPP Category", iscompobox: true)]
         public Guid VPPCategoryId { get; set; }
-        [GridColumnProperty("Supplier", "180px", readOnly: true)]
+        [GridColumnProperty("Supplier", "150px", readOnly: true)]
         public string? DefaultSupplierName { get; set; }
-        [GridColumnProperty("Price", "140px", readOnly: true)]
+        [GridColumnProperty("Price", "112px", readOnly: true)]
         public decimal? DefaultPrice { get; set; }
         [GridColumnProperty(ignore: true)]
         public decimal DefaultVatRate { get; set; } = VppPricingDefaults.VatRate;

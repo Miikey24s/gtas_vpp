@@ -4,13 +4,15 @@
 @inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
+<PageTitle>GTAS VPP - Library</PageTitle>
+
 
 
 @if (HasAnyVisibleLibraryTab)
 {
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
-                class="librariestab"
+                class="librariestab vpp-admin-tabs"
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>

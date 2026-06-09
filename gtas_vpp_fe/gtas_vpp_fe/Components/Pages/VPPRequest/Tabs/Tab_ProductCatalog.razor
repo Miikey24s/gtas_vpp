@@ -70,7 +70,7 @@
                                 PagerHorizontalAlign="HorizontalAlign.Left"
                                 Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
                                 class="vpp-order-grid"
-                                Style="border: none; --vpp-grid-min-width: 1420px;">
+                                Style="border: none; --vpp-grid-min-width: 1320px;">
                     <Columns>
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
@@ -80,12 +80,12 @@
                                 <span class="vpp-link-text">@row.VPPCode</span>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPName" Title="@Loc["ProductName"]" Width="320px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left">
                             <Template Context="row">
                                 <span style="font-weight: var(--vpp-font-weight-medium);">@row.VPPName</span>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCategoryName" Title="@Loc["Category"]" Width="250px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCategoryName" Title="@Loc["Category"]" Width="220px" TextAlign="TextAlign.Left">
                             <Template Context="row">
                                 <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.VPPCategoryName" IsPill="true" />
                             </Template>
@@ -93,7 +93,7 @@
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UOMName" Title="@Loc["UOM"]" Width="80px" TextAlign="TextAlign.Center" />
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultSupplierName" Title="@Loc["Supplier"]" Width="145px" TextAlign="TextAlign.Left" />
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultPrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right" FormatString="{0:N0}" />
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" Width="310px" TextAlign="TextAlign.Left" />
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" Width="270px" TextAlign="TextAlign.Left" />
                     </Columns>
                 </RadzenDataGrid>
             </div>

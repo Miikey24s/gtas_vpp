@@ -290,28 +290,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
                 if (queryIndex == 1) // Categories
                 {
-                    if (operationCategories == null || operationCategories.Count == 0)
-                    {
-                        glb.isBusyPage = true;
-                        StateHasChanged();
-
-                        operationCategories = await _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>($"{Config.LibraryApi.L03_Category}?showDeleted=true") ?? new List<L03_VPPCategoryResDTO>();
-                    }
+                    // Main Library grids load data through Radzen LoadData with skip/top/filter.
+                    // Avoid preloading full tables here; it fights server-side paging and stale state.
                 }
                 else if (queryIndex == 2) // Operations / Items
                 {
-                    if (operations == null || operations.Count == 0 || CategoryDropdownDatas == null || CategoryDropdownDatas.Count == 0)
+                    if (CategoryDropdownDatas == null || CategoryDropdownDatas.Count == 0)
                     {
                         glb.isBusyPage = true;
                         StateHasChanged();
 
-                        var operationsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>($"{Config.LibraryApi.L04_Item}?showDeleted=true");
                         var categoriesTask = _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>($"{Config.LibraryApi.L03_Category}?showDeleted=true");
                         var uomListTask = _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>($"{Config.LibraryApi.L02_ClassDetail}?showDeleted=true");
 
-                        await Task.WhenAll(operationsTask, categoriesTask, uomListTask);
+                        await Task.WhenAll(categoriesTask, uomListTask);
 
-                        operations = await operationsTask ?? new List<L04_VPPResDTO>();
                         var cats = await categoriesTask ?? new List<L03_VPPCategoryResDTO>();
                         var uoms = await uomListTask ?? new List<L02_ClassDetailResDTO>();
 
@@ -336,23 +329,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 }
                 else if (queryIndex == 3) // Suppliers
                 {
-                    if (suppliers == null || suppliers.Count == 0)
-                    {
-                        glb.isBusyPage = true;
-                        StateHasChanged();
-
-                        suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>($"{Config.LibraryApi.L05_Supplier}?showDeleted=true") ?? new List<L05_VPPSupplierResDTO>();
-                    }
+                    // Loaded server-side by Component_ShareGrid.
                 }
                 else if (queryIndex == 5) // Departments
                 {
-                    if (departments == null || departments.Count == 0)
-                    {
-                        glb.isBusyPage = true;
-                        StateHasChanged();
-
-                        departments = await _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>($"{Config.ApiLibraryBase}/lex02?showDeleted=true") ?? new List<LEX02_CompanyDepartmentLocationResDTO>();
-                    }
+                    // Loaded server-side by Component_ShareGrid.
                 }
             }
             catch (Exception ex)

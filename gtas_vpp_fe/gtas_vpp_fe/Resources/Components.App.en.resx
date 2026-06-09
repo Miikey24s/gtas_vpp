@@ -28,6 +28,7 @@
   <data name="Save" xml:space="preserve"><value>Save</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="HardDelete" xml:space="preserve"><value>Hard Delete</value></data>
   <data name="Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="Create" xml:space="preserve"><value>Create</value></data>
   <data name="Search" xml:space="preserve"><value>Search</value></data>
@@ -39,6 +40,8 @@
   <data name="Warning" xml:space="preserve"><value>Warning</value></data>
   <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete?</value></data>
+  <data name="PermanentDeleteWarning" xml:space="preserve"><value>This will permanently delete the record. This action cannot be undone.</value></data>
+  <data name="GroupPermanentlyDeleted" xml:space="preserve"><value>Group permanently deleted.</value></data>
   <data name="PleaseWait" xml:space="preserve"><value>Please wait...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Server Error</value></data>
   <data name="Language" xml:space="preserve"><value>Language</value></data>
@@ -71,6 +74,8 @@
   <data name="Description" xml:space="preserve"><value>Description</value></data>
   <data name="Name" xml:space="preserve"><value>Name</value></data>
   <data name="Code" xml:space="preserve"><value>Code</value></data>
+  <data name="Value" xml:space="preserve"><value>Value</value></data>
+  <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
   <data name="MyOrders" xml:space="preserve"><value>My Orders</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Product Catalog</value></data>
   <data name="DepartmentSummary" xml:space="preserve"><value>Department Orders</value></data>
@@ -99,7 +104,21 @@
   <data name="NoPermission" xml:space="preserve"><value>You do not have permission to view this page.</value></data>
   <data name="UserGroup" xml:space="preserve"><value>User Group</value></data>
   <data name="GroupPagePermission" xml:space="preserve"><value>Group/Page Permission</value></data>
+  <data name="Users" xml:space="preserve"><value>Users</value></data>
+  <data name="GroupsAndPermissions" xml:space="preserve"><value>Groups &amp; Permissions</value></data>
   <data name="GroupName" xml:space="preserve"><value>Group Name</value></data>
+  <data name="ParentGroup" xml:space="preserve"><value>Parent Group</value></data>
+  <data name="UserLogin" xml:space="preserve"><value>User Login</value></data>
+  <data name="FullName" xml:space="preserve"><value>Full Name</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="UserType" xml:space="preserve"><value>User Type</value></data>
+  <data name="ComponentCode" xml:space="preserve"><value>Component Code</value></data>
+  <data name="ComponentName" xml:space="preserve"><value>Component Name</value></data>
+  <data name="Visible" xml:space="preserve"><value>Visible</value></data>
+  <data name="Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="CompanyShortName" xml:space="preserve"><value>Company Short Name</value></data>
+  <data name="CompanyName" xml:space="preserve"><value>Company Name</value></data>
   <data name="GroupNameRequired" xml:space="preserve"><value>Group name is required</value></data>
   <data name="CopyFrom" xml:space="preserve"><value>Copy from (optional)</value></data>
   <data name="CreateNewGroup" xml:space="preserve"><value>Create new group</value></data>
@@ -119,7 +138,19 @@
   <data name="AddNewPrice" xml:space="preserve"><value>Add new price</value></data>
   <data name="EditPrice" xml:space="preserve"><value>Edit price</value></data>
   <data name="Price" xml:space="preserve"><value>Price</value></data>
-  <data name="DefaultPrice" xml:space="preserve"><value>Default price</value></data>
+  <data name="DefaultPrice" xml:space="preserve"><value>Default Price</value></data>
+  <data name="CategoryCode" xml:space="preserve"><value>Category Code</value></data>
+  <data name="CategoryName" xml:space="preserve"><value>Category Name</value></data>
+  <data name="SupplierCode" xml:space="preserve"><value>Supplier Code</value></data>
+  <data name="SupplierName" xml:space="preserve"><value>Supplier Name</value></data>
+  <data name="DepartmentCode" xml:space="preserve"><value>Department Code</value></data>
+  <data name="DepartmentName" xml:space="preserve"><value>Department Name</value></data>
+  <data name="Address1" xml:space="preserve"><value>Address 1</value></data>
+  <data name="Address2" xml:space="preserve"><value>Address 2</value></data>
+  <data name="Address3" xml:space="preserve"><value>Address 3</value></data>
+  <data name="Ward" xml:space="preserve"><value>Ward</value></data>
+  <data name="City" xml:space="preserve"><value>City</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
   <data name="SetDefault" xml:space="preserve"><value>Set Default</value></data>
   <data name="PriceSaved" xml:space="preserve"><value>Price saved</value></data>
   <data name="DefaultUpdated" xml:space="preserve"><value>Default updated</value></data>

@@ -13,11 +13,13 @@
 @inject GlobalClass glb
 @using gtas_vpp_shared.DTOs.Share
 
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@rendermode InteractiveServer
 
 <PageTitle>GTAS VPP - Library</PageTitle>
 
 @if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible))
 {
-    <Component_Library claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage"/>
+    <section class="vpp-admin-page">
+        <Component_Library claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+    </section>
 }

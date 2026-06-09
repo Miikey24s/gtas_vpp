@@ -185,7 +185,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.PatchFromApiAsync<L01_ClassResDTO>($"{Config.LibraryApi.L01_Class}/{data.Id}", patchData);
                 if (result != null)
                 {
-                    string message = isDeleted ? "Class disabled successfully" : "Class enabled successfully";
+                    string message = isDeleted ? "Class marked IsDeleted successfully" : "Class restored successfully";
                     _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", message, 3000, false);
                     await gridL01.Reload();
                 }
@@ -199,6 +199,44 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 data.IsDeleted = !isDeleted;
                 _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error updating class status: {ex.Message}", 15000, true);
+            }
+        }
+
+        protected async Task HardDeleteL01(L01_ClassResDTO data)
+        {
+            var confirm = await DialogService.Confirm(
+                "This will permanently delete the class record.",
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
+
+            if (confirm != true)
+            {
+                return;
+            }
+
+            try
+            {
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L01_Class}/{data.Id}");
+                if (!deleted)
+                {
+                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to hard delete class", 5000, true);
+                    return;
+                }
+
+                if (selectedClassL01?.Id == data.Id)
+                {
+                    selectedClassesL01.Clear();
+                    classDetailListL02.Clear();
+                    countL02 = 0;
+                }
+
+                _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Class permanently deleted", 3000, false);
+                await gridL01.Reload();
+                await gridL02.Reload();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error hard deleting class: {ex.Message}", 15000, true);
             }
         }
 
@@ -332,7 +370,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.PatchFromApiAsync<L02_ClassDetailResDTO>($"{Config.LibraryApi.L02_ClassDetail}/{data.Id}", patchData);
                 if (result != null)
                 {
-                    string message = isDeleted ? "Class detail disabled successfully" : "Class detail enabled successfully";
+                    string message = isDeleted ? "Class detail marked IsDeleted successfully" : "Class detail restored successfully";
                     _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", message, 3000, false);
                     await gridL02.Reload();
                 }
@@ -349,11 +387,41 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        protected async Task HardDeleteL02(L02_ClassDetailResDTO data)
+        {
+            var confirm = await DialogService.Confirm(
+                "This will permanently delete the class detail record.",
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
+
+            if (confirm != true)
+            {
+                return;
+            }
+
+            try
+            {
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L02_ClassDetail}/{data.Id}");
+                if (!deleted)
+                {
+                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to hard delete class detail", 5000, true);
+                    return;
+                }
+
+                _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Class detail permanently deleted", 3000, false);
+                await gridL02.Reload();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error hard deleting class detail: {ex.Message}", 15000, true);
+            }
+        }
+
         protected void OnRowRenderL01(RowRenderEventArgs<L01_ClassResDTO> args)
         {
             if (args.Data != null && args.Data.IsDeleted)
             {
-                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
         }
 
@@ -361,8 +429,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             if (args.Data != null && args.Data.IsDeleted)
             {
-                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
+        }
+
+        private static void AppendRowClass(IDictionary<string, object> attributes, string className)
+        {
+            if (attributes.TryGetValue("class", out var current) && current is not null)
+            {
+                attributes["class"] = $"{current} {className}";
+                return;
+            }
+
+            attributes["class"] = className;
         }
         #endregion
     }

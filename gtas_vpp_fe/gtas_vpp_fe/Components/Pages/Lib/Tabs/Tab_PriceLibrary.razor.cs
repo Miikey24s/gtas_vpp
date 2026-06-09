@@ -24,16 +24,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         private List<L07_PriceListResDTO> priceLists = [];
-        private List<L04_VPPResDTO> vppItems = [];
         private List<L05_VPPSupplierResDTO> suppliers = [];
-        private List<L06_VPPSupplierMappingResDTO> prices = [];
-        private List<VppItemPriceDisplayModel> displayItems = [];
-        private List<VppItemPriceDisplayModel> filteredDisplayItems = [];
-        private RadzenDataGrid<VppItemPriceDisplayModel> grid = default!;
+        private List<L06_VPPItemPriceResDTO> displayItems = [];
+        private RadzenDataGrid<L06_VPPItemPriceResDTO> grid = default!;
         private Guid? selectedPriceListId;
         private Guid? selectedSupplierId;
         private string searchText = "";
         private bool isLoading;
+        private int priceCount;
+        private int currentSkip;
+        private string? currentFilterExpression;
         private bool HasPriceLists => priceLists.Count > 0;
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
         private string GridEmptyText => !HasPriceLists
@@ -70,13 +70,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 var priceListsTask = _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>($"{Config.LibraryApi.L07_PriceList}?showDeleted=true");
-                var vppItemsTask = _apiServices.GetFromApiAsync<List<L04_VPPResDTO>>($"{Config.LibraryApi.L04_Item}?showDeleted=true");
                 var suppliersTask = _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>($"{Config.LibraryApi.L05_Supplier}?showDeleted=true");
 
-                await Task.WhenAll(priceListsTask, vppItemsTask, suppliersTask);
+                await Task.WhenAll(priceListsTask, suppliersTask);
 
                 priceLists = await priceListsTask ?? [];
-                vppItems = await vppItemsTask ?? [];
                 suppliers = await suppliersTask ?? [];
                 
                 selectedPriceListId = ResolveSelectedPriceListId();
@@ -93,9 +91,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task LoadPricesAsync()
         {
-            prices = [];
             displayItems = [];
-            filteredDisplayItems = [];
+            priceCount = 0;
 
             if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
@@ -103,34 +100,33 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 return;
             }
 
+            if (grid is not null)
+            {
+                await grid.FirstPage(true);
+            }
+        }
+
+        private async Task LoadPriceRowsAsync(LoadDataArgs args)
+        {
+            if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
+            {
+                displayItems = [];
+                priceCount = 0;
+                return;
+            }
+
             isLoading = true;
+            currentSkip = args.Skip ?? 0;
+            currentFilterExpression = args.Filter;
+            StateHasChanged();
+
             try
             {
-                prices = await _apiServices.GetFromApiAsync<List<L06_VPPSupplierMappingResDTO>>(
-                    $"{Config.LibraryApi.VPPPrice_BySupplier}/{selectedSupplierId.Value}?priceListId={selectedPriceListId.Value}&showDeleted=true") ?? [];
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L06_VPPItemPriceResDTO>>(
+                    BuildPriceRowsEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
 
-                var priceMap = prices
-                    .GroupBy(p => p.L04_VPPId)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-                displayItems = vppItems.Select(vpp =>
-                {
-                    priceMap.TryGetValue(vpp.Id, out var mapping);
-                    return new VppItemPriceDisplayModel
-                    {
-                        VPPId = vpp.Id,
-                        VPPCode = vpp.VPPCode,
-                        VPPName = vpp.VPPName,
-                        CategoryName = vpp.VPPCategory?.VPPCategoryName,
-                        UOMName = vpp.UOM?.ClassDetailValue,
-                        PriceMappingId = mapping?.Id,
-                        Price = mapping?.Price,
-                        IsDefault = mapping?.IsDefault ?? false,
-                        Description = mapping?.Description
-                    };
-                }).ToList();
-
-                FilterDisplayItems();
+                displayItems = result.Data ?? [];
+                priceCount = result.TotalCount;
             }
             catch (Exception ex)
             {
@@ -139,35 +135,47 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             finally
             {
                 isLoading = false;
-                await ReloadGridAsync();
+                StateHasChanged();
             }
         }
 
-        private void FilterDisplayItems()
+        private async Task LoadPriceFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<L06_VPPItemPriceResDTO> args)
         {
-            if (string.IsNullOrWhiteSpace(searchText))
+            if (args.Column is null || !selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
-                filteredDisplayItems = [.. displayItems];
+                return;
             }
-            else
+
+            try
             {
-                var query = searchText.Trim().ToLowerInvariant();
-                filteredDisplayItems = displayItems.Where(x =>
-                    (x.VPPCode?.ToLowerInvariant().Contains(query) ?? false) ||
-                    (x.VPPName?.ToLowerInvariant().Contains(query) ?? false) ||
-                    (x.CategoryName?.ToLowerInvariant().Contains(query) ?? false) ||
-                    (x.UOMName?.ToLowerInvariant().Contains(query) ?? false)
-                ).ToList();
+                var endpoint = BuildPriceRowsEndpoint(
+                    currentFilterExpression,
+                    args.Skip,
+                    args.Top,
+                    null,
+                    args.Column.GetFilterProperty(),
+                    args.Filter);
+
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L06_VPPItemPriceResDTO>>(endpoint);
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
+            }
+            catch (Exception ex)
+            {
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
             }
         }
 
-        private void OnSearchInput(string? value)
+        private async Task OnSearchInputAsync(string? value)
         {
             searchText = value ?? "";
-            FilterDisplayItems();
+            if (grid is not null)
+            {
+                await grid.FirstPage(true);
+            }
         }
 
-        private async Task EditPriceAsync(VppItemPriceDisplayModel row)
+        private async Task EditPriceAsync(L06_VPPItemPriceResDTO row)
         {
             if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue) return;
 
@@ -234,13 +242,57 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task DeletePriceAsync(VppItemPriceDisplayModel row)
+        private string GetEditPriceActionTitle(L06_VPPItemPriceResDTO row)
+        {
+            return row.PriceMappingId.HasValue
+                ? Loc["Edit"].Value
+                : Loc["Create"].Value;
+        }
+
+        private async Task SetDeletedPriceAsync(L06_VPPItemPriceResDTO row, bool isDeleted)
         {
             if (!row.PriceMappingId.HasValue) return;
 
+            var previous = row.IsDeleted;
+            row.IsDeleted = isDeleted;
+
             try
             {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.VPPPriceBase}/{row.PriceMappingId.Value}");
+                var result = await _apiServices.PatchFromApiAsync<L06_VPPSupplierMappingResDTO>(
+                    $"{Config.LibraryApi.L06_SupplierMapping}/{row.PriceMappingId.Value}",
+                    new { IsDeleted = isDeleted });
+
+                if (result is null)
+                {
+                    row.IsDeleted = previous;
+                    Notify(NotificationSeverity.Error, Loc["Error"].Value, Loc["DeleteFailed"].Value);
+                    return;
+                }
+
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, isDeleted ? "Price mapping marked IsDeleted" : "Price mapping restored");
+                await LoadPricesAsync();
+            }
+            catch (Exception ex)
+            {
+                row.IsDeleted = previous;
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+            }
+        }
+
+        private async Task HardDeletePriceAsync(L06_VPPItemPriceResDTO row)
+        {
+            if (!row.PriceMappingId.HasValue) return;
+
+            var confirm = await DialogService.Confirm(
+                "This will permanently delete the price mapping.",
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+
+            if (confirm != true) return;
+
+            try
+            {
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L06_SupplierMapping}/{row.PriceMappingId.Value}");
                 if (deleted)
                 {
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceDeleted"].Value);
@@ -257,7 +309,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task SetDefaultAsync(VppItemPriceDisplayModel row)
+        private async Task SetDefaultAsync(L06_VPPItemPriceResDTO row)
         {
             if (!row.PriceMappingId.HasValue) return;
 
@@ -271,6 +323,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 NotifyPriceError(ex);
+            }
+        }
+
+        private void OnRowRenderPrice(RowRenderEventArgs<L06_VPPItemPriceResDTO> args)
+        {
+            if (args.Data?.IsDeleted == true)
+            {
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
         }
 
@@ -332,18 +392,69 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             _notificationService.CustomContentNotification(severity, summary, detail, 5000, false);
         }
-    }
 
-    public class VppItemPriceDisplayModel
-    {
-        public Guid VPPId { get; set; }
-        public string? VPPCode { get; set; }
-        public string? VPPName { get; set; }
-        public string? CategoryName { get; set; }
-        public string? UOMName { get; set; }
-        public Guid? PriceMappingId { get; set; }
-        public decimal? Price { get; set; }
-        public bool IsDefault { get; set; }
-        public string? Description { get; set; }
+        private static void AppendRowClass(IDictionary<string, object> attributes, string className)
+        {
+            if (attributes.TryGetValue("class", out var current) && current is not null)
+            {
+                attributes["class"] = $"{current} {className}";
+                return;
+            }
+
+            attributes["class"] = className;
+        }
+
+        private string BuildPriceRowsEndpoint(
+            string? filter,
+            int? skip,
+            int? top,
+            string? orderBy,
+            string? distinct = null,
+            string? distinctFilter = null)
+        {
+            var queryParams = new List<string>
+            {
+                $"supplierId={selectedSupplierId!.Value}",
+                $"priceListId={selectedPriceListId!.Value}",
+                "showDeleted=true"
+            };
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                queryParams.Add($"search={Uri.EscapeDataString(searchText.Trim())}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            }
+
+            if (skip.HasValue)
+            {
+                queryParams.Add($"skip={skip.Value}");
+            }
+
+            if (top.HasValue)
+            {
+                queryParams.Add($"top={top.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinct))
+            {
+                queryParams.Add($"distinct={Uri.EscapeDataString(distinct)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinctFilter))
+            {
+                queryParams.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
+            }
+
+            return $"{Config.LibraryApi.VPPPrice_ItemPrices}?{string.Join("&", queryParams)}";
+        }
     }
 }

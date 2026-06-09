@@ -21,6 +21,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
 
         public List<P02_GroupResDTO> list_Group { get; set; } = new List<P02_GroupResDTO>();
+        public List<P02_GroupResDTO> allGroupsForLookup { get; set; } = new List<P02_GroupResDTO>();
         public RadzenDataGrid<P02_GroupResDTO> grid { get; set; } = default!;
         public IList<P02_GroupResDTO> selected_Group { get; set; } = new List<P02_GroupResDTO>();
         public P02_GroupResDTO? selected_Group_To_Copy { get; set; } = new P02_GroupResDTO();
@@ -37,6 +38,9 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 
         public bool IsLoading { get; set; } = false;
         public bool IsLoading_Child { get; set; } = false;
+        private int groupCount { get; set; } = 0;
+        private int currentGroupSkip { get; set; } = 0;
+        private string? currentGroupFilterExpression { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -96,14 +100,111 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             glb.isBusyPage = true;
             try
             {
-                list_Group = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
-             ?? new List<P02_GroupResDTO>();
+                allGroupsForLookup = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
+                    ?? new List<P02_GroupResDTO>();
+
+                if (grid is not null)
+                {
+                    await grid.Reload();
+                }
             }
             catch
             {
                 throw;
             }
             glb.isBusyPage = false;
+        }
+
+        protected async Task LoadGroupsAsync(LoadDataArgs args)
+        {
+            IsLoading = true;
+            currentGroupSkip = args.Skip ?? 0;
+            currentGroupFilterExpression = args.Filter;
+            StateHasChanged();
+
+            try
+            {
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<P02_GroupResDTO>>(
+                    BuildGroupsEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
+
+                list_Group = result.Data ?? new List<P02_GroupResDTO>();
+                groupCount = result.TotalCount;
+
+                if (allGroupsForLookup.Count == 0)
+                {
+                    allGroupsForLookup = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
+                        ?? new List<P02_GroupResDTO>();
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when load groups: " + ex.Message,
+                    Duration = 10000
+                });
+            }
+            finally
+            {
+                IsLoading = false;
+                glb.isBusyPage = false;
+                StateHasChanged();
+            }
+        }
+
+        protected async Task LoadGroupFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<P02_GroupResDTO> args)
+        {
+            if (args.Column is null)
+            {
+                return;
+            }
+
+            try
+            {
+                var queryParams = new List<string>
+                {
+                    "getFullName=true",
+                    $"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}"
+                };
+
+                if (!string.IsNullOrWhiteSpace(currentGroupFilterExpression))
+                {
+                    queryParams.Add($"filter={Uri.EscapeDataString(currentGroupFilterExpression)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(args.Filter))
+                {
+                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+                }
+
+                if (args.Skip.HasValue)
+                {
+                    queryParams.Add($"skip={args.Skip.Value}");
+                }
+
+                if (args.Top.HasValue)
+                {
+                    queryParams.Add($"top={args.Top.Value}");
+                }
+
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<P02_GroupResDTO>>(
+                    $"/api/Permission/groups?{string.Join("&", queryParams)}");
+
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when load group filter data: " + ex.Message,
+                    Duration = 10000
+                });
+            }
         }
         public void Reset(P02_GroupResDTO group)
         {
@@ -158,6 +259,9 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 {
                     var idx = list_Group.FindIndex(x => x.Id == res.Id);
                     if (idx >= 0) list_Group[idx] = res;
+
+                    var lookupIdx = allGroupsForLookup.FindIndex(x => x.Id == res.Id);
+                    if (lookupIdx >= 0) allGroupsForLookup[lookupIdx] = res;
 
                     NotificationService.Notify(new NotificationMessage
                     {
@@ -249,6 +353,9 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     var idx = list_Group.FindIndex(x => x.Id == res.Id);
                     if (idx >= 0) list_Group[idx] = res;
 
+                    var lookupIdx = allGroupsForLookup.FindIndex(x => x.Id == res.Id);
+                    if (lookupIdx >= 0) allGroupsForLookup[lookupIdx] = res;
+
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
@@ -288,6 +395,58 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             await grid.UpdateRow(order);
             StateHasChanged();
         }
+
+        protected async Task HardDeleteGroupAsync(P02_GroupResDTO group)
+        {
+            var confirm = await DialogService.Confirm(
+                Loc["PermanentDeleteWarning"].Value,
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
+
+            if (confirm != true)
+            {
+                return;
+            }
+
+            glb.isBusyPage = true;
+            IsLoading = true;
+
+            try
+            {
+                var deleted = await _apiServices.DeleteFromApiAsync($"/api/Permission/groups/{group.Id}");
+                if (deleted)
+                {
+                    list_Group.RemoveAll(x => x.Id == group.Id);
+                    allGroupsForLookup.RemoveAll(x => x.Id == group.Id);
+                    await grid.Reload();
+
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = Loc["Success"].Value,
+                        Detail = Loc["GroupPermanentlyDeleted"].Value,
+                        Duration = 3000
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = Loc["DeleteFailed"].Value,
+                    Detail = ex.Message,
+                    Duration = 8000
+                });
+            }
+            finally
+            {
+                glb.isBusyPage = false;
+                IsLoading = false;
+                StateHasChanged();
+            }
+        }
+
         protected void CancelEdit(P02_GroupResDTO order)
         {
             isEditing = false;
@@ -453,7 +612,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         {
             if (args.Data != null && args.Data.IsDeleted)
             {
-                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
         }
 
@@ -461,10 +620,46 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         {
             if (args.Data != null && args.Data.IsDeleted)
             {
-                args.Attributes.Add("style", "opacity: 0.6; background-color: var(--rz-danger-lighter, rgba(255, 0, 0, 0.05)) !important;");
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
+        }
+
+        private static void AppendRowClass(IDictionary<string, object> attributes, string className)
+        {
+            if (attributes.TryGetValue("class", out var current) && current is not null)
+            {
+                attributes["class"] = $"{current} {className}";
+                return;
+            }
+
+            attributes["class"] = className;
+        }
+
+        private static string BuildGroupsEndpoint(string? filter, int? skip, int? top, string? orderBy)
+        {
+            var queryParams = new List<string> { "getFullName=true" };
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            }
+
+            if (skip.HasValue)
+            {
+                queryParams.Add($"skip={skip.Value}");
+            }
+
+            if (top.HasValue)
+            {
+                queryParams.Add($"top={top.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
+            }
+
+            return $"/api/Permission/groups?{string.Join("&", queryParams)}";
         }
     }
 }
-
-

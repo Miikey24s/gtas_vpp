@@ -4,21 +4,17 @@
 @inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
 @typeparam TType
 
-<PageTitle>Library</PageTitle>
-
-
-<PageTitle>Library</PageTitle>
 <RadzenDataGrid @ref="DataGrid"
                 AllowFiltering="true"
                 AllowColumnResize="true"
                 AllowMultiColumnSorting="true"
                 AllowVirtualization="false"
                 AllowAlternatingRows="true"
-                AllowGrouping="true"
-                ColumnsPickerAllowFiltering=true
-                AllowColumnPicking=true
+                AllowGrouping="false"
+                ColumnsPickerAllowFiltering="true"
+                AllowColumnPicking="true"
                 AllowPickAllColumns="true"
-                ShowMultiColumnSortingIndex=true
+                ShowMultiColumnSortingIndex="true"
                 AllowSorting="true"
                 AllowColumnReorder="true"
                 FilterMode="FilterMode.CheckBoxList"
@@ -26,13 +22,17 @@
                 AllowPaging="true"
                 PageSize="20"
                 PageSizeOptions="@(new int[] { 20, 50, 100 })"
-                ColumnWidth="150px"
-                class="librarypagegrid library-share-grid"
-                Style="height: calc(100vh - 140px);"
+                ColumnWidth="132px"
+                GridLines="DataGridGridLines.Horizontal"
+                class="librarypagegrid library-share-grid vpp-admin-grid"
+                Style="@GridStyle"
                 TItem="TType"
                 IsLoading="@glb.isBusyPage"
                 @bind-Value="selected_item"
-                Data=@Data
+                Data="@data"
+                Count="@totalCount"
+                LoadData="@LoadDataAsync"
+                LoadColumnFilterData="@LoadColumnFilterDataAsync"
                 RowDoubleClick=@RowDoubleClickHandle
                 LogicalFilterOperator="LogicalFilterOperator.And"
                 RowUpdate="@OnUpdateRow"
@@ -41,36 +41,47 @@
                 EditMode="DataGridEditMode.Single"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <HeaderTemplate>
-        <RadzenButton Icon="add_circle" ButtonStyle="ButtonStyle.Secondary" class="consumptionaddbutton" IsBusy="@glb.isBusyPage" Click="@InsertRow" Disabled="@onEdit" />
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     AlignItems="AlignItems.Center"
+                     JustifyContent="JustifyContent.SpaceBetween"
+                     Gap="0.5rem"
+                     Wrap="FlexWrap.Wrap"
+                     class="vpp-admin-grid-toolbar">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+                <RadzenButton Icon="add_circle"
+                              Text="@Loc["Create"]"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Small"
+                              class="consumptionaddbutton"
+                              IsBusy="@glb.isBusyPage"
+                              Click="@InsertRow"
+                              Disabled="@onEdit" />
+                <RadzenButton Icon="refresh"
+                              Text="@Loc["Reload"]"
+                              ButtonStyle="ButtonStyle.Light"
+                              Size="ButtonSize.Small"
+                              Click="@ReloadGridAsync"
+                              Disabled="@onEdit" />
+            </RadzenStack>
+        </RadzenStack>
     </HeaderTemplate>
 
     <Columns>
-        <RadzenDataGridColumn TItem="TType" Width="50px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TType" Width="48px" MinWidth="48px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
             <Template Context="context">
-                @(Data.ToList<TType>().IndexOf(context) + 1)
+                @(currentSkip + data.IndexOf(context) + 1)
             </Template>
         </RadzenDataGridColumn>
-        @foreach (var prop in typeof(TType).GetProperties())
+        @foreach (var prop in GetOrderedGridProperties())
         {
             var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
             var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
             var typeCode = Type.GetTypeCode(effectiveType);
-            var displayName = attr?.DisplayName ?? prop.Name;
+            var displayName = GetColumnDisplayName(prop, attr);
             var width = attr?.Width;
-            
-            // Skip complex properties (except string) and collections
-            if ((prop.PropertyType.IsClass && prop.PropertyType != typeof(string)) || 
-                (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string)))
-            {
-                continue;
-            }
-            
-            var isAuditProperty = prop.Name == "Id" || 
-                                  prop.Name == "CreateUserId" || 
-                                  prop.Name == "CreateDate" || 
-                                  prop.Name == "UpdateUserId" || 
-                                  prop.Name == "UpdateDate" || 
-                                  prop.Name == "IsDeleted";
+            var isDeletedProperty = IsDeletedProperty(prop);
+            var isAuditProperty = IsAuditProperty(prop);
+            var isVisibleByDefault = GetColumnVisible(prop, attr, isAuditProperty, isDeletedProperty);
             
             var isNumeric = typeCode == TypeCode.Decimal || 
                             typeCode == TypeCode.Double || 
@@ -97,23 +108,61 @@
 
             if (!isIgnored || isAuditProperty)
             {
-                @if (attr?.IsDropdownList ?? false)
+                @if (isDeletedProperty)
+                {
+                    <RadzenDataGridColumn TItem="TType"
+                                          Property="@prop.Name"
+                                          Title="@Loc["IsDeleted"]"
+                                          Width="118px"
+                                          MinWidth="118px"
+                                          TextAlign="TextAlign.Center"
+                                          Filterable="false"
+                                          Sortable="false"
+                                          CssClass="rz-col-isdeleted"
+                                          HeaderCssClass="rz-col-isdeleted"
+                                          Visible="@isVisibleByDefault"
+                                          Pickable="true">
+                        <Template Context="context">
+                            <div class="vpp-admin-is-deleted-cell">
+                                <span class="@GetIsDeletedBadgeClass(context)">
+                                    @GetIsDeletedText(context)
+                                </span>
+                                <RadzenSwitch TValue="bool"
+                                              Value="@IsDeletedRow(context)"
+                                              Change="@(async (bool value) => await SetDeletedStateAsync(context, value))"
+                                              Disabled="@(!CanModifyGrid || onEdit)"
+                                              class="isDeleteSwitch"
+                                              Style="transform: scale(0.75);" />
+                            </div>
+                        </Template>
+                        <EditTemplate Context="context">
+                            <div class="vpp-admin-is-deleted-cell">
+                                <span class="@GetIsDeletedBadgeClass(context)">
+                                    @GetIsDeletedText(context)
+                                </span>
+                                <RadzenSwitch TValue="bool"
+                                              Value="@IsDeletedRow(context)"
+                                              Change="@(async (bool value) => await SetDeletedStateAsync(context, value))"
+                                              Disabled="true"
+                                              class="isDeleteSwitch"
+                                              Style="transform: scale(0.75);" />
+                            </div>
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                }
+                else if (attr?.IsDropdownList ?? false)
                 {
                     <RadzenDataGridColumn TItem="TType"
                                           Title=@(displayName)
                                           Width=@width
                                           MinWidth="@minWidth"
                                           Filterable="false"
-                                          Visible="true"
+                                          Visible="@isVisibleByDefault"
                                           Pickable="true">
                         <Template Context="context">
-                            <p>
-                                @(DicDropdownData[prop.Name].Where(x =>
-                                                    {
-                                                        var data = context.GetPropertyValue(prop.Name, prop.PropertyType)?.ToString();
-                                                        return data != null && data.Equals(x.Code);
-                                                    }).FirstOrDefault()?.Name ?? "Not Match")
-                            </p>
+                            <span>
+                                @ResolveDropdownText(context, prop)
+                            </span>
                         </Template>
                         <EditTemplate Context="context">
                             <RadzenDropDown TValue="string"
@@ -134,7 +183,7 @@
                                           Title=@displayName
                                           FormatString="@formatString"
                                           TextAlign="@textAlign"
-                                          Visible="true"
+                                          Visible="@isVisibleByDefault"
                                           Pickable="true"
                                           MinWidth="@minWidth"
                                           Width=@width>
@@ -196,24 +245,30 @@
         }
         @if (CanModifyGrid)
         {
-            <RadzenDataGridColumn TItem="TType" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px" MinWidth="120px">
+            <RadzenDataGridColumn TItem="TType" Title="@Loc["Actions"]" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="96px" MinWidth="96px" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                 <Template Context="context">
-                    @if (CanModifyGrid)
-                    {
-                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@onEdit" Class="m-1" Click="@(args => EditRow(context))" @onclick:stopPropagation="true">
-                        </RadzenButton>
-                    }
-                    @if (CanModifyGrid)
-                    {
-                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Disabled="@onEdit" Class="m-1" Click="@(args => DeleteRow(context))" @onclick:stopPropagation="true">
-                        </RadzenButton>
-                    }
+                    <div class="vpp-admin-actions">
+                        <RadzenButton Icon="edit"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Disabled="@onEdit"
+                                      title="@Loc["Edit"]"
+                                      Click="@(args => EditRow(context))"
+                                      @onclick:stopPropagation="true" />
+                        <RadzenButton Icon="delete_forever"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Disabled="@onEdit"
+                                      title="@Loc["HardDelete"]"
+                                      Click="@(args => HardDeleteRow(context))"
+                                      @onclick:stopPropagation="true" />
+                    </div>
                 </Template>
                 <EditTemplate Context="context">
-                    <RadzenButton Icon="check" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(context))">
-                    </RadzenButton>
-                    <RadzenButton Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(context))">
-                    </RadzenButton>
+                    <div class="vpp-admin-actions">
+                        <RadzenButton Icon="check" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" title="@Loc["Save"]" Click="@((args) => SaveRow(context))" />
+                        <RadzenButton Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Cancel"]" Click="@((args) => CancelEdit(context))" />
+                    </div>
                 </EditTemplate>
             </RadzenDataGridColumn>
         }
@@ -222,6 +277,8 @@
 
 @code {
     public IList<TType> selected_item = new List<TType>();
+
+    private string GridStyle => $"--vpp-admin-grid-min-width: {GetGridMinWidth()}px; height: min(720px, calc(100vh - 175px));";
 
     void ChangeDropdown(object args, TType context, System.Reflection.PropertyInfo prop)
     {
@@ -284,5 +341,22 @@
         }
 
         return value.ToString() ?? string.Empty;
+    }
+
+    string ResolveDropdownText(TType context, System.Reflection.PropertyInfo prop)
+    {
+        var value = context.GetPropertyValue(prop.Name, prop.PropertyType)?.ToString();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        if (DicDropdownData is null || !DicDropdownData.TryGetValue(prop.Name, out var options))
+        {
+            return value;
+        }
+
+        return options.FirstOrDefault(x => string.Equals(x.Code, value, StringComparison.OrdinalIgnoreCase))?.Name
+               ?? value;
     }
 }

@@ -23,18 +23,31 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private List<L07_PriceListResDTO> priceLists = [];
         private RadzenDataGrid<L07_PriceListResDTO> grid = default!;
         private bool isLoading;
+        private int count;
+        private int currentSkip;
+        private string? currentFilterExpression;
 
-        protected override async Task OnInitializedAsync()
-        {
-            await LoadAsync();
-        }
+        protected override Task OnInitializedAsync() => Task.CompletedTask;
 
         private async Task LoadAsync()
         {
+            if (grid is not null)
+            {
+                await grid.Reload();
+            }
+        }
+
+        private async Task LoadDataAsync(LoadDataArgs args)
+        {
             isLoading = true;
+            currentSkip = args.Skip ?? 0;
+            currentFilterExpression = args.Filter;
             try
             {
-                priceLists = await _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>($"{Config.LibraryApi.L07_PriceList}?showDeleted=true") ?? [];
+                var endpoint = BuildPriceListEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy);
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L07_PriceListResDTO>>(endpoint);
+                priceLists = result.Data ?? [];
+                count = result.TotalCount;
             }
             catch (Exception ex)
             {
@@ -43,7 +56,34 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             finally
             {
                 isLoading = false;
-                await ReloadGridAsync();
+                StateHasChanged();
+            }
+        }
+
+        private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<L07_PriceListResDTO> args)
+        {
+            if (args.Column is null)
+            {
+                return;
+            }
+
+            try
+            {
+                var property = args.Column.GetFilterProperty();
+                var endpoint = BuildPriceListEndpoint(
+                    currentFilterExpression,
+                    args.Skip,
+                    args.Top,
+                    distinct: property,
+                    distinctFilter: args.Filter);
+
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L07_PriceListResDTO>>(endpoint);
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
+            }
+            catch (Exception ex)
+            {
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
             }
         }
 
@@ -97,18 +137,46 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task DeleteAsync(L07_PriceListResDTO row)
+        private async Task SetDeletedAsync(L07_PriceListResDTO row, bool isDeleted)
+        {
+            var previous = row.IsDeleted;
+            row.IsDeleted = isDeleted;
+
+            try
+            {
+                var result = await _apiServices.PatchFromApiAsync<L07_PriceListResDTO>(
+                    $"{Config.LibraryApi.L07_PriceList}/{row.Id}/deleted",
+                    new { IsDeleted = isDeleted });
+
+                if (result is null)
+                {
+                    row.IsDeleted = previous;
+                    Notify(NotificationSeverity.Error, Loc["Error"].Value, Loc["DeleteFailed"].Value);
+                    return;
+                }
+
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, isDeleted ? "Price list marked IsDeleted" : "Price list restored");
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                row.IsDeleted = previous;
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+            }
+        }
+
+        private async Task HardDeleteAsync(L07_PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
-                Loc["ConfirmDeletePriceList"],
-                Loc["Delete"],
+                "This will permanently delete the price list.",
+                Loc["HardDelete"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
 
             if (confirm != true) return;
 
             try
             {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L07_PriceList}/{row.Id}");
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L07_PriceList}/{row.Id}/hard");
                 if (!deleted)
                 {
                     Notify(NotificationSeverity.Error, Loc["Error"].Value, Loc["DeleteFailed"].Value);
@@ -121,6 +189,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+            }
+        }
+
+        private void OnRowRenderPriceList(RowRenderEventArgs<L07_PriceListResDTO> args)
+        {
+            if (args.Data?.IsDeleted == true)
+            {
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
         }
 
@@ -204,6 +280,60 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private void Notify(NotificationSeverity severity, string summary, string detail)
         {
             _notificationService.CustomContentNotification(severity, summary, detail, 5000, false);
+        }
+
+        private static string BuildPriceListEndpoint(
+            string? filter = null,
+            int? skip = null,
+            int? top = null,
+            string? orderby = null,
+            string? distinct = null,
+            string? distinctFilter = null)
+        {
+            var query = new List<string> { "showDeleted=true" };
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                query.Add($"filter={Uri.EscapeDataString(filter)}");
+            }
+
+            if (skip.HasValue)
+            {
+                query.Add($"skip={skip.Value}");
+            }
+
+            if (top.HasValue)
+            {
+                query.Add($"top={top.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(orderby))
+            {
+                query.Add($"orderby={Uri.EscapeDataString(orderby)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinct))
+            {
+                query.Add($"distinct={Uri.EscapeDataString(distinct)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinctFilter))
+            {
+                query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
+            }
+
+            return $"{Config.LibraryApi.L07_PriceList}?{string.Join("&", query)}";
+        }
+
+        private static void AppendRowClass(IDictionary<string, object> attributes, string className)
+        {
+            if (attributes.TryGetValue("class", out var current) && current is not null)
+            {
+                attributes["class"] = $"{current} {className}";
+                return;
+            }
+
+            attributes["class"] = className;
         }
     }
 }

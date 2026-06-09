@@ -17,7 +17,7 @@
   <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
   <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
   <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
-  <data name="Dashboard" xml:space="preserve"><value>Requests</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>
   <data name="Orders" xml:space="preserve"><value>Đơn hàng</value></data>
   <data name="Library" xml:space="preserve"><value>Danh mục</value></data>
   <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
@@ -28,6 +28,7 @@
   <data name="Save" xml:space="preserve"><value>Lưu</value></data>
   <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Delete" xml:space="preserve"><value>Xóa</value></data>
+  <data name="HardDelete" xml:space="preserve"><value>Xóa thật</value></data>
   <data name="Edit" xml:space="preserve"><value>Sửa</value></data>
   <data name="Create" xml:space="preserve"><value>Tạo mới</value></data>
   <data name="Search" xml:space="preserve"><value>Tìm kiếm</value></data>
@@ -39,6 +40,8 @@
   <data name="Warning" xml:space="preserve"><value>Cảnh báo</value></data>
   <data name="Confirm" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="ConfirmDelete" xml:space="preserve"><value>Bạn có chắc muốn xóa?</value></data>
+  <data name="PermanentDeleteWarning" xml:space="preserve"><value>Bản ghi sẽ bị xóa vĩnh viễn và không thể khôi phục.</value></data>
+  <data name="GroupPermanentlyDeleted" xml:space="preserve"><value>Đã xóa vĩnh viễn nhóm.</value></data>
   <data name="PleaseWait" xml:space="preserve"><value>Vui lòng đợi...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Lỗi máy chủ</value></data>
   <data name="Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
@@ -67,6 +70,8 @@
   <data name="Description" xml:space="preserve"><value>Mô tả</value></data>
   <data name="Name" xml:space="preserve"><value>Tên</value></data>
   <data name="Code" xml:space="preserve"><value>Mã</value></data>
+  <data name="Value" xml:space="preserve"><value>Giá trị</value></data>
+  <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
   <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>
   <data name="Catalog" xml:space="preserve"><value>Danh mục</value></data>
@@ -98,7 +103,21 @@
   <data name="NoPermission" xml:space="preserve"><value>Bạn không có quyền xem trang này.</value></data>
   <data name="UserGroup" xml:space="preserve"><value>Nhóm người dùng</value></data>
   <data name="GroupPagePermission" xml:space="preserve"><value>Phân quyền nhóm/trang</value></data>
+  <data name="Users" xml:space="preserve"><value>Người dùng</value></data>
+  <data name="GroupsAndPermissions" xml:space="preserve"><value>Nhóm &amp; phân quyền</value></data>
   <data name="GroupName" xml:space="preserve"><value>Tên nhóm</value></data>
+  <data name="ParentGroup" xml:space="preserve"><value>Nhóm cha</value></data>
+  <data name="UserLogin" xml:space="preserve"><value>Tài khoản</value></data>
+  <data name="FullName" xml:space="preserve"><value>Họ tên</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin" xml:space="preserve"><value>Quản trị</value></data>
+  <data name="UserType" xml:space="preserve"><value>Loại người dùng</value></data>
+  <data name="ComponentCode" xml:space="preserve"><value>Mã thành phần</value></data>
+  <data name="ComponentName" xml:space="preserve"><value>Tên thành phần</value></data>
+  <data name="Visible" xml:space="preserve"><value>Hiển thị</value></data>
+  <data name="Enable" xml:space="preserve"><value>Cho phép</value></data>
+  <data name="CompanyShortName" xml:space="preserve"><value>Tên tắt công ty</value></data>
+  <data name="CompanyName" xml:space="preserve"><value>Công ty</value></data>
   <data name="GroupNameRequired" xml:space="preserve"><value>Tên nhóm là bắt buộc</value></data>
   <data name="CopyFrom" xml:space="preserve"><value>Sao chép từ (tùy chọn)</value></data>
   <data name="CreateNewGroup" xml:space="preserve"><value>Tạo nhóm mới</value></data>
@@ -119,6 +138,18 @@
   <data name="EditPrice" xml:space="preserve"><value>Sửa giá</value></data>
   <data name="Price" xml:space="preserve"><value>Giá</value></data>
   <data name="DefaultPrice" xml:space="preserve"><value>Giá mặc định</value></data>
+  <data name="CategoryCode" xml:space="preserve"><value>Mã nhóm hàng</value></data>
+  <data name="CategoryName" xml:space="preserve"><value>Tên nhóm hàng</value></data>
+  <data name="SupplierCode" xml:space="preserve"><value>Mã nhà cung cấp</value></data>
+  <data name="SupplierName" xml:space="preserve"><value>Tên nhà cung cấp</value></data>
+  <data name="DepartmentCode" xml:space="preserve"><value>Mã phòng ban</value></data>
+  <data name="DepartmentName" xml:space="preserve"><value>Tên phòng ban</value></data>
+  <data name="Address1" xml:space="preserve"><value>Địa chỉ 1</value></data>
+  <data name="Address2" xml:space="preserve"><value>Địa chỉ 2</value></data>
+  <data name="Address3" xml:space="preserve"><value>Địa chỉ 3</value></data>
+  <data name="Ward" xml:space="preserve"><value>Phường/Xã</value></data>
+  <data name="City" xml:space="preserve"><value>Tỉnh/Thành</value></data>
+  <data name="Type" xml:space="preserve"><value>Loại</value></data>
   <data name="SetDefault" xml:space="preserve"><value>Đặt mặc định</value></data>
   <data name="PriceSaved" xml:space="preserve"><value>Đã lưu giá</value></data>
   <data name="DefaultUpdated" xml:space="preserve"><value>Đã cập nhật mặc định</value></data>

@@ -25,6 +25,10 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         public RadzenDataGrid<sp_Authentication_TabUser_UserList>? griduser { get; set; }
         public List<P02_GroupResDTO> p02_Groups { get; set; } = new List<P02_GroupResDTO>();
         public int UserClaims { get; set; } = 0;
+        private int userCount { get; set; } = 0;
+        private int currentUserSkip { get; set; } = 0;
+        private string? currentUserFilterExpression { get; set; }
+        private bool isUserLoading { get; set; } = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -78,7 +82,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         protected async Task LoadBaseData()
         {
             glb.isBusyPage = true;
-            SearchText = string.Empty;
 
             try
             {
@@ -88,19 +91,14 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             catch
             {
             }
-            try
-            {
-                _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
-                    List<sp_Authentication_TabUser_UserList>
-                >(
-                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                    new { }
-                ) ?? new List<sp_Authentication_TabUser_UserList>();
-            }
-            catch
-            {
-            }
+
             glb.isBusyPage = false;
+
+            if (griduser is not null)
+            {
+                await griduser.Reload();
+            }
+
             StateHasChanged();
         }
         protected async Task SwitchOnChange_IsDelete(sp_Authentication_TabUser_UserList data) => await Func_CreateOrUpdateP04UserGroup(data);
@@ -115,65 +113,109 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 return;
             }
 
-            glb.isBusyPage = true;
-            try
+            if (griduser is not null)
             {
-                _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
-                    List<sp_Authentication_TabUser_UserList>
-                >(
-                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_SearchUser),
-                    new { SearchText = SearchText },
-                    jsonOptions: new JsonSerializerOptions { PropertyNamingPolicy = null }
-                ) ?? new List<sp_Authentication_TabUser_UserList>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error when search user: {ex.Message}");
-                NotificationService.Notify(new NotificationMessage() 
-                { 
-                    Severity = NotificationSeverity.Error, 
-                    Summary = "Error", 
-                    Detail = $"Error when searching user: {ex.Message}", 
-                    Duration = 5000 
-                });
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                StateHasChanged();
+                await griduser.FirstPage(true);
             }
         }
         protected async Task ButtonOnClick_Clear()
         {
             SearchText = string.Empty;
-            glb.isBusyPage = true;
+
+            if (griduser is not null)
+            {
+                await griduser.FirstPage(true);
+            }
+        }
+        protected async Task ButtonOnClick_Reload() => await LoadBaseData();
+
+        protected async Task LoadUsersAsync(LoadDataArgs args)
+        {
+            isUserLoading = true;
+            currentUserSkip = args.Skip ?? 0;
+            currentUserFilterExpression = args.Filter;
+            StateHasChanged();
+
             try
             {
-                _sp_Authentication_TabUser_UserList = await _apiServices.APIFrom_sp_Authen_Typed<
-                    List<sp_Authentication_TabUser_UserList>
-                >(
-                    nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_TabUser_UserList),
-                    new { }
-                ) ?? new List<sp_Authentication_TabUser_UserList>();
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
+                    BuildUsersEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
+
+                _sp_Authentication_TabUser_UserList = result.Data ?? new List<sp_Authentication_TabUser_UserList>();
+                userCount = result.TotalCount;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error when loading user list: {ex.Message}");
-                NotificationService.Notify(new NotificationMessage() 
-                { 
-                    Severity = NotificationSeverity.Error, 
-                    Summary = "Error", 
-                    Detail = $"Error when loading user list: {ex.Message}", 
-                    Duration = 5000 
+                NotificationService.Notify(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when loading users: " + ex.Message,
+                    Duration = 10000
                 });
             }
             finally
             {
-                glb.isBusyPage = false;
+                isUserLoading = false;
                 StateHasChanged();
             }
         }
-        protected async Task ButtonOnClick_Reload() => await LoadBaseData();
+
+        protected async Task LoadUserFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<sp_Authentication_TabUser_UserList> args)
+        {
+            if (args.Column is null)
+            {
+                return;
+            }
+
+            try
+            {
+                var queryParams = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
+                }
+
+                queryParams.Add($"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}");
+
+                if (!string.IsNullOrWhiteSpace(currentUserFilterExpression))
+                {
+                    queryParams.Add($"filter={Uri.EscapeDataString(currentUserFilterExpression)}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(args.Filter))
+                {
+                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
+                }
+
+                if (args.Skip.HasValue)
+                {
+                    queryParams.Add($"skip={args.Skip.Value}");
+                }
+
+                if (args.Top.HasValue)
+                {
+                    queryParams.Add($"top={args.Top.Value}");
+                }
+
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
+                    $"/api/Permission/users?{string.Join("&", queryParams)}");
+
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when loading user filter data: " + ex.Message,
+                    Duration = 10000
+                });
+            }
+        }
 
         protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<sp_Authentication_TabUser_UserList> args)
         {
@@ -184,6 +226,14 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     new Dictionary<string, object?> { { "Record", args.Data } },
                     options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
                 );
+            }
+        }
+
+        protected void OnRowRenderUser(RowRenderEventArgs<sp_Authentication_TabUser_UserList> args)
+        {
+            if (args.Data?.IsDeleted == true)
+            {
+                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
             }
         }
 
@@ -263,12 +313,17 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 }
                 if (res != null)
                 {
-                    if (data.Id == Guid.Empty)
+                    data.Id = res.Id;
+                    data.GroupId = res.P02_GroupId;
+                    data.UserGroup = p02_Groups.FirstOrDefault(x => x.Id == res.P02_GroupId);
+                    data.GroupName = data.UserGroup?.GroupName;
+                    data.IsDeleted = res.IsDeleted;
+                    data.UpdateUserId = req.UpdateUserId;
+                    data.UpdateDate = DateTime.Now;
+
+                    if (griduser is not null)
                     {
-                        if (_sp_Authentication_TabUser_UserList.Any(x => x.UserId == data.UserId))
-                        {
-                            _sp_Authentication_TabUser_UserList.FirstOrDefault(x => x.UserId == data.UserId)!.Id = res.Id;
-                        }
+                        await griduser.Reload();
                     }
                 }
             }
@@ -285,7 +340,50 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 StateHasChanged();
             }
         }
+
+        private static void AppendRowClass(IDictionary<string, object> attributes, string className)
+        {
+            if (attributes.TryGetValue("class", out var current) && current is not null)
+            {
+                attributes["class"] = $"{current} {className}";
+                return;
+            }
+
+            attributes["class"] = className;
+        }
+
+        private string BuildUsersEndpoint(string? filter, int? skip, int? top, string? orderBy)
+        {
+            var queryParams = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            }
+
+            if (skip.HasValue)
+            {
+                queryParams.Add($"skip={skip.Value}");
+            }
+
+            if (top.HasValue)
+            {
+                queryParams.Add($"top={top.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
+            }
+
+            var queryString = queryParams.Count == 0 ? string.Empty : $"?{string.Join("&", queryParams)}";
+            return $"/api/Permission/users{queryString}";
+        }
         #endregion
     }
 }
-

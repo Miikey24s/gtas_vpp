@@ -1,0 +1,449 @@
+/* Admin console shell for Library and Permission pages. */
+.vpp-admin-page {
+    width: 100%;
+    min-width: 0;
+}
+
+.vpp-admin-tabs {
+    width: 100%;
+}
+
+.vpp-admin-tabs .rz-tabview-nav-container {
+    border-bottom: 1px solid var(--vpp-border-default);
+    border-radius: 0;
+    background: var(--vpp-bg-elevated);
+    padding-inline: var(--vpp-space-1);
+}
+
+.vpp-admin-tabs .rz-tabview-panel {
+    padding-top: var(--vpp-space-4);
+}
+
+.vpp-admin-toolbar,
+.vpp-admin-grid-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    flex-wrap: wrap;
+    width: 100%;
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+}
+
+.vpp-admin-toolbar-main,
+.vpp-admin-toolbar-actions,
+.vpp-admin-grid-toolbar .rz-stack {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    flex-wrap: wrap;
+}
+
+.vpp-admin-filterbar {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--vpp-space-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--vpp-space-3);
+    padding: var(--vpp-space-3);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-admin-filterbar .rz-form-field {
+    min-width: 14rem;
+    max-width: 24rem;
+    flex: 1 1 14rem;
+}
+
+.vpp-admin-grid.rz-data-grid,
+.vpp-admin-grid.rz-datatable {
+    --vpp-admin-grid-min-width: 1040px;
+    --vpp-admin-grid-cell-x: 0.38rem;
+    --vpp-admin-grid-cell-y: 0.32rem;
+    --vpp-admin-grid-filter-space: 1.2rem;
+    --vpp-admin-actions-width: 96px;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    box-shadow: var(--vpp-shadow-xs);
+    background: var(--vpp-bg-elevated);
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.vpp-admin-grid .rz-group-header,
+.vpp-admin-grid .rz-custom-header,
+.vpp-admin-grid .rz-data-grid-header {
+    background: var(--vpp-bg-elevated);
+    border-bottom-color: var(--vpp-border-default);
+}
+
+.vpp-admin-grid .rz-group-header {
+    min-height: 2.65rem;
+    padding: 0.35rem 0.75rem !important;
+    align-items: center;
+}
+
+.vpp-admin-grid .rz-column-picker {
+    margin-inline-start: auto;
+}
+
+.vpp-admin-grid .rz-column-picker .rz-dropdown {
+    width: clamp(12rem, 18vw, 16rem);
+    min-height: 2rem;
+}
+
+.vpp-admin-grid .rz-data-grid-data,
+.vpp-admin-grid .rz-datatable-scrollable-header,
+.vpp-admin-grid .rz-datatable-scrollable-body,
+.vpp-admin-grid .rz-datatable-scrollable-wrapper,
+.vpp-admin-grid .rz-datatable-tablewrapper {
+    max-width: 100%;
+    overflow: auto;
+    scrollbar-gutter: stable;
+    background: transparent;
+    position: relative;
+}
+
+.vpp-admin-grid .rz-grid-table {
+    min-width: var(--vpp-admin-grid-min-width);
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-spacing: 0;
+}
+
+.vpp-admin-grid.auto-fit-grid .rz-grid-table {
+    table-layout: fixed !important;
+}
+
+.vpp-admin-grid .rz-grid-table thead th {
+    position: static;
+    background: var(--vpp-bg-surface);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    border-bottom-color: var(--vpp-border-default);
+    padding: 0 !important;
+    vertical-align: middle;
+    box-shadow: inset 0 -1px 0 var(--vpp-border-default);
+}
+
+.vpp-admin-grid .rz-grid-table thead th > div:not(.rz-cell-filter) {
+    min-height: 2rem;
+    display: flex;
+    align-items: center;
+    padding: var(--vpp-admin-grid-cell-y) var(--vpp-admin-grid-cell-x) !important;
+    position: relative;
+}
+
+.vpp-admin-grid .rz-grid-table thead th:has(.rz-grid-filter-icon) > div:not(.rz-cell-filter) {
+    padding-inline-end: calc(var(--vpp-admin-grid-cell-x) + var(--vpp-admin-grid-filter-space)) !important;
+}
+
+.vpp-admin-grid .rz-grid-table thead th.rz-text-align-center:has(.rz-grid-filter-icon) > div:not(.rz-cell-filter) {
+    padding-inline-start: calc(var(--vpp-admin-grid-cell-x) + var(--vpp-admin-grid-filter-space)) !important;
+}
+
+.vpp-admin-grid .rz-cell-filter {
+    display: none !important;
+}
+
+.vpp-admin-grid .rz-grid-table thead th:not(:last-child),
+.vpp-admin-grid .rz-grid-table td:not(:last-child) {
+    border-inline-end: none;
+}
+
+.vpp-admin-grid .rz-grid-table td {
+    padding: var(--vpp-admin-grid-cell-y) var(--vpp-admin-grid-cell-x) !important;
+    border-bottom-color: var(--vpp-border-default);
+    vertical-align: middle;
+}
+
+.vpp-admin-grid .rz-cell-data {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-admin-grid .rz-column-title,
+.vpp-admin-grid .rz-column-title-content {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-admin-grid .rz-grid-filter-icon {
+    position: absolute;
+    inset-inline-end: 0.3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    margin: 0;
+    opacity: 0.72;
+}
+
+.vpp-admin-grid .rz-grid-filter-icon:hover,
+.vpp-admin-grid .rz-grid-filter-icon.rz-state-active {
+    opacity: 1;
+    color: var(--vpp-primary-600);
+}
+
+.vpp-admin-grid .rz-paginator,
+.vpp-admin-grid .rz-pager {
+    border-top: 1px solid var(--vpp-border-default);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-admin-row-deleted > td {
+    background: color-mix(in srgb, var(--vpp-danger, #ef4444) 5%, var(--vpp-bg-elevated)) !important;
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-admin-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--vpp-radius-badge);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: 1.45;
+    white-space: nowrap;
+}
+
+.vpp-admin-status-badge.is-active {
+    color: var(--vpp-success);
+    background: var(--vpp-success-muted);
+    border: 1px solid var(--vpp-success-muted);
+}
+
+.vpp-admin-status-badge.is-false {
+    color: var(--vpp-success);
+    background: var(--vpp-success-muted);
+    border: 1px solid var(--vpp-success-muted);
+}
+
+.vpp-admin-status-badge.is-true,
+.vpp-admin-status-badge.is-deleted,
+.vpp-admin-status-badge.is-inactive {
+    color: var(--vpp-warning);
+    background: var(--vpp-warning-muted);
+    border: 1px solid var(--vpp-warning-muted);
+}
+
+.vpp-admin-is-deleted-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.22rem;
+    min-width: 0;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.vpp-admin-is-deleted-cell .rz-switch {
+    flex: 0 0 auto;
+    transform-origin: center;
+}
+
+.vpp-admin-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.22rem;
+    min-width: 0;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.vpp-admin-actions .rz-button {
+    width: 1.65rem !important;
+    height: 1.65rem !important;
+    min-width: 1.65rem !important;
+    min-height: 1.65rem !important;
+    padding: 0 !important;
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-admin-actions .rz-button .rzi {
+    font-size: 1rem;
+}
+
+.vpp-admin-actions .rz-button .rz-button-text {
+    display: none;
+}
+
+.vpp-admin-split {
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    overflow: hidden;
+    background: var(--vpp-bg-elevated);
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-admin-split .rz-splitter-pane {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-admin-grid .rz-datatable-scrollable-header,
+.vpp-admin-grid .rz-datatable-scrollable-body {
+    min-width: 0;
+}
+
+.vpp-admin-grid .rz-datatable-scrollable-body {
+    overflow: auto;
+}
+
+.vpp-admin-grid .rz-datatable-scrollable-header {
+    overflow: hidden;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-index,
+.vpp-admin-grid .rz-grid-table td.rz-col-index {
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-isdeleted,
+.vpp-admin-grid .rz-grid-table td.rz-col-isdeleted {
+    width: 118px !important;
+    min-width: 118px !important;
+    max-width: 118px !important;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-actions,
+.vpp-admin-grid .rz-grid-table td.rz-col-actions {
+    width: var(--vpp-admin-actions-width, 96px) !important;
+    min-width: var(--vpp-admin-actions-width, 96px) !important;
+    max-width: var(--vpp-admin-actions-width, 96px) !important;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-actions-tight,
+.vpp-admin-grid .rz-grid-table td.rz-col-actions-tight {
+    --vpp-admin-actions-width: 58px;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-actions-medium,
+.vpp-admin-grid .rz-grid-table td.rz-col-actions-medium {
+    --vpp-admin-actions-width: 118px;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-actions-wide,
+.vpp-admin-grid .rz-grid-table td.rz-col-actions-wide {
+    --vpp-admin-actions-width: 176px;
+}
+
+.vpp-admin-grid .rz-grid-table td.rz-col-actions .rz-cell-data,
+.vpp-admin-grid .rz-grid-table td.rz-col-isdeleted .rz-cell-data {
+    overflow: visible;
+}
+
+.vpp-admin-split .rz-splitter-pane > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.vpp-admin-split .rz-splitter-bar {
+    background: var(--vpp-border-default);
+}
+
+.vpp-admin-class-split {
+    min-width: 0;
+}
+
+.vpp-admin-split .vpp-admin-grid.rz-data-grid,
+.vpp-admin-split .vpp-admin-grid.rz-datatable {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.vpp-admin-section-title {
+    margin: 0;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-admin-inline-note {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-admin-dialog-form {
+    padding: var(--vpp-space-3);
+}
+
+@media (max-width: 1440px) {
+    .vpp-admin-grid.rz-data-grid,
+    .vpp-admin-grid.rz-datatable {
+        --vpp-admin-grid-cell-x: 0.34rem;
+        --vpp-admin-grid-cell-y: 0.3rem;
+    }
+
+    .vpp-admin-class-split.rz-splitter {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+    }
+
+    .vpp-admin-class-split .rz-splitter-pane {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 22rem;
+    }
+
+    .vpp-admin-class-split .rz-splitter-bar {
+        display: none !important;
+    }
+
+    .vpp-admin-class-split .vpp-admin-grid.rz-data-grid,
+    .vpp-admin-class-split .vpp-admin-grid.rz-datatable {
+        height: min(430px, calc(100vh - 255px)) !important;
+    }
+}
+
+@media (max-width: 1100px) {
+    .vpp-admin-grid.rz-data-grid,
+    .vpp-admin-grid.rz-datatable {
+        --vpp-admin-grid-cell-x: 0.4rem;
+        --vpp-admin-grid-filter-space: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .vpp-admin-tabs .rz-tabview-panel {
+        padding-top: var(--vpp-space-3);
+    }
+
+    .vpp-admin-filterbar {
+        align-items: stretch;
+    }
+
+    .vpp-admin-filterbar .rz-form-field,
+    .permission-search-field {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .vpp-admin-grid-toolbar {
+        align-items: stretch;
+    }
+}

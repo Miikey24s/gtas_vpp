@@ -61,6 +61,65 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Keep theme/culture transitions subtle: only paint properties, no layout movement. */
+html,
+body,
+.vpp-layout,
+.vpp-layout-body,
+.vpp-layout-sidebar,
+.vpp-layout-header,
+.vpp-content,
+.rz-tabview-nav-container,
+.rz-tabview-panel,
+.rz-data-grid,
+.rz-grid-table th,
+.rz-grid-table td,
+.rz-paginator,
+.rz-button,
+.rz-dropdown,
+.rz-inputtext,
+.rz-form-field,
+.vpp-kpi-card,
+.vpp-admin-grid,
+.vpp-order-card,
+.vpp-data-card {
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    html,
+    body,
+    .vpp-layout,
+    .vpp-layout-body,
+    .vpp-layout-sidebar,
+    .vpp-layout-header,
+    .vpp-content,
+    .rz-tabview-nav-container,
+    .rz-tabview-panel,
+    .rz-data-grid,
+    .rz-grid-table th,
+    .rz-grid-table td,
+    .rz-paginator,
+    .rz-button,
+    .rz-dropdown,
+    .rz-inputtext,
+    .rz-form-field,
+    .vpp-kpi-card,
+    .vpp-admin-grid,
+    .vpp-order-card,
+    .vpp-data-card {
+        transition-duration: 0.01ms !important;
+    }
+}
+
 /* ── Image Handling ───────────────────────────────────────────── */
 img {
     max-width: 100%;

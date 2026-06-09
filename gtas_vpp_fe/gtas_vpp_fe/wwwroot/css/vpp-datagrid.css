@@ -149,7 +149,7 @@
 .vpp-wizard-panel-card .rz-datatable,
 .vpp-wizard-panel-card .rz-data-grid {
     --vpp-grid-cell-padding-y: 0.35rem;
-    --vpp-grid-cell-padding-x: 0.625rem;
+    --vpp-grid-cell-padding-x: 0.5rem;
     --vpp-grid-filter-space: 1.45rem;
     --vpp-grid-expander-width: 32px;
     --vpp-grid-min-width: 1080px;
@@ -161,7 +161,7 @@
 
 .vpp-order-grid.vpp-order-grid-embedded,
 .vpp-expand-detail > .vpp-order-grid {
-    --vpp-grid-min-width: 900px;
+    --vpp-grid-min-width: 840px;
 }
 
 .vpp-order-grid .rz-data-grid-data,
@@ -481,6 +481,7 @@
     .vpp-wizard-panel-card .rz-datatable,
     .vpp-wizard-panel-card .rz-data-grid {
         --vpp-grid-cell-padding-x: 0.5rem;
+        --vpp-grid-cell-padding-y: 0.32rem;
         --vpp-grid-filter-space: 1.35rem;
     }
 }
@@ -490,6 +491,7 @@
     .vpp-order-grid.rz-data-grid,
     .vpp-wizard-panel-card .rz-datatable,
     .vpp-wizard-panel-card .rz-data-grid {
-        --vpp-grid-cell-padding-x: 0.45rem;
+        --vpp-grid-cell-padding-x: 0.4rem;
+        --vpp-grid-filter-space: 1.25rem;
     }
 }

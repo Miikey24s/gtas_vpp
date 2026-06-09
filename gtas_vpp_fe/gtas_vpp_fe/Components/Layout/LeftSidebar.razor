@@ -9,8 +9,6 @@
 @inject ProtectedLocalStorage ProtectedLocalStore
 @rendermode InteractiveServer
 
-<PageTitle>GTAS VPP</PageTitle>
-
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" class="vpp-global-loader" />
 
 <RadzenHeader class="vpp-header-glass vpp-layout-header">
@@ -77,7 +75,21 @@
                 }
                 @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]" />
+                    @if (CanViewDashboardItem(Permissions.RequestAdminApproval) && CanViewDashboardItem(Permissions.PeriodSettle))
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]">
+                            <RadzenPanelMenuItem Text="@Loc["PeriodReview"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="fact_check" title="@Loc["PeriodReview"]" />
+                            <RadzenPanelMenuItem Text="@Loc["PendingApprovals"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="pending_actions" title="@Loc["PendingApprovals"]" />
+                        </RadzenPanelMenuItem>
+                    }
+                    else if (CanViewDashboardItem(Permissions.PeriodSettle))
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]" />
+                    }
+                    else
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]" />
+                    }
                 }
             </RadzenPanelMenuItem>
         }
@@ -125,14 +137,14 @@
         }
         @if (CanViewPermissionMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="settings" class="ppjsidebarmenu" title="@Loc["Permissions"]">
+            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="admin_panel_settings" class="ppjsidebarmenu" title="@Loc["Permissions"]">
                 @if (CanViewPermissionItem(Permissions.PermissionUser))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["User"]" Icon="account_circle" class="ppjsidebarmenu submenu" Path="/permission?tab=0" title="@Loc["User"]" />
+                    <RadzenPanelMenuItem Text="@Loc["Users"]" Icon="manage_accounts" class="ppjsidebarmenu submenu" Path="/permission?tab=0" title="@Loc["Users"]" />
                 }
                 @if (CanViewPermissionItem(Permissions.PermissionComponent))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Page"]" Icon="layers" class="ppjsidebarmenu submenu" Path="/permission?tab=1" title="@Loc["Page"]" />
+                    <RadzenPanelMenuItem Text="@Loc["GroupsAndPermissions"]" Icon="rule" class="ppjsidebarmenu submenu" Path="/permission?tab=1" title="@Loc["GroupsAndPermissions"]" />
                 }
             </RadzenPanelMenuItem>
         }
