@@ -16,7 +16,7 @@ namespace gtas_vpp_be.Model.Auth
         public P02_Group? P02_Group { get; set; }
         public Guid P02_GroupId { get; set; }
         public Guid LEX02_CompanyDepartmentLocationId { get; set; }
-        public LEX02_CompanyDepartmentLocation LEX02_CompanyDepartmentLocation { get; set; }
+        public LEX02_CompanyDepartmentLocation LEX02_CompanyDepartmentLocation { get; set; } = default!;
         public P04_UserGroup() { }
     }
 }

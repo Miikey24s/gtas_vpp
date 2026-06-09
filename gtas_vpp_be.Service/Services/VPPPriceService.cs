@@ -5,6 +5,8 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Linq.Dynamic.Core;
 
 namespace gtas_vpp_be.Service.Services
 {
@@ -51,6 +53,131 @@ namespace gtas_vpp_be.Service.Services
                 .ThenBy(x => x.L04_VPPName)
                 .ThenBy(x => x.Id)
                 .ToListAsync();
+        }
+
+        public async Task<(List<L06_VPPItemPriceResDTO> Data, int TotalCount)> QueryItemPricesAsync(
+            Guid supplierId,
+            Guid? priceListId = null,
+            bool showDeleted = false,
+            string? search = null,
+            string? filter = null,
+            int? skip = null,
+            int? top = null,
+            string? orderby = null,
+            string? distinct = null,
+            string? distinctFilter = null)
+        {
+            var effectivePriceListId = priceListId ?? await GetDefaultPriceListIdAsync();
+            if (!effectivePriceListId.HasValue)
+            {
+                return (new List<L06_VPPItemPriceResDTO>(), 0);
+            }
+
+            var vppQuery = _scopedUow.VPPContext.Set<L04_VPP>()
+                .AsNoTracking();
+            if (!showDeleted)
+            {
+                vppQuery = vppQuery.Where(x => !x.IsDeleted);
+            }
+
+            var mappingQuery = _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
+                .AsNoTracking()
+                .Where(x => x.L05_VPPSupplierId == supplierId
+                            && x.L07_PriceListId == effectivePriceListId.Value
+                            && (showDeleted || !x.IsDeleted));
+
+            IQueryable<L06_VPPItemPriceResDTO> query =
+                from vpp in vppQuery
+                from mapping in mappingQuery.Where(x => x.L04_VPPId == vpp.Id).DefaultIfEmpty()
+                select new L06_VPPItemPriceResDTO
+                {
+                    VPPId = vpp.Id,
+                    VPPCode = vpp.VPPCode,
+                    VPPName = vpp.VPPName,
+                    CategoryName = vpp.VPPCategory == null ? null : vpp.VPPCategory.VPPCategoryName,
+                    UOMName = vpp.UOM == null ? null : vpp.UOM.ClassDetailValue,
+                    PriceMappingId = mapping == null ? null : mapping.Id,
+                    Price = mapping == null ? null : mapping.Price,
+                    IsDefault = mapping != null && mapping.IsDefault,
+                    IsDeleted = mapping != null && mapping.IsDeleted,
+                    Description = mapping == null ? null : mapping.Description
+                };
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchText = search.Trim();
+                query = query.Where(x =>
+                    (x.VPPCode != null && x.VPPCode.Contains(searchText))
+                    || (x.VPPName != null && x.VPPName.Contains(searchText))
+                    || (x.CategoryName != null && x.CategoryName.Contains(searchText))
+                    || (x.UOMName != null && x.UOMName.Contains(searchText)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                query = query.Where(filter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinct))
+            {
+                var propertyInfo = typeof(L06_VPPItemPriceResDTO).GetProperty(distinct);
+                if (propertyInfo != null)
+                {
+                    var distinctValues = await query
+                        .Select(distinct)
+                        .Distinct()
+                        .ToDynamicListAsync();
+
+                    var filteredValues = distinctValues
+                        .Where(val => val != null)
+                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
+                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .ToList();
+
+                    IEnumerable<object> pageValues = filteredValues.Cast<object>();
+                    if (skip.HasValue && skip.Value > 0)
+                    {
+                        pageValues = pageValues.Skip(skip.Value);
+                    }
+
+                    if (top.HasValue && top.Value > 0)
+                    {
+                        pageValues = pageValues.Take(top.Value);
+                    }
+
+                    var distinctRows = pageValues.Select(val =>
+                    {
+                        var dto = new L06_VPPItemPriceResDTO();
+                        propertyInfo.SetValue(dto, val);
+                        return dto;
+                    }).ToList();
+
+                    return (distinctRows, filteredValues.Count);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(orderby))
+            {
+                query = query.OrderBy(orderby);
+            }
+            else
+            {
+                query = query.OrderBy(x => x.VPPCode).ThenBy(x => x.VPPName);
+            }
+
+            if (skip.HasValue && skip.Value > 0)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (top.HasValue && top.Value > 0)
+            {
+                query = query.Take(top.Value);
+            }
+
+            return (await query.ToListAsync(), totalCount);
         }
 
         public async Task<L06_VPPSupplierMappingResDTO> CreateAsync(L06_PriceCreateReqDTO req, int userId)

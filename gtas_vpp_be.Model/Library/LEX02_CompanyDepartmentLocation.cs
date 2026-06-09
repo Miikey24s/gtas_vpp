@@ -14,7 +14,7 @@ namespace gtas_vpp_be.Model.Library
     {
         public string? LEX02Code { get; set; }
         public string? LEX02Name { get; set; }
-        public string LEX02Type { get; set; }
+        public string LEX02Type { get; set; } = string.Empty;
         public Guid? ParentId { get; set; }
         public virtual ICollection<P04_UserGroup>? P04_UserGroups { get; set; }
     }

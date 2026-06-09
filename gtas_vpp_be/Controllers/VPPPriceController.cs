@@ -38,6 +38,38 @@ namespace gtas_vpp_be.Controllers
             return Ok(result);
         }
 
+        [HttpGet("item-prices")]
+        public async Task<IActionResult> QueryItemPrices(
+            [FromQuery] Guid supplierId,
+            [FromQuery] Guid? priceListId = null,
+            [FromQuery] bool? showDeleted = false,
+            [FromQuery] string? search = null,
+            [FromQuery] string? filter = null,
+            [FromQuery] int? skip = null,
+            [FromQuery] int? top = null,
+            [FromQuery] string? orderby = null,
+            [FromQuery] string? distinct = null,
+            [FromQuery] string? distinctFilter = null)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (supplierId == Guid.Empty) return BadRequest(new { Message = "supplierId is required." });
+
+            var result = await _priceService.QueryItemPricesAsync(
+                supplierId,
+                priceListId,
+                showDeleted ?? false,
+                search,
+                filter,
+                skip,
+                top,
+                orderby,
+                distinct,
+                distinctFilter);
+
+            Response.Headers.Append("X-Total-Count", result.TotalCount.ToString());
+            return Ok(result.Data);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] L06_PriceCreateReqDTO req)
         {

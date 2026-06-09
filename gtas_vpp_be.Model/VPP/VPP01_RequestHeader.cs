@@ -37,7 +37,7 @@ namespace gtas_vpp_be.Model.VPP
         [System.ComponentModel.DataAnnotations.Timestamp]
         public byte[]? RowVersion { get; set; }
 
-        public virtual ICollection<VPP02_RequestDetail> VPP02_RequestDetails { get; set; }
+        public virtual ICollection<VPP02_RequestDetail> VPP02_RequestDetails { get; set; } = new List<VPP02_RequestDetail>();
         public virtual ICollection<VPP03_Log> VPP03_Logs { get; set; } = new List<VPP03_Log>();
         public VPP01_RequestHeader() { }
     }

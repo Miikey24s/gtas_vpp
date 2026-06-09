@@ -5,6 +5,8 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Linq.Dynamic.Core;
 
 namespace gtas_vpp_be.Service.Services
 {
@@ -26,20 +28,98 @@ namespace gtas_vpp_be.Service.Services
             _userNameResolver = userNameResolver;
         }
 
-        public async Task<List<L07_PriceListResDTO>> ListAsync()
+        public async Task<List<L07_PriceListResDTO>> ListAsync(bool showDeleted = false)
         {
-            var result = await PriceListDtoQuery()
-                .OrderByDescending(x => x.IsDefault)
-                .ThenBy(x => x.PriceListName)
-                .ThenBy(x => x.PriceListCode)
+            var result = await ApplyDefaultOrder(PriceListDtoQuery(showDeleted))
                 .ToListAsync();
 
             return await _userNameResolver.WithUserNamesAsync(result, _scopedUow.VPPContext);
         }
 
+        public async Task<(List<L07_PriceListResDTO> Data, int TotalCount)> QueryAsync(
+            bool showDeleted = false,
+            string? filter = null,
+            int? skip = null,
+            int? top = null,
+            string? orderby = null,
+            string? distinct = null,
+            string? distinctFilter = null)
+        {
+            IQueryable<L07_PriceListResDTO> query = PriceListDtoQuery(showDeleted);
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                query = query.Where(filter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinct))
+            {
+                var propertyInfo = typeof(L07_PriceListResDTO).GetProperty(distinct);
+                if (propertyInfo != null)
+                {
+                    var distinctValues = await query
+                        .Select(distinct)
+                        .Distinct()
+                        .ToDynamicListAsync();
+
+                    var filteredValues = distinctValues
+                        .Where(val => val != null)
+                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
+                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .ToList();
+
+                    IEnumerable<object> pagedValues = filteredValues.Cast<object>();
+                    if (skip.HasValue && skip.Value > 0)
+                    {
+                        pagedValues = pagedValues.Skip(skip.Value);
+                    }
+
+                    if (top.HasValue && top.Value > 0)
+                    {
+                        pagedValues = pagedValues.Take(top.Value);
+                    }
+
+                    var distinctRows = pagedValues.Select(val =>
+                    {
+                        var dto = new L07_PriceListResDTO();
+                        propertyInfo.SetValue(dto, val);
+                        return dto;
+                    }).ToList();
+
+                    return (distinctRows, filteredValues.Count);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(orderby))
+            {
+                query = query.OrderBy(orderby);
+            }
+            else
+            {
+                query = ApplyDefaultOrder(query);
+            }
+
+            if (skip.HasValue && skip.Value > 0)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (top.HasValue && top.Value > 0)
+            {
+                query = query.Take(top.Value);
+            }
+
+            var result = await query
+                .ToListAsync();
+
+            return (await _userNameResolver.WithUserNamesAsync(result, _scopedUow.VPPContext), totalCount);
+        }
+
         public async Task<L07_PriceListResDTO?> GetByIdAsync(Guid id)
         {
-            var result = await PriceListDtoQuery().FirstOrDefaultAsync(x => x.Id == id);
+            var result = await PriceListDtoQuery(true).FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
             {
                 return null;
@@ -132,35 +212,64 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task DeleteAsync(Guid id, int userId)
+        public async Task<L07_PriceListResDTO> SetDeletedAsync(Guid id, bool isDeleted, int userId)
         {
             await _scopedUow.BeginTransactionAsync();
             try
             {
                 var entity = await _scopedUow.VPPContext.Set<L07_PriceList>()
-                    .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+                    .FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                 {
                     throw new BusinessException("Price list not found.");
                 }
 
-                if (entity.IsDefault)
+                if (isDeleted && entity.IsDefault)
                 {
                     throw new BusinessException("Cannot delete the default price list.");
                 }
 
-                var itemCount = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
-                    .CountAsync(x => x.L07_PriceListId == id && !x.IsDeleted);
-                if (itemCount > 0)
+                if (isDeleted)
                 {
-                    throw new BusinessException($"Price list has {itemCount} items.");
+                    var itemCount = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
+                        .CountAsync(x => x.L07_PriceListId == id && !x.IsDeleted);
+                    if (itemCount > 0)
+                    {
+                        throw new BusinessException($"Price list has {itemCount} items.");
+                    }
                 }
 
                 var now = _dateTimeProvider.Now;
-                entity.IsDeleted = true;
+                entity.IsDeleted = isDeleted;
                 entity.UpdateUserId = userId;
                 entity.UpdateDate = now;
 
+                await _scopedUow.CommitAsync();
+                return (await GetByIdAsync(id))!;
+            }
+            catch
+            {
+                await _scopedUow.RollbackAsync();
+                throw;
+            }
+        }
+
+        public Task DeleteAsync(Guid id, int userId)
+            => SetDeletedAsync(id, true, userId);
+
+        public async Task HardDeleteAsync(Guid id)
+        {
+            await _scopedUow.BeginTransactionAsync();
+            try
+            {
+                var entity = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                    .FirstOrDefaultAsync(x => x.Id == id);
+                if (entity == null)
+                {
+                    throw new BusinessException("Price list not found.");
+                }
+
+                _scopedUow.VPPContext.Set<L07_PriceList>().Remove(entity);
                 await _scopedUow.CommitAsync();
             }
             catch
@@ -265,12 +374,17 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private IQueryable<L07_PriceListResDTO> PriceListDtoQuery()
+        private IQueryable<L07_PriceListResDTO> PriceListDtoQuery(bool showDeleted = false)
         {
-            return _scopedUow.VPPContext.Set<L07_PriceList>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted)
-                .Select(x => new L07_PriceListResDTO
+            var query = _scopedUow.VPPContext.Set<L07_PriceList>()
+                .AsNoTracking();
+
+            if (!showDeleted)
+            {
+                query = query.Where(x => !x.IsDeleted);
+            }
+
+            return query.Select(x => new L07_PriceListResDTO
                 {
                     Id = x.Id,
                     Description = x.Description,
@@ -282,8 +396,17 @@ namespace gtas_vpp_be.Service.Services
                     PriceListCode = x.PriceListCode,
                     PriceListName = x.PriceListName,
                     IsDefault = x.IsDefault,
-                    ItemCount = x.L06_VPPSupplierMappings!.Count(m => !m.IsDeleted)
+                    ItemCount = x.L06_VPPSupplierMappings!.Count(m => showDeleted || !m.IsDeleted)
                 });
+        }
+
+        private static IOrderedQueryable<L07_PriceListResDTO> ApplyDefaultOrder(IQueryable<L07_PriceListResDTO> query)
+        {
+            return query
+                .OrderBy(x => x.IsDeleted)
+                .ThenByDescending(x => x.IsDefault)
+                .ThenBy(x => x.PriceListName)
+                .ThenBy(x => x.PriceListCode);
         }
 
         private async Task DemoteDefaultsAsync(int userId, DateTime now)

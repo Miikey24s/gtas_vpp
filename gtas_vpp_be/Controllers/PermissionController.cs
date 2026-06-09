@@ -10,10 +10,14 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Linq.Expressions;
+using System.Linq.Dynamic.Core;
 using static gtas_vpp_be.Service.Helpers.Config;
 using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authen_Permission_GetPageWithComponentByGroupId;
 using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component;
+using AuthGroupDto = gtas_vpp_shared.DTOs.Res.Auth.P02_GroupResDTO;
+using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authentication_TabUser_UserList;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -48,12 +52,120 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("groups")]
-        public async Task<IActionResult> GetGroups([FromQuery] bool getFullName = true)
+        public async Task<IActionResult> GetGroups(
+            [FromQuery] bool getFullName = true,
+            [FromQuery] string? filter = null,
+            [FromQuery] int? skip = null,
+            [FromQuery] int? top = null,
+            [FromQuery] string? orderby = null,
+            [FromQuery] string? distinct = null,
+            [FromQuery] string? distinctFilter = null)
         {
-            var data = await ReadAsync(_groupRepository, getFullName);
+            IQueryable<P02_GroupResDTO> query = _unitOfWork.VPPContext.Set<P02_Group>()
+                .AsNoTracking()
+                .Select(group => new P02_GroupResDTO
+                {
+                    Id = group.Id,
+                    Description = group.Description,
+                    CreateUserId = group.CreateUserId,
+                    CreateDate = group.CreateDate,
+                    UpdateUserId = group.UpdateUserId,
+                    UpdateDate = group.UpdateDate,
+                    IsDeleted = group.IsDeleted,
+                    MemberCompanyCode = 0,
+                    GroupName = group.GroupName,
+                    ParentGroupId = group.ParentGroupId
+                });
 
-            var rs = data.Adapt<List<P02_GroupResDTO>>();
-            return Ok(rs);
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                try
+                {
+                    query = query.Where(filter);
+                }
+                catch
+                {
+                    // Keep backward compatibility if Radzen sends an unsupported expression.
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinct))
+            {
+                var propertyInfo = typeof(P02_GroupResDTO).GetProperty(distinct);
+                if (propertyInfo != null)
+                {
+                    var distinctValues = await query
+                        .Select(distinct)
+                        .Distinct()
+                        .ToDynamicListAsync();
+
+                    distinctValues = distinctValues
+                        .Where(val => val != null)
+                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
+                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .ToList();
+
+                    Response.Headers.Append("X-Total-Count", distinctValues.Count.ToString());
+
+                    IEnumerable<object> pageValues = distinctValues.Cast<object>();
+                    if (skip.HasValue && skip.Value > 0)
+                    {
+                        pageValues = pageValues.Skip(skip.Value);
+                    }
+
+                    if (top.HasValue && top.Value > 0)
+                    {
+                        pageValues = pageValues.Take(top.Value);
+                    }
+
+                    var distinctDtos = pageValues.Select(val =>
+                    {
+                        var dto = new P02_GroupResDTO();
+                        propertyInfo.SetValue(dto, val);
+                        return dto;
+                    }).ToList();
+
+                    return Ok(distinctDtos);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(orderby))
+            {
+                try
+                {
+                    query = query.OrderBy(orderby);
+                }
+                catch
+                {
+                    query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.GroupName);
+                }
+            }
+            else
+            {
+                query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.GroupName);
+            }
+
+            if (skip.HasValue && skip.Value > 0)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (top.HasValue && top.Value > 0)
+            {
+                query = query.Take(top.Value);
+            }
+
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+
+            var page = await query.ToListAsync();
+            if (getFullName)
+            {
+                page = await _userNameResolver.WithUserNamesAsync(page, _unitOfWork.VPPContext);
+            }
+
+            return Ok(page);
         }
 
         [HttpGet("groups/{id:guid}")]
@@ -279,6 +391,205 @@ namespace gtas_vpp_be.Controllers
                 });
 
             return Ok(rs);
+        }
+
+        [HttpGet("users")]
+        public async Task<IActionResult> GetUsers(
+            [FromQuery] string? search = null,
+            [FromQuery] string? filter = null,
+            [FromQuery] int? skip = null,
+            [FromQuery] int? top = null,
+            [FromQuery] string? orderby = null,
+            [FromQuery] string? distinct = null,
+            [FromQuery] string? distinctFilter = null)
+        {
+            var hasSearch = !string.IsNullOrWhiteSpace(search);
+            var usersQuery = _unitOfWork.VPPContext.v_Users.AsNoTracking();
+
+            if (hasSearch)
+            {
+                var searchText = search!.Trim();
+                usersQuery = usersQuery.Where(x =>
+                    (x.UserLogin != null && x.UserLogin.Contains(searchText))
+                    || (x.EmailAddress1 != null && x.EmailAddress1.Contains(searchText))
+                    || (x.FullName != null && x.FullName.Contains(searchText)));
+            }
+
+            var userGroupsQuery = _unitOfWork.VPPContext.Set<P04_UserGroup>()
+                .AsNoTracking()
+                .Include(x => x.P02_Group)
+                .Include(x => x.LEX02_CompanyDepartmentLocation);
+
+            IQueryable<UserListDto> query = hasSearch
+                ? from user in usersQuery
+                  join userGroup in userGroupsQuery on user.UserID equals userGroup.UserId into userGroupJoin
+                  from userGroup in userGroupJoin.DefaultIfEmpty()
+                  select new UserListDto
+                  {
+                      Id = userGroup == null ? Guid.Empty : userGroup.Id,
+                      UserId = user.UserID,
+                      UserLogin = user.UserLogin,
+                      FullName = user.FullName,
+                      Email = user.EmailAddress1,
+                      GoogleEmail = user.GoogleEmail,
+                      IsAdmin = userGroup != null
+                                && userGroup.P02_Group != null
+                                && (userGroup.P02_Group.GroupName == "Admin" || userGroup.P02_Group.GroupName == "Administrator"),
+                      GroupId = userGroup == null ? Guid.Empty : userGroup.P02_GroupId,
+                      GroupName = userGroup == null || userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
+                      CreateUserId = userGroup == null ? 0 : userGroup.CreateUserId,
+                      CreateDate = userGroup == null ? null : userGroup.CreateDate,
+                      UpdateUserId = userGroup == null ? 0 : userGroup.UpdateUserId,
+                      UpdateDate = userGroup == null ? null : userGroup.UpdateDate,
+                      IsDeleted = userGroup != null && userGroup.IsDeleted,
+                      TypeOfUser = userGroup == null ? "GTAS User" : "Transportation User",
+                      Description = userGroup == null ? null : userGroup.Description,
+                      DepartmentName = userGroup == null || userGroup.LEX02_CompanyDepartmentLocation == null
+                          ? user.DepartmentCode
+                          : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
+                      L05_DepartmentId = userGroup == null ? null : userGroup.LEX02_CompanyDepartmentLocationId,
+                      UserGroup = userGroup == null || userGroup.P02_Group == null
+                          ? null
+                          : new AuthGroupDto
+                          {
+                              Id = userGroup.P02_Group.Id,
+                              GroupName = userGroup.P02_Group.GroupName,
+                              ParentGroupId = userGroup.P02_Group.ParentGroupId,
+                              Description = userGroup.P02_Group.Description,
+                              CreateUserId = userGroup.P02_Group.CreateUserId,
+                              CreateDate = userGroup.P02_Group.CreateDate,
+                              UpdateUserId = userGroup.P02_Group.UpdateUserId,
+                              UpdateDate = userGroup.P02_Group.UpdateDate,
+                              IsDeleted = userGroup.P02_Group.IsDeleted
+                          }
+                  }
+                : from userGroup in userGroupsQuery
+                  join user in usersQuery on userGroup.UserId equals user.UserID
+                  select new UserListDto
+                  {
+                      Id = userGroup.Id,
+                      UserId = user.UserID,
+                      UserLogin = user.UserLogin,
+                      FullName = user.FullName,
+                      Email = user.EmailAddress1,
+                      GoogleEmail = user.GoogleEmail,
+                      IsAdmin = userGroup.P02_Group != null
+                                && (userGroup.P02_Group.GroupName == "Admin" || userGroup.P02_Group.GroupName == "Administrator"),
+                      GroupId = userGroup.P02_GroupId,
+                      GroupName = userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
+                      CreateUserId = userGroup.CreateUserId,
+                      CreateDate = userGroup.CreateDate,
+                      UpdateUserId = userGroup.UpdateUserId,
+                      UpdateDate = userGroup.UpdateDate,
+                      IsDeleted = userGroup.IsDeleted,
+                      TypeOfUser = "Transport User",
+                      Description = userGroup.Description,
+                      DepartmentName = userGroup.LEX02_CompanyDepartmentLocation == null
+                          ? user.DepartmentCode
+                          : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
+                      L05_DepartmentId = userGroup.LEX02_CompanyDepartmentLocationId,
+                      UserGroup = userGroup.P02_Group == null
+                          ? null
+                          : new AuthGroupDto
+                          {
+                              Id = userGroup.P02_Group.Id,
+                              GroupName = userGroup.P02_Group.GroupName,
+                              ParentGroupId = userGroup.P02_Group.ParentGroupId,
+                              Description = userGroup.P02_Group.Description,
+                              CreateUserId = userGroup.P02_Group.CreateUserId,
+                              CreateDate = userGroup.P02_Group.CreateDate,
+                              UpdateUserId = userGroup.P02_Group.UpdateUserId,
+                              UpdateDate = userGroup.P02_Group.UpdateDate,
+                              IsDeleted = userGroup.P02_Group.IsDeleted
+                          }
+                  };
+
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                try
+                {
+                    query = query.Where(filter);
+                }
+                catch
+                {
+                    // Keep the endpoint resilient to unsupported Radzen expressions.
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(distinct))
+            {
+                var propertyInfo = typeof(UserListDto).GetProperty(distinct);
+                if (propertyInfo != null)
+                {
+                    var distinctValues = await query
+                        .Select(distinct)
+                        .Distinct()
+                        .ToDynamicListAsync();
+
+                    var filteredValues = distinctValues
+                        .Where(val => val != null)
+                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
+                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .ToList();
+
+                    Response.Headers.Append("X-Total-Count", filteredValues.Count.ToString());
+
+                    IEnumerable<object> pageValues = filteredValues.Cast<object>();
+                    if (skip.HasValue && skip.Value > 0)
+                    {
+                        pageValues = pageValues.Skip(skip.Value);
+                    }
+
+                    if (top.HasValue && top.Value > 0)
+                    {
+                        pageValues = pageValues.Take(top.Value);
+                    }
+
+                    var distinctDtos = pageValues.Select(val =>
+                    {
+                        var dto = new UserListDto();
+                        propertyInfo.SetValue(dto, val);
+                        return dto;
+                    }).ToList();
+
+                    return Ok(distinctDtos);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(orderby))
+            {
+                try
+                {
+                    query = query.OrderBy(orderby);
+                }
+                catch
+                {
+                    query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.FullName).ThenBy(x => x.UserLogin);
+                }
+            }
+            else
+            {
+                query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.FullName).ThenBy(x => x.UserLogin);
+            }
+
+            if (skip.HasValue && skip.Value > 0)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (top.HasValue && top.Value > 0)
+            {
+                query = query.Take(top.Value);
+            }
+
+            var page = await query.ToListAsync();
+            page = await _userNameResolver.WithUserNamesAsync(page, _unitOfWork.VPPContext);
+
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+
+            return Ok(page);
         }
 
         [HttpDelete("groups/{id:guid}")]

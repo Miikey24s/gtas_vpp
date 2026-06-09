@@ -14,7 +14,7 @@ namespace gtas_vpp_be.Model.Library
         public string? VPPCode { get; set; }
         public string? VPPName { get; set; }
         public Guid UOMId { get; set; }
-        public L02_ClassDetail UOM { get; set; }
+        public L02_ClassDetail UOM { get; set; } = default!;
         public Guid VPPCategoryId { get; set; }
         public L03_VPPCategory? VPPCategory { get; set; }
         public virtual ICollection<L06_VPPSupplierMapping>? L06_VPPSupplierMappings { get; set; }

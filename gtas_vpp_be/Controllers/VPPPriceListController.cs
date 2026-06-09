@@ -3,6 +3,7 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -21,11 +22,32 @@ namespace gtas_vpp_be.Controllers
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
 
         [HttpGet]
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List(
+            [FromQuery] bool? showDeleted = false,
+            [FromQuery] string? filter = null,
+            [FromQuery] int? skip = null,
+            [FromQuery] int? top = null,
+            [FromQuery] string? orderby = null,
+            [FromQuery] string? distinct = null,
+            [FromQuery] string? distinctFilter = null)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            return Ok(await _priceListService.ListAsync());
+            var isGridRequest = !string.IsNullOrWhiteSpace(filter)
+                                || skip.HasValue
+                                || top.HasValue
+                                || !string.IsNullOrWhiteSpace(orderby)
+                                || !string.IsNullOrWhiteSpace(distinct)
+                                || !string.IsNullOrWhiteSpace(distinctFilter);
+
+            if (isGridRequest)
+            {
+                var result = await _priceListService.QueryAsync(showDeleted == true, filter, skip, top, orderby, distinct, distinctFilter);
+                Response.Headers.Append("X-Total-Count", result.TotalCount.ToString());
+                return Ok(result.Data);
+            }
+
+            return Ok(await _priceListService.ListAsync(showDeleted == true));
         }
 
         [HttpGet("{id:guid}")]
@@ -60,6 +82,30 @@ namespace gtas_vpp_be.Controllers
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
             await _priceListService.DeleteAsync(id, CurrentUserId.Value);
+            return NoContent();
+        }
+
+        [HttpPatch("{id:guid}/deleted")]
+        public async Task<IActionResult> SetDeleted(Guid id, [FromBody] JsonElement payload)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            if (!payload.TryGetProperty("isDeleted", out var isDeletedJson)
+                && !payload.TryGetProperty("IsDeleted", out isDeletedJson))
+            {
+                return BadRequest(new { Message = "IsDeleted is required." });
+            }
+
+            var result = await _priceListService.SetDeletedAsync(id, isDeletedJson.GetBoolean(), CurrentUserId.Value);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id:guid}/hard")]
+        public async Task<IActionResult> HardDelete(Guid id)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            await _priceListService.HardDeleteAsync(id);
             return NoContent();
         }
 

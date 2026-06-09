@@ -70,6 +70,10 @@ namespace gtas_vpp_be.Controllers
                 {
                     "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
                     "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, distinctFilter, classId, isShowDeleted),
+                    "l03" => await GetTableDataWithFilteringAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "l04" => await GetVppItemsWithFilteringAsync(filter, skip, top, orderby, distinct, distinctFilter, isShowDeleted),
+                    "l05" => await GetTableDataWithFilteringAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "l06" => await GetTableDataWithFilteringAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
                     "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
                     _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
                 };
@@ -115,8 +119,10 @@ namespace gtas_vpp_be.Controllers
 
         private async Task<IActionResult> GetVppItemsAsync(Guid? id, string cleanSearch, bool showDeleted = false)
         {
-            var vppQuery = _unitOfWork.VPPContext.Set<L04_VPP>()
-                .AsNoTracking();
+            IQueryable<L04_VPP> vppQuery = _unitOfWork.VPPContext.Set<L04_VPP>()
+                .AsNoTracking()
+                .Include(x => x.UOM)
+                .Include(x => x.VPPCategory);
 
             if (!showDeleted)
             {
@@ -196,11 +202,213 @@ namespace gtas_vpp_be.Controllers
                     VPPCategoryId = x.VPPCategoryId,
                     DefaultVatRate = VppPricingDefaults.VatRate,
                     DefaultPrice = priceInfo?.Price,
-                    DefaultSupplierName = priceInfo?.SupplierName
+                    DefaultSupplierName = priceInfo?.SupplierName,
+                    UOM = x.UOM == null ? null : new L02_ClassDetailResDTO
+                    {
+                        Id = x.UOM.Id,
+                        Description = x.UOM.Description,
+                        CreateUserId = x.UOM.CreateUserId,
+                        CreateDate = x.UOM.CreateDate,
+                        UpdateUserId = x.UOM.UpdateUserId,
+                        UpdateDate = x.UOM.UpdateDate,
+                        IsDeleted = x.UOM.IsDeleted,
+                        ClassId = x.UOM.ClassId,
+                        ClassDetailCode = x.UOM.ClassDetailCode,
+                        ClassDetailValue = x.UOM.ClassDetailValue,
+                        ExtraField1 = x.UOM.ExtraField1,
+                        ExtraField2 = x.UOM.ExtraField2,
+                        ExtraField3 = x.UOM.ExtraField3,
+                        Sort = x.UOM.Sort
+                    },
+                    VPPCategory = x.VPPCategory == null ? null : new L03_VPPCategoryResDTO
+                    {
+                        Id = x.VPPCategory.Id,
+                        Description = x.VPPCategory.Description,
+                        CreateUserId = x.VPPCategory.CreateUserId,
+                        CreateDate = x.VPPCategory.CreateDate,
+                        UpdateUserId = x.VPPCategory.UpdateUserId,
+                        UpdateDate = x.VPPCategory.UpdateDate,
+                        IsDeleted = x.VPPCategory.IsDeleted,
+                        VPPCategoryCode = x.VPPCategory.VPPCategoryCode,
+                        VPPCategoryName = x.VPPCategory.VPPCategoryName
+                    }
                 };
             }).ToList();
 
             return Ok(dtoList);
+        }
+
+        private async Task<IActionResult> GetVppItemsWithFilteringAsync(
+            string? filter,
+            int? skip,
+            int? top,
+            string? orderby,
+            string? distinct,
+            string? distinctFilter,
+            bool showDeleted = false)
+        {
+            try
+            {
+                var defaultPriceListId = await GetDefaultPriceListIdAsync();
+                var baseQuery = _unitOfWork.VPPContext.Set<L04_VPP>().AsNoTracking();
+
+                if (!showDeleted)
+                {
+                    baseQuery = baseQuery.Where(x => !x.IsDeleted);
+                }
+
+                var query = baseQuery.Select(x => new L04_VPPResDTO
+                {
+                    Id = x.Id,
+                    Description = x.Description,
+                    CreateUserId = x.CreateUserId,
+                    CreateDate = x.CreateDate,
+                    UpdateUserId = x.UpdateUserId,
+                    UpdateDate = x.UpdateDate,
+                    IsDeleted = x.IsDeleted,
+                    VPPCode = x.VPPCode,
+                    VPPName = x.VPPName,
+                    UOMId = x.UOMId,
+                    VPPCategoryId = x.VPPCategoryId,
+                    DefaultVatRate = VppPricingDefaults.VatRate,
+                    DefaultPrice = x.L06_VPPSupplierMappings!
+                        .Where(m => (showDeleted || !m.IsDeleted)
+                            && m.L07_PriceListId == defaultPriceListId
+                            && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
+                        .OrderByDescending(m => m.IsDefault)
+                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .Select(m => (decimal?)m.Price)
+                        .FirstOrDefault(),
+                    DefaultSupplierName = x.L06_VPPSupplierMappings!
+                        .Where(m => (showDeleted || !m.IsDeleted)
+                            && m.L07_PriceListId == defaultPriceListId
+                            && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
+                        .OrderByDescending(m => m.IsDefault)
+                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .Select(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .FirstOrDefault(),
+                    UOM = x.UOM == null ? null : new L02_ClassDetailResDTO
+                    {
+                        Id = x.UOM.Id,
+                        Description = x.UOM.Description,
+                        CreateUserId = x.UOM.CreateUserId,
+                        CreateDate = x.UOM.CreateDate,
+                        UpdateUserId = x.UOM.UpdateUserId,
+                        UpdateDate = x.UOM.UpdateDate,
+                        IsDeleted = x.UOM.IsDeleted,
+                        ClassId = x.UOM.ClassId,
+                        ClassDetailCode = x.UOM.ClassDetailCode,
+                        ClassDetailValue = x.UOM.ClassDetailValue,
+                        ExtraField1 = x.UOM.ExtraField1,
+                        ExtraField2 = x.UOM.ExtraField2,
+                        ExtraField3 = x.UOM.ExtraField3,
+                        Sort = x.UOM.Sort
+                    },
+                    VPPCategory = x.VPPCategory == null ? null : new L03_VPPCategoryResDTO
+                    {
+                        Id = x.VPPCategory.Id,
+                        Description = x.VPPCategory.Description,
+                        CreateUserId = x.VPPCategory.CreateUserId,
+                        CreateDate = x.VPPCategory.CreateDate,
+                        UpdateUserId = x.VPPCategory.UpdateUserId,
+                        UpdateDate = x.VPPCategory.UpdateDate,
+                        IsDeleted = x.VPPCategory.IsDeleted,
+                        VPPCategoryCode = x.VPPCategory.VPPCategoryCode,
+                        VPPCategoryName = x.VPPCategory.VPPCategoryName
+                    }
+                });
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    try
+                    {
+                        query = query.Where(filter);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "VPP item filter parse failed");
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(distinct))
+                {
+                    var propertyInfo = typeof(L04_VPPResDTO).GetProperty(distinct);
+                    if (propertyInfo != null)
+                    {
+                        var distinctValues = await query
+                            .Select(distinct)
+                            .Distinct()
+                            .ToDynamicListAsync();
+
+                        var filteredValues = distinctValues
+                            .Where(val => val != null)
+                            .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
+                                || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                            .ToList();
+
+                        Response.Headers.Append("X-Total-Count", filteredValues.Count.ToString());
+
+                        IEnumerable<object> pageValues = filteredValues.Cast<object>();
+                        if (skip.HasValue && skip.Value > 0)
+                        {
+                            pageValues = pageValues.Skip(skip.Value);
+                        }
+
+                        if (top.HasValue && top.Value > 0)
+                        {
+                            pageValues = pageValues.Take(top.Value);
+                        }
+
+                        var distinctDtos = pageValues.Select(val =>
+                        {
+                            var dto = new L04_VPPResDTO();
+                            propertyInfo.SetValue(dto, val);
+                            return dto;
+                        }).ToList();
+
+                        return Ok(distinctDtos);
+                    }
+                }
+
+                var totalCount = await query.CountAsync();
+
+                if (!string.IsNullOrWhiteSpace(orderby))
+                {
+                    try
+                    {
+                        query = query.OrderBy(orderby);
+                    }
+                    catch
+                    {
+                        query = query.OrderBy(x => x.VPPCode);
+                    }
+                }
+                else
+                {
+                    query = query.OrderBy(x => x.VPPCode);
+                }
+
+                if (skip.HasValue && skip.Value > 0)
+                {
+                    query = query.Skip(skip.Value);
+                }
+
+                if (top.HasValue && top.Value > 0)
+                {
+                    query = query.Take(top.Value);
+                }
+
+                var dtoList = await query.ToListAsync();
+                Response.Headers.Append("X-Total-Count", totalCount.ToString());
+                return Ok(await _userNameResolver.WithUserNamesAsync(dtoList, _unitOfWork.VPPContext));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "VPP item query failed");
+                return BadRequest(new { Message = "An error occurred while processing VPP item data." });
+            }
         }
 
         private async Task<IActionResult> GetVppItemByIdAsync(Guid id, bool showDeleted = false)

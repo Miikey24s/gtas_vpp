@@ -20,6 +20,6 @@ namespace gtas_vpp_be.Model.VPP
         public string? LogTitle { get; set; }
 
         [ForeignKey("VPP01_RequestHeaderId")]
-        public virtual VPP01_RequestHeader VPP01_RequestHeader { get; set; }
+        public virtual VPP01_RequestHeader VPP01_RequestHeader { get; set; } = default!;
     }
 }
