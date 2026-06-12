@@ -63,6 +63,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 IsAdminUser = authState.User.Claims.GetBool(ClaimKeys.IsAdmin);
             }
         }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender && DataGrid is not null)
+            {
+                await DataGrid.Reload();
+            }
+
+            await base.OnAfterRenderAsync(firstRender);
+        }
+
         void OnUpdateRow(TType context)
         {
             if (context.Equals(item))
@@ -248,18 +259,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return isDeletedProp?.GetValue(context) is bool isDeleted && isDeleted;
         }
 
-        protected string GetIsDeletedBadgeClass(TType context)
-        {
-            return IsDeletedRow(context)
-                ? "vpp-admin-status-badge is-true"
-                : "vpp-admin-status-badge is-false";
-        }
-
-        protected string GetIsDeletedText(TType context)
-        {
-            return IsDeletedRow(context) ? "True" : "False";
-        }
-
         protected Task ReloadGridAsync()
         {
             return DataGrid.Reload();
@@ -292,8 +291,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
                 var endpoint = BuildGridEndpoint(
                     filter: args.Filter,
-                    skip: args.Skip,
-                    top: args.Top,
+                    skip: args.Skip ?? 0,
+                    top: args.Top ?? 20,
                     orderby: args.OrderBy);
 
                 var result = await ApiServices.GetFromApiWithTotalCountAsync<List<TType>>(endpoint);
@@ -338,13 +337,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             GridColumnPropertyAttribute? attr,
             TypeCode typeCode,
             bool isAuditProperty)
+            => GetColumnWidth(prop, attr, typeCode, isAuditProperty);
+
+        protected string GetColumnWidth(
+            PropertyInfo prop,
+            GridColumnPropertyAttribute? attr,
+            TypeCode typeCode,
+            bool isAuditProperty)
         {
             var desiredWidth = GetDesiredColumnWidth(prop, typeCode, isAuditProperty);
             var configuredWidth = ParsePxWidth(attr?.Width);
+            var effectiveWidth = Math.Max(desiredWidth, configuredWidth ?? 150);
 
-            return configuredWidth.HasValue && configuredWidth.Value > desiredWidth
-                ? $"{configuredWidth.Value}px"
-                : $"{desiredWidth}px";
+            return $"{effectiveWidth}px";
         }
 
         protected static IEnumerable<PropertyInfo> GetOrderedGridProperties()
@@ -434,12 +439,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
             if (typeCode == TypeCode.Boolean || prop.Name.StartsWith("Is", StringComparison.OrdinalIgnoreCase))
             {
-                return prop.Name.Equals("IsDeleted", StringComparison.OrdinalIgnoreCase) ? 118 : 100;
+                return prop.Name.Equals("IsDeleted", StringComparison.OrdinalIgnoreCase) ? 150 : 112;
             }
 
             if (prop.Name.Contains("Description", StringComparison.OrdinalIgnoreCase))
             {
-                return 180;
+                return 210;
             }
 
             if (prop.Name.Equals("DefaultSupplierName", StringComparison.OrdinalIgnoreCase))
@@ -465,18 +470,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
             if (prop.Name.Contains("ShortName", StringComparison.OrdinalIgnoreCase))
             {
-                return 132;
+                return 150;
             }
 
             if (prop.Name.EndsWith("Code", StringComparison.OrdinalIgnoreCase) ||
                 prop.Name.Contains("Code", StringComparison.OrdinalIgnoreCase))
             {
-                return 132;
+                return 150;
             }
 
             if (prop.Name.EndsWith("Name", StringComparison.OrdinalIgnoreCase))
             {
-                return 170;
+                return 190;
             }
 
             if (isAuditProperty)
@@ -488,8 +493,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
                 TypeCode.Decimal or TypeCode.Double or TypeCode.Single or
                 TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or
-                TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 => 110,
-                _ => 140
+                TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 => 112,
+                _ => 150
             };
         }
 
@@ -569,7 +574,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private int GetGridMinWidth()
         {
-            var width = CanModifyGrid ? 146 : 50;
+            var width = CanModifyGrid ? 164 : 52;
             foreach (var prop in GetOrderedGridProperties())
             {
                 var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
@@ -580,11 +585,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
                 if (GetColumnVisible(prop, attr, isAuditProperty, isDeletedProperty))
                 {
-                    width += Math.Max(GetDesiredColumnWidth(prop, typeCode, isAuditProperty), ParsePxWidth(attr?.Width) ?? 0);
+                    width += ParsePxWidth(GetColumnWidth(prop, attr, typeCode, isAuditProperty)) ?? 150;
                 }
             }
 
-            return Math.Clamp(width, 760, 1360);
+            return Math.Max(width, 860);
         }
 
         private static string GetTableCode()

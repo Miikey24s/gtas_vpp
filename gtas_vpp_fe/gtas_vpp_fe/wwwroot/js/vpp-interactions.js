@@ -5,6 +5,47 @@
 
     window.vppInteractionsInitialized = true;
 
+    function prefersReducedMotion() {
+        return window.matchMedia
+            && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    window.vppTheme = {
+        apply: function (theme) {
+            var nextTheme = theme || "material3";
+            var shouldUseDark = nextTheme.indexOf("dark") !== -1;
+
+            function applyThemeClass() {
+                document.documentElement.classList.toggle("rz-theme-dark", shouldUseDark);
+                document.cookie = "VPPTheme=" + encodeURIComponent(nextTheme) + "; path=/; max-age=31536000";
+            }
+
+            if (document.startViewTransition && !prefersReducedMotion()) {
+                document.startViewTransition(applyThemeClass);
+                return;
+            }
+
+            applyThemeClass();
+        }
+    };
+
+    window.vppLanguage = {
+        prepareSwitch: function () {
+            if (prefersReducedMotion()) {
+                return Promise.resolve();
+            }
+
+            document.documentElement.classList.add("vpp-culture-changing");
+            window.setTimeout(function () {
+                document.documentElement.classList.remove("vpp-culture-changing");
+            }, 500);
+
+            return new Promise(function (resolve) {
+                window.setTimeout(resolve, 140);
+            });
+        }
+    };
+
     function closeOrderCodePopovers(exceptCell) {
         document.querySelectorAll(".vpp-order-code-cell.is-open").forEach(function (cell) {
             if (cell === exceptCell) {

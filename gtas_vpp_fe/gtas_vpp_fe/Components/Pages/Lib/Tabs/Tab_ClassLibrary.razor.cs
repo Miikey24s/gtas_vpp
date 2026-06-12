@@ -80,15 +80,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
                 }
                 
-                if (args.Skip.HasValue)
-                {
-                    queryParams.Add($"skip={args.Skip.Value}");
-                }
-                
-                if (args.Top.HasValue)
-                {
-                    queryParams.Add($"top={args.Top.Value}");
-                }
+                queryParams.Add($"skip={args.Skip ?? 0}");
+                queryParams.Add($"top={args.Top ?? 20}");
                 
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {
@@ -273,15 +266,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
                 }
                 
-                if (args.Skip.HasValue)
-                {
-                    queryParams.Add($"skip={args.Skip.Value}");
-                }
-                
-                if (args.Top.HasValue)
-                {
-                    queryParams.Add($"top={args.Top.Value}");
-                }
+                queryParams.Add($"skip={args.Skip ?? 0}");
+                queryParams.Add($"top={args.Top ?? 20}");
                 
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {

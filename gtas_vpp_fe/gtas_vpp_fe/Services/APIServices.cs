@@ -149,12 +149,21 @@ namespace gtas_vpp_fe.Services
             await EnsureSuccessWithDetailsAsync(response);
 
             var totalCount = 0;
-            if (response.Headers.TryGetValues("X-Total-Count", out var headerValues))
+            var hasTotalCountHeader = false;
+            if (response.Headers.TryGetValues("X-Total-Count", out var headerValues)
+                && int.TryParse(headerValues.FirstOrDefault(), out var parsedTotalCount))
             {
-                int.TryParse(headerValues.FirstOrDefault(), out totalCount);
+                totalCount = parsedTotalCount;
+                hasTotalCountHeader = true;
             }
 
             var data = await ReadResponseAsJsonAsync<T>(response);
+            var fallbackCount = TryGetCollectionCount(data);
+            if ((!hasTotalCountHeader || totalCount == 0) && fallbackCount > 0)
+            {
+                totalCount = fallbackCount.Value;
+            }
+
             return (data, totalCount);
         }
 
@@ -245,6 +254,32 @@ namespace gtas_vpp_fe.Services
             });
         }
 
+        private static int? TryGetCollectionCount<T>(T? data)
+        {
+            if (data is null || data is string)
+            {
+                return null;
+            }
+
+            if (data is System.Collections.ICollection collection)
+            {
+                return collection.Count;
+            }
+
+            if (data is System.Collections.IEnumerable enumerable)
+            {
+                var count = 0;
+                foreach (var _ in enumerable)
+                {
+                    count++;
+                }
+
+                return count;
+            }
+
+            return null;
+        }
+
         public async Task<bool> DeleteFromApiAsync(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
@@ -253,4 +288,3 @@ namespace gtas_vpp_fe.Services
         }
     }
 }
-

@@ -109,6 +109,8 @@
 /* ── Colors: Dark Mode ───────────────────────────────────────── */
 :root,
 .rz-theme-dark {
+    color-scheme: dark;
+
     /* Primary — Bright Blue */
     --vpp-primary-50: #E0F2FE;
     --vpp-primary-100: #BAE6FD;
@@ -167,6 +169,8 @@
 
 /* ── Colors: Light Mode ───────────────────────────────────────── */
 :root:not(.rz-theme-dark) {
+    color-scheme: light;
+
     --vpp-bg-base: #F7F8F9;
     --vpp-bg-elevated: #FFFFFF;
     --vpp-bg-surface: #FFFFFF;

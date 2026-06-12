@@ -49,11 +49,11 @@
                 IsLoading="@IsLoading"
                 GridLines="DataGridGridLines.Horizontal"
                 class="auto-fit-grid vpp-admin-grid"
-                Style="--vpp-admin-grid-min-width: 920px; height: min(720px, calc(100vh - 175px));"
+                Style="--vpp-admin-grid-min-width: 1120px; height: min(720px, calc(100vh - 175px));"
                 TItem="P02_GroupResDTO"
                 @bind-Value="selected_Group"
                 Data="@list_Group"
-                ColumnWidth="132px"
+                ColumnWidth="150px"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                 RowDoubleClick="@OnGroupRowDoubleClick">
     <HeaderTemplate>
@@ -117,9 +117,9 @@
                                                     FilterMode="FilterMode.CheckBoxList"
                                                     FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                                     SelectionMode="DataGridSelectionMode.Single"
-                                                    ColumnWidth="132px"
+                                                    ColumnWidth="150px"
                                                     class="auto-fit-grid vpp-admin-grid"
-                                                    Style="--vpp-admin-grid-min-width: 1040px;"
+                                                    Style="--vpp-admin-grid-min-width: 1320px;"
                                                     TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
                                                     Data="@item.List_Component"
                                                     @ref=@child_grid
@@ -127,12 +127,12 @@
                                                     RowRender="@OnRowRenderComponent"
                                                     RowDoubleClick="@OnComponentRowDoubleClick">
                                         <Columns>
-                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="#" Width="48px" MinWidth="48px" HeaderCssClass="rz-col-index" CssClass="rz-col-index" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" TextAlign="TextAlign.Center">
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Title="#" Width="52px" MinWidth="52px" HeaderCssClass="rz-col-index" CssClass="rz-col-index" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" TextAlign="TextAlign.Center">
                                                 <Template Context="childdata">
                                                     @(item.List_Component.IndexOf(childdata) + 1)
                                                 </Template>
                                             </RadzenDataGridColumn>
-                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="118px" MinWidth="118px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsDeleted)" Title="@Loc["IsDeleted"]" HeaderCssClass="rz-col-isdeleted" CssClass="rz-col-isdeleted" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="150px" MinWidth="150px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsDeleted)" Title="@Loc["IsDeleted"]" HeaderCssClass="rz-col-isdeleted" CssClass="rz-col-isdeleted" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
                                                 <Template Context="comdata">
                                                     <span class="@(comdata.IsDeleted ? "vpp-admin-status-badge is-true" : "vpp-admin-status-badge is-false")">
                                                         @(comdata.IsDeleted ? "True" : "False")
@@ -142,12 +142,12 @@
                                             <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="140px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentCode)" Title="@Loc["ComponentCode"]" />
                                             <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="170px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentName)" Title="@Loc["ComponentName"]" />
                                             <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="190px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.Description)" Title="@Loc["Description"]" />
-                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="92px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsVisible)" Title="@Loc["Visible"]" HeaderCssClass="text-center" CssClass="text-center">
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="112px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsVisible)" Title="@Loc["Visible"]" HeaderCssClass="text-center" CssClass="text-center">
                                                 <Template Context="comdata">
                                                     <RadzenSwitch @bind-Value=comdata.IsVisible Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && y.IsVisible))" />
                                                 </Template>
                                             </RadzenDataGridColumn>
-                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="92px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsEnable)" Title="@Loc["Enable"]" HeaderCssClass="text-center" CssClass="text-center" Visible="@(!item.PageCode?.Equals("0000") ?? false)">
+                                            <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component" Width="112px" Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsEnable)" Title="@Loc["Enable"]" HeaderCssClass="text-center" CssClass="text-center" Visible="@(!item.PageCode?.Equals("0000") ?? false)">
                                                 <Template Context="comdata">
                                                     <RadzenSwitch @bind-Value=comdata.IsEnable Change="@(arg => SwitchOnChange(comdata))" Style="flex: unset" Disabled="@(!sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.ComponentCode?.Equals(Permissions.PermissionComponent) == true && y.IsVisible))" />
                                                 </Template>
@@ -177,7 +177,7 @@
         </RadzenRow>
     </Template>
     <Columns>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="#" Width="48px" MinWidth="48px" HeaderCssClass="rz-col-index" CssClass="rz-col-index" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Title="#" Width="52px" MinWidth="52px" HeaderCssClass="rz-col-index" CssClass="rz-col-index" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" TextAlign="TextAlign.Center">
             <Template Context="data">
                 @(currentGroupSkip + list_Group.IndexOf(data) + 1)
             </Template>
@@ -193,7 +193,7 @@
                 <RadzenTextBox @bind-Value="data.GroupName" Name="GroupName" aria-label="Enter group name" Style="width: 100%;" />
             </EditTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="P02_GroupResDTO" Width="118px" MinWidth="118px" Title="@Loc["IsDeleted"]" HeaderCssClass="rz-col-isdeleted" CssClass="rz-col-isdeleted" Property="@nameof(P02_GroupResDTO.IsDeleted)" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="P02_GroupResDTO" Width="150px" MinWidth="150px" Title="@Loc["IsDeleted"]" HeaderCssClass="rz-col-isdeleted" CssClass="rz-col-isdeleted" Property="@nameof(P02_GroupResDTO.IsDeleted)" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
             <Template Context="data">
                 <div class="vpp-admin-is-deleted-cell">
                     <span class="@(data.IsDeleted ? "vpp-admin-status-badge is-true" : "vpp-admin-status-badge is-false")">
@@ -224,7 +224,7 @@
                 <RadzenTextBox @bind-Value="data.Description" Name="Description" aria-label="Enter description" Style="width: 100%;" />
             </EditTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" HeaderCssClass="rz-col-actions" CssClass="rz-col-actions" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn Title="@Loc["Actions"]" Width="112px" MinWidth="112px" Filterable="false" Groupable="false" Pickable="false" Reorderable="false" Sortable="false" HeaderCssClass="rz-col-actions" CssClass="rz-col-actions" TextAlign="TextAlign.Center">
             <Template Context="data">
                 <div class="vpp-admin-actions">
                     <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Click="@(args => EditRow(data))" @onclick:stopPropagation="true" Disabled="@isEditing" />

@@ -123,7 +123,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L06_VPPItemPriceResDTO>>(
-                    BuildPriceRowsEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
+                    BuildPriceRowsEndpoint(args.Filter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy));
 
                 displayItems = result.Data ?? [];
                 priceCount = result.TotalCount;

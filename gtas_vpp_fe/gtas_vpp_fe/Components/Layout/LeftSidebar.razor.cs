@@ -143,15 +143,9 @@ namespace gtas_vpp_fe.Components.Layout
             ThemeState.SetTheme(newTheme);
             ThemeService.SetTheme(newTheme);
             
-            // Set cookie chỉ khi không prerendering
             if (!_isPrerendering)
             {
-                var themeClassScript = LightTheme
-                    ? "document.documentElement.classList.remove('rz-theme-dark');"
-                    : "document.documentElement.classList.add('rz-theme-dark');";
-
-                await JSRuntime.InvokeVoidAsync("eval", themeClassScript);
-                await JSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'VPPTheme={newTheme}; path=/; max-age=31536000'");
+                await ApplyBrowserThemeAsync(newTheme);
             }
         }
         protected async Task LoadAuthenticationState()
@@ -231,7 +225,53 @@ namespace gtas_vpp_fe.Components.Layout
             var newCulture = currentCulture.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "vi" : "en";
             
             await ProtectedLocalStore.SetAsync("VPP_Language", newCulture);
+            await PrepareLanguageSwitchAsync();
             NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
+        }
+
+        private async Task ApplyBrowserThemeAsync(string newTheme)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("vppTheme.apply", newTheme);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+            catch (JSException)
+            {
+                var themeClassScript = newTheme.Contains("dark", StringComparison.OrdinalIgnoreCase)
+                    ? "document.documentElement.classList.add('rz-theme-dark');"
+                    : "document.documentElement.classList.remove('rz-theme-dark');";
+
+                await JSRuntime.InvokeVoidAsync("eval", themeClassScript);
+                await JSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'VPPTheme={newTheme}; path=/; max-age=31536000'");
+            }
+        }
+
+        private async Task PrepareLanguageSwitchAsync()
+        {
+            if (_isPrerendering)
+            {
+                return;
+            }
+
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("vppLanguage.prepareSwitch");
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+            catch (JSException)
+            {
+            }
         }
 
         public string GetUserInitials()

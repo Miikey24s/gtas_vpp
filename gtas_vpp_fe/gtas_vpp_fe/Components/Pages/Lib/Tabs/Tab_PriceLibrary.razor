@@ -2,8 +2,8 @@
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<RadzenStack Gap="1rem">
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap" class="vpp-admin-filterbar">
+<RadzenStack Gap="0.75rem" class="vpp-admin-workspace vpp-price-workspace">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap" class="vpp-admin-filterbar vpp-price-filterbar">
         <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
             <RadzenDropDown TValue="Guid?"
                             Data="@priceLists"
@@ -36,9 +36,12 @@
                            Style="width:100%" />
         </RadzenFormField>
         <RadzenButton Icon="refresh"
-                      Text="@Loc["Reload"]"
                       Size="ButtonSize.Small"
                       ButtonStyle="ButtonStyle.Light"
+                      Variant="Variant.Text"
+                      class="vpp-library-refresh-action"
+                      Title="@Loc["Reload"]"
+                      aria-label="@Loc["Reload"]"
                       Click="@LoadPricesAsync"
                       Disabled="@(!HasPriceListSelected)" />
     </RadzenStack>
@@ -73,11 +76,11 @@
                     AllowPickAllColumns="true"
                     ColumnsPickerAllowFiltering="true"
                     RowRender="@OnRowRenderPrice"
-                    class="vpp-admin-grid"
-                    ColumnWidth="132px"
-                    Style="--vpp-admin-grid-min-width: 1260px; height: min(680px, calc(100vh - 250px));">
+                    class="vpp-admin-grid vpp-admin-page-grid vpp-price-grid"
+                    ColumnWidth="150px"
+                    Style="--vpp-admin-grid-min-width: 1380px;">
         <Columns>
-            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Title="#" Width="48px" MinWidth="48px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
+            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Title="#" Width="52px" MinWidth="52px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                 <Template Context="row">
                     @(currentSkip + displayItems.IndexOf(row) + 1)
                 </Template>
@@ -98,19 +101,16 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="108px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="126px" TextAlign="TextAlign.Center">
                 <Template Context="row">
                     <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="118px" MinWidth="118px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
+            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
                 <Template Context="row">
                     @if (row.PriceMappingId.HasValue)
                     {
                         <div class="vpp-admin-is-deleted-cell">
-                            <span class="@(row.IsDeleted ? "vpp-admin-status-badge is-true" : "vpp-admin-status-badge is-false")">
-                                @(row.IsDeleted ? "True" : "False")
-                            </span>
                             <RadzenSwitch TValue="bool"
                                           Value="@row.IsDeleted"
                                           Change="@(async (bool value) => await SetDeletedPriceAsync(row, value))"
@@ -124,8 +124,8 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Property="Description" Title="@Loc["Description"]" Width="180px" />
-            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Title="@Loc["Actions"]" Width="118px" MinWidth="118px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
+            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" />
+            <RadzenDataGridColumn TItem="L06_VPPItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
                 <Template Context="row">
                     <div class="vpp-admin-actions">
                         <RadzenButton Icon="edit"

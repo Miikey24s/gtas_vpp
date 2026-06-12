@@ -22,7 +22,7 @@
                 AllowPaging="true"
                 PageSize="20"
                 PageSizeOptions="@(new int[] { 20, 50, 100 })"
-                ColumnWidth="132px"
+                ColumnWidth="150px"
                 GridLines="DataGridGridLines.Horizontal"
                 class="librarypagegrid library-share-grid vpp-admin-grid"
                 Style="@GridStyle"
@@ -47,19 +47,22 @@
                      Gap="0.5rem"
                      Wrap="FlexWrap.Wrap"
                      class="vpp-admin-grid-toolbar">
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
-                <RadzenButton Icon="add_circle"
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.375rem" class="vpp-library-actions">
+                <RadzenButton Icon="add"
                               Text="@Loc["Create"]"
                               ButtonStyle="ButtonStyle.Primary"
                               Size="ButtonSize.Small"
-                              class="consumptionaddbutton"
+                              class="consumptionaddbutton vpp-library-primary-action"
                               IsBusy="@glb.isBusyPage"
                               Click="@InsertRow"
                               Disabled="@onEdit" />
                 <RadzenButton Icon="refresh"
-                              Text="@Loc["Reload"]"
                               ButtonStyle="ButtonStyle.Light"
+                              Variant="Variant.Text"
                               Size="ButtonSize.Small"
+                              class="vpp-library-refresh-action"
+                              Title="@Loc["Reload"]"
+                              aria-label="@Loc["Reload"]"
                               Click="@ReloadGridAsync"
                               Disabled="@onEdit" />
             </RadzenStack>
@@ -67,7 +70,7 @@
     </HeaderTemplate>
 
     <Columns>
-        <RadzenDataGridColumn TItem="TType" Width="48px" MinWidth="48px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
+        <RadzenDataGridColumn TItem="TType" Width="52px" MinWidth="52px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
             <Template Context="context">
                 @(currentSkip + data.IndexOf(context) + 1)
             </Template>
@@ -78,7 +81,6 @@
             var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
             var typeCode = Type.GetTypeCode(effectiveType);
             var displayName = GetColumnDisplayName(prop, attr);
-            var width = attr?.Width;
             var isDeletedProperty = IsDeletedProperty(prop);
             var isAuditProperty = IsAuditProperty(prop);
             var isVisibleByDefault = GetColumnVisible(prop, attr, isAuditProperty, isDeletedProperty);
@@ -104,7 +106,7 @@
                 : (isNumeric ? "{0:N0}" : null);
             
             var isIgnored = attr?.Ignore ?? false;
-            var minWidth = GetColumnMinWidth(prop, attr, typeCode, isAuditProperty);
+            var columnWidth = GetColumnWidth(prop, attr, typeCode, isAuditProperty);
 
             if (!isIgnored || isAuditProperty)
             {
@@ -113,8 +115,8 @@
                     <RadzenDataGridColumn TItem="TType"
                                           Property="@prop.Name"
                                           Title="@Loc["IsDeleted"]"
-                                          Width="118px"
-                                          MinWidth="118px"
+                                          Width="90px"
+                                          MinWidth="90px"
                                           TextAlign="TextAlign.Center"
                                           Filterable="false"
                                           Sortable="false"
@@ -124,9 +126,6 @@
                                           Pickable="true">
                         <Template Context="context">
                             <div class="vpp-admin-is-deleted-cell">
-                                <span class="@GetIsDeletedBadgeClass(context)">
-                                    @GetIsDeletedText(context)
-                                </span>
                                 <RadzenSwitch TValue="bool"
                                               Value="@IsDeletedRow(context)"
                                               Change="@(async (bool value) => await SetDeletedStateAsync(context, value))"
@@ -137,9 +136,6 @@
                         </Template>
                         <EditTemplate Context="context">
                             <div class="vpp-admin-is-deleted-cell">
-                                <span class="@GetIsDeletedBadgeClass(context)">
-                                    @GetIsDeletedText(context)
-                                </span>
                                 <RadzenSwitch TValue="bool"
                                               Value="@IsDeletedRow(context)"
                                               Change="@(async (bool value) => await SetDeletedStateAsync(context, value))"
@@ -154,8 +150,8 @@
                 {
                     <RadzenDataGridColumn TItem="TType"
                                           Title=@(displayName)
-                                          Width=@width
-                                          MinWidth="@minWidth"
+                                          Width="@columnWidth"
+                                          MinWidth="@columnWidth"
                                           Filterable="false"
                                           Visible="@isVisibleByDefault"
                                           Pickable="true">
@@ -185,8 +181,8 @@
                                           TextAlign="@textAlign"
                                           Visible="@isVisibleByDefault"
                                           Pickable="true"
-                                          MinWidth="@minWidth"
-                                          Width=@width>
+                                          MinWidth="@columnWidth"
+                                          Width="@columnWidth">
                         <EditTemplate Context="context">
                             @if ((attr?.IsReadOnly ?? false) || isAuditProperty)
                             {
@@ -245,7 +241,7 @@
         }
         @if (CanModifyGrid)
         {
-            <RadzenDataGridColumn TItem="TType" Title="@Loc["Actions"]" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="96px" MinWidth="96px" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+            <RadzenDataGridColumn TItem="TType" Title="@Loc["Actions"]" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="112px" MinWidth="112px" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                 <Template Context="context">
                     <div class="vpp-admin-actions">
                         <RadzenButton Icon="edit"
@@ -278,7 +274,7 @@
 @code {
     public IList<TType> selected_item = new List<TType>();
 
-    private string GridStyle => $"--vpp-admin-grid-min-width: {GetGridMinWidth()}px; height: min(720px, calc(100vh - 175px));";
+    private string GridStyle => $"--vpp-admin-grid-min-width: {GetGridMinWidth()}px;";
 
     void ChangeDropdown(object args, TType context, System.Reflection.PropertyInfo prop)
     {

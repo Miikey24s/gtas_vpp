@@ -115,6 +115,11 @@ ul[role="tablist"]::-webkit-scrollbar {
     width: 100%;
 }
 
+/* A nested tab bar is navigation, not regular panel content. */
+.vpp-admin-tabs .rz-tabview-panel:has(.vpp-secondary-tabs) {
+    padding-top: 0;
+}
+
 .vpp-secondary-tabs .rz-tabview-nav-container {
     border-bottom: 1px solid var(--vpp-border-default);
     background: var(--vpp-bg-elevated);

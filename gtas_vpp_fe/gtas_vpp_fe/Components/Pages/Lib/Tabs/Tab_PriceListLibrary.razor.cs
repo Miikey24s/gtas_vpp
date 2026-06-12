@@ -29,6 +29,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         protected override Task OnInitializedAsync() => Task.CompletedTask;
 
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender && grid is not null)
+            {
+                await grid.Reload();
+            }
+
+            await base.OnAfterRenderAsync(firstRender);
+        }
+
         private async Task LoadAsync()
         {
             if (grid is not null)
@@ -44,7 +54,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             currentFilterExpression = args.Filter;
             try
             {
-                var endpoint = BuildPriceListEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy);
+                var endpoint = BuildPriceListEndpoint(args.Filter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L07_PriceListResDTO>>(endpoint);
                 priceLists = result.Data ?? [];
                 count = result.TotalCount;

@@ -68,7 +68,11 @@ body,
 .vpp-layout-body,
 .vpp-layout-sidebar,
 .vpp-layout-header,
+.vpp-header-glass,
+.vpp-sidebar,
 .vpp-content,
+.vpp-lang-switch,
+.vpp-theme-switch,
 .rz-tabview-nav-container,
 .rz-tabview-panel,
 .rz-data-grid,
@@ -76,18 +80,46 @@ body,
 .rz-grid-table td,
 .rz-paginator,
 .rz-button,
+.rz-card,
+.rz-panel,
+.rz-dialog,
+.rz-navigation-item-wrapper,
 .rz-dropdown,
 .rz-inputtext,
 .rz-form-field,
 .vpp-kpi-card,
 .vpp-admin-grid,
 .vpp-order-card,
-.vpp-data-card {
+.vpp-data-card,
+.vpp-settle-container,
+.vpp-settle-status-card {
     transition:
         background-color 160ms ease,
         border-color 160ms ease,
         color 160ms ease,
         box-shadow 160ms ease;
+}
+
+@supports (view-transition-name: root) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 180ms;
+        animation-timing-function: ease;
+    }
+}
+
+html.vpp-culture-changing .vpp-content {
+    animation: vpp-culture-settle 180ms ease both;
+}
+
+@keyframes vpp-culture-settle {
+    0% {
+        opacity: 0.98;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -101,7 +133,14 @@ body,
     .vpp-layout-body,
     .vpp-layout-sidebar,
     .vpp-layout-header,
+    .vpp-header-glass,
+    .vpp-sidebar,
     .vpp-content,
+    .vpp-lang-switch,
+    .vpp-theme-switch,
+    .vpp-lang-switch-thumb,
+    .vpp-lang-option,
+    .vpp-theme-icon,
     .rz-tabview-nav-container,
     .rz-tabview-panel,
     .rz-data-grid,
@@ -109,14 +148,21 @@ body,
     .rz-grid-table td,
     .rz-paginator,
     .rz-button,
+    .rz-card,
+    .rz-panel,
+    .rz-dialog,
+    .rz-navigation-item-wrapper,
     .rz-dropdown,
     .rz-inputtext,
     .rz-form-field,
     .vpp-kpi-card,
     .vpp-admin-grid,
     .vpp-order-card,
-    .vpp-data-card {
+    .vpp-data-card,
+    .vpp-settle-container,
+    .vpp-settle-status-card {
         transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
     }
 }
 
