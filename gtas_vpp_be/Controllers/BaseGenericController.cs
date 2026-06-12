@@ -40,21 +40,29 @@ namespace gtas_vpp_be.Controllers
             {
                 var filter = CombineExpressions(matchId, notDeletedFilter);
                 var dataById = await ReadEntitiesAsync(true, filter, include: orderBy);
-                var dtoList = dataById?.Adapt<List<TDto>>();
-                return Ok(dtoList ?? new List<TDto>());
+                var dtoList = dataById?.Adapt<List<TDto>>() ?? new List<TDto>();
+                AppendTotalCountHeader(dtoList.Count);
+                return Ok(dtoList);
             }
 
             if (!string.IsNullOrEmpty(cleanSearch) && matchSearch != null)
             {
                 var filter = CombineExpressions(matchSearch, notDeletedFilter);
                 var dataBySearch = await ReadEntitiesAsync(true, filter, include: orderBy);
-                var dtoList = dataBySearch?.Adapt<List<TDto>>();
-                return Ok(dtoList ?? new List<TDto>());
+                var dtoList = dataBySearch?.Adapt<List<TDto>>() ?? new List<TDto>();
+                AppendTotalCountHeader(dtoList.Count);
+                return Ok(dtoList);
             }
 
             var allData = await ReadEntitiesAsync<TModel>(true, filter: notDeletedFilter, include: orderBy, take: 1000);
-            var allDtoList = allData?.Adapt<List<TDto>>();
-            return Ok(allDtoList ?? new List<TDto>());
+            var allDtoList = allData?.Adapt<List<TDto>>() ?? new List<TDto>();
+            AppendTotalCountHeader(allDtoList.Count);
+            return Ok(allDtoList);
+        }
+
+        protected void AppendTotalCountHeader(int totalCount)
+        {
+            Response.Headers["X-Total-Count"] = totalCount.ToString();
         }
 
         private static Expression<Func<TModel, bool>>? GetNotDeletedFilter<TModel>() where TModel : class

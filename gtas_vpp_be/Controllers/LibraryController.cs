@@ -140,6 +140,7 @@ namespace gtas_vpp_be.Controllers
                                             || (x.VPPCode != null && x.VPPCode.Contains(cleanSearch)));
             }
 
+            var totalCount = await vppQuery.CountAsync();
             var vppList = await vppQuery
                 .OrderBy(x => x.VPPCode)
                 .Take(5000)
@@ -147,6 +148,7 @@ namespace gtas_vpp_be.Controllers
 
             if (!vppList.Any())
             {
+                Response.Headers["X-Total-Count"] = "0";
                 return Ok(new List<L04_VPPResDTO>());
             }
 
@@ -235,6 +237,7 @@ namespace gtas_vpp_be.Controllers
                 };
             }).ToList();
 
+            Response.Headers["X-Total-Count"] = totalCount.ToString();
             return Ok(dtoList);
         }
 
