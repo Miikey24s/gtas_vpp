@@ -1,0 +1,234 @@
+using FluentAssertions;
+using gtas_vpp_fe.UITests.Core;
+using Microsoft.Playwright;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace gtas_vpp_fe.UITests.Tests.Library;
+
+public class LibraryGridScrollTests : TestBase
+{
+    [Fact]
+    public async Task Category_Grid_Uses_Page_Scroll_Without_Header_Overlap()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}library?tab=1");
+
+        var grid = Page.Locator(".library-share-grid:visible");
+        var gridData = grid.Locator(".rz-data-grid-data");
+        await grid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await Page.WaitForTimeoutAsync(500);
+
+        var gridChrome = await grid.EvaluateAsync<string[]>("""
+            element => {
+                const style = getComputedStyle(element);
+                return [style.borderTopWidth, style.borderRadius, style.boxShadow, style.backgroundColor];
+            }
+            """);
+        gridChrome.Should().Equal("0px", "0px", "none", "rgba(0, 0, 0, 0)");
+
+        var edgeOffsets = await grid.EvaluateAsync<double[]>("""
+            element => {
+                const panel = element.closest('.rz-tabview-panel');
+                if (!panel) {
+                    throw new Error('Category grid tab panel was not rendered.');
+                }
+
+                const gridRect = element.getBoundingClientRect();
+                const panelRect = panel.getBoundingClientRect();
+                return [gridRect.left - panelRect.left, panelRect.right - gridRect.right];
+            }
+            """);
+        edgeOffsets[0].Should().BeApproximately(0, 0.5);
+        edgeOffsets[1].Should().BeApproximately(0, 0.5);
+
+        var toolbarAlignment = await grid.EvaluateAsync<double[]>("""
+            element => {
+                const header = element.querySelector('.rz-group-header');
+                const customHeader = element.querySelector('.rz-custom-header');
+                const picker = element.querySelector('.rz-column-picker');
+                if (!header || !customHeader || !picker) {
+                    throw new Error('Category toolbar or column picker was not rendered.');
+                }
+
+                const customRect = customHeader.getBoundingClientRect();
+                const pickerRect = picker.getBoundingClientRect();
+                return [
+                    header.getBoundingClientRect().height,
+                    Math.abs((customRect.top + customRect.height / 2) - (pickerRect.top + pickerRect.height / 2))
+                ];
+            }
+            """);
+        toolbarAlignment[0].Should().BeLessThan(60);
+        toolbarAlignment[1].Should().BeLessThan(5);
+
+        var createButton = grid.Locator(".vpp-library-primary-action");
+        var reloadButton = grid.Locator(".vpp-library-refresh-action");
+        await createButton.WaitForAsync();
+        await reloadButton.WaitForAsync();
+        (await createButton.InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
+        (await reloadButton.GetAttributeAsync("aria-label")).Should().NotBeNullOrWhiteSpace();
+
+        var actionWidths = await grid.EvaluateAsync<double[]>("""
+            element => {
+                const create = element.querySelector('.vpp-library-primary-action');
+                const reload = element.querySelector('.vpp-library-refresh-action');
+                if (!create || !reload) {
+                    throw new Error('Library actions were not rendered.');
+                }
+
+                return [create.getBoundingClientRect().width, reload.getBoundingClientRect().width];
+            }
+            """);
+        actionWidths[0].Should().BeGreaterThan(actionWidths[1]);
+        actionWidths[1].Should().BeApproximately(34, 1);
+
+        var actionAppearance = await reloadButton.EvaluateAsync<string[]>("""
+            element => {
+                const icon = element.querySelector('.rzi');
+                const style = getComputedStyle(element);
+                const iconStyle = icon ? getComputedStyle(icon) : null;
+                return [style.opacity, style.color, iconStyle?.opacity ?? '0'];
+            }
+            """);
+        actionAppearance[0].Should().Be("1");
+        actionAppearance[2].Should().Be("1");
+
+        var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
+        await deletedCells.First.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 15000
+        });
+        (await deletedCells.CountAsync()).Should().BeGreaterThan(0);
+        (await deletedCells.Locator(".vpp-admin-status-badge").CountAsync()).Should().Be(0);
+
+        var hasInternalVerticalScroll = await gridData.EvaluateAsync<bool>(
+            "element => element.scrollHeight > element.clientHeight + 1");
+        hasInternalVerticalScroll.Should().BeFalse();
+
+        var contentScroller = Page.Locator(".vpp-layout-body");
+        await contentScroller.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
+        await Page.WaitForTimeoutAsync(100);
+
+        var headerRowGap = await Page.EvaluateAsync<double>("""
+            () => {
+                const grid = document.querySelector('.library-share-grid');
+                const header = grid?.querySelector('thead');
+                const firstRow = grid?.querySelector('tbody > tr');
+                if (!header || !firstRow) {
+                    throw new Error('Category grid header or first row was not rendered.');
+                }
+
+                return firstRow.getBoundingClientRect().top - header.getBoundingClientRect().bottom;
+            }
+            """);
+
+        headerRowGap.Should().BeApproximately(0, 0.5);
+    }
+
+    [Fact]
+    public async Task Pricing_Grids_Use_Content_Height_And_Page_Scroll()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists");
+
+        var priceListGrid = Page.Locator(".vpp-price-list-workspace .vpp-admin-page-grid");
+        await priceListGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await Page.WaitForTimeoutAsync(500);
+
+        (await Page.Locator(".vpp-price-list-workspace .vpp-admin-section-title").CountAsync()).Should().Be(0);
+
+        var secondaryTabHostPadding = await Page.EvaluateAsync<double?>("""
+            () => {
+                const secondaryTabs = document.querySelector('.vpp-secondary-tabs');
+                if (!secondaryTabs) {
+                    return null;
+                }
+
+                const hostPanel = secondaryTabs.parentElement?.closest('.rz-tabview-panel');
+                if (!hostPanel) {
+                    throw new Error('Pricing tab host panel was not rendered.');
+                }
+
+                return parseFloat(getComputedStyle(hostPanel).paddingTop);
+            }
+            """);
+        if (secondaryTabHostPadding.HasValue)
+        {
+            secondaryTabHostPadding.Value.Should().BeLessThanOrEqualTo(0.5);
+        }
+
+        var priceListLayout = await priceListGrid.EvaluateAsync<double[]>("""
+            element => {
+                const pager = element.querySelector('.rz-paginator, .rz-pager');
+                return [
+                    element.getBoundingClientRect().height,
+                    parseFloat(getComputedStyle(element).borderTopWidth),
+                    pager && getComputedStyle(pager).display !== 'none' ? 1 : 0
+                ];
+            }
+            """);
+        priceListLayout[0].Should().BeLessThan(300);
+        priceListLayout[1].Should().Be(0);
+        priceListLayout[2].Should().Be(0);
+
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices");
+        var priceGrid = Page.Locator(".vpp-price-grid");
+        await priceGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await Page.WaitForTimeoutAsync(500);
+
+        var nestedVerticalScrollers = await priceGrid.EvaluateAsync<int>("""
+            element => [...element.querySelectorAll('*')].filter(child => {
+                const overflowY = getComputedStyle(child).overflowY;
+                return (overflowY === 'auto' || overflowY === 'scroll')
+                    && child.scrollHeight > child.clientHeight + 1;
+            }).length
+            """);
+        nestedVerticalScrollers.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Class_Definitions_Use_Compact_Master_Detail_Layout()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=0");
+
+        var split = Page.Locator(".vpp-admin-class-split");
+        var master = Page.Locator(".vpp-class-master-grid");
+        var detail = Page.Locator(".vpp-class-detail-grid");
+        await split.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await master.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await detail.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await master.Locator(".rz-data-grid-data").WaitForAsync();
+        await master.Locator(".vpp-class-master-cell").First.WaitForAsync();
+
+        var layout = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const split = document.querySelector('.vpp-admin-class-split');
+                const master = document.querySelector('.vpp-class-master-grid');
+                const detail = document.querySelector('.vpp-class-detail-grid');
+                const masterData = master?.querySelector('.rz-data-grid-data');
+                const masterTable = master?.querySelector('table');
+                if (!split || !master || !detail || !masterData || !masterTable) {
+                    throw new Error('Class master-detail layout was not rendered.');
+                }
+
+                return [
+                    getComputedStyle(split).flexDirection === 'row' ? 1 : 0,
+                    master.getBoundingClientRect().right <= detail.getBoundingClientRect().left ? 1 : 0,
+                    masterTable.scrollWidth - masterData.clientWidth
+                ];
+            }
+            """);
+        layout[0].Should().Be(1);
+        layout[1].Should().Be(1);
+        layout[2].Should().BeLessThanOrEqualTo(1);
+
+        await Page.SetViewportSizeAsync(1200, 768);
+        await Page.WaitForTimeoutAsync(200);
+        var compactDirection = await split.EvaluateAsync<string>("element => getComputedStyle(element).flexDirection");
+        compactDirection.Should().Be("column");
+    }
+}
