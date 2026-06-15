@@ -4,20 +4,9 @@ on:
   push:
     branches:
       - Nam
-  workflow_dispatch:
-    inputs:
-      source_repo:
-        description: Repository that triggered this deployment
-        required: false
-        type: string
-      source_sha:
-        description: Commit SHA that triggered this deployment
-        required: false
-        type: string
 
 env:
   REGISTRY: ghcr.io
-  SUBMODULE_BRANCH: Nam
   # Chuyển repository owner về chữ thường khi làm việc với Docker images
   IMAGE_NAME_BE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-backend
   IMAGE_NAME_FE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-frontend
@@ -41,21 +30,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: Nam
-          submodules: false
+          submodules: recursive
+          token: ${{ secrets.SUBMODULE_TOKEN }}
 
-      - name: Sync submodules to latest Nam
+      - name: Resolve checked-out commit SHAs
         id: submodule_state
         shell: bash
-        env:
-          SUBMODULE_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
-          SUBMODULE_BRANCH: ${{ env.SUBMODULE_BRANCH }}
         run: |
           set -euo pipefail
-
-          git config --global url."https://x-access-token:${SUBMODULE_TOKEN}@github.com/".insteadOf "https://github.com/"
-          git submodule sync --recursive
-          git submodule update --init --recursive
-          git -c protocol.version=2 submodule update --remote --recursive
 
           echo "root_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "be_sha=$(git -C gtas_vpp_be rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -63,15 +45,9 @@ jobs:
 
       - name: Print build context
         shell: bash
-        env:
-          SOURCE_REPO: ${{ github.event.inputs.source_repo }}
-          SOURCE_SHA: ${{ github.event.inputs.source_sha }}
         run: |
           set -euo pipefail
 
-          echo "Workflow event: $GITHUB_EVENT_NAME"
-          echo "Source repo: ${SOURCE_REPO:-${GITHUB_REPOSITORY}}"
-          echo "Source sha: ${SOURCE_SHA:-${{ steps.submodule_state.outputs.root_sha }}}"
           echo "Root commit: ${{ steps.submodule_state.outputs.root_sha }}"
           echo "Backend commit: ${{ steps.submodule_state.outputs.be_sha }}"
           echo "Frontend commit: ${{ steps.submodule_state.outputs.fe_sha }}"
