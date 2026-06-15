@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - master
-      - Nam
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
@@ -73,6 +68,9 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    concurrency:
+      group: gtas-vpp-production
+      cancel-in-progress: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -111,6 +109,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -euo pipefail
             cd /app/gtas-vpp
             
             # Đăng nhập vào GHCR trên VPS
@@ -120,9 +119,39 @@ jobs:
             export BE_IMAGE="${{ env.BE_IMAGE_LOWER }}:${{ github.sha }}"
             export FE_IMAGE="${{ env.FE_IMAGE_LOWER }}:${{ github.sha }}"
             
-            # Pull image mới nhất và restart container
+            # Pull the exact images built by this workflow.
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans --force-recreate
+
+            # Keep the database container stable between deployments.
+            docker compose -f docker-compose.prod.yml up -d db
+
+            # Apply schema/data changes before replacing the running application.
+            docker compose -f docker-compose.prod.yml run --rm migrator
+
+            # Replace backend only after migration succeeds.
+            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate backend
+
+            backend_status=""
+            for attempt in $(seq 1 60); do
+              backend_status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' gtas-vpp-backend 2>/dev/null || true)
+              if [ "$backend_status" = "healthy" ]; then
+                break
+              fi
+              if [ "$backend_status" = "unhealthy" ]; then
+                docker logs --tail 100 gtas-vpp-backend
+                exit 1
+              fi
+              sleep 2
+            done
+
+            if [ "$backend_status" != "healthy" ]; then
+              docker logs --tail 100 gtas-vpp-backend
+              echo "Backend did not become healthy in time."
+              exit 1
+            fi
+
+            # Frontend is replaced only after the new backend is healthy.
+            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate frontend
 
             # Apply host-level nginx cache/proxy changes when this VPS uses shared nginx.
             if command -v nginx >/dev/null 2>&1; then

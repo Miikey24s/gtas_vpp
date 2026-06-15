@@ -37,6 +37,32 @@ services:
     networks:
       - vpp-internal
 
+  # Runs schema migration and seed exactly once per deployment, then exits.
+  migrator:
+    image: ${BE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-backend:latest}
+    container_name: gtas-vpp-migrator
+    restart: "no"
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DatabaseSettings__DefaultEnvironment: "LiveEnv"
+      DatabaseInitialization__Mode: "MigrateAndSeed"
+      DatabaseInitialization__RunOnly: "true"
+      DatabaseInitialization__Environments__0: "LiveEnv"
+      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      JwtSettings__Key: "${JWT_KEY}"
+      JwtSettings__Issuer: "gtas_vpp_be"
+      JwtSettings__Audience: "gtas_vpp_clients"
+      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:-ttpsolutions}"
+    volumes:
+      - backend-logs:/app/logs:rw
+    networks:
+      - vpp-internal
+
   # ── Backend (.NET 10 Web API) ────────────────────────────
   backend:
     image: ${BE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-backend:latest}
@@ -48,7 +74,8 @@ services:
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"
-      ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      DatabaseSettings__DefaultEnvironment: "LiveEnv"
+      DatabaseInitialization__Mode: "None"
       ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
       JwtSettings__Key: "${JWT_KEY}"
       JwtSettings__Issuer: "gtas_vpp_be"

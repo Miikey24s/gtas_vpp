@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Newtonsoft.Json;
 using System.Net;
+using System.IdentityModel.Tokens.Jwt;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.ControllerTests;
@@ -50,6 +51,8 @@ public class AuthControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<sp_Authentication_Login>(okResult.Value);
         Assert.False(string.IsNullOrWhiteSpace(response.AccessToken));
+        var token = new JwtSecurityTokenHandler().ReadJwtToken(response.AccessToken);
+        Assert.Equal("Test", token.Claims.Single(claim => claim.Type == "Server").Value);
     }
 
     [Fact]
@@ -74,18 +77,50 @@ public class AuthControllerTests
         Assert.IsType<UnauthorizedObjectResult>(result);
     }
 
+    [Fact]
+    public async Task Login_TestServerInLiveOnlyEnvironment_ReturnsBadRequest()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var storedProcedureExecutor = new Mock<IStoredProcedureExecutor>();
+        var controller = CreateController(
+            context,
+            storedProcedureExecutor.Object,
+            defaultEnvironment: "LiveEnv",
+            includeTestEnvironment: false,
+            includeLiveEnvironment: true);
+
+        var result = await controller.Login(new AuthController.LoginRequest("tester", "secret", "Test"));
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        storedProcedureExecutor.VerifyNoOtherCalls();
+    }
+
     private static AuthController CreateController(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
-        IStoredProcedureExecutor storedProcedureExecutor)
+        IStoredProcedureExecutor storedProcedureExecutor,
+        string defaultEnvironment = "TestEnv",
+        bool includeTestEnvironment = true,
+        bool includeLiveEnvironment = false)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var configurationValues = new Dictionary<string, string?>
+        {
+            ["JwtSettings:Key"] = "TEST_JWT_KEY_FOR_AUTH_CONTROLLER_TESTS_2026",
+            ["JwtSettings:Issuer"] = "gtas_vpp_be",
+            ["JwtSettings:Audience"] = "gtas_vpp_clients",
+            ["DatabaseSettings:DefaultEnvironment"] = defaultEnvironment
+        };
+        if (includeTestEnvironment)
+        {
+            configurationValues["ConnectionStrings:TestEnv"] = "Server=test;Database=test;";
+        }
+        if (includeLiveEnvironment)
+        {
+            configurationValues["ConnectionStrings:LiveEnv"] = "Server=live;Database=live;";
+        }
+
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["JwtSettings:Key"] = "TEST_JWT_KEY_FOR_AUTH_CONTROLLER_TESTS_2026",
-                ["JwtSettings:Issuer"] = "gtas_vpp_be",
-                ["JwtSettings:Audience"] = "gtas_vpp_clients"
-            })
+            .AddInMemoryCollection(configurationValues)
             .Build();
 
         var controller = new AuthController(

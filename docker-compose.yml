@@ -56,11 +56,11 @@ services:
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"
-      # ── Database (cả TestEnv + LiveEnv trỏ cùng DB GTAS_VPP_LIVE) ──
-      # TestEnv: dùng cho EF Migration startup (Program.cs hardcode)
-      # LiveEnv: dùng runtime (EnvironmentResolver chọn qua JWT claim "Server")
+      DatabaseSettings__DefaultEnvironment: "TestEnv"
+      DatabaseInitialization__Mode: "MigrateAndSeed"
+      DatabaseInitialization__Environments__0: "TestEnv"
+      # Local/test only. LiveEnv is intentionally unavailable in this compose file.
       ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;Encrypt=False;"
-      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;Encrypt=False;"
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required and must be set.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
