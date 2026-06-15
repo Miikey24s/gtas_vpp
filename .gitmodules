@@ -1,6 +1,8 @@
 [submodule "gtas_vpp_fe"]
 	path = gtas_vpp_fe
 	url = https://github.com/ukduy/gtas_vpp_fe.git
+	branch = Nam
 [submodule "gtas_vpp_be"]
 	path = gtas_vpp_be
 	url = https://github.com/ukduy/gtas_vpp_be.git
+	branch = Nam

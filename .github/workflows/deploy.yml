@@ -4,9 +4,20 @@ on:
   push:
     branches:
       - Nam
+  workflow_dispatch:
+    inputs:
+      source_repo:
+        description: Repository that triggered this deployment
+        required: false
+        type: string
+      source_sha:
+        description: Commit SHA that triggered this deployment
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
+  SUBMODULE_BRANCH: Nam
   # Chuyển repository owner về chữ thường khi làm việc với Docker images
   IMAGE_NAME_BE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-backend
   IMAGE_NAME_FE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-frontend
@@ -14,16 +25,56 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    concurrency:
+      group: gtas-vpp-build-${{ github.workflow }}-${{ github.ref_name || 'Nam' }}
+      cancel-in-progress: true
     permissions:
       contents: read
       packages: write
+    outputs:
+      be_image_lower: ${{ steps.image_meta.outputs.be_image_lower }}
+      fe_image_lower: ${{ steps.image_meta.outputs.fe_image_lower }}
+      image_version: ${{ steps.image_meta.outputs.image_version }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout orchestration repo
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
-          token: ${{ secrets.SUBMODULE_TOKEN }}
+          ref: Nam
+          submodules: false
+
+      - name: Sync submodules to latest Nam
+        id: submodule_state
+        shell: bash
+        env:
+          SUBMODULE_TOKEN: ${{ secrets.SUBMODULE_TOKEN }}
+          SUBMODULE_BRANCH: ${{ env.SUBMODULE_BRANCH }}
+        run: |
+          set -euo pipefail
+
+          git config --global url."https://x-access-token:${SUBMODULE_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          git -c protocol.version=2 submodule update --remote --recursive
+
+          echo "root_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "be_sha=$(git -C gtas_vpp_be rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "fe_sha=$(git -C gtas_vpp_fe rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Print build context
+        shell: bash
+        env:
+          SOURCE_REPO: ${{ github.event.inputs.source_repo }}
+          SOURCE_SHA: ${{ github.event.inputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          echo "Workflow event: $GITHUB_EVENT_NAME"
+          echo "Source repo: ${SOURCE_REPO:-${GITHUB_REPOSITORY}}"
+          echo "Source sha: ${SOURCE_SHA:-${{ steps.submodule_state.outputs.root_sha }}}"
+          echo "Root commit: ${{ steps.submodule_state.outputs.root_sha }}"
+          echo "Backend commit: ${{ steps.submodule_state.outputs.be_sha }}"
+          echo "Frontend commit: ${{ steps.submodule_state.outputs.fe_sha }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -35,13 +86,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Convert repository names to lowercase
+      # Convert repository names to lowercase and create a unique image version per workflow run.
       - name: Resolve image tag names
-        id: image_names
+        id: image_meta
         shell: bash
+        env:
+          ROOT_SHA: ${{ steps.submodule_state.outputs.root_sha }}
+          BE_SHA: ${{ steps.submodule_state.outputs.be_sha }}
+          FE_SHA: ${{ steps.submodule_state.outputs.fe_sha }}
         run: |
+          set -euo pipefail
+
           echo "be_image_lower=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
           echo "fe_image_lower=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+          short_root="${ROOT_SHA:0:12}"
+          short_be="${BE_SHA:0:12}"
+          short_fe="${FE_SHA:0:12}"
+          image_version="run-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}-root-${short_root}-be-${short_be}-fe-${short_fe}"
+          echo "image_version=${image_version}" >> "$GITHUB_OUTPUT"
 
       # ── Build & Push Backend ──
       - name: Build and push Backend Image
@@ -50,8 +113,8 @@ jobs:
           context: ./gtas_vpp_be
           push: true
           tags: |
-            ${{ steps.image_names.outputs.be_image_lower }}:latest
-            ${{ steps.image_names.outputs.be_image_lower }}:${{ github.sha }}
+            ${{ steps.image_meta.outputs.be_image_lower }}:latest
+            ${{ steps.image_meta.outputs.be_image_lower }}:${{ steps.image_meta.outputs.image_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -62,8 +125,8 @@ jobs:
           context: ./gtas_vpp_fe
           push: true
           tags: |
-            ${{ steps.image_names.outputs.fe_image_lower }}:latest
-            ${{ steps.image_names.outputs.fe_image_lower }}:${{ github.sha }}
+            ${{ steps.image_meta.outputs.fe_image_lower }}:latest
+            ${{ steps.image_meta.outputs.fe_image_lower }}:${{ steps.image_meta.outputs.image_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -76,13 +139,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Resolve image tag names for Deploy
-        id: image_names
-        shell: bash
-        run: |
-          echo "be_image_lower=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-          echo "fe_image_lower=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+        with:
+          ref: Nam
 
       # 1. Kết nối SSH tạo thư mục app và ghi file .env
       - name: Configure environment on VPS
@@ -120,8 +178,8 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Pin deploy to this exact build instead of relying on a mutable latest tag.
-            export BE_IMAGE="${{ steps.image_names.outputs.be_image_lower }}:${{ github.sha }}"
-            export FE_IMAGE="${{ steps.image_names.outputs.fe_image_lower }}:${{ github.sha }}"
+            export BE_IMAGE="${{ needs.build-and-push.outputs.be_image_lower }}:${{ needs.build-and-push.outputs.image_version }}"
+            export FE_IMAGE="${{ needs.build-and-push.outputs.fe_image_lower }}:${{ needs.build-and-push.outputs.image_version }}"
             
             # Pull the exact images built by this workflow.
             docker compose -f docker-compose.prod.yml pull
