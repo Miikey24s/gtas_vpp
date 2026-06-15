@@ -53,7 +53,7 @@ services:
       DatabaseInitialization__Mode: "MigrateAndSeed"
       DatabaseInitialization__RunOnly: "true"
       DatabaseInitialization__Environments__0: "LiveEnv"
-      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStrings__LiveEnv: "Server=gtas-vpp-db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
       JwtSettings__Key: "${JWT_KEY}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
@@ -76,7 +76,7 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       DatabaseSettings__DefaultEnvironment: "LiveEnv"
       DatabaseInitialization__Mode: "None"
-      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStrings__LiveEnv: "Server=gtas-vpp-db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
       JwtSettings__Key: "${JWT_KEY}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
@@ -147,4 +147,5 @@ volumes:
 
 networks:
   vpp-internal:
-    driver: bridge
+    name: gtas-vpp-internal
+    external: true

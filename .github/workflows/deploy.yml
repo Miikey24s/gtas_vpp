@@ -149,6 +149,9 @@ jobs:
           script: |
             set -euo pipefail
             cd /app/gtas-vpp
+             COMPOSE_FILE=docker-compose.prod.yml
+             DB_CONTAINER=gtas-vpp-db
+             APP_NETWORK=gtas-vpp-internal
             
             # Đăng nhập vào GHCR trên VPS
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -158,16 +161,41 @@ jobs:
             export FE_IMAGE="${{ needs.build-and-push.outputs.fe_image_lower }}:${{ needs.build-and-push.outputs.image_version }}"
             
             # Pull the exact images built by this workflow.
-            docker compose -f docker-compose.prod.yml pull
+            docker compose -f "$COMPOSE_FILE" pull
 
-            # Keep the database container stable between deployments.
-            docker compose -f docker-compose.prod.yml up -d db
+            # Reuse the long-lived SQL Server container when it already exists on the VPS.
+            docker network inspect "$APP_NETWORK" >/dev/null 2>&1 || docker network create "$APP_NETWORK"
+            if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+              docker network connect "$APP_NETWORK" "$DB_CONTAINER" 2>/dev/null || true
+              docker start "$DB_CONTAINER" >/dev/null 2>&1 || true
+            else
+              docker compose -f "$COMPOSE_FILE" up -d db
+            fi
+
+            db_status=""
+            for attempt in $(seq 1 60); do
+              db_status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else if .State.Running}}running{{else}}stopped{{end}}' "$DB_CONTAINER" 2>/dev/null || true)
+              if [ "$db_status" = "healthy" ] || [ "$db_status" = "running" ]; then
+                break
+              fi
+              if [ "$db_status" = "unhealthy" ]; then
+                docker logs --tail 100 "$DB_CONTAINER"
+                exit 1
+              fi
+              sleep 2
+            done
+
+            if [ "$db_status" != "healthy" ] && [ "$db_status" != "running" ]; then
+              docker logs --tail 100 "$DB_CONTAINER" 2>/dev/null || true
+              echo "Database did not become ready in time."
+              exit 1
+            fi
 
             # Apply schema/data changes before replacing the running application.
-            docker compose -f docker-compose.prod.yml run --rm migrator
+            docker compose -f "$COMPOSE_FILE" run --rm --no-deps migrator
 
             # Replace backend only after migration succeeds.
-            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate backend
+            docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate backend
 
             backend_status=""
             for attempt in $(seq 1 60); do
@@ -189,7 +217,7 @@ jobs:
             fi
 
             # Frontend is replaced only after the new backend is healthy.
-            docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate frontend
+            docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate frontend
 
             # Apply host-level nginx cache/proxy changes when this VPS uses shared nginx.
             if command -v nginx >/dev/null 2>&1; then
@@ -199,7 +227,7 @@ jobs:
               sudo systemctl reload nginx
             fi
 
-            docker compose -f docker-compose.prod.yml ps
+            docker compose -f "$COMPOSE_FILE" ps
             
             # Xóa các image cũ không dùng để giải phóng bộ nhớ VPS
             docker image prune -f
