@@ -17,6 +17,7 @@ using Serilog;
 using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 var dotEnvValues = LoadDotEnvValues(builder.Environment.ContentRootPath);
@@ -36,6 +37,10 @@ if (localConnectionOverrides.Count > 0)
 }
 
 var Configuration = builder.Configuration;
+var defaultDatabaseEnvironment = GetDefaultDatabaseEnvironment(builder.Environment, Configuration);
+var defaultConnectionString = Configuration.GetConnectionString(defaultDatabaseEnvironment)
+    ?? throw new InvalidOperationException(
+        $"Connection string '{defaultDatabaseEnvironment}' is required for this environment.");
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -68,16 +73,15 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<VPPMigrationDbContext>(
     (sp, o) =>
     {
-        //var constr = Configuration.GetConnectionString("TestEnv");
-        var constr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
-        o.UseSqlServer(constr, action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
+        o.UseSqlServer(
+            defaultConnectionString,
+            action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
     }
 );
 builder.Services.AddDbContext<VPPContext>(
     (sp, o) =>
     {
-        var constr = Configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
-        o.UseSqlServer(constr);
+        o.UseSqlServer(defaultConnectionString);
     }
 );
 
@@ -171,59 +175,47 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
+var databaseInitializationMode = Configuration["DatabaseInitialization:Mode"]
+    ?? (builder.Environment.IsDevelopment() ? "MigrateAndSeed" : "None");
+var databaseInitializationOnly = Configuration.GetValue<bool>("DatabaseInitialization:RunOnly");
+var shouldMigrate = databaseInitializationMode.Equals("Migrate", StringComparison.OrdinalIgnoreCase)
+    || databaseInitializationMode.Equals("MigrateAndSeed", StringComparison.OrdinalIgnoreCase);
+var shouldSeed = databaseInitializationMode.Equals("MigrateAndSeed", StringComparison.OrdinalIgnoreCase);
+
+if (!shouldMigrate && !databaseInitializationMode.Equals("None", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException(
+        $"Unsupported DatabaseInitialization:Mode '{databaseInitializationMode}'. " +
+        "Expected None, Migrate, or MigrateAndSeed.");
+}
+
+if (databaseInitializationOnly && !shouldMigrate)
+{
+    throw new InvalidOperationException(
+        "DatabaseInitialization:RunOnly requires Mode=Migrate or Mode=MigrateAndSeed.");
+}
+
+if (shouldMigrate)
+{
+    await InitializeDatabasesAsync(Configuration, defaultDatabaseEnvironment, shouldSeed);
+}
+
+if (databaseInitializationOnly)
+{
+    Log.Information("Database initialization completed. Exiting migrator process.");
+    return;
+}
+
 app.UseForwardedHeaders();
 
 app.UseCors("AllowFrontend");
 app.UseResponseCompression();
-
-// WARNING: Running Migrate() automatically in Program.cs with multiple replicas (Docker Swarm/K8s) can cause race conditions.
-// The best solution is to use a separate container that only runs "dotnet ef database update" and then exits.
-// Below is the "safest possible" approach if kept in Program.cs: applying a Retry policy.
-var environments = new[] { Config.EnvType.TestEnv, Config.EnvType.LiveEnv };
-foreach (var env in environments)
-{
-    var constr = Configuration.GetConnectionString(env.ToString());
-    if (!string.IsNullOrEmpty(constr))
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<VPPMigrationDbContext>();
-        optionsBuilder.UseSqlServer(constr, action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
-
-        using var dbContext = new VPPMigrationDbContext(optionsBuilder.Options);
-        
-        int maxRetries = 5;
-        for (int retry = 0; retry < maxRetries; retry++)
-        {
-            try
-            {
-                // Add log to track progress in Docker logs
-                Console.WriteLine($"[Migration] Applying migration for environment {env}...");
-                dbContext.Database.Migrate();
-                await SeedData.Seed(dbContext);
-                Console.WriteLine($"[Migration] Environment {env} completed successfully.");
-                break;
-            }
-            catch (Exception ex)
-            {
-                if (retry == maxRetries - 1)
-                {
-                    Console.WriteLine($"[Migration] Migration for {env} failed after {maxRetries} attempts. Exception: {ex.Message}");
-                    throw;
-                }
-                Console.WriteLine($"[Migration] DB {env} is not ready, retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
-                await Task.Delay(5000);
-            }
-        }
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
-    // HTTPS redirection handled by Nginx reverse proxy in production
-    app.UseHttpsRedirection();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -235,6 +227,146 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+static async Task InitializeDatabasesAsync(
+    IConfiguration configuration,
+    string defaultDatabaseEnvironment,
+    bool shouldSeed)
+{
+    var configuredEnvironments = configuration
+        .GetSection("DatabaseInitialization:Environments")
+        .Get<string[]>()
+        ?.Where(environment => !string.IsNullOrWhiteSpace(environment))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
+    var environments = configuredEnvironments is { Length: > 0 }
+        ? configuredEnvironments
+        : new[] { defaultDatabaseEnvironment };
+
+    var targets = environments
+        .Select(environment => new
+        {
+            Environment = environment,
+            ConnectionString = configuration.GetConnectionString(environment)
+                ?? throw new InvalidOperationException(
+                    $"Connection string '{environment}' is required for database initialization.")
+        })
+        .GroupBy(
+            target => GetDatabaseIdentity(target.ConnectionString),
+            StringComparer.OrdinalIgnoreCase)
+        .Select(group => new
+        {
+            Environments = string.Join(", ", group.Select(target => target.Environment)),
+            ConnectionString = group.First().ConnectionString
+        });
+
+    foreach (var target in targets)
+    {
+        const int maxRetries = 5;
+        for (var retry = 0; retry < maxRetries; retry++)
+        {
+            try
+            {
+                await using var migrationLock = await AcquireMigrationLockAsync(target.ConnectionString);
+                var optionsBuilder = new DbContextOptionsBuilder<VPPMigrationDbContext>();
+                optionsBuilder.UseSqlServer(
+                    target.ConnectionString,
+                    action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
+
+                await using var dbContext = new VPPMigrationDbContext(optionsBuilder.Options);
+                Console.WriteLine($"[Migration] Applying migration for environment(s) {target.Environments}...");
+                await dbContext.Database.MigrateAsync();
+                if (shouldSeed)
+                {
+                    await SeedData.Seed(dbContext);
+                }
+
+                Console.WriteLine($"[Migration] Environment(s) {target.Environments} completed successfully.");
+                break;
+            }
+            catch (Exception ex)
+            {
+                if (retry == maxRetries - 1)
+                {
+                    Console.WriteLine(
+                        $"[Migration] Migration for {target.Environments} failed after {maxRetries} attempts. " +
+                        $"Exception: {ex.Message}");
+                    throw;
+                }
+
+                Console.WriteLine(
+                    $"[Migration] DB {target.Environments} is not ready, " +
+                    $"retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
+                await Task.Delay(5000);
+            }
+        }
+    }
+}
+
+static string GetDatabaseIdentity(string connectionString)
+{
+    var builder = new SqlConnectionStringBuilder(connectionString);
+    return $"{builder.DataSource}|{builder.InitialCatalog}";
+}
+
+static string GetDefaultDatabaseEnvironment(IHostEnvironment environment, IConfiguration configuration)
+{
+    var configuredEnvironment = configuration["DatabaseSettings:DefaultEnvironment"];
+    var databaseEnvironment = string.IsNullOrWhiteSpace(configuredEnvironment)
+        ? environment.IsDevelopment()
+            ? nameof(Config.EnvType.TestEnv)
+            : nameof(Config.EnvType.LiveEnv)
+        : configuredEnvironment;
+
+    if (!Enum.TryParse<Config.EnvType>(databaseEnvironment, ignoreCase: true, out var parsedEnvironment))
+    {
+        throw new InvalidOperationException(
+            $"Unsupported DatabaseSettings:DefaultEnvironment '{databaseEnvironment}'. " +
+            $"Expected {nameof(Config.EnvType.TestEnv)} or {nameof(Config.EnvType.LiveEnv)}.");
+    }
+
+    return parsedEnvironment.ToString();
+}
+
+static async Task<SqlConnection> AcquireMigrationLockAsync(string connectionString)
+{
+    var builder = new SqlConnectionStringBuilder(connectionString);
+    var databaseName = builder.InitialCatalog;
+    builder.InitialCatalog = "master";
+
+    var connection = new SqlConnection(builder.ConnectionString);
+    await connection.OpenAsync();
+
+    try
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            DECLARE @result int;
+            EXEC @result = sys.sp_getapplock
+                @Resource = @resource,
+                @LockMode = 'Exclusive',
+                @LockOwner = 'Session',
+                @LockTimeout = 120000;
+            SELECT @result;
+            """;
+        command.Parameters.AddWithValue("@resource", $"GTAS_VPP_SCHEMA_INIT:{databaseName}");
+
+        var result = Convert.ToInt32(await command.ExecuteScalarAsync());
+        if (result < 0)
+        {
+            throw new InvalidOperationException(
+                $"Could not acquire the database migration lock for {databaseName}. SQL result: {result}.");
+        }
+
+        return connection;
+    }
+    catch
+    {
+        await connection.DisposeAsync();
+        throw;
+    }
+}
 
 static Dictionary<string, string?> LoadDotEnvValues(string contentRootPath)
 {
@@ -298,7 +430,6 @@ static Dictionary<string, string?> GetLocalDevelopmentConnectionOverrides(IHostE
 
     return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
     {
-        [$"ConnectionStrings:{nameof(Config.EnvType.TestEnv)}"] = localDockerConnection,
-        [$"ConnectionStrings:{nameof(Config.EnvType.LiveEnv)}"] = localDockerConnection
+        [$"ConnectionStrings:{nameof(Config.EnvType.TestEnv)}"] = localDockerConnection
     };
 }

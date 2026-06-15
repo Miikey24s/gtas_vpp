@@ -420,89 +420,49 @@ namespace gtas_vpp_be.Controllers
                 .Include(x => x.P02_Group)
                 .Include(x => x.LEX02_CompanyDepartmentLocation);
 
-            IQueryable<UserListDto> query = hasSearch
-                ? from user in usersQuery
-                  join userGroup in userGroupsQuery on user.UserID equals userGroup.UserId into userGroupJoin
-                  from userGroup in userGroupJoin.DefaultIfEmpty()
-                  select new UserListDto
-                  {
-                      Id = userGroup == null ? Guid.Empty : userGroup.Id,
-                      UserId = user.UserID,
-                      UserLogin = user.UserLogin,
-                      FullName = user.FullName,
-                      Email = user.EmailAddress1,
-                      GoogleEmail = user.GoogleEmail,
-                      IsAdmin = userGroup != null
-                                && userGroup.P02_Group != null
-                                && (userGroup.P02_Group.GroupName == "Admin" || userGroup.P02_Group.GroupName == "Administrator"),
-                      GroupId = userGroup == null ? Guid.Empty : userGroup.P02_GroupId,
-                      GroupName = userGroup == null || userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
-                      CreateUserId = userGroup == null ? 0 : userGroup.CreateUserId,
-                      CreateDate = userGroup == null ? null : userGroup.CreateDate,
-                      UpdateUserId = userGroup == null ? 0 : userGroup.UpdateUserId,
-                      UpdateDate = userGroup == null ? null : userGroup.UpdateDate,
-                      IsDeleted = userGroup != null && userGroup.IsDeleted,
-                      TypeOfUser = userGroup == null ? "GTAS User" : "Transportation User",
-                      Description = userGroup == null ? null : userGroup.Description,
-                      DepartmentName = userGroup == null || userGroup.LEX02_CompanyDepartmentLocation == null
-                          ? user.DepartmentCode
-                          : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
-                      L05_DepartmentId = userGroup == null ? null : userGroup.LEX02_CompanyDepartmentLocationId,
-                      UserGroup = userGroup == null || userGroup.P02_Group == null
-                          ? null
-                          : new AuthGroupDto
-                          {
-                              Id = userGroup.P02_Group.Id,
-                              GroupName = userGroup.P02_Group.GroupName,
-                              ParentGroupId = userGroup.P02_Group.ParentGroupId,
-                              Description = userGroup.P02_Group.Description,
-                              CreateUserId = userGroup.P02_Group.CreateUserId,
-                              CreateDate = userGroup.P02_Group.CreateDate,
-                              UpdateUserId = userGroup.P02_Group.UpdateUserId,
-                              UpdateDate = userGroup.P02_Group.UpdateDate,
-                              IsDeleted = userGroup.P02_Group.IsDeleted
-                          }
-                  }
-                : from userGroup in userGroupsQuery
-                  join user in usersQuery on userGroup.UserId equals user.UserID
-                  select new UserListDto
-                  {
-                      Id = userGroup.Id,
-                      UserId = user.UserID,
-                      UserLogin = user.UserLogin,
-                      FullName = user.FullName,
-                      Email = user.EmailAddress1,
-                      GoogleEmail = user.GoogleEmail,
-                      IsAdmin = userGroup.P02_Group != null
-                                && (userGroup.P02_Group.GroupName == "Admin" || userGroup.P02_Group.GroupName == "Administrator"),
-                      GroupId = userGroup.P02_GroupId,
-                      GroupName = userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
-                      CreateUserId = userGroup.CreateUserId,
-                      CreateDate = userGroup.CreateDate,
-                      UpdateUserId = userGroup.UpdateUserId,
-                      UpdateDate = userGroup.UpdateDate,
-                      IsDeleted = userGroup.IsDeleted,
-                      TypeOfUser = "Transport User",
-                      Description = userGroup.Description,
-                      DepartmentName = userGroup.LEX02_CompanyDepartmentLocation == null
-                          ? user.DepartmentCode
-                          : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
-                      L05_DepartmentId = userGroup.LEX02_CompanyDepartmentLocationId,
-                      UserGroup = userGroup.P02_Group == null
-                          ? null
-                          : new AuthGroupDto
-                          {
-                              Id = userGroup.P02_Group.Id,
-                              GroupName = userGroup.P02_Group.GroupName,
-                              ParentGroupId = userGroup.P02_Group.ParentGroupId,
-                              Description = userGroup.P02_Group.Description,
-                              CreateUserId = userGroup.P02_Group.CreateUserId,
-                              CreateDate = userGroup.P02_Group.CreateDate,
-                              UpdateUserId = userGroup.P02_Group.UpdateUserId,
-                              UpdateDate = userGroup.P02_Group.UpdateDate,
-                              IsDeleted = userGroup.P02_Group.IsDeleted
-                          }
-                  };
+            IQueryable<UserListDto> query =
+                from user in usersQuery
+                join userGroup in userGroupsQuery on user.UserID equals userGroup.UserId into userGroupJoin
+                from userGroup in userGroupJoin.DefaultIfEmpty()
+                select new UserListDto
+                {
+                    Id = userGroup == null ? Guid.Empty : userGroup.Id,
+                    UserId = user.UserID,
+                    UserLogin = user.UserLogin,
+                    FullName = user.FullName,
+                    Email = user.EmailAddress1,
+                    GoogleEmail = user.GoogleEmail,
+                    IsAdmin = userGroup != null
+                              && userGroup.P02_Group != null
+                              && (userGroup.P02_Group.GroupName == "Admin" || userGroup.P02_Group.GroupName == "Administrator"),
+                    GroupId = userGroup == null ? Guid.Empty : userGroup.P02_GroupId,
+                    GroupName = userGroup == null || userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
+                    CreateUserId = userGroup == null ? 0 : userGroup.CreateUserId,
+                    CreateDate = userGroup == null ? null : userGroup.CreateDate,
+                    UpdateUserId = userGroup == null ? 0 : userGroup.UpdateUserId,
+                    UpdateDate = userGroup == null ? null : userGroup.UpdateDate,
+                    IsDeleted = userGroup != null && userGroup.IsDeleted,
+                    TypeOfUser = userGroup == null ? "GTAS User" : "Transportation User",
+                    Description = userGroup == null ? null : userGroup.Description,
+                    DepartmentName = userGroup == null || userGroup.LEX02_CompanyDepartmentLocation == null
+                        ? user.DepartmentCode
+                        : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
+                    L05_DepartmentId = userGroup == null ? null : userGroup.LEX02_CompanyDepartmentLocationId,
+                    UserGroup = userGroup == null || userGroup.P02_Group == null
+                        ? null
+                        : new AuthGroupDto
+                        {
+                            Id = userGroup.P02_Group.Id,
+                            GroupName = userGroup.P02_Group.GroupName,
+                            ParentGroupId = userGroup.P02_Group.ParentGroupId,
+                            Description = userGroup.P02_Group.Description,
+                            CreateUserId = userGroup.P02_Group.CreateUserId,
+                            CreateDate = userGroup.P02_Group.CreateDate,
+                            UpdateUserId = userGroup.P02_Group.UpdateUserId,
+                            UpdateDate = userGroup.P02_Group.UpdateDate,
+                            IsDeleted = userGroup.P02_Group.IsDeleted
+                        }
+                };
 
             if (!string.IsNullOrWhiteSpace(filter))
             {

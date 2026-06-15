@@ -61,6 +61,10 @@ namespace gtas_vpp_be.Controllers
             if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest(new { message = "Username and password are required." });
 
+            var server = ResolveAvailableServer(request.Server);
+            if (server == null)
+                return BadRequest(new { message = "The requested server is not available in this environment." });
+
             try
             {
                 var result = await LoginWithTripleDesAsync(request.Username, request.Password);
@@ -75,7 +79,7 @@ namespace gtas_vpp_be.Controllers
 
                 await LoadDepartmentLocationAsync(loginData);
 
-                loginData.AccessToken = GenerateAccessToken(loginData, request.Server);
+                loginData.AccessToken = GenerateAccessToken(loginData, server);
 
                 Serilog.Log.Information("Login success: User={Username}, IP={IP}", request.Username, HttpContext.Connection.RemoteIpAddress);
 
@@ -183,6 +187,27 @@ namespace gtas_vpp_be.Controllers
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string? ResolveAvailableServer(string? requestedServer)
+        {
+            var requestedEnvironment = requestedServer?.Trim() switch
+            {
+                var value when value?.Equals("Test", StringComparison.OrdinalIgnoreCase) == true => "TestEnv",
+                var value when value?.Equals("Live", StringComparison.OrdinalIgnoreCase) == true => "LiveEnv",
+                null or "" => _configuration["DatabaseSettings:DefaultEnvironment"] ?? "TestEnv",
+                _ => null
+            };
+
+            if (requestedEnvironment == null
+                || string.IsNullOrWhiteSpace(_configuration.GetConnectionString(requestedEnvironment)))
+            {
+                return null;
+            }
+
+            return requestedEnvironment.Equals("LiveEnv", StringComparison.OrdinalIgnoreCase)
+                ? "Live"
+                : "Test";
         }
 
         public record LoginRequest(string Username, string Password, string? Server = null);

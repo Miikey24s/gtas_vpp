@@ -17,6 +17,8 @@ namespace gtas_vpp_be.Service.Services
     {
         // ── Constants ──────────────────────────────────────────────
         private const int DefaultUserId = 5615;
+        // Bump this value whenever SQL seed files or C# seed definitions change.
+        private const string SeedVersion = "2026-06-12-performance-1";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
         private static readonly Guid AdminGroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C");
         private static readonly Guid UserGroupId  = Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596");
@@ -80,6 +82,13 @@ namespace gtas_vpp_be.Service.Services
         // ════════════════════════════════════════════════════════════
         public static async Task Seed(VPPMigrationDbContext context)
         {
+            await EnsureSeedHistoryTableAsync(context);
+            if (await IsSeedVersionAppliedAsync(context))
+            {
+                Log.Information("[SeedData] Seed version {SeedVersion} already applied. Skipping.", SeedVersion);
+                return;
+            }
+
             Log.Information("[SeedData] Starting database seeding...");
 
             // ── PHASE 1: Infrastructure SQL ──────────────────────
@@ -107,7 +116,53 @@ namespace gtas_vpp_be.Service.Services
             await SeedP05_PageComponentMapping(context);
             await SeedP06_GroupPageComponentMapping(context);
 
+            await MarkSeedVersionAppliedAsync(context);
+
             Log.Information("[SeedData] Database seeding completed.");
+        }
+
+        private static Task EnsureSeedHistoryTableAsync(VPPMigrationDbContext context)
+        {
+            return context.Database.ExecuteSqlRawAsync("""
+                IF OBJECT_ID(N'[dbo].[__GTASSeedHistory]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [dbo].[__GTASSeedHistory]
+                    (
+                        [SeedVersion] nvarchar(128) NOT NULL
+                            CONSTRAINT [PK___GTASSeedHistory] PRIMARY KEY,
+                        [AppliedUtc] datetime2 NOT NULL
+                    );
+                END
+                """);
+        }
+
+        private static async Task<bool> IsSeedVersionAppliedAsync(VPPMigrationDbContext context)
+        {
+            var count = await context.Database
+                .SqlQuery<int>($"""
+                    SELECT COUNT(*) AS [Value]
+                    FROM [dbo].[__GTASSeedHistory]
+                    WHERE [SeedVersion] = {SeedVersion}
+                    """)
+                .SingleAsync();
+
+            return count > 0;
+        }
+
+        private static Task MarkSeedVersionAppliedAsync(VPPMigrationDbContext context)
+        {
+            return context.Database.ExecuteSqlInterpolatedAsync($"""
+                IF NOT EXISTS
+                (
+                    SELECT 1
+                    FROM [dbo].[__GTASSeedHistory]
+                    WHERE [SeedVersion] = {SeedVersion}
+                )
+                BEGIN
+                    INSERT INTO [dbo].[__GTASSeedHistory] ([SeedVersion], [AppliedUtc])
+                    VALUES ({SeedVersion}, SYSUTCDATETIME());
+                END
+                """);
         }
 
         /// <summary>
@@ -183,14 +238,13 @@ namespace gtas_vpp_be.Service.Services
                          && !x.IsDeleted)
                 .ToListAsync();
 
-            foreach (var mapping in activeMappings.Where(x => x.IsDefault))
+            foreach (var mapping in activeMappings.Where(x =>
+                         x.IsDefault && x.L05_VPPSupplierId != hcmSupplier.Id))
             {
                 mapping.IsDefault = false;
                 mapping.UpdateUserId = DefaultUserId;
                 mapping.UpdateDate = now;
             }
-
-            await context.SaveChangesAsync();
 
             var hcmMappings = activeMappings
                 .Where(x => x.L05_VPPSupplierId == hcmSupplier.Id)
@@ -256,20 +310,26 @@ namespace gtas_vpp_be.Service.Services
                     continue;
                 }
 
+                var mappingChanged = false;
                 if (priceRow != null && mapping.Price != priceRow.Price)
                 {
                     mapping.Price = priceRow.Price;
                     updatedPriceCount++;
+                    mappingChanged = true;
                 }
 
                 if (!mapping.IsDefault)
                 {
                     defaultedCount++;
+                    mapping.IsDefault = true;
+                    mappingChanged = true;
                 }
 
-                mapping.IsDefault = true;
-                mapping.UpdateUserId = DefaultUserId;
-                mapping.UpdateDate = now;
+                if (mappingChanged)
+                {
+                    mapping.UpdateUserId = DefaultUserId;
+                    mapping.UpdateDate = now;
+                }
             }
 
             await context.SaveChangesAsync();
