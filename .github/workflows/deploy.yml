@@ -149,9 +149,11 @@ jobs:
           script: |
             set -euo pipefail
             cd /app/gtas-vpp
-             COMPOSE_FILE=docker-compose.prod.yml
-             DB_CONTAINER=gtas-vpp-db
-             APP_NETWORK=gtas-vpp-internal
+            COMPOSE_FILE=docker-compose.prod.yml
+            DB_CONTAINER=gtas-vpp-db
+            BACKEND_CONTAINER=gtas-vpp-backend
+            FRONTEND_CONTAINER=gtas-vpp-frontend
+            APP_NETWORK=gtas-vpp-internal
             
             # Đăng nhập vào GHCR trên VPS
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -195,28 +197,30 @@ jobs:
             docker compose -f "$COMPOSE_FILE" run --rm --no-deps migrator
 
             # Replace backend only after migration succeeds.
+            docker rm -f "$BACKEND_CONTAINER" >/dev/null 2>&1 || true
             docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate backend
 
             backend_status=""
             for attempt in $(seq 1 60); do
-              backend_status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' gtas-vpp-backend 2>/dev/null || true)
+              backend_status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$BACKEND_CONTAINER" 2>/dev/null || true)
               if [ "$backend_status" = "healthy" ]; then
                 break
               fi
               if [ "$backend_status" = "unhealthy" ]; then
-                docker logs --tail 100 gtas-vpp-backend
+                docker logs --tail 100 "$BACKEND_CONTAINER"
                 exit 1
               fi
               sleep 2
             done
 
             if [ "$backend_status" != "healthy" ]; then
-              docker logs --tail 100 gtas-vpp-backend
+              docker logs --tail 100 "$BACKEND_CONTAINER"
               echo "Backend did not become healthy in time."
               exit 1
             fi
 
             # Frontend is replaced only after the new backend is healthy.
+            docker rm -f "$FRONTEND_CONTAINER" >/dev/null 2>&1 || true
             docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate frontend
 
             # Apply host-level nginx cache/proxy changes when this VPS uses shared nginx.
