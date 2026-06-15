@@ -3,7 +3,7 @@ name: Build and Deploy to DigitalOcean
 on:
   push:
     branches:
-      - master
+      - Nam
 
 env:
   REGISTRY: ghcr.io
@@ -36,10 +36,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Convert repository names to lowercase
-      - name: Inject image tag names
+      - name: Resolve image tag names
+        id: image_names
+        shell: bash
         run: |
-          echo "BE_IMAGE_LOWER=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "FE_IMAGE_LOWER=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "be_image_lower=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          echo "fe_image_lower=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       # ── Build & Push Backend ──
       - name: Build and push Backend Image
@@ -48,8 +50,8 @@ jobs:
           context: ./gtas_vpp_be
           push: true
           tags: |
-            ${{ env.BE_IMAGE_LOWER }}:latest
-            ${{ env.BE_IMAGE_LOWER }}:${{ github.sha }}
+            ${{ steps.image_names.outputs.be_image_lower }}:latest
+            ${{ steps.image_names.outputs.be_image_lower }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -60,8 +62,8 @@ jobs:
           context: ./gtas_vpp_fe
           push: true
           tags: |
-            ${{ env.FE_IMAGE_LOWER }}:latest
-            ${{ env.FE_IMAGE_LOWER }}:${{ github.sha }}
+            ${{ steps.image_names.outputs.fe_image_lower }}:latest
+            ${{ steps.image_names.outputs.fe_image_lower }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -75,10 +77,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Inject image tag names for Deploy
+      - name: Resolve image tag names for Deploy
+        id: image_names
+        shell: bash
         run: |
-          echo "BE_IMAGE_LOWER=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "FE_IMAGE_LOWER=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "be_image_lower=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          echo "fe_image_lower=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       # 1. Kết nối SSH tạo thư mục app và ghi file .env
       - name: Configure environment on VPS
@@ -116,8 +120,8 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Pin deploy to this exact build instead of relying on a mutable latest tag.
-            export BE_IMAGE="${{ env.BE_IMAGE_LOWER }}:${{ github.sha }}"
-            export FE_IMAGE="${{ env.FE_IMAGE_LOWER }}:${{ github.sha }}"
+            export BE_IMAGE="${{ steps.image_names.outputs.be_image_lower }}:${{ github.sha }}"
+            export FE_IMAGE="${{ steps.image_names.outputs.fe_image_lower }}:${{ github.sha }}"
             
             # Pull the exact images built by this workflow.
             docker compose -f docker-compose.prod.yml pull
