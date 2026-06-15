@@ -12,14 +12,15 @@
                           class="vpp-library-primary-action"
                           Click="@AddAsync" />
             <RadzenButton Icon="refresh"
+                          Text="@Loc["Reload"]"
                           Size="ButtonSize.Small"
                           ButtonStyle="ButtonStyle.Light"
-                          Variant="Variant.Text"
                           class="vpp-library-refresh-action"
                           Title="@Loc["Reload"]"
                           aria-label="@Loc["Reload"]"
                           Click="@LoadAsync" />
         </RadzenStack>
+        <VppColumnPicker TItem="L07_PriceListResDTO" GridAccessor="@(() => grid)" />
     </RadzenStack>
 
     <RadzenDataGrid @ref="grid"
@@ -41,7 +42,7 @@
                     FilterPopupRenderMode="PopupRenderMode.OnDemand"
                     LogicalFilterOperator="LogicalFilterOperator.And"
                     AllowColumnResize="true"
-                    AllowColumnPicking="true"
+                    AllowColumnPicking="false"
                     AllowPickAllColumns="true"
                     ColumnsPickerAllowFiltering="true"
                     RowRender="@OnRowRenderPriceList"

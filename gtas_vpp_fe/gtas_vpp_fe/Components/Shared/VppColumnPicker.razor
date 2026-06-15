@@ -1,0 +1,191 @@
+@typeparam TItem where TItem : notnull
+@using System.Reflection
+
+<div class="vpp-column-picker-shell">
+    <button type="button"
+            class="vpp-column-picker-trigger"
+            popovertarget="@PopoverId"
+            style="anchor-name: @AnchorName"
+            aria-label="@Loc["VisibleColumns"]">
+        <span class="material-symbols-outlined" aria-hidden="true">view_column</span>
+        <span>@Loc["Columns"]</span>
+        <span class="vpp-column-picker-count">@VisibleCount</span>
+        <span class="material-symbols-outlined vpp-column-picker-chevron" aria-hidden="true">expand_more</span>
+    </button>
+
+    <div id="@PopoverId"
+         class="vpp-column-picker-popover"
+         popover="auto"
+         style="position-anchor: @AnchorName">
+        <div class="vpp-column-picker-heading">
+            <div>
+                <strong>@Loc["VisibleColumns"]</strong>
+                <span>@string.Format(Loc["SelectedColumnsCount"], VisibleCount, PickableColumns.Count)</span>
+            </div>
+            <button type="button"
+                    class="vpp-column-picker-close"
+                    popovertarget="@PopoverId"
+                    popovertargetaction="hide"
+                    aria-label="@Loc["Close"]">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+        </div>
+
+        <label class="vpp-column-picker-search">
+            <span class="material-symbols-outlined" aria-hidden="true">search</span>
+            <input value="@searchText"
+                   @oninput="OnSearchChanged"
+                   placeholder="@Loc["SearchColumns"]"
+                   aria-label="@Loc["SearchColumns"]" />
+        </label>
+
+        <div class="vpp-column-picker-list">
+            @foreach (var column in FilteredColumns)
+            {
+                var isVisible = column.GetVisible();
+                var isLastVisible = isVisible && VisibleCount == 1;
+
+                <label class="vpp-column-picker-option @(isVisible ? "is-selected" : null)">
+                    <input type="checkbox"
+                           checked="@isVisible"
+                           disabled="@isLastVisible"
+                           @onchange="@(args => SetColumnVisibilityAsync(column, args))" />
+                    <span class="vpp-column-picker-checkbox" aria-hidden="true">
+                        <span class="material-symbols-outlined">check</span>
+                    </span>
+                    <span class="vpp-column-picker-label" title="@GetColumnTitle(column)">@GetColumnTitle(column)</span>
+                </label>
+            }
+
+            @if (FilteredColumns.Count == 0)
+            {
+                <div class="vpp-column-picker-empty">@Loc["NoMatchingColumns"]</div>
+            }
+        </div>
+
+        <div class="vpp-column-picker-footer">
+            <button type="button" class="vpp-column-picker-reset" @onclick="ResetAsync" disabled="@(!CanReset)">
+                <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+                <span>@Loc["Reset"]</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly MethodInfo? SetVisibleMethod = typeof(RadzenDataGridColumn<TItem>)
+        .GetMethod("SetVisible", BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly PropertyInfo? VisibleProperty = typeof(RadzenDataGridColumn<TItem>)
+        .GetProperty(nameof(RadzenDataGridColumn<TItem>.Visible));
+
+    private readonly Dictionary<RadzenDataGridColumn<TItem>, bool> initialVisibility = [];
+    private readonly string instanceId = Guid.NewGuid().ToString("N");
+    private string searchText = string.Empty;
+    private int knownColumnCount = -1;
+
+    [Parameter]
+    public Func<RadzenDataGrid<TItem>?>? GridAccessor { get; set; }
+
+    private RadzenDataGrid<TItem>? Grid => GridAccessor?.Invoke();
+    private string PopoverId => $"vpp-column-picker-{instanceId}";
+    private string AnchorName => $"--vpp-column-picker-{instanceId}";
+
+    private List<RadzenDataGridColumn<TItem>> PickableColumns => Grid?.ColumnsCollection
+        .Where(column => column.Pickable)
+        .ToList() ?? [];
+
+    private List<RadzenDataGridColumn<TItem>> FilteredColumns => PickableColumns
+        .Where(column => string.IsNullOrWhiteSpace(searchText)
+            || GetColumnTitle(column).Contains(searchText, StringComparison.CurrentCultureIgnoreCase))
+        .ToList();
+
+    private int VisibleCount => PickableColumns.Count(column => column.GetVisible());
+
+    private bool CanReset => PickableColumns.Any(column =>
+        initialVisibility.TryGetValue(column, out var wasVisible) && column.GetVisible() != wasVisible);
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        var columns = PickableColumns;
+        if (columns.Count == knownColumnCount)
+        {
+            return;
+        }
+
+        knownColumnCount = columns.Count;
+        foreach (var column in columns)
+        {
+            initialVisibility.TryAdd(column, column.GetVisible());
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSearchChanged(ChangeEventArgs args)
+    {
+        searchText = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task SetColumnVisibilityAsync(RadzenDataGridColumn<TItem> column, ChangeEventArgs args)
+    {
+        var isVisible = args.Value is bool value && value;
+        if (!isVisible && VisibleCount == 1)
+        {
+            return;
+        }
+
+        SetColumnVisibility(column, isVisible);
+        await RefreshGridAsync();
+    }
+
+    private async Task ResetAsync()
+    {
+        foreach (var column in PickableColumns)
+        {
+            if (initialVisibility.TryGetValue(column, out var isVisible))
+            {
+                SetColumnVisibility(column, isVisible);
+            }
+        }
+
+        searchText = string.Empty;
+        await RefreshGridAsync();
+    }
+
+    private static void SetColumnVisibility(RadzenDataGridColumn<TItem> column, bool isVisible)
+    {
+        if (SetVisibleMethod is not null)
+        {
+            SetVisibleMethod.Invoke(column, [isVisible]);
+            return;
+        }
+
+        VisibleProperty?.SetValue(column, isVisible);
+    }
+
+    private async Task RefreshGridAsync()
+    {
+        if (Grid is not null)
+        {
+            Grid.UpdatePickableColumns();
+            await Grid.Reload();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static string GetColumnTitle(RadzenDataGridColumn<TItem> column)
+    {
+        if (!string.IsNullOrWhiteSpace(column.Title))
+        {
+            return column.Title;
+        }
+
+        if (!string.IsNullOrWhiteSpace(column.Property))
+        {
+            return column.Property;
+        }
+
+        return "Column";
+    }
+}

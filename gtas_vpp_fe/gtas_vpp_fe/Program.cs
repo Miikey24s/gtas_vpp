@@ -74,13 +74,32 @@ builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 #endregion
 #region API
+var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"]
+    ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
+var apiConnectTimeout = TimeSpan.FromSeconds(
+    builder.Configuration.GetValue("ApiSettings:ConnectTimeoutSeconds", 5));
+var apiRequestTimeout = TimeSpan.FromSeconds(
+    builder.Configuration.GetValue("ApiSettings:RequestTimeoutSeconds", 30));
+
 builder.Services.AddHttpClient(Config.HttpClientName, client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = apiRequestTimeout;
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    ConnectTimeout = apiConnectTimeout,
+    PooledConnectionLifetime = TimeSpan.FromMinutes(5)
 });
 builder.Services.AddHttpClient<IAPIServices, APIServices>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = apiRequestTimeout;
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    ConnectTimeout = apiConnectTimeout,
+    PooledConnectionLifetime = TimeSpan.FromMinutes(5)
 });
 #endregion
 

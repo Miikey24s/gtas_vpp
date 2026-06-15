@@ -347,4 +347,11 @@
   <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã đóng lúc {0} bởi {1} với bảng giá {2}.</value></data>
   <data name="Confirm_Settle" xml:space="preserve"><value>Đóng kỳ {0}/{1} với bảng giá {2}?</value></data>
   <data name="PeriodReview" xml:space="preserve"><value>Tổng kết kỳ &amp; đóng kỳ</value></data>
+  <data name="Columns" xml:space="preserve"><value>Cột</value></data>
+  <data name="VisibleColumns" xml:space="preserve"><value>Cột hiển thị</value></data>
+  <data name="SelectedColumnsCount" xml:space="preserve"><value>Đã chọn {0} trên {1} cột</value></data>
+  <data name="SearchColumns" xml:space="preserve"><value>Tìm kiếm cột</value></data>
+  <data name="NoMatchingColumns" xml:space="preserve"><value>Không tìm thấy cột phù hợp</value></data>
+  <data name="Reset" xml:space="preserve"><value>Đặt lại</value></data>
+  <data name="Close" xml:space="preserve"><value>Đóng</value></data>
 </root>

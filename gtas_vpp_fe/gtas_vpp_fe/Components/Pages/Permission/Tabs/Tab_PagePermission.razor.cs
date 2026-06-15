@@ -41,78 +41,75 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
         private int groupCount { get; set; } = 0;
         private int currentGroupSkip { get; set; } = 0;
         private string? currentGroupFilterExpression { get; set; }
+        private bool isGroupLookupLoading { get; set; } = false;
+        private bool hasRequestedInitialGroupGridLoad = false;
 
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            if (user.Identity is not null && user.Identity.IsAuthenticated)
-            {
-                claims = user.Claims;
-                _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out var userClaims);
-                try
-                {
-                    string sptype = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-                    var body = new { userId = glb.UserInfo.UserID, pageCode = Config.Page_ComponentCode.PageCode.Permission };
-                    var parsedData = await _apiServices.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(sptype, body);
-
-                    if (parsedData is not null)
-                    {
-                        sp_Authentication_GetPermissionSinglePage = parsedData;
-                        if (sp_Authentication_GetPermissionSinglePage == null || sp_Authentication_GetPermissionSinglePage.List_Component == null || sp_Authentication_GetPermissionSinglePage.List_Component.Count == 0)
-                        {
-                            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "No permission", Detail = "User chưa được phân quyền.", Duration = 5000 });
-                            NavigationManager.NavigateTo("/", true);
-                            return;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error when call SP sp_Library_GetL01Class:" + ex.Message);
-                    NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call api sp_Library_GetL01Class:" + ex.Message, Duration = 10000 });
-                }
-                finally
-                {
-                    StateHasChanged();
-                }
-                if (sp_Authentication_GetPermissionSinglePage?.List_Component.Count == 0)
-                {
-                    NavigationManager.NavigateTo("Home", true);
-                }
-                await LoadBaseData();
-                _P02_GroupResDTOReqDTO = new P02_GroupResDTO()
-                {
-                    GroupName = "NewGroupName",
-                    Description = ""
-                };
-            }
-            else
+            if (user.Identity?.IsAuthenticated != true)
             {
                 NavigationManager.NavigateTo("Home", true);
+                return;
+            }
+
+            claims = user.Claims;
+            await LoadGroupLookupsAsync();
+            _P02_GroupResDTOReqDTO = new P02_GroupResDTO
+            {
+                GroupName = "NewGroupName",
+                Description = string.Empty
+            };
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender && !hasRequestedInitialGroupGridLoad && grid is not null)
+            {
+                hasRequestedInitialGroupGridLoad = true;
+                await grid.Reload();
             }
         }
+
         protected async Task LoadBaseData()
         {
-            glb.isBusyPage = true;
+            await LoadGroupLookupsAsync();
+
+            if (grid is not null)
+            {
+                await grid.Reload();
+            }
+        }
+
+        private async Task LoadGroupLookupsAsync()
+        {
+            isGroupLookupLoading = true;
+
             try
             {
                 allGroupsForLookup = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
                     ?? new List<P02_GroupResDTO>();
-
-                if (grid is not null)
-                {
-                    await grid.Reload();
-                }
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                allGroupsForLookup = [];
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = "Error when loading groups: " + ex.Message,
+                    Duration = 10000
+                });
             }
-            glb.isBusyPage = false;
+            finally
+            {
+                isGroupLookupLoading = false;
+            }
+
+            StateHasChanged();
         }
 
         protected async Task LoadGroupsAsync(LoadDataArgs args)
@@ -138,6 +135,8 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
+                list_Group = [];
+                groupCount = 0;
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
@@ -149,7 +148,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             finally
             {
                 IsLoading = false;
-                glb.isBusyPage = false;
                 StateHasChanged();
             }
         }

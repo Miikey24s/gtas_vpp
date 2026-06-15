@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -24,6 +25,11 @@ namespace gtas_vpp_fe.Services
     }
     public class APIServices : IAPIServices
     {
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         private readonly HttpClient _httpClient;
         private readonly AuthenticationStateProvider _authProvider;
         private readonly string _rootUrl = "api/SQL/StoreProcedure/";
@@ -85,7 +91,9 @@ namespace gtas_vpp_fe.Services
         public async Task<string> GetDataFromExternalApiAsync(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync(_rootUrl + endpoint);
+            using var response = await _httpClient.GetAsync(
+                _rootUrl + endpoint,
+                HttpCompletionOption.ResponseHeadersRead);
             await EnsureSuccessWithDetailsAsync(response);
             return await response.Content.ReadAsStringAsync();
         }
@@ -95,8 +103,8 @@ namespace gtas_vpp_fe.Services
             if (url == null) url = $"{_rootUrl}sp_Authen?sptype={sptype}";
 
             await ApplyAuthorizationHeaderAsync();
-            var content = JsonContent.Create(body, options: jsonOptions);
-            var response = await _httpClient.PostAsync(url, content);
+            using var content = JsonContent.Create(body, options: jsonOptions);
+            using var response = await _httpClient.PostAsync(url, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -126,7 +134,7 @@ namespace gtas_vpp_fe.Services
             {
                 return JsonSerializer.Deserialize<T>(
                     apiResult.ResData,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    JsonOptions);
             }
             catch
             {
@@ -137,7 +145,9 @@ namespace gtas_vpp_fe.Services
         public async Task<T?> GetFromApiAsync<T>(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync(endpoint);
+            using var response = await _httpClient.GetAsync(
+                endpoint,
+                HttpCompletionOption.ResponseHeadersRead);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
@@ -145,7 +155,9 @@ namespace gtas_vpp_fe.Services
         public async Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync(endpoint);
+            using var response = await _httpClient.GetAsync(
+                endpoint,
+                HttpCompletionOption.ResponseHeadersRead);
             await EnsureSuccessWithDetailsAsync(response);
 
             var totalCount = 0;
@@ -170,7 +182,9 @@ namespace gtas_vpp_fe.Services
         public async Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync(endpoint);
+            using var response = await _httpClient.GetAsync(
+                endpoint,
+                HttpCompletionOption.ResponseHeadersRead);
             await EnsureSuccessWithDetailsAsync(response);
 
             int totalCount = 0, totalLines = 0, totalQty = 0;
@@ -188,7 +202,9 @@ namespace gtas_vpp_fe.Services
         public async Task<(T? Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetFromApiWithAmountStatsAsync<T>(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.GetAsync(endpoint);
+            using var response = await _httpClient.GetAsync(
+                endpoint,
+                HttpCompletionOption.ResponseHeadersRead);
             await EnsureSuccessWithDetailsAsync(response);
 
             int totalCount = 0, totalLines = 0, totalQty = 0;
@@ -209,7 +225,7 @@ namespace gtas_vpp_fe.Services
         public async Task<T?> PostFromApiAsync<T>(string endpoint, object? body)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.PostAsJsonAsync(endpoint, body);
+            using var response = await _httpClient.PostAsJsonAsync(endpoint, body);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
@@ -217,7 +233,7 @@ namespace gtas_vpp_fe.Services
         public async Task<T?> PutFromApiAsync<T>(string endpoint, object body)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.PutAsJsonAsync(endpoint, body);
+            using var response = await _httpClient.PutAsJsonAsync(endpoint, body);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
@@ -225,33 +241,26 @@ namespace gtas_vpp_fe.Services
         public async Task<T?> PatchFromApiAsync<T>(string endpoint, object body)
         {
             await ApplyAuthorizationHeaderAsync();
-            var request = new HttpRequestMessage(HttpMethod.Patch, endpoint)
+            using var request = new HttpRequestMessage(HttpMethod.Patch, endpoint)
             {
                 Content = JsonContent.Create(body)
             };
 
-            var response = await _httpClient.SendAsync(request);
+            using var response = await _httpClient.SendAsync(request);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }
 
         private static async Task<T?> ReadResponseAsJsonAsync<T>(HttpResponseMessage response)
         {
-            if (response.Content == null)
+            if (response.StatusCode == HttpStatusCode.NoContent
+                || response.Content.Headers.ContentLength == 0)
             {
                 return default;
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return default;
-            }
-
-            return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            await using var contentStream = await response.Content.ReadAsStreamAsync();
+            return await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions);
         }
 
         private static int? TryGetCollectionCount<T>(T? data)
@@ -283,7 +292,7 @@ namespace gtas_vpp_fe.Services
         public async Task<bool> DeleteFromApiAsync(string endpoint)
         {
             await ApplyAuthorizationHeaderAsync();
-            var response = await _httpClient.DeleteAsync(endpoint);
+            using var response = await _httpClient.DeleteAsync(endpoint);
             return response.IsSuccessStatusCode;
         }
     }

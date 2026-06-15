@@ -18,24 +18,16 @@
 
 @if (sp_Authentication_GetPermissionSinglePage!.List_Component.Any(y => y.ComponentCode!.Equals(Permissions.PermissionUser) && y.IsVisible))
 {
-    @if (glb.isBusyPage)
-    {
-        <SkeletonGrid Rows="8" Cols="7" />
-    }
-    else
-    {
-        <RadzenRow>
-            <RadzenColumn Size="12">
-                <RadzenDataGrid @ref="griduser"
+            <RadzenDataGrid @ref="griduser"
                             @bind-Value=@selected_UserList
                             AllowFiltering="true"
                             AllowColumnResize="true"
                             AllowMultiColumnSorting="true"
-                            AllowVirtualization="true"
+                            AllowVirtualization="false"
                             AllowAlternatingRows="false"
                             AllowGrouping="false"
                             ColumnsPickerAllowFiltering=true
-                            AllowColumnPicking=true
+                            AllowColumnPicking="false"
                             AllowPickAllColumns="true"
                             ShowMultiColumnSortingIndex=true
                             AllowSorting="true"
@@ -46,13 +38,13 @@
                             Count="@userCount"
                             LoadData="@LoadUsersAsync"
                             LoadColumnFilterData="@LoadUserFilterDataAsync"
-                            IsLoading="@isUserLoading"
+                            IsLoading="@(isUserLoading || isUserLookupLoading)"
                             FilterMode="FilterMode.CheckBoxList"
                             Density="Density.Compact"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             GridLines="DataGridGridLines.Horizontal"
-                            class="librarypagegrid permission-user-grid vpp-admin-grid"
-                            Style="--vpp-admin-grid-min-width: 1380px; height: min(720px, calc(100vh - 175px));"
+                            class="@($"permission-user-grid vpp-admin-page-grid vpp-admin-grid {(userCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                            Style="--vpp-admin-grid-min-width: 1380px;"
                             TItem="sp_Authentication_TabUser_UserList"
                             Data="@_sp_Authentication_TabUser_UserList"
                             ColumnWidth="150px"
@@ -61,25 +53,33 @@
                             RowRender="@OnRowRenderUser"
                             RowDoubleClick="@OnRowDoubleClick">
                 <HeaderTemplate>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="permission-grid-toolbar">
-                        <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
-                            <ChildContent>
-                                <RadzenTextBox Value="@SearchText"
-                                               aria-label="@Loc["Search"]"
-                                               Change="@(arg => TextBoxOnChange(arg))"
-                                               ValueChanged="@((string value) => SearchText = value)"
-                                               ValueExpression="() => SearchText"
-                                               @oninput="(args => SearchText = ((ChangeEventArgs)args).Value?.ToString() ?? string.Empty)"
-                                               @onkeypress=@(arg => SearchTextOnKeyUp(arg)) />
-                            </ChildContent>
-                            <End>
-                                <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
-                                    <RadzenButton Size="ButtonSize.ExtraSmall" Disabled=@glb.isBusyPage ButtonStyle="ButtonStyle.Secondary" Icon="filter_alt_off" Click="ButtonOnClick_Clear" />
-                                    <RadzenButton Size="ButtonSize.ExtraSmall" Disabled=@glb.isBusyPage Icon="search" Click="ButtonOnClick_SearchUser" />
-                                </RadzenStack>
-                            </End>
-                        </RadzenFormField>
-                        <RadzenButton Icon="refresh" Text="@Loc["Reload"]" Size="ButtonSize.Small" class="rz-mb-auto rz-mt-auto" Click="ButtonOnClick_Reload" />
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="vpp-admin-grid-toolbar permission-grid-toolbar">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="vpp-admin-toolbar-main">
+                            <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
+                                <ChildContent>
+                                    <RadzenTextBox Value="@SearchText"
+                                                   aria-label="@Loc["Search"]"
+                                                   Change="@(arg => TextBoxOnChange(arg))"
+                                                   ValueChanged="@((string value) => SearchText = value)"
+                                                   ValueExpression="() => SearchText"
+                                                   @oninput="(args => SearchText = ((ChangeEventArgs)args).Value?.ToString() ?? string.Empty)"
+                                                   @onkeypress=@(arg => SearchTextOnKeyUp(arg)) />
+                                </ChildContent>
+                                <End>
+                                    <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
+                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" ButtonStyle="ButtonStyle.Secondary" Icon="filter_alt_off" Click="ButtonOnClick_Clear" />
+                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" Icon="search" Click="ButtonOnClick_SearchUser" />
+                                    </RadzenStack>
+                                </End>
+                            </RadzenFormField>
+                            <RadzenButton Icon="refresh"
+                                          Text="@Loc["Reload"]"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          class="vpp-library-refresh-action"
+                                          Click="ButtonOnClick_Reload" />
+                        </RadzenStack>
+                        <VppColumnPicker TItem="sp_Authentication_TabUser_UserList" GridAccessor="@(() => griduser)" />
                     </RadzenStack>
                 </HeaderTemplate>
                 <Columns>
@@ -91,9 +91,6 @@
                     <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["IsDeleted"]" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted" Width="150px" MinWidth="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
                         <Template Context="data">
                             <div class="vpp-admin-is-deleted-cell">
-                                <span class="@(data.IsDeleted ? "vpp-admin-status-badge is-true" : "vpp-admin-status-badge is-false")">
-                                    @(data.IsDeleted ? "True" : "False")
-                                </span>
                                 <RadzenSwitch @bind-Value=@data.IsDeleted Change="@(arg => SwitchOnChange_IsDelete(data))" class="isDeleteSwitch" Style="transform: scale(0.75);" />
                             </div>
                         </Template>
@@ -139,9 +136,6 @@
                     <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Department Id" Property="@nameof(sp_Authentication_TabUser_UserList.L05_DepartmentId)" Width="280px" Visible="false" Pickable="true" />
                 </Columns>
             </RadzenDataGrid>
-        </RadzenColumn>
-    </RadzenRow>
-    }
 }
 else
 {

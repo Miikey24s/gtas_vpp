@@ -31,7 +31,7 @@ else
                             IsLoading="@isLoadingL01"
                             AllowFiltering="true" 
                             AllowColumnResize="true" 
-                            AllowColumnPicking="true"
+                            AllowColumnPicking="false"
                             AllowPickAllColumns="true"
                             ColumnsPickerAllowFiltering="true"
                             FilterMode="FilterMode.CheckBoxList"
@@ -49,6 +49,11 @@ else
                             class="@($"auto-fit-grid vpp-admin-grid vpp-class-master-grid {(countL01 <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
                             Style="--vpp-admin-grid-min-width: 380px;">
+                <HeaderTemplate>
+                    <div class="vpp-admin-grid-toolbar vpp-admin-grid-toolbar-end">
+                        <VppColumnPicker TItem="L01_ClassResDTO" GridAccessor="@(() => gridL01)" />
+                    </div>
+                </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumn TItem="L01_ClassResDTO" Title="#" Width="48px" MinWidth="48px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
@@ -110,7 +115,7 @@ else
                             IsLoading="@isLoadingL02"
                             AllowFiltering="true" 
                             AllowColumnResize="true" 
-                            AllowColumnPicking="true"
+                            AllowColumnPicking="false"
                             AllowPickAllColumns="true"
                             ColumnsPickerAllowFiltering="true"
                             FilterMode="FilterMode.CheckBoxList"
@@ -126,6 +131,11 @@ else
                             class="@($"auto-fit-grid vpp-admin-grid vpp-class-detail-grid {(countL02 <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
                             Style="--vpp-admin-grid-min-width: 800px; --vpp-admin-isdeleted-width: 90px;">
+                <HeaderTemplate>
+                    <div class="vpp-admin-grid-toolbar vpp-admin-grid-toolbar-end">
+                        <VppColumnPicker TItem="L02_ClassDetailResDTO" GridAccessor="@(() => gridL02)" />
+                    </div>
+                </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumn TItem="L02_ClassDetailResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">

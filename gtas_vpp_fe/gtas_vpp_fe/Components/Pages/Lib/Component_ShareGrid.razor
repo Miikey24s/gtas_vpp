@@ -12,7 +12,7 @@
                 AllowAlternatingRows="true"
                 AllowGrouping="false"
                 ColumnsPickerAllowFiltering="true"
-                AllowColumnPicking="true"
+                AllowColumnPicking="false"
                 AllowPickAllColumns="true"
                 ShowMultiColumnSortingIndex="true"
                 AllowSorting="true"
@@ -57,8 +57,8 @@
                               Click="@InsertRow"
                               Disabled="@onEdit" />
                 <RadzenButton Icon="refresh"
+                              Text="@Loc["Reload"]"
                               ButtonStyle="ButtonStyle.Light"
-                              Variant="Variant.Text"
                               Size="ButtonSize.Small"
                               class="vpp-library-refresh-action"
                               Title="@Loc["Reload"]"
@@ -66,6 +66,7 @@
                               Click="@ReloadGridAsync"
                               Disabled="@onEdit" />
             </RadzenStack>
+            <VppColumnPicker TItem="TType" GridAccessor="@(() => DataGrid)" />
         </RadzenStack>
     </HeaderTemplate>
 

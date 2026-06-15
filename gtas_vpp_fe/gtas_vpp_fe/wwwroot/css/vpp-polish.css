@@ -61,6 +61,89 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Normalize Radzen dropdown alignment across pages, grids, and pagers. */
+.rz-dropdown {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.rz-dropdown .rz-dropdown-label {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    line-height: 1.25 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.rz-dropdown .rz-dropdown-trigger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    line-height: 1 !important;
+}
+
+.rz-dropdown .rz-dropdown-trigger .rzi,
+.rz-dropdown .rz-dropdown-trigger .rz-dropdown-trigger-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.rz-dropdown-panel .rz-dropdown-item,
+.rz-dropdown-panel .rz-dropdown-items li,
+.rz-dropdown-panel .rz-listbox-item {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    line-height: 1.25;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.rz-grid-table td .rz-cell-data:has(.rz-dropdown) {
+    display: flex;
+    align-items: center;
+    overflow: visible;
+}
+
+.rz-grid-table td .rz-dropdown {
+    width: 100%;
+    min-height: 34px;
+    height: 34px;
+}
+
+.rz-paginator,
+.rz-pager {
+    align-items: center;
+}
+
+.rz-paginator .rz-dropdown,
+.rz-pager .rz-dropdown {
+    width: auto !important;
+    min-width: 5.75rem;
+    max-width: 7rem;
+    height: 34px;
+    min-height: 34px;
+    flex: 0 0 auto;
+}
+
+.rz-paginator .rz-pagesize-text,
+.rz-pager .rz-pagesize-text {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    margin-block: 0;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 /* Keep theme/culture transitions subtle: only paint properties, no layout movement. */
 html,
 body,

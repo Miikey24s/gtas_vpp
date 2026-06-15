@@ -103,6 +103,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+        {
+            return;
+        }
+
         var browserTheme = await GetBrowserThemeAsync();
         if (string.IsNullOrWhiteSpace(browserTheme) || string.Equals(browserTheme, ThemeState.CurrentTheme, StringComparison.Ordinal))
         {

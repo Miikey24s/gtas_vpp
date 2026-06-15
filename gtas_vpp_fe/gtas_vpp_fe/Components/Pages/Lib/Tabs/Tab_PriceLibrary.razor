@@ -36,14 +36,15 @@
                            Style="width:100%" />
         </RadzenFormField>
         <RadzenButton Icon="refresh"
+                      Text="@Loc["Reload"]"
                       Size="ButtonSize.Small"
                       ButtonStyle="ButtonStyle.Light"
-                      Variant="Variant.Text"
                       class="vpp-library-refresh-action"
                       Title="@Loc["Reload"]"
                       aria-label="@Loc["Reload"]"
                       Click="@LoadPricesAsync"
                       Disabled="@(!HasPriceListSelected)" />
+        <VppColumnPicker TItem="L06_VPPItemPriceResDTO" GridAccessor="@(() => grid)" />
     </RadzenStack>
 
     @if (!HasPriceLists)
@@ -72,7 +73,7 @@
                     FilterPopupRenderMode="PopupRenderMode.OnDemand"
                     LogicalFilterOperator="LogicalFilterOperator.And"
                     AllowColumnResize="true"
-                    AllowColumnPicking="true"
+                    AllowColumnPicking="false"
                     AllowPickAllColumns="true"
                     ColumnsPickerAllowFiltering="true"
                     RowRender="@OnRowRenderPrice"
