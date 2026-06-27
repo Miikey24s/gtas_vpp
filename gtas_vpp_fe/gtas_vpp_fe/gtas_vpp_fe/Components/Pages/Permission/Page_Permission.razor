@@ -1,0 +1,21 @@
+﻿@page "/permission"
+@layout MainLayout
+@inherits gtas_vpp_fe.Components.Pages.PermissionAwarePageBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager UriHelper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IJSRuntime js
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb 
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Permissions</PageTitle>
+
+<section class="vpp-admin-page">
+    <Component_Permission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+</section>

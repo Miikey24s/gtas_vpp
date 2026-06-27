@@ -1,0 +1,157 @@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Radzen.Blazor.Rendering
+@using System.Globalization
+@using gtas_vpp_shared.Constants
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@* @inject Radzen.ThemeService ThemeService *@
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+@inject NavigationManager NavigationManager
+@inject ProtectedLocalStorage ProtectedLocalStore
+@rendermode InteractiveServer
+
+<RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" class="vpp-global-loader" />
+
+<RadzenHeader class="vpp-header-glass vpp-layout-header">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="vpp-header-row">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" class="vpp-header-brand">
+            <RadzenSidebarToggle class="customburger vpp-header-menu-button"
+                                 Click="@(() => _sideBarExpanded = !_sideBarExpanded)"
+                                 title="Toggle navigation"
+                                 aria-label="Toggle navigation" />
+            <div class="vpp-brand-lockup">
+                <RadzenImage class="vpp-header-logo" Path="./logoppj-new.png" />
+                <div class="vpp-header-title" title="@HeaderTitle">
+                    <span class="vpp-header-product">GTAS VPP</span>
+                    <span class="vpp-header-server">@ServerLabel</span>
+                </div>
+            </div>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem" class="vpp-header-actions">
+            <HeaderControls IsLightTheme="@LightTheme"
+                            IsLightThemeChanged="@(isLight => LightTheme = isLight)"
+                            OnThemeToggle="ThemeOnChange"
+                            OnLanguageToggle="ToggleLanguage" />
+            @* Notification bell *@
+            <div class="vpp-header-notifications">
+                <RadzenButton Icon="notifications" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" class="vpp-header-notification-button" Disabled="true" Title="Notifications (coming soon)" />
+                <span class="vpp-header-notification-dot"></span>
+            </div>
+            <UserMenu UserFullName="@glb.UserInfo.FullName" Department="@glb.UserInfo.DepartmentCode" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenHeader>
+
+<RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
+    <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
+        @if (CanViewDashboardMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="assignment" class="ppjsidebarmenu" title="@Loc["Dashboard"]">
+                @if (CanViewDashboardItem(Permissions.RequestOrder))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="shopping_cart" title="@Loc["MyOrders"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestHistory))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="history" title="@Loc["History"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="inventory_2" title="@Loc["Catalog"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary) && CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Management"]" class="ppjsidebarmenu submenu" Icon="manage_accounts" title="@Loc["Management"]">
+                        <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="corporate_fare" title="@Loc["DepartmentSummary"]" />
+                        <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="view_list" title="@Loc["AllOrdersSummary"]" />
+                    </RadzenPanelMenuItem>
+                }
+                else if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="corporate_fare" title="@Loc["DepartmentSummary"]" />
+                }
+                else if (CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="view_list" title="@Loc["AllOrdersSummary"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
+                {
+                    @if (CanViewDashboardItem(Permissions.RequestAdminApproval) && CanViewDashboardItem(Permissions.PeriodSettle))
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]">
+                            <RadzenPanelMenuItem Text="@Loc["PeriodReview"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="fact_check" title="@Loc["PeriodReview"]" />
+                            <RadzenPanelMenuItem Text="@Loc["PendingApprovals"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="pending_actions" title="@Loc["PendingApprovals"]" />
+                        </RadzenPanelMenuItem>
+                    }
+                    else if (CanViewDashboardItem(Permissions.PeriodSettle))
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]" />
+                    }
+                    else
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="summarize" title="@Loc["PeriodOperations"]" />
+                    }
+                }
+            </RadzenPanelMenuItem>
+        }
+        @if (CanViewLibraryMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="library_books" class="ppjsidebarmenu" title="@Loc["Library"]">
+                @if (CanViewLibraryItem(Permissions.LibraryClass))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="class" title="@Loc["ClassDefinitions"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryCategory))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["OperationCategories"]" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="category" title="@Loc["OperationCategories"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryItem))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Operations"]" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="inventory" title="@Loc["Operations"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibrarySupplier))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="local_shipping" title="@Loc["Suppliers"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Pricing"]" class="ppjsidebarmenu submenu" Icon="payments" title="@Loc["Pricing"]">
+                        @if (CanViewLibraryItem(Permissions.LibraryPriceList))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="@("/library?tab=6&pricingTab=price-lists")" class="ppjsidebarmenu submenu" Icon="list_alt" title="@Loc["PriceLists"]" />
+                        }
+                        @if (CanViewLibraryItem(Permissions.LibraryPrice))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["Prices"]" Path="@("/library?tab=6&pricingTab=prices")" class="ppjsidebarmenu submenu" Icon="payments" title="@Loc["Prices"]" />
+                        }
+                    </RadzenPanelMenuItem>
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryDepartment))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=5" class="ppjsidebarmenu submenu" Icon="apartment" title="@Loc["Departments"]" />
+                }
+            </RadzenPanelMenuItem>
+        }
+        @if (CanViewReportMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Reports"]" Icon="analytics" class="ppjsidebarmenu" Path="/report" title="@Loc["Reports"]" />
+        }
+        @if (CanViewPermissionMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="admin_panel_settings" class="ppjsidebarmenu" title="@Loc["Permissions"]">
+                @if (CanViewPermissionItem(Permissions.PermissionUser))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Users"]" Icon="manage_accounts" class="ppjsidebarmenu submenu" Path="/permission?tab=0" title="@Loc["Users"]" />
+                }
+                @if (CanViewPermissionItem(Permissions.PermissionComponent))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["GroupsAndPermissions"]" Icon="rule" class="ppjsidebarmenu submenu" Path="/permission?tab=1" title="@Loc["GroupsAndPermissions"]" />
+                }
+            </RadzenPanelMenuItem>
+        }
+        <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" title="@Loc["Logout"]" />
+        <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">
+            <h6 class="text-center">@currentTime.ToString("dd-MM-yyyy")</h6>
+            <h6 class="text-center">@currentTime.ToString("HH:mm")</h6>
+        </RadzenStack>
+    </RadzenPanelMenu>
+</RadzenSidebar>

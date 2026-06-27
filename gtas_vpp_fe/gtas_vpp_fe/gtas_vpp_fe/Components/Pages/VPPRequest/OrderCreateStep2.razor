@@ -1,0 +1,274 @@
+@using gtas_vpp_shared.DTOs.Share
+@using gtas_vpp_fe.Services
+
+<div class="wizard-step wizard-step-products">
+    @* ── Split Layout: Catalog (left) | Selected Items (right) ── *@
+    <div class="vpp-wizard-split">
+
+        @* ── LEFT: Product Catalog ───────────────────────────── *@
+        <div class="vpp-wizard-split-left">
+            <div class="vpp-data-card vpp-wizard-panel-card">
+                <div class="vpp-wizard-panel-card-head" style="padding: var(--vpp-space-3) var(--vpp-space-4);">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" Style="flex-wrap: wrap;">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                            <RadzenIcon Icon="inventory_2" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
+                            <RadzenText Text="@Loc["WizardProductCatalog"]" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
+                            @if (ProductCount > 0)
+                            {
+                                <RadzenBadge Text="@($"{ProductCount}")" BadgeStyle="BadgeStyle.Light" IsPill="true" />
+                            }
+                        </RadzenStack>
+                        
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="flex: 1; justify-content: flex-end; min-width: 280px;">
+                            <RadzenTextBox @bind-Value="Context.Description"
+                                           Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
+                                           aria-label="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
+                                           Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
+                                           Change="@(_ => Context.NotifyStateChanged())" />
+                            @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
+                            {
+                                <RadzenIcon Icon="warning" Style="color: var(--vpp-warning-500); font-size: 1.1rem;" Title="@Loc["WizardAdditionalReasonRequired"]" />
+                            }
+                        </RadzenStack>
+                    </RadzenStack>
+                </div>
+
+                <RadzenDataGrid @ref="productGrid"
+                                TItem="ProductOption"
+                                Data="@ProductOptions"
+                                IsLoading="@IsLoadingProducts"
+                                AllowVirtualization="true"
+                                AllowPaging="false"
+                                AllowSorting="true"
+                                AllowFiltering="true"
+                                FilterMode="FilterMode.CheckBoxList"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                AllowColumnResize="true"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                RowRender="@OnRowRender"
+                                Style="border: none; flex: 1; min-height: 0;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="110px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="150px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Title="" Width="55px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                            <Template Context="row">
+                                @{
+                                    var isSelected = Context.SelectedItems.Any(x => x.VPPId == row.Id);
+                                }
+                                @* F-28: icon-only add/added toggle gets an explicit aria-label that reflects the current state. *@
+                                <RadzenButton Icon="@(isSelected ? "check" : "add")"
+                                              Size="ButtonSize.Small"
+                                              ButtonStyle="@(isSelected ? ButtonStyle.Success : ButtonStyle.Primary)"
+                                              Variant="Variant.Text"
+                                              Title="@(isSelected ? Loc["AlreadyAdded"] : Loc["AddToOrder"])"
+                                              aria-label="@(isSelected ? Loc["AlreadyAddedToOrder"] : Loc["AddProductToOrder"])"
+                                              Disabled="@isSelected"
+                                              Click="@(async _ => await AddProductAsync(row))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+
+
+            </div>
+        </div>
+
+        @* ── RIGHT: Selected Items ───────────────────────────── *@
+        <div class="vpp-wizard-split-right">
+            <div class="vpp-data-card vpp-wizard-panel-card">
+                <div class="vpp-wizard-panel-card-head">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                            <RadzenIcon Icon="shopping_cart" Style="color: var(--vpp-primary-500); font-size: 1.1rem;" aria-hidden="true" />
+                            <RadzenText Text="@Loc["Selected"]" TextStyle="TextStyle.Subtitle2" class="rz-m-0" Style="font-weight: 600;" />
+                        </RadzenStack>
+                        @if (Context.SelectedItems.Count > 0)
+                        {
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenBadge Text="@Loc["WizardItemsBadgeFormat", Context.SelectedItems.Count]" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
+                                <RadzenBadge Text="@Loc["WizardQtyBadgeFormat", Context.TotalQty]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                                @if (Context.DraftRecovered)
+                                {
+                                    <RadzenBadge Text="@Loc["DraftRestored"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                                }
+                                <RadzenButton Text="@Loc["ClearAll"]" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@ClearSelectionAsync" />
+                            </RadzenStack>
+                        }
+                    </RadzenStack>
+                </div>
+
+                @if (Context.SelectedItems.Count == 0)
+                {
+                    <div class="vpp-empty-state vpp-wizard-selection-empty">
+                        <span class="vpp-empty-state-icon rzi rzi-add-shopping-cart"></span>
+                        <div class="vpp-empty-state-title">@Loc["WizardNoItemsSelected"]</div>
+                        <div class="vpp-empty-state-desc">@Loc["WizardNoItemsSelectedDesc"]</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="vpp-wizard-selection-body">
+                        <RadzenDataGrid @ref="selectedGrid"
+                                        TItem="OrderCreateContext.SelectedItem"
+                                        Data="@Context.SelectedItems"
+                                        AllowPaging="false"
+                                        Density="Density.Compact"
+                                        GridLines="DataGridGridLines.Horizontal"
+                                        Style="border: none;">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="35px" TextAlign="TextAlign.Center" Sortable="false">
+                                    <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="90px" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="120px" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
+                                    <Template Context="item">
+                                        <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
+                                                       Style="width: 72px;"
+                                                       ShowUpDown="false"
+                                                       InputAttributes="@GetQuantityInputAttributes(item)"
+                                                       Change="@(_ => Context.NotifyStateChanged())" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UOMName" Title="@Loc["UOM"]" Width="70px" TextAlign="TextAlign.Center" Sortable="false" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Notes"]" MinWidth="120px" Sortable="false">
+                                    <Template Context="item">
+                                        <RadzenTextBox @bind-Value="item.Description"
+                                                       Placeholder="@Loc["Notes"]"
+                                                       aria-label="@($"{Loc["Notes"].Value}: {GetItemLabel(item)}")"
+                                                       Style="width: 100%; font-size: 0.8rem;"
+                                                       Change="@(_ => Context.NotifyStateChanged())" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="40px" TextAlign="TextAlign.Center" Sortable="false">
+                                    <Template Context="item">
+                                        @* F-28: icon-only remove button needs an explicit aria-label. *@
+                                        <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall"
+                                                      ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+                                                      Click="@(async _ => await RemoveItemAsync(item))" Title="@Loc["Remove"]" aria-label="@Loc["RemoveItemFromOrder"]" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+    [Inject] public IAPIServices _apiServices { get; set; } = default!;
+    [Inject] public GlobalClass glb { get; set; } = default!;
+
+    public sealed class ProductOption
+    {
+        public Guid Id { get; set; }
+        public string? VPPCode { get; set; }
+        public string? VPPName { get; set; }
+        public string? UOMCode { get; set; }
+        public string? UOMName { get; set; }
+        public string? VPPCategoryName { get; set; }
+    }
+
+    public bool IsLoadingProducts { get; set; }
+    public int ProductCount { get; set; }
+    public List<ProductOption> ProductOptions { get; set; } = new();
+    public RadzenDataGrid<ProductOption>? productGrid;
+    public RadzenDataGrid<OrderCreateContext.SelectedItem>? selectedGrid;
+    private bool _pendingSelectedGridReload;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoadingProducts = true;
+        try
+        {
+            var endpoint = "/api/VPPRequest/products/lookup";
+            var result = await _apiServices.GetFromApiAsync<List<ProductOption>>(endpoint);
+            ProductOptions = result ?? new();
+            ProductCount = ProductOptions.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[OrderCreateStep2] LoadProducts failed: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingProducts = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && productGrid != null)
+            await productGrid.Reload();
+
+        if (_pendingSelectedGridReload)
+        {
+            _pendingSelectedGridReload = false;
+            if (selectedGrid != null)
+            {
+                await selectedGrid.Reload();
+            }
+        }
+    }
+
+    private async Task AddProductAsync(ProductOption row)
+    {
+        if (!Context.SelectedItems.Any(x => x.VPPId == row.Id))
+        {
+            Context.SelectedItems.Add(new()
+            {
+                VPPId = row.Id,
+                VPPCode = row.VPPCode,
+                VPPName = row.VPPName,
+                UOMCode = row.UOMCode,
+                UOMName = row.UOMName,
+                Qty = 1
+            });
+            await RefreshSelectionAsync();
+        }
+    }
+
+    private async Task RemoveItemAsync(OrderCreateContext.SelectedItem item)
+    {
+        Context.SelectedItems.Remove(item);
+        await RefreshSelectionAsync();
+    }
+
+    private async Task ClearSelectionAsync()
+    {
+        Context.SelectedItems.Clear();
+        await RefreshSelectionAsync();
+    }
+
+    private void OnRowRender(RowRenderEventArgs<ProductOption> args)
+    {
+        if (args.Data is not null && Context.SelectedItems.Any(x => x.VPPId == args.Data.Id))
+        {
+            args.Attributes.Add("class", "vpp-wizard-row-selected");
+        }
+    }
+
+    private async Task RefreshSelectionAsync()
+    {
+        _pendingSelectedGridReload = true;
+        Context.NotifyStateChanged();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private IReadOnlyDictionary<string, object> GetQuantityInputAttributes(OrderCreateContext.SelectedItem item)
+        => new Dictionary<string, object>
+        {
+            ["aria-label"] = $"{Loc["Quantity"].Value}: {GetItemLabel(item)}"
+        };
+
+    private static string GetItemLabel(OrderCreateContext.SelectedItem item)
+        => !string.IsNullOrWhiteSpace(item.VPPName)
+            ? item.VPPName
+            : item.VPPCode ?? string.Empty;
+}

@@ -1,0 +1,19 @@
+@page "/dashboard/{Per?}"
+@layout MainLayout
+@inherits gtas_vpp_fe.Components.Pages.PermissionAwarePageBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using gtas_vpp_fe.Components.Pages.VPPRequest
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IJSRuntime js
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - VPP Request</PageTitle>
+
+<Component_VPPRequest claims="@claims" />

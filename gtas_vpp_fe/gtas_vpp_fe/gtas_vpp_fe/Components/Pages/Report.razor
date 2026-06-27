@@ -1,0 +1,72 @@
+@page "/report"
+@layout MainLayout
+@implements IDisposable
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.Constants
+@using gtas_vpp_shared.DTOs.Share
+@inject PermissionState PermissionState
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Report</PageTitle>
+
+@if (CanViewReport)
+{
+        <RadzenStack Gap="1.5rem" class="vpp-report-page">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                <RadzenText Text="@Loc["Reports"]" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-heading" />
+                <RadzenButton Icon="file_download" Text="@Loc["ExportReport"]" ButtonStyle="ButtonStyle.Primary" Disabled="true" />
+            </RadzenStack>
+
+            <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch">
+                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
+                    <RadzenCard class="rz-p-3 vpp-report-stat-card">
+                        <RadzenText Text="@Loc["TotalOrders"]" TextStyle="TextStyle.Overline" class="vpp-report-stat-label" />
+                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-stat-value" />
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
+                    <RadzenCard class="rz-p-3 vpp-report-stat-card">
+                        <RadzenText Text="@Loc["TotalQuantity"]" TextStyle="TextStyle.Overline" class="vpp-report-stat-label" />
+                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-stat-value" />
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
+                    <RadzenCard class="rz-p-3 vpp-report-stat-card">
+                        <RadzenText Text="@Loc["Departments"]" TextStyle="TextStyle.Overline" class="vpp-report-stat-label" />
+                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-stat-value" />
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" AllowClose="false" class="vpp-report-alert">
+                @Loc["ReportContentNotConfigured"]
+            </RadzenAlert>
+        </RadzenStack>
+}
+else
+{
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" AllowClose="false">
+            @Loc["NoPermission"]
+        </RadzenAlert>
+}
+
+@code {
+    private bool CanViewReport => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
+
+    protected override async Task OnInitializedAsync()
+    {
+        PermissionState.Changed += OnPermissionStateChanged;
+        await PermissionState.EnsureLoadedAsync();
+    }
+
+    private void OnPermissionStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        PermissionState.Changed -= OnPermissionStateChanged;
+    }
+}

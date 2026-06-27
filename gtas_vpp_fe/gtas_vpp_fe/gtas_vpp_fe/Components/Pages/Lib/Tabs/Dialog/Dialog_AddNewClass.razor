@@ -1,0 +1,108 @@
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_shared.DTOs.Share
+@inject DialogService DialogService
+@inject IAPIServices _apiServices
+@inject ICustomNotificationService _notificationService
+@inject GlobalClass glb
+
+<RadzenStack Gap="1rem">
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["ClassCode"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="@Model.ClassCode" Style="width: 100%;" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["ClassName"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="@Model.ClassName" Style="width: 100%;" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["ClassModule"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="@Model.ClassModul" Style="width: 100%;" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="@Model.Description" Style="width: 100%;" Rows="3" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12" class="rz-text-align-end">
+            <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
+            <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>
+
+@code {
+    [Parameter] public L01_ClassResDTO Model { get; set; } = new();
+    [Parameter] public bool IsCreate { get; set; }
+    
+    private bool isBusy = false;
+
+    private void Cancel()
+    {
+        DialogService.Close(null);
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(Model.ClassName))
+        {
+            _notificationService.CustomContentNotification(NotificationSeverity.Warning, "Validation", "Class Name is required", 5000, false);
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            Model.UpdateDate = DateTime.Now;
+            Model.UpdateUserId = glb.UserInfo.UserID;
+
+            L01_ClassResDTO? result;
+            if (IsCreate)
+            {
+                Model.Id = Guid.NewGuid();
+                Model.CreateDate = DateTime.Now;
+                Model.CreateUserId = glb.UserInfo.UserID;
+                result = await _apiServices.PostFromApiAsync<L01_ClassResDTO>(Config.LibraryApi.L01_Class, Model);
+            }
+            else
+            {
+                result = await _apiServices.PutFromApiAsync<L01_ClassResDTO>(Config.LibraryApi.L01_Class, Model);
+            }
+
+            if (result != null)
+            {
+                _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", 
+                    IsCreate ? "Class created successfully" : "Class updated successfully", 5000, false);
+                DialogService.Close(result);
+            }
+            else
+            {
+                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to save class", 5000, true);
+            }
+        }
+        catch (Exception ex)
+        {
+            _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error saving class: {ex.Message}", 15000, true);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

@@ -1,0 +1,29 @@
+.my-popup {
+    display: none;
+    position: absolute;
+    overflow: hidden;
+    height: calc(100vh - 10vh);
+    width: 480px;
+    border: var(--rz-panel-border);
+    background-color: var(--rz-panel-background-color);
+    box-shadow: var(--rz-panel-shadow);
+    border-radius: 20px;
+}
+
+.my-popup-process {
+    display: none;
+    position: absolute;
+    overflow: hidden;
+    height: 500px;
+    width: 480px;
+    border: var(--rz-panel-border);
+    background-color: var(--rz-panel-background-color);
+    box-shadow: var(--rz-panel-shadow);
+    border-radius: 20px;
+}
+
+.NotificationFieldSetWioutLine {
+    height: 500px;
+    overflow-y: auto;
+    border: none;
+}

@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve"><value>GTAS VPP</value></data>
+  <data name="Login" xml:space="preserve"><value>Login</value></data>
+  <data name="Logout" xml:space="preserve"><value>Logout</value></data>
+  <data name="Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Orders" xml:space="preserve"><value>Orders</value></data>
+  <data name="Library" xml:space="preserve"><value>Library</value></data>
+  <data name="Reports" xml:space="preserve"><value>Reports</value></data>
+  <data name="ExportReport" xml:space="preserve"><value>Export Report</value></data>
+  <data name="ReportContentNotConfigured" xml:space="preserve"><value>Report content has not been configured yet. Export functionality is coming soon.</value></data>
+  <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="HardDelete" xml:space="preserve"><value>Hard Delete</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Export" xml:space="preserve"><value>Export</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="NoData" xml:space="preserve"><value>No data</value></data>
+  <data name="Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Success" xml:space="preserve"><value>Success</value></data>
+  <data name="Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete?</value></data>
+  <data name="PermanentDeleteWarning" xml:space="preserve"><value>This will permanently delete the record. This action cannot be undone.</value></data>
+  <data name="GroupPermanentlyDeleted" xml:space="preserve"><value>Group permanently deleted.</value></data>
+  <data name="PleaseWait" xml:space="preserve"><value>Please wait...</value></data>
+  <data name="ServerError" xml:space="preserve"><value>Server Error</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
+  <data name="LightMode" xml:space="preserve"><value>Light Mode</value></data>
+  <data name="SwitchToDarkMode" xml:space="preserve"><value>Switch to dark mode</value></data>
+  <data name="SwitchToLightMode" xml:space="preserve"><value>Switch to light mode</value></data>
+  <data name="SwitchToEnglish" xml:space="preserve"><value>Switch to English</value></data>
+  <data name="SwitchToVietnamese" xml:space="preserve"><value>Switch to Vietnamese</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Notifications" xml:space="preserve"><value>Notifications</value></data>
+  <data name="History" xml:space="preserve"><value>Order History</value></data>
+  <data name="Approval" xml:space="preserve"><value>Approval</value></data>
+  <data name="Department" xml:space="preserve"><value>Department</value></data>
+  <data name="Supplier" xml:space="preserve"><value>Supplier</value></data>
+  <data name="Class" xml:space="preserve"><value>Class</value></data>
+  <data name="Category" xml:space="preserve"><value>Category</value></data>
+  <data name="Operation" xml:space="preserve"><value>Operation</value></data>
+  <data name="Page" xml:space="preserve"><value>Page</value></data>
+  <data name="Component" xml:space="preserve"><value>Component</value></data>
+  <data name="Group" xml:space="preserve"><value>Group</value></data>
+  <data name="Mapping" xml:space="preserve"><value>Mapping</value></data>
+  <data name="Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Amount" xml:space="preserve"><value>Amount</value></data>
+  <data name="Quantity" xml:space="preserve"><value>Quantity</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Code" xml:space="preserve"><value>Code</value></data>
+  <data name="Value" xml:space="preserve"><value>Value</value></data>
+  <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
+  <data name="MyOrders" xml:space="preserve"><value>My Orders</value></data>
+  <data name="ProductCatalog" xml:space="preserve"><value>Product Catalog</value></data>
+  <data name="DepartmentSummary" xml:space="preserve"><value>Department Orders</value></data>
+  <data name="AllOrdersSummary" xml:space="preserve"><value>All Orders</value></data>
+  <data name="AdminApproval" xml:space="preserve"><value>Additional Approval</value></data>
+  <data name="ClassDefinitions" xml:space="preserve"><value>Class Definitions</value></data>
+  <data name="OperationCategories" xml:space="preserve"><value>Categories</value></data>
+  <data name="Operations" xml:space="preserve"><value>Items</value></data>
+  <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
+  <data name="Prices" xml:space="preserve"><value>Prices</value></data>
+  <data name="Departments" xml:space="preserve"><value>Departments</value></data>
+  <data name="User" xml:space="preserve"><value>User</value></data>
+  <data name="BackToOrders" xml:space="preserve"><value>Back to Orders</value></data>
+  <data name="SelectedItems" xml:space="preserve"><value>Selected Items</value></data>
+  <data name="ClearAll" xml:space="preserve"><value>Clear All</value></data>
+  <data name="OrderDetails" xml:space="preserve"><value>Order Details</value></data>
+  <data name="OrderItems" xml:space="preserve"><value>Order Items</value></data>
+  <data name="Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="NewOrder" xml:space="preserve"><value>Create Order</value></data>
+  <data name="CopyPreviousOrder" xml:space="preserve"><value>Copy Previous Cycle</value></data>
+  <data name="ActiveOrderPeriod" xml:space="preserve"><value>Current Order Cycle</value></data>
+  <data name="PeriodEnd" xml:space="preserve"><value>Submission Deadline</value></data>
+  <data name="TotalLineItems" xml:space="preserve"><value>Total Line Items</value></data>
+  <data name="TotalQuantity" xml:space="preserve"><value>Total Quantity</value></data>
+  <data name="RequestAdditional" xml:space="preserve"><value>Create Additional Order</value></data>
+  <data name="NoPermission" xml:space="preserve"><value>You do not have permission to view this page.</value></data>
+  <data name="UserGroup" xml:space="preserve"><value>User Group</value></data>
+  <data name="GroupPagePermission" xml:space="preserve"><value>Group/Page Permission</value></data>
+  <data name="Users" xml:space="preserve"><value>Users</value></data>
+  <data name="GroupsAndPermissions" xml:space="preserve"><value>Groups &amp; Permissions</value></data>
+  <data name="GroupName" xml:space="preserve"><value>Group Name</value></data>
+  <data name="ParentGroup" xml:space="preserve"><value>Parent Group</value></data>
+  <data name="UserLogin" xml:space="preserve"><value>User Login</value></data>
+  <data name="FullName" xml:space="preserve"><value>Full Name</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="UserType" xml:space="preserve"><value>User Type</value></data>
+  <data name="ComponentCode" xml:space="preserve"><value>Component Code</value></data>
+  <data name="ComponentName" xml:space="preserve"><value>Component Name</value></data>
+  <data name="Visible" xml:space="preserve"><value>Visible</value></data>
+  <data name="Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="CompanyShortName" xml:space="preserve"><value>Company Short Name</value></data>
+  <data name="CompanyName" xml:space="preserve"><value>Company Name</value></data>
+  <data name="GroupNameRequired" xml:space="preserve"><value>Group name is required</value></data>
+  <data name="CopyFrom" xml:space="preserve"><value>Copy from (optional)</value></data>
+  <data name="CreateNewGroup" xml:space="preserve"><value>Create new group</value></data>
+  <data name="Server" xml:space="preserve"><value>Server</value></data>
+  <data name="ClassCode" xml:space="preserve"><value>Class Code</value></data>
+  <data name="ClassName" xml:space="preserve"><value>Class Name *</value></data>
+  <data name="ClassModule" xml:space="preserve"><value>Class Module</value></data>
+  <data name="ClassDetailCode" xml:space="preserve"><value>Class Detail Code *</value></data>
+  <data name="ClassDetailValue" xml:space="preserve"><value>Class Detail Value *</value></data>
+  <data name="ExtraField1" xml:space="preserve"><value>Extra Field 1</value></data>
+  <data name="ExtraField2" xml:space="preserve"><value>Extra Field 2</value></data>
+  <data name="ExtraField3" xml:space="preserve"><value>Extra Field 3</value></data>
+  <data name="SortOrder" xml:space="preserve"><value>Sort Order</value></data>
+  <data name="Additional" xml:space="preserve"><value>Additional</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="SelectVPPItem" xml:space="preserve"><value>Select VPP item</value></data>
+  <data name="AddNewPrice" xml:space="preserve"><value>Add new price</value></data>
+  <data name="EditPrice" xml:space="preserve"><value>Edit price</value></data>
+  <data name="Price" xml:space="preserve"><value>Price</value></data>
+  <data name="DefaultPrice" xml:space="preserve"><value>Default Price</value></data>
+  <data name="CategoryCode" xml:space="preserve"><value>Category Code</value></data>
+  <data name="CategoryName" xml:space="preserve"><value>Category Name</value></data>
+  <data name="SupplierCode" xml:space="preserve"><value>Supplier Code</value></data>
+  <data name="SupplierName" xml:space="preserve"><value>Supplier Name</value></data>
+  <data name="DepartmentCode" xml:space="preserve"><value>Department Code</value></data>
+  <data name="DepartmentName" xml:space="preserve"><value>Department Name</value></data>
+  <data name="Address1" xml:space="preserve"><value>Address 1</value></data>
+  <data name="Address2" xml:space="preserve"><value>Address 2</value></data>
+  <data name="Address3" xml:space="preserve"><value>Address 3</value></data>
+  <data name="Ward" xml:space="preserve"><value>Ward</value></data>
+  <data name="City" xml:space="preserve"><value>City</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
+  <data name="SetDefault" xml:space="preserve"><value>Set Default</value></data>
+  <data name="PriceSaved" xml:space="preserve"><value>Price saved</value></data>
+  <data name="DefaultUpdated" xml:space="preserve"><value>Default updated</value></data>
+  <data name="PriceDeleted" xml:space="preserve"><value>Price deleted</value></data>
+  <data name="LoadPricesPrompt" xml:space="preserve"><value>Select a VPP item to load prices.</value></data>
+  <data name="NoPricesFound" xml:space="preserve"><value>No prices found.</value></data>
+  <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Only one default per VPP is allowed.</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Delete failed</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
+  <data name="AllClear" xml:space="preserve"><value>All clear</value></data>
+  <data name="AdditionalOrders" xml:space="preserve"><value>Additional Orders</value></data>
+  <data name="Approve" xml:space="preserve"><value>Approve</value></data>
+  <data name="Approved" xml:space="preserve"><value>Approved</value></data>
+  <data name="ApproveOrderAria" xml:space="preserve"><value>Approve order {0}</value></data>
+  <data name="ApproveOrderConfirm" xml:space="preserve"><value>Are you sure you want to approve this additional order?</value></data>
+  <data name="ApproveOrderFailedFormat" xml:space="preserve"><value>Failed to approve order: {0}</value></data>
+  <data name="ApproveOrderTitle" xml:space="preserve"><value>Approve Order</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="CancelOrderAria" xml:space="preserve"><value>Cancel order {0}</value></data>
+  <data name="Categories" xml:space="preserve"><value>Categories</value></data>
+  <data name="ItemCode" xml:space="preserve"><value>Item Code</value></data>
+  <data name="ItemName" xml:space="preserve"><value>Item Name</value></data>
+  <data name="ItemsPerPage" xml:space="preserve"><value>items per page</value></data>
+  <data name="Month" xml:space="preserve"><value>Month</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="NoCatalogProductsMatchQuery" xml:space="preserve"><value>No catalog products matched the current query.</value></data>
+  <data name="NoDepartmentOrdersFound" xml:space="preserve"><value>No department orders found for the selected filters.</value></data>
+  <data name="NoHistoryOrders" xml:space="preserve"><value>No order history</value></data>
+  <data name="NoOrdersFound" xml:space="preserve"><value>No orders yet</value></data>
+  <data name="NoOrdersMatchSelectedFilters" xml:space="preserve"><value>No orders match the selected filters.</value></data>
+  <data name="NoOrdersSubmittedCurrentPeriod" xml:space="preserve"><value>You have not submitted any orders in this cycle yet.</value></data>
+  <data name="NoPendingAdditionalOrders" xml:space="preserve"><value>No additional orders are waiting for approval.</value></data>
+  <data name="NoPreviousPeriodOrders" xml:space="preserve"><value>No previous-period orders</value></data>
+  <data name="NoRegularOrdersFoundPreviousCycle" xml:space="preserve"><value>No regular orders were found in the previous cycle.</value></data>
+  <data name="Note" xml:space="preserve"><value>Note</value></data>
+  <data name="OrderApprovedSuccess" xml:space="preserve"><value>Order approved successfully.</value></data>
+  <data name="OrderCode" xml:space="preserve"><value>Order Code</value></data>
+  <data name="OrderCodeLabel" xml:space="preserve"><value>Order Code:</value></data>
+  <data name="OrderRejectedSuccess" xml:space="preserve"><value>Order rejected successfully.</value></data>
+  <data name="Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="PendingOrders" xml:space="preserve"><value>Pending Additional Orders</value></data>
+  <data name="Period" xml:space="preserve"><value>Period</value></data>
+  <data name="PreviousOrderPeriod" xml:space="preserve"><value>Previous Cycle</value></data>
+  <data name="ProductCode" xml:space="preserve"><value>Product Code</value></data>
+  <data name="ProductName" xml:space="preserve"><value>Product Name</value></data>
+  <data name="Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="Reject" xml:space="preserve"><value>Reject</value></data>
+  <data name="RejectOrderAria" xml:space="preserve"><value>Reject order {0}</value></data>
+  <data name="RejectOrderConfirm" xml:space="preserve"><value>Are you sure you want to reject order {0}?</value></data>
+  <data name="RejectOrderFailedFormat" xml:space="preserve"><value>Failed to reject order: {0}</value></data>
+  <data name="RejectOrderTitle" xml:space="preserve"><value>Reject Order</value></data>
+  <data name="RefreshQueue" xml:space="preserve"><value>Refresh queue</value></data>
+  <data name="StatusUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Submitted" xml:space="preserve"><value>Submitted</value></data>
+  <data name="SubmittedDate" xml:space="preserve"><value>Submitted On</value></data>
+  <data name="SubmittedLabel" xml:space="preserve"><value>Submitted on:</value></data>
+  <data name="SubmittedPeriodClosed" xml:space="preserve"><value>Submitted (Period Closed)</value></data>
+  <data name="TotalOrders" xml:space="preserve"><value>Total Orders</value></data>
+  <data name="TotalProducts" xml:space="preserve"><value>Total Products</value></data>
+  <data name="UOM" xml:space="preserve"><value>UOM</value></data>
+  <data name="Year" xml:space="preserve"><value>Year</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="AddAtLeastOneItemBeforeSubmitting" xml:space="preserve"><value>Add at least one item before submitting the request.</value></data>
+  <data name="AddProductToOrder" xml:space="preserve"><value>Add product to order</value></data>
+  <data name="AddToOrder" xml:space="preserve"><value>Add to order</value></data>
+  <data name="AdditionalOrder" xml:space="preserve"><value>Additional Order</value></data>
+  <data name="AlreadyAdded" xml:space="preserve"><value>Already added</value></data>
+  <data name="AlreadyAddedToOrder" xml:space="preserve"><value>Already added to order</value></data>
+  <data name="AutoSaveActive" xml:space="preserve"><value>Auto-save active</value></data>
+  <data name="AverageLinesPerOrderFormat" xml:space="preserve"><value>Average {0} line(s) per order</value></data>
+  <data name="BrowserKeepsLocalDraftWhileYouWork" xml:space="preserve"><value>This browser keeps a local draft while you work.</value></data>
+  <data name="CancelFailedFormat" xml:space="preserve"><value>Cancel failed: {0}</value></data>
+  <data name="ChangesStoredWhenUpdateExistingRequest" xml:space="preserve"><value>Changes are stored when you update the existing request.</value></data>
+  <data name="CopiedItemsFromPreviousOrderFormat" xml:space="preserve"><value>Copied {0} item(s) from the previous order. Review and submit.</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="CopyOrder" xml:space="preserve"><value>Copy Order</value></data>
+  <data name="CopyPrevious" xml:space="preserve"><value>Copy Previous</value></data>
+  <data name="CouldNotDetermineCurrentPeriodPleaseReload" xml:space="preserve"><value>Could not determine the current period. Please reload the page.</value></data>
+  <data name="CreateOrder" xml:space="preserve"><value>Create Order</value></data>
+  <data name="CurrentStepHintContext" xml:space="preserve"><value>Confirm the period window, request type, and the note or reason before continuing.</value></data>
+  <data name="CurrentStepHintProducts" xml:space="preserve"><value>Choose products, adjust quantities, and build the request basket.</value></data>
+  <data name="CurrentStepHintReview" xml:space="preserve"><value>Do a final review of quantities and notes before sending the order.</value></data>
+  <data name="DeadlineIsToday" xml:space="preserve"><value>Deadline is today</value></data>
+  <data name="DraftRestored" xml:space="preserve"><value>Draft restored</value></data>
+  <data name="DraftSavedInBrowserStorage" xml:space="preserve"><value>Draft saved in browser storage.</value></data>
+  <data name="EditOrder" xml:space="preserve"><value>Edit Order</value></data>
+  <data name="FailedToLoadPreviousOrderFormat" xml:space="preserve"><value>Failed to load previous order: {0}</value></data>
+  <data name="FailedToSaveOrderFormat" xml:space="preserve"><value>Failed to save order: {0}</value></data>
+  <data name="InvalidProductOrQuantity" xml:space="preserve"><value>Invalid product or quantity.</value></data>
+  <data name="ItemsCountFormat" xml:space="preserve"><value>{0} item(s)</value></data>
+  <data name="LastSavedAtFormat" xml:space="preserve"><value>Last saved at {0}</value></data>
+  <data name="Lines" xml:space="preserve"><value>Lines</value></data>
+  <data name="LiveUpdate" xml:space="preserve"><value>Live update</value></data>
+  <data name="LoadDetailsFailedFormat" xml:space="preserve"><value>Load details failed: {0}</value></data>
+  <data name="LoadFailedFormat" xml:space="preserve"><value>Load failed: {0}</value></data>
+  <data name="LoadOrderFailedFormat" xml:space="preserve"><value>Load order failed: {0}</value></data>
+  <data name="LoadOrdersFailedFormat" xml:space="preserve"><value>Load orders failed: {0}</value></data>
+  <data name="Mode" xml:space="preserve"><value>Mode</value></data>
+  <data name="New" xml:space="preserve"><value>New</value></data>
+  <data name="NoItemsSelectedYetStartCatalogLeft" xml:space="preserve"><value>No items selected yet. Start with the catalog on the left.</value></data>
+  <data name="NoPermissionCreateOrEditOrders" xml:space="preserve"><value>You do not have permission to create or edit orders.</value></data>
+  <data name="NoPreviousOrderFoundToCopy" xml:space="preserve"><value>No previous order found to copy from.</value></data>
+  <data name="Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Order" xml:space="preserve"><value>Order</value></data>
+  <data name="OrderCancelledSuccess" xml:space="preserve"><value>Order cancelled.</value></data>
+  <data name="OrderContext" xml:space="preserve"><value>Order Context</value></data>
+  <data name="OrderCreatedSuccessfully" xml:space="preserve"><value>Order created successfully.</value></data>
+  <data name="OrderDraft" xml:space="preserve"><value>Order Draft</value></data>
+  <data name="OrderToUpdateNotFound" xml:space="preserve"><value>Order to update was not found.</value></data>
+  <data name="OrderUpdatedSuccessfully" xml:space="preserve"><value>Order updated successfully.</value></data>
+  <data name="OrdersTitleFormat" xml:space="preserve"><value>Orders - {0}</value></data>
+  <data name="PleaseSelectAtLeastOneProduct" xml:space="preserve"><value>Please select at least one product.</value></data>
+  <data name="ProvideReasonBeforeContinue" xml:space="preserve"><value>Please provide a reason for the additional order before continuing.</value></data>
+  <data name="ReadyToSubmitItemsTotalQuantityFormat" xml:space="preserve"><value>Ready to submit {0} item(s) with total quantity {1}.</value></data>
+  <data name="RemainingDeadlineDaysFormat" xml:space="preserve"><value>Remaining: {0} day(s)</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="RemoveItemFromOrder" xml:space="preserve"><value>Remove item from order</value></data>
+  <data name="RestoredDraft" xml:space="preserve"><value>Restored draft</value></data>
+  <data name="Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="Selected" xml:space="preserve"><value>Selected</value></data>
+  <data name="SelectedItemsTotalQuantityFormat" xml:space="preserve"><value>{0} item(s) selected with total quantity {1}.</value></data>
+  <data name="SetRequestContext" xml:space="preserve"><value>Set request context</value></data>
+  <data name="SubmitForApproval" xml:space="preserve"><value>Submit for approval</value></data>
+  <data name="UpdateOrder" xml:space="preserve"><value>Update Order</value></data>
+  <data name="WizardAdditionalCycleClosedAlert" xml:space="preserve"><value>This cycle is already closed. Provide a reason so the additional request can be routed for approval.</value></data>
+  <data name="WizardAdditionalReasonHint" xml:space="preserve"><value>This field is required for additional orders.</value></data>
+  <data name="WizardAdditionalReasonLabel" xml:space="preserve"><value>Reason for additional order *</value></data>
+  <data name="WizardAdditionalReasonRequired" xml:space="preserve"><value>Reason is required for additional orders.</value></data>
+  <data name="WizardAISearchCopy" xml:space="preserve"><value>Ask with natural language, mixed keywords, or partial product names.</value></data>
+  <data name="WizardApprovalRequired" xml:space="preserve"><value>Approval required</value></data>
+  <data name="WizardApproverNotesHint" xml:space="preserve"><value>Notes</value></data>
+  <data name="WizardApproverNotesLabel" xml:space="preserve"><value>Notes for approver</value></data>
+  <data name="WizardBoundaryRule" xml:space="preserve"><value>Boundary rule</value></data>
+  <data name="WizardBoundaryRuleDesc" xml:space="preserve"><value>Exactly at 00:00 on day 5, the system moves into the new monthly period.</value></data>
+  <data name="WizardCopiedFromPreviousOrder" xml:space="preserve"><value>Copied from previous order</value></data>
+  <data name="WizardCycleCloses" xml:space="preserve"><value>Cycle closes</value></data>
+  <data name="WizardCycleClosesAtFormat" xml:space="preserve"><value>23:59 on {0}</value></data>
+  <data name="WizardCycleOpens" xml:space="preserve"><value>Cycle opens</value></data>
+  <data name="WizardCycleOpensAtFormat" xml:space="preserve"><value>00:00 on {0}</value></data>
+  <data name="WizardEditingExistingRequest" xml:space="preserve"><value>Editing existing request</value></data>
+  <data name="WizardItemsBadgeFormat" xml:space="preserve"><value>{0} items</value></data>
+  <data name="WizardModeAdditionalDesc" xml:space="preserve"><value>Closed period request that moves through admin approval.</value></data>
+  <data name="WizardModeAdditionalFlow" xml:space="preserve"><value>Additional approval flow</value></data>
+  <data name="WizardModeCopyDesc" xml:space="preserve"><value>Start from the latest order and adjust only what changed.</value></data>
+  <data name="WizardModeCopyPrevious" xml:space="preserve"><value>Copy from previous</value></data>
+  <data name="WizardModeEditingExistingOrder" xml:space="preserve"><value>Editing existing order</value></data>
+  <data name="WizardModeNewDesc" xml:space="preserve"><value>Regular request for the active period.</value></data>
+  <data name="WizardModeRegularRequest" xml:space="preserve"><value>Regular monthly request</value></data>
+  <data name="WizardNoItemsSelected" xml:space="preserve"><value>No items selected</value></data>
+  <data name="WizardNoItemsSelectedDesc" xml:space="preserve"><value>Use the catalog to add products, then adjust quantities here.</value></data>
+  <data name="WizardNoItemsToSubmit" xml:space="preserve"><value>No items to submit</value></data>
+  <data name="WizardNoItemsToSubmitDesc" xml:space="preserve"><value>Go back to Step 2 and add products to your order.</value></data>
+  <data name="WizardOrderModeSummaryAdditional" xml:space="preserve"><value>This request targets a closed period and will move through the admin approval flow.</value></data>
+  <data name="WizardOrderModeSummaryCopy" xml:space="preserve"><value>Previous items are preloaded so you can adjust them quickly before resubmitting.</value></data>
+  <data name="WizardOrderModeSummaryCreate" xml:space="preserve"><value>Search the catalog, build the basket, and do one final check before submitting the request.</value></data>
+  <data name="WizardOrderModeSummaryEdit" xml:space="preserve"><value>Review the request details and update quantities before saving the existing order.</value></data>
+  <data name="WizardOrderReviewCopy" xml:space="preserve"><value>Validate the basket, notes, and quantities before the request is submitted.</value></data>
+  <data name="WizardOrderReviewTitle" xml:space="preserve"><value>Order review</value></data>
+  <data name="WizardPeriodWindowCopy" xml:space="preserve"><value>The backend period service already resolved the correct cycle. This request will be submitted against the window below.</value></data>
+  <data name="WizardPeriodWindowTitle" xml:space="preserve"><value>Period window</value></data>
+  <data name="WizardProductCatalog" xml:space="preserve"><value>Product Catalog</value></data>
+  <data name="WizardQtyBadgeFormat" xml:space="preserve"><value>Quantity: {0}</value></data>
+  <data name="WizardRegularRequest" xml:space="preserve"><value>Regular request</value></data>
+  <data name="WizardRequestContextCopy" xml:space="preserve"><value>Confirm the target cycle, request type, and the note that approvers will see before you start building the cart.</value></data>
+  <data name="WizardRequestContextTitle" xml:space="preserve"><value>Request context</value></data>
+  <data name="WizardReviewFooterCopy" xml:space="preserve"><value>You can still adjust quantity or remove a line here before the final submit action.</value></data>
+  <data name="WizardRowsAddedFoot" xml:space="preserve"><value>Rows already added to the order stay highlighted so you can keep browsing without losing context.</value></data>
+  <data name="WizardSelectionFootCopy" xml:space="preserve"><value>Quantities update instantly and carry straight into the review step.</value></data>
+  <data name="WizardTargetPeriod" xml:space="preserve"><value>Target period</value></data>
+  <data name="WizardTotalQtyBadgeFormat" xml:space="preserve"><value>Total Qty: {0}</value></data>
+  <data name="WizardTotalQuantityFormat" xml:space="preserve"><value>Total quantity {0}</value></data>
+  <data name="PriceLists" xml:space="preserve"><value>Price Lists</value></data>
+  <data name="SelectPriceList" xml:space="preserve"><value>Select price list</value></data>
+  <data name="NoPriceListAvailable" xml:space="preserve"><value>No price list is available.</value></data>
+  <data name="PriceListCode" xml:space="preserve"><value>Price List Code</value></data>
+  <data name="PriceListName" xml:space="preserve"><value>Price List Name</value></data>
+  <data name="ItemCount" xml:space="preserve"><value>Items</value></data>
+  <data name="IsDefault" xml:space="preserve"><value>Default</value></data>
+  <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>
+  <data name="Clone" xml:space="preserve"><value>Clone</value></data>
+  <data name="AddPriceList" xml:space="preserve"><value>Add Price List</value></data>
+  <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Delete this price list?</value></data>
+  <data name="PriceListSaved" xml:space="preserve"><value>Price list saved</value></data>
+  <data name="PriceListDeleted" xml:space="preserve"><value>Price list deleted</value></data>
+  <data name="PriceListCloned" xml:space="preserve"><value>Price list cloned</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Period Operations</value></data>
+  <data name="PendingApprovals" xml:space="preserve"><value>Pending Approvals</value></data>
+  <data name="PeriodSettlement" xml:space="preserve"><value>Period Settlement</value></data>
+  <data name="PriceList" xml:space="preserve"><value>Price List</value></data>
+  <data name="PriceList_UseDefault" xml:space="preserve"><value>(Default)</value></data>
+  <data name="SettlePeriod" xml:space="preserve"><value>Settle Period</value></data>
+  <data name="Settled" xml:space="preserve"><value>Settled</value></data>
+  <data name="Warning_PendingAdditional" xml:space="preserve"><value>{0} additional order(s) are still pending approval. Approve them before settling.</value></data>
+  <data name="Info_AlreadySettled" xml:space="preserve"><value>Period was settled at {0} by {1} with price list {2}.</value></data>
+  <data name="Confirm_Settle" xml:space="preserve"><value>Settle period {0}/{1} with price list {2}?</value></data>
+  <data name="Parameters" xml:space="preserve"><value>Configuration Parameters</value></data>
+  <data name="PeriodStatus" xml:space="preserve"><value>Period Status</value></data>
+  <data name="CheckingPeriodStatus" xml:space="preserve"><value>Checking period status...</value></data>
+  <data name="PeriodReadyToSettle" xml:space="preserve"><value>Period ready to settle</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Period Review &amp; Settlement</value></data>
+  <data name="TargetPeriod" xml:space="preserve"><value>Period to settle</value></data>
+  <data name="Hint_AutoTargetsClosedPeriod" xml:space="preserve"><value>Auto-targets the just-closed period (the one right before the currently open period). The selected price list will apply to all orders of that period.</value></data>
+  <data name="Columns" xml:space="preserve"><value>Columns</value></data>
+  <data name="VisibleColumns" xml:space="preserve"><value>Visible columns</value></data>
+  <data name="SelectedColumnsCount" xml:space="preserve"><value>{0} of {1} selected</value></data>
+  <data name="SearchColumns" xml:space="preserve"><value>Search columns</value></data>
+  <data name="NoMatchingColumns" xml:space="preserve"><value>No matching columns</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+</root>

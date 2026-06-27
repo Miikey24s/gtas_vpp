@@ -1,0 +1,105 @@
+@using System.Globalization
+
+<div class="vpp-header-controls">
+    @* Language Toggle *@
+    <button type="button"
+            class="@LanguageSwitchClass"
+            @onclick="HandleLanguageToggleAsync"
+            title="@LanguageToggleTitle"
+            aria-label="@LanguageToggleTitle"
+            aria-pressed="@LanguagePressed"
+            aria-busy="@LanguageBusy"
+            disabled="@_isLanguageSwitching">
+        <span class="vpp-lang-switch-thumb" aria-hidden="true"></span>
+        <span class="vpp-lang-option @(IsEnglishUi ? "is-active" : string.Empty)">
+            EN
+        </span>
+        <span class="vpp-lang-option @(!IsEnglishUi ? "is-active" : string.Empty)">
+            VI
+        </span>
+    </button>
+
+    @* Dark Mode Toggle *@
+    <button type="button"
+            class="@ThemeSwitchClass"
+            @onclick="HandleThemeToggleAsync"
+            title="@ThemeToggleTitle"
+            aria-label="@ThemeToggleTitle"
+            aria-pressed="@ThemePressed">
+        <span class="vpp-theme-icon-wrap" aria-hidden="true">
+            <span class="material-symbols-outlined vpp-theme-icon vpp-theme-icon-moon">
+                dark_mode
+            </span>
+            <span class="material-symbols-outlined vpp-theme-icon vpp-theme-icon-sun">
+                light_mode
+            </span>
+        </span>
+    </button>
+</div>
+
+@code {
+    private bool _isLanguageSwitching;
+    private bool _isThemeSwitching;
+
+    [Parameter] public bool IsLightTheme { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsLightThemeChanged { get; set; }
+    [Parameter] public EventCallback OnThemeToggle { get; set; }
+    [Parameter] public EventCallback OnLanguageToggle { get; set; }
+
+    private bool IsEnglishUi => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+
+    private string LanguageToggleTitle => IsEnglishUi ? Loc["SwitchToVietnamese"] : Loc["SwitchToEnglish"];
+
+    private string ThemeToggleTitle => IsLightTheme ? Loc["SwitchToDarkMode"] : Loc["SwitchToLightMode"];
+
+    private string LanguageSwitchClass => $"vpp-lang-switch {(IsEnglishUi ? "is-en" : "is-vi")} {(_isLanguageSwitching ? "is-switching" : string.Empty)}";
+
+    private string ThemeSwitchClass => $"vpp-theme-switch {(IsLightTheme ? "is-light" : "is-dark")} {(_isThemeSwitching ? "is-switching" : string.Empty)}";
+
+    private string LanguagePressed => IsEnglishUi ? "true" : "false";
+
+    private string ThemePressed => IsLightTheme ? "false" : "true";
+
+    private string LanguageBusy => _isLanguageSwitching ? "true" : "false";
+
+    private async Task HandleLanguageToggleAsync()
+    {
+        if (_isLanguageSwitching)
+        {
+            return;
+        }
+
+        _isLanguageSwitching = true;
+        StateHasChanged();
+        try
+        {
+            await OnLanguageToggle.InvokeAsync();
+        }
+        finally
+        {
+            _isLanguageSwitching = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleThemeToggleAsync()
+    {
+        if (_isThemeSwitching)
+        {
+            return;
+        }
+
+        _isThemeSwitching = true;
+        StateHasChanged();
+        try
+        {
+            await OnThemeToggle.InvokeAsync();
+            await Task.Delay(180);
+        }
+        finally
+        {
+            _isThemeSwitching = false;
+            StateHasChanged();
+        }
+    }
+}

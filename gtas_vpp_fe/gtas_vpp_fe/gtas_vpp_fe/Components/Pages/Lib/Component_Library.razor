@@ -1,0 +1,114 @@
+@using gtas_vpp_fe.Components.Pages.Lib.Tabs
+@using gtas_vpp_shared.Constants
+@using gtas_vpp_shared.DTOs.Res.Library
+@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>GTAS VPP - Library</PageTitle>
+
+
+
+@if (HasAnyVisibleLibraryTab)
+{
+    <RadzenTabs Change="@TabOnChange"
+                TabPosition="@tabPosition"
+                class="librariestab vpp-admin-tabs"
+                RenderMode="TabRenderMode.Client"
+                @bind-SelectedIndex=SelectedIndex>
+        <Tabs>
+            @if (CanViewLibraryTab(Permissions.LibraryClass))
+            {
+                <RadzenTabsItem Text="@Loc["ClassDefinitions"]">
+                    @if (IsActiveTab(0))
+                    {
+                        <Tab_ClassLibrary claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewLibraryTab(Permissions.LibraryCategory))
+            {
+                <RadzenTabsItem Text="@Loc["OperationCategories"]">
+                    @if (IsActiveTab(1))
+                    {
+                        <Component_ShareGrid TType=L03_VPPCategoryResDTO @bind-Data="@operationCategories" Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewLibraryTab(Permissions.LibraryItem))
+            {
+                <RadzenTabsItem Text="@Loc["Operations"]">
+                    @if (IsActiveTab(2))
+                    {
+                        <Component_ShareGrid TType=L04_VPPResDTO @bind-Data=@operations DicDropdownData=@CategoryDropdownDatas Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewLibraryTab(Permissions.LibrarySupplier))
+            {
+                <RadzenTabsItem Text="@Loc["Suppliers"]">
+                    @if (IsActiveTab(3))
+                    {
+                        <Component_ShareGrid TType=L05_VPPSupplierResDTO @bind-Data=@suppliers Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewLibraryTab(Permissions.LibraryPriceList, Permissions.LibraryPrice))
+            {
+                <RadzenTabsItem Text="@Loc["Pricing"]">
+                    @if (IsActiveTab(6))
+                    {
+                        @if (CanShowPricingTabs)
+                        {
+                            <RadzenTabs Change="@PricingTabOnChange"
+                                        RenderMode="TabRenderMode.Client"
+                                        class="vpp-secondary-tabs"
+                                        @bind-SelectedIndex="@PricingSelectedIndex">
+                                <Tabs>
+                                    @if (CanShowPriceLists)
+                                    {
+                                        <RadzenTabsItem Text="@Loc["PriceLists"]">
+                                            @if (IsActivePricingTab(6))
+                                            {
+                                                <Tab_PriceListLibrary claims="@claims"
+                                                                      sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                                            }
+                                        </RadzenTabsItem>
+                                    }
+                                    @if (CanShowPrices)
+                                    {
+                                        <RadzenTabsItem Text="@Loc["Prices"]">
+                                            @if (IsActivePricingTab(4))
+                                            {
+                                                <Tab_PriceLibrary claims="@claims"
+                                                                  sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                                            }
+                                        </RadzenTabsItem>
+                                    }
+                                </Tabs>
+                            </RadzenTabs>
+                        }
+                        else if (CanShowPriceLists)
+                        {
+                            <Tab_PriceListLibrary claims="@claims"
+                                                  sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                        }
+                        else if (CanShowPrices)
+                        {
+                            <Tab_PriceLibrary claims="@claims"
+                                              sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                        }
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewLibraryTab(Permissions.LibraryDepartment))
+            {
+                <RadzenTabsItem Text="@Loc["Departments"]">
+                    @if (IsActiveTab(5))
+                    {
+                        <Component_ShareGrid TType=LEX02_CompanyDepartmentLocationResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
+}

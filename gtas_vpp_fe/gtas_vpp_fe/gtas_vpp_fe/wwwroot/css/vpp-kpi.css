@@ -1,0 +1,448 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP KPI CARDS — F-30 (minimal flat redesign)
+   Previous state: 4 playful gradient variants (blue/purple/emerald/amber) +
+   shine animation + white text. Distracted from the data itself and did not
+   match the Linear/Vercel reference declared in vpp-tokens.css.
+   New state: one neutral flat card, accent via icon opacity only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── KPI Card Base ────────────────────────────────────────────── */
+/* .vpp-kpi-card is the canonical name; .kpi-card kept as alias so existing
+   razor markup (class="kpi-card") continues to work without mass rename. */
+.vpp-kpi-card,
+.kpi-card {
+    position: relative;
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-card);
+    padding: var(--vpp-space-6);
+    overflow: hidden;
+    cursor: default;
+    transition: border-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
+}
+
+.vpp-kpi-card:hover,
+.kpi-card:hover {
+    border-color: var(--vpp-border-strong);
+    box-shadow: var(--vpp-shadow-sm);
+}
+
+.kpi-card-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Header — label + icon */
+.kpi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--vpp-space-3);
+}
+
+.kpi-card-label {
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0;
+    color: var(--vpp-text-secondary);
+}
+
+.kpi-card-icon {
+    font-size: 1.75rem;
+    opacity: 0.4;
+    color: var(--vpp-text-secondary);
+}
+
+/* Value */
+.kpi-card-value {
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-3xl);
+    font-weight: var(--vpp-font-weight-bold);
+    color: var(--vpp-text-primary);
+    line-height: 1.1;
+    margin-bottom: var(--vpp-space-2);
+}
+
+/* Trend */
+.kpi-card-trend {
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-1);
+    color: var(--vpp-text-secondary);
+}
+
+.kpi-card-trend-arrow {
+    font-weight: var(--vpp-font-weight-bold);
+}
+
+.trend-up   { color: var(--vpp-success); }
+.trend-down { color: var(--vpp-danger); }
+
+/* F-30: Gradient variants (.kpi-blue/.kpi-purple/.kpi-emerald/.kpi-amber/.kpi-teal)
+   and the .kpi-card-shine overlay have been removed. If any legacy razor markup
+   still carries those class names, they are now no-ops — the neutral flat
+   .vpp-kpi-card base style wins. */
+
+/* ── KPI Card Grid ────────────────────────────────────────────── */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--vpp-space-5);
+    margin-bottom: var(--vpp-space-5);
+}
+
+@media (min-width: 1200px) {
+    .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ── Data Card (Order card style) ─────────────────────────────── */
+.vpp-data-card {
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-card);
+    padding: var(--vpp-space-5);
+    transition: all var(--vpp-transition-fast);
+    cursor: default;
+}
+
+.order-page {
+    gap: var(--vpp-space-4);
+}
+
+.vpp-data-card:hover {
+    border-color: var(--vpp-border-strong);
+    box-shadow: var(--vpp-shadow-sm);
+}
+
+.vpp-data-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--vpp-space-4);
+    margin-bottom: var(--vpp-space-3);
+}
+
+.vpp-data-card-header > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.vpp-data-card-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-1);
+    font-family: var(--vpp-font-display);
+    font-weight: var(--vpp-font-weight-semibold);
+    font-size: var(--vpp-text-md);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-data-card-label {
+    color: var(--vpp-text-secondary);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-data-card-title .vpp-data-card-label {
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-data-card-value {
+    color: var(--vpp-text-primary);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-data-card-title .vpp-data-card-value {
+    font-family: var(--vpp-font-mono);
+    font-size: var(--vpp-text-base);
+    letter-spacing: 0;
+}
+
+.vpp-data-card-meta {
+    display: flex;
+    gap: var(--vpp-space-4);
+    font-size: var(--vpp-text-sm);
+    color: var(--vpp-text-secondary);
+    flex-wrap: wrap;
+}
+
+.vpp-data-card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-data-card-meta-item .vpp-data-card-label {
+    color: var(--vpp-text-tertiary);
+}
+
+.vpp-data-card-meta-item .vpp-data-card-value {
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-data-card-summary {
+    display: grid;
+    grid-template-columns: 6.25rem minmax(0, 1fr);
+    gap: var(--vpp-space-2) var(--vpp-space-2);
+    align-items: center;
+    min-width: 0;
+}
+
+.vpp-data-card-summary .vpp-data-card-label {
+    color: var(--vpp-text-secondary);
+    white-space: nowrap;
+    text-align: left;
+}
+
+.vpp-data-card-summary .vpp-data-card-value {
+    min-width: 0;
+    overflow-wrap: normal;
+}
+
+.vpp-data-card-value-row {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.vpp-data-card-value-row .vpp-data-card-value {
+    font-family: var(--vpp-font-mono);
+}
+
+.vpp-order-code-link {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.vpp-data-card-actions {
+    flex-shrink: 0;
+}
+
+.vpp-data-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--vpp-space-3);
+    padding-top: var(--vpp-space-3);
+    border-top: 1px solid var(--vpp-border-default);
+}
+
+/* ── KPI Skeleton Loading ─────────────────────────────────────── */
+.kpi-card .vpp-skeleton {
+    border-radius: var(--vpp-radius-sm);
+}
+
+.kpi-card-skel-value {
+    height: 36px;
+    width: 60%;
+    margin-bottom: var(--vpp-space-2);
+}
+
+.kpi-card-skel-label {
+    height: 12px;
+    width: 40%;
+}
+
+/* ── Status Badge ─────────────────────────────────────────────── */
+.vpp-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: var(--vpp-radius-full);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-medium);
+    line-height: 1.5;
+}
+
+.vpp-badge-success { background: var(--vpp-success-muted); color: var(--vpp-success); }
+.vpp-badge-danger  { background: var(--vpp-danger-muted); color: var(--vpp-danger); }
+.vpp-badge-warning { background: var(--vpp-warning-muted); color: var(--vpp-warning); }
+.vpp-badge-info    { background: var(--vpp-info-muted); color: var(--vpp-info); }
+.vpp-badge-secondary { background: var(--vpp-bg-surface); color: var(--vpp-text-secondary); }
+
+/* ── Empty State ──────────────────────────────────────────────── */
+.vpp-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--vpp-space-16) var(--vpp-space-6);
+    text-align: center;
+}
+
+.vpp-empty-state-icon {
+    font-size: 4rem;
+    color: var(--vpp-text-tertiary);
+    opacity: 0.4;
+    margin-bottom: var(--vpp-space-4);
+}
+
+.vpp-empty-state-title {
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-xl);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-primary);
+    margin-bottom: var(--vpp-space-2);
+}
+
+.vpp-empty-state-desc {
+    font-size: var(--vpp-text-base);
+    color: var(--vpp-text-secondary);
+    max-width: 360px;
+    margin-bottom: var(--vpp-space-6);
+}
+
+.vpp-empty-state-action {
+    padding: var(--vpp-space-2) var(--vpp-space-5);
+    background: var(--vpp-primary-500);
+    color: var(--vpp-text-inverse);
+    border: none;
+    border-radius: var(--vpp-radius-button);
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    cursor: pointer;
+    transition: all var(--vpp-transition-fast);
+}
+
+.vpp-empty-state-action:hover {
+    background: var(--vpp-primary-600);
+    transform: translateY(-1px);
+    box-shadow: var(--vpp-shadow-sm);
+}
+
+.vpp-empty-state.vpp-empty-state-compact {
+    padding: var(--vpp-space-5) var(--vpp-space-4);
+}
+
+.vpp-empty-state.vpp-empty-state-compact .vpp-empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--vpp-space-2);
+}
+
+.vpp-empty-state.vpp-empty-state-compact .vpp-empty-state-title {
+    font-size: var(--vpp-text-base);
+    margin-bottom: var(--vpp-space-1);
+}
+
+.vpp-empty-state.vpp-empty-state-compact .vpp-empty-state-desc {
+    font-size: var(--vpp-text-sm);
+    margin-bottom: var(--vpp-space-4);
+}
+
+/* ── Section Divider ─────────────────────────────────────────── */
+.vpp-section-divider {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-3) 0 var(--vpp-space-2);
+    margin-top: var(--vpp-space-8);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-section-divider .vpp-section-title {
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-md);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-section-divider .vpp-section-title .rzi {
+    font-size: 1.25rem;
+    color: var(--vpp-primary-600);
+    opacity: 1;
+}
+
+/* ── Order Grid Clean ────────────────────────────────────────── */
+.vpp-order-grid .rz-grid-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+/* ── Filter Bar ──────────────────────────────────────────────── */
+.vpp-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    background: var(--vpp-bg-elevated);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+}
+
+.vpp-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-filter-label {
+    font-size: var(--vpp-text-xs) !important;
+    font-weight: var(--vpp-font-weight-medium) !important;
+    color: var(--vpp-text-secondary) !important;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.vpp-filter-reload {
+    margin-left: auto;
+}
+
+/* ── Expand Detail (row expand in DataGrid) ──────────────────── */
+.vpp-expand-detail {
+    padding: 0;
+    background: var(--vpp-bg-surface);
+    border-radius: 0;
+}
+
+.vpp-expand-detail-header {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-primary);
+    margin-bottom: 0;
+}
+
+.vpp-expand-detail-header .rzi {
+    color: var(--vpp-primary-400);
+}
+
+/* ── Link Text (clickable-looking text) ──────────────────────── */
+.vpp-link-text {
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-primary-500);
+}
+
+/* ── KPI Grid Column Control ─────────────────────────────────── */
+.kpi-grid[style*="--kpi-cols: 2"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+}
+
+.kpi-grid[style*="--kpi-cols: 3"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+@media (max-width: 768px) {
+    .kpi-grid[style*="--kpi-cols: 2"],
+    .kpi-grid[style*="--kpi-cols: 3"] {
+        grid-template-columns: 1fr !important;
+    }
+}

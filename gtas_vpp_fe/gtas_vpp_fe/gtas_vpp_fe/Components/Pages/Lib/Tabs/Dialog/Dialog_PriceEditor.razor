@@ -1,0 +1,32 @@
+@using gtas_vpp_shared.DTOs.Req.Library
+@using gtas_vpp_shared.DTOs.Res.Library
+
+<RadzenTemplateForm TItem="L06_PriceUpdateReqDTO" Data="@Model" Submit="@Save">
+    <RadzenStack Gap="1rem">
+        <RadzenFormField Text="@Loc["Supplier"]" class="w-100">
+            <RadzenDropDown Name="Supplier"
+                            TValue="Guid"
+                            Data="@Suppliers"
+                            TextProperty="SupplierName"
+                            ValueProperty="Id"
+                            @bind-Value="Model.L05_VPPSupplierId"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Style="width:100%" />
+        </RadzenFormField>
+        <RadzenFormField Text="@Loc["Price"]" class="w-100">
+            <RadzenNumeric Name="Price" TValue="decimal" @bind-Value="Model.Price" Min="0" Style="width:100%" />
+        </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+            <RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" />
+            <RadzenText Text="@Loc["DefaultPrice"]" TextStyle="TextStyle.Body2" />
+        </RadzenStack>
+        <RadzenFormField Text="@Loc["Description"]" class="w-100">
+            <RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" />
+        </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
+            <RadzenButton Text="@Loc["Save"]" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>

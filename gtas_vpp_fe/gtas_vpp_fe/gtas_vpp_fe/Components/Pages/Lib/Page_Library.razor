@@ -1,0 +1,25 @@
+@page "/library"
+@layout MainLayout
+@inherits gtas_vpp_fe.Components.Pages.PermissionAwarePageBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager UriHelper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IJSRuntime js
+@inject GlobalClass glb
+@using gtas_vpp_shared.DTOs.Share
+
+@rendermode InteractiveServer
+
+<PageTitle>GTAS VPP - Library</PageTitle>
+
+@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible))
+{
+    <section class="vpp-admin-page">
+        <Component_Library claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+    </section>
+}

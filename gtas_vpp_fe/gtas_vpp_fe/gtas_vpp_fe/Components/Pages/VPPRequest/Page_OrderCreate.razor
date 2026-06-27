@@ -1,0 +1,76 @@
+@page "/dashboard/order-create"
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Share
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<PageTitle>GTAS VPP - @OrderModeTitle</PageTitle>
+
+<CascadingValue Value="Context">
+@if (IsPageLoading)
+{
+    <div class="vpp-wizard">
+        <SkeletonPage Cards="0" Rows="8" Cols="4" />
+    </div>
+}
+else
+{
+    <div class="vpp-wizard">
+        <div class="vpp-wizard-toolbar">
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: var(--vpp-space-3);">
+                <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
+                
+                <div class="vpp-custom-steps">
+                    <div class="vpp-custom-step @(currentStep == 0 ? "active" : "inactive")" @onclick="@(() => { currentStep = 0; Context.NotifyStateChanged(); })">
+                        <span class="step-num">1</span>
+                        <span class="step-text">@Loc["SelectProducts"]</span>
+                    </div>
+                    <div class="vpp-custom-step-divider">➔</div>
+                    <div class="vpp-custom-step @(currentStep == 1 ? "active" : "inactive")" @onclick="@(() => { currentStep = 1; Context.NotifyStateChanged(); })">
+                        <span class="step-num">2</span>
+                        <span class="step-text">@Loc["ReviewSubmit"]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="vpp-wizard-stage">
+            @if (currentStep == 0)
+            {
+                <OrderCreateStep2 />
+            }
+            else if (currentStep == 1)
+            {
+                <OrderCreateStep3 />
+            }
+
+            <div class="vpp-wizard-nav">
+                <div class="vpp-wizard-nav-left">
+                    <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
+                </div>
+                <div class="vpp-wizard-nav-right">
+                    @if (currentStep > 0)
+                    {
+                        <RadzenButton Icon="arrow_back" Text="@Loc["Previous"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoPreviousStep" />
+                    }
+                    @if (currentStep < StepCount - 1)
+                    {
+                        <RadzenButton Icon="arrow_forward" Text="@Loc["Next"]" ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
+                                      Click="@GoNextStepAsync" />
+                    }
+                    else
+                    {
+                        <RadzenButton Icon="save" Text="@PrimaryActionText"
+                                      ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
+                                      Disabled="@(IsSaving || SelectedItemCount == 0)"
+                                      IsBusy="@IsSaving"
+                                      BusyText="@Loc["Saving"]"
+                                      Click="@SubmitAsync" />
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+}
+</CascadingValue>

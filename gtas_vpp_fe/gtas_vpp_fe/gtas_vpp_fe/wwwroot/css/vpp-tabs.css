@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP TABS — Phase 3
+   Modern horizontal scroll tabs, hover/active states, clean underline
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tab List — Horizontal Scroll (no wrap) ──────────────────── */
+.rz-tabview-nav,
+ul[role="tablist"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;          /* Firefox */
+    gap: var(--vpp-space-1);
+    padding-bottom: 2px;
+}
+
+/* Hide scrollbar (Webkit) */
+.rz-tabview-nav::-webkit-scrollbar,
+ul[role="tablist"]::-webkit-scrollbar {
+    display: none;
+}
+
+/* ── Tab Item — Base ─────────────────────────────────────────── */
+.rz-tabview-nav .rz-tabview-nav-link,
+.rz-tabs-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    color: var(--vpp-text-secondary);
+    border: none !important;
+    background: transparent !important;
+    border-radius: var(--vpp-radius-md);
+    position: relative;
+    transition: color var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast);
+    cursor: pointer;
+}
+
+/* ── Tab Item — Hover ────────────────────────────────────────── */
+.rz-tabview-nav .rz-tabview-nav-link:hover,
+.rz-tabs-item:hover {
+    color: var(--vpp-text-primary);
+    background: rgba(14, 165, 233, 0.04) !important;
+}
+
+:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-nav-link:hover,
+:root:not(.rz-theme-dark) .rz-tabs-item:hover {
+    background: rgba(14, 165, 233, 0.06) !important;
+}
+
+/* ── Tab Item — Active ───────────────────────────────────────── */
+.rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
+.rz-tabs-item.rz-state-active,
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    background: rgba(14, 165, 233, 0.08) !important;
+    color: var(--vpp-primary-400) !important;
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
+:root:not(.rz-theme-dark) .rz-tabs-item.rz-state-active,
+:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    color: var(--vpp-primary-700) !important;
+}
+
+/* Active underline — smooth animated bar */
+.rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
+.rz-tabs-item.rz-state-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: var(--vpp-space-2);
+    right: var(--vpp-space-2);
+    height: 2px;
+    background: var(--vpp-primary-400);
+    border-radius: var(--vpp-radius-full) var(--vpp-radius-full) 0 0;
+    animation: vpp-tab-underline-in var(--vpp-transition-fast) forwards;
+}
+
+@keyframes vpp-tab-underline-in {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+
+/* ── Tab Content Divider — subtle bottom border ──────────────── */
+.rz-tabview > .rz-tabview-nav {
+    padding: 0 var(--vpp-space-1);
+    border-bottom: 1px solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+    border-radius: var(--vpp-radius-md);
+}
+
+/* ── Tab Panel — clean spacing ───────────────────────────────── */
+.rz-tabview-panel {
+    padding-top: var(--vpp-space-4);
+}
+
+.librariestab .rz-tabview-panel {
+    padding-bottom: 0;
+}
+
+/* ── librariestab (shared class) — ensure full width ─────────── */
+.librariestab {
+    --vpp-library-primary-tabs-height: 48px;
+    --vpp-library-secondary-tabs-height: 44px;
+    --vpp-tabs-sticky-top: 0px;
+    width: 100%;
+    min-width: 0;
+}
+
+.librariestab > .rz-tabview-nav-container > .rz-tabview-nav {
+    width: 100%;
+}
+
+.vpp-admin-tabs > .rz-tabview-panels,
+.vpp-secondary-tabs > .rz-tabview-panels {
+    overflow: visible;
+}
+
+.vpp-admin-tabs > .rz-tabview-nav-container {
+    position: sticky !important;
+    top: var(--vpp-tabs-sticky-top);
+    z-index: var(--vpp-z-sticky);
+    height: var(--vpp-library-primary-tabs-height);
+    min-height: var(--vpp-library-primary-tabs-height);
+    background: var(--vpp-bg-elevated);
+    border-radius: 0;
+    box-shadow: 0 1px 0 var(--vpp-border-default);
+    isolation: isolate;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
+    position: static !important;
+    align-items: stretch;
+    height: 100%;
+    min-height: 100%;
+    border-radius: 0;
+}
+
+.vpp-secondary-tabs {
+    width: 100%;
+}
+
+/* A nested tab bar is navigation, not regular panel content. */
+.vpp-admin-tabs .rz-tabview-panel:has(.vpp-secondary-tabs) {
+    padding-top: 0;
+}
+
+.vpp-secondary-tabs > .rz-tabview-nav-container {
+    position: sticky !important;
+    top: calc(var(--vpp-tabs-sticky-top) + var(--vpp-library-primary-tabs-height));
+    z-index: calc(var(--vpp-z-sticky) - 1);
+    height: var(--vpp-library-secondary-tabs-height);
+    min-height: var(--vpp-library-secondary-tabs-height);
+    border-bottom: 1px solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+    border-radius: 0;
+    box-shadow: 0 1px 0 var(--vpp-border-default);
+    isolation: isolate;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.vpp-secondary-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
+    position: static !important;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    align-items: stretch;
+    gap: var(--vpp-space-1);
+    padding: 0 var(--vpp-space-1) 2px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link,
+.vpp-secondary-tabs .rz-tabs-item {
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    font-size: var(--vpp-text-sm);
+    border-radius: 0 !important;
+    transition: none !important;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:hover,
+.vpp-secondary-tabs .rz-tabs-item:hover {
+    background: transparent !important;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
+.vpp-secondary-tabs .rz-tabs-item.rz-state-active,
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none;
+}
+
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
+.vpp-secondary-tabs .rz-tabs-item.rz-state-active::after {
+    border-radius: 0;
+    animation: none;
+}
+
+.vpp-secondary-tabs .rz-tabview-panel {
+    padding-top: var(--vpp-space-3);
+}
+
+/* ── Scroll Fade Indicators (optional visual cue) ────────────── */
+.rz-tabview-nav-container {
+    position: relative;
+}
+
+.rz-tabview-nav-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 32px;
+    background: linear-gradient(to right, transparent, var(--vpp-bg-elevated));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--vpp-transition-fast);
+}
+
+/* Show fade only when scrollable (controlled via JS if needed, or always subtle) */
+.rz-tabview-nav-container:has(.rz-tabview-nav:hover)::after {
+    opacity: 0.6;
+}

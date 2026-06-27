@@ -1,0 +1,98 @@
+@using gtas_vpp_shared.DTOs.Res.Library
+
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<RadzenStack Gap="0.75rem" class="vpp-admin-workspace vpp-price-list-workspace">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="0.75rem" Wrap="FlexWrap.Wrap" class="vpp-admin-toolbar">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.375rem" class="vpp-library-actions">
+            <RadzenButton Icon="add"
+                          Text="@Loc["AddPriceList"]"
+                          Size="ButtonSize.Small"
+                          ButtonStyle="ButtonStyle.Primary"
+                          class="vpp-library-primary-action"
+                          Click="@AddAsync" />
+            <RadzenButton Icon="refresh"
+                          Text="@Loc["Reload"]"
+                          Size="ButtonSize.Small"
+                          ButtonStyle="ButtonStyle.Light"
+                          class="vpp-library-refresh-action"
+                          Title="@Loc["Reload"]"
+                          aria-label="@Loc["Reload"]"
+                          Click="@LoadAsync" />
+        </RadzenStack>
+        <VppColumnPicker TItem="L07_PriceListResDTO" GridAccessor="@(() => grid)" />
+    </RadzenStack>
+
+    <RadzenDataGrid @ref="grid"
+                    TItem="L07_PriceListResDTO"
+                    Data="@priceLists"
+                    Count="@count"
+                    LoadData="@LoadDataAsync"
+                    LoadColumnFilterData="@LoadColumnFilterDataAsync"
+                    IsLoading="@isLoading"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    PageSize="20"
+                    PageSizeOptions="@(new int[] { 20, 50, 100 })"
+                    Density="Density.Compact"
+                    GridLines="DataGridGridLines.Horizontal"
+                    EmptyText="@Loc["NoPriceListAvailable"]"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.CheckBoxList"
+                    FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    LogicalFilterOperator="LogicalFilterOperator.And"
+                    AllowColumnResize="true"
+                    AllowColumnPicking="false"
+                    AllowPickAllColumns="true"
+                    ColumnsPickerAllowFiltering="true"
+                    RowRender="@OnRowRenderPriceList"
+                    class="@($"vpp-admin-grid vpp-admin-page-grid {(count <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                    ColumnWidth="150px"
+                    Style="--vpp-admin-grid-min-width: 1160px;">
+        <Columns>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
+                <Template Context="row">
+                    @(currentSkip + priceLists.IndexOf(row) + 1)
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
+                <Template Context="row">
+                    <div class="vpp-admin-is-deleted-cell">
+                        <RadzenSwitch TValue="bool"
+                                      Value="@row.IsDeleted"
+                                      Change="@(async (bool value) => await SetDeletedAsync(row, value))"
+                                      class="isDeleteSwitch"
+                                      Style="transform: scale(0.75);" />
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" Width="130px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="IsDefault" Title="@Loc["IsDefault"]" Width="104px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="104px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    <RadzenButton Text="@row.ItemCount.ToString()"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Size="ButtonSize.Small"
+                                  Click="@(() => OpenPricesAsync(row))" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Title="@Loc["Actions"]" Width="190px" MinWidth="190px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-wide" HeaderCssClass="rz-col-actions rz-col-actions-wide">
+                <Template Context="row">
+                    <div class="vpp-admin-actions">
+                        <RadzenButton Icon="payments" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="@Loc["EditPrice"]" Disabled="@row.IsDeleted" Click="@(() => OpenPricesAsync(row))" />
+                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@row.IsDeleted" Click="@(() => EditAsync(row))" />
+                        <RadzenButton Icon="star" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" title="@Loc["SetAsDefault"]" Disabled="@(row.IsDefault || row.IsDeleted)" Click="@(() => SetDefaultAsync(row))" />
+                        <RadzenButton Icon="content_copy" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" title="@Loc["Clone"]" Click="@(() => CloneAsync(row))" />
+                        <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" title="@Loc["HardDelete"]" Click="@(() => HardDeleteAsync(row))" />
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>

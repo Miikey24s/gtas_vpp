@@ -1,0 +1,14 @@
+@attribute [Authorize]
+@inherits LayoutComponentBase
+
+<RadzenComponents @rendermode="InteractiveServer" />
+
+<RadzenLayout class="vpp-layout" Style="">
+    <LeftSidebar />
+    <RadzenBody class="vpp-layout-body">
+        <div class="vpp-content">
+            @Body
+        </div>
+    </RadzenBody>
+</RadzenLayout>
+

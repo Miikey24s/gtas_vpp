@@ -1,0 +1,268 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP POLISH — Phase 15
+   Scrollbar, selection color, print, cursor
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Custom Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--vpp-border-default);
+    border-radius: var(--vpp-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--vpp-border-strong);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--vpp-border-default) transparent;
+}
+
+/* ── Selection Color ─────────────────────────────────────────── */
+::selection {
+    background: rgba(14, 165, 233, 0.2);
+    color: var(--vpp-text-primary);
+}
+
+/* ── Print Styles ─────────────────────────────────────────────── */
+@media print {
+    .vpp-sidebar,
+    .vpp-header-glass,
+    .rz-notification-message {
+        display: none !important;
+    }
+
+    .vpp-layout-body {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .vpp-content {
+        max-width: 100% !important;
+    }
+
+    .rz-datatable-row {
+        break-inside: avoid;
+    }
+}
+
+/* ── Smooth Scroll ────────────────────────────────────────────── */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Normalize Radzen dropdown alignment across pages, grids, and pagers. */
+.rz-dropdown {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.rz-dropdown .rz-dropdown-label {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    line-height: 1.25 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.rz-dropdown .rz-dropdown-trigger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    line-height: 1 !important;
+}
+
+.rz-dropdown .rz-dropdown-trigger .rzi,
+.rz-dropdown .rz-dropdown-trigger .rz-dropdown-trigger-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.rz-dropdown-panel .rz-dropdown-item,
+.rz-dropdown-panel .rz-dropdown-items li,
+.rz-dropdown-panel .rz-listbox-item {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    line-height: 1.25;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.rz-grid-table td .rz-cell-data:has(.rz-dropdown) {
+    display: flex;
+    align-items: center;
+    overflow: visible;
+}
+
+.rz-grid-table td .rz-dropdown {
+    width: 100%;
+    min-height: 34px;
+    height: 34px;
+}
+
+.rz-paginator,
+.rz-pager {
+    align-items: center;
+}
+
+.rz-paginator .rz-dropdown,
+.rz-pager .rz-dropdown {
+    width: auto !important;
+    min-width: 5.75rem;
+    max-width: 7rem;
+    height: 34px;
+    min-height: 34px;
+    flex: 0 0 auto;
+}
+
+.rz-paginator .rz-pagesize-text,
+.rz-pager .rz-pagesize-text {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    margin-block: 0;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Keep theme/culture transitions subtle: only paint properties, no layout movement. */
+html,
+body,
+.vpp-layout,
+.vpp-layout-body,
+.vpp-layout-sidebar,
+.vpp-layout-header,
+.vpp-header-glass,
+.vpp-sidebar,
+.vpp-content,
+.vpp-lang-switch,
+.vpp-theme-switch,
+.rz-tabview-nav-container,
+.rz-tabview-panel,
+.rz-data-grid,
+.rz-grid-table th,
+.rz-grid-table td,
+.rz-paginator,
+.rz-button,
+.rz-card,
+.rz-panel,
+.rz-dialog,
+.rz-navigation-item-wrapper,
+.rz-dropdown,
+.rz-inputtext,
+.rz-form-field,
+.vpp-kpi-card,
+.vpp-admin-grid,
+.vpp-order-card,
+.vpp-data-card,
+.vpp-settle-container,
+.vpp-settle-status-card {
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+@supports (view-transition-name: root) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 180ms;
+        animation-timing-function: ease;
+    }
+}
+
+html.vpp-culture-changing .vpp-content {
+    animation: vpp-culture-settle 180ms ease both;
+}
+
+@keyframes vpp-culture-settle {
+    0% {
+        opacity: 0.98;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    html,
+    body,
+    .vpp-layout,
+    .vpp-layout-body,
+    .vpp-layout-sidebar,
+    .vpp-layout-header,
+    .vpp-header-glass,
+    .vpp-sidebar,
+    .vpp-content,
+    .vpp-lang-switch,
+    .vpp-theme-switch,
+    .vpp-lang-switch-thumb,
+    .vpp-lang-option,
+    .vpp-theme-icon,
+    .rz-tabview-nav-container,
+    .rz-tabview-panel,
+    .rz-data-grid,
+    .rz-grid-table th,
+    .rz-grid-table td,
+    .rz-paginator,
+    .rz-button,
+    .rz-card,
+    .rz-panel,
+    .rz-dialog,
+    .rz-navigation-item-wrapper,
+    .rz-dropdown,
+    .rz-inputtext,
+    .rz-form-field,
+    .vpp-kpi-card,
+    .vpp-admin-grid,
+    .vpp-order-card,
+    .vpp-data-card,
+    .vpp-settle-container,
+    .vpp-settle-status-card {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* ── Image Handling ───────────────────────────────────────────── */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── Link Defaults ─────────────────────────────────────────────── */
+a {
+    color: var(--vpp-primary-400);
+    text-decoration: none;
+    transition: color var(--vpp-transition-fast);
+}
+
+a:hover {
+    color: var(--vpp-primary-300);
+    text-decoration: underline;
+}

@@ -1,0 +1,37 @@
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="vpp-empty-state vpp-empty-state-shell @Class">
+    <RadzenIcon Icon="@Icon" class="vpp-empty-state-icon" aria-hidden="true" />
+    <div class="vpp-empty-state-title">@Title</div>
+    <div class="vpp-empty-state-desc">@Description</div>
+
+    @if (PrimaryAction.HasDelegate || SecondaryAction.HasDelegate)
+    {
+        <div class="vpp-empty-state-actions">
+            @if (!string.IsNullOrWhiteSpace(PrimaryText) && PrimaryAction.HasDelegate)
+            {
+                <RadzenButton Text="@PrimaryText"
+                              ButtonStyle="@PrimaryButtonStyle"
+                              Click="@PrimaryAction"
+                              class="vpp-empty-state-primary" />
+            }
+
+            @if (!string.IsNullOrWhiteSpace(SecondaryText) && SecondaryAction.HasDelegate)
+            {
+                <RadzenLink Click="@SecondaryAction" class="vpp-empty-state-link">@SecondaryText</RadzenLink>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "inbox";
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string PrimaryText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<MouseEventArgs> PrimaryAction { get; set; }
+    [Parameter] public ButtonStyle PrimaryButtonStyle { get; set; } = ButtonStyle.Primary;
+    [Parameter] public string SecondaryText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<MouseEventArgs> SecondaryAction { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+}

@@ -1,0 +1,36 @@
+@using gtas_vpp_fe.Components.Pages.Permission.Tabs
+@using gtas_vpp_shared.Constants
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+
+
+
+@if (HasAnyVisiblePermissionTab)
+{
+    <RadzenTabs Change="@TabOnChange"
+                TabPosition="@tabPosition"
+                class="librariestab vpp-admin-tabs"
+                RenderMode="TabRenderMode.Client"
+                @bind-SelectedIndex=SelectedIndex>
+        <Tabs>
+            @if (CanViewPermissionTab(Permissions.PermissionUser))
+            {
+                <RadzenTabsItem Text="@Loc["Users"]">
+                    @if (IsActiveTab(0))
+                    {
+                        <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewPermissionTab(Permissions.PermissionComponent))
+            {
+                <RadzenTabsItem Text="@Loc["GroupsAndPermissions"]">
+                    @if (IsActiveTab(1))
+                    {
+                        <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                    }
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
+}

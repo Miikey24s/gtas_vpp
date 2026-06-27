@@ -1,0 +1,98 @@
+@using gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
+@using gtas_vpp_shared.Constants
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+
+
+
+@if (HasAnyAuthorizedDashboardTab)
+{
+    <RadzenTabs Change="@TabOnChange"
+                TabPosition="@tabPosition"
+                class="librariestab vpp-admin-tabs"
+                RenderMode="TabRenderMode.Client"
+                @bind-SelectedIndex="@SelectedIndex">
+        <Tabs>
+            @if (CanViewDashboardTab(Permissions.RequestOrder))
+            {
+                <RadzenTabsItem Text="@Loc["MyOrders"]">
+                    @if (IsActiveTab(0))
+                    {
+                        <Tab_Orders claims="@claims" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewDashboardTab(Permissions.RequestHistory))
+            {
+                <RadzenTabsItem Text="@Loc["History"]">
+                    @if (IsActiveTab(1))
+                    {
+                        <Tab_History claims="@claims" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewDashboardTab(Permissions.RequestProductCatalog))
+            {
+                <RadzenTabsItem Text="@Loc["Catalog"]">
+                    @if (IsActiveTab(2))
+                    {
+                        <Tab_ProductCatalog claims="@claims" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary, Permissions.RequestAllOrdersSummary))
+            {
+                <RadzenTabsItem Text="@ManagementTabText">
+                    @if (IsActiveTab(3))
+                    {
+                        @if (CanShowManagementTabs)
+                        {
+                            <RadzenTabs Change="@ManagementTabOnChange"
+                                        RenderMode="TabRenderMode.Client"
+                                        class="vpp-secondary-tabs"
+                                        @bind-SelectedIndex="@ManagementSelectedIndex">
+                                <Tabs>
+                                    @if (CanShowDepartmentOrders)
+                                    {
+                                        <RadzenTabsItem Text="@Loc["DepartmentSummary"]">
+                                            @if (IsActiveManagementTab(3))
+                                            {
+                                                <Tab_DepartmentSummary claims="@claims" />
+                                            }
+                                        </RadzenTabsItem>
+                                    }
+                                    @if (CanShowAllOrders)
+                                    {
+                                        <RadzenTabsItem Text="@Loc["AllOrdersSummary"]">
+                                            @if (IsActiveManagementTab(4))
+                                            {
+                                                <Tab_AllOrdersSummary claims="@claims" />
+                                            }
+                                        </RadzenTabsItem>
+                                    }
+                                </Tabs>
+                            </RadzenTabs>
+                        }
+                        else if (CanShowDepartmentOrders)
+                        {
+                            <Tab_DepartmentSummary claims="@claims" />
+                        }
+                        else if (CanShowAllOrders)
+                        {
+                            <Tab_AllOrdersSummary claims="@claims" />
+                        }
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewDashboardTab(Permissions.RequestAdminApproval, Permissions.PeriodSettle))
+            {
+                <RadzenTabsItem Text="@Loc["PeriodOperations"]">
+                    @if (IsActiveTab(5))
+                    {
+                        <Tab_AdminApproval claims="@claims" />
+                    }
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
+}
