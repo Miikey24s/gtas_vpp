@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;Debug-BE;Debug-FE</Configurations>
+    <CopyRetryCount>5</CopyRetryCount>
+    <CopyRetryDelayMilliseconds>1000</CopyRetryDelayMilliseconds>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.72" />
+    <PackageReference Include="Mapster" Version="10.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\gtas_vpp_be.Model\gtas_vpp_be.Model.csproj" />
+    <ProjectReference Include="..\gtas_vpp_shared\gtas_vpp_shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Helpers\SQL\*.sql" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Helpers\Data\prices.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

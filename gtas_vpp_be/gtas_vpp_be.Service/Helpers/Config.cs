@@ -1,0 +1,69 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+
+namespace gtas_vpp_be.Service.Helpers
+{
+    public static class Config
+    {
+        private static IConfiguration? _configuration;
+
+        public static void Initialize(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public static class JwtSettings
+        {
+            public static string Key => GetRequiredConfigValue("JwtSettings:Key", "JWT Key must be configured via environment variable or user secrets");
+            public static string Issuer => GetConfigValue("JwtSettings:Issuer", "gtas_vpp_be");
+            public static string Audience => GetConfigValue("JwtSettings:Audience", "gtas_vpp_clients");
+            public static int ClockSkewMinutes => 2;
+        }
+
+        public static class DatabaseSettings
+        {
+            public static string MigrationsAssembly => "gtas_vpp_be.Migrations";
+        }
+
+        private static string GetConfigValue(string key, string defaultValue)
+        {
+            return _configuration?[key] ?? defaultValue;
+        }
+
+        private static string GetRequiredConfigValue(string key, string errorMessage)
+        {
+            var value = _configuration?[key];
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException(errorMessage);
+            }
+
+            return value;
+        }
+
+        public enum EnvType
+        {
+            LiveEnv,
+            TestEnv
+        }
+        public enum ContextType
+        {
+            VPPMigrationDbContext,
+            VPPContext,
+        }
+        public enum EF_BASEMETHOD
+        {
+            EF_GetTAsync,
+            EF_GetTAsync_Paging,
+            EF_GetTByIdAsync,
+            EF_GetTByIdIncludeAsync,
+            EF_Create,
+            EF_Update,
+            EF_UpdateRange,
+            EF_DeleteAsync
+        }
+    }
+}

@@ -1,0 +1,19 @@
+@gtas_vpp_be_HostAddress = https://localhost:7267
+
+GET {{gtas_vpp_be_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{gtas_vpp_be_HostAddress}}/api/sql/Test/test
+
+###
+
+GET {{gtas_vpp_be_HostAddress}}/api/permission/groups
+
+###
+
+@id=string
+GET {{gtas_vpp_be_HostAddress}}/api/Permission/groups/{5823b49b-5925-4a89-846a-09063a36040c}
+
+###
