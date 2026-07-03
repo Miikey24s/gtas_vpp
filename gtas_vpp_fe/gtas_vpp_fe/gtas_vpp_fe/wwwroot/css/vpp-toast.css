@@ -1,164 +1,155 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   VPP TOAST NOTIFICATIONS — Phase 11
-   Enhanced solid/translucent styling for Radzen notifications
+   VPP TOAST NOTIFICATIONS — Premium Glassmorphic Override for Radzen v10
+   Targets the ACTUAL Radzen v10 CSS classes & variables:
+     .rz-notification, .rz-notification-item-wrapper, .rz-notification-item,
+     .rz-notification-warn, .rz-notification-success, .rz-notification-error,
+     .rz-notification-info
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Reset outer notification container wrapper */
+/* ── Override Radzen CSS Variables (the correct approach) ─────── */
+html:root {
+    /* Notification container */
+    --rz-notification-container-background-color: transparent;
+    --rz-notification-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --rz-notification-border-radius: 12px;
+    --rz-notification-padding: 16px 18px;
+    --rz-notification-gap: 10px;
+
+    /* Success */
+    --rz-notification-success-background-color: rgba(240, 253, 250, 0.95);
+    --rz-notification-success-color: #065f46;
+    --rz-notification-success-icon-color: #10b981;
+
+    /* Warning */
+    --rz-notification-warning-background-color: rgba(255, 251, 235, 0.95);
+    --rz-notification-warning-color: #78350f;
+    --rz-notification-warning-icon-color: #d97706;
+
+    /* Error/Danger */
+    --rz-notification-error-background-color: rgba(254, 242, 242, 0.95);
+    --rz-notification-error-color: #991b1b;
+    --rz-notification-error-icon-color: #ef4444;
+
+    /* Info */
+    --rz-notification-info-background-color: rgba(240, 249, 255, 0.95);
+    --rz-notification-info-color: #075985;
+    --rz-notification-info-icon-color: #0ea5e9;
+}
+
+/* Dark mode overrides */
+.rz-theme-dark {
+    --rz-notification-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* Success */
+    --rz-notification-success-background-color: rgba(6, 78, 59, 0.85);
+    --rz-notification-success-color: #a7f3d0;
+    --rz-notification-success-icon-color: #34d399;
+
+    /* Warning */
+    --rz-notification-warning-background-color: rgba(120, 53, 4, 0.85);
+    --rz-notification-warning-color: #fde68a;
+    --rz-notification-warning-icon-color: #fbbf24;
+
+    /* Error/Danger */
+    --rz-notification-error-background-color: rgba(127, 29, 29, 0.85);
+    --rz-notification-error-color: #fecaca;
+    --rz-notification-error-icon-color: #f87171;
+
+    /* Info */
+    --rz-notification-info-background-color: rgba(7, 89, 133, 0.85);
+    --rz-notification-info-color: #bae6fd;
+    --rz-notification-info-icon-color: #38bdf8;
+}
+
+/* ── Notification Container Position ─────────────────────────── */
 .rz-notification {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    padding: 0 !important;
-    animation: vpp-toast-in var(--vpp-transition-base) ease-out;
-    font-family: var(--vpp-font-body);
+    z-index: 10000 !important;
 }
 
-/* Force ALL inner wrappers to be completely transparent with no extra borders or margins */
-.rz-notification-message-content,
-.rz-notification-message-body,
-.rz-notification-content,
-.rz-growl-message,
-.rz-growl-message-content {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-/* Base message container style */
-.rz-notification-message {
-    border-radius: var(--vpp-radius-lg) !important;
-    box-shadow: var(--vpp-shadow-glass) !important;
-    font-family: var(--vpp-font-body);
-    display: flex !important;
-    align-items: center !important;
-    padding: 16px 20px !important;
-    margin-bottom: 8px !important;
-    min-width: 320px;
+/* ── Item Wrapper ────────────────────────────────────────────── */
+.rz-notification-item-wrapper {
+    backdrop-filter: blur(16px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+    animation: vpp-toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    border-radius: 12px !important;
+    overflow: hidden;
 }
 
 @keyframes vpp-toast-in {
-    from { opacity: 0; transform: translateX(20px) scale(0.95); }
-    to   { opacity: 1; transform: translateX(0) scale(1); }
+    from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Premium success notification */
-.rz-notification-message-success,
-.rz-notification-message[class*="-success"],
-.rz-notification-message[style*="--rz-success"] {
-    background: var(--vpp-success) !important;
-    color: var(--vpp-text-on-surface) !important;
-    border: 1px solid rgba(var(--vpp-success-rgb), 0.2) !important;
-}
-
-/* Premium error/danger notification */
-.rz-notification-message-danger,
-.rz-notification-message-error,
-.rz-notification-message[class*="-danger"],
-.rz-notification-message[class*="-error"],
-.rz-notification-message[style*="--rz-danger"] {
-    background: var(--vpp-danger) !important;
-    color: var(--vpp-text-on-surface) !important;
-    border: 1px solid rgba(var(--vpp-danger-rgb), 0.2) !important;
-}
-
-/* Premium warning notification */
-.rz-notification-message-warning,
-.rz-notification-message[class*="-warning"],
-.rz-notification-message[style*="--rz-warning"] {
-    background: var(--vpp-warning) !important;
-    color: var(--vpp-text-on-surface) !important;
-    border: 1px solid rgba(var(--vpp-warning-rgb), 0.2) !important;
-}
-
-/* Premium info notification */
-.rz-notification-message-info,
-.rz-notification-message[class*="-info"],
-.rz-notification-message[style*="--rz-info"] {
-    background: var(--vpp-info) !important;
-    color: var(--vpp-text-on-surface) !important;
-    border: 1px solid rgba(var(--vpp-info-rgb), 0.2) !important;
-}
-
-/* Toast title typography */
-.rz-notification .rz-notification-message-body .rz-notification-summary {
-    font-family: var(--vpp-font-display);
-    font-weight: var(--vpp-font-weight-semibold) !important;
-    font-size: var(--vpp-text-sm) !important;
-    color: var(--vpp-text-on-surface) !important;
-    display: block !important;
-    margin-bottom: 2px !important;
-}
-
-/* Toast description/detail typography */
-.rz-notification .rz-notification-message-body .rz-notification-detail {
-    font-size: var(--vpp-text-xs) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    margin: 0 !important;
-    line-height: 1.4 !important;
-}
-
-/* Align and color default Radzen icon inside toast */
-.rz-notification-message .rz-notification-icon {
-    color: var(--vpp-text-on-surface) !important;
-    font-size: 1.5rem !important;
-    margin-right: 14px !important;
-    align-self: center !important;
-}
-
-/* Style and reposition close button inside toast */
-.rz-notification-message .rz-notification-close {
-    color: rgba(255, 255, 255, 0.7) !important;
-    font-size: 1.15rem !important;
-    opacity: 0.8 !important;
-    transition: opacity var(--vpp-transition-fast) !important;
-    margin-left: auto !important;
-    align-self: center !important;
-    cursor: pointer;
-}
-
-.rz-notification-message .rz-notification-close:hover {
-    color: var(--vpp-text-on-surface) !important;
-    opacity: 1 !important;
-}
-
-/* Style RadzenText components inside notifications to prevent default margins and colors causing awkward layout and whitespaces */
-.rz-notification-message .rz-text-h6,
-.rz-notification-message .rz-notification-summary,
-.rz-notification-message h6 {
-    margin: 0 0 4px 0 !important;
-    font-family: var(--vpp-font-display) !important;
-    font-weight: var(--vpp-font-weight-semibold) !important;
-    font-size: var(--vpp-text-sm) !important;
-    color: var(--vpp-text-on-surface) !important;
-    line-height: 1.2 !important;
-    background: transparent !important;
-    background-color: transparent !important;
-}
-
-.rz-notification-message .rz-text-body1,
-.rz-notification-message .rz-notification-detail,
-.rz-notification-message p {
-    margin: 0 !important;
+/* ── Item (the colored card) ─────────────────────────────────── */
+.rz-notification-item {
+    border-radius: 12px !important;
     font-family: var(--vpp-font-body) !important;
-    font-size: var(--vpp-text-xs) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    line-height: 1.4 !important;
-    background: transparent !important;
-    background-color: transparent !important;
 }
 
-/* Force timestamp inside CustomNotificationService to look neat */
-.rz-notification-message br + span, 
-.rz-notification-message small {
-    display: inline-block !important;
-    margin-top: 4px !important;
-    font-size: 10px !important;
-    color: rgba(255, 255, 255, 0.7) !important;
-    background: transparent !important;
-    background-color: transparent !important;
+/* Add subtle borders per severity */
+.rz-notification-success .rz-notification-item {
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.rz-notification-warn .rz-notification-item {
+    border: 1px solid rgba(217, 119, 6, 0.3) !important;
+}
+
+.rz-notification-error .rz-notification-item {
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.rz-notification-info .rz-notification-item {
+    border: 1px solid rgba(14, 165, 233, 0.3) !important;
+}
+
+/* Dark mode borders */
+.rz-theme-dark .rz-notification-success .rz-notification-item {
+    border: 1px solid rgba(52, 211, 153, 0.3) !important;
+}
+
+.rz-theme-dark .rz-notification-warn .rz-notification-item {
+    border: 1px solid rgba(251, 191, 36, 0.3) !important;
+}
+
+.rz-theme-dark .rz-notification-error .rz-notification-item {
+    border: 1px solid rgba(248, 113, 113, 0.3) !important;
+}
+
+.rz-theme-dark .rz-notification-info .rz-notification-item {
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+/* ── Typography ──────────────────────────────────────────────── */
+.rz-notification-title {
+    font-family: var(--vpp-font-display) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+}
+
+.rz-notification-message {
+    font-family: var(--vpp-font-body) !important;
+    font-size: 12.5px !important;
+    line-height: 1.45 !important;
+    opacity: 0.9;
+}
+
+/* ── Icon ────────────────────────────────────────────────────── */
+.rz-notification-icon {
+    font-size: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* ── Close Button ────────────────────────────────────────────── */
+.rz-notification-close {
+    opacity: 0.5 !important;
+    transition: opacity 0.15s ease !important;
+    font-size: 18px !important;
+}
+
+.rz-notification-close:hover {
+    opacity: 1 !important;
 }

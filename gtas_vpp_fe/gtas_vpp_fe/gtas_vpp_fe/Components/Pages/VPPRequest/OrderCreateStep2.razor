@@ -49,9 +49,9 @@
                                 RowRender="@OnRowRender"
                                 Style="border: none; flex: 1; min-height: 0;">
                     <Columns>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="110px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="150px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Title="" Width="55px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="100px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="130px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Title="" Width="42px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 @{
                                     var isSelected = Context.SelectedItems.Any(x => x.VPPId == row.Id);
@@ -117,22 +117,21 @@
                                         GridLines="DataGridGridLines.Horizontal"
                                         Style="border: none;">
                             <Columns>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="35px" TextAlign="TextAlign.Center" Sortable="false">
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="30px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="90px" />
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="120px" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="100px" />
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
                                         <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
                                                        Style="width: 72px;"
-                                                       ShowUpDown="false"
+                                                       ShowUpDown="true"
                                                        InputAttributes="@GetQuantityInputAttributes(item)"
                                                        Change="@(_ => Context.NotifyStateChanged())" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UOMName" Title="@Loc["UOM"]" Width="70px" TextAlign="TextAlign.Center" Sortable="false" />
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Notes"]" MinWidth="120px" Sortable="false">
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UOMName" Title="@Loc["UOM"]" Width="55px" TextAlign="TextAlign.Center" Sortable="false" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Notes"]" MinWidth="90px" Sortable="false">
                                     <Template Context="item">
                                         <RadzenTextBox @bind-Value="item.Description"
                                                        Placeholder="@Loc["Notes"]"
@@ -141,7 +140,7 @@
                                                        Change="@(_ => Context.NotifyStateChanged())" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="40px" TextAlign="TextAlign.Center" Sortable="false">
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="36px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
                                         @* F-28: icon-only remove button needs an explicit aria-label. *@
                                         <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall"

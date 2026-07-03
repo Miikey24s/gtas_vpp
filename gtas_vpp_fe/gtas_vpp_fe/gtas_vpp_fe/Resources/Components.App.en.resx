@@ -14,6 +14,9 @@
   </resheader>
   <data name="AppName" xml:space="preserve"><value>GTAS VPP</value></data>
   <data name="Login" xml:space="preserve"><value>Login</value></data>
+  <data name="LoginUsernameRequired" xml:space="preserve"><value>Please enter your username.</value></data>
+  <data name="LoginPasswordRequired" xml:space="preserve"><value>Please enter your password.</value></data>
+  <data name="LoginServerRequired" xml:space="preserve"><value>Please select a server.</value></data>
   <data name="Logout" xml:space="preserve"><value>Logout</value></data>
   <data name="Username" xml:space="preserve"><value>Username</value></data>
   <data name="Password" xml:space="preserve"><value>Password</value></data>
@@ -309,7 +312,7 @@
   <data name="WizardOrderModeSummaryCreate" xml:space="preserve"><value>Search the catalog, build the basket, and do one final check before submitting the request.</value></data>
   <data name="WizardOrderModeSummaryEdit" xml:space="preserve"><value>Review the request details and update quantities before saving the existing order.</value></data>
   <data name="WizardOrderReviewCopy" xml:space="preserve"><value>Validate the basket, notes, and quantities before the request is submitted.</value></data>
-  <data name="WizardOrderReviewTitle" xml:space="preserve"><value>Order review</value></data>
+  <data name="WizardOrderReviewTitle" xml:space="preserve"><value>Order confirmation</value></data>
   <data name="WizardPeriodWindowCopy" xml:space="preserve"><value>The backend period service already resolved the correct cycle. This request will be submitted against the window below.</value></data>
   <data name="WizardPeriodWindowTitle" xml:space="preserve"><value>Period window</value></data>
   <data name="WizardProductCatalog" xml:space="preserve"><value>Product Catalog</value></data>

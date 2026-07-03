@@ -6,7 +6,23 @@
 .vpp-login-page {
     --vpp-login-bg: #d9cfbe;
     --vpp-login-art-bg: #e8dcc8;
-    --vpp-login-card-bg: rgba(255, 255, 255, 0.94);
+    --vpp-login-card-bg: rgba(255, 255, 255, 0.96);
+    --vpp-login-field-min-height: 4.25rem;
+    --vpp-login-field-label-size: 1.0625rem;
+    --vpp-login-field-value-size: 1.125rem;
+    --vpp-login-field-text-padding: 0.875rem;
+    
+    /* Enforce light-mode variables on login page specifically */
+    --vpp-text-primary: #172B4D !important;
+    --vpp-text-secondary: #44526C !important;
+    --vpp-text-tertiary: #6B778C !important;
+    --vpp-text-inverse: #FAFAFA !important;
+    --vpp-text-on-surface: #FFFFFF !important;
+    --vpp-border-default: rgba(9, 30, 66, 0.08) !important;
+    --vpp-border-strong: rgba(9, 30, 66, 0.14) !important;
+    --vpp-primary-500: #0284C7 !important;
+    --vpp-primary-600: #0369A1 !important;
+    
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
@@ -114,6 +130,13 @@
     text-transform: uppercase;
     color: var(--vpp-text-tertiary);
 }
+.vpp-login-validation {
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-sm);
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--vpp-danger);
+}
 
 .vpp-login-form {
     display: flex;
@@ -129,66 +152,100 @@
 
 .vpp-login-label {
     font-family: var(--vpp-font-body);
-    font-size: 1.14rem;
-    font-weight: 500;
+    font-size: var(--vpp-login-field-label-size);
+    font-weight: 600;
+    line-height: 1.35;
     color: var(--vpp-text-tertiary);
 }
 
+.vpp-login-validation {
+    margin-top: -0.25rem;
+}
+
 .vpp-login-field .rz-textbox,
+.vpp-login-field .rz-password,
 .vpp-login-field .rz-dropdown,
-.vpp-login-field .rz-password,
-.vpp-login-field .rz-password input,
-.vpp-login-field .rz-inputtext {
-    width: 100%;
-    font-family: var(--vpp-font-body);
-    font-size: 1.24rem;
-}
-
-.vpp-login-field .rz-textbox,
-.vpp-login-field .rz-password,
-.vpp-login-field .rz-dropdown {
-    min-height: 70px;
-    border: none;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.45);
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
+.vpp-login-field .rz-inputtext,
+.vpp-login-field .vpp-login-control,
+.vpp-login-field input {
+    width: 100% !important;
+    min-height: var(--vpp-login-field-min-height) !important;
+    border: none !important;
+    border-bottom: 2px solid rgba(9, 30, 66, 0.16) !important;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    outline-width: 0 !important;
+    padding: 4px 0 !important;
+    transition: border-color 0.2s ease-in-out !important;
 }
 
 .vpp-login-field .rz-textbox,
 .vpp-login-field .rz-password input,
+.vpp-login-field .rz-inputtext,
 .vpp-login-field .rz-dropdown .rz-dropdown-label,
 .vpp-login-field .rz-dropdown .rz-dropdown-trigger {
-    color: var(--vpp-text-primary);
+    font-family: var(--vpp-font-body) !important;
+    font-size: var(--vpp-login-field-value-size) !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    color: var(--vpp-text-primary) !important;
 }
 
 .vpp-login-field .rz-textbox,
-.vpp-login-field .rz-password input {
-    padding: 0 0 16px;
+.vpp-login-field .rz-password input,
+.vpp-login-field .rz-inputtext {
+    padding: 0 0 var(--vpp-login-field-text-padding) !important;
+    border-bottom: none !important; /* The container has the border, the input itself should be borderless */
+}
+
+/* Ensure the wrapper container has the bottom border */
+.vpp-login-field .vpp-login-control.rz-textbox,
+.vpp-login-field .vpp-login-control.rz-password,
+.vpp-login-field .vpp-login-control.rz-dropdown {
+    border-bottom: 2px solid rgba(9, 30, 66, 0.16) !important;
 }
 
 .vpp-login-field .rz-password {
-    display: flex;
-    align-items: center;
-    padding: 0;
+    display: flex !important;
+    align-items: flex-end !important;
+    padding: 0 !important;
 }
 
 .vpp-login-field .rz-password input {
-    border: none;
-    background: transparent;
-    box-shadow: none;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 .vpp-login-field .rz-dropdown {
-    padding: 0;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: flex-end !important;
 }
 
-.vpp-login-field .rz-dropdown .rz-dropdown-label {
-    padding: 0 0 10px;
+.vpp-login-field .rz-dropdown .rz-dropdown-label,
+.vpp-login-field .rz-dropdown-label,
+.vpp-login-field .rz-dropdown-label * {
+    padding: 0 0 var(--vpp-login-field-text-padding) !important;
+    color: var(--vpp-text-primary) !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    border: none !important;
+    width: 100% !important;
 }
 
 .vpp-login-field .rz-dropdown .rz-dropdown-trigger {
-    width: 2rem;
+    width: 2rem !important;
+    color: var(--vpp-text-secondary) !important;
+    display: inline-flex !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+    padding: 0 0 var(--vpp-login-field-text-padding) !important;
 }
 
 .vpp-login-field .rz-textbox:focus,
@@ -196,31 +253,50 @@
 .vpp-login-field .rz-dropdown.rz-state-focus,
 .vpp-login-field .rz-dropdown:hover,
 .vpp-login-field .rz-textbox:hover,
-.vpp-login-field .rz-password:hover {
-    border-bottom-color: var(--vpp-primary-500);
+.vpp-login-field .rz-password:hover,
+.vpp-login-field .vpp-login-control:focus-within,
+.vpp-login-field .vpp-login-control:hover {
+    border-bottom-color: var(--vpp-primary-500) !important;
 }
 
 .vpp-login-field .rz-textbox:focus,
 .vpp-login-field .rz-password input:focus,
 .vpp-login-field .rz-dropdown .rz-dropdown-label:focus {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.vpp-login-field--invalid .rz-textbox,
+.vpp-login-field--invalid .rz-password,
+.vpp-login-field--invalid .rz-dropdown,
+.vpp-login-field--invalid .vpp-login-control,
+.vpp-login-field--invalid input {
+    border-color: var(--vpp-danger) !important;
+}
+
+/* Chrome/Safari Autofill style overrides */
+.vpp-login-field input:-webkit-autofill,
+.vpp-login-field input:-webkit-autofill:hover,
+.vpp-login-field input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--vpp-text-primary) !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.96) inset !important;
+    transition: background-color 5000s ease-in-out 0s !important;
 }
 
 .vpp-login-btn {
     --rz-button-border-radius: var(--vpp-radius-button);
     width: 100%;
-    height: 35px;
+    height: 48px !important;
     margin-top: 12px;
     border: none;
     border-radius: var(--vpp-radius-button) !important;
-    background: linear-gradient(135deg, var(--vpp-primary-500) 0%, var(--vpp-primary-600) 100%);
-    color: var(--vpp-text-on-surface);
+    background: linear-gradient(135deg, var(--vpp-primary-500) 0%, var(--vpp-primary-600) 100%) !important;
+    color: var(--vpp-text-on-surface) !important;
     font-family: var(--vpp-font-display);
     font-size: 1.22rem;
     font-weight: 600;
     letter-spacing: 0;
-    box-shadow: 0 10px 20px rgba(var(--vpp-primary-rgb), 0.18);
+    box-shadow: 0 10px 20px rgba(var(--vpp-primary-rgb), 0.18) !important;
     overflow: hidden;
     transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
 }
@@ -270,6 +346,10 @@
 
 @media (max-width: 767px) {
     .vpp-login-page {
+        --vpp-login-field-min-height: 4rem;
+        --vpp-login-field-label-size: 1rem;
+        --vpp-login-field-value-size: 1.0625rem;
+        --vpp-login-field-text-padding: 0.75rem;
         background: var(--vpp-login-bg);
     }
 
@@ -312,4 +392,47 @@
     .vpp-login-header {
         margin-bottom: 28px;
     }
+}
+
+/* ── Password Toggle Button Styling ───────────────────────────── */
+.vpp-login-password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.vpp-login-password-wrapper .rz-password,
+.vpp-login-password-wrapper .rz-textbox {
+    border-bottom: 2px solid rgba(9, 30, 66, 0.16) !important;
+}
+
+.vpp-login-field .rz-password input,
+.vpp-login-field .rz-textbox[name="PasswordText"] {
+    padding-right: 40px !important; /* Prevent text overlap with eye icon */
+}
+
+.vpp-password-toggle-btn {
+    position: absolute;
+    right: 0;
+    bottom: 8px; /* Align perfectly with inputs bottom underline */
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer;
+    color: var(--vpp-text-secondary) !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: color 0.15s ease-in-out !important;
+    z-index: 10;
+}
+
+.vpp-password-toggle-btn:hover {
+    color: var(--vpp-primary-500) !important;
+}
+
+.vpp-password-toggle-btn .material-symbols-outlined {
+    font-size: 22px !important;
+    line-height: 1 !important;
 }

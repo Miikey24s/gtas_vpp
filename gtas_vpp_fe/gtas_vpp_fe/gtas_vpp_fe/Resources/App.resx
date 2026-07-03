@@ -306,7 +306,7 @@
   <data name="WizardOrderModeSummaryCreate" xml:space="preserve"><value>Tìm trong danh mục, tạo giỏ hàng và kiểm tra lần cuối trước khi gửi yêu cầu.</value></data>
   <data name="WizardOrderModeSummaryEdit" xml:space="preserve"><value>Kiểm tra chi tiết yêu cầu và cập nhật số lượng trước khi lưu đơn hiện có.</value></data>
   <data name="WizardOrderReviewCopy" xml:space="preserve"><value>Kiểm tra giỏ hàng, ghi chú và số lượng trước khi gửi yêu cầu.</value></data>
-  <data name="WizardOrderReviewTitle" xml:space="preserve"><value>Rà soát đơn hàng</value></data>
+  <data name="WizardOrderReviewTitle" xml:space="preserve"><value>Xác nhận đơn hàng</value></data>
   <data name="WizardPeriodWindowCopy" xml:space="preserve"><value>Dịch vụ kỳ ở backend đã xác định đúng chu kỳ. Yêu cầu này sẽ được gửi theo khoảng thời gian bên dưới.</value></data>
   <data name="WizardPeriodWindowTitle" xml:space="preserve"><value>Khung thời gian kỳ</value></data>
   <data name="WizardProductCatalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>

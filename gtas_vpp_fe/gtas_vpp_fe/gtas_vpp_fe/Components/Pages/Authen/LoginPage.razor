@@ -32,38 +32,69 @@
                 <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="vpp-login-form">
                     <AntiforgeryToken></AntiforgeryToken>
 
-                    <div class="vpp-login-field">
+                    <div class="@(HasUsernameValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
                         <label class="vpp-login-label">@Loc["Username"]</label>
                         <RadzenTextBox class="vpp-login-control"
                                        Name="Username"
                                        Disabled="@isLoading"
                                        @bind-Value=@sp_Authentication_Login.Username
+                                       @oninput="HandleUsernameInput"
+                                       @onblur="HandleUsernameBlur"
                                        @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+
+                        @if (HasUsernameValidation)
+                        {
+                            <div class="vpp-login-validation" role="alert">@UsernameValidationMessage</div>
+                        }
                     </div>
 
-                    <div class="vpp-login-field">
+                    <div class="@(HasPasswordValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
                         <label class="vpp-login-label">@Loc["Password"]</label>
-                        <RadzenTextBox Visible="@(!isShowPass)"
-                                       class="vpp-login-control"
-                                       Name="PasswordText"
-                                       Disabled="@isLoading"
-                                       @bind-Value=@sp_Authentication_Login.Password
-                                       @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
-                        <RadzenPassword Visible="@isShowPass"
-                                        class="vpp-login-control"
-                                        Name="Password"
-                                        Disabled="@isLoading"
-                                        @bind-Value=@sp_Authentication_Login.Password
-                                        @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                        <div class="vpp-login-password-wrapper">
+                            <RadzenTextBox Visible="@(!isShowPass)"
+                                           class="vpp-login-control"
+                                           Name="PasswordText"
+                                           Disabled="@isLoading"
+                                           @bind-Value=@sp_Authentication_Login.Password
+                                           @oninput="HandlePasswordInput"
+                                           @onblur="HandlePasswordBlur"
+                                           @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                            <RadzenPassword Visible="@isShowPass"
+                                            class="vpp-login-control"
+                                            Name="Password"
+                                            Disabled="@isLoading"
+                                            @bind-Value=@sp_Authentication_Login.Password
+                                            @oninput="HandlePasswordInput"
+                                            @onblur="HandlePasswordBlur"
+                                            @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                            <button type="button" class="vpp-password-toggle-btn" @onclick="TogglePasswordVisibility" tabindex="-1">
+                                <span class="material-symbols-outlined">
+                                    @(isShowPass ? "visibility_off" : "visibility")
+                                </span>
+                            </button>
+                        </div>
+
+                        @if (HasPasswordValidation)
+                        {
+                            <div class="vpp-login-validation" role="alert">@PasswordValidationMessage</div>
+                        }
                     </div>
 
                     @if (isShowServer)
                     {
-                        <div class="vpp-login-field">
+                        <div class="@(HasServerValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
                             <label class="vpp-login-label">@Loc["Server"]</label>
-                            <RadzenDropDown Data=@Servers
+                            <RadzenDropDown TValue="string"
+                                            Data="@Servers"
                                             class="vpp-login-control"
-                                            @bind-Value=@sp_Authentication_Login.selected_server />
+                                            Disabled="@isLoading"
+                                            @bind-Value=@sp_Authentication_Login.selected_server
+                                            Change="@(args => HandleServerChange())" />
+
+                            @if (HasServerValidation)
+                            {
+                                <div class="vpp-login-validation" role="alert">@ServerValidationMessage</div>
+                            }
                         </div>
                     }
 

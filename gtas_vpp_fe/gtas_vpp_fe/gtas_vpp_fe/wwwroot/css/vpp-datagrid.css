@@ -145,14 +145,25 @@
 }
 
 .vpp-order-grid.rz-datatable,
-.vpp-order-grid.rz-data-grid,
-.vpp-wizard-panel-card .rz-datatable,
-.vpp-wizard-panel-card .rz-data-grid {
+.vpp-order-grid.rz-data-grid {
     --vpp-grid-cell-padding-y: 0.35rem;
     --vpp-grid-cell-padding-x: 0.5rem;
     --vpp-grid-filter-space: 1.45rem;
     --vpp-grid-expander-width: 32px;
     --vpp-grid-min-width: 1080px;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.vpp-wizard-panel-card .rz-datatable,
+.vpp-wizard-panel-card .rz-data-grid {
+    --vpp-grid-cell-padding-y: 0.35rem;
+    --vpp-grid-cell-padding-x: 0.3rem;
+    --vpp-grid-filter-space: 1.45rem;
+    --vpp-grid-expander-width: 32px;
+    --vpp-grid-min-width: 0;
     border: none;
     box-shadow: none;
     border-radius: 0;
