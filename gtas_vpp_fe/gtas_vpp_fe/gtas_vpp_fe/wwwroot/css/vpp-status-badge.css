@@ -53,3 +53,13 @@
     color: var(--vpp-text-secondary);
     border: 1px solid var(--vpp-border-default);
 }
+
+.vpp-badge-settled {
+    margin-left: var(--vpp-space-2);
+    padding: var(--vpp-space-1) var(--vpp-space-2);
+    border: 1px solid var(--vpp-success-muted);
+    border-radius: var(--vpp-radius-badge);
+    color: var(--vpp-success);
+    background: var(--vpp-success-muted);
+    font-size: var(--vpp-text-xs);
+}

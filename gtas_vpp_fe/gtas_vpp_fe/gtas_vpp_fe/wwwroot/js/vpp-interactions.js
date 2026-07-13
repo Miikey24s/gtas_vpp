@@ -11,6 +11,10 @@
     }
 
     window.vppTheme = {
+        current: function () {
+            var match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
+            return match ? decodeURIComponent(match[1]) : "material3";
+        },
         apply: function (theme) {
             var nextTheme = theme || "material3";
             var shouldUseDark = nextTheme.indexOf("dark") !== -1;

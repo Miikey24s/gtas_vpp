@@ -43,15 +43,6 @@ namespace gtas_vpp_fe.Components.Layout
             (Permissions.PermissionComponent, "/permission?tab=1")
         ];
 
-        private const string BrowserThemeScript = """
-            (() => {
-                const match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
-                const theme = match ? decodeURIComponent(match[1]) : 'material3';
-                document.documentElement.classList.toggle('rz-theme-dark', theme.includes('dark'));
-                return theme;
-            })()
-            """;
-
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
@@ -121,18 +112,10 @@ namespace gtas_vpp_fe.Components.Layout
         }
         protected async Task LoadStateAsync()
         {
-            try
+            var result = await ProtectedLocalStore.GetAsync<GlobalStorageModel>("CostingSetting");
+            if (result.Success && result.Value is not null)
             {
-                var result = await ProtectedLocalStore.GetAsync<GlobalStorageModel>("CostingSetting");
-                if (result.Success && result.Value is not null)
-                {
-                    State = result.Value?.Header?.FirstOrDefault(x => x.PageName == Config.Page_ComponentCode.PageCode.Sidebar)?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
-                }
-            }
-            catch (Exception)
-            {
-
-                throw;
+                State = result.Value?.Header?.FirstOrDefault(x => x.PageName == Config.Page_ComponentCode.PageCode.Sidebar)?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
             }
         }
         protected async Task ThemeOnChange()
@@ -167,40 +150,29 @@ namespace gtas_vpp_fe.Components.Layout
         }
         protected async Task LoadTheme()
         {
-            try
+            string? themeCookie = null;
+
+            if (!_isPrerendering)
             {
-                string? themeCookie = null;
-
-                if (!_isPrerendering)
-                {
-                    themeCookie = await GetBrowserThemeAsync();
-                }
-
-                if (string.IsNullOrWhiteSpace(themeCookie) && HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var requestTheme))
-                {
-                    themeCookie = requestTheme;
-                }
-
-                if (string.IsNullOrWhiteSpace(themeCookie))
-                {
-                    themeCookie = "material3";
-                }
-
-                ThemeState.SetTheme(themeCookie);
-                ThemeService.SetTheme(themeCookie);
-                LightTheme = themeCookie == "material3";
+                themeCookie = await GetBrowserThemeAsync();
             }
-            catch (Exception ex)
+
+            if (string.IsNullOrWhiteSpace(themeCookie) && HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var requestTheme))
             {
-                throw new Exception($"Error loading theme: {ex.Message}");
+                themeCookie = requestTheme;
             }
+
+            themeCookie = string.IsNullOrWhiteSpace(themeCookie) ? "material3" : themeCookie;
+            ThemeState.SetTheme(themeCookie);
+            ThemeService.SetTheme(themeCookie);
+            LightTheme = themeCookie == "material3";
         }
 
         private async Task<string?> GetBrowserThemeAsync()
         {
             try
             {
-                return await JSRuntime.InvokeAsync<string>("eval", BrowserThemeScript);
+                return await JSRuntime.InvokeAsync<string>("vppTheme.current");
             }
             catch (InvalidOperationException)
             {
@@ -243,12 +215,8 @@ namespace gtas_vpp_fe.Components.Layout
             }
             catch (JSException)
             {
-                var themeClassScript = newTheme.Contains("dark", StringComparison.OrdinalIgnoreCase)
-                    ? "document.documentElement.classList.add('rz-theme-dark');"
-                    : "document.documentElement.classList.remove('rz-theme-dark');";
-
-                await JSRuntime.InvokeVoidAsync("eval", themeClassScript);
-                await JSRuntime.InvokeVoidAsync("eval", $"document.cookie = 'VPPTheme={newTheme}; path=/; max-age=31536000'");
+                // The server-side state remains authoritative; the next render
+                // applies it even if JavaScript is temporarily unavailable.
             }
         }
 

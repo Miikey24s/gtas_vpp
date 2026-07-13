@@ -93,7 +93,7 @@
     box-shadow: var(--vpp-shadow-lg);
     z-index: 1000;
     padding: 0.75rem 0;
-    animation: userDropdownIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: userDropdownIn var(--vpp-transition-base);
     transform-origin: top right;
 }
 

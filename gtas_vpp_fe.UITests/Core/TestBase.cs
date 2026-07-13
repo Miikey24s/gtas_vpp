@@ -1,6 +1,8 @@
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Playwright;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -103,6 +105,14 @@ namespace gtas_vpp_fe.UITests.Core
             }
 
             var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MyAspire_AppHost>();
+            appHost.Services.AddLogging(logging =>
+            {
+                // UI tests must work without administrator rights. The default
+                // Windows EventLog provider tries to write to ".NET Runtime"
+                // and can fail before Aspire starts any resource.
+                logging.ClearProviders();
+                logging.AddConsole();
+            });
             _app = await appHost.BuildAsync();
             await _app.StartAsync();
 

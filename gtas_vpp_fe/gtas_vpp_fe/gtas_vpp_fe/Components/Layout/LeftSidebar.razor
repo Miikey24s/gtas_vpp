@@ -16,10 +16,10 @@
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" class="vpp-header-brand">
             <RadzenSidebarToggle class="customburger vpp-header-menu-button"
                                  Click="@(() => _sideBarExpanded = !_sideBarExpanded)"
-                                 title="Toggle navigation"
-                                 aria-label="Toggle navigation" />
+                                 title="@Loc["ToggleNavigation"]"
+                                 ToggleAriaLabel="@Loc["ToggleNavigation"]" />
             <div class="vpp-brand-lockup">
-                <RadzenImage class="vpp-header-logo" Path="./logoppj-new.png" />
+                <img class="vpp-header-logo" src="@Assets["logoppj-new.png"]" alt="PPJ" />
                 <div class="vpp-header-title" title="@HeaderTitle">
                     <span class="vpp-header-product">GTAS VPP</span>
                     <span class="vpp-header-server">@ServerLabel</span>
@@ -151,3 +151,11 @@
         </RadzenStack>
     </RadzenPanelMenu>
 </RadzenSidebar>
+@if (_sideBarExpanded)
+{
+    <button type="button"
+            class="vpp-sidebar-backdrop"
+            title="@Loc["CloseNavigation"]"
+            aria-label="@Loc["CloseNavigation"]"
+            @onclick="@(() => _sideBarExpanded = false)"></button>
+}

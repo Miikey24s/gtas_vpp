@@ -364,4 +364,49 @@
   <data name="NoMatchingColumns" xml:space="preserve"><value>Không tìm thấy cột phù hợp</value></data>
   <data name="Reset" xml:space="preserve"><value>Đặt lại</value></data>
   <data name="Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="AllMonths" xml:space="preserve"><value>Tất cả tháng</value></data>
+  <data name="AllYears" xml:space="preserve"><value>Tất cả năm</value></data>
+  <data name="ApplyFilters" xml:space="preserve"><value>Áp dụng</value></data>
+  <data name="Catalog" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="CloseNavigation" xml:space="preserve"><value>Đóng điều hướng</value></data>
+  <data name="GeneratedAt" xml:space="preserve"><value>Cập nhật lúc {0}</value></data>
+  <data name="HidePassword" xml:space="preserve"><value>Ẩn mật khẩu</value></data>
+  <data name="Management" xml:space="preserve"><value>Quản lý</value></data>
+  <data name="MarkAllNotificationsRead" xml:space="preserve"><value>Đánh dấu đã đọc</value></data>
+  <data name="NoNotifications" xml:space="preserve"><value>Chưa có thông báo</value></data>
+  <data name="NoNotificationsDescription" xml:space="preserve"><value>Các cập nhật nghiệp vụ mới sẽ xuất hiện tại đây.</value></data>
+  <data name="NoReportData" xml:space="preserve"><value>Chưa có dữ liệu báo cáo</value></data>
+  <data name="NoReportDataDescription" xml:space="preserve"><value>Hãy đổi phạm vi hoặc kỳ báo cáo rồi thử lại.</value></data>
+  <data name="Pricing" xml:space="preserve"><value>Bảng giá</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>
+  <data name="ReportDepartments" xml:space="preserve"><value>So sánh phòng ban</value></data>
+  <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Số đơn của tối đa 12 phòng ban trong phạm vi được phép.</value></data>
+  <data name="ReportExported" xml:space="preserve"><value>Đã xuất báo cáo CSV.</value></data>
+  <data name="ReportExportFailed" xml:space="preserve"><value>Không thể xuất báo cáo: {0}</value></data>
+  <data name="ReportFilters" xml:space="preserve"><value>Bộ lọc báo cáo</value></data>
+  <data name="ReportLoadFailed" xml:space="preserve"><value>Không thể tải báo cáo: {0}</value></data>
+  <data name="ReportScope" xml:space="preserve"><value>Phạm vi dữ liệu</value></data>
+  <data name="ReportStatus" xml:space="preserve"><value>Cơ cấu trạng thái</value></data>
+  <data name="ReportStatusDescription" xml:space="preserve"><value>Tỷ lệ đơn theo trạng thái xử lý hiện tại.</value></data>
+  <data name="ReportSummary" xml:space="preserve"><value>Tổng quan báo cáo</value></data>
+  <data name="ReportTrend" xml:space="preserve"><value>Xu hướng theo kỳ</value></data>
+  <data name="ReportTrendDescription" xml:space="preserve"><value>Số lượng văn phòng phẩm được yêu cầu theo từng tháng.</value></data>
+  <data name="Requesters" xml:space="preserve"><value>Người yêu cầu</value></data>
+  <data name="ScopeAll" xml:space="preserve"><value>Toàn doanh nghiệp</value></data>
+  <data name="ScopeDepartment" xml:space="preserve"><value>Phòng ban</value></data>
+  <data name="ScopeOwn" xml:space="preserve"><value>Cá nhân</value></data>
+  <data name="ShowPassword" xml:space="preserve"><value>Hiện mật khẩu</value></data>
+  <data name="SkipToContent" xml:space="preserve"><value>Chuyển đến nội dung chính</value></data>
+  <data name="ToggleNavigation" xml:space="preserve"><value>Đóng hoặc mở điều hướng</value></data>
+  <data name="TopProducts" xml:space="preserve"><value>Vật tư được yêu cầu nhiều nhất</value></data>
+  <data name="TopProductsDescription" xml:space="preserve"><value>Top 10 vật tư theo tổng số lượng yêu cầu.</value></data>
+  <data name="TotalAmount" xml:space="preserve"><value>Tổng giá trị</value></data>
+  <data name="Unread" xml:space="preserve"><value>Chưa đọc</value></data>
+  <data name="UnreadNotificationCount" xml:space="preserve"><value>{0} thông báo chưa đọc</value></data>
+  <data name="EditOrderAria" xml:space="preserve"><value>Chỉnh sửa đơn {0}</value></data>
+  <data name="Next" xml:space="preserve"><value>Tiếp theo</value></data>
+  <data name="Previous" xml:space="preserve"><value>Quay lại</value></data>
+  <data name="Regular" xml:space="preserve"><value>Đơn thường</value></data>
+  <data name="ReviewSubmit" xml:space="preserve"><value>Kiểm tra và gửi</value></data>
+  <data name="SelectProducts" xml:space="preserve"><value>Chọn vật tư</value></data>
 </root>

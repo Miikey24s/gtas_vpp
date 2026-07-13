@@ -82,7 +82,7 @@ leftsidebar {
     box-shadow: none;
 }
 
-/* ── Glass Header ─────────────────────────────────────────────── */
+/* ── Application Header ───────────────────────────────────────── */
 .vpp-header-glass {
     border-bottom: 1px solid var(--vpp-border-default);
 }
@@ -106,9 +106,7 @@ leftsidebar {
 }
 
 :root:not(.rz-theme-dark) .vpp-header-glass {
-    background: rgba(247, 248, 249, 0.9);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    background: var(--vpp-bg-elevated);
     box-shadow: 0 1px 0 rgba(9, 30, 66, 0.05);
 }
 
@@ -231,7 +229,7 @@ leftsidebar {
     box-shadow: 0 4px 12px rgba(var(--vpp-primary-rgb), 0.24);
     transform: translateX(0);
     transition:
-        transform var(--vpp-transition-spring),
+        transform var(--vpp-transition-base),
         box-shadow var(--vpp-transition-fast),
         background-color var(--vpp-transition-fast);
     z-index: 0;
@@ -292,7 +290,7 @@ leftsidebar {
     line-height: 1;
     transition:
         opacity var(--vpp-transition-base),
-        transform var(--vpp-transition-spring),
+        transform var(--vpp-transition-base),
         color var(--vpp-transition-fast);
 }
 
@@ -460,6 +458,7 @@ leftsidebar {
     color: var(--vpp-text-secondary);
     background: var(--vpp-bg-surface);
     cursor: pointer;
+    z-index: 2;
 }
 
 .vpp-header-notification-button:hover,
@@ -497,6 +496,14 @@ leftsidebar {
     border-radius: var(--vpp-radius-lg);
     background: var(--vpp-bg-surface);
     box-shadow: var(--vpp-shadow-xl);
+    z-index: 2;
+}
+
+.vpp-notification-backdrop {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 1;
 }
 
 .vpp-notification-panel-header,

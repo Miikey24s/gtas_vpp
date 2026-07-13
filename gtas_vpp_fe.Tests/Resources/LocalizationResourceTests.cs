@@ -1,0 +1,71 @@
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using Xunit;
+
+namespace gtas_vpp_fe.Tests.Resources;
+
+public sealed partial class LocalizationResourceTests
+{
+    [Fact]
+    public void ComponentResources_ArePairedUniqueAndCoverLiteralKeys()
+    {
+        var root = FindRepositoryRoot();
+        var resourceDirectory = Path.Combine(
+            root, "gtas_vpp_fe", "gtas_vpp_fe", "gtas_vpp_fe", "Resources");
+        var componentDirectory = Path.Combine(
+            root, "gtas_vpp_fe", "gtas_vpp_fe", "gtas_vpp_fe", "Components");
+
+        var vietnameseKeys = ReadKeys(Path.Combine(resourceDirectory, "Components.App.resx"));
+        var englishKeys = ReadKeys(Path.Combine(resourceDirectory, "Components.App.en.resx"));
+
+        Assert.Equal(vietnameseKeys, englishKeys);
+        Assert.False(File.Exists(Path.Combine(resourceDirectory, "App.resx")));
+        Assert.False(File.Exists(Path.Combine(resourceDirectory, "App.en.resx")));
+
+        var missingKeys = Directory
+            .EnumerateFiles(componentDirectory, "*.*", SearchOption.AllDirectories)
+            .Where(path => path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
+                && !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .SelectMany(path => LiteralLocalizationKey().Matches(File.ReadAllText(path)).Select(match => match.Groups[1].Value))
+            .Distinct(StringComparer.Ordinal)
+            .Where(key => !vietnameseKeys.Contains(key))
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(missingKeys.Count == 0, $"Missing localization keys: {string.Join(", ", missingKeys)}");
+    }
+
+    private static SortedSet<string> ReadKeys(string path)
+    {
+        var keys = XDocument.Load(path)
+            .Root!
+            .Elements("data")
+            .Select(element => (string?)element.Attribute("name"))
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Cast<string>()
+            .ToList();
+
+        Assert.Equal(keys.Count, keys.Distinct(StringComparer.Ordinal).Count());
+        return new SortedSet<string>(keys, StringComparer.Ordinal);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory);
+             directory is not null;
+             directory = directory.Parent)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.sln")))
+            {
+                return directory.FullName;
+            }
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the GTAS VPP repository root.");
+    }
+
+    [GeneratedRegex("Loc\\[\"([^\"]+)\"\\]", RegexOptions.CultureInvariant)]
+    private static partial Regex LiteralLocalizationKey();
+}

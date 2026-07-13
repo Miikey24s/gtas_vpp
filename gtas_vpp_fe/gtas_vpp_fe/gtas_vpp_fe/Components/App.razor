@@ -23,18 +23,14 @@
     <link rel="stylesheet" href="@Assets["css/vpp-datagrid.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-admin.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-status-badge.css"]" />
-    <link rel="stylesheet" href="@Assets["css/gtas_vpp_fe.css"]" />
-
     <link rel="stylesheet" href="@Assets["css/vpp-responsive.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-a11y.css"]" />
-    <link rel="stylesheet" href="@Assets["css/vpp-charts.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-polish.css"]" />
     <link rel="stylesheet" href="@Assets["gtas_vpp_fe.styles.css"]" />
-    <link rel="icon" type="image/x-icon" href="@Assets["PPJ-Software-Icon.ico"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="@Assets["favicon.png"]" />
     <script>
-        // FOUC prevention — apply theme before paint
+        // Apply the stored theme before the first paint.
         (function(){
             var m = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
             var t = m ? m[1] : 'material3';
@@ -58,15 +54,6 @@
 
 </html>
 @code {
-    private const string BrowserThemeScript = """
-        (() => {
-            const match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
-            const theme = match ? decodeURIComponent(match[1]) : 'material3';
-            document.documentElement.classList.toggle('rz-theme-dark', theme.includes('dark'));
-            return theme;
-        })()
-        """;
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -128,7 +115,7 @@
     {
         try
         {
-            return await JS.InvokeAsync<string>("eval", BrowserThemeScript);
+            return await JS.InvokeAsync<string>("vppTheme.current");
         }
         catch (InvalidOperationException)
         {

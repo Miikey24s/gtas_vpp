@@ -67,8 +67,8 @@
                                 </ChildContent>
                                 <End>
                                     <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
-                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" ButtonStyle="ButtonStyle.Secondary" Icon="filter_alt_off" Click="ButtonOnClick_Clear" />
-                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" Icon="search" Click="ButtonOnClick_SearchUser" />
+                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" ButtonStyle="ButtonStyle.Secondary" Icon="filter_alt_off" title="@Loc["Reset"]" aria-label="@Loc["Reset"]" Click="ButtonOnClick_Clear" />
+                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" Icon="search" title="@Loc["Search"]" aria-label="@Loc["Search"]" Click="ButtonOnClick_SearchUser" />
                                     </RadzenStack>
                                 </End>
                             </RadzenFormField>

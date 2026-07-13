@@ -3,13 +3,14 @@
 @inject NotificationInboxState Inbox
 @inject NavigationManager Navigation
 
-<div class="vpp-header-notifications">
+<div class="vpp-header-notifications" @onkeydown="HandleKeyDown">
     <button type="button"
             class="vpp-header-notification-button"
             title="@Loc["Notifications"]"
             aria-label="@GetBellAriaLabel()"
             aria-expanded="@_isOpen"
             aria-haspopup="dialog"
+            aria-controls="vpp-notification-panel"
             @onclick="ToggleAsync">
         <span class="rzi rzi-notifications" aria-hidden="true"></span>
         @if (Inbox.UnreadCount > 0)
@@ -20,7 +21,12 @@
 
     @if (_isOpen)
     {
-        <section class="vpp-notification-panel" role="dialog" aria-label="@Loc["Notifications"]">
+        <div class="vpp-notification-backdrop" aria-hidden="true" @onclick="Close"></div>
+        <section id="vpp-notification-panel"
+                 class="vpp-notification-panel"
+                 role="dialog"
+                 aria-modal="false"
+                 aria-label="@Loc["Notifications"]">
             <header class="vpp-notification-panel-header">
                 <div>
                     <strong>@Loc["Notifications"]</strong>
@@ -93,6 +99,16 @@
         if (_isOpen)
         {
             await Inbox.RefreshAsync();
+        }
+    }
+
+    private void Close() => _isOpen = false;
+
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (_isOpen && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+        {
+            Close();
         }
     }
 

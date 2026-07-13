@@ -23,6 +23,8 @@ LVTN/                    Luận văn, sơ đồ, ảnh giao diện và công c�
 ```
 
 Shared DTO chính thức nằm tại `gtas_vpp_be/gtas_vpp_shared`; frontend tham chiếu trực tiếp project này.
+Quy ước UI, localization và accessibility dành cho người và AI nằm tại
+[`gtas_vpp_fe/README.md`](gtas_vpp_fe/README.md).
 
 ## Chạy bằng Docker Compose
 

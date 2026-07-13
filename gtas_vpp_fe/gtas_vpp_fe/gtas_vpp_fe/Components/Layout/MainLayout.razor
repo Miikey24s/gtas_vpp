@@ -7,10 +7,11 @@
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
-<RadzenLayout class="vpp-layout" Style="">
+<a class="vpp-skip-link" href="#main-content">@Loc["SkipToContent"]</a>
+<RadzenLayout class="vpp-layout">
     <LeftSidebar />
     <RadzenBody class="vpp-layout-body">
-        <div class="vpp-content">
+        <div id="main-content" class="vpp-content" role="main" tabindex="-1">
             @Body
         </div>
     </RadzenBody>
