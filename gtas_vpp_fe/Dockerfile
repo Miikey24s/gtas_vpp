@@ -1,30 +1,31 @@
 # ─────────────────────────────────────────────────────────────
 # GTAS VPP Frontend (Blazor Server) – Multi-stage Docker Build
-# Build context: gtas_vpp_fe  |  Dockerfile: Dockerfile
+# Build context: repository root  |  Dockerfile: gtas_vpp_fe/Dockerfile
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: Restore + Publish ────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy shared project from the FE repo so frontend builds do not depend on BE files
-COPY gtas_vpp_shared/gtas_vpp_shared.csproj gtas_vpp_shared/
+# Keep the monorepo layout because the frontend references the canonical shared
+# project under gtas_vpp_be. This avoids maintaining a second DTO copy.
+COPY gtas_vpp_be/gtas_vpp_shared/gtas_vpp_shared.csproj gtas_vpp_be/gtas_vpp_shared/
 
 # Copy FE project file for restore layer caching
-COPY gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj gtas_vpp_fe/gtas_vpp_fe/
+COPY gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/
 
 # Restore (cached unless .csproj files change; BuildKit mount reuses NuGet cache)
 RUN --mount=type=cache,target=/root/.nuget/packages \
-    dotnet restore gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj
+    dotnet restore gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj
     
 
 # Copy all source code
-COPY gtas_vpp_shared/ gtas_vpp_shared/
+COPY gtas_vpp_be/gtas_vpp_shared/ gtas_vpp_be/gtas_vpp_shared/
 COPY gtas_vpp_fe/ gtas_vpp_fe/
 
 # Publish in Release mode
 RUN --mount=type=cache,target=/root/.nuget/packages \
-    dotnet publish gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
+    dotnet publish gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj \
     -c Release \
     -o /app/publish \
     --no-restore

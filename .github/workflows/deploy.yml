@@ -12,7 +12,33 @@ env:
   IMAGE_NAME_FE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-frontend
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore solution
+        run: dotnet restore gtas_vpp.sln
+
+      - name: Build solution
+        run: dotnet build gtas_vpp.sln -c Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-build
+
+      - name: Run frontend tests
+        run: dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+
   build-and-push:
+    needs: verify
     runs-on: ubuntu-latest
     concurrency:
       group: gtas-vpp-build-${{ github.workflow }}-${{ github.ref_name || 'Nam' }}
@@ -26,31 +52,23 @@ jobs:
       image_version: ${{ steps.image_meta.outputs.image_version }}
 
     steps:
-      - name: Checkout orchestration repo
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: Nam
-          submodules: recursive
-          token: ${{ secrets.SUBMODULE_TOKEN }}
 
-      - name: Resolve checked-out commit SHAs
-        id: submodule_state
+      - name: Resolve checked-out commit SHA
+        id: source_state
         shell: bash
         run: |
           set -euo pipefail
 
           echo "root_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "be_sha=$(git -C gtas_vpp_be rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "fe_sha=$(git -C gtas_vpp_fe rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Print build context
         shell: bash
         run: |
           set -euo pipefail
 
-          echo "Root commit: ${{ steps.submodule_state.outputs.root_sha }}"
-          echo "Backend commit: ${{ steps.submodule_state.outputs.be_sha }}"
-          echo "Frontend commit: ${{ steps.submodule_state.outputs.fe_sha }}"
+          echo "Monorepo commit: ${{ steps.source_state.outputs.root_sha }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -67,9 +85,7 @@ jobs:
         id: image_meta
         shell: bash
         env:
-          ROOT_SHA: ${{ steps.submodule_state.outputs.root_sha }}
-          BE_SHA: ${{ steps.submodule_state.outputs.be_sha }}
-          FE_SHA: ${{ steps.submodule_state.outputs.fe_sha }}
+          ROOT_SHA: ${{ steps.source_state.outputs.root_sha }}
         run: |
           set -euo pipefail
 
@@ -77,9 +93,7 @@ jobs:
           echo "fe_image_lower=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
           short_root="${ROOT_SHA:0:12}"
-          short_be="${BE_SHA:0:12}"
-          short_fe="${FE_SHA:0:12}"
-          image_version="run-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}-root-${short_root}-be-${short_be}-fe-${short_fe}"
+          image_version="run-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}-${short_root}"
           echo "image_version=${image_version}" >> "$GITHUB_OUTPUT"
 
       # ── Build & Push Backend ──
@@ -98,7 +112,8 @@ jobs:
       - name: Build and push Frontend Image
         uses: docker/build-push-action@v5
         with:
-          context: ./gtas_vpp_fe
+          context: .
+          file: ./gtas_vpp_fe/Dockerfile
           push: true
           tags: |
             ${{ steps.image_meta.outputs.fe_image_lower }}:latest
