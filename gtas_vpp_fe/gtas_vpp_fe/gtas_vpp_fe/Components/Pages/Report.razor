@@ -1,72 +1,162 @@
 @page "/report"
 @layout MainLayout
-@implements IDisposable
-@using gtas_vpp_fe.Services
-@using gtas_vpp_shared.Constants
-@using gtas_vpp_shared.DTOs.Share
-@inject PermissionState PermissionState
+@inherits ReportBase
+@using gtas_vpp_shared.DTOs.Res.Reports
 
 @rendermode InteractiveServer
 
-<PageTitle>GTAS VPP - Report</PageTitle>
+<PageTitle>GTAS VPP - @Loc["Reports"]</PageTitle>
 
-@if (CanViewReport)
+@if (!CanViewReport)
 {
-        <RadzenStack Gap="1.5rem" class="vpp-report-page">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-                <RadzenText Text="@Loc["Reports"]" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-heading" />
-                <RadzenButton Icon="file_download" Text="@Loc["ExportReport"]" ButtonStyle="ButtonStyle.Primary" Disabled="true" />
-            </RadzenStack>
-
-            <RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch">
-                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
-                    <RadzenCard class="rz-p-3 vpp-report-stat-card">
-                        <RadzenText Text="@Loc["TotalOrders"]" TextStyle="TextStyle.Overline" class="vpp-report-stat-label" />
-                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-stat-value" />
-                    </RadzenCard>
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
-                    <RadzenCard class="rz-p-3 vpp-report-stat-card">
-                        <RadzenText Text="@Loc["TotalQuantity"]" TextStyle="TextStyle.Overline" class="vpp-report-stat-label" />
-                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-stat-value" />
-                    </RadzenCard>
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeSM="6" SizeLG="4">
-                    <RadzenCard class="rz-p-3 vpp-report-stat-card">
-                        <RadzenText Text="@Loc["Departments"]" TextStyle="TextStyle.Overline" class="vpp-report-stat-label" />
-                        <RadzenText Text="-" TextStyle="TextStyle.H4" class="rz-m-0 vpp-report-stat-value" />
-                    </RadzenCard>
-                </RadzenColumn>
-            </RadzenRow>
-
-            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" AllowClose="false" class="vpp-report-alert">
-                @Loc["ReportContentNotConfigured"]
-            </RadzenAlert>
-        </RadzenStack>
+    <VppEmptyState Icon="lock"
+                   Title="@Loc["AccessDenied"]"
+                   Description="@Loc["NoPermission"]" />
 }
 else
 {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" AllowClose="false">
-            @Loc["NoPermission"]
-        </RadzenAlert>
-}
+    <main class="vpp-report-page">
+        <header class="vpp-report-header">
+            <div>
+                <h1 class="vpp-report-heading">@Loc["Reports"]</h1>
+                @if (Summary is not null)
+                {
+                    <p>@string.Format(Loc["GeneratedAt"], FormatGeneratedAt(Summary.GeneratedAt))</p>
+                }
+            </div>
+            @if (CanExport)
+            {
+                <RadzenButton Icon="file_download"
+                              Text="@Loc["ExportReport"]"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="ExportAsync"
+                              Disabled="@(IsLoading || IsExporting || Summary is null)" />
+            }
+        </header>
 
-@code {
-    private bool CanViewReport => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
+        <section class="vpp-report-filters" aria-label="@Loc["ReportFilters"]">
+            <label>
+                <span>@Loc["ReportScope"]</span>
+                <select @bind="SelectedScope">
+                    @foreach (var option in ScopeOptions)
+                    {
+                        <option value="@option.Value">@Loc[option.ResourceKey]</option>
+                    }
+                </select>
+            </label>
+            <label>
+                <span>@Loc["Year"]</span>
+                <select @bind="SelectedYear">
+                    <option value="">@Loc["AllYears"]</option>
+                    @foreach (var year in AvailableYears)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </select>
+            </label>
+            <label>
+                <span>@Loc["Month"]</span>
+                <select @bind="SelectedMonth">
+                    <option value="">@Loc["AllMonths"]</option>
+                    @for (var month = 1; month <= 12; month++)
+                    {
+                        <option value="@month">@month.ToString("00")</option>
+                    }
+                </select>
+            </label>
+            <RadzenButton Icon="filter_alt"
+                          Text="@Loc["ApplyFilters"]"
+                          ButtonStyle="ButtonStyle.Light"
+                          Click="LoadAsync"
+                          Disabled="@IsLoading" />
+        </section>
 
-    protected override async Task OnInitializedAsync()
-    {
-        PermissionState.Changed += OnPermissionStateChanged;
-        await PermissionState.EnsureLoadedAsync();
-    }
+        @if (IsLoading && Summary is null)
+        {
+            <SkeletonPage Cards="5" Rows="6" Cols="4" />
+        }
+        else if (Summary is null || Summary.TotalOrders == 0)
+        {
+            <VppEmptyState Icon="analytics"
+                           Title="@Loc["NoReportData"]"
+                           Description="@Loc["NoReportDataDescription"]"
+                           PrimaryText="@Loc["Refresh"]"
+                           PrimaryAction="@(async _ => await LoadAsync())" />
+        }
+        else
+        {
+            <section class="vpp-report-kpis" aria-label="@Loc["ReportSummary"]">
+                @Kpi("receipt_long", Loc["TotalOrders"], Summary.TotalOrders.ToString("N0"))
+                @Kpi("format_list_numbered", Loc["TotalLineItems"], Summary.TotalLines.ToString("N0"))
+                @Kpi("inventory_2", Loc["TotalQuantity"], Summary.TotalQuantity.ToString("N0"))
+                @Kpi("payments", Loc["TotalAmount"], FormatAmount(Summary.TotalAmount))
+                @Kpi("groups", Loc["Requesters"], Summary.TotalRequesters.ToString("N0"))
+            </section>
 
-    private void OnPermissionStateChanged()
-    {
-        _ = InvokeAsync(StateHasChanged);
-    }
+            <section class="vpp-report-grid">
+                <article class="vpp-report-card">
+                    <h2>@Loc["ReportTrend"]</h2>
+                    <p>@Loc["ReportTrendDescription"]</p>
+                    <RadzenChart Style="height: 320px;">
+                        <RadzenColumnSeries Data="@Summary.PeriodTrend"
+                                            CategoryProperty="Period"
+                                            ValueProperty="TotalQuantity"
+                                            Title="@Loc["TotalQuantity"]" />
+                        <RadzenCategoryAxis />
+                        <RadzenValueAxis />
+                        <RadzenLegend Position="LegendPosition.Bottom" />
+                    </RadzenChart>
+                </article>
 
-    public void Dispose()
-    {
-        PermissionState.Changed -= OnPermissionStateChanged;
-    }
+                <article class="vpp-report-card">
+                    <h2>@Loc["ReportStatus"]</h2>
+                    <p>@Loc["ReportStatusDescription"]</p>
+                    <RadzenChart Style="height: 320px;">
+                        <RadzenDonutSeries Data="@StatusChartData"
+                                           CategoryProperty="Label"
+                                           ValueProperty="OrderCount" />
+                        <RadzenLegend Position="LegendPosition.Bottom" />
+                    </RadzenChart>
+                </article>
+
+                @if (Summary.DepartmentBreakdown.Count > 0)
+                {
+                    <article class="vpp-report-card vpp-report-card-wide">
+                        <h2>@Loc["ReportDepartments"]</h2>
+                        <p>@Loc["ReportDepartmentsDescription"]</p>
+                        <RadzenChart Style="height: 340px;">
+                            <RadzenColumnSeries Data="@Summary.DepartmentBreakdown"
+                                                CategoryProperty="DepartmentCode"
+                                                ValueProperty="OrderCount"
+                                                Title="@Loc["TotalOrders"]" />
+                            <RadzenCategoryAxis />
+                            <RadzenValueAxis />
+                        </RadzenChart>
+                    </article>
+                }
+
+                <article class="vpp-report-card vpp-report-card-wide">
+                    <h2>@Loc["TopProducts"]</h2>
+                    <p>@Loc["TopProductsDescription"]</p>
+                    <RadzenDataGrid TItem="ReportProductPointResDTO"
+                                    Data="@Summary.TopProducts"
+                                    AllowPaging="false"
+                                    AllowSorting="true"
+                                    Density="Density.Compact"
+                                    GridLines="DataGridGridLines.Horizontal">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductCode" Title="@Loc["ProductCode"]" />
+                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductName" Title="@Loc["ProductName"]" />
+                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" TextAlign="TextAlign.Right">
+                                <Template Context="item">@item.TotalQuantity.ToString("N0")</Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalAmount" Title="@Loc["TotalAmount"]" TextAlign="TextAlign.Right">
+                                <Template Context="item">@FormatAmount(item.TotalAmount)</Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </article>
+            </section>
+        }
+    </main>
 }

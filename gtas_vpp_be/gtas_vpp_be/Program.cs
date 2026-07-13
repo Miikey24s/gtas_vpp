@@ -120,6 +120,7 @@ builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

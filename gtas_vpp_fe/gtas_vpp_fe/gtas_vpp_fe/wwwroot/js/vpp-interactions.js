@@ -46,6 +46,20 @@
         }
     };
 
+    window.vppDownload = {
+        fromStream: async function (fileName, contentStreamReference) {
+            var arrayBuffer = await contentStreamReference.arrayBuffer();
+            var blob = new Blob([arrayBuffer]);
+            var url = URL.createObjectURL(blob);
+            var anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = fileName || "download";
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(url);
+        }
+    };
+
     function closeOrderCodePopovers(exceptCell) {
         document.querySelectorAll(".vpp-order-code-cell.is-open").forEach(function (cell) {
             if (cell === exceptCell) {

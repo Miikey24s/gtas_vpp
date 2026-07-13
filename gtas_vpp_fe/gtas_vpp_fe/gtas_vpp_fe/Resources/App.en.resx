@@ -357,4 +357,29 @@
   <data name="NoNotificationsDescription" xml:space="preserve"><value>New workflow updates will appear here.</value></data>
   <data name="Unread" xml:space="preserve"><value>Unread</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ReportFilters" xml:space="preserve"><value>Report filters</value></data>
+  <data name="ReportScope" xml:space="preserve"><value>Data scope</value></data>
+  <data name="ScopeOwn" xml:space="preserve"><value>My data</value></data>
+  <data name="ScopeDepartment" xml:space="preserve"><value>Department</value></data>
+  <data name="ScopeAll" xml:space="preserve"><value>Company-wide</value></data>
+  <data name="AllYears" xml:space="preserve"><value>All years</value></data>
+  <data name="AllMonths" xml:space="preserve"><value>All months</value></data>
+  <data name="ApplyFilters" xml:space="preserve"><value>Apply</value></data>
+  <data name="GeneratedAt" xml:space="preserve"><value>Updated at {0}</value></data>
+  <data name="ReportSummary" xml:space="preserve"><value>Report summary</value></data>
+  <data name="TotalAmount" xml:space="preserve"><value>Total amount</value></data>
+  <data name="Requesters" xml:space="preserve"><value>Requesters</value></data>
+  <data name="ReportTrend" xml:space="preserve"><value>Period trend</value></data>
+  <data name="ReportTrendDescription" xml:space="preserve"><value>Requested office-supply quantity by month.</value></data>
+  <data name="ReportStatus" xml:space="preserve"><value>Status distribution</value></data>
+  <data name="ReportStatusDescription" xml:space="preserve"><value>Orders grouped by their current workflow status.</value></data>
+  <data name="ReportDepartments" xml:space="preserve"><value>Department comparison</value></data>
+  <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Order counts for up to 12 departments within your allowed scope.</value></data>
+  <data name="TopProducts" xml:space="preserve"><value>Most requested products</value></data>
+  <data name="TopProductsDescription" xml:space="preserve"><value>Top 10 products by requested quantity.</value></data>
+  <data name="NoReportData" xml:space="preserve"><value>No report data</value></data>
+  <data name="NoReportDataDescription" xml:space="preserve"><value>Change the scope or reporting period and try again.</value></data>
+  <data name="ReportLoadFailed" xml:space="preserve"><value>Could not load the report: {0}</value></data>
+  <data name="ReportExported" xml:space="preserve"><value>The CSV report was exported.</value></data>
+  <data name="ReportExportFailed" xml:space="preserve"><value>Could not export the report: {0}</value></data>
 </root>

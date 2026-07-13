@@ -21,6 +21,7 @@ namespace gtas_vpp_fe.Services
         Task<T?> PostFromApiAsync<T>(string endpoint, object? body);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
+        Task<ApiFileResult> GetFileFromApiAsync(string endpoint);
         Task<bool> DeleteFromApiAsync(string endpoint);
     }
     public class APIServices : IAPIServices
@@ -261,6 +262,21 @@ namespace gtas_vpp_fe.Services
             return await ReadResponseAsJsonAsync<T>(response);
         }
 
+        public async Task<ApiFileResult> GetFileFromApiAsync(string endpoint)
+        {
+            await ApplyAuthorizationHeaderAsync();
+            using var response = await _httpClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead);
+            await EnsureSuccessWithDetailsAsync(response);
+
+            var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                ?? "download.bin";
+            var contentType = response.Content.Headers.ContentType?.ToString()
+                ?? "application/octet-stream";
+            var content = await response.Content.ReadAsByteArrayAsync();
+            return new ApiFileResult(content, fileName, contentType);
+        }
+
         private static async Task<T?> ReadResponseAsJsonAsync<T>(HttpResponseMessage response)
         {
             if (response.StatusCode == HttpStatusCode.NoContent
@@ -306,4 +322,6 @@ namespace gtas_vpp_fe.Services
             return response.IsSuccessStatusCode;
         }
     }
+
+    public sealed record ApiFileResult(byte[] Content, string FileName, string ContentType);
 }
