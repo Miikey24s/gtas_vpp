@@ -35,10 +35,12 @@ if (Mapping tồn tại?) then (Không)
 else (Có)
   :Cập nhật mapping quyền;
   :Lưu người và thời điểm cập nhật;
-  :Làm mới PermissionState;
+  :Phát PermissionsChanged qua SignalR;
+  :Frontend người dùng bị tác động tải lại snapshot;
+  :Ẩn/khóa chức năng vừa bị thu hồi;
+  :API tiếp tục kiểm tra policy ở từng action;
   |Quản trị viên|
   :Kiểm tra giao diện theo quyền mới;
   stop
 endif
 @enduml
-

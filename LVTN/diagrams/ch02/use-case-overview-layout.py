@@ -10,7 +10,7 @@ HERE = Path(__file__).resolve().parent
 SVG_PATH = HERE / "use-case-overview.svg"
 PNG_PATH = HERE / "use-case-overview.png"
 
-WIDTH, HEIGHT, SCALE = 1280, 940, 2
+WIDTH, HEIGHT, SCALE = 1280, 1060, 2
 BLACK, WHITE, LIGHT = "#000000", "#FFFFFF", "#E6E6E6"
 
 EMPLOYEE_CASES = [
@@ -19,6 +19,7 @@ EMPLOYEE_CASES = [
     (("Tạo, sao chép, sửa", "hoặc hủy đơn"), 380),
     (("Tạo đơn bổ sung",), 475),
     (("Xem lịch sử và", "trạng thái đơn"), 570),
+    (("Báo cáo cá nhân và", "hộp thư thông báo"), 665),
 ]
 
 ADMIN_CASES = [
@@ -27,7 +28,7 @@ ADMIN_CASES = [
     (("Duyệt hoặc từ chối", "đơn bổ sung"), 380),
     (("Đóng kỳ và", "chụp đơn giá"), 475),
     (("Quản lý người dùng", "và phân quyền"), 570),
-    (("Xem tổng hợp", "toàn hệ thống"), 665),
+    (("Báo cáo toàn hệ thống", "và xuất CSV"), 665),
 ]
 
 
@@ -85,16 +86,16 @@ def make_svg():
 
     # Actors stay outside the system boundary, as in a conventional UML diagram.
     svg_actor(parts, 70, 300, ("Nhân viên",))
-    svg_actor(parts, 70, 660, ("Quản lý", "phòng ban"))
+    svg_actor(parts, 70, 750, ("Quản lý", "phòng ban"))
     svg_actor(parts, 1210, 300, ("Quản trị viên",))
-    svg_actor(parts, 1210, 730, ("Xử lý tự động",))
+    svg_actor(parts, 1210, 850, ("Xử lý tự động",))
 
     # System boundary and restrained grayscale title band.
-    parts.append(f'<rect x="170" y="60" width="940" height="820" fill="{WHITE}" stroke="{BLACK}" stroke-width="2.2"/>')
+    parts.append(f'<rect x="170" y="60" width="940" height="940" fill="{WHITE}" stroke="{BLACK}" stroke-width="2.2"/>')
     parts.append(f'<rect x="170" y="60" width="940" height="50" fill="{LIGHT}" stroke="none"/>')
     parts.append(f'<line x1="170" y1="110" x2="1110" y2="110" stroke="{BLACK}" stroke-width="1.5"/>')
     parts.append(svg_text(("HỆ THỐNG GTAS VPP",), 640, 92, 22, True))
-    parts.append(f'<line x1="640" y1="125" x2="640" y2="850" stroke="#777777" stroke-width="1.2" stroke-dasharray="7 7"/>')
+    parts.append(f'<line x1="640" y1="125" x2="640" y2="970" stroke="#777777" stroke-width="1.2" stroke-dasharray="7 7"/>')
     parts.append(svg_text(("NGHIỆP VỤ NGƯỜI DÙNG",), 420, 140, 16, True))
     parts.append(svg_text(("QUẢN TRỊ HỆ THỐNG",), 860, 140, 16, True))
 
@@ -109,13 +110,13 @@ def make_svg():
         svg_line(parts, admin_start, (1010, cy))
         svg_ellipse(parts, 860, cy, lines)
 
-    parts.append(svg_text(("THEO DÕI PHÒNG BAN",), 420, 665, 16, True))
-    svg_line(parts, (95, 705), (270, 720))
-    svg_ellipse(parts, 420, 720, ("Xem tổng hợp", "phòng ban"))
+    parts.append(svg_text(("THEO DÕI PHÒNG BAN",), 420, 760, 16, True))
+    svg_line(parts, (95, 795), (270, 815))
+    svg_ellipse(parts, 420, 815, ("Báo cáo phòng ban", "được cấp quyền"))
 
-    parts.append(svg_text(("XỬ LÝ NỘI BỘ",), 860, 755, 16, True))
-    svg_line(parts, (1185, 775), (1010, 810))
-    svg_ellipse(parts, 860, 810, ("Tính kỳ, kiểm tra ràng buộc,", "chụp giá và ghi log"), 330, 70)
+    parts.append(svg_text(("XỬ LÝ NỘI BỘ",), 860, 875, 16, True))
+    svg_line(parts, (1185, 895), (1010, 930))
+    svg_ellipse(parts, 860, 930, ("Tính kỳ, kiểm tra ràng buộc,", "chụp giá, ghi log và phát thông báo"), 370, 70)
 
     parts.append("</svg>")
     SVG_PATH.write_text("".join(parts), encoding="utf-8")
@@ -166,15 +167,15 @@ def make_png():
     s = SCALE
 
     draw_actor(draw, 70, 300, ("Nhân viên",))
-    draw_actor(draw, 70, 660, ("Quản lý", "phòng ban"))
+    draw_actor(draw, 70, 750, ("Quản lý", "phòng ban"))
     draw_actor(draw, 1210, 300, ("Quản trị viên",))
-    draw_actor(draw, 1210, 730, ("Xử lý tự động",))
+    draw_actor(draw, 1210, 850, ("Xử lý tự động",))
 
-    draw.rectangle((170 * s, 60 * s, 1110 * s, 880 * s), fill="white", outline="black", width=2 * s)
+    draw.rectangle((170 * s, 60 * s, 1110 * s, 1000 * s), fill="white", outline="black", width=2 * s)
     draw.rectangle((170 * s, 60 * s, 1110 * s, 110 * s), fill=(230, 230, 230))
     draw.line((170 * s, 110 * s, 1110 * s, 110 * s), fill="black", width=2 * s)
     draw_centered(draw, ("HỆ THỐNG GTAS VPP",), 640, 88, 22, True)
-    draw_dashed_vertical(draw, 640, 125, 850)
+    draw_dashed_vertical(draw, 640, 125, 970)
     draw_centered(draw, ("NGHIỆP VỤ NGƯỜI DÙNG",), 420, 136, 16, True)
     draw_centered(draw, ("QUẢN TRỊ HỆ THỐNG",), 860, 136, 16, True)
 
@@ -186,13 +187,13 @@ def make_png():
         draw.line((1185 * s, 345 * s, 1010 * s, cy * s), fill="black", width=2 * s)
         draw_ellipse(draw, 860, cy, lines)
 
-    draw_centered(draw, ("THEO DÕI PHÒNG BAN",), 420, 661, 16, True)
-    draw.line((95 * s, 705 * s, 270 * s, 720 * s), fill="black", width=2 * s)
-    draw_ellipse(draw, 420, 720, ("Xem tổng hợp", "phòng ban"))
+    draw_centered(draw, ("THEO DÕI PHÒNG BAN",), 420, 756, 16, True)
+    draw.line((95 * s, 795 * s, 270 * s, 815 * s), fill="black", width=2 * s)
+    draw_ellipse(draw, 420, 815, ("Báo cáo phòng ban", "được cấp quyền"))
 
-    draw_centered(draw, ("XỬ LÝ NỘI BỘ",), 860, 751, 16, True)
-    draw.line((1185 * s, 775 * s, 1010 * s, 810 * s), fill="black", width=2 * s)
-    draw_ellipse(draw, 860, 810, ("Tính kỳ, kiểm tra ràng buộc,", "chụp giá và ghi log"), 330, 70)
+    draw_centered(draw, ("XỬ LÝ NỘI BỘ",), 860, 871, 16, True)
+    draw.line((1185 * s, 895 * s, 1010 * s, 930 * s), fill="black", width=2 * s)
+    draw_ellipse(draw, 860, 930, ("Tính kỳ, kiểm tra ràng buộc,", "chụp giá, ghi log và phát thông báo"), 370, 70)
 
     image.save(PNG_PATH, dpi=(180, 180))
 

@@ -3,7 +3,7 @@
 
 left to right direction
 skinparam linetype ortho
-skinparam defaultFontSize 10
+skinparam defaultFontSize 12
 
 entity "VPP01_RequestHeader" as H {
   * Id : uniqueidentifier <<PK>>
@@ -11,15 +11,9 @@ entity "VPP01_RequestHeader" as H {
   VPPCode : nvarchar(64) <<UQ>>
   * Y, M : int
   * Status : int
-  DepartmentCode : nvarchar(max) <<REF>>
-  MemberCompanyCode : nvarchar(max) <<REF>>
   * IsAdditionalOrder : bit
-  SubmittedDate : datetime2
-  ApprovedById / RejectedById : int <<REF>>
   SettledAt : datetime2
   SettledByPriceListId : uniqueidentifier <<FK>>
-  SettledByUserId : int <<REF>>
-  RowVersion : rowversion
 }
 
 entity "VPP02_RequestDetail" as D {
@@ -28,7 +22,7 @@ entity "VPP02_RequestDetail" as D {
   * VPP01_RequestHeaderId : uniqueidentifier <<FK>>
   * VPPId : uniqueidentifier <<FK>>
   * Qty : int
-  * CurrentSinglePrice : bigint
+  CurrentSinglePrice : bigint
 }
 
 entity "VPP03_Log" as L {
@@ -36,34 +30,38 @@ entity "VPP03_Log" as L {
   --
   * VPP01_RequestHeaderId : uniqueidentifier <<FK>>
   LogTitle : nvarchar(255)
-  LogJS : nvarchar(max)
   * LogDate : datetime2
+}
+
+entity "N01_Notification" as N {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * UserId : int <<REF>>
+  * MemberCompanyCode : nvarchar(50) <<REF>>
+  * Type : nvarchar(50)
+  CorrelationId : nvarchar(100)
+  * CreatedAt : datetime2
+  ReadAt : datetime2
 }
 
 entity "L04_VPP" as ITEM {
   * Id : uniqueidentifier <<PK>>
   VPPCode : nvarchar(max)
-  VPPName : nvarchar(max)
 }
 
 entity "L07_PriceList" as PL {
   * Id : uniqueidentifier <<PK>>
   PriceListCode : nvarchar(50)
-  PriceListName : nvarchar(200)
 }
 
-H ||--|{ D : Restrict
-H ||--o{ L : Restrict
-ITEM ||--o{ D : Cascade theo snapshot
-PL ||--o{ H : chốt kỳ, Restrict
+PL -[hidden]right- ITEM
+D -[hidden]right- L
+L -[hidden]right- N
 
-note bottom of H
-Các cột CreateUserId, ApprovedById, RejectedById,
-SettledByUserId, DepartmentCode và MemberCompanyCode
-không có khóa ngoại vật lý trong model hiện tại.
-
-UX_VPP01_OneRegularPerUserPeriod bảo đảm mỗi người
-chỉ có một đơn thường chưa xóa trong một kỳ.
-end note
+PL ||--o{ H
+ITEM ||--o{ D
+H ||--|{ D
+H ||--o{ L
+H .. N
 
 @enduml

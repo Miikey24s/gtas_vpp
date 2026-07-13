@@ -14,16 +14,16 @@ actor "Người dùng\nnội bộ" as User
 
 node "Máy chủ triển khai / Docker Compose" {
   node "Nginx reverse proxy\nHTTPS / WSS" as Proxy
-  rectangle "Frontend container\nBlazor Server + Radzen\nCookie authentication\nSignalR / _blazor" as Frontend
-  rectangle "Backend container\nASP.NET Core Web API (.NET 10)\nJWT + policy authorization\nController - Service - Repository" as Backend
+  rectangle "Frontend container\nBlazor Server + Radzen\nCookie authentication\nRealtime quyền và thông báo" as Frontend
+  rectangle "Backend container\nASP.NET Core Web API (.NET 10)\nJWT + action policy\nReport API + SignalR hubs" as Backend
   rectangle "Migrator container\nEF Core migration\nSeed dữ liệu nền" as Migrator
-  database "SQL Server 2022 container\nGTAS_VPP_LIVE\nDữ liệu và log nghiệp vụ" as Database
+  database "SQL Server 2022 container\nGTAS_VPP_LIVE\nDữ liệu, thông báo và log" as Database
 }
 
 User --> Proxy : HTTPS / WSS
 Proxy --> Frontend : / và /_blazor
 Proxy --> Backend : /api
-Frontend --> Backend : HTTP API + JWT
+Frontend --> Backend : HTTP API + JWT / WSS
 Backend --> Database : EF Core / SQL
 Migrator ..> Database : migrate + seed
 

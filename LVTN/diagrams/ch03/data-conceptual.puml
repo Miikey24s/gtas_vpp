@@ -11,6 +11,7 @@ package "Tổ chức và phân quyền" {
   entity "Người dùng" as User
   entity "Nhóm quyền" as Group
   entity "Trang / chức năng" as Permission
+  entity "Thông báo người dùng" as Notification
 }
 
 package "Danh mục và bảng giá" {
@@ -44,5 +45,6 @@ Request ||--|{ Detail : bao gồm
 Item ||--o{ Detail : được yêu cầu
 Request ||--o{ Log : ghi nhận
 PriceList ||--o{ Request : chốt giá
+User ||--o{ Notification : nhận
 
 @enduml

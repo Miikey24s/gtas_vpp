@@ -8,7 +8,7 @@ control "AuthController" as API
 control "StoredProcedure\nExecutor" as SP
 database "SQL Server" as DB
 control "LoginTicketCache /\nLoginEndpoints" as Session
-control "PermissionState" as Perm
+control "PermissionState /\nRealtimeService" as Perm
 
 User -> FE : Nhập tài khoản, mật khẩu, môi trường
 FE -> FE : Kiểm tra dữ liệu bắt buộc
@@ -30,14 +30,13 @@ else Đăng nhập thành công
   Session -> Session : SignInAsync và tạo cookie
   Session --> FE : Chuyển hướng về trang chủ
   FE -> Perm : EnsureLoadedAsync()
-  loop Dashboard, Library, Permission, Report, Sidebar
-    Perm -> API : Lấy quyền page/component theo UserID
-    API -> DB : Đọc mapping IsVisible/IsEnable
-    DB --> API : Danh sách quyền
-    API --> Perm : Quyền của trang
-  end
+  Perm -> API : GET /api/Auth/me/permissions
+  API -> DB : Đọc nhóm và mapping IsVisible/IsEnable
+  DB --> API : Snapshot trang, component, action và version
+  API --> Perm : PermissionSnapshot
+  FE -> Perm : StartAsync()
+  Perm -> API : Kết nối /hubs/permissions bằng JWT
   Perm --> FE : Tuyến truy cập đầu tiên
   FE --> User : Mở chức năng được cấp quyền
 end
 @enduml
-

@@ -20,6 +20,7 @@ wbsDiagram {
 ** Xác thực và phân quyền
 *** Đăng nhập
 *** Tải quyền trang/component
+*** Cập nhật quyền tức thời
 *** Quản lý nhóm quyền
 *** Quản lý người dùng
 ** Đơn yêu cầu thường
@@ -44,5 +45,11 @@ wbsDiagram {
 *** Tổng hợp toàn hệ thống
 *** Đóng kỳ và chụp đơn giá
 *** Ghi log thao tác
+** Báo cáo và thông báo
+*** Báo cáo theo phạm vi quyền
+*** Lọc, KPI và biểu đồ
+*** Xuất dữ liệu CSV
+*** Nhận thông báo tức thời
+*** Quản lý hộp thư thông báo
 
 @endwbs

@@ -10,7 +10,8 @@ rectangle "Hệ thống GTAS VPP" {
   usecase "Gán người dùng vào\nnhóm và phòng ban" as Assignment
   usecase "Cấu hình quyền trang,\ncomponent và cờ truy cập" as Permission
   usecase "Kiểm tra dữ liệu và\nquan hệ nhóm" as Validate
-  usecase "Làm mới quyền\ntruy cập" as Refresh
+  usecase "Phát sự kiện thay đổi\nquyền theo nhóm/người dùng" as Notify
+  usecase "Làm mới quyền và\nthu hồi thao tác tức thời" as Refresh
 
   Manage -[hidden]right- Group
   Manage .> Group : <<include>>
@@ -18,12 +19,14 @@ rectangle "Hệ thống GTAS VPP" {
   Manage .> Permission : <<include>>
   Group .> Validate : <<include>>
   Assignment .> Validate : <<include>>
-  Permission .> Refresh : <<include>>
+  Permission .> Notify : <<include>>
+  Notify .> Refresh : <<include>>
 
   Group -[hidden]down- Assignment
   Assignment -[hidden]down- Validate
   Validate -[hidden]down- Permission
-  Permission -[hidden]down- Refresh
+  Permission -[hidden]down- Notify
+  Notify -[hidden]down- Refresh
 }
 
 Admin --> Manage
