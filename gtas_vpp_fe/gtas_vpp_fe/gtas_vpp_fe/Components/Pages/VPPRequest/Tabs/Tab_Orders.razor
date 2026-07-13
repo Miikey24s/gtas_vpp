@@ -14,8 +14,11 @@
         @* ── Action Buttons ─────────────────────────────────────────── *@
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
-                <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Light" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
+                @if (CanCreate)
+                {
+                    <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
+                    <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Light" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
+                }
             </RadzenStack>
         </RadzenStack>
 
@@ -75,13 +78,22 @@
         {
             @if (ActiveOrders == null || !ActiveOrders.Any())
             {
-                <VppEmptyState Icon="inventory_2"
-                               Title="@Loc["NoOrdersFound"]"
-                               Description="@Loc["NoOrdersSubmittedCurrentPeriod"]"
-                               PrimaryText="@Loc["NewOrder"]"
-                               PrimaryAction="@(async _ => await GoToCreatePage(false))"
-                               SecondaryText="@Loc["CopyPreviousOrder"]"
-                               SecondaryAction="@(async _ => await CopyPreviousAsync())" />
+                @if (CanCreate)
+                {
+                    <VppEmptyState Icon="inventory_2"
+                                   Title="@Loc["NoOrdersFound"]"
+                                   Description="@Loc["NoOrdersSubmittedCurrentPeriod"]"
+                                   PrimaryText="@Loc["NewOrder"]"
+                                   PrimaryAction="@(async _ => await GoToCreatePage(false))"
+                                   SecondaryText="@Loc["CopyPreviousOrder"]"
+                                   SecondaryAction="@(async _ => await CopyPreviousAsync())" />
+                }
+                else
+                {
+                    <VppEmptyState Icon="inventory_2"
+                                   Title="@Loc["NoOrdersFound"]"
+                                   Description="@Loc["NoOrdersSubmittedCurrentPeriod"]" />
+                }
             }
             else
             {
@@ -99,7 +111,7 @@
                     <span class="rzi rzi-history"></span>
                     @Loc["PreviousOrderPeriod"] (@PreviousOrderPeriodText)
                 </div>
-                @if (PreviousOrders != null && PreviousOrders.Any())
+                @if (CanCreate && PreviousOrders != null && PreviousOrders.Any())
                 {
                     <RadzenButton Icon="add_circle" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
                 }
@@ -107,12 +119,22 @@
 
             @if (PreviousOrders == null || !PreviousOrders.Any())
             {
-                <VppEmptyState Icon="history"
-                               Title="@Loc["NoPreviousPeriodOrders"]"
-                               Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
-                               PrimaryText="@Loc["RequestAdditional"]"
-                               PrimaryAction="@(async _ => await GoToCreatePage(true))"
-                               Class="rz-mt-3 vpp-empty-state-compact" />
+                @if (CanCreate)
+                {
+                    <VppEmptyState Icon="history"
+                                   Title="@Loc["NoPreviousPeriodOrders"]"
+                                   Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
+                                   PrimaryText="@Loc["RequestAdditional"]"
+                                   PrimaryAction="@(async _ => await GoToCreatePage(true))"
+                                   Class="rz-mt-3 vpp-empty-state-compact" />
+                }
+                else
+                {
+                    <VppEmptyState Icon="history"
+                                   Title="@Loc["NoPreviousPeriodOrders"]"
+                                   Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
+                                   Class="rz-mt-3 vpp-empty-state-compact" />
+                }
             }
             else
             {
@@ -178,11 +200,14 @@
                             @Loc["Settled"]
                         </span>
                     }
-                    @if (CanEditOrDelete(order))
+                    @if (CanUpdate(order))
                     {
                         @* F-28: icon-only buttons need a visible tooltip + screen-reader label. The aria-label
                            includes the order code so screen-reader users hear context (e.g. "Edit order VPP-202604-..."). *@
                         <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" Title="@Loc["Edit"]" aria-label="@string.Format(Loc["EditOrderAria"], order.VPPCode)" />
+                    }
+                    @if (CanCancel(order))
+                    {
                         <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" Title="@Loc["Cancel"]" aria-label="@string.Format(Loc["CancelOrderAria"], order.VPPCode)" />
                     }
                 </RadzenStack>

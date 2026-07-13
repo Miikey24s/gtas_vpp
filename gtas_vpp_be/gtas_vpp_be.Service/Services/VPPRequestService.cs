@@ -29,12 +29,12 @@ namespace gtas_vpp_be.Service.Services
         Task CancelOrderAsync(Guid id, int userId);
         Task<VPP01_RequestHeaderResDTO?> GetPreviousOrderItemsAsync(int userId);
         Task<VPP_PeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId);
-        Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode);
-        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
-        Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode);
-        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top);
-        Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync();
-        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(int? skip, int? top);
+        Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode, string? memberCompanyCode = null);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null);
+        Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode, string? memberCompanyCode = null);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null);
+        Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync(string? memberCompanyCode = null);
+        Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(int? skip, int? top, string? memberCompanyCode = null);
         Task ApproveAdditionalOrderAsync(Guid id, int adminId);
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason);
     }
@@ -415,7 +415,7 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode)
+        public async Task<List<VPP01_RequestHeaderResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode, string? memberCompanyCode = null)
         {
             var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
@@ -423,7 +423,8 @@ namespace gtas_vpp_be.Service.Services
                      && (year == null || x.Y == year)
                      && (month == null || x.M == month)
                      && (status == null || x.Status == status)
-                     && (departmentCode == null || x.DepartmentCode == departmentCode))
+                     && (departmentCode == null || x.DepartmentCode == departmentCode)
+                     && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode))
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
@@ -433,7 +434,7 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top)
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null)
         {
             var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
@@ -441,7 +442,8 @@ namespace gtas_vpp_be.Service.Services
                      && (year == null || x.Y == year)
                      && (month == null || x.M == month)
                      && (status == null || x.Status == status)
-                     && (departmentCode == null || x.DepartmentCode == departmentCode));
+                     && (departmentCode == null || x.DepartmentCode == departmentCode)
+                     && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode));
 
             var stats = await query.Select(x => new
             {
@@ -480,7 +482,7 @@ namespace gtas_vpp_be.Service.Services
             return (result, totalCount, totalLines, totalQty, totalAmount);
         }
 
-        public async Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode)
+        public async Task<List<VPP01_RequestHeaderResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode, string? memberCompanyCode = null)
         {
             var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
@@ -488,7 +490,8 @@ namespace gtas_vpp_be.Service.Services
                      && (year == null || x.Y == year)
                      && (month == null || x.M == month)
                      && (status == null || x.Status == status)
-                     && (departmentCode == null || x.DepartmentCode == departmentCode))
+                     && (departmentCode == null || x.DepartmentCode == departmentCode)
+                     && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode))
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
@@ -498,7 +501,7 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top)
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null)
         {
             var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
@@ -506,7 +509,8 @@ namespace gtas_vpp_be.Service.Services
                      && (year == null || x.Y == year)
                      && (month == null || x.M == month)
                      && (status == null || x.Status == status)
-                     && (departmentCode == null || x.DepartmentCode == departmentCode));
+                     && (departmentCode == null || x.DepartmentCode == departmentCode)
+                     && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode));
 
             // Aggregate stats in a single DB query
             var stats = await query.Select(x => new
@@ -543,11 +547,14 @@ namespace gtas_vpp_be.Service.Services
             return (result, totalCount, totalLines, totalQty);
         }
 
-        public async Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync()
+        public async Task<List<VPP01_RequestHeaderResDTO>> GetPendingAdditionalOrdersAsync(string? memberCompanyCode = null)
         {
             var result = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.IsAdditionalOrder && x.Status == (int)VPPStatus.Pending)
+                .Where(x => !x.IsDeleted
+                    && x.IsAdditionalOrder
+                    && x.Status == (int)VPPStatus.Pending
+                    && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode))
                 .ProjectToType<VPP01_RequestHeaderResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
@@ -557,11 +564,14 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(int? skip, int? top)
+        public async Task<(List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(int? skip, int? top, string? memberCompanyCode = null)
         {
             var query = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
                 .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.IsAdditionalOrder && x.Status == (int)VPPStatus.Pending);
+                .Where(x => !x.IsDeleted
+                    && x.IsAdditionalOrder
+                    && x.Status == (int)VPPStatus.Pending
+                    && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode));
 
             var stats = await query.Select(x => new
             {

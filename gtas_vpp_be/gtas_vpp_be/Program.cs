@@ -123,6 +123,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
+builder.Services.AddSignalR();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -169,6 +170,8 @@ builder.Services
     });
 
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddSingleton<IPermissionChangeNotifier, PermissionChangeNotifier>();
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in Permissions.All)
@@ -255,6 +258,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
+app.MapHub<PermissionHub>("/hubs/permissions");
 
 app.Run();
 

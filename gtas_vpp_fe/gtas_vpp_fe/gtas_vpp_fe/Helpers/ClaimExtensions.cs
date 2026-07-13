@@ -67,14 +67,6 @@ namespace gtas_vpp_fe.Helpers
                 new(ClaimKeys.AccessToken, sp_Authentication_Login.AccessToken ?? string.Empty)
             };
 
-            var permissions = (sp_Authentication_Login.List_PagePermission ?? new())
-                .SelectMany(x => x.List_Component ?? new())
-                .Where(x => x.IsVisible && !string.IsNullOrWhiteSpace(x.ComponentCode))
-                .Select(x => x.ComponentCode!)
-                .Distinct(StringComparer.OrdinalIgnoreCase);
-
-            claims.AddRange(permissions.Select(permission => new Claim(ClaimKeys.Permission, permission)));
-
             return claims;
         }
 

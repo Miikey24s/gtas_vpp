@@ -85,7 +85,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
 
 
-        private bool CanView => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestOrder);
+        private bool CanView => PermissionState.HasPermission(Permissions.RequestViewOwn);
+        private bool CanCreate => PermissionState.HasPermission(Permissions.RequestCreate);
+        private bool CanUpdate(VPP01_RequestHeaderResDTO row) =>
+            row.CanEdit && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
+        private bool CanCancel(VPP01_RequestHeaderResDTO row) =>
+            row.CanCancel && PermissionState.HasPermission(Permissions.RequestCancelOwn);
 
         protected override async Task OnInitializedAsync()
         {
@@ -163,7 +168,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task CancelOrderAsync(VPP01_RequestHeaderResDTO row)
         {
-            if (!CanEditOrDelete(row)) return;
+            if (!CanCancel(row)) return;
 
             IsLoading = true;
             try
@@ -196,7 +201,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
-        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => row.CanCancel;
+        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => CanUpdate(row) || CanCancel(row);
 
         protected void ViewOrder(VPP01_RequestHeaderResDTO row)
         {

@@ -32,11 +32,16 @@ namespace gtas_vpp_fe.Services
 
         private readonly HttpClient _httpClient;
         private readonly AuthenticationStateProvider _authProvider;
+        private readonly PermissionRefreshSignal _permissionRefreshSignal;
         private readonly string _rootUrl = "api/SQL/StoreProcedure/";
-        public APIServices(HttpClient httpClient, AuthenticationStateProvider authProvider)
+        public APIServices(
+            HttpClient httpClient,
+            AuthenticationStateProvider authProvider,
+            PermissionRefreshSignal permissionRefreshSignal)
         {
             _httpClient = httpClient;
             _authProvider = authProvider;
+            _permissionRefreshSignal = permissionRefreshSignal;
         }
 
         private async Task ApplyAuthorizationHeaderAsync()
@@ -67,6 +72,11 @@ namespace gtas_vpp_fe.Services
         {
             if (!response.IsSuccessStatusCode)
             {
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    await _permissionRefreshSignal.RequestAsync();
+                }
+
                 var content = await response.Content.ReadAsStringAsync();
                 var errorMessage = $"API Error: {response.StatusCode}";
                 try

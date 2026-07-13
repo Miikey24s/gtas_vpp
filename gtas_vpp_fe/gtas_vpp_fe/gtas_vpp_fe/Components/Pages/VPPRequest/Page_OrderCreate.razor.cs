@@ -186,7 +186,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     Claims = PermissionState.IdentityClaims;
                 }
 
-                if (!PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestOrder))
+                if (!PermissionState.HasPermission(Permissions.RequestCreate))
                 {
                     NotificationService.Notify(new NotificationMessage()
                     {

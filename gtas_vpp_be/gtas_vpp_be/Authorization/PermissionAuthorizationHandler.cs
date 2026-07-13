@@ -1,8 +1,4 @@
-using gtas_vpp_be.Model;
-using gtas_vpp_be.Model.Auth;
-using gtas_vpp_be.Service.Helpers.Context;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Authorization;
 
@@ -11,10 +7,10 @@ public sealed class PermissionRequirement(string permissionCode) : IAuthorizatio
     public string PermissionCode { get; } = permissionCode;
 }
 
-public sealed class PermissionAuthorizationHandler(VPPContext context)
+public sealed class PermissionAuthorizationHandler(IPermissionService permissionService)
     : AuthorizationHandler<PermissionRequirement>
 {
-    private readonly VPPContext _context = context;
+    private readonly IPermissionService _permissionService = permissionService;
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext authContext,
@@ -25,20 +21,9 @@ public sealed class PermissionAuthorizationHandler(VPPContext context)
             return;
         }
 
-        var groupIdClaim = authContext.User.FindFirst("GroupId")?.Value;
-        if (!Guid.TryParse(groupIdClaim, out var groupId))
-        {
-            return;
-        }
-
-        var hasPermission = await _context.Set<P06_GroupPageComponentMapping>()
-            .AsNoTracking()
-            .Where(mapping => mapping.P02_GroupId == groupId && mapping.IsEnable && mapping.IsVisible)
-            .AnyAsync(mapping =>
-                mapping.P05_PageComponentMapping != null &&
-                mapping.P05_PageComponentMapping.P03_Component != null &&
-                !mapping.P05_PageComponentMapping.P03_Component.IsDeleted &&
-                mapping.P05_PageComponentMapping.P03_Component.ComponentCode == requirement.PermissionCode);
+        var hasPermission = await _permissionService.HasPermissionAsync(
+            authContext.User,
+            requirement.PermissionCode);
 
         if (hasPermission)
         {

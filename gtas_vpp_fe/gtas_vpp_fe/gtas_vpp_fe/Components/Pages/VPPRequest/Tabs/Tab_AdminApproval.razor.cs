@@ -29,9 +29,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             || HasDashboardPermission(Permissions.PeriodSettle);
         protected override string ErrorSummary => Loc["PeriodOperations"];
 
-        private bool CanShowSettlement => HasDashboardPermission(Permissions.PeriodSettle);
+        private bool CanShowSettlement => PermissionState.HasPermission(Permissions.PeriodSettle);
 
-        private bool CanShowApprovals => HasDashboardPermission(Permissions.RequestAdminApproval);
+        private bool CanShowApprovals => CanApprove || CanReject;
+        private bool CanApprove => PermissionState.HasPermission(Permissions.RequestApprove);
+        private bool CanReject => PermissionState.HasPermission(Permissions.RequestReject);
 
         private bool ShowSettlementContent => CanShowSettlement && ActivePeriodTab == PeriodReviewTab;
 
@@ -131,7 +133,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)
         {
-            if (order == null) return;
+            if (order == null || !CanApprove) return;
 
             var confirm = await DialogService.Confirm(
                 Loc["ApproveOrderConfirm"],
@@ -161,7 +163,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private async Task HandleRejectClick(VPP01_RequestHeaderResDTO order)
         {
-            if (order == null) return;
+            if (order == null || !CanReject) return;
 
             var confirm = await DialogService.Confirm(
                 string.Format(Loc["RejectOrderConfirm"], order.VPPCode),

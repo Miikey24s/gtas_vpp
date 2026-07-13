@@ -9,15 +9,6 @@ public sealed class PermissionState
 {
     private sealed record RouteTarget(string PageCode, string? PermissionCode, string Path);
 
-    private static readonly string[] TrackedPageCodes =
-    [
-        Config.Page_ComponentCode.PageCode.Sidebar,
-        Config.Page_ComponentCode.PageCode.Dashboard,
-        Config.Page_ComponentCode.PageCode.Library,
-        Config.Page_ComponentCode.PageCode.Permission,
-        Config.Page_ComponentCode.PageCode.Report
-    ];
-
     private static readonly RouteTarget[] PreferredRoutes =
     [
         new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestOrder, "/dashboard?tab=0"),
@@ -41,9 +32,10 @@ public sealed class PermissionState
     private readonly AuthHelper _authHelper;
     private readonly SemaphoreSlim _reloadLock = new(1, 1);
 
-    public PermissionState(AuthHelper authHelper)
+    public PermissionState(AuthHelper authHelper, PermissionRefreshSignal permissionRefreshSignal)
     {
         _authHelper = authHelper;
+        permissionRefreshSignal.Requested += RefreshAsync;
     }
 
     public IEnumerable<Claim> IdentityClaims { get; private set; } = Array.Empty<Claim>();
@@ -53,9 +45,14 @@ public sealed class PermissionState
 
     public bool IsLoaded { get; private set; }
 
+    public long Version { get; private set; }
+
+    public IReadOnlySet<string> EffectivePermissions { get; private set; } =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
     public int CurrentUserId => IdentityClaims.GetInt(ClaimKeys.UserID);
 
-    public Guid CurrentGroupId => IdentityClaims.GetGuid(ClaimKeys.GroupId);
+    public Guid CurrentGroupId { get; private set; }
 
     public event Action? Changed;
 
@@ -72,7 +69,13 @@ public sealed class PermissionState
             var (isAuthenticated, claims) = await _authHelper.EnsureAuthenticatedAsync();
             if (!isAuthenticated)
             {
-                SetState(Array.Empty<Claim>(), new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase), false);
+                SetState(
+                    Array.Empty<Claim>(),
+                    new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    Guid.Empty,
+                    0,
+                    false);
                 return;
             }
 
@@ -80,12 +83,39 @@ public sealed class PermissionState
             var userId = currentClaims.GetInt(ClaimKeys.UserID);
             if (userId <= 0)
             {
-                SetState(currentClaims, new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase), false);
+                SetState(
+                    currentClaims,
+                    new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    Guid.Empty,
+                    0,
+                    false);
                 return;
             }
 
-            var pagePermissions = await LoadPagePermissionsAsync(userId);
-            SetState(currentClaims, pagePermissions, true);
+            var snapshot = await _authHelper.GetMyPermissionsAsync();
+            var pagePermissions = snapshot.Pages.ToDictionary(
+                page => page.PageCode,
+                page => new sp_Authentication_GetPermissionSinglePage
+                {
+                    PageCode = page.PageCode,
+                    List_Component = page.Components.Select(component =>
+                        new childModel_Authentication_GetPermissionSinglePage_Component
+                        {
+                            ComponentCode = component.ComponentCode,
+                            IsVisible = component.IsVisible,
+                            IsEnable = component.IsEnable
+                        }).ToList()
+                },
+                StringComparer.OrdinalIgnoreCase);
+
+            SetState(
+                currentClaims,
+                pagePermissions,
+                snapshot.Permissions.ToHashSet(StringComparer.OrdinalIgnoreCase),
+                snapshot.GroupId,
+                snapshot.Version,
+                true);
         }
         finally
         {
@@ -118,12 +148,12 @@ public sealed class PermissionState
 
     public bool HasPermission(string componentCode)
     {
-        return FindComponents(componentCode).Any(component => component.IsVisible);
+        return EffectivePermissions.Contains(componentCode);
     }
 
     public bool HasEnabledPermission(string componentCode)
     {
-        return FindComponents(componentCode).Any(component => component.IsVisible && component.IsEnable);
+        return EffectivePermissions.Contains(componentCode);
     }
 
     public bool HasVisibleComponent(string pageCode, string componentCode)
@@ -149,21 +179,6 @@ public sealed class PermissionState
     {
         return GetFirstAccessibleRoute(PreferredRoutes.Where(route =>
             string.Equals(route.PageCode, pageCode, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    private async Task<IReadOnlyDictionary<string, sp_Authentication_GetPermissionSinglePage>> LoadPagePermissionsAsync(int userId)
-    {
-        var tasks = TrackedPageCodes
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Select(async pageCode =>
-            {
-                var permission = await _authHelper.GetPermissionSinglePageAsync(userId, pageCode);
-                permission.PageCode ??= pageCode;
-                return new KeyValuePair<string, sp_Authentication_GetPermissionSinglePage>(pageCode, permission);
-            });
-
-        var results = await Task.WhenAll(tasks);
-        return results.ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
     }
 
     private IEnumerable<childModel_Authentication_GetPermissionSinglePage_Component> FindComponents(string componentCode)
@@ -204,10 +219,16 @@ public sealed class PermissionState
     private void SetState(
         IEnumerable<Claim> claims,
         IReadOnlyDictionary<string, sp_Authentication_GetPermissionSinglePage> pagePermissions,
+        IReadOnlySet<string> effectivePermissions,
+        Guid groupId,
+        long version,
         bool isLoaded)
     {
         IdentityClaims = claims.ToArray();
         PagePermissions = pagePermissions;
+        EffectivePermissions = effectivePermissions;
+        CurrentGroupId = groupId;
+        Version = version;
         IsLoaded = isLoaded;
         Changed?.Invoke();
     }

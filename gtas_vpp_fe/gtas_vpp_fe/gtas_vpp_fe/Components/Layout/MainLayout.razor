@@ -1,5 +1,8 @@
 @attribute [Authorize]
 @inherits LayoutComponentBase
+@using gtas_vpp_fe.Services
+@inject PermissionRealtimeService PermissionRealtime
+@inject ILogger<MainLayout> Logger
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
@@ -11,4 +14,26 @@
         </div>
     </RadzenBody>
 </RadzenLayout>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        try
+        {
+            await PermissionRealtime.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            // Backend authorization still evaluates every API call. Realtime is
+            // only an immediate UI refresh enhancement, so a temporary hub
+            // outage must not break the page.
+            Logger.LogWarning(ex, "Permission realtime connection is unavailable.");
+        }
+    }
+}
 

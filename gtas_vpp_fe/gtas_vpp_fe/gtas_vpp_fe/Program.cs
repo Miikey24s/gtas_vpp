@@ -46,7 +46,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
 builder.Services.AddScoped<ThemeState>();
 builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped<PermissionRefreshSignal>();
 builder.Services.AddScoped<PermissionState>();
+builder.Services.AddScoped<PermissionRealtimeService>();
 builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Controllers;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Helpers.Context;
@@ -16,6 +17,30 @@ namespace gtas_vpp_be.Tests.ControllerTests;
 
 public class VPPRequestControllerTests
 {
+    [Fact]
+    public async Task GetOrderById_OtherCompany_ReturnsForbid()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var orderId = Guid.NewGuid();
+        service.Setup(x => x.GetOrderByIdAsync(orderId))
+            .ReturnsAsync(new VPP01_RequestHeaderResDTO
+            {
+                Id = orderId,
+                CreateUserId = 99,
+                DepartmentCode = "HR",
+                MemberCompanyCode = "88000"
+            });
+        var controller = CreateController(
+            service.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetOrderById(orderId);
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
     [Fact]
     public async Task GetMyOrders_ValidUser_ReturnsOk()
     {
@@ -273,7 +298,7 @@ public class VPPRequestControllerTests
     public async Task GetOrderFilterValues_ExcludesCurrentColumnSelectionFromPopupScope()
     {
         var service = new Mock<IVPPRequestService>();
-        service.Setup(x => x.GetAllOrdersAsync(null, null, null, null))
+        service.Setup(x => x.GetAllOrdersAsync(null, null, null, null, It.IsAny<string?>()))
             .ReturnsAsync(new List<VPP01_RequestHeaderResDTO>
             {
                 new() { Id = Guid.NewGuid(), DepartmentCode = "IT", Status = 1 },
@@ -316,11 +341,19 @@ public class VPPRequestControllerTests
     private static VPPRequestController CreateController(IVPPRequestService service, VPPContext context, params Claim[] claims)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var permissionService = new Mock<IPermissionService>();
+        permissionService
+            .Setup(service => service.HasPermissionAsync(
+                It.IsAny<ClaimsPrincipal>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
         var controller = new VPPRequestController(
             new ServiceCollection().BuildServiceProvider(),
             Mock.Of<IUserNameResolver>(),
             unitOfWork.Object,
-            service);
+            service,
+            permissionService.Object);
 
         controller.ControllerContext = new ControllerContext
         {

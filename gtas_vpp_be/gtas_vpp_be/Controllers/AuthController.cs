@@ -1,3 +1,4 @@
+using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.VPP;
@@ -34,6 +35,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly IPasswordEncoder _passwordEncoder;
+        private readonly IPermissionService _permissionService;
 
         public AuthController(
             VPPContext authDb,
@@ -43,7 +45,8 @@ namespace gtas_vpp_be.Controllers
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
             IConfiguration configuration,
-            IPasswordEncoder passwordEncoder)
+            IPasswordEncoder passwordEncoder,
+            IPermissionService permissionService)
         {
             _authDb = authDb;
             _storedProcedureExecutor = storedProcedureExecutor;
@@ -53,6 +56,7 @@ namespace gtas_vpp_be.Controllers
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _passwordEncoder = passwordEncoder;
+            _permissionService = permissionService;
         }
 
         [AllowAnonymous]
@@ -82,6 +86,7 @@ namespace gtas_vpp_be.Controllers
                 await LoadDepartmentLocationAsync(loginData);
 
                 loginData.AccessToken = GenerateAccessToken(loginData, server);
+                loginData.List_PagePermission.Clear();
 
                 Serilog.Log.Information("Login success: User={Username}, IP={IP}", request.Username, HttpContext.Connection.RemoteIpAddress);
 
@@ -167,6 +172,11 @@ namespace gtas_vpp_be.Controllers
                 new("IsAdmin", loginData.IsAdmin.ToString())
             };
 
+            if (!string.IsNullOrWhiteSpace(loginData.MemberCompanyCode))
+            {
+                claims.Add(new Claim("MemberCompanyCode", loginData.MemberCompanyCode));
+            }
+
             // Add DepartmentCode if available
             if (!string.IsNullOrWhiteSpace(loginData.DepartmentCode))
             {
@@ -210,6 +220,13 @@ namespace gtas_vpp_be.Controllers
             return requestedEnvironment.Equals("LiveEnv", StringComparison.OrdinalIgnoreCase)
                 ? "Live"
                 : "Test";
+        }
+
+        [HttpGet("me/permissions")]
+        public async Task<IActionResult> GetMyPermissions(CancellationToken cancellationToken)
+        {
+            var snapshot = await _permissionService.GetSnapshotAsync(User, cancellationToken);
+            return Ok(snapshot);
         }
 
         public record LoginRequest(string Username, string Password, string? Server = null);

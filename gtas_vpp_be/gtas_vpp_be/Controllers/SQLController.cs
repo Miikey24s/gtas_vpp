@@ -1,4 +1,5 @@
 ﻿using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -8,13 +9,19 @@ using System.Web;
 namespace gtas_vpp_be.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = Permissions.PermissionManage)]
     [Route("api/[controller]/[action]")]
     public class SQLController : ControllerBase
     {
         private static readonly HashSet<string> AllowedStoredProcedures = new(StringComparer.OrdinalIgnoreCase)
         {
             "sp_Authen"
+        };
+
+        private static readonly HashSet<string> AllowedStoredProcedureTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "sp_Authen_CreateNewGroup",
+            "sp_Authen_CopyFromGroup"
         };
 
         private readonly IStoredProcedureExecutor _storedProcedureExecutor;
@@ -48,6 +55,11 @@ namespace gtas_vpp_be.Controllers
             if (!AllowedStoredProcedures.Contains(spName))
             {
                 return BadRequest("Stored procedure is not allowed.");
+            }
+
+            if (!AllowedStoredProcedureTypes.Contains(sptype))
+            {
+                return BadRequest("Stored procedure operation is not allowed.");
             }
 
             try

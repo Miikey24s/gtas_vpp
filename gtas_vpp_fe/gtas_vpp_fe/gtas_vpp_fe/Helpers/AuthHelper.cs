@@ -44,25 +44,10 @@ namespace gtas_vpp_fe.Helpers
             return (true, user.Claims);
         }
         
-        public Task<sp_Authentication_GetPermissionSinglePage> LoadGlbPermissionAsync(string pageCode)
+        public async Task<PermissionSnapshotResDTO> GetMyPermissionsAsync()
         {
-            if (_glb.UserInfo == null || _glb.UserInfo.UserID <= 0)
-            {
-                return Task.FromResult(new sp_Authentication_GetPermissionSinglePage());
-            }
-
-            return GetPermissionSinglePageAsync(_glb.UserInfo.UserID, pageCode);
-        }
-
-        public async Task<sp_Authentication_GetPermissionSinglePage> GetPermissionSinglePageAsync(int userId, string pageCode)
-        {
-            string spType = nameof(Config.sp_AuthenClass.sp_Authen_Type.sp_Authen_GetPermissionSinglePage);
-
-            var permissionResult = await _api.APIFrom_sp_Authen_Typed<sp_Authentication_GetPermissionSinglePage>(
-                spType,
-                new { userId, pageCode });
-
-            return permissionResult ?? new sp_Authentication_GetPermissionSinglePage();
+            return await _api.GetFromApiAsync<PermissionSnapshotResDTO>("api/Auth/me/permissions")
+                ?? new PermissionSnapshotResDTO();
         }
     }
 }

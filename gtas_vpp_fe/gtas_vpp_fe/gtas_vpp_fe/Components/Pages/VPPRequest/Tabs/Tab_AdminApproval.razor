@@ -159,22 +159,28 @@
                                     @* F-28: icon-only buttons must expose an accessible name to screen readers (aria-label)
                                        in addition to the visible Title tooltip. Include the order code so screen-reader
                                        users hear which row they are about to approve/reject. *@
-                                    <RadzenButton Icon="check_circle"
-                                                  Size="ButtonSize.Small"
-                                                  ButtonStyle="ButtonStyle.Success"
-                                                  Variant="Variant.Flat"
-                                                  Click="@(async () => await HandleApproveClick(order))"
-                                                  Title="@Loc["Approve"]"
-                                                  aria-label="@string.Format(Loc["ApproveOrderAria"], order.VPPCode)"
-                                                  Disabled="@IsActionLoading" />
-                                    <RadzenButton Icon="cancel"
-                                                  Size="ButtonSize.Small"
-                                                  ButtonStyle="ButtonStyle.Danger"
-                                                  Variant="Variant.Flat"
-                                                  Click="@(async () => await HandleRejectClick(order))"
-                                                  Title="@Loc["Reject"]"
-                                                  aria-label="@string.Format(Loc["RejectOrderAria"], order.VPPCode)"
-                                                  Disabled="@IsActionLoading" />
+                                    @if (CanApprove)
+                                    {
+                                        <RadzenButton Icon="check_circle"
+                                                      Size="ButtonSize.Small"
+                                                      ButtonStyle="ButtonStyle.Success"
+                                                      Variant="Variant.Flat"
+                                                      Click="@(async () => await HandleApproveClick(order))"
+                                                      Title="@Loc["Approve"]"
+                                                      aria-label="@string.Format(Loc["ApproveOrderAria"], order.VPPCode)"
+                                                      Disabled="@IsActionLoading" />
+                                    }
+                                    @if (CanReject)
+                                    {
+                                        <RadzenButton Icon="cancel"
+                                                      Size="ButtonSize.Small"
+                                                      ButtonStyle="ButtonStyle.Danger"
+                                                      Variant="Variant.Flat"
+                                                      Click="@(async () => await HandleRejectClick(order))"
+                                                      Title="@Loc["Reject"]"
+                                                      aria-label="@string.Format(Loc["RejectOrderAria"], order.VPPCode)"
+                                                      Disabled="@IsActionLoading" />
+                                    }
                                 </RadzenStack>
                             </Template>
                         </RadzenDataGridColumn>
@@ -230,21 +236,27 @@ else
 
 @code {
     private RenderFragment<VPP01_RequestHeaderResDTO> RenderMobileActions => order => @<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Icon="check_circle"
-                      Size="ButtonSize.Small"
-                      ButtonStyle="ButtonStyle.Success"
-                      Variant="Variant.Flat"
-                      Click="@(async () => await HandleApproveClick(order))"
-                      Title="@Loc["Approve"]"
-                      aria-label="@string.Format(Loc["ApproveOrderAria"], order.VPPCode)"
-                      Disabled="@IsActionLoading" />
-        <RadzenButton Icon="cancel"
-                      Size="ButtonSize.Small"
-                      ButtonStyle="ButtonStyle.Danger"
-                      Variant="Variant.Flat"
-                      Click="@(async () => await HandleRejectClick(order))"
-                      Title="@Loc["Reject"]"
-                      aria-label="@string.Format(Loc["RejectOrderAria"], order.VPPCode)"
-                      Disabled="@IsActionLoading" />
+        @if (CanApprove)
+        {
+            <RadzenButton Icon="check_circle"
+                          Size="ButtonSize.Small"
+                          ButtonStyle="ButtonStyle.Success"
+                          Variant="Variant.Flat"
+                          Click="@(async () => await HandleApproveClick(order))"
+                          Title="@Loc["Approve"]"
+                          aria-label="@string.Format(Loc["ApproveOrderAria"], order.VPPCode)"
+                          Disabled="@IsActionLoading" />
+        }
+        @if (CanReject)
+        {
+            <RadzenButton Icon="cancel"
+                          Size="ButtonSize.Small"
+                          ButtonStyle="ButtonStyle.Danger"
+                          Variant="Variant.Flat"
+                          Click="@(async () => await HandleRejectClick(order))"
+                          Title="@Loc["Reject"]"
+                          aria-label="@string.Format(Loc["RejectOrderAria"], order.VPPCode)"
+                          Disabled="@IsActionLoading" />
+        }
     </RadzenStack>;
 }

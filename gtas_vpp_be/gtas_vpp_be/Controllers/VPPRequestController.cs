@@ -1,3 +1,4 @@
+using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
@@ -21,11 +22,18 @@ namespace gtas_vpp_be.Controllers
     public class VPPRequestController : BaseGenericController
     {
         private readonly IVPPRequestService _vppService;
+        private readonly IPermissionService _permissionService;
 
-        public VPPRequestController(IServiceProvider serviceProvider, IUserNameResolver userNameResolver, IUnitOfWork unitOfWork, IVPPRequestService vppService)
+        public VPPRequestController(
+            IServiceProvider serviceProvider,
+            IUserNameResolver userNameResolver,
+            IUnitOfWork unitOfWork,
+            IVPPRequestService vppService,
+            IPermissionService permissionService)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
+            _permissionService = permissionService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -33,6 +41,7 @@ namespace gtas_vpp_be.Controllers
         private string CurrentMemberCompanyCode => User.FindFirstValue("MemberCompanyCode") ?? string.Empty;
 
         [HttpGet("my-orders")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
         public async Task<IActionResult> GetMyOrders(
             [FromQuery] int? year,
             [FromQuery] int? month,
@@ -53,6 +62,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("my-orders-summary")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
         public async Task<IActionResult> GetMyOrdersSummary(
             [FromQuery] int? year,
             [FromQuery] int? month,
@@ -104,23 +114,35 @@ namespace gtas_vpp_be.Controllers
         {
             var data = await _vppService.GetOrderByIdAsync(id);
             if (data == null) return NotFound();
+            if (!await CanViewOrderAsync(data)) return Forbid();
 
             return Ok(data);
         }
 
         [HttpPost("orders")]
+        [Authorize(Policy = Permissions.RequestCreate)]
         public async Task<IActionResult> CreateOrder([FromBody] VPP01_CreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (string.IsNullOrWhiteSpace(CurrentDepartmentCode)
+                || string.IsNullOrWhiteSpace(CurrentMemberCompanyCode))
+            {
+                return Forbid();
+            }
 
             var result = await _vppService.CreateOrderAsync(req, CurrentUserId.Value, CurrentDepartmentCode, CurrentMemberCompanyCode);
             return Ok(result);
         }
 
         [HttpPut("orders/{id:guid}")]
+        [Authorize(Policy = Permissions.RequestUpdateOwn)]
         public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] VPP01_UpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var current = await _vppService.GetOrderByIdAsync(id);
+            if (current == null) return NotFound();
+            if (!IsOwnedByCurrentUser(current) || !IsInCurrentCompany(current)) return Forbid();
 
             req.Id = id;
             req.UpdateUserId = CurrentUserId.Value;
@@ -129,15 +151,21 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost("orders/{id:guid}/cancel")]
+        [Authorize(Policy = Permissions.RequestCancelOwn)]
         public async Task<IActionResult> CancelOrder(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var current = await _vppService.GetOrderByIdAsync(id);
+            if (current == null) return NotFound();
+            if (!IsOwnedByCurrentUser(current) || !IsInCurrentCompany(current)) return Forbid();
 
             await _vppService.CancelOrderAsync(id, CurrentUserId.Value);
             return Ok();
         }
 
         [HttpGet("orders/previous-items")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
         public async Task<IActionResult> GetPreviousOrderItems()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -148,6 +176,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("period-info")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
         public async Task<IActionResult> GetPeriodInfo()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -157,6 +186,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("products/lookup")]
+        [Authorize(Policy = Permissions.RequestCatalogView)]
         public async Task<IActionResult> GetProductsLookup()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -181,6 +211,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("products")]
+        [Authorize(Policy = Permissions.RequestCatalogView)]
         public async Task<IActionResult> GetProducts(
             [FromQuery] Guid? categoryId,
             [FromQuery] string? search,
@@ -326,6 +357,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("categories")]
+        [Authorize(Policy = Permissions.RequestCatalogView)]
         public async Task<IActionResult> GetCategories()
         {
             var data = await ReadEntitiesAsync<L03_VPPCategory>(
@@ -343,11 +375,12 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("all-orders")]
+        [Authorize(Policy = Permissions.RequestViewAll)]
         public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))
             {
-                var scopedData = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode);
+                var scopedData = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode, CurrentMemberCompanyCode);
                 var (filteredData, filteredTotalCount, filteredTotalLines, filteredTotalQty) = ApplyOrderGridOperations(scopedData, filter, orderby, skip, top);
                 var filteredTotalAmount = ApplyOrderQuery(scopedData, filter, orderby).Sum(x => x.TotalAmount);
                 Response.Headers.Append("X-Total-Count", filteredTotalCount.ToString());
@@ -357,7 +390,7 @@ namespace gtas_vpp_be.Controllers
                 return Ok(filteredData);
             }
 
-            var (data, totalCount, totalLines, totalQty, totalAmount) = await _vppService.GetAllOrdersPagedAsync(year, month, status, departmentCode, skip, top);
+            var (data, totalCount, totalLines, totalQty, totalAmount) = await _vppService.GetAllOrdersPagedAsync(year, month, status, departmentCode, skip, top, CurrentMemberCompanyCode);
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             Response.Headers.Append("X-Total-Lines", totalLines.ToString());
             Response.Headers.Append("X-Total-Qty", totalQty.ToString());
@@ -366,16 +399,14 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("department-orders")]
+        [Authorize(Policy = Permissions.RequestViewDepartment)]
         public async Task<IActionResult> GetDepartmentOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
-            if (string.IsNullOrWhiteSpace(departmentCode))
-            {
-                departmentCode = CurrentDepartmentCode;
-            }
+            departmentCode = CurrentDepartmentCode;
 
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))
             {
-                var scopedData = await _vppService.GetDepartmentOrdersAsync(year, month, status, departmentCode);
+                var scopedData = await _vppService.GetDepartmentOrdersAsync(year, month, status, departmentCode, CurrentMemberCompanyCode);
                 var (filteredData, filteredTotalCount, filteredTotalLines, filteredTotalQty) = ApplyOrderGridOperations(scopedData, filter, orderby, skip, top);
                 Response.Headers.Append("X-Total-Count", filteredTotalCount.ToString());
                 Response.Headers.Append("X-Total-Lines", filteredTotalLines.ToString());
@@ -383,7 +414,7 @@ namespace gtas_vpp_be.Controllers
                 return Ok(filteredData);
             }
 
-            var (data, totalCount, totalLines, totalQty) = await _vppService.GetDepartmentOrdersPagedAsync(year, month, status, departmentCode, skip, top);
+            var (data, totalCount, totalLines, totalQty) = await _vppService.GetDepartmentOrdersPagedAsync(year, month, status, departmentCode, skip, top, CurrentMemberCompanyCode);
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             Response.Headers.Append("X-Total-Lines", totalLines.ToString());
             Response.Headers.Append("X-Total-Qty", totalQty.ToString());
@@ -391,11 +422,12 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("additional-orders/pending")]
+        [Authorize(Policy = Permissions.RequestApprove)]
         public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))
             {
-                var scopedData = await _vppService.GetPendingAdditionalOrdersAsync();
+                var scopedData = await _vppService.GetPendingAdditionalOrdersAsync(CurrentMemberCompanyCode);
                 var (filteredData, filteredTotalCount, filteredTotalLines, filteredTotalQty) = ApplyOrderGridOperations(scopedData, filter, orderby, skip, top);
                 Response.Headers.Append("X-Total-Count", filteredTotalCount.ToString());
                 Response.Headers.Append("X-Total-Lines", filteredTotalLines.ToString());
@@ -403,7 +435,7 @@ namespace gtas_vpp_be.Controllers
                 return Ok(filteredData);
             }
 
-            var (data, totalCount, totalLines, totalQty) = await _vppService.GetPendingAdditionalOrdersPagedAsync(skip, top);
+            var (data, totalCount, totalLines, totalQty) = await _vppService.GetPendingAdditionalOrdersPagedAsync(skip, top, CurrentMemberCompanyCode);
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             Response.Headers.Append("X-Total-Lines", totalLines.ToString());
             Response.Headers.Append("X-Total-Qty", totalQty.ToString());
@@ -429,6 +461,8 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? filters,
             [FromQuery] string? distinctFilter)
         {
+            if (!await CanAccessScopeAsync(scope)) return Forbid();
+
             if (string.IsNullOrWhiteSpace(column))
                 return BadRequest(new { Message = "Column parameter is required." });
 
@@ -443,7 +477,7 @@ namespace gtas_vpp_be.Controllers
 
             try
             {
-                if (string.Equals(scope, "department", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(departmentCode))
+                if (string.Equals(scope, "department", StringComparison.OrdinalIgnoreCase))
                 {
                     departmentCode = CurrentDepartmentCode;
                 }
@@ -479,8 +513,8 @@ namespace gtas_vpp_be.Controllers
         {
             return scope?.Trim().ToLowerInvariant() switch
             {
-                "department" => await _vppService.GetDepartmentOrdersAsync(year, month, status, departmentCode),
-                "pending" => await _vppService.GetPendingAdditionalOrdersAsync(),
+                "department" => await _vppService.GetDepartmentOrdersAsync(year, month, status, CurrentDepartmentCode, CurrentMemberCompanyCode),
+                "pending" => await _vppService.GetPendingAdditionalOrdersAsync(CurrentMemberCompanyCode),
                 "my-orders" => CurrentUserId.HasValue 
                     ? await _vppService.GetMyOrdersAsync(
                         CurrentUserId.Value,
@@ -488,7 +522,7 @@ namespace gtas_vpp_be.Controllers
                         MergeIntFilters(month, months),
                         MergeIntFilters(status, statuses)) 
                     : new(),
-                _ => await _vppService.GetAllOrdersAsync(year, month, status, departmentCode)
+                _ => await _vppService.GetAllOrdersAsync(year, month, status, departmentCode, CurrentMemberCompanyCode)
             };
         }
 
@@ -715,6 +749,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("dashboard-charts")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
         public async Task<IActionResult> GetDashboardCharts()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -779,22 +814,71 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost("additional-orders/{id:guid}/approve")]
+        [Authorize(Policy = Permissions.RequestApprove)]
         public async Task<IActionResult> ApproveAdditionalOrder(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var current = await _vppService.GetOrderByIdAsync(id);
+            if (current == null) return NotFound();
+            if (!IsInCurrentCompany(current)) return Forbid();
 
             await _vppService.ApproveAdditionalOrderAsync(id, CurrentUserId.Value);
             return Ok();
         }
 
         [HttpPost("additional-orders/{id:guid}/reject")]
+        [Authorize(Policy = Permissions.RequestReject)]
         public async Task<IActionResult> RejectAdditionalOrder(Guid id, [FromBody] RejectOrderReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
+            var current = await _vppService.GetOrderByIdAsync(id);
+            if (current == null) return NotFound();
+            if (!IsInCurrentCompany(current)) return Forbid();
+
             await _vppService.RejectAdditionalOrderAsync(id, CurrentUserId.Value, req.Reason);
             return Ok();
         }
+
+        private async Task<bool> CanViewOrderAsync(VPP01_RequestHeaderResDTO order)
+        {
+            if (!IsInCurrentCompany(order)) return false;
+
+            if (IsOwnedByCurrentUser(order)
+                && await _permissionService.HasPermissionAsync(User, Permissions.RequestViewOwn))
+            {
+                return true;
+            }
+
+            if (string.Equals(order.DepartmentCode, CurrentDepartmentCode, StringComparison.OrdinalIgnoreCase)
+                && await _permissionService.HasPermissionAsync(User, Permissions.RequestViewDepartment))
+            {
+                return true;
+            }
+
+            return await _permissionService.HasPermissionAsync(User, Permissions.RequestViewAll);
+        }
+
+        private Task<bool> CanAccessScopeAsync(string? scope)
+        {
+            var permission = scope?.Trim().ToLowerInvariant() switch
+            {
+                "my-orders" => Permissions.RequestViewOwn,
+                "department" => Permissions.RequestViewDepartment,
+                "pending" => Permissions.RequestApprove,
+                _ => Permissions.RequestViewAll
+            };
+
+            return _permissionService.HasPermissionAsync(User, permission);
+        }
+
+        private bool IsOwnedByCurrentUser(VPP01_RequestHeaderResDTO order) =>
+            CurrentUserId.HasValue && order.CreateUserId == CurrentUserId.Value;
+
+        private bool IsInCurrentCompany(VPP01_RequestHeaderResDTO order) =>
+            !string.IsNullOrWhiteSpace(CurrentMemberCompanyCode)
+            && string.Equals(order.MemberCompanyCode, CurrentMemberCompanyCode, StringComparison.OrdinalIgnoreCase);
 
         private static IEnumerable<int>? MergeIntFilters(int? singleValue, IEnumerable<int>? listValues)
         {

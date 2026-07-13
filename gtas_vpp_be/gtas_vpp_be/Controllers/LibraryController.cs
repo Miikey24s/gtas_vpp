@@ -36,6 +36,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("{tableCode}")]
+        [Authorize(Policy = Permissions.LibraryView)]
         public async Task<IActionResult> GenericGet(
             string tableCode, 
             [FromQuery] Guid? id, 
@@ -613,6 +614,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("{tableCode}/{id:guid}")]
+        [Authorize(Policy = Permissions.LibraryView)]
         public async Task<IActionResult> GenericGetById(string tableCode, Guid id, [FromQuery] bool? showDeleted = false)
         {
             bool isShowDeleted = showDeleted ?? false;
@@ -630,6 +632,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost("{tableCode}")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericCreate(string tableCode, [FromBody] JsonElement payload)
         {
             var json = payload.GetRawText();
@@ -647,6 +650,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPut("{tableCode}")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericUpdate(string tableCode, [FromBody] JsonElement payload)
         {
             var json = payload.GetRawText();
@@ -664,6 +668,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPatch("{tableCode}/{id:guid}")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericPatch(string tableCode, Guid id, [FromBody] JsonElement payload)
         {
             if (payload.ValueKind == JsonValueKind.Undefined || payload.ValueKind == JsonValueKind.Null)
@@ -685,6 +690,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpDelete("{tableCode}/{id:guid}")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericDelete(string tableCode, Guid id)
         {
             return tableCode.ToLower() switch

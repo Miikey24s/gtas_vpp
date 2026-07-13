@@ -1,4 +1,5 @@
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ namespace gtas_vpp_be.Controllers
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
 
         [HttpGet]
+        [Authorize(Policy = Permissions.LibraryView)]
         public async Task<IActionResult> List(
             [FromQuery] bool? showDeleted = false,
             [FromQuery] string? filter = null,
@@ -51,6 +53,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [Authorize(Policy = Permissions.LibraryView)]
         public async Task<IActionResult> GetById(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -60,6 +63,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> Create([FromBody] L07_PriceListCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -68,6 +72,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> Update(Guid id, [FromBody] L07_PriceListUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -77,6 +82,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> Delete(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -86,6 +92,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPatch("{id:guid}/deleted")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> SetDeleted(Guid id, [FromBody] JsonElement payload)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -101,6 +108,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpDelete("{id:guid}/hard")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> HardDelete(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -110,6 +118,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost("{id:guid}/set-default")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> SetDefault(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -119,6 +128,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPost("clone")]
+        [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> Clone([FromBody] L07_PriceListCloneReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });

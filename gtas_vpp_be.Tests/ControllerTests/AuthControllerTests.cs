@@ -1,3 +1,4 @@
+using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Controllers;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
@@ -131,7 +132,8 @@ public class AuthControllerTests
             Mock.Of<IUserNameResolver>(),
             unitOfWork.Object,
             configuration,
-            Mock.Of<IPasswordEncoder>());
+            Mock.Of<IPasswordEncoder>(),
+            Mock.Of<IPermissionService>());
 
         controller.ControllerContext = new ControllerContext
         {

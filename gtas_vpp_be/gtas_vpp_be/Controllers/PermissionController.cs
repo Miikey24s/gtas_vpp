@@ -1,9 +1,11 @@
+using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using Mapster;
@@ -22,7 +24,7 @@ using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authentication_TabUser_User
 namespace gtas_vpp_be.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = Permissions.PermissionView)]
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {
@@ -32,6 +34,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IUserNameResolver _userNameResolver;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IPermissionChangeNotifier _permissionChangeNotifier;
 
         public PermissionController(
             IGenericRepository<P02_Group> groupRepository,
@@ -39,7 +42,8 @@ namespace gtas_vpp_be.Controllers
             IGenericRepository<P04_UserGroup> userGroupRepository,
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
-            IDateTimeProvider dateTimeProvider)
+            IDateTimeProvider dateTimeProvider,
+            IPermissionChangeNotifier permissionChangeNotifier)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
@@ -49,7 +53,10 @@ namespace gtas_vpp_be.Controllers
             // P5/timezone: always pin audit timestamps to Asia/Ho_Chi_Minh, regardless
             // of host timezone or client-supplied values.
             _dateTimeProvider = dateTimeProvider;
+            _permissionChangeNotifier = permissionChangeNotifier;
         }
+
+        private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
 
         [HttpGet("groups")]
         public async Task<IActionResult> GetGroups(
@@ -270,6 +277,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPut("groups/{id:guid}")]
+        [Authorize(Policy = Permissions.PermissionManage)]
         public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] P02_GroupUpdateReqDTO req)
         {
             var current = await GetByIdAsync(_groupRepository, id, true);
@@ -300,6 +308,7 @@ namespace gtas_vpp_be.Controllers
             }
 
             req.Adapt(current);
+            current.UpdateUserId = CurrentUserId;
             current.UpdateDate = _dateTimeProvider.Now;
 
             var updated = await _groupRepository.UpdateAsync(current);
@@ -364,6 +373,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPatch("component-mapping")]
+        [Authorize(Policy = Permissions.PermissionManage)]
         public async Task<IActionResult> PatchComponentMapping([FromBody] PatchComponentMappingReqDTO req)
         {
             var current = (await ReadAsync(
@@ -377,7 +387,41 @@ namespace gtas_vpp_be.Controllers
                 return NotFound("Component mapping not found.");
             }
 
+            var before = new { current.IsVisible, current.IsEnable };
+            var componentCode = await _unitOfWork.VPPContext.Set<P05_PageComponentMapping>()
+                .AsNoTracking()
+                .Where(mapping => mapping.Id == current.P05_PageComponentMappingId)
+                .Select(mapping => mapping.P03_Component != null
+                    ? mapping.P03_Component.ComponentCode
+                    : string.Empty)
+                .FirstOrDefaultAsync();
+
+            if ((!req.IsVisible || !req.IsEnable)
+                && (string.Equals(componentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(componentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase)))
+            {
+                var otherPermissionManagers = await _unitOfWork.VPPContext
+                    .Set<P06_GroupPageComponentMapping>()
+                    .AsNoTracking()
+                    .CountAsync(mapping =>
+                        !(mapping.P05_PageComponentMappingId == current.P05_PageComponentMappingId
+                            && mapping.P02_GroupId == current.P02_GroupId)
+                        && mapping.IsVisible
+                        && mapping.IsEnable
+                        && mapping.MemberCompanyCode == current.MemberCompanyCode
+                        && mapping.P05_PageComponentMapping != null
+                        && mapping.P05_PageComponentMapping.P03_Component != null
+                        && (mapping.P05_PageComponentMapping.P03_Component.ComponentCode == Permissions.PermissionUser
+                            || mapping.P05_PageComponentMapping.P03_Component.ComponentCode == Permissions.PermissionComponent));
+
+                if (otherPermissionManagers == 0)
+                {
+                    return Conflict(new { message = "Không thể xóa quyền quản trị phân quyền cuối cùng của công ty." });
+                }
+            }
+
             req.Adapt(current);
+            current.UpdateUserId = CurrentUserId;
             current.UpdateDate = _dateTimeProvider.Now;
 
             var rs = await _groupPageComponentMappingRepository.UpdateAsync(
@@ -390,6 +434,16 @@ namespace gtas_vpp_be.Controllers
                     x => x.UpdateDate
                 });
 
+            Serilog.Log.Information(
+                "Permission changed: Actor={ActorUserId}, Group={GroupId}, Company={CompanyCode}, Component={ComponentCode}, Before={@Before}, After={@After}",
+                CurrentUserId,
+                current.P02_GroupId,
+                current.MemberCompanyCode,
+                componentCode,
+                before,
+                new { current.IsVisible, current.IsEnable });
+
+            await _permissionChangeNotifier.NotifyGroupChangedAsync(current.P02_GroupId, HttpContext.RequestAborted);
             return Ok(rs);
         }
 
@@ -553,23 +607,44 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpDelete("groups/{id:guid}")]
+        [Authorize(Policy = Permissions.PermissionManage)]
         public async Task<IActionResult> DeleteGroup(Guid id)
         {
+            var activeUsers = await _unitOfWork.VPPContext.Set<P04_UserGroup>()
+                .AsNoTracking()
+                .AnyAsync(mapping => mapping.P02_GroupId == id && !mapping.IsDeleted);
+            if (activeUsers)
+            {
+                return Conflict(new { message = "Không thể xóa nhóm đang có người dùng hoạt động." });
+            }
+
             var success = await _groupRepository.DeleteAsync(id);
 
             return Ok(new { success });
         }
         [HttpPost("user-groups")]
+        [Authorize(Policy = Permissions.PermissionManage)]
         public async Task<IActionResult> CreateUserGroup([FromBody] P04_UserGroupUpsertReqDTO req)
         {
+            var alreadyAssigned = await _unitOfWork.VPPContext.Set<P04_UserGroup>()
+                .AsNoTracking()
+                .AnyAsync(mapping => mapping.UserId == req.UserId && !mapping.IsDeleted);
+            if (alreadyAssigned)
+            {
+                return Conflict(new { message = "Mỗi người dùng chỉ được có một nhóm quyền đang hoạt động." });
+            }
+
             var entity = req.Adapt<P04_UserGroup>();
             entity.Id = Guid.Empty;
             entity.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
             var now = _dateTimeProvider.Now;
             entity.CreateDate = now;
             entity.UpdateDate = now;
+            entity.CreateUserId = CurrentUserId;
+            entity.UpdateUserId = CurrentUserId;
 
             var created = await _userGroupRepository.AddAsync(entity) ?? entity;
+            await _permissionChangeNotifier.NotifyUserChangedAsync(entity.UserId, HttpContext.RequestAborted);
             return Ok(created.Adapt<P04_UserGroupResDTO>());
         }
 
@@ -603,6 +678,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpPut("user-groups/{id:guid}")]
+        [Authorize(Policy = Permissions.PermissionManage)]
         public async Task<IActionResult> UpdateUserGroup(Guid id, [FromBody] P04_UserGroupUpsertReqDTO req)
         {
             var current = await GetByIdAsync(_userGroupRepository, id, true);
@@ -612,11 +688,28 @@ namespace gtas_vpp_be.Controllers
                 return NotFound("User group not found.");
             }
 
+            var duplicateAssignment = await _unitOfWork.VPPContext.Set<P04_UserGroup>()
+                .AsNoTracking()
+                .AnyAsync(mapping => mapping.Id != id
+                    && mapping.UserId == req.UserId
+                    && !mapping.IsDeleted);
+            if (duplicateAssignment)
+            {
+                return Conflict(new { message = "Mỗi người dùng chỉ được có một nhóm quyền đang hoạt động." });
+            }
+
+            var oldGroupId = current.P02_GroupId;
+
             req.Adapt(current);
             current.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
             current.UpdateDate = _dateTimeProvider.Now;
+            current.UpdateUserId = CurrentUserId;
 
             var updated = await _userGroupRepository.UpdateAsync(current);
+            await Task.WhenAll(
+                _permissionChangeNotifier.NotifyGroupChangedAsync(oldGroupId, HttpContext.RequestAborted),
+                _permissionChangeNotifier.NotifyGroupChangedAsync(current.P02_GroupId, HttpContext.RequestAborted),
+                _permissionChangeNotifier.NotifyUserChangedAsync(current.UserId, HttpContext.RequestAborted));
             return Ok(updated.Adapt<P04_UserGroupResDTO>());
         }
 
