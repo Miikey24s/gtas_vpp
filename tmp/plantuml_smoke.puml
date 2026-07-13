@@ -1,8 +1,0 @@
-@startuml
-!include ../LVTN/diagrams/common/style.puml
-left to right direction
-actor "Sinh viên" as Student
-rectangle "Hệ thống GTAS VPP" {
-  Student --> (Kiểm tra tiếng Việt)
-}
-@enduml

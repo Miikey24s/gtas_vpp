@@ -17,7 +17,7 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
             await Page.GotoAsync($"{BaseUrl}Account/Login");
 
             // Act
-            await loginPage.LoginAsync("google", "abc*123@");
+            await loginPage.LoginAsync(TestUsername, TestPassword);
             
             await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
 

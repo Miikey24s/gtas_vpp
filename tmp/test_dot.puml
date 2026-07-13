@@ -1,8 +1,0 @@
-@startdot
-digraph G {
-  rankdir=TB;
-  node [shape=box];
-  root -> a;
-  root -> b;
-}
-@enddot

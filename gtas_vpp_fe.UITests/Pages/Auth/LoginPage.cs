@@ -35,11 +35,6 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
             await _page.WaitForTimeoutAsync(750);
         }
 
-        public async Task LoginWithDefaultCredentialsAsync()
-        {
-            await LoginAsync("google", "abc*123@");
-        }
-
         public async Task WaitForDashboardAsync()
         {
             var timeoutAt = DateTime.UtcNow.AddSeconds(30);

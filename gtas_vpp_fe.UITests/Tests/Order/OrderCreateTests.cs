@@ -16,7 +16,7 @@ namespace gtas_vpp_fe.UITests.Tests.Order
             // Arrange - Login
             var loginPage = new LoginPage(Page);
             await Page.GotoAsync($"{BaseUrl}Account/Login");
-            await loginPage.LoginAsync("google", "abc*123@");
+            await loginPage.LoginAsync(TestUsername, TestPassword);
             await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
 
             // Go to Order Create

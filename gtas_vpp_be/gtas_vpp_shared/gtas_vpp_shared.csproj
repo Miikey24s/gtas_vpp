@@ -8,7 +8,6 @@
 	<Version>1.0.0</Version>
 	<Authors>AnNam</Authors>
 	<Description>Shared DTO contracts for FE and BE</Description>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,6 +3,7 @@
 ## Project Guidelines
 - For claim-to-DTO mapping, user prefers manual non-generic mapping instead of generic Mapster-based ToDto.
 - When deleting data, use soft delete via IsDeleted flag and avoid hard deletes.
+- Test stored procedures in SQL Server Management Studio (SSMS) before or alongside debugging them in code.
 
 ## UI Design Preferences (UPDATED 2026-05-08 — User Confirmed)
 - **Style**: Enterprise Modern (Atlassian Jira, Salesforce Lightning). Vuông vức, bo cong nhẹ, chuyên nghiệp.

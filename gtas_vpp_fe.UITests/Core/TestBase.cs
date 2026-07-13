@@ -18,11 +18,10 @@ namespace gtas_vpp_fe.UITests.Core
         private IPlaywright? _playwright;
         private IBrowser? _browser;
 
-        protected const string DefaultUsername = "google";
-        protected const string DefaultPassword = "abc*123@";
-        
         protected IPage Page { get; private set; } = null!;
         protected string BaseUrl { get; private set; } = null!;
+        protected string TestUsername => GetRequiredEnvironmentVariable("GTAS_TEST_USERNAME");
+        protected string TestPassword => GetRequiredEnvironmentVariable("GTAS_TEST_PASSWORD");
 
         public async Task InitializeAsync()
         {
@@ -62,8 +61,20 @@ namespace gtas_vpp_fe.UITests.Core
         {
             var loginPage = new Pages.Auth.LoginPage(Page);
             await loginPage.GotoAsync(BaseUrl);
-            await loginPage.LoginWithDefaultCredentialsAsync();
+            await loginPage.LoginAsync(TestUsername, TestPassword);
             await loginPage.WaitForDashboardAsync();
+        }
+
+        private static string GetRequiredEnvironmentVariable(string name)
+        {
+            var value = Environment.GetEnvironmentVariable(name);
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException(
+                    $"Environment variable '{name}' is required for authenticated UI tests.");
+            }
+
+            return value;
         }
 
         private static bool GetHeadlessMode()
