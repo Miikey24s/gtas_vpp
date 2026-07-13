@@ -106,7 +106,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 Products = new();
                 ProductCount = 0;
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["ProductCatalog"],

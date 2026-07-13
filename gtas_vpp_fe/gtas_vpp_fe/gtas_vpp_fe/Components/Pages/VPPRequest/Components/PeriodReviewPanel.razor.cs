@@ -14,7 +14,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
     public partial class PeriodReviewPanel
     {
         [Inject] private IAPIServices ApiServices { get; set; } = default!;
-        [Inject] private NotificationService NotificationService { get; set; } = default!;
+        [Inject] private IToastService Toast { get; set; } = default!;
         [Inject] private DialogService DialogService { get; set; } = default!;
         [Inject] private Microsoft.JSInterop.IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public EventCallback OnSettled { get; set; }
@@ -180,7 +180,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             catch (Exception ex)
             {
                 SetAlert(AlertStyle.Danger, ex.Message);
-                NotificationService.Notify(NotificationSeverity.Error, Loc["Error"], ex.Message);
+                Toast.Notify(NotificationSeverity.Error, Loc["Error"], ex.Message);
             }
             finally
             {
@@ -314,7 +314,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                         PriceListId = selectedPriceListId
                     });
 
-                NotificationService.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
                 await LoadSettlementStatusAsync();
                 await LoadOrdersAsync(firstLoad: true);
                 await OnSettled.InvokeAsync();
@@ -348,7 +348,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(NotificationSeverity.Error, Loc["Error"], ex.Message);
+                Toast.Notify(NotificationSeverity.Error, Loc["Error"], ex.Message);
             }
             finally
             {
@@ -394,7 +394,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             {
                 await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
                 var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = isVi ? "Đã sao chép" : "Copied",

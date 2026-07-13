@@ -14,7 +14,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 {
     public partial class Tab_PagePermission
     {
-        [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
+        [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
@@ -96,7 +96,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             catch (Exception ex)
             {
                 allGroupsForLookup = [];
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -137,7 +137,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             {
                 list_Group = [];
                 groupCount = 0;
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -195,7 +195,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -223,7 +223,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when load group page permissions:" + ex.Message, 10000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", "Error when load group page permissions:" + ex.Message, 10000, true);
             }
             IsLoading_Child = false;
             glb.isBusyPage = false;
@@ -261,7 +261,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     var lookupIdx = allGroupsForLookup.FindIndex(x => x.Id == res.Id);
                     if (lookupIdx >= 0) allGroupsForLookup[lookupIdx] = res;
 
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
                         Summary = "Group updated",
@@ -276,7 +276,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 var errorMessage = httpEx.Message;
                 if (errorMessage.Contains("circular reference"))
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
                         Summary = "Invalid Parent Group",
@@ -286,7 +286,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 }
                 else if (errorMessage.Contains("too deep"))
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
                         Summary = "Hierarchy Too Deep",
@@ -296,7 +296,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 }
                 else
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
                         Summary = "Update failed",
@@ -310,7 +310,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -354,7 +354,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     var lookupIdx = allGroupsForLookup.FindIndex(x => x.Id == res.Id);
                     if (lookupIdx >= 0) allGroupsForLookup[lookupIdx] = res;
 
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
                         Summary = data.IsDeleted ? "Group deleted" : "Group restored",
@@ -364,7 +364,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -418,7 +418,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                     allGroupsForLookup.RemoveAll(x => x.Id == group.Id);
                     await grid.Reload();
 
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
                         Summary = Loc["Success"].Value,
@@ -429,7 +429,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["DeleteFailed"].Value,
@@ -485,7 +485,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                         }
                     }
 
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
                         Summary = "Permission updated",
@@ -495,7 +495,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 }
                 else
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Warning,
                         Summary = "Update failed",
@@ -506,7 +506,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -546,7 +546,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
 
                 if (!string.IsNullOrWhiteSpace(rs))
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
                         Summary = isCopy ? "Copy success" : "Create success",
@@ -555,7 +555,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
                 }
                 else
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
                         Summary = isCopy ? "Copy failed" : "Create failed",
@@ -567,7 +567,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",

@@ -354,4 +354,10 @@
   <data name="NoMatchingColumns" xml:space="preserve"><value>Không tìm thấy cột phù hợp</value></data>
   <data name="Reset" xml:space="preserve"><value>Đặt lại</value></data>
   <data name="Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="UnreadNotificationCount" xml:space="preserve"><value>{0} thông báo chưa đọc</value></data>
+  <data name="MarkAllNotificationsRead" xml:space="preserve"><value>Đánh dấu đã đọc</value></data>
+  <data name="NoNotifications" xml:space="preserve"><value>Chưa có thông báo</value></data>
+  <data name="NoNotificationsDescription" xml:space="preserve"><value>Các cập nhật nghiệp vụ mới sẽ xuất hiện tại đây.</value></data>
+  <data name="Unread" xml:space="preserve"><value>Chưa đọc</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>
 </root>

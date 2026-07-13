@@ -15,7 +15,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
+        [Inject] public IToastService _toastService { get; set; } = default!;
 
         // L01 - Class
         public List<L01_ClassResDTO> classListL01 { get; set; } = new List<L01_ClassResDTO>();
@@ -100,7 +100,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error loading classes: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading classes: {ex.Message}", 15000, true);
             }
             finally
             {
@@ -152,7 +152,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error loading filter data: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading filter data: {ex.Message}", 15000, true);
             }
         }
 
@@ -179,19 +179,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 if (result != null)
                 {
                     string message = isDeleted ? "Class marked IsDeleted successfully" : "Class restored successfully";
-                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", message, 3000, false);
+                    _toastService.Show(NotificationSeverity.Success, "Success", message, 3000, false);
                     await gridL01.Reload();
                 }
                 else
                 {
                     data.IsDeleted = !isDeleted;
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to update class status", 5000, true);
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to update class status", 5000, true);
                 }
             }
             catch (Exception ex)
             {
                 data.IsDeleted = !isDeleted;
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error updating class status: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error updating class status: {ex.Message}", 15000, true);
             }
         }
 
@@ -212,7 +212,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L01_Class}/{data.Id}");
                 if (!deleted)
                 {
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to hard delete class", 5000, true);
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to hard delete class", 5000, true);
                     return;
                 }
 
@@ -223,13 +223,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     countL02 = 0;
                 }
 
-                _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Class permanently deleted", 3000, false);
+                _toastService.Show(NotificationSeverity.Success, "Success", "Class permanently deleted", 3000, false);
                 await gridL01.Reload();
                 await gridL02.Reload();
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error hard deleting class: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error hard deleting class: {ex.Message}", 15000, true);
             }
         }
 
@@ -281,7 +281,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error loading class details: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading class details: {ex.Message}", 15000, true);
             }
             finally
             {
@@ -336,7 +336,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error loading filter data: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading filter data: {ex.Message}", 15000, true);
             }
         }
 
@@ -357,19 +357,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 if (result != null)
                 {
                     string message = isDeleted ? "Class detail marked IsDeleted successfully" : "Class detail restored successfully";
-                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", message, 3000, false);
+                    _toastService.Show(NotificationSeverity.Success, "Success", message, 3000, false);
                     await gridL02.Reload();
                 }
                 else
                 {
                     data.IsDeleted = !isDeleted;
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to update class detail status", 5000, true);
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to update class detail status", 5000, true);
                 }
             }
             catch (Exception ex)
             {
                 data.IsDeleted = !isDeleted;
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error updating class detail status: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error updating class detail status: {ex.Message}", 15000, true);
             }
         }
 
@@ -390,16 +390,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L02_ClassDetail}/{data.Id}");
                 if (!deleted)
                 {
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to hard delete class detail", 5000, true);
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to hard delete class detail", 5000, true);
                     return;
                 }
 
-                _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Class detail permanently deleted", 3000, false);
+                _toastService.Show(NotificationSeverity.Success, "Success", "Class detail permanently deleted", 3000, false);
                 await gridL02.Reload();
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error hard deleting class detail: {ex.Message}", 15000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error hard deleting class detail: {ex.Message}", 15000, true);
             }
         }
 

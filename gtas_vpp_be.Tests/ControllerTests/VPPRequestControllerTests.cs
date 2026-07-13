@@ -2,6 +2,7 @@ using System.Security.Claims;
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Controllers;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
@@ -353,7 +354,8 @@ public class VPPRequestControllerTests
             Mock.Of<IUserNameResolver>(),
             unitOfWork.Object,
             service,
-            permissionService.Object);
+            permissionService.Object,
+            Mock.Of<IAppNotificationService>());
 
         controller.ControllerContext = new ControllerContext
         {

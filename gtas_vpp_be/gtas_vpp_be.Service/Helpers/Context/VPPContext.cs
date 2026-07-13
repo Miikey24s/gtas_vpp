@@ -1,6 +1,7 @@
 ﻿using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.Notifications;
 //using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_shared.DTOs;
@@ -39,6 +40,8 @@ namespace gtas_vpp_be.Service.Helpers.Context
         public virtual DbSet<VPP02_RequestDetail> VPP02_RequestDetail { get; set; }
         public virtual DbSet<VPP03_Log> VPP03_Logs { get; set; }
         #endregion
+
+        public virtual DbSet<N01_Notification> N01_Notifications { get; set; }
 
         public virtual DbSet<sp_ResDTO> Sp_ResDTOs { get; set; }
         public virtual DbSet<v_Users> v_Users { get; set; }
@@ -132,6 +135,13 @@ namespace gtas_vpp_be.Service.Helpers.Context
                       .WithMany(x => x.VPP03_Logs)
                       .HasForeignKey(x => x.VPP01_RequestHeaderId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<N01_Notification>(en =>
+            {
+                en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.ReadAt, x.CreatedAt })
+                    .HasDatabaseName("IX_N01_User_Company_Read_Created");
+                en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.CorrelationId })
+                    .HasDatabaseName("IX_N01_User_Company_Correlation");
             });
         }
     }

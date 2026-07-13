@@ -443,26 +443,179 @@ leftsidebar {
 
 .vpp-header-notifications {
     position: relative;
+    z-index: 20;
 }
 
 .vpp-header-notification-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 36px;
     height: 36px;
     min-width: 36px;
     padding: 0;
+    border: 1px solid var(--vpp-border);
     border-radius: 50%;
+    color: var(--vpp-text-secondary);
+    background: var(--vpp-bg-surface);
+    cursor: pointer;
 }
 
-.vpp-header-notification-dot {
+.vpp-header-notification-button:hover,
+.vpp-header-notification-button:focus-visible {
+    color: var(--vpp-primary);
+    border-color: var(--vpp-primary);
+    outline: none;
+}
+
+.vpp-header-notification-count {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: -5px;
+    right: -7px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border: 2px solid var(--vpp-bg-surface);
+    border-radius: 999px;
+    background: var(--vpp-danger);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.vpp-notification-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(390px, calc(100vw - 24px));
+    overflow: hidden;
+    border: 1px solid var(--vpp-border);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-surface);
+    box-shadow: var(--vpp-shadow-xl);
+}
+
+.vpp-notification-panel-header,
+.vpp-notification-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4);
+    border-bottom: 1px solid var(--vpp-border);
+}
+
+.vpp-notification-panel-header > div {
+    display: grid;
+    gap: 2px;
+}
+
+.vpp-notification-panel-header span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-notification-mark-all,
+.vpp-notification-panel-footer button {
+    border: 0;
+    color: var(--vpp-primary);
+    background: transparent;
+    font: inherit;
+    font-size: var(--vpp-text-sm);
+    cursor: pointer;
+}
+
+.vpp-notification-list {
+    max-height: min(460px, calc(100vh - 180px));
+    overflow-y: auto;
+}
+
+.vpp-notification-item {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 8px;
+    gap: var(--vpp-space-3);
+    width: 100%;
+    padding: var(--vpp-space-4);
+    border: 0;
+    border-bottom: 1px solid var(--vpp-border-subtle);
+    color: var(--vpp-text-primary);
+    text-align: left;
+    background: var(--vpp-bg-surface);
+    cursor: pointer;
+}
+
+.vpp-notification-item:hover,
+.vpp-notification-item:focus-visible,
+.vpp-notification-item.is-unread {
+    background: var(--vpp-bg-subtle);
+}
+
+.vpp-notification-item:focus-visible {
+    outline: 2px solid var(--vpp-primary);
+    outline-offset: -2px;
+}
+
+.vpp-notification-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: var(--vpp-primary);
+    background: var(--vpp-primary-soft);
+}
+
+.vpp-notification-item-content {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.vpp-notification-item-content strong,
+.vpp-notification-item-content span {
+    overflow-wrap: anywhere;
+}
+
+.vpp-notification-item-content span,
+.vpp-notification-item-content time {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-notification-item-content time {
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-notification-unread-dot {
+    align-self: center;
     width: 8px;
     height: 8px;
-    border: 2px solid var(--vpp-bg-surface);
     border-radius: 50%;
-    background: var(--vpp-danger);
-    pointer-events: none;
+    background: var(--vpp-primary);
+}
+
+.vpp-notification-empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-8) var(--vpp-space-4);
+    color: var(--vpp-text-secondary);
+    text-align: center;
+}
+
+.vpp-notification-empty .rzi {
+    font-size: 2rem;
+}
+
+.vpp-notification-panel-footer {
+    justify-content: center;
+    border-top: 1px solid var(--vpp-border);
+    border-bottom: 0;
 }
 
 /* ── Content Area ──────────────────────────────────────────────── */
@@ -564,8 +717,7 @@ leftsidebar {
         font-size: 0.95rem;
     }
 
-    .vpp-header-server,
-    .vpp-header-notifications {
+    .vpp-header-server {
         display: none;
     }
 

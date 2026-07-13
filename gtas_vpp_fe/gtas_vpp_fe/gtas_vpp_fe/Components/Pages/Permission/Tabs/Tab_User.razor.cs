@@ -81,7 +81,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             catch (Exception ex)
             {
                 p02_Groups = [];
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -143,7 +143,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             {
                 _sp_Authentication_TabUser_UserList = [];
                 userCount = 0;
-                NotificationService.Notify(new NotificationMessage()
+                Toast.Notify(new NotificationMessage()
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -204,7 +204,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage()
+                Toast.Notify(new NotificationMessage()
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Error",
@@ -326,7 +326,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call EF_Update P04_UserGroup:" + ex.Message, Duration = 10000 });
+                Toast.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call EF_Update P04_UserGroup:" + ex.Message, Duration = 10000 });
                 throw;
             }
             finally

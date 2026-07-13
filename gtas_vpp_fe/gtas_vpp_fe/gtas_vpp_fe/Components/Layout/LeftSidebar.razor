@@ -31,11 +31,7 @@
                             IsLightThemeChanged="@(isLight => LightTheme = isLight)"
                             OnThemeToggle="ThemeOnChange"
                             OnLanguageToggle="ToggleLanguage" />
-            @* Notification bell *@
-            <div class="vpp-header-notifications">
-                <RadzenButton Icon="notifications" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Medium" class="vpp-header-notification-button" Disabled="true" Title="Notifications (coming soon)" />
-                <span class="vpp-header-notification-dot"></span>
-            </div>
+            <NotificationCenter />
             <UserMenu UserFullName="@glb.UserInfo.FullName" Department="@glb.UserInfo.DepartmentCode" />
         </RadzenStack>
     </RadzenStack>

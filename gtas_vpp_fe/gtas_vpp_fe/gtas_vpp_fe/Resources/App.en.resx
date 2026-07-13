@@ -351,4 +351,10 @@
   <data name="NoMatchingColumns" xml:space="preserve"><value>No matching columns</value></data>
   <data name="Reset" xml:space="preserve"><value>Reset</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="UnreadNotificationCount" xml:space="preserve"><value>{0} unread notifications</value></data>
+  <data name="MarkAllNotificationsRead" xml:space="preserve"><value>Mark all as read</value></data>
+  <data name="NoNotifications" xml:space="preserve"><value>No notifications yet</value></data>
+  <data name="NoNotificationsDescription" xml:space="preserve"><value>New workflow updates will appear here.</value></data>
+  <data name="Unread" xml:space="preserve"><value>Unread</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
 </root>

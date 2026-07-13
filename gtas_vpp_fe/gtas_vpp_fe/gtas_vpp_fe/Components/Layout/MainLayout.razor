@@ -2,6 +2,7 @@
 @inherits LayoutComponentBase
 @using gtas_vpp_fe.Services
 @inject PermissionRealtimeService PermissionRealtime
+@inject NotificationInboxState NotificationInbox
 @inject ILogger<MainLayout> Logger
 
 <RadzenComponents @rendermode="InteractiveServer" />
@@ -33,6 +34,15 @@
             // only an immediate UI refresh enhancement, so a temporary hub
             // outage must not break the page.
             Logger.LogWarning(ex, "Permission realtime connection is unavailable.");
+        }
+
+        try
+        {
+            await NotificationInbox.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Notification inbox could not be initialized.");
         }
     }
 }

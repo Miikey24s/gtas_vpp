@@ -31,7 +31,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         // ─── Injected services (base-owned; derived razor/cs can use directly) ───
         [Inject] protected IAPIServices _apiServices { get; set; } = default!;
         [Inject] protected IStringLocalizer<App> BaseLoc { get; set; } = default!;
-        [Inject] protected NotificationService NotificationService { get; set; } = default!;
+        [Inject] protected IToastService Toast { get; set; } = default!;
         [Inject] protected PermissionState PermissionState { get; set; } = default!;
         [Inject] protected Microsoft.JSInterop.IJSRuntime JSRuntime { get; set; } = default!;
 
@@ -212,7 +212,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = ErrorSummary,
@@ -255,7 +255,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = ErrorSummary,
@@ -310,7 +310,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
                 var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = isVi ? "Đã sao chép" : "Copied",

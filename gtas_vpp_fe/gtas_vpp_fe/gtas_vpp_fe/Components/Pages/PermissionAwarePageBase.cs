@@ -22,7 +22,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
     [Inject] protected AuthHelper PageAuthHelper { get; set; } = default!;
     [Inject] protected PermissionState PagePermissionState { get; set; } = default!;
     [Inject] protected NavigationManager PageNavigationManager { get; set; } = default!;
-    [Inject] protected NotificationService PageNotificationService { get; set; } = default!;
+    [Inject] protected IToastService Toast { get; set; } = default!;
     [Inject] protected GlobalClass PageGlobalState { get; set; } = default!;
 
     protected async Task<bool> LoadPageAccessAsync(
@@ -60,7 +60,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
         }
         catch (Exception ex)
         {
-            PageNotificationService.Notify(new NotificationMessage
+            Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
                 Summary = options.ErrorSummary,
@@ -96,7 +96,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
 
     protected bool NotifyAndRedirect(string summary, string detail, string redirectPath)
     {
-        PageNotificationService.Notify(new NotificationMessage
+        Toast.Notify(new NotificationMessage
         {
             Severity = NotificationSeverity.Warning,
             Summary = summary,
@@ -132,7 +132,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
             return;
         }
 
-        PageNotificationService.Notify(new NotificationMessage
+        Toast.Notify(new NotificationMessage
         {
             Severity = NotificationSeverity.Warning,
             Summary = options.AccessDeniedSummary,

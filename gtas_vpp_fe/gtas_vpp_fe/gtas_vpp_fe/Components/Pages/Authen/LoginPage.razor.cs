@@ -195,7 +195,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         private void ShowError(string detail)
         {
-            NotificationService.Notify(new NotificationMessage
+            Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
                 Summary = "Login failed",

@@ -3,7 +3,7 @@
 @using gtas_vpp_shared.DTOs.Share
 @inject DialogService DialogService
 @inject IAPIServices _apiServices
-@inject ICustomNotificationService _notificationService
+@inject IToastService _toastService
 @inject GlobalClass glb
 
 <RadzenStack Gap="1rem">
@@ -62,7 +62,7 @@
     {
         if (string.IsNullOrWhiteSpace(Model.ClassName))
         {
-            _notificationService.CustomContentNotification(NotificationSeverity.Warning, "Validation", "Class Name is required", 5000, false);
+            _toastService.Show(NotificationSeverity.Warning, "Validation", "Class Name is required", 5000, false);
             return;
         }
 
@@ -87,18 +87,18 @@
 
             if (result != null)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", 
+                _toastService.Show(NotificationSeverity.Success, "Success",
                     IsCreate ? "Class created successfully" : "Class updated successfully", 5000, false);
                 DialogService.Close(result);
             }
             else
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Failed to save class", 5000, true);
+                _toastService.Show(NotificationSeverity.Error, "Error", "Failed to save class", 5000, true);
             }
         }
         catch (Exception ex)
         {
-            _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error saving class: {ex.Message}", 15000, true);
+            _toastService.Show(NotificationSeverity.Error, "Error", $"Error saving class: {ex.Message}", 15000, true);
         }
         finally
         {

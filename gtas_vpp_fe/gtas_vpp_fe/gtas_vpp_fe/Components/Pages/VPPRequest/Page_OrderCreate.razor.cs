@@ -20,7 +20,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JS { get; set; } = default!;
-        [Inject] public NotificationService NotificationService { get; set; } = default!;
+        [Inject] public IToastService Toast { get; set; } = default!;
 
         [SupplyParameterFromQuery] public Guid? OrderId { get; set; }
         [SupplyParameterFromQuery(Name = "isAdditional")] public string? IsAdditionalParam { get; set; }
@@ -188,7 +188,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
                 if (!PermissionState.HasPermission(Permissions.RequestCreate))
                 {
-                    NotificationService.Notify(new NotificationMessage()
+                    Toast.Notify(new NotificationMessage()
                     {
                         Severity = NotificationSeverity.Warning,
                         Summary = Loc["AccessDenied"],
@@ -271,7 +271,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             // Additional orders require a description/reason
             if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
                     Summary = Loc["Order"],
@@ -304,7 +304,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var editingOrder = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.Orders}/{OrderId.Value}");
                 if (editingOrder == null)
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Warning,
                         Summary = Loc["Order"],
@@ -334,7 +334,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Order"],
@@ -351,7 +351,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var previousOrder = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.ApiVppBase}/orders/previous-items");
                 if (previousOrder == null)
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Info,
                         Summary = Loc["CopyPrevious"],
@@ -375,7 +375,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     })
                     .ToList();
 
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = Loc["CopyPrevious"],
@@ -385,7 +385,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["CopyPrevious"],
@@ -419,7 +419,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
                 if (showMessage)
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Info,
                         Summary = Loc["OrderDraft"],
@@ -487,7 +487,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             if (Context.SelectedItems.Count == 0)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
                     Summary = Loc["Order"],
@@ -499,7 +499,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             if (Context.SelectedItems.Any(x => x.VPPId == Guid.Empty || x.Qty <= 0))
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
                     Summary = Loc["Order"],
@@ -521,7 +521,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
                 if (PeriodInfo is null)
                 {
-                    NotificationService.Notify(new NotificationMessage
+                    Toast.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
                         Summary = Loc["Order"],
@@ -569,7 +569,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);
                 }
 
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = Loc["Order"],
@@ -581,7 +581,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Order"],

@@ -147,12 +147,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", null);
-                NotificationService.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
                 await ReloadAsync();
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["ApproveOrderFailedFormat"], ex.Message));
+                Toast.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["ApproveOrderFailedFormat"], ex.Message));
             }
             finally
             {
@@ -177,12 +177,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", new { Reason = "" });
-                NotificationService.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
                 await ReloadAsync();
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["RejectOrderFailedFormat"], ex.Message));
+                Toast.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["RejectOrderFailedFormat"], ex.Message));
             }
             finally
             {

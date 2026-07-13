@@ -32,7 +32,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         ];
 
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
+        [Inject] public IToastService _toastService { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -276,7 +276,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             catch
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when call EF get L02 by Id \"40A06BB8-63D5-424F-98E2-2A0E14FFFFDD\"");
+                _toastService.Show(NotificationSeverity.Error, "Error", "Error when call EF get L02 by Id \"40A06BB8-63D5-424F-98E2-2A0E14FFFFDD\"");
             }
             finally
             {
@@ -338,7 +338,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             catch (Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error loading library tab data: {ex.Message}");
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading library tab data: {ex.Message}");
             }
             finally
             {
@@ -355,14 +355,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
                 T result = await _apiServices.PostFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result.Id != Guid.Empty)
-                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record added successfully");
+                    _toastService.Show(NotificationSeverity.Success, "Success", "Record added successfully");
                 else
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when adding record");
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Error when adding record");
                 return result!;
             }
             catch
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when adding record");
+                _toastService.Show(NotificationSeverity.Error, "Error", "Error when adding record");
                 return default!;
             }
         }
@@ -375,14 +375,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
                 T result = await _apiServices.PatchFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result != null)
-                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record updated successfully");
+                    _toastService.Show(NotificationSeverity.Success, "Success", "Record updated successfully");
                 else
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when updating record");
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Error when updating record");
                 return result!;
             }
             catch(Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when updating record: {ex.Message}");
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error when updating record: {ex.Message}");
                 return default!;
             }
         }
@@ -396,14 +396,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 var result = await _apiServices.DeleteFromApiAsync(endpoint);
 
                 if (result is true)
-                    _notificationService.CustomContentNotification(NotificationSeverity.Success, "Success", "Record deleted successfully");
+                    _toastService.Show(NotificationSeverity.Success, "Success", "Record deleted successfully");
                 else
-                    _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", "Error when deleting record");
+                    _toastService.Show(NotificationSeverity.Error, "Error", "Error when deleting record");
                 return result;
             }
             catch(Exception ex)
             {
-                _notificationService.CustomContentNotification(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
                 return false;
             }
         }

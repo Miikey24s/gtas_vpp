@@ -131,7 +131,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Orders"],
@@ -174,7 +174,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", new { });
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = Loc["Order"],
@@ -185,7 +185,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Order"],
@@ -252,7 +252,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
                 var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
-                NotificationService.Notify(new NotificationMessage
+                Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = isVi ? "Đã sao chép" : "Copied",

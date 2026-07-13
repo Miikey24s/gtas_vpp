@@ -49,7 +49,8 @@ builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped<PermissionRefreshSignal>();
 builder.Services.AddScoped<PermissionState>();
 builder.Services.AddScoped<PermissionRealtimeService>();
-builder.Services.AddScoped<ICustomNotificationService, CustomNotificationService>();
+builder.Services.AddScoped<NotificationInboxState>();
+builder.Services.AddScoped<IToastService, ToastService>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie
 // Cấu hình hỗ trợ Cookie policy

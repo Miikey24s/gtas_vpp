@@ -1,5 +1,6 @@
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -23,17 +24,20 @@ namespace gtas_vpp_be.Controllers
     {
         private readonly IVPPRequestService _vppService;
         private readonly IPermissionService _permissionService;
+        private readonly IAppNotificationService _notificationService;
 
         public VPPRequestController(
             IServiceProvider serviceProvider,
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
             IVPPRequestService vppService,
-            IPermissionService permissionService)
+            IPermissionService permissionService,
+            IAppNotificationService notificationService)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
             _permissionService = permissionService;
+            _notificationService = notificationService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -131,6 +135,10 @@ namespace gtas_vpp_be.Controllers
             }
 
             var result = await _vppService.CreateOrderAsync(req, CurrentUserId.Value, CurrentDepartmentCode, CurrentMemberCompanyCode);
+            if (result.IsAdditionalOrder)
+            {
+                await TryPublishAdditionalOrderCreatedAsync(result);
+            }
             return Ok(result);
         }
 
@@ -824,6 +832,7 @@ namespace gtas_vpp_be.Controllers
             if (!IsInCurrentCompany(current)) return Forbid();
 
             await _vppService.ApproveAdditionalOrderAsync(id, CurrentUserId.Value);
+            await TryPublishOrderDecisionAsync(current, approved: true, reason: null);
             return Ok();
         }
 
@@ -838,7 +847,63 @@ namespace gtas_vpp_be.Controllers
             if (!IsInCurrentCompany(current)) return Forbid();
 
             await _vppService.RejectAdditionalOrderAsync(id, CurrentUserId.Value, req.Reason);
+            await TryPublishOrderDecisionAsync(current, approved: false, req.Reason);
             return Ok();
+        }
+
+        private async Task TryPublishAdditionalOrderCreatedAsync(VPP01_RequestHeaderResDTO order)
+        {
+            try
+            {
+                var recipients = await _notificationService.GetRecipientsWithPermissionAsync(
+                    CurrentMemberCompanyCode,
+                    Permissions.RequestApprove,
+                    HttpContext.RequestAborted);
+
+                await _notificationService.PublishAsync(
+                    recipients.Where(userId => userId != CurrentUserId),
+                    CurrentMemberCompanyCode,
+                    "additional-order.pending",
+                    "Đơn bổ sung chờ duyệt",
+                    $"Đơn {order.VPPCode} của {order.RequesterName ?? "nhân viên"} đang chờ xử lý.",
+                    "/dashboard?tab=5&periodTab=pending",
+                    order.Id.ToString("N"),
+                    HttpContext.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                // The order has already committed. A temporary notification
+                // outage must never make the client retry and create a duplicate.
+                Serilog.Log.Warning(ex, "Could not publish pending-order notification for {OrderId}", order.Id);
+            }
+        }
+
+        private async Task TryPublishOrderDecisionAsync(
+            VPP01_RequestHeaderResDTO order,
+            bool approved,
+            string? reason)
+        {
+            try
+            {
+                var decision = approved ? "đã được duyệt" : "đã bị từ chối";
+                var reasonSuffix = !approved && !string.IsNullOrWhiteSpace(reason)
+                    ? $" Lý do: {reason.Trim()}"
+                    : string.Empty;
+
+                await _notificationService.PublishAsync(
+                    [order.CreateUserId],
+                    CurrentMemberCompanyCode,
+                    approved ? "additional-order.approved" : "additional-order.rejected",
+                    approved ? "Đơn bổ sung đã được duyệt" : "Đơn bổ sung bị từ chối",
+                    $"Đơn {order.VPPCode} {decision}.{reasonSuffix}",
+                    "/dashboard?tab=1",
+                    order.Id.ToString("N"),
+                    HttpContext.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Could not publish order-decision notification for {OrderId}", order.Id);
+            }
         }
 
         private async Task<bool> CanViewOrderAsync(VPP01_RequestHeaderResDTO order)

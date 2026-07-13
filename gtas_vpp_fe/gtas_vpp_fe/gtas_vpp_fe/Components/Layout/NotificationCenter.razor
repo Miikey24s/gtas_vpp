@@ -1,0 +1,134 @@
+@implements IDisposable
+@using gtas_vpp_fe.Services
+@inject NotificationInboxState Inbox
+@inject NavigationManager Navigation
+
+<div class="vpp-header-notifications">
+    <button type="button"
+            class="vpp-header-notification-button"
+            title="@Loc["Notifications"]"
+            aria-label="@GetBellAriaLabel()"
+            aria-expanded="@_isOpen"
+            aria-haspopup="dialog"
+            @onclick="ToggleAsync">
+        <span class="rzi rzi-notifications" aria-hidden="true"></span>
+        @if (Inbox.UnreadCount > 0)
+        {
+            <span class="vpp-header-notification-count" aria-hidden="true">@FormatUnreadCount()</span>
+        }
+    </button>
+
+    @if (_isOpen)
+    {
+        <section class="vpp-notification-panel" role="dialog" aria-label="@Loc["Notifications"]">
+            <header class="vpp-notification-panel-header">
+                <div>
+                    <strong>@Loc["Notifications"]</strong>
+                    <span>@string.Format(Loc["UnreadNotificationCount"], Inbox.UnreadCount)</span>
+                </div>
+                @if (Inbox.UnreadCount > 0)
+                {
+                    <button type="button" class="vpp-notification-mark-all" @onclick="MarkAllReadAsync">
+                        @Loc["MarkAllNotificationsRead"]
+                    </button>
+                }
+            </header>
+
+            <div class="vpp-notification-list" aria-live="polite">
+                @if (Inbox.IsLoading && Inbox.Items.Count == 0)
+                {
+                    <div class="vpp-notification-empty">@Loc["Loading"]</div>
+                }
+                else if (Inbox.Items.Count == 0)
+                {
+                    <div class="vpp-notification-empty">
+                        <span class="rzi rzi-notifications-none" aria-hidden="true"></span>
+                        <strong>@Loc["NoNotifications"]</strong>
+                        <span>@Loc["NoNotificationsDescription"]</span>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var item in Inbox.Items)
+                    {
+                        <button type="button"
+                                class="vpp-notification-item @(item.IsRead ? string.Empty : "is-unread")"
+                                @onclick="(() => OpenNotificationAsync(item))">
+                            <span class="vpp-notification-item-icon rzi @GetIcon(item.Type)" aria-hidden="true"></span>
+                            <span class="vpp-notification-item-content">
+                                <strong>@item.Title</strong>
+                                <span>@item.Message</span>
+                                <time datetime="@item.CreatedAt.ToString("O")">@FormatTime(item.CreatedAt)</time>
+                            </span>
+                            @if (!item.IsRead)
+                            {
+                                <span class="vpp-notification-unread-dot" aria-label="@Loc["Unread"]"></span>
+                            }
+                        </button>
+                    }
+                }
+            </div>
+
+            <footer class="vpp-notification-panel-footer">
+                <button type="button" @onclick="RefreshAsync" disabled="@Inbox.IsLoading">
+                    <span class="rzi rzi-refresh" aria-hidden="true"></span>
+                    @Loc["Refresh"]
+                </button>
+            </footer>
+        </section>
+    }
+</div>
+
+@code {
+    private bool _isOpen;
+
+    protected override void OnInitialized()
+    {
+        Inbox.Changed += OnInboxChanged;
+    }
+
+    private async Task ToggleAsync()
+    {
+        _isOpen = !_isOpen;
+        if (_isOpen)
+        {
+            await Inbox.RefreshAsync();
+        }
+    }
+
+    private async Task RefreshAsync() => await Inbox.RefreshAsync();
+
+    private async Task MarkAllReadAsync() => await Inbox.MarkAllReadAsync();
+
+    private async Task OpenNotificationAsync(gtas_vpp_shared.DTOs.Res.Notifications.NotificationResDTO item)
+    {
+        await Inbox.MarkReadAsync(item);
+        _isOpen = false;
+
+        if (!string.IsNullOrWhiteSpace(item.Route) && item.Route.StartsWith('/'))
+        {
+            Navigation.NavigateTo(item.Route);
+        }
+    }
+
+    private string FormatUnreadCount() => Inbox.UnreadCount > 99 ? "99+" : Inbox.UnreadCount.ToString();
+
+    private string GetBellAriaLabel() => Inbox.UnreadCount == 0
+        ? Loc["Notifications"]
+        : string.Format(Loc["UnreadNotificationCount"], Inbox.UnreadCount);
+
+    private static string GetIcon(string type) => type switch
+    {
+        "additional-order.approved" => "rzi-check-circle",
+        "additional-order.rejected" => "rzi-cancel",
+        "additional-order.pending" => "rzi-pending-actions",
+        _ => "rzi-info"
+    };
+
+    private static string FormatTime(DateTime createdAt) =>
+        createdAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy");
+
+    private void OnInboxChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Inbox.Changed -= OnInboxChanged;
+}

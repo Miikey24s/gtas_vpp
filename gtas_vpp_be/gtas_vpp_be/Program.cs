@@ -1,6 +1,7 @@
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Middleware;
+using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
@@ -172,6 +173,8 @@ builder.Services
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddSingleton<IPermissionChangeNotifier, PermissionChangeNotifier>();
+builder.Services.AddScoped<IAppNotificationService, AppNotificationService>();
+builder.Services.AddSingleton<INotificationRealtimeNotifier, NotificationRealtimeNotifier>();
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in Permissions.All)
@@ -259,6 +262,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHub<PermissionHub>("/hubs/permissions");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
 

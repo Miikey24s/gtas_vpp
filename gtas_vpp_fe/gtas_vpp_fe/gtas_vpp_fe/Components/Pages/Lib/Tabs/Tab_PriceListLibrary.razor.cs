@@ -16,7 +16,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public ICustomNotificationService _notificationService { get; set; } = default!;
+        [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
@@ -289,7 +289,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private void Notify(NotificationSeverity severity, string summary, string detail)
         {
-            _notificationService.CustomContentNotification(severity, summary, detail, 5000, false);
+            _toastService.Show(severity, summary, detail, 5000, false);
         }
 
         private static string BuildPriceListEndpoint(

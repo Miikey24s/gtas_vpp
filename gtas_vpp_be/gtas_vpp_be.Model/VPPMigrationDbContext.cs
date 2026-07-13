@@ -1,6 +1,7 @@
 ﻿using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Helpers;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.Notifications;
 using gtas_vpp_be.Model.VPP;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -36,6 +37,8 @@ namespace gtas_vpp_be.Model
         public virtual DbSet<VPP02_RequestDetail> VPP02_RequestDetail { get; set; }
         public virtual DbSet<VPP03_Log> VPP03_Logs { get; set; }
         #endregion
+
+        public virtual DbSet<N01_Notification> N01_Notifications { get; set; }
 
         public VPPMigrationDbContext(DbContextOptions<VPPMigrationDbContext> options) : base(options)
         {
@@ -122,6 +125,13 @@ namespace gtas_vpp_be.Model
                       .WithMany(x => x.VPP03_Logs)
                       .HasForeignKey(x => x.VPP01_RequestHeaderId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<N01_Notification>(en =>
+            {
+                en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.ReadAt, x.CreatedAt })
+                    .HasDatabaseName("IX_N01_User_Company_Read_Created");
+                en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.CorrelationId })
+                    .HasDatabaseName("IX_N01_User_Company_Correlation");
             });
         }
     }

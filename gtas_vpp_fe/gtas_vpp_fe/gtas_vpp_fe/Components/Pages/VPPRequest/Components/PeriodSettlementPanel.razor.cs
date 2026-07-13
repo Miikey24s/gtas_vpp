@@ -11,7 +11,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
     public partial class PeriodSettlementPanel
     {
         [Inject] private IAPIServices ApiServices { get; set; } = default!;
-        [Inject] private NotificationService NotificationService { get; set; } = default!;
+        [Inject] private IToastService Toast { get; set; } = default!;
         [Inject] private DialogService DialogService { get; set; } = default!;
         [Parameter] public EventCallback OnSettled { get; set; }
 
@@ -209,7 +209,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                         PriceListId = selectedPriceListId
                     });
 
-                NotificationService.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
                 await LoadStatusAsync();
                 await OnSettled.InvokeAsync();
             }
