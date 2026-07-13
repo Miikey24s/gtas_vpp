@@ -17,7 +17,9 @@ using Serilog;
 using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.SqlClient;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 var dotEnvValues = LoadDotEnvValues(builder.Environment.ContentRootPath);
@@ -26,6 +28,11 @@ if (dotEnvValues.Count > 0)
     if (dotEnvValues.TryGetValue("JWT_KEY", out var envJwtKey) && !string.IsNullOrWhiteSpace(envJwtKey))
     {
         dotEnvValues["JwtSettings:Key"] = envJwtKey;
+    }
+    if (dotEnvValues.TryGetValue("PASSWORD_ENCRYPTION_KEY", out var passwordEncryptionKey)
+        && !string.IsNullOrWhiteSpace(passwordEncryptionKey))
+    {
+        dotEnvValues["PasswordEncryption:Key"] = passwordEncryptionKey;
     }
     builder.Configuration.AddInMemoryCollection(dotEnvValues);
 }
@@ -52,6 +59,10 @@ Config.Initialize(Configuration);
 var jwtKey = Config.JwtSettings.Key;
 var jwtIssuer = Config.JwtSettings.Issuer;
 var jwtAudience = Config.JwtSettings.Audience;
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException("JwtSettings:Key must contain at least 32 UTF-8 bytes.");
+}
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -87,7 +98,11 @@ builder.Services.AddDbContext<VPPContext>(
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JiraSettings>(Configuration.GetSection("JiraSettings"));
-builder.Services.Configure<PasswordEncoderOptions>(builder.Configuration.GetSection("PasswordEncryption"));
+builder.Services.AddOptions<PasswordEncoderOptions>()
+    .Bind(builder.Configuration.GetSection("PasswordEncryption"))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.Key),
+        "PasswordEncryption:Key is required for legacy GTAS_MENU compatibility.")
+    .ValidateOnStart();
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
 builder.Services.AddSingleton<IPasswordEncoder, TripleDesPasswordEncoder>();
@@ -108,6 +123,20 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
 
 builder.Services.AddResponseCompression(opts =>
 {
@@ -219,6 +248,7 @@ if (!app.Environment.IsProduction())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

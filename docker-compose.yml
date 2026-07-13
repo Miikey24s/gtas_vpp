@@ -18,7 +18,7 @@ services:
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD:-YourStrong!Passw0rd}"
+      MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.}"
       MSSQL_PID: "Developer"
       MSSQL_MEMORY_LIMIT_MB: "4096"
     ports:
@@ -60,11 +60,11 @@ services:
       DatabaseInitialization__Mode: "MigrateAndSeed"
       DatabaseInitialization__Environments__0: "TestEnv"
       # Local/test only. LiveEnv is intentionally unavailable in this compose file.
-      ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStrings__TestEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.};TrustServerCertificate=True;Encrypt=False;"
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required and must be set.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
-      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:-ttpsolutions}"
+      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
       CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
       DOTNET_gcServer: "0"

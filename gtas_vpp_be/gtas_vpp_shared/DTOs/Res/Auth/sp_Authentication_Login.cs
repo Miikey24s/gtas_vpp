@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json.Serialization;
 
 
 namespace gtas_vpp_shared.DTOs.Res.Auth
@@ -13,6 +14,7 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
     {
         public int UserID { get; set; }
         public string? UserLogin { get; set; } = string.Empty;
+        [JsonIgnore]
         public string? PasswordChar { get; set; } = string.Empty;
         public string? FullName { get; set; }
         public string? Email { get; set; }

@@ -29,13 +29,9 @@ public class PasswordEncoderTests
     }
 
     [Fact]
-    public void TripleDes_NullKey_UsesDefault()
+    public void TripleDes_NullKey_IsRejected()
     {
-        var encoder = CreateEncoder(null);
-
-        var ciphertext = encoder.Encrypt("abc*123@");
-
-        Assert.Equal("wiSEc6nf/dK/Vu0E738j8Q==", ciphertext);
+        Assert.Throws<InvalidOperationException>(() => CreateEncoder(null));
     }
 
     [Fact]

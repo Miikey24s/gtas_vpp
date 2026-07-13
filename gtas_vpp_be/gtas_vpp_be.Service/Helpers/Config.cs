@@ -19,6 +19,10 @@ namespace gtas_vpp_be.Service.Helpers
             public static string Key => GetRequiredConfigValue("JwtSettings:Key", "JWT Key must be configured via environment variable or user secrets");
             public static string Issuer => GetConfigValue("JwtSettings:Issuer", "gtas_vpp_be");
             public static string Audience => GetConfigValue("JwtSettings:Audience", "gtas_vpp_clients");
+            public static int AccessTokenMinutes => Math.Clamp(
+                _configuration?.GetValue<int?>("JwtSettings:AccessTokenMinutes") ?? 60,
+                5,
+                480);
             public static int ClockSkewMinutes => 2;
         }
 

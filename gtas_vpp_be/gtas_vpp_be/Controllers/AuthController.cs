@@ -9,6 +9,7 @@ using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.IdentityModel.Tokens;
@@ -55,6 +56,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -183,7 +185,7 @@ namespace gtas_vpp_be.Controllers
                 issuer: jwtIssuer,
                 audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(24),
+                expires: DateTime.UtcNow.AddMinutes(Config.JwtSettings.AccessTokenMinutes),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

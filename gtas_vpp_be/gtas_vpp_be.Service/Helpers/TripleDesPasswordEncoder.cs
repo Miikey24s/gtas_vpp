@@ -6,12 +6,14 @@ namespace gtas_vpp_be.Service.Helpers
 {
     public sealed class TripleDesPasswordEncoder : IPasswordEncoder
     {
-        private const string DefaultKey = "ttpsolutions";
         private readonly string _key;
 
         public TripleDesPasswordEncoder(IOptions<PasswordEncoderOptions> options)
         {
-            _key = string.IsNullOrWhiteSpace(options.Value.Key) ? DefaultKey : options.Value.Key;
+            _key = !string.IsNullOrWhiteSpace(options.Value.Key)
+                ? options.Value.Key
+                : throw new InvalidOperationException(
+                    "PasswordEncryption:Key is required for legacy GTAS_MENU compatibility.");
         }
 
         public string Encrypt(string plaintext)
