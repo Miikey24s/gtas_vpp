@@ -1,0 +1,36 @@
+@startuml
+!include ../common/usecase-style.puml
+title XEM DASHBOARD VÀ DỮ LIỆU TỔNG HỢP
+
+actor "Nhân viên" as Employee
+actor "Quản lý\nphòng ban" as Manager
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Xem dashboard và\ndữ liệu tổng hợp" as Summary #E6E6E6
+  usecase "Xem dữ liệu\ncá nhân" as Personal
+  usecase "Xem tổng hợp\nphòng ban" as Department
+  usecase "Xem tổng hợp\ntoàn doanh nghiệp" as Company
+  usecase "Lọc theo kỳ, trạng thái\nvà phòng ban" as Filter
+  usecase "Xem chỉ số và\nbiểu đồ thống kê" as Chart
+  usecase "Kiểm tra phạm vi\nquyền được cấp" as Scope
+
+  Summary -[hidden]right- Personal
+  Summary .> Personal : <<include>>
+  Summary .> Department : <<include>>
+  Summary .> Company : <<include>>
+  Summary .> Filter : <<include>>
+  Summary .> Chart : <<include>>
+  Summary .> Scope : <<include>>
+
+  Personal -[hidden]down- Department
+  Department -[hidden]down- Company
+  Company -[hidden]down- Filter
+  Filter -[hidden]down- Chart
+  Chart -[hidden]down- Scope
+}
+
+Employee --> Summary : cá nhân
+Manager --> Summary : phòng ban
+Admin --> Summary : toàn doanh nghiệp
+@enduml

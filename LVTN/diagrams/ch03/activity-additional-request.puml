@@ -1,0 +1,38 @@
+@startuml
+!include ../common/activity-style.puml
+title QUY TRÌNH XỬ LÝ ĐƠN BỔ SUNG
+
+|Nhân viên|
+start
+:Chọn tạo đơn bổ sung cho kỳ trước;
+:Nhập vật tư và lý do bổ sung;
+|Hệ thống|
+:Kiểm tra đúng kỳ trước và kỳ chưa đóng;
+if (Đã đủ 3 đơn hoặc còn đơn Pending?) then (Có)
+  :Từ chối tạo và nêu lý do;
+  stop
+else (Không)
+  :Kiểm tra vật tư và số lượng;
+  :Lưu đơn trạng thái Pending và log CREATE;
+endif
+|Quản trị viên|
+:Mở danh sách chờ duyệt;
+:Xem chi tiết và chọn xử lý;
+if (Phê duyệt?) then (Có)
+  |Hệ thống|
+  :Kiểm tra trạng thái còn Pending;
+  :Chuyển sang Approved;
+  :Ghi người duyệt, thời điểm và log APPROVE;
+else (Từ chối)
+  |Quản trị viên|
+  :Nhập lý do nếu cần;
+  |Hệ thống|
+  :Kiểm tra trạng thái còn Pending;
+  :Chuyển sang Rejected;
+  :Ghi người từ chối, lý do và log REJECT;
+endif
+|Nhân viên|
+:Xem trạng thái xử lý trong lịch sử đơn;
+stop
+@enduml
+

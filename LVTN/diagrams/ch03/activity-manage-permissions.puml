@@ -1,0 +1,44 @@
+@startuml
+!include ../common/activity-style.puml
+title QUY TRÌNH PHÂN QUYỀN
+
+|Quản trị viên|
+start
+:Mở trang phân quyền;
+:Chọn người dùng/nhóm quyền;
+if (Cập nhật quan hệ nhóm cha?) then (Có)
+  :Chọn nhóm cha mới;
+  |Hệ thống|
+  :Kiểm tra tham chiếu vòng;
+  if (Tạo vòng lặp?) then (Có)
+    :Từ chối cập nhật;
+    stop
+  else (Không)
+    :Tính độ sâu cây nhóm;
+    if (Độ sâu từ 10 cấp?) then (Có)
+      :Từ chối do cây quyền quá sâu;
+      stop
+    else (Không)
+      :Cập nhật nhóm cha;
+    endif
+  endif
+else (Không)
+endif
+|Quản trị viên|
+:Chọn trang và component;
+:Thiết lập IsVisible và IsEnable;
+|Hệ thống|
+:Tìm P06_GroupPageComponentMapping;
+if (Mapping tồn tại?) then (Không)
+  :Trả lỗi không tìm thấy;
+  stop
+else (Có)
+  :Cập nhật mapping quyền;
+  :Lưu người và thời điểm cập nhật;
+  :Làm mới PermissionState;
+  |Quản trị viên|
+  :Kiểm tra giao diện theo quyền mới;
+  stop
+endif
+@enduml
+

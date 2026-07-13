@@ -1,0 +1,35 @@
+' Common black-and-white visual style for GTAS VPP thesis diagrams.
+' Do not use color as the only carrier of meaning. Distinguish roles and
+' relationships with labels, borders, solid/dashed lines, and geometry.
+skinparam backgroundColor #FFFFFF
+skinparam monochrome true
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam roundCorner 0
+skinparam ArrowColor #000000
+skinparam ArrowThickness 1.2
+skinparam LineColor #000000
+skinparam BorderColor #000000
+skinparam FontColor #000000
+skinparam ActorBorderColor #000000
+skinparam ActorFontColor #000000
+skinparam UsecaseBorderColor #000000
+skinparam UsecaseBackgroundColor #FFFFFF
+skinparam UsecaseFontColor #000000
+skinparam ParticipantBorderColor #000000
+skinparam ParticipantBackgroundColor #FFFFFF
+skinparam ParticipantFontColor #000000
+skinparam ActivityBorderColor #000000
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityFontColor #000000
+skinparam ClassBorderColor #000000
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassHeaderBackgroundColor #E6E6E6
+skinparam ClassFontColor #000000
+skinparam PackageBorderColor #000000
+skinparam PackageBackgroundColor #FFFFFF
+skinparam NoteBorderColor #000000
+skinparam NoteBackgroundColor #F2F2F2
+skinparam NoteFontColor #000000
+skinparam dpi 180

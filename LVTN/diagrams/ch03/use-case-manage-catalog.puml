@@ -1,0 +1,32 @@
+@startuml
+!include ../common/usecase-style.puml
+title QUẢN LÝ DANH MỤC MẶT HÀNG
+
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Quản lý danh mục\nmặt hàng" as Manage #E6E6E6
+  usecase "Quản lý loại\nvăn phòng phẩm" as Category
+  usecase "Quản lý\nmặt hàng" as Item
+  usecase "Quản lý\nđơn vị tính" as Uom
+  usecase "Quản lý\nnhà cung cấp" as Supplier
+  usecase "Thêm, sửa, xóa mềm\nhoặc khôi phục" as Save
+  usecase "Kiểm tra dữ liệu\nvà ràng buộc" as Validate
+
+  Manage -[hidden]right- Category
+  Manage .> Category : <<include>>
+  Manage .> Item : <<include>>
+  Manage .> Uom : <<include>>
+  Manage .> Supplier : <<include>>
+  Manage .> Save : <<include>>
+  Save .> Validate : <<include>>
+
+  Category -[hidden]down- Item
+  Item -[hidden]down- Uom
+  Uom -[hidden]down- Supplier
+  Supplier -[hidden]down- Save
+  Save -[hidden]down- Validate
+}
+
+Admin --> Manage
+@enduml

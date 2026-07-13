@@ -1,0 +1,23 @@
+' Common black-and-white style for detailed GTAS VPP use-case diagrams.
+!include style.puml
+
+top to bottom direction
+skinparam dpi 180
+skinparam defaultFontSize 15
+skinparam linetype polyline
+skinparam nodesep 38
+skinparam ranksep 34
+skinparam actorStyle stickman
+skinparam actorFontSize 15
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  FontColor #000000
+  FontStyle bold
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  FontColor #000000
+  ArrowColor #000000
+}

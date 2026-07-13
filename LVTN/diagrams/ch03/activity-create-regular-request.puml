@@ -1,0 +1,39 @@
+@startuml
+!include ../common/activity-style.puml
+title QUY TRÌNH TẠO ĐƠN YÊU CẦU THÔNG THƯỜNG
+
+|Nhân viên|
+start
+:Mở chức năng tạo đơn;
+|Hệ thống|
+:Tải kỳ hiện tại từ backend;
+if (Còn trước hạn ngày 5?) then (Có)
+  |Nhân viên|
+  :Chọn vật tư và nhập số lượng;
+  :Gửi đơn;
+  |Hệ thống|
+  :Kiểm tra dữ liệu, vật tư và số lượng;
+  if (Đã có đơn thường trong kỳ?) then (Có)
+    :Từ chối và thông báo đơn trùng;
+    stop
+  else (Không)
+    :Kiểm tra kỳ chưa đóng;
+    if (Hợp lệ?) then (Có)
+      :Bắt đầu transaction;
+      :Lưu header trạng thái Submitted;
+      :Lưu details, giá hiện tại và log CREATE;
+      :Commit;
+      |Nhân viên|
+      :Nhận thông báo thành công;
+      stop
+    else (Không)
+      :Rollback và trả lý do;
+      stop
+    endif
+  endif
+else (Không)
+  :Khóa tạo đơn thường và thông báo quá hạn;
+  stop
+endif
+@enduml
+

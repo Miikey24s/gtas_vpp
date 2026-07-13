@@ -1,0 +1,533 @@
+﻿{
+  "document": "D:\\WORK\\gtas_vpp\\LVTN\\checkpoints\\99_final_mau2026.docx",
+  "paragraphs": 780,
+  "tables": 23,
+  "sections": 8,
+  "chapter_start": 140,
+  "styles": {
+    "Normal": {
+      "style_id": "Normal",
+      "font": "Times New Roman",
+      "size_pt": 13.0,
+      "bold": null,
+      "italic": null,
+      "underline": null,
+      "color": "000000",
+      "alignment": "None",
+      "space_before_pt": 0.0,
+      "space_after_pt": 6.0,
+      "line_spacing": 1.3,
+      "keep_with_next": null,
+      "page_break_before": null
+    },
+    "Heading 1": {
+      "style_id": "Heading1",
+      "font": "Times New Roman",
+      "size_pt": 24.0,
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "color": "000000",
+      "alignment": "RIGHT (2)",
+      "space_before_pt": 0.0,
+      "space_after_pt": 18.0,
+      "line_spacing": 1.0,
+      "keep_with_next": true,
+      "page_break_before": null
+    },
+    "Heading 2": {
+      "style_id": "Heading2",
+      "font": "Times New Roman",
+      "size_pt": 15.0,
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "color": "000000",
+      "alignment": "None",
+      "space_before_pt": 12.0,
+      "space_after_pt": 6.0,
+      "line_spacing": 1.0,
+      "keep_with_next": true,
+      "page_break_before": null
+    },
+    "Heading 3": {
+      "style_id": "Heading3",
+      "font": "Times New Roman",
+      "size_pt": 14.0,
+      "bold": true,
+      "italic": false,
+      "underline": false,
+      "color": "000000",
+      "alignment": "None",
+      "space_before_pt": 6.0,
+      "space_after_pt": 6.0,
+      "line_spacing": 1.0,
+      "keep_with_next": true,
+      "page_break_before": null
+    },
+    "Heading 4": {
+      "style_id": "Heading4",
+      "font": "Times New Roman",
+      "size_pt": 13.0,
+      "bold": false,
+      "italic": false,
+      "underline": true,
+      "color": "000000",
+      "alignment": "None",
+      "space_before_pt": 6.0,
+      "space_after_pt": 6.0,
+      "line_spacing": 1.0,
+      "keep_with_next": true,
+      "page_break_before": null
+    }
+  },
+  "body_direct_font_sizes_by_char": {
+    "13.0": 53157,
+    "14.0": 1198,
+    "15.0": 527,
+    "24.0": 106,
+    "18.0": 25
+  },
+  "body_direct_fonts_by_char": {
+    "Times New Roman": 55013
+  },
+  "body_direct_colors_by_char": {
+    "000000": 55013
+  },
+  "heading_direct_sizes_by_char": {
+    "('Heading4', 13.0)": 1755,
+    "('Heading3', 14.0)": 1198,
+    "('Heading2', 15.0)": 527,
+    "('Heading1', 24.0)": 106,
+    "('Heading1', 18.0)": 25
+  },
+  "table_direct_font_sizes_by_char": {
+    "13.0": 21706
+  },
+  "table_direct_fonts_by_char": {
+    "Times New Roman": 21706
+  },
+  "table_paragraph_spacing_counts": {
+    "(0.0, 1.0)": 492
+  },
+  "caption_count": 83,
+  "caption_examples": [
+    {
+      "index": 102,
+      "text": "Hình 2-1: Kiến trúc triển khai tổng thể hệ thống GTAS VPP\t6",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 103,
+      "text": "Hình 2-2: Sơ đồ phân rã chức năng hệ thống\t21",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 104,
+      "text": "Hình 2-3: Sơ đồ use case tổng quát hệ thống\t22",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 105,
+      "text": "Hình 3-1: Mô hình dữ liệu ý niệm của hệ thống GTAS VPP\t24",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 106,
+      "text": "Hình 3-2: ERD luận lý nhóm tổ chức và phân quyền\t25",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 107,
+      "text": "Hình 3-3: ERD luận lý nhóm danh mục và bảng giá\t26",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 108,
+      "text": "Hình 3-4: ERD luận lý nhóm đơn yêu cầu và nhật ký\t27",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 109,
+      "text": "Hình 3-5: Sơ đồ use case chức năng đăng nhập và tải quyền\t31",
+      "alignment": "None",
+      "runs": []
+    },
+    {
+      "index": 681,
+      "text": "Bảng 4-2: Ma trận kiểm thử xác thực, kỳ và đơn yêu cầu",
+      "alignment": "CENTER (1)",
+      "runs": [
+        {
+          "text": "Bảng 4-2",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": true,
+          "italic": true,
+          "underline": true,
+          "color": "000000"
+        },
+        {
+          "text": ": Ma trận kiểm thử xác thực, kỳ và đơn yêu cầu",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": null,
+          "italic": null,
+          "underline": false,
+          "color": "000000"
+        }
+      ]
+    },
+    {
+      "index": 682,
+      "text": "Bảng 4-3: Ma trận kiểm thử trạng thái, bảng giá và đóng kỳ",
+      "alignment": "CENTER (1)",
+      "runs": [
+        {
+          "text": "Bảng 4-3",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": true,
+          "italic": true,
+          "underline": true,
+          "color": "000000"
+        },
+        {
+          "text": ": Ma trận kiểm thử trạng thái, bảng giá và đóng kỳ",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": null,
+          "italic": null,
+          "underline": false,
+          "color": "000000"
+        }
+      ]
+    },
+    {
+      "index": 683,
+      "text": "Bảng 4-4: Ma trận kiểm thử frontend và audit giao diện",
+      "alignment": "CENTER (1)",
+      "runs": [
+        {
+          "text": "Bảng 4-4",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": true,
+          "italic": true,
+          "underline": true,
+          "color": "000000"
+        },
+        {
+          "text": ": Ma trận kiểm thử frontend và audit giao diện",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": null,
+          "italic": null,
+          "underline": false,
+          "color": "000000"
+        }
+      ]
+    },
+    {
+      "index": 686,
+      "text": "Bảng 4-5: Tổng hợp kết quả kiểm thử và build",
+      "alignment": "CENTER (1)",
+      "runs": [
+        {
+          "text": "Bảng 4-5",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": true,
+          "italic": true,
+          "underline": true,
+          "color": "000000"
+        },
+        {
+          "text": ": Tổng hợp kết quả kiểm thử và build",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": null,
+          "italic": null,
+          "underline": false,
+          "color": "000000"
+        }
+      ]
+    },
+    {
+      "index": 706,
+      "text": "Bảng 5-1: Đối chiếu kết quả thực hiện với mục tiêu đề tài",
+      "alignment": "CENTER (1)",
+      "runs": [
+        {
+          "text": "Bảng 5-1",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": true,
+          "italic": true,
+          "underline": true,
+          "color": "000000"
+        },
+        {
+          "text": ": Đối chiếu kết quả thực hiện với mục tiêu đề tài",
+          "font": "Times New Roman",
+          "size": 13.0,
+          "bold": null,
+          "italic": null,
+          "underline": false,
+          "color": "000000"
+        }
+      ]
+    }
+  ],
+  "headers": [
+    {
+      "section": 1,
+      "kind": "default",
+      "text": ""
+    },
+    {
+      "section": 1,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 1,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 2,
+      "kind": "default",
+      "text": "CHƯƠNG 1. GIỚI THIỆU"
+    },
+    {
+      "section": 2,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 2,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 3,
+      "kind": "default",
+      "text": "CHƯƠNG 2. PHƯƠNG PHÁP THỰC HIỆN"
+    },
+    {
+      "section": 3,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 3,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 4,
+      "kind": "default",
+      "text": "CHƯƠNG 3. THIẾT KẾ"
+    },
+    {
+      "section": 4,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 4,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 5,
+      "kind": "default",
+      "text": "CHƯƠNG 4. THỬ NGHIỆM"
+    },
+    {
+      "section": 5,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 5,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 6,
+      "kind": "default",
+      "text": "CHƯƠNG 5. KẾT LUẬN"
+    },
+    {
+      "section": 6,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 6,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 7,
+      "kind": "default",
+      "text": "PHỤ LỤC"
+    },
+    {
+      "section": 7,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 7,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 8,
+      "kind": "default",
+      "text": "TÀI LIỆU THAM KHẢO"
+    },
+    {
+      "section": 8,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 8,
+      "kind": "even",
+      "text": ""
+    }
+  ],
+  "footers": [
+    {
+      "section": 1,
+      "kind": "default",
+      "text": ""
+    },
+    {
+      "section": 1,
+      "kind": "first",
+      "text": ""
+    },
+    {
+      "section": 1,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 2,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 2,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 2,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 3,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 3,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 3,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 4,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 4,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 4,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 5,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 5,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 5,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 6,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 6,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 6,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 7,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 7,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 7,
+      "kind": "even",
+      "text": ""
+    },
+    {
+      "section": 8,
+      "kind": "default",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 8,
+      "kind": "first",
+      "text": "ĐỀ TÀI: XÂY DỰNG WEBSITE QUẢN LÝ VĂN PHÒNG PHẨM PHONG PHÚ\t1"
+    },
+    {
+      "section": 8,
+      "kind": "even",
+      "text": ""
+    }
+  ]
+}

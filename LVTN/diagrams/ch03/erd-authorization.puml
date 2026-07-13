@@ -1,0 +1,79 @@
+@startuml
+!include ../common/style.puml
+
+left to right direction
+skinparam linetype ortho
+skinparam defaultFontSize 10
+skinparam nodesep 28
+skinparam ranksep 28
+
+entity "P01_Page" as P01 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * PageCode : nvarchar(50)
+  PageName : nvarchar(250)
+  * Type : nvarchar(50)
+}
+
+entity "P03_Component" as P03 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * ComponentCode : nvarchar(50)
+  * ComponentName : nvarchar(150)
+}
+
+entity "P05_PageComponentMapping" as P05 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * P01_PageId : uniqueidentifier <<FK>>
+  * P03_ComponentId : uniqueidentifier <<FK>>
+}
+
+entity "P02_Group" as P02 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * GroupName : nvarchar(50)
+  ParentGroupId : uniqueidentifier
+}
+
+entity "P06_GroupPageComponentMapping" as P06 {
+  * P02_GroupId : uniqueidentifier <<PK, FK>>
+  * P05_PageComponentMappingId : uniqueidentifier <<PK, FK>>
+  * MemberCompanyCode : bigint <<PK>>
+  --
+  * IsEnable : bit
+  * IsVisible : bit
+}
+
+entity "P04_UserGroup" as P04 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * UserId : int <<REF>>
+  * P02_GroupId : uniqueidentifier <<FK>>
+  * LEX02_CompanyDepartmentLocationId : uniqueidentifier <<FK>>
+}
+
+entity "LEX02_CompanyDepartmentLocation" as LEX02 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  LEX02Code : nvarchar(max)
+  LEX02Name : nvarchar(max)
+  * LEX02Type : nvarchar(max)
+  ParentId : uniqueidentifier
+}
+
+entity "v_Users" as VUSER <<view>> {
+  UserId : int
+  UserLogin : string
+  FullName : string
+}
+
+P01 ||--o{ P05
+P03 ||--o{ P05
+P05 ||--o{ P06
+P02 ||--o{ P06
+P02 ||--o{ P04
+LEX02 ||--o{ P04
+VUSER .. P04 : UserId, không có FK
+
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+!include ../common/sequence-style.puml
+title TẠO ĐƠN BỔ SUNG
+
+actor "Nhân viên" as User
+boundary "Page_OrderCreate\n(Blazor)" as FE
+control "VPPRequestController" as API
+control "VPPRequestService" as Service
+database "VPPContext /\nSQL Server" as DB
+
+User -> FE : Chọn tạo đơn bổ sung và nhập lý do
+FE -> FE : Kiểm tra vật tư và mô tả bắt buộc
+FE -> API : GET /period-info
+API -> Service : GetCurrentPeriodInfoAsync(UserID)
+Service --> FE : Kỳ trước do backend xác định
+FE -> API : POST /orders (IsAdditionalOrder=true)
+API -> Service : CreateOrderAsync(req, UserID, Department)
+Service -> Service : Kiểm tra đúng kỳ trước
+Service -> DB : Đếm đơn bổ sung của người dùng trong kỳ
+Service -> DB : Kiểm tra không có đơn Pending khác
+Service -> DB : Kiểm tra kỳ chưa đóng, vật tư còn hiệu lực
+
+alt Đã đủ 3 đơn, còn Pending hoặc kỳ đã đóng
+  Service --> API : Business/Conflict exception
+  API --> FE : 400/409 + lý do
+  FE --> User : Hiển thị lỗi, chưa tạo đơn
+else Hợp lệ
+  Service -> DB : Begin transaction
+  Service -> DB : Thêm header Pending, details và log CREATE
+  Service -> DB : Commit
+  DB --> Service : Đơn bổ sung đã lưu
+  Service --> API : Dữ liệu đơn Pending
+  API --> FE : 200 OK
+  FE --> User : Báo đã gửi chờ phê duyệt
+end
+@enduml
+

@@ -1,0 +1,59 @@
+@startuml
+!include ../common/style.puml
+
+' Semantic source for Hình 2-3.
+' The fixed A4 layout is rendered by use-case-overview-layout.py.
+top to bottom direction
+skinparam defaultFontSize 11
+skinparam titleFontSize 17
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+title Sơ đồ use case tổng quát hệ thống GTAS VPP
+
+actor "Quản trị viên" as Admin
+actor "Quản lý\nphòng ban" as Manager
+actor "Nhân viên" as Employee
+actor "Xử lý tự động" as Automation
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Đăng nhập và\ntải quyền" as UC_Login
+
+  usecase "Quản lý danh mục,\nvật tư và nhà cung cấp" as UC_Master
+  usecase "Quản lý bảng giá" as UC_Price
+  usecase "Duyệt hoặc từ chối\nđơn bổ sung" as UC_Approve
+  usecase "Đóng kỳ và\nchụp đơn giá" as UC_Settle
+  usecase "Quản lý người dùng\nvà phân quyền" as UC_Permission
+  usecase "Xem tổng hợp\ntoàn hệ thống" as UC_Enterprise
+
+  usecase "Xem tổng hợp\nphòng ban" as UC_Department
+
+  usecase "Xem danh mục\nvăn phòng phẩm" as UC_Catalog
+  usecase "Tạo, sao chép, sửa\nhoặc hủy đơn" as UC_Request
+  usecase "Tạo đơn bổ sung" as UC_Additional
+  usecase "Xem lịch sử và\ntrạng thái đơn" as UC_History
+
+  usecase "Tính kỳ, kiểm tra ràng buộc,\nchụp giá và ghi log" as UC_Automation
+}
+
+Admin -- UC_Login
+Manager -- UC_Login
+Employee -- UC_Login
+
+Admin -- UC_Master
+Admin -- UC_Price
+Admin -- UC_Approve
+Admin -- UC_Settle
+Admin -- UC_Permission
+Admin -- UC_Enterprise
+
+Manager -- UC_Department
+
+Employee -- UC_Catalog
+Employee -- UC_Request
+Employee -- UC_Additional
+Employee -- UC_History
+
+Automation -- UC_Automation
+
+@enduml

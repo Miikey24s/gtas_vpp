@@ -1,0 +1,40 @@
+@startuml
+!include ../common/sequence-style.puml
+title ĐÓNG KỲ VÀ CHỤP GIÁ
+
+actor "Quản trị viên" as Admin
+boundary "PeriodSettlementPanel\n(Blazor)" as FE
+control "PeriodSettlementController" as API
+control "PeriodSettlementService" as Service
+database "VPPContext /\nSQL Server" as DB
+
+Admin -> FE : Chọn kỳ, bảng giá và xác nhận đóng kỳ
+FE -> API : POST /api/PeriodSettlement/settle
+API -> Service : SettleAsync(Y, M, PriceListId, UserID)
+Service -> Service : Kiểm tra Y/M
+Service -> DB : Begin transaction
+Service -> DB : Lấy bảng giá được chọn hoặc mặc định
+Service -> DB : Đếm đơn bổ sung còn Pending
+Service -> DB : Tải đơn Submitted/Approved và chi tiết
+Service -> DB : Kiểm tra giá cho toàn bộ vật tư
+
+alt Thiếu bảng giá, còn Pending hoặc thiếu giá
+  Service -> DB : Rollback
+  Service --> API : Business/Conflict exception
+  API --> FE : 400/409 + chi tiết
+  FE --> Admin : Hiển thị nguyên nhân chưa thể đóng kỳ
+else Đủ điều kiện
+  loop Mỗi đơn và chi tiết hợp lệ
+    Service -> DB : Chụp CurrentSinglePrice
+    Service -> DB : Ghi SettledAt/By/PriceListId
+    Service -> DB : Thêm log PERIOD_SETTLED
+  end
+  Service -> DB : Commit
+  Service -> DB : GetStatusAsync(Y, M)
+  DB --> Service : Trạng thái kỳ sau khi đóng
+  Service --> API : VPP_PeriodSettlementResDTO
+  API --> FE : 200 OK
+  FE --> Admin : Cập nhật trạng thái và số liệu kỳ
+end
+@enduml
+

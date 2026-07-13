@@ -1,0 +1,30 @@
+@startuml
+!include ../common/usecase-style.puml
+title QUẢN LÝ NGƯỜI DÙNG VÀ PHÂN QUYỀN
+
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Quản lý người dùng\nvà phân quyền" as Manage #E6E6E6
+  usecase "Quản lý\nnhóm quyền" as Group
+  usecase "Gán người dùng vào\nnhóm và phòng ban" as Assignment
+  usecase "Cấu hình quyền trang,\ncomponent và cờ truy cập" as Permission
+  usecase "Kiểm tra dữ liệu và\nquan hệ nhóm" as Validate
+  usecase "Làm mới quyền\ntruy cập" as Refresh
+
+  Manage -[hidden]right- Group
+  Manage .> Group : <<include>>
+  Manage .> Assignment : <<include>>
+  Manage .> Permission : <<include>>
+  Group .> Validate : <<include>>
+  Assignment .> Validate : <<include>>
+  Permission .> Refresh : <<include>>
+
+  Group -[hidden]down- Assignment
+  Assignment -[hidden]down- Validate
+  Validate -[hidden]down- Permission
+  Permission -[hidden]down- Refresh
+}
+
+Admin --> Manage
+@enduml

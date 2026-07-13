@@ -1,0 +1,29 @@
+@startuml
+!include ../common/usecase-style.puml
+title CHỈNH SỬA VÀ HỦY ĐƠN YÊU CẦU
+
+actor "Nhân viên" as Employee
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Thao tác trên\nđơn của tôi" as Manage #E6E6E6
+  usecase "Chỉnh sửa\nđơn yêu cầu" as Edit
+  usecase "Hủy\nđơn yêu cầu" as Cancel
+  usecase "Kiểm tra chủ sở hữu,\nkỳ và trạng thái" as Check
+  usecase "Cập nhật dữ liệu hoặc\nchuyển trạng thái Cancelled" as Persist
+  usecase "Ghi nhật ký\nthao tác" as Log
+
+  Manage -[hidden]right- Check
+  Manage .> Check : <<include>>
+  Manage .> Log : <<include>>
+  Edit .> Manage : <<extend>>
+  Cancel .> Manage : <<extend>>
+  Edit .> Persist : <<include>>
+  Cancel .> Persist : <<include>>
+
+  Check -[hidden]down- Log
+  Edit -[hidden]down- Cancel
+  Cancel -[hidden]down- Persist
+}
+
+Employee --> Manage
+@enduml

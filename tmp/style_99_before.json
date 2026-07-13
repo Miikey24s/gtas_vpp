@@ -1,0 +1,168 @@
+{
+  "input": "D:\\WORK\\gtas_vpp\\LVTN\\checkpoints\\99_final.docx",
+  "fonts_by_char_count": {},
+  "direct_run_formatting_runs": 798,
+  "direct_paragraph_formatting_paragraphs": 871,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 3,
+      "text": "KHOA C\u00d4NG NGH\u1ec6 TH\u00d4NG TIN",
+      "style": "Normal"
+    },
+    {
+      "para_index": 8,
+      "text": "\tLU\u1eacN V\u0102N T\u1ed0T NGHI\u1ec6P",
+      "style": "Normal"
+    },
+    {
+      "para_index": 14,
+      "text": "X\u00c2Y D\u1ef0NG WEBSITE QU\u1ea2N L\u00dd V\u0102N PH\u00d2NG PH\u1ea8M PHONG PH\u00da",
+      "style": "Normal"
+    },
+    {
+      "para_index": 19,
+      "text": "Ng\u01b0\u1eddi h\u01b0\u1edbng d\u1eabn: ThS. VI\u00caN THANH NH\u00c3",
+      "style": "Normal"
+    },
+    {
+      "para_index": 20,
+      "text": "Sinh vi\u00ean th\u1ef1c hi\u1ec7n: NGUY\u1ec4N AN NAM",
+      "style": "Normal"
+    },
+    {
+      "para_index": 29,
+      "text": "L\u1edcI C\u1ea2M \u01a0N",
+      "style": "Normal"
+    },
+    {
+      "para_index": 37,
+      "text": "\t\tM\u1ee4C L\u1ee4C",
+      "style": "Normal"
+    },
+    {
+      "para_index": 102,
+      "text": "M\u1ee4C L\u1ee4C C\u00c1C H\u00ccNH V\u1ebc",
+      "style": "Normal"
+    },
+    {
+      "para_index": 194,
+      "text": "H\u00ecnh 2-1: Ki\u1ebfn tr\u00fac tri\u1ec3n khai t\u1ed5ng th\u1ec3 h\u1ec7 th\u1ed1ng GTAS VPP",
+      "style": "Normal"
+    },
+    {
+      "para_index": 491,
+      "text": "H\u00ecnh 2-2: S\u01a1 \u0111\u1ed3 ph\u00e2n r\u00e3 ch\u1ee9c n\u0103ng h\u1ec7 th\u1ed1ng",
+      "style": "Normal"
+    },
+    {
+      "para_index": 494,
+      "text": "H\u00ecnh 2-3: S\u01a1 \u0111\u1ed3 use case t\u1ed5ng qu\u00e1t h\u1ec7 th\u1ed1ng",
+      "style": "Normal"
+    },
+    {
+      "para_index": 503,
+      "text": "H\u00ecnh 3-1: M\u00f4 h\u00ecnh d\u1eef li\u1ec7u \u00fd ni\u1ec7m c\u1ee7a h\u1ec7 th\u1ed1ng GTAS VPP",
+      "style": "Normal"
+    },
+    {
+      "para_index": 509,
+      "text": "H\u00ecnh 3-2: ERD lu\u1eadn l\u00fd nh\u00f3m t\u1ed5 ch\u1ee9c v\u00e0 ph\u00e2n quy\u1ec1n",
+      "style": "Normal"
+    },
+    {
+      "para_index": 513,
+      "text": "H\u00ecnh 3-3: ERD lu\u1eadn l\u00fd nh\u00f3m danh m\u1ee5c v\u00e0 b\u1ea3ng gi\u00e1",
+      "style": "Normal"
+    },
+    {
+      "para_index": 517,
+      "text": "H\u00ecnh 3-4: ERD lu\u1eadn l\u00fd nh\u00f3m \u0111\u01a1n y\u00eau c\u1ea7u v\u00e0 nh\u1eadt k\u00fd",
+      "style": "Normal"
+    },
+    {
+      "para_index": 520,
+      "text": "B\u1ea3ng 3-1: M\u00f4 h\u00ecnh v\u1eadt l\u00fd nh\u00f3m t\u1ed5 ch\u1ee9c v\u00e0 ph\u00e2n quy\u1ec1n",
+      "style": "Normal"
+    },
+    {
+      "para_index": 522,
+      "text": "B\u1ea3ng 3-2: M\u00f4 h\u00ecnh v\u1eadt l\u00fd nh\u00f3m danh m\u1ee5c v\u00e0 b\u1ea3ng gi\u00e1",
+      "style": "Normal"
+    },
+    {
+      "para_index": 524,
+      "text": "B\u1ea3ng 3-3: M\u00f4 h\u00ecnh v\u1eadt l\u00fd nh\u00f3m \u0111\u01a1n y\u00eau c\u1ea7u v\u00e0 nh\u1eadt k\u00fd",
+      "style": "Normal"
+    },
+    {
+      "para_index": 532,
+      "text": "H\u00ecnh 3-5: S\u01a1 \u0111\u1ed3 use case ch\u1ee9c n\u0103ng \u0111\u0103ng nh\u1eadp v\u00e0 t\u1ea3i quy\u1ec1n",
+      "style": "Normal"
+    },
+    {
+      "para_index": 537,
+      "text": "H\u00ecnh 3-6: S\u01a1 \u0111\u1ed3 use case ch\u1ee9c n\u0103ng t\u1ea1o \u0111\u01a1n y\u00eau c\u1ea7u th\u00f4ng th\u01b0\u1eddng",
+      "style": "Normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "text": "TR\u01af\u1edcNG \u0110\u1ea0I H\u1eccC C\u00d4NG NGH\u1ec6 S\u00c0I G\u00d2N",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "KHOA C\u00d4NG NGH\u1ec6 TH\u00d4NG TIN",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "text": "---oOo---",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "text": "",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 3,
+        "run_text": "KHOA C\u00d4NG NGH\u1ec6 TH\u00d4NG TIN",
+        "style": "Normal"
+      },
+      {
+        "para_index": 8,
+        "run_text": "\tLU\u1eacN V\u0102N T\u1ed0T NGHI\u1ec6P",
+        "style": "Normal"
+      },
+      {
+        "para_index": 13,
+        "run_text": "T\u00ean ",
+        "style": "Normal"
+      },
+      {
+        "para_index": 13,
+        "run_text": "\u0111",
+        "style": "Normal"
+      },
+      {
+        "para_index": 13,
+        "run_text": "\u1ec1 ",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

@@ -1,0 +1,32 @@
+@startuml
+!include ../common/usecase-style.puml
+title DUYỆT HOẶC TỪ CHỐI ĐƠN BỔ SUNG
+
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Xử lý đơn\nbổ sung" as Process #E6E6E6
+  usecase "Duyệt đơn\nbổ sung" as Approve
+  usecase "Từ chối đơn\nbổ sung" as Reject
+  usecase "Xem danh sách và\nchi tiết đơn Pending" as Review
+  usecase "Kiểm tra trạng thái\nhiện tại" as State
+  usecase "Nhập lý do\ntừ chối" as Reason
+  usecase "Ghi kết quả, người xử lý\nvà nhật ký" as Audit
+
+  Process -[hidden]right- Review
+  Process .> Review : <<include>>
+  Process .> State : <<include>>
+  Approve .> Process : <<extend>>
+  Reject .> Process : <<extend>>
+  Reject .> Reason : <<include>>
+  Approve .> Audit : <<include>>
+  Reject .> Audit : <<include>>
+
+  Review -[hidden]down- State
+  State -[hidden]down- Audit
+  Approve -[hidden]down- Reject
+  Reject -[hidden]down- Reason
+}
+
+Admin --> Process
+@enduml

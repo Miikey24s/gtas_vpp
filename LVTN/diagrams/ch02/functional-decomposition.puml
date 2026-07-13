@@ -1,0 +1,48 @@
+@startwbs
+' Nội dung nguồn của Hình 2-2.
+' Bố cục cố định giống hình mẫu được xuất bởi functional-decomposition-layout.py.
+<style>
+wbsDiagram {
+  BackgroundColor white
+  LineColor black
+  FontName Arial
+  FontColor black
+  node {
+    BackgroundColor white
+    LineColor black
+    FontName Arial
+    FontColor black
+  }
+}
+</style>
+
+* HỆ THỐNG GTAS VPP
+** Xác thực và phân quyền
+*** Đăng nhập
+*** Tải quyền trang/component
+*** Quản lý nhóm quyền
+*** Quản lý người dùng
+** Đơn yêu cầu thường
+*** Xác định kỳ và hạn chốt
+*** Tạo hoặc sao chép đơn thường
+*** Sửa hoặc hủy đơn yêu cầu
+*** Xem lịch sử và trạng thái đơn
+** Đơn bổ sung
+*** Kiểm tra điều kiện đơn bổ sung
+*** Tạo đơn bổ sung
+*** Duyệt hoặc từ chối đơn bổ sung
+*** Theo dõi trạng thái đơn
+** Danh mục và bảng giá
+*** Quản lý danh mục và vật tư
+*** Quản lý đơn vị tính
+*** Quản lý nhà cung cấp
+*** Quản lý bảng giá
+*** Ánh xạ giá theo nhà cung cấp
+** Tổng hợp và cuối kỳ
+*** Tổng hợp cá nhân
+*** Tổng hợp phòng ban
+*** Tổng hợp toàn hệ thống
+*** Đóng kỳ và chụp đơn giá
+*** Ghi log thao tác
+
+@endwbs

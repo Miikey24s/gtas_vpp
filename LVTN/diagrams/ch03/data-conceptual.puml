@@ -1,0 +1,48 @@
+@startuml
+!include ../common/style.puml
+
+left to right direction
+skinparam linetype ortho
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+
+package "Tổ chức và phân quyền" {
+  entity "Đơn vị tổ chức" as Org
+  entity "Người dùng" as User
+  entity "Nhóm quyền" as Group
+  entity "Trang / chức năng" as Permission
+}
+
+package "Danh mục và bảng giá" {
+  entity "Loại vật tư" as Category
+  entity "Vật tư văn phòng" as Item
+  entity "Đơn vị tính" as Uom
+  entity "Nhà cung cấp" as Supplier
+  entity "Bảng giá" as PriceList
+  entity "Giá vật tư" as Price
+}
+
+package "Đơn yêu cầu" {
+  entity "Đơn yêu cầu" as Request
+  entity "Chi tiết đơn" as Detail
+  entity "Nhật ký thao tác" as Log
+}
+
+Org ||--o{ User : quản lý
+User }o--o{ Group : được gán
+Group }o--o{ Permission : được cấp
+
+Category ||--o{ Item : phân loại
+Uom ||--o{ Item : định lượng
+Item ||--o{ Price : có giá
+Supplier ||--o{ Price : cung cấp
+PriceList ||--o{ Price : công bố
+
+User ||--o{ Request : tạo
+Org ||--o{ Request : tổng hợp
+Request ||--|{ Detail : bao gồm
+Item ||--o{ Detail : được yêu cầu
+Request ||--o{ Log : ghi nhận
+PriceList ||--o{ Request : chốt giá
+
+@enduml

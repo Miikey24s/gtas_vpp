@@ -1,0 +1,33 @@
+@startuml
+!include ../common/usecase-style.puml
+title ĐÓNG KỲ VÀ CHỤP GIÁ
+
+actor "Quản trị viên" as Admin
+actor "Xử lý tự động\ncủa hệ thống" as Automation
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Đóng kỳ và\nchụp giá" as Settle #E6E6E6
+  usecase "Chọn kỳ và\nbảng giá áp dụng" as Select
+  usecase "Kiểm tra không còn Pending\nvà đủ giá cho vật tư" as Validate
+  usecase "Chụp đơn giá vào\nchi tiết đơn" as Snapshot
+  usecase "Ghi SettledAt và\nSettledByPriceListId" as Mark
+  usecase "Ghi nhật ký\nthao tác" as Log
+  usecase "Hủy giao dịch khi\nkhông đủ điều kiện" as Rollback
+
+  Settle -[hidden]right- Select
+  Settle .> Select : <<include>>
+  Settle .> Validate : <<include>>
+  Settle .> Snapshot : <<include>>
+  Settle .> Mark : <<include>>
+  Settle .> Log : <<include>>
+  Rollback .> Settle : <<extend>>
+
+  Select -[hidden]down- Validate
+  Validate -[hidden]down- Snapshot
+  Snapshot -[hidden]down- Mark
+  Mark -[hidden]down- Log
+}
+
+Admin --> Settle
+Automation --> Settle
+@enduml

@@ -1,0 +1,84 @@
+﻿paragraphs=745 tables=23 sections=8
+chapter5_start=695
+P0692	'Normal'	Chức năng chưa hoàn thiện: Trang Report và xuất Excel/PDF chưa được tính là chức năng đã đạt; các test hiện tại chỉ chứng minh dashboard tổng hợp và các helper liên quan.
+P0695	'Heading 1'	CHƯƠNG 5. KẾT LUẬN
+P0696	'Heading 2'	5.1 KẾT QUẢ ĐỐI CHIẾU VỚI MỤC TIÊU
+P0697	'Heading 2'	5.2 CÁC VẤN ĐỀ CÒN TỒN ĐỌNG
+P0698	'List Paragraph'	- Hệ thống mới được kiểm thử chủ yếu trong môi trường phát triển và kiểm thử, chưa có thời gian đánh giá tải lớn với dữ liệu thực tế dài hạn.
+P0699	'List Paragraph'	- Chức năng báo cáo hiện tập trung hiển thị trên giao diện, chưa hoàn thiện xuất biểu mẫu Excel/PDF theo chuẩn doanh nghiệp.
+P0700	'List Paragraph'	- Dữ liệu người dùng, công ty và phòng ban đang được mô hình hóa trong phạm vi đề tài; khi triển khai thực tế cần tích hợp với hệ thống nhân sự hoặc danh bạ nội bộ.
+P0701	'List Paragraph'	- Chưa xây dựng đầy đủ cơ chế thông báo chủ động qua email hoặc notification khi đơn bổ sung được duyệt/từ chối hoặc khi gần đến hạn chốt kỳ.
+P0702	'List Paragraph'	- Một số quy trình phê duyệt nâng cao như nhiều cấp duyệt hoặc ngân sách theo phòng ban chưa nằm trong phạm vi hiện tại.
+P0703	'Heading 2'	5.3 MỞ RỘNG
+P0704	'List Paragraph'	- Bổ sung xuất báo cáo Excel/PDF cho tổng hợp kỳ, tổng hợp phòng ban và danh sách mặt hàng cần mua.
+P0705	'List Paragraph'	- Tích hợp email hoặc notification để nhắc hạn gửi đơn, thông báo trạng thái đơn bổ sung và kết quả đóng kỳ.
+P0706	'List Paragraph'	- Tích hợp dữ liệu người dùng/phòng ban với hệ thống nhân sự nội bộ để giảm thao tác nhập liệu thủ công.
+P0707	'List Paragraph'	- Bổ sung dashboard phân tích chi phí theo tháng, phòng ban, loại hàng và nhà cung cấp.
+P0708	'List Paragraph'	- Mở rộng cơ chế phê duyệt nhiều cấp, hạn mức ngân sách và so sánh giá giữa các nhà cung cấp.
+P0709	'List Paragraph'	- Tối ưu hiệu năng truy vấn và bổ sung kiểm thử tải khi triển khai trên dữ liệu thật.
+P0710	'Normal'	
+P0711	'Heading 1'	PHỤ LỤC
+P0712	'Heading 2'	PHỤ LỤC A. HƯỚNG DẪN SỬ DỤNG QUY TRÌNH TẠO ĐƠN
+P0713	'List Paragraph'	1. Người dùng truy cập website và đăng nhập bằng tài khoản được cấp.
+P0714	'List Paragraph'	2. Tại Dashboard, chọn chức năng tạo đơn yêu cầu văn phòng phẩm.
+P0715	'List Paragraph'	3. Kiểm tra thông tin kỳ hiện tại, trạng thái còn hạn gửi đơn và thông báo của hệ thống.
+P0716	'List Paragraph'	4. Tìm kiếm mặt hàng theo mã hoặc tên, chọn mặt hàng cần yêu cầu và nhập số lượng.
+P0717	'List Paragraph'	5. Kiểm tra lại danh sách chi tiết, ghi chú nếu cần và nhấn gửi đơn.
+P0718	'List Paragraph'	6. Sau khi gửi thành công, đơn xuất hiện trong danh sách đơn của tôi với trạng thái Submitted.
+P0719	'List Paragraph'	7. Nếu còn trong thời hạn, người dùng có thể mở lại đơn để chỉnh sửa hoặc hủy đơn.
+P0720	'Heading 2'	PHỤ LỤC B. HƯỚNG DẪN XỬ LÝ ĐƠN BỔ SUNG VÀ ĐÓNG KỲ
+P0721	'List Paragraph'	1. Quản trị viên đăng nhập bằng tài khoản có quyền REQUEST_ADMIN_APPROVAL và PERIOD_SETTLE.
+P0722	'List Paragraph'	2. Vào Dashboard, chọn vùng thao tác kỳ hoặc danh sách đơn bổ sung đang chờ duyệt.
+P0723	'List Paragraph'	3. Mở từng đơn bổ sung, kiểm tra nội dung yêu cầu và chọn duyệt hoặc từ chối.
+P0724	'List Paragraph'	4. Sau khi không còn đơn bổ sung pending, chọn kỳ cần đóng và bảng giá áp dụng.
+P0725	'List Paragraph'	5. Hệ thống kiểm tra bảng giá có đủ giá cho các mặt hàng phát sinh trong kỳ.
+P0726	'List Paragraph'	6. Nếu hợp lệ, hệ thống chụp giá vào chi tiết đơn, ghi thời điểm đóng kỳ và người thực hiện.
+P0727	'List Paragraph'	7. Quản trị viên xem lại tổng hợp kỳ để đối chiếu số đơn, số dòng hàng, tổng số lượng và tổng tiền.
+P0728	'Normal'	
+P0729	'Heading 1'	TÀI LIỆU THAM KHẢO
+P0730	'Normal'	[1] Microsoft, “ASP.NET Core Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/aspnet/core
+P0731	'Normal'	[2] Microsoft, “Entity Framework Core Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/ef/core
+P0732	'Normal'	[3] Microsoft, “SQL Server Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/sql/sql-server
+P0733	'Normal'	[4] Microsoft, “Blazor Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/aspnet/core/blazor
+P0734	'Normal'	[5] Radzen, “Radzen Blazor Components Documentation.” Available: https://blazor.radzen.com
+P0735	'Normal'	[6] Mapster Project, “Mapster Documentation.” Available: https://github.com/MapsterMapper/Mapster
+P0736	'Normal'	[7] Serilog Project, “Serilog Documentation.” Available: https://serilog.net
+P0737	'Normal'	[8] Docker, “Docker Compose Documentation.” Available: https://docs.docker.com/compose
+P0738	'Normal'	[9] Microsoft, “Playwright for .NET Documentation.” Available: https://playwright.dev/dotnet
+P0739	'Normal'	[10] Mã nguồn đề tài GTAS VPP trong workspace luận văn, các module backend, frontend, shared DTO, test và audit report.
+P0740	'Normal'	[11] Google Workspace Learning Center, "Share & collaborate on a spreadsheet." Available: https://support.google.com/a/users/answer/13309904
+P0741	'Normal'	[12] Microsoft Support, "Basic tasks in Excel for the web." Available: https://support.microsoft.com/en-US/Excel/basic-tasks-in-excel-for-the-web
+P0742	'Normal'	[13] Odoo, "Purchase - Odoo 18.0 documentation." Available: https://www.odoo.com/documentation/18.0/applications/inventory_and_mrp/purchase.html
+P0743	'Normal'	[14] Atlassian, "Get started with service requests in Jira Service Management." Available: https://www.atlassian.com/software/jira/service-management/product-guide/getting-started/service-request-management
+P0744	'Normal'	[15] Zoho Creator, "Approval workflows." Available: https://www.zoho.com/creator/approval-workflow/
+
+=== IN-TEXT CITATION PARAGRAPHS ===
+C0181	'Normal'	Tài liệu chính thức cho thấy Google Sheets và Excel for the web hỗ trợ chia sẻ, đồng biên soạn; Odoo Purchase hỗ trợ quản lý báo giá và đơn mua hàng; Jira Service Management và Zoho Creator hỗ trợ tiếp nhận yêu cầu, luồng xử lý hoặc phê duyệt [11]-[15]. Bảng so sánh dưới đây đánh giá các nhóm giải pháp theo mức độ phù hợp với nghiệp vụ riêng của GTAS VPP, gồm quy tắc ngày 5, đơn bổ sung, chụp giá và phân quyền chi tiết.
+C0183	'Normal'	Hệ thống GTAS VPP được hiện thực trên nền tảng .NET 10, gồm frontend Blazor Server, backend ASP.NET Core Web API và cơ sở dữ liệu SQL Server. Các lựa chọn công nghệ trong mục này được đối chiếu trực tiếp với project, package reference và cấu hình khởi động của hệ thống [1]-[9].
+C0730	'Normal'	[1] Microsoft, “ASP.NET Core Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/aspnet/core
+C0731	'Normal'	[2] Microsoft, “Entity Framework Core Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/ef/core
+C0732	'Normal'	[3] Microsoft, “SQL Server Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/sql/sql-server
+C0733	'Normal'	[4] Microsoft, “Blazor Documentation,” Microsoft Learn. Available: https://learn.microsoft.com/aspnet/core/blazor
+C0734	'Normal'	[5] Radzen, “Radzen Blazor Components Documentation.” Available: https://blazor.radzen.com
+C0735	'Normal'	[6] Mapster Project, “Mapster Documentation.” Available: https://github.com/MapsterMapper/Mapster
+C0736	'Normal'	[7] Serilog Project, “Serilog Documentation.” Available: https://serilog.net
+C0737	'Normal'	[8] Docker, “Docker Compose Documentation.” Available: https://docs.docker.com/compose
+C0738	'Normal'	[9] Microsoft, “Playwright for .NET Documentation.” Available: https://playwright.dev/dotnet
+C0739	'Normal'	[10] Mã nguồn đề tài GTAS VPP trong workspace luận văn, các module backend, frontend, shared DTO, test và audit report.
+C0740	'Normal'	[11] Google Workspace Learning Center, "Share & collaborate on a spreadsheet." Available: https://support.google.com/a/users/answer/13309904
+C0741	'Normal'	[12] Microsoft Support, "Basic tasks in Excel for the web." Available: https://support.microsoft.com/en-US/Excel/basic-tasks-in-excel-for-the-web
+C0742	'Normal'	[13] Odoo, "Purchase - Odoo 18.0 documentation." Available: https://www.odoo.com/documentation/18.0/applications/inventory_and_mrp/purchase.html
+C0743	'Normal'	[14] Atlassian, "Get started with service requests in Jira Service Management." Available: https://www.atlassian.com/software/jira/service-management/product-guide/getting-started/service-request-management
+C0744	'Normal'	[15] Zoho Creator, "Approval workflows." Available: https://www.zoho.com/creator/approval-workflow/
+
+=== TABLE TEXT NEAR END ===
+T17	Tầng kiểm thử / Công cụ / Phạm vi / Bằng chứng | Backend unit/integration / xUnit, Moq, FluentAssertions, EF Core InMemory/SQLite / Quy tắc kỳ, trạng thái đơn, tạo đơn, bảng giá, đóng kỳ, controller và middleware. / Tệp TRX sinh ngày 13/07/2026. | Frontend helper / xUnit / Chuẩn hóa URL API, quy tắc bỏ qua chứng chỉ trong Development và định dạng ngày giờ. / Tệp TRX sinh ngày 13/07/2026. | UI end-to-end / Playwright for .NET / Project có test đăng nhập, tạo đơn, lịch sử, tổng hợp, danh mục và phân quyền. / Project build thành công; không chạy E2E trong đợt này vì cần môi trường FE/BE và dữ liệu test đã cấu hình. | UI audit snapshot / Playwright audit runner / 18 route xác thực trên mobile, tablet và desktop. / Snapshot 28/05/2026, tổng cộng 54 lượt.
+T18	Mã / Tiền điều kiện / Bước thực hiện / Kết quả mong đợi / Kết quả thực tế / TT | TC-01 / Có tài khoản đúng, sai và môi trường Live-only. / Gọi API đăng nhập lần lượt với ba bộ dữ liệu. / Đúng thông tin trả token; sai thông tin trả 401; môi trường không hợp lệ trả 400. / 3/3 test xác thực đạt. / Đạt | TC-02 / Mốc thời gian trước, đúng và sau 00:00 ngày 5. / Tính kỳ hiện tại, kỳ trước, deadline và kiểm tra đã quá hạn. / Chuyển kỳ đúng biên ngày 5; deadline là ngày 5 của tháng kế tiếp. / 18/18 test tính kỳ đạt. / Đạt | TC-03 / Danh sách vật tư null/rỗng, số lượng không dương hoặc trùng mã. / Gọi validation trước khi tạo đơn. / Từ chối dữ liệu không hợp lệ và không ghi đơn. / 4 trường hợp validation đạt. / Đạt | TC-04 / Kỳ còn mở và dữ liệu vật tư hợp lệ. / Tạo một đơn thường và một đơn bổ sung. / Đơn thường ở Submitted; đơn bổ sung ở Pending. / 2 test tạo đơn đạt đúng trạng thái. / Đạt | TC
+T19	Mã / Tiền điều kiện / Bước thực hiện / Kết quả mong đợi / Kết quả thực tế / TT | TC-06 / Đơn ở Submitted, Pending, Approved, Rejected hoặc Cancelled. / Thực hiện Update, Cancel, Approve và Reject theo từng trạng thái. / Chỉ các chuyển trạng thái hợp lệ thành công; tổ hợp sai phát sinh lỗi nghiệp vụ. / 20/20 test chuyển trạng thái đạt. / Đạt | TC-07 / Có nhiều bảng giá/giá nhà cung cấp và một bản ghi mặc định. / Đặt mặc định, sao chép, cập nhật và thử xóa bản mặc định hoặc đang được dùng. / Luôn còn một mặc định; clone tạo ID mới; thao tác xóa không hợp lệ bị chặn. / 13/13 test bảng giá và giá nhà cung cấp đạt. / Đạt | TC-08 / Không còn đơn bổ sung Pending; bảng giá đủ giá. / Đóng kỳ và gọi lại settlement. / Chụp giá từng dòng, đóng dấu header, ghi log; lần gọi sau vẫn nhất quán. / Các nhánh happy path, log và idempotent đạt. / Đạt | TC-09 / Còn đơn Pending hoặc thiếu giá cho một vật tư. 
+T20	Mã / Tiền điều kiện / Bước thực hiện / Kết quả mong đợi / Kết quả thực tế / TT | TC-11 / Có URL localhost, wildcard, container và cấu hình thiếu. / Resolve URL và kiểm tra quy tắc bypass chứng chỉ. / Chuẩn hóa đúng host; chỉ bypass HTTPS localhost trong Development; thiếu URL phát sinh lỗi. / 12/12 test URL đạt. / Đạt | TC-12 / Có giá trị ngày giờ hợp lệ, nullable và culture khác nhau. / Định dạng ngày ngắn, dài, giờ, tháng/năm và null. / Hiển thị dd/MM/yyyy, HH:mm ổn định; null thành dấu gạch ngang. / 14/14 test định dạng đạt. / Đạt | TC-13 / Frontend tại commit và dữ liệu SERVER TEST của đợt audit. / Mở 18 route trên 3 viewport; kiểm tra lỗi Blazor, response, console và tràn ngang. / Mỗi lượt không có lỗi chặn theo tiêu chí audit. / 54/54 lượt OK ngày 28/05/2026; đây là snapshot, chưa chạy lại hiện tại. / Đạt tại snapshot
+T21	Hạng mục / Tổng / Đạt / Không đạt / bỏ qua / Thời gian / Mốc và ghi chú | Backend test / 132 / 132 / 0 / 0 / 4 giây / Chạy 13/07/2026; có TRX. | Frontend helper test / 26 / 26 / 0 / 0 / 585 ms / Chạy 13/07/2026; có TRX. | Build solution chính / - / 0 lỗi / 0 cảnh báo / 10,54 giây / Build 13/07/2026; solution không gồm project test. | Build project UI test / - / 0 lỗi / 0 cảnh báo / 8,07 giây / Build 13/07/2026; không chạy E2E. | UI audit / 54 / 54 OK / 0 lỗi audit / - / Snapshot 28/05/2026: 18 route × 3 viewport.
+T22	Mục tiêu / Kết quả thực hiện / Đánh giá | Quản lý đơn văn phòng phẩm theo kỳ / Đã xây dựng luồng tạo, sửa, hủy, xem lịch sử, đơn bổ sung, kiểm tra deadline và chống trùng đơn. / Đạt | Quản lý danh mục và bảng giá / Đã xây dựng nhóm chức năng Library, bảng giá L07, giá theo nhà cung cấp L06, sao chép bảng giá và đặt bảng giá mặc định. / Đạt | Tổng hợp và đóng kỳ / Đã có tổng hợp cá nhân/phòng ban/toàn doanh nghiệp và PeriodSettlementService để chụp giá khi đóng kỳ. / Đạt | Phân quyền chi tiết / Đã có nhóm quyền, ánh xạ trang-component và policy authorization phía backend. / Đạt | Kiểm thử và triển khai / Đã có test backend/frontend, Playwright UI tests, audit report và Docker Compose cho SQL Server, backend, frontend. / Đạt ở mức đề tài
+
+bookmarks=63 hyperlinks=103 internal=55 external=48
+bookmark_names_tail= ['_Toc234831679', '_Toc234831680', '_Toc234831681', '_Toc234831682', '_Toc234831683', '_Toc234831684', '_Toc234831685', '_Toc234831686', '_Toc234831687', '_Toc234831688', '_Toc234831689', '_Toc234831690', '_Toc234831691', '_Toc234831692', '_Toc234831693', '_Toc234831694', '_Toc234831695', '_Toc234831696', '_Toc233514983', '_Toc233531592', '_Toc234831697', '_Toc233514984', '_Toc233531593', '_Toc234831698', '_Toc233514985', '_Toc233531594', '_Toc234831699', '_Toc233514986', '_Toc233531595', '_Toc234831700']
+internal_tail= ['_Toc234831671', '_Toc234831672', '_Toc234831673', '_Toc234831674', '_Toc234831675', '_Toc234831676', '_Toc234831677', '_Toc234831678', '_Toc234831679', '_Toc234831680', '_Toc234831681', '_Toc234831682', '_Toc234831683', '_Toc234831684', '_Toc234831685', '_Toc234831686', '_Toc234831687', '_Toc234831688', '_Toc234831689', '_Toc234831690', '_Toc234831691', '_Toc234831692', '_Toc234831693', '_Toc234831694', '_Toc234831695', '_Toc234831696', '_Toc234831697', '_Toc234831698', '_Toc234831699', '_Toc234831700']

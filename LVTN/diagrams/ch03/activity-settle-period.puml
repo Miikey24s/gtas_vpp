@@ -1,0 +1,34 @@
+@startuml
+!include ../common/activity-style.puml
+title QUY TRÌNH ĐÓNG KỲ
+
+|Quản trị viên|
+start
+:Chọn kỳ và bảng giá;
+:Xác nhận đóng kỳ;
+|Hệ thống|
+:Kiểm tra Y/M và bảng giá tồn tại;
+if (Còn đơn bổ sung Pending?) then (Có)
+  :Từ chối đóng kỳ;
+  :Thông báo số đơn còn chờ duyệt;
+  stop
+else (Không)
+  :Tải các đơn Submitted/Approved;
+  :Tổng hợp vật tư cần chụp giá;
+  if (Bảng giá thiếu vật tư?) then (Có)
+    :Rollback;
+    :Thông báo danh sách vật tư thiếu giá;
+    stop
+  else (Không)
+    :Gán CurrentSinglePrice cho từng chi tiết;
+    :Ghi SettledAt, người đóng và bảng giá;
+    :Ghi log PERIOD_SETTLED cho từng đơn;
+    :Commit transaction;
+    :Tính lại trạng thái kỳ;
+    |Quản trị viên|
+    :Xem kết quả đóng kỳ;
+    stop
+  endif
+endif
+@enduml
+

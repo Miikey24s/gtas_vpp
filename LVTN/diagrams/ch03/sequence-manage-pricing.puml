@@ -1,0 +1,43 @@
+@startuml
+!include ../common/sequence-style.puml
+title QUẢN LÝ BẢNG GIÁ
+
+actor "Quản trị viên" as Admin
+boundary "Dialog_PriceEditor\n(Blazor)" as FE
+control "VPPPriceController" as API
+control "VPPPriceService" as Service
+database "VPPContext /\nSQL Server" as DB
+
+Admin -> FE : Chọn bảng giá, vật tư, nhà cung cấp và giá
+FE -> FE : Kiểm tra dữ liệu bắt buộc
+
+alt Thêm ánh xạ giá
+  FE -> API : POST /api/VPPPrice
+  API -> Service : CreateAsync(req, UserID)
+else Sửa ánh xạ giá
+  FE -> API : PUT /api/VPPPrice/{id}
+  API -> Service : UpdateAsync(req, UserID)
+end
+
+Service -> Service : Kiểm tra giá không âm
+Service -> DB : Begin transaction
+Service -> DB : Kiểm tra vật tư, nhà cung cấp, bảng giá tồn tại
+opt Đặt giá mặc định cho vật tư
+  Service -> DB : Hạ cờ mặc định của các giá cùng vật tư/bảng giá
+end
+Service -> DB : Thêm hoặc cập nhật L06_VPPSupplierMapping
+
+alt Trùng ràng buộc hoặc tham chiếu không hợp lệ
+  Service -> DB : Rollback
+  Service --> API : Business/Conflict exception
+  API --> FE : 400/409 + lý do
+  FE --> Admin : Hiển thị lỗi
+else Lưu thành công
+  Service -> DB : Commit
+  Service -> DB : Đọc lại DTO kèm tên liên quan
+  Service --> API : L06_VPPSupplierMappingResDTO
+  API --> FE : 200 OK
+  FE --> Admin : Tải lại lưới giá và thông báo thành công
+end
+@enduml
+

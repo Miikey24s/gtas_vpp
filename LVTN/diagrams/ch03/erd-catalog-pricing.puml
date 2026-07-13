@@ -1,0 +1,86 @@
+@startuml
+!include ../common/style.puml
+
+top to bottom direction
+skinparam linetype ortho
+skinparam defaultFontSize 10
+
+entity "L01_Class" as L01 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  ClassCode : nvarchar(max)
+  ClassName : nvarchar(200)
+  ClassModul : nvarchar(200)
+}
+
+entity "L02_ClassDetail" as L02 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  ClassId : uniqueidentifier <<FK, nullable>>
+  * ClassDetailCode : nvarchar(max)
+  * ClassDetailValue : nvarchar(max)
+  * Sort : int
+}
+
+entity "L03_VPPCategory" as L03 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  VPPCategoryCode : nvarchar(max)
+  VPPCategoryName : nvarchar(max)
+}
+
+entity "L04_VPP" as L04 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  VPPCode : nvarchar(max)
+  VPPName : nvarchar(max)
+  * UOMId : uniqueidentifier <<FK>>
+  * VPPCategoryId : uniqueidentifier <<FK>>
+}
+
+entity "L05_VPPSupplier" as L05 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  SupplierShortName : nvarchar(max)
+  SupplierName : nvarchar(max)
+  Address1 / Ward / City : nvarchar(max)
+}
+
+entity "L07_PriceList" as L07 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  PriceListCode : nvarchar(50)
+  PriceListName : nvarchar(200)
+  * IsDefault : bit
+}
+
+entity "L06_VPPSupplierMapping" as L06 {
+  * Id : uniqueidentifier <<PK>>
+  --
+  * L04_VPPId : uniqueidentifier <<FK>>
+  * L05_VPPSupplierId : uniqueidentifier <<FK>>
+  * L07_PriceListId : uniqueidentifier <<FK>>
+  * Price : bigint
+  * IsDefault : bit
+}
+
+L01 ||--o{ L02
+L02 ||--o{ L04 : UOMId
+L03 ||--o{ L04
+L04 ||--o{ L06
+L05 ||--o{ L06
+L07 ||--o{ L06
+
+note right of L07
+UX_L07_OneDefault:
+chỉ một bảng giá mặc định
+khi IsDeleted = 0.
+end note
+
+note right of L06
+UX_L06_OneDefaultPerVPPPerList:
+mỗi vật tư chỉ có một nhà cung cấp
+mặc định trong từng bảng giá.
+end note
+
+@enduml

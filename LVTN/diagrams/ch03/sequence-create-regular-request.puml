@@ -1,0 +1,38 @@
+@startuml
+!include ../common/sequence-style.puml
+title TẠO ĐƠN YÊU CẦU THÔNG THƯỜNG
+
+actor "Nhân viên" as User
+boundary "Page_OrderCreate\n(Blazor)" as FE
+control "VPPRequestController" as API
+control "VPPRequestService" as Service
+database "VPPContext /\nSQL Server" as DB
+
+User -> FE : Chọn vật tư, nhập số lượng và gửi đơn
+FE -> FE : Kiểm tra có ít nhất một vật tư
+FE -> API : GET /period-info
+API -> Service : GetCurrentPeriodInfoAsync(UserID)
+Service -> DB : Đọc kỳ, đơn hiện có và trạng thái kỳ
+DB --> Service : PeriodInfo
+Service --> FE : Kỳ hiện tại do backend xác định
+FE -> API : POST /orders (IsAdditionalOrder=false)
+API -> Service : CreateOrderAsync(req, UserID, Department)
+Service -> Service : Kiểm tra Y/M, ngày 5, một đơn/kỳ
+Service -> DB : Kiểm tra kỳ chưa đóng và vật tư còn hiệu lực
+
+alt Vi phạm điều kiện nghiệp vụ
+  Service --> API : Business/Conflict exception
+  API --> FE : 400/409 + lý do
+  FE --> User : Giữ dữ liệu và hiển thị lỗi
+else Hợp lệ
+  Service -> DB : Begin transaction
+  Service -> DB : Đọc giá hiện tại từ bảng giá mặc định
+  Service -> DB : Thêm header Submitted, details và log CREATE
+  Service -> DB : Commit
+  DB --> Service : Đơn đã lưu
+  Service --> API : VPP01_RequestHeaderResDTO
+  API --> FE : 200 OK
+  FE --> User : Báo thành công và mở lịch sử đơn
+end
+@enduml
+

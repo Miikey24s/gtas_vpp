@@ -1,0 +1,22 @@
+' Common black-and-white style for GTAS VPP activity diagrams.
+!include style.puml
+
+skinparam dpi 180
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  FontColor #000000
+  DiamondBackgroundColor #F2F2F2
+  DiamondBorderColor #000000
+  DiamondFontColor #000000
+  StartColor #000000
+  EndColor #000000
+  BarColor #000000
+}
+skinparam partition {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+  FontColor #000000
+}
+skinparam ArrowThickness 1.1

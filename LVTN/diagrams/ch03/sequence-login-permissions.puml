@@ -1,0 +1,43 @@
+@startuml
+!include ../common/sequence-style.puml
+title ĐĂNG NHẬP VÀ TẢI QUYỀN
+
+actor "Người dùng" as User
+boundary "LoginPage\n(Blazor)" as FE
+control "AuthController" as API
+control "StoredProcedure\nExecutor" as SP
+database "SQL Server" as DB
+control "LoginTicketCache /\nLoginEndpoints" as Session
+control "PermissionState" as Perm
+
+User -> FE : Nhập tài khoản, mật khẩu, môi trường
+FE -> FE : Kiểm tra dữ liệu bắt buộc
+FE -> API : POST /api/Auth/login
+API -> API : Mã hóa mật khẩu TripleDES
+API -> SP : ExecuteSPAsync(sp_Authen_Login)
+SP -> DB : Xác thực người dùng
+DB --> SP : Kết quả đăng nhập
+SP --> API : sp_Authentication_Login
+
+alt Không hợp lệ hoặc lỗi kết nối
+  API --> FE : 400/401/500 + thông báo
+  FE --> User : Hiển thị lỗi, không tạo phiên
+else Đăng nhập thành công
+  API -> DB : Bổ sung phòng ban nếu còn thiếu
+  API -> API : Tạo JWT và claims
+  API --> FE : 200 + loginData + AccessToken
+  FE -> Session : Lưu ticket dùng một lần
+  Session -> Session : SignInAsync và tạo cookie
+  Session --> FE : Chuyển hướng về trang chủ
+  FE -> Perm : EnsureLoadedAsync()
+  loop Dashboard, Library, Permission, Report, Sidebar
+    Perm -> API : Lấy quyền page/component theo UserID
+    API -> DB : Đọc mapping IsVisible/IsEnable
+    DB --> API : Danh sách quyền
+    API --> Perm : Quyền của trang
+  end
+  Perm --> FE : Tuyến truy cập đầu tiên
+  FE --> User : Mở chức năng được cấp quyền
+end
+@enduml
+

@@ -1,0 +1,30 @@
+@startuml
+!include ../common/style.puml
+
+' Semantic source for Hình 2-1.
+' The fixed A4 layout is rendered by architecture-overview-layout.py.
+left to right direction
+skinparam defaultFontSize 11
+skinparam titleFontSize 17
+skinparam linetype ortho
+
+title Kiến trúc triển khai tổng thể hệ thống GTAS VPP
+
+actor "Người dùng\nnội bộ" as User
+
+node "Máy chủ triển khai / Docker Compose" {
+  node "Nginx reverse proxy\nHTTPS / WSS" as Proxy
+  rectangle "Frontend container\nBlazor Server + Radzen\nCookie authentication\nSignalR / _blazor" as Frontend
+  rectangle "Backend container\nASP.NET Core Web API (.NET 10)\nJWT + policy authorization\nController - Service - Repository" as Backend
+  rectangle "Migrator container\nEF Core migration\nSeed dữ liệu nền" as Migrator
+  database "SQL Server 2022 container\nGTAS_VPP_LIVE\nDữ liệu và log nghiệp vụ" as Database
+}
+
+User --> Proxy : HTTPS / WSS
+Proxy --> Frontend : / và /_blazor
+Proxy --> Backend : /api
+Frontend --> Backend : HTTP API + JWT
+Backend --> Database : EF Core / SQL
+Migrator ..> Database : migrate + seed
+
+@enduml

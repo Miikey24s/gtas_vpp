@@ -1,0 +1,34 @@
+@startuml
+!include ../common/usecase-style.puml
+title QUẢN LÝ BẢNG GIÁ
+
+actor "Quản trị viên" as Admin
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Quản lý\nbảng giá" as PriceList #E6E6E6
+  usecase "Tạo, cập nhật hoặc\nvô hiệu hóa bảng giá" as SaveList
+  usecase "Sao chép\nbảng giá" as Clone
+  usecase "Đặt bảng giá\nmặc định" as DefaultList
+  usecase "Quản lý giá\nvật tư - nhà cung cấp" as Price
+  usecase "Đặt nhà cung cấp\nmặc định cho vật tư" as DefaultSupplier
+  usecase "Kiểm tra giá và\nràng buộc duy nhất" as Validate
+
+  PriceList -[hidden]right- SaveList
+  PriceList .> SaveList : <<include>>
+  PriceList .> Clone : <<include>>
+  PriceList .> DefaultList : <<include>>
+  PriceList .> Price : <<include>>
+  Price .> DefaultSupplier : <<include>>
+  SaveList .> Validate : <<include>>
+  DefaultList .> Validate : <<include>>
+  DefaultSupplier .> Validate : <<include>>
+
+  SaveList -[hidden]down- Clone
+  Clone -[hidden]down- DefaultList
+  DefaultList -[hidden]down- Price
+  Price -[hidden]down- DefaultSupplier
+  DefaultSupplier -[hidden]down- Validate
+}
+
+Admin --> PriceList
+@enduml

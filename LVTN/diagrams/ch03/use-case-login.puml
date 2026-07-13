@@ -1,0 +1,30 @@
+@startuml
+!include ../common/usecase-style.puml
+title ĐĂNG NHẬP VÀ TẢI QUYỀN
+
+actor "Người dùng\nhệ thống" as User
+
+rectangle "Hệ thống GTAS VPP" {
+  usecase "Đăng nhập\nhệ thống" as Login #E6E6E6
+  usecase "Kiểm tra dữ liệu\nđầu vào" as Validate
+  usecase "Xác thực\ntài khoản" as Authenticate
+  usecase "Tạo JWT và\nphiên đăng nhập" as Session
+  usecase "Tải quyền theo\ntrang/component" as Permissions
+  usecase "Điều hướng đến\nchức năng được phép" as Redirect
+  usecase "Thông báo lỗi\nđăng nhập" as Error
+
+  Login -[hidden]right- Validate
+  Login .> Validate : <<include>>
+  Login .> Authenticate : <<include>>
+  Login .> Session : <<include>>
+  Login .> Permissions : <<include>>
+  Login .> Redirect : <<include>>
+  Error .> Login : <<extend>>
+
+  Validate -[hidden]down- Authenticate
+  Authenticate -[hidden]down- Session
+  Permissions -[hidden]down- Redirect
+}
+
+User --> Login
+@enduml
