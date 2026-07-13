@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.2.1">
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,10 +9,6 @@
     <UserSecretsId>e207469a-21ee-45dc-8a61-2efb891f6ff9</UserSecretsId>
     <Configurations>Debug;Release;Debug-BE;Debug-FE</Configurations>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.5.301" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\gtas_vpp_be\gtas_vpp_be\gtas_vpp_be.csproj" />

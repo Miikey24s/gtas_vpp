@@ -25,7 +25,7 @@ namespace gtas_vpp_fe.UITests.Core
         protected string TestUsername => GetRequiredEnvironmentVariable("GTAS_TEST_USERNAME");
         protected string TestPassword => GetRequiredEnvironmentVariable("GTAS_TEST_PASSWORD");
 
-        public async Task InitializeAsync()
+        public async ValueTask InitializeAsync()
         {
             BaseUrl = await ResolveBaseUrlAsync();
 
@@ -40,7 +40,7 @@ namespace gtas_vpp_fe.UITests.Core
             Page.SetDefaultNavigationTimeout(120000);
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             if (Page != null)
             {

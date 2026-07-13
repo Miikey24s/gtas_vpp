@@ -1,6 +1,4 @@
 ﻿using gtas_vpp_shared.DTOs.Res.Auth;
-using Mapster;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -30,13 +28,6 @@ namespace gtas_vpp_fe.Helpers
         {
             var value = claims.Get(type);
             return bool.TryParse(value, out var v) && v;
-        }
-
-        public static bool HasPermission(this IEnumerable<Claim>? claims, string permission)
-        {
-            return claims?.Any(x =>
-                x.Type == ClaimKeys.Permission &&
-                string.Equals(x.Value, permission, StringComparison.OrdinalIgnoreCase)) == true;
         }
 
         public static Guid GetGuid(this IEnumerable<Claim> claims, string type)

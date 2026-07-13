@@ -181,18 +181,6 @@ public sealed class PermissionState
             string.Equals(route.PageCode, pageCode, StringComparison.OrdinalIgnoreCase)));
     }
 
-    private IEnumerable<childModel_Authentication_GetPermissionSinglePage_Component> FindComponents(string componentCode)
-    {
-        if (string.IsNullOrWhiteSpace(componentCode))
-        {
-            return Enumerable.Empty<childModel_Authentication_GetPermissionSinglePage_Component>();
-        }
-
-        return PagePermissions.Values
-            .SelectMany(page => page.List_Component)
-            .Where(component => string.Equals(component.ComponentCode, componentCode, StringComparison.OrdinalIgnoreCase));
-    }
-
     private string? GetFirstAccessibleRoute(IEnumerable<RouteTarget> routes)
     {
         foreach (var route in routes)

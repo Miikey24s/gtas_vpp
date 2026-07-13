@@ -22,7 +22,7 @@ namespace gtas_vpp_fe.UITests.Tests.Order
             // Go to Order Create
             var orderPage = new OrderCreatePage(Page);
             await Page.GotoAsync($"{BaseUrl}dashboard/order-create");
-            await Task.Delay(2000);
+            await Task.Delay(2000, TestContext.Current.CancellationToken);
 
             // Act
             await orderPage.ClickAddFirstProductAsync();
@@ -30,7 +30,7 @@ namespace gtas_vpp_fe.UITests.Tests.Order
             await orderPage.SubmitOrderAsync();
 
             // Assert
-            await Task.Delay(2000);
+            await Task.Delay(2000, TestContext.Current.CancellationToken);
             // Vì test tạo đơn thực tế cần điền đầy đủ dữ liệu (số lượng, phòng ban, file đính kèm...) để thỏa mãn Validate của Form,
             // nên tạm thời chỉ verify không có crash xảy ra và test có thể click submit.
             // Page.Url.Should().NotContain("order-create");

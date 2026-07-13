@@ -21,12 +21,12 @@ namespace gtas_vpp_fe.UITests.Tests.Order
 
             // Navigate to Dashboard
             await Page.GotoAsync($"{BaseUrl}dashboard");
-            await Task.Delay(2000);
+            await Task.Delay(2000, TestContext.Current.CancellationToken);
 
             // Act
             var catalogPage = new ProductCatalogPage(Page);
             await catalogPage.NavigateToProductCatalogTabAsync();
-            await Task.Delay(2000);
+            await Task.Delay(2000, TestContext.Current.CancellationToken);
 
             // Assert
             Page.Url.Should().Contain("dashboard");

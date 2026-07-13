@@ -18,6 +18,5 @@
         public const string Expired = "Expired";
         public const string Server = "Server";
         public const string AccessToken = "AccessToken";
-        public const string Permission = "Permission";
     }
 }

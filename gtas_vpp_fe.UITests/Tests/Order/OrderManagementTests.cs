@@ -22,13 +22,13 @@ namespace gtas_vpp_fe.UITests.Tests.Order
             // Go to VPP Request Dashboard
             var orderMgmtPage = new OrderManagementPage(Page);
             await Page.GotoAsync($"{BaseUrl}dashboard");
-            await Task.Delay(2000);
+            await Task.Delay(2000, TestContext.Current.CancellationToken);
 
             // Act
             await orderMgmtPage.NavigateToAdminApprovalTabAsync();
             
             // Wait cho Grid load dữ liệu
-            await Task.Delay(2000);
+            await Task.Delay(2000, TestContext.Current.CancellationToken);
 
             // Tạm thời comment click vì cần data thật, chỉ verify chuyển tab thành công
             // await orderMgmtPage.ClickApproveFirstOrderAsync();
