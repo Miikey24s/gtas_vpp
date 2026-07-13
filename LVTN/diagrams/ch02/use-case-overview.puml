@@ -18,27 +18,29 @@ actor "Xử lý tự động" as Automation
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Đăng nhập và\ntải quyền" as UC_Login
+  usecase "Xem báo cáo cá nhân\nvà hộp thư thông báo" as UC_OwnReport
 
   usecase "Quản lý danh mục,\nvật tư và nhà cung cấp" as UC_Master
   usecase "Quản lý bảng giá" as UC_Price
   usecase "Duyệt hoặc từ chối\nđơn bổ sung" as UC_Approve
   usecase "Đóng kỳ và\nchụp đơn giá" as UC_Settle
   usecase "Quản lý người dùng\nvà phân quyền" as UC_Permission
-  usecase "Xem tổng hợp\ntoàn hệ thống" as UC_Enterprise
+  usecase "Báo cáo toàn hệ thống\nvà xuất CSV" as UC_Enterprise
 
-  usecase "Xem tổng hợp\nphòng ban" as UC_Department
+  usecase "Báo cáo phòng ban\nđược cấp quyền" as UC_Department
 
   usecase "Xem danh mục\nvăn phòng phẩm" as UC_Catalog
   usecase "Tạo, sao chép, sửa\nhoặc hủy đơn" as UC_Request
   usecase "Tạo đơn bổ sung" as UC_Additional
   usecase "Xem lịch sử và\ntrạng thái đơn" as UC_History
 
-  usecase "Tính kỳ, kiểm tra ràng buộc,\nchụp giá và ghi log" as UC_Automation
+  usecase "Tính kỳ, kiểm tra ràng buộc,\nchụp giá, ghi log và phát thông báo" as UC_Automation
 }
 
 Admin -- UC_Login
 Manager -- UC_Login
 Employee -- UC_Login
+Employee -- UC_OwnReport
 
 Admin -- UC_Master
 Admin -- UC_Price

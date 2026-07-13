@@ -102,6 +102,52 @@ def patch_document(data):
         if style_id not in settings:
             continue
         ppr = ensure(paragraph, "pPr")
+        # Word may regenerate the standalone appendix heading without a
+        # right-aligned dotted tab even though other TOC1 entries have one.
+        # Normalize it after field update so "PHỤ LỤC .... 66" matches the
+        # rest of the clickable table of contents.
+        if style_id == "TOC1" and visible_text.startswith("PHỤ LỤC"):
+            tabs = ppr.find("w:tabs", NS)
+            if tabs is None:
+                tabs = etree.Element(W + "tabs")
+                # w:tabs must precede w:spacing/w:rPr in the pPr schema;
+                # appending it after Word's direct w:rPr makes Word ignore it.
+                insert_at = len(ppr)
+                for candidate in ("spacing", "ind", "jc", "rPr"):
+                    node = ppr.find(f"w:{candidate}", NS)
+                    if node is not None:
+                        insert_at = min(insert_at, ppr.index(node))
+                ppr.insert(insert_at, tabs)
+            for existing in list(tabs):
+                tabs.remove(existing)
+            tab = etree.SubElement(tabs, W + "tab")
+            tab.set(W + "val", "right")
+            tab.set(W + "leader", "dot")
+            tab.set(W + "pos", "9064")
+            # Word can emit direct paragraph run properties before spacing.
+            # Reorder this target paragraph to the valid pPr sequence so the
+            # direct leader tab is not silently replaced by a default tab.
+            direct_rpr = ppr.find("w:rPr", NS)
+            if direct_rpr is not None:
+                ppr.remove(direct_rpr)
+                ppr.append(direct_rpr)
+            # Word 16 renders this one unnumbered appendix entry with a
+            # default short tab even though the same TOC1 leader works for all
+            # numbered headings. Keep the PAGEREF field and hyperlink, but
+            # replace only its separator tab with a visible dot leader.
+            hyperlink = paragraph.find("w:hyperlink", NS)
+            if hyperlink is not None:
+                for run in list(hyperlink):
+                    if run.find("w:tab", NS) is None:
+                        continue
+                    index = hyperlink.index(run)
+                    hyperlink.remove(run)
+                    leader_run = etree.Element(W + "r")
+                    leader_text = etree.SubElement(leader_run, W + "t")
+                    leader_text.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+                    leader_text.text = "." * 90
+                    hyperlink.insert(index, leader_run)
+                    break
         spacing = ensure(ppr, "spacing")
         if not visible_text:
             # Word leaves a field-end paragraph after the final TOC entry.
@@ -119,6 +165,11 @@ def patch_document(data):
             spacing.set(W + "after", "100")
             spacing.set(W + "line", str(settings[style_id]))
             spacing.set(W + "lineRule", "auto")
+            if style_id == "TOC1" and visible_text.startswith("PHỤ LỤC"):
+                direct_rpr = ppr.find("w:rPr", NS)
+                if direct_rpr is not None:
+                    ppr.remove(direct_rpr)
+                    ppr.append(direct_rpr)
     return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone="yes")
 
 

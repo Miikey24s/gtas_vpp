@@ -10,7 +10,7 @@ HERE = Path(__file__).resolve().parent
 SVG_PATH = HERE / "functional-decomposition.svg"
 PNG_PATH = HERE / "functional-decomposition.png"
 
-WIDTH = 1280
+WIDTH = 1535
 HEIGHT = 760
 SCALE = 2
 
@@ -20,6 +20,7 @@ GROUPS = [
         [
             ("Đăng nhập",),
             ("Tải quyền trang/", "component"),
+            ("Cập nhật quyền", "tức thời"),
             ("Quản lý", "nhóm quyền"),
             ("Quản lý", "người dùng"),
         ],
@@ -62,9 +63,19 @@ GROUPS = [
             ("Ghi log thao tác",),
         ],
     ),
+    (
+        ("Báo cáo và", "thông báo"),
+        [
+            ("Báo cáo theo", "phạm vi quyền"),
+            ("Lọc, KPI", "và biểu đồ"),
+            ("Xuất dữ liệu CSV",),
+            ("Nhận thông báo", "tức thời"),
+            ("Quản lý hộp thư", "thông báo"),
+        ],
+    ),
 ]
 
-ROOT_X, ROOT_Y, ROOT_W, ROOT_H = 480, 20, 320, 100
+ROOT_X, ROOT_Y, ROOT_W, ROOT_H = (WIDTH - 320) // 2, 20, 320, 100
 BUS_Y = 160
 GROUP_Y, GROUP_W, GROUP_H = 190, 235, 70
 LEAF_Y, LEAF_STEP, LEAF_W, LEAF_H = 300, 90, 195, 70

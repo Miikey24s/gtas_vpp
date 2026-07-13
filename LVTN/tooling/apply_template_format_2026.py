@@ -94,12 +94,14 @@ def add_or_replace_tbl_header(row) -> None:
     tr_pr.append(tbl_header)
 
 
-def make_rows_flexible(table) -> None:
+def make_rows_flexible(table, prevent_split: bool = False) -> None:
     for row_index, row in enumerate(table.rows):
         tr_pr = row._tr.get_or_add_trPr()
         for tag in ("w:cantSplit", "w:trHeight"):
             for node in tr_pr.findall(qn(tag)):
                 tr_pr.remove(node)
+        if prevent_split:
+            tr_pr.append(OxmlElement("w:cantSplit"))
         if row_index == 0:
             add_or_replace_tbl_header(row)
 
@@ -269,8 +271,10 @@ def normalize_docx(source: Path, output: Path) -> None:
         # Preserve intentionally introduced pagination boundaries.
         paragraph.paragraph_format.page_break_before = page_break_before
 
-    for table in doc.tables:
-        make_rows_flexible(table)
+    for table_index, table in enumerate(doc.tables):
+        # Test-case rows are self-contained records and must not be cut across
+        # pages. Other tables remain flexible to avoid row-only overflow pages.
+        make_rows_flexible(table, prevent_split=table_index == 20)
         for row in table.rows:
             for cell in row.cells:
                 for paragraph in cell.paragraphs:

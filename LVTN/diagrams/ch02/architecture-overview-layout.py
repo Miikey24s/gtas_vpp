@@ -60,10 +60,10 @@ def make_svg():
     # External client.
     svg_box(parts, 5, 270, 165, 115, "NGƯỜI DÙNG", ("Trình duyệt", "nội bộ"))
     svg_box(parts, 235, 255, 210, 145, "NGINX", ("Reverse proxy", "HTTPS / WSS"))
-    svg_box(parts, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Cookie authentication", "SignalR / _blazor"))
-    svg_box(parts, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core (.NET 10)", "JWT + policy authorization", "Controller - Service - Repository"))
+    svg_box(parts, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Cookie authentication", "Realtime quyền và thông báo"))
+    svg_box(parts, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core (.NET 10)", "JWT + action policy", "Report API + SignalR hubs"))
     svg_box(parts, 890, 100, 280, 175, "MIGRATOR", ("EF Core migration", "Seed dữ liệu nền"))
-    svg_box(parts, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu và log nghiệp vụ"))
+    svg_box(parts, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu, thông báo và log"))
 
     # Runtime paths are solid; initialization is dashed.
     svg_polyline(parts, [(170, 340), (235, 340)])
@@ -72,7 +72,7 @@ def make_svg():
     svg_polyline(parts, [(445, 355), (480, 355), (480, 495), (520, 495)])
     parts.append(svg_text(("/api",), 474, 475, 15, anchor="end"))
     svg_polyline(parts, [(660, 275), (660, 405)])
-    parts.append(svg_text(("HTTP API + JWT",), 677, 341, 15, anchor="start"))
+    parts.append(svg_text(("HTTP API + JWT / WSS",), 677, 341, 15, anchor="start"))
     svg_polyline(parts, [(800, 495), (890, 495)])
     parts.append(svg_text(("EF Core / SQL",), 845, 475, 15))
     svg_polyline(parts, [(1030, 275), (1030, 405)], dashed=True)
@@ -164,10 +164,10 @@ def make_png():
 
     draw_box(draw, 5, 270, 165, 115, "NGƯỜI DÙNG", ("Trình duyệt", "nội bộ"))
     draw_box(draw, 235, 255, 210, 145, "NGINX", ("Reverse proxy", "HTTPS / WSS"))
-    draw_box(draw, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Cookie authentication", "SignalR / _blazor"))
-    draw_box(draw, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core (.NET 10)", "JWT + policy authorization", "Controller - Service - Repository"))
+    draw_box(draw, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Cookie authentication", "Realtime quyền và thông báo"))
+    draw_box(draw, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core (.NET 10)", "JWT + action policy", "Report API + SignalR hubs"))
     draw_box(draw, 890, 100, 280, 175, "MIGRATOR", ("EF Core migration", "Seed dữ liệu nền"))
-    draw_box(draw, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu và log nghiệp vụ"))
+    draw_box(draw, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu, thông báo và log"))
 
     for points, dashed in [
         ([(170,340),(235,340)], False),
@@ -180,7 +180,7 @@ def make_png():
         draw_polyline(draw, points, dashed)
     draw_centered(draw, ("/ và /_blazor",), 476, 162, 15, anchor="end")
     draw_centered(draw, ("/api",), 474, 470, 15, anchor="end")
-    draw_centered(draw, ("HTTP API + JWT",), 677, 336, 15, anchor="start")
+    draw_centered(draw, ("HTTP API + JWT / WSS",), 677, 336, 15, anchor="start")
     draw_centered(draw, ("EF Core / SQL",), 845, 470, 15)
     draw_centered(draw, ("migrate + seed",), 1047, 336, 15, anchor="start")
 
