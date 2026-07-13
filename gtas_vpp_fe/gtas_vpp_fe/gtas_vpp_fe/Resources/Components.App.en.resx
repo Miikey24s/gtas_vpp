@@ -385,6 +385,16 @@
   <data name="ReportExportFailed" xml:space="preserve"><value>Could not export the report: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Report filters</value></data>
   <data name="ReportLoadFailed" xml:space="preserve"><value>Could not load the report: {0}</value></data>
+  <data name="GenerateInsights" xml:space="preserve"><value>Generate insights</value></data>
+  <data name="GeneratingInsights" xml:space="preserve"><value>Analyzing...</value></data>
+  <data name="ReportInsights" xml:space="preserve"><value>Report insights</value></data>
+  <data name="ReportInsightsFailed" xml:space="preserve"><value>Could not generate insights: {0}</value></data>
+  <data name="AiGenerated" xml:space="preserve"><value>OpenAI</value></data>
+  <data name="RulesGenerated" xml:space="preserve"><value>Rule-based analysis</value></data>
+  <data name="Highlights" xml:space="preserve"><value>Highlights</value></data>
+  <data name="Risks" xml:space="preserve"><value>Risks to review</value></data>
+  <data name="Recommendations" xml:space="preserve"><value>Recommendations</value></data>
+  <data name="AiInsightDisclaimer" xml:space="preserve"><value>Insights are advisory; verify the underlying data before making decisions.</value></data>
   <data name="ReportScope" xml:space="preserve"><value>Data scope</value></data>
   <data name="ReportStatus" xml:space="preserve"><value>Status distribution</value></data>
   <data name="ReportStatusDescription" xml:space="preserve"><value>Orders grouped by their current workflow status.</value></data>

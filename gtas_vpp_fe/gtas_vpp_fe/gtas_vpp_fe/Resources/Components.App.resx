@@ -385,6 +385,16 @@
   <data name="ReportExportFailed" xml:space="preserve"><value>Không thể xuất báo cáo: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Bộ lọc báo cáo</value></data>
   <data name="ReportLoadFailed" xml:space="preserve"><value>Không thể tải báo cáo: {0}</value></data>
+  <data name="GenerateInsights" xml:space="preserve"><value>Tạo nhận định</value></data>
+  <data name="GeneratingInsights" xml:space="preserve"><value>Đang phân tích...</value></data>
+  <data name="ReportInsights" xml:space="preserve"><value>Nhận định báo cáo</value></data>
+  <data name="ReportInsightsFailed" xml:space="preserve"><value>Không thể tạo nhận định: {0}</value></data>
+  <data name="AiGenerated" xml:space="preserve"><value>OpenAI</value></data>
+  <data name="RulesGenerated" xml:space="preserve"><value>Phân tích theo quy tắc</value></data>
+  <data name="Highlights" xml:space="preserve"><value>Điểm nổi bật</value></data>
+  <data name="Risks" xml:space="preserve"><value>Rủi ro cần chú ý</value></data>
+  <data name="Recommendations" xml:space="preserve"><value>Khuyến nghị</value></data>
+  <data name="AiInsightDisclaimer" xml:space="preserve"><value>Nhận định chỉ hỗ trợ tham khảo; người dùng cần kiểm tra dữ liệu trước khi ra quyết định.</value></data>
   <data name="ReportScope" xml:space="preserve"><value>Phạm vi dữ liệu</value></data>
   <data name="ReportStatus" xml:space="preserve"><value>Cơ cấu trạng thái</value></data>
   <data name="ReportStatusDescription" xml:space="preserve"><value>Tỷ lệ đơn theo trạng thái xử lý hiện tại.</value></data>

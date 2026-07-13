@@ -35,6 +35,11 @@ if (dotEnvValues.Count > 0)
     {
         dotEnvValues["PasswordEncryption:Key"] = passwordEncryptionKey;
     }
+    if (dotEnvValues.TryGetValue("REPORT_INSIGHTS_ENABLED", out var reportInsightsEnabled)
+        && !string.IsNullOrWhiteSpace(reportInsightsEnabled))
+    {
+        dotEnvValues["ReportInsights:Enabled"] = reportInsightsEnabled;
+    }
     builder.Configuration.AddInMemoryCollection(dotEnvValues);
 }
 
@@ -121,6 +126,19 @@ builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddOptions<ReportInsightsOptions>()
+    .Bind(Configuration.GetSection(ReportInsightsOptions.SectionName))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.Model), "ReportInsights:Model is required.")
+    .Validate(options => options.TimeoutSeconds is >= 5 and <= 60,
+        "ReportInsights:TimeoutSeconds must be between 5 and 60.")
+    .Validate(options => options.MaxOutputTokens is >= 300 and <= 1_500,
+        "ReportInsights:MaxOutputTokens must be between 300 and 1500.")
+    .ValidateOnStart();
+builder.Services.AddHttpClient<IReportInsightService, ReportInsightService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.openai.com/");
+    client.Timeout = Timeout.InfiniteTimeSpan;
+});
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -136,6 +154,18 @@ builder.Services.AddRateLimiter(options =>
             {
                 PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("report-insights", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.FindFirst("UserID")?.Value
+                ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
                 QueueLimit = 0,
                 AutoReplenishment = true
             }));

@@ -70,6 +70,21 @@ Sau khi cấu hình backend, có thể chạy cả backend và frontend qua Aspi
 dotnet run --project MyAspire.AppHost/MyAspire.AppHost.csproj
 ```
 
+## Nhận định báo cáo bằng AI (tùy chọn)
+
+Trang Report luôn có phân tích theo quy tắc xác định. OpenAI chỉ được gọi khi người dùng chủ động
+chọn **Tạo nhận định** và cả hai biến sau đã được cấu hình ở backend:
+
+```powershell
+$env:REPORT_INSIGHTS_ENABLED = 'true'
+$env:OPENAI_API_KEY = '<server-side-secret>'
+```
+
+Mặc định tính năng AI tắt, model cấu hình là `gpt-5.6-luna`. Backend chỉ gửi số liệu tổng hợp đã
+được giới hạn theo quyền hiện tại, không gửi danh tính người yêu cầu hay dòng đơn gốc. Khi API tắt,
+thiếu khóa, quá thời gian hoặc trả lỗi, hệ thống tự động dùng phân tích theo quy tắc. Không đưa API
+key vào `appsettings*.json`, source hoặc frontend; ở production dùng secret manager/GitHub Secret.
+
 ## Luận văn và sơ đồ
 
 - Bản đang chỉnh sửa: `LVTN/NguyenAnNam_DH52201078_working.docx`

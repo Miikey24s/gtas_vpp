@@ -15,8 +15,10 @@ public abstract class ReportBase : ComponentBase, IDisposable
     [Inject] protected IJSRuntime JS { get; set; } = default!;
 
     protected ReportSummaryResDTO? Summary { get; private set; }
+    protected ReportInsightResDTO? Insight { get; private set; }
     protected bool IsLoading { get; private set; }
     protected bool IsExporting { get; private set; }
+    protected bool IsLoadingInsights { get; private set; }
     protected string SelectedScope { get; set; } = ReportScopes.Own;
     protected int? SelectedYear { get; set; }
     protected int? SelectedMonth { get; set; }
@@ -69,6 +71,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
 
         IsLoading = true;
+        Insight = null;
         try
         {
             Summary = await Api.GetFromApiAsync<ReportSummaryResDTO>(BuildEndpoint("summary"));
@@ -109,6 +112,30 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
     }
 
+    protected async Task GenerateInsightsAsync()
+    {
+        if (Summary is null || Summary.TotalOrders == 0 || IsLoadingInsights)
+        {
+            return;
+        }
+
+        IsLoadingInsights = true;
+        try
+        {
+            var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "vi";
+            Insight = await Api.GetFromApiAsync<ReportInsightResDTO>(
+                $"{BuildEndpoint("insights")}&language={language}");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Localizer["Error"], string.Format(Localizer["ReportInsightsFailed"], ex.Message));
+        }
+        finally
+        {
+            IsLoadingInsights = false;
+        }
+    }
+
     protected RenderFragment Kpi(string icon, string label, string value) => builder =>
     {
         builder.OpenElement(0, "article");
@@ -124,6 +151,27 @@ public abstract class ReportBase : ComponentBase, IDisposable
         builder.OpenElement(8, "strong");
         builder.AddContent(9, value);
         builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    protected RenderFragment InsightList(string title, string icon, IReadOnlyList<string> items) => builder =>
+    {
+        builder.OpenElement(0, "article");
+        builder.OpenElement(1, "h3");
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "class", $"rzi rzi-{icon}");
+        builder.AddAttribute(4, "aria-hidden", "true");
+        builder.CloseElement();
+        builder.AddContent(5, title);
+        builder.CloseElement();
+        builder.OpenElement(6, "ul");
+        foreach (var item in items)
+        {
+            builder.OpenElement(7, "li");
+            builder.AddContent(8, item);
+            builder.CloseElement();
+        }
         builder.CloseElement();
         builder.CloseElement();
     };

@@ -5,6 +5,7 @@ using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Reports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace gtas_vpp_be.Controllers;
 
@@ -13,9 +14,11 @@ namespace gtas_vpp_be.Controllers;
 [Route("api/reports")]
 public sealed class ReportsController(
     IReportService reportService,
+    IReportInsightService reportInsightService,
     IPermissionService permissionService) : ControllerBase
 {
     private readonly IReportService _reportService = reportService;
+    private readonly IReportInsightService _reportInsightService = reportInsightService;
     private readonly IPermissionService _permissionService = permissionService;
 
     [HttpGet("summary")]
@@ -60,6 +63,30 @@ public sealed class ReportsController(
         var export = await _reportService.ExportCsvAsync(
             scope, userId, departmentCode, companyCode, year, month, cancellationToken);
         return File(export.Content, export.ContentType, export.FileName);
+    }
+
+    [HttpGet("insights")]
+    [EnableRateLimiting("report-insights")]
+    public async Task<IActionResult> GetInsights(
+        [FromQuery] string scope = ReportScopes.Own,
+        [FromQuery] int? year = null,
+        [FromQuery] int? month = null,
+        [FromQuery] string language = "vi",
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetIdentityScope(out var userId, out var departmentCode, out var companyCode))
+        {
+            return Unauthorized();
+        }
+
+        if (!await CanUseScopeAsync(scope, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        var summary = await _reportService.GetSummaryAsync(
+            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+        return Ok(await _reportInsightService.GenerateAsync(summary, language, cancellationToken));
     }
 
     private Task<bool> CanUseScopeAsync(string scope, CancellationToken cancellationToken)

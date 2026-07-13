@@ -24,14 +24,26 @@ else
                     <p>@string.Format(Loc["GeneratedAt"], FormatGeneratedAt(Summary.GeneratedAt))</p>
                 }
             </div>
-            @if (CanExport)
-            {
-                <RadzenButton Icon="file_download"
-                              Text="@Loc["ExportReport"]"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Click="ExportAsync"
-                              Disabled="@(IsLoading || IsExporting || Summary is null)" />
-            }
+            <div class="vpp-report-actions">
+                @if (Summary is { TotalOrders: > 0 })
+                {
+                    <RadzenButton Icon="auto_awesome"
+                                  Text="@Loc["GenerateInsights"]"
+                                  BusyText="@Loc["GeneratingInsights"]"
+                                  IsBusy="@IsLoadingInsights"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Click="GenerateInsightsAsync"
+                                  Disabled="@(IsLoading || IsExporting)" />
+                }
+                @if (CanExport)
+                {
+                    <RadzenButton Icon="file_download"
+                                  Text="@Loc["ExportReport"]"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Click="ExportAsync"
+                                  Disabled="@(IsLoading || IsExporting || Summary is null)" />
+                }
+            </div>
         </header>
 
         <section class="vpp-report-filters" aria-label="@Loc["ReportFilters"]">
@@ -92,6 +104,27 @@ else
                 @Kpi("payments", Loc["TotalAmount"], FormatAmount(Summary.TotalAmount))
                 @Kpi("groups", Loc["Requesters"], Summary.TotalRequesters.ToString("N0"))
             </section>
+
+            @if (Insight is not null)
+            {
+                <section class="vpp-report-insight" aria-live="polite" aria-label="@Loc["ReportInsights"]">
+                    <header>
+                        <div>
+                            <h2><span class="rzi rzi-auto_awesome" aria-hidden="true"></span>@Loc["ReportInsights"]</h2>
+                            <p>@Insight.Summary</p>
+                        </div>
+                        <span class="vpp-report-insight-source">
+                            @(Insight.IsAiGenerated ? Loc["AiGenerated"] : Loc["RulesGenerated"])
+                        </span>
+                    </header>
+                    <div class="vpp-report-insight-grid">
+                        @InsightList(Loc["Highlights"], "trending_up", Insight.Highlights)
+                        @InsightList(Loc["Risks"], "warning", Insight.Risks)
+                        @InsightList(Loc["Recommendations"], "task_alt", Insight.Recommendations)
+                    </div>
+                    <small>@Loc["AiInsightDisclaimer"]</small>
+                </section>
+            }
 
             <section class="vpp-report-grid">
                 <article class="vpp-report-card">
