@@ -19,6 +19,7 @@ gtas_vpp_be.Tests/       Kiểm thử backend
 gtas_vpp_fe.Tests/       Kiểm thử frontend
 gtas_vpp_fe.UITests/     Kiểm thử giao diện với Playwright/Aspire
 MyAspire.AppHost/        Điều phối môi trường phát triển
+deploy/                  Runbook và script triển khai/backup/restore production
 LVTN/                    Luận văn, sơ đồ, ảnh giao diện và công cụ Word
 ```
 
@@ -26,13 +27,34 @@ Shared DTO chính thức nằm tại `gtas_vpp_be/gtas_vpp_shared`; frontend tha
 Quy ước UI, localization và accessibility dành cho người và AI nằm tại
 [`gtas_vpp_fe/README.md`](gtas_vpp_fe/README.md).
 
-## Chạy bằng Docker Compose
+## Development với .NET Aspire (khuyến nghị)
+
+Yêu cầu .NET 10 SDK và Docker Desktop. Aspire khởi tạo SQL Server Development trong
+volume riêng, chờ database sẵn sàng rồi mới chạy backend và frontend. Khởi tạo ba
+secret local một lần bằng PowerShell:
+
+```powershell
+function New-GtasSecret {
+    $bytes = New-Object byte[] 48
+    [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+    [Convert]::ToBase64String($bytes)
+}
+
+dotnet user-secrets set "Parameters:sql-password" ("Vpp1!" + (New-GtasSecret)) --project MyAspire.AppHost/MyAspire.AppHost.csproj
+dotnet user-secrets set "Parameters:jwt-key" (New-GtasSecret) --project MyAspire.AppHost/MyAspire.AppHost.csproj
+dotnet user-secrets set "Parameters:password-encryption-key" (New-GtasSecret) --project MyAspire.AppHost/MyAspire.AppHost.csproj
+dotnet run --project MyAspire.AppHost/MyAspire.AppHost.csproj
+```
+
+Các secret này chỉ dành cho database local. Không dùng secret production cho Development.
+
+## Development bằng Docker Compose
 
 Yêu cầu Docker Desktop hoặc Docker Engine có Compose.
 
 ```powershell
 Copy-Item .env.example .env
-# Điền các giá trị bí mật trong .env, không commit file này.
+# Tạo giá trị ngẫu nhiên cho ba biến đang để trống; không commit file .env.
 docker compose up -d --build
 ```
 
@@ -42,7 +64,8 @@ Các dịch vụ mặc định:
 - Backend: `http://localhost:8080`
 - Frontend: `http://localhost:5000`
 
-Dừng môi trường bằng `docker compose down`. Chỉ thêm `-v` khi thật sự muốn xóa volume dữ liệu.
+Dừng môi trường bằng `docker compose down`. Chỉ thêm `-v` khi thật sự muốn xóa volume
+dữ liệu Development. Tất cả port local chỉ bind `127.0.0.1`, không mở ra mạng LAN.
 
 ## Build và kiểm thử từ source
 
@@ -64,11 +87,12 @@ $env:UITEST_BASE_URL = 'http://127.0.0.1:5000/'
 dotnet test gtas_vpp_fe.UITests/gtas_vpp_fe.UITests.csproj -c Release
 ```
 
-Sau khi cấu hình backend, có thể chạy cả backend và frontend qua Aspire:
+## Production trên DigitalOcean
 
-```powershell
-dotnet run --project MyAspire.AppHost/MyAspire.AppHost.csproj
-```
+Production dùng image bất biến từ GHCR, Docker Compose riêng, Nginx/Let's Encrypt,
+backup SQL Server có kiểm chứng trước migration và GitHub `production` environment.
+Runbook đầy đủ nằm tại [`deploy/README.md`](deploy/README.md). Không chạy
+`docker-compose.yml` Development trên Droplet.
 
 ## Nhận định báo cáo bằng AI (tùy chọn)
 

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the GTAS VPP SQL Server backup every night
+
+[Timer]
+OnCalendar=*-*-* 02:15:00 Asia/Ho_Chi_Minh
+RandomizedDelaySec=15m
+Persistent=true
+Unit=gtas-vpp-backup.service
+
+[Install]
+WantedBy=timers.target

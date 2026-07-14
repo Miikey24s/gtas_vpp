@@ -17,6 +17,17 @@ var builder = WebApplication.CreateBuilder(args);
 var authCookieSecurePolicy = builder.Environment.IsDevelopment()
     ? CookieSecurePolicy.SameAsRequest
     : CookieSecurePolicy.Always;
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    dataProtectionKeysPath = builder.Environment.IsProduction()
+        ? "/app/keys"
+        : Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "GTAS_VPP",
+            "DataProtection-Keys");
+}
+Directory.CreateDirectory(dataProtectionKeysPath);
 
 // ── 1. Forwarded Headers Service (phải đăng ký trước) ────
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -28,8 +39,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // Configure Data Protection for Docker so cookies don't get invalidated on restart
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(@"/app/keys"))
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
     .SetApplicationName("gtas_vpp");
+builder.Services.AddHealthChecks();
 
 // Add services to the container.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -167,6 +179,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapLoginEndpoints();
+app.MapHealthChecks("/health").AllowAnonymous();
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,0 +1,13 @@
+[Unit]
+Description=GTAS VPP verified SQL Server backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/bash /app/gtas-vpp/current/deploy/backup-db.sh scheduled
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict

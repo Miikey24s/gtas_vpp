@@ -4,24 +4,25 @@ on:
   push:
     branches:
       - Nam
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   REGISTRY: ghcr.io
-  # Chuyển repository owner về chữ thường khi làm việc với Docker images
   IMAGE_NAME_BE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-backend
   IMAGE_NAME_FE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-frontend
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: 10.0.x
 
@@ -41,85 +42,66 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     concurrency:
-      group: gtas-vpp-build-${{ github.workflow }}-${{ github.ref_name || 'Nam' }}
+      group: gtas-vpp-build-${{ github.workflow }}-${{ github.ref_name }}
       cancel-in-progress: true
     permissions:
       contents: read
       packages: write
     outputs:
-      be_image_lower: ${{ steps.image_meta.outputs.be_image_lower }}
-      fe_image_lower: ${{ steps.image_meta.outputs.fe_image_lower }}
+      be_image: ${{ steps.image_meta.outputs.be_image }}
+      fe_image: ${{ steps.image_meta.outputs.fe_image }}
       image_version: ${{ steps.image_meta.outputs.image_version }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Resolve checked-out commit SHA
-        id: source_state
+      - name: Resolve immutable image names
+        id: image_meta
         shell: bash
         run: |
           set -euo pipefail
-
-          echo "root_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Print build context
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          echo "Monorepo commit: ${{ steps.source_state.outputs.root_sha }}"
+          be_image="$(printf '%s' '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')"
+          fe_image="$(printf '%s' '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')"
+          image_version="sha-${GITHUB_SHA}"
+          {
+            echo "be_image=$be_image"
+            echo "fe_image=$fe_image"
+            echo "image_version=$image_version"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Convert repository names to lowercase and create a unique image version per workflow run.
-      - name: Resolve image tag names
-        id: image_meta
-        shell: bash
-        env:
-          ROOT_SHA: ${{ steps.source_state.outputs.root_sha }}
-        run: |
-          set -euo pipefail
-
-          echo "be_image_lower=$(echo '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-          echo "fe_image_lower=$(echo '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-
-          short_root="${ROOT_SHA:0:12}"
-          image_version="run-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}-${short_root}"
-          echo "image_version=${image_version}" >> "$GITHUB_OUTPUT"
-
-      # ── Build & Push Backend ──
-      - name: Build and push Backend Image
-        uses: docker/build-push-action@v5
+      - name: Build and push backend image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: ./gtas_vpp_be
           push: true
           tags: |
-            ${{ steps.image_meta.outputs.be_image_lower }}:latest
-            ${{ steps.image_meta.outputs.be_image_lower }}:${{ steps.image_meta.outputs.image_version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ steps.image_meta.outputs.be_image }}:${{ steps.image_meta.outputs.image_version }}
+            ${{ steps.image_meta.outputs.be_image }}:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
-      # ── Build & Push Frontend ──
-      - name: Build and push Frontend Image
-        uses: docker/build-push-action@v5
+      - name: Build and push frontend image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           file: ./gtas_vpp_fe/Dockerfile
           push: true
           tags: |
-            ${{ steps.image_meta.outputs.fe_image_lower }}:latest
-            ${{ steps.image_meta.outputs.fe_image_lower }}:${{ steps.image_meta.outputs.image_version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ steps.image_meta.outputs.fe_image }}:${{ steps.image_meta.outputs.image_version }}
+            ${{ steps.image_meta.outputs.fe_image }}:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
   deploy:
     needs: build-and-push
@@ -127,126 +109,106 @@ jobs:
     concurrency:
       group: gtas-vpp-production
       cancel-in-progress: false
+    environment:
+      name: production
+      url: https://gtas-vpp.annam.id.vn
+    permissions:
+      contents: read
+      packages: read
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: Nam
+      - name: Checkout exact source commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      # 1. Kết nối SSH tạo thư mục app và ghi file .env
-      - name: Configure environment on VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            mkdir -p /app/gtas-vpp/nginx
-            echo "${{ secrets.ENV_FILE_CONTENT }}" > /app/gtas-vpp/.env
+      - name: Validate production environment file
+        shell: bash
+        env:
+          ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
+          DB_SA_PASSWORD: ${{ secrets.DB_SA_PASSWORD }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          PASSWORD_ENCRYPTION_KEY: ${{ secrets.PASSWORD_ENCRYPTION_KEY }}
+        run: |
+          set -euo pipefail
+          env_file="$RUNNER_TEMP/gtas-vpp.production.env"
+          umask 077
+          printf '%s\n' "$ENV_FILE_CONTENT" > "$env_file"
+          printf 'DB_SA_PASSWORD=%s\n' "$DB_SA_PASSWORD" >> "$env_file"
+          printf 'JWT_KEY=%s\n' "$JWT_KEY" >> "$env_file"
+          printf 'PASSWORD_ENCRYPTION_KEY=%s\n' "$PASSWORD_ENCRYPTION_KEY" >> "$env_file"
+          bash deploy/validate-env.sh "$env_file"
 
-      # 2. Copy file docker-compose.prod.yml và nginx configs lên VPS
-      - name: Copy deployment files
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.prod.yml,nginx/**"
-          target: "/app/gtas-vpp"
+      - name: Configure pinned SSH host and private key
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 0600 "$HOME/.ssh/id_deploy" "$HOME/.ssh/known_hosts"
 
-      # 3. Kết nối SSH chạy Docker Compose để Deploy
-      - name: Deploy containers on VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /app/gtas-vpp
-            COMPOSE_FILE=docker-compose.prod.yml
-            DB_CONTAINER=gtas-vpp-db
-            BACKEND_CONTAINER=gtas-vpp-backend
-            FRONTEND_CONTAINER=gtas-vpp-frontend
-            APP_NETWORK=gtas-vpp-internal
-            
-            # Đăng nhập vào GHCR trên VPS
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Upload immutable release bundle
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          app_root="/app/gtas-vpp"
+          release_dir="$app_root/releases/$GITHUB_SHA"
+          ssh_target="$SSH_USER@$SSH_HOST"
+          ssh_options=(-i "$HOME/.ssh/id_deploy" -o BatchMode=yes -o IdentitiesOnly=yes)
+          bundle="$RUNNER_TEMP/gtas-vpp-deploy.tar.gz"
 
-            # Pin deploy to this exact build instead of relying on a mutable latest tag.
-            export BE_IMAGE="${{ needs.build-and-push.outputs.be_image_lower }}:${{ needs.build-and-push.outputs.image_version }}"
-            export FE_IMAGE="${{ needs.build-and-push.outputs.fe_image_lower }}:${{ needs.build-and-push.outputs.image_version }}"
-            
-            # Pull the exact images built by this workflow.
-            docker compose -f "$COMPOSE_FILE" pull
+          tar -czf "$bundle" docker-compose.prod.yml nginx deploy
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "install -d -m 0750 '$app_root' '$app_root/releases' '$app_root/shared' '$release_dir'"
+          scp "${ssh_options[@]}" "$bundle" \
+            "$RUNNER_TEMP/gtas-vpp.production.env" \
+            "$ssh_target:$release_dir/"
 
-            # Reuse the long-lived SQL Server container when it already exists on the VPS.
-            docker network inspect "$APP_NETWORK" >/dev/null 2>&1 || docker network create "$APP_NETWORK"
-            if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
-              docker network connect "$APP_NETWORK" "$DB_CONTAINER" 2>/dev/null || true
-              docker start "$DB_CONTAINER" >/dev/null 2>&1 || true
-            else
-              docker compose -f "$COMPOSE_FILE" up -d db
-            fi
+      - name: Deploy, verify, and record release
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BE_IMAGE: ${{ needs.build-and-push.outputs.be_image }}:${{ needs.build-and-push.outputs.image_version }}
+          FE_IMAGE: ${{ needs.build-and-push.outputs.fe_image }}:${{ needs.build-and-push.outputs.image_version }}
+        run: |
+          set -euo pipefail
+          app_root="/app/gtas-vpp"
+          release_dir="$app_root/releases/$GITHUB_SHA"
+          ssh_target="$SSH_USER@$SSH_HOST"
+          ssh_options=(-i "$HOME/.ssh/id_deploy" -o BatchMode=yes -o IdentitiesOnly=yes)
 
-            db_status=""
-            for attempt in $(seq 1 60); do
-              db_status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else if .State.Running}}running{{else}}stopped{{end}}' "$DB_CONTAINER" 2>/dev/null || true)
-              if [ "$db_status" = "healthy" ] || [ "$db_status" = "running" ]; then
-                break
-              fi
-              if [ "$db_status" = "unhealthy" ]; then
-                docker logs --tail 100 "$DB_CONTAINER"
-                exit 1
-              fi
-              sleep 2
-            done
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "set -e; cd '$release_dir'; tar -xzf gtas-vpp-deploy.tar.gz; rm gtas-vpp-deploy.tar.gz; install -m 0600 gtas-vpp.production.env '$app_root/shared/.env'; rm gtas-vpp.production.env; ln -sfn '$app_root/shared/.env' .env; bash deploy/validate-env.sh .env"
 
-            if [ "$db_status" != "healthy" ] && [ "$db_status" != "running" ]; then
-              docker logs --tail 100 "$DB_CONTAINER" 2>/dev/null || true
-              echo "Database did not become ready in time."
-              exit 1
-            fi
+          printf '%s\n' "$GHCR_TOKEN" | ssh "${ssh_options[@]}" "$ssh_target" \
+            "set -euo pipefail; export DOCKER_CONFIG='/tmp/gtas-vpp-docker-$GITHUB_SHA'; cleanup() { docker logout ghcr.io >/dev/null 2>&1 || true; rm -rf \"\$DOCKER_CONFIG\"; }; trap cleanup EXIT; install -d -m 0700 \"\$DOCKER_CONFIG\"; docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin; cd '$release_dir'; BE_IMAGE='$BE_IMAGE' FE_IMAGE='$FE_IMAGE' DEPLOY_SHA='$GITHUB_SHA' APP_ROOT='$app_root' bash deploy/deploy.sh; ln -sfn 'releases/$GITHUB_SHA' '$app_root/current'"
 
-            # Apply schema/data changes before replacing the running application.
-            docker compose -f "$COMPOSE_FILE" run --rm --no-deps migrator
+      - name: Verify public boundary from the runner
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+            https://gtas-vpp.annam.id.vn/healthz >/dev/null
+          if timeout 5 bash -c "</dev/tcp/$SSH_HOST/1433" 2>/dev/null; then
+            echo "SQL Server port 1433 is still reachable from the public internet." >&2
+            exit 1
+          fi
 
-            # Replace backend only after migration succeeds.
-            docker rm -f "$BACKEND_CONTAINER" >/dev/null 2>&1 || true
-            docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate backend
-
-            backend_status=""
-            for attempt in $(seq 1 60); do
-              backend_status=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$BACKEND_CONTAINER" 2>/dev/null || true)
-              if [ "$backend_status" = "healthy" ]; then
-                break
-              fi
-              if [ "$backend_status" = "unhealthy" ]; then
-                docker logs --tail 100 "$BACKEND_CONTAINER"
-                exit 1
-              fi
-              sleep 2
-            done
-
-            if [ "$backend_status" != "healthy" ]; then
-              docker logs --tail 100 "$BACKEND_CONTAINER"
-              echo "Backend did not become healthy in time."
-              exit 1
-            fi
-
-            # Frontend is replaced only after the new backend is healthy.
-            docker rm -f "$FRONTEND_CONTAINER" >/dev/null 2>&1 || true
-            docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate frontend
-
-            # Apply host-level nginx cache/proxy changes when this VPS uses shared nginx.
-            if command -v nginx >/dev/null 2>&1; then
-              sudo install -m 0644 nginx/gtas-vpp.conf /etc/nginx/sites-available/gtas-vpp
-              sudo ln -sf /etc/nginx/sites-available/gtas-vpp /etc/nginx/sites-enabled/gtas-vpp
-              sudo nginx -t
-              sudo systemctl reload nginx
-            fi
-
-            docker compose -f "$COMPOSE_FILE" ps
-            
-            # Xóa các image cũ không dùng để giải phóng bộ nhớ VPS
-            docker image prune -f
+      - name: Remove temporary credentials
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$HOME/.ssh/id_deploy" \
+            "$RUNNER_TEMP/gtas-vpp.production.env" \
+            "$RUNNER_TEMP/gtas-vpp-deploy.tar.gz"

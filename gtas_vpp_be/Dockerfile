@@ -42,6 +42,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl tzdata \
     && ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime \
     && dpkg-reconfigure --frontend noninteractive tzdata \
+    && mkdir -p /app/logs \
+    && chown app:app /app/logs \
     && rm -rf /var/lib/apt/lists/*
 
 # Optimized for performance (Server GC for 8GB RAM VPS)

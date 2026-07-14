@@ -1,12 +1,13 @@
 # ─────────────────────────────────────────────────────────────
-# GTAS VPP – Docker Compose (DigitalOcean 8GB)
-# Domain: gtas-vpp.annam.id.vn
+# GTAS VPP - local Development stack
 # ─────────────────────────────────────────────────────────────
 #
-# MODE:
+# Usage:
 #   docker compose up -d --build
 #
 # ─────────────────────────────────────────────────────────────
+
+name: gtas-vpp-dev
 
 services:
 
@@ -15,14 +16,15 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: gtas-vpp-db
     restart: unless-stopped
+    init: true
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.}"
       MSSQL_PID: "Developer"
-      MSSQL_MEMORY_LIMIT_MB: "4096"
+      MSSQL_MEMORY_LIMIT_MB: "${MSSQL_MEMORY_LIMIT_MB:-2048}"
     ports:
-      - "1433:1433"
+      - "127.0.0.1:1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     logging:
@@ -30,10 +32,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 5G
+    mem_limit: 3g
+    stop_grace_period: 60s
     healthcheck:
       test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -C -b
       interval: 30s
@@ -50,12 +50,13 @@ services:
       dockerfile: Dockerfile
     container_name: gtas-vpp-backend
     restart: unless-stopped
+    init: true
     depends_on:
       db:
         condition: service_healthy
     environment:
       TZ: "Asia/Ho_Chi_Minh"
-      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: "Development"
       DatabaseSettings__DefaultEnvironment: "TestEnv"
       DatabaseInitialization__Mode: "MigrateAndSeed"
       DatabaseInitialization__Environments__0: "TestEnv"
@@ -67,13 +68,22 @@ services:
       PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
       ReportInsights__Enabled: "${REPORT_INSIGHTS_ENABLED:-false}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
-      CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
-      CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
+      CorsSettings__AllowedOrigins__0: "http://localhost:5000"
+      CorsSettings__AllowedOrigins__1: "http://localhost:5203"
+      CorsSettings__AllowedOrigins__2: "https://localhost:7009"
       DOTNET_gcServer: "0"
       DOTNET_GCHeapHardLimitPercent: "75"
     ports:
       - "127.0.0.1:8080:8080"
     mem_limit: 512m
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    stop_grace_period: 30s
     volumes:
       - backend-logs:/app/logs:rw
     healthcheck:
@@ -97,13 +107,15 @@ services:
       dockerfile: gtas_vpp_fe/Dockerfile
     container_name: gtas-vpp-frontend
     restart: unless-stopped
+    init: true
     depends_on:
       backend:
         condition: service_healthy
     environment:
       TZ: "Asia/Ho_Chi_Minh"
-      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: "Development"
       ApiSettings__BaseUrl: "http://backend:8080"
+      DataProtection__KeysPath: "/app/keys"
       DOTNET_gcServer: "0"
       DOTNET_GCHeapHardLimitPercent: "75"
     logging:
@@ -114,10 +126,18 @@ services:
     ports:
       - "127.0.0.1:5000:5000"
     mem_limit: 512m
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    stop_grace_period: 30s
     volumes:
       - frontend-keys:/app/keys:rw
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 5s
       retries: 3

@@ -2,6 +2,8 @@
 # GTAS VPP – Docker Compose (Production - DigitalOcean)
 # ─────────────────────────────────────────────────────────────
 
+name: gtas-vpp
+
 services:
 
   # ── SQL Server Database ──────────────────────────────────
@@ -9,25 +11,25 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: gtas-vpp-db
     restart: unless-stopped
+    init: true
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.}"
       MSSQL_PID: "Developer"
-      MSSQL_MEMORY_LIMIT_MB: "4096"
+      MSSQL_MEMORY_LIMIT_MB: "${MSSQL_MEMORY_LIMIT_MB:-4096}"
     ports:
       - "127.0.0.1:1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
+      - sqlserver-backups:/var/opt/mssql/backup
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 5G
+    mem_limit: 5g
+    stop_grace_period: 60s
     healthcheck:
       test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -C -b
       interval: 30s
@@ -39,9 +41,10 @@ services:
 
   # Runs schema migration and seed exactly once per deployment, then exits.
   migrator:
-    image: ${BE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-backend:latest}
+    image: "${BE_IMAGE:?BE_IMAGE must be an immutable backend image tag.}"
     container_name: gtas-vpp-migrator
     restart: "no"
+    init: true
     profiles: ["tools"]
     depends_on:
       db:
@@ -53,21 +56,30 @@ services:
       DatabaseInitialization__Mode: "MigrateAndSeed"
       DatabaseInitialization__RunOnly: "true"
       DatabaseInitialization__Environments__0: "LiveEnv"
-      ConnectionStrings__LiveEnv: "Server=gtas-vpp-db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.};TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.};TrustServerCertificate=True;Encrypt=True;"
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
       PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
     volumes:
       - backend-logs:/app/logs:rw
+    mem_limit: 512m
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
     networks:
       - vpp-internal
 
   # ── Backend (.NET 10 Web API) ────────────────────────────
   backend:
-    image: ${BE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-backend:latest}
+    image: "${BE_IMAGE:?BE_IMAGE must be an immutable backend image tag.}"
     container_name: gtas-vpp-backend
     restart: unless-stopped
+    init: true
     depends_on:
       db:
         condition: service_healthy
@@ -76,7 +88,7 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       DatabaseSettings__DefaultEnvironment: "LiveEnv"
       DatabaseInitialization__Mode: "None"
-      ConnectionStrings__LiveEnv: "Server=gtas-vpp-db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.};TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.};TrustServerCertificate=True;Encrypt=True;"
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_clients"
@@ -84,12 +96,19 @@ services:
       ReportInsights__Enabled: "${REPORT_INSIGHTS_ENABLED:-false}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
-      CorsSettings__AllowedOrigins__1: "http://gtas-vpp.annam.id.vn"
       DOTNET_gcServer: "0"
       DOTNET_GCHeapHardLimitPercent: "75"
     ports:
       - "127.0.0.1:8080:8080"
-    mem_limit: 512m
+    mem_limit: 768m
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    stop_grace_period: 30s
     volumes:
       - backend-logs:/app/logs:rw
     healthcheck:
@@ -108,9 +127,10 @@ services:
 
   # ── Frontend (Blazor Server) ─────────────────────────────
   frontend:
-    image: ${FE_IMAGE:-ghcr.io/miikey24s/gtas-vpp-frontend:latest}
+    image: "${FE_IMAGE:?FE_IMAGE must be an immutable frontend image tag.}"
     container_name: gtas-vpp-frontend
     restart: unless-stopped
+    init: true
     depends_on:
       backend:
         condition: service_healthy
@@ -118,6 +138,7 @@ services:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"
       ApiSettings__BaseUrl: "http://backend:8080"
+      DataProtection__KeysPath: "/app/keys"
       DOTNET_gcServer: "0"
       DOTNET_GCHeapHardLimitPercent: "75"
     logging:
@@ -127,11 +148,19 @@ services:
         max-file: "3"
     ports:
       - "127.0.0.1:5000:5000"
-    mem_limit: 512m
+    mem_limit: 768m
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    stop_grace_period: 30s
     volumes:
       - frontend-keys:/app/keys:rw
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -141,10 +170,16 @@ services:
 
 volumes:
   sqlserver-data:
+    name: gtas-vpp_sqlserver-data
+    driver: local
+  sqlserver-backups:
+    name: gtas-vpp_sqlserver-backups
     driver: local
   backend-logs:
+    name: gtas-vpp_backend-logs
     driver: local
   frontend-keys:
+    name: gtas-vpp_frontend-keys
     driver: local
 
 networks:
