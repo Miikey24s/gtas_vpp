@@ -81,9 +81,9 @@ Mỗi push vào `Nam` hoặc lần chạy `workflow_dispatch` thực hiện:
 2. build hai image, push tag bất biến `sha-<commit>` lên GHCR;
 3. tạo release `/app/gtas-vpp/releases/<commit>` và chuyển `.env` bằng SCP;
 4. đăng nhập GHCR bằng Docker config tạm, tự xóa khi phiên SSH kết thúc;
-5. kiểm tra/khắc phục mapping SQL public, giữ volume
-   `gtas-vpp_sqlserver-data` và giữ container cũ dưới tên dự phòng cho đến khi
-   migrator thành công;
+5. kiểm tra/khắc phục mapping SQL public, tự lấy đúng named volume đang mount từ
+   container hiện hành và giữ container cũ dưới tên dự phòng cho đến khi migrator
+   thành công;
 6. nếu secret SQL đổi, backup bằng credential cũ, `ALTER LOGIN sa`, rồi recreate
    container với credential mới và nguyên volume;
 7. tạo `BACKUP ... WITH CHECKSUM`, chạy `RESTORE VERIFYONLY`, rồi mới migration;

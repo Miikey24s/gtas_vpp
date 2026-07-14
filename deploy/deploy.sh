@@ -207,7 +207,16 @@ active_db_password=""
 if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
   db_exists=true
   DB_IMAGE="${DB_IMAGE:-$(docker inspect --format='{{.Image}}' "$DB_CONTAINER")}"
-  export DB_IMAGE
+  DB_DATA_VOLUME="${DB_DATA_VOLUME:-$(
+    docker inspect \
+      --format='{{range .Mounts}}{{if eq .Destination "/var/opt/mssql"}}{{.Name}}{{end}}{{end}}' \
+      "$DB_CONTAINER"
+  )}"
+  if [[ -z "$DB_DATA_VOLUME" ]]; then
+    echo "The existing SQL Server container is not using a named /var/opt/mssql volume." >&2
+    exit 1
+  fi
+  export DB_IMAGE DB_DATA_VOLUME
   while IFS= read -r binding; do
     [[ -z "$binding" || "$binding" == 127.0.0.1:* ]] || unsafe_db_binding=true
   done < <(docker port "$DB_CONTAINER" 1433/tcp 2>/dev/null || true)
@@ -271,6 +280,18 @@ fi
 
 wait_for_db_connection "$desired_db_password" 180
 
+if [[ "$db_exists" == "true" ]]; then
+  active_data_volume="$(
+    docker inspect \
+      --format='{{range .Mounts}}{{if eq .Destination "/var/opt/mssql"}}{{.Name}}{{end}}{{end}}' \
+      "$DB_CONTAINER"
+  )"
+  if [[ "$active_data_volume" != "$DB_DATA_VOLUME" ]]; then
+    echo "SQL Server started with an unexpected data volume." >&2
+    exit 1
+  fi
+fi
+
 while IFS= read -r binding; do
   if [[ -n "$binding" && "$binding" != 127.0.0.1:* ]]; then
     echo "Unsafe SQL Server host binding remains after reconciliation: $binding" >&2
@@ -329,6 +350,7 @@ curl --fail --silent --show-error --retry 10 --retry-delay 2 --retry-all-errors 
 cat > deploy-state.env <<EOF
 DEPLOY_SHA=$DEPLOY_SHA
 DB_IMAGE=$DB_IMAGE
+DB_DATA_VOLUME=${DB_DATA_VOLUME:-gtas-vpp_sqlserver-data}
 BE_IMAGE=$BE_IMAGE
 FE_IMAGE=$FE_IMAGE
 DEPLOYED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)

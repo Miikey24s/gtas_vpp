@@ -164,7 +164,7 @@ services:
 
 volumes:
   sqlserver-data:
-    name: gtas-vpp_sqlserver-data
+    name: "${DB_DATA_VOLUME:-gtas-vpp_sqlserver-data}"
     driver: local
   sqlserver-backups:
     name: gtas-vpp_sqlserver-backups
