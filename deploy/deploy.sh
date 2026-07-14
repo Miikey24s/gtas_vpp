@@ -62,7 +62,7 @@ db_can_connect() {
     -e CHECK_DB_PASSWORD="$password" \
     "$DB_CONTAINER" bash -euc '
       /opt/mssql-tools18/bin/sqlcmd \
-        -S localhost -U sa -P "$CHECK_DB_PASSWORD" -C -b -Q "SELECT 1;" >/dev/null
+        -S localhost -U sa -P "$CHECK_DB_PASSWORD" -l 2 -C -b -Q "SELECT 1;" >/dev/null
     ' >/dev/null 2>&1
 }
 
@@ -125,7 +125,7 @@ rollback_db_password() {
       -e ROLLBACK_DB_PASSWORD="$current_db_password" \
       "$DB_CONTAINER" bash -euc '
         /opt/mssql-tools18/bin/sqlcmd \
-          -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -C -b \
+          -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -l 2 -C -b \
           -v ROLLBACK_PASSWORD="$ROLLBACK_DB_PASSWORD" \
           -Q "ALTER LOGIN [sa] WITH PASSWORD = N'\''\$(ROLLBACK_PASSWORD)'\'';"
       '; then
@@ -199,6 +199,13 @@ bash deploy/validate-env.sh .env
 compose config --quiet
 docker network inspect "$APP_NETWORK" >/dev/null 2>&1 || docker network create "$APP_NETWORK" >/dev/null
 
+if docker container inspect "$DB_FALLBACK_CONTAINER" >/dev/null 2>&1; then
+  echo "Recovering an incomplete SQL Server container swap from a previous deploy."
+  docker rm -f "$DB_CONTAINER" >/dev/null 2>&1 || true
+  docker rename "$DB_FALLBACK_CONTAINER" "$DB_CONTAINER"
+  docker start "$DB_CONTAINER" >/dev/null
+fi
+
 desired_db_password="$(read_env_value DB_SA_PASSWORD)"
 unsafe_db_binding=false
 db_exists=false
@@ -262,7 +269,7 @@ if [[ "$db_exists" == "true" && ( "$unsafe_db_binding" == "true" || "$db_passwor
         -e NEW_DB_PASSWORD="$desired_db_password" \
         "$DB_CONTAINER" bash -euc '
           /opt/mssql-tools18/bin/sqlcmd \
-            -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -C -b \
+            -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -l 2 -C -b \
             -v NEW_PASSWORD="$NEW_DB_PASSWORD" \
             -Q "ALTER LOGIN [sa] WITH PASSWORD = N'\''\$(NEW_PASSWORD)'\'';"
         '

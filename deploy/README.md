@@ -91,6 +91,10 @@ Mỗi push vào `Nam` hoặc lần chạy `workflow_dispatch` thực hiện:
 9. validate/reload Nginx, audit host và gọi public `/healthz`;
 10. chỉ khi mọi bước pass mới chuyển symlink `/app/gtas-vpp/current`.
 
+Nếu runner/SSH bị ngắt đúng lúc đổi container SQL, lần deploy sau phát hiện
+`gtas-vpp-db-previous` và khôi phục container đó trước khi đọc credential, volume hoặc
+thực hiện backup mới.
+
 Nếu backend/frontend mới lỗi, script tự quay về cặp image trước. Migration database
 không tự rollback vì migration ngược có thể phá dữ liệu; backup `pre-deploy` là
 điểm phục hồi có chủ ý.
