@@ -192,6 +192,21 @@ jobs:
           printf '%s\n' "$GHCR_TOKEN" | ssh "${ssh_options[@]}" "$ssh_target" \
             "set -euo pipefail; export DOCKER_CONFIG='/tmp/gtas-vpp-docker-$GITHUB_SHA'; cleanup() { docker logout ghcr.io >/dev/null 2>&1 || true; rm -rf \"\$DOCKER_CONFIG\"; }; trap cleanup EXIT; install -d -m 0700 \"\$DOCKER_CONFIG\"; docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin; cd '$release_dir'; BE_IMAGE='$BE_IMAGE' FE_IMAGE='$FE_IMAGE' DEPLOY_SHA='$GITHUB_SHA' APP_ROOT='$app_root' bash deploy/deploy.sh; ln -sfn 'releases/$GITHUB_SHA' '$app_root/current'"
 
+      - name: Verify key-only SSH access after hardening
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/id_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o PasswordAuthentication=no \
+            -o KbdInteractiveAuthentication=no \
+            -o PreferredAuthentications=publickey \
+            "$SSH_USER@$SSH_HOST" true
+
       - name: Verify public boundary from the runner
         shell: bash
         env:

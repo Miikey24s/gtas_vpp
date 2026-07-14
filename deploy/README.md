@@ -88,8 +88,10 @@ Mỗi push vào `Nam` hoặc lần chạy `workflow_dispatch` thực hiện:
    container với credential mới và nguyên volume;
 7. tạo `BACKUP ... WITH CHECKSUM`, chạy `RESTORE VERIFYONLY`, rồi mới migration;
 8. thay backend, chờ healthy; thay frontend, chờ healthy;
-9. validate/reload Nginx, audit host và gọi public `/healthz`;
-10. chỉ khi mọi bước pass mới chuyển symlink `/app/gtas-vpp/current`.
+9. validate/reload Nginx, tắt SSH password, chỉ cho root đăng nhập bằng key, xóa các
+   rule UFW public cũ của `1433`/`5000`/`8080`, rồi audit host;
+10. kết nối SSH lại bằng public-key-only và gọi public `/healthz`;
+11. chỉ khi mọi bước pass mới chuyển symlink `/app/gtas-vpp/current`.
 
 Nếu runner/SSH bị ngắt đúng lúc đổi container SQL, lần deploy sau phát hiện
 `gtas-vpp-db-previous` và khôi phục container đó trước khi đọc credential, volume hoặc

@@ -349,6 +349,7 @@ if command -v systemctl >/dev/null 2>&1; then
   sudo systemctl enable --now gtas-vpp-backup.timer
 fi
 
+bash deploy/harden-host.sh
 bash deploy/audit-host.sh
 
 curl --fail --silent --show-error --retry 10 --retry-delay 2 --retry-all-errors \

@@ -85,7 +85,12 @@ else
 fi
 
 if command -v ufw >/dev/null 2>&1; then
-  sudo ufw status | sed -n '1,20p'
+  ufw_status="$(sudo ufw status verbose)"
+  sed -n '1,24p' <<<"$ufw_status"
+  grep -q '^Status: active$' <<<"$ufw_status" || fail "UFW is not active"
+  if grep -Eq '^(1433|5000|8080)(/tcp)?[[:space:]]+ALLOW' <<<"$ufw_status"; then
+    fail "UFW allows an internal application port"
+  fi
 else
   warn "UFW is not installed; confirm a DigitalOcean Cloud Firewall protects the Droplet"
 fi
