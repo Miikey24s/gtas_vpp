@@ -29,9 +29,11 @@ Quy ước UI, localization và accessibility dành cho người và AI nằm t�
 
 ## Development với .NET Aspire (khuyến nghị)
 
-Yêu cầu .NET 10 SDK và Docker Desktop. Aspire khởi tạo SQL Server Development trong
-volume riêng, chờ database sẵn sàng rồi mới chạy backend và frontend. Khởi tạo ba
-secret local một lần bằng PowerShell:
+Yêu cầu .NET 10 SDK và SQL Server local. Trên máy phát triển hiện tại, backend đọc
+`ConnectionStrings:TestEnv` từ `appsettings.Development.json`, kết nối tới instance
+`MKGAME` bằng Windows Authentication và dùng database `GTAS_VPP_TEST`. Aspire chỉ điều
+phối backend/frontend nên không yêu cầu Docker. Khởi tạo hai secret local một lần bằng
+PowerShell:
 
 ```powershell
 function New-GtasSecret {
@@ -40,21 +42,24 @@ function New-GtasSecret {
     [Convert]::ToBase64String($bytes)
 }
 
-dotnet user-secrets set "Parameters:sql-password" ("Vpp1!" + (New-GtasSecret)) --project MyAspire.AppHost/MyAspire.AppHost.csproj
 dotnet user-secrets set "Parameters:jwt-key" (New-GtasSecret) --project MyAspire.AppHost/MyAspire.AppHost.csproj
-dotnet user-secrets set "Parameters:password-encryption-key" (New-GtasSecret) --project MyAspire.AppHost/MyAspire.AppHost.csproj
+dotnet user-secrets set "Parameters:password-encryption-key" "ttpsolutions" --project MyAspire.AppHost/MyAspire.AppHost.csproj
 dotnet run --project MyAspire.AppHost/MyAspire.AppHost.csproj
 ```
 
-Các secret này chỉ dành cho database local. Không dùng secret production cho Development.
+`ttpsolutions` là key tương thích với dữ liệu tài khoản Development được seed trong
+`GTAS_MENU`; không thay bằng key ngẫu nhiên nếu muốn đăng nhập các tài khoản mẫu. Không
+dùng secret Production cho Development.
 
 ## Development bằng Docker Compose
 
-Yêu cầu Docker Desktop hoặc Docker Engine có Compose.
+Đây là phương án tùy chọn, tách biệt với Aspire dùng SQL Server local. Chỉ phương án này
+mới yêu cầu Docker Desktop hoặc Docker Engine có Compose.
 
 ```powershell
 Copy-Item .env.example .env
-# Tạo giá trị ngẫu nhiên cho ba biến đang để trống; không commit file .env.
+# Tạo DB_SA_PASSWORD và JWT_KEY ngẫu nhiên; đặt PASSWORD_ENCRYPTION_KEY=ttpsolutions.
+# Không commit file .env.
 docker compose up -d --build
 ```
 
