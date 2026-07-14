@@ -35,10 +35,12 @@ docker exec -u 0 "$DB_CONTAINER" chown 10001:0 "$BACKUP_DIR"
 docker exec \
   -e BACKUP_FILE="$backup_file" \
   -e DB_NAME="$DB_NAME" \
+  -e DB_PASSWORD="${DB_PASSWORD:-}" \
   "$DB_CONTAINER" \
   bash -euc '
+    active_password="${DB_PASSWORD:-$MSSQL_SA_PASSWORD}"
     /opt/mssql-tools18/bin/sqlcmd \
-      -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b \
+      -S localhost -U sa -P "$active_password" -C -b \
       -Q "BACKUP DATABASE [$DB_NAME] TO DISK = N'\''$BACKUP_FILE'\'' WITH COPY_ONLY, COMPRESSION, CHECKSUM, INIT; RESTORE VERIFYONLY FROM DISK = N'\''$BACKUP_FILE'\'' WITH CHECKSUM;"
   '
 

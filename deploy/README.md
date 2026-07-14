@@ -12,6 +12,8 @@ Không dùng cấu hình này cho hoạt động thương mại.
 
 - Development ưu tiên Aspire; phương án full-container dùng `docker-compose.yml`.
 - Production chỉ dùng `docker-compose.prod.yml` và image GHCR có tag `sha-<commit>`.
+- Khi database đã tồn tại, deploy pin đúng image ID SQL Server đang chạy; nâng cấp
+  SQL Server là một maintenance riêng, có backup và diễn tập restore trước.
 - Development dùng `TestEnv`; production dùng `LiveEnv`.
 - Hai môi trường có SQL Server và Docker volume vật lý riêng, dù cùng dùng tên
   database `GTAS_VPP_LIVE` để migration không bị lệch.

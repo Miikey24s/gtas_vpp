@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -142,7 +143,23 @@ builder.Services.AddHttpClient<IReportInsightService, ReportInsightService>(clie
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddAsyncCheck(
+        "database",
+        async cancellationToken =>
+        {
+            try
+            {
+                await using var connection = new SqlConnection(defaultConnectionString);
+                await connection.OpenAsync(cancellationToken);
+                return HealthCheckResult.Healthy();
+            }
+            catch (Exception exception)
+            {
+                return HealthCheckResult.Unhealthy("Database connection failed.", exception);
+            }
+        },
+        timeout: TimeSpan.FromSeconds(5));
 builder.Services.AddSignalR();
 builder.Services.AddRateLimiter(options =>
 {

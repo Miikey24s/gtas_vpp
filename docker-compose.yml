@@ -35,11 +35,11 @@ services:
     mem_limit: 3g
     stop_grace_period: 60s
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -C -b
-      interval: 30s
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C -b >/dev/null"]
+      interval: 15s
       timeout: 10s
-      retries: 5
-      start_period: 45s
+      retries: 10
+      start_period: 120s
     networks:
       - vpp-internal
 

@@ -37,6 +37,7 @@ read_env_value() {
 wait_for_healthy() {
   local container="$1"
   local attempts="${2:-60}"
+  local fail_fast="${3:-true}"
   local status=""
 
   for ((attempt = 1; attempt <= attempts; attempt += 1)); do
@@ -44,7 +45,7 @@ wait_for_healthy() {
     if [[ "$status" == "healthy" ]]; then
       return 0
     fi
-    if [[ "$status" == "unhealthy" || "$status" == "stopped" ]]; then
+    if [[ "$fail_fast" == "true" && ( "$status" == "unhealthy" || "$status" == "stopped" ) ]]; then
       docker logs --tail 100 "$container" 2>/dev/null || true
       return 1
     fi
@@ -54,6 +55,16 @@ wait_for_healthy() {
   docker logs --tail 100 "$container" 2>/dev/null || true
   echo "$container did not become healthy in time (last status: ${status:-missing})." >&2
   return 1
+}
+
+db_can_connect() {
+  local password="$1"
+  docker exec \
+    -e CHECK_DB_PASSWORD="$password" \
+    "$DB_CONTAINER" bash -euc '
+      /opt/mssql-tools18/bin/sqlcmd \
+        -S localhost -U sa -P "$CHECK_DB_PASSWORD" -C -b -Q "SELECT 1;" >/dev/null
+    ' >/dev/null 2>&1
 }
 
 OLD_BE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$BACKEND_CONTAINER" 2>/dev/null || true)"
@@ -113,7 +124,7 @@ rollback_db_password() {
     echo "Could not restore the previous SQL Server credential." >&2
     return 1
   fi
-  wait_for_healthy "$DB_CONTAINER" 60
+  wait_for_healthy "$DB_CONTAINER" 180 false
 }
 
 preserve_db_container() {
@@ -177,8 +188,11 @@ desired_db_password="$(read_env_value DB_SA_PASSWORD)"
 unsafe_db_binding=false
 db_exists=false
 db_password_changed=false
+active_db_password=""
 if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
   db_exists=true
+  DB_IMAGE="${DB_IMAGE:-$(docker inspect --format='{{.Image}}' "$DB_CONTAINER")}"
+  export DB_IMAGE
   while IFS= read -r binding; do
     [[ -z "$binding" || "$binding" == 127.0.0.1:* ]] || unsafe_db_binding=true
   done < <(docker port "$DB_CONTAINER" 1433/tcp 2>/dev/null || true)
@@ -192,21 +206,45 @@ if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
     echo "Cannot inspect the existing SQL Server credential for safe rotation." >&2
     exit 1
   fi
+
+  for ((attempt = 1; attempt <= 60; attempt += 1)); do
+    if db_can_connect "$current_db_password"; then
+      active_db_password="$current_db_password"
+      break
+    fi
+    if db_can_connect "$desired_db_password"; then
+      active_db_password="$desired_db_password"
+      break
+    fi
+    sleep 2
+  done
+  if [[ -z "$active_db_password" ]]; then
+    echo "SQL Server is not reachable with either the container or desired credential." >&2
+    exit 1
+  fi
   [[ "$current_db_password" == "$desired_db_password" ]] || db_password_changed=true
 fi
 
 if [[ "$db_exists" == "true" && ( "$unsafe_db_binding" == "true" || "$db_password_changed" == "true" ) ]]; then
   echo "Taking a safety backup before reconciling the SQL Server container."
-  bash deploy/backup-db.sh before-db-reconcile /var/opt/mssql/data
+  DB_PASSWORD="$active_db_password" \
+    bash deploy/backup-db.sh before-db-reconcile /var/opt/mssql/data
 
   if [[ "$db_password_changed" == "true" ]]; then
-    echo "Rotating the SQL Server sa credential without exposing either value."
-    docker exec -e NEW_DB_PASSWORD="$desired_db_password" "$DB_CONTAINER" bash -euc '
-      /opt/mssql-tools18/bin/sqlcmd \
-        -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b \
-        -v NEW_PASSWORD="$NEW_DB_PASSWORD" \
-        -Q "ALTER LOGIN [sa] WITH PASSWORD = N'\''\$(NEW_PASSWORD)'\'';"
-    '
+    if [[ "$active_db_password" != "$desired_db_password" ]]; then
+      echo "Rotating the SQL Server sa credential without exposing either value."
+      docker exec \
+        -e ACTIVE_DB_PASSWORD="$active_db_password" \
+        -e NEW_DB_PASSWORD="$desired_db_password" \
+        "$DB_CONTAINER" bash -euc '
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -C -b \
+            -v NEW_PASSWORD="$NEW_DB_PASSWORD" \
+            -Q "ALTER LOGIN [sa] WITH PASSWORD = N'\''\$(NEW_PASSWORD)'\'';"
+        '
+    else
+      echo "Resuming an interrupted SQL Server credential reconciliation."
+    fi
     DB_PASSWORD_ROTATION_PENDING=true
   fi
 
@@ -216,7 +254,7 @@ else
   compose up -d db
 fi
 
-wait_for_healthy "$DB_CONTAINER" 60
+wait_for_healthy "$DB_CONTAINER" 180 false
 
 while IFS= read -r binding; do
   if [[ -n "$binding" && "$binding" != 127.0.0.1:* ]]; then
@@ -275,6 +313,7 @@ curl --fail --silent --show-error --retry 10 --retry-delay 2 --retry-all-errors 
 
 cat > deploy-state.env <<EOF
 DEPLOY_SHA=$DEPLOY_SHA
+DB_IMAGE=$DB_IMAGE
 BE_IMAGE=$BE_IMAGE
 FE_IMAGE=$FE_IMAGE
 DEPLOYED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
