@@ -37,7 +37,6 @@ read_env_value() {
 wait_for_healthy() {
   local container="$1"
   local attempts="${2:-60}"
-  local fail_fast="${3:-true}"
   local status=""
 
   for ((attempt = 1; attempt <= attempts; attempt += 1)); do
@@ -45,7 +44,7 @@ wait_for_healthy() {
     if [[ "$status" == "healthy" ]]; then
       return 0
     fi
-    if [[ "$fail_fast" == "true" && ( "$status" == "unhealthy" || "$status" == "stopped" ) ]]; then
+    if [[ "$status" == "unhealthy" || "$status" == "stopped" ]]; then
       docker logs --tail 100 "$container" 2>/dev/null || true
       return 1
     fi
@@ -65,6 +64,22 @@ db_can_connect() {
       /opt/mssql-tools18/bin/sqlcmd \
         -S localhost -U sa -P "$CHECK_DB_PASSWORD" -C -b -Q "SELECT 1;" >/dev/null
     ' >/dev/null 2>&1
+}
+
+wait_for_db_connection() {
+  local password="$1"
+  local attempts="${2:-180}"
+
+  for ((attempt = 1; attempt <= attempts; attempt += 1)); do
+    if db_can_connect "$password"; then
+      return 0
+    fi
+    sleep 2
+  done
+
+  docker logs --tail 100 "$DB_CONTAINER" 2>/dev/null || true
+  echo "SQL Server did not accept a verified connection in time." >&2
+  return 1
 }
 
 OLD_BE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$BACKEND_CONTAINER" 2>/dev/null || true)"
@@ -124,7 +139,7 @@ rollback_db_password() {
     echo "Could not restore the previous SQL Server credential." >&2
     return 1
   fi
-  wait_for_healthy "$DB_CONTAINER" 180 false
+  wait_for_db_connection "$current_db_password" 180
 }
 
 preserve_db_container() {
@@ -165,7 +180,7 @@ on_error() {
   if [[ "$DB_PASSWORD_ROTATION_PENDING" == "true" ]]; then
     rollback_db_password
   elif [[ -n "$current_db_password" && "$DB_CONTAINER_SWAP_PENDING" == "false" ]]; then
-    wait_for_healthy "$DB_CONTAINER" 60
+    wait_for_db_connection "$current_db_password" 180
   fi
   if [[ "$DEPLOYING_APPS" == "true" ]]; then
     rollback_apps
@@ -254,7 +269,7 @@ else
   compose up -d db
 fi
 
-wait_for_healthy "$DB_CONTAINER" 180 false
+wait_for_db_connection "$desired_db_password" 180
 
 while IFS= read -r binding; do
   if [[ -n "$binding" && "$binding" != 127.0.0.1:* ]]; then

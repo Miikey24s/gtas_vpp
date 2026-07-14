@@ -30,12 +30,6 @@ services:
         max-file: "3"
     mem_limit: 5g
     stop_grace_period: 60s
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C -b >/dev/null"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
     networks:
       - vpp-internal
 
@@ -48,7 +42,7 @@ services:
     profiles: ["tools"]
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"
@@ -82,7 +76,7 @@ services:
     init: true
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     environment:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"

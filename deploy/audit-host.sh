@@ -27,8 +27,20 @@ nginx -v 2>&1 || true
 
 for container in gtas-vpp-db gtas-vpp-backend gtas-vpp-frontend; do
   status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else if .State.Running}}running{{else}}stopped{{end}}' "$container" 2>/dev/null || true)"
-  [[ "$status" == "healthy" ]] || fail "$container health is ${status:-missing}"
+  if [[ "$container" == "gtas-vpp-db" ]]; then
+    [[ "$status" == "running" || "$status" == "healthy" ]] \
+      || fail "$container state is ${status:-missing}"
+  else
+    [[ "$status" == "healthy" ]] || fail "$container health is ${status:-missing}"
+  fi
 done
+
+if ! docker exec gtas-vpp-db bash -euc '
+  /opt/mssql-tools18/bin/sqlcmd \
+    -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1;" >/dev/null
+'; then
+  fail "SQL Server did not pass the authenticated query probe"
+fi
 
 for mapping in \
   "gtas-vpp-db:1433/tcp" \
