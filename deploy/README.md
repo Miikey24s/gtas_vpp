@@ -75,7 +75,8 @@ in vào log.
 
 ## Luồng CI/CD
 
-Mỗi push vào `Nam` hoặc lần chạy `workflow_dispatch` thực hiện:
+Mỗi push vào `Nam` có thay đổi source backend/frontend hoặc hạ tầng Production, hay lần
+chạy `workflow_dispatch`, thực hiện:
 
 1. restore, build Release và chạy backend/frontend tests;
 2. build hai image, push tag bất biến `sha-<commit>` lên GHCR;
