@@ -7,6 +7,7 @@ APP_NETWORK="${APP_NETWORK:-gtas-vpp-internal}"
 DB_CONTAINER="${DB_CONTAINER:-gtas-vpp-db}"
 BACKEND_CONTAINER="${BACKEND_CONTAINER:-gtas-vpp-backend}"
 FRONTEND_CONTAINER="${FRONTEND_CONTAINER:-gtas-vpp-frontend}"
+DB_FALLBACK_CONTAINER="${DB_FALLBACK_CONTAINER:-${DB_CONTAINER}-previous}"
 PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-https://gtas-vpp.annam.id.vn/healthz}"
 DEPLOY_SHA="${DEPLOY_SHA:-unknown}"
 
@@ -59,6 +60,7 @@ OLD_BE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$BACKEND_CONTAINER"
 OLD_FE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$FRONTEND_CONTAINER" 2>/dev/null || true)"
 DEPLOYING_APPS=false
 DB_PASSWORD_ROTATION_PENDING=false
+DB_CONTAINER_SWAP_PENDING=false
 current_db_password=""
 desired_db_password=""
 
@@ -90,26 +92,69 @@ rollback_db_password() {
   fi
 
   echo "Restoring the previous SQL Server credential after a failed reconciliation..." >&2
-  docker exec \
-    -e ACTIVE_DB_PASSWORD="$desired_db_password" \
-    -e ROLLBACK_DB_PASSWORD="$current_db_password" \
-    "$DB_CONTAINER" bash -euc '
-      /opt/mssql-tools18/bin/sqlcmd \
-        -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -C -b \
-        -v ROLLBACK_PASSWORD="$ROLLBACK_DB_PASSWORD" \
-        -Q "ALTER LOGIN [sa] WITH PASSWORD = N'\''\$(ROLLBACK_PASSWORD)'\'';"
-    '
-  DB_SA_PASSWORD="$current_db_password" \
-    docker compose -f "$COMPOSE_FILE" up -d --force-recreate db
+  local restored=false
+  for ((attempt = 1; attempt <= 60; attempt += 1)); do
+    if docker exec \
+      -e ACTIVE_DB_PASSWORD="$desired_db_password" \
+      -e ROLLBACK_DB_PASSWORD="$current_db_password" \
+      "$DB_CONTAINER" bash -euc '
+        /opt/mssql-tools18/bin/sqlcmd \
+          -S localhost -U sa -P "$ACTIVE_DB_PASSWORD" -C -b \
+          -v ROLLBACK_PASSWORD="$ROLLBACK_DB_PASSWORD" \
+          -Q "ALTER LOGIN [sa] WITH PASSWORD = N'\''\$(ROLLBACK_PASSWORD)'\'';"
+      '; then
+      restored=true
+      break
+    fi
+    sleep 2
+  done
+
+  if [[ "$restored" != "true" ]]; then
+    echo "Could not restore the previous SQL Server credential." >&2
+    return 1
+  fi
   wait_for_healthy "$DB_CONTAINER" 60
+}
+
+preserve_db_container() {
+  if docker container inspect "$DB_FALLBACK_CONTAINER" >/dev/null 2>&1; then
+    echo "Refusing to overwrite the existing fallback container $DB_FALLBACK_CONTAINER." >&2
+    return 1
+  fi
+
+  echo "Preserving the current SQL Server container as $DB_FALLBACK_CONTAINER."
+  docker rename "$DB_CONTAINER" "$DB_FALLBACK_CONTAINER"
+  docker stop --time 60 "$DB_FALLBACK_CONTAINER" >/dev/null
+  DB_CONTAINER_SWAP_PENDING=true
+}
+
+restore_db_container() {
+  trap - ERR
+  set +e
+
+  echo "Restoring the preserved SQL Server container..." >&2
+  docker rm -f "$DB_CONTAINER" >/dev/null 2>&1 || true
+  docker rename "$DB_FALLBACK_CONTAINER" "$DB_CONTAINER" || return 1
+  docker start "$DB_CONTAINER" >/dev/null || return 1
+  DB_CONTAINER_SWAP_PENDING=false
+}
+
+discard_db_fallback() {
+  docker rm "$DB_FALLBACK_CONTAINER" >/dev/null
+  DB_CONTAINER_SWAP_PENDING=false
 }
 
 on_error() {
   local exit_code="$1"
   local line="$2"
   echo "Deployment failed at line $line (exit $exit_code)." >&2
+  if [[ "$DB_CONTAINER_SWAP_PENDING" == "true" ]]; then
+    restore_db_container
+  fi
   if [[ "$DB_PASSWORD_ROTATION_PENDING" == "true" ]]; then
     rollback_db_password
+  elif [[ -n "$current_db_password" && "$DB_CONTAINER_SWAP_PENDING" == "false" ]]; then
+    wait_for_healthy "$DB_CONTAINER" 60
   fi
   if [[ "$DEPLOYING_APPS" == "true" ]]; then
     rollback_apps
@@ -165,13 +210,13 @@ if [[ "$db_exists" == "true" && ( "$unsafe_db_binding" == "true" || "$db_passwor
     DB_PASSWORD_ROTATION_PENDING=true
   fi
 
-  compose up -d --force-recreate db
+  preserve_db_container
+  compose up -d db
 else
   compose up -d db
 fi
 
 wait_for_healthy "$DB_CONTAINER" 60
-DB_PASSWORD_ROTATION_PENDING=false
 
 while IFS= read -r binding; do
   if [[ -n "$binding" && "$binding" != 127.0.0.1:* ]]; then
@@ -184,6 +229,11 @@ bash deploy/backup-db.sh pre-deploy
 
 compose --profile tools pull backend frontend migrator
 compose run --rm --no-deps migrator
+
+if [[ "$DB_CONTAINER_SWAP_PENDING" == "true" ]]; then
+  discard_db_fallback
+fi
+DB_PASSWORD_ROTATION_PENDING=false
 
 DEPLOYING_APPS=true
 compose up -d --no-deps --force-recreate backend
