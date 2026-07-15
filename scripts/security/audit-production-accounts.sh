@@ -36,10 +36,17 @@ IF OBJECT_ID(N'GTAS_MENU.dbo.tblUsers', N'U') IS NULL
 IF COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'UserID') IS NULL
    OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'UserLogin') IS NULL
    OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'PasswordChar') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'FullName') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'EmailAddress1') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'EmailAddress2') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'GoogleEmail') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'PhoneNo1') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'PhoneNo2') IS NULL
    OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'IsInactiveFlg') IS NULL
    OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'IsLockedFlg') IS NULL
    OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'MemberCompanyCode') IS NULL
    OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'DepartmentCode') IS NULL
+   OR COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'MemberCompanyName') IS NULL
    OR COL_LENGTH(N'dbo.P04_UserGroup', N'UserId') IS NULL
    OR COL_LENGTH(N'dbo.P04_UserGroup', N'P02_GroupId') IS NULL
    OR COL_LENGTH(N'dbo.P04_UserGroup', N'LEX02_CompanyDepartmentLocationId') IS NULL
@@ -48,6 +55,7 @@ IF COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'UserID') IS NULL
    OR COL_LENGTH(N'dbo.P02_Group', N'GroupName') IS NULL
    OR COL_LENGTH(N'dbo.P02_Group', N'IsDeleted') IS NULL
    OR COL_LENGTH(N'dbo.LEX02_CompanyDepartmentLocation', N'Id') IS NULL
+   OR COL_LENGTH(N'dbo.LEX02_CompanyDepartmentLocation', N'LEX02Code') IS NULL
    OR COL_LENGTH(N'dbo.LEX02_CompanyDepartmentLocation', N'IsDeleted') IS NULL
     THROW 51000, 'Required account audit columns are missing.', 1;
 
@@ -57,7 +65,19 @@ IF COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'UserID') IS NULL
         u.UserID,
         NormalizedLogin = NULLIF(
             LOWER(LTRIM(RTRIM(u.UserLogin COLLATE DATABASE_DEFAULT))), N''),
+        u.UserLogin,
         u.PasswordChar,
+        u.FullName,
+        u.EmailAddress1,
+        u.EmailAddress2,
+        u.GoogleEmail,
+        u.PhoneNo1,
+        u.PhoneNo2,
+        u.IsInactiveFlg,
+        u.IsLockedFlg,
+        u.MemberCompanyCode,
+        u.DepartmentCode,
+        u.MemberCompanyName,
         IsActive = IIF(ISNULL(u.IsInactiveFlg, 0) = 0
             AND ISNULL(u.IsLockedFlg, 0) = 0, 1, 0),
         IsLocked = IIF(u.IsLockedFlg = 1, 1, 0),
@@ -70,6 +90,49 @@ IF COL_LENGTH(N'GTAS_MENU.dbo.tblUsers', N'UserID') IS NULL
         MissingVerifier = IIF(
             NULLIF(LTRIM(RTRIM(u.PasswordChar)), N'') IS NULL, 1, 0)
     FROM GTAS_MENU.dbo.tblUsers AS u
+),
+AccountCanonicalRows AS
+(
+    SELECT
+        a.UserID,
+        HasReservedControl = CASE WHEN
+            CHARINDEX(NCHAR(28), CONCAT(a.UserLogin, a.FullName,
+                a.EmailAddress1, a.EmailAddress2, a.GoogleEmail,
+                a.PhoneNo1, a.PhoneNo2, a.DepartmentCode,
+                a.MemberCompanyName)) > 0
+            OR CHARINDEX(NCHAR(29), CONCAT(a.UserLogin, a.FullName,
+                a.EmailAddress1, a.EmailAddress2, a.GoogleEmail,
+                a.PhoneNo1, a.PhoneNo2, a.DepartmentCode,
+                a.MemberCompanyName)) > 0
+            OR CHARINDEX(NCHAR(31), CONCAT(a.UserLogin, a.FullName,
+                a.EmailAddress1, a.EmailAddress2, a.GoogleEmail,
+                a.PhoneNo1, a.PhoneNo2, a.DepartmentCode,
+                a.MemberCompanyName)) > 0
+            THEN CONVERT(bigint, 1) ELSE CONVERT(bigint, 0) END,
+        RowCanonical = CONVERT(nvarchar(max), CONCAT(
+            CONVERT(nvarchar(20), a.UserID), NCHAR(31),
+            COALESCE(a.UserLogin, NCHAR(29)), NCHAR(31),
+            COALESCE(a.FullName, NCHAR(29)), NCHAR(31),
+            COALESCE(a.EmailAddress1, NCHAR(29)), NCHAR(31),
+            COALESCE(a.EmailAddress2, NCHAR(29)), NCHAR(31),
+            COALESCE(a.GoogleEmail, NCHAR(29)), NCHAR(31),
+            COALESCE(a.PhoneNo1, NCHAR(29)), NCHAR(31),
+            COALESCE(a.PhoneNo2, NCHAR(29)), NCHAR(31),
+            COALESCE(CONVERT(nvarchar(1), a.IsInactiveFlg), NCHAR(29)), NCHAR(31),
+            COALESCE(CONVERT(nvarchar(1), a.IsLockedFlg), NCHAR(29)), NCHAR(31),
+            COALESCE(CONVERT(nvarchar(30), a.MemberCompanyCode), NCHAR(29)), NCHAR(31),
+            COALESCE(a.DepartmentCode, NCHAR(29)), NCHAR(31),
+            COALESCE(a.MemberCompanyName, NCHAR(29))))
+    FROM Accounts AS a
+),
+AccountManifest AS
+(
+    SELECT
+        ReservedControlRows = COALESCE(SUM(HasReservedControl), 0),
+        ManifestDigest = CONVERT(varchar(64), HASHBYTES(N'SHA2_256',
+            CONVERT(nvarchar(max), STRING_AGG(RowCanonical, NCHAR(28))
+                WITHIN GROUP (ORDER BY UserID))), 2)
+    FROM AccountCanonicalRows
 ),
 VerifierCohorts AS
 (
@@ -114,6 +177,37 @@ AccountGroupCounts AS
         ON p.UserId = a.UserID AND p.IsDeleted = 0
     GROUP BY a.UserID
 ),
+MembershipCanonicalRows AS
+(
+    SELECT
+        p.UserId,
+        p.P02_GroupId,
+        p.LEX02_CompanyDepartmentLocationId,
+        HasReservedControl = CASE WHEN
+            CHARINDEX(NCHAR(28), COALESCE(d.LEX02Code, N'')) > 0
+            OR CHARINDEX(NCHAR(29), COALESCE(d.LEX02Code, N'')) > 0
+            OR CHARINDEX(NCHAR(31), COALESCE(d.LEX02Code, N'')) > 0
+            THEN CONVERT(bigint, 1) ELSE CONVERT(bigint, 0) END,
+        RowCanonical = CONVERT(nvarchar(max), CONCAT(
+            CONVERT(nvarchar(20), p.UserId), NCHAR(31),
+            LOWER(CONVERT(nvarchar(36), p.P02_GroupId)), NCHAR(31),
+            COALESCE(d.LEX02Code, NCHAR(29)), NCHAR(31),
+            COALESCE(CONVERT(nvarchar(1), p.IsDeleted), NCHAR(29))))
+    FROM dbo.P04_UserGroup AS p
+    LEFT JOIN dbo.LEX02_CompanyDepartmentLocation AS d
+        ON d.Id = p.LEX02_CompanyDepartmentLocationId
+),
+MembershipManifest AS
+(
+    SELECT
+        TotalMappings = COUNT_BIG(*),
+        ReservedControlRows = COALESCE(SUM(HasReservedControl), 0),
+        ManifestDigest = CONVERT(varchar(64), HASHBYTES(N'SHA2_256',
+            CONVERT(nvarchar(max), STRING_AGG(RowCanonical, NCHAR(28))
+                WITHIN GROUP (ORDER BY UserId, P02_GroupId,
+                    LEX02_CompanyDepartmentLocationId))), 2)
+    FROM MembershipCanonicalRows
+),
 Metrics AS
 (
     SELECT
@@ -141,11 +235,26 @@ Metrics AS
         AccountsWithMultipleActiveP04 = (SELECT COUNT_BIG(*) FROM AccountGroupCounts WHERE ActiveMappingCount > 1),
         HistoricalPrivilegedP04Count = (SELECT COUNT_BIG(*) FROM ActiveMappings WHERE RoleClass = 1),
         HistoricalStandardP04Count = (SELECT COUNT_BIG(*) FROM ActiveMappings WHERE RoleClass = 2),
-        OtherP04Count = (SELECT COUNT_BIG(*) FROM ActiveMappings WHERE RoleClass = 3)
+        OtherP04Count = (SELECT COUNT_BIG(*) FROM ActiveMappings WHERE RoleClass = 3),
+        AccountReservedControlRows = (SELECT ReservedControlRows FROM AccountManifest),
+        AccountManifestDigest = (SELECT ManifestDigest FROM AccountManifest),
+        AllP04Mappings = (SELECT TotalMappings FROM MembershipManifest),
+        MembershipReservedControlRows = (SELECT ReservedControlRows FROM MembershipManifest),
+        MembershipManifestDigest = (SELECT ManifestDigest FROM MembershipManifest)
 ),
 Evaluated AS
 (
     SELECT m.*,
+        ExactAccountManifestMatch = CASE
+            WHEN TotalAccounts = 12
+             AND AccountReservedControlRows = 0
+             AND AccountManifestDigest = 'DFC216DE66DF33DC3681D9CAF03140EFC32793B715D0CDB98975AE60568534F9'
+            THEN CONVERT(bigint, 1) ELSE CONVERT(bigint, 0) END,
+        ExactMembershipManifestMatch = CASE
+            WHEN AllP04Mappings = 12
+             AND MembershipReservedControlRows = 0
+             AND MembershipManifestDigest = '55FD16BD2AEACE351B7B1AEEE71ADDF5EFC890AA3C26EFD99FF0B09D2738478C'
+            THEN CONVERT(bigint, 1) ELSE CONVERT(bigint, 0) END,
         AggregateHistoricalDemoSignatureMatch = CASE
             WHEN TotalAccounts = 12
              AND ActiveAccounts = 12
@@ -204,8 +313,16 @@ CROSS APPLY (VALUES
     (N'memberships_admin', e.HistoricalPrivilegedP04Count),
     (N'memberships_user', e.HistoricalStandardP04Count),
     (N'memberships_other_role', e.OtherP04Count),
+    (N'account_manifest_reserved_control_rows', e.AccountReservedControlRows),
+    (N'membership_manifest_reserved_control_rows', e.MembershipReservedControlRows),
+    (N'exact_account_manifest_match', e.ExactAccountManifestMatch),
+    (N'exact_membership_manifest_match', e.ExactMembershipManifestMatch),
     (N'aggregate_historical_demo_signature_match', e.AggregateHistoricalDemoSignatureMatch),
-    (N'safe_to_classify_all_accounts_as_demo', CONVERT(bigint, 0))
+    (N'safe_to_classify_all_accounts_as_demo', CASE
+        WHEN e.AggregateHistoricalDemoSignatureMatch = 1
+         AND e.ExactAccountManifestMatch = 1
+         AND e.ExactMembershipManifestMatch = 1
+        THEN CONVERT(bigint, 1) ELSE CONVERT(bigint, 0) END)
 ) AS metrics(Metric, Value)
 ORDER BY metrics.Metric;
 SQL
@@ -241,6 +358,8 @@ required_metrics=(
   verifier_largest_shared_cohort
   memberships_active
   aggregate_historical_demo_signature_match
+  exact_account_manifest_match
+  exact_membership_manifest_match
   safe_to_classify_all_accounts_as_demo
 )
 
