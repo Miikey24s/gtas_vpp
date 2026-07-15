@@ -34,6 +34,18 @@ public sealed class ProductionDeploymentSafetyTests
             "NEW_DB_PASSWORD=\"$current_db_password\"",
             deploy,
             StringComparison.Ordinal);
+        Assert.Contains(
+            "recover_apps_with_current_env=\"$DEPLOYING_APPS\"",
+            deploy,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "recover_apps_with_current_env=true",
+            deploy,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "if [[ \"$recover_apps_with_current_env\" == \"true\" ]]",
+            deploy,
+            StringComparison.Ordinal);
     }
 
     [Fact]

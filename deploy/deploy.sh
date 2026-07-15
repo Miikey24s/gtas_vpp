@@ -263,6 +263,7 @@ on_error() {
   local exit_code="$1"
   local line="$2"
   local recovery_failed=false
+  local recover_apps_with_current_env="$DEPLOYING_APPS"
   echo "Deployment failed at line $line (exit $exit_code)." >&2
   if [[ "$DB_CONTAINER_SWAP_PENDING" == "true" ]]; then
     restore_db_container || recovery_failed=true
@@ -272,13 +273,18 @@ on_error() {
       recovery_failed=true
     elif ! reconcile_db_container_secret_metadata; then
       recovery_failed=true
+    else
+      # The database now accepts only the desired credential. Recreate the
+      # previous application images with the current .env even when failure
+      # happened before the normal application rollout began.
+      recover_apps_with_current_env=true
     fi
   elif [[ -n "$active_db_password" ]]; then
     wait_for_db_connection "$active_db_password" 180 || recovery_failed=true
   elif [[ -n "$desired_db_password" && "$DB_CONTAINER_SWAP_PENDING" == "false" ]]; then
     wait_for_db_connection "$desired_db_password" 180 || recovery_failed=true
   fi
-  if [[ "$DEPLOYING_APPS" == "true" ]]; then
+  if [[ "$recover_apps_with_current_env" == "true" ]]; then
     rollback_apps || recovery_failed=true
   fi
   if [[ "$recovery_failed" == "true" ]]; then
