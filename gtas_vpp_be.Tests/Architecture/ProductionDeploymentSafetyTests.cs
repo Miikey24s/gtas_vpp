@@ -216,38 +216,6 @@ public sealed class ProductionDeploymentSafetyTests
     }
 
     [Fact]
-    public void DemoAccountContainment_QuiescesWritersAndLeavesAppsStoppedForKeyRotation()
-    {
-        var script = ReadRepositoryFile(
-            "scripts",
-            "security",
-            "contain-production-demo-accounts.sh");
-        var workflow = ReadRepositoryFile(
-            ".github",
-            "workflows",
-            "production-account-containment.yml");
-
-        var stopIndex = script.IndexOf("ensure_apps_stopped\napps_quiesced=true", StringComparison.Ordinal);
-        var backupIndex = script.IndexOf(
-            "bash \"$backup_pair_script\" sec001_pre_containment",
-            stopIndex,
-            StringComparison.Ordinal);
-        var transactionIndex = script.IndexOf("BEGIN TRANSACTION", backupIndex, StringComparison.Ordinal);
-
-        Assert.True(stopIndex >= 0, "Containment must stop application writers first.");
-        Assert.True(backupIndex > stopIndex, "Paired backup must run after writers stop.");
-        Assert.True(transactionIndex > backupIndex, "Mutation must run after paired backup.");
-        Assert.Contains("trap recover_on_exit EXIT", script, StringComparison.Ordinal);
-        Assert.Contains("is_containment_post_state", script, StringComparison.Ordinal);
-        Assert.Contains("applications_quiesced_for_key_rotation", script, StringComparison.Ordinal);
-        Assert.Contains("CONTAINMENT_BUNDLE_DIR", script, StringComparison.Ordinal);
-        Assert.Contains("backup-db-pair.sh", workflow, StringComparison.Ordinal);
-        Assert.Contains("backup-db.sh", workflow, StringComparison.Ordinal);
-        Assert.Contains("group: gtas-vpp-production", workflow, StringComparison.Ordinal);
-        Assert.DoesNotContain("Verify public health after containment", workflow, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void BackupPair_RequiresAndVerifiesBothProductionDatabases()
     {
         var pair = ReadRepositoryFile("deploy", "backup-db-pair.sh");

@@ -84,9 +84,9 @@ chạy `workflow_dispatch`, thực hiện:
 2. build hai image, push tag bất biến `sha-<commit>` lên GHCR;
 3. tạo release `/app/gtas-vpp/releases/<commit>` và chuyển `.env` bằng SCP;
 4. đăng nhập GHCR bằng Docker config tạm, tự xóa khi phiên SSH kết thúc;
-5. kiểm tra/khắc phục mapping SQL public, tự lấy đúng named volume đang mount từ
-   container hiện hành và giữ container cũ dưới tên dự phòng cho đến khi migrator
-   thành công;
+5. kiểm tra/khắc phục mapping SQL public và pin image SHA cùng named volume từ
+   container hiện hành; nếu container bị thiếu thì chỉ đọc hai giá trị này từ
+   `deploy-state.env` của release thành công gần nhất và fail-closed nếu không xác minh được;
 6. nếu secret SQL đổi, backup cặp database bằng credential đang hoạt động,
    `ALTER LOGIN sa`, rồi recreate container với credential mới và nguyên volume;
 7. tạo `BACKUP ... WITH COPY_ONLY, CHECKSUM` và `RESTORE VERIFYONLY ... WITH CHECKSUM`
@@ -97,9 +97,11 @@ chạy `workflow_dispatch`, thực hiện:
 10. kết nối SSH lại bằng public-key-only và gọi public `/healthz`;
 11. chỉ khi mọi bước pass mới chuyển symlink `/app/gtas-vpp/current`.
 
-Nếu runner/SSH bị ngắt đúng lúc đổi container SQL, lần deploy sau phát hiện
-`gtas-vpp-db-previous` và khôi phục container đó trước khi đọc credential, volume hoặc
-thực hiện backup mới.
+Không dùng `docker rename` để giữ container SQL dự phòng vì nhãn Docker Compose vẫn
+đi theo container đã đổi tên. Việc reconcile recreate container trực tiếp trên named
+volume sau backup đã kiểm chứng; error handler không được gọi Compose nếu image SHA và
+volume chưa được pin. Nếu xuất hiện container service `db` không đúng tên chuẩn, deploy
+dừng để điều tra thay vì tự xóa hoặc đổi tên.
 
 Nếu backend/frontend mới lỗi, script tự quay về cặp image trước. Migration database
 không tự rollback vì migration ngược có thể phá dữ liệu; backup `pre-deploy` là
@@ -107,11 +109,10 @@ không tự rollback vì migration ngược có thể phá dữ liệu; backup `
 
 Credential SQL đã rotate không bao giờ bị đổi ngược về credential cũ khi deploy lỗi.
 Error handler hoàn tất theo hướng roll-forward tới `DB_SA_PASSWORD` mong muốn,
-recreate container SQL để metadata không giữ credential cũ, rồi recreate cặp image
-ứng dụng trước bằng `.env` hiện hành nên chúng cũng dùng credential mới. Container
-SQL cũ chỉ bị xóa sau khi kết nối bằng credential mới đã pass. Nếu tự động phục hồi
-chưa hoàn tất, giữ nguyên credential mới và điều tra/retry; không đưa credential đã
-bị thu hồi trở lại.
+recreate container SQL trên đúng named volume để metadata không giữ credential cũ,
+rồi recreate cặp image ứng dụng trước bằng `.env` hiện hành nên chúng cũng dùng
+credential mới. Nếu tự động phục hồi chưa hoàn tất, giữ nguyên credential mới và
+điều tra/retry; không đưa credential đã bị thu hồi trở lại.
 
 ## Backup và restore
 
