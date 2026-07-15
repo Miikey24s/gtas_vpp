@@ -417,24 +417,6 @@ leftsidebar {
     font-weight: var(--vpp-font-weight-semibold);
 }
 
-.vpp-header-server {
-    flex: 0 0 auto;
-    padding: 0.2rem var(--vpp-space-2);
-    border: 1px solid rgba(var(--vpp-primary-rgb), 0.18);
-    border-radius: var(--vpp-radius-full);
-    background: rgba(var(--vpp-primary-rgb), 0.08);
-    color: var(--vpp-primary-700);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-bold);
-    line-height: 1;
-}
-
-.rz-theme-dark .vpp-header-server {
-    color: var(--vpp-primary-200);
-    background: rgba(var(--vpp-primary-rgb), 0.14);
-    border-color: rgba(var(--vpp-primary-rgb), 0.24);
-}
-
 .vpp-header-actions {
     flex: 0 0 auto;
 }
@@ -722,10 +704,6 @@ leftsidebar {
 
     .vpp-header-product {
         font-size: 0.95rem;
-    }
-
-    .vpp-header-server {
-        display: none;
     }
 
     .vpp-header-actions {

@@ -16,7 +16,6 @@
   <data name="Login" xml:space="preserve"><value>Login</value></data>
   <data name="LoginUsernameRequired" xml:space="preserve"><value>Please enter your username.</value></data>
   <data name="LoginPasswordRequired" xml:space="preserve"><value>Please enter your password.</value></data>
-  <data name="LoginServerRequired" xml:space="preserve"><value>Please select a server.</value></data>
   <data name="Logout" xml:space="preserve"><value>Logout</value></data>
   <data name="Username" xml:space="preserve"><value>Username</value></data>
   <data name="Password" xml:space="preserve"><value>Password</value></data>
@@ -125,7 +124,6 @@
   <data name="GroupNameRequired" xml:space="preserve"><value>Group name is required</value></data>
   <data name="CopyFrom" xml:space="preserve"><value>Copy from (optional)</value></data>
   <data name="CreateNewGroup" xml:space="preserve"><value>Create new group</value></data>
-  <data name="Server" xml:space="preserve"><value>Server</value></data>
   <data name="ClassCode" xml:space="preserve"><value>Class Code</value></data>
   <data name="ClassName" xml:space="preserve"><value>Class Name *</value></data>
   <data name="ClassModule" xml:space="preserve"><value>Class Module</value></data>

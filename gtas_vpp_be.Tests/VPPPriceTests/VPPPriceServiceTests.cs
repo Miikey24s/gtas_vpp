@@ -145,7 +145,7 @@ public class VPPPriceServiceTests
         var supplier1Id = await SeedSupplierAsync(context, "Supplier 1", now);
         var supplier2Id = await SeedSupplierAsync(context, "Supplier 2", now);
         var service = CreatePriceService(context, now);
-        
+
         await service.CreateAsync(CreateReq(vppId1, supplier1Id, priceListId, 1000, isDefault: true), 5615);
         await service.CreateAsync(CreateReq(vppId2, supplier1Id, priceListId, 2000, isDefault: false), 5615);
         await service.CreateAsync(CreateReq(vppId1, supplier2Id, priceListId, 1500, isDefault: true), 5615);
@@ -211,7 +211,7 @@ public class VPPPriceServiceTests
             unitOfWork.Object,
             new FakeDateTimeProvider(now),
             config,
-            new EnvironmentResolver(),
+                ServiceTestHelpers.CreateEnvironmentResolver(),
             new UserNameResolver(),
             NullLogger<BaseServices>.Instance,
             Options.Create(new JiraSettings()));

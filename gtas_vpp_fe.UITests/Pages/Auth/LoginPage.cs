@@ -53,23 +53,11 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
             throw new TimeoutException($"Timed out waiting for post-login redirect. Last URL: {_page.Url}");
         }
 
-        public async Task LoginAsync(string username, string password, string serverName = "Test")
+        public async Task LoginAsync(string username, string password)
         {
             await _page.WaitForTimeoutAsync(750);
             await _usernameInput.FillAsync(username);
             await _passwordInput.FillAsync(password);
-            
-            // Xử lý chọn Server nếu DropDown hiển thị
-            var serverDropdown = _page.Locator(".rz-dropdown").First;
-            if (await serverDropdown.CountAsync() > 0 && await serverDropdown.IsVisibleAsync())
-            {
-                await serverDropdown.Locator(".rz-dropdown-trigger").ClickAsync();
-                await _page.Locator(".rz-dropdown-panel.rz-open").WaitForAsync(
-                    new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-                var option = _page.Locator($".rz-dropdown-panel.rz-open [role='option'][aria-label='{serverName}']").First;
-                await option.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-                await option.ClickAsync();
-            }
 
             await _loginButton.ClickAsync();
         }

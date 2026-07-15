@@ -33,7 +33,8 @@ namespace gtas_vpp_fe.UITests.Core
             _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
                 Headless = GetHeadlessMode(),
-                SlowMo = GetSlowMo()
+                SlowMo = GetSlowMo(),
+                ExecutablePath = GetBrowserExecutablePath()
             });
             Page = await _browser.NewPageAsync();
             Page.SetDefaultTimeout(60000);
@@ -52,7 +53,7 @@ namespace gtas_vpp_fe.UITests.Core
                 await _browser.DisposeAsync();
             }
             _playwright?.Dispose();
-            
+
             if (_app != null)
             {
                 await _app.DisposeAsync();
@@ -77,6 +78,24 @@ namespace gtas_vpp_fe.UITests.Core
             }
 
             return value;
+        }
+
+        private static string? GetBrowserExecutablePath()
+        {
+            var configuredPath = Environment.GetEnvironmentVariable("UITEST_BROWSER_EXECUTABLE");
+            if (string.IsNullOrWhiteSpace(configuredPath))
+            {
+                return null;
+            }
+
+            var fullPath = Path.GetFullPath(configuredPath);
+            if (!File.Exists(fullPath))
+            {
+                throw new InvalidOperationException(
+                    $"UITEST_BROWSER_EXECUTABLE does not exist: '{fullPath}'.");
+            }
+
+            return fullPath;
         }
 
         private static bool GetHeadlessMode()

@@ -2,7 +2,7 @@
 
 > Đây là nguồn sự thật chính cho Target mode sau khi người dùng phê duyệt.
 > Version: 1.2-decisions, 15/07/2026
-> Hiện trạng: BASE-001 và SEC-002 đã DONE; các task khác chưa được phép triển khai.
+> Hiện trạng: BASE-001, SEC-002 và ENV-001 đã DONE; các task khác chưa được phép triển khai.
 
 ## 1. Cách vận hành plan
 
@@ -101,7 +101,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | BASE-001 | 0 | P0 | DONE | Plan approval |
 | SEC-001 | 0 | P0 | BLOCKED_EXTERNAL | BASE-001, D-011 |
 | SEC-002 | 0 | P0 | DONE | BASE-001 |
-| ENV-001 | 0 | P0 | NOT_STARTED | BASE-001; không phụ thuộc tenant decision |
+| ENV-001 | 0 | P0 | DONE | BASE-001; không phụ thuộc tenant decision |
 | QA-001 | 0 | P0 | NOT_STARTED | BASE-001 |
 | ARCH-001 | 1 | P1 | NOT_STARTED | CP0 |
 | AUTH-001 | 1 | P0 | NOT_STARTED | CP1, ARCH-001, D-002 decided, D-004 decided |
@@ -220,7 +220,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 
 | Field | Nội dung |
 |---|---|
-| Status / Priority / Difficulty | `NOT_STARTED` / P0 / L |
+| Status / Priority / Difficulty | `DONE` / P0 / L |
 | Mục tiêu | Loại client Test/Live selector/claim và đảm bảo auth, permission, report, notification, business dùng cùng database binding. |
 | Lý do | Hiện có khả năng identity/permission từ DB mặc định vận hành business DB khác. |
 | Dependency | BASE-001. Không phụ thuộc D-002 vì environment binding khác tenant model; SEC-002 có thể chạy song song. |
@@ -229,12 +229,13 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | Backend | Bỏ `Server` claim; bind context từ deployment config; startup validation. |
 | Database | Không schema change bắt buộc; connection ownership/config thay đổi. |
 | Business rule | Environment không phải user choice/tenant. |
-| Tests | Hai fake DB fixtures: Test credential không thể chọn Live; all services resolve expected DB; login/report/notification integration. |
-| Verification | Inspect JWT claims; cross-DB canary data; build/test; deploy smoke. |
+| Tests | Unit/static matrix: request/legacy claim không chọn được DB; mọi runtime factory/context dùng cùng binding; invalid/dual/mismatched config và cross-audience replay fail. Disposable SQL integration thuộc QA-001. |
+| Verification | Inspect JWT/login payload; Release build + backend/frontend tests; Compose semantic checks; anonymous local 3-viewport UI smoke. Real startup/deploy smoke thuộc QA-001/DEP-001. |
 | Acceptance | Không request/client input quyết định connection; all authenticated scopes cùng DB; selector biến mất. |
 | Rủi ro / rollback | Demo multi-env workflow mất. Rollback qua deployment-specific config/image, không phục hồi unsafe claim path. |
 | Commit strategy | Backend binding/tests trước, FE selector removal sau trong cùng task với compatibility window ngắn. |
 | Cần người dùng xác nhận | Chỉ cần xác nhận deployment target/config khi apply; không chờ quyết định single/multi-company. |
+| Execution evidence | [`docs/execution/ENV-001.md`](../execution/ENV-001.md): immutable deployment binding, environment-free login/JWT/client state, fail-fast config and physical DB guards; Release 201 backend + 32 frontend, Compose 2/2, anonymous UI 1/1, 14 UI discovery; no DB/deploy apply. |
 
 ### QA-001 — SQL Server và UI test fixture cô lập
 

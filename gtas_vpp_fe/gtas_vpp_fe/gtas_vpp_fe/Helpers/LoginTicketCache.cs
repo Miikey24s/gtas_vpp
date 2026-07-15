@@ -5,16 +5,16 @@ namespace gtas_vpp_fe.Helpers
 {
     public class LoginTicketCache
     {
-        private readonly ConcurrentDictionary<string, (sp_Authentication_Login loginData, string server, bool rememberMe)> _cache = new();
+        private readonly ConcurrentDictionary<string, (sp_Authentication_Login loginData, bool rememberMe)> _cache = new();
 
-        public string Add(sp_Authentication_Login loginData, string server, bool rememberMe)
+        public string Add(sp_Authentication_Login loginData, bool rememberMe)
         {
             var id = Guid.NewGuid().ToString();
-            _cache.TryAdd(id, (loginData, server, rememberMe));
+            _cache.TryAdd(id, (loginData, rememberMe));
             return id;
         }
 
-        public (sp_Authentication_Login loginData, string server, bool rememberMe)? Get(string id)
+        public (sp_Authentication_Login loginData, bool rememberMe)? Get(string id)
         {
             if (_cache.TryRemove(id, out var data)) return data;
             return null;

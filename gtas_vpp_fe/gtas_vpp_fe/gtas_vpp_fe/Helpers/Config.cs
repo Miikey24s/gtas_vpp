@@ -9,7 +9,7 @@ namespace gtas_vpp_fe.Helpers
         public const string ApiBase = "/api";
         public const string ApiLibraryBase = "/api/Library";
         public const string ApiVppBase = "/api/VPPRequest";
-        
+
         public static class VppApi
         {
             public const string ApiVppBase = "/api/VPPRequest";
@@ -60,7 +60,10 @@ namespace gtas_vpp_fe.Helpers
         public const string LogoutProcessPath = "/logoutprocess";
 
         // Cookie
-        public const string CookieName = "VPP_AuthCookie";
+        // ENV-001 changes the backend JWT audience. Version the cookie name so an
+        // existing frontend cookie cannot trap users with an access token that the
+        // deployment-bound backend now correctly rejects.
+        public const string CookieName = "VPP_AuthCookie_v2";
         public const int CookieExpireMinutes = 1440;
         public const int ClaimExpireHours = 24;
         public const int AuthPropertyExpireHours = 24;

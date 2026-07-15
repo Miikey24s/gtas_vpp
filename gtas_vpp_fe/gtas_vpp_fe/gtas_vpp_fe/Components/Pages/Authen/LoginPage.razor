@@ -87,25 +87,6 @@
                         }
                     </div>
 
-                    @if (isShowServer)
-                    {
-                        <div class="@(HasServerValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
-                            <RadzenLabel class="vpp-login-label" Text="@Loc["Server"]" Component="Server" />
-                            <RadzenDropDown TValue="string"
-                                            Name="Server"
-                                            Data="@Servers"
-                                            class="vpp-login-control"
-                                            Disabled="@isLoading"
-                                            @bind-Value=@sp_Authentication_Login.selected_server
-                                            Change="@(args => HandleServerChange())" />
-
-                            @if (HasServerValidation)
-                            {
-                                <div class="vpp-login-validation" role="alert">@ServerValidationMessage</div>
-                            }
-                        </div>
-                    }
-
                     <RadzenButton Text="@Loc["Login"]"
                                   ButtonType="ButtonType.Submit"
                                   IsBusy="@isLoading"

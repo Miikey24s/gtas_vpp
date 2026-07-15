@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.JSInterop;
 using Radzen;
 using System.Globalization;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Layout
 {
@@ -49,7 +48,7 @@ namespace gtas_vpp_fe.Components.Layout
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [CascadingParameter] public HttpContext? HttpContext { get; set; }
-        
+
         public bool _sideBarExpanded { get; set; } = false;
         public bool LightTheme { get; set; } = true;
         public bool _userMenuOpen = false;
@@ -60,7 +59,6 @@ namespace gtas_vpp_fe.Components.Layout
         public string theme = "material3-base";
         public List<DropdownModel> dropdownDataModels_Company { get; set; } = new List<DropdownModel>();
         public DropdownModel selected_Company { get; set; } = default!;
-        private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
         public string State { get; set; } = "normal";
         private bool _isPrerendering = true;
 
@@ -68,19 +66,16 @@ namespace gtas_vpp_fe.Components.Layout
         private bool CanViewLibraryMenu => HasSidebarMenu(Permissions.MenuLibrary) && LibraryMenuRoutes.Any(route => CanViewLibraryItem(route.Permission));
         private bool CanViewReportMenu => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
         private bool CanViewPermissionMenu => HasSidebarMenu(Permissions.MenuPermission) && PermissionMenuRoutes.Any(route => CanViewPermissionItem(route.Permission));
-        private string ServerLabel => $"SERVER {claims.FirstOrDefault(x => x.Type == "Server")?.Value?.ToUpper()}";
-        private string HeaderTitle => $"GTAS VPP ({ServerLabel})";
-
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            
+
             timer = new System.Threading.Timer(_ =>
             {
                 currentTime = DateTime.Now;
                 InvokeAsync(StateHasChanged);
             }, null, 0, 1000);
-            
+
             try
             {
                 await LoadAuthenticationState();
@@ -122,10 +117,10 @@ namespace gtas_vpp_fe.Components.Layout
         {
             LightTheme = !LightTheme;
             var newTheme = LightTheme ? "material3" : "material3-dark";
-            
+
             ThemeState.SetTheme(newTheme);
             ThemeService.SetTheme(newTheme);
-            
+
             if (!_isPrerendering)
             {
                 await ApplyBrowserThemeAsync(newTheme);
@@ -134,19 +129,14 @@ namespace gtas_vpp_fe.Components.Layout
         protected async Task LoadAuthenticationState()
         {
             // Load Authenticated
-            var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();
+            var (isAuthenticated, _) = await AuthHelper.EnsureAuthenticatedAsync();
             if (!isAuthenticated)
             {
                 NavigationManager.NavigateTo("logoutprocess", true);
                 return;
             }
 
-            claims = userClaims;
             await PermissionState.EnsureLoadedAsync();
-            if (PermissionState.IdentityClaims.Any())
-            {
-                claims = PermissionState.IdentityClaims;
-            }
         }
         protected async Task LoadTheme()
         {
@@ -195,7 +185,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             var currentCulture = CultureInfo.CurrentUICulture.Name;
             var newCulture = currentCulture.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "vi" : "en";
-            
+
             await ProtectedLocalStore.SetAsync("VPP_Language", newCulture);
             await PrepareLanguageSwitchAsync();
             NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
@@ -293,11 +283,6 @@ namespace gtas_vpp_fe.Components.Layout
 
         private void OnPermissionStateChanged()
         {
-            if (PermissionState.IdentityClaims.Any())
-            {
-                claims = PermissionState.IdentityClaims;
-            }
-
             _ = InvokeAsync(StateHasChanged);
         }
 

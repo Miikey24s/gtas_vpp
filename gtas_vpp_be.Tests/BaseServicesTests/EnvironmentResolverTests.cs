@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using gtas_vpp_be.Service.Helpers;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -7,49 +6,38 @@ namespace gtas_vpp_be.Tests.BaseServicesTests;
 
 public class EnvironmentResolverTests
 {
-    [Fact]
-    public void GetEnvironment_ServerClaimTest_ReturnsTestEnv()
+    [Theory]
+    [InlineData(DatabaseBinding.TestEnvironment)]
+    [InlineData(DatabaseBinding.LiveEnvironment)]
+    public void Resolve_ReturnsDeploymentBinding(string environmentName)
     {
-        var resolver = new EnvironmentResolver();
+        var resolver = new EnvironmentResolver(CreateBinding(environmentName));
 
-        var result = resolver.Resolve(new[] { new Claim("Server", "Test") });
+        var result = resolver.Resolve();
 
-        Assert.Equal("TestEnv", result);
+        Assert.Equal(environmentName, result);
     }
 
     [Fact]
-    public void GetEnvironment_ServerClaimLive_ReturnsLiveEnv()
+    public void Resolve_HasNoClaimOrFallbackParameters()
     {
-        var resolver = new EnvironmentResolver();
+        var method = typeof(IEnvironmentResolver).GetMethod(nameof(IEnvironmentResolver.Resolve));
 
-        var result = resolver.Resolve(new[] { new Claim("Server", "Live") });
-
-        Assert.Equal("LiveEnv", result);
+        Assert.NotNull(method);
+        Assert.Empty(method.GetParameters());
     }
 
-    [Fact]
-    public void GetEnvironment_NoClaims_ReturnsTestEnv()
-    {
-        var resolver = new EnvironmentResolver();
-
-        var result = resolver.Resolve(null);
-
-        Assert.Equal("TestEnv", result);
-    }
-
-    [Fact]
-    public void GetEnvironment_NoClaims_UsesConfiguredDefaultEnvironment()
+    private static DatabaseBinding CreateBinding(string environmentName)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["DatabaseSettings:DefaultEnvironment"] = "LiveEnv"
+                ["DatabaseSettings:DefaultEnvironment"] = environmentName,
+                [$"ConnectionStrings:{environmentName}"] =
+                    $"Server=localhost;Database=GTAS_{environmentName};Integrated Security=True;TrustServerCertificate=True"
             })
             .Build();
-        var resolver = new EnvironmentResolver(configuration);
 
-        var result = resolver.Resolve(null);
-
-        Assert.Equal("LiveEnv", result);
+        return DatabaseBinding.Create(configuration);
     }
 }

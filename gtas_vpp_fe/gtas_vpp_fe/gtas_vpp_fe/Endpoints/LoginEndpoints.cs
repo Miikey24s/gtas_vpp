@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -22,10 +21,9 @@ namespace gtas_vpp_fe.Endpoints
                     return Results.Redirect("/Account/Login");
                 }
 
-                var (loginData, server, rememberMe) = data.Value;
+                var (loginData, rememberMe) = data.Value;
 
-                var claims = loginData.sp_AuthenticationLogin_To_Claims();
-                claims.Add(new Claim(ClaimKeys.Server, server));
+                var claims = CreateAuthenticationClaims(loginData);
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
@@ -64,5 +62,9 @@ namespace gtas_vpp_fe.Endpoints
                 return Results.Redirect(returnUrl ?? "/");
             });
         }
+
+        public static List<Claim> CreateAuthenticationClaims(
+            gtas_vpp_shared.DTOs.Res.Auth.sp_Authentication_Login loginData)
+            => loginData.sp_AuthenticationLogin_To_Claims();
     }
 }

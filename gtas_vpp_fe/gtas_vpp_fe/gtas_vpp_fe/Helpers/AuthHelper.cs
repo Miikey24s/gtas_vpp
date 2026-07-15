@@ -29,11 +29,10 @@ namespace gtas_vpp_fe.Helpers
             {
                 return (false, Array.Empty<Claim>());
             }
-            
+
             try
             {
                 _glb.UserInfo = user.Claims.Claims_To_sp_AuthenticationLogin();
-                _glb.Server = user.Claims.Get(ClaimKeys.Server);
             }
             catch (Exception ex)
             {
@@ -43,7 +42,7 @@ namespace gtas_vpp_fe.Helpers
 
             return (true, user.Claims);
         }
-        
+
         public async Task<PermissionSnapshotResDTO> GetMyPermissionsAsync()
         {
             return await _api.GetFromApiAsync<PermissionSnapshotResDTO>("api/Auth/me/permissions")

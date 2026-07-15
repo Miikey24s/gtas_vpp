@@ -4,8 +4,8 @@ using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Helpers;
-using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_shared.DTOs;
+using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +18,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Serilog;
-using static gtas_vpp_be.Service.Helpers.Config;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -27,34 +26,31 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly VPPContext _authDb;
         private readonly IStoredProcedureExecutor _storedProcedureExecutor;
         private readonly IGenericRepository<P04_UserGroup> _userGroupRepository;
         private readonly IGenericRepository<LEX02_CompanyDepartmentLocation> _departmentRepository;
         private readonly IUserNameResolver _userNameResolver;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _configuration;
+        private readonly JwtDeploymentSettings _jwtSettings;
         private readonly IPasswordEncoder _passwordEncoder;
         private readonly IPermissionService _permissionService;
 
         public AuthController(
-            VPPContext authDb,
             IStoredProcedureExecutor storedProcedureExecutor,
             IGenericRepository<P04_UserGroup> userGroupRepository,
             IGenericRepository<LEX02_CompanyDepartmentLocation> departmentRepository,
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
-            IConfiguration configuration,
+            JwtDeploymentSettings jwtSettings,
             IPasswordEncoder passwordEncoder,
             IPermissionService permissionService)
         {
-            _authDb = authDb;
             _storedProcedureExecutor = storedProcedureExecutor;
             _userGroupRepository = userGroupRepository;
             _departmentRepository = departmentRepository;
             _userNameResolver = userNameResolver;
             _unitOfWork = unitOfWork;
-            _configuration = configuration;
+            _jwtSettings = jwtSettings;
             _passwordEncoder = passwordEncoder;
             _permissionService = permissionService;
         }
@@ -62,14 +58,10 @@ namespace gtas_vpp_be.Controllers
         [AllowAnonymous]
         [EnableRateLimiting("login")]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] AuthenticationLoginRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest(new { message = "Username and password are required." });
-
-            var server = ResolveAvailableServer(request.Server);
-            if (server == null)
-                return BadRequest(new { message = "The requested server is not available in this environment." });
 
             try
             {
@@ -85,7 +77,7 @@ namespace gtas_vpp_be.Controllers
 
                 await LoadDepartmentLocationAsync(loginData);
 
-                loginData.AccessToken = GenerateAccessToken(loginData, server);
+                loginData.AccessToken = GenerateAccessToken(loginData);
                 loginData.List_PagePermission.Clear();
 
                 Serilog.Log.Information("Login success: User={Username}, IP={IP}", request.Username, HttpContext.Connection.RemoteIpAddress);
@@ -151,17 +143,8 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private string GenerateAccessToken(sp_Authentication_Login loginData, string? server)
+        private string GenerateAccessToken(sp_Authentication_Login loginData)
         {
-            var jwtKey = _configuration["JwtSettings:Key"];
-            if (string.IsNullOrWhiteSpace(jwtKey))
-            {
-                throw new InvalidOperationException("JWT Key must be configured via environment variable or user secrets");
-            }
-
-            var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? "gtas_vpp_be";
-            var jwtAudience = _configuration["JwtSettings:Audience"] ?? "gtas_vpp_clients";
-
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, loginData.UserID.ToString()),
@@ -183,43 +166,17 @@ namespace gtas_vpp_be.Controllers
                 claims.Add(new Claim("DepartmentCode", loginData.DepartmentCode));
             }
 
-            if (!string.IsNullOrWhiteSpace(server))
-            {
-                claims.Add(new Claim("Server", server));
-            }
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
             var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Config.JwtSettings.AccessTokenMinutes),
+                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenMinutes),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        private string? ResolveAvailableServer(string? requestedServer)
-        {
-            var requestedEnvironment = requestedServer?.Trim() switch
-            {
-                var value when value?.Equals("Test", StringComparison.OrdinalIgnoreCase) == true => "TestEnv",
-                var value when value?.Equals("Live", StringComparison.OrdinalIgnoreCase) == true => "LiveEnv",
-                null or "" => _configuration["DatabaseSettings:DefaultEnvironment"] ?? "TestEnv",
-                _ => null
-            };
-
-            if (requestedEnvironment == null
-                || string.IsNullOrWhiteSpace(_configuration.GetConnectionString(requestedEnvironment)))
-            {
-                return null;
-            }
-
-            return requestedEnvironment.Equals("LiveEnv", StringComparison.OrdinalIgnoreCase)
-                ? "Live"
-                : "Test";
         }
 
         [HttpGet("me/permissions")]
@@ -228,7 +185,5 @@ namespace gtas_vpp_be.Controllers
             var snapshot = await _permissionService.GetSnapshotAsync(User, cancellationToken);
             return Ok(snapshot);
         }
-
-        public record LoginRequest(string Username, string Password, string? Server = null);
     }
 }

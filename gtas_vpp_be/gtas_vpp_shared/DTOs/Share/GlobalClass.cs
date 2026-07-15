@@ -5,7 +5,6 @@ namespace gtas_vpp_shared.DTOs.Share
     public class GlobalClass
     {
         public sp_Authentication_Login UserInfo = new sp_Authentication_Login();
-        public string? Server { get; set; }
         private int _busyCounter = 0;
         public bool isBusyPage
         {

@@ -24,52 +24,19 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
-var dotEnvValues = LoadDotEnvValues(builder.Environment.ContentRootPath);
-if (dotEnvValues.Count > 0)
-{
-    if (dotEnvValues.TryGetValue("JWT_KEY", out var envJwtKey) && !string.IsNullOrWhiteSpace(envJwtKey))
-    {
-        dotEnvValues["JwtSettings:Key"] = envJwtKey;
-    }
-    if (dotEnvValues.TryGetValue("PASSWORD_ENCRYPTION_KEY", out var passwordEncryptionKey)
-        && !string.IsNullOrWhiteSpace(passwordEncryptionKey))
-    {
-        dotEnvValues["PasswordEncryption:Key"] = passwordEncryptionKey;
-    }
-    if (dotEnvValues.TryGetValue("REPORT_INSIGHTS_ENABLED", out var reportInsightsEnabled)
-        && !string.IsNullOrWhiteSpace(reportInsightsEnabled))
-    {
-        dotEnvValues["ReportInsights:Enabled"] = reportInsightsEnabled;
-    }
-    builder.Configuration.AddInMemoryCollection(dotEnvValues);
-}
-
-var localConnectionOverrides = GetLocalDevelopmentConnectionOverrides(builder.Environment, builder.Configuration);
-if (localConnectionOverrides.Count > 0)
-{
-    builder.Configuration.AddInMemoryCollection(localConnectionOverrides);
-}
-
 var Configuration = builder.Configuration;
-var defaultDatabaseEnvironment = GetDefaultDatabaseEnvironment(builder.Environment, Configuration);
-var defaultConnectionString = Configuration.GetConnectionString(defaultDatabaseEnvironment)
-    ?? throw new InvalidOperationException(
-        $"Connection string '{defaultDatabaseEnvironment}' is required for this environment.");
+var databaseBinding = DatabaseBinding.Create(Configuration);
+DeploymentConfigurationContract.ValidateDatabaseBindingForHost(
+    builder.Environment.EnvironmentName,
+    builder.Environment.IsProduction(),
+    databaseBinding);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50MB
 });
 
-// Initialize Config with the application configuration
-Config.Initialize(Configuration);
-var jwtKey = Config.JwtSettings.Key;
-var jwtIssuer = Config.JwtSettings.Issuer;
-var jwtAudience = Config.JwtSettings.Audience;
-if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
-{
-    throw new InvalidOperationException("JwtSettings:Key must contain at least 32 UTF-8 bytes.");
-}
+var jwtSettings = JwtDeploymentSettings.Create(Configuration, databaseBinding);
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -88,18 +55,20 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 
+builder.Services.AddSingleton(databaseBinding);
+builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddDbContext<VPPMigrationDbContext>(
     (sp, o) =>
     {
         o.UseSqlServer(
-            defaultConnectionString,
+            databaseBinding.ConnectionString,
             action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
     }
 );
 builder.Services.AddDbContext<VPPContext>(
     (sp, o) =>
     {
-        o.UseSqlServer(defaultConnectionString);
+        o.UseSqlServer(databaseBinding.ConnectionString);
     }
 );
 
@@ -150,7 +119,7 @@ builder.Services.AddHealthChecks()
         {
             try
             {
-                await using var connection = new SqlConnection(defaultConnectionString);
+                await using var connection = new SqlConnection(databaseBinding.ConnectionString);
                 await connection.OpenAsync(cancellationToken);
                 return HealthCheckResult.Healthy();
             }
@@ -211,10 +180,10 @@ builder.Services
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.FromMinutes(Config.JwtSettings.ClockSkewMinutes)
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+            ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkewMinutes)
         };
     });
 
@@ -262,19 +231,23 @@ var configuredDatabaseInitializationMode = Configuration["DatabaseInitialization
 var databaseInitializationMode = DatabaseInitializationModeParser.Parse(
     configuredDatabaseInitializationMode,
     builder.Environment.IsDevelopment());
-var databaseInitializationEnvironments = GetDatabaseInitializationEnvironments(
+var shouldMigrate = DatabaseInitializationModeParser.RequiresMigration(databaseInitializationMode);
+var shouldSeedReference = DatabaseInitializationModeParser.IncludesReferenceSeed(databaseInitializationMode);
+var shouldSeedDemo = DatabaseInitializationModeParser.IncludesDemoSeed(databaseInitializationMode);
+var databaseInitializationEnvironments = DeploymentConfigurationContract.GetDatabaseInitializationEnvironments(
     Configuration,
-    defaultDatabaseEnvironment);
+    databaseBinding,
+    requireExplicitTarget: shouldMigrate);
 var allowDemoData = Configuration.GetValue<bool>("DatabaseInitialization:AllowDemoData");
 DatabaseInitializationModeParser.ValidateForEnvironment(
     databaseInitializationMode,
     builder.Environment.IsProduction(),
     databaseInitializationEnvironments,
     allowDemoData);
+DeploymentConfigurationContract.ValidateDemoDatabaseTarget(
+    databaseInitializationMode,
+    databaseBinding);
 var databaseInitializationOnly = Configuration.GetValue<bool>("DatabaseInitialization:RunOnly");
-var shouldMigrate = DatabaseInitializationModeParser.RequiresMigration(databaseInitializationMode);
-var shouldSeedReference = DatabaseInitializationModeParser.IncludesReferenceSeed(databaseInitializationMode);
-var shouldSeedDemo = DatabaseInitializationModeParser.IncludesDemoSeed(databaseInitializationMode);
 
 if (databaseInitializationOnly && !shouldMigrate)
 {
@@ -284,9 +257,8 @@ if (databaseInitializationOnly && !shouldMigrate)
 
 if (shouldMigrate)
 {
-    await InitializeDatabasesAsync(
-        Configuration,
-        databaseInitializationEnvironments,
+    await InitializeDatabaseAsync(
+        databaseBinding,
         databaseInitializationMode,
         shouldSeedReference,
         shouldSeedDemo);
@@ -323,137 +295,74 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
 
-static async Task InitializeDatabasesAsync(
-    IConfiguration configuration,
-    IReadOnlyCollection<string> environments,
+static async Task InitializeDatabaseAsync(
+    DatabaseBinding databaseBinding,
     DatabaseInitializationMode initializationMode,
     bool shouldSeedReference,
     bool shouldSeedDemo)
 {
-    var targets = environments
-        .Select(environment => new
-        {
-            Environment = environment,
-            ConnectionString = configuration.GetConnectionString(environment)
-                ?? throw new InvalidOperationException(
-                    $"Connection string '{environment}' is required for database initialization.")
-        })
-        .GroupBy(
-            target => GetDatabaseIdentity(target.ConnectionString),
-            StringComparer.OrdinalIgnoreCase)
-        .Select(group => new
-        {
-            Environments = string.Join(", ", group.Select(target => target.Environment)),
-            ConnectionString = group.First().ConnectionString
-        });
-
-    foreach (var target in targets)
+    const int maxRetries = 5;
+    for (var retry = 0; retry < maxRetries; retry++)
     {
-        const int maxRetries = 5;
-        for (var retry = 0; retry < maxRetries; retry++)
+        try
         {
-            try
-            {
-                await using var migrationLock = await AcquireMigrationLockAsync(target.ConnectionString);
-                var optionsBuilder = new DbContextOptionsBuilder<VPPMigrationDbContext>();
-                optionsBuilder.UseSqlServer(
-                    target.ConnectionString,
-                    action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
+            await using var migrationLock = await AcquireMigrationLockAsync(databaseBinding.ConnectionString);
+            var optionsBuilder = new DbContextOptionsBuilder<VPPMigrationDbContext>();
+            optionsBuilder.UseSqlServer(
+                databaseBinding.ConnectionString,
+                action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
 
-                await using var dbContext = new VPPMigrationDbContext(optionsBuilder.Options);
-                Console.WriteLine(
-                    $"[Migration] Applying mode {initializationMode} for environment(s) {target.Environments}...");
-                await dbContext.Database.MigrateAsync();
-                if (shouldSeedReference || shouldSeedDemo)
+            await using var dbContext = new VPPMigrationDbContext(optionsBuilder.Options);
+            Console.WriteLine(
+                $"[Migration] Applying mode {initializationMode} for environment {databaseBinding.EnvironmentName}...");
+            await dbContext.Database.MigrateAsync();
+            if (shouldSeedReference || shouldSeedDemo)
+            {
+                try
                 {
-                    try
+                    if (shouldSeedDemo)
                     {
-                        if (shouldSeedDemo)
-                        {
-                            await SeedData.SeedDemo(dbContext);
-                        }
-                        else
-                        {
-                            await SeedData.SeedReference(dbContext);
-                        }
+                        await SeedData.SeedDemo(dbContext);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        throw new DatabaseInitializationException(
-                            $"Database seed mode {initializationMode} failed for environment(s) {target.Environments}.",
-                            ex);
+                        await SeedData.SeedReference(dbContext);
                     }
                 }
-
-                Console.WriteLine(
-                    $"[Migration] Mode {initializationMode} for environment(s) {target.Environments} completed successfully.");
-                break;
+                catch (Exception ex)
+                {
+                    throw new DatabaseInitializationException(
+                        $"Database seed mode {initializationMode} failed for environment {databaseBinding.EnvironmentName}.",
+                        ex);
+                }
             }
-            catch (DatabaseInitializationException ex)
+
+            Console.WriteLine(
+                $"[Migration] Mode {initializationMode} for environment {databaseBinding.EnvironmentName} completed successfully.");
+            break;
+        }
+        catch (DatabaseInitializationException ex)
+        {
+            Console.WriteLine(
+                $"[Migration] Deterministic initialization failure for {databaseBinding.EnvironmentName}: {ex.Message}");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            if (retry == maxRetries - 1)
             {
                 Console.WriteLine(
-                    $"[Migration] Deterministic initialization failure for {target.Environments}: {ex.Message}");
+                    $"[Migration] Migration for {databaseBinding.EnvironmentName} failed after {maxRetries} attempts. " +
+                    $"Exception: {ex.Message}");
                 throw;
             }
-            catch (Exception ex)
-            {
-                if (retry == maxRetries - 1)
-                {
-                    Console.WriteLine(
-                        $"[Migration] Migration for {target.Environments} failed after {maxRetries} attempts. " +
-                        $"Exception: {ex.Message}");
-                    throw;
-                }
 
-                Console.WriteLine(
-                    $"[Migration] DB {target.Environments} is not ready, " +
-                    $"retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
-                await Task.Delay(5000);
-            }
+            Console.WriteLine(
+                $"[Migration] DB {databaseBinding.EnvironmentName} is not ready, " +
+                $"retrying ({retry + 1}/{maxRetries}) in 5 seconds...");
+            await Task.Delay(5000);
         }
     }
-}
-
-static string[] GetDatabaseInitializationEnvironments(
-    IConfiguration configuration,
-    string defaultDatabaseEnvironment)
-{
-    var configuredEnvironments = configuration
-        .GetSection("DatabaseInitialization:Environments")
-        .Get<string[]>()
-        ?.Where(environment => !string.IsNullOrWhiteSpace(environment))
-        .Select(environment => environment.Trim())
-        .Distinct(StringComparer.OrdinalIgnoreCase)
-        .ToArray();
-
-    return configuredEnvironments is { Length: > 0 }
-        ? configuredEnvironments
-        : [defaultDatabaseEnvironment];
-}
-
-static string GetDatabaseIdentity(string connectionString)
-{
-    var builder = new SqlConnectionStringBuilder(connectionString);
-    return $"{builder.DataSource}|{builder.InitialCatalog}";
-}
-
-static string GetDefaultDatabaseEnvironment(IHostEnvironment environment, IConfiguration configuration)
-{
-    var configuredEnvironment = configuration["DatabaseSettings:DefaultEnvironment"];
-    var databaseEnvironment = string.IsNullOrWhiteSpace(configuredEnvironment)
-        ? environment.IsDevelopment()
-            ? nameof(Config.EnvType.TestEnv)
-            : nameof(Config.EnvType.LiveEnv)
-        : configuredEnvironment;
-
-    if (!Enum.TryParse<Config.EnvType>(databaseEnvironment, ignoreCase: true, out var parsedEnvironment))
-    {
-        throw new InvalidOperationException(
-            $"Unsupported DatabaseSettings:DefaultEnvironment '{databaseEnvironment}'. " +
-            $"Expected {nameof(Config.EnvType.TestEnv)} or {nameof(Config.EnvType.LiveEnv)}.");
-    }
-
-    return parsedEnvironment.ToString();
 }
 
 static async Task<SqlConnection> AcquireMigrationLockAsync(string connectionString)
@@ -495,68 +404,135 @@ static async Task<SqlConnection> AcquireMigrationLockAsync(string connectionStri
     }
 }
 
-static Dictionary<string, string?> LoadDotEnvValues(string contentRootPath)
+public static class DeploymentConfigurationContract
 {
-    var dotEnvPath = Path.GetFullPath(Path.Combine(contentRootPath, "..", "..", ".env"));
-    if (!File.Exists(dotEnvPath))
+    public static string[] GetDatabaseInitializationEnvironments(
+        IConfiguration configuration,
+        DatabaseBinding databaseBinding,
+        bool requireExplicitTarget)
     {
-        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-    }
+        var configuredEnvironments = configuration
+            .GetSection("DatabaseInitialization:Environments")
+            .Get<string[]>()
+            ?.Where(environment => !string.IsNullOrWhiteSpace(environment))
+            .Select(environment => environment.Trim())
+            .ToArray();
 
-    var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-    foreach (var rawLine in File.ReadLines(dotEnvPath))
-    {
-        var line = rawLine.Trim();
-        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#", StringComparison.Ordinal))
+        if (configuredEnvironments is not { Length: > 0 })
         {
-            continue;
+            if (requireExplicitTarget)
+            {
+                throw new InvalidOperationException(
+                    "DatabaseInitialization:Environments must explicitly contain the deployment " +
+                    $"database binding '{databaseBinding.EnvironmentName}'.");
+            }
+
+            return [databaseBinding.EnvironmentName];
         }
 
-        var separatorIndex = line.IndexOf('=');
-        if (separatorIndex <= 0)
+        if (configuredEnvironments.Length != 1
+                || !string.Equals(
+                    configuredEnvironments[0],
+                    databaseBinding.EnvironmentName,
+                    StringComparison.OrdinalIgnoreCase))
         {
-            continue;
+            throw new InvalidOperationException(
+                "DatabaseInitialization:Environments must contain only the deployment database binding " +
+                $"'{databaseBinding.EnvironmentName}'.");
         }
 
-        var key = line[..separatorIndex].Trim();
-        if (string.IsNullOrWhiteSpace(key))
+        return [databaseBinding.EnvironmentName];
+    }
+
+    public static void ValidateDatabaseBindingForHost(
+        string hostEnvironmentName,
+        bool isProduction,
+        DatabaseBinding databaseBinding)
+    {
+        var expectedEnvironment = isProduction
+            ? DatabaseBinding.LiveEnvironment
+            : DatabaseBinding.TestEnvironment;
+        if (!string.Equals(
+                databaseBinding.EnvironmentName,
+                expectedEnvironment,
+                StringComparison.Ordinal))
         {
-            continue;
+            throw new InvalidOperationException(
+                $"Host environment '{hostEnvironmentName}' requires database binding " +
+                $"'{expectedEnvironment}', but '{databaseBinding.EnvironmentName}' was configured.");
         }
 
-        var value = line[(separatorIndex + 1)..].Trim().Trim('"');
-        values[key] = value;
+        if (databaseBinding.IsTestEnvironment
+            && !HasTestOrDemoDatabaseToken(databaseBinding.DatabaseName))
+        {
+            throw new InvalidOperationException(
+                "The TestEnv binding requires a database name containing TEST or DEMO.");
+        }
+
+        if (isProduction
+            && !string.Equals(
+                databaseBinding.DatabaseName,
+                "GTAS_VPP_LIVE",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "The Production LiveEnv binding must target database 'GTAS_VPP_LIVE'.");
+        }
     }
 
-    return values;
-}
-
-static Dictionary<string, string?> GetLocalDevelopmentConnectionOverrides(IHostEnvironment environment, IConfiguration configuration)
-{
-    if (!environment.IsDevelopment())
+    public static void ValidateDemoDatabaseTarget(
+        DatabaseInitializationMode initializationMode,
+        DatabaseBinding databaseBinding)
     {
-        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        if (!DatabaseInitializationModeParser.IncludesDemoSeed(initializationMode))
+        {
+            return;
+        }
+
+        if (!databaseBinding.IsTestEnvironment
+            || !IsApprovedLocalDataSource(databaseBinding.DataSource)
+            || !HasTestOrDemoDatabaseToken(databaseBinding.DatabaseName))
+        {
+            throw new InvalidOperationException(
+                "Demo database initialization requires a TestEnv binding on LocalDB, a loopback SQL Server, " +
+                "or the local Compose 'db' service, and a database name containing TEST or DEMO.");
+        }
     }
 
-    if (configuration.GetValue<bool>("DISABLE_DOCKER_DB_OVERRIDE", false))
+    private static bool IsApprovedLocalDataSource(string dataSource)
     {
-        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var normalized = dataSource.Trim();
+        if (normalized.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized[4..];
+        }
+
+        if (normalized.StartsWith("(localdb)\\", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var hostOrInstance = normalized.Split(',', 2)[0];
+        return IsHostOrNamedInstance(hostOrInstance, "localhost")
+            || IsHostOrNamedInstance(hostOrInstance, "127.0.0.1")
+            || IsHostOrNamedInstance(hostOrInstance, ".")
+            || IsHostOrNamedInstance(hostOrInstance, "(local)")
+            || string.Equals(hostOrInstance, "::1", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(hostOrInstance, "[::1]", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(hostOrInstance, "db", StringComparison.OrdinalIgnoreCase);
     }
 
-    var currentTestEnv = configuration.GetConnectionString(nameof(Config.EnvType.TestEnv));
-    var dbSaPassword = configuration["DB_SA_PASSWORD"];
-
-    if (string.IsNullOrWhiteSpace(dbSaPassword)
-        || string.IsNullOrWhiteSpace(currentTestEnv)
-        || !currentTestEnv.Contains("Trusted_Connection=True", StringComparison.OrdinalIgnoreCase))
+    private static bool IsHostOrNamedInstance(string hostOrInstance, string allowedHost)
     {
-        return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        return string.Equals(hostOrInstance, allowedHost, StringComparison.OrdinalIgnoreCase)
+            || hostOrInstance.StartsWith($"{allowedHost}\\", StringComparison.OrdinalIgnoreCase);
     }
 
-    var localDockerConnection = $"Server=127.0.0.1,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password={dbSaPassword};TrustServerCertificate=True;Encrypt=False;";
-
-    return new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+    private static bool HasTestOrDemoDatabaseToken(string databaseName)
     {
-        [$"ConnectionStrings:{nameof(Config.EnvType.TestEnv)}"] = localDockerConnection
-    };
+        return databaseName
+            .Split(['_', '-', '.', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Any(token => string.Equals(token, "TEST", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(token, "DEMO", StringComparison.OrdinalIgnoreCase));
+    }
 }

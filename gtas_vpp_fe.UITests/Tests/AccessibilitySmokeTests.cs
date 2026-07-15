@@ -11,6 +11,8 @@ public sealed class AccessibilitySmokeTests : TestBase
     public async Task Login_Is_Responsive_And_Keyboard_Accessible()
     {
         var browserErrors = new List<string>();
+        var requestFailures = new List<string>();
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         Page.Console += (_, message) =>
         {
             if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
@@ -19,6 +21,16 @@ public sealed class AccessibilitySmokeTests : TestBase
             }
         };
         Page.PageError += (_, error) => browserErrors.Add(error);
+        Page.RequestFailed += (_, request) =>
+        {
+            var isExpectedCircuitDisconnect = Uri.TryCreate(request.Url, UriKind.Absolute, out var uri)
+                && uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            if (!isExpectedCircuitDisconnect)
+            {
+                requestFailures.Add($"{request.Method} {request.Url}: {request.Failure}");
+            }
+        };
 
         foreach (var viewport in new[]
                  {
@@ -53,10 +65,18 @@ public sealed class AccessibilitySmokeTests : TestBase
                             && !(id && document.querySelector(`label[for="${CSS.escape(id)}"]`))
                             && !control.closest('label');
                     });
+                    const serverControls = document.querySelectorAll(
+                        '[name="Server"], [data-testid="server-selector"]');
+                    const environmentOptions = [...document.querySelectorAll(
+                        'label, [role="option"], .rz-dropdown-label')]
+                        .filter(visible)
+                        .filter(element => /^(test|live)$/i.test(element.textContent.trim()));
                     return [
                         document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
                         unlabeled.length,
-                        document.querySelectorAll('.vpp-password-toggle-btn[aria-label]').length
+                        document.querySelectorAll('.vpp-password-toggle-btn[aria-label]').length,
+                        serverControls.length,
+                        environmentOptions.length
                     ];
                 }
                 """);
@@ -64,8 +84,23 @@ public sealed class AccessibilitySmokeTests : TestBase
             audit[0].Should().Be(0, $"the login page must not overflow at {viewport.Width}px");
             audit[1].Should().Be(0, "every visible login control must have an accessible label");
             audit[2].Should().Be(1, "the password visibility action needs an accessible name");
+            audit[3].Should().Be(0, "deployment environment must not be a login control");
+            audit[4].Should().Be(0, "Test/Live environment options must not be rendered");
+
+            if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+            {
+                Directory.CreateDirectory(evidenceDirectory);
+                await Page.ScreenshotAsync(new PageScreenshotOptions
+                {
+                    Path = Path.Combine(
+                        evidenceDirectory,
+                        $"env001-login-{viewport.Width}x{viewport.Height}.png"),
+                    FullPage = true
+                });
+            }
         }
 
         browserErrors.Should().BeEmpty("the login page should not emit browser errors");
+        requestFailures.Should().BeEmpty("the login page should not issue failed network requests");
     }
 }

@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Moq;
 
 namespace gtas_vpp_be.Tests.TestSupport;
@@ -145,7 +147,22 @@ internal static class ServiceTestHelpers
     public static Mock<IUnitOfWorkFactory> CreateUnitOfWorkFactoryMock(IUnitOfWork unitOfWork)
     {
         var factory = new Mock<IUnitOfWorkFactory>();
-        factory.Setup(x => x.Create(It.IsAny<string>())).Returns(unitOfWork);
+        factory.Setup(x => x.Create()).Returns(unitOfWork);
         return factory;
+    }
+
+    public static IEnvironmentResolver CreateEnvironmentResolver(
+        string environmentName = DatabaseBinding.TestEnvironment)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DatabaseSettings:DefaultEnvironment"] = environmentName,
+                [$"ConnectionStrings:{environmentName}"] =
+                    $"Server=localhost;Database=GTAS_{environmentName};Integrated Security=True;TrustServerCertificate=True"
+            })
+            .Build();
+
+        return new EnvironmentResolver(DatabaseBinding.Create(configuration));
     }
 }

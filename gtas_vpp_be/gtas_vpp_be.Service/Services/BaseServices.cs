@@ -28,9 +28,9 @@ namespace gtas_vpp_be.Service.Services
             _environmentResolver = environmentResolver;
             _logger = logger;
             _jiraSettings = jiraSettings.Value;
-            var environment = _environmentResolver.Resolve(Claims);
+            var environment = _environmentResolver.Resolve();
             ApplyJiraSettings(environment);
-            _unitOfWork = _unitOfWorkFactory.Create(environment);
+            _unitOfWork = _unitOfWorkFactory.Create();
         }
 
         protected ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
@@ -44,7 +44,7 @@ namespace gtas_vpp_be.Service.Services
 
         private void ApplyJiraSettings(string environment)
         {
-            JiraIssue = environment == nameof(Config.EnvType.LiveEnv)
+            JiraIssue = environment == DatabaseBinding.LiveEnvironment
                 ? _jiraSettings.LiveJiraIssue
                 : _jiraSettings.TestJiraIssue;
         }

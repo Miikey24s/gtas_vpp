@@ -113,7 +113,7 @@ public class CreateOrderRaceConditionTests
     {
         var unitOfWork = new TestUnitOfWork(database.CreateContext(), barrier);
         var factory = new Mock<IUnitOfWorkFactory>();
-        factory.Setup(x => x.Create(It.IsAny<string>())).Returns(unitOfWork);
+        factory.Setup(x => x.Create()).Returns(unitOfWork);
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -127,7 +127,7 @@ public class CreateOrderRaceConditionTests
             unitOfWork,
             new FakeDateTimeProvider(now),
             config,
-            new EnvironmentResolver(),
+                ServiceTestHelpers.CreateEnvironmentResolver(),
             new UserNameResolver(),
             NullLogger<BaseServices>.Instance,
             Options.Create(new JiraSettings()));
@@ -189,10 +189,6 @@ public class CreateOrderRaceConditionTests
         }
 
         public VPPContext VPPContext => _context;
-
-        public void Init(string envKey)
-        {
-        }
 
         public void BeginTransaction()
         {

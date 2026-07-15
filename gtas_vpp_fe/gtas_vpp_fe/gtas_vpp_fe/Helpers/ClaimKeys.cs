@@ -16,7 +16,6 @@
         public const string DepartmentName = "DepartmentName";
         public const string DepartmentCode = "DepartmentCode";
         public const string Expired = "Expired";
-        public const string Server = "Server";
         public const string AccessToken = "AccessToken";
     }
 }

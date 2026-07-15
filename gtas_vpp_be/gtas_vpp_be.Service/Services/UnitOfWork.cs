@@ -1,22 +1,13 @@
 ﻿using gtas_vpp_be.Model;
-using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Text;
 
 namespace gtas_vpp_be.Service.Services
 {
     public interface IUnitOfWork : IDisposable
     {
         VPPContext VPPContext { get; }
-        void Init(string envKey);
-
         void BeginTransaction();
         Task BeginTransactionAsync();
         void Commit();
@@ -30,21 +21,13 @@ namespace gtas_vpp_be.Service.Services
     public class UnitOfWork : IUnitOfWork
     {
         private readonly IDynamicDbContextFactory _factory;
-        private string _currentEnv = string.Empty;
         private bool _disposed;
 
         private VPPContext? _VPPContext;
         private IDbContextTransaction? _transaction;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IEnvironmentResolver _environmentResolver;
-        protected ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User ?? default!;
-
-        public UnitOfWork(IDynamicDbContextFactory factory, IHttpContextAccessor httpContextAccessor, IEnvironmentResolver environmentResolver)
+        public UnitOfWork(IDynamicDbContextFactory factory)
         {
-            _factory = factory;
-            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-            _environmentResolver = environmentResolver;
-            Init(_environmentResolver.Resolve(User?.Claims));
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
         public VPPContext VPPContext
         {
@@ -52,22 +35,10 @@ namespace gtas_vpp_be.Service.Services
             {
                 if (_VPPContext == null)
                 {
-                    _VPPContext = _factory.CreateVPPContext(_currentEnv);
+                    _VPPContext = _factory.CreateVPPContext();
                 }
                 return _VPPContext;
             }
-        }
-        public void Init(string envKey)
-        {
-            if (string.IsNullOrWhiteSpace(envKey))
-                throw new ArgumentException("envKey is required.", nameof(envKey));
-
-            _currentEnv = envKey;
-
-            _transaction?.Dispose();
-            _transaction = null;
-            _VPPContext?.Dispose();
-            _VPPContext = null;
         }
         public void BeginTransaction()
         {

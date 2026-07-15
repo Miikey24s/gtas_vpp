@@ -1,38 +1,29 @@
 ﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace gtas_vpp_be.Service.Services
 {
     public interface IDynamicDbContextFactory
     {
-        VPPContext CreateVPPContext(string envKey);
+        VPPContext CreateVPPContext();
     }
     [StructLayout(LayoutKind.Auto)]
     public class DynamicDbContextFactory : IDynamicDbContextFactory
     {
-        private readonly IConfiguration _configuration;
+        private readonly DatabaseBinding _databaseBinding;
 
-        public DynamicDbContextFactory(IConfiguration configuration)
+        public DynamicDbContextFactory(DatabaseBinding databaseBinding)
         {
-            _configuration = configuration;
+            _databaseBinding = databaseBinding;
         }
-        public string GetConnectionString(string envKey)
-           => _configuration.GetConnectionString(envKey)
-              ?? throw new InvalidOperationException($"Connection string '{envKey}' not found.");
 
-        public VPPContext CreateVPPContext(string envKey)
+        public VPPContext CreateVPPContext()
         {
-            var connStr = _configuration.GetConnectionString(envKey)
-                ?? throw new InvalidOperationException($"Connection string '{envKey}' not found.");
-
             var options = new DbContextOptionsBuilder<VPPContext>()
-                .UseSqlServer(connStr)
+                .UseSqlServer(_databaseBinding.ConnectionString)
                 .Options;
 
             var context = new VPPContext(options);

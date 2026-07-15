@@ -217,7 +217,7 @@ public class VPPRequestServiceTests
             unitOfWork.Object,
             dateTimeProvider,
             config,
-            new EnvironmentResolver(),
+                ServiceTestHelpers.CreateEnvironmentResolver(),
             new UserNameResolver(),
             NullLogger<BaseServices>.Instance,
             Options.Create(new JiraSettings()));

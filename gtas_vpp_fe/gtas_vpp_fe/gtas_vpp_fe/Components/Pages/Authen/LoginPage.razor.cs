@@ -1,14 +1,11 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
 using Radzen;
 using System.Net.Http.Json;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Authen
 {
@@ -17,7 +14,6 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         [Inject] public IHttpContextAccessor? HttpContextAccessor { get; set; }
         [Inject] public IHttpClientFactory HttpClientFactory { get; set; } = default!;
         [Inject] public LoginTicketCache TicketCache { get; set; } = default!;
-        [Inject] public IWebHostEnvironment env { get; set; } = default!;
         [Inject] public IStringLocalizerFactory LocalizerFactory { get; set; } = default!;
         [SupplyParameterFromQuery(Name = "returnUrl")]
         public string? ReturnUrl { get; set; }
@@ -25,28 +21,18 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         public sp_Authentication_LoginReqDTO sp_Authentication_Login { get; set; } = new sp_Authentication_LoginReqDTO();
         bool isLoading = false;
         bool isShowPass = true;
-        private List<string> Servers = new() { "Live" };
-        public bool isShowServer { get; set; } = false;
         private bool hasSubmittedValidation;
         private bool usernameTouched;
         private bool passwordTouched;
         private string? UsernameValidationMessage { get; set; }
         private string? PasswordValidationMessage { get; set; }
-        private string? ServerValidationMessage { get; set; }
         private bool HasUsernameValidation => !string.IsNullOrWhiteSpace(UsernameValidationMessage);
         private bool HasPasswordValidation => !string.IsNullOrWhiteSpace(PasswordValidationMessage);
-        private bool HasServerValidation => !string.IsNullOrWhiteSpace(ServerValidationMessage);
         private IStringLocalizer ComponentLoc => LocalizerFactory.Create("Components.App", typeof(LoginPage).Assembly.GetName().Name!);
 
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-
-            isShowServer = UriHelper.BaseUri.Contains("localhost");
-            // Force off in production — even if localhost due to reverse proxy
-            if (!env.IsDevelopment()) isShowServer = false;
-            SetupServerEnv();
-            sp_Authentication_Login.selected_server = isShowServer ? "Test" : "Live";
 
             if (HttpContextAccessor?.HttpContext?.User?.Identity?.IsAuthenticated == true)
             {
@@ -55,11 +41,6 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             }
 
             StateHasChanged();
-        }
-
-        private void SetupServerEnv()
-        {
-            Servers = new List<string> { "Test", "Live" };
         }
 
         private void TogglePasswordVisibility()
@@ -95,11 +76,6 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             ValidatePassword();
         }
 
-        private void HandleServerChange()
-        {
-            ValidateServer();
-        }
-
         private async Task LoginOnkeyup(KeyboardEventArgs e, sp_Authentication_LoginReqDTO loginReqDTO)
         {
             if (e.Code == "Enter" || e.Code == "NumpadEnter")
@@ -118,39 +94,25 @@ namespace gtas_vpp_fe.Components.Pages.Authen
                     return;
                 }
 
-                if (!isShowServer)
-                {
-                    if (UriHelper.BaseUri.Contains("dev.") || UriHelper.BaseUri.Contains("localhost"))
-                    {
-                        loginReqDTO.selected_server = "Test";
-                    }
-                    else if (UriHelper.BaseUri.Contains("transport.") || UriHelper.BaseUri.Contains("annam.id.vn") || UriHelper.BaseUri.Contains("209.") || UriHelper.BaseUri.Contains("172.") || UriHelper.BaseUri.Contains("100.") || UriHelper.BaseUri.Contains("128.") || UriHelper.BaseUri.Contains("192.") || UriHelper.BaseUri.Contains("10.") || System.Text.RegularExpressions.Regex.IsMatch(UriHelper.BaseUri, @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"))
-                    {
-                        // Fallback to Live for production domains or any IP address (like DigitalOcean droplet IP)
-                        loginReqDTO.selected_server = "Live";
-                    }
-                }
-
                 if (loginReqDTO.Username is not { Length: > 0 } username
-                    || loginReqDTO.Password is not { Length: > 0 } password
-                    || loginReqDTO.selected_server is not { Length: > 0 } server)
+                    || loginReqDTO.Password is not { Length: > 0 } password)
                 {
                     return;
                 }
 
-                var loginData = await DoLogin(username, password, server);
+                var loginData = await DoLogin(username, password);
                 if (loginData is null)
                 {
                     return;
                 }
 
-                var ticketId = TicketCache.Add(loginData, server, loginReqDTO.isRememberPass);
+                var ticketId = TicketCache.Add(loginData, loginReqDTO.isRememberPass);
                 var redirectUrl = $"/perform-login?id={ticketId}";
                 if (!string.IsNullOrWhiteSpace(ReturnUrl))
                 {
                     redirectUrl += $"&returnUrl={Uri.EscapeDataString(ReturnUrl)}";
                 }
-                
+
                 UriHelper.NavigateTo(redirectUrl, true);
             }
             finally
@@ -160,17 +122,14 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             }
         }
 
-        private async Task<sp_Authentication_Login?> DoLogin(string username, string password, string server)
+        private async Task<sp_Authentication_Login?> DoLogin(string username, string password)
         {
             var client = HttpClientFactory.CreateClient(Config.HttpClientName);
             try
             {
-                var response = await client.PostAsJsonAsync(Config.ApiLoginEndpoint, new
-                {
-                    Username = username,
-                    Password = password,
-                    Server = server
-                });
+                var response = await client.PostAsJsonAsync(
+                    Config.ApiLoginEndpoint,
+                    new AuthenticationLoginRequest(username, password));
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -212,11 +171,9 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
             ValidateUsername();
             ValidatePassword();
-            ValidateServer();
 
             return !HasUsernameValidation
-                && !HasPasswordValidation
-                && !HasServerValidation;
+                && !HasPasswordValidation;
         }
 
         private void ValidateUsername()
@@ -233,17 +190,5 @@ namespace gtas_vpp_fe.Components.Pages.Authen
                 : null;
         }
 
-        private void ValidateServer()
-        {
-            if (!isShowServer)
-            {
-                ServerValidationMessage = null;
-                return;
-            }
-
-            ServerValidationMessage = string.IsNullOrWhiteSpace(sp_Authentication_Login.selected_server)
-                ? ComponentLoc["LoginServerRequired"].Value
-                : null;
-        }
     }
 }
