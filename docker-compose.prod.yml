@@ -33,7 +33,7 @@ services:
     networks:
       - vpp-internal
 
-  # Runs schema migration and seed exactly once per deployment, then exits.
+  # Runs schema migration and reference bootstrap exactly once per deployment, then exits.
   migrator:
     image: "${BE_IMAGE:?BE_IMAGE must be an immutable backend image tag.}"
     container_name: gtas-vpp-migrator
@@ -47,7 +47,7 @@ services:
       TZ: "Asia/Ho_Chi_Minh"
       ASPNETCORE_ENVIRONMENT: "Production"
       DatabaseSettings__DefaultEnvironment: "LiveEnv"
-      DatabaseInitialization__Mode: "MigrateAndSeed"
+      DatabaseInitialization__Mode: "MigrateAndReference"
       DatabaseInitialization__RunOnly: "true"
       DatabaseInitialization__Environments__0: "LiveEnv"
       ConnectionStrings__LiveEnv: "Server=db,1433;Database=GTAS_VPP_LIVE;User Id=sa;Password=${DB_SA_PASSWORD:?DB_SA_PASSWORD environment variable is required.};TrustServerCertificate=True;Encrypt=True;"

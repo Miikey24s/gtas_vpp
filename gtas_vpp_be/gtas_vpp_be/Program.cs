@@ -258,29 +258,38 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-var databaseInitializationMode = Configuration["DatabaseInitialization:Mode"]
-    ?? (builder.Environment.IsDevelopment() ? "MigrateAndSeed" : "None");
+var configuredDatabaseInitializationMode = Configuration["DatabaseInitialization:Mode"];
+var databaseInitializationMode = DatabaseInitializationModeParser.Parse(
+    configuredDatabaseInitializationMode,
+    builder.Environment.IsDevelopment());
+var databaseInitializationEnvironments = GetDatabaseInitializationEnvironments(
+    Configuration,
+    defaultDatabaseEnvironment);
+var allowDemoData = Configuration.GetValue<bool>("DatabaseInitialization:AllowDemoData");
+DatabaseInitializationModeParser.ValidateForEnvironment(
+    databaseInitializationMode,
+    builder.Environment.IsProduction(),
+    databaseInitializationEnvironments,
+    allowDemoData);
 var databaseInitializationOnly = Configuration.GetValue<bool>("DatabaseInitialization:RunOnly");
-var shouldMigrate = databaseInitializationMode.Equals("Migrate", StringComparison.OrdinalIgnoreCase)
-    || databaseInitializationMode.Equals("MigrateAndSeed", StringComparison.OrdinalIgnoreCase);
-var shouldSeed = databaseInitializationMode.Equals("MigrateAndSeed", StringComparison.OrdinalIgnoreCase);
-
-if (!shouldMigrate && !databaseInitializationMode.Equals("None", StringComparison.OrdinalIgnoreCase))
-{
-    throw new InvalidOperationException(
-        $"Unsupported DatabaseInitialization:Mode '{databaseInitializationMode}'. " +
-        "Expected None, Migrate, or MigrateAndSeed.");
-}
+var shouldMigrate = DatabaseInitializationModeParser.RequiresMigration(databaseInitializationMode);
+var shouldSeedReference = DatabaseInitializationModeParser.IncludesReferenceSeed(databaseInitializationMode);
+var shouldSeedDemo = DatabaseInitializationModeParser.IncludesDemoSeed(databaseInitializationMode);
 
 if (databaseInitializationOnly && !shouldMigrate)
 {
     throw new InvalidOperationException(
-        "DatabaseInitialization:RunOnly requires Mode=Migrate or Mode=MigrateAndSeed.");
+        "DatabaseInitialization:RunOnly requires Mode=Migrate, MigrateAndReference, or MigrateAndDemo.");
 }
 
 if (shouldMigrate)
 {
-    await InitializeDatabasesAsync(Configuration, defaultDatabaseEnvironment, shouldSeed);
+    await InitializeDatabasesAsync(
+        Configuration,
+        databaseInitializationEnvironments,
+        databaseInitializationMode,
+        shouldSeedReference,
+        shouldSeedDemo);
 }
 
 if (databaseInitializationOnly)
@@ -316,20 +325,11 @@ app.Run();
 
 static async Task InitializeDatabasesAsync(
     IConfiguration configuration,
-    string defaultDatabaseEnvironment,
-    bool shouldSeed)
+    IReadOnlyCollection<string> environments,
+    DatabaseInitializationMode initializationMode,
+    bool shouldSeedReference,
+    bool shouldSeedDemo)
 {
-    var configuredEnvironments = configuration
-        .GetSection("DatabaseInitialization:Environments")
-        .Get<string[]>()
-        ?.Where(environment => !string.IsNullOrWhiteSpace(environment))
-        .Distinct(StringComparer.OrdinalIgnoreCase)
-        .ToArray();
-
-    var environments = configuredEnvironments is { Length: > 0 }
-        ? configuredEnvironments
-        : new[] { defaultDatabaseEnvironment };
-
     var targets = environments
         .Select(environment => new
         {
@@ -361,15 +361,39 @@ static async Task InitializeDatabasesAsync(
                     action => action.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly));
 
                 await using var dbContext = new VPPMigrationDbContext(optionsBuilder.Options);
-                Console.WriteLine($"[Migration] Applying migration for environment(s) {target.Environments}...");
+                Console.WriteLine(
+                    $"[Migration] Applying mode {initializationMode} for environment(s) {target.Environments}...");
                 await dbContext.Database.MigrateAsync();
-                if (shouldSeed)
+                if (shouldSeedReference || shouldSeedDemo)
                 {
-                    await SeedData.Seed(dbContext);
+                    try
+                    {
+                        if (shouldSeedDemo)
+                        {
+                            await SeedData.SeedDemo(dbContext);
+                        }
+                        else
+                        {
+                            await SeedData.SeedReference(dbContext);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new DatabaseInitializationException(
+                            $"Database seed mode {initializationMode} failed for environment(s) {target.Environments}.",
+                            ex);
+                    }
                 }
 
-                Console.WriteLine($"[Migration] Environment(s) {target.Environments} completed successfully.");
+                Console.WriteLine(
+                    $"[Migration] Mode {initializationMode} for environment(s) {target.Environments} completed successfully.");
                 break;
+            }
+            catch (DatabaseInitializationException ex)
+            {
+                Console.WriteLine(
+                    $"[Migration] Deterministic initialization failure for {target.Environments}: {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -388,6 +412,23 @@ static async Task InitializeDatabasesAsync(
             }
         }
     }
+}
+
+static string[] GetDatabaseInitializationEnvironments(
+    IConfiguration configuration,
+    string defaultDatabaseEnvironment)
+{
+    var configuredEnvironments = configuration
+        .GetSection("DatabaseInitialization:Environments")
+        .Get<string[]>()
+        ?.Where(environment => !string.IsNullOrWhiteSpace(environment))
+        .Select(environment => environment.Trim())
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
+    return configuredEnvironments is { Length: > 0 }
+        ? configuredEnvironments
+        : [defaultDatabaseEnvironment];
 }
 
 static string GetDatabaseIdentity(string connectionString)

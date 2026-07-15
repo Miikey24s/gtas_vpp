@@ -17,8 +17,11 @@ namespace gtas_vpp_be.Service.Services
     {
         // ── Constants ──────────────────────────────────────────────
         private const int DefaultUserId = 5615;
-        // Bump this value whenever SQL seed files or C# seed definitions change.
-        private const string SeedVersion = "2026-06-12-performance-1";
+        // Keep reference and demo markers independent. A failed profile must
+        // never be recorded as applied, and production reference bootstrap
+        // must not be coupled to the optional demo fixture.
+        private const string ReferenceSeedVersion = "2026-07-15-reference-1";
+        private const string DemoSeedVersion = "2026-07-15-demo-1";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
         private static readonly Guid AdminGroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C");
         private static readonly Guid UserGroupId  = Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596");
@@ -80,45 +83,51 @@ namespace gtas_vpp_be.Service.Services
         //  MAIN ENTRY POINT
         //  Luồng tối ưu: SQL infra → SQL data (LEX02 departments) → C# auth
         // ════════════════════════════════════════════════════════════
-        public static async Task Seed(VPPMigrationDbContext context)
+        public static async Task SeedReference(VPPMigrationDbContext context)
         {
             await EnsureSeedHistoryTableAsync(context);
-            if (await IsSeedVersionAppliedAsync(context))
+
+            // These objects live partly in the compatibility GTAS_MENU
+            // database, so validate/reconcile them on every run even when the
+            // profile marker already exists. This repairs a dropped view/table
+            // instead of trusting a stale marker.
+            await RunSqlRequired(context, "Helpers/SQL/00_Init_GTAS_MENU.sql");
+            await RunSqlRequired(context, "Helpers/SQL/01_Views.sql");
+            await RunSqlRequired(context, "Helpers/SQL/02_StoredProcedures.sql");
+
+            if (await IsSeedVersionAppliedAsync(context, ReferenceSeedVersion))
             {
-                Log.Information("[SeedData] Seed version {SeedVersion} already applied. Skipping.", SeedVersion);
+                Log.Information("[SeedData] Reference seed version {SeedVersion} already applied. Skipping.", ReferenceSeedVersion);
                 return;
             }
 
-            Log.Information("[SeedData] Starting database seeding...");
-
-            // ── PHASE 1: Infrastructure SQL ──────────────────────
-            // Tạo GTAS_MENU DB + tblUsers (cần cho Views + SPs)
-            await RunSqlSafe(context, "Helpers/SQL/00_Init_GTAS_MENU.sql");
-
-            // Views (dùng cross-database query tới GTAS_MENU, không cần Linked Server)
-            await RunSqlSafe(context, "Helpers/SQL/01_Views.sql");
-
-            // Stored Procedures (12 SPs, CREATE OR ALTER)
-            await RunSqlSafe(context, "Helpers/SQL/02_StoredProcedures.sql");
-
-            // ── PHASE 2: Library + LEX02 data (SQL) ─────────────
-            // PHẢI chạy trước P04_UserGroup vì P04 cần LEX02 department IDs
             await SeedLEX02_Empty(context);
-            await RunSqlSafe(context, "Helpers/SQL/03_SeedLibraryData.sql");
-            await SeedDefaultPricesFromFile(context);
-
-            // ── PHASE 3: Auth data (C#) ─────────────────────────
-            // P01 → P02 → P03 → P04 (lookup LEX02 IDs) → P05 → P06
             await SeedP01_Page(context);
             await SeedP02_Group(context);
             await SeedP03_Component(context);
-            await SeedP04_UserGroup(context); // Lookup LEX02 department IDs dynamically
             await SeedP05_PageComponentMapping(context);
+            await MarkSeedVersionAppliedAsync(context, ReferenceSeedVersion);
+            Log.Information("[SeedData] Reference database bootstrap completed.");
+        }
+
+        public static async Task SeedDemo(VPPMigrationDbContext context)
+        {
+            await SeedReference(context);
+            await EnsureSeedHistoryTableAsync(context);
+
+            // Demo mode deliberately contains no users, credentials, e-mail
+            // addresses or user-to-role assignments. Account provisioning is
+            // owned by the authenticated registration/admin workflow.
+            // Reconcile this idempotent fixture on every explicit demo run so
+            // a stale history marker cannot hide missing catalog/permission data.
+            Log.Information("[SeedData] Reconciling non-sensitive demo fixture...");
+            await RunSqlRequired(context, "Helpers/SQL/03_SeedLibraryData.sql");
+            await SeedDefaultPricesFromFile(context);
             await SeedP06_GroupPageComponentMapping(context);
 
-            await MarkSeedVersionAppliedAsync(context);
+            await MarkSeedVersionAppliedAsync(context, DemoSeedVersion);
 
-            Log.Information("[SeedData] Database seeding completed.");
+            Log.Information("[SeedData] Non-sensitive demo fixture completed.");
         }
 
         private static Task EnsureSeedHistoryTableAsync(VPPMigrationDbContext context)
@@ -136,49 +145,44 @@ namespace gtas_vpp_be.Service.Services
                 """);
         }
 
-        private static async Task<bool> IsSeedVersionAppliedAsync(VPPMigrationDbContext context)
+        private static async Task<bool> IsSeedVersionAppliedAsync(
+            VPPMigrationDbContext context,
+            string seedVersion)
         {
             var count = await context.Database
                 .SqlQuery<int>($"""
                     SELECT COUNT(*) AS [Value]
                     FROM [dbo].[__GTASSeedHistory]
-                    WHERE [SeedVersion] = {SeedVersion}
+                    WHERE [SeedVersion] = {seedVersion}
                     """)
                 .SingleAsync();
 
             return count > 0;
         }
 
-        private static Task MarkSeedVersionAppliedAsync(VPPMigrationDbContext context)
+        private static Task MarkSeedVersionAppliedAsync(
+            VPPMigrationDbContext context,
+            string seedVersion)
         {
             return context.Database.ExecuteSqlInterpolatedAsync($"""
                 IF NOT EXISTS
                 (
                     SELECT 1
                     FROM [dbo].[__GTASSeedHistory]
-                    WHERE [SeedVersion] = {SeedVersion}
+                    WHERE [SeedVersion] = {seedVersion}
                 )
                 BEGIN
                     INSERT INTO [dbo].[__GTASSeedHistory] ([SeedVersion], [AppliedUtc])
-                    VALUES ({SeedVersion}, SYSUTCDATETIME());
+                    VALUES ({seedVersion}, SYSUTCDATETIME());
                 END
                 """);
         }
 
         /// <summary>
-        /// Chạy SQL file an toàn — log warning nếu lỗi, không crash app.
+        /// Required SQL files are fail-fast; errors must reach the migrator.
         /// </summary>
-        private static async Task RunSqlSafe(VPPMigrationDbContext context, string path)
-        {
-            try
-            {
-                await SqlBatchExecutor.ExecuteSqlFileAsync(context.Database, path);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "[SeedData] {File} failed. Skipping...", Path.GetFileName(path));
-            }
-        }
+        private static Task RunSqlRequired(VPPMigrationDbContext context, string path)
+            => SqlBatchExecutor.ExecuteSqlFileAsync(context.Database, path);
 
         private sealed record DefaultPriceSeedRow(
             string CategoryName,
@@ -191,7 +195,7 @@ namespace gtas_vpp_be.Service.Services
             var priceRows = ReadDefaultPriceRows();
             if (priceRows.Count == 0)
             {
-                return;
+                throw new InvalidDataException("prices.txt did not contain any usable price rows.");
             }
 
             var now = DateTime.Now;
@@ -199,13 +203,13 @@ namespace gtas_vpp_be.Service.Services
                 .FirstOrDefaultAsync(x => x.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName && !x.IsDeleted);
             if (hcmSupplier == null)
             {
-                Log.Warning("[SeedData] Default supplier {SupplierShortName} not found; prices.txt seed skipped.",
-                    VppPricingDefaults.DefaultSupplierShortName);
-                return;
+                throw new InvalidOperationException(
+                    $"Default supplier '{VppPricingDefaults.DefaultSupplierShortName}' is required by the demo price seed.");
             }
 
             var defaultPriceList = await context.L07_PriceLists
                 .FirstOrDefaultAsync(x => x.Id == DefaultPriceListId && !x.IsDeleted);
+            await using var transaction = await context.Database.BeginTransactionAsync();
             if (defaultPriceList == null)
             {
                 defaultPriceList = new L07_PriceList
@@ -221,15 +225,16 @@ namespace gtas_vpp_be.Service.Services
                     IsDeleted = false
                 };
                 context.L07_PriceLists.Add(defaultPriceList);
-                await context.SaveChangesAsync();
             }
-
-            await using var transaction = await context.Database.BeginTransactionAsync();
 
             var activeProducts = await context.L04_VPPs
                 .Include(x => x.VPPCategory)
                 .Where(x => !x.IsDeleted)
                 .ToListAsync();
+            if (activeProducts.Count == 0)
+            {
+                throw new InvalidDataException("Demo catalog seed produced no active VPP items.");
+            }
             var productIds = activeProducts.Select(x => x.Id).ToArray();
 
             var activeMappings = await context.L06_VPPSupplierMappings
@@ -332,15 +337,15 @@ namespace gtas_vpp_be.Service.Services
                 }
             }
 
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
             if (unmatchedProducts.Count > 0)
             {
-                Log.Warning("[SeedData] prices.txt did not match {Count} active VPP item(s): {Items}",
-                    unmatchedProducts.Count,
+                throw new InvalidDataException(
+                    $"prices.txt did not match {unmatchedProducts.Count} active VPP item(s): " +
                     string.Join(", ", unmatchedProducts.Take(10)));
             }
+
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             Log.Information(
                 "[SeedData] prices.txt seed completed. Items: {ItemCount}, price updates: {UpdatedPriceCount}, default supplier rows: {DefaultedCount}, VAT source: C# constant {VatRate:P0}.",
@@ -516,8 +521,6 @@ namespace gtas_vpp_be.Service.Services
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP01_Page(VPPMigrationDbContext context)
         {
-            if (context.P01_Pages.Any()) return;
-
             var now = DateTime.Now;
             var pages = new List<P01_Page>
             {
@@ -537,9 +540,15 @@ namespace gtas_vpp_be.Service.Services
                         Description = "System Reports", CreateUserId = DefaultUserId, CreateDate = now,
                         UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
             };
-            await context.P01_Pages.AddRangeAsync(pages);
+            var existingCodes = await context.P01_Pages
+                .Select(x => x.PageCode)
+                .ToListAsync();
+            var missing = pages.Where(x => !existingCodes.Contains(x.PageCode)).ToList();
+            if (missing.Count == 0) return;
+
+            await context.P01_Pages.AddRangeAsync(missing);
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P01_Page: {Count} pages", pages.Count);
+            Log.Information("[SeedData] P01_Page: {Count} pages", missing.Count);
         }
 
         // ════════════════════════════════════════════════════════════
@@ -547,8 +556,6 @@ namespace gtas_vpp_be.Service.Services
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP02_Group(VPPMigrationDbContext context)
         {
-            if (context.P02_Groups.Any()) return;
-
             var now = DateTime.Now;
             var groups = new List<P02_Group>
             {
@@ -561,9 +568,13 @@ namespace gtas_vpp_be.Service.Services
                         CreateUserId = DefaultUserId, CreateDate = now,
                         UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
             };
-            await context.P02_Groups.AddRangeAsync(groups);
+            var existingIds = await context.P02_Groups.Select(x => x.Id).ToListAsync();
+            var missing = groups.Where(x => !existingIds.Contains(x.Id)).ToList();
+            if (missing.Count == 0) return;
+
+            await context.P02_Groups.AddRangeAsync(missing);
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P02_Group: {Count} groups", groups.Count);
+            Log.Information("[SeedData] P02_Group: {Count} groups", missing.Count);
         }
 
         // ════════════════════════════════════════════════════════════
@@ -607,57 +618,6 @@ namespace gtas_vpp_be.Service.Services
 
         private static P03_Component C(string code, string name, string desc, Guid id, DateTime now)
             => new() { Id = id, ComponentCode = code, ComponentName = name, Description = desc,
-                       CreateUserId = DefaultUserId, CreateDate = now,
-                       UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false };
-
-        // ════════════════════════════════════════════════════════════
-        //  P04_UserGroup — 12 users, lookup department IDs dynamically
-        //  Tại thời điểm này, 03_SeedLibraryData.sql đã chạy → LEX02 departments đã tồn tại
-        // ════════════════════════════════════════════════════════════
-        private static async Task SeedP04_UserGroup(VPPMigrationDbContext context)
-        {
-            if (context.P04_UserGroups.Any()) return;
-
-            // Lookup department IDs by code (dynamic, không hardcode GUID)
-            // Dùng GroupBy vì có thể có duplicate LEX02Code (e.g. "SOURCING")
-            var deptLookup = context.LEX02_CompanyDepartmentLocations
-                .Where(x => !x.IsDeleted)
-                .AsEnumerable()
-                .GroupBy(x => x.LEX02Code ?? "")
-                .ToDictionary(g => g.Key, g => g.First().Id);
-
-            // Fallback: nếu không tìm thấy department → dùng Guid.Empty
-            Guid GetDept(string code) => deptLookup.GetValueOrDefault(code, Guid.Empty);
-
-            var now = DateTime.Now;
-            var userGroups = new List<P04_UserGroup>
-            {
-                // google → Admin, IT
-                UG(4519, AdminGroupId, GetDept("IT"), now),
-                // test_admin_1-5 → Admin, mỗi người 1 phòng ban
-                UG(4520, AdminGroupId, GetDept("HCQT"), now),
-                UG(4521, AdminGroupId, GetDept("TCKT"), now),
-                UG(4522, AdminGroupId, GetDept("PURCHASING"), now),
-                UG(4523, AdminGroupId, GetDept("KD1"), now),
-                UG(4524, AdminGroupId, GetDept("QA"), now),
-                // test_user_11-15 → User, paired departments
-                UG(4530, UserGroupId, GetDept("HCQT"), now),
-                UG(4531, UserGroupId, GetDept("TCKT"), now),
-                UG(4532, UserGroupId, GetDept("PURCHASING"), now),
-                UG(4533, UserGroupId, GetDept("KD1"), now),
-                UG(4534, UserGroupId, GetDept("QA"), now),
-                // admin (user 1) → User, IT (extra IT user)
-                UG(1, UserGroupId, GetDept("IT"), now),
-            };
-            await context.P04_UserGroups.AddRangeAsync(userGroups);
-            await context.SaveChangesAsync();
-            Log.Information("[SeedData] P04_UserGroup: {Count} user-group mappings", userGroups.Count);
-        }
-
-        private static P04_UserGroup UG(int userId, Guid groupId, Guid deptId, DateTime now)
-            => new() { Id = Guid.NewGuid(), UserId = userId, P02_GroupId = groupId,
-                       LEX02_CompanyDepartmentLocationId = deptId,
-                       Description = "Auto seeded",
                        CreateUserId = DefaultUserId, CreateDate = now,
                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false };
 

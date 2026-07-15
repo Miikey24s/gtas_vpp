@@ -2,7 +2,7 @@
 
 > Đây là nguồn sự thật chính cho Target mode sau khi người dùng phê duyệt.
 > Version: 1.2-decisions, 15/07/2026
-> Hiện trạng: chưa task nào được phép triển khai.
+> Hiện trạng: BASE-001 và SEC-002 đã DONE; các task khác chưa được phép triển khai.
 
 ## 1. Cách vận hành plan
 
@@ -100,7 +100,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 |---|---|---:|---|---|
 | BASE-001 | 0 | P0 | DONE | Plan approval |
 | SEC-001 | 0 | P0 | BLOCKED_EXTERNAL | BASE-001, D-011 |
-| SEC-002 | 0 | P0 | NOT_STARTED | BASE-001 |
+| SEC-002 | 0 | P0 | DONE | BASE-001 |
 | ENV-001 | 0 | P0 | NOT_STARTED | BASE-001; không phụ thuộc tenant decision |
 | QA-001 | 0 | P0 | NOT_STARTED | BASE-001 |
 | ARCH-001 | 1 | P1 | NOT_STARTED | CP0 |
@@ -199,21 +199,22 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 
 | Field | Nội dung |
 |---|---|
-| Status / Priority / Difficulty | `NOT_STARTED` / P0 / M |
+| Status / Priority / Difficulty | `DONE` / P0 / M |
 | Mục tiêu | Production chỉ migrate schema/reference data an toàn; demo seed là opt-in command; SQL bắt buộc lỗi thì deployment fail. |
 | Lý do | `MigrateAndSeed` production và swallowed SQL exception có thể tạo user demo/half-initialized DB. |
 | Dependency | BASE-001; không cần quyết định nghiệp vụ. |
 | Phạm vi / file dự kiến | `gtas_vpp_be.Migrations`, `SeedData.cs`, `SqlBatchExecutor.cs`, SQL seed files, `docker-compose*.yml`, `deploy/deploy.sh`, tests/docs. |
 | Frontend | Không đổi. |
 | Backend | Tách mode/command; validation probes; actor/config logging không lộ secret. |
-| Database | Migration additive; reference vs demo data manifest; không đánh dấu seed version khi batch lỗi. |
-| Business rule | Không tạo business/demo user trong production bootstrap. |
+| Database | Không thêm EF migration; tách reference và demo manifest; không đánh dấu seed version khi batch lỗi. |
+| Business rule | Không tạo business/demo user trong production hoặc demo bootstrap; account provisioning thuộc AUTH. |
 | Tests | Missing/corrupt SQL fails; idempotent rerun; prod mode không có demo rows; fresh DB and upgraded DB integration. |
 | Verification | Generate/review script; run migrator on disposable DB; inspect rows/probes; full build/test. |
 | Acceptance | `docker-compose.prod` không chứa demo-seed mode; intentional SQL failure non-zero; successful rerun idempotent. |
 | Rủi ro / rollback | Existing deploy phụ thuộc seed. Giữ explicit demo command cho local; rollback image chỉ sau DB compatibility check. |
 | Commit strategy | 1) service/tests; 2) deploy compose/script; không trộn auth rewrite. |
 | Cần người dùng xác nhận | Không cho local/source; có nếu apply bất kỳ server nào. |
+| Execution evidence | [`docs/execution/SEC-002.md`](../execution/SEC-002.md): LocalDB fresh reference/demo, semantic rerun + delete/repair, upgrade, missing/corrupt SQL; Release 164 backend + 29 frontend + 12 UI discovery; rollback, static, security/scope và documentation gates PASS. |
 
 ### ENV-001 — Một environment/database cho mỗi deployment
 

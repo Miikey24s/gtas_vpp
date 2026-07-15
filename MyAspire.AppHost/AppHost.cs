@@ -5,7 +5,7 @@ var passwordEncryptionKey = builder.AddParameter("password-encryption-key", secr
 
 var api = builder.AddProject<Projects.gtas_vpp_be>("backend")
     .WithEnvironment("DatabaseSettings__DefaultEnvironment", "TestEnv")
-    .WithEnvironment("DatabaseInitialization__Mode", "MigrateAndSeed")
+    .WithEnvironment("DatabaseInitialization__Mode", "MigrateAndReference")
     .WithEnvironment("DatabaseInitialization__Environments__0", "TestEnv")
     .WithEnvironment("JwtSettings__Key", jwtKey)
     .WithEnvironment("PasswordEncryption__Key", passwordEncryptionKey)

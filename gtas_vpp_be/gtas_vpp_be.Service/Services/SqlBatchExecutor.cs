@@ -21,16 +21,13 @@ namespace gtas_vpp_be.Service.Services
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, relativePath);
 
-            if (!File.Exists(filePath))
-            {
-                Log.Warning("[SqlBatchExecutor] File not found: {FilePath}", filePath);
-                return;
-            }
+            EnsureFileExists(relativePath, filePath);
 
             Log.Information("[SqlBatchExecutor] Executing SQL file: {FileName}", Path.GetFileName(filePath));
 
             var sqlContent = await File.ReadAllTextAsync(filePath);
             var batches = SplitIntoBatches(sqlContent);
+            EnsureContainsRequiredBatch(relativePath, batches);
 
             int batchCount = 0;
             foreach (var batch in batches)
@@ -61,15 +58,58 @@ namespace gtas_vpp_be.Service.Services
         /// Splits SQL content by GO batch separator.
         /// NOTE: Does NOT strip USE statements — some scripts need USE to target other databases.
         /// </summary>
-        private static IEnumerable<string> SplitIntoBatches(string sqlContent)
+        public static IReadOnlyList<string> ReadBatches(string relativePath)
         {
+            var filePath = Path.Combine(AppContext.BaseDirectory, relativePath);
+            EnsureFileExists(relativePath, filePath);
+            var batches = SplitIntoBatches(File.ReadAllText(filePath));
+            EnsureContainsRequiredBatch(relativePath, batches);
+            return batches;
+        }
+
+        public static IReadOnlyList<string> SplitIntoBatches(string sqlContent)
+        {
+            ArgumentNullException.ThrowIfNull(sqlContent);
+
             // Split by GO on its own line (standard SSMS batch separator)
             var batches = Regex.Split(
                 sqlContent,
                 @"^\s*GO\s*$",
                 RegexOptions.Multiline | RegexOptions.IgnoreCase);
 
-            return batches.Where(b => !string.IsNullOrWhiteSpace(b));
+            return batches
+                .Where(b => !string.IsNullOrWhiteSpace(b))
+                .ToArray();
+        }
+
+        private static void EnsureFileExists(string relativePath, string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                return;
+            }
+
+            var exception = new FileNotFoundException(
+                $"Required SQL seed file was not found: {relativePath}",
+                filePath);
+            Log.Error(exception, "[SqlBatchExecutor] Required SQL file is missing: {FilePath}", filePath);
+            throw exception;
+        }
+
+        private static void EnsureContainsRequiredBatch(
+            string relativePath,
+            IReadOnlyCollection<string> batches)
+        {
+            if (batches.Count > 0)
+            {
+                return;
+            }
+
+            var exception = new InvalidDataException(
+                $"Required SQL seed file was empty or whitespace-only: {relativePath}");
+            Log.Error(exception, "[SqlBatchExecutor] Required SQL file contains no executable batch: {RelativePath}",
+                relativePath);
+            throw exception;
         }
     }
 }

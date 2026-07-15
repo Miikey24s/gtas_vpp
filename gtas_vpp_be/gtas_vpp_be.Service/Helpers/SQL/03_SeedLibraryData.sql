@@ -73,7 +73,6 @@ INSERT INTO #RawData (CategoryName, ItemName, UOMName) VALUES
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Băng keo si 5 cm (xd)', N'Cuộn'),
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Băng keo si 3,6 cm (xd)', N'Cuộn'),
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Băng keo vải 5P', N'Cuộn'),
-(N'Băng keo_ bấm kim_ bấm lỗ', N'Băng keo trong 2.4cm 100y', N'Cuộn'),
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Băng keo trong 5cm 100y', N'Cuộn'),
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Băng keo trong 7cm 100y', N'Cuộn'),
 
@@ -595,6 +594,17 @@ INSERT INTO #RawData (CategoryName, ItemName, UOMName) VALUES
 (N'Phục vụ Văn phòng', N'Mực đóng dấu chuyên dụng SI-63- Xanh', N'Chai'),
 (N'Phục vụ Văn phòng', N'Dấu TD T414 58x22mm', N'Cái');
 
+IF EXISTS
+(
+    SELECT ItemName
+    FROM #RawData
+    GROUP BY ItemName
+    HAVING COUNT(*) > 1
+)
+BEGIN
+    THROW 51001, 'Demo catalog source contains duplicate ItemName values.', 1;
+END
+
 -- =========================================================================================
 -- 4. BẮT ĐẦU TRANSACTION ĐỂ ĐỒNG BỘ DATA VÀO DATABASE
 -- =========================================================================================
@@ -683,9 +693,9 @@ BEGIN TRAN;
         PRINT N'🎉🎉🎉 HOÀN TẤT ĐỒNG BỘ DỮ LIỆU!!!';
     END TRY
     BEGIN CATCH
-        ROLLBACK TRAN;
+        IF XACT_STATE() <> 0 ROLLBACK TRAN;
         PRINT N'❌ CÓ LỖI XẢY RA, ĐÃ ROLLBACK DỮ LIỆU!';
-        PRINT ERROR_MESSAGE();
+        THROW;
     END CATCH
 
 -- =========================================================================================
@@ -853,20 +863,23 @@ BEGIN TRY
     PRINT N'Thành công: Đã seed supplier mặc định và tạo mapping còn thiếu cho danh mục VPP.';
 END TRY
 BEGIN CATCH
-    ROLLBACK TRANSACTION;
-    SELECT ERROR_MESSAGE() AS Error;
+    IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+    THROW;
 END CATCH
 
 -- PART 3: Departments (from 06_AddLEX.sql)
--- Idempotent wrapper for LEX02 departments
-IF NOT EXISTS (SELECT 1 FROM LEX02_CompanyDepartmentLocation WHERE LEX02Code = 'IT')
-BEGIN
-BEGIN TRAN;
+-- Reconcile each stable department code independently. A single existing IT
+-- row must not hide other missing fixture rows.
+BEGIN TRY
+BEGIN TRANSACTION;
 
 INSERT INTO LEX02_CompanyDepartmentLocation 
     (Id, LEX02Code, LEX02Name, LEX02Type, ParentId, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
-VALUES
-    (NEWID(), 'CBSX', N'CBSX', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+SELECT Source.Id, Source.LEX02Code, Source.LEX02Name, Source.LEX02Type,
+       Source.ParentId, Source.Description, Source.CreateUserId,
+       Source.CreateDate, Source.UpdateUserId, Source.UpdateDate, Source.IsDeleted
+FROM (VALUES
+    (NEWID(), 'CBSX', N'CBSX', 'PhongBan', CAST(NULL AS uniqueidentifier), CAST(NULL AS nvarchar(500)), 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'CONGNGHEMAY', N'CÔNG NGHỆ MAY', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'CONGNGHEWASH', N'CÔNG NGHỆ WASH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'SOURCING', N'SOURCING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
@@ -903,7 +916,6 @@ VALUES
     (NEWID(), 'QA', N'QA', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'QLTBMAY', N'QLTB MAY', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'R&D', N'R&D', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'SOURCING', N'SOURCING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'TCKT', N'TCKT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'TCKTKHO', N'TCKT KHO', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'TCKTVTJ', N'TCKT VTJ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
@@ -912,8 +924,22 @@ VALUES
     (NEWID(), 'TTHTLINHTRUNG', N'TTHT LINH TRUNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'WASHLINHTRUNG', N'WASH LINH TRUNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
     (NEWID(), 'XNK', N'XNK', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'XUONGMAYMAU', N'XƯỞNG MAY MẪU', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0);
+    (NEWID(), 'XUONGMAYMAU', N'XƯỞNG MAY MẪU', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0)
+) AS Source
+    (Id, LEX02Code, LEX02Name, LEX02Type, ParentId, Description,
+     CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM LEX02_CompanyDepartmentLocation Existing
+    WHERE Existing.LEX02Code = Source.LEX02Code
+      AND Existing.IsDeleted = 0
+);
 
-COMMIT TRAN;
-END
+COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH
 GO
