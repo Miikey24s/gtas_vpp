@@ -77,7 +77,19 @@ load_last_known_db_runtime() {
   DB_IMAGE="$pinned_image"
   DB_DATA_VOLUME="$pinned_volume"
   export DB_IMAGE DB_DATA_VOLUME
+  DB_RUNTIME_PINNED=true
   echo "Loaded the pinned SQL Server runtime from the last successful deploy state."
+}
+
+require_pinned_db_runtime() {
+  if [[ "${DB_RUNTIME_PINNED:-false}" != "true" \
+    || ! "${DB_IMAGE:-}" =~ ^sha256:[0-9a-f]{64}$ \
+    || ! "${DB_DATA_VOLUME:-}" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    echo "SQL Server recovery requires a validated immutable image and named data volume." >&2
+    return 1
+  fi
+  docker image inspect "$DB_IMAGE" >/dev/null 2>&1 || return 1
+  docker volume inspect "$DB_DATA_VOLUME" >/dev/null 2>&1 || return 1
 }
 
 wait_for_healthy() {
@@ -130,6 +142,7 @@ wait_for_db_connection() {
 
 ensure_desired_db_container() {
   if ! docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+    require_pinned_db_runtime || return 1
     echo "Recreating the missing SQL Server container from the pinned runtime state." >&2
     compose up -d --no-deps db || return 1
   fi
@@ -141,6 +154,7 @@ OLD_FE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$FRONTEND_CONTAINER
 DEPLOYING_APPS=false
 DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
 APP_ENV_ROLL_FORWARD_REQUIRED=false
+DB_RUNTIME_PINNED=false
 current_db_password=""
 desired_db_password=""
 active_db_password=""
@@ -178,6 +192,7 @@ roll_forward_db_password() {
   fi
 
   if ! docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+    require_pinned_db_runtime || return 1
     echo "Recreating the missing SQL Server container from the pinned runtime state." >&2
     compose up -d --no-deps db || return 1
   fi
@@ -345,17 +360,23 @@ db_exists=false
 db_password_changed=false
 if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
   db_exists=true
-  DB_IMAGE="${DB_IMAGE:-$(docker inspect --format='{{.Image}}' "$DB_CONTAINER")}"
-  DB_DATA_VOLUME="${DB_DATA_VOLUME:-$(
+  DB_IMAGE="$(docker inspect --format='{{.Image}}' "$DB_CONTAINER")"
+  DB_DATA_VOLUME="$(
     docker inspect \
       --format='{{range .Mounts}}{{if eq .Destination "/var/opt/mssql"}}{{.Name}}{{end}}{{end}}' \
       "$DB_CONTAINER"
-  )}"
+  )"
   if [[ -z "$DB_DATA_VOLUME" ]]; then
     echo "The existing SQL Server container is not using a named /var/opt/mssql volume." >&2
     exit 1
   fi
+  if [[ ! "$DB_IMAGE" =~ ^sha256:[0-9a-f]{64}$ \
+    || ! "$DB_DATA_VOLUME" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    echo "The existing SQL Server runtime cannot be pinned safely." >&2
+    exit 1
+  fi
   export DB_IMAGE DB_DATA_VOLUME
+  DB_RUNTIME_PINNED=true
   while IFS= read -r binding; do
     [[ -z "$binding" || "$binding" == 127.0.0.1:* ]] || unsafe_db_binding=true
   done < <(docker port "$DB_CONTAINER" 1433/tcp 2>/dev/null || true)
@@ -390,6 +411,7 @@ else
   load_last_known_db_runtime
 fi
 
+require_pinned_db_runtime
 compose config --quiet
 docker network inspect "$APP_NETWORK" >/dev/null 2>&1 || docker network create "$APP_NETWORK" >/dev/null
 

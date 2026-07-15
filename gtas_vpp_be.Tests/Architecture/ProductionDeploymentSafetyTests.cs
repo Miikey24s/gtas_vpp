@@ -89,6 +89,8 @@ public sealed class ProductionDeploymentSafetyTests
         Assert.Contains("docker image inspect \"$pinned_image\"", deploy, StringComparison.Ordinal);
         Assert.Contains("docker volume inspect \"$pinned_volume\"", deploy, StringComparison.Ordinal);
         Assert.Contains("export DB_IMAGE DB_DATA_VOLUME", deploy, StringComparison.Ordinal);
+        Assert.Contains("DB_RUNTIME_PINNED=false", deploy, StringComparison.Ordinal);
+        Assert.Contains("DB_RUNTIME_PINNED=true", deploy, StringComparison.Ordinal);
         Assert.Contains(
             "compose up -d --no-deps --force-recreate db",
             deploy,
@@ -123,6 +125,36 @@ public sealed class ProductionDeploymentSafetyTests
             "Compose validation must run only after the pinned DB image and volume are loaded.");
         Assert.True(missingContainerComposeIndex > composeValidationIndex,
             "The missing DB container must be created only after pinned-runtime validation.");
+
+        var ensureContainerIndex = deploy.IndexOf(
+            "ensure_desired_db_container()",
+            StringComparison.Ordinal);
+        var ensureContainerEndIndex = deploy.IndexOf(
+            "\n}",
+            ensureContainerIndex,
+            StringComparison.Ordinal);
+        var ensureContainerBody = deploy[ensureContainerIndex..ensureContainerEndIndex];
+        var pinnedGuardIndex = ensureContainerBody.IndexOf(
+            "require_pinned_db_runtime",
+            StringComparison.Ordinal);
+        var recoveryComposeIndex = ensureContainerBody.IndexOf(
+            "compose up -d --no-deps db",
+            StringComparison.Ordinal);
+
+        Assert.True(pinnedGuardIndex >= 0 && pinnedGuardIndex < recoveryComposeIndex,
+            "Error recovery must refuse Compose mutation until the DB runtime is pinned.");
+
+        var pinnedGuardDefinitionIndex = deploy.IndexOf(
+            "require_pinned_db_runtime()",
+            StringComparison.Ordinal);
+        var pinnedGuardDefinitionEndIndex = deploy.IndexOf(
+            "\n}",
+            pinnedGuardDefinitionIndex,
+            StringComparison.Ordinal);
+        var pinnedGuardBody = deploy[pinnedGuardDefinitionIndex..pinnedGuardDefinitionEndIndex];
+        Assert.Contains("DB_RUNTIME_PINNED", pinnedGuardBody, StringComparison.Ordinal);
+        Assert.Contains("docker image inspect \"$DB_IMAGE\"", pinnedGuardBody, StringComparison.Ordinal);
+        Assert.Contains("docker volume inspect \"$DB_DATA_VOLUME\"", pinnedGuardBody, StringComparison.Ordinal);
     }
 
     [Fact]
