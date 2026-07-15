@@ -35,15 +35,34 @@ public sealed class ProductionDeploymentSafetyTests
             deploy,
             StringComparison.Ordinal);
         Assert.Contains(
-            "recover_apps_with_current_env=\"$DEPLOYING_APPS\"",
+            "APP_ENV_ROLL_FORWARD_REQUIRED=false",
             deploy,
             StringComparison.Ordinal);
         Assert.Contains(
-            "recover_apps_with_current_env=true",
+            "APP_ENV_ROLL_FORWARD_REQUIRED=true",
             deploy,
             StringComparison.Ordinal);
         Assert.Contains(
-            "if [[ \"$recover_apps_with_current_env\" == \"true\" ]]",
+            "if [[ \"$DEPLOYING_APPS\" == \"true\" || \"$APP_ENV_ROLL_FORWARD_REQUIRED\" == \"true\" ]]",
+            deploy,
+            StringComparison.Ordinal);
+
+        var appRecoveryFlagIndex = deploy.IndexOf(
+            "APP_ENV_ROLL_FORWARD_REQUIRED=true",
+            StringComparison.Ordinal);
+        var alterLoginIndex = deploy.IndexOf(
+            "ALTER LOGIN [sa]",
+            appRecoveryFlagIndex,
+            StringComparison.Ordinal);
+        Assert.True(
+            appRecoveryFlagIndex >= 0 && appRecoveryFlagIndex < alterLoginIndex,
+            "Application recovery must be armed before ALTER LOGIN changes the credential.");
+        Assert.Contains(
+            "if db_can_connect \"$current_db_password\"; then",
+            deploy,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Previous SQL Server credential was rejected as expected.",
             deploy,
             StringComparison.Ordinal);
     }

@@ -86,6 +86,7 @@ OLD_BE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$BACKEND_CONTAINER"
 OLD_FE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$FRONTEND_CONTAINER" 2>/dev/null || true)"
 DEPLOYING_APPS=false
 DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
+APP_ENV_ROLL_FORWARD_REQUIRED=false
 DB_CONTAINER_SWAP_PENDING=false
 current_db_password=""
 desired_db_password=""
@@ -263,7 +264,6 @@ on_error() {
   local exit_code="$1"
   local line="$2"
   local recovery_failed=false
-  local recover_apps_with_current_env="$DEPLOYING_APPS"
   echo "Deployment failed at line $line (exit $exit_code)." >&2
   if [[ "$DB_CONTAINER_SWAP_PENDING" == "true" ]]; then
     restore_db_container || recovery_failed=true
@@ -273,18 +273,13 @@ on_error() {
       recovery_failed=true
     elif ! reconcile_db_container_secret_metadata; then
       recovery_failed=true
-    else
-      # The database now accepts only the desired credential. Recreate the
-      # previous application images with the current .env even when failure
-      # happened before the normal application rollout began.
-      recover_apps_with_current_env=true
     fi
   elif [[ -n "$active_db_password" ]]; then
     wait_for_db_connection "$active_db_password" 180 || recovery_failed=true
   elif [[ -n "$desired_db_password" && "$DB_CONTAINER_SWAP_PENDING" == "false" ]]; then
     wait_for_db_connection "$desired_db_password" 180 || recovery_failed=true
   fi
-  if [[ "$recover_apps_with_current_env" == "true" ]]; then
+  if [[ "$DEPLOYING_APPS" == "true" || "$APP_ENV_ROLL_FORWARD_REQUIRED" == "true" ]]; then
     rollback_apps || recovery_failed=true
   fi
   if [[ "$recovery_failed" == "true" ]]; then
@@ -367,6 +362,10 @@ if [[ "$db_exists" == "true" && ( "$unsafe_db_binding" == "true" || "$db_passwor
 
   if [[ "$db_password_changed" == "true" ]]; then
     DB_PASSWORD_ROLL_FORWARD_REQUIRED=true
+    # From this point onward, every recovery path must recreate the previous
+    # application images with the current .env. ALTER LOGIN is roll-forward
+    # only, so existing containers may otherwise retain the obsolete secret.
+    APP_ENV_ROLL_FORWARD_REQUIRED=true
     if [[ "$active_db_password" != "$desired_db_password" ]]; then
       echo "Rotating the SQL Server sa credential without exposing either value."
       docker exec \
@@ -390,6 +389,14 @@ else
 fi
 
 wait_for_db_connection "$desired_db_password" 180
+
+if [[ "$db_password_changed" == "true" && "$current_db_password" != "$desired_db_password" ]]; then
+  if db_can_connect "$current_db_password"; then
+    echo "The previous SQL Server credential is still accepted after rotation." >&2
+    exit 1
+  fi
+  echo "Previous SQL Server credential was rejected as expected."
+fi
 
 if [[ "$db_exists" == "true" ]]; then
   active_data_volume="$(
@@ -469,6 +476,8 @@ EOF
 chmod 600 deploy-state.env
 
 DEPLOYING_APPS=false
+DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
+APP_ENV_ROLL_FORWARD_REQUIRED=false
 trap - ERR
 compose ps
 echo "Deployment completed and public health check passed."
