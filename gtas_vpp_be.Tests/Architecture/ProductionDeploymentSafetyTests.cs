@@ -68,6 +68,64 @@ public sealed class ProductionDeploymentSafetyTests
     }
 
     [Fact]
+    public void MissingSqlContainer_UsesPinnedLastKnownRuntimeWithoutDestructiveRenameFallback()
+    {
+        var deploy = ReadRepositoryFile("deploy", "deploy.sh");
+
+        Assert.Contains("read_deploy_state_value()", deploy, StringComparison.Ordinal);
+        Assert.Contains("load_last_known_db_runtime()", deploy, StringComparison.Ordinal);
+        Assert.Contains(
+            "local state_file=\"$APP_ROOT/current/deploy-state.env\"",
+            deploy,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "^sha256:[0-9a-f]{64}$",
+            deploy,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "^[A-Za-z0-9_.-]+$",
+            deploy,
+            StringComparison.Ordinal);
+        Assert.Contains("docker image inspect \"$pinned_image\"", deploy, StringComparison.Ordinal);
+        Assert.Contains("docker volume inspect \"$pinned_volume\"", deploy, StringComparison.Ordinal);
+        Assert.Contains("export DB_IMAGE DB_DATA_VOLUME", deploy, StringComparison.Ordinal);
+        Assert.Contains(
+            "compose up -d --no-deps --force-recreate db",
+            deploy,
+            StringComparison.Ordinal);
+
+        Assert.DoesNotContain("source ", deploy, StringComparison.Ordinal);
+        Assert.DoesNotContain("docker rename", deploy, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(
+            "docker rm -f \"$DB_CONTAINER\"",
+            deploy,
+            StringComparison.Ordinal);
+
+        var loaderDefinitionIndex = deploy.IndexOf(
+            "load_last_known_db_runtime()",
+            StringComparison.Ordinal);
+        var loaderInvocationIndex = deploy.IndexOf(
+            "load_last_known_db_runtime",
+            loaderDefinitionIndex + "load_last_known_db_runtime()".Length,
+            StringComparison.Ordinal);
+        var composeValidationIndex = deploy.IndexOf(
+            "compose config --quiet",
+            loaderInvocationIndex,
+            StringComparison.Ordinal);
+        var missingContainerComposeIndex = deploy.IndexOf(
+            "compose up -d --no-deps db",
+            composeValidationIndex,
+            StringComparison.Ordinal);
+
+        Assert.True(loaderInvocationIndex > loaderDefinitionIndex,
+            "The missing-container branch must invoke the pinned-runtime loader.");
+        Assert.True(composeValidationIndex > loaderInvocationIndex,
+            "Compose validation must run only after the pinned DB image and volume are loaded.");
+        Assert.True(missingContainerComposeIndex > composeValidationIndex,
+            "The missing DB container must be created only after pinned-runtime validation.");
+    }
+
+    [Fact]
     public void OperationalBackupEntryPoints_UseTheVerifiedDatabasePair()
     {
         var deploy = ReadRepositoryFile("deploy", "deploy.sh");

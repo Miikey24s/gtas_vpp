@@ -34,6 +34,52 @@ read_env_value() {
   printf '%s' "$value"
 }
 
+read_deploy_state_value() {
+  local state_file="$1"
+  local key="$2"
+  local line value
+
+  line="$(grep -E "^${key}=" "$state_file" | tail -n 1 || true)"
+  [[ -n "$line" ]] || return 1
+  value="${line#*=}"
+  value="${value%$'\r'}"
+  printf '%s' "$value"
+}
+
+load_last_known_db_runtime() {
+  local state_file="$APP_ROOT/current/deploy-state.env"
+  local pinned_image pinned_volume
+
+  if [[ ! -f "$state_file" ]]; then
+    echo "Cannot recover a missing SQL Server container without the last successful deploy state." >&2
+    return 1
+  fi
+
+  pinned_image="$(read_deploy_state_value "$state_file" DB_IMAGE)" || return 1
+  pinned_volume="$(read_deploy_state_value "$state_file" DB_DATA_VOLUME)" || return 1
+  if [[ ! "$pinned_image" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+    echo "The last successful deploy state does not contain an immutable SQL Server image." >&2
+    return 1
+  fi
+  if [[ ! "$pinned_volume" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    echo "The last successful deploy state contains an invalid SQL Server volume name." >&2
+    return 1
+  fi
+  docker image inspect "$pinned_image" >/dev/null 2>&1 || {
+    echo "The last-known SQL Server image is not available locally." >&2
+    return 1
+  }
+  docker volume inspect "$pinned_volume" >/dev/null 2>&1 || {
+    echo "The last-known SQL Server data volume is unavailable." >&2
+    return 1
+  }
+
+  DB_IMAGE="$pinned_image"
+  DB_DATA_VOLUME="$pinned_volume"
+  export DB_IMAGE DB_DATA_VOLUME
+  echo "Loaded the pinned SQL Server runtime from the last successful deploy state."
+}
+
 wait_for_healthy() {
   local container="$1"
   local attempts="${2:-60}"
@@ -82,12 +128,19 @@ wait_for_db_connection() {
   return 1
 }
 
+ensure_desired_db_container() {
+  if ! docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+    echo "Recreating the missing SQL Server container from the pinned runtime state." >&2
+    compose up -d --no-deps db || return 1
+  fi
+  wait_for_db_connection "$desired_db_password" 180
+}
+
 OLD_BE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$BACKEND_CONTAINER" 2>/dev/null || true)"
 OLD_FE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$FRONTEND_CONTAINER" 2>/dev/null || true)"
 DEPLOYING_APPS=false
 DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
 APP_ENV_ROLL_FORWARD_REQUIRED=false
-DB_CONTAINER_SWAP_PENDING=false
 current_db_password=""
 desired_db_password=""
 active_db_password=""
@@ -122,6 +175,11 @@ roll_forward_db_password() {
   if [[ -z "$desired_db_password" ]]; then
     echo "The desired SQL Server credential is unavailable for roll-forward recovery." >&2
     return 1
+  fi
+
+  if ! docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+    echo "Recreating the missing SQL Server container from the pinned runtime state." >&2
+    compose up -d --no-deps db || return 1
   fi
 
   if db_can_connect "$desired_db_password"; then
@@ -162,39 +220,15 @@ roll_forward_db_password() {
   wait_for_db_connection "$desired_db_password" 180
 }
 
-preserve_db_container() {
-  if docker container inspect "$DB_FALLBACK_CONTAINER" >/dev/null 2>&1; then
-    echo "Refusing to overwrite the existing fallback container $DB_FALLBACK_CONTAINER." >&2
-    return 1
-  fi
-
-  echo "Preserving the current SQL Server container as $DB_FALLBACK_CONTAINER."
-  docker rename "$DB_CONTAINER" "$DB_FALLBACK_CONTAINER" || return 1
-  DB_CONTAINER_SWAP_PENDING=true
-  docker stop --time 60 "$DB_FALLBACK_CONTAINER" >/dev/null || return 1
-}
-
-restore_db_container() {
-  trap - ERR
-  set +e
-
-  echo "Restoring the preserved SQL Server container..." >&2
-  docker rm -f "$DB_CONTAINER" >/dev/null 2>&1 || true
-  docker rename "$DB_FALLBACK_CONTAINER" "$DB_CONTAINER" || return 1
-  if ! docker start "$DB_CONTAINER" >/dev/null 2>&1; then
-    [[ "$(docker inspect --format='{{.State.Running}}' "$DB_CONTAINER" 2>/dev/null)" == "true" ]] \
-      || return 1
-  fi
-  DB_CONTAINER_SWAP_PENDING=false
-}
-
-discard_db_fallback() {
-  docker rm "$DB_FALLBACK_CONTAINER" >/dev/null || return 1
-  DB_CONTAINER_SWAP_PENDING=false
-}
-
 db_container_matches_expected_runtime() {
   local actual_data_volume=""
+  local actual_image=""
+
+  actual_image="$(docker inspect --format='{{.Image}}' "$DB_CONTAINER" 2>/dev/null)"
+  if [[ -n "${DB_IMAGE:-}" && "$actual_image" != "$DB_IMAGE" ]]; then
+    echo "Recovered SQL Server container is using an unexpected image." >&2
+    return 1
+  fi
 
   if [[ -n "${DB_DATA_VOLUME:-}" ]]; then
     actual_data_volume="$(
@@ -234,14 +268,12 @@ reconcile_db_container_secret_metadata() {
     return 0
   fi
 
-  echo "Recreating the SQL Server container with the desired credential metadata..." >&2
-  preserve_db_container || return 1
+  echo "Recreating the SQL Server container with the desired credential metadata and named data volume..." >&2
 
-  if ! compose up -d db \
+  if ! compose up -d --no-deps --force-recreate db \
     || ! wait_for_db_connection "$desired_db_password" 180 \
     || ! db_container_matches_expected_runtime; then
     echo "Could not recreate SQL Server with the desired credential metadata." >&2
-    restore_db_container || true
     return 1
   fi
 
@@ -253,11 +285,8 @@ reconcile_db_container_secret_metadata() {
   )"
   if [[ -z "$container_password" || "$container_password" != "$desired_db_password" ]]; then
     echo "Recreated SQL Server container does not reference the desired credential." >&2
-    restore_db_container || true
     return 1
   fi
-
-  discard_db_fallback
 }
 
 on_error() {
@@ -265,9 +294,6 @@ on_error() {
   local line="$2"
   local recovery_failed=false
   echo "Deployment failed at line $line (exit $exit_code)." >&2
-  if [[ "$DB_CONTAINER_SWAP_PENDING" == "true" ]]; then
-    restore_db_container || recovery_failed=true
-  fi
   if [[ "$DB_PASSWORD_ROLL_FORWARD_REQUIRED" == "true" ]]; then
     if ! roll_forward_db_password; then
       recovery_failed=true
@@ -276,8 +302,8 @@ on_error() {
     fi
   elif [[ -n "$active_db_password" ]]; then
     wait_for_db_connection "$active_db_password" 180 || recovery_failed=true
-  elif [[ -n "$desired_db_password" && "$DB_CONTAINER_SWAP_PENDING" == "false" ]]; then
-    wait_for_db_connection "$desired_db_password" 180 || recovery_failed=true
+  elif [[ -n "$desired_db_password" ]]; then
+    ensure_desired_db_container || recovery_failed=true
   fi
   if [[ "$DEPLOYING_APPS" == "true" || "$APP_ENV_ROLL_FORWARD_REQUIRED" == "true" ]]; then
     rollback_apps || recovery_failed=true
@@ -296,15 +322,22 @@ if [[ ! -f "$COMPOSE_FILE" || ! -f .env ]]; then
 fi
 
 bash deploy/validate-env.sh .env
-compose config --quiet
-docker network inspect "$APP_NETWORK" >/dev/null 2>&1 || docker network create "$APP_NETWORK" >/dev/null
 
 if docker container inspect "$DB_FALLBACK_CONTAINER" >/dev/null 2>&1; then
-  echo "Recovering an incomplete SQL Server container swap from a previous deploy."
-  docker rm -f "$DB_CONTAINER" >/dev/null 2>&1 || true
-  docker rename "$DB_FALLBACK_CONTAINER" "$DB_CONTAINER"
-  docker start "$DB_CONTAINER" >/dev/null
+  echo "A legacy SQL Server fallback container exists; refusing automatic destructive recovery." >&2
+  exit 1
 fi
+while IFS= read -r compose_db_container; do
+  if [[ -n "$compose_db_container" && "$compose_db_container" != "$DB_CONTAINER" ]]; then
+    echo "An unexpected Docker Compose SQL Server service container exists; refusing reconciliation." >&2
+    exit 1
+  fi
+done < <(
+  docker ps -a \
+    --filter label=com.docker.compose.project=gtas-vpp \
+    --filter label=com.docker.compose.service=db \
+    --format '{{.Names}}'
+)
 
 desired_db_password="$(read_env_value DB_SA_PASSWORD)"
 unsafe_db_binding=false
@@ -353,7 +386,12 @@ if docker container inspect "$DB_CONTAINER" >/dev/null 2>&1; then
     exit 1
   fi
   [[ "$current_db_password" == "$desired_db_password" ]] || db_password_changed=true
+else
+  load_last_known_db_runtime
 fi
+
+compose config --quiet
+docker network inspect "$APP_NETWORK" >/dev/null 2>&1 || docker network create "$APP_NETWORK" >/dev/null
 
 if [[ "$db_exists" == "true" && ( "$unsafe_db_binding" == "true" || "$db_password_changed" == "true" ) ]]; then
   echo "Taking a safety backup before reconciling the SQL Server container."
@@ -382,10 +420,10 @@ if [[ "$db_exists" == "true" && ( "$unsafe_db_binding" == "true" || "$db_passwor
     fi
   fi
 
-  preserve_db_container
-  compose up -d db
+  echo "Recreating SQL Server with the named data volume and desired runtime metadata."
+  compose up -d --no-deps --force-recreate db
 else
-  compose up -d db
+  compose up -d --no-deps db
 fi
 
 wait_for_db_connection "$desired_db_password" 180
@@ -398,17 +436,7 @@ if [[ "$db_password_changed" == "true" && "$current_db_password" != "$desired_db
   echo "Previous SQL Server credential was rejected as expected."
 fi
 
-if [[ "$db_exists" == "true" ]]; then
-  active_data_volume="$(
-    docker inspect \
-      --format='{{range .Mounts}}{{if eq .Destination "/var/opt/mssql"}}{{.Name}}{{end}}{{end}}' \
-      "$DB_CONTAINER"
-  )"
-  if [[ "$active_data_volume" != "$DB_DATA_VOLUME" ]]; then
-    echo "SQL Server started with an unexpected data volume." >&2
-    exit 1
-  fi
-fi
+db_container_matches_expected_runtime
 
 while IFS= read -r binding; do
   if [[ -n "$binding" && "$binding" != 127.0.0.1:* ]]; then
@@ -421,10 +449,6 @@ bash deploy/backup-db-pair.sh pre-deploy
 
 compose --profile tools pull backend frontend migrator
 compose run --rm --no-deps migrator
-
-if [[ "$DB_CONTAINER_SWAP_PENDING" == "true" ]]; then
-  discard_db_fallback
-fi
 
 DEPLOYING_APPS=true
 compose up -d --no-deps --force-recreate backend
