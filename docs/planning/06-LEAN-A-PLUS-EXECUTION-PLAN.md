@@ -40,6 +40,7 @@ stable.
 | Package | Original tasks | Status | Evidence |
 |---|---|---|---|
 | LEAN-00 — Foundation | BASE-001, SEC-002, ENV-001, QA-001, ARCH-001 | DONE | Dedicated commits and execution records already exist. Do not redo them. |
+| LEAN-01 — Incident containment | SEC-001 and required deployment-safety fixes | DONE WITH ACCEPTED RISK | `docs/execution/SEC-001.md`; production recovery run `29428300803`; eight Google-key alerts remain open under the owner's explicit waiver. |
 
 The four user-owned dirty files recorded by BASE-001 remain protected: the
 working Word file, `App.razor`, `vpp-login.css` and `vpp-responsive.css`. A
@@ -50,7 +51,7 @@ must preserve its preflight hash and never stage it.
 
 | Package | Original cards folded into it | Depends on | Timebox | Exit result |
 |---|---|---|---:|---|
-| **LEAN-01 — Incident containment** | SEC-001 plus only the deployment-safety fixes needed by it | LEAN-00, owner/provider access | 1–2 d | Every exposed credential is revoked/rotated; suspect demo accounts are inactive; old credentials fail; paired DB backup is verified; production health is green; current tree/artifacts/log evidence is clean. |
+| **LEAN-01 — Incident containment** | SEC-001 plus only the deployment-safety fixes needed by it | LEAN-00, owner/provider access | 1–2 d | Every non-waived exposed credential is revoked/rotated; suspect demo accounts are inactive; old credentials fail; paired DB backup is verified; production health is green; current tree/artifacts/log evidence is clean. The eight waived Google alerts stay open and documented. |
 | **LEAN-02 — Trusted access and account cutover** | AUTH-001/002/003/004/006; core UI-004; related QA-002 cases | LEAN-01, QA-001, ARCH-001 | 4 d | Explicit action/scope matrix, one active group and primary department, last-admin protection, app-owned hashed credentials, legacy login retired, current-user context and session invalidation pass. If SEC proves all live accounts are disposable demos, skip the generic importer and provision one clean owner through an audited one-time path. |
 | **LEAN-03 — Registration and recovery** | AUTH-005, minimal UI-007; activation notification adapter | LEAN-02 | 2 d | Self-register creates zero-privilege `PendingApproval`; unique identity rules, admin map/activate, recovery/admin-reset fallback, rate limits and audit tests pass. |
 | **LEAN-04 — UI foundation and independent brand** | UI-001, UI-002; only directly needed ARCH-004 work | ARCH-001, D-009; access contracts from LEAN-02 | 2 d | Typed navigation/error/async states, coherent Radzen-based design system, Vietnamese-first IA, accessibility baseline and responsive shell for six core demo routes. No framework rewrite. |
@@ -165,9 +166,8 @@ or thesis/source truthfulness.
 
 ## 10. Immediate next action
 
-Finish LEAN-01/SEC-001. Current known external facts must remain visible until
-resolved: public-history provider incidents exist, active Google keys require
-owner-authorized revocation, and production account/runtime rotation requires
-verified DigitalOcean access plus paired `GTAS_VPP_LIVE`/`GTAS_MENU` backup.
-After LEAN-01 closes, create one persistent Goal for LEAN-02..09 and advance
-automatically according to this file.
+LEAN-01/SEC-001 is closed with the owner's explicit residual-risk waiver for
+eight still-open Google API-key alerts; do not report them as revoked. Continue
+the existing persistent Goal with LEAN-02, preserving the contained 12-account
+postcondition and the four protected user-owned files. Advance automatically
+through LEAN-09 according to this file without creating per-card Goals.
