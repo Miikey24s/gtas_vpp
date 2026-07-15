@@ -247,7 +247,7 @@ namespace gtas_vpp_be.Service.Services
                     Id = Guid.NewGuid(),
                     Y = req.Y,
                     M = req.M,
-                    VPPCode = GenerateVPPCode(req.Y, req.M, createUserId),
+                        VPPCode = GenerateVPPCode(req.Y, req.M),
                     Status = req.IsAdditionalOrder ? (int)VPPStatus.Pending : (int)VPPStatus.Submitted,
                     Description = req.Description,
                     IsAdditionalOrder = req.IsAdditionalOrder,
@@ -732,7 +732,7 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private string GenerateVPPCode(int year, int month, int userId)
+        private string GenerateVPPCode(int year, int month)
             => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}";
 
         private (int curYear, int curMonth, int prevYear, int prevMonth) GetCurrentAndPreviousPeriod()

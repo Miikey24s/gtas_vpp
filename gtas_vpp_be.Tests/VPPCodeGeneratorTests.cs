@@ -17,7 +17,7 @@ public class VPPCodeGeneratorTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
 
-        var result = InvokeGenerateVPPCode(service, 2026, 4, 5615);
+        var result = InvokeGenerateVPPCode(service, 2026, 4);
 
         Assert.Matches("^VPP-202604-[a-f0-9]{32}$", result);
         Assert.Equal(43, result.Length);
@@ -32,21 +32,10 @@ public class VPPCodeGeneratorTests
 
         for (var i = 0; i < 1000; i++)
         {
-            codes.Add(InvokeGenerateVPPCode(service, 2026, 4, 5615));
+            codes.Add(InvokeGenerateVPPCode(service, 2026, 4));
         }
 
         Assert.Equal(1000, codes.Count);
-    }
-
-    [Fact]
-    public void GenerateVPPCode_ValidInput_DoesNotContainUserId()
-    {
-        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
-
-        var result = InvokeGenerateVPPCode(service, 2026, 4, 5615);
-
-        Assert.DoesNotContain("5615", result);
     }
 
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
@@ -74,8 +63,8 @@ public class VPPCodeGeneratorTests
             Options.Create(new JiraSettings()));
     }
 
-    private static string InvokeGenerateVPPCode(VPPRequestService service, int year, int month, int userId)
+    private static string InvokeGenerateVPPCode(VPPRequestService service, int year, int month)
         => (string)typeof(VPPRequestService)
             .GetMethod("GenerateVPPCode", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .Invoke(service, new object[] { year, month, userId })!;
+            .Invoke(service, new object[] { year, month })!;
 }
