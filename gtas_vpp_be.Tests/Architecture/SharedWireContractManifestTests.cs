@@ -11,7 +11,7 @@ namespace gtas_vpp_be.Tests.Architecture;
 public sealed class SharedWireContractManifestTests
 {
     private const string ExpectedManifestSha256 =
-        "4829EDEF2D89AA6D34A8157916DC81BB1885AFD650B617E07726B72ECF8A2482";
+        "9C7347891ABF64A2B1CD93713711F05516D67174CB77DADC2CBA7D25A799823F";
 
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
 
@@ -57,7 +57,7 @@ public sealed class SharedWireContractManifestTests
                 .Append(GetTypeKind(type))
                 .Append("|BASE=")
                 .Append(FormatType(type.BaseType))
-                .AppendLine();
+                .Append('\n');
 
             if (type.IsEnum)
             {
@@ -71,7 +71,7 @@ public sealed class SharedWireContractManifestTests
                         .Append(name)
                         .Append('=')
                         .Append(Enum.Format(type, value, "D"))
-                        .AppendLine();
+                        .Append('\n');
                 }
 
                 continue;
@@ -115,7 +115,7 @@ public sealed class SharedWireContractManifestTests
                     .Append(numberHandling?.Handling.ToString() ?? "Default")
                     .Append("|CONVERTER=")
                     .Append(converter?.ConverterType?.FullName ?? "Default")
-                    .AppendLine();
+                    .Append('\n');
             }
         }
 
