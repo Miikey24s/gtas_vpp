@@ -1,0 +1,104 @@
+name: Production account audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+    concurrency:
+      group: gtas-vpp-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Verify immutable target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Miikey24s/gtas_vpp"
+          test "$GITHUB_REF" = "refs/heads/Nam"
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+
+      - name: Checkout exact audit source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+
+      - name: Configure pinned SSH identity
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          umask 077
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/audit_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
+
+      - name: Upload and run counts-only audit
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          REMOTE_SCRIPT: /tmp/gtas-vpp-account-audit-${{ github.run_id }}-${{ github.run_attempt }}.sh
+        run: |
+          set -euo pipefail
+          test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+
+          install -m 0700 scripts/security/audit-production-accounts.sh \
+            "$RUNNER_TEMP/account-audit.sh"
+
+          ssh_opts=(
+            -i "$RUNNER_TEMP/audit_key"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts"
+            -o PasswordAuthentication=no
+            -o KbdInteractiveAuthentication=no
+            -o ConnectTimeout=10
+          )
+          target="$SSH_USER@$SSH_HOST"
+
+          scp "${ssh_opts[@]}" "$RUNNER_TEMP/account-audit.sh" \
+            "$target:$REMOTE_SCRIPT"
+
+          printf -v command \
+            'set -euo pipefail; cleanup(){ rm -f -- %q; }; trap cleanup EXIT; chmod 0700 %q; %q' \
+            "$REMOTE_SCRIPT" "$REMOTE_SCRIPT" "$REMOTE_SCRIPT"
+
+          ssh "${ssh_opts[@]}" "$target" "$command"
+
+      - name: Remove remote temporary script
+        if: always()
+        continue-on-error: true
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          REMOTE_SCRIPT: /tmp/gtas-vpp-account-audit-${{ github.run_id }}-${{ github.run_attempt }}.sh
+        run: |
+          if [[ -s "$RUNNER_TEMP/audit_key" && -s "$RUNNER_TEMP/known_hosts" ]]; then
+            ssh -i "$RUNNER_TEMP/audit_key" \
+              -o BatchMode=yes -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" \
+              "$SSH_USER@$SSH_HOST" "rm -f -- '$REMOTE_SCRIPT'"
+          fi
+
+      - name: Remove runner temporary material
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/audit_key" \
+            "$RUNNER_TEMP/known_hosts" \
+            "$RUNNER_TEMP/account-audit.sh"
