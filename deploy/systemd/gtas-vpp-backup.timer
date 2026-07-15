@@ -1,5 +1,5 @@
 [Unit]
-Description=Run the GTAS VPP SQL Server backup every night
+Description=Run the GTAS VPP SQL Server database-pair backup every night
 
 [Timer]
 OnCalendar=*-*-* 02:15:00 Asia/Ho_Chi_Minh

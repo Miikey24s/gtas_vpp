@@ -6,24 +6,30 @@ namespace gtas_vpp_be.Tests;
 
 public class PasswordEncoderTests
 {
+    private const string SyntheticTestKey = "unit-test-key-only";
+    private const string AlternativeSyntheticTestKey = "different-unit-test-key";
+
     [Fact]
-    public void TripleDes_GoldenVector()
+    public void TripleDes_SameInputAndKey_ProducesSameCiphertext()
     {
-        var encoder = CreateEncoder("ttpsolutions");
+        var firstEncoder = CreateEncoder(SyntheticTestKey);
+        var secondEncoder = CreateEncoder(SyntheticTestKey);
 
-        var ciphertext = encoder.Encrypt("abc*123@");
+        var firstCiphertext = firstEncoder.Encrypt("synthetic-password");
+        var secondCiphertext = secondEncoder.Encrypt("synthetic-password");
 
-        Assert.Equal("wiSEc6nf/dK/Vu0E738j8Q==", ciphertext);
+        Assert.Equal(firstCiphertext, secondCiphertext);
+        Assert.NotEqual("synthetic-password", firstCiphertext);
     }
 
     [Fact]
     public void TripleDes_CustomKey_DifferentOutput()
     {
-        var defaultEncoder = CreateEncoder("ttpsolutions");
-        var customEncoder = CreateEncoder("different-key");
+        var defaultEncoder = CreateEncoder(SyntheticTestKey);
+        var customEncoder = CreateEncoder(AlternativeSyntheticTestKey);
 
-        var defaultCiphertext = defaultEncoder.Encrypt("abc*123@");
-        var customCiphertext = customEncoder.Encrypt("abc*123@");
+        var defaultCiphertext = defaultEncoder.Encrypt("synthetic-password");
+        var customCiphertext = customEncoder.Encrypt("synthetic-password");
 
         Assert.NotEqual(defaultCiphertext, customCiphertext);
     }
@@ -37,8 +43,8 @@ public class PasswordEncoderTests
     [Fact]
     public void TripleDes_RoundTrip()
     {
-        var encoder = CreateEncoder("ttpsolutions");
-        const string plaintext = "abc*123@";
+        var encoder = CreateEncoder(SyntheticTestKey);
+        const string plaintext = "synthetic-password";
 
         var ciphertext = encoder.Encrypt(plaintext);
         var decrypted = encoder.Decrypt(ciphertext);

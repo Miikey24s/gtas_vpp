@@ -6,7 +6,7 @@
 -- View: v_Users (đọc user từ GTAS_MENU qua cross-database)
 CREATE OR ALTER VIEW dbo.v_Users
 AS
-SELECT UserID, UserLogin, PasswordChar, FullName, EmailAddress1, EmailAddress2,
+SELECT UserID, UserLogin, FullName, EmailAddress1, EmailAddress2,
        GoogleEmail, PhoneNo1, PhoneNo2, MemberCompanyCode, DepartmentCode, MemberCompanyName
 FROM   GTAS_MENU.dbo.tblUsers
 WHERE (IsInactiveFlg = 0) AND (IsLockedFlg = 0);

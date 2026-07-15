@@ -1,6 +1,7 @@
 **/.git
 **/.vs
 **/.vscode
+**/.mcp.json
 **/.gemini
 **/.ai_workspace
 **/.codex
@@ -12,6 +13,7 @@
 **/*.user
 **/*.suo
 **/TestResults
+/tools
 **/.env
 **/.env.*
 !**/.env.example

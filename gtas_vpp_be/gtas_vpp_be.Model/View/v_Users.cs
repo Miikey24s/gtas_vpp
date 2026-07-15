@@ -8,7 +8,6 @@ public class v_Users
 {
     public int UserID { get; set; }
     public string? UserLogin { get; set; }
-    public string? PasswordChar { get; set; }
     public string? FullName { get; set; }
     public string? EmailAddress1 { get; set; }
     public string? EmailAddress2 { get; set; }

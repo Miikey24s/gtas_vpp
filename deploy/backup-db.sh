@@ -6,6 +6,7 @@ DB_NAME="${DB_NAME:-GTAS_VPP_LIVE}"
 BACKUP_LABEL="${1:-manual}"
 BACKUP_DIR="${2:-/var/opt/mssql/backup}"
 BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-14}"
+BACKUP_TIMESTAMP="${BACKUP_TIMESTAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
 
 if [[ ! "$DB_NAME" =~ ^[A-Za-z0-9_]+$ ]]; then
   echo "Unsafe database name: $DB_NAME" >&2
@@ -14,6 +15,16 @@ fi
 
 if [[ ! "$BACKUP_LABEL" =~ ^[A-Za-z0-9_-]+$ ]]; then
   echo "Backup label may contain only letters, numbers, underscores, and hyphens." >&2
+  exit 2
+fi
+
+if [[ ! "$BACKUP_TIMESTAMP" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+  echo "Backup timestamp must use UTC YYYYMMDDTHHMMSSZ format." >&2
+  exit 2
+fi
+
+if [[ ! "$BACKUP_RETENTION_DAYS" =~ ^[0-9]+$ ]] || (( 10#$BACKUP_RETENTION_DAYS < 1 )); then
+  echo "BACKUP_RETENTION_DAYS must be a positive whole number." >&2
   exit 2
 fi
 
@@ -26,8 +37,7 @@ case "$BACKUP_DIR" in
     ;;
 esac
 
-timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-backup_file="${BACKUP_DIR}/${DB_NAME}_${BACKUP_LABEL}_${timestamp}.bak"
+backup_file="${BACKUP_DIR}/${DB_NAME}_${BACKUP_LABEL}_${BACKUP_TIMESTAMP}.bak"
 
 docker exec -u 0 "$DB_CONTAINER" mkdir -p "$BACKUP_DIR"
 docker exec -u 0 "$DB_CONTAINER" chown 10001:0 "$BACKUP_DIR"

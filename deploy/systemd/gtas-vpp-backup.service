@@ -1,12 +1,12 @@
 [Unit]
-Description=GTAS VPP verified SQL Server backup
+Description=GTAS VPP verified SQL Server database-pair backup
 Requires=docker.service
 After=docker.service
 
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/bash /app/gtas-vpp/current/deploy/backup-db.sh scheduled
+ExecStart=/usr/bin/bash /app/gtas-vpp/current/deploy/backup-db-pair.sh scheduled
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true

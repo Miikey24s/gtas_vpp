@@ -286,7 +286,6 @@ BEGIN TRY
     SELECT DISTINCT
            us.UserID,
            us.UserLogin,
-           us.PasswordChar,
            us.FullName,
            us.EmailAddress1,
            us.GoogleEmail,
@@ -376,7 +375,6 @@ BEGIN TRY
     SET @Param = REPLACE(@Param, '"{', '{');
     SET @Param = REPLACE(@Param, '}"', '}');
     SET @Param = REPLACE(@Param, '\"', '"');
-    PRINT @Param;
     DECLARE @UserLogin NVARCHAR(100);
     DECLARE @PasswordChar NVARCHAR(MAX);
 
@@ -404,7 +402,6 @@ BEGIN TRY
         SELECT DISTINCT
                us.UserID,
                us.UserLogin,
-               us.PasswordChar,
                us.FullName,
                us.EmailAddress1,
                us.GoogleEmail,
@@ -467,7 +464,6 @@ BEGIN TRY
             SELECT DISTINCT
                    r.UserID,
                    r.UserLogin,
-                   r.PasswordChar,
                    r.FullName,
                    r.EmailAddress1 AS Email,
                    r.GoogleEmail,

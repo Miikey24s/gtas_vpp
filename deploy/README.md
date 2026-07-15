@@ -15,8 +15,10 @@ Không dùng cấu hình này cho hoạt động thương mại.
 - Khi database đã tồn tại, deploy pin đúng image ID SQL Server đang chạy; nâng cấp
   SQL Server là một maintenance riêng, có backup và diễn tập restore trước.
 - Development dùng `TestEnv`; production dùng `LiveEnv`.
-- Hai môi trường có SQL Server, Docker volume và tên database vật lý riêng:
-  Development dùng `GTAS_VPP_TEST`, production dùng `GTAS_VPP_LIVE`.
+- Hai môi trường có SQL Server, Docker volume và tên database nghiệp vụ vật lý riêng:
+  Development dùng `GTAS_VPP_TEST`, production dùng `GTAS_VPP_LIVE`. Production
+  còn có `GTAS_MENU` chứa tài khoản; hai database production là một cặp logic phải
+  được backup cùng một backup-set.
 - Không chép database production về máy cá nhân nếu trong đó có dữ liệu thật.
 
 ## Baseline Droplet
@@ -85,9 +87,10 @@ chạy `workflow_dispatch`, thực hiện:
 5. kiểm tra/khắc phục mapping SQL public, tự lấy đúng named volume đang mount từ
    container hiện hành và giữ container cũ dưới tên dự phòng cho đến khi migrator
    thành công;
-6. nếu secret SQL đổi, backup bằng credential cũ, `ALTER LOGIN sa`, rồi recreate
-   container với credential mới và nguyên volume;
-7. tạo `BACKUP ... WITH CHECKSUM`, chạy `RESTORE VERIFYONLY`, rồi mới migration;
+6. nếu secret SQL đổi, backup cặp database bằng credential đang hoạt động,
+   `ALTER LOGIN sa`, rồi recreate container với credential mới và nguyên volume;
+7. tạo `BACKUP ... WITH COPY_ONLY, CHECKSUM` và `RESTORE VERIFYONLY ... WITH CHECKSUM`
+   cho cả `GTAS_VPP_LIVE` lẫn `GTAS_MENU`, rồi mới migration;
 8. thay backend, chờ healthy; thay frontend, chờ healthy;
 9. validate/reload Nginx, tắt SSH password, chỉ cho root đăng nhập bằng key, xóa các
    rule UFW public cũ của `1433`/`5000`/`8080`, rồi audit host;
@@ -102,11 +105,20 @@ Nếu backend/frontend mới lỗi, script tự quay về cặp image trước. 
 không tự rollback vì migration ngược có thể phá dữ liệu; backup `pre-deploy` là
 điểm phục hồi có chủ ý.
 
+Credential SQL đã rotate không bao giờ bị đổi ngược về credential cũ khi deploy lỗi.
+Error handler hoàn tất theo hướng roll-forward tới `DB_SA_PASSWORD` mong muốn,
+recreate container SQL để metadata không giữ credential cũ, rồi recreate cặp image
+ứng dụng trước bằng `.env` hiện hành nên chúng cũng dùng credential mới. Container
+SQL cũ chỉ bị xóa sau khi kết nối bằng credential mới đã pass. Nếu tự động phục hồi
+chưa hoàn tất, giữ nguyên credential mới và điều tra/retry; không đưa credential đã
+bị thu hồi trở lại.
+
 ## Backup và restore
 
-Timer `gtas-vpp-backup.timer` tạo backup logic đã kiểm chứng mỗi đêm lúc 02:15
-giờ Việt Nam, giữ mặc định 14 ngày trong volume
-`gtas-vpp_sqlserver-backups`.
+Timer `gtas-vpp-backup.timer` gọi `backup-db-pair.sh` mỗi đêm lúc 02:15 giờ Việt Nam.
+Mỗi backup-set dùng chung label/timestamp, gồm một file `GTAS_VPP_LIVE` và một file
+`GTAS_MENU`; từng file đều là `COPY_ONLY`, có `CHECKSUM` và đã qua `RESTORE VERIFYONLY`.
+Retention mặc định là 14 ngày trong volume `gtas-vpp_sqlserver-backups`.
 
 ```bash
 systemctl list-timers gtas-vpp-backup.timer
@@ -120,16 +132,29 @@ hợp lý là DigitalOcean weekly backup hoặc một object-storage bucket riê
 năng DigitalOcean automated backup có phí và phải được bật riêng; repository này
 không tự phát sinh chi phí.
 
-Restore là thao tác phá trạng thái hiện tại. Chỉ chạy sau khi chọn đúng file,
-xác nhận có backup `before-restore`, thông báo downtime và nhập confirmation:
+Restore là thao tác phá trạng thái hiện tại. `restore-db.sh` xác minh file được chọn,
+dừng backend/frontend để chặn write mới, rồi tạo và xác minh backup-set
+`before-restore` cho cả hai database trước mutation. Nếu backup/restore lỗi, cleanup
+sẽ đưa database về multi-user khi cần và thử khởi động lại ứng dụng. Chỉ chạy sau
+khi chọn đúng file, thông báo downtime, xác minh không có deploy/migrator/backup job
+khác đang chạy và nhập confirmation:
 
 ```bash
 cd /app/gtas-vpp/current
-RESTORE_CONFIRM=GTAS_VPP_LIVE bash deploy/restore-db.sh <backup-file-name.bak>
+RESTORE_CONFIRM=GTAS_VPP_LIVE \
+  bash deploy/restore-db.sh "GTAS_VPP_LIVE_<label>_<UTC-timestamp>.bak"
 ```
 
-Sau restore, kiểm tra container, đăng nhập, các luồng chính và public health. Nên
-diễn tập restore định kỳ với một Droplet/database tạm thay vì đợi đến lúc có sự cố.
+Script chỉ nhận file có prefix trùng `DB_NAME` và đúng format do `backup-db.sh`
+tạo, nhằm chặn việc vô tình restore backup `GTAS_MENU` vào `GTAS_VPP_LIVE` hoặc
+ngược lại. Restore thành công chỉ được báo sau khi cả backend và frontend healthy.
+
+Hai file trong backup-set được tạo liên tiếp và không phải snapshot transaction
+nguyên tử giữa database. Với phục hồi sự cố có thay đổi tài khoản/quyền, dừng luồng
+ghi, chọn đúng hai file cùng label/timestamp và lập thứ tự restore phối hợp; không
+ghép file từ hai backup-set khác nhau. Sau restore, kiểm tra container, đăng nhập,
+các luồng chính và public health. Nên diễn tập restore định kỳ với một
+Droplet/database tạm thay vì đợi đến lúc có sự cố.
 
 ## Kiểm tra vận hành
 

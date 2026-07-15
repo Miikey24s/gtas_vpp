@@ -7,7 +7,8 @@ or the deployment platform secret store. Never commit real values for:
 
 - `DB_SA_PASSWORD`
 - `JWT_KEY` (at least 32 UTF-8 bytes)
-- `PASSWORD_ENCRYPTION_KEY` (must match the legacy GTAS_MENU database)
+- `PASSWORD_ENCRYPTION_KEY` (must match data encrypted in the selected database;
+  rotate it only with an account reset or re-encryption runbook)
 - GitHub, Radzen, Jira, SSH, or container-registry tokens
 
 The application intentionally fails fast when required authentication secrets are
@@ -27,6 +28,37 @@ Any credential that has appeared in Git history must be considered compromised:
 
 Do not paste an exposed secret into an issue, commit message, pull request, or chat
 while reporting the incident.
+
+## Repository scanning gates
+
+Pull requests and pushes run a current-tree Gitleaks gate through
+`scripts/security/Invoke-Gitleaks.ps1`. The script downloads the official Gitleaks
+8.30.1 archive, verifies its pinned SHA-256 checksum, and emits fully redacted
+findings. It scans tracked files plus not-ignored candidate files; ignored local
+secret stores such as `.vscode/mcp.json`, build output, and `.env` are deliberately
+not copied into the scan workspace or Docker build context.
+
+Run the same gate locally from PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  scripts/security/Invoke-Gitleaks.ps1 -Mode Current
+```
+
+The all-ref history gate is intentionally separate because known historical
+credentials must be revoked before history is rewritten. After the provider owner
+has recorded revocation, run this read-only verification:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  scripts/security/Invoke-Gitleaks.ps1 -Mode History -PostRevocation
+```
+
+Do not add broad allowlists by directory, commit, rule, or entropy threshold. A
+false-positive exception must be limited to the exact reviewed finding, document
+its owner, reason, and expiry, and must never suppress a real provider credential.
+Known historical findings are not eligible for an allowlist merely to make CI
+green.
 
 ## Reporting
 
