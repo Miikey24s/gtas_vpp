@@ -145,6 +145,20 @@ RESTORE_CONFIRM=GTAS_VPP_LIVE \
   bash deploy/restore-db.sh "GTAS_VPP_LIVE_<label>_<UTC-timestamp>.bak"
 ```
 
+Khi recovery point có thể ảnh hưởng tài khoản hoặc phân quyền, luôn restore cả
+cặp database trong một maintenance window thay vì gọi script đơn hai lần:
+
+```bash
+cd /app/gtas-vpp/current
+RESTORE_PAIR_CONFIRM=GTAS_VPP_LIVE+GTAS_MENU \
+  bash deploy/restore-db-pair.sh <label> <UTC-YYYYMMDDTHHMMSSZ>
+```
+
+`restore-db-pair.sh` xác minh đúng hai file cùng label/timestamp, dừng writers
+một lần, tạo recovery pair mới rồi restore cả `GTAS_VPP_LIVE` và `GTAS_MENU`.
+Nếu một restore lỗi, script thử phục hồi cả hai database từ recovery pair; nếu
+không thể phục hồi đầy đủ thì giữ ứng dụng dừng để tránh chạy trên dữ liệu lệch.
+
 Script chỉ nhận file có prefix trùng `DB_NAME` và đúng format do `backup-db.sh`
 tạo, nhằm chặn việc vô tình restore backup `GTAS_MENU` vào `GTAS_VPP_LIVE` hoặc
 ngược lại. Restore thành công chỉ được báo sau khi cả backend và frontend healthy.
