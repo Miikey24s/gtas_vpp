@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-
 namespace gtas_vpp_shared.DTOs.Res.Auth
 {
-    [Keyless]
     public class sp_Authentication_TabUser_UserList
     {
         public Guid Id { get; set; }
@@ -28,4 +25,3 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         public Guid? L05_DepartmentId { get; set; }
     }
 }
-

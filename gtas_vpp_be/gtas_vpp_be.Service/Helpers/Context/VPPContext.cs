@@ -2,10 +2,9 @@
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.Notifications;
-//using gtas_vpp_be.Model.View;
+using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_shared.DTOs;
-using gtas_vpp_shared.DTOs.Res;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

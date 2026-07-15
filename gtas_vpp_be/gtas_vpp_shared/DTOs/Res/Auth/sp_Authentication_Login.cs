@@ -1,15 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json.Serialization;
-
 
 namespace gtas_vpp_shared.DTOs.Res.Auth
 {
     [StructLayout(LayoutKind.Auto)]
-    [Keyless]
     public class sp_Authentication_Login
     {
         public int UserID { get; set; }
@@ -49,4 +43,3 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         }
     }
 }
-

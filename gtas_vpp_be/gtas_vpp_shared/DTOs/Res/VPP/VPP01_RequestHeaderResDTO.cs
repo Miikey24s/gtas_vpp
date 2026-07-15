@@ -1,5 +1,5 @@
 using gtas_vpp_shared.DTOs.Share;
-using gtas_vpp_shared.UI;
+using gtas_vpp_shared.Constants;
 using System.Globalization;
 
 namespace gtas_vpp_shared.DTOs.Res.VPP
@@ -25,10 +25,10 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
 
         // Display-only computed properties (no clock dependency)
         public string Period => $"{M:00}/{Y}";
-        // P4/F-16: Delegate to the shared StatusDisplay helper; the only
+        // P4/F-16: Delegate to the shared status contract; the only
         // DTO-specific twist is the "Period Closed" annotation when a
         // regular submitted order has passed its deadline.
-        public string StatusText => StatusDisplay.GetText(Status, IsDeadlinePassed, IsAdditionalOrder);
+        public string StatusText => VppStatusContract.GetText(Status, IsDeadlinePassed, IsAdditionalOrder);
         public string SubmittedDateText => SubmittedDate?.ToString("HH:mm dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN")) ?? "-";
         public string? RequesterName { get; set; }
 

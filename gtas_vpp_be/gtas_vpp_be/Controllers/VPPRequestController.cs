@@ -5,7 +5,6 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
-using gtas_vpp_shared.UI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -806,7 +805,7 @@ namespace gtas_vpp_be.Controllers
                 .Select(g => new
                 {
                     // P4/F-16: Shared label table instead of a local switch copy.
-                    Status = StatusDisplay.GetText(g.Status),
+                    Status = VppStatusContract.GetText(g.Status),
                     g.Count
                 })
                 .ToList();

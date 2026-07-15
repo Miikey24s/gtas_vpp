@@ -1,7 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Res.Auth;
-using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using System.Security.Claims;

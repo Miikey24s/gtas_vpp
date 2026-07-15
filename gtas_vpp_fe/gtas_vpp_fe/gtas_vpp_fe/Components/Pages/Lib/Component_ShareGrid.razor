@@ -1,7 +1,7 @@
 @using System.Reflection
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_fe.Helpers
-@inject gtas_vpp_shared.DTOs.Share.GlobalClass glb
+@inject GlobalClass glb
 @typeparam TType
 
 <RadzenDataGrid @ref="DataGrid"
@@ -78,13 +78,13 @@
         </RadzenDataGridColumn>
         @foreach (var prop in GetOrderedGridProperties())
         {
-            var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
+            var metadata = GridColumnMetadataRegistry.Get(typeof(TType), prop.Name);
             var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
             var typeCode = Type.GetTypeCode(effectiveType);
-            var displayName = GetColumnDisplayName(prop, attr);
+            var displayName = GetColumnDisplayName(prop, metadata);
             var isDeletedProperty = IsDeletedProperty(prop);
             var isAuditProperty = IsAuditProperty(prop);
-            var isVisibleByDefault = GetColumnVisible(prop, attr, isAuditProperty, isDeletedProperty);
+            var isVisibleByDefault = GetColumnVisible(prop, metadata, isAuditProperty, isDeletedProperty);
             
             var isNumeric = typeCode == TypeCode.Decimal || 
                             typeCode == TypeCode.Double || 
@@ -102,12 +102,12 @@
                     ? TextAlign.Center 
                     : TextAlign.Left);
 
-            var formatString = (attr?.Ignore == false || isAuditProperty) && typeCode == TypeCode.DateTime
+            var formatString = (metadata?.Ignore == false || isAuditProperty) && typeCode == TypeCode.DateTime
                 ? "{0:dd/MM/yyyy HH:mm}"
                 : (isNumeric ? "{0:N0}" : null);
             
-            var isIgnored = attr?.Ignore ?? false;
-            var columnWidth = GetColumnWidth(prop, attr, typeCode, isAuditProperty);
+            var isIgnored = metadata?.Ignore ?? false;
+            var columnWidth = GetColumnWidth(prop, metadata, typeCode, isAuditProperty);
 
             if (!isIgnored || isAuditProperty)
             {
@@ -147,7 +147,7 @@
                         </EditTemplate>
                     </RadzenDataGridColumn>
                 }
-                else if (attr?.IsDropdownList ?? false)
+                else if (metadata?.IsDropdownList ?? false)
                 {
                     <RadzenDataGridColumn TItem="TType"
                                           Title=@(displayName)
@@ -185,7 +185,7 @@
                                           MinWidth="@columnWidth"
                                           Width="@columnWidth">
                         <EditTemplate Context="context">
-                            @if ((attr?.IsReadOnly ?? false) || isAuditProperty)
+                            @if ((metadata?.IsReadOnly ?? false) || isAuditProperty)
                             {
                                 <span>@FormatReadOnlyValue(context.GetPropertyValue(prop.Name, prop.PropertyType), typeCode)</span>
                             }

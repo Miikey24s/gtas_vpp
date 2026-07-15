@@ -1,13 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace gtas_vpp_shared.DTOs
 {
     [StructLayout(LayoutKind.Auto)]
-    [Keyless]
     public class sp_ResDTO
     {
         public bool IsSuccess { get; set; }
@@ -33,4 +28,3 @@ namespace gtas_vpp_shared.DTOs
         }
     }
 }
-

@@ -118,8 +118,8 @@
 
     private RenderFragment RenderPropertyCard(PropertyInfo prop) => builder =>
     {
-        var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
-        var displayName = attr?.DisplayName ?? prop.Name;
+        var metadata = GridColumnMetadataRegistry.Get(typeof(TItem), prop.Name);
+        var displayName = metadata?.DisplayName ?? prop.Name;
         var val = Record!.GetPropertyValue(prop.Name, prop.PropertyType);
         var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
         var typeCode = Type.GetTypeCode(effectiveType);

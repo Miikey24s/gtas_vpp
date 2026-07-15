@@ -1,15 +1,34 @@
-using gtas_vpp_shared.UI;
+using gtas_vpp_shared.Constants;
 using System.Globalization;
 using Xunit;
 
-namespace gtas_vpp_be.Tests.UI;
+namespace gtas_vpp_be.Tests.Contracts;
 
 /// <summary>
-/// Locks the status-code → label/css/badge mapping so the helper can never
-/// silently drift from what the UI tabs expect.
+/// Locks the status-code → resource/text contract consumed by API responses and reports.
 /// </summary>
-public class StatusDisplayTests
+public class VppStatusContractTests
 {
+    [Theory]
+    [InlineData(1, false, false, "Submitted")]
+    [InlineData(1, true, false, "SubmittedPeriodClosed")]
+    [InlineData(1, true, true, "Submitted")]
+    [InlineData(4, false, false, "Cancelled")]
+    [InlineData(6, false, false, "Pending")]
+    [InlineData(7, false, false, "Approved")]
+    [InlineData(8, false, false, "Rejected")]
+    [InlineData(99, false, false, "StatusUnknown")]
+    public void GetResourceKey_ReturnsExpectedContractValue(
+        int status,
+        bool isDeadlinePassed,
+        bool isAdditionalOrder,
+        string expected)
+    {
+        Assert.Equal(
+            expected,
+            VppStatusContract.GetResourceKey(status, isDeadlinePassed, isAdditionalOrder));
+    }
+
     [Theory]
     [InlineData(1, "Submitted")]
     [InlineData(4, "Cancelled")]
@@ -20,7 +39,7 @@ public class StatusDisplayTests
     [InlineData(99, "-")]
     public void GetText_ReturnsExpectedLabel(int status, string expected)
     {
-        Assert.Equal(expected, StatusDisplay.GetText(status));
+        Assert.Equal(expected, VppStatusContract.GetText(status));
     }
 
     [Theory]
@@ -29,7 +48,7 @@ public class StatusDisplayTests
     [InlineData(4, false, false, "Cancelled")]
     public void GetText_WithCulture_ReturnsEnglishLabels(int status, bool isDeadlinePassed, bool isAdditionalOrder, string expected)
     {
-        Assert.Equal(expected, StatusDisplay.GetText(status, isDeadlinePassed, isAdditionalOrder, CultureInfo.GetCultureInfo("en-US")));
+        Assert.Equal(expected, VppStatusContract.GetText(status, isDeadlinePassed, isAdditionalOrder, CultureInfo.GetCultureInfo("en-US")));
     }
 
     [Theory]
@@ -38,30 +57,6 @@ public class StatusDisplayTests
     [InlineData(6, false, false, "Chờ duyệt")]
     public void GetText_WithCulture_ReturnsVietnameseLabels(int status, bool isDeadlinePassed, bool isAdditionalOrder, string expected)
     {
-        Assert.Equal(expected, StatusDisplay.GetText(status, isDeadlinePassed, isAdditionalOrder, CultureInfo.GetCultureInfo("vi-VN")));
-    }
-
-    [Theory]
-    [InlineData(1, "vpp-badge-submitted")]
-    [InlineData(4, "vpp-badge-cancelled")]
-    [InlineData(6, "vpp-badge-pending")]
-    [InlineData(7, "vpp-badge-approved")]
-    [InlineData(8, "vpp-badge-rejected")]
-    [InlineData(0, "vpp-badge-default")]
-    public void GetCssClass_ReturnsExpectedClass(int status, string expected)
-    {
-        Assert.Equal(expected, StatusDisplay.GetCssClass(status));
-    }
-
-    [Theory]
-    [InlineData(1, "Success")]
-    [InlineData(4, "Danger")]
-    [InlineData(6, "Warning")]
-    [InlineData(7, "Success")]
-    [InlineData(8, "Danger")]
-    [InlineData(0, "Light")]
-    public void GetBadgeStyleName_ReturnsExpectedEnumName(int status, string expected)
-    {
-        Assert.Equal(expected, StatusDisplay.GetBadgeStyleName(status));
+        Assert.Equal(expected, VppStatusContract.GetText(status, isDeadlinePassed, isAdditionalOrder, CultureInfo.GetCultureInfo("vi-VN")));
     }
 }

@@ -1,10 +1,10 @@
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.View;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
-using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;

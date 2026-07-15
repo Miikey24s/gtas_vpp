@@ -1,6 +1,4 @@
 using gtas_vpp_shared.DTOs.Share;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace gtas_vpp_shared.DTOs.Res.Auth
 {
     public class P02_GroupResDTO : BaseResDTO

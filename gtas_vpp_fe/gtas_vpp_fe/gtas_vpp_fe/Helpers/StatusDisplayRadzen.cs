@@ -1,14 +1,10 @@
-using gtas_vpp_shared.UI;
 using Radzen;
 
 namespace gtas_vpp_fe.Helpers
 {
     /// <summary>
-    /// FE-side bridge from <see cref="StatusDisplay"/> (shared, UI-agnostic)
-    /// to Radzen's <see cref="BadgeStyle"/> enum.
-    ///
-    /// Keeps the shared project free of any UI framework dependency while
-    /// still letting Razor markup write <c>BadgeStyle="@StatusDisplayRadzen.BadgeStyleFor(status)"</c>.
+    /// FE-side bridge from <see cref="StatusDisplay"/> to Radzen's
+    /// <see cref="BadgeStyle"/> enum.
     /// </summary>
     public static class StatusDisplayRadzen
     {

@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Text;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Helpers.Context;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Reports;
-using gtas_vpp_shared.UI;
 using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Service.Services;
@@ -171,7 +171,7 @@ public sealed class ReportService(VPPContext context) : IReportService
             StatusBreakdown = statusRaw.Select(item => new ReportStatusPointResDTO
             {
                 Status = item.Status,
-                ResourceKey = StatusDisplay.GetResourceKey(item.Status),
+                ResourceKey = VppStatusContract.GetResourceKey(item.Status),
                 OrderCount = item.OrderCount
             }).ToList(),
             DepartmentBreakdown = departmentRaw,
@@ -243,7 +243,7 @@ public sealed class ReportService(VPPContext context) : IReportService
                 EscapeCsvCell($"{row.M:00}/{row.Y}"),
                 EscapeCsvCell(row.DepartmentCode),
                 EscapeCsvCell(row.OrderCode),
-                EscapeCsvCell(StatusDisplay.GetText(row.Status, culture: CultureInfo.GetCultureInfo("vi-VN"))),
+                EscapeCsvCell(VppStatusContract.GetText(row.Status, culture: CultureInfo.GetCultureInfo("vi-VN"))),
                 EscapeCsvCell(row.IsAdditionalOrder ? "Có" : "Không"),
                 EscapeCsvCell(row.ProductCode),
                 EscapeCsvCell(row.ProductName),

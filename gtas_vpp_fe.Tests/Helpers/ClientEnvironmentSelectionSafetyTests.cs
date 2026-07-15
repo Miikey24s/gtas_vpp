@@ -2,9 +2,9 @@ using System.Reflection;
 using System.Text.Json;
 using gtas_vpp_fe.Endpoints;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
-using gtas_vpp_shared.DTOs.Share;
 using Xunit;
 
 namespace gtas_vpp_fe.Tests.Helpers;

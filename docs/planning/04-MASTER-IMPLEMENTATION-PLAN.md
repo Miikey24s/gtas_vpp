@@ -2,7 +2,7 @@
 
 > Đây là nguồn sự thật chính cho Target mode sau khi người dùng phê duyệt.
 > Version: 1.2-decisions, 15/07/2026
-> Hiện trạng: BASE-001, SEC-002 và ENV-001 đã DONE; các task khác chưa được phép triển khai.
+> Hiện trạng: BASE-001, SEC-002, ENV-001, QA-001 và ARCH-001 đã DONE; các task khác chưa được phép triển khai.
 
 ## 1. Cách vận hành plan
 
@@ -103,7 +103,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | SEC-002 | 0 | P0 | DONE | BASE-001 |
 | ENV-001 | 0 | P0 | DONE | BASE-001; không phụ thuộc tenant decision |
 | QA-001 | 0 | P0 | DONE | BASE-001 |
-| ARCH-001 | 1 | P1 | NOT_STARTED | CP0 |
+| ARCH-001 | 1 | P1 | DONE | CP0 |
 | AUTH-001 | 1 | P0 | NOT_STARTED | CP1, ARCH-001, D-002 decided, D-004 decided |
 | AUTH-002 | 1 | P0 | NOT_STARTED | AUTH-001, QA-001, D-002 decided, D-004 decided |
 | AUTH-003 | 1 | P1 | NOT_STARTED | AUTH-001/002, QA-001, D-001 decided |
@@ -264,7 +264,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 
 | Field | Nội dung |
 |---|---|
-| Status / Priority / Difficulty | `NOT_STARTED` / P1 / M |
+| Status / Priority / Difficulty | `DONE` / P1 / M |
 | Mục tiêu | Ghi/thi hành dependency rules tối thiểu; bỏ EF/UI concern khỏi shared DTO; tạo module map mà không di chuyển toàn repo. |
 | Lý do | Shared/frontend đang tham chiếu EF/Mapster không cần thiết; layering mơ hồ làm AI thêm logic sai chỗ. |
 | Dependency | CP0. |
@@ -279,6 +279,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | Rủi ro / rollback | Contract serialization drift. Rollback package/project reference commit; giữ characterization tests. |
 | Commit strategy | Reference removal từng project; contract cleanup nhỏ, không mass move/rename. |
 | Cần người dùng xác nhận | Không. |
+| Execution evidence | [`docs/execution/ARCH-001.md`](../execution/ARCH-001.md): Shared zero-package/framework-neutral; FE bỏ EF/Mapster; backend view và FE state/display metadata về đúng owner; exact dependency graph; full wire-DTO manifest base/current cùng SHA-256; JSON/transport/grid/status gates; Release 212 backend + 53 frontend, LocalDB 17/17; không migration-model/schema delta, runtime keyless view remap tương đương; UI residual tái hiện tại base. |
 
 ### AUTH-001 — Explicit permission/action/scope matrix
 

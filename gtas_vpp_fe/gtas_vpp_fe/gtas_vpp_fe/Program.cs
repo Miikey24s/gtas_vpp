@@ -1,8 +1,8 @@
 using gtas_vpp_fe.Components;
 using gtas_vpp_fe.Endpoints;
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_shared.DTOs.Share;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.State;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;

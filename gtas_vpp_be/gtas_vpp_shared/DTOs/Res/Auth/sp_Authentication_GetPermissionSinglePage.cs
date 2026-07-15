@@ -1,18 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace gtas_vpp_shared.DTOs.Res.Auth
 {
     [StructLayout(LayoutKind.Auto)]
-    [NotMapped]
     public class sp_Authentication_GetPermissionSinglePage
     {
-        [Key]
         public Guid PageId { get; set; }
         public string? PageCode { get; set; }
         public string? PageName { get; set; }
@@ -38,7 +30,6 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         }
     }
     [StructLayout(LayoutKind.Auto)]
-    [Keyless]
     public class childModel_Authentication_GetPermissionSinglePage_Component
     {
         public Guid ComponentId { get; set; }
@@ -69,4 +60,3 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         }
     }
 }
-

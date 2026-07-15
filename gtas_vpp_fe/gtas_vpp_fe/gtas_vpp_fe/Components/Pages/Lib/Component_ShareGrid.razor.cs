@@ -1,5 +1,6 @@
 
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Models;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using gtas_vpp_shared.DTOs.Res.Auth;
@@ -264,7 +265,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return DataGrid.Reload();
         }
 
-        protected string GetColumnDisplayName(PropertyInfo prop, GridColumnPropertyAttribute? attr)
+        protected string GetColumnDisplayName(PropertyInfo prop, GridColumnMetadata? metadata)
         {
             var key = GetColumnResourceKey(prop.Name);
             if (!string.IsNullOrWhiteSpace(key))
@@ -272,9 +273,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return Loc[key].Value;
             }
 
-            if (!string.IsNullOrWhiteSpace(attr?.DisplayName))
+            if (!string.IsNullOrWhiteSpace(metadata?.DisplayName))
             {
-                return attr.DisplayName;
+                return metadata.DisplayName;
             }
 
             return HumanizePropertyName(prop.Name);
@@ -334,19 +335,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         protected string GetColumnMinWidth(
             PropertyInfo prop,
-            GridColumnPropertyAttribute? attr,
+            GridColumnMetadata? metadata,
             TypeCode typeCode,
             bool isAuditProperty)
-            => GetColumnWidth(prop, attr, typeCode, isAuditProperty);
+            => GetColumnWidth(prop, metadata, typeCode, isAuditProperty);
 
         protected string GetColumnWidth(
             PropertyInfo prop,
-            GridColumnPropertyAttribute? attr,
+            GridColumnMetadata? metadata,
             TypeCode typeCode,
             bool isAuditProperty)
         {
             var desiredWidth = GetDesiredColumnWidth(prop, typeCode, isAuditProperty);
-            var configuredWidth = ParsePxWidth(attr?.Width);
+            var configuredWidth = ParsePxWidth(metadata?.Width);
             var effectiveWidth = Math.Max(desiredWidth, configuredWidth ?? 150);
 
             return $"{effectiveWidth}px";
@@ -358,16 +359,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 .GetProperties()
                 .Where(ShouldRenderProperty)
                 .OrderBy(GetColumnOrderGroup)
-                .ThenBy(prop =>
-                    prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) is GridColumnPropertyAttribute attr
-                        ? attr.Index
-                        : int.MaxValue)
+                .ThenBy(prop => GridColumnMetadataRegistry.Get(typeof(TType), prop.Name)?.Order ?? int.MaxValue)
                 .ThenBy(prop => prop.MetadataToken);
         }
 
         protected static bool GetColumnVisible(
             PropertyInfo prop,
-            GridColumnPropertyAttribute? attr,
+            GridColumnMetadata? metadata,
             bool isAuditProperty,
             bool isDeletedProperty)
         {
@@ -381,7 +379,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return false;
             }
 
-            if (IsTechnicalIdProperty(prop, attr))
+            if (IsTechnicalIdProperty(prop, metadata))
             {
                 return false;
             }
@@ -577,15 +575,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             var width = CanModifyGrid ? 164 : 52;
             foreach (var prop in GetOrderedGridProperties())
             {
-                var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
+                var metadata = GridColumnMetadataRegistry.Get(typeof(TType), prop.Name);
                 var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
                 var typeCode = Type.GetTypeCode(effectiveType);
                 var isDeletedProperty = IsDeletedProperty(prop);
                 var isAuditProperty = IsAuditProperty(prop);
 
-                if (GetColumnVisible(prop, attr, isAuditProperty, isDeletedProperty))
+                if (GetColumnVisible(prop, metadata, isAuditProperty, isDeletedProperty))
                 {
-                    width += ParsePxWidth(GetColumnWidth(prop, attr, typeCode, isAuditProperty)) ?? 150;
+                    width += ParsePxWidth(GetColumnWidth(prop, metadata, typeCode, isAuditProperty)) ?? 150;
                 }
             }
 
@@ -651,13 +649,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return false;
             }
 
-            var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
-            return !(attr?.Ignore ?? false) || IsAuditProperty(prop);
+            var metadata = GridColumnMetadataRegistry.Get(typeof(TType), prop.Name);
+            return !(metadata?.Ignore ?? false) || IsAuditProperty(prop);
         }
 
         private static int GetColumnOrderGroup(PropertyInfo prop)
         {
-            var attr = prop.GetCustomAttribute(typeof(GridColumnPropertyAttribute)) as GridColumnPropertyAttribute;
+            var metadata = GridColumnMetadataRegistry.Get(typeof(TType), prop.Name);
 
             if (IsDeletedProperty(prop))
             {
@@ -675,7 +673,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return 20;
             }
 
-            if (attr?.IsDropdownList == true)
+            if (metadata?.IsDropdownList == true)
             {
                 return 30;
             }
@@ -691,7 +689,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return 80;
             }
 
-            if (IsAuditProperty(prop) || IsTechnicalIdProperty(prop, attr))
+            if (IsAuditProperty(prop) || IsTechnicalIdProperty(prop, metadata))
             {
                 return 100;
             }
@@ -699,9 +697,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return 50;
         }
 
-        private static bool IsTechnicalIdProperty(PropertyInfo prop, GridColumnPropertyAttribute? attr)
+        private static bool IsTechnicalIdProperty(PropertyInfo prop, GridColumnMetadata? metadata)
         {
-            if (attr?.IsDropdownList == true)
+            if (metadata?.IsDropdownList == true)
             {
                 return false;
             }

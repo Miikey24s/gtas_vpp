@@ -4,20 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<PackageId>gtas_vpp_shared</PackageId>
-	<Version>1.0.0</Version>
-	<Authors>AnNam</Authors>
-	<Description>Shared DTO contracts for FE and BE</Description>
+    <PackageId>gtas_vpp_shared</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>AnNam</Authors>
+    <Description>Shared DTO contracts for FE and BE</Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DTOs\Res\Library\Library\" />
-    <Folder Include="images\" />
-    <Folder Include="SQL\" />
-  </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using gtas_vpp_shared.DTOs.Res;
+using gtas_vpp_be.Model.View;
 using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Service.Services

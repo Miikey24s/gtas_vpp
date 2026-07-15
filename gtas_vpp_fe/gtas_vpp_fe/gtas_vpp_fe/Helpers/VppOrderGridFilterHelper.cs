@@ -1,5 +1,4 @@
 using gtas_vpp_shared.DTOs.Res.VPP;
-using gtas_vpp_shared.UI;
 using Radzen;
 using System.Collections;
 using System.Globalization;

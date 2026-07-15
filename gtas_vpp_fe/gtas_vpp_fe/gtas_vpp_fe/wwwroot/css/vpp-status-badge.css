@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    VPP STATUS BADGE — F-45
    Single source of palette truth for VPP01 order status display.
-   Paired with the shared helper gtas_vpp_shared.UI.StatusDisplay.GetCssClass().
+   Paired with the frontend helper gtas_vpp_fe.Helpers.StatusDisplay.GetCssClass().
 
    Old palette issues (before F-45):
      - Submitted(1) == Success == Approved(7) → same green, indistinguishable

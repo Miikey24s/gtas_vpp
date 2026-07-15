@@ -1,10 +1,10 @@
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.VPP;
-using gtas_vpp_shared.DTOs.Res;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Mapster;
 using Microsoft.AspNetCore.Http;
