@@ -24,9 +24,9 @@ if (-not $tempRoot.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase
     throw "Refusing to use an unexpected temporary directory."
 }
 
-$isWindows = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+$runningOnWindows = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
     [Runtime.InteropServices.OSPlatform]::Windows)
-$isLinux = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+$runningOnLinux = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
     [Runtime.InteropServices.OSPlatform]::Linux)
 $architecture = [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString()
 
@@ -34,12 +34,12 @@ if ($architecture -ne "X64") {
     throw "The pinned scanner supports x64 only; detected $architecture."
 }
 
-if ($isWindows) {
+if ($runningOnWindows) {
     $archiveName = "gitleaks_${gitleaksVersion}_windows_x64.zip"
     $archiveSha256 = "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e"
     $binaryName = "gitleaks.exe"
 }
-elseif ($isLinux) {
+elseif ($runningOnLinux) {
     $archiveName = "gitleaks_${gitleaksVersion}_linux_x64.tar.gz"
     $archiveSha256 = "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
     $binaryName = "gitleaks"
@@ -56,7 +56,7 @@ $scanRoot = Join-Path $tempRoot "tracked-tree"
 try {
     New-Item -ItemType Directory -Path $toolRoot -Force | Out-Null
 
-    if ($isWindows) {
+    if ($runningOnWindows) {
         [Net.ServicePointManager]::SecurityProtocol =
             [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     }
@@ -69,7 +69,7 @@ try {
         throw "Gitleaks archive checksum mismatch."
     }
 
-    if ($isWindows) {
+    if ($runningOnWindows) {
         Expand-Archive -LiteralPath $archivePath -DestinationPath $toolRoot -Force
     }
     else {
