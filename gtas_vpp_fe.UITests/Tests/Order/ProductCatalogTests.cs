@@ -8,7 +8,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Order
 {
-    public class ProductCatalogTests : TestBase
+    public class ProductCatalogTests : TestBase, IAuthenticatedUiTest
     {
         [Fact]
         public async Task Xem_Danh_Muc_San_Pham_Thanh_Cong()

@@ -102,7 +102,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | SEC-001 | 0 | P0 | BLOCKED_EXTERNAL | BASE-001, D-011 |
 | SEC-002 | 0 | P0 | DONE | BASE-001 |
 | ENV-001 | 0 | P0 | DONE | BASE-001; không phụ thuộc tenant decision |
-| QA-001 | 0 | P0 | NOT_STARTED | BASE-001 |
+| QA-001 | 0 | P0 | DONE | BASE-001 |
 | ARCH-001 | 1 | P1 | NOT_STARTED | CP0 |
 | AUTH-001 | 1 | P0 | NOT_STARTED | CP1, ARCH-001, D-002 decided, D-004 decided |
 | AUTH-002 | 1 | P0 | NOT_STARTED | AUTH-001, QA-001, D-002 decided, D-004 decided |
@@ -241,7 +241,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 
 | Field | Nội dung |
 |---|---|
-| Status / Priority / Difficulty | `NOT_STARTED` / P0 / L |
+| Status / Priority / Difficulty | `DONE` / P0 / L |
 | Mục tiêu | Tạo disposable SQL Server fixture/data builder/accounts theo role và Playwright setup không chạm shared/prod DB. |
 | Lý do | InMemory không kiểm tra SP/constraint/transaction; E2E hiện có thể làm hỏng permission/order thật. |
 | Dependency | BASE-001; Docker/SQL Server local availability. |
@@ -256,6 +256,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | Rủi ro / rollback | Container/tooling phức tạp. Fallback: dedicated local SQL instance/database per run; remove fixture branch nếu unstable. |
 | Commit strategy | DB fixture commit; UI harness commit; không sửa assertions trong cùng task. |
 | Cần người dùng xác nhận | Chỉ cần xác nhận resource/tooling; không cần business decision. |
+| Execution evidence | [`docs/execution/QA-001.md`](../execution/QA-001.md): LocalDB per-run marker/cleanup, 6 persona + own/department/company data, migrations/SP/reset/concurrency/crash recovery 17/17 hai vòng, fail-closed UI guards, isolated login 1/1, Release 201 backend + 32 frontend; existing order/permission UI journey residual được chuyển QA-003. |
 
 ## Phase 1 — Architecture boundary, permission và account
 

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Auth
 {
-    public class LoginTests : TestBase
+    public class LoginTests : TestBase, IAuthenticatedUiTest
     {
         [Fact]
         public async Task Login_Voi_Tai_Khoan_Hop_Le_Thanh_Cong()
@@ -18,7 +18,7 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
 
             // Act
             await loginPage.LoginAsync(TestUsername, TestPassword);
-            
+
             await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
 
             // Assert

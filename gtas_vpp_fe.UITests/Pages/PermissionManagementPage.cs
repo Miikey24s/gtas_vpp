@@ -1,5 +1,4 @@
 using Microsoft.Playwright;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace gtas_vpp_fe.UITests.Pages
@@ -18,10 +17,7 @@ namespace gtas_vpp_fe.UITests.Pages
         public async Task GotoAsync(string baseUrl)
         {
             await _page.GotoAsync($"{baseUrl}permission?tab=1");
-            await _page.WaitForURLAsync(
-                new Regex(@".*permission(\?tab=1)?"),
-                new PageWaitForURLOptions { Timeout = 60000 });
-            await _page.Locator(".rz-data-grid").First.WaitForAsync();
+            await _page.Locator(".permission-group-grid").WaitForAsync();
         }
 
         public async Task SetComponentVisibilityAsync(
@@ -37,7 +33,11 @@ namespace gtas_vpp_fe.UITests.Pages
             var visibleSwitch = componentRow.Locator(".rz-switch").Nth(1);
             var switchInput = visibleSwitch.Locator("input[type='checkbox']").First;
 
-            await switchInput.WaitForAsync();
+            await visibleSwitch.WaitForAsync();
+            await switchInput.WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Attached
+            });
             if (await switchInput.IsCheckedAsync() == isVisible)
             {
                 return;
@@ -91,12 +91,22 @@ namespace gtas_vpp_fe.UITests.Pages
         private async Task<ILocator> GetGroupRowAsync(string groupName)
         {
             var groupCell = _page
-                .Locator(".rz-data-grid")
-                .First
+                .Locator(".permission-group-grid")
                 .GetByText(groupName, new LocatorGetByTextOptions { Exact = true })
                 .First;
 
-            await groupCell.WaitForAsync();
+            try
+            {
+                await groupCell.WaitForAsync(new LocatorWaitForOptions { Timeout = 15000 });
+            }
+            catch (TimeoutException exception)
+            {
+                var pageText = await _page.Locator("body").InnerTextAsync();
+                var compactPageText = pageText.Length > 1500 ? pageText[..1500] + "..." : pageText;
+                throw new InvalidOperationException(
+                    $"Group '{groupName}' was not rendered. Page text: {compactPageText}",
+                    exception);
+            }
             return groupCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;
         }
 

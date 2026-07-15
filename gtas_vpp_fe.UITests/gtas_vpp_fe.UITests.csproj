@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MyAspire.AppHost\MyAspire.AppHost.csproj" />
+    <ProjectReference Include="..\gtas_vpp_test_support\gtas_vpp_test_support.csproj" />
   </ItemGroup>
 
 </Project>

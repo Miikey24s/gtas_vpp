@@ -6,7 +6,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Library;
 
-public class LibraryGridScrollTests : TestBase
+public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
     public async Task Category_Grid_Uses_Page_Scroll_Without_Header_Overlap()

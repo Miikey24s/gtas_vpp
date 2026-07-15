@@ -8,7 +8,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Order
 {
-    public class OrderManagementTests : TestBase
+    public class OrderManagementTests : TestBase, IAuthenticatedUiTest
     {
         [Fact]
         public async Task Admin_Duyet_Don_Hang_Thanh_Cong()
@@ -26,7 +26,7 @@ namespace gtas_vpp_fe.UITests.Tests.Order
 
             // Act
             await orderMgmtPage.NavigateToAdminApprovalTabAsync();
-            
+
             // Wait cho Grid load dữ liệu
             await Task.Delay(2000, TestContext.Current.CancellationToken);
 

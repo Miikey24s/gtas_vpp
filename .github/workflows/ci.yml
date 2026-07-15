@@ -34,3 +34,6 @@ jobs:
 
       - name: Run frontend tests
         run: dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+
+      - name: Run QA fixture safety contracts
+        run: dotnet test gtas_vpp_be.IntegrationTests/gtas_vpp_be.IntegrationTests.csproj -c Release --no-build

@@ -30,6 +30,10 @@ DeploymentConfigurationContract.ValidateDatabaseBindingForHost(
     builder.Environment.EnvironmentName,
     builder.Environment.IsProduction(),
     databaseBinding);
+var qaFixtureIdentity = QaFixtureIdentityContract.Resolve(
+    builder.Environment,
+    Configuration,
+    databaseBinding);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -290,6 +294,26 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
+if (qaFixtureIdentity is not null)
+{
+    app.MapGet(
+            "/internal/qa/database-identity",
+            async (CancellationToken cancellationToken) =>
+            {
+                var confirmed = await QaFixtureIdentityContract.ConfirmDatabaseAsync(
+                    databaseBinding.ConnectionString,
+                    qaFixtureIdentity,
+                    cancellationToken);
+
+                return confirmed is null
+                    ? Results.Problem(
+                        title: "QA database identity could not be confirmed.",
+                        statusCode: StatusCodes.Status503ServiceUnavailable)
+                    : Results.Ok(confirmed);
+            })
+        .AllowAnonymous()
+        .ExcludeFromDescription();
+}
 app.MapHub<PermissionHub>("/hubs/permissions");
 app.MapHub<NotificationHub>("/hubs/notifications");
 

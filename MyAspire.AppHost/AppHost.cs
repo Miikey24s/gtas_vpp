@@ -14,6 +14,14 @@ var api = builder.AddProject<Projects.gtas_vpp_be>("backend")
     .WithEnvironment("PasswordEncryption__Key", passwordEncryptionKey)
     .WithEnvironment("ReportInsights__Enabled", "false");
 
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Parameters:qa-fixture-run-id"]))
+{
+    var qaFixtureRunId = builder.AddParameter("qa-fixture-run-id");
+    api.WithEnvironment("ASPNETCORE_ENVIRONMENT", "Testing")
+        .WithEnvironment("QaFixture__Enabled", "true")
+        .WithEnvironment("QaFixture__RunId", qaFixtureRunId);
+}
+
 builder.AddProject<Projects.gtas_vpp_fe>("frontend")
     .WithReference(api)
     .WaitFor(api)

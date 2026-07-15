@@ -8,7 +8,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Permission
 {
-    public class PermissionToggleTests : TestBase
+    public class PermissionToggleTests : TestBase, IMutatingUiTest
     {
         private const string AdminGroupName = "Admin";
         private const string ReportPageTab = "Report (REPORT)";
