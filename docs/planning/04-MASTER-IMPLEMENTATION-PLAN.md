@@ -1,8 +1,11 @@
 # GTAS VPP — Master Implementation Plan
 
-> Đây là nguồn sự thật chính cho Target mode sau khi người dùng phê duyệt.
-> Version: 1.2-decisions, 15/07/2026
-> Hiện trạng: BASE-001, SEC-002, ENV-001, QA-001 và ARCH-001 đã DONE; các task khác chưa được phép triển khai.
+> Version: 1.2-decisions, 15/07/2026 — **audit/traceability annex**.
+> Kể từ 15/07/2026, nguồn điều hành cho deadline một tháng là
+> [`06-LEAN-A-PLUS-EXECUTION-PLAN.md`](06-LEAN-A-PLUS-EXECUTION-PLAN.md).
+> Các card dưới đây giữ acceptance và lịch sử quyết định, nhưng không còn được
+> chạy thành 52 Goal riêng. BASE-001, SEC-002, ENV-001, QA-001 và ARCH-001 đã
+> DONE; SEC-001 đang là containment gate.
 
 ## 1. Cách vận hành plan
 
