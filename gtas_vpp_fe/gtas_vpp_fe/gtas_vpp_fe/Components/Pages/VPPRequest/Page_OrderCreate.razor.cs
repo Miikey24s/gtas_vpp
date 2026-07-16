@@ -28,6 +28,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private bool _isAdditionalOverride;
         private bool _hasLoadedOrder;
+        private bool _editingAllowed;
+        private readonly string _submissionIdempotencyKey = Guid.NewGuid().ToString("N");
 
         public bool IsAdditional
         {
@@ -40,7 +42,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         }
 
         public bool IsSaving { get; set; }
-    public bool IsPageLoading { get; set; } = true;
+        public bool IsPageLoading { get; set; } = true;
         public bool IsEdit => OrderId.HasValue;
         public bool IsCopyFromPrevious => !string.IsNullOrWhiteSpace(CopyFromParam) && CopyFromParam.Equals("previous", StringComparison.OrdinalIgnoreCase);
         public DateTime? LastDraftSavedAt { get; set; }
@@ -65,22 +67,37 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private sealed class OrderDraft
         {
+            public string UserId { get; set; } = string.Empty;
+            public Guid PeriodId { get; set; }
             public string? Description { get; set; }
+            public string? SupplementReason { get; set; }
             public List<OrderCreateContext.SelectedItem> Items { get; set; } = new();
-            public DateTime SavedAt { get; set; }
+            public DateTime SavedAtUtc { get; set; }
         }
 
         private PeriodicTimer? _draftAutoSaveTimer;
         private CancellationTokenSource? _draftAutoSaveCts;
         private volatile bool _draftDirty;
 
-        private string DraftStorageKey
+        private string? CurrentUserId
+            => Claims.FirstOrDefault(x => x.Type == "UserID")?.Value;
+
+        private string? DraftStorageKey
         {
             get
             {
-                var userId = Claims.FirstOrDefault(x => x.Type == "UserID")?.Value ?? "anonymous";
-                var orderType = IsAdditional ? "additional" : "new";
-                return $"vpp.order.draft.{userId}.{orderType}.{OrderId?.ToString() ?? "new"}";
+                if (string.IsNullOrWhiteSpace(CurrentUserId)
+                    || PeriodInfo?.PeriodId is not Guid periodId
+                    || periodId == Guid.Empty)
+                {
+                    return null;
+                }
+
+                return OrderDraftStoragePolicy.BuildStorageKey(
+                    CurrentUserId,
+                    periodId,
+                    IsAdditional,
+                    OrderId);
             }
         }
 
@@ -119,15 +136,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     : Loc["WizardOrderModeSummaryCreate"].Value;
 
         public DateTime TargetPeriodDate => PeriodInfo is { } p
-            ? Context.IsAdditional
-                ? new DateTime(p.PreviousPeriodYear, p.PreviousPeriodMonth, 1)
-                : new DateTime(p.CurrentPeriodYear, p.CurrentPeriodMonth, 1)
+            ? new DateTime(p.CurrentPeriodYear, p.CurrentPeriodMonth, 1)
             : new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
-        public DateTime TargetPeriodStartDate => new DateTime(TargetPeriodDate.Year, TargetPeriodDate.Month, 1).AddDays(4);
-        public DateTime TargetPeriodEndDate => new DateTime(TargetPeriodDate.Year, TargetPeriodDate.Month, 1).AddMonths(1).AddDays(3);
+        public DateTime TargetPeriodStartDate => PeriodInfo?.StartDate
+            ?? new DateTime(TargetPeriodDate.Year, TargetPeriodDate.Month, 1).AddDays(4);
+        public DateTime TargetPeriodEndDate => PeriodInfo?.DeadlineDate.AddTicks(-1)
+            ?? new DateTime(TargetPeriodDate.Year, TargetPeriodDate.Month, 1).AddMonths(1).AddDays(3);
         public string TargetPeriodText => DateFormatter.Format(TargetPeriodDate, DateFormatter.MonthYear);
         public string TargetWindowText => $"{DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)} - {DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)}";
+
+        public bool CanSubmitForPeriod => IsEdit
+            ? _editingAllowed
+            : PeriodInfo is not null
+              && (Context.IsAdditional ? PeriodInfo.CanCreateAdditional : PeriodInfo.CanCreateOrder);
+
+        public string PeriodActionReason => IsEdit
+            ? Loc["OrderNoLongerEditable"].Value
+            : Context.IsAdditional
+                ? PeriodInfo?.CanCreateAdditionalReason ?? Loc["SupplementUnavailable"].Value
+                : PeriodInfo?.CanCreateOrderReason ?? Loc["RegularRequestUnavailable"].Value;
 
         public string DraftStatusTitle => IsEdit
             ? Loc["LiveUpdate"].Value
@@ -186,7 +214,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     Claims = PermissionState.IdentityClaims;
                 }
 
-                if (!PermissionState.HasPermission(Permissions.RequestCreate))
+                var requiredPermission = IsEdit
+                    ? Permissions.RequestUpdateOwn
+                    : Permissions.RequestCreate;
+                if (!PermissionState.HasPermission(requiredPermission))
                 {
                     Toast.Notify(new NotificationMessage()
                     {
@@ -206,6 +237,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 Context.Mode = IsEdit ? "edit" : (IsCopyFromPrevious ? "copy" : (IsAdditional ? "additional" : "new"));
                 Context.EditOrderId = OrderId;
                 Context.IsAdditional = IsAdditional;
+                Context.BaseRequestId = PeriodInfo?.BaseRequestId;
+                Context.BaseRequestCode = PeriodInfo?.BaseRequestCode;
 
                 if (IsEdit && OrderId.HasValue)
                 {
@@ -233,6 +266,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             if (!IsEdit)
             {
+                if (!string.IsNullOrWhiteSpace(CurrentUserId)
+                    && PeriodInfo?.PeriodId is Guid periodId
+                    && periodId != Guid.Empty)
+                {
+                    await JS.InvokeVoidAsync(
+                        "vppDrafts.clearUserExceptPeriod",
+                        CurrentUserId,
+                        periodId.ToString("N"));
+                }
                 await TryRestoreDraftAsync();
             }
 
@@ -245,6 +287,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             currentStep = step;
             Context.NotifyStateChanged();
             return Task.CompletedTask;
+        }
+
+        private void GoToStep(int step)
+        {
+            if (step < 0 || step >= StepCount)
+            {
+                return;
+            }
+
+            currentStep = step;
+            Context.NotifyStateChanged();
         }
 
         private Task GoNextStepAsync()
@@ -269,7 +322,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         private bool ValidateBeforeSubmit()
         {
             // Additional orders require a description/reason
-            if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
+            if (Context.IsAdditional
+                && (string.IsNullOrWhiteSpace(Context.SupplementReason)
+                    || Context.SupplementReason.Trim().Length < 5
+                    || Context.SupplementReason.Trim().Length > 500))
             {
                 Toast.Notify(new NotificationMessage
                 {
@@ -291,7 +347,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Page_OrderCreate] Failed to load period info: {ex.Message}");
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = Loc["Period"],
+                    Detail = UiErrorMapper.GetMessage(ex, Loc),
+                    Duration = 5000
+                });
             }
         }
 
@@ -316,6 +378,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
 
                 Context.Description = editingOrder.Description;
+                Context.SupplementReason = editingOrder.SupplementReason;
+                Context.BaseRequestId = editingOrder.BaseRequestId;
+                Context.RowVersion = editingOrder.RowVersion;
+                _editingAllowed = editingOrder.CanEdit || editingOrder.CanReplace;
                 _isAdditionalOverride = editingOrder.IsAdditionalOrder;
                 _hasLoadedOrder = true;
                 Context.IsAdditional = editingOrder.IsAdditionalOrder;
@@ -338,7 +404,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Order"],
-                    Detail = string.Format(Loc["LoadOrderFailedFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, Loc, "LoadOrderFailed"),
                     Duration = 5000
                 });
             }
@@ -389,7 +455,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["CopyPrevious"],
-                    Detail = string.Format(Loc["FailedToLoadPreviousOrderFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, Loc, "FailedToLoadPreviousOrder"),
                     Duration = 5000
                 });
             }
@@ -401,20 +467,30 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public async Task SaveDraftAsync(bool showMessage = false)
         {
-            if (IsEdit) return;
+            var storageKey = DraftStorageKey;
+            if (IsEdit
+                || string.IsNullOrWhiteSpace(storageKey)
+                || string.IsNullOrWhiteSpace(CurrentUserId)
+                || PeriodInfo?.PeriodId is not Guid periodId)
+            {
+                return;
+            }
 
             try
             {
                 var draft = new OrderDraft
                 {
+                    UserId = CurrentUserId,
+                    PeriodId = periodId,
                     Description = Context.Description,
+                    SupplementReason = Context.SupplementReason,
                     Items = Context.SelectedItems,
-                    SavedAt = DateTime.Now
+                    SavedAtUtc = DateTime.UtcNow
                 };
 
                 var json = JsonSerializer.Serialize(draft);
-                await JS.InvokeVoidAsync("localStorage.setItem", DraftStorageKey, json);
-                LastDraftSavedAt = draft.SavedAt;
+                await JS.InvokeVoidAsync("localStorage.setItem", storageKey, json);
+                LastDraftSavedAt = draft.SavedAtUtc.ToLocalTime();
                 _draftDirty = false;
 
                 if (showMessage)
@@ -433,18 +509,40 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private async Task TryRestoreDraftAsync()
         {
+            var storageKey = DraftStorageKey;
+            if (string.IsNullOrWhiteSpace(storageKey)
+                || string.IsNullOrWhiteSpace(CurrentUserId)
+                || PeriodInfo?.PeriodId is not Guid periodId)
+            {
+                return;
+            }
+
             try
             {
-                var draftJson = await JS.InvokeAsync<string>("localStorage.getItem", DraftStorageKey);
+                var draftJson = await JS.InvokeAsync<string>("localStorage.getItem", storageKey);
                 if (string.IsNullOrWhiteSpace(draftJson)) return;
 
                 var draft = JsonSerializer.Deserialize<OrderDraft>(draftJson);
-                if (draft == null) return;
+                if (draft == null
+                    || !OrderDraftStoragePolicy.CanRestore(
+                        draft.UserId,
+                        draft.PeriodId,
+                        draft.SavedAtUtc,
+                        CurrentUserId,
+                        periodId,
+                        DateTime.UtcNow))
+                {
+                    await JS.InvokeVoidAsync("localStorage.removeItem", storageKey);
+                    return;
+                }
 
                 Context.Description = draft.Description;
+                Context.SupplementReason = draft.SupplementReason;
                 Context.SelectedItems = draft.Items ?? new();
-                LastDraftSavedAt = draft.SavedAt;
-                DraftRecovered = Context.SelectedItems.Count > 0 || !string.IsNullOrWhiteSpace(Context.Description);
+                LastDraftSavedAt = draft.SavedAtUtc.ToLocalTime();
+                DraftRecovered = Context.SelectedItems.Count > 0
+                    || !string.IsNullOrWhiteSpace(Context.Description)
+                    || !string.IsNullOrWhiteSpace(Context.SupplementReason);
                 Context.DraftRecovered = DraftRecovered;
                 _draftDirty = false;
             }
@@ -480,6 +578,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public async Task SubmitAsync()
         {
+            if (IsSaving || !CanSubmitForPeriod)
+            {
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = Loc["Order"],
+                    Detail = PeriodActionReason,
+                    Duration = 4500
+                });
+                return;
+            }
+
             if (!ValidateBeforeSubmit())
             {
                 return;
@@ -531,9 +641,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     return;
                 }
 
-                var period = IsAdditional
-                    ? new DateTime(PeriodInfo.PreviousPeriodYear, PeriodInfo.PreviousPeriodMonth, 1)
-                    : new DateTime(PeriodInfo.CurrentPeriodYear, PeriodInfo.CurrentPeriodMonth, 1);
+                var period = new DateTime(PeriodInfo.CurrentPeriodYear, PeriodInfo.CurrentPeriodMonth, 1);
 
                 var requestItems = Context.SelectedItems.Select(x => new VPP02_ItemReqDTO
                 {
@@ -549,6 +657,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Id = OrderId!.Value,
                         Description = Context.Description,
                         IsAdditionalOrder = IsAdditional,
+                        SupplementReason = Context.SupplementReason,
+                        RowVersion = Context.RowVersion,
+                        IdempotencyKey = _submissionIdempotencyKey,
                         Items = requestItems
                     };
 
@@ -562,11 +673,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         M = period.Month,
                         Description = Context.Description,
                         IsAdditionalOrder = IsAdditional,
+                        BaseRequestId = Context.IsAdditional ? PeriodInfo.BaseRequestId : null,
+                        SupplementReason = Context.IsAdditional ? Context.SupplementReason?.Trim() : null,
+                        IdempotencyKey = _submissionIdempotencyKey,
                         Items = requestItems
                     };
 
                     await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>(Config.VppApi.Orders, createReq);
-                    await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);
+                    if (!string.IsNullOrWhiteSpace(DraftStorageKey))
+                    {
+                        await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);
+                    }
                 }
 
                 Toast.Notify(new NotificationMessage
@@ -585,11 +702,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Order"],
-                    Detail = string.Format(Loc["FailedToSaveOrderFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, Loc, "FailedToSaveOrder"),
                     Duration = 6000
                 });
 
-                await JS.InvokeVoidAsync("console.error", "Order submission error:", ex.Message);
+                await JS.InvokeVoidAsync("console.error", "Order submission error", UiErrorMapper.GetErrorCode(ex));
             }
             finally
             {

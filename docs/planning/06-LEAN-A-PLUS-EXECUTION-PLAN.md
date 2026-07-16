@@ -47,6 +47,19 @@ working Word file, `App.razor`, `vpp-login.css` and `vpp-responsive.css`. A
 package may touch one only after an explicit overlap decision; otherwise it
 must preserve its preflight hash and never stage it.
 
+### Current execution status — 2026-07-16
+
+| Package | Status | Evidence / next action |
+|---|---|---|
+| LEAN-02 — Trusted access and account cutover | DONE | `docs/execution/LEAN-02.md` |
+| LEAN-03 — Registration and recovery | DONE | `docs/execution/LEAN-03.md` |
+| LEAN-04 — UI foundation and independent brand | DONE | `docs/execution/LEAN-04.md` |
+| LEAN-05 — Request and supplement core | DONE | `docs/execution/LEAN-05.md`; all package gates green |
+| LEAN-06 — Procurement and immutable settlement | IN_PROGRESS | Start `CAT-001`, then price and settlement sub-checkpoints |
+| LEAN-07 — Product proof | PENDING | Depends on LEAN-06 |
+| LEAN-08 — Release candidate quality and recovery | PENDING | Depends on LEAN-03..07 |
+| LEAN-09 — Thesis, defense and handoff | PENDING | Final package after LEAN-08 evidence |
+
 ## 4. Retained execution packages
 
 | Package | Original cards folded into it | Depends on | Timebox | Exit result |

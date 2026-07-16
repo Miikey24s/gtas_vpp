@@ -47,7 +47,6 @@ public sealed class AccessibilitySmokeTests : TestBase
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded
             });
-            await Page.WaitForLoadStateAsync(LoadState.Load);
             await Page.Locator(".vpp-login-card").WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible

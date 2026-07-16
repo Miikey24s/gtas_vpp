@@ -131,6 +131,14 @@
                                 <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Note"]" Width="190px" TextAlign="TextAlign.Left" />
+                            <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="@Loc["History"]" Width="90px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                                <Template Context="row">
+                                    <RadzenButton Icon="history" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light"
+                                                  Click="@(async _ => await OpenHistoryAsync(row))"
+                                                  Title="@Loc["ViewRequestHistory"]"
+                                                  aria-label="@string.Format(Loc["ViewRequestHistoryAria"], row.VPPCode)" />
+                                </Template>
+                            </RadzenDataGridColumn>
                         </Columns>
                         <Template Context="row">
                             <div class="vpp-expand-detail">

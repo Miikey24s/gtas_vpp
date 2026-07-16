@@ -1,37 +1,24 @@
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
-using gtas_vpp_fe.UITests.Pages.Auth;
-using gtas_vpp_fe.UITests.Pages.Order;
 using Microsoft.Playwright;
-using System.Threading.Tasks;
 using Xunit;
 
-namespace gtas_vpp_fe.UITests.Tests.Order
+namespace gtas_vpp_fe.UITests.Tests.Order;
+
+public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
 {
-    public class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
+    [Fact]
+    public async Task Manager_CanSeeOnlyDepartmentRequestSummary()
     {
-        [Fact]
-        public async Task Xem_Tong_Hop_Phong_Ban_Thanh_Cong()
-        {
-            // Arrange - Login
-            var loginPage = new LoginPage(Page);
-            await Page.GotoAsync($"{BaseUrl}Account/Login");
-            await loginPage.LoginAsync(TestUsername, TestPassword);
-            await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
+        await LoginAsAsync(TestAccounts.Manager);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=3&managementTab=department");
 
-            // Navigate to Dashboard
-            await Page.GotoAsync($"{BaseUrl}dashboard");
-            await Task.Delay(2000, TestContext.Current.CancellationToken);
-
-            // Act
-            var summaryPage = new DepartmentSummaryPage(Page);
-            await summaryPage.NavigateToDepartmentSummaryTabAsync();
-            await Task.Delay(2000, TestContext.Current.CancellationToken);
-
-            // Assert
-            Page.Url.Should().Contain("dashboard");
-            var rowCount = await summaryPage.GetGridRowCountAsync();
-            rowCount.Should().BeGreaterThanOrEqualTo(0); // Grid loaded successfully
-        }
+        var grid = Page.Locator(".vpp-data-card.vpp-datagrid:visible").Last;
+        await grid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var totalOrders = Page.Locator(".kpi-grid:visible").Last
+            .Locator(".kpi-card-value").First;
+        await totalOrders.WaitForAsync();
+        (await totalOrders.InnerTextAsync()).Trim().Should().Be("2");
+        (await grid.InnerTextAsync()).Should().NotContain("QA-D02", "another department must stay out of manager scope");
     }
 }

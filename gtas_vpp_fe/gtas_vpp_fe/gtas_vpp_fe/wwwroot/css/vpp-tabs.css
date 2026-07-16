@@ -120,7 +120,8 @@ ul[role="tablist"]::-webkit-scrollbar {
     overflow: visible;
 }
 
-.vpp-admin-tabs > .rz-tabview-nav-container {
+.vpp-admin-tabs > .rz-tabview-nav-container,
+.vpp-admin-tabs > .rz-tabview-nav {
     position: sticky !important;
     top: var(--vpp-tabs-sticky-top);
     z-index: var(--vpp-z-sticky);
@@ -151,7 +152,8 @@ ul[role="tablist"]::-webkit-scrollbar {
     padding-top: 0;
 }
 
-.vpp-secondary-tabs > .rz-tabview-nav-container {
+.vpp-secondary-tabs > .rz-tabview-nav-container,
+.vpp-secondary-tabs > .rz-tabview-nav {
     position: sticky !important;
     top: calc(var(--vpp-tabs-sticky-top) + var(--vpp-library-primary-tabs-height));
     z-index: calc(var(--vpp-z-sticky) - 1);

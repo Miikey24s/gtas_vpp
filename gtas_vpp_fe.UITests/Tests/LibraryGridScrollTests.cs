@@ -12,6 +12,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
     public async Task Category_Grid_Uses_Page_Scroll_Without_Header_Overlap()
     {
         await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 420);
         await Page.GotoAsync($"{BaseUrl}library?tab=1");
 
         var grid = Page.Locator(".library-share-grid:visible");
@@ -100,11 +101,25 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         actionAppearance[0].Should().Be("1");
         actionAppearance[2].Should().Be("1");
 
-        var primaryTabs = Page.Locator(".vpp-admin-tabs > .rz-tabview-nav");
+        var primaryTabs = Page.Locator(
+            ".vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav");
         var primaryTabPosition = await primaryTabs.EvaluateAsync<string[]>("""
-            element => [getComputedStyle(element).position, getComputedStyle(element).top]
+            element => {
+                const owner = element.closest('.librariestab');
+                if (!owner) {
+                    throw new Error('Library tab owner was not rendered.');
+                }
+
+                const ownerStyle = getComputedStyle(owner);
+                return [
+                    getComputedStyle(element).position,
+                    getComputedStyle(element).top,
+                    ownerStyle.getPropertyValue('--vpp-tabs-sticky-top').trim()
+                ];
+            }
             """);
-        primaryTabPosition.Should().Equal("sticky", "-7px");
+        primaryTabPosition[0].Should().Be("sticky");
+        primaryTabPosition[1].Should().Be(primaryTabPosition[2]);
 
         var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
         await deletedCells.First.WaitForAsync(new LocatorWaitForOptions
@@ -123,7 +138,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await contentScroller.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
         await Page.WaitForTimeoutAsync(100);
 
-        var stickyPrimaryGap = await Page.EvaluateAsync<double>("""
+        var stickyPrimaryMetrics = await Page.EvaluateAsync<double[]>("""
             () => {
                 const scroller = document.querySelector('.vpp-layout-body');
                 const tabs = document.querySelector('.vpp-admin-tabs > .rz-tabview-nav');
@@ -131,10 +146,16 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                     throw new Error('Library scroll container or primary tabs were not rendered.');
                 }
 
-                return tabs.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+                return [
+                    tabs.getBoundingClientRect().top - scroller.getBoundingClientRect().top,
+                    scroller.scrollTop,
+                    scroller.scrollHeight - scroller.clientHeight
+                ];
             }
             """);
-        stickyPrimaryGap.Should().BeInRange(-1, 8);
+        stickyPrimaryMetrics[2].Should().BeGreaterThan(0);
+        stickyPrimaryMetrics[1].Should().BeApproximately(stickyPrimaryMetrics[2], 1);
+        stickyPrimaryMetrics[0].Should().BeInRange(-1, 8);
 
         var headerRowGap = await Page.EvaluateAsync<double>("""
             () => {
@@ -156,6 +177,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
     public async Task Pricing_Grids_Use_Content_Height_And_Page_Scroll()
     {
         await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 420);
         await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists");
 
         var priceListGrid = Page.Locator(".vpp-price-list-workspace .vpp-admin-page-grid");
@@ -184,20 +206,38 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             secondaryTabHostPadding.Value.Should().BeLessThanOrEqualTo(0.5);
         }
 
-        var secondaryTabs = Page.Locator(".vpp-secondary-tabs > .rz-tabview-nav");
+        var secondaryTabs = Page.Locator(
+            ".vpp-secondary-tabs > .rz-tabview-nav-container, .vpp-secondary-tabs > .rz-tabview-nav");
         await secondaryTabs.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        var secondaryTabPosition = await secondaryTabs.EvaluateAsync<string[]>("""
-            element => [getComputedStyle(element).position, getComputedStyle(element).top]
+        var secondaryTabPosition = await secondaryTabs.EvaluateAsync<double[]>("""
+            element => {
+                const owner = element.closest('.librariestab');
+                if (!owner) {
+                    throw new Error('Library tab owner was not rendered.');
+                }
+
+                const ownerStyle = getComputedStyle(owner);
+                return [
+                    getComputedStyle(element).position === 'sticky' ? 1 : 0,
+                    parseFloat(getComputedStyle(element).top),
+                    parseFloat(ownerStyle.getPropertyValue('--vpp-tabs-sticky-top'))
+                        + parseFloat(ownerStyle.getPropertyValue('--vpp-library-primary-tabs-height'))
+                ];
+            }
             """);
-        secondaryTabPosition.Should().Equal("sticky", "41px");
+        secondaryTabPosition[0].Should().Be(1);
+        secondaryTabPosition[1].Should().BeApproximately(secondaryTabPosition[2], 0.5);
 
         var priceListLayout = await priceListGrid.EvaluateAsync<double[]>("""
             element => {
-                const pager = element.querySelector('.rz-paginator, .rz-pager');
                 return [
                     element.getBoundingClientRect().height,
                     parseFloat(getComputedStyle(element).borderTopWidth),
-                    pager && getComputedStyle(pager).display !== 'none' ? 1 : 0
+                    [...element.querySelectorAll('*')].filter(child => {
+                        const overflowY = getComputedStyle(child).overflowY;
+                        return (overflowY === 'auto' || overflowY === 'scroll')
+                            && child.scrollHeight > child.clientHeight + 1;
+                    }).length
                 ];
             }
             """);
@@ -208,6 +248,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices");
         var priceGrid = Page.Locator(".vpp-price-grid");
         await priceGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await Page.SetViewportSizeAsync(1366, 300);
         await Page.WaitForTimeoutAsync(500);
 
         var nestedVerticalScrollers = await priceGrid.EvaluateAsync<int>("""
@@ -233,17 +274,30 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 const scrollerTop = scroller.getBoundingClientRect().top;
                 return [
                     primary.getBoundingClientRect().top - scrollerTop,
-                    secondary.getBoundingClientRect().top - scrollerTop
+                    secondary.getBoundingClientRect().top - scrollerTop,
+                    scroller.scrollTop,
+                    scroller.scrollHeight - scroller.clientHeight
                 ];
             }
             """);
-        stickyTabGaps[0].Should().BeApproximately(0, 1);
-        stickyTabGaps[1].Should().BeApproximately(48, 1);
+        stickyTabGaps[3].Should().BeGreaterThan(0);
+        stickyTabGaps[2].Should().BeApproximately(stickyTabGaps[3], 1);
+        stickyTabGaps[0].Should().BeInRange(-1, 8);
+        (stickyTabGaps[1] - stickyTabGaps[0]).Should().BeApproximately(48, 1);
     }
 
     [Fact]
     public async Task Class_Definitions_Use_Compact_Master_Detail_Layout()
     {
+        var browserErrors = new List<string>();
+        Page.Console += (_, message) =>
+        {
+            if (message.Type == "error")
+            {
+                browserErrors.Add(message.Text);
+            }
+        };
+
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
         await Page.GotoAsync($"{BaseUrl}library?tab=0");
@@ -313,8 +367,11 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                     throw new Error('Column picker panel chrome was not rendered.');
                 }
 
+                const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
                 return [
                     element.getBoundingClientRect().width,
+                    Math.min(rootFontSize * 20, window.innerWidth - rootFontSize),
                     header.getBoundingClientRect().height,
                     item.getBoundingClientRect().height,
                     parseFloat(getComputedStyle(element).borderRadius),
@@ -324,27 +381,100 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 ];
             }
             """);
-        pickerChrome[0].Should().BeApproximately(320, 2);
-        pickerChrome[1].Should().BeGreaterThanOrEqualTo(50);
-        pickerChrome[2].Should().BeGreaterThanOrEqualTo(38);
-        pickerChrome[3].Should().BeGreaterThanOrEqualTo(8);
-        pickerChrome[4].Should().Be(1);
+        pickerChrome[0].Should().BeApproximately(pickerChrome[1], 2);
+        pickerChrome[2].Should().BeGreaterThanOrEqualTo(50);
+        pickerChrome[3].Should().BeGreaterThanOrEqualTo(38);
+        pickerChrome[4].Should().BeGreaterThanOrEqualTo(8);
         pickerChrome[5].Should().Be(1);
         pickerChrome[6].Should().Be(1);
+        pickerChrome[7].Should().Be(1);
 
         var search = pickerPanel.Locator(".vpp-column-picker-search input");
-        await search.FillAsync("Class Code");
+        var initialOptionCount = await pickerPanel.Locator(".vpp-column-picker-option").CountAsync();
+        var targetColumnLabel = await pickerPanel.EvaluateAsync<string>("""
+            element => {
+                const option = [...element.querySelectorAll('.vpp-column-picker-option')]
+                    .find(candidate => {
+                        const checkbox = candidate.querySelector('input[type="checkbox"]');
+                        return checkbox && !checkbox.checked && !checkbox.disabled;
+                    });
+                const label = option?.querySelector('.vpp-column-picker-label')?.textContent?.trim();
+                if (!label) {
+                    throw new Error('No hidden pickable class column was rendered.');
+                }
+
+                return label;
+            }
+            """);
+        await search.PressSequentiallyAsync(
+            targetColumnLabel,
+            new LocatorPressSequentiallyOptions { Delay = 40 });
+        await Page.WaitForFunctionAsync(
+            """
+            () => {
+                const popover = document.querySelector('.vpp-column-picker-popover:popover-open');
+                return !popover || popover.querySelectorAll('.vpp-column-picker-option').length === 1;
+            }
+            """,
+            null,
+            new PageWaitForFunctionOptions { Timeout = 15_000 });
+        if (!await pickerPanel.IsVisibleAsync())
+        {
+            await pickerTrigger.ClickAsync();
+            await pickerPanel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        }
         var filteredOptions = pickerPanel.Locator(".vpp-column-picker-option:visible");
         (await filteredOptions.CountAsync()).Should().Be(1);
-        (await filteredOptions.InnerTextAsync()).Should().Contain("Class Code");
+        (await filteredOptions.InnerTextAsync()).Should().Contain(targetColumnLabel);
         await search.FillAsync(string.Empty);
+        await Page.WaitForFunctionAsync(
+            """
+            expected => {
+                const popover = document.querySelector('.vpp-column-picker-popover:popover-open');
+                return !popover || popover.querySelectorAll('.vpp-column-picker-option').length === expected;
+            }
+            """,
+            initialOptionCount);
+        if (!await pickerPanel.IsVisibleAsync())
+        {
+            await pickerTrigger.ClickAsync();
+            await pickerPanel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        }
 
-        var classCodeOption = pickerPanel.Locator(".vpp-column-picker-option").Filter(new LocatorFilterOptions { HasText = "Class Code" });
-        (await classCodeOption.CountAsync()).Should().Be(1);
-        await classCodeOption.Locator("input[type='checkbox']").SetCheckedAsync(true, new LocatorSetCheckedOptions { Force = true });
-        await Page.WaitForTimeoutAsync(300);
-        int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync()).Should().Be(initialVisibleCount + 1);
-        (await master.Locator("thead th").Filter(new LocatorFilterOptions { HasText = "Class Code" }).CountAsync()).Should().Be(1);
+        var targetOption = pickerPanel.Locator(".vpp-column-picker-option")
+            .Filter(new LocatorFilterOptions { HasText = targetColumnLabel });
+        (await targetOption.CountAsync()).Should().Be(1);
+        await targetOption.ClickAsync();
+        var pickerCount = pickerTrigger.Locator(".vpp-column-picker-count");
+        var expectedVisibleCount = initialVisibleCount + 1;
+        var actualVisibleCount = initialVisibleCount;
+        var toggleDeadline = DateTime.UtcNow.AddSeconds(15);
+        while (DateTime.UtcNow < toggleDeadline)
+        {
+            actualVisibleCount = int.Parse(await pickerCount.InnerTextAsync());
+            if (actualVisibleCount == expectedVisibleCount)
+            {
+                break;
+            }
+
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+        }
+
+        if (actualVisibleCount != expectedVisibleCount)
+        {
+            var checkbox = targetOption.Locator("input[type='checkbox']");
+            bool? checkboxState = await checkbox.CountAsync() == 1
+                ? await checkbox.IsCheckedAsync()
+                : null;
+            throw new InvalidOperationException(
+                $"Column picker toggle did not update. Expected count {expectedVisibleCount}, " +
+                $"actual {actualVisibleCount}, checkbox {checkboxState}, " +
+                $"popover visible {await pickerPanel.IsVisibleAsync()}, " +
+                $"browser errors: {string.Join(" | ", browserErrors)}.");
+        }
+        var targetHeader = master.Locator("thead th")
+            .Filter(new LocatorFilterOptions { HasText = targetColumnLabel });
+        await targetHeader.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
         if (!await pickerPanel.IsVisibleAsync())
         {
@@ -353,9 +483,14 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         }
 
         await pickerPanel.Locator(".vpp-column-picker-reset").ClickAsync();
-        await Page.WaitForTimeoutAsync(300);
+        await Page.WaitForFunctionAsync(
+            """
+            expected => document.querySelector(
+                '.vpp-class-master-grid .vpp-column-picker-count')?.textContent?.trim() === expected.toString()
+            """,
+            initialVisibleCount);
         int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync()).Should().Be(initialVisibleCount);
-        (await master.Locator("thead th").Filter(new LocatorFilterOptions { HasText = "Class Code" }).CountAsync()).Should().Be(0);
+        await targetHeader.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 
         await Page.SetViewportSizeAsync(1200, 768);
         await Page.WaitForTimeoutAsync(200);

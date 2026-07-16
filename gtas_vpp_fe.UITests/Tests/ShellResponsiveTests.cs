@@ -32,7 +32,13 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
             var isExpectedCircuitDisconnect = Uri.TryCreate(request.Url, UriKind.Absolute, out var uri)
                 && uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
-            if (!isExpectedCircuitDisconnect)
+            var isExpectedNavigationAssetAbort = uri is not null
+                && (uri.AbsolutePath.Contains("/favicon.", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            if (!isExpectedCircuitDisconnect && !isExpectedNavigationAssetAbort)
             {
                 requestFailures.Add($"{request.Method} {request.Url}: {request.Failure}");
             }

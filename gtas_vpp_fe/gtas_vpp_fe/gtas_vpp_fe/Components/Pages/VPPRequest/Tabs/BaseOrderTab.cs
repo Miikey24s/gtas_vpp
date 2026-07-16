@@ -216,7 +216,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = ErrorSummary,
-                    Detail = string.Format(BaseLoc["LoadFailedFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, BaseLoc, "LoadFailed"),
                     Duration = 6000
                 });
             }
@@ -259,7 +259,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = ErrorSummary,
-                    Detail = string.Format(BaseLoc["LoadDetailsFailedFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, BaseLoc, "LoadDetailsFailed"),
                     Duration = 6000
                 });
             }

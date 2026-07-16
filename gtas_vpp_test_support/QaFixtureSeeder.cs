@@ -2,6 +2,7 @@ using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
@@ -59,7 +60,8 @@ internal static class QaFixtureSeeder
         await EnsureCanonicalGroupsAsync(context, cancellationToken);
         await EnsureUsersAsync(context, accounts, secrets, cancellationToken);
         await EnsureUserGroupsAsync(context, accounts, cancellationToken);
-        await EnsureScopeRequestsAsync(context, accounts, cancellationToken);
+        var period = await EnsureCurrentPeriodAsync(context, cancellationToken);
+        await EnsureScopeRequestsAsync(context, accounts, period, cancellationToken);
 
         await context.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE [dbo].[__GTASQARun]
@@ -276,9 +278,59 @@ internal static class QaFixtureSeeder
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    private static async Task<VPP00_Period> EnsureCurrentPeriodAsync(
+        VPPMigrationDbContext context,
+        CancellationToken cancellationToken)
+    {
+        var calculator = new PeriodCalculator(deadlineDay: 5);
+        var businessNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            PeriodCalculator.BusinessTimeZone);
+        var businessPeriod = calculator.Current(businessNow);
+        var year = businessPeriod.Year;
+        var month = businessPeriod.Month;
+        var companyCode = QaTestData.CompanyCode.ToString();
+        var period = await context.VPP00_Periods.SingleOrDefaultAsync(
+            x => x.MemberCompanyCode == companyCode
+                 && x.Y == year
+                 && x.M == month
+                 && !x.IsDeleted,
+            cancellationToken);
+
+        if (period is null)
+        {
+            period = new VPP00_Period { Id = QaTestData.CurrentPeriodId };
+            context.VPP00_Periods.Add(period);
+        }
+
+        period.MemberCompanyCode = companyCode;
+        period.TimeZoneId = "Asia/Ho_Chi_Minh";
+        period.Y = year;
+        period.M = month;
+        period.StartAtUtc = calculator.StartAtUtc(businessPeriod);
+        period.SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(businessPeriod);
+        period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
+            businessPeriod,
+            TimeSpan.FromDays(2));
+        period.State = VppPeriodState.Open;
+        period.LastTransitionUserId = null;
+        period.LastTransitionAtUtc = null;
+        period.LastTransitionReason = null;
+        period.Description = "QA-001 deterministic current VPP period";
+        period.CreateUserId = SeedUserId;
+        period.CreateDate = SeedTimestamp;
+        period.UpdateUserId = SeedUserId;
+        period.UpdateDate = SeedTimestamp;
+        period.IsDeleted = false;
+
+        await context.SaveChangesAsync(cancellationToken);
+        return period;
+    }
+
     private static async Task EnsureScopeRequestsAsync(
         VPPMigrationDbContext context,
         QaTestAccounts accounts,
+        VPP00_Period period,
         CancellationToken cancellationToken)
     {
         var product = await context.L04_VPPs
@@ -295,20 +347,21 @@ internal static class QaFixtureSeeder
         {
             new RequestDefinition(
                 QaTestData.OwnRequestId,
-                "QA-OWN-202607",
+                $"QA-OWN-{period.Y:D4}{period.M:D2}",
                 accounts.Employee,
                 1),
             new RequestDefinition(
                 QaTestData.DepartmentPeerRequestId,
-                "QA-DEPT-202607",
+                $"QA-DEPT-{period.Y:D4}{period.M:D2}",
                 accounts.DepartmentPeer,
                 2),
             new RequestDefinition(
                 QaTestData.CompanyOtherDepartmentRequestId,
-                "QA-COMPANY-202607",
+                $"QA-COMPANY-{period.Y:D4}{period.M:D2}",
                 accounts.OtherDepartmentEmployee,
                 3)
         };
+        var requestTimestamp = period.StartAtUtc.AddHours(1);
 
         foreach (var definition in definitions)
         {
@@ -321,18 +374,34 @@ internal static class QaFixtureSeeder
             }
 
             header.VPPCode = definition.Code;
-            header.Y = 2026;
-            header.M = 7;
+            header.Y = period.Y;
+            header.M = period.M;
+            header.PeriodId = period.Id;
+            header.RequestSeriesId = definition.Id;
+            header.RevisionNumber = 1;
+            header.IsCurrentRevision = true;
+            header.SupersedesRequestId = null;
+            header.SupersededByRequestId = null;
+            header.BaseRequestId = null;
+            header.BaseRequestSeriesId = null;
+            header.SupplementSequence = null;
+            header.SupplementAttemptNumber = null;
+            header.SupplementReason = null;
             header.Status = (int)VPPStatus.Submitted;
             header.DepartmentCode = definition.Owner.DepartmentCode;
             header.MemberCompanyCode = QaTestData.CompanyCode.ToString();
-            header.SubmittedDate = SeedTimestamp;
+            header.SubmittedDate = requestTimestamp;
             header.IsAdditionalOrder = false;
+            header.CancelledById = null;
+            header.CancelledAt = null;
+            header.CancelReason = null;
+            header.IdempotencyKey = null;
+            header.CommandPayloadHash = null;
             header.Description = "QA-001 deterministic own/department/company scope data";
             header.CreateUserId = definition.Owner.UserId;
-            header.CreateDate = SeedTimestamp;
+            header.CreateDate = requestTimestamp;
             header.UpdateUserId = definition.Owner.UserId;
-            header.UpdateDate = SeedTimestamp;
+            header.UpdateDate = requestTimestamp;
             header.IsDeleted = false;
 
             var detailId = RequestDetailIds[definition.Id];
@@ -350,9 +419,9 @@ internal static class QaFixtureSeeder
             detail.VPP01_RequestHeaderId = definition.Id;
             detail.Description = "QA-001 deterministic request line";
             detail.CreateUserId = definition.Owner.UserId;
-            detail.CreateDate = SeedTimestamp;
+            detail.CreateDate = requestTimestamp;
             detail.UpdateUserId = definition.Owner.UserId;
-            detail.UpdateDate = SeedTimestamp;
+            detail.UpdateDate = requestTimestamp;
             detail.IsDeleted = false;
         }
 

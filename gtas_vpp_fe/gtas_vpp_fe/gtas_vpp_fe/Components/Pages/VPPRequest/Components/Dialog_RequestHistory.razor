@@ -1,0 +1,125 @@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.VPP
+@inject IAPIServices ApiServices
+@inject DialogService DialogService
+
+<div aria-live="polite">
+    @if (_isLoading)
+    {
+        <SkeletonPage Cards="0" Rows="5" Cols="3" />
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <VppStatePanel State="error"
+                       Icon="error_outline"
+                       Title="@Loc["HistoryLoadFailed"]"
+                       Description="@_error"
+                       RetryText="@Loc["Retry"]"
+                       RetryAction="@(_ => LoadAsync())" />
+    }
+    else if (_history is null)
+    {
+        <VppStatePanel State="empty" Icon="history" Title="@Loc["NoRequestHistory"]" />
+    }
+    else
+    {
+        <RadzenStack Gap="1rem">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+                <RadzenBadge Text="@Loc["RevisionCount", _history.Revisions.Count]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                <RadzenBadge Text="@Loc["TimelineEventCount", _history.Timeline.Count]" BadgeStyle="BadgeStyle.Light" IsPill="true" />
+            </RadzenStack>
+
+            <section aria-labelledby="request-timeline-title">
+                <h3 id="request-timeline-title" class="rz-text-subtitle2">@Loc["RequestTimeline"]</h3>
+                @if (_history.Timeline.Count == 0)
+                {
+                    <p>@Loc["NoTimelineEvents"]</p>
+                }
+                else
+                {
+                    <ol style="margin: 0; padding-left: 1.25rem;">
+                        @foreach (var item in _history.Timeline.OrderByDescending(x => x.OccurredAt))
+                        {
+                            <li style="padding: 0 0 0.75rem 0.25rem;">
+                                <strong>@GetActionLabel(item.Action)</strong>
+                                @if (item.RevisionNumber.HasValue)
+                                {
+                                    <span> · @Loc["RevisionShort", item.RevisionNumber]</span>
+                                }
+                                <div style="color: var(--vpp-text-secondary); font-size: 0.85rem;">
+                                    @DateFormatter.Format(item.OccurredAt, DateFormatter.LongDate)
+                                    @if (!string.IsNullOrWhiteSpace(item.ActorName))
+                                    {
+                                        <span> · @item.ActorName</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(item.Reason))
+                                {
+                                    <div>@Loc["Reason"]: @item.Reason</div>
+                                }
+                            </li>
+                        }
+                    </ol>
+                }
+            </section>
+
+            <section aria-labelledby="request-revisions-title">
+                <h3 id="request-revisions-title" class="rz-text-subtitle2">@Loc["RequestRevisions"]</h3>
+                <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO"
+                                Data="@_history.Revisions.OrderByDescending(x => x.RevisionNumber)"
+                                AllowPaging="false" AllowSorting="false" AllowFiltering="false"
+                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="RevisionNumber" Title="@Loc["Revision"]" Width="90px" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" Width="130px" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="TotalLines" Title="@Loc["Lines"]" Width="80px" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="TotalQty" Title="@Loc["TotalQuantity"]" Width="100px" />
+                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="@Loc["UpdatedAt"]" Width="165px">
+                            <Template Context="revision">@DateFormatter.Format(revision.UpdateDate, DateFormatter.LongDate)</Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </section>
+        </RadzenStack>
+    }
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="rz-mt-4">
+        <RadzenButton Text="@Loc["Close"]" ButtonStyle="ButtonStyle.Light" Click="@(_ => DialogService.Close())" />
+    </RadzenStack>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid RequestId { get; set; }
+
+    private VPP_RequestHistoryResDTO? _history;
+    private bool _isLoading = true;
+    private string? _error;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _error = null;
+        try
+        {
+            _history = await ApiServices.GetFromApiAsync<VPP_RequestHistoryResDTO>(
+                $"{Config.VppApi.Orders}/{RequestId}/history");
+        }
+        catch (Exception ex)
+        {
+            _error = UiErrorMapper.GetMessage(ex, Loc);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string GetActionLabel(string action)
+    {
+        var localized = Loc[$"RequestAction_{action}"];
+        return localized.ResourceNotFound ? action : localized.Value;
+    }
+}

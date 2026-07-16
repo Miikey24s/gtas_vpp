@@ -36,6 +36,7 @@ namespace gtas_vpp_be.Model
         #endregion
 
         #region Data
+        public virtual DbSet<VPP00_Period> VPP00_Periods { get; set; }
         public virtual DbSet<VPP01_RequestHeader> VPP01_RequestHeaders { get; set; }
         public virtual DbSet<VPP02_RequestDetail> VPP02_RequestDetail { get; set; }
         public virtual DbSet<VPP03_Log> VPP03_Logs { get; set; }
@@ -98,17 +99,61 @@ namespace gtas_vpp_be.Model
             {
                 en.HasOne(x => x.VPP01_RequestHeader).WithMany(x => x.VPP02_RequestDetails).OnDelete(DeleteBehavior.Restrict);
             });
+            modelBuilder.Entity<VPP00_Period>(en =>
+            {
+                en.Property(x => x.MemberCompanyCode).HasMaxLength(50).IsRequired();
+                en.Property(x => x.TimeZoneId).HasMaxLength(64).IsRequired();
+                en.Property(x => x.State).HasConversion<int>().IsRequired();
+                en.Property(x => x.RowVersion).IsRowVersion();
+                en.HasIndex(x => new { x.MemberCompanyCode, x.Y, x.M })
+                    .HasDatabaseName("UX_VPP00_Period_Company_Year_Month_Active")
+                    .HasFilter("[IsDeleted] = 0")
+                    .IsUnique();
+                en.HasIndex(x => new { x.MemberCompanyCode, x.State, x.SubmissionDeadlineUtc })
+                    .HasDatabaseName("IX_VPP00_Period_Company_State_Deadline");
+                en.ToTable(table => table.HasCheckConstraint(
+                    "CK_VPP00_Period_ValidRange",
+                    "[Y] BETWEEN 1 AND 9999 AND [M] BETWEEN 1 AND 12 " +
+                    "AND [SubmissionDeadlineUtc] > [StartAtUtc] " +
+                    "AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] " +
+                    "AND [State] IN (0, 1, 2, 3)"));
+                en.HasMany(x => x.RequestHeaders)
+                    .WithOne(x => x.Period)
+                    .HasForeignKey(x => x.PeriodId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
             modelBuilder.Entity<VPP01_RequestHeader>(en =>
             {
                 en.Property(x => x.VPPCode).HasMaxLength(64);
                 en.Property(x => x.RejectReason).HasMaxLength(500);
+                en.Property(x => x.CancelReason).HasMaxLength(500);
+                en.Property(x => x.SupplementReason).HasMaxLength(500);
+                en.Property(x => x.IdempotencyKey).HasMaxLength(128);
+                en.Property(x => x.CommandPayloadHash).HasMaxLength(64);
+                en.Property(x => x.RowVersion).IsRowVersion();
                 en.HasIndex(x => new { x.CreateUserId, x.Y, x.M, x.IsDeleted, x.IsAdditionalOrder, x.Status })
                     .HasDatabaseName("IX_VPP01_RequestHeader_User_Period_Status");
                 en.HasIndex(x => new { x.Y, x.M, x.IsDeleted, x.Status, x.IsAdditionalOrder })
                     .HasDatabaseName("IX_VPP01_RequestHeader_Period_Status");
-                en.HasIndex(x => new { x.CreateUserId, x.Y, x.M })
+                en.HasIndex(x => new { x.CreateUserId, x.PeriodId })
                     .HasDatabaseName("UX_VPP01_OneRegularPerUserPeriod")
-                    .HasFilter("[IsDeleted] = 0 AND [IsAdditionalOrder] = 0")
+                    .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 0")
+                    .IsUnique();
+                en.HasIndex(x => x.RequestSeriesId)
+                    .HasDatabaseName("UX_VPP01_CurrentRevisionSeries")
+                    .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1")
+                    .IsUnique();
+                en.HasIndex(x => new { x.CreateUserId, x.PeriodId, x.BaseRequestSeriesId })
+                    .HasDatabaseName("UX_VPP01_OnePendingSupplement")
+                    .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [Status] = 6")
+                    .IsUnique();
+                en.HasIndex(x => new { x.CreateUserId, x.PeriodId, x.BaseRequestSeriesId, x.SupplementAttemptNumber })
+                    .HasDatabaseName("UX_VPP01_SupplementAttempt")
+                    .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [SupplementAttemptNumber] IS NOT NULL")
+                    .IsUnique();
+                en.HasIndex(x => new { x.CreateUserId, x.IdempotencyKey })
+                    .HasDatabaseName("UX_VPP01_IdempotencyKey")
+                    .HasFilter("[IsDeleted] = 0 AND [IdempotencyKey] IS NOT NULL")
                     .IsUnique();
                 en.HasIndex(x => x.VPPCode)
                     .HasDatabaseName("UX_VPP01_VPPCode")
@@ -124,6 +169,10 @@ namespace gtas_vpp_be.Model
 
                 en.Property(x => x.Id).HasDefaultValueSql("NEWID()");
                 en.Property(x => x.LogDate).HasDefaultValueSql("GETDATE()");
+                en.Property(x => x.Action).HasMaxLength(64);
+                en.Property(x => x.MemberCompanyCode).HasMaxLength(50);
+                en.Property(x => x.CorrelationId).HasMaxLength(128);
+                en.Property(x => x.Reason).HasMaxLength(500);
 
                 en.HasOne(x => x.VPP01_RequestHeader)
                       .WithMany(x => x.VPP03_Logs)

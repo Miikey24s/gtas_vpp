@@ -7,6 +7,7 @@ using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Linq.Dynamic.Core;
@@ -122,6 +123,18 @@ namespace gtas_vpp_be.Controllers
             return Ok(data);
         }
 
+        [HttpGet("orders/{id:guid}/history")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
+        public async Task<IActionResult> GetOrderHistory(Guid id)
+        {
+            var data = await _vppService.GetOrderHistoryAsync(id);
+            if (data is null) return NotFound();
+            var current = data.Revisions.FirstOrDefault(x => x.Id == id)
+                ?? data.Revisions.FirstOrDefault();
+            if (current is null || !await CanViewOrderAsync(current)) return Forbid();
+            return Ok(data);
+        }
+
         [HttpPost("orders")]
         [Authorize(Policy = Permissions.RequestCreate)]
         public async Task<IActionResult> CreateOrder([FromBody] VPP01_CreateReqDTO req)
@@ -146,6 +159,8 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] VPP01_UpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (req.RowVersion is not { Length: > 0 })
+                return BadRequest(new { Message = "RowVersion is required. Refresh the request and try again." });
 
             var current = await _vppService.GetOrderByIdAsync(id);
             if (current == null) return NotFound();
@@ -159,15 +174,19 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("orders/{id:guid}/cancel")]
         [Authorize(Policy = Permissions.RequestCancelOwn)]
-        public async Task<IActionResult> CancelOrder(Guid id)
+        public async Task<IActionResult> CancelOrder(
+            Guid id,
+            [FromBody] VPP_CancelOrderReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (req.RowVersion is not { Length: > 0 })
+                return BadRequest(new { Message = "RowVersion is required. Refresh the request and try again." });
 
             var current = await _vppService.GetOrderByIdAsync(id);
             if (current == null) return NotFound();
             if (!IsOwnedByCurrentUser(current) || !IsInCurrentCompany(current)) return Forbid();
 
-            await _vppService.CancelOrderAsync(id, CurrentUserId.Value);
+            await _vppService.CancelOrderAsync(id, CurrentUserId.Value, req);
             return Ok();
         }
 
@@ -432,9 +451,14 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.RequestApprove)]
         public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
+            var canViewAllDepartments = await _permissionService
+                .HasPermissionAsync(User, Permissions.RequestViewAll);
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))
             {
-                var scopedData = await _vppService.GetPendingAdditionalOrdersAsync(CurrentMemberCompanyCode);
+                var scopedData = await _vppService.GetPendingAdditionalOrdersAsync(
+                    CurrentMemberCompanyCode,
+                    CurrentDepartmentCode,
+                    canViewAllDepartments);
                 var (filteredData, filteredTotalCount, filteredTotalLines, filteredTotalQty) = ApplyOrderGridOperations(scopedData, filter, orderby, skip, top);
                 Response.Headers.Append("X-Total-Count", filteredTotalCount.ToString());
                 Response.Headers.Append("X-Total-Lines", filteredTotalLines.ToString());
@@ -442,7 +466,13 @@ namespace gtas_vpp_be.Controllers
                 return Ok(filteredData);
             }
 
-            var (data, totalCount, totalLines, totalQty) = await _vppService.GetPendingAdditionalOrdersPagedAsync(skip, top, CurrentMemberCompanyCode);
+            var (data, totalCount, totalLines, totalQty) = await _vppService
+                .GetPendingAdditionalOrdersPagedAsync(
+                    skip,
+                    top,
+                    CurrentMemberCompanyCode,
+                    CurrentDepartmentCode,
+                    canViewAllDepartments);
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             Response.Headers.Append("X-Total-Lines", totalLines.ToString());
             Response.Headers.Append("X-Total-Qty", totalQty.ToString());
@@ -521,7 +551,10 @@ namespace gtas_vpp_be.Controllers
             return scope?.Trim().ToLowerInvariant() switch
             {
                 "department" => await _vppService.GetDepartmentOrdersAsync(year, month, status, CurrentDepartmentCode, CurrentMemberCompanyCode),
-                "pending" => await _vppService.GetPendingAdditionalOrdersAsync(CurrentMemberCompanyCode),
+                "pending" => await _vppService.GetPendingAdditionalOrdersAsync(
+                    CurrentMemberCompanyCode,
+                    CurrentDepartmentCode,
+                    await _permissionService.HasPermissionAsync(User, Permissions.RequestViewAll)),
                 "my-orders" => CurrentUserId.HasValue 
                     ? await _vppService.GetMyOrdersAsync(
                         CurrentUserId.Value,
@@ -822,15 +855,23 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("additional-orders/{id:guid}/approve")]
         [Authorize(Policy = Permissions.RequestApprove)]
-        public async Task<IActionResult> ApproveAdditionalOrder(Guid id)
+        public async Task<IActionResult> ApproveAdditionalOrder(
+            Guid id,
+            [FromBody] ApproveOrderReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (req.RowVersion is not { Length: > 0 })
+                return BadRequest(new { Message = "RowVersion is required. Refresh the request and try again." });
 
             var current = await _vppService.GetOrderByIdAsync(id);
             if (current == null) return NotFound();
             if (!IsInCurrentCompany(current)) return Forbid();
 
-            await _vppService.ApproveAdditionalOrderAsync(id, CurrentUserId.Value);
+            var canApproveCrossDepartment = await _permissionService
+                .HasPermissionAsync(User, Permissions.RequestViewAll);
+            await _vppService.ApproveAdditionalOrderAsync(
+                id, CurrentUserId.Value, req.RowVersion, req.IdempotencyKey,
+                CurrentDepartmentCode, canApproveCrossDepartment, CurrentMemberCompanyCode);
             await TryPublishOrderDecisionAsync(current, approved: true, reason: null);
             return Ok();
         }
@@ -840,12 +881,18 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> RejectAdditionalOrder(Guid id, [FromBody] RejectOrderReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (req.RowVersion is not { Length: > 0 })
+                return BadRequest(new { Message = "RowVersion is required. Refresh the request and try again." });
 
             var current = await _vppService.GetOrderByIdAsync(id);
             if (current == null) return NotFound();
             if (!IsInCurrentCompany(current)) return Forbid();
 
-            await _vppService.RejectAdditionalOrderAsync(id, CurrentUserId.Value, req.Reason);
+            var canApproveCrossDepartment = await _permissionService
+                .HasPermissionAsync(User, Permissions.RequestViewAll);
+            await _vppService.RejectAdditionalOrderAsync(
+                id, CurrentUserId.Value, req.Reason, req.RowVersion, req.IdempotencyKey,
+                CurrentDepartmentCode, canApproveCrossDepartment, CurrentMemberCompanyCode);
             await TryPublishOrderDecisionAsync(current, approved: false, req.Reason);
             return Ok();
         }

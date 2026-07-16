@@ -438,4 +438,44 @@
   <data name="LibraryPageDescription" xml:space="preserve"><value>Quản lý danh mục, vật tư, nhà cung cấp và bảng giá dùng chung.</value></data>
   <data name="PermissionPageDescription" xml:space="preserve"><value>Quản lý người dùng, nhóm quyền và phạm vi truy cập của hệ thống.</value></data>
   <data name="ReportPageDescription" xml:space="preserve"><value>Theo dõi KPI, xu hướng và dữ liệu tổng hợp theo phạm vi được cấp quyền.</value></data>
+  <data name="SubmissionDeadline" xml:space="preserve"><value>Hạn gửi đơn:</value></data>
+  <data name="BaseRequest" xml:space="preserve"><value>Đơn gốc:</value></data>
+  <data name="SupplementQuotaSummary" xml:space="preserve"><value>Còn {0}/{1} lượt bổ sung được duyệt</value></data>
+  <data name="SupplementAttemptSummary" xml:space="preserve"><value>Còn {0}/{1} lần gửi bổ sung</value></data>
+  <data name="SupplementUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn bổ sung.</value></data>
+  <data name="RegularRequestUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn thường.</value></data>
+  <data name="OrderNoLongerEditable" xml:space="preserve"><value>Đơn này không còn ở trạng thái cho phép chỉnh sửa.</value></data>
+  <data name="RequestActionUnavailable" xml:space="preserve"><value>Chưa thể thực hiện thao tác</value></data>
+  <data name="SupplementReason" xml:space="preserve"><value>Lý do bổ sung</value></data>
+  <data name="CancelOrderConfirm" xml:space="preserve"><value>Bạn chắc chắn muốn hủy đơn {0}? Một phiên bản hủy sẽ được lưu vào lịch sử.</value></data>
+  <data name="CancelOrderTitle" xml:space="preserve"><value>Xác nhận hủy đơn</value></data>
+  <data name="ConfirmCancel" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="KeepOrder" xml:space="preserve"><value>Giữ đơn</value></data>
+  <data name="ViewRequestHistory" xml:space="preserve"><value>Xem lịch sử phiên bản</value></data>
+  <data name="ViewRequestHistoryAria" xml:space="preserve"><value>Xem lịch sử phiên bản của đơn {0}</value></data>
+  <data name="RequestLifecycle" xml:space="preserve"><value>Vòng đời đơn yêu cầu</value></data>
+  <data name="HistoryLoadFailed" xml:space="preserve"><value>Không tải được lịch sử đơn</value></data>
+  <data name="NoRequestHistory" xml:space="preserve"><value>Đơn chưa có lịch sử phiên bản.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Thử lại</value></data>
+  <data name="RevisionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
+  <data name="TimelineEventCount" xml:space="preserve"><value>{0} sự kiện</value></data>
+  <data name="RequestTimeline" xml:space="preserve"><value>Dòng thời gian</value></data>
+  <data name="NoTimelineEvents" xml:space="preserve"><value>Chưa có sự kiện nào.</value></data>
+  <data name="RevisionShort" xml:space="preserve"><value>Phiên bản {0}</value></data>
+  <data name="Reason" xml:space="preserve"><value>Lý do</value></data>
+  <data name="RequestRevisions" xml:space="preserve"><value>Các phiên bản của đơn</value></data>
+  <data name="Revision" xml:space="preserve"><value>Phiên bản</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Cập nhật lúc</value></data>
+  <data name="RejectReason" xml:space="preserve"><value>Lý do từ chối</value></data>
+  <data name="RejectReasonHelp" xml:space="preserve"><value>Nêu lý do cụ thể để người gửi có thể điều chỉnh và gửi lại.</value></data>
+  <data name="RejectReasonRequired" xml:space="preserve"><value>Vui lòng nhập lý do từ chối.</value></data>
+  <data name="RejectReasonLength" xml:space="preserve"><value>Lý do phải có từ 5 đến 500 ký tự.</value></data>
+  <data name="ReplaceOrder" xml:space="preserve"><value>Tạo đơn thay thế</value></data>
+  <data name="ReplaceOrderAria" xml:space="preserve"><value>Tạo phiên bản thay thế cho đơn {0}</value></data>
+  <data name="RequestAction_CREATE" xml:space="preserve"><value>Tạo đơn</value></data>
+  <data name="RequestAction_UPDATE" xml:space="preserve"><value>Cập nhật đơn</value></data>
+  <data name="RequestAction_REPLACE" xml:space="preserve"><value>Tạo đơn thay thế</value></data>
+  <data name="RequestAction_CANCEL" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="RequestAction_APPROVE" xml:space="preserve"><value>Duyệt đơn</value></data>
+  <data name="RequestAction_REJECT" xml:space="preserve"><value>Từ chối đơn</value></data>
 </root>

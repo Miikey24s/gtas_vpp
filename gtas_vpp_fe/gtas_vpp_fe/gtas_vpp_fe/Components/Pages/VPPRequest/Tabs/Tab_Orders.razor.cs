@@ -1,6 +1,8 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -50,6 +52,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool ViewerVisible { get; set; }
         public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
         public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
+        private readonly HashSet<Guid> _cancellingOrderIds = new();
 
         // P1: Period dates are derived from PeriodInfo (BE truth) — never DateTime.Now.
         // Fallback to "current calendar month" only while PeriodInfo is still loading,
@@ -87,8 +90,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private bool CanView => PermissionState.HasPermission(Permissions.RequestViewOwn);
         private bool CanCreate => PermissionState.HasPermission(Permissions.RequestCreate);
+        private bool CanCreateRegular => CanCreate && PeriodInfo?.CanCreateOrder == true;
+        private bool CanCreateSupplement => CanCreate && PeriodInfo?.CanCreateAdditional == true;
         private bool CanUpdate(VPP01_RequestHeaderResDTO row) =>
             row.CanEdit && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
+        private bool CanReplace(VPP01_RequestHeaderResDTO row) =>
+            row.CanReplace && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
         private bool CanCancel(VPP01_RequestHeaderResDTO row) =>
             row.CanCancel && PermissionState.HasPermission(Permissions.RequestCancelOwn);
 
@@ -108,7 +115,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Tab_Orders] Failed to load period info: {ex.Message}");
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = Loc["Period"],
+                    Detail = UiErrorMapper.GetMessage(ex, Loc),
+                    Duration = 5000
+                });
             }
         }
         protected async Task LoadOrdersAsync()
@@ -135,7 +148,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Orders"],
-                    Detail = string.Format(Loc["LoadOrdersFailedFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, Loc, "LoadOrdersFailed"),
                     Duration = 6000
                 });
             }
@@ -150,12 +163,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task GoToCreatePage(bool isAdditional = false)
         {
+            if (isAdditional ? !CanCreateSupplement : !CanCreateRegular)
+            {
+                var reason = isAdditional
+                    ? PeriodInfo?.CanCreateAdditionalReason
+                    : PeriodInfo?.CanCreateOrderReason;
+                Toast.Warning(Loc["Order"], reason ?? Loc["RequestActionUnavailable"]);
+                return;
+            }
+
             NavigationManager.NavigateTo($"/dashboard/order-create?isAdditional={isAdditional}");
             await Task.CompletedTask;
         }
 
         protected async Task CopyPreviousAsync()
         {
+            if (!CanCreate || PeriodInfo?.CanCopyPrevious != true)
+            {
+                return;
+            }
+
             NavigationManager.NavigateTo("/dashboard/order-create?copyFrom=previous");
             await Task.CompletedTask;
         }
@@ -168,12 +195,27 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task CancelOrderAsync(VPP01_RequestHeaderResDTO row)
         {
-            if (!CanCancel(row)) return;
+            if (!CanCancel(row) || !_cancellingOrderIds.Add(row.Id)) return;
 
-            IsLoading = true;
+            var confirm = await DialogService.Confirm(
+                string.Format(Loc["CancelOrderConfirm"], row.VPPCode),
+                Loc["CancelOrderTitle"],
+                new ConfirmOptions { OkButtonText = Loc["ConfirmCancel"], CancelButtonText = Loc["KeepOrder"] });
+
+            if (confirm != true)
+            {
+                _cancellingOrderIds.Remove(row.Id);
+                return;
+            }
+
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", new { });
+                var request = new VPP_CancelOrderReqDTO
+                {
+                    RowVersion = row.RowVersion,
+                    IdempotencyKey = Guid.NewGuid().ToString("N")
+                };
+                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", request);
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -189,15 +231,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["Order"],
-                    Detail = string.Format(Loc["CancelFailedFormat"], ex.Message),
+                    Detail = UiErrorMapper.GetMessage(ex, Loc, "CancelFailed"),
                     Duration = 6000
                 });
             }
             finally
             {
-                IsLoading = false;
+                _cancellingOrderIds.Remove(row.Id);
                 StateHasChanged();
             }
+        }
+
+        protected bool IsCancelling(Guid orderId) => _cancellingOrderIds.Contains(orderId);
+
+        protected async Task OpenHistoryAsync(VPP01_RequestHeaderResDTO row)
+        {
+            await DialogService.OpenAsync<Dialog_RequestHistory>(
+                Loc["RequestLifecycle"],
+                new Dictionary<string, object?> { [nameof(Dialog_RequestHistory.RequestId)] = row.Id },
+                new DialogOptions { Width = "min(760px, 96vw)", Resizable = true, Draggable = true });
         }
 
         protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;

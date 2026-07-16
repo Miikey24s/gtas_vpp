@@ -16,6 +16,25 @@ namespace gtas_vpp_be.Model.VPP
         public int Y { get; set; }
         public int M { get; set; }
 
+        // Aggregate identity and immutable revision lineage. PeriodId remains
+        // nullable only for legacy rows that could not be backfilled safely.
+        public Guid? PeriodId { get; set; }
+        public VPP00_Period? Period { get; set; }
+        public Guid RequestSeriesId { get; set; }
+        public int RevisionNumber { get; set; } = 1;
+        public bool IsCurrentRevision { get; set; } = true;
+        public Guid? SupersedesRequestId { get; set; }
+        public Guid? SupersededByRequestId { get; set; }
+
+        // Supplement provenance and policy counters. BaseRequestSeriesId is
+        // the stable quota key while BaseRequestId captures the exact regular
+        // revision used when the supplement was submitted.
+        public Guid? BaseRequestId { get; set; }
+        public Guid? BaseRequestSeriesId { get; set; }
+        public int? SupplementSequence { get; set; }
+        public int? SupplementAttemptNumber { get; set; }
+        public string? SupplementReason { get; set; }
+
         // Status & Workflow
         public int Status { get; set; } = (int)VPPStatus.Submitted;
         public string? DepartmentCode { get; set; }
@@ -26,6 +45,15 @@ namespace gtas_vpp_be.Model.VPP
         public int? RejectedById { get; set; }
         public DateTime? RejectedAt { get; set; }
         public string? RejectReason { get; set; }
+
+        public int? CancelledById { get; set; }
+        public DateTime? CancelledAt { get; set; }
+        public string? CancelReason { get; set; }
+
+        // Optional command idempotency contract. Old clients may omit it;
+        // current clients send one key per create/update/cancel command.
+        public string? IdempotencyKey { get; set; }
+        public string? CommandPayloadHash { get; set; }
 
         public bool IsAdditionalOrder { get; set; } = false;
 

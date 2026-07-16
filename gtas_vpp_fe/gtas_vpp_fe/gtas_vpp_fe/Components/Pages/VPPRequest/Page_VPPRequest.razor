@@ -11,7 +11,7 @@
 @inject IJSRuntime js
 @inject GlobalClass glb
 
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>GTAS VPP - VPP Request</PageTitle>
 

@@ -20,12 +20,25 @@
                         </RadzenStack>
                         
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="flex: 1; justify-content: flex-end; min-width: 280px;">
-                            <RadzenTextBox @bind-Value="Context.Description"
-                                           Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
-                                           aria-label="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
-                                           Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
-                                           Change="@(_ => Context.NotifyStateChanged())" />
-                            @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
+                            @if (Context.IsAdditional)
+                            {
+                                <RadzenTextBox @bind-Value="Context.SupplementReason"
+                                               Placeholder="@Loc["WizardAdditionalReasonHint"]"
+                                               aria-label="@Loc["WizardAdditionalReasonHint"]"
+                                               MaxLength="500"
+                                               Style="width: 100%; max-width: 420px; height: 32px; font-size: 0.85rem;"
+                                               Change="@(_ => Context.NotifyStateChanged())" />
+                            }
+                            else
+                            {
+                                <RadzenTextBox @bind-Value="Context.Description"
+                                               Placeholder="@Loc["WizardApproverNotesHint"]"
+                                               aria-label="@Loc["WizardApproverNotesHint"]"
+                                               MaxLength="500"
+                                               Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
+                                               Change="@(_ => Context.NotifyStateChanged())" />
+                            }
+                            @if (Context.IsAdditional && (string.IsNullOrWhiteSpace(Context.SupplementReason) || Context.SupplementReason.Trim().Length < 5))
                             {
                                 <RadzenIcon Icon="warning" Style="color: var(--vpp-warning-500); font-size: 1.1rem;" Title="@Loc["WizardAdditionalReasonRequired"]" />
                             }

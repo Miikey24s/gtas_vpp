@@ -70,6 +70,8 @@ namespace gtas_vpp_fe.Components.Layout
         {
             await base.OnInitializedAsync();
 
+            glb.BusyChanged += OnBusyChanged;
+
             try
             {
                 await LoadAuthenticationState();
@@ -172,6 +174,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
             PermissionState.Changed -= OnPermissionStateChanged;
+            glb.BusyChanged -= OnBusyChanged;
         }
 
         public async Task ToggleLanguage()
@@ -275,6 +278,11 @@ namespace gtas_vpp_fe.Components.Layout
         }
 
         private void OnPermissionStateChanged()
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void OnBusyChanged()
         {
             _ = InvokeAsync(StateHasChanged);
         }

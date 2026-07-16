@@ -8,11 +8,14 @@ public class GlobalClass
 
     private int _busyCounter;
 
+    public event Action? BusyChanged;
+
     public bool isBusyPage
     {
         get => Interlocked.CompareExchange(ref _busyCounter, 0, 0) > 0;
         set
         {
+            var wasBusy = Interlocked.CompareExchange(ref _busyCounter, 0, 0) > 0;
             if (value)
             {
                 Interlocked.Increment(ref _busyCounter);
@@ -24,6 +27,12 @@ public class GlobalClass
                 {
                     Interlocked.Exchange(ref _busyCounter, 0);
                 }
+            }
+
+            var isBusy = Interlocked.CompareExchange(ref _busyCounter, 0, 0) > 0;
+            if (wasBusy != isBusy)
+            {
+                BusyChanged?.Invoke();
             }
         }
     }

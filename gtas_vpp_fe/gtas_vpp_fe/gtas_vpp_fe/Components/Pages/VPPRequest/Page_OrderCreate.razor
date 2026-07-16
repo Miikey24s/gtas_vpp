@@ -22,18 +22,44 @@ else
                 <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
                 
                 <div class="vpp-custom-steps">
-                    <div class="vpp-custom-step @(currentStep == 0 ? "active" : "inactive")" @onclick="@(() => { currentStep = 0; Context.NotifyStateChanged(); })">
+                    <button type="button" class="vpp-custom-step @(currentStep == 0 ? "active" : "inactive")" style="border: 0; background: transparent;" @onclick="@(() => GoToStep(0))" aria-current="@(currentStep == 0 ? "step" : null)">
                         <span class="step-num">1</span>
                         <span class="step-text">@Loc["SelectProducts"]</span>
-                    </div>
+                    </button>
                     <div class="vpp-custom-step-divider">➔</div>
-                    <div class="vpp-custom-step @(currentStep == 1 ? "active" : "inactive")" @onclick="@(() => { currentStep = 1; Context.NotifyStateChanged(); })">
+                    <button type="button" class="vpp-custom-step @(currentStep == 1 ? "active" : "inactive")" style="border: 0; background: transparent;" @onclick="@(() => GoToStep(1))" aria-current="@(currentStep == 1 ? "step" : null)">
                         <span class="step-num">2</span>
                         <span class="step-text">@Loc["ReviewSubmit"]</span>
-                    </div>
+                    </button>
                 </div>
             </div>
         </div>
+
+        @if (PeriodInfo is not null)
+        {
+            <div class="vpp-data-card rz-p-3 rz-mb-3" aria-live="polite">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem" Wrap="FlexWrap.Wrap">
+                    <RadzenBadge Text="@($"{Loc["Period"]}: {TargetPeriodText}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+                    <RadzenBadge Text="@($"{Loc["PeriodStatus"]}: {PeriodInfo.PeriodState}")" BadgeStyle="@(PeriodInfo.IsSubmissionOpen ? BadgeStyle.Success : BadgeStyle.Warning)" IsPill="true" />
+                    <span>@Loc["SubmissionDeadline"] <strong>@DateFormatter.Format(PeriodInfo.DeadlineDate, DateFormatter.LongDate)</strong></span>
+                    @if (Context.IsAdditional)
+                    {
+                        <span>@Loc["BaseRequest"] <strong>@(PeriodInfo.BaseRequestCode ?? "-")</strong></span>
+                        <span>@Loc["SupplementQuotaSummary", PeriodInfo.RemainingApprovedSupplementQuota, PeriodInfo.MaxAdditionalOrders]</span>
+                        <span>@Loc["SupplementAttemptSummary", PeriodInfo.RemainingSupplementAttempts, PeriodInfo.MaxSupplementAttempts]</span>
+                    }
+                </RadzenStack>
+            </div>
+        }
+
+        @if (!CanSubmitForPeriod)
+        {
+            <VppStatePanel State="warning"
+                           Icon="event_busy"
+                           Title="@Loc["RequestActionUnavailable"]"
+                           Description="@PeriodActionReason"
+                           Class="rz-mb-3" />
+        }
 
         <section class="vpp-wizard-stage">
             @if (currentStep == 0)
@@ -63,7 +89,7 @@ else
                     {
                         <RadzenButton Icon="save" Text="@PrimaryActionText"
                                       ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
-                                      Disabled="@(IsSaving || SelectedItemCount == 0)"
+                                      Disabled="@(IsSaving || SelectedItemCount == 0 || !CanSubmitForPeriod)"
                                       IsBusy="@IsSaving"
                                       BusyText="@Loc["Saving"]"
                                       Click="@SubmitAsync" />

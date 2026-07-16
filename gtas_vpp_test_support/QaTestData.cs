@@ -9,6 +9,7 @@ public static class QaTestData
 
     public static readonly Guid DepartmentAlphaId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     public static readonly Guid DepartmentBetaId = Guid.Parse("10000000-0000-0000-0000-000000000002");
+    public static readonly Guid CurrentPeriodId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     public static readonly Guid OwnRequestId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     public static readonly Guid DepartmentPeerRequestId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     public static readonly Guid CompanyOtherDepartmentRequestId = Guid.Parse("40000000-0000-0000-0000-000000000003");

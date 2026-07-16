@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using Xunit;
@@ -38,6 +39,33 @@ public sealed class ApiServicesJsonTransportTests
         Assert.Equal(new[] { "password", "username" }, properties.Select(property => property.Name));
         Assert.Equal("secret", document.RootElement.GetProperty("password").GetString());
         Assert.Equal("tester", document.RootElement.GetProperty("username").GetString());
+    }
+
+    [Fact]
+    public async Task PostFromApiAsync_SerializesApprovalConcurrencyEnvelope()
+    {
+        using var handler = new RecordingHttpMessageHandler("{}");
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+        var rowVersion = new byte[] { 1, 3, 5, 7, 9 };
+
+        await sut.PostFromApiAsync<object>(
+            "api/VPPRequest/additional-orders/order-id/approve",
+            new ApproveOrderReqDTO
+            {
+                RowVersion = rowVersion,
+                IdempotencyKey = "approval-command-42"
+            });
+
+        Assert.Equal(HttpMethod.Post, handler.LastMethod);
+        Assert.NotNull(handler.LastRequestBody);
+        using var document = JsonDocument.Parse(handler.LastRequestBody);
+        Assert.Equal(
+            Convert.ToBase64String(rowVersion),
+            document.RootElement.GetProperty("rowVersion").GetString());
+        Assert.Equal(
+            "approval-command-42",
+            document.RootElement.GetProperty("idempotencyKey").GetString());
     }
 
     [Theory]

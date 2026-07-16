@@ -114,6 +114,125 @@ public class VPPRequestControllerTests
     }
 
     [Fact]
+    public async Task GetOrderHistory_OtherCompany_ReturnsForbid()
+    {
+        var orderId = Guid.NewGuid();
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetOrderHistoryAsync(orderId))
+            .ReturnsAsync(new VPP_RequestHistoryResDTO
+            {
+                CurrentRequestId = orderId,
+                Revisions =
+                [
+                    new VPP01_RequestHeaderResDTO
+                    {
+                        Id = orderId,
+                        CreateUserId = 99,
+                        DepartmentCode = "HR",
+                        MemberCompanyCode = "88000"
+                    }
+                ]
+            });
+        var controller = CreateController(
+            service.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetOrderHistory(orderId);
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateOrder_MissingRowVersion_ReturnsBadRequest()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+
+        var result = await controller.UpdateOrder(Guid.NewGuid(), new VPP01_UpdateReqDTO());
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        service.Verify(x => x.UpdateOrderAsync(It.IsAny<VPP01_UpdateReqDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelOrder_MissingRowVersion_ReturnsBadRequest()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+
+        var result = await controller.CancelOrder(Guid.NewGuid(), new VPP_CancelOrderReqDTO());
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        service.Verify(x => x.CancelOrderAsync(
+            It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<VPP_CancelOrderReqDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelOrder_Owner_ForwardsConcurrencyEnvelope()
+    {
+        var orderId = Guid.NewGuid();
+        var rowVersion = new byte[] { 1, 2, 3 };
+        var request = new VPP_CancelOrderReqDTO
+        {
+            RowVersion = rowVersion,
+            Reason = "No longer required",
+            IdempotencyKey = "cancel-controller-1"
+        };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetOrderByIdAsync(orderId))
+            .ReturnsAsync(new VPP01_RequestHeaderResDTO
+            {
+                Id = orderId,
+                CreateUserId = 5615,
+                DepartmentCode = "IT",
+                MemberCompanyCode = "77500"
+            });
+        var controller = CreateController(
+            service.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.CancelOrder(orderId, request);
+
+        Assert.IsType<OkResult>(result);
+        service.Verify(x => x.CancelOrderAsync(orderId, 5615, request), Times.Once);
+    }
+
+    [Fact]
+    public async Task ApproveAdditionalOrder_MissingRowVersion_ReturnsBadRequest()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var controller = CreateController(service.Object, new Claim("UserID", "9001"));
+
+        var result = await controller.ApproveAdditionalOrder(Guid.NewGuid(), new ApproveOrderReqDTO());
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        service.Verify(x => x.ApproveAdditionalOrderAsync(
+            It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string?>(),
+            It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RejectAdditionalOrder_MissingRowVersion_ReturnsBadRequest()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var controller = CreateController(service.Object, new Claim("UserID", "9001"));
+
+        var result = await controller.RejectAdditionalOrder(Guid.NewGuid(), new RejectOrderReqDTO
+        {
+            Reason = "Budget exceeded"
+        });
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        service.Verify(x => x.RejectAdditionalOrderAsync(
+            It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<byte[]>(),
+            It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GetOrderById_NotFound_ReturnsNotFound()
     {
         var orderId = Guid.NewGuid();

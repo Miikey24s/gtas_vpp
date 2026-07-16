@@ -14,6 +14,10 @@ public class OrderCreateContext
     public bool IsCopy => string.Equals(Mode, "copy", StringComparison.OrdinalIgnoreCase) || CopyFromId.HasValue;
 
     public string? Description { get; set; }
+    public Guid? BaseRequestId { get; set; }
+    public string? BaseRequestCode { get; set; }
+    public string? SupplementReason { get; set; }
+    public byte[]? RowVersion { get; set; }
     public List<SelectedItem> SelectedItems { get; set; } = new();
     public bool DraftRecovered { get; set; }
 

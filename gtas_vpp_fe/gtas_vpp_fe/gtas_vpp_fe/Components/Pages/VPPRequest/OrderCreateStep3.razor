@@ -41,6 +41,13 @@
                 <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
             </div>
         }
+        @if (Context.IsAdditional && !string.IsNullOrWhiteSpace(Context.SupplementReason))
+        {
+            <div class="wizard-review-notes">
+                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">@Loc["SupplementReason"]</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">@Context.SupplementReason</RadzenText>
+            </div>
+        }
     </div>
 
     @* Items Grid *@

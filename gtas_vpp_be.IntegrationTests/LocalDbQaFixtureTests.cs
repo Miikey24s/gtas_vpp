@@ -1,5 +1,11 @@
 using gtas_vpp_test_support;
+using gtas_vpp_be.Service.Domain;
+using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Helpers.Context;
+using gtas_vpp_be.Service.Services;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace gtas_vpp_be.IntegrationTests;
 
@@ -85,6 +91,53 @@ public sealed class LocalDbQaFixtureTests
     }
 
     [Fact]
+    public async Task Concurrent_period_ensure_creates_one_company_period()
+    {
+        SkipUnlessOptedIn();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var fixture = await LocalDbQaFixture.CreateAsync(cancellationToken: cancellationToken);
+
+        try
+        {
+            const string companyCode = "QA-RACE";
+            var period = new Period(2030, 7);
+            using var firstUnitOfWork = CreateUnitOfWork(fixture.ConnectionString);
+            using var secondUnitOfWork = CreateUnitOfWork(fixture.ConnectionString);
+            var clock = new FixedDateTimeProvider(new DateTime(2030, 7, 16, 9, 0, 0));
+            var calculator = new PeriodCalculator();
+            var policy = new VppRequestPolicy();
+            var firstService = new VppPeriodService(
+                firstUnitOfWork,
+                clock,
+                calculator,
+                policy,
+                NullLogger<VppPeriodService>.Instance);
+            var secondService = new VppPeriodService(
+                secondUnitOfWork,
+                clock,
+                calculator,
+                policy,
+                NullLogger<VppPeriodService>.Instance);
+
+            var results = await Task.WhenAll(
+                firstService.EnsureAsync(companyCode, period, cancellationToken),
+                secondService.EnsureAsync(companyCode, period, cancellationToken));
+
+            Assert.Equal(results[0].Id, results[1].Id);
+            Assert.Equal(1, await ScalarIntAsync(
+                fixture.ConnectionString,
+                "SELECT COUNT(*) FROM [dbo].[VPP00_Period] WHERE [MemberCompanyCode] = N'QA-RACE' AND [Y] = 2030 AND [M] = 7 AND [IsDeleted] = 0;",
+                cancellationToken));
+        }
+        finally
+        {
+            await fixture.DisposeAsync();
+        }
+
+        Assert.False(await fixture.IsInstancePresentAsync(cancellationToken));
+    }
+
+    [Fact]
     public async Task Stale_manifest_recovery_validates_marker_and_removes_crash_state()
     {
         SkipUnlessOptedIn();
@@ -149,7 +202,9 @@ public sealed class LocalDbQaFixtureTests
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[AspNetUsers] WHERE [Id] BETWEEN 1000001001 AND 1000001006 AND [AccountStatus] = N'Active';", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P02_Group] WHERE [GroupCode] IN (N'EMPLOYEE', N'DEPARTMENT_APPROVER', N'PROCUREMENT_ADMIN', N'SYSTEM_ADMIN') AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P04_UserGroup] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP00_Period] WHERE [Id] = '20000000-0000-0000-0000-000000000001' AND [MemberCompanyCode] = N'77500' AND [State] = 0 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003') AND [PeriodId] IS NOT NULL AND [RequestSeriesId] = [Id] AND [RevisionNumber] = 1 AND [IsCurrentRevision] = 1;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [CreateUserId] = 1000001001 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [DepartmentCode] = N'QA-D01' AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [MemberCompanyCode] = N'77500' AND [IsDeleted] = 0;", cancellationToken));
@@ -162,7 +217,9 @@ public sealed class LocalDbQaFixtureTests
         Assert.Equal(6, snapshot.Accounts);
         Assert.Equal(4, snapshot.RequiredRoles);
         Assert.Equal(6, snapshot.UserRoleMappings);
+        Assert.Equal(1, snapshot.CurrentPeriods);
         Assert.Equal(3, snapshot.ScopeRequests);
+        Assert.Equal(3, snapshot.PeriodAwareCurrentRevisions);
         Assert.Equal(1, snapshot.OwnScopeRows);
         Assert.Equal(2, snapshot.DepartmentScopeRows);
         Assert.Equal(3, snapshot.CompanyScopeRows);
@@ -194,6 +251,9 @@ public sealed class LocalDbQaFixtureTests
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    private static UnitOfWork CreateUnitOfWork(string connectionString)
+        => new(new TestDbContextFactory(connectionString));
+
     private static void SkipUnlessOptedIn()
     {
         if (!string.Equals(
@@ -211,8 +271,26 @@ public sealed class LocalDbQaFixtureTests
         int Accounts,
         int RequiredRoles,
         int UserRoleMappings,
+        int CurrentPeriods,
         int ScopeRequests,
+        int PeriodAwareCurrentRevisions,
         int OwnScopeRows,
         int DepartmentScopeRows,
         int CompanyScopeRows);
+
+    private sealed class FixedDateTimeProvider(DateTime now) : IDateTimeProvider
+    {
+        public DateTime Now { get; } = now;
+    }
+
+    private sealed class TestDbContextFactory(string connectionString) : IDynamicDbContextFactory
+    {
+        public VPPContext CreateVPPContext()
+        {
+            var options = new DbContextOptionsBuilder<VPPContext>()
+                .UseSqlServer(connectionString)
+                .Options;
+            return new VPPContext(options);
+        }
+    }
 }

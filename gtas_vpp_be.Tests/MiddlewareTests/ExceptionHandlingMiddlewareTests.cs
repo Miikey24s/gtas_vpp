@@ -17,6 +17,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         yield return new object[] { new KeyNotFoundException("missing"), StatusCodes.Status404NotFound, "Not Found", "NotFound", "missing", false };
         yield return new object[] { new UnauthorizedAccessException("forbidden"), StatusCodes.Status403Forbidden, "Forbidden", "Forbidden", "forbidden", false };
+        yield return new object[] { new ConflictException("stale period"), StatusCodes.Status409Conflict, "Conflict", "Conflict", "stale period", true };
         yield return new object[] { new InvalidOperationException("internal transaction details"), StatusCodes.Status400BadRequest, "Bad Request", "OperationInvalid", "The operation is not valid in its current state.", false };
         yield return new object[] { new Exception("broken"), StatusCodes.Status500InternalServerError, "Internal Server Error", "ServerError", "broken", false };
     }

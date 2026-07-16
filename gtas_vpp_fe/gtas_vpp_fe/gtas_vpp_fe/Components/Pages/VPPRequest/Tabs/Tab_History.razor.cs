@@ -1,10 +1,15 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Res.VPP;
+using Microsoft.AspNetCore.Components;
+using Radzen;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     public partial class Tab_History : BaseOrderTab
     {
+        [Inject] public DialogService DialogService { get; set; } = default!;
         public sealed class OptionItem
         {
             public int Value { get; set; }
@@ -86,6 +91,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 query.Add($"{key}={value}");
             }
+        }
+
+        private async Task OpenHistoryAsync(VPP01_RequestHeaderResDTO row)
+        {
+            await DialogService.OpenAsync<Dialog_RequestHistory>(
+                Loc["RequestLifecycle"],
+                new Dictionary<string, object?> { [nameof(Dialog_RequestHistory.RequestId)] = row.Id },
+                new DialogOptions { Width = "min(760px, 96vw)", Resizable = true, Draggable = true });
         }
     }
 }

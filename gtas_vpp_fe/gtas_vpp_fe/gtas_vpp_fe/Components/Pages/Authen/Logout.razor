@@ -3,12 +3,30 @@
 @using gtas_vpp_fe.Components.Layout
 @layout LoginLayout
 @inject NavigationManager UriHelper
+@inject IJSRuntime JS
 
 <PageTitle>GTAS VPP - Logout</PageTitle>
 
 @code {
-    protected override void OnInitialized()
+    private bool _logoutStarted;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _logoutStarted)
+        {
+            return;
+        }
+
+        _logoutStarted = true;
+        try
+        {
+            await JS.InvokeVoidAsync("vppDrafts.clearAll");
+        }
+        catch (JSException)
+        {
+            // Cookie/session revocation must still proceed if browser storage is unavailable.
+        }
+
         UriHelper.NavigateTo("/perform-logout", true);
     }
 }

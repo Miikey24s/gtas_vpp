@@ -971,6 +971,90 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.ToTable("N01_Notification");
                 });
 
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.VPP00_Period", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreateUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastTransitionAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastTransitionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("LastTransitionUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("M")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MemberCompanyCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime>("StartAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SubmissionDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("SupplementApprovalDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UpdateUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemberCompanyCode", "State", "SubmissionDeadlineUtc")
+                        .HasDatabaseName("IX_VPP00_Period_Company_State_Deadline");
+
+                    b.HasIndex("MemberCompanyCode", "Y", "M")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP00_Period_Company_Year_Month_Active")
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("VPP00_Period", t =>
+                        {
+                            t.HasCheckConstraint("CK_VPP00_Period_ValidRange", "[Y] BETWEEN 1 AND 9999 AND [M] BETWEEN 1 AND 12 AND [SubmissionDeadlineUtc] > [StartAtUtc] AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] AND [State] IN (0, 1, 2, 3)");
+                        });
+                });
+
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VPP01_RequestHeader", b =>
                 {
                     b.Property<Guid>("Id")
@@ -982,6 +1066,26 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.Property<int?>("ApprovedById")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("BaseRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BaseRequestSeriesId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CancelledById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CommandPayloadHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
@@ -996,7 +1100,14 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
                     b.Property<bool>("IsAdditionalOrder")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCurrentRevision")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
@@ -1008,6 +1119,9 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Property<string>("MemberCompanyCode")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("PeriodId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("RejectReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1016,6 +1130,12 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("RejectedById")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RequestSeriesId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RevisionNumber")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
@@ -1038,6 +1158,22 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Property<DateTime?>("SubmittedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("SupersededByRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SupersedesRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("SupplementAttemptNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SupplementReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("SupplementSequence")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -1053,6 +1189,13 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PeriodId");
+
+                    b.HasIndex("RequestSeriesId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP01_CurrentRevisionSeries")
+                        .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1");
+
                     b.HasIndex("SettledByPriceListId");
 
                     b.HasIndex("VPPCode")
@@ -1060,10 +1203,25 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasDatabaseName("UX_VPP01_VPPCode")
                         .HasFilter("[VPPCode] IS NOT NULL");
 
-                    b.HasIndex("CreateUserId", "Y", "M")
+                    b.HasIndex("CreateUserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP01_IdempotencyKey")
+                        .HasFilter("[IsDeleted] = 0 AND [IdempotencyKey] IS NOT NULL");
+
+                    b.HasIndex("CreateUserId", "PeriodId")
                         .IsUnique()
                         .HasDatabaseName("UX_VPP01_OneRegularPerUserPeriod")
-                        .HasFilter("[IsDeleted] = 0 AND [IsAdditionalOrder] = 0");
+                        .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 0");
+
+                    b.HasIndex("CreateUserId", "PeriodId", "BaseRequestSeriesId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP01_OnePendingSupplement")
+                        .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [Status] = 6");
+
+                    b.HasIndex("CreateUserId", "PeriodId", "BaseRequestSeriesId", "SupplementAttemptNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UX_VPP01_SupplementAttempt")
+                        .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [SupplementAttemptNumber] IS NOT NULL");
 
                     b.HasIndex("Y", "M", "IsDeleted", "Status", "IsAdditionalOrder")
                         .HasDatabaseName("IX_VPP01_RequestHeader_Period_Status");
@@ -1127,6 +1285,17 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
+                    b.Property<string>("Action")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("ActorUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
                     b.Property<DateTime>("LogDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -1138,6 +1307,17 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Property<string>("LogTitle")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("MemberCompanyCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("RevisionNumber")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("VPP01_RequestHeaderId")
                         .HasColumnType("uniqueidentifier");
@@ -1305,10 +1485,17 @@ namespace gtas_vpp_be.Migrations.Migrations
 
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VPP01_RequestHeader", b =>
                 {
+                    b.HasOne("gtas_vpp_be.Model.VPP.VPP00_Period", "Period")
+                        .WithMany("RequestHeaders")
+                        .HasForeignKey("PeriodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("gtas_vpp_be.Model.Library.L07_PriceList", "SettledByPriceList")
                         .WithMany()
                         .HasForeignKey("SettledByPriceListId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Period");
 
                     b.Navigation("SettledByPriceList");
                 });
@@ -1398,6 +1585,11 @@ namespace gtas_vpp_be.Migrations.Migrations
             modelBuilder.Entity("gtas_vpp_be.Model.Library.LEX02_CompanyDepartmentLocation", b =>
                 {
                     b.Navigation("P04_UserGroups");
+                });
+
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.VPP00_Period", b =>
+                {
+                    b.Navigation("RequestHeaders");
                 });
 
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VPP01_RequestHeader", b =>

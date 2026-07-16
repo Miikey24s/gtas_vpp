@@ -64,6 +64,28 @@
         }
     };
 
+    window.vppDrafts = {
+        clearAll: function () {
+            var prefix = "vpp.order.draft.";
+            for (var index = localStorage.length - 1; index >= 0; index--) {
+                var key = localStorage.key(index);
+                if (key && key.indexOf(prefix) === 0) {
+                    localStorage.removeItem(key);
+                }
+            }
+        },
+        clearUserExceptPeriod: function (userId, periodId) {
+            var prefix = "vpp.order.draft." + String(userId || "").trim() + ".";
+            var keepPrefix = prefix + String(periodId || "").toLowerCase() + ".";
+            for (var index = localStorage.length - 1; index >= 0; index--) {
+                var key = localStorage.key(index);
+                if (key && key.indexOf(prefix) === 0 && key.indexOf(keepPrefix) !== 0) {
+                    localStorage.removeItem(key);
+                }
+            }
+        }
+    };
+
     function closeOrderCodePopovers(exceptCell) {
         document.querySelectorAll(".vpp-order-code-cell.is-open").forEach(function (cell) {
             if (cell === exceptCell) {
