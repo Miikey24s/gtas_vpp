@@ -1,0 +1,113 @@
+using FluentAssertions;
+using gtas_vpp_fe.UITests.Core;
+using Microsoft.Playwright;
+
+namespace gtas_vpp_fe.UITests.Tests;
+
+public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
+{
+    [Fact]
+    public async Task AuthenticatedShell_IsVietnameseBrandedAccessibleAndResponsive()
+    {
+        var browserErrors = new List<string>();
+        var requestFailures = new List<string>();
+        var notFoundResponses = new List<string>();
+        Page.Console += (_, message) =>
+        {
+            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
+            {
+                browserErrors.Add(message.Text);
+            }
+        };
+        Page.PageError += (_, error) => browserErrors.Add(error);
+        Page.Response += (_, response) =>
+        {
+            if (response.Status == 404)
+            {
+                notFoundResponses.Add($"{response.Request.Method} {response.Url}");
+            }
+        };
+        Page.RequestFailed += (_, request) =>
+        {
+            var isExpectedCircuitDisconnect = Uri.TryCreate(request.Url, UriKind.Absolute, out var uri)
+                && uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            if (!isExpectedCircuitDisconnect)
+            {
+                requestFailures.Add($"{request.Method} {request.Url}: {request.Failure}");
+            }
+        };
+
+        await LoginAsDefaultUserAsync();
+        var coreRoutes = new[]
+        {
+            "dashboard?tab=0",
+            "dashboard/order-create",
+            "dashboard?tab=5&periodTab=review",
+            "library?tab=2",
+            "permission?tab=0",
+            "report"
+        };
+
+        foreach (var viewport in new[]
+                 {
+                     new ViewportSize { Width = 390, Height = 844 },
+                     new ViewportSize { Width = 768, Height = 1024 },
+                     new ViewportSize { Width = 1920, Height = 1080 }
+                 })
+        {
+            await Page.SetViewportSizeAsync(viewport.Width, viewport.Height);
+            foreach (var route in coreRoutes)
+            {
+                await Page.GotoAsync($"{BaseUrl}{route}", new PageGotoOptions
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded
+                });
+                await Page.Locator("#main-content").WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Visible
+                });
+                await Page.WaitForTimeoutAsync(350);
+
+                var audit = await Page.EvaluateAsync<int[]>("""
+                () => {
+                    const visible = element => {
+                        const style = getComputedStyle(element);
+                        return style.display !== 'none' && style.visibility !== 'hidden';
+                    };
+                    const main = document.querySelector('#main-content');
+                    const nav = document.querySelector('nav[aria-label]');
+                    const menu = document.querySelector('.user-menu-trigger');
+                    const brand = document.querySelector('.vpp-brand-lockup');
+                    const visibleButtons = [...document.querySelectorAll('button')].filter(visible);
+                    const unlabeledButtons = visibleButtons.filter(button =>
+                        !button.getAttribute('aria-label')
+                        && !button.textContent.trim()
+                        && !button.querySelector('[aria-label]'));
+                    return [
+                        document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
+                        main && main.getAttribute('role') === 'main' ? 0 : 1,
+                        nav ? 0 : 1,
+                        menu && menu.getAttribute('aria-haspopup') === 'menu' ? 0 : 1,
+                        brand && /GTAS VPP/i.test(brand.textContent) && !/PPJ/i.test(brand.textContent) ? 0 : 1,
+                        document.querySelector('.vpp-header-logo') ? 1 : 0,
+                        unlabeledButtons.length
+                    ];
+                }
+                """);
+
+                audit[0].Should().Be(0, $"{route} must not overflow at {viewport.Width}px");
+                audit[1].Should().Be(0, "the content landmark should be semantic");
+                audit[2].Should().Be(0, "primary navigation should have an accessible name");
+                audit[3].Should().Be(0, "the account menu trigger should expose menu semantics");
+                audit[4].Should().Be(0, "the shell should display the independent GTAS VPP brand");
+                audit[5].Should().Be(0, "the legacy PPJ logo must not be visible in the shell");
+                audit[6].Should().Be(0, $"icon-only buttons on {route} need accessible names");
+            }
+        }
+
+        notFoundResponses.Should().BeEmpty("the authenticated shell should not request missing assets or endpoints");
+        browserErrors.Should().BeEmpty("the authenticated shell should not emit browser errors");
+        requestFailures.Should().BeEmpty("the authenticated shell should not issue failed network requests");
+    }
+}

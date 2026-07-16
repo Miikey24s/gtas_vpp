@@ -1,0 +1,25 @@
+<header class="vpp-page-header" aria-labelledby="@HeadingId">
+    <div class="vpp-page-header-copy">
+        @if (!string.IsNullOrWhiteSpace(Eyebrow))
+        {
+            <p class="vpp-page-header-eyebrow">@Eyebrow</p>
+        }
+        <h1 id="@HeadingId" class="vpp-page-header-title">@Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="vpp-page-header-description">@Description</p>
+        }
+    </div>
+    @if (Actions is not null)
+    {
+        <div class="vpp-page-header-actions">@Actions</div>
+    }
+</header>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string HeadingId { get; set; } = "page-heading";
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

@@ -9,25 +9,26 @@ public sealed class PermissionState
 {
     private sealed record RouteTarget(string PageCode, string? PermissionCode, string Path);
 
-    private static readonly RouteTarget[] PreferredRoutes =
-    [
-        new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestOrder, "/dashboard?tab=0"),
-        new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestHistory, "/dashboard?tab=1"),
-        new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestProductCatalog, "/dashboard?tab=2"),
-        new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestDepartmentSummary, "/dashboard?tab=3"),
-        new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestAllOrdersSummary, "/dashboard?tab=4"),
-        new(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestAdminApproval, "/dashboard?tab=5"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryClass, "/library?tab=0"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryCategory, "/library?tab=1"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryItem, "/library?tab=2"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibrarySupplier, "/library?tab=3"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryPrice, "/library?tab=4"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryDepartment, "/library?tab=5"),
-        new(Config.Page_ComponentCode.PageCode.Library, Permissions.LibraryPriceList, "/library?tab=6"),
-        new(Config.Page_ComponentCode.PageCode.Permission, Permissions.PermissionUser, "/permission?tab=0"),
-        new(Config.Page_ComponentCode.PageCode.Permission, Permissions.PermissionComponent, "/permission?tab=1"),
-        new(Config.Page_ComponentCode.PageCode.Report, null, "/report")
-    ];
+    // RouteCatalog is the single source of truth for deep links. Keeping the
+    // preferred landing order here avoids a second hand-maintained list that
+    // can drift from the sidebar and the browser audit catalog.
+    private static readonly RouteTarget[] PreferredRoutes = BuildPreferredRoutes();
+
+    private static RouteTarget[] BuildPreferredRoutes()
+    {
+        return RouteCatalog.Authenticated
+            .Where(route => !route.IsDynamic)
+            .SelectMany(route =>
+            {
+                var permissions = route.AnyOfPermissions.Length == 0
+                    ? new string?[] { null }
+                    : route.AnyOfPermissions.Select(permission => (string?)permission).ToArray();
+
+                return permissions.Select(permission =>
+                    new RouteTarget(route.PageCode, permission, route.Path));
+            })
+            .ToArray();
+    }
 
     private readonly AuthHelper _authHelper;
     private readonly SemaphoreSlim _reloadLock = new(1, 1);

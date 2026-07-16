@@ -9,7 +9,10 @@
                     }
                     else
                     {
-                        <p>Bạn không có quyền truy cập trang này.</p>
+                        <VppStatePanel State="error"
+                                       Icon="lock"
+                                       Title="@Loc["AccessDenied"]"
+                                       Description="@Loc["NoPermission"]" />
                     }
                 </NotAuthorized>
             </AuthorizeRouteView>

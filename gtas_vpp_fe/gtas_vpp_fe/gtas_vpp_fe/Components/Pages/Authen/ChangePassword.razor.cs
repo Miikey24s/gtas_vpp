@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Req.Account;
 using gtas_vpp_shared.DTOs.Res.Account;
 using Microsoft.AspNetCore.Components;
@@ -10,6 +11,7 @@ public partial class ChangePassword
 {
     [Inject] public IAPIServices Api { get; set; } = default!;
     [Inject] public NavigationManager Navigation { get; set; } = default!;
+    [Inject] public Microsoft.Extensions.Localization.IStringLocalizer<App> Localizer { get; set; } = default!;
 
     [SupplyParameterFromQuery(Name = "required")]
     public string? RequiredValue { get; set; }
@@ -35,11 +37,9 @@ public partial class ChangePassword
             await Task.Delay(500);
             Navigation.NavigateTo("/perform-logout", forceLoad: true);
         }
-        catch (HttpRequestException exception)
+        catch (Exception exception)
         {
-            ErrorMessage = exception.StatusCode == HttpStatusCode.Unauthorized
-                ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
-                : exception.Message;
+            ErrorMessage = UiErrorMapper.GetMessage(exception, Localizer);
         }
         finally
         {

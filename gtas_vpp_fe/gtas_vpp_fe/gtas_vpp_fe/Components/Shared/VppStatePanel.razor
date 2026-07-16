@@ -1,0 +1,31 @@
+<section class="vpp-state-panel vpp-state-panel-@State.ToLowerInvariant() @Class"
+         aria-live="@(State.Equals("error", StringComparison.OrdinalIgnoreCase) ? "assertive" : "polite")"
+         aria-labelledby="@TitleId">
+    <RadzenIcon Icon="@Icon" class="vpp-state-panel-icon" aria-hidden="true" />
+    <div class="vpp-state-panel-copy">
+        <h2 id="@TitleId" class="vpp-state-panel-title">@Title</h2>
+        @if (!string.IsNullOrWhiteSpace(Description))
+        {
+            <p class="vpp-state-panel-description">@Description</p>
+        }
+    </div>
+    @if (RetryAction.HasDelegate)
+    {
+        <RadzenButton Text="@RetryText"
+                      Icon="refresh"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="@RetryAction"
+                      class="vpp-state-panel-action" />
+    }
+</section>
+
+@code {
+    [Parameter] public string State { get; set; } = "empty";
+    [Parameter] public string Icon { get; set; } = "inbox";
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string RetryText { get; set; } = "Thử lại";
+    [Parameter] public EventCallback<MouseEventArgs> RetryAction { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string TitleId { get; set; } = $"state-{Guid.NewGuid():N}";
+}

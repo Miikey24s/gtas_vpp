@@ -67,7 +67,7 @@ public sealed class ApiServicesJsonTransportTests
         var coordinator = new RecordingSessionInvalidationCoordinator();
         var sut = CreateSut(client, coordinator);
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => sut.GetFromApiAsync<object>("api/one"));
+        await Assert.ThrowsAsync<ApiRequestException>(() => sut.GetFromApiAsync<object>("api/one"));
 
         Assert.Single(coordinator.Reasons);
         Assert.Equal("session-invalid", coordinator.Reasons[0]);
@@ -87,9 +87,26 @@ public sealed class ApiServicesJsonTransportTests
         };
         var sut = CreateSut(client, new NoOpSessionInvalidationCoordinator(), signal);
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => sut.DeleteFromApiAsync("api/item"));
+        await Assert.ThrowsAsync<ApiRequestException>(() => sut.DeleteFromApiAsync("api/item"));
 
         Assert.Equal(1, refreshCount);
+    }
+
+    [Fact]
+    public async Task ProblemDetailsResponse_MapsSafeMetadataWithoutRawBody()
+    {
+        const string responseJson = """{"type":"about:blank","title":"Conflict","status":409,"detail":"Order 42 is already locked","errorCode":"Conflict","traceId":"trace-42","safeDetail":true}""";
+        using var handler = new StatusBodyHttpMessageHandler(HttpStatusCode.Conflict, responseJson);
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+
+        var exception = await Assert.ThrowsAsync<ApiRequestException>(
+            () => sut.GetFromApiAsync<object>("api/one"));
+
+        Assert.Equal("Conflict", exception.ErrorCode);
+        Assert.Equal("trace-42", exception.TraceId);
+        Assert.Equal("Order 42 is already locked", exception.SafeDetail);
+        Assert.DoesNotContain("extensions", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private static APIServices CreateSut(
@@ -166,6 +183,19 @@ public sealed class ApiServicesJsonTransportTests
                 Content = new StringContent("{\"message\":\"denied\"}", Encoding.UTF8, "application/json")
             };
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class StatusBodyHttpMessageHandler(HttpStatusCode statusCode, string body) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(body, Encoding.UTF8, "application/problem+json")
+            });
         }
     }
 }

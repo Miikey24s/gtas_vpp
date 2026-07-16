@@ -26,7 +26,10 @@ public sealed class AccessibilitySmokeTests : TestBase
             var isExpectedCircuitDisconnect = Uri.TryCreate(request.Url, UriKind.Absolute, out var uri)
                 && uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
-            if (!isExpectedCircuitDisconnect)
+            var isExpectedViewportAssetAbort = uri is not null
+                && uri.AbsolutePath.EndsWith("/images/login-bg-optimized.jpeg", StringComparison.OrdinalIgnoreCase)
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            if (!isExpectedCircuitDisconnect && !isExpectedViewportAssetAbort)
             {
                 requestFailures.Add($"{request.Method} {request.Url}: {request.Failure}");
             }
@@ -44,6 +47,7 @@ public sealed class AccessibilitySmokeTests : TestBase
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded
             });
+            await Page.WaitForLoadStateAsync(LoadState.Load);
             await Page.Locator(".vpp-login-card").WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible

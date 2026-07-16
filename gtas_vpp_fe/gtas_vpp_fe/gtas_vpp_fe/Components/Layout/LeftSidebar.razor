@@ -19,7 +19,7 @@
                                  title="@Loc["ToggleNavigation"]"
                                  ToggleAriaLabel="@Loc["ToggleNavigation"]" />
             <div class="vpp-brand-lockup">
-                <img class="vpp-header-logo" src="@Assets["logoppj-new.png"]" alt="PPJ" />
+                <span class="vpp-brand-mark" aria-hidden="true">G</span>
                 <div class="vpp-header-title" title="GTAS VPP">
                     <span class="vpp-header-product">GTAS VPP</span>
                 </div>
@@ -37,7 +37,8 @@
 </RadzenHeader>
 
 <RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
-    <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
+    <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
+        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)
         {
             <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="assignment" class="ppjsidebarmenu" title="@Loc["Dashboard"]">
@@ -144,11 +145,12 @@
             </RadzenPanelMenuItem>
         }
         <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="logout" class="ppjsidebarmenu" Path="/logoutprocess" title="@Loc["Logout"]" />
-        <RadzenStack JustifyContent="JustifyContent.Center" class="rz-mt-3" Gap="0rem">
-            <h6 class="text-center">@currentTime.ToString("dd-MM-yyyy")</h6>
-            <h6 class="text-center">@currentTime.ToString("HH:mm")</h6>
-        </RadzenStack>
-    </RadzenPanelMenu>
+        </RadzenPanelMenu>
+    </nav>
+    <div class="vpp-sidebar-meta" aria-label="@Loc["CurrentDate"]">
+        <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+        <time datetime="@_currentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@_currentDate.ToString("dd-MM-yyyy", CultureInfo.CurrentCulture)</time>
+    </div>
 </RadzenSidebar>
 @if (_sideBarExpanded)
 {

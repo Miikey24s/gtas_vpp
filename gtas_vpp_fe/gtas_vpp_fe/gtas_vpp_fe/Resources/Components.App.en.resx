@@ -417,4 +417,25 @@
   <data name="Regular" xml:space="preserve"><value>Regular order</value></data>
   <data name="ReviewSubmit" xml:space="preserve"><value>Review and submit</value></data>
   <data name="SelectProducts" xml:space="preserve"><value>Select products</value></data>
+  <data name="PrimaryNavigation" xml:space="preserve"><value>Primary navigation</value></data>
+  <data name="CurrentDate" xml:space="preserve"><value>Current date</value></data>
+  <data name="PageNotFound" xml:space="preserve"><value>Page not found</value></data>
+  <data name="PageNotFoundDescription" xml:space="preserve"><value>This address does not exist or the content has moved.</value></data>
+  <data name="BackToDashboard" xml:space="preserve"><value>Back to dashboard</value></data>
+  <data name="ErrorPageTitle" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="ErrorPageDescription" xml:space="preserve"><value>The system could not complete the request. Try again or contact an administrator if the problem persists.</value></data>
+  <data name="TraceId" xml:space="preserve"><value>Trace ID</value></data>
+  <data name="RequestCancelled" xml:space="preserve"><value>The request was cancelled.</value></data>
+  <data name="RequestTimeout" xml:space="preserve"><value>The request took too long. Please try again.</value></data>
+  <data name="Unauthorized" xml:space="preserve"><value>Your session is no longer valid. Please sign in again.</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>You are not allowed to perform this action.</value></data>
+  <data name="NotFound" xml:space="preserve"><value>The requested data was not found.</value></data>
+  <data name="Conflict" xml:space="preserve"><value>The data changed or another operation is in progress. Refresh and try again.</value></data>
+  <data name="ValidationFailed" xml:space="preserve"><value>Some values are invalid. Check the form and try again.</value></data>
+  <data name="RequestInvalid" xml:space="preserve"><value>The request is not valid.</value></data>
+  <data name="RateLimited" xml:space="preserve"><value>Too many requests in a short time. Please try again later.</value></data>
+  <data name="RequestFailed" xml:space="preserve"><value>The request could not be completed. Please try again.</value></data>
+  <data name="LibraryPageDescription" xml:space="preserve"><value>Manage shared catalog, products, suppliers and price lists.</value></data>
+  <data name="PermissionPageDescription" xml:space="preserve"><value>Manage users, groups and the system access scope.</value></data>
+  <data name="ReportPageDescription" xml:space="preserve"><value>Track KPIs, trends and aggregate data within your allowed scope.</value></data>
 </root>

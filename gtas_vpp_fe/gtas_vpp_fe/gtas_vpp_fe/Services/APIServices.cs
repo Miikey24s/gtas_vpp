@@ -84,25 +84,74 @@ namespace gtas_vpp_fe.Services
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
-                var errorMessage = $"API Error: {response.StatusCode}";
-                try
-                {
-                    // Attempt to parse standard ProblemDetails or custom error JSON
-                    var errorObj = JsonSerializer.Deserialize<JsonElement>(content);
-                    if (errorObj.TryGetProperty("message", out var msg))
-                        errorMessage = msg.GetString() ?? errorMessage;
-                    else if (errorObj.TryGetProperty("title", out var title))
-                        errorMessage = title.GetString() ?? errorMessage;
-                }
-                catch
-                {
-                    // If parsing fails, use raw content if it's short, else keep status code
-                    if (!string.IsNullOrWhiteSpace(content) && content.Length < 200)
-                        errorMessage = content;
-                }
-                throw new HttpRequestException(errorMessage, null, response.StatusCode);
+                var problem = ParseProblem(content, response.StatusCode);
+                throw new ApiRequestException(
+                    response.StatusCode,
+                    problem.ErrorCode,
+                    problem.TraceId,
+                    problem.SafeDetail);
             }
         }
+
+        private static ApiProblem ParseProblem(string content, HttpStatusCode statusCode)
+        {
+            var fallbackCode = statusCode switch
+            {
+                HttpStatusCode.Unauthorized => "Unauthorized",
+                HttpStatusCode.Forbidden => "Forbidden",
+                HttpStatusCode.NotFound => "NotFound",
+                HttpStatusCode.Conflict => "Conflict",
+                HttpStatusCode.UnprocessableEntity => "UnprocessableEntity",
+                HttpStatusCode.BadRequest => "BadRequest",
+                HttpStatusCode.TooManyRequests => "RateLimited",
+                _ when (int)statusCode >= 500 => "ServerError",
+                _ => "RequestFailed"
+            };
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return new ApiProblem(fallbackCode, null, null);
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(content);
+                var root = document.RootElement;
+                // ASP.NET serializes ProblemDetails.Extensions as top-level
+                // properties. Accept a nested "extensions" object as well so
+                // gateways and test doubles can use either RFC-compatible form.
+                var extensions = root.TryGetProperty("extensions", out var extensionNode)
+                    ? extensionNode
+                    : root;
+                var errorCode = GetString(extensions, "errorCode")
+                    ?? GetString(root, "code")
+                    ?? fallbackCode;
+                var traceId = GetString(extensions, "traceId")
+                    ?? GetString(root, "traceId");
+                var safeDetail = GetBoolean(extensions, "safeDetail")
+                    ? GetString(root, "detail") ?? GetString(root, "message")
+                    : null;
+                return new ApiProblem(errorCode, traceId, safeDetail);
+            }
+            catch (JsonException)
+            {
+                return new ApiProblem(fallbackCode, null, null);
+            }
+        }
+
+        private static string? GetString(JsonElement node, string propertyName) =>
+            node.ValueKind == JsonValueKind.Object
+                && node.TryGetProperty(propertyName, out var property)
+                && property.ValueKind == JsonValueKind.String
+                ? property.GetString()
+                : null;
+
+        private static bool GetBoolean(JsonElement node, string propertyName) =>
+            node.ValueKind == JsonValueKind.Object
+                && node.TryGetProperty(propertyName, out var property)
+                && property.ValueKind == JsonValueKind.True;
+
+        private sealed record ApiProblem(string ErrorCode, string? TraceId, string? SafeDetail);
 
         public async Task<T?> GetFromApiAsync<T>(string endpoint)
         {
