@@ -22,12 +22,24 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
+var accountTokenKeysPath = Configuration["DataProtection:KeysPath"];
+if (string.IsNullOrWhiteSpace(accountTokenKeysPath))
+{
+    accountTokenKeysPath = builder.Environment.IsProduction()
+        ? "/app/keys"
+        : Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "GTAS_VPP",
+            "Backend-DataProtection-Keys");
+}
+Directory.CreateDirectory(accountTokenKeysPath);
 var databaseBinding = DatabaseBinding.Create(Configuration);
 DeploymentConfigurationContract.ValidateDatabaseBindingForHost(
     builder.Environment.EnvironmentName,
@@ -59,6 +71,9 @@ builder.Host.UseSerilog();
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(accountTokenKeysPath))
+    .SetApplicationName("gtas_vpp_backend_identity");
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 
@@ -145,6 +160,20 @@ builder.Services
     })
     .AddEntityFrameworkStores<VPPContext>()
     .AddDefaultTokenProviders();
+builder.Services.AddOptions<AccountEmailOptions>()
+    .Bind(Configuration.GetSection(AccountEmailOptions.SectionName))
+    .Validate(options => Uri.TryCreate(options.PublicBaseUrl, UriKind.Absolute, out _),
+        "EmailNotifications:PublicBaseUrl must be an absolute URL.")
+    .Validate(options => options.SmtpPort is >= 1 and <= 65535,
+        "EmailNotifications:SmtpPort must be a valid TCP port.")
+    .Validate(options => !options.Enabled || !string.IsNullOrWhiteSpace(options.SmtpHost),
+        "EmailNotifications:SmtpHost is required when email is enabled.")
+    .Validate(options => !options.Enabled
+            || System.Net.Mail.MailAddress.TryCreate(options.FromAddress, out _),
+        "EmailNotifications:FromAddress must be a valid email address when email is enabled.")
+    .ValidateOnStart();
+builder.Services.AddSingleton<IAccountEmailSender, SmtpAccountEmailSender>();
+builder.Services.AddScoped<IAccountLifecycleService, AccountLifecycleService>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -163,6 +192,47 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.User.FindFirst("UserID")?.Value
                 ?? httpContext.Connection.RemoteIpAddress?.ToString()
                 ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-register", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-recovery", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-confirm", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-password", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"{httpContext.User.FindFirst("UserID")?.Value ?? "anonymous"}:" +
+                          (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 5,
@@ -360,6 +430,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.UseMiddleware<PasswordChangeRequiredMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

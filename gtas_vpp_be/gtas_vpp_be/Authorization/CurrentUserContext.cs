@@ -118,6 +118,10 @@ public sealed class CurrentUserContext(VPPContext context) : ICurrentUserContext
                 snapshot.Group.GroupCode,
                 CanonicalRbac.SystemAdmin.GroupCode,
                 StringComparison.Ordinal).ToString());
+        ReplaceClaim(
+            identity,
+            AppClaimTypes.MustChangePassword,
+            snapshot.Account.MustChangePassword.ToString());
     }
 
     private static void ReplaceClaim(ClaimsIdentity identity, string type, string value)

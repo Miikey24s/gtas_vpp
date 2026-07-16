@@ -2,6 +2,8 @@
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
 @using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_shared.DTOs.Req.Account
+@using gtas_vpp_shared.DTOs.Res.Account
 @using gtas_vpp_fe.Helpers
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
@@ -146,7 +148,7 @@
                                     AllowClear="false"
                                     AllowFiltering="true"
                                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Disabled="@(!CanEditMembership(user) || isUserLoading)"
+                                    Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
                                     Change="@(_ => DropdownOnChange_Group(user))"
                                     Style="width: 100%;" />
                 </Template>
@@ -164,7 +166,7 @@
                                     AllowClear="false"
                                     AllowFiltering="true"
                                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Disabled="@(!CanEditMembership(user) || isUserLoading)"
+                                    Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
                                     Change="@(_ => DropdownOnChange_Department(user))"
                                     Style="width: 100%;" />
                 </Template>
@@ -193,6 +195,35 @@
                                   Change="@(_ => DeactivateMembershipAsync(user))"
                                   Disabled="@(!CanDeactivateMembership(user) || isUserLoading)"
                                   title="@(CanDeactivateMembership(user) ? "Deactivate membership" : "Protected or inactive")" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="Quản trị tài khoản"
+                                  Width="190px"
+                                  Filterable="false"
+                                  Sortable="false"
+                                  TextAlign="TextAlign.Center">
+                <Template Context="user">
+                    @if (CanPrepareActivation(user))
+                    {
+                        <RadzenButton Icon="person_add"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Small"
+                                      Text="Kích hoạt"
+                                      Click="@(_ => ActivateAccountAsync(user))"
+                                      Disabled="@isUserLoading"
+                                      title="Kích hoạt tài khoản sau khi chọn nhóm quyền và phòng ban" />
+                    }
+                    else if (CanResetPassword(user))
+                    {
+                        <RadzenButton Icon="lock_reset"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Text="Reset mật khẩu"
+                                      Click="@(_ => ResetPasswordAsync(user))"
+                                      Disabled="@isUserLoading"
+                                      title="Đặt mật khẩu tạm thời và buộc đổi ở lần đăng nhập tiếp theo" />
+                    }
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"

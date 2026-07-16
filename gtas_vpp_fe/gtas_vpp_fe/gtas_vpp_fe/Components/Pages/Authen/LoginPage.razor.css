@@ -19,3 +19,23 @@
     display: flex;
     justify-content: center;
 }
+
+.vpp-login-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.vpp-login-links a {
+    color: var(--vpp-primary-600, #0369a1);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.vpp-login-links a:hover,
+.vpp-login-links a:focus-visible {
+    text-decoration: underline;
+}

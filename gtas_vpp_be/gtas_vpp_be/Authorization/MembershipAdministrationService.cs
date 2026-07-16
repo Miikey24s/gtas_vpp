@@ -42,6 +42,11 @@ public interface IMembershipAdministrationService
         MembershipUpsertReqDTO command,
         CancellationToken cancellationToken = default);
 
+    Task<MembershipAdministrationResult> ActivateAndUpsertAsync(
+        int actorAccountId,
+        MembershipUpsertReqDTO command,
+        CancellationToken cancellationToken = default);
+
     Task<MembershipAdministrationResult> DeactivateAsync(
         int actorAccountId,
         MembershipDeactivateReqDTO command,
@@ -65,9 +70,30 @@ public sealed class MembershipAdministrationService(
     private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
     private readonly ILogger<MembershipAdministrationService> _logger = logger;
 
-    public async Task<MembershipAdministrationResult> UpsertAsync(
+    public Task<MembershipAdministrationResult> UpsertAsync(
         int actorAccountId,
         MembershipUpsertReqDTO command,
+        CancellationToken cancellationToken = default) =>
+        UpsertInternalAsync(
+            actorAccountId,
+            command,
+            allowPendingActivation: false,
+            cancellationToken: cancellationToken);
+
+    public Task<MembershipAdministrationResult> ActivateAndUpsertAsync(
+        int actorAccountId,
+        MembershipUpsertReqDTO command,
+        CancellationToken cancellationToken = default) =>
+        UpsertInternalAsync(
+            actorAccountId,
+            command,
+            allowPendingActivation: true,
+            cancellationToken: cancellationToken);
+
+    private async Task<MembershipAdministrationResult> UpsertInternalAsync(
+        int actorAccountId,
+        MembershipUpsertReqDTO command,
+        bool allowPendingActivation,
         CancellationToken cancellationToken = default)
     {
         var basicValidation = ValidateCommand(actorAccountId, command.AccountId, command.Reason);
@@ -101,7 +127,10 @@ public sealed class MembershipAdministrationService(
                     "Another membership change is in progress. Please retry.");
             }
 
-            var accountResult = await GetActiveAccountAsync(command.AccountId, cancellationToken);
+            var accountResult = await GetAccountAsync(
+                command.AccountId,
+                allowPendingActivation,
+                cancellationToken);
             if (accountResult.Account is null)
             {
                 return accountResult.Failure!;
@@ -176,6 +205,27 @@ public sealed class MembershipAdministrationService(
             var now = _dateTimeProvider.Now;
             var nowUtc = DateTime.UtcNow;
             var reason = NormalizeReason(command.Reason);
+            var wasPending = account.AccountStatus == AppAccountStatus.PendingApproval;
+            if (wasPending)
+            {
+                account.AccountStatus = AppAccountStatus.Active;
+                account.ActivatedAtUtc = nowUtc;
+                account.DisabledAtUtc = null;
+                _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+                {
+                    Id = Guid.NewGuid(),
+                    ActorUserId = actorAccountId,
+                    TargetUserId = account.Id,
+                    Action = "ACCOUNT_ACTIVATED",
+                    ResourceType = "AppUser",
+                    ResourceId = account.Id.ToString(),
+                    Outcome = "Succeeded",
+                    Summary = "PendingApproval account activated together with its first canonical membership.",
+                    Reason = reason,
+                    CorrelationId = Activity.Current?.TraceId.ToString(),
+                    OccurredAtUtc = nowUtc
+                });
+            }
             var membership = current ?? new P04_UserGroup
             {
                 Id = Guid.NewGuid(),
@@ -286,7 +336,10 @@ public sealed class MembershipAdministrationService(
                     "Another membership change is in progress. Please retry.");
             }
 
-            var accountResult = await GetActiveAccountAsync(command.AccountId, cancellationToken);
+            var accountResult = await GetAccountAsync(
+                command.AccountId,
+                allowPendingActivation: false,
+                cancellationToken);
             if (accountResult.Account is null)
             {
                 return accountResult.Failure!;
@@ -441,8 +494,9 @@ public sealed class MembershipAdministrationService(
         return null;
     }
 
-    private async Task<(AppUser? Account, MembershipAdministrationResult? Failure)> GetActiveAccountAsync(
+    private async Task<(AppUser? Account, MembershipAdministrationResult? Failure)> GetAccountAsync(
         int accountId,
+        bool allowPendingActivation,
         CancellationToken cancellationToken)
     {
         var account = await _context.Users.SingleOrDefaultAsync(
@@ -455,12 +509,16 @@ public sealed class MembershipAdministrationService(
                 "The application account was not found."));
         }
 
-        if (account.AccountStatus != AppAccountStatus.Active
+        var statusAllowed = account.AccountStatus == AppAccountStatus.Active
+            || (allowPendingActivation && account.AccountStatus == AppAccountStatus.PendingApproval);
+        if (!statusAllowed
             || (account.LockoutEnd.HasValue && account.LockoutEnd > DateTimeOffset.UtcNow))
         {
             return (null, MembershipAdministrationResult.Conflict(
                 "ACCOUNT_NOT_ACTIVE",
-                "Only an active, unlocked application account can receive a membership change."));
+                allowPendingActivation
+                    ? "Only an active or pending, unlocked application account can receive a membership change."
+                    : "Only an active, unlocked application account can receive a membership change."));
         }
 
         return (account, null);

@@ -5,6 +5,13 @@ namespace gtas_vpp_fe.Helpers
         // HttpClient
         public const string HttpClientName = "VPP_API";
         public const string ApiLoginEndpoint = "/api/Auth/login";
+        public const string ApiAccountRegisterEndpoint = "/api/account/register";
+        public const string ApiAccountConfirmEmailEndpoint = "/api/account/confirm-email";
+        public const string ApiAccountRecoveryEndpoint = "/api/account/password/recovery";
+        public const string ApiAccountResetPasswordEndpoint = "/api/account/password/reset";
+        public const string ApiAccountChangePasswordEndpoint = "/api/account/password/change";
+        public const string ApiAccountAdminActivateEndpoint = "/api/account/admin/activate";
+        public const string ApiAccountAdminResetPasswordEndpoint = "/api/account/admin/reset-password";
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
         public const string ApiBase = "/api";
         public const string ApiLibraryBase = "/api/Library";

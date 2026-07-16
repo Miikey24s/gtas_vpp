@@ -59,6 +59,18 @@ public sealed class AppAuthenticationServiceTests
     }
 
     [Fact]
+    public async Task Authenticate_PendingApprovalAccount_IsRejectedEvenWithValidPasswordAndMembership()
+    {
+        await using var fixture = await AuthFixture.CreateAsync(AppAccountStatus.PendingApproval);
+
+        var result = await fixture.Service.AuthenticateAsync(
+            fixture.Account.UserName!,
+            ValidPassword);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task CurrentUser_OldSessionVersion_IsRejectedOnNextScope()
     {
         await using var fixture = await AuthFixture.CreateAsync();
@@ -98,6 +110,24 @@ public sealed class AppAuthenticationServiceTests
         var snapshot = await currentUser.GetAsync(CreatePrincipal(fixture.Account.Id, sessionVersion: 1));
 
         Assert.Null(snapshot);
+    }
+
+    [Fact]
+    public async Task CurrentUser_EnrichmentCarriesServerAuthoritativePasswordChangeRequirement()
+    {
+        await using var fixture = await AuthFixture.CreateAsync();
+        fixture.Account.MustChangePassword = true;
+        await fixture.Context.SaveChangesAsync();
+        var currentUser = new CurrentUserContext(fixture.Context);
+        var principal = CreatePrincipal(fixture.Account.Id, sessionVersion: 1);
+        var snapshot = await currentUser.GetAsync(principal);
+
+        Assert.NotNull(snapshot);
+        currentUser.EnrichPrincipal(principal, snapshot);
+
+        Assert.Equal(
+            bool.TrueString,
+            principal.FindFirst(AppClaimTypes.MustChangePassword)?.Value);
     }
 
     private static ClaimsPrincipal CreatePrincipal(int userId, long sessionVersion) =>

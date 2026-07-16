@@ -10,4 +10,5 @@ public static class AppClaimTypes
     public const string MemberCompanyCode = "MemberCompanyCode";
     public const string DepartmentCode = "DepartmentCode";
     public const string IsAdmin = "IsAdmin";
+    public const string MustChangePassword = "must_change_password";
 }

@@ -55,6 +55,52 @@ public sealed class MembershipAdministrationServiceTests
     }
 
     [Fact]
+    public async Task ActivateAndUpsert_PendingAccountBecomesActiveWithCanonicalMembership()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = DateTime.UtcNow;
+        var account = new AppUser
+        {
+            Id = 1_000_000_107,
+            UserName = "pending.employee",
+            NormalizedUserName = "PENDING.EMPLOYEE",
+            Email = "pending.employee@example.test",
+            NormalizedEmail = "PENDING.EMPLOYEE@EXAMPLE.TEST",
+            FullName = "Pending Employee",
+            MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+            AccountStatus = AppAccountStatus.PendingApproval,
+            SessionVersion = 1,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        };
+        var group = AddCanonicalGroup(context, CanonicalRbac.Employee);
+        var department = AddDepartment(context, "PENDING");
+        context.Users.Add(account);
+        await context.SaveChangesAsync();
+        var notifier = new PersistedStateNotifier(context);
+        var service = CreateService(context, notifier);
+
+        var result = await service.ActivateAndUpsertAsync(
+            actorAccountId: 1_000_000_999,
+            new MembershipUpsertReqDTO
+            {
+                AccountId = account.Id,
+                GroupId = group.Id,
+                PrimaryDepartmentId = department.Id,
+                Reason = "Initial approval"
+            });
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(AppAccountStatus.Active, account.AccountStatus);
+        Assert.NotNull(account.ActivatedAtUtc);
+        Assert.Equal(2, account.SessionVersion);
+        var membership = Assert.Single(context.P04_UserGroups.Where(item => !item.IsDeleted));
+        Assert.Equal(account.Id, membership.AccountId);
+        Assert.Contains(context.A01_SecurityAudits, audit => audit.Action == "ACCOUNT_ACTIVATED");
+        Assert.Contains(context.A01_SecurityAudits, audit => audit.Action == "MEMBERSHIP_CREATED");
+    }
+
+    [Fact]
     public async Task Upsert_StaleRowVersion_ReturnsSafeConflictWithoutMutation()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

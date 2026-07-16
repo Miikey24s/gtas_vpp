@@ -3,7 +3,9 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Permission;
+using gtas_vpp_shared.DTOs.Req.Account;
 using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Res.Account;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -233,10 +235,119 @@ public partial class Tab_User
     }
 
     protected Task DropdownOnChange_Group(sp_Authentication_TabUser_UserList user) =>
-        PersistMembershipAsync(user, "Role changed by permission administrator.");
+        CanPrepareActivation(user)
+            ? Task.CompletedTask
+            : PersistMembershipAsync(user, "Role changed by permission administrator.");
 
     protected Task DropdownOnChange_Department(sp_Authentication_TabUser_UserList user) =>
-        PersistMembershipAsync(user, "Primary department changed by permission administrator.");
+        CanPrepareActivation(user)
+            ? Task.CompletedTask
+            : PersistMembershipAsync(user, "Primary department changed by permission administrator.");
+
+    protected async Task ActivateAccountAsync(sp_Authentication_TabUser_UserList user)
+    {
+        if (!CanPrepareActivation(user)
+            || user.UserGroup is null
+            || user.UserGroup.Id == Guid.Empty
+            || user.L05_DepartmentId is not Guid departmentId
+            || departmentId == Guid.Empty)
+        {
+            NotifyError("Hãy chọn nhóm quyền và phòng ban trước khi kích hoạt tài khoản.");
+            return;
+        }
+
+        var confirmed = await DialogService.Confirm(
+            $"Kích hoạt tài khoản {user.FullName ?? user.UserLogin}?",
+            "Kích hoạt tài khoản",
+            new ConfirmOptions { OkButtonText = "Kích hoạt", CancelButtonText = Loc["Cancel"].Value });
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        glb.isBusyPage = true;
+        isUserLoading = true;
+        try
+        {
+            await _apiServices.PostFromApiAsync<MembershipAdministrationResDTO>(
+                Config.ApiAccountAdminActivateEndpoint,
+                new AdminAccountActivationReqDTO
+                {
+                    AccountId = user.UserId,
+                    GroupId = user.UserGroup.Id,
+                    PrimaryDepartmentId = departmentId,
+                    Reason = "Initial account approval by permission administrator."
+                });
+            Toast.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Tài khoản đã được kích hoạt",
+                Duration = 4000
+            });
+            await ReloadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            NotifyError("Kích hoạt tài khoản thất bại: " + ex.Message);
+            await ReloadUsersAsync();
+        }
+        finally
+        {
+            isUserLoading = false;
+            glb.isBusyPage = false;
+            StateHasChanged();
+        }
+    }
+
+    protected async Task ResetPasswordAsync(sp_Authentication_TabUser_UserList user)
+    {
+        if (!CanResetPassword(user))
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.Confirm(
+            $"Tạo mật khẩu tạm thời cho {user.FullName ?? user.UserLogin}? Mật khẩu sẽ chỉ hiển thị một lần cho quản trị viên.",
+            "Reset mật khẩu",
+            new ConfirmOptions { OkButtonText = "Reset", CancelButtonText = Loc["Cancel"].Value });
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        var temporaryPassword = CreateTemporaryPassword();
+        glb.isBusyPage = true;
+        isUserLoading = true;
+        try
+        {
+            await _apiServices.PostFromApiAsync<AccountLifecycleResDTO>(
+                Config.ApiAccountAdminResetPasswordEndpoint,
+                new AdminPasswordResetReqDTO
+                {
+                    AccountId = user.UserId,
+                    TemporaryPassword = temporaryPassword,
+                    ConfirmPassword = temporaryPassword,
+                    Reason = "Password reset by permission administrator."
+                });
+            Toast.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Mật khẩu tạm thời",
+                Detail = $"Gửi mật khẩu này qua kênh nội bộ an toàn: {temporaryPassword}",
+                Duration = 30000
+            });
+        }
+        catch (Exception ex)
+        {
+            NotifyError("Reset mật khẩu thất bại: " + ex.Message);
+        }
+        finally
+        {
+            isUserLoading = false;
+            glb.isBusyPage = false;
+            StateHasChanged();
+        }
+    }
 
     protected async Task DeactivateMembershipAsync(sp_Authentication_TabUser_UserList user)
     {
@@ -297,6 +408,18 @@ public partial class Tab_User
         && string.Equals(user.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase)
         && user.IsActive
         && user.RowVersion is { Length: > 0 };
+
+    protected bool CanPrepareActivation(sp_Authentication_TabUser_UserList user) =>
+        PermissionState.HasPermission(Permissions.PermissionManage)
+        && user.UserId > 0
+        && user.UserId != UserClaims
+        && string.Equals(user.AccountStatus, "PendingApproval", StringComparison.OrdinalIgnoreCase);
+
+    protected bool CanResetPassword(sp_Authentication_TabUser_UserList user) =>
+        PermissionState.HasPermission(Permissions.PermissionManage)
+        && user.UserId > 0
+        && user.UserId != UserClaims
+        && string.Equals(user.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase);
 
     protected bool CanDeactivateMembership(sp_Authentication_TabUser_UserList user) =>
         CanEditMembership(user);
@@ -380,6 +503,13 @@ public partial class Tab_User
         Detail = detail,
         Duration = 10000
     });
+
+    private static string CreateTemporaryPassword()
+    {
+        Span<byte> bytes = stackalloc byte[12];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        return $"Tmp-{Convert.ToHexString(bytes)[..12]}aA1!";
+    }
 
     private string BuildUsersEndpoint(string? filter, int? skip, int? top, string? orderBy)
     {
