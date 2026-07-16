@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using gtas_vpp_be.Model;
 
@@ -11,9 +12,11 @@ using gtas_vpp_be.Model;
 namespace gtas_vpp_be.Migrations.Migrations
 {
     [DbContext(typeof(VPPMigrationDbContext))]
-    partial class VPPMigrationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716173023_Lean07ReportsAndNotificationIdempotency")]
+    partial class Lean07ReportsAndNotificationIdempotency
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1107,76 +1110,6 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .HasFilter("[CorrelationId] IS NOT NULL");
 
                     b.ToTable("N01_Notification");
-                });
-
-            modelBuilder.Entity("gtas_vpp_be.Model.Notifications.N02_EmailOutbox", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("AttemptCount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeduplicationKey")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("HtmlBody")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastAttemptAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastError")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("MemberCompanyCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("NextAttemptAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Recipient")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
-
-                    b.Property<DateTime?>("SentAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .HasColumnType("nvarchar(24)");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("TextBody")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeduplicationKey")
-                        .IsUnique()
-                        .HasDatabaseName("UX_N02_EmailOutbox_DeduplicationKey");
-
-                    b.HasIndex("Status", "NextAttemptAtUtc")
-                        .HasDatabaseName("IX_N02_EmailOutbox_Due");
-
-                    b.ToTable("N02_EmailOutbox");
                 });
 
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VPP00_Period", b =>

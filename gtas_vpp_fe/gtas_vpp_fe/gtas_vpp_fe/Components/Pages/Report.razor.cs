@@ -106,7 +106,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         IsExporting = true;
         try
         {
-            var file = await Api.GetFileFromApiAsync(BuildEndpoint("export"));
+            var file = await Api.GetFileFromApiAsync(BuildEndpoint("export.xlsx"));
             await using var stream = new MemoryStream(file.Content, writable: false);
             using var streamReference = new DotNetStreamReference(stream);
             await JS.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);

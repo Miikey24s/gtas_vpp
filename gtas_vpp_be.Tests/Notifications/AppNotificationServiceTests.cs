@@ -2,6 +2,7 @@ using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.Constants;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -90,5 +91,45 @@ public sealed class AppNotificationServiceTests
             "77500", Permissions.RequestApprove);
 
         Assert.Equal([42], recipients);
+    }
+
+    [Fact]
+    public async Task Publish_IsIdempotentPerRecipientCompanyTypeAndCorrelation()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var realtime = new Mock<INotificationRealtimeNotifier>();
+        realtime.Setup(x => x.NotifyUserAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        var service = new AppNotificationService(context, realtime.Object);
+
+        await service.PublishAsync([10, 11], "77500", "order.test", "Test", "Message", "/dashboard", "order-1");
+        await service.PublishAsync([10, 11], "77500", "order.test", "Test", "Message", "/dashboard", "order-1");
+
+        Assert.Equal(2, await context.Set<gtas_vpp_be.Model.Notifications.N01_Notification>().CountAsync());
+        realtime.Verify(x => x.NotifyUserAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task EmailOutbox_IsDurableAndDeduplicated_WithRetryState()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var outbox = new EmailOutboxService(context);
+        var message = new AccountEmailMessage(
+            "employee@example.test",
+            "GTAS VPP",
+            "Xin chao");
+
+        var first = await outbox.EnqueueAsync("77500", message);
+        var replay = await outbox.EnqueueAsync("77500", message);
+        Assert.Equal(first, replay);
+        Assert.Single(await context.Set<gtas_vpp_be.Model.Notifications.N02_EmailOutbox>().ToListAsync());
+
+        await outbox.MarkFailedAsync(first, "Mailpit unavailable", DateTime.UtcNow.AddMinutes(5));
+        var pending = await outbox.GetDueAsync(DateTime.UtcNow.AddMinutes(6), 10);
+        Assert.Single(pending);
+        Assert.Equal(1, pending[0].AttemptCount);
+
+        await outbox.MarkSentAsync(first, DateTime.UtcNow);
+        Assert.Empty(await outbox.GetDueAsync(DateTime.UtcNow.AddHours(1), 10));
     }
 }

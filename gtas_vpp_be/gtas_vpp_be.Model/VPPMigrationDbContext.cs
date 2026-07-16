@@ -47,6 +47,7 @@ namespace gtas_vpp_be.Model
         #endregion
 
         public virtual DbSet<N01_Notification> N01_Notifications { get; set; }
+        public virtual DbSet<N02_EmailOutbox> N02_EmailOutbox { get; set; }
 
         public VPPMigrationDbContext(DbContextOptions<VPPMigrationDbContext> options) : base(options)
         {
@@ -244,6 +245,24 @@ namespace gtas_vpp_be.Model
                     .HasDatabaseName("IX_N01_User_Company_Read_Created");
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.CorrelationId })
                     .HasDatabaseName("IX_N01_User_Company_Correlation");
+                en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.Type, x.CorrelationId })
+                    .HasDatabaseName("UX_N01_User_Company_Type_Correlation")
+                    .HasFilter("[CorrelationId] IS NOT NULL")
+                    .IsUnique();
+            });
+            modelBuilder.Entity<N02_EmailOutbox>(en =>
+            {
+                en.Property(x => x.MemberCompanyCode).HasMaxLength(50).IsRequired();
+                en.Property(x => x.Recipient).HasMaxLength(320).IsRequired();
+                en.Property(x => x.Subject).HasMaxLength(250).IsRequired();
+                en.Property(x => x.DeduplicationKey).HasMaxLength(128).IsRequired();
+                en.Property(x => x.Status).HasMaxLength(24).IsRequired();
+                en.Property(x => x.LastError).HasMaxLength(1000);
+                en.HasIndex(x => x.DeduplicationKey)
+                    .HasDatabaseName("UX_N02_EmailOutbox_DeduplicationKey")
+                    .IsUnique();
+                en.HasIndex(x => new { x.Status, x.NextAttemptAtUtc })
+                    .HasDatabaseName("IX_N02_EmailOutbox_Due");
             });
         }
 

@@ -217,6 +217,23 @@ public sealed class AppNotificationService(
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(correlationId))
+        {
+            var existingRecipients = await _context.Set<N01_Notification>()
+                .AsNoTracking()
+                .Where(item => recipients.Contains(item.UserId)
+                    && item.MemberCompanyCode == memberCompanyCode
+                    && item.Type == type
+                    && item.CorrelationId == correlationId)
+                .Select(item => item.UserId)
+                .ToListAsync(cancellationToken);
+            recipients = recipients.Except(existingRecipients).ToArray();
+            if (recipients.Length == 0)
+            {
+                return;
+            }
+        }
+
         var now = DateTime.UtcNow;
         var notifications = recipients.Select(userId => new N01_Notification
         {

@@ -179,7 +179,11 @@ builder.Services.AddOptions<AccountEmailOptions>()
             || System.Net.Mail.MailAddress.TryCreate(options.FromAddress, out _),
         "EmailNotifications:FromAddress must be a valid email address when email is enabled.")
     .ValidateOnStart();
-builder.Services.AddSingleton<IAccountEmailSender, SmtpAccountEmailSender>();
+builder.Services.AddScoped<IEmailOutboxService, EmailOutboxService>();
+builder.Services.AddScoped<ICurrentMemberCompanyProvider, DefaultMemberCompanyProvider>();
+builder.Services.AddScoped<SmtpAccountEmailSender>();
+builder.Services.AddScoped<IAccountEmailSender, OutboxAccountEmailSender>();
+builder.Services.AddHostedService<EmailOutboxWorker>();
 builder.Services.AddScoped<IAccountLifecycleService, AccountLifecycleService>();
 builder.Services.AddRateLimiter(options =>
 {
