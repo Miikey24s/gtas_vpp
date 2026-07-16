@@ -57,7 +57,7 @@ must preserve its preflight hash and never stage it.
 | LEAN-05 — Request and supplement core | DONE | `docs/execution/LEAN-05.md`; all package gates green |
 | LEAN-06 — Procurement and immutable settlement | DONE | `CAT-001`, `PRICE-001/002`, `SET-001`, `SET-002/UI-006` DONE; see execution records |
 | LEAN-07 — Product proof | DONE | `docs/execution/LEAN-07.md`; reports/workbook/inbox/outbox gates green |
-| LEAN-08 — Release candidate quality and recovery | DONE (local RC) | `docs/execution/LEAN-08.md`; authenticated E2E and owner-authorized backup remain explicit manual evidence |
+| LEAN-08 — Release candidate quality and recovery | DONE (local RC + isolated E2E) | `docs/execution/LEAN-08.md`; second clean rehearsal and owner-authorized backup remain explicit manual evidence |
 | LEAN-09 — Thesis, defense and handoff | IN_PROGRESS | Traceability/diagram delta recorded; protected DOCX remains unchanged |
 
 ## 4. Retained execution packages

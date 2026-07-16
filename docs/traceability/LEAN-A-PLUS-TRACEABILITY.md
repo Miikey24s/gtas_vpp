@@ -25,13 +25,15 @@ execution evidence that was actually run in the local release candidate.
 | LEAN-06 PRICE-002 | `c00af56` | DONE |
 | LEAN-06 SET-001/SET-002 | `e97f781`, `ca3b594` | DONE |
 | LEAN-07 | `d6cde93` | DONE |
-| LEAN-08 local RC | `8b51a45` | DONE for local gates; authenticated E2E/owner backup remains explicit manual evidence |
+| LEAN-08 local RC | `8b51a45` | DONE for local gates; isolated authenticated UI suite 16/16 passed; second clean rehearsal/owner backup remain explicit manual evidence |
 
 ## Release claims
 
 - Backend Release: 384 passed.
 - Frontend Release: 96 passed.
 - Integration Release: 14 passed, 6 skipped by explicit LocalDB opt-in.
+- Isolated authenticated UI Release suite: 16 passed, 0 failed, 0 skipped in
+  427.0 seconds; targeted ProductCatalog rerun: 1 passed.
 - Solution Release build: 0 warnings, 0 errors.
 - Current-tree gitleaks: clean.
 - Protected working DOCX and UI shell hashes are preserved; no protected file

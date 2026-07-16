@@ -27,14 +27,16 @@ Status: DONE for the local release candidate gates.
   exponential retry.
 - Authenticated Playwright journeys require the repository's
   `GTAS_E2E_ISOLATED=1` harness-owned LocalDB fixture. A direct run without the
-  opt-in is rejected by the safety contract; the isolated runner was started
-  but did not emit a complete result summary in this environment. No E2E pass
-  is claimed from that run. Production credentials, external URLs and real
-  mail providers were not used.
+  opt-in is rejected by the safety contract. With the isolated fixture and the
+  explicit mutation opt-in, the complete Release UI suite finished with
+  `16 passed, 0 failed, 0 skipped` in 427.0 seconds; the targeted
+  `ProductCatalogTests` rerun separately also finished `1 passed` in 35.8
+  seconds. Production credentials, external URLs and real mail providers were
+  not used.
 
 ## Cutline
 
 This local RC is suitable for source freeze and thesis traceability work. The
-remaining external/manual evidence is a harness-owned authenticated browser
-run plus any owner-authorized server backup/restore rehearsal; neither is
-silently represented as completed here.
+remaining external/manual evidence is a second clean-state demonstration and
+any owner-authorized server backup/restore rehearsal; neither is silently
+represented as completed here.

@@ -17,6 +17,13 @@ Status: IN_PROGRESS with source-freeze traceability prepared.
   bundled documents renderer, but LibreOffice/`soffice` is not installed in
   this environment. Per the documents skill fallback, no visual-pass claim is
   made and the existing checkpoint was not modified.
+- Read-only structural audit of `LVTN/checkpoints/99_final.docx` succeeded:
+  the DOCX ZIP is valid with 126 parts, 64 TOC tokens, 149 hyperlinks and 121
+  bookmarks; its SHA-256 remains
+  `99A1E1B78DCCB8CDB6BA79DEE82EB4CDF4A0B062F92C82E377130051D8A8C2CE`.
+- The isolated authenticated UI suite now has a complete result: 16/16 tests
+  passed with 0 failures and 0 skips in 427.0 seconds; this is local QA
+  evidence, not production evidence.
 
 ## Explicit handoff boundaries
 
@@ -24,8 +31,8 @@ Status: IN_PROGRESS with source-freeze traceability prepared.
   protected file boundary. A final Word update therefore remains an owner
   action after source freeze, using the documents render-and-verify workflow;
   no claim is made that the working DOCX now contains LEAN-06/07 text.
-- Authenticated Playwright rehearsal requires a harness-owned fixture and was
-  not silently counted as passed in LEAN-08. A second clean rehearsal and any
-  owner-authorized backup/restore rehearsal remain manual handoff evidence.
+- A second clean-state demonstration and any owner-authorized backup/restore
+  rehearsal remain manual handoff evidence. The completed 16-test run is the
+  first full isolated rehearsal.
 - No production/provider mutation, real email delivery, or credential handoff
   was performed.
