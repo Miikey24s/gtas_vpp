@@ -36,6 +36,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private string? currentFilterExpression;
         private bool HasPriceLists => priceLists.Count > 0;
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
+        private bool IsSelectedPriceListDraft
+            => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.Status == "Draft";
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
             : selectedSupplierId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
@@ -78,7 +80,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 suppliers = await suppliersTask ?? [];
                 
                 selectedPriceListId = ResolveSelectedPriceListId();
-                selectedSupplierId = suppliers.FirstOrDefault(s => s.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName)?.Id
+                selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId
+                                     ?? suppliers.FirstOrDefault(s => s.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName)?.Id
                                      ?? suppliers.FirstOrDefault()?.Id;
 
                 await LoadPricesAsync();
@@ -186,9 +189,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     L04_VPPId = row.VPPId,
                     L07_PriceListId = selectedPriceListId.Value,
                     L05_VPPSupplierId = selectedSupplierId.Value,
-                    Price = 0,
+                        Price = 0,
                     IsDefault = false,
-                    Description = ""
+                        Description = "",
+                        VatRate = 0,
+                        MinimumOrderQuantity = 0,
+                        LeadTimeDays = 0
                 };
                 var result = await OpenEditorAsync(Loc["AddNewPrice"].Value, model);
                 if (result is null) return;
@@ -201,6 +207,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         L05_VPPSupplierId = result.L05_VPPSupplierId,
                         L07_PriceListId = selectedPriceListId.Value,
                         Price = result.Price,
+                        NetPrice = result.NetPrice,
+                        VatRate = result.VatRate,
+                        MinimumOrderQuantity = result.MinimumOrderQuantity,
+                        LeadTimeDays = result.LeadTimeDays,
+                        SupplierSku = result.SupplierSku,
                         IsDefault = result.IsDefault,
                         Description = result.Description
                     };
@@ -222,6 +233,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     L05_VPPSupplierId = selectedSupplierId.Value,
                     L07_PriceListId = selectedPriceListId.Value,
                     Price = row.Price ?? 0,
+                    NetPrice = row.NetPrice,
+                    VatRate = row.VatRate,
+                    MinimumOrderQuantity = row.MinimumOrderQuantity,
+                    LeadTimeDays = row.LeadTimeDays,
+                    SupplierSku = row.SupplierSku,
                     IsDefault = row.IsDefault,
                     Description = row.Description
                 };
@@ -350,6 +366,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task OnPriceListChangedAsync()
         {
+            selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId ?? selectedSupplierId;
             await LoadPricesAsync();
         }
 

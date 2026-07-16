@@ -1,4 +1,5 @@
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -132,10 +133,13 @@ namespace gtas_vpp_be.Service.Services
         public async Task<L07_PriceListResDTO> CreateAsync(L07_PriceListCreateReqDTO req, int userId)
         {
             ValidatePriceBook(req.SupplierId, req.Version, req.EffectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
+            PriceBookWorkflowService.ValidateCommercialTerms(
+                req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
             await _scopedUow.BeginTransactionAsync();
             try
             {
                 var now = _dateTimeProvider.Now;
+                var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
                 await ValidateSupplierAsync(req.SupplierId);
                 if (req.IsDefault)
                 {
@@ -151,12 +155,16 @@ namespace gtas_vpp_be.Service.Services
                     IsDefault = req.IsDefault,
                     SupplierId = req.SupplierId,
                     Version = req.Version,
-                    EffectiveFromUtc = NormalizeUtc(req.EffectiveFromUtc ?? now),
+                    EffectiveFromUtc = req.EffectiveFromUtc.HasValue ? NormalizeUtc(req.EffectiveFromUtc.Value) : nowUtc,
                     EffectiveToUtc = req.EffectiveToUtc.HasValue ? NormalizeUtc(req.EffectiveToUtc.Value) : null,
                     Status = L07_PriceListStatus.Draft,
                     CurrencyCode = NormalizeCurrency(req.CurrencyCode),
                     VatPolicy = NormalizeVatPolicy(req.VatPolicy),
                     ContractCode = NormalizeOptional(req.ContractCode),
+                    DiscountRate = req.DiscountRate,
+                    RebateAmount = req.RebateAmount,
+                    FeeAmount = req.FeeAmount,
+                    ShippingAmount = req.ShippingAmount,
                     CreateUserId = userId,
                     CreateDate = now,
                     UpdateUserId = userId,
@@ -200,7 +208,18 @@ namespace gtas_vpp_be.Service.Services
 
                 var effectiveFromUtc = req.EffectiveFromUtc ?? entity.EffectiveFromUtc;
                 ValidatePriceBook(req.SupplierId, req.Version, effectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
+                PriceBookWorkflowService.ValidateCommercialTerms(
+                    req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
                 await ValidateSupplierAsync(req.SupplierId);
+
+                if (req.RowVersion is { Length: > 0 })
+                {
+                    if (entity.RowVersion is not { Length: > 0 } || !entity.RowVersion.SequenceEqual(req.RowVersion))
+                    {
+                        throw new ConflictException("The price book changed. Reload before retrying.");
+                    }
+                    _scopedUow.VPPContext.Entry(entity).Property(x => x.RowVersion).OriginalValue = req.RowVersion;
+                }
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
@@ -219,6 +238,10 @@ namespace gtas_vpp_be.Service.Services
                 entity.CurrencyCode = NormalizeCurrency(req.CurrencyCode);
                 entity.VatPolicy = NormalizeVatPolicy(req.VatPolicy);
                 entity.ContractCode = NormalizeOptional(req.ContractCode);
+                entity.DiscountRate = req.DiscountRate;
+                entity.RebateAmount = req.RebateAmount;
+                entity.FeeAmount = req.FeeAmount;
+                entity.ShippingAmount = req.ShippingAmount;
                 entity.UpdateUserId = userId;
                 entity.UpdateDate = now;
 
@@ -361,6 +384,7 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var now = _dateTimeProvider.Now;
+                var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
                 var clone = new L07_PriceList
                 {
                     Id = Guid.NewGuid(),
@@ -370,12 +394,16 @@ namespace gtas_vpp_be.Service.Services
                     IsDefault = false,
                     SupplierId = source.SupplierId,
                     Version = source.Version + 1,
-                    EffectiveFromUtc = NormalizeUtc(now),
+                    EffectiveFromUtc = nowUtc,
                     EffectiveToUtc = null,
                     Status = L07_PriceListStatus.Draft,
                     CurrencyCode = source.CurrencyCode,
                     VatPolicy = source.VatPolicy,
                     ContractCode = source.ContractCode,
+                    DiscountRate = source.DiscountRate,
+                    RebateAmount = source.RebateAmount,
+                    FeeAmount = source.FeeAmount,
+                    ShippingAmount = source.ShippingAmount,
                     CreateUserId = userId,
                     CreateDate = now,
                     UpdateUserId = userId,
@@ -457,6 +485,15 @@ namespace gtas_vpp_be.Service.Services
                     VatPolicy = x.VatPolicy,
                     ContractCode = x.ContractCode,
                     LegacyBackfillStatus = x.LegacyBackfillStatus,
+                    DiscountRate = x.DiscountRate,
+                    RebateAmount = x.RebateAmount,
+                    FeeAmount = x.FeeAmount,
+                    ShippingAmount = x.ShippingAmount,
+                    PublishedAtUtc = x.PublishedAtUtc,
+                    PublishedByUserId = x.PublishedByUserId,
+                    ExpiredAtUtc = x.ExpiredAtUtc,
+                    ExpiredByUserId = x.ExpiredByUserId,
+                    StatusReason = x.StatusReason,
                     RowVersion = x.RowVersion,
                     ItemCount = x.L06_VPPSupplierMappings!.Count(m => showDeleted || !m.IsDeleted)
                 });

@@ -113,7 +113,8 @@
                     {
                         <div class="vpp-admin-is-deleted-cell">
                             <RadzenSwitch TValue="bool"
-                                          Value="@row.IsDeleted"
+                            Value="@row.IsDeleted"
+                            Disabled="@(!IsSelectedPriceListDraft)"
                                           Change="@(async (bool value) => await SetDeletedPriceAsync(row, value))"
                                           class="isDeleteSwitch"
                                           Style="transform: scale(0.75);" />
@@ -133,7 +134,7 @@
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Light"
                                       title="@GetEditPriceActionTitle(row)"
-                                      Disabled="@row.IsDeleted"
+                             Disabled="@(row.IsDeleted || !IsSelectedPriceListDraft)"
                                       Click="@(() => EditPriceAsync(row))" />
                         <RadzenButton Icon="star"
                                       Size="ButtonSize.Small"
@@ -145,7 +146,7 @@
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Danger"
                                       title="@Loc["HardDelete"]"
-                                      Disabled="@(!row.PriceMappingId.HasValue)"
+                             Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)"
                                       Click="@(() => HardDeletePriceAsync(row))" />
                     </div>
                 </Template>

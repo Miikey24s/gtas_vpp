@@ -98,6 +98,11 @@ namespace gtas_vpp_be.Service.Services
                     UOMName = vpp.UOM == null ? null : vpp.UOM.ClassDetailValue,
                     PriceMappingId = mapping == null ? null : mapping.Id,
                     Price = mapping == null ? null : mapping.Price,
+                    NetPrice = mapping == null ? null : (mapping.NetPrice == 0m && mapping.Price != 0m ? mapping.Price : mapping.NetPrice),
+                    VatRate = mapping == null ? 0m : mapping.VatRate,
+                    MinimumOrderQuantity = mapping == null ? 0m : mapping.MinimumOrderQuantity,
+                    LeadTimeDays = mapping == null ? 0 : mapping.LeadTimeDays,
+                    SupplierSku = mapping == null ? null : mapping.SupplierSku,
                     IsDefault = mapping != null && mapping.IsDefault,
                     IsDeleted = mapping != null && mapping.IsDeleted,
                     Description = mapping == null ? null : mapping.Description

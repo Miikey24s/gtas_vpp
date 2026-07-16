@@ -117,6 +117,11 @@ namespace gtas_vpp_be.Model
                 en.Property(x => x.VatPolicy).HasMaxLength(32).IsRequired();
                 en.Property(x => x.ContractCode).HasMaxLength(128);
                 en.Property(x => x.LegacyBackfillStatus).HasMaxLength(64);
+                en.Property(x => x.DiscountRate).HasColumnType("decimal(5,2)");
+                en.Property(x => x.RebateAmount).HasColumnType("decimal(19,4)");
+                en.Property(x => x.FeeAmount).HasColumnType("decimal(19,4)");
+                en.Property(x => x.ShippingAmount).HasColumnType("decimal(19,4)");
+                en.Property(x => x.StatusReason).HasMaxLength(500);
                 en.Property(x => x.Status).HasConversion<int>().IsRequired();
                 en.Property(x => x.RowVersion).IsRowVersion();
                 en.HasOne(x => x.Supplier).WithMany(x => x.PriceBooks)
@@ -137,6 +142,12 @@ namespace gtas_vpp_be.Model
                 en.ToTable(t => t.HasCheckConstraint(
                     "CK_L07_PriceBook_VersionPositive",
                     "[Version] > 0"));
+                en.ToTable(t => t.HasCheckConstraint(
+                    "CK_L07_PriceBook_DiscountRate",
+                    "[DiscountRate] >= 0 AND [DiscountRate] <= 100"));
+                en.ToTable(t => t.HasCheckConstraint(
+                    "CK_L07_PriceBook_CommercialAmounts",
+                    "[RebateAmount] >= 0 AND [FeeAmount] >= 0 AND [ShippingAmount] >= 0"));
             });
             modelBuilder.Entity<VPP02_RequestDetail>(en =>
             {

@@ -49,6 +49,9 @@ namespace gtas_vpp_fe.Helpers
             public const string L07_PriceList = $"{ApiBase}/vpppricelist";
             public const string L07_PriceList_SetDefault = $"{L07_PriceList}/{{0}}/set-default";
             public const string L07_PriceList_Clone = $"{L07_PriceList}/clone";
+            public const string L07_PriceList_Publish = $"{L07_PriceList}/{{0}}/publish";
+            public const string L07_PriceList_Expire = $"{L07_PriceList}/{{0}}/expire";
+            public const string L07_PriceList_Compare = $"{L07_PriceList}/compare";
         }
 
         public static class RequestApi

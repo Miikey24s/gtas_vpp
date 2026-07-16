@@ -32,6 +32,20 @@ namespace gtas_vpp_be.Model.Library
         public string? ContractCode { get; set; }
         [StringLength(64)]
         public string? LegacyBackfillStatus { get; set; }
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal DiscountRate { get; set; }
+        [Column(TypeName = "decimal(19,4)")]
+        public decimal RebateAmount { get; set; }
+        [Column(TypeName = "decimal(19,4)")]
+        public decimal FeeAmount { get; set; }
+        [Column(TypeName = "decimal(19,4)")]
+        public decimal ShippingAmount { get; set; }
+        public DateTime? PublishedAtUtc { get; set; }
+        public int? PublishedByUserId { get; set; }
+        public DateTime? ExpiredAtUtc { get; set; }
+        public int? ExpiredByUserId { get; set; }
+        [StringLength(500)]
+        public string? StatusReason { get; set; }
 
         [Timestamp]
         public byte[] RowVersion { get; set; } = [];

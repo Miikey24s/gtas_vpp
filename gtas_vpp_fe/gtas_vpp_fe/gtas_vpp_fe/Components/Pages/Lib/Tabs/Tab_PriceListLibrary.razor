@@ -60,6 +60,7 @@
                     <div class="vpp-admin-is-deleted-cell">
                         <RadzenSwitch TValue="bool"
                                       Value="@row.IsDeleted"
+                                      Disabled="@(row.Status == "Published")"
                                       Change="@(async (bool value) => await SetDeletedAsync(row, value))"
                                       class="isDeleteSwitch"
                                       Style="transform: scale(0.75);" />
@@ -68,6 +69,9 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" Width="130px" />
             <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="SupplierName" Title="Supplier" Width="170px" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="Version" Title="Version" Width="82px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="Status" Title="Status" Width="105px" TextAlign="TextAlign.Center" />
             <RadzenDataGridColumn TItem="L07_PriceListResDTO" Property="IsDefault" Title="@Loc["IsDefault"]" Width="104px" TextAlign="TextAlign.Center">
                 <Template Context="row">
                     <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
@@ -86,10 +90,12 @@
                 <Template Context="row">
                     <div class="vpp-admin-actions">
                         <RadzenButton Icon="payments" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="@Loc["EditPrice"]" Disabled="@row.IsDeleted" Click="@(() => OpenPricesAsync(row))" />
-                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@row.IsDeleted" Click="@(() => EditAsync(row))" />
+                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@(row.IsDeleted || row.Status != "Draft")" Click="@(() => EditAsync(row))" />
+                        <RadzenButton Icon="publish" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Publish" Disabled="@(row.IsDeleted || row.Status != "Draft")" Click="@(() => PublishAsync(row))" />
+                        <RadzenButton Icon="timer_off" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="Expire" Disabled="@(row.IsDeleted || row.Status != "Published")" Click="@(() => ExpireAsync(row))" />
                         <RadzenButton Icon="star" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" title="@Loc["SetAsDefault"]" Disabled="@(row.IsDefault || row.IsDeleted)" Click="@(() => SetDefaultAsync(row))" />
                         <RadzenButton Icon="content_copy" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" title="@Loc["Clone"]" Click="@(() => CloneAsync(row))" />
-                        <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" title="@Loc["HardDelete"]" Click="@(() => HardDeleteAsync(row))" />
+                        <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" title="@Loc["HardDelete"]" Disabled="@(row.Status == "Published")" Click="@(() => HardDeleteAsync(row))" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>

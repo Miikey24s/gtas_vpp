@@ -1,4 +1,5 @@
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -8,7 +9,7 @@ namespace gtas_vpp_be.Service.Services;
 
 public sealed class PriceAsOfResolver : IPriceAsOfResolver
 {
-    public const string CurrentCalculationVersion = "price-vat-v1";
+    public const string CurrentCalculationVersion = PriceCalculationEngine.CurrentVersion;
 
     private readonly IUnitOfWork _unitOfWork;
 
@@ -233,8 +234,7 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         var netUnitPrice = candidate.NetPrice == 0m && candidate.LegacyPrice != 0m
             ? candidate.LegacyPrice
             : candidate.NetPrice;
-        var netAmount = RoundMoney(netUnitPrice * quantity);
-        var vatAmount = RoundMoney(netAmount * candidate.VatRate / 100m);
+        var calculation = PriceCalculationEngine.CalculateLine(netUnitPrice, candidate.VatRate, quantity);
 
         result.IsResolved = true;
         result.BlockerCode = PriceResolutionBlockerCode.None;
@@ -247,9 +247,9 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         result.CurrencyCode = candidate.CurrencyCode;
         result.NetUnitPrice = netUnitPrice;
         result.VatRate = candidate.VatRate;
-        result.NetAmount = netAmount;
-        result.VatAmount = vatAmount;
-        result.GrossAmount = netAmount + vatAmount;
+        result.NetAmount = calculation.NetAmount;
+        result.VatAmount = calculation.VatAmount;
+        result.GrossAmount = calculation.GrossAmount;
         result.MinimumOrderQuantity = candidate.MinimumOrderQuantity;
         result.LeadTimeDays = candidate.LeadTimeDays;
         result.SupplierSku = candidate.SupplierSku;
@@ -284,9 +284,6 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
             DateTimeKind.Local => value.ToUniversalTime(),
             _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
         };
-
-    private static decimal RoundMoney(decimal value)
-        => decimal.Round(value, 4, MidpointRounding.AwayFromZero);
 
     private sealed record PriceCandidate(
         Guid PriceListId,
