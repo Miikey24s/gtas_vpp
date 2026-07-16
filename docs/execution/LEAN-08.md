@@ -31,12 +31,13 @@ Status: DONE for the local release candidate gates.
   explicit mutation opt-in, the complete Release UI suite finished with
   `16 passed, 0 failed, 0 skipped` in 427.0 seconds; the targeted
   `ProductCatalogTests` rerun separately also finished `1 passed` in 35.8
-  seconds. Production credentials, external URLs and real mail providers were
-  not used.
+  seconds. A second clean isolated rehearsal then finished with
+  `16 passed, 0 failed, 0 skipped` in 406.9 seconds. Production credentials,
+  external URLs and real mail providers were not used.
 
 ## Cutline
 
 This local RC is suitable for source freeze and thesis traceability work. The
-remaining external/manual evidence is a second clean-state demonstration and
-any owner-authorized server backup/restore rehearsal; neither is silently
-represented as completed here.
+two clean-state UI demonstrations are complete. Remaining external/manual
+evidence is the owner-authorized server backup/restore rehearsal; it is not
+silently represented as completed here.

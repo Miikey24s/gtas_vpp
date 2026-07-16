@@ -25,16 +25,23 @@ execution evidence that was actually run in the local release candidate.
 | LEAN-06 PRICE-002 | `c00af56` | DONE |
 | LEAN-06 SET-001/SET-002 | `e97f781`, `ca3b594` | DONE |
 | LEAN-07 | `d6cde93` | DONE |
-| LEAN-08 local RC | `8b51a45` | DONE for local gates; isolated authenticated UI suite 16/16 passed; second clean rehearsal/owner backup remain explicit manual evidence |
+| LEAN-08 local RC | `8b51a45` | DONE for local gates; two isolated authenticated UI rehearsals 16/16 passed; owner backup remains explicit manual evidence |
+| LEAN-09 thesis/handoff | `df3b820` plus checkpoint refresh | IN_PROGRESS; traceability/diagram delta recorded, final checkpoint rendered and structurally audited |
 
 ## Release claims
 
 - Backend Release: 384 passed.
 - Frontend Release: 96 passed.
 - Integration Release: 14 passed, 6 skipped by explicit LocalDB opt-in.
-- Isolated authenticated UI Release suite: 16 passed, 0 failed, 0 skipped in
-  427.0 seconds; targeted ProductCatalog rerun: 1 passed.
+- Isolated authenticated UI Release suite: rehearsal #1 16 passed, 0 failed,
+  0 skipped in 427.0 seconds; rehearsal #2 16 passed, 0 failed, 0 skipped in
+  406.9 seconds; targeted ProductCatalog rerun: 1 passed.
 - Solution Release build: 0 warnings, 0 errors.
 - Current-tree gitleaks: clean.
+- Final checkpoint `LVTN/checkpoints/99_final.docx` is a valid 126-part DOCX
+  with 121 bookmarks, 132 internal links (0 broken), 99 `PAGEREF` fields, no
+  missing media and no missing image alt text; it rendered as a visually
+  inspected 79-page PDF through the `soffice.com` fallback.
 - Protected working DOCX and UI shell hashes are preserved; no protected file
-  is staged by the checkpoints above.
+  is staged by the checkpoints above. Owner-authorized server backup/restore
+  remains the explicit handoff boundary.

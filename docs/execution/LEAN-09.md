@@ -1,6 +1,7 @@
 # LEAN-09 — Thesis, defense and handoff
 
-Status: IN_PROGRESS with source-freeze traceability prepared.
+Status: IN_PROGRESS with source-freeze traceability prepared and the final
+checkpoint refreshed from the protected working source.
 
 ## Completed safely in this workspace
 
@@ -13,26 +14,30 @@ Status: IN_PROGRESS with source-freeze traceability prepared.
   visually inspected and is readable in black/white print style.
 - Preserved the protected working DOCX byte-for-byte. Its SHA-256 remains
   `E9E91C5A9A67F736E9CEAEC0DA1282DC68AF44E3D36039A465E214F0756AE17D`.
-- Read-only render of `LVTN/checkpoints/99_final.docx` was attempted with the
-  bundled documents renderer, but LibreOffice/`soffice` is not installed in
-  this environment. Per the documents skill fallback, no visual-pass claim is
-  made and the existing checkpoint was not modified.
-- Read-only structural audit of `LVTN/checkpoints/99_final.docx` succeeded:
-  the DOCX ZIP is valid with 126 parts, 64 TOC tokens, 149 hyperlinks and 121
-  bookmarks; its SHA-256 remains
-  `99A1E1B78DCCB8CDB6BA79DEE82EB4CDF4A0B062F92C82E377130051D8A8C2CE`.
-- The isolated authenticated UI suite now has a complete result: 16/16 tests
-  passed with 0 failures and 0 skips in 427.0 seconds; this is local QA
+- The bundled documents renderer's `soffice.exe` path hung, so the documents
+  skill fallback used the installed console binary `soffice.com` with an
+  isolated profile. The refreshed checkpoint rendered to a 79-page PDF at
+  171 DPI; all five contact sheets were inspected with no blank page,
+  clipping, overlap or unreadable diagram found.
+- Generated `LVTN/checkpoints/99_final.docx` from the protected working source
+  through `LVTN/tooling/update_lean09_candidate.py`, updating 24 paragraph/table
+  claims, the settlement sequence diagram, current test counts and the two UI
+  rehearsal results. The protected working source itself was not edited.
+- Structural audit of the refreshed checkpoint succeeded: valid 126-part DOCX
+  ZIP, 121 unique bookmarks, 132 internal hyperlinks with no broken targets,
+  17 external relationships, 99 `PAGEREF` fields, no missing media and no
+  missing image alt text. The checkpoint SHA-256 is
+  `508EB7419E6FA007444AE11385061D9CAAAC235D2FE677CCA68CA00D604F1EC4`.
+- The isolated authenticated UI suite has two complete clean rehearsals:
+  rehearsal #1 `16/16 pass, 0 fail, 0 skip` in 427.0 seconds and rehearsal #2
+  `16/16 pass, 0 fail, 0 skip` in 406.9 seconds. These are local QA
   evidence, not production evidence.
 
 ## Explicit handoff boundaries
 
-- The user-owned working DOCX cannot be edited in this run because it is a
-  protected file boundary. A final Word update therefore remains an owner
-  action after source freeze, using the documents render-and-verify workflow;
-  no claim is made that the working DOCX now contains LEAN-06/07 text.
-- A second clean-state demonstration and any owner-authorized backup/restore
-  rehearsal remain manual handoff evidence. The completed 16-test run is the
-  first full isolated rehearsal.
-- No production/provider mutation, real email delivery, or credential handoff
-  was performed.
+- The user-owned working DOCX remains a protected file boundary and retains its
+  original hash. The handoff checkpoint is refreshed, but any later owner edit
+  to the working source requires another field update and render pass.
+- Owner-authorized server backup/restore rehearsal remains manual handoff
+  evidence. No production/provider mutation, real email delivery, or
+  credential handoff was performed.
