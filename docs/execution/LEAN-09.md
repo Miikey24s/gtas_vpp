@@ -1,7 +1,8 @@
 # LEAN-09 — Thesis, defense and handoff
 
-Status: IN_PROGRESS with source-freeze traceability prepared and the final
-checkpoint refreshed from the protected working source.
+Status: IN_PROGRESS with source-freeze traceability prepared, current
+anonymized UI evidence embedded, and the final checkpoint refreshed from the
+protected working source.
 
 ## Completed safely in this workspace
 
@@ -19,28 +20,47 @@ checkpoint refreshed from the protected working source.
   isolated profile. The refreshed checkpoint rendered to a 79-page PDF at
   171 DPI; all five contact sheets were inspected with no blank page,
   clipping, overlap or unreadable diagram found.
+- Regenerated nine thesis UI screenshots from the isolated authenticated
+  fixture with persona-correct routes (`GTAS_THESIS_SCREENSHOT_DIR`): login,
+  employee request views, procurement period/order/catalog views, and the
+  system-admin permission view. The price-list capture is an explicit empty
+  QA state after transient UI settlement; it is not presented as production
+  data evidence.
+- Replaced the inherited login background with the GTAS-specific
+  `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/images/login-bg-gtas.png`,
+  removing the PPJ Group mark while preserving the scene. The image edit was
+  performed through the approved image-generation skill and then reviewed in
+  the rendered login screenshot.
 - Generated `LVTN/checkpoints/99_final.docx` from the protected working source
-  through `LVTN/tooling/update_lean09_candidate.py`, updating 24 paragraph/table
-  claims, the settlement sequence diagram, current test counts and the two UI
-  rehearsal results. The protected working source itself was not edited.
+  through `LVTN/tooling/update_lean09_candidate.py`, updating 25 paragraph/table
+  claims, the settlement sequence diagram, current test counts, the two UI
+  rehearsal results, and nine bookmarked screenshot media parts. The protected
+  working source itself was not edited.
 - Structural audit of the refreshed checkpoint succeeded: valid 126-part DOCX
   ZIP, 121 unique bookmarks, 132 internal hyperlinks with no broken targets,
   17 external relationships, 99 `PAGEREF` fields, no missing media and no
   missing image alt text. The checkpoint SHA-256 is
-  `508EB7419E6FA007444AE11385061D9CAAAC235D2FE677CCA68CA00D604F1EC4`.
+  `D225BD8D8F0138AF539A6D27FF3AC5CC71F7718A0B547E62B74BE29BDE5C646D`.
 - The isolated authenticated UI suite has two complete clean rehearsals:
   rehearsal #1 `16/16 pass, 0 fail, 0 skip` in 427.0 seconds and rehearsal #2
   `16/16 pass, 0 fail, 0 skip` in 406.9 seconds. These are local QA
-  evidence, not production evidence.
+  evidence, not production evidence. After the screenshot-capture change,
+  the targeted `ShellResponsiveTests` rerun passed `1/1` in 49.0 seconds with
+  `GTAS_E2E_ISOLATED=1`.
+- Reviewed the four deployment backup/restore scripts without touching a
+  database: Git Bash `-n` syntax validation passed, the backup script rejected
+  an unsafe database name, and both restore entry points rejected missing
+  confirmation variables before any Docker call. A real paired backup/restore
+  still requires the owner-controlled deployed environment and credentials.
 
 ## Explicit handoff boundaries
 
 - The user-owned working DOCX remains a protected file boundary and retains its
   original hash. The handoff checkpoint is refreshed, but any later owner edit
   to the working source requires another field update and render pass.
-- The checkpoint still contains the legacy PPJ Group UI screenshots in the
-  inherited visual section. Replacing those images needs owner-approved current
-  screenshots; the protected UI shell was not changed in this run.
+- The checkpoint's nine inherited UI figure slots now contain current
+  persona-correct screenshots from the isolated fixture. They document the
+  local QA state only; they are not production/provider evidence.
 - Owner-authorized server backup/restore rehearsal remains manual handoff
   evidence. No production/provider mutation, real email delivery, or
   credential handoff was performed.

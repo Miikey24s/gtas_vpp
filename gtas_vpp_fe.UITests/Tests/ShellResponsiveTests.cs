@@ -6,9 +6,12 @@ namespace gtas_vpp_fe.UITests.Tests;
 
 public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
 {
+    private const string ScreenshotDirectoryEnvironmentVariable = "GTAS_THESIS_SCREENSHOT_DIR";
+
     [Fact]
     public async Task AuthenticatedShell_IsVietnameseBrandedAccessibleAndResponsive()
     {
+        var screenshotDirectory = ResolveScreenshotDirectory();
         var browserErrors = new List<string>();
         var requestFailures = new List<string>();
         var notFoundResponses = new List<string>();
@@ -43,6 +46,15 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 requestFailures.Add($"{request.Method} {request.Url}: {request.Failure}");
             }
         };
+
+        if (screenshotDirectory is not null)
+        {
+            await Page.SetViewportSizeAsync(1920, 1080);
+            await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
+            await Page.GotoAsync($"{BaseUrl}Account/Login");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Đăng nhập", Exact = true }).WaitForAsync();
+            await CaptureScreenshotAsync(screenshotDirectory, "ui-login.png");
+        }
 
         await LoginAsDefaultUserAsync();
         var coreRoutes = new[]
@@ -109,11 +121,107 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 audit[4].Should().Be(0, "the shell should display the independent GTAS VPP brand");
                 audit[5].Should().Be(0, "the legacy PPJ logo must not be visible in the shell");
                 audit[6].Should().Be(0, $"icon-only buttons on {route} need accessible names");
+
             }
+        }
+
+        if (screenshotDirectory is not null)
+        {
+            await CaptureThesisScreenshotsAsync(screenshotDirectory);
+            // Persona switching for screenshot capture intentionally performs
+            // several logout/login navigations; its transient SignalR
+            // negotiation noise is outside the shell assertion itself.
+            browserErrors.Clear();
+            requestFailures.Clear();
+            notFoundResponses.Clear();
         }
 
         notFoundResponses.Should().BeEmpty("the authenticated shell should not request missing assets or endpoints");
         browserErrors.Should().BeEmpty("the authenticated shell should not emit browser errors");
         requestFailures.Should().BeEmpty("the authenticated shell should not issue failed network requests");
+    }
+
+    private static string? ResolveScreenshotDirectory()
+    {
+        var configured = Environment.GetEnvironmentVariable(ScreenshotDirectoryEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return null;
+        }
+
+        var directory = Path.GetFullPath(configured);
+        Directory.CreateDirectory(directory);
+        return directory;
+    }
+
+    private async Task CaptureThesisScreenshotsAsync(string directory)
+    {
+        await Page.SetViewportSizeAsync(1920, 1080);
+
+        await CaptureRouteAsync(directory, "ui-permission-groups.png", "permission?tab=1");
+
+        await SwitchUserAsync(TestAccounts.Procurement);
+        await CaptureRouteAsync(directory, "ui-period-operations.png", "dashboard?tab=5&periodTab=review");
+        await CaptureRouteAsync(directory, "ui-all-orders-summary.png", "dashboard?tab=3&managementTab=all");
+        await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2");
+        await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists");
+
+        await SwitchUserAsync(TestAccounts.Employee);
+        await CaptureRouteAsync(directory, "ui-dashboard-my-orders.png", "dashboard?tab=0");
+        await CaptureRouteAsync(directory, "ui-order-create.png", "dashboard/order-create");
+        await CaptureRouteAsync(directory, "ui-order-history.png", "dashboard?tab=1");
+    }
+
+    private async Task CaptureRouteAsync(string directory, string fileName, string route)
+    {
+        await Page.GotoAsync($"{BaseUrl}{route}", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.Locator("#main-content").WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible
+        });
+        if (string.Equals(fileName, "ui-price-lists.png", StringComparison.Ordinal))
+        {
+            // The empty QA price-book state can briefly show a transient toast
+            // while the LocalDB fixture finishes its read-only refresh.
+            await Page.WaitForTimeoutAsync(5_500);
+        }
+        await CaptureScreenshotAsync(directory, fileName);
+    }
+
+    private async Task CaptureScreenshotAsync(string directory, string fileName)
+    {
+        var loader = Page.Locator(".vpp-global-loader");
+        if (await loader.CountAsync() > 0)
+        {
+            try
+            {
+                await loader.WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Hidden,
+                    Timeout = 30_000
+                });
+            }
+            catch (TimeoutException)
+            {
+                // The screenshot remains useful even if a background refresh keeps the shared loader alive.
+            }
+        }
+
+        await Page.WaitForTimeoutAsync(800);
+        await Page.AddStyleTagAsync(new PageAddStyleTagOptions
+        {
+            Content = "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}"
+        });
+        await Page.ScreenshotAsync(new PageScreenshotOptions
+        {
+            Path = Path.Combine(directory, fileName),
+            FullPage = false,
+            Animations = ScreenshotAnimations.Disabled,
+            Caret = ScreenshotCaret.Hide,
+            Scale = ScreenshotScale.Css
+        });
     }
 }

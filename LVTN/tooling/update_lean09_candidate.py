@@ -64,6 +64,8 @@ def update_docx_text(path: Path) -> dict[str, int]:
     changed: dict[str, int] = {}
 
     paragraph_updates = {
+        "Màn hình đăng nhập chia bố cục thành vùng nhận diện PPJ Group và biểu mẫu xác thực. Người dùng nhập tên đăng nhập, mật khẩu; lựa chọn môi trường chỉ xuất hiện khi hệ thống chạy ở chế độ phát triển.":
+            "Màn hình đăng nhập chia bố cục thành vùng nhận diện GTAS VPP và biểu mẫu xác thực. Người dùng nhập tên đăng nhập, mật khẩu; lựa chọn môi trường chỉ xuất hiện khi hệ thống chạy ở chế độ phát triển.",
         "VPP01_RequestHeader lưu kỳ, trạng thái và thông tin duyệt; VPP02_RequestDetail lưu vật tư, số lượng và đơn giá chụp; VPP03_Log lưu lịch sử thao tác dạng JSON. N01_Notification lưu hộp thư theo người dùng/công ty, loại, nội dung, tuyến mở, CorrelationId, thời điểm tạo và đọc. Các mã tổ chức/người dùng là tham chiếu logic, không phải khóa ngoại vật lý.":
             "VPP00_Period lưu biên kỳ Việt Nam từ ngày 05 đến trước ngày 05 tháng sau và state machine Open → SubmissionClosed → Pricing → Settled. VPP01_RequestHeader và VPP02_RequestDetail lưu series/revision, lineage, đơn thường/đơn bổ sung, rowversion và giá tại thời điểm hợp lệ; VPP03_Log lưu audit có actor, action, correlation và lý do. VPP04_Settlement, VPP05_SettlementItem, VPP06_SettlementCharge và VPP07_SettlementAllocation lưu snapshot bất biến của nhà cung cấp, giá net/VAT/gross, phí và phân bổ; N01_Notification và N02_EmailOutbox phục vụ hộp thư bền vững và email sandbox.",
         "Migration hiện tạo 18 bảng, gồm N01_Notification được bổ sung cho hộp thư bền vững. Phần lớn entity kế thừa BaseModel; các bảng ánh xạ P05, P06, VPP03_Log và N01_Notification có cấu trúc riêng. Hai view v_Users và v_WFXCompany được ánh xạ keyless để đọc dữ liệu tích hợp, không thuộc migration của hệ thống.":
@@ -271,6 +273,77 @@ def replace_settlement_media(path: Path, source_dir: Path) -> None:
     os.replace(temp, path)
 
 
+def replace_thesis_screenshot_media(path: Path, source_dir: Path) -> None:
+    screenshot_by_bookmark = {
+        "fig_3_26": "ui-login.png",
+        "fig_3_27": "ui-dashboard-my-orders.png",
+        "fig_3_28": "ui-order-history.png",
+        "fig_3_29": "ui-order-create.png",
+        "fig_3_30": "ui-period-operations.png",
+        "fig_3_31": "ui-price-lists.png",
+        "fig_3_32": "ui-library-items.png",
+        "fig_3_33": "ui-permission-groups.png",
+        "fig_3_34": "ui-all-orders-summary.png",
+    }
+    members: dict[str, bytes]
+    infos: dict[str, zipfile.ZipInfo]
+    with zipfile.ZipFile(path, "r") as archive:
+        members = {item.filename: archive.read(item.filename) for item in archive.infolist()}
+        infos = {item.filename: item for item in archive.infolist()}
+
+    parser = etree.XMLParser(remove_blank_text=False)
+    document = etree.fromstring(members["word/document.xml"], parser)
+    rels = etree.fromstring(members["word/_rels/document.xml.rels"], parser)
+    relation_targets = {
+        rel.get("Id"): rel.get("Target") or ""
+        for rel in rels.findall("pr:Relationship", NS)
+    }
+    paragraphs = document.xpath(".//w:p", namespaces=NS)
+    replaced = 0
+    for bookmark, filename in screenshot_by_bookmark.items():
+        caption_paragraph = next(
+            (
+                paragraph
+                for paragraph in paragraphs
+                if bookmark
+                in paragraph.xpath(".//w:bookmarkStart/@w:name", namespaces=NS)
+            ),
+            None,
+        )
+        if caption_paragraph is None:
+            raise ValueError(f"Missing thesis screenshot bookmark: {bookmark}")
+
+        index = paragraphs.index(caption_paragraph)
+        embeds: list[str] = []
+        for paragraph in reversed(paragraphs[:index]):
+            embeds = list(dict.fromkeys(paragraph.xpath(".//*[@r:embed]/@r:embed", namespaces=NS)))
+            if embeds:
+                break
+        if len(embeds) != 1:
+            raise ValueError(f"Expected one image relationship for {bookmark}, got {embeds}")
+
+        target_name = relation_targets.get(embeds[0], "").lstrip("/").replace("\\", "/")
+        if not target_name.startswith("word/"):
+            target_name = "word/" + target_name
+        source = source_dir / filename
+        if not source.exists():
+            raise ValueError(f"Missing thesis screenshot source: {source}")
+        members[target_name] = source.read_bytes()
+        replaced += 1
+
+    temp = path.with_suffix(".screenshots.tmp.docx")
+    with zipfile.ZipFile(temp, "w") as output:
+        for name, data in members.items():
+            if name == "word/document.xml":
+                data = etree.tostring(document, xml_declaration=True, encoding="UTF-8", standalone="yes")
+            output.writestr(infos[name], data)
+    with zipfile.ZipFile(temp, "r") as check:
+        if check.testzip():
+            raise ValueError("Candidate DOCX ZIP failed screenshot replacement integrity check")
+    os.replace(temp, path)
+    print(f"thesis_screenshot_media_replaced={replaced}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
@@ -280,6 +353,7 @@ def main() -> None:
     args.output.write_bytes(args.source.read_bytes())
     changed = update_docx_text(args.output)
     replace_settlement_media(args.output, Path(__file__).resolve().parent.parent / "diagrams" / "ch03")
+    replace_thesis_screenshot_media(args.output, Path(__file__).resolve().parent.parent / "screenshots" / "ch03")
     print(f"output={args.output}")
     print(f"paragraph_updates={len(changed)}")
     print(f"updated_prefixes={sum(changed.values())}")
