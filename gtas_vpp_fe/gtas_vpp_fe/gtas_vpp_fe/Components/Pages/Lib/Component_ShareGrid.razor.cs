@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 using Radzen;
 using Radzen.Blazor;
+using gtas_vpp_shared.DTOs.Res.Library;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -41,6 +42,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Parameter] public Func<TType, Task<TType>> Add { get; set; } = default!;
         [Parameter] public Func<TType, Task<TType>> Update { get; set; } = default!;
         [Parameter] public Func<TType, Task<bool>> Delete { get; set; } = default!;
+        [Parameter] public Func<TType, bool, Task<TType>>? SetStatus { get; set; }
+        [Parameter] public string? DataEndpoint { get; set; }
+        [Parameter] public bool AllowHardDelete { get; set; } = true;
         [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = default!;
 
         private RadzenDataGrid<TType> DataGrid { get; set; } = default!;
@@ -142,7 +146,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
             try
             {
-                var result = await Update(context);
+                var result = SetStatus is null
+                    ? await Update(context)
+                    : await SetStatus(context, isDeleted);
                 if (result is not null)
                 {
                     var index = data.FindIndex(x => x.Id == result.Id);
@@ -590,6 +596,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return Math.Max(width, 860);
         }
 
+        private string GetEndpointBase()
+            => string.IsNullOrWhiteSpace(DataEndpoint)
+                ? $"{Config.ApiLibraryBase}/{GetTableCode()}"
+                : DataEndpoint.TrimEnd('/');
+
         private static string GetTableCode()
         {
             var typeName = typeof(TType).Name;
@@ -598,7 +609,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 : typeName[..3].ToLowerInvariant();
         }
 
-        private static string BuildGridEndpoint(
+        private string BuildGridEndpoint(
             string? filter = null,
             int? skip = null,
             int? top = null,
@@ -638,11 +649,20 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
             }
 
-            return $"{Config.ApiLibraryBase}/{GetTableCode()}?{string.Join("&", query)}";
+            return $"{GetEndpointBase()}?{string.Join("&", query)}";
         }
 
         private static bool ShouldRenderProperty(PropertyInfo prop)
         {
+            if (typeof(TType) == typeof(L04_VPPResDTO)
+                && prop.Name is nameof(L04_VPPResDTO.UOMCode)
+                    or nameof(L04_VPPResDTO.UOMName)
+                    or nameof(L04_VPPResDTO.VPPCategoryCode)
+                    or nameof(L04_VPPResDTO.VPPCategoryName))
+            {
+                return false;
+            }
+
             if ((prop.PropertyType.IsClass && prop.PropertyType != typeof(string)) ||
                 (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string)))
             {

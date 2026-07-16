@@ -107,13 +107,18 @@ public sealed class SharedContractSerializationTests
             "isDeleted",
             "l06_VPPSupplierMappings",
             "uom",
+            "uomCode",
             "uomId",
+            "uomName",
             "updateDate",
             "updateUserId",
             "vppCategory",
+            "vppCategoryCode",
             "vppCategoryId",
+            "vppCategoryName",
             "vppCode",
-            "vppName");
+            "vppName",
+            "supplierCount");
     }
 
     [Fact]

@@ -74,6 +74,14 @@ namespace gtas_vpp_be.Model
             });
             modelBuilder.Entity<L04_VPP>(en =>
             {
+                en.Property(x => x.VPPCode).HasMaxLength(64).IsRequired();
+                en.Property(x => x.VPPName).HasMaxLength(250).IsRequired();
+                en.HasIndex(x => x.VPPCode)
+                    .HasDatabaseName("UX_L04_VPP_VPPCode")
+                    .IsUnique();
+                en.HasIndex(x => new { x.IsDeleted, x.VPPCategoryId, x.VPPCode })
+                    .HasDatabaseName("IX_L04_VPP_Active_Category_Code")
+                    .IncludeProperties(x => new { x.VPPName, x.UOMId });
                 en.HasOne(x => x.UOM).WithMany(x => x.VPPs_UOM).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.VPPCategory).WithMany(x => x.VPPs).OnDelete(DeleteBehavior.Restrict);
             });

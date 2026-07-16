@@ -4,6 +4,7 @@ using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
+using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IVPPRequestService _vppService;
         private readonly IPermissionService _permissionService;
         private readonly IAppNotificationService _notificationService;
+        private readonly IVppCatalogService _catalogService;
 
         public VPPRequestController(
             IServiceProvider serviceProvider,
@@ -32,12 +34,14 @@ namespace gtas_vpp_be.Controllers
             IUnitOfWork unitOfWork,
             IVPPRequestService vppService,
             IPermissionService permissionService,
-            IAppNotificationService notificationService)
+            IAppNotificationService notificationService,
+            IVppCatalogService catalogService)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
             _permissionService = permissionService;
             _notificationService = notificationService;
+            _catalogService = catalogService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -213,27 +217,18 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("products/lookup")]
         [Authorize(Policy = Permissions.RequestCatalogView)]
-        public async Task<IActionResult> GetProductsLookup()
+        public async Task<IActionResult> GetProductsLookup(
+            [FromQuery] string? search,
+            [FromQuery] int? top,
+            CancellationToken cancellationToken = default)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var query = await _unitOfWork.VPPContext.Set<L04_VPP>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted
-                     && (x.VPPCategory == null || !x.VPPCategory.IsDeleted))
-                .OrderBy(x => x.VPPCode)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.VPPCode,
-                    x.VPPName,
-                    UOMCode = x.UOM != null ? x.UOM.ClassDetailCode : null,
-                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null,
-                    VPPCategoryName = x.VPPCategory != null ? x.VPPCategory.VPPCategoryName : null
-                })
-                .ToListAsync();
-
-            return Ok(query);
+            var result = await _catalogService.QueryItemsAsync(
+                null, search, null, 0, Math.Clamp(top ?? 100, 1, 100), "VPPCode asc",
+                null, null, showDeleted: false, cancellationToken);
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            return Ok(ToProductResults(result.Items));
         }
 
         [HttpGet("products")]
@@ -248,139 +243,31 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? distinct,
             [FromQuery] string? distinctFilter)
         {
-            search = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
-
-            var query = _unitOfWork.VPPContext.Set<L04_VPP>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted
-                     && (x.VPPCategory == null || !x.VPPCategory.IsDeleted)
-                     && (categoryId == null || x.VPPCategoryId == categoryId)
-                     && (search == null || (x.VPPName != null && x.VPPName.Contains(search)) || (x.VPPCode != null && x.VPPCode.Contains(search))))
-                .Select(x => new
-                {
-                    x.Id,
-                    x.VPPCode,
-                    x.VPPName,
-                    x.Description,
-                    x.VPPCategoryId,
-                    VPPCategoryCode = x.VPPCategory != null ? x.VPPCategory.VPPCategoryCode : null,
-                    VPPCategoryName = x.VPPCategory != null ? x.VPPCategory.VPPCategoryName : null,
-                    x.UOMId,
-                    UOMCode = x.UOM != null ? x.UOM.ClassDetailCode : null,
-                    UOMName = x.UOM != null ? x.UOM.ClassDetailValue : null,
-                    SupplierCount = x.L06_VPPSupplierMappings!.Count(m => !m.IsDeleted
-                        && m.L07_PriceList != null
-                        && m.L07_PriceList.IsDefault
-                        && !m.L07_PriceList.IsDeleted
-                        && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted)),
-                    DefaultVatRate = VppPricingDefaults.VatRate,
-                    DefaultPrice = x.L06_VPPSupplierMappings!
-                        .Where(m => !m.IsDeleted
-                            && m.L07_PriceList != null
-                            && m.L07_PriceList.IsDefault
-                            && !m.L07_PriceList.IsDeleted
-                            && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
-                        .OrderByDescending(m => m.IsDefault)
-                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
-                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .Select(m => (decimal?)m.Price)
-                        .FirstOrDefault(),
-                    DefaultSupplierName = x.L06_VPPSupplierMappings!
-                        .Where(m => !m.IsDeleted
-                            && m.L07_PriceList != null
-                            && m.L07_PriceList.IsDefault
-                            && !m.L07_PriceList.IsDeleted
-                            && (m.L05_VPPSupplier == null || !m.L05_VPPSupplier.IsDeleted))
-                        .OrderByDescending(m => m.IsDefault)
-                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
-                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .Select(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .FirstOrDefault()
-                });
-
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                try
-                {
-                    query = query.Where(filter);
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Warning(ex, "VPP filter parse failed, using base query");
-                }
-            }
-
-            // ── Distinct branch: return only unique values for the requested column ──
-            if (!string.IsNullOrWhiteSpace(distinct))
-            {
-                try
-                {
-                    var distinctQuery = query;
-                    if (!string.IsNullOrWhiteSpace(distinctFilter))
-                    {
-                        distinctQuery = distinctQuery.Where($"{distinct} != null && {distinct}.Contains(@0)", distinctFilter);
-                    }
-
-                    var distinctValues = await distinctQuery
-                        .Select(distinct)
-                        .Distinct()
-                        .ToDynamicListAsync();
-
-                    var results = distinctValues
-                        .Where(val => val != null)
-                        .Select(val =>
-                        {
-                            var dict = new Dictionary<string, object?>();
-                            dict[distinct] = val;
-                            return dict;
-                        })
-                        .ToList();
-
-                    Response.Headers.Append("X-Total-Count", results.Count.ToString());
-                    return Ok(results);
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Warning(ex, "VPP distinct query failed for column {Column}", distinct);
-                    return Ok(new List<object>());
-                }
-            }
-
-            var totalCount = await query.CountAsync();
-
-            if (!string.IsNullOrWhiteSpace(orderby))
-            {
-                try
-                {
-                    query = query.OrderBy(orderby);
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Warning(ex, "VPP orderby parse failed, falling back to VPPCode");
-                    query = query.OrderBy(x => x.VPPCode);
-                }
-            }
-            else
-            {
-                query = query.OrderBy(x => x.VPPCode);
-            }
-
-            if (skip.HasValue && skip.Value > 0)
-            {
-                query = query.Skip(skip.Value);
-            }
-
-            if (top.HasValue && top.Value > 0)
-            {
-                query = query.Take(top.Value);
-            }
-
-            Response.Headers.Append("X-Total-Count", totalCount.ToString());
-
-            var result = await query.ToListAsync();
-
-            return Ok(result);
+            var result = await _catalogService.QueryItemsAsync(
+                categoryId, search, filter, skip ?? 0, top ?? 20, orderby,
+                distinct, distinctFilter, showDeleted: false, HttpContext.RequestAborted);
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            return Ok(ToProductResults(result.Items));
         }
+
+        private static IEnumerable<object> ToProductResults(IEnumerable<L04_VPPResDTO> items)
+            => items.Select(x => new
+            {
+                x.Id,
+                x.VPPCode,
+                x.VPPName,
+                x.Description,
+                x.VPPCategoryId,
+                x.VPPCategoryCode,
+                x.VPPCategoryName,
+                x.UOMId,
+                x.UOMCode,
+                x.UOMName,
+                x.SupplierCount,
+                x.DefaultVatRate,
+                x.DefaultPrice,
+                x.DefaultSupplierName
+            });
 
         [HttpGet("categories")]
         [Authorize(Policy = Permissions.RequestCatalogView)]
@@ -796,8 +683,8 @@ namespace gtas_vpp_be.Controllers
 
             // P3.3 (F-13): GroupBy executed on the database side (Monthly + StatusDistribution +
             // TotalOrders) so we never materialize the full order set per dashboard load.
-            // Previously: ToListAsync() pulled every order of the user (200/year × 1000 user
-            // × n requests/day) and grouped in memory — biggest dashboard hot path.
+            // Previously: ToListAsync() pulled every order of the user (200/year Ã— 1000 user
+            // Ã— n requests/day) and grouped in memory â€” biggest dashboard hot path.
             var baseQuery = _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VPP01_RequestHeader>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted && x.CreateUserId == CurrentUserId.Value);
@@ -910,8 +797,8 @@ namespace gtas_vpp_be.Controllers
                     recipients.Where(userId => userId != CurrentUserId),
                     CurrentMemberCompanyCode,
                     "additional-order.pending",
-                    "Đơn bổ sung chờ duyệt",
-                    $"Đơn {order.VPPCode} của {order.RequesterName ?? "nhân viên"} đang chờ xử lý.",
+                    "ÄÆ¡n bá»• sung chá» duyá»‡t",
+                    $"ÄÆ¡n {order.VPPCode} cá»§a {order.RequesterName ?? "nhÃ¢n viÃªn"} Ä‘ang chá» xá»­ lÃ½.",
                     "/dashboard?tab=5&periodTab=pending",
                     order.Id.ToString("N"),
                     HttpContext.RequestAborted);
@@ -931,17 +818,17 @@ namespace gtas_vpp_be.Controllers
         {
             try
             {
-                var decision = approved ? "đã được duyệt" : "đã bị từ chối";
+                var decision = approved ? "Ä‘Ã£ Ä‘Æ°á»£c duyá»‡t" : "Ä‘Ã£ bá»‹ tá»« chá»‘i";
                 var reasonSuffix = !approved && !string.IsNullOrWhiteSpace(reason)
-                    ? $" Lý do: {reason.Trim()}"
+                    ? $" LÃ½ do: {reason.Trim()}"
                     : string.Empty;
 
                 await _notificationService.PublishAsync(
                     [order.CreateUserId],
                     CurrentMemberCompanyCode,
                     approved ? "additional-order.approved" : "additional-order.rejected",
-                    approved ? "Đơn bổ sung đã được duyệt" : "Đơn bổ sung bị từ chối",
-                    $"Đơn {order.VPPCode} {decision}.{reasonSuffix}",
+                    approved ? "ÄÆ¡n bá»• sung Ä‘Ã£ Ä‘Æ°á»£c duyá»‡t" : "ÄÆ¡n bá»• sung bá»‹ tá»« chá»‘i",
+                    $"ÄÆ¡n {order.VPPCode} {decision}.{reasonSuffix}",
                     "/dashboard?tab=1",
                     order.Id.ToString("N"),
                     HttpContext.RequestAborted);

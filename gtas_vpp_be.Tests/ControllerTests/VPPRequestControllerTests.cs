@@ -474,7 +474,8 @@ public class VPPRequestControllerTests
             unitOfWork.Object,
             service,
             permissionService.Object,
-            Mock.Of<IAppNotificationService>());
+            Mock.Of<IAppNotificationService>(),
+            new VppCatalogService(unitOfWork.Object, new FakeDateTimeProvider(DateTime.UtcNow)));
 
         controller.ControllerContext = new ControllerContext
         {

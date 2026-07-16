@@ -15,6 +15,7 @@ namespace gtas_vpp_fe.Helpers
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
         public const string ApiBase = "/api";
         public const string ApiLibraryBase = "/api/Library";
+        public const string ApiCatalogItems = "/api/catalog/items";
         public const string ApiVppBase = "/api/VPPRequest";
 
         public static class VppApi

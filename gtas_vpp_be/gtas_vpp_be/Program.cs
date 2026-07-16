@@ -114,6 +114,7 @@ builder.Services.AddHostedService<VppPeriodRecoveryWorker>();
 builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
+builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddOptions<ReportInsightsOptions>()
     .Bind(Configuration.GetSection(ReportInsightsOptions.SectionName))
