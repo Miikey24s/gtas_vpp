@@ -2,7 +2,7 @@ namespace gtas_vpp_be.Service.Domain;
 
 public static class PriceCalculationEngine
 {
-    public const string CurrentVersion = "price-vat-v1";
+    public const string CurrentVersion = "price-vat-v2-vnd-whole";
 
     public static PriceLineCalculation CalculateLine(decimal netUnitPrice, decimal vatRate, decimal quantity)
     {
@@ -25,7 +25,7 @@ public static class PriceCalculationEngine
     }
 
     public static decimal RoundMoney(decimal value)
-        => decimal.Round(value, 4, MidpointRounding.AwayFromZero);
+        => decimal.Round(value, 0, MidpointRounding.AwayFromZero);
 }
 
 public readonly record struct PriceLineCalculation(decimal NetAmount, decimal VatAmount, decimal GrossAmount);

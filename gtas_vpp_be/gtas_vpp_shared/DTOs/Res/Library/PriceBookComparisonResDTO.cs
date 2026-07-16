@@ -3,7 +3,7 @@ namespace gtas_vpp_shared.DTOs.Res.Library;
 public sealed class PriceBookComparisonResDTO
 {
     public DateTime PriceAsOfUtc { get; set; }
-    public string CalculationVersion { get; set; } = "price-vat-v1";
+    public string CalculationVersion { get; set; } = "price-vat-v2-vnd-whole";
     public int RequestedItemCount { get; set; }
     public List<PriceBookQuoteResDTO> Quotes { get; set; } = [];
 }

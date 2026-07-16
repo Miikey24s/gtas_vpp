@@ -26,4 +26,13 @@ public sealed class VPP_SettlementExceptionResDTO
     public Guid SupplierId { get; set; }
     public string? Reason { get; set; }
     public bool IsValid { get; set; }
+    public Guid? PriceListId { get; set; }
+    public int? PriceListVersion { get; set; }
+    public Guid? PriceBookItemId { get; set; }
+    public decimal NetUnitPrice { get; set; }
+    public decimal VatRate { get; set; }
+    public decimal NetAmount { get; set; }
+    public decimal VatAmount { get; set; }
+    public decimal GrossAmount { get; set; }
+    public string? Blocker { get; set; }
 }

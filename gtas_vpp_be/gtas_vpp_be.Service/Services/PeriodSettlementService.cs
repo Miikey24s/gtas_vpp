@@ -7,7 +7,9 @@ using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Req.Library;
+using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
+using gtas_vpp_shared.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Service.Services
@@ -17,9 +19,10 @@ namespace gtas_vpp_be.Service.Services
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IPriceBookWorkflowService? _priceBookWorkflowService;
+        private readonly IPriceAsOfResolver? _priceAsOfResolver;
 
         public PeriodSettlementService(IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider)
-            : this(scopedUow, dateTimeProvider, null)
+            : this(scopedUow, dateTimeProvider, null, null)
         {
         }
 
@@ -27,10 +30,20 @@ namespace gtas_vpp_be.Service.Services
             IUnitOfWork scopedUow,
             IDateTimeProvider dateTimeProvider,
             IPriceBookWorkflowService? priceBookWorkflowService)
+            : this(scopedUow, dateTimeProvider, priceBookWorkflowService, null)
+        {
+        }
+
+        public PeriodSettlementService(
+            IUnitOfWork scopedUow,
+            IDateTimeProvider dateTimeProvider,
+            IPriceBookWorkflowService? priceBookWorkflowService,
+            IPriceAsOfResolver? priceAsOfResolver)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
             _priceBookWorkflowService = priceBookWorkflowService;
+            _priceAsOfResolver = priceAsOfResolver;
         }
 
         public async Task<VPP_SettlementPreviewResDTO> PreviewAsync(
@@ -93,10 +106,17 @@ namespace gtas_vpp_be.Service.Services
                 response.Blockers.Add("NO_SUBMITTED_ITEMS");
             }
 
+            var duplicateExceptionItems = (req.Exceptions ?? [])
+                .GroupBy(x => x.VppId)
+                .Where(x => x.Count() > 1)
+                .Select(x => x.Key)
+                .ToHashSet();
             foreach (var exception in req.Exceptions ?? [])
             {
                 var valid = exception.VppId != Guid.Empty
                              && exception.SupplierId != Guid.Empty
+                             && totals.ContainsKey(exception.VppId)
+                             && !duplicateExceptionItems.Contains(exception.VppId)
                              && !string.IsNullOrWhiteSpace(exception.Reason)
                              && exception.Reason.Trim().Length is >= 5 and <= 500;
                 response.Exceptions.Add(new VPP_SettlementExceptionResDTO
@@ -125,17 +145,24 @@ namespace gtas_vpp_be.Service.Services
                 }, cancellationToken);
                 response.Quotes = comparison.Quotes;
 
-                var eligible = response.Quotes.Where(x => x.IsEligible).AsEnumerable();
+                var candidates = response.Quotes.AsEnumerable();
                 if (req.PriceListId.HasValue)
                 {
-                    eligible = eligible.Where(x => x.PriceListId == req.PriceListId.Value);
+                    candidates = candidates.Where(x => x.PriceListId == req.PriceListId.Value);
                 }
                 if (req.PrimarySupplierId.HasValue)
                 {
-                    eligible = eligible.Where(x => x.SupplierId == req.PrimarySupplierId.Value);
+                    candidates = candidates.Where(x => x.SupplierId == req.PrimarySupplierId.Value);
                 }
 
-                response.PrimaryQuote = eligible.FirstOrDefault();
+                response.PrimaryQuote = (req.Exceptions?.Count > 0
+                        ? candidates
+                        : candidates.Where(x => x.IsEligible))
+                    .FirstOrDefault();
+                if (response.PrimaryQuote is not null && response.Exceptions.Count > 0)
+                {
+                    await ApplySupplierExceptionsAsync(response, totals, asOfUtc, cancellationToken);
+                }
                 if (response.PrimaryQuote is null)
                 {
                     response.Blockers.Add(req.PrimarySupplierId.HasValue
@@ -147,11 +174,398 @@ namespace gtas_vpp_be.Service.Services
                     response.PrimarySupplierId = response.PrimaryQuote.SupplierId;
                     response.PrimaryPriceListId = response.PrimaryQuote.PriceListId;
                     response.PrimaryPriceListVersion = response.PrimaryQuote.Version;
+                    if (!response.PrimaryQuote.IsEligible)
+                    {
+                        response.Blockers.Add("PRIMARY_QUOTE_HAS_UNRESOLVED_ITEMS");
+                    }
                 }
             }
 
             response.InputHash = ComputeInputHash(req, asOfUtc, totals);
             return response;
+        }
+
+        public Task<VPP_SettlementRevisionResDTO> ConfirmAsync(
+            VPP_SettlementConfirmReqDTO req,
+            int userId,
+            CancellationToken cancellationToken = default)
+            => SaveRevisionAsync(req, null, null, userId, cancellationToken);
+
+        public Task<VPP_SettlementRevisionResDTO> CorrectAsync(
+            Guid settlementId,
+            VPP_SettlementCorrectionReqDTO req,
+            int userId,
+            CancellationToken cancellationToken = default)
+        {
+            var reason = ValidateReason(req.Reason, "Correction reason");
+            return SaveRevisionAsync(req, settlementId, reason, userId, cancellationToken);
+        }
+
+        public async Task<VPP_SettlementRevisionResDTO?> GetCurrentAsync(
+            int y,
+            int m,
+            CancellationToken cancellationToken = default)
+        {
+            ValidatePeriod(y, m);
+            var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
+                System.Globalization.CultureInfo.InvariantCulture);
+            var entity = await SettlementQuery()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => !x.IsDeleted
+                    && x.IsCurrentRevision
+                    && x.MemberCompanyCode == company
+                    && x.Y == y
+                    && x.M == m, cancellationToken);
+            return entity is null ? null : MapRevision(entity);
+        }
+
+        private async Task<VPP_SettlementRevisionResDTO> SaveRevisionAsync(
+            VPP_SettlementConfirmReqDTO req,
+            Guid? correctionSettlementId,
+            string? correctionReason,
+            int userId,
+            CancellationToken cancellationToken)
+        {
+            ValidateConfirmRequest(req);
+            var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
+                System.Globalization.CultureInfo.InvariantCulture);
+            var asOfUtc = NormalizeUtc(req.PriceAsOfUtc);
+            var commandHash = ComputeCommandPayloadHash(req, correctionSettlementId, correctionReason, asOfUtc);
+
+            var replay = await FindIdempotentAsync(company, req.IdempotencyKey, cancellationToken);
+            if (replay is not null)
+            {
+                return MatchIdempotent(replay, commandHash);
+            }
+
+            if (correctionSettlementId.HasValue)
+            {
+                var correctionTarget = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == correctionSettlementId.Value && !x.IsDeleted, cancellationToken)
+                    ?? throw new BusinessException("Settlement revision not found.");
+                if (!correctionTarget.IsCurrentRevision)
+                {
+                    throw new ConflictException("Only the current settlement revision can be corrected.");
+                }
+                if (correctionTarget.ConfirmedByUserId == userId)
+                {
+                    throw new ConflictException("Four-eyes control requires another procurement user to confirm the correction.");
+                }
+            }
+
+            var previewReq = new VPP_SettlementPreviewReqDTO
+            {
+                Y = req.Y,
+                M = req.M,
+                PriceAsOfUtc = asOfUtc,
+                PriceListId = req.PriceListId,
+                PrimarySupplierId = req.PrimarySupplierId,
+                Exceptions = req.Exceptions ?? []
+            };
+            var preview = await PreviewAsync(previewReq, cancellationToken);
+            if (!string.Equals(preview.InputHash, req.InputHash, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ConflictException("Settlement inputs changed after preview. Run preview again.");
+            }
+            if (preview.Blockers.Count > 0 || preview.PrimaryQuote is null || !preview.PrimaryQuote.IsEligible)
+            {
+                throw new BusinessException("Settlement preview has blockers: " + string.Join("; ", preview.Blockers));
+            }
+            if (preview.PrimarySupplierId != req.PrimarySupplierId
+                || preview.PrimaryPriceListId != req.PriceListId)
+            {
+                throw new ConflictException("The selected supplier or price book no longer matches the preview.");
+            }
+
+            await _scopedUow.BeginTransactionAsync();
+            try
+            {
+                replay = await FindIdempotentAsync(company, req.IdempotencyKey, cancellationToken);
+                if (replay is not null)
+                {
+                    var replayResult = MatchIdempotent(replay, commandHash);
+                    await _scopedUow.RollbackAsync();
+                    return replayResult;
+                }
+
+                var current = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                    .FirstOrDefaultAsync(x => !x.IsDeleted
+                        && x.IsCurrentRevision
+                        && x.MemberCompanyCode == company
+                        && x.Y == req.Y
+                        && x.M == req.M, cancellationToken);
+                if (!correctionSettlementId.HasValue && current is not null)
+                {
+                    throw new ConflictException("The period is already settled. Create a correction revision instead.");
+                }
+                if (correctionSettlementId.HasValue
+                    && (current is null || current.Id != correctionSettlementId.Value))
+                {
+                    throw new ConflictException("The settlement revision changed. Reload before correcting it.");
+                }
+                if (current is not null && current.ConfirmedByUserId == userId)
+                {
+                    throw new ConflictException("Four-eyes control requires another procurement user to confirm the correction.");
+                }
+
+                var period = await _scopedUow.VPPContext.Set<VPP00_Period>()
+                    .FirstOrDefaultAsync(x => !x.IsDeleted
+                        && x.MemberCompanyCode == company
+                        && x.Y == req.Y
+                        && x.M == req.M, cancellationToken)
+                    ?? throw new BusinessException("The persisted company period was not found.");
+                var requiredState = correctionSettlementId.HasValue
+                    ? VppPeriodState.Settled
+                    : VppPeriodState.Pricing;
+                if (period.State != requiredState)
+                {
+                    throw new ConflictException($"Period must be {requiredState} before this settlement action.");
+                }
+
+                var headers = await EligibleHeaders(req.Y, req.M)
+                    .Include(x => x.VPP02_RequestDetails.Where(detail => !detail.IsDeleted))
+                    .ToListAsync(cancellationToken);
+                var totals = headers.SelectMany(x => x.VPP02_RequestDetails)
+                    .GroupBy(x => x.VPPId)
+                    .ToDictionary(x => x.Key, x => x.Sum(detail => (decimal)detail.Qty));
+                var transactionHash = ComputeInputHash(previewReq, asOfUtc, totals);
+                if (!string.Equals(transactionHash, req.InputHash, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ConflictException("Settlement request lines changed during confirmation.");
+                }
+
+                var vppIds = totals.Keys.ToArray();
+                var book = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                    .AsNoTracking()
+                    .Include(x => x.Supplier)
+                    .Include(x => x.L06_VPPSupplierMappings!.Where(item => !item.IsDeleted && vppIds.Contains(item.L04_VPPId)))
+                    .FirstOrDefaultAsync(x => x.Id == req.PriceListId && !x.IsDeleted, cancellationToken)
+                    ?? throw new BusinessException("The selected price book was not found.");
+                if (book.SupplierId != req.PrimarySupplierId
+                    || book.Status != L07_PriceListStatus.Published
+                    || book.EffectiveFromUtc > asOfUtc
+                    || (book.EffectiveToUtc.HasValue && asOfUtc >= book.EffectiveToUtc.Value))
+                {
+                    throw new ConflictException("The selected price book is no longer published and effective.");
+                }
+
+                var products = await _scopedUow.VPPContext.Set<L04_VPP>()
+                    .AsNoTracking()
+                    .Where(x => vppIds.Contains(x.Id) && !x.IsDeleted)
+                    .ToDictionaryAsync(x => x.Id, cancellationToken);
+                if (products.Count != vppIds.Length)
+                {
+                    throw new BusinessException("One or more settlement catalog items are missing or inactive.");
+                }
+
+                var nowUtc = PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
+                var settlement = new VPP04_Settlement
+                {
+                    Id = Guid.NewGuid(),
+                    PeriodId = period.Id,
+                    MemberCompanyCode = company,
+                    Y = req.Y,
+                    M = req.M,
+                    RevisionNumber = current?.RevisionNumber + 1 ?? 1,
+                    IsCurrentRevision = true,
+                    IsCorrection = correctionSettlementId.HasValue,
+                    SupersedesSettlementId = correctionSettlementId,
+                    CorrectionReason = correctionReason,
+                    PrimarySupplierId = req.PrimarySupplierId,
+                    PrimarySupplierName = book.Supplier?.SupplierName ?? book.Supplier?.SupplierShortName ?? req.PrimarySupplierId.ToString(),
+                    PriceListId = book.Id,
+                    PriceListCode = book.PriceListCode,
+                    PriceListName = book.PriceListName ?? book.PriceListCode ?? book.Id.ToString(),
+                    PriceListVersion = book.Version,
+                    PriceAsOfUtc = asOfUtc,
+                    CalculationVersion = PriceCalculationEngine.CurrentVersion,
+                    InputHash = req.InputHash.ToUpperInvariant(),
+                    IdempotencyKey = req.IdempotencyKey.Trim(),
+                    CommandPayloadHash = commandHash,
+                    CurrencyCode = book.CurrencyCode,
+                    RebateAmount = PriceCalculationEngine.RoundMoney(book.RebateAmount),
+                    FeeAmount = PriceCalculationEngine.RoundMoney(book.FeeAmount),
+                    ShippingAmount = PriceCalculationEngine.RoundMoney(book.ShippingAmount),
+                    ConfirmedAtUtc = nowUtc,
+                    ConfirmedByUserId = userId,
+                    CreateUserId = userId,
+                    CreateDate = nowUtc,
+                    UpdateUserId = userId,
+                    UpdateDate = nowUtc,
+                    IsDeleted = false
+                };
+
+                var exceptionByVpp = (req.Exceptions ?? []).ToDictionary(x => x.VppId);
+                var primaryRows = (book.L06_VPPSupplierMappings ?? [])
+                    .GroupBy(x => x.L04_VPPId)
+                    .ToDictionary(x => x.Key, x => x.ToList());
+                foreach (var itemGroup in headers.SelectMany(header => header.VPP02_RequestDetails.Select(detail => new { header, detail }))
+                             .GroupBy(x => x.detail.VPPId)
+                             .OrderBy(x => x.Key))
+                {
+                    var quantity = itemGroup.Sum(x => (decimal)x.detail.Qty);
+                    var isException = exceptionByVpp.TryGetValue(itemGroup.Key, out var supplierException);
+                    var evidence = isException
+                        ? await ResolveExceptionEvidenceAsync(itemGroup.Key, quantity, supplierException!, asOfUtc, cancellationToken)
+                        : ResolvePrimaryEvidence(itemGroup.Key, quantity, req.PrimarySupplierId, book.Id, primaryRows);
+                    var product = products[itemGroup.Key];
+                    var line = PriceCalculationEngine.CalculateLine(evidence.NetUnitPrice, evidence.VatRate, quantity);
+                    var settlementItem = new VPP05_SettlementItem
+                    {
+                        Id = Guid.NewGuid(),
+                        SettlementId = settlement.Id,
+                        VppId = product.Id,
+                        VppCode = product.VPPCode ?? product.Id.ToString(),
+                        VppName = product.VPPName ?? product.Id.ToString(),
+                        UomId = product.UOMId,
+                        UomCode = product.UOM?.ClassDetailCode ?? product.UOMId.ToString(),
+                        UomName = product.UOM?.ClassDetailValue ?? product.UOM?.ClassDetailCode ?? product.UOMId.ToString(),
+                        SupplierId = evidence.SupplierId,
+                        PriceListId = evidence.PriceListId,
+                        PriceBookItemId = evidence.PriceBookItemId,
+                        SupplierSku = evidence.SupplierSku,
+                        Quantity = quantity,
+                        NetUnitPrice = evidence.NetUnitPrice,
+                        VatRate = evidence.VatRate,
+                        NetAmount = line.NetAmount,
+                        VatAmount = line.VatAmount,
+                        GrossAmount = line.GrossAmount,
+                        MinimumOrderQuantity = evidence.MinimumOrderQuantity,
+                        LeadTimeDays = evidence.LeadTimeDays,
+                        IsSupplierException = isException,
+                        SupplierExceptionReason = supplierException?.Reason?.Trim(),
+                        CreateUserId = userId,
+                        CreateDate = nowUtc,
+                        UpdateUserId = userId,
+                        UpdateDate = nowUtc
+                    };
+                    settlement.Items.Add(settlementItem);
+
+                    var sources = itemGroup
+                        .OrderBy(x => x.header.Id)
+                        .ThenBy(x => x.detail.Id)
+                        .ToList();
+                    var weights = sources.Select(x => (decimal)x.detail.Qty).ToArray();
+                    var netShares = AllocateAmount(line.NetAmount, weights);
+                    var vatShares = AllocateAmount(line.VatAmount, weights);
+                    for (var index = 0; index < sources.Count; index++)
+                    {
+                        var source = sources[index];
+                        settlement.Allocations.Add(new VPP07_SettlementAllocation
+                        {
+                            Id = Guid.NewGuid(),
+                            SettlementId = settlement.Id,
+                            SettlementItemId = settlementItem.Id,
+                            RequestHeaderId = source.header.Id,
+                            RequestDetailId = source.detail.Id,
+                            DepartmentCode = source.header.DepartmentCode,
+                            RequesterUserId = source.header.CreateUserId,
+                            Quantity = source.detail.Qty,
+                            NetAmount = netShares[index],
+                            VatAmount = vatShares[index],
+                            GrossAmount = netShares[index] + vatShares[index],
+                            CreateUserId = userId,
+                            CreateDate = nowUtc,
+                            UpdateUserId = userId,
+                            UpdateDate = nowUtc
+                        });
+                    }
+                }
+
+                settlement.Subtotal = PriceCalculationEngine.RoundMoney(settlement.Items.Sum(x => x.NetAmount));
+                settlement.VatAmount = PriceCalculationEngine.RoundMoney(settlement.Items.Sum(x => x.VatAmount));
+                var basket = PriceCalculationEngine.CalculateBasket(
+                    settlement.Subtotal,
+                    settlement.VatAmount,
+                    book.DiscountRate,
+                    settlement.RebateAmount,
+                    settlement.FeeAmount,
+                    settlement.ShippingAmount);
+                settlement.DiscountAmount = basket.DiscountAmount;
+                settlement.GrandTotal = basket.GrandTotal;
+                var exactTotal = settlement.Subtotal - settlement.DiscountAmount - settlement.RebateAmount
+                                 + settlement.FeeAmount + settlement.ShippingAmount + settlement.VatAmount;
+                settlement.RoundingAdjustment = settlement.GrandTotal - exactTotal;
+
+                AddCharge(settlement, "Discount", -settlement.DiscountAmount, userId, nowUtc);
+                AddCharge(settlement, "Rebate", -settlement.RebateAmount, userId, nowUtc);
+                AddCharge(settlement, "Fee", settlement.FeeAmount, userId, nowUtc);
+                AddCharge(settlement, "Shipping", settlement.ShippingAmount, userId, nowUtc);
+                AddCharge(settlement, "Rounding", settlement.RoundingAdjustment, userId, nowUtc);
+
+                var orderedAllocations = settlement.Allocations
+                    .OrderBy(x => x.RequestHeaderId)
+                    .ThenBy(x => x.RequestDetailId)
+                    .ToList();
+                var commercialTotal = -settlement.DiscountAmount - settlement.RebateAmount
+                                      + settlement.FeeAmount + settlement.ShippingAmount;
+                var allocationWeights = orderedAllocations.Select(x => x.NetAmount).ToArray();
+                if (allocationWeights.Sum() == 0m)
+                {
+                    allocationWeights = orderedAllocations.Select(x => x.Quantity).ToArray();
+                }
+                var commercialShares = AllocateAmount(commercialTotal, allocationWeights);
+                var roundingShares = AllocateAmount(settlement.RoundingAdjustment, allocationWeights);
+                for (var index = 0; index < orderedAllocations.Count; index++)
+                {
+                    orderedAllocations[index].CommercialAdjustmentAmount = commercialShares[index];
+                    orderedAllocations[index].RoundingAdjustment = roundingShares[index];
+                    orderedAllocations[index].GrossAmount = orderedAllocations[index].NetAmount
+                        + orderedAllocations[index].VatAmount
+                        + commercialShares[index]
+                        + roundingShares[index];
+                }
+                EnsureReconciled(settlement);
+
+                if (current is not null)
+                {
+                    current.IsCurrentRevision = false;
+                    current.SupersededBySettlementId = settlement.Id;
+                    current.UpdateUserId = userId;
+                    current.UpdateDate = nowUtc;
+                }
+                else
+                {
+                    period.State = VppPeriodState.Settled;
+                }
+                period.LastTransitionUserId = userId;
+                period.LastTransitionAtUtc = nowUtc;
+                period.LastTransitionReason = correctionSettlementId.HasValue
+                    ? $"Settlement correction revision {settlement.RevisionNumber}: {correctionReason}"
+                    : $"Settlement confirmed revision {settlement.RevisionNumber}";
+                period.UpdateUserId = userId;
+                period.UpdateDate = nowUtc;
+
+                _scopedUow.VPPContext.Set<VPP04_Settlement>().Add(settlement);
+                foreach (var header in headers)
+                {
+                    _scopedUow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                    {
+                        Id = Guid.NewGuid(),
+                        VPP01_RequestHeaderId = header.Id,
+                        LogDate = nowUtc,
+                        LogTitle = correctionSettlementId.HasValue ? "SETTLEMENT_CORRECTED" : "SETTLEMENT_CONFIRMED",
+                        LogJS = JsonSerializer.Serialize(new
+                        {
+                            SettlementId = settlement.Id,
+                            settlement.RevisionNumber,
+                            settlement.InputHash,
+                            settlement.PrimarySupplierId,
+                            settlement.PriceListId,
+                            settlement.GrandTotal
+                        })
+                    });
+                }
+
+                await _scopedUow.CommitAsync();
+                return MapRevision(settlement);
+            }
+            catch
+            {
+                await _scopedUow.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<VPP_PeriodSettlementResDTO> SettleAsync(VPP_SettlePeriodReqDTO req, int userId)
@@ -289,16 +703,32 @@ namespace gtas_vpp_be.Service.Services
                 })
                 .FirstOrDefaultAsync();
 
+            var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
+                System.Globalization.CultureInfo.InvariantCulture);
+            var currentSnapshot = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => !x.IsDeleted
+                    && x.IsCurrentRevision
+                    && x.MemberCompanyCode == company
+                    && x.Y == y
+                    && x.M == m);
+
             var result = new VPP_PeriodSettlementResDTO
             {
                 Y = y,
                 M = m,
-                IsSettled = latest?.SettledAt != null,
-                SettledAt = latest?.SettledAt,
-                SettledByUserId = latest?.SettledByUserId,
-                PriceListId = latest?.SettledByPriceListId,
+                IsSettled = currentSnapshot is not null || latest?.SettledAt != null,
+                SettledAt = currentSnapshot?.ConfirmedAtUtc ?? latest?.SettledAt,
+                SettledByUserId = currentSnapshot?.ConfirmedByUserId ?? latest?.SettledByUserId,
+                PriceListId = currentSnapshot?.PriceListId ?? latest?.SettledByPriceListId,
+                PriceListName = currentSnapshot?.PriceListName,
                 OrderCount = orderCount,
-                PendingAdditionalCount = pendingAdditionalCount
+                PendingAdditionalCount = pendingAdditionalCount,
+                SettlementId = currentSnapshot?.Id,
+                RevisionNumber = currentSnapshot?.RevisionNumber,
+                GrandTotal = currentSnapshot?.GrandTotal,
+                PrimarySupplierId = currentSnapshot?.PrimarySupplierId,
+                PrimarySupplierName = currentSnapshot?.PrimarySupplierName
             };
 
             await PopulateNamesAsync(new[] { result });
@@ -320,15 +750,20 @@ namespace gtas_vpp_be.Service.Services
                 })
                 .ToListAsync();
 
+            var snapshotPeriods = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted && x.IsCurrentRevision)
+                .Select(x => new { x.Y, x.M })
+                .ToListAsync();
+
             var result = new List<VPP_PeriodSettlementResDTO>();
-            foreach (var group in settledRows.GroupBy(x => new { x.Y, x.M }))
+            var periods = settledRows.Select(x => new { x.Y, x.M })
+                .Concat(snapshotPeriods)
+                .Distinct()
+                .ToList();
+            foreach (var period in periods)
             {
-                var latest = group.OrderByDescending(x => x.SettledAt).First();
-                var status = await GetStatusAsync(group.Key.Y, group.Key.M);
-                status.IsSettled = true;
-                status.SettledAt = latest.SettledAt;
-                status.SettledByUserId = latest.SettledByUserId;
-                status.PriceListId = latest.SettledByPriceListId;
+                var status = await GetStatusAsync(period.Y, period.M);
                 result.Add(status);
             }
 
@@ -338,6 +773,367 @@ namespace gtas_vpp_be.Service.Services
                 .ThenByDescending(x => x.M)
                 .ToList();
         }
+
+        private IQueryable<VPP01_RequestHeader> EligibleHeaders(int y, int m)
+            => _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .Where(x => x.Y == y && x.M == m && !x.IsDeleted
+                         && ((x.IsAdditionalOrder
+                              && x.IsCurrentRevision
+                              && x.Status == (int)VPPStatus.Approved)
+                             || (!x.IsAdditionalOrder
+                                 && x.IsCurrentRevision
+                                 && (x.Status == (int)VPPStatus.Submitted
+                                     || x.Status == (int)VPPStatus.Approved))));
+
+        private IQueryable<VPP04_Settlement> SettlementQuery()
+            => _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                .Include(x => x.Items)
+                .Include(x => x.Allocations);
+
+        private async Task<VPP04_Settlement?> FindIdempotentAsync(
+            string company,
+            string idempotencyKey,
+            CancellationToken cancellationToken)
+            => await SettlementQuery().FirstOrDefaultAsync(x => !x.IsDeleted
+                && x.MemberCompanyCode == company
+                && x.IdempotencyKey == idempotencyKey.Trim(), cancellationToken);
+
+        private static VPP_SettlementRevisionResDTO MatchIdempotent(
+            VPP04_Settlement entity,
+            string commandHash)
+        {
+            if (!string.Equals(entity.CommandPayloadHash, commandHash, StringComparison.Ordinal))
+            {
+                throw new ConflictException("The idempotency key was already used for another settlement command.");
+            }
+            return MapRevision(entity);
+        }
+
+        private async Task ApplySupplierExceptionsAsync(
+            VPP_SettlementPreviewResDTO response,
+            IReadOnlyDictionary<Guid, decimal> totals,
+            DateTime asOfUtc,
+            CancellationToken cancellationToken)
+        {
+            var quote = response.PrimaryQuote!;
+            foreach (var supplierException in response.Exceptions)
+            {
+                if (!supplierException.IsValid)
+                {
+                    continue;
+                }
+                if (supplierException.SupplierId == quote.SupplierId)
+                {
+                    supplierException.IsValid = false;
+                    supplierException.Blocker = "EXCEPTION_MUST_USE_ANOTHER_SUPPLIER";
+                    response.Blockers.Add($"EXCEPTION_MUST_USE_ANOTHER_SUPPLIER:{supplierException.VppId}");
+                    continue;
+                }
+                if (!quote.MissingVppIds.Contains(supplierException.VppId))
+                {
+                    supplierException.IsValid = false;
+                    supplierException.Blocker = "EXCEPTION_NOT_REQUIRED";
+                    response.Blockers.Add($"EXCEPTION_NOT_REQUIRED:{supplierException.VppId}");
+                    continue;
+                }
+                if (_priceAsOfResolver is null)
+                {
+                    supplierException.IsValid = false;
+                    supplierException.Blocker = "EXCEPTION_RESOLVER_UNAVAILABLE";
+                    response.Blockers.Add($"EXCEPTION_RESOLVER_UNAVAILABLE:{supplierException.VppId}");
+                    continue;
+                }
+
+                var resolved = await _priceAsOfResolver.ResolveAsync(new PriceResolutionReqDTO
+                {
+                    VppId = supplierException.VppId,
+                    SupplierId = supplierException.SupplierId,
+                    PriceAsOfUtc = asOfUtc,
+                    Quantity = totals[supplierException.VppId]
+                }, cancellationToken);
+                if (!resolved.IsResolved
+                    || !resolved.PriceListId.HasValue
+                    || !resolved.PriceBookItemId.HasValue
+                    || !resolved.PriceListVersion.HasValue)
+                {
+                    supplierException.IsValid = false;
+                    supplierException.Blocker = resolved.BlockerCode.ToString();
+                    response.Blockers.Add($"SUPPLIER_EXCEPTION_UNRESOLVED:{supplierException.VppId}:{resolved.BlockerCode}");
+                    continue;
+                }
+
+                supplierException.PriceListId = resolved.PriceListId;
+                supplierException.PriceListVersion = resolved.PriceListVersion;
+                supplierException.PriceBookItemId = resolved.PriceBookItemId;
+                supplierException.NetUnitPrice = resolved.NetUnitPrice;
+                supplierException.VatRate = resolved.VatRate;
+                supplierException.NetAmount = resolved.NetAmount;
+                supplierException.VatAmount = resolved.VatAmount;
+                supplierException.GrossAmount = resolved.GrossAmount;
+                quote.MissingVppIds.Remove(supplierException.VppId);
+                quote.CoveredItemCount++;
+                quote.Subtotal += resolved.NetAmount;
+                quote.VatAmount += resolved.VatAmount;
+                quote.MaximumLeadTimeDays = Math.Max(quote.MaximumLeadTimeDays, resolved.LeadTimeDays);
+            }
+
+            quote.Blockers.RemoveAll(x => x.StartsWith("MISSING_ITEMS:", StringComparison.Ordinal));
+            if (quote.MissingVppIds.Count > 0)
+            {
+                quote.Blockers.Add($"MISSING_ITEMS:{quote.MissingVppIds.Count}");
+            }
+            quote.Subtotal = PriceCalculationEngine.RoundMoney(quote.Subtotal);
+            quote.VatAmount = PriceCalculationEngine.RoundMoney(quote.VatAmount);
+            var terms = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                .AsNoTracking()
+                .Where(x => x.Id == quote.PriceListId)
+                .Select(x => new { x.DiscountRate, x.RebateAmount, x.FeeAmount, x.ShippingAmount })
+                .SingleAsync(cancellationToken);
+            var basket = PriceCalculationEngine.CalculateBasket(
+                quote.Subtotal,
+                quote.VatAmount,
+                terms.DiscountRate,
+                terms.RebateAmount,
+                terms.FeeAmount,
+                terms.ShippingAmount);
+            quote.DiscountAmount = basket.DiscountAmount;
+            quote.GrandTotal = basket.GrandTotal;
+            quote.CoveragePercent = quote.RequestedItemCount == 0
+                ? 0m
+                : decimal.Round(quote.CoveredItemCount * 100m / quote.RequestedItemCount, 2, MidpointRounding.AwayFromZero);
+            quote.IsEligible = quote.MissingVppIds.Count == 0 && quote.Blockers.Count == 0;
+        }
+
+        private static SnapshotPriceEvidence ResolvePrimaryEvidence(
+            Guid vppId,
+            decimal quantity,
+            Guid supplierId,
+            Guid priceListId,
+            IReadOnlyDictionary<Guid, List<L06_VPPSupplierMapping>> rowsByVpp)
+        {
+            if (!rowsByVpp.TryGetValue(vppId, out var rows) || rows.Count == 0)
+            {
+                throw new ConflictException($"The selected price book no longer covers item {vppId}.");
+            }
+            if (rows.Count != 1)
+            {
+                throw new ConflictException($"The selected price book has ambiguous rows for item {vppId}.");
+            }
+            var row = rows[0];
+            if (row.L05_VPPSupplierId != supplierId || row.L07_PriceListId != priceListId)
+            {
+                throw new ConflictException($"Price ownership changed for item {vppId}.");
+            }
+            if (row.MinimumOrderQuantity > 0 && quantity < row.MinimumOrderQuantity)
+            {
+                throw new BusinessException($"Minimum order quantity for item {vppId} is {row.MinimumOrderQuantity}.");
+            }
+            return new SnapshotPriceEvidence(
+                supplierId,
+                priceListId,
+                row.Id,
+                row.NetPrice == 0m && row.Price != 0m ? row.Price : row.NetPrice,
+                row.VatRate,
+                row.MinimumOrderQuantity,
+                row.LeadTimeDays,
+                row.SupplierSku);
+        }
+
+        private async Task<SnapshotPriceEvidence> ResolveExceptionEvidenceAsync(
+            Guid vppId,
+            decimal quantity,
+            VPP_SettlementExceptionReqDTO supplierException,
+            DateTime asOfUtc,
+            CancellationToken cancellationToken)
+        {
+            if (_priceAsOfResolver is null)
+            {
+                throw new BusinessException("Supplier exceptions are unavailable.");
+            }
+            var resolved = await _priceAsOfResolver.ResolveAsync(new PriceResolutionReqDTO
+            {
+                VppId = vppId,
+                SupplierId = supplierException.SupplierId,
+                PriceAsOfUtc = asOfUtc,
+                Quantity = quantity
+            }, cancellationToken);
+            if (!resolved.IsResolved || !resolved.PriceListId.HasValue || !resolved.PriceBookItemId.HasValue)
+            {
+                throw new ConflictException($"Supplier exception for item {vppId} no longer resolves: {resolved.BlockerCode}.");
+            }
+            return new SnapshotPriceEvidence(
+                supplierException.SupplierId,
+                resolved.PriceListId.Value,
+                resolved.PriceBookItemId.Value,
+                resolved.NetUnitPrice,
+                resolved.VatRate,
+                resolved.MinimumOrderQuantity,
+                resolved.LeadTimeDays,
+                resolved.SupplierSku);
+        }
+
+        private static decimal[] AllocateAmount(decimal total, IReadOnlyList<decimal> weights)
+        {
+            if (weights.Count == 0)
+            {
+                return [];
+            }
+            var result = new decimal[weights.Count];
+            var totalWeight = weights.Sum();
+            var allocated = 0m;
+            for (var index = 0; index < weights.Count - 1; index++)
+            {
+                result[index] = totalWeight == 0m
+                    ? 0m
+                    : PriceCalculationEngine.RoundMoney(total * weights[index] / totalWeight);
+                allocated += result[index];
+            }
+            result[^1] = total - allocated;
+            return result;
+        }
+
+        private static void AddCharge(
+            VPP04_Settlement settlement,
+            string type,
+            decimal amount,
+            int userId,
+            DateTime nowUtc)
+            => settlement.Charges.Add(new VPP06_SettlementCharge
+            {
+                Id = Guid.NewGuid(),
+                SettlementId = settlement.Id,
+                ChargeType = type,
+                Amount = amount,
+                AllocationBasis = "net-amount",
+                CreateUserId = userId,
+                CreateDate = nowUtc,
+                UpdateUserId = userId,
+                UpdateDate = nowUtc
+            });
+
+        private static void EnsureReconciled(VPP04_Settlement settlement)
+        {
+            if (settlement.Items.Count == 0 || settlement.Allocations.Count == 0)
+            {
+                throw new BusinessException("Settlement requires item and allocation snapshots.");
+            }
+            if (settlement.Items.Where(x => !x.IsSupplierException)
+                .Any(x => x.SupplierId != settlement.PrimarySupplierId || x.PriceListId != settlement.PriceListId))
+            {
+                throw new BusinessException("A settlement revision must use exactly one primary supplier price book.");
+            }
+            if (settlement.Subtotal != settlement.Items.Sum(x => x.NetAmount)
+                || settlement.VatAmount != settlement.Items.Sum(x => x.VatAmount))
+            {
+                throw new BusinessException("Settlement item totals do not reconcile.");
+            }
+            var chargeTotal = settlement.Charges.Sum(x => x.Amount);
+            if (settlement.GrandTotal != settlement.Subtotal + settlement.VatAmount + chargeTotal)
+            {
+                throw new BusinessException("Settlement charge totals do not reconcile.");
+            }
+            if (settlement.GrandTotal != settlement.Allocations.Sum(x => x.GrossAmount))
+            {
+                throw new BusinessException("Settlement allocations do not reconcile to the grand total.");
+            }
+        }
+
+        private static VPP_SettlementRevisionResDTO MapRevision(VPP04_Settlement entity)
+            => new()
+            {
+                Id = entity.Id,
+                PeriodId = entity.PeriodId,
+                Y = entity.Y,
+                M = entity.M,
+                RevisionNumber = entity.RevisionNumber,
+                IsCurrentRevision = entity.IsCurrentRevision,
+                IsCorrection = entity.IsCorrection,
+                SupersedesSettlementId = entity.SupersedesSettlementId,
+                CorrectionReason = entity.CorrectionReason,
+                PrimarySupplierId = entity.PrimarySupplierId,
+                PrimarySupplierName = entity.PrimarySupplierName,
+                PriceListId = entity.PriceListId,
+                PriceListName = entity.PriceListName,
+                PriceListVersion = entity.PriceListVersion,
+                PriceAsOfUtc = entity.PriceAsOfUtc,
+                CalculationVersion = entity.CalculationVersion,
+                InputHash = entity.InputHash,
+                CurrencyCode = entity.CurrencyCode,
+                Subtotal = entity.Subtotal,
+                DiscountAmount = entity.DiscountAmount,
+                RebateAmount = entity.RebateAmount,
+                FeeAmount = entity.FeeAmount,
+                ShippingAmount = entity.ShippingAmount,
+                VatAmount = entity.VatAmount,
+                RoundingAdjustment = entity.RoundingAdjustment,
+                GrandTotal = entity.GrandTotal,
+                ConfirmedAtUtc = entity.ConfirmedAtUtc,
+                ConfirmedByUserId = entity.ConfirmedByUserId,
+                ItemCount = entity.Items.Count,
+                AllocationCount = entity.Allocations.Count
+            };
+
+        private static void ValidateConfirmRequest(VPP_SettlementConfirmReqDTO req)
+        {
+            ValidatePeriod(req.Y, req.M);
+            if (req.PrimarySupplierId == Guid.Empty || req.PriceListId == Guid.Empty)
+            {
+                throw new BusinessException("Primary supplier and price book are required.");
+            }
+            if (string.IsNullOrWhiteSpace(req.InputHash) || req.InputHash.Trim().Length != 64)
+            {
+                throw new BusinessException("A valid preview input hash is required.");
+            }
+            if (string.IsNullOrWhiteSpace(req.IdempotencyKey)
+                || req.IdempotencyKey.Trim().Length is < 8 or > 128)
+            {
+                throw new BusinessException("Idempotency key must contain between 8 and 128 characters.");
+            }
+        }
+
+        private static string ValidateReason(string? reason, string label)
+        {
+            var value = reason?.Trim();
+            if (string.IsNullOrWhiteSpace(value) || value.Length is < 5 or > 500)
+            {
+                throw new BusinessException($"{label} must contain between 5 and 500 characters.");
+            }
+            return value;
+        }
+
+        private static string ComputeCommandPayloadHash(
+            VPP_SettlementConfirmReqDTO req,
+            Guid? correctionSettlementId,
+            string? correctionReason,
+            DateTime asOfUtc)
+        {
+            var canonical = JsonSerializer.Serialize(new
+            {
+                Command = correctionSettlementId.HasValue ? "correct" : "confirm",
+                correctionSettlementId,
+                CorrectionReason = correctionReason,
+                req.Y,
+                req.M,
+                PriceAsOfUtc = asOfUtc,
+                InputHash = req.InputHash.Trim().ToUpperInvariant(),
+                req.PrimarySupplierId,
+                req.PriceListId,
+                Exceptions = (req.Exceptions ?? []).OrderBy(x => x.VppId).ThenBy(x => x.SupplierId)
+                    .Select(x => new { x.VppId, x.SupplierId, Reason = x.Reason?.Trim() })
+            });
+            return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(canonical)));
+        }
+
+        private sealed record SnapshotPriceEvidence(
+            Guid SupplierId,
+            Guid PriceListId,
+            Guid PriceBookItemId,
+            decimal NetUnitPrice,
+            decimal VatRate,
+            decimal MinimumOrderQuantity,
+            int LeadTimeDays,
+            string? SupplierSku);
 
         private async Task<L07_PriceList?> ResolvePriceListAsync(Guid? priceListId)
         {

@@ -40,6 +40,10 @@ namespace gtas_vpp_be.Model
         public virtual DbSet<VPP01_RequestHeader> VPP01_RequestHeaders { get; set; }
         public virtual DbSet<VPP02_RequestDetail> VPP02_RequestDetail { get; set; }
         public virtual DbSet<VPP03_Log> VPP03_Logs { get; set; }
+        public virtual DbSet<VPP04_Settlement> VPP04_Settlements { get; set; }
+        public virtual DbSet<VPP05_SettlementItem> VPP05_SettlementItems { get; set; }
+        public virtual DbSet<VPP06_SettlementCharge> VPP06_SettlementCharges { get; set; }
+        public virtual DbSet<VPP07_SettlementAllocation> VPP07_SettlementAllocations { get; set; }
         #endregion
 
         public virtual DbSet<N01_Notification> N01_Notifications { get; set; }
@@ -233,6 +237,7 @@ namespace gtas_vpp_be.Model
                       .HasForeignKey(x => x.VPP01_RequestHeaderId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+            modelBuilder.ConfigureSettlementSnapshots();
             modelBuilder.Entity<N01_Notification>(en =>
             {
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.ReadAt, x.CreatedAt })

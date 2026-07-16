@@ -21,10 +21,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private int selectedMonth = 1;
         private bool canSettle;
         private bool canPreview;
+        private bool canCorrect;
+        private bool canSettlePreview;
         private bool isLoading;
         private bool isSettling;
+        private bool isCorrecting;
         private bool isPreviewing;
         private VPP_SettlementPreviewResDTO? preview;
+        private string correctionReason = string.Empty;
+        private string? settlementIdempotencyKey;
         private string? alertMessage;
         private AlertStyle alertStyle = AlertStyle.Info;
 
@@ -160,16 +165,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             {
                 canSettle = false;
                 canPreview = false;
+                canCorrect = false;
+                canSettlePreview = false;
                 SetAlert(AlertStyle.Warning, string.Format(Loc["Warning_PendingAdditional"], status.PendingAdditionalCount));
                 return;
             }
 
             canPreview = true;
             canSettle = false;
+            canCorrect = status.IsSettled && status.SettlementId.HasValue;
+            canSettlePreview = false;
             if (status.IsSettled)
             {
-                canSettle = false;
-                canPreview = false;
                 SetAlert(
                     AlertStyle.Info,
                     string.Format(
@@ -187,7 +194,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         {
             selectedPriceListId = value;
             canSettle = false;
+            canSettlePreview = false;
             preview = null;
+            settlementIdempotencyKey = null;
             return Task.CompletedTask;
         }
 
@@ -213,8 +222,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     return;
                 }
 
-                canSettle = preview.Blockers.Count == 0 && preview.PrimaryQuote is not null;
-                if (!canSettle)
+                canSettlePreview = preview.Blockers.Count == 0 && preview.PrimaryQuote is not null;
+                canSettle = canSettlePreview && !canCorrect;
+                if (!canSettlePreview)
                 {
                     SetAlert(AlertStyle.Warning, string.Join("; ", preview.Blockers.Take(3)));
                     return;
@@ -222,6 +232,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
 
                 var quote = preview.PrimaryQuote!;
                 selectedPriceListId = quote.PriceListId;
+                settlementIdempotencyKey ??= $"{selectedYear:D4}{selectedMonth:D2}-{Guid.NewGuid():N}";
                 SetAlert(
                     AlertStyle.Success,
                     $"{quote.SupplierName ?? "Supplier"}: {quote.CoveredItemCount}/{quote.RequestedItemCount} items, total {quote.GrandTotal:N0} VND. Hash {preview.InputHash[..12]}.");
@@ -256,13 +267,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             isSettling = true;
             try
             {
-                await ApiServices.PostFromApiAsync<VPP_PeriodSettlementResDTO>(
-                    Config.RequestApi.PeriodSettlement.Settle,
-                    new VPP_SettlePeriodReqDTO
+                await ApiServices.PostFromApiAsync<VPP_SettlementRevisionResDTO>(
+                    Config.RequestApi.PeriodSettlement.Confirm,
+                    new VPP_SettlementConfirmReqDTO
                     {
                         Y = selectedYear,
                         M = selectedMonth,
-                        PriceListId = selectedPriceListId
+                        PriceAsOfUtc = preview!.PriceAsOfUtc,
+                        InputHash = preview.InputHash,
+                        PrimarySupplierId = preview.PrimarySupplierId!.Value,
+                        PriceListId = preview.PrimaryPriceListId!.Value,
+                        IdempotencyKey = settlementIdempotencyKey!
                     });
 
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
@@ -276,6 +291,69 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             finally
             {
                 isSettling = false;
+            }
+        }
+
+        private async Task CorrectAsync()
+        {
+            var reason = correctionReason.Trim();
+            if (reason.Length is < 5 or > 500)
+            {
+                SetAlert(AlertStyle.Warning, "Correction reason must contain between 5 and 500 characters.");
+                return;
+            }
+            if (preview is null || !canSettlePreview || string.IsNullOrWhiteSpace(settlementIdempotencyKey))
+            {
+                SetAlert(AlertStyle.Warning, "Run a fresh preview before correcting the settlement.");
+                return;
+            }
+
+            var confirmed = await DialogService.Confirm(
+                $"Tạo revision hiệu chỉnh cho kỳ {selectedMonth:D2}/{selectedYear}?",
+                "Settlement correction",
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+            if (confirmed != true)
+            {
+                return;
+            }
+
+            isCorrecting = true;
+            try
+            {
+                var current = await ApiServices.GetFromApiAsync<VPP_PeriodSettlementResDTO>(
+                    string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
+                if (current?.SettlementId is null)
+                {
+                    SetAlert(AlertStyle.Warning, "Current settlement revision was not found.");
+                    return;
+                }
+
+                await ApiServices.PostFromApiAsync<VPP_SettlementRevisionResDTO>(
+                    string.Format(Config.RequestApi.PeriodSettlement.Correct, current.SettlementId.Value),
+                    new VPP_SettlementCorrectionReqDTO
+                    {
+                        Y = selectedYear,
+                        M = selectedMonth,
+                        PriceAsOfUtc = preview.PriceAsOfUtc,
+                        InputHash = preview.InputHash,
+                        PrimarySupplierId = preview.PrimarySupplierId!.Value,
+                        PriceListId = preview.PrimaryPriceListId!.Value,
+                        IdempotencyKey = settlementIdempotencyKey,
+                        Reason = reason
+                    });
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], "Settlement correction");
+                correctionReason = string.Empty;
+                settlementIdempotencyKey = null;
+                await LoadStatusAsync();
+                await OnSettled.InvokeAsync();
+            }
+            catch (Exception ex)
+            {
+                SetAlert(AlertStyle.Danger, ex.Message);
+            }
+            finally
+            {
+                isCorrecting = false;
             }
         }
 

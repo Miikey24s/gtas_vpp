@@ -55,7 +55,7 @@ must preserve its preflight hash and never stage it.
 | LEAN-03 — Registration and recovery | DONE | `docs/execution/LEAN-03.md` |
 | LEAN-04 — UI foundation and independent brand | DONE | `docs/execution/LEAN-04.md` |
 | LEAN-05 — Request and supplement core | DONE | `docs/execution/LEAN-05.md`; all package gates green |
-| LEAN-06 — Procurement and immutable settlement | IN_PROGRESS | `CAT-001`, `PRICE-001/002` and `SET-001` DONE; continue `SET-002/UI-006` |
+| LEAN-06 — Procurement and immutable settlement | DONE | `CAT-001`, `PRICE-001/002`, `SET-001`, `SET-002/UI-006` DONE; see execution records |
 | LEAN-07 — Product proof | PENDING | Depends on LEAN-06 |
 | LEAN-08 — Release candidate quality and recovery | PENDING | Depends on LEAN-03..07 |
 | LEAN-09 — Thesis, defense and handoff | PENDING | Final package after LEAN-08 evidence |

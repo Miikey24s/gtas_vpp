@@ -6,7 +6,7 @@ Status: DONE for the read-only preview slice. SET-002/UI-006 remains next for im
 
 - Added `POST /api/PeriodSettlement/preview` under `PeriodSettle` authorization.
 - Aggregates only current regular submitted/approved requests plus current approved supplements for the target period; pending supplements, missing supplement provenance and empty baskets are explicit blockers.
-- Reuses PRICE-002 comparison and `price-vat-v1` for coverage, MOQ, subtotal, discount/rebate/fee/shipping/VAT, lead time and deterministic ranking.
+- Reuses PRICE-002 comparison and `price-vat-v2-vnd-whole` for coverage, MOQ, subtotal, discount/rebate/fee/shipping/VAT, lead time and deterministic ranking.
 - Selects one eligible primary supplier/book deterministically, or pins a requested supplier/book only when it has complete coverage. Missing/ambiguous coverage never falls back to the first row.
 - Produces a stable SHA-256 input hash over period, `PriceAsOfUtc`, aggregated item quantities, pinned selection and declared exceptions.
 - Supplier exceptions require item, supplier and a 5–500 character reason; invalid exceptions block confirmation. Quote merging remains deferred to SET-002 where immutable exception evidence is stored.

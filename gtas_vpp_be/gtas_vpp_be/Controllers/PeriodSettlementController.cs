@@ -41,6 +41,44 @@ namespace gtas_vpp_be.Controllers
             return Ok(await _periodSettlementService.PreviewAsync(req, cancellationToken));
         }
 
+        [HttpPost("confirm")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        public async Task<IActionResult> Confirm(
+            [FromBody] VPP_SettlementConfirmReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            return Ok(await _periodSettlementService.ConfirmAsync(
+                req, CurrentUserId.Value, cancellationToken));
+        }
+
+        [HttpPost("{settlementId:guid}/correct")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        public async Task<IActionResult> Correct(
+            Guid settlementId,
+            [FromBody] VPP_SettlementCorrectionReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            return Ok(await _periodSettlementService.CorrectAsync(
+                settlementId, req, CurrentUserId.Value, cancellationToken));
+        }
+
+        [HttpGet("current/{y:int}/{m:int}")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        public async Task<IActionResult> GetCurrent(
+            int y,
+            int m,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            var result = await _periodSettlementService.GetCurrentAsync(y, m, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+
         [HttpGet("{y:int}/{m:int}")]
         [Authorize(Policy = Permissions.PeriodSettle)]
         public async Task<IActionResult> GetStatus(int y, int m)

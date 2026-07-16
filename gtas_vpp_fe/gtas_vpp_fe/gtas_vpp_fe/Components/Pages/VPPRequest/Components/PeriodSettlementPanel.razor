@@ -28,6 +28,20 @@
                                 Style="width:100%" />
             </RadzenFormField>
 
+            @if (canCorrect)
+            {
+                <RadzenFormField Text="Correction reason" Style="width: 100%">
+                    <RadzenTextArea @bind-Value="correctionReason"
+                                    Name="CorrectionReason"
+                                    Rows="3"
+                                    MaxLength="500"
+                                    Placeholder="Nhập lý do hiệu chỉnh (5–500 ký tự)"
+                                    Disabled="@isLoading"
+                                    Style="width:100%" />
+                    <div class="vpp-settle-hint">Reason là bắt buộc và người xác nhận phải khác revision trước.</div>
+                </RadzenFormField>
+            }
+
             <div class="vpp-settle-hint">
                 <span class="rzi rzi-info"></span>
                 <span>@Loc["Hint_AutoTargetsClosedPeriod"]</span>
@@ -86,6 +100,15 @@
                               Click="@SettleAsync"
                               class="vpp-settle-btn" />
             </span>
+            @if (canCorrect)
+            {
+                <RadzenButton Icon="edit_note"
+                              Text="Correct revision"
+                              ButtonStyle="ButtonStyle.Warning"
+                              Disabled="@(!canCorrect || !canSettlePreview || isLoading || isCorrecting)"
+                              Click="@CorrectAsync"
+                              class="vpp-settle-btn" />
+            }
         </div>
     </div>
 </div>

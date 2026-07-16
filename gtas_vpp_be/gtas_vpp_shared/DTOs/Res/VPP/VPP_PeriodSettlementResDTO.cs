@@ -12,5 +12,10 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public string? PriceListName { get; set; }
         public int OrderCount { get; set; }
         public int PendingAdditionalCount { get; set; }
+        public Guid? SettlementId { get; set; }
+        public int? RevisionNumber { get; set; }
+        public decimal? GrandTotal { get; set; }
+        public Guid? PrimarySupplierId { get; set; }
+        public string? PrimarySupplierName { get; set; }
     }
 }

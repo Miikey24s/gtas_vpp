@@ -23,5 +23,5 @@ public sealed class PriceResolutionResDTO
     public decimal MinimumOrderQuantity { get; set; }
     public int LeadTimeDays { get; set; }
     public string? SupplierSku { get; set; }
-    public string CalculationVersion { get; set; } = "price-vat-v1";
+    public string CalculationVersion { get; set; } = "price-vat-v2-vnd-whole";
 }
