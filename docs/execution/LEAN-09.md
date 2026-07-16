@@ -38,6 +38,9 @@ checkpoint refreshed from the protected working source.
 - The user-owned working DOCX remains a protected file boundary and retains its
   original hash. The handoff checkpoint is refreshed, but any later owner edit
   to the working source requires another field update and render pass.
+- The checkpoint still contains the legacy PPJ Group UI screenshots in the
+  inherited visual section. Replacing those images needs owner-approved current
+  screenshots; the protected UI shell was not changed in this run.
 - Owner-authorized server backup/restore rehearsal remains manual handoff
   evidence. No production/provider mutation, real email delivery, or
   credential handoff was performed.
