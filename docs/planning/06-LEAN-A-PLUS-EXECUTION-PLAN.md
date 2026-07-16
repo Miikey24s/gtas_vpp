@@ -47,7 +47,7 @@ working Word file, `App.razor`, `vpp-login.css` and `vpp-responsive.css`. A
 package may touch one only after an explicit overlap decision; otherwise it
 must preserve its preflight hash and never stage it.
 
-### Current execution status — 2026-07-16
+### Current execution status — 2026-07-17
 
 | Package | Status | Evidence / next action |
 |---|---|---|
@@ -57,8 +57,8 @@ must preserve its preflight hash and never stage it.
 | LEAN-05 — Request and supplement core | DONE | `docs/execution/LEAN-05.md`; all package gates green |
 | LEAN-06 — Procurement and immutable settlement | DONE | `CAT-001`, `PRICE-001/002`, `SET-001`, `SET-002/UI-006` DONE; see execution records |
 | LEAN-07 — Product proof | DONE | `docs/execution/LEAN-07.md`; reports/workbook/inbox/outbox gates green |
-| LEAN-08 — Release candidate quality and recovery | DONE (local RC + isolated E2E) | `docs/execution/LEAN-08.md`; two clean isolated rehearsals complete; owner-authorized backup remains explicit manual evidence |
-| LEAN-09 — Thesis, defense and handoff | IN_PROGRESS | Traceability/diagram delta recorded; final checkpoint refreshed/rendered; protected working DOCX remains unchanged |
+| LEAN-08 — Release candidate quality and recovery | DONE (local RC + isolated E2E + approved local recovery alternative) | `docs/execution/LEAN-08.md`, `docs/execution/DEP-002.md`; two clean isolated rehearsals and disposable LocalDB backup/restore complete; deployed/server recovery remains conditional |
+| LEAN-09 — Thesis, defense and handoff | DONE (local-only release/handoff alternative) | Traceability/diagram delta, current anonymized screenshots, final checkpoint render/audit and release tag complete; protected working DOCX remains unchanged |
 
 ## 4. Retained execution packages
 

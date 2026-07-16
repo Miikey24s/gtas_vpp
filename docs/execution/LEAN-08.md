@@ -1,6 +1,7 @@
 # LEAN-08 — Release candidate quality and recovery
 
-Status: DONE for the local release candidate gates.
+Status: DONE for the local release candidate gates and approved local-only
+recovery alternative.
 
 ## Gates
 
@@ -19,6 +20,11 @@ Status: DONE for the local release candidate gates.
 
 ## Recovery and release evidence
 
+- DEP-002 local-only alternative passed on a disposable unique LocalDB
+  instance: backup with checksum, `RESTORE VERIFYONLY`, drop, restore, marker
+  probe after restore, second checksum verification, and full cleanup. The
+  backup evidence is recorded in `docs/execution/DEP-002.md`; no shared,
+  production or deployed database was touched.
 - Idempotent migration script was generated through
   `20260716173404_Lean07EmailOutbox`; the latest package script is recorded in
   `docs/execution/LEAN-07.md`.
@@ -38,6 +44,7 @@ Status: DONE for the local release candidate gates.
 ## Cutline
 
 This local RC is suitable for source freeze and thesis traceability work. The
-two clean-state UI demonstrations are complete. Remaining external/manual
-evidence is the owner-authorized server backup/restore rehearsal; it is not
-silently represented as completed here.
+two clean-state UI demonstrations and the approved local-only recovery
+alternative are complete. A deployed/server backup, off-host copy and
+production restore remain conditional owner-controlled evidence and are not
+claimed by this local release.

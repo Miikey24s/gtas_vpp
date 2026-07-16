@@ -25,8 +25,8 @@ execution evidence that was actually run in the local release candidate.
 | LEAN-06 PRICE-002 | `c00af56` | DONE |
 | LEAN-06 SET-001/SET-002 | `e97f781`, `ca3b594` | DONE |
 | LEAN-07 | `d6cde93` | DONE |
-| LEAN-08 local RC | `8b51a45` | DONE for local gates; two isolated authenticated UI rehearsals 16/16 passed; owner backup remains explicit manual evidence |
-| LEAN-09 thesis/handoff | `df3b820` plus checkpoint refresh | IN_PROGRESS; traceability/diagram delta recorded, current anonymized UI evidence embedded, final checkpoint rendered and structurally audited; owner backup remains manual evidence |
+| LEAN-08 local RC | `8b51a45` plus `DEP-002` alternative | DONE for local gates and approved local-only recovery; two isolated authenticated UI rehearsals 16/16 passed |
+| LEAN-09 thesis/handoff | `df3b820` plus checkpoint refresh and `lean-a-plus-final-20260717` | DONE via approved local-only alternative; traceability/diagram delta recorded, current anonymized UI evidence embedded, final checkpoint rendered and structurally audited |
 
 ## Release claims
 
@@ -48,6 +48,9 @@ execution evidence that was actually run in the local release candidate.
   corresponding thesis figure slots. The login background is the GTAS-specific
   asset `login-bg-gtas.png`; the price-list image records the explicit empty
   local QA state.
+- DEP-002 local-only recovery evidence: unique disposable LocalDB backup with
+  checksum, drop/restore, marker probe and cleanup passed; see
+  `docs/execution/DEP-002.md`. This does not claim deployed/server recovery.
 - Protected working DOCX and UI shell hashes are preserved; no protected file
   is staged by the checkpoints above. Owner-authorized server backup/restore
   remains the explicit handoff boundary.

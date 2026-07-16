@@ -1,8 +1,11 @@
 # LEAN-09 — Thesis, defense and handoff
 
-Status: IN_PROGRESS with source-freeze traceability prepared, current
-anonymized UI evidence embedded, and the final checkpoint refreshed from the
-protected working source.
+Status: DONE via the approved local-only release/handoff alternative; current
+anonymized UI evidence is embedded and the final checkpoint is refreshed from
+the protected working source.
+
+Release tag: `lean-a-plus-final-20260717` (created on the final evidence
+commit after the gates below were rechecked).
 
 ## Completed safely in this workspace
 
@@ -52,6 +55,13 @@ protected working source.
   an unsafe database name, and both restore entry points rejected missing
   confirmation variables before any Docker call. A real paired backup/restore
   still requires the owner-controlled deployed environment and credentials.
+- Completed the approved DEP-002 local-only recovery rehearsal on a unique
+  disposable LocalDB instance: checksum backup/verify, drop, restore, marker
+  probe, post-restore verify and cleanup all passed. The exact evidence and
+  backup hash are recorded in `docs/execution/DEP-002.md`.
+- Final source recheck after the recovery evidence passed: solution Release
+  build `0 warnings / 0 errors`, backend Release `384/384`, and frontend
+  Release `96/96`.
 
 ## Explicit handoff boundaries
 
@@ -61,6 +71,7 @@ protected working source.
 - The checkpoint's nine inherited UI figure slots now contain current
   persona-correct screenshots from the isolated fixture. They document the
   local QA state only; they are not production/provider evidence.
-- Owner-authorized server backup/restore rehearsal remains manual handoff
-  evidence. No production/provider mutation, real email delivery, or
-  credential handoff was performed.
+- A deployed/server backup, off-host copy and production restore remain an
+  owner-controlled conditional boundary; no production/provider mutation, real
+  email delivery, or credential handoff was performed. The local-only
+  alternative is the release evidence used here.
