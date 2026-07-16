@@ -112,6 +112,7 @@ builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();
 builder.Services.AddHostedService<VppPeriodRecoveryWorker>();
 builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
+builder.Services.AddScoped<IPriceAsOfResolver, PriceAsOfResolver>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();

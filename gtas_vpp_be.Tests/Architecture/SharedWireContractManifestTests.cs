@@ -11,7 +11,7 @@ namespace gtas_vpp_be.Tests.Architecture;
 public sealed class SharedWireContractManifestTests
 {
     private const string ExpectedManifestSha256 =
-        "E31DD81CB3CF581EE2DDBE81D6A18A81BAAEB7335AC0AF2F59511C9B28658A66";
+        "D63E78910173B2C3E6780FF86B1BE52D451083657D7E786AA4F34A8670DDCDB4";
 
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
 

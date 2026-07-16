@@ -7,6 +7,17 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public string? PriceListCode { get; set; }
         public string? PriceListName { get; set; }
         public bool IsDefault { get; set; }
+        public Guid? SupplierId { get; set; }
+        public string? SupplierName { get; set; }
+        public int Version { get; set; }
+        public DateTime EffectiveFromUtc { get; set; }
+        public DateTime? EffectiveToUtc { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string CurrencyCode { get; set; } = "VND";
+        public string VatPolicy { get; set; } = "item-rate";
+        public string? ContractCode { get; set; }
+        public string? LegacyBackfillStatus { get; set; }
+        public byte[]? RowVersion { get; set; }
         public int ItemCount { get; set; }
         public string? CreateUserName { get; set; }
         public string? UpdateUserName { get; set; }

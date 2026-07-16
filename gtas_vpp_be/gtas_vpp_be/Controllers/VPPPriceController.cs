@@ -13,10 +13,17 @@ namespace gtas_vpp_be.Controllers
     public class VPPPriceController : ControllerBase
     {
         private readonly IVPPPriceService _priceService;
+        private readonly IPriceAsOfResolver? _priceResolver;
 
         public VPPPriceController(IVPPPriceService priceService)
+            : this(priceService, null)
+        {
+        }
+
+        public VPPPriceController(IVPPPriceService priceService, IPriceAsOfResolver? priceResolver)
         {
             _priceService = priceService;
+            _priceResolver = priceResolver;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -72,6 +79,18 @@ namespace gtas_vpp_be.Controllers
 
             Response.Headers.Append("X-Total-Count", result.TotalCount.ToString());
             return Ok(result.Data);
+        }
+
+        [HttpPost("resolve")]
+        [Authorize(Policy = Permissions.LibraryView)]
+        public async Task<IActionResult> Resolve(
+            [FromBody] PriceResolutionReqDTO request,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_priceResolver is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+            return Ok(await _priceResolver.ResolveAsync(request, cancellationToken));
         }
 
         [HttpPost]

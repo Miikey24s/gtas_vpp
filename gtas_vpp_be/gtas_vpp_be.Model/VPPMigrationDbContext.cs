@@ -87,6 +87,12 @@ namespace gtas_vpp_be.Model
             });
             modelBuilder.Entity<L06_VPPSupplierMapping>(en =>
             {
+                en.Property(x => x.Price).HasColumnType("decimal(19,4)");
+                en.Property(x => x.NetPrice).HasColumnType("decimal(19,4)");
+                en.Property(x => x.VatRate).HasColumnType("decimal(5,2)");
+                en.Property(x => x.MinimumOrderQuantity).HasColumnType("decimal(19,4)");
+                en.Property(x => x.SupplierSku).HasMaxLength(128);
+                en.Property(x => x.RowVersion).IsRowVersion();
                 en.HasOne(x => x.L04_VPP).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.L05_VPPSupplier).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.L07_PriceList).WithMany(x => x.L06_VPPSupplierMappings)
@@ -95,13 +101,42 @@ namespace gtas_vpp_be.Model
                     .HasDatabaseName("UX_L06_OneDefaultPerVPPPerList")
                     .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
                     .IsUnique();
+                en.HasIndex(x => new { x.L07_PriceListId, x.L04_VPPId, x.IsDeleted })
+                    .HasDatabaseName("IX_L06_PriceBookItem_Resolve")
+                    .IncludeProperties(x => new { x.NetPrice, x.VatRate, x.MinimumOrderQuantity, x.LeadTimeDays });
+                en.ToTable(t => t.HasCheckConstraint("CK_L06_Price_NonNegative", "[NetPrice] >= 0"));
+                en.ToTable(t => t.HasCheckConstraint("CK_L06_VatRate_Range", "[VatRate] >= 0 AND [VatRate] <= 100"));
+                en.ToTable(t => t.HasCheckConstraint("CK_L06_Moq_NonNegative", "[MinimumOrderQuantity] >= 0"));
+                en.ToTable(t => t.HasCheckConstraint("CK_L06_LeadTime_NonNegative", "[LeadTimeDays] >= 0"));
             });
             modelBuilder.Entity<L07_PriceList>(en =>
             {
+                en.Property(x => x.PriceListCode).HasMaxLength(50);
+                en.Property(x => x.PriceListName).HasMaxLength(200);
+                en.Property(x => x.CurrencyCode).HasMaxLength(3).IsRequired();
+                en.Property(x => x.VatPolicy).HasMaxLength(32).IsRequired();
+                en.Property(x => x.ContractCode).HasMaxLength(128);
+                en.Property(x => x.LegacyBackfillStatus).HasMaxLength(64);
+                en.Property(x => x.Status).HasConversion<int>().IsRequired();
+                en.Property(x => x.RowVersion).IsRowVersion();
+                en.HasOne(x => x.Supplier).WithMany(x => x.PriceBooks)
+                    .HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
                 en.HasIndex(x => x.IsDefault)
                     .HasDatabaseName("UX_L07_OneDefault")
                     .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
                     .IsUnique();
+                en.HasIndex(x => new { x.SupplierId, x.PriceListCode, x.Version })
+                    .HasDatabaseName("UX_L07_PriceBook_Supplier_Version")
+                    .HasFilter("[IsDeleted] = 0 AND [SupplierId] IS NOT NULL AND [PriceListCode] IS NOT NULL")
+                    .IsUnique();
+                en.HasIndex(x => new { x.SupplierId, x.Status, x.EffectiveFromUtc, x.EffectiveToUtc })
+                    .HasDatabaseName("IX_L07_PriceBook_Effective");
+                en.ToTable(t => t.HasCheckConstraint(
+                    "CK_L07_PriceBook_EffectiveWindow",
+                    "[EffectiveToUtc] IS NULL OR [EffectiveToUtc] > [EffectiveFromUtc]"));
+                en.ToTable(t => t.HasCheckConstraint(
+                    "CK_L07_PriceBook_VersionPositive",
+                    "[Version] > 0"));
             });
             modelBuilder.Entity<VPP02_RequestDetail>(en =>
             {

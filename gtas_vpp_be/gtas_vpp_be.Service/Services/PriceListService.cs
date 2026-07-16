@@ -131,10 +131,12 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<L07_PriceListResDTO> CreateAsync(L07_PriceListCreateReqDTO req, int userId)
         {
+            ValidatePriceBook(req.SupplierId, req.Version, req.EffectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
             await _scopedUow.BeginTransactionAsync();
             try
             {
                 var now = _dateTimeProvider.Now;
+                await ValidateSupplierAsync(req.SupplierId);
                 if (req.IsDefault)
                 {
                     await DemoteDefaultsAsync(userId, now);
@@ -147,6 +149,14 @@ namespace gtas_vpp_be.Service.Services
                     PriceListName = req.Name,
                     Description = req.Description,
                     IsDefault = req.IsDefault,
+                    SupplierId = req.SupplierId,
+                    Version = req.Version,
+                    EffectiveFromUtc = NormalizeUtc(req.EffectiveFromUtc ?? now),
+                    EffectiveToUtc = req.EffectiveToUtc.HasValue ? NormalizeUtc(req.EffectiveToUtc.Value) : null,
+                    Status = L07_PriceListStatus.Draft,
+                    CurrencyCode = NormalizeCurrency(req.CurrencyCode),
+                    VatPolicy = NormalizeVatPolicy(req.VatPolicy),
+                    ContractCode = NormalizeOptional(req.ContractCode),
                     CreateUserId = userId,
                     CreateDate = now,
                     UpdateUserId = userId,
@@ -183,6 +193,15 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price list not found.");
                 }
 
+                if (entity.Status == L07_PriceListStatus.Published)
+                {
+                    throw new BusinessException("Published price books are immutable; create a new version instead.");
+                }
+
+                var effectiveFromUtc = req.EffectiveFromUtc ?? entity.EffectiveFromUtc;
+                ValidatePriceBook(req.SupplierId, req.Version, effectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
+                await ValidateSupplierAsync(req.SupplierId);
+
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
                 {
@@ -193,6 +212,13 @@ namespace gtas_vpp_be.Service.Services
                 entity.PriceListName = req.Name;
                 entity.Description = req.Description;
                 entity.IsDefault = req.IsDefault;
+                entity.SupplierId = req.SupplierId;
+                entity.Version = req.Version;
+                entity.EffectiveFromUtc = NormalizeUtc(effectiveFromUtc);
+                entity.EffectiveToUtc = req.EffectiveToUtc.HasValue ? NormalizeUtc(req.EffectiveToUtc.Value) : null;
+                entity.CurrencyCode = NormalizeCurrency(req.CurrencyCode);
+                entity.VatPolicy = NormalizeVatPolicy(req.VatPolicy);
+                entity.ContractCode = NormalizeOptional(req.ContractCode);
                 entity.UpdateUserId = userId;
                 entity.UpdateDate = now;
 
@@ -227,6 +253,11 @@ namespace gtas_vpp_be.Service.Services
                 if (isDeleted && entity.IsDefault)
                 {
                     throw new BusinessException("Cannot delete the default price list.");
+                }
+
+                if (isDeleted && entity.Status == L07_PriceListStatus.Published)
+                {
+                    throw new BusinessException("Published price books cannot be deleted; expire them through the versioned workflow.");
                 }
 
                 if (isDeleted)
@@ -267,6 +298,11 @@ namespace gtas_vpp_be.Service.Services
                 if (entity == null)
                 {
                     throw new BusinessException("Price list not found.");
+                }
+
+                if (entity.Status == L07_PriceListStatus.Published)
+                {
+                    throw new BusinessException("Published price books cannot be hard-deleted.");
                 }
 
                 _scopedUow.VPPContext.Set<L07_PriceList>().Remove(entity);
@@ -332,6 +368,14 @@ namespace gtas_vpp_be.Service.Services
                     PriceListName = req.Name,
                     Description = req.Description,
                     IsDefault = false,
+                    SupplierId = source.SupplierId,
+                    Version = source.Version + 1,
+                    EffectiveFromUtc = NormalizeUtc(now),
+                    EffectiveToUtc = null,
+                    Status = L07_PriceListStatus.Draft,
+                    CurrencyCode = source.CurrencyCode,
+                    VatPolicy = source.VatPolicy,
+                    ContractCode = source.ContractCode,
                     CreateUserId = userId,
                     CreateDate = now,
                     UpdateUserId = userId,
@@ -353,6 +397,11 @@ namespace gtas_vpp_be.Service.Services
                     L05_VPPSupplierId = row.L05_VPPSupplierId,
                     L07_PriceListId = clone.Id,
                     Price = row.Price,
+                    NetPrice = row.NetPrice == 0m && row.Price != 0m ? row.Price : row.NetPrice,
+                    VatRate = row.VatRate,
+                    MinimumOrderQuantity = row.MinimumOrderQuantity,
+                    LeadTimeDays = row.LeadTimeDays,
+                    SupplierSku = row.SupplierSku,
                     IsDefault = row.IsDefault,
                     Description = row.Description,
                     CreateUserId = userId,
@@ -396,6 +445,19 @@ namespace gtas_vpp_be.Service.Services
                     PriceListCode = x.PriceListCode,
                     PriceListName = x.PriceListName,
                     IsDefault = x.IsDefault,
+                    SupplierId = x.SupplierId,
+                    SupplierName = x.Supplier == null ? null : x.Supplier.SupplierName,
+                    Version = x.Version,
+                    EffectiveFromUtc = x.EffectiveFromUtc,
+                    EffectiveToUtc = x.EffectiveToUtc,
+                    Status = x.Status == L07_PriceListStatus.Draft
+                        ? "Draft"
+                        : x.Status == L07_PriceListStatus.Published ? "Published" : "Expired",
+                    CurrencyCode = x.CurrencyCode,
+                    VatPolicy = x.VatPolicy,
+                    ContractCode = x.ContractCode,
+                    LegacyBackfillStatus = x.LegacyBackfillStatus,
+                    RowVersion = x.RowVersion,
                     ItemCount = x.L06_VPPSupplierMappings!.Count(m => showDeleted || !m.IsDeleted)
                 });
         }
@@ -426,5 +488,64 @@ namespace gtas_vpp_be.Service.Services
         private static bool IsUniqueViolation(DbUpdateException exception)
             => exception.InnerException is SqlException sqlException
                && (sqlException.Number == 2601 || sqlException.Number == 2627);
+
+        private async Task ValidateSupplierAsync(Guid? supplierId)
+        {
+            if (!supplierId.HasValue)
+            {
+                return;
+            }
+
+            var exists = await _scopedUow.VPPContext.Set<L05_VPPSupplier>()
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == supplierId.Value && !x.IsDeleted);
+            if (!exists)
+            {
+                throw new BusinessException("Supplier does not exist or has been deleted.");
+            }
+        }
+
+        private static void ValidatePriceBook(
+            Guid? supplierId,
+            int version,
+            DateTime? effectiveFromUtc,
+            DateTime? effectiveToUtc,
+            string currencyCode)
+        {
+            if (version <= 0)
+            {
+                throw new BusinessException("Price book version must be greater than zero.");
+            }
+
+            if (effectiveFromUtc.HasValue && effectiveToUtc.HasValue
+                && NormalizeUtc(effectiveToUtc.Value) <= NormalizeUtc(effectiveFromUtc.Value))
+            {
+                throw new BusinessException("EffectiveToUtc must be later than EffectiveFromUtc.");
+            }
+
+            if (string.IsNullOrWhiteSpace(currencyCode) || currencyCode.Trim().Length != 3)
+            {
+                throw new BusinessException("CurrencyCode must contain exactly three letters.");
+            }
+
+            _ = supplierId;
+        }
+
+        private static string NormalizeCurrency(string value)
+            => value.Trim().ToUpperInvariant();
+
+        private static string NormalizeVatPolicy(string? value)
+            => string.IsNullOrWhiteSpace(value) ? "item-rate" : value.Trim().ToLowerInvariant();
+
+        private static string? NormalizeOptional(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static DateTime NormalizeUtc(DateTime value)
+            => value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Local => value.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+            };
     }
 }
