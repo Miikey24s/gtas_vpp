@@ -17,8 +17,9 @@ Không dùng cấu hình này cho hoạt động thương mại.
 - Development dùng `TestEnv`; production dùng `LiveEnv`.
 - Hai môi trường có SQL Server, Docker volume và tên database nghiệp vụ vật lý riêng:
   Development dùng `GTAS_VPP_TEST`, production dùng `GTAS_VPP_LIVE`. Production
-  còn có `GTAS_MENU` chứa tài khoản; hai database production là một cặp logic phải
-  được backup cùng một backup-set.
+  còn giữ `GTAS_MENU` app-owned ở chế độ tương thích/lịch sử; credential và phiên
+  đăng nhập mới chỉ thuộc ASP.NET Core Identity trong `GTAS_VPP_LIVE`. Hai database
+  production vẫn là một cặp logic phải được backup cùng một backup-set.
 - Không chép database production về máy cá nhân nếu trong đó có dữ liệu thật.
 
 ## Baseline Droplet
@@ -55,8 +56,6 @@ secret khi gói GitHub hiện tại hỗ trợ:
 - `ENV_FILE_CONTENT`: nội dung dotenv production.
 - `DB_SA_PASSWORD`: password SQL mới, ngẫu nhiên và riêng cho production.
 - `JWT_KEY`: signing key ngẫu nhiên tối thiểu 32 byte.
-- `PASSWORD_ENCRYPTION_KEY`: key TripleDES tương thích dữ liệu cũ; được lưu riêng
-  để có thể luân chuyển khỏi composite secret.
 
 `ENV_FILE_CONTENT` tối thiểu có:
 
@@ -65,11 +64,6 @@ MSSQL_MEMORY_LIMIT_MB=4096
 REPORT_INSIGHTS_ENABLED=false
 OPENAI_API_KEY=
 ```
-
-Với database đang tồn tại, không tự tạo lại `PASSWORD_ENCRYPTION_KEY`: key phải
-khớp dữ liệu `tblUsers.PasswordChar`. Nếu key từng xuất hiện trong Git công khai,
-cần lập kế hoạch reset mật khẩu/migrate sang password hash; đổi key đơn lẻ sẽ làm
-người dùng hiện có không đăng nhập được.
 
 Script `deploy/validate-env.sh` chặn secret trống, placeholder, JWT ngắn, password
 SQL quá yếu và trường hợp bật AI nhưng thiếu API key. Giá trị secret không được
@@ -113,6 +107,59 @@ recreate container SQL trên đúng named volume để metadata không giữ cre
 rồi recreate cặp image ứng dụng trước bằng `.env` hiện hành nên chúng cũng dùng
 credential mới. Nếu tự động phục hồi chưa hoàn tất, giữ nguyên credential mới và
 điều tra/retry; không đưa credential đã bị thu hồi trở lại.
+
+## Khởi tạo System Admin đầu tiên (một lần)
+
+Chỉ dùng luồng này khi database production đã qua containment: đúng 12 tài khoản
+demo trong `GTAS_MENU` đều inactive và locked, chưa có `AspNetUsers` active và chưa
+có membership active. Provisioner chỉ chạy trong profile migrator `RunOnly`, cùng
+reference seed, không có demo seed; không có HTTP endpoint tương ứng.
+
+Trước khi chạy, tạo backup-set `pre-deploy` đã `RESTORE VERIFYONLY`, chọn một mã
+phòng ban `LEX02Code` đang active với `LEX02Type = PhongBan`, rồi nhập giá trị qua
+prompt. Không ghi password vào `.env`, command line, ticket hoặc Git:
+
+```bash
+cd /app/gtas-vpp/current
+read -r -p 'Operation key (ví dụ owner-20260716): ' AuthBootstrap__OperationKey
+read -r -p 'Username: ' AuthBootstrap__Username
+read -r -p 'Email: ' AuthBootstrap__Email
+read -r -p 'Họ tên: ' AuthBootstrap__FullName
+read -r -p 'Mã phòng ban: ' AuthBootstrap__PrimaryDepartmentCode
+read -r -s -p 'Mật khẩu tạm: ' AuthBootstrap__InitialPassword; echo
+export AuthBootstrap__Enabled=true AuthBootstrap__OperationKey \
+  AuthBootstrap__Username AuthBootstrap__Email AuthBootstrap__FullName \
+  AuthBootstrap__PrimaryDepartmentCode AuthBootstrap__InitialPassword
+
+docker compose -f docker-compose.prod.yml --profile tools run --rm \
+  -e AuthBootstrap__Enabled \
+  -e AuthBootstrap__OperationKey \
+  -e AuthBootstrap__Username \
+  -e AuthBootstrap__Email \
+  -e AuthBootstrap__FullName \
+  -e AuthBootstrap__PrimaryDepartmentCode \
+  -e AuthBootstrap__InitialPassword \
+  migrator
+
+unset AuthBootstrap__Enabled AuthBootstrap__OperationKey \
+  AuthBootstrap__Username AuthBootstrap__Email AuthBootstrap__FullName \
+  AuthBootstrap__PrimaryDepartmentCode AuthBootstrap__InitialPassword
+```
+
+Kết quả hợp lệ tạo đúng một account ID từ `1000000000`, một membership
+`SYSTEM_ADMIN`, một ledger `A02_AuthBootstrapOperation` trạng thái `Completed` và
+một audit `AUTH_BOOTSTRAP_OWNER_CREATED`. Xác minh số lượng, sau đó đăng nhập bằng
+HTTPS; không chụp/log password:
+
+```bash
+docker exec gtas-vpp-db bash -lc \
+  "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"\$MSSQL_SA_PASSWORD\" -C -d GTAS_VPP_LIVE -b -Q \"SET NOCOUNT ON; SELECT (SELECT COUNT(*) FROM dbo.AspNetUsers WHERE AccountStatus = N'Active') AS ActiveAccounts, (SELECT COUNT(*) FROM dbo.P04_UserGroup WHERE IsDeleted = 0) AS ActiveMemberships, (SELECT COUNT(*) FROM dbo.A02_AuthBootstrapOperation WHERE Status = N'Completed') AS CompletedBootstraps;\""
+```
+
+Không lưu `AuthBootstrap__*` vào cấu hình thường trực. Nếu transaction thất bại,
+sửa đúng prerequisite rồi chạy lại cùng operation key và cùng dữ liệu; nếu đã
+`Completed`, không xoá ledger/account để làm lại. Migration này ưu tiên roll-forward;
+Down sẽ tự chặn khi đã có account hoặc audit.
 
 ## Backup và restore
 

@@ -35,6 +35,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IPermissionChangeNotifier _permissionChangeNotifier;
+        private readonly IMembershipAdministrationService _membershipAdministrationService;
 
         public PermissionController(
             IGenericRepository<P02_Group> groupRepository,
@@ -43,7 +44,8 @@ namespace gtas_vpp_be.Controllers
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
             IDateTimeProvider dateTimeProvider,
-            IPermissionChangeNotifier permissionChangeNotifier)
+            IPermissionChangeNotifier permissionChangeNotifier,
+            IMembershipAdministrationService membershipAdministrationService)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
@@ -54,6 +56,7 @@ namespace gtas_vpp_be.Controllers
             // of host timezone or client-supplied values.
             _dateTimeProvider = dateTimeProvider;
             _permissionChangeNotifier = permissionChangeNotifier;
+            _membershipAdministrationService = membershipAdministrationService;
         }
 
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
@@ -68,8 +71,13 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? distinct = null,
             [FromQuery] string? distinctFilter = null)
         {
+            var canonicalGroupIds = CanonicalRbac.Personas
+                .Select(persona => persona.GroupId)
+                .ToArray();
+
             IQueryable<P02_GroupResDTO> query = _unitOfWork.VPPContext.Set<P02_Group>()
                 .AsNoTracking()
+                .Where(group => canonicalGroupIds.Contains(group.Id) && !group.IsDeleted)
                 .Select(group => new P02_GroupResDTO
                 {
                     Id = group.Id,
@@ -79,7 +87,7 @@ namespace gtas_vpp_be.Controllers
                     UpdateUserId = group.UpdateUserId,
                     UpdateDate = group.UpdateDate,
                     IsDeleted = group.IsDeleted,
-                    MemberCompanyCode = 0,
+                    MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
                     GroupName = group.GroupName,
                     ParentGroupId = group.ParentGroupId
                 });
@@ -178,8 +186,13 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("groups/{id:guid}")]
         public async Task<IActionResult> GetGroupById(Guid id, [FromQuery] bool getFullName = true)
         {
+            if (!CanonicalRbac.Personas.Any(persona => persona.GroupId == id))
+            {
+                return NotFound();
+            }
+
             var entity = await GetByIdAsync(_groupRepository, id, getFullName);
-            if (entity is null) return Ok(null);
+            if (entity is null || entity.IsDeleted) return NotFound();
 
             var rs = entity.Adapt<P02_GroupResDTO>();
             return Ok(rs);
@@ -188,11 +201,17 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("groups/{id:guid}/page-components")]
         public async Task<IActionResult> GetGroupPageComponents(Guid id, [FromQuery] bool? showDeleted = false)
         {
+            if (!CanonicalRbac.Personas.Any(persona => persona.GroupId == id))
+            {
+                return NotFound();
+            }
+
             var query = _unitOfWork.VPPContext.Set<P06_GroupPageComponentMapping>()
                 .AsNoTracking()
                 .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P01_Page)
                 .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P03_Component)
                 .Where(x => x.P02_GroupId == id
+                            && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
                             && x.P05_PageComponentMapping != null
                             && x.P05_PageComponentMapping.P01_Page != null
                             && x.P05_PageComponentMapping.P03_Component != null);
@@ -287,89 +306,11 @@ namespace gtas_vpp_be.Controllers
                 return NotFound("Group not found.");
             }
 
-            // Validate circular reference
-            if (req.ParentGroupId.HasValue && req.ParentGroupId.Value != Guid.Empty)
+            return Conflict(new
             {
-                if (await HasCircularReference(id, req.ParentGroupId.Value))
-                {
-                    return BadRequest(new { 
-                        message = "Cannot set parent group: This would create a circular reference in the group hierarchy." 
-                    });
-                }
-
-                // Validate hierarchy depth (optional - warn if too deep)
-                var depth = await GetHierarchyDepth(req.ParentGroupId.Value);
-                if (depth >= 10)
-                {
-                    return BadRequest(new { 
-                        message = $"Cannot set parent group: This would create a hierarchy that is too deep (current depth: {depth + 1}). Maximum recommended depth is 10 levels." 
-                    });
-                }
-            }
-
-            req.Adapt(current);
-            current.UpdateUserId = CurrentUserId;
-            current.UpdateDate = _dateTimeProvider.Now;
-
-            var updated = await _groupRepository.UpdateAsync(current);
-            var response = updated.Adapt<P02_GroupResDTO>();
-
-            return Ok(response);
-        }
-
-        private async Task<bool> HasCircularReference(Guid groupId, Guid parentId)
-        {
-            // Check if setting parentId as parent of groupId would create a circular reference
-            var visited = new HashSet<Guid> { groupId };
-            var currentId = parentId;
-            int maxDepth = 50; // Prevent infinite loop in case of data corruption
-            int depth = 0;
-
-            while (currentId != Guid.Empty && depth < maxDepth)
-            {
-                // If we've seen this ID before, we have a circular reference
-                if (visited.Contains(currentId))
-                {
-                    return true;
-                }
-
-                visited.Add(currentId);
-
-                // Get the parent of current group
-                var parent = await GetByIdAsync(_groupRepository, currentId, false);
-
-                if (parent?.ParentGroupId == null || parent.ParentGroupId == Guid.Empty)
-                {
-                    break; // Reached the top of hierarchy
-                }
-
-                currentId = parent.ParentGroupId.Value;
-                depth++;
-            }
-
-            return false;
-        }
-
-        private async Task<int> GetHierarchyDepth(Guid groupId)
-        {
-            int depth = 0;
-            var currentId = groupId;
-            int maxDepth = 50;
-
-            while (currentId != Guid.Empty && depth < maxDepth)
-            {
-                var group = await GetByIdAsync(_groupRepository, currentId, false);
-
-                if (group?.ParentGroupId == null || group.ParentGroupId == Guid.Empty)
-                {
-                    break;
-                }
-
-                currentId = group.ParentGroupId.Value;
-                depth++;
-            }
-
-            return depth;
+                code = "CANONICAL_ROLE_DEFINITION_IMMUTABLE",
+                message = "The four flat role definitions are versioned reference data and cannot be edited at runtime."
+            });
         }
 
         [HttpPatch("component-mapping")]
@@ -396,28 +337,55 @@ namespace gtas_vpp_be.Controllers
                     : string.Empty)
                 .FirstOrDefaultAsync();
 
-            if ((!req.IsVisible || !req.IsEnable)
-                && (string.Equals(componentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(componentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase)))
+            if (current.MemberCompanyCode != CanonicalRbac.DefaultMemberCompanyCode
+                || !CanonicalRbac.Personas.Any(persona => persona.GroupId == current.P02_GroupId))
             {
-                var otherPermissionManagers = await _unitOfWork.VPPContext
-                    .Set<P06_GroupPageComponentMapping>()
-                    .AsNoTracking()
-                    .CountAsync(mapping =>
-                        !(mapping.P05_PageComponentMappingId == current.P05_PageComponentMappingId
-                            && mapping.P02_GroupId == current.P02_GroupId)
-                        && mapping.IsVisible
-                        && mapping.IsEnable
-                        && mapping.MemberCompanyCode == current.MemberCompanyCode
-                        && mapping.P05_PageComponentMapping != null
-                        && mapping.P05_PageComponentMapping.P03_Component != null
-                        && (mapping.P05_PageComponentMapping.P03_Component.ComponentCode == Permissions.PermissionUser
-                            || mapping.P05_PageComponentMapping.P03_Component.ComponentCode == Permissions.PermissionComponent));
-
-                if (otherPermissionManagers == 0)
+                return Conflict(new
                 {
-                    return Conflict(new { message = "Không thể xóa quyền quản trị phân quyền cuối cùng của công ty." });
-                }
+                    code = "NON_CANONICAL_ROLE_MAPPING",
+                    message = "Only canonical single-company role mappings can be administered."
+                });
+            }
+
+            if (Permissions.IsActionCode(componentCode))
+            {
+                return Conflict(new
+                {
+                    code = "ACTION_MATRIX_IMMUTABLE",
+                    message = "Backend action grants are fixed by the reviewed role matrix."
+                });
+            }
+
+            if (!CanonicalRbac.GetUiComponents(current.P02_GroupId)
+                    .Contains(componentCode, StringComparer.OrdinalIgnoreCase))
+            {
+                return Conflict(new
+                {
+                    code = "COMPONENT_OUTSIDE_ROLE_CEILING",
+                    message = "This UI component is outside the canonical role ceiling."
+                });
+            }
+
+            if (req.IsEnable && !req.IsVisible)
+            {
+                return BadRequest(new
+                {
+                    code = "ENABLED_COMPONENT_MUST_BE_VISIBLE",
+                    message = "An enabled UI component must also be visible."
+                });
+            }
+
+            var isProtectedSystemAdminNavigation = current.P02_GroupId == CanonicalRbac.SystemAdmin.GroupId
+                && (string.Equals(componentCode, Permissions.MenuPermission, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(componentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(componentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase));
+            if (isProtectedSystemAdminNavigation && (!req.IsVisible || !req.IsEnable))
+            {
+                return Conflict(new
+                {
+                    code = "SYSTEM_ADMIN_NAVIGATION_REQUIRED",
+                    message = "System Admin access-administration navigation cannot be disabled."
+                });
             }
 
             req.Adapt(current);
@@ -458,51 +426,73 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? distinctFilter = null)
         {
             var hasSearch = !string.IsNullOrWhiteSpace(search);
-            var usersQuery = _unitOfWork.VPPContext.v_Users.AsNoTracking();
+            // App-owned Identity is the authority for accounts. Historical
+            // GTAS_MENU/v_Users rows must never create a writable membership.
+            var usersQuery = _unitOfWork.VPPContext.Users.AsNoTracking();
 
             if (hasSearch)
             {
                 var searchText = search!.Trim();
                 usersQuery = usersQuery.Where(x =>
-                    (x.UserLogin != null && x.UserLogin.Contains(searchText))
-                    || (x.EmailAddress1 != null && x.EmailAddress1.Contains(searchText))
+                    (x.UserName != null && x.UserName.Contains(searchText))
+                    || (x.Email != null && x.Email.Contains(searchText))
                     || (x.FullName != null && x.FullName.Contains(searchText)));
             }
 
             var userGroupsQuery = _unitOfWork.VPPContext.Set<P04_UserGroup>()
                 .AsNoTracking()
+                .Where(mapping => !mapping.IsDeleted
+                    && mapping.AccountId.HasValue
+                    && mapping.UserId == mapping.AccountId)
                 .Include(x => x.P02_Group)
                 .Include(x => x.LEX02_CompanyDepartmentLocation);
 
             IQueryable<UserListDto> query =
                 from user in usersQuery
-                join userGroup in userGroupsQuery on user.UserID equals userGroup.UserId into userGroupJoin
+                join userGroup in userGroupsQuery on (int?)user.Id equals userGroup.AccountId into userGroupJoin
                 from userGroup in userGroupJoin.DefaultIfEmpty()
                 select new UserListDto
                 {
                     Id = userGroup == null ? Guid.Empty : userGroup.Id,
-                    UserId = user.UserID,
-                    UserLogin = user.UserLogin,
+                    UserId = user.Id,
+                    UserLogin = user.UserName,
                     FullName = user.FullName,
-                    Email = user.EmailAddress1,
-                    GoogleEmail = user.GoogleEmail,
+                    Email = user.Email,
+                    GoogleEmail = null,
                     IsAdmin = userGroup != null
                               && userGroup.P02_Group != null
-                              && (userGroup.P02_Group.GroupName == "Admin" || userGroup.P02_Group.GroupName == "Administrator"),
+                              && userGroup.P02_Group.GroupCode == CanonicalRbac.SystemAdmin.GroupCode,
                     GroupId = userGroup == null ? Guid.Empty : userGroup.P02_GroupId,
                     GroupName = userGroup == null || userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
                     CreateUserId = userGroup == null ? 0 : userGroup.CreateUserId,
                     CreateDate = userGroup == null ? null : userGroup.CreateDate,
                     UpdateUserId = userGroup == null ? 0 : userGroup.UpdateUserId,
                     UpdateDate = userGroup == null ? null : userGroup.UpdateDate,
-                    IsDeleted = userGroup != null && userGroup.IsDeleted,
-                    TypeOfUser = userGroup == null ? "GTAS User" : "Transportation User",
+                    // Compatibility fields for the current Radzen grid. The
+                    // dedicated administration UI will expose both statuses.
+                    IsDeleted = user.AccountStatus != AppAccountStatus.Active || userGroup == null,
+                    TypeOfUser = user.AccountStatus == AppAccountStatus.Active
+                        ? "Active application account"
+                        : user.AccountStatus == AppAccountStatus.PendingApproval
+                            ? "Pending approval"
+                            : "Disabled application account",
                     Description = userGroup == null ? null : userGroup.Description,
-                    DepartmentName = userGroup == null || userGroup.LEX02_CompanyDepartmentLocation == null
-                        ? user.DepartmentCode
-                        : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
-                    L05_DepartmentId = userGroup == null ? null : userGroup.LEX02_CompanyDepartmentLocationId,
-                    UserGroup = userGroup == null || userGroup.P02_Group == null
+                     DepartmentName = userGroup == null || userGroup.LEX02_CompanyDepartmentLocation == null
+                         ? string.Empty
+                         : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
+                     L05_DepartmentId = userGroup == null ? null : userGroup.LEX02_CompanyDepartmentLocationId,
+                     AccountStatus = user.AccountStatus == AppAccountStatus.Active
+                         ? nameof(AppAccountStatus.Active)
+                         : user.AccountStatus == AppAccountStatus.PendingApproval
+                             ? nameof(AppAccountStatus.PendingApproval)
+                             : nameof(AppAccountStatus.Disabled),
+                     SessionVersion = user.SessionVersion,
+                     GroupCode = userGroup == null || userGroup.P02_Group == null
+                         ? null
+                         : userGroup.P02_Group.GroupCode,
+                     IsActive = user.AccountStatus == AppAccountStatus.Active && userGroup != null,
+                     RowVersion = userGroup == null ? null : userGroup.RowVersion,
+                     UserGroup = userGroup == null || userGroup.P02_Group == null
                         ? null
                         : new AuthGroupDto
                         {
@@ -606,48 +596,6 @@ namespace gtas_vpp_be.Controllers
             return Ok(page);
         }
 
-        [HttpDelete("groups/{id:guid}")]
-        [Authorize(Policy = Permissions.PermissionManage)]
-        public async Task<IActionResult> DeleteGroup(Guid id)
-        {
-            var activeUsers = await _unitOfWork.VPPContext.Set<P04_UserGroup>()
-                .AsNoTracking()
-                .AnyAsync(mapping => mapping.P02_GroupId == id && !mapping.IsDeleted);
-            if (activeUsers)
-            {
-                return Conflict(new { message = "Không thể xóa nhóm đang có người dùng hoạt động." });
-            }
-
-            var success = await _groupRepository.DeleteAsync(id);
-
-            return Ok(new { success });
-        }
-        [HttpPost("user-groups")]
-        [Authorize(Policy = Permissions.PermissionManage)]
-        public async Task<IActionResult> CreateUserGroup([FromBody] P04_UserGroupUpsertReqDTO req)
-        {
-            var alreadyAssigned = await _unitOfWork.VPPContext.Set<P04_UserGroup>()
-                .AsNoTracking()
-                .AnyAsync(mapping => mapping.UserId == req.UserId && !mapping.IsDeleted);
-            if (alreadyAssigned)
-            {
-                return Conflict(new { message = "Mỗi người dùng chỉ được có một nhóm quyền đang hoạt động." });
-            }
-
-            var entity = req.Adapt<P04_UserGroup>();
-            entity.Id = Guid.Empty;
-            entity.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
-            var now = _dateTimeProvider.Now;
-            entity.CreateDate = now;
-            entity.UpdateDate = now;
-            entity.CreateUserId = CurrentUserId;
-            entity.UpdateUserId = CurrentUserId;
-
-            var created = await _userGroupRepository.AddAsync(entity) ?? entity;
-            await _permissionChangeNotifier.NotifyUserChangedAsync(entity.UserId, HttpContext.RequestAborted);
-            return Ok(created.Adapt<P04_UserGroupResDTO>());
-        }
-
         [HttpGet("user-groups")]
         public async Task<IActionResult> GetUserGroups([FromQuery] int? userId)
         {
@@ -658,14 +606,21 @@ namespace gtas_vpp_be.Controllers
                     var userGroups = await ReadAsync(
                         _userGroupRepository,
                         getFullName: true,
-                        expression: x => x.UserId == userId.Value);
+                        expression: x => x.UserId == userId.Value
+                                         && x.AccountId == userId.Value
+                                         && !x.IsDeleted);
 
                     var dtoList = userGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
                     return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
                 }
                 else
                 {
-                    var allUserGroups = await ReadAsync(_userGroupRepository, getFullName: true);
+                    var allUserGroups = await ReadAsync(
+                        _userGroupRepository,
+                        getFullName: true,
+                        expression: x => x.AccountId.HasValue
+                                         && x.UserId == x.AccountId.Value
+                                         && !x.IsDeleted);
 
                     var dtoList = allUserGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
                     return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
@@ -677,41 +632,36 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        [HttpPut("user-groups/{id:guid}")]
+        [HttpPut("memberships")]
         [Authorize(Policy = Permissions.PermissionManage)]
-        public async Task<IActionResult> UpdateUserGroup(Guid id, [FromBody] P04_UserGroupUpsertReqDTO req)
+        public async Task<IActionResult> UpsertMembership(
+            [FromBody] MembershipUpsertReqDTO command,
+            CancellationToken cancellationToken)
         {
-            var current = await GetByIdAsync(_userGroupRepository, id, true);
-
-            if (current is null)
-            {
-                return NotFound("User group not found.");
-            }
-
-            var duplicateAssignment = await _unitOfWork.VPPContext.Set<P04_UserGroup>()
-                .AsNoTracking()
-                .AnyAsync(mapping => mapping.Id != id
-                    && mapping.UserId == req.UserId
-                    && !mapping.IsDeleted);
-            if (duplicateAssignment)
-            {
-                return Conflict(new { message = "Mỗi người dùng chỉ được có một nhóm quyền đang hoạt động." });
-            }
-
-            var oldGroupId = current.P02_GroupId;
-
-            req.Adapt(current);
-            current.LEX02_CompanyDepartmentLocationId = req.LEX02_CompanyDepartmentLocationId ?? Guid.Empty;
-            current.UpdateDate = _dateTimeProvider.Now;
-            current.UpdateUserId = CurrentUserId;
-
-            var updated = await _userGroupRepository.UpdateAsync(current);
-            await Task.WhenAll(
-                _permissionChangeNotifier.NotifyGroupChangedAsync(oldGroupId, HttpContext.RequestAborted),
-                _permissionChangeNotifier.NotifyGroupChangedAsync(current.P02_GroupId, HttpContext.RequestAborted),
-                _permissionChangeNotifier.NotifyUserChangedAsync(current.UserId, HttpContext.RequestAborted));
-            return Ok(updated.Adapt<P04_UserGroupResDTO>());
+            var result = await _membershipAdministrationService.UpsertAsync(
+                CurrentUserId,
+                command,
+                cancellationToken);
+            return MembershipResult(result);
         }
+
+        [HttpPost("memberships/deactivate")]
+        [Authorize(Policy = Permissions.PermissionManage)]
+        public async Task<IActionResult> DeactivateMembership(
+            [FromBody] MembershipDeactivateReqDTO command,
+            CancellationToken cancellationToken)
+        {
+            var result = await _membershipAdministrationService.DeactivateAsync(
+                CurrentUserId,
+                command,
+                cancellationToken);
+            return MembershipResult(result);
+        }
+
+        private IActionResult MembershipResult(MembershipAdministrationResult result) =>
+            result.Succeeded
+                ? Ok(result.Membership)
+                : StatusCode(result.StatusCode, new { code = result.Code, message = result.Message });
 
         private async Task<List<T>> ReadAsync<T>(
             IGenericRepository<T> repository,

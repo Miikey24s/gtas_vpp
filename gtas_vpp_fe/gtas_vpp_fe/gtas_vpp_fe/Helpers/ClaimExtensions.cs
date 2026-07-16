@@ -1,5 +1,6 @@
 ﻿using gtas_vpp_shared.DTOs.Res.Auth;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 
@@ -40,22 +41,19 @@ namespace gtas_vpp_fe.Helpers
         {
             if (sp_Authentication_Login == null) return new List<Claim>();
 
+            var userId = sp_Authentication_Login.UserID.ToString(CultureInfo.InvariantCulture);
             var claims = new List<Claim>
             {
-                new(ClaimKeys.UserID, sp_Authentication_Login.UserID.ToString()),
+                new(ClaimTypes.NameIdentifier, userId),
+                new(ClaimTypes.Name, sp_Authentication_Login.UserLogin ?? string.Empty),
+                new(ClaimKeys.UserID, userId),
                 new(ClaimKeys.UserLogin, sp_Authentication_Login.UserLogin ?? string.Empty),
-                new(ClaimKeys.FullName, sp_Authentication_Login.FullName ?? string.Empty),
-                new(ClaimKeys.Email, sp_Authentication_Login.Email ?? string.Empty),
-                new(ClaimKeys.GoogleEmail, sp_Authentication_Login.GoogleEmail ?? string.Empty),
-                new(ClaimKeys.IsAdmin, sp_Authentication_Login.IsAdmin.ToString()),
-                new(ClaimKeys.GroupId, sp_Authentication_Login.GroupId.ToString()),
-                new(ClaimKeys.GroupName, sp_Authentication_Login.GroupName ?? string.Empty),
-                new(ClaimKeys.MemberCompanyCode, sp_Authentication_Login.MemberCompanyCode ?? string.Empty),
-                new(ClaimKeys.MemberCompanyName, sp_Authentication_Login.MemberCompanyName ?? string.Empty),
-                new(ClaimKeys.MemberCompanyShortName, sp_Authentication_Login.MemberCompanyShortName ?? string.Empty),
-                new(ClaimKeys.DepartmentName, sp_Authentication_Login.DepartmentName ?? string.Empty),
-                new(ClaimKeys.DepartmentCode, sp_Authentication_Login.DepartmentCode ?? string.Empty),
-                new(ClaimKeys.AccessToken, sp_Authentication_Login.AccessToken ?? string.Empty)
+                new(ClaimKeys.AccessToken, sp_Authentication_Login.AccessToken ?? string.Empty),
+                new(ClaimKeys.SessionVersion, sp_Authentication_Login.SessionVersion.ToString(CultureInfo.InvariantCulture)),
+                new(
+                    ClaimKeys.AccessTokenExpiresAtUtc,
+                    sp_Authentication_Login.AccessTokenExpiresAtUtc?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)
+                        ?? string.Empty)
             };
 
             return claims;
@@ -69,18 +67,21 @@ namespace gtas_vpp_fe.Helpers
             {
                 UserID = claims.GetInt(ClaimKeys.UserID),
                 UserLogin = claims.Get(ClaimKeys.UserLogin),
-                FullName = claims.Get(ClaimKeys.FullName),
-                Email = claims.Get(ClaimKeys.Email),
-                GoogleEmail = claims.Get(ClaimKeys.GoogleEmail),
-                IsAdmin = claims.GetBool(ClaimKeys.IsAdmin),
-                GroupId = claims.GetGuid(ClaimKeys.GroupId),
-                GroupName = claims.Get(ClaimKeys.GroupName),
-                MemberCompanyCode = claims.Get(ClaimKeys.MemberCompanyCode),
-                MemberCompanyName = claims.Get(ClaimKeys.MemberCompanyName),
-                MemberCompanyShortName = claims.Get(ClaimKeys.MemberCompanyShortName),
-                DepartmentName = claims.Get(ClaimKeys.DepartmentName),
-                DepartmentCode = claims.Get(ClaimKeys.DepartmentCode),
-                AccessToken = claims.Get(ClaimKeys.AccessToken)
+                AccessToken = claims.Get(ClaimKeys.AccessToken),
+                SessionVersion = long.TryParse(
+                    claims.Get(ClaimKeys.SessionVersion),
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out var sessionVersion)
+                        ? sessionVersion
+                        : 0,
+                AccessTokenExpiresAtUtc = DateTime.TryParse(
+                    claims.Get(ClaimKeys.AccessTokenExpiresAtUtc),
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind,
+                    out var expiresAtUtc)
+                        ? expiresAtUtc.ToUniversalTime()
+                        : null
             };
         }
     }

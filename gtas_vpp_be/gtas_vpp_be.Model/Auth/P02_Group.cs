@@ -14,6 +14,10 @@ namespace gtas_vpp_be.Model.Auth
     {
         [Required]
         [StringLength(50)]
+        public string GroupCode { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
         public string? GroupName { get; set; }
         public Guid? ParentGroupId { get; set; }
 
@@ -27,4 +31,3 @@ namespace gtas_vpp_be.Model.Auth
         public P02_Group() { }
     }
 }
-    

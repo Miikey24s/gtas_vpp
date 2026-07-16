@@ -146,11 +146,11 @@ public sealed class LocalDbQaFixtureTests
         return new FixtureSnapshot(
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[__EFMigrationsHistory];", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [sys].[procedures] WHERE [name] = N'sp_Authen_Login';", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [GTAS_MENU].[dbo].[tblUsers] WHERE [UserID] BETWEEN 910001 AND 910006;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P02_Group] WHERE [GroupName] IN (N'User', N'QA Manager', N'QA Procurement', N'Admin') AND [IsDeleted] = 0;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P04_UserGroup] WHERE [UserId] BETWEEN 910001 AND 910006 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[AspNetUsers] WHERE [Id] BETWEEN 1000001001 AND 1000001006 AND [AccountStatus] = N'Active';", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P02_Group] WHERE [GroupCode] IN (N'EMPLOYEE', N'DEPARTMENT_APPROVER', N'PROCUREMENT_ADMIN', N'SYSTEM_ADMIN') AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P04_UserGroup] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [CreateUserId] = 910001 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [CreateUserId] = 1000001001 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [DepartmentCode] = N'QA-D01' AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [MemberCompanyCode] = N'77500' AND [IsDeleted] = 0;", cancellationToken));
     }
@@ -158,7 +158,7 @@ public sealed class LocalDbQaFixtureTests
     private static void AssertSnapshot(FixtureSnapshot snapshot)
     {
         Assert.True(snapshot.Migrations > 0);
-        Assert.Equal(1, snapshot.LoginStoredProcedure);
+        Assert.Equal(0, snapshot.LegacyLoginStoredProcedure);
         Assert.Equal(6, snapshot.Accounts);
         Assert.Equal(4, snapshot.RequiredRoles);
         Assert.Equal(6, snapshot.UserRoleMappings);
@@ -207,7 +207,7 @@ public sealed class LocalDbQaFixtureTests
 
     private sealed record FixtureSnapshot(
         int Migrations,
-        int LoginStoredProcedure,
+        int LegacyLoginStoredProcedure,
         int Accounts,
         int RequiredRoles,
         int UserRoleMappings,

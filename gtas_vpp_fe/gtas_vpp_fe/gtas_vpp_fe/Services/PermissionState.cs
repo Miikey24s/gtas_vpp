@@ -137,7 +137,8 @@ public sealed class PermissionState
     {
         return GetPagePermission(pageCode)
             .List_Component
-            .Where(component => component.IsVisible)
+            .Where(component => component.IsVisible
+                && !Permissions.IsActionCode(component.ComponentCode))
             .ToArray();
     }
 

@@ -78,25 +78,21 @@ public sealed class QaFixtureOptions
 
 public sealed class QaFixtureSecrets
 {
-    private QaFixtureSecrets(string accountPassword, string jwtKey, string passwordEncryptionKey)
+    private QaFixtureSecrets(string accountPassword, string jwtKey)
     {
         AccountPassword = accountPassword;
         JwtKey = jwtKey;
-        PasswordEncryptionKey = passwordEncryptionKey;
     }
 
     public string AccountPassword { get; }
 
     public string JwtKey { get; }
 
-    public string PasswordEncryptionKey { get; }
-
     public static QaFixtureSecrets Create()
     {
         return new QaFixtureSecrets(
             $"Qa!{Convert.ToHexString(RandomNumberGenerator.GetBytes(12))}",
-            Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
+            Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)));
     }
 
     public override string ToString() => "QA fixture secrets: [REDACTED]";

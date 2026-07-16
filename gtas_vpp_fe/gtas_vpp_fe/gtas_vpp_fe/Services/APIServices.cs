@@ -1,5 +1,4 @@
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_shared.DTOs;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -11,9 +10,6 @@ namespace gtas_vpp_fe.Services
     public interface IAPIServices
     {
         Task SetBaseUrl(string baseUrl);
-        Task<string> GetDataFromExternalApiAsync(string endpoint);
-        Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
-        Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
         Task<T?> GetFromApiAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint);
@@ -34,15 +30,17 @@ namespace gtas_vpp_fe.Services
         private readonly HttpClient _httpClient;
         private readonly AuthenticationStateProvider _authProvider;
         private readonly PermissionRefreshSignal _permissionRefreshSignal;
-        private readonly string _rootUrl = "api/SQL/StoreProcedure/";
+        private readonly IAuthSessionInvalidationCoordinator _sessionInvalidationCoordinator;
         public APIServices(
             HttpClient httpClient,
             AuthenticationStateProvider authProvider,
-            PermissionRefreshSignal permissionRefreshSignal)
+            PermissionRefreshSignal permissionRefreshSignal,
+            IAuthSessionInvalidationCoordinator sessionInvalidationCoordinator)
         {
             _httpClient = httpClient;
             _authProvider = authProvider;
             _permissionRefreshSignal = permissionRefreshSignal;
+            _sessionInvalidationCoordinator = sessionInvalidationCoordinator;
         }
 
         private async Task ApplyAuthorizationHeaderAsync()
@@ -73,7 +71,14 @@ namespace gtas_vpp_fe.Services
         {
             if (!response.IsSuccessStatusCode)
             {
-                if (response.StatusCode == HttpStatusCode.Forbidden)
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    var reason = response.Headers.TryGetValues("X-Auth-Reason", out var values)
+                        ? values.FirstOrDefault() ?? "session-invalid"
+                        : "session-invalid";
+                    await _sessionInvalidationCoordinator.InvalidateAsync(reason);
+                }
+                else if (response.StatusCode == HttpStatusCode.Forbidden)
                 {
                     await _permissionRefreshSignal.RequestAsync();
                 }
@@ -95,61 +100,7 @@ namespace gtas_vpp_fe.Services
                     if (!string.IsNullOrWhiteSpace(content) && content.Length < 200)
                         errorMessage = content;
                 }
-                throw new HttpRequestException(errorMessage);
-            }
-        }
-
-        public async Task<string> GetDataFromExternalApiAsync(string endpoint)
-        {
-            await ApplyAuthorizationHeaderAsync();
-            using var response = await _httpClient.GetAsync(
-                _rootUrl + endpoint,
-                HttpCompletionOption.ResponseHeadersRead);
-            await EnsureSuccessWithDetailsAsync(response);
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        public async Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
-        {
-            if (url == null) url = $"{_rootUrl}sp_Authen?sptype={sptype}";
-
-            await ApplyAuthorizationHeaderAsync();
-            using var content = JsonContent.Create(body, options: jsonOptions);
-            using var response = await _httpClient.PostAsync(url, content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<sp_ResDTO>();
-                return result!;
-            }
-            else
-            {
-                return new sp_ResDTO
-                {
-                    IsSuccess = false,
-                    ErrorMess = $"Error: {response.StatusCode}, {response.ReasonPhrase}"
-                };
-            }
-        }
-
-        public async Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
-        {
-            var apiResult = await aPIFrom_sp_Authen(sptype, body, url, jsonOptions);
-
-            if (apiResult == null || !apiResult.IsSuccess || string.IsNullOrWhiteSpace(apiResult.ResData))
-            {
-                return default;
-            }
-
-            try
-            {
-                return JsonSerializer.Deserialize<T>(
-                    apiResult.ResData,
-                    JsonOptions);
-            }
-            catch
-            {
-                return default;
+                throw new HttpRequestException(errorMessage, null, response.StatusCode);
             }
         }
 
@@ -319,7 +270,8 @@ namespace gtas_vpp_fe.Services
         {
             await ApplyAuthorizationHeaderAsync();
             using var response = await _httpClient.DeleteAsync(endpoint);
-            return response.IsSuccessStatusCode;
+            await EnsureSuccessWithDetailsAsync(response);
+            return true;
         }
     }
 

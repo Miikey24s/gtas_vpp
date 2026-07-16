@@ -26,16 +26,15 @@ public sealed class SharedContractSerializationTests
     [Fact]
     public void AuthenticationResponse_PreservesPublicJsonShapeAndNeverSerializesPasswordHash()
     {
-        var response = new sp_Authentication_Login
-        {
-            PasswordChar = "must-not-leak"
-        };
+        var response = new sp_Authentication_Login();
 
         var properties = GetJsonProperties(response);
 
         Assert.Equal(
             Sort(
                 "accessToken",
+                "accessTokenExpiresAtUtc",
+                "accountStatus",
                 "departmentCode",
                 "departmentName",
                 "email",
@@ -48,6 +47,8 @@ public sealed class SharedContractSerializationTests
                 "memberCompanyCode",
                 "memberCompanyName",
                 "memberCompanyShortName",
+                "mustChangePassword",
+                "sessionVersion",
                 "userID",
                 "userLogin"),
             properties);

@@ -4,13 +4,14 @@ using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.Notifications;
 using gtas_vpp_be.Model.VPP;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace gtas_vpp_be.Model
 {
-    public class VPPMigrationDbContext : DbContext
+    public class VPPMigrationDbContext : IdentityUserContext<AppUser, int>
     {
         #region Auth
         public virtual DbSet<P01_Page> P01_Pages { get; set; }
@@ -19,6 +20,8 @@ namespace gtas_vpp_be.Model
         public virtual DbSet<P04_UserGroup> P04_UserGroups { get; set; }
         public virtual DbSet<P05_PageComponentMapping> P05_PageComponentMappings { get; set; }
         public virtual DbSet<P06_GroupPageComponentMapping> P06_GroupPageComponentMappings { get; set; }
+        public virtual DbSet<A01_SecurityAudit> A01_SecurityAudits { get; set; }
+        public virtual DbSet<A02_AuthBootstrapOperation> A02_AuthBootstrapOperations { get; set; }
         #endregion
 
         #region Library
@@ -46,6 +49,7 @@ namespace gtas_vpp_be.Model
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            ConfigureTrustedAccess(modelBuilder);
             modelBuilder.Entity<P05_PageComponentMapping>(en =>
             {
                 en.HasKey(x => x.Id);
@@ -132,6 +136,69 @@ namespace gtas_vpp_be.Model
                     .HasDatabaseName("IX_N01_User_Company_Read_Created");
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.CorrelationId })
                     .HasDatabaseName("IX_N01_User_Company_Correlation");
+            });
+        }
+
+        private static void ConfigureTrustedAccess(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AppUser>(en =>
+            {
+                en.Property(x => x.Id).UseIdentityColumn(1_000_000_000, 1);
+                en.Property(x => x.FullName).HasMaxLength(250);
+                en.Property(x => x.EmployeeCode).HasMaxLength(50);
+                en.Property(x => x.AccountStatus).HasConversion<string>().HasMaxLength(32);
+                en.Property(x => x.SessionVersion).HasDefaultValue(1L);
+                en.Property(x => x.RowVersion).IsRowVersion();
+                en.HasIndex(x => x.NormalizedEmail)
+                    .HasDatabaseName("UX_AspNetUsers_NormalizedEmail")
+                    .HasFilter("[NormalizedEmail] IS NOT NULL")
+                    .IsUnique();
+                en.HasIndex(x => x.EmployeeCode)
+                    .HasDatabaseName("UX_AspNetUsers_EmployeeCode")
+                    .HasFilter("[EmployeeCode] IS NOT NULL")
+                    .IsUnique();
+            });
+            modelBuilder.Entity<P02_Group>(en =>
+            {
+                en.Property(x => x.GroupCode).HasMaxLength(50);
+                en.HasIndex(x => x.GroupCode)
+                    .HasDatabaseName("UX_P02_Group_GroupCode_Active")
+                    .HasFilter("[IsDeleted] = 0")
+                    .IsUnique();
+            });
+            modelBuilder.Entity<P04_UserGroup>(en =>
+            {
+                en.Property(x => x.RowVersion).IsRowVersion();
+                en.HasOne<AppUser>()
+                    .WithMany()
+                    .HasForeignKey(x => x.AccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => x.AccountId)
+                    .HasDatabaseName("UX_P04_UserGroup_OneActivePerUser")
+                    .HasFilter("[IsDeleted] = 0 AND [AccountId] IS NOT NULL")
+                    .IsUnique();
+                en.ToTable(table => table.HasCheckConstraint(
+                    "CK_P04_UserGroup_ActivePrimaryDepartment",
+                    "[IsDeleted] = 1 OR ([AccountId] IS NOT NULL AND [UserId] = [AccountId] AND [LEX02_CompanyDepartmentLocationId] <> '00000000-0000-0000-0000-000000000000')"));
+            });
+            modelBuilder.Entity<A01_SecurityAudit>(en =>
+            {
+                en.Property(x => x.Id).HasDefaultValueSql("NEWID()");
+                en.Property(x => x.OccurredAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+                en.HasIndex(x => new { x.TargetUserId, x.OccurredAtUtc })
+                    .HasDatabaseName("IX_A01_Target_Occurred");
+                en.HasIndex(x => new { x.Action, x.OccurredAtUtc })
+                    .HasDatabaseName("IX_A01_Action_Occurred");
+            });
+            modelBuilder.Entity<A02_AuthBootstrapOperation>(en =>
+            {
+                en.Property(x => x.OperationKey).HasMaxLength(128);
+                en.Property(x => x.InputFingerprint).HasMaxLength(64);
+                en.Property(x => x.Status).HasMaxLength(32);
+                en.HasOne<AppUser>()
+                    .WithMany()
+                    .HasForeignKey(x => x.AccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

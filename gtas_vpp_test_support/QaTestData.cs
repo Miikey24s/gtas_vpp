@@ -9,9 +9,6 @@ public static class QaTestData
 
     public static readonly Guid DepartmentAlphaId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     public static readonly Guid DepartmentBetaId = Guid.Parse("10000000-0000-0000-0000-000000000002");
-    public static readonly Guid ManagerGroupId = Guid.Parse("20000000-0000-0000-0000-000000000001");
-    public static readonly Guid ProcurementGroupId = Guid.Parse("20000000-0000-0000-0000-000000000002");
-
     public static readonly Guid OwnRequestId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     public static readonly Guid DepartmentPeerRequestId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     public static readonly Guid CompanyOtherDepartmentRequestId = Guid.Parse("40000000-0000-0000-0000-000000000003");
@@ -60,17 +57,17 @@ public sealed class QaTestAccounts
 {
     private QaTestAccounts(QaFixtureSecrets secrets)
     {
-        Employee = Create(910001, "qa_employee", "QA Employee", QaTestData.DepartmentAlphaCode,
+        Employee = Create(1_000_001_001, "qa_employee", "QA Employee", QaTestData.DepartmentAlphaCode,
             QaTestData.DepartmentAlphaId, "Employee", secrets);
-        DepartmentPeer = Create(910002, "qa_employee_peer", "QA Department Peer", QaTestData.DepartmentAlphaCode,
+        DepartmentPeer = Create(1_000_001_002, "qa_employee_peer", "QA Department Peer", QaTestData.DepartmentAlphaCode,
             QaTestData.DepartmentAlphaId, "Employee", secrets);
-        OtherDepartmentEmployee = Create(910003, "qa_employee_other", "QA Other Department", QaTestData.DepartmentBetaCode,
+        OtherDepartmentEmployee = Create(1_000_001_003, "qa_employee_other", "QA Other Department", QaTestData.DepartmentBetaCode,
             QaTestData.DepartmentBetaId, "Employee", secrets);
-        Manager = Create(910004, "qa_manager", "QA Manager", QaTestData.DepartmentAlphaCode,
-            QaTestData.DepartmentAlphaId, "Manager", secrets);
-        Procurement = Create(910005, "qa_procurement", "QA Procurement", QaTestData.DepartmentAlphaCode,
+        Manager = Create(1_000_001_004, "qa_manager", "QA Department Approver", QaTestData.DepartmentAlphaCode,
+            QaTestData.DepartmentAlphaId, "DepartmentApprover", secrets);
+        Procurement = Create(1_000_001_005, "qa_procurement", "QA Procurement", QaTestData.DepartmentAlphaCode,
             QaTestData.DepartmentAlphaId, "Procurement", secrets);
-        SystemAdmin = Create(910006, "qa_sysadmin", "QA System Admin", QaTestData.DepartmentAlphaCode,
+        SystemAdmin = Create(1_000_001_006, "qa_sysadmin", "QA System Admin", QaTestData.DepartmentAlphaCode,
             QaTestData.DepartmentAlphaId, "SystemAdmin", secrets);
 
         All =

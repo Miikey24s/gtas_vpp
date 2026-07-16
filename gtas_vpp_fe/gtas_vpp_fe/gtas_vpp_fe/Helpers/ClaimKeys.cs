@@ -17,5 +17,7 @@
         public const string DepartmentCode = "DepartmentCode";
         public const string Expired = "Expired";
         public const string AccessToken = "AccessToken";
+        public const string AccessTokenExpiresAtUtc = "AccessTokenExpiresAtUtc";
+        public const string SessionVersion = "SessionVersion";
     }
 }

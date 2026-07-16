@@ -57,13 +57,65 @@ public sealed class ApiServicesJsonTransportTests
         Assert.NotNull(result);
         Assert.Equal(expectedUserId, result.UserID);
         Assert.Equal(expectedUserLogin, result.UserLogin);
-        Assert.Equal(string.Empty, result.PasswordChar);
     }
 
-    private static APIServices CreateSut(HttpClient client) => new(
+    [Fact]
+    public async Task UnauthorizedResponse_RequestsSessionInvalidation()
+    {
+        using var handler = new StatusHttpMessageHandler(HttpStatusCode.Unauthorized);
+        using var client = CreateClient(handler);
+        var coordinator = new RecordingSessionInvalidationCoordinator();
+        var sut = CreateSut(client, coordinator);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => sut.GetFromApiAsync<object>("api/one"));
+
+        Assert.Single(coordinator.Reasons);
+        Assert.Equal("session-invalid", coordinator.Reasons[0]);
+    }
+
+    [Fact]
+    public async Task ForbiddenDelete_RequestsPermissionRefresh()
+    {
+        using var handler = new StatusHttpMessageHandler(HttpStatusCode.Forbidden);
+        using var client = CreateClient(handler);
+        var signal = new PermissionRefreshSignal();
+        var refreshCount = 0;
+        signal.Requested += () =>
+        {
+            refreshCount++;
+            return Task.CompletedTask;
+        };
+        var sut = CreateSut(client, new NoOpSessionInvalidationCoordinator(), signal);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => sut.DeleteFromApiAsync("api/item"));
+
+        Assert.Equal(1, refreshCount);
+    }
+
+    private static APIServices CreateSut(
+        HttpClient client,
+        IAuthSessionInvalidationCoordinator? coordinator = null,
+        PermissionRefreshSignal? signal = null) => new(
         client,
         new AnonymousAuthenticationStateProvider(),
-        new PermissionRefreshSignal());
+        signal ?? new PermissionRefreshSignal(),
+        coordinator ?? new NoOpSessionInvalidationCoordinator());
+
+    private sealed class NoOpSessionInvalidationCoordinator : IAuthSessionInvalidationCoordinator
+    {
+        public Task InvalidateAsync(string reason) => Task.CompletedTask;
+    }
+
+    private sealed class RecordingSessionInvalidationCoordinator : IAuthSessionInvalidationCoordinator
+    {
+        public List<string> Reasons { get; } = [];
+
+        public Task InvalidateAsync(string reason)
+        {
+            Reasons.Add(reason);
+            return Task.CompletedTask;
+        }
+    }
 
     private static HttpClient CreateClient(HttpMessageHandler handler) => new(handler)
     {
@@ -100,6 +152,20 @@ public sealed class ApiServicesJsonTransportTests
             {
                 Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
             };
+        }
+    }
+
+    private sealed class StatusHttpMessageHandler(HttpStatusCode statusCode) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent("{\"message\":\"denied\"}", Encoding.UTF8, "application/json")
+            };
+            return Task.FromResult(response);
         }
     }
 }

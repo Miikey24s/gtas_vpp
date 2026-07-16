@@ -30,31 +30,20 @@ public sealed class CredentialExposureSqlTests
     }
 
     [Fact]
-    public void LoginProcedure_UsesPasswordVerifierOnlyForCredentialComparison()
+    public void LegacyLoginProcedure_IsAbsentFromSeedAndDroppedForUpgrades()
     {
         var proceduresSql = ReadSql("02_StoredProcedures.sql");
-        var procedure = ExtractBatch(
+        var retirementSql = ReadSql("04_RetireLegacyAuth.sql");
+
+        Assert.DoesNotContain(
+            "CREATE OR ALTER PROCEDURE [dbo].[sp_Authen_Login]",
             proceduresSql,
-            "CREATE OR ALTER PROCEDURE [dbo].[sp_Authen_Login]");
-
-        Assert.DoesNotContain("PRINT @Param", procedure, StringComparison.OrdinalIgnoreCase);
-        Assert.Matches(
-            new Regex(@"AND\s+us\.PasswordChar\s*=\s*@PasswordChar", RegexOptions.IgnoreCase),
-            procedure);
-
-        var verifierLines = procedure
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(line => line.Contains("PasswordChar", StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        Assert.Equal(
-            [
-                "DECLARE @PasswordChar NVARCHAR(MAX);",
-                "@PasswordChar = a.PasswordChar",
-                "PasswordChar NVARCHAR(MAX) '$.PasswordChar'",
-                "AND us.PasswordChar = @PasswordChar"
-            ],
-            verifierLines);
+            StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("PasswordChar", proceduresSql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(
+            "DROP PROCEDURE IF EXISTS dbo.sp_Authen_Login",
+            retirementSql,
+            StringComparison.OrdinalIgnoreCase);
     }
 
     private static string ReadSql(string fileName) =>

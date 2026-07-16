@@ -123,7 +123,6 @@ public abstract class TestBase : IAsyncLifetime
         {
             $"--Parameters:test-database-connection-string={_fixture.ConnectionString}",
             $"--Parameters:jwt-key={_fixture.Secrets.JwtKey}",
-            $"--Parameters:password-encryption-key={_fixture.Secrets.PasswordEncryptionKey}",
             $"--Parameters:qa-fixture-run-id={_fixture.Options.RunId}"
         };
         var appHost = await DistributedApplicationTestingBuilder

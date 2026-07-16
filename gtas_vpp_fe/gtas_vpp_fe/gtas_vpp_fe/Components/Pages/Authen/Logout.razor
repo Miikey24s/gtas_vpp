@@ -2,32 +2,13 @@
 @attribute [AllowAnonymous]
 @using gtas_vpp_fe.Components.Layout
 @layout LoginLayout
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
 @inject NavigationManager UriHelper
 
 <PageTitle>GTAS VPP - Logout</PageTitle>
 
 @code {
-    [CascadingParameter] public HttpContext HttpContext { get; set; } = default!;
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await base.OnInitializedAsync();
-        var rs = await LogoutAccess();
-        if (rs)
-        {
-            UriHelper.NavigateTo("/Account/Login", true);
-        }
-        else
-        {
-            UriHelper.NavigateTo("/", true);
-        }
-    }
-    public async Task<bool> LogoutAccess()
-    {
-        await HttpContext
-                .SignOutAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme);
-        return true;
+        UriHelper.NavigateTo("/perform-logout", true);
     }
 }

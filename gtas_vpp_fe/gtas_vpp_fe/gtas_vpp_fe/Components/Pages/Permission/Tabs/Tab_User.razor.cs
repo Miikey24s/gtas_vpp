@@ -1,386 +1,415 @@
+using gtas_vpp_fe.Components.Pages.Lib;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
-using gtas_vpp_fe.Components.Pages.Lib;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Http.Extensions;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
-using System.Text.Json;
+using MembershipAdministrationResDTO = gtas_vpp_shared.DTOs.Res.Permission.MembershipAdministrationResDTO;
 
-namespace gtas_vpp_fe.Components.Pages.Permission.Tabs
+namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
+
+public partial class Tab_User
 {
-    public partial class Tab_User
+    [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
+    [Parameter]
+    public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+    [Inject] public IAPIServices _apiServices { get; set; } = default!;
+    [Inject] public PermissionState PermissionState { get; set; } = default!;
+
+    private string SearchText { get; set; } = string.Empty;
+    public List<sp_Authentication_TabUser_UserList> _sp_Authentication_TabUser_UserList { get; set; } = [];
+    public IList<sp_Authentication_TabUser_UserList> selected_UserList { get; set; } = [];
+    public RadzenDataGrid<sp_Authentication_TabUser_UserList>? griduser { get; set; }
+    public List<P02_GroupResDTO> p02_Groups { get; set; } = [];
+    public List<LEX02_CompanyDepartmentLocationResDTO> departments { get; set; } = [];
+
+    private int UserClaims { get; set; }
+    private int userCount;
+    private int currentUserSkip;
+    private string? currentUserFilterExpression;
+    private bool isUserLoading;
+    private bool isUserLookupLoading;
+    private bool hasRequestedInitialUserGridLoad;
+
+    protected override async Task OnInitializedAsync()
     {
-        [Parameter] public IEnumerable<Claim>? claims { get; set; }
-        [Parameter] public sp_Authentication_GetPermissionSinglePage? sp_Authentication_GetPermissionSinglePage { get; set; }
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        private string SearchText { get; set; } = string.Empty;
-        public List<sp_Authentication_TabUser_UserList> _sp_Authentication_TabUser_UserList { get; set; } = new List<sp_Authentication_TabUser_UserList>();
-        public IList<sp_Authentication_TabUser_UserList> selected_UserList { get; set; } = new List<sp_Authentication_TabUser_UserList>();
-        public RadzenDataGrid<sp_Authentication_TabUser_UserList>? griduser { get; set; }
-        public List<P02_GroupResDTO> p02_Groups { get; set; } = new List<P02_GroupResDTO>();
-        public int UserClaims { get; set; } = 0;
-        private int userCount { get; set; } = 0;
-        private int currentUserSkip { get; set; } = 0;
-        private string? currentUserFilterExpression { get; set; }
-        private bool isUserLoading { get; set; } = false;
-        private bool isUserLookupLoading { get; set; } = false;
-        private bool hasRequestedInitialUserGridLoad = false;
-
-        protected override async Task OnInitializedAsync()
+        await base.OnInitializedAsync();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
         {
-            await base.OnInitializedAsync();
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            if (user.Identity?.IsAuthenticated != true)
-            {
-                UriHelper.NavigateTo("Home", true);
-                return;
-            }
-
-            claims = user.Claims;
-            _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out var userClaims);
-            UserClaims = userClaims;
-            await LoadGroupLookupsAsync();
+            NavigationManager.NavigateTo("Home", true);
+            return;
         }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+        claims = authState.User.Claims;
+        UserClaims = PermissionState.CurrentUserId > 0
+            ? PermissionState.CurrentUserId
+            : claims.GetInt(ClaimKeys.UserID);
+        await LoadGroupLookupsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasRequestedInitialUserGridLoad && griduser is not null)
         {
-            if (firstRender && !hasRequestedInitialUserGridLoad && griduser is not null)
-            {
-                hasRequestedInitialUserGridLoad = true;
-                await griduser.Reload();
-            }
+            hasRequestedInitialUserGridLoad = true;
+            await griduser.Reload();
         }
+    }
 
-        protected async Task LoadBaseData()
+    protected async Task LoadBaseData()
+    {
+        await LoadGroupLookupsAsync();
+        if (griduser is not null)
         {
-            await LoadGroupLookupsAsync();
-
-            if (griduser is not null)
-            {
-                await griduser.Reload();
-            }
+            await griduser.Reload();
         }
+    }
 
-        private async Task LoadGroupLookupsAsync()
+    private async Task LoadGroupLookupsAsync()
+    {
+        isUserLookupLoading = true;
+        try
         {
-            isUserLookupLoading = true;
-
-            try
-            {
-                p02_Groups = await _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint)
-             ?? new List<P02_GroupResDTO>();
-            }
-            catch (Exception ex)
-            {
-                p02_Groups = [];
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Error",
-                    Detail = "Error when loading groups: " + ex.Message,
-                    Duration = 10000
-                });
-            }
-            finally
-            {
-                isUserLookupLoading = false;
-            }
-
+            var groupTask = _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint);
+            var departmentTask = _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>(
+                "/api/Library/lex02?top=1000&showDeleted=false&orderby=LEX02Name");
+            await Task.WhenAll(groupTask, departmentTask);
+            p02_Groups = await groupTask ?? [];
+            departments = (await departmentTask ?? [])
+                .Where(department => string.Equals(department.LEX02Type, "PhongBan", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(department => department.LEX02Name)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            p02_Groups = [];
+            departments = [];
+            NotifyError("Error when loading role/department lookups: " + ex.Message);
+        }
+        finally
+        {
+            isUserLookupLoading = false;
             StateHasChanged();
         }
-        protected async Task SwitchOnChange_IsDelete(sp_Authentication_TabUser_UserList data) => await Func_CreateOrUpdateP04UserGroup(data);
-        protected async Task DropdownOnChange_Group(sp_Authentication_TabUser_UserList data) => await Func_CreateOrUpdateP04UserGroup(data);
-        protected async Task DropdownOnChange_Department(sp_Authentication_TabUser_UserList data) => await Func_CreateOrUpdateP04UserGroup(data);
-        protected async Task ButtonOnClick_SearchUser()
-        {
-            // Nếu search text trống, gọi clear thay vì search
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                await ButtonOnClick_Clear();
-                return;
-            }
+    }
 
-            if (griduser is not null)
-            {
-                await griduser.FirstPage(true);
-            }
+    protected async Task ButtonOnClick_SearchUser()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            await ButtonOnClick_Clear();
+            return;
         }
-        protected async Task ButtonOnClick_Clear()
-        {
-            SearchText = string.Empty;
 
-            if (griduser is not null)
-            {
-                await griduser.FirstPage(true);
-            }
+        if (griduser is not null)
+        {
+            await griduser.FirstPage(true);
         }
-        protected async Task ButtonOnClick_Reload() => await LoadBaseData();
+    }
 
-        protected async Task LoadUsersAsync(LoadDataArgs args)
+    protected async Task ButtonOnClick_Clear()
+    {
+        SearchText = string.Empty;
+        if (griduser is not null)
         {
-            isUserLoading = true;
-            currentUserSkip = args.Skip ?? 0;
-            currentUserFilterExpression = args.Filter;
+            await griduser.FirstPage(true);
+        }
+    }
+
+    protected Task ButtonOnClick_Reload() => LoadBaseData();
+
+    protected async Task LoadUsersAsync(LoadDataArgs args)
+    {
+        isUserLoading = true;
+        currentUserSkip = args.Skip ?? 0;
+        currentUserFilterExpression = args.Filter;
+        StateHasChanged();
+
+        try
+        {
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
+                BuildUsersEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
+            _sp_Authentication_TabUser_UserList = result.Data ?? [];
+            foreach (var user in _sp_Authentication_TabUser_UserList)
+            {
+                user.UserGroup = p02_Groups.FirstOrDefault(group => group.Id == user.GroupId);
+            }
+            userCount = result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            _sp_Authentication_TabUser_UserList = [];
+            userCount = 0;
+            NotifyError("Error when loading users: " + ex.Message);
+        }
+        finally
+        {
+            isUserLoading = false;
             StateHasChanged();
-
-            try
-            {
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
-                    BuildUsersEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
-
-                _sp_Authentication_TabUser_UserList = result.Data ?? new List<sp_Authentication_TabUser_UserList>();
-                userCount = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                _sp_Authentication_TabUser_UserList = [];
-                userCount = 0;
-                Toast.Notify(new NotificationMessage()
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Error",
-                    Detail = "Error when loading users: " + ex.Message,
-                    Duration = 10000
-                });
-            }
-            finally
-            {
-                isUserLoading = false;
-                StateHasChanged();
-            }
         }
+    }
 
-        protected async Task LoadUserFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<sp_Authentication_TabUser_UserList> args)
+    protected async Task LoadUserFilterDataAsync(
+        DataGridLoadColumnFilterDataEventArgs<sp_Authentication_TabUser_UserList> args)
+    {
+        if (args.Column is null)
         {
-            if (args.Column is null)
-            {
-                return;
-            }
-
-            try
-            {
-                var queryParams = new List<string>();
-
-                if (!string.IsNullOrWhiteSpace(SearchText))
-                {
-                    queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-                }
-
-                queryParams.Add($"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}");
-
-                if (!string.IsNullOrWhiteSpace(currentUserFilterExpression))
-                {
-                    queryParams.Add($"filter={Uri.EscapeDataString(currentUserFilterExpression)}");
-                }
-
-                if (!string.IsNullOrWhiteSpace(args.Filter))
-                {
-                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-                }
-
-                if (args.Skip.HasValue)
-                {
-                    queryParams.Add($"skip={args.Skip.Value}");
-                }
-
-                if (args.Top.HasValue)
-                {
-                    queryParams.Add($"top={args.Top.Value}");
-                }
-
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
-                    $"/api/Permission/users?{string.Join("&", queryParams)}");
-
-                args.Data = result.Data ?? [];
-                args.Count = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                Toast.Notify(new NotificationMessage()
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Error",
-                    Detail = "Error when loading user filter data: " + ex.Message,
-                    Duration = 10000
-                });
-            }
+            return;
         }
 
-        protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<sp_Authentication_TabUser_UserList> args)
-        {
-            if (args.Data != null)
-            {
-                await DialogService.OpenSideAsync<Component_RecordInspector<sp_Authentication_TabUser_UserList>>(
-                    $"User: {args.Data.UserLogin}",
-                    new Dictionary<string, object?> { { "Record", args.Data } },
-                    options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" }
-                );
-            }
-        }
-
-        protected void OnRowRenderUser(RowRenderEventArgs<sp_Authentication_TabUser_UserList> args)
-        {
-            if (args.Data?.IsDeleted == true)
-            {
-                AppendRowClass(args.Attributes, "vpp-admin-row-deleted");
-            }
-        }
-
-        protected async Task TextBoxOnChange(string arg)
-        {
-            SearchText = arg;
-            if (string.IsNullOrEmpty(SearchText))
-            {
-                await ButtonOnClick_Clear();
-            }
-        }
-
-        protected async Task SearchTextOnKeyUp(KeyboardEventArgs arg)
-        {
-            if (arg.Code == "Enter" || arg.Code == "NumpadEnter")
-            {
-                if (!string.IsNullOrEmpty(SearchText))
-                {
-                    await ButtonOnClick_SearchUser();
-                }
-                else
-                {
-                    // Nếu search text trống, gọi clear thay vì search
-                    await ButtonOnClick_Clear();
-                }
-            }
-        }
-
-        #region Function
-        protected async Task Func_CreateOrUpdateP04UserGroup(sp_Authentication_TabUser_UserList data)
-        {
-            glb.isBusyPage = true;
-            P04_UserGroupReqDTO? req = null;
-            P04_UserGroupResDTO? res = null;
-            try
-            {
-                if (data.Id != Guid.Empty)
-                {
-                    req = new P04_UserGroupReqDTO()
-                    {
-                        UserId = data.UserId,
-                        P02_GroupId = data.UserGroup?.Id ?? data.GroupId,
-                        Id = data.Id,
-                        // P5/timezone: send the original CreateDate from the server load
-                        // (no host-time fallback). UpdateDate is set authoritatively
-                        // by the BE via IDateTimeProvider, so we leave it default.
-                        CreateDate = data.CreateDate ?? default,
-                        CreateUserId = data.CreateUserId,
-                        UpdateUserId = UserClaims == 0 ? glb.UserInfo.UserID : UserClaims,
-                        UpdateDate = default,
-                        IsDeleted = data.IsDeleted
-                    };
-                    res = await _apiServices.PutFromApiAsync<P04_UserGroupResDTO>(
-                        $"/api/Permission/user-groups/{data.Id}",
-                        req
-                    );
-                }
-                else
-                {
-                    req = new P04_UserGroupReqDTO
-                    {
-                        UserId = data.UserId,
-                        P02_GroupId = data.UserGroup?.Id ?? data.GroupId,
-                        Id = data.Id,
-                        // P5/timezone: BE assigns CreateDate/UpdateDate via the
-                        // shared IDateTimeProvider, so we don't send host time here.
-                        CreateDate = default,
-                        CreateUserId = UserClaims == 0 ? glb.UserInfo.UserID : UserClaims,
-                        UpdateUserId = UserClaims == 0 ? glb.UserInfo.UserID : UserClaims,
-                        UpdateDate = default,
-                        IsDeleted = data.IsDeleted
-                    };
-                    res = await _apiServices.PostFromApiAsync<P04_UserGroupResDTO>(
-                        "/api/Permission/user-groups",
-                        req
-                    );
-                }
-                if (res != null)
-                {
-                    data.Id = res.Id;
-                    data.GroupId = res.P02_GroupId;
-                    data.UserGroup = p02_Groups.FirstOrDefault(x => x.Id == res.P02_GroupId);
-                    data.GroupName = data.UserGroup?.GroupName;
-                    data.IsDeleted = res.IsDeleted;
-                    data.UpdateUserId = req.UpdateUserId;
-                    data.UpdateDate = DateTime.Now;
-
-                    if (griduser is not null)
-                    {
-                        await griduser.Reload();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Toast.Notify(new NotificationMessage() { Severity = NotificationSeverity.Error, Summary = "Error", Detail = "Error when call EF_Update P04_UserGroup:" + ex.Message, Duration = 10000 });
-                throw;
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                req?.Dispose();
-                res?.Dispose();
-                StateHasChanged();
-            }
-        }
-
-        private static void AppendRowClass(IDictionary<string, object> attributes, string className)
-        {
-            if (attributes.TryGetValue("class", out var current) && current is not null)
-            {
-                attributes["class"] = $"{current} {className}";
-                return;
-            }
-
-            attributes["class"] = className;
-        }
-
-        private string BuildUsersEndpoint(string? filter, int? skip, int? top, string? orderBy)
+        try
         {
             var queryParams = new List<string>();
-
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
             }
 
-            if (!string.IsNullOrWhiteSpace(filter))
+            queryParams.Add($"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}");
+            if (!string.IsNullOrWhiteSpace(currentUserFilterExpression))
             {
-                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+                queryParams.Add($"filter={Uri.EscapeDataString(currentUserFilterExpression)}");
             }
 
-            if (skip.HasValue)
+            if (!string.IsNullOrWhiteSpace(args.Filter))
             {
-                queryParams.Add($"skip={skip.Value}");
+                queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
             }
 
-            if (top.HasValue)
+            if (args.Skip.HasValue)
             {
-                queryParams.Add($"top={top.Value}");
+                queryParams.Add($"skip={args.Skip.Value}");
             }
 
-            if (!string.IsNullOrWhiteSpace(orderBy))
+            if (args.Top.HasValue)
             {
-                queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
+                queryParams.Add($"top={args.Top.Value}");
             }
 
-            var queryString = queryParams.Count == 0 ? string.Empty : $"?{string.Join("&", queryParams)}";
-            return $"/api/Permission/users{queryString}";
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
+                $"/api/Permission/users?{string.Join("&", queryParams)}");
+            args.Data = result.Data ?? [];
+            args.Count = result.TotalCount;
         }
-        #endregion
+        catch (Exception ex)
+        {
+            NotifyError("Error when loading user filters: " + ex.Message);
+        }
+    }
+
+    protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<sp_Authentication_TabUser_UserList> args)
+    {
+        if (args.Data is null)
+        {
+            return;
+        }
+
+        await DialogService.OpenSideAsync<Component_RecordInspector<sp_Authentication_TabUser_UserList>>(
+            $"User: {args.Data.UserLogin}",
+            new Dictionary<string, object?> { { "Record", args.Data } },
+            options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
+    }
+
+    protected Task TextBoxOnChange(string value)
+    {
+        SearchText = value;
+        return string.IsNullOrWhiteSpace(SearchText) ? ButtonOnClick_Clear() : Task.CompletedTask;
+    }
+
+    protected async Task SearchTextOnKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Code is "Enter" or "NumpadEnter")
+        {
+            await ButtonOnClick_SearchUser();
+        }
+    }
+
+    protected Task DropdownOnChange_Group(sp_Authentication_TabUser_UserList user) =>
+        PersistMembershipAsync(user, "Role changed by permission administrator.");
+
+    protected Task DropdownOnChange_Department(sp_Authentication_TabUser_UserList user) =>
+        PersistMembershipAsync(user, "Primary department changed by permission administrator.");
+
+    protected async Task DeactivateMembershipAsync(sp_Authentication_TabUser_UserList user)
+    {
+        if (!CanDeactivateMembership(user))
+        {
+            await ReloadUsersAsync();
+            return;
+        }
+
+        var confirmed = await DialogService.Confirm(
+            $"Deactivate the active membership for {user.FullName ?? user.UserLogin}?",
+            "Deactivate membership",
+            new ConfirmOptions { OkButtonText = "Deactivate", CancelButtonText = Loc["Cancel"].Value });
+        if (confirmed != true)
+        {
+            await ReloadUsersAsync();
+            return;
+        }
+
+        glb.isBusyPage = true;
+        isUserLoading = true;
+        try
+        {
+            var request = new MembershipDeactivateReqDTO
+            {
+                AccountId = user.UserId,
+                ExpectedRowVersion = GetRowVersion(user),
+                Reason = "Membership deactivated by permission administrator."
+            };
+            await _apiServices.PostFromApiAsync<MembershipAdministrationResDTO>(
+                "/api/Permission/memberships/deactivate",
+                request);
+            Toast.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Membership deactivated",
+                Duration = 3000
+            });
+            await ReloadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            NotifyError("Membership deactivation failed: " + ex.Message);
+            await ReloadUsersAsync();
+        }
+        finally
+        {
+            isUserLoading = false;
+            glb.isBusyPage = false;
+            StateHasChanged();
+        }
+    }
+
+    protected bool CanEditMembership(sp_Authentication_TabUser_UserList user) =>
+        PermissionState.HasPermission(Permissions.PermissionManage)
+        && user.UserId > 0
+        && user.UserId != UserClaims
+        && string.Equals(user.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase)
+        && user.IsActive
+        && user.RowVersion is { Length: > 0 };
+
+    protected bool CanDeactivateMembership(sp_Authentication_TabUser_UserList user) =>
+        CanEditMembership(user);
+
+    private async Task PersistMembershipAsync(
+        sp_Authentication_TabUser_UserList user,
+        string reason)
+    {
+        if (!CanEditMembership(user)
+            || user.UserGroup is null
+            || user.L05_DepartmentId is not Guid departmentId
+            || departmentId == Guid.Empty)
+        {
+            await ReloadUsersAsync();
+            return;
+        }
+
+        glb.isBusyPage = true;
+        isUserLoading = true;
+        try
+        {
+            var request = new MembershipUpsertReqDTO
+            {
+                AccountId = user.UserId,
+                GroupId = user.UserGroup.Id,
+                PrimaryDepartmentId = departmentId,
+                ExpectedRowVersion = user.IsActive ? GetRowVersion(user) : null,
+                Reason = reason
+            };
+            await _apiServices.PutFromApiAsync<MembershipAdministrationResDTO>(
+                "/api/Permission/memberships",
+                request);
+            Toast.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Membership updated",
+                Duration = 3000
+            });
+            await ReloadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            NotifyError("Membership update failed: " + ex.Message);
+            await ReloadUsersAsync();
+        }
+        finally
+        {
+            isUserLoading = false;
+            glb.isBusyPage = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReloadUsersAsync()
+    {
+        if (griduser is not null)
+        {
+            await griduser.Reload();
+        }
+    }
+
+    private static string GetRowVersion(sp_Authentication_TabUser_UserList user) =>
+        user.RowVersion is { Length: > 0 }
+            ? Convert.ToBase64String(user.RowVersion)
+            : string.Empty;
+
+    private static string GetAccountStatusLabel(sp_Authentication_TabUser_UserList user) =>
+        user.AccountStatus switch
+        {
+            "Active" when user.IsActive => "Active",
+            "Active" => "No membership",
+            "PendingApproval" => "Pending approval",
+            "Disabled" => "Disabled",
+            _ => user.AccountStatus ?? "Unknown"
+        };
+
+    private void NotifyError(string detail) => Toast.Notify(new NotificationMessage
+    {
+        Severity = NotificationSeverity.Error,
+        Summary = "Error",
+        Detail = detail,
+        Duration = 10000
+    });
+
+    private string BuildUsersEndpoint(string? filter, int? skip, int? top, string? orderBy)
+    {
+        var queryParams = new List<string>();
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter))
+        {
+            queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+        }
+
+        if (skip.HasValue)
+        {
+            queryParams.Add($"skip={skip.Value}");
+        }
+
+        if (top.HasValue)
+        {
+            queryParams.Add($"top={top.Value}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(orderBy))
+        {
+            queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
+        }
+
+        var queryString = queryParams.Count == 0 ? string.Empty : $"?{string.Join("&", queryParams)}";
+        return $"/api/Permission/users{queryString}";
     }
 }

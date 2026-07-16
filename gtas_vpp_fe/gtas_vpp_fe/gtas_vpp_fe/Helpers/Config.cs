@@ -63,27 +63,8 @@ namespace gtas_vpp_fe.Helpers
         // ENV-001 changes the backend JWT audience. Version the cookie name so an
         // existing frontend cookie cannot trap users with an access token that the
         // deployment-bound backend now correctly rejects.
-        public const string CookieName = "VPP_AuthCookie_v2";
-        public const int CookieExpireMinutes = 1440;
-        public const int ClaimExpireHours = 24;
-        public const int AuthPropertyExpireHours = 24;
-        public static class sp_AuthenClass
-        {
-            public enum sp_Authen
-            {
-                sp_Authen
-            }
-            public enum sp_Authen_Type
-            {
-                sp_Authen_Login,
-                sp_Authen_GetPermissionSinglePage,
-                sp_Authen_TabUser_UserList,
-                sp_Authen_TabUser_SearchUser,
-                sp_Authen_Permission_GetPageWithComponentByGroupId,
-                sp_Authen_CreateNewGroup,
-                sp_Authen_CopyFromGroup
-            }
-        }
+        public const string CookieName = "VPP_AuthCookie_v3";
+        public const int CookieExpireMinutes = 60;
         // Page codes for sp_Authen_GetPermissionSinglePage payloads.
         // NB: Component-level permission codes were deduplicated with
         // gtas_vpp_shared.Constants.Permissions (P4.C / F-24). Use that

@@ -54,7 +54,6 @@ services:
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_live_clients"
-      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
     volumes:
       - backend-logs:/app/logs:rw
     mem_limit: 512m
@@ -86,7 +85,6 @@ services:
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_live_clients"
-      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
       ReportInsights__Enabled: "${REPORT_INSIGHTS_ENABLED:-false}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
