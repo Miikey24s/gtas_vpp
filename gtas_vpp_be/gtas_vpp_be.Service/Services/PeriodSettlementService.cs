@@ -4,7 +4,9 @@ using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_shared.DTOs.Req.VPP;
+using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,11 +16,142 @@ namespace gtas_vpp_be.Service.Services
     {
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IPriceBookWorkflowService? _priceBookWorkflowService;
 
         public PeriodSettlementService(IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider)
+            : this(scopedUow, dateTimeProvider, null)
+        {
+        }
+
+        public PeriodSettlementService(
+            IUnitOfWork scopedUow,
+            IDateTimeProvider dateTimeProvider,
+            IPriceBookWorkflowService? priceBookWorkflowService)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
+            _priceBookWorkflowService = priceBookWorkflowService;
+        }
+
+        public async Task<VPP_SettlementPreviewResDTO> PreviewAsync(
+            VPP_SettlementPreviewReqDTO req,
+            CancellationToken cancellationToken = default)
+        {
+            ValidatePeriod(req.Y, req.M);
+            if (_priceBookWorkflowService is null)
+            {
+                throw new BusinessException("Settlement preview is unavailable.");
+            }
+
+            var headers = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .Where(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted
+                         && ((x.IsAdditionalOrder
+                              && x.IsCurrentRevision
+                              && x.Status == (int)VPPStatus.Approved)
+                             || (!x.IsAdditionalOrder
+                                 && x.IsCurrentRevision
+                                 && (x.Status == (int)VPPStatus.Submitted
+                                     || x.Status == (int)VPPStatus.Approved))))
+                .Include(x => x.VPP02_RequestDetails.Where(detail => !detail.IsDeleted))
+                .ToListAsync(cancellationToken);
+
+            var pendingAdditionalCount = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+                .AsNoTracking()
+                .CountAsync(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted
+                              && x.IsAdditionalOrder
+                              && x.Status == (int)VPPStatus.Pending, cancellationToken);
+
+            var totals = headers
+                .SelectMany(x => x.VPP02_RequestDetails)
+                .GroupBy(x => x.VPPId)
+                .ToDictionary(group => group.Key, group => group.Sum(detail => (decimal)detail.Qty));
+
+            var asOfUtc = req.PriceAsOfUtc.HasValue
+                ? NormalizeUtc(req.PriceAsOfUtc.Value)
+                : PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
+            var response = new VPP_SettlementPreviewResDTO
+            {
+                Y = req.Y,
+                M = req.M,
+                PriceAsOfUtc = asOfUtc,
+                RequestedItemCount = totals.Count,
+                RequestedLineCount = headers.Sum(x => x.VPP02_RequestDetails.Count),
+                PendingAdditionalCount = pendingAdditionalCount
+            };
+
+            foreach (var supplement in headers.Where(x => x.IsAdditionalOrder && !x.BaseRequestId.HasValue))
+            {
+                response.Blockers.Add($"SUPPLEMENT_WITHOUT_BASE:{supplement.Id}");
+            }
+            if (pendingAdditionalCount > 0)
+            {
+                response.Blockers.Add($"PENDING_SUPPLEMENTS:{pendingAdditionalCount}");
+            }
+            if (totals.Count == 0)
+            {
+                response.Blockers.Add("NO_SUBMITTED_ITEMS");
+            }
+
+            foreach (var exception in req.Exceptions ?? [])
+            {
+                var valid = exception.VppId != Guid.Empty
+                             && exception.SupplierId != Guid.Empty
+                             && !string.IsNullOrWhiteSpace(exception.Reason)
+                             && exception.Reason.Trim().Length is >= 5 and <= 500;
+                response.Exceptions.Add(new VPP_SettlementExceptionResDTO
+                {
+                    VppId = exception.VppId,
+                    SupplierId = exception.SupplierId,
+                    Reason = exception.Reason?.Trim(),
+                    IsValid = valid
+                });
+                if (!valid)
+                {
+                    response.Blockers.Add($"INVALID_SUPPLIER_EXCEPTION:{exception.VppId}");
+                }
+            }
+
+            if (totals.Count > 0)
+            {
+                var comparison = await _priceBookWorkflowService.CompareAsync(new PriceBookComparisonReqDTO
+                {
+                    PriceAsOfUtc = asOfUtc,
+                    Items = totals.Select(x => new PriceBookComparisonItemReqDTO
+                    {
+                        VppId = x.Key,
+                        Quantity = x.Value
+                    }).ToList()
+                }, cancellationToken);
+                response.Quotes = comparison.Quotes;
+
+                var eligible = response.Quotes.Where(x => x.IsEligible).AsEnumerable();
+                if (req.PriceListId.HasValue)
+                {
+                    eligible = eligible.Where(x => x.PriceListId == req.PriceListId.Value);
+                }
+                if (req.PrimarySupplierId.HasValue)
+                {
+                    eligible = eligible.Where(x => x.SupplierId == req.PrimarySupplierId.Value);
+                }
+
+                response.PrimaryQuote = eligible.FirstOrDefault();
+                if (response.PrimaryQuote is null)
+                {
+                    response.Blockers.Add(req.PrimarySupplierId.HasValue
+                        ? "PRIMARY_SUPPLIER_NOT_COVERED"
+                        : req.PriceListId.HasValue ? "PRICE_BOOK_NOT_COVERED" : "NO_COMPLETE_PRICE_COVERAGE");
+                }
+                else
+                {
+                    response.PrimarySupplierId = response.PrimaryQuote.SupplierId;
+                    response.PrimaryPriceListId = response.PrimaryQuote.PriceListId;
+                    response.PrimaryPriceListVersion = response.PrimaryQuote.Version;
+                }
+            }
+
+            response.InputHash = ComputeInputHash(req, asOfUtc, totals);
+            return response;
         }
 
         public async Task<VPP_PeriodSettlementResDTO> SettleAsync(VPP_SettlePeriodReqDTO req, int userId)
@@ -274,5 +407,33 @@ namespace gtas_vpp_be.Service.Services
                 throw new BusinessException($"Invalid month {m}.");
             }
         }
+
+        private static string ComputeInputHash(
+            VPP_SettlementPreviewReqDTO req,
+            DateTime asOfUtc,
+            IReadOnlyDictionary<Guid, decimal> totals)
+        {
+            var canonical = JsonSerializer.Serialize(new
+            {
+                req.Y,
+                req.M,
+                PriceAsOfUtc = asOfUtc,
+                req.PriceListId,
+                req.PrimarySupplierId,
+                Items = totals.OrderBy(x => x.Key).Select(x => new { VppId = x.Key, Quantity = x.Value }),
+                Exceptions = (req.Exceptions ?? []).OrderBy(x => x.VppId).ThenBy(x => x.SupplierId)
+                    .Select(x => new { x.VppId, x.SupplierId, Reason = x.Reason?.Trim() })
+            });
+            return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(canonical)));
+        }
+
+        private static DateTime NormalizeUtc(DateTime value)
+            => value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Local => value.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+            };
     }
 }

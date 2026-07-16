@@ -60,6 +60,7 @@ namespace gtas_vpp_fe.Helpers
             {
                 public const string Base = $"{ApiBase}/periodsettlement";
                 public const string Settle = $"{Base}/settle";
+                public const string Preview = $"{Base}/preview";
                 public const string Status = $"{Base}/{{0}}/{{1}}";
                 public const string ListAll = Base;
             }

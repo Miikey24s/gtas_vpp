@@ -72,6 +72,12 @@
         </div>
         
         <div class="vpp-settle-actions">
+            <RadzenButton Icon="fact_check"
+                          Text="Preview"
+                          ButtonStyle="ButtonStyle.Light"
+                          Disabled="@(!canPreview || isLoading || isPreviewing || isSettling)"
+                          Click="@PreviewAsync"
+                          class="vpp-settle-btn" />
             <span class="vpp-disabled-action-help vpp-settle-btn" title="@SettlePeriodTitle">
                 <RadzenButton Icon="lock"
                               Text="@Loc["SettlePeriod"]"

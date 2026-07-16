@@ -20,8 +20,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private int selectedYear = 2024;
         private int selectedMonth = 1;
         private bool canSettle;
+        private bool canPreview;
         private bool isLoading;
         private bool isSettling;
+        private bool isPreviewing;
+        private VPP_SettlementPreviewResDTO? preview;
         private string? alertMessage;
         private AlertStyle alertStyle = AlertStyle.Info;
 
@@ -80,7 +83,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         {
             try
             {
-                priceLists = await ApiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [];
+                priceLists = (await ApiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [])
+                    .Where(x => x.Status == "Published" && !x.IsDeleted)
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -154,14 +159,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             if (status.PendingAdditionalCount > 0)
             {
                 canSettle = false;
+                canPreview = false;
                 SetAlert(AlertStyle.Warning, string.Format(Loc["Warning_PendingAdditional"], status.PendingAdditionalCount));
                 return;
             }
 
-            canSettle = true;
+            canPreview = true;
+            canSettle = false;
             if (status.IsSettled)
             {
                 canSettle = false;
+                canPreview = false;
                 SetAlert(
                     AlertStyle.Info,
                     string.Format(
@@ -172,13 +180,61 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 return;
             }
 
-            alertMessage = null;
+            SetAlert(AlertStyle.Info, "Run a settlement preview to verify supplier coverage and totals.");
         }
 
         private Task OnPriceListChangedAsync(Guid? value)
         {
             selectedPriceListId = value;
+            canSettle = false;
+            preview = null;
             return Task.CompletedTask;
+        }
+
+        private async Task PreviewAsync()
+        {
+            isPreviewing = true;
+            try
+            {
+                preview = await ApiServices.PostFromApiAsync<VPP_SettlementPreviewResDTO>(
+                    Config.RequestApi.PeriodSettlement.Preview,
+                    new VPP_SettlementPreviewReqDTO
+                    {
+                        Y = selectedYear,
+                        M = selectedMonth,
+                        PriceListId = selectedPriceListId,
+                        PriceAsOfUtc = DateTime.UtcNow
+                    });
+
+                if (preview is null)
+                {
+                    canSettle = false;
+                    SetAlert(AlertStyle.Warning, "Settlement preview returned no data.");
+                    return;
+                }
+
+                canSettle = preview.Blockers.Count == 0 && preview.PrimaryQuote is not null;
+                if (!canSettle)
+                {
+                    SetAlert(AlertStyle.Warning, string.Join("; ", preview.Blockers.Take(3)));
+                    return;
+                }
+
+                var quote = preview.PrimaryQuote!;
+                selectedPriceListId = quote.PriceListId;
+                SetAlert(
+                    AlertStyle.Success,
+                    $"{quote.SupplierName ?? "Supplier"}: {quote.CoveredItemCount}/{quote.RequestedItemCount} items, total {quote.GrandTotal:N0} VND. Hash {preview.InputHash[..12]}.");
+            }
+            catch (Exception ex)
+            {
+                canSettle = false;
+                SetAlert(AlertStyle.Danger, ex.Message);
+            }
+            finally
+            {
+                isPreviewing = false;
+            }
         }
 
         private async Task SettleAsync()

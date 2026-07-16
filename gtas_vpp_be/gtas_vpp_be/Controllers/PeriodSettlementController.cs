@@ -30,6 +30,17 @@ namespace gtas_vpp_be.Controllers
             return Ok(await _periodSettlementService.SettleAsync(req, CurrentUserId.Value));
         }
 
+        [HttpPost("preview")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        public async Task<IActionResult> Preview(
+            [FromBody] VPP_SettlementPreviewReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            return Ok(await _periodSettlementService.PreviewAsync(req, cancellationToken));
+        }
+
         [HttpGet("{y:int}/{m:int}")]
         [Authorize(Policy = Permissions.PeriodSettle)]
         public async Task<IActionResult> GetStatus(int y, int m)
