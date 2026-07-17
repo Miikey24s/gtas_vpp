@@ -168,8 +168,9 @@ original scope so reduced/folded alternatives remain auditable.
 | AUTH-001..006 | DONE (folded into LEAN-02/03) | `docs/execution/LEAN-02.md`, `LEAN-03.md`; app-owned Identity, canonical RBAC, lifecycle, cutover and session gates |
 | PER-001, REQ-001, SUP-001 | DONE | `docs/execution/LEAN-05.md` |
 | CAT-001, PRICE-001/002, SET-001/002 | DONE | LEAN-06 execution records, including `SET-002/UI-006` |
-| UI-001..007 | DONE for the retained A+ slice | LEAN-02..06 UI work plus isolated authenticated E2E and three-viewport evidence |
-| REPORT-001/002/003, NOTIF-001/002 | DONE | `docs/execution/LEAN-07.md` |
+| UI-001..007 | DONE for the retained A+ slice after corrective review | LEAN-02..06 plus `docs/execution/UI-008.md`; safe localized login feedback and bounded toast geometry are proved at all three viewports |
+| REPORT-001/002/003, NOTIF-001/002 | DONE after notification presentation remediation | `docs/execution/LEAN-07.md`, `docs/execution/UI-008.md`; durable inbox plus explicit loading failure/stale-data/retry states |
+| UI-008 corrective acceptance pass | DONE | Production screenshot exposed the raw-JSON/full-width toast gap; `docs/execution/UI-008.md` records root cause, implementation and visual evidence |
 | NOTIF-003 | DONE (ALTERNATIVE: local SMTP sandbox) | `docs/execution/NOTIF-003.md`; no real-provider claim |
 | REPORT-004, WOW-001/002/003/004, AI-001 | DEFERRED as non-gating showcase work | D-012/source-freeze cut; existing copy/AI code may remain but is not a release claim |
 | ARCH-002 | DONE (REDUCED) | Touched-file discipline, Release build, `git diff --check` and CI ratchet; no mass-format commit |

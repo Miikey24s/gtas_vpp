@@ -53,10 +53,10 @@ must preserve its preflight hash and never stage it.
 |---|---|---|
 | LEAN-02 — Trusted access and account cutover | DONE | `docs/execution/LEAN-02.md` |
 | LEAN-03 — Registration and recovery | DONE | `docs/execution/LEAN-03.md` |
-| LEAN-04 — UI foundation and independent brand | DONE | `docs/execution/LEAN-04.md` |
+| LEAN-04 — UI foundation and independent brand | DONE after UI-008 corrective pass | `docs/execution/LEAN-04.md`, `docs/execution/UI-008.md`; the earlier login feedback acceptance gap is closed with safe localized text and three-viewport evidence |
 | LEAN-05 — Request and supplement core | DONE | `docs/execution/LEAN-05.md`; all package gates green |
 | LEAN-06 — Procurement and immutable settlement | DONE | `CAT-001`, `PRICE-001/002`, `SET-001`, `SET-002/UI-006` DONE; see execution records |
-| LEAN-07 — Product proof | DONE | `docs/execution/LEAN-07.md`; reports/workbook/inbox/outbox gates green |
+| LEAN-07 — Product proof | DONE after UI-008 notification presentation remediation | `docs/execution/LEAN-07.md`, `docs/execution/UI-008.md`; reports/workbook/inbox/outbox gates green and inbox error/retry states are explicit |
 | LEAN-08 — Release candidate quality and recovery | DONE (local RC + isolated E2E + approved local recovery alternative) | `docs/execution/LEAN-08.md`, `docs/execution/DEP-002.md`; two clean isolated rehearsals and disposable LocalDB backup/restore complete; deployed/server recovery remains conditional |
 | LEAN-09 — Thesis, defense and handoff | DONE (local-only release/handoff alternative) | Traceability/diagram delta, current anonymized screenshots, final checkpoint render/audit and release tag complete; protected working DOCX remains unchanged |
 

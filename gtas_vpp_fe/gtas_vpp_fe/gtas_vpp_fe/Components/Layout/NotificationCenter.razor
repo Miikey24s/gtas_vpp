@@ -2,6 +2,7 @@
 @using gtas_vpp_fe.Services
 @inject NotificationInboxState Inbox
 @inject NavigationManager Navigation
+@inject ILogger<NotificationCenter> Logger
 
 <div class="vpp-header-notifications" @onkeydown="HandleKeyDown">
     <button type="button"
@@ -41,7 +42,15 @@
             </header>
 
             <div class="vpp-notification-list" aria-live="polite">
-                @if (Inbox.IsLoading && Inbox.Items.Count == 0)
+                @if (Inbox.HasError && Inbox.Items.Count == 0)
+                {
+                    <div class="vpp-notification-empty vpp-notification-empty--error" role="alert">
+                        <span class="rzi rzi-warning" aria-hidden="true"></span>
+                        <strong>@Loc["NotificationLoadFailed"]</strong>
+                        <span>@Loc["NotificationLoadFailedDescription"]</span>
+                    </div>
+                }
+                else if (Inbox.IsLoading && Inbox.Items.Count == 0)
                 {
                     <div class="vpp-notification-empty">@Loc["Loading"]</div>
                 }
@@ -55,6 +64,21 @@
                 }
                 else
                 {
+                    @if (_actionFailed)
+                    {
+                        <div class="vpp-notification-inline-status" role="alert">
+                            <span class="rzi rzi-warning" aria-hidden="true"></span>
+                            @Loc["NotificationActionFailed"]
+                        </div>
+                    }
+                    else if (Inbox.HasError)
+                    {
+                        <div class="vpp-notification-inline-status" role="status">
+                            <span class="rzi rzi-warning" aria-hidden="true"></span>
+                            @Loc["NotificationLoadFailedDescription"]
+                        </div>
+                    }
+
                     @foreach (var item in Inbox.Items)
                     {
                         <button type="button"
@@ -78,7 +102,7 @@
             <footer class="vpp-notification-panel-footer">
                 <button type="button" @onclick="RefreshAsync" disabled="@Inbox.IsLoading">
                     <span class="rzi rzi-refresh" aria-hidden="true"></span>
-                    @Loc["Refresh"]
+                    @(Inbox.HasError ? Loc["Retry"] : Loc["Refresh"])
                 </button>
             </footer>
         </section>
@@ -87,6 +111,7 @@
 
 @code {
     private bool _isOpen;
+    private bool _actionFailed;
 
     protected override void OnInitialized()
     {
@@ -98,6 +123,7 @@
         _isOpen = !_isOpen;
         if (_isOpen)
         {
+            _actionFailed = false;
             await Inbox.RefreshAsync();
         }
     }
@@ -112,13 +138,43 @@
         }
     }
 
-    private async Task RefreshAsync() => await Inbox.RefreshAsync();
+    private async Task RefreshAsync()
+    {
+        _actionFailed = false;
+        try
+        {
+            await Inbox.RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Could not refresh the notification inbox from the panel.");
+        }
+    }
 
-    private async Task MarkAllReadAsync() => await Inbox.MarkAllReadAsync();
+    private async Task MarkAllReadAsync()
+    {
+        _actionFailed = false;
+        try
+        {
+            await Inbox.MarkAllReadAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFailed = true;
+            Logger.LogWarning(ex, "Could not mark all notifications as read.");
+        }
+    }
 
     private async Task OpenNotificationAsync(gtas_vpp_shared.DTOs.Res.Notifications.NotificationResDTO item)
     {
-        await Inbox.MarkReadAsync(item);
+        try
+        {
+            await Inbox.MarkReadAsync(item);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Could not mark notification {NotificationId} as read.", item.Id);
+        }
         _isOpen = false;
 
         if (!string.IsNullOrWhiteSpace(item.Route) && item.Route.StartsWith('/'))

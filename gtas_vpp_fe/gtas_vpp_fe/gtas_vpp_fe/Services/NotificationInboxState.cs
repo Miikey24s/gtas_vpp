@@ -19,6 +19,7 @@ public sealed class NotificationInboxState(
     public IReadOnlyList<NotificationResDTO> Items { get; private set; } = [];
     public int UnreadCount { get; private set; }
     public bool IsLoading { get; private set; }
+    public bool HasError { get; private set; }
     public event Action? Changed;
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
@@ -47,11 +48,26 @@ public sealed class NotificationInboxState(
         try
         {
             IsLoading = true;
+            HasError = false;
             Changed?.Invoke();
-            var inbox = await api.GetFromApiAsync<NotificationInboxResDTO>(
-                "api/notifications?skip=0&take=20");
-            Items = inbox?.Items ?? [];
-            UnreadCount = inbox?.UnreadCount ?? 0;
+            try
+            {
+                var inbox = await api.GetFromApiAsync<NotificationInboxResDTO>(
+                    "api/notifications?skip=0&take=20");
+                Items = inbox?.Items ?? [];
+                UnreadCount = inbox?.UnreadCount ?? 0;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Keep already loaded items visible and let the component render
+                // a retry state instead of surfacing an unhandled circuit error.
+                HasError = true;
+                logger.LogWarning(ex, "Could not load the notification inbox.");
+            }
         }
         finally
         {

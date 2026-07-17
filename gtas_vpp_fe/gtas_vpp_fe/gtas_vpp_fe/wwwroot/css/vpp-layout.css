@@ -602,6 +602,21 @@ leftsidebar {
     font-size: 2rem;
 }
 
+.vpp-notification-empty--error .rzi,
+.vpp-notification-inline-status .rzi {
+    color: var(--vpp-warning);
+}
+
+.vpp-notification-inline-status {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: 1px solid var(--vpp-border-subtle);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
 .vpp-notification-panel-footer {
     justify-content: center;
     border-top: 1px solid var(--vpp-border);
