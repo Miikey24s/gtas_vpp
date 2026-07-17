@@ -39,6 +39,7 @@
     </script>
     <HeadOutlet />
     <RadzenTheme Theme="@ThemeState.CurrentTheme"/>
+    <link rel="stylesheet" href="@(ThemeState.IsDark ? "_content/Radzen.Blazor/css/material-dark-base.css" : "_content/Radzen.Blazor/css/material-base.css")" />
     <link rel="stylesheet" href="@Assets["css/vpp-toast.css"]" />
 </head>
 
