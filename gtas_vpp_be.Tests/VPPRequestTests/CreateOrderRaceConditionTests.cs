@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
@@ -30,6 +31,7 @@ public class CreateOrderRaceConditionTests
         using (var context = database.CreateContext())
         {
             await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+            await SeedOpenPeriodAsync(context, 2026, 4);
         }
 
         var request1 = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
@@ -41,8 +43,13 @@ public class CreateOrderRaceConditionTests
             CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0), barrier).CreateOrderAsync(request1, userId, "IT", "77500")),
             CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0), barrier).CreateOrderAsync(request2, userId, "IT", "77500")));
 
-        Assert.Equal(1, results.Count(x => x.Success));
-        Assert.Equal(1, results.Count(x => x.Exception is ConflictException));
+        var outcomeDetails = string.Join(
+            " | ",
+            results.Select(result => result.Success
+                ? "success"
+                : DescribeException(result.Exception)));
+        Assert.True(results.Count(x => x.Success) == 1, outcomeDetails);
+        Assert.True(results.Count(x => x.Exception is ConflictException) == 1, outcomeDetails);
 
         using var verifyContext = database.CreateContext();
         Assert.Equal(1, await verifyContext.Set<VPP01_RequestHeader>()
@@ -86,14 +93,115 @@ public class CreateOrderRaceConditionTests
         var regular = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
         var additional = CreateOrderRequest(2026, 4, isAdditionalOrder: true, vppId);
 
-        // P1: Regular submitted mid-April (current period = 2026-04).
-        // Additional submitted mid-May (current = 2026-05, previous = 2026-04).
-        await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0)).CreateOrderAsync(regular, userId, "IT", "77500");
-        await CreateService(database, new DateTime(2026, 5, 10, 9, 0, 0)).CreateOrderAsync(additional, userId, "IT", "77500");
+        // Supplements belong to the same current period and must point to the
+        // requester's submitted regular request.
+        var baseOrder = await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0))
+            .CreateOrderAsync(regular, userId, "IT", "77500");
+        additional.BaseRequestId = baseOrder.Id;
+        await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0))
+            .CreateOrderAsync(additional, userId, "IT", "77500");
 
         using var verifyContext = database.CreateContext();
         Assert.Equal(2, await verifyContext.Set<VPP01_RequestHeader>()
             .CountAsync(x => x.CreateUserId == userId && x.Y == 2026 && x.M == 4 && !x.IsDeleted));
+    }
+
+    [Fact]
+    public async Task CreateOrder_FourConcurrentSupplements_LeavesExactlyOnePending()
+    {
+        using var database = new SqliteTestDatabase();
+        const int userId = 5615;
+        var vppId = Guid.NewGuid();
+        using (var context = database.CreateContext())
+        {
+            await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+            await SeedOpenPeriodAsync(context, 2026, 4);
+        }
+
+        var now = new DateTime(2026, 4, 10, 9, 0, 0);
+        var baseOrder = await CreateService(database, now).CreateOrderAsync(
+            CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId),
+            userId,
+            "IT",
+            "77500");
+        var barrier = new AsyncBarrier(4);
+        var requests = Enumerable.Range(1, 4).Select(index =>
+        {
+            var request = CreateOrderRequest(2026, 4, isAdditionalOrder: true, vppId);
+            request.BaseRequestId = baseOrder.Id;
+            request.IdempotencyKey = $"supplement-race-{index}";
+            return request;
+        }).ToArray();
+
+        var results = await Task.WhenAll(requests.Select(request =>
+            CaptureAsync(() => CreateService(database, now, barrier)
+                .CreateOrderAsync(request, userId, "IT", "77500"))));
+
+        Assert.Equal(1, results.Count(x => x.Success));
+        Assert.Equal(3, results.Count(x => !x.Success));
+        using var verifyContext = database.CreateContext();
+        var pending = await verifyContext.Set<VPP01_RequestHeader>()
+            .Where(x => x.CreateUserId == userId
+                && x.IsAdditionalOrder
+                && x.IsCurrentRevision
+                && !x.IsDeleted
+                && x.Status == (int)VPPStatus.Pending)
+            .ToListAsync();
+        var winner = Assert.Single(pending);
+        Assert.Equal(baseOrder.RequestSeriesId, winner.BaseRequestSeriesId);
+        Assert.Equal(1, winner.SupplementAttemptNumber);
+    }
+
+    [Fact]
+    public async Task UpdateOrder_TwoConcurrentReplacements_LeavesOneCurrentRevision()
+    {
+        using var database = new SqliteTestDatabase();
+        const int userId = 5615;
+        var vppId = Guid.NewGuid();
+        using (var context = database.CreateContext())
+        {
+            await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+            await SeedOpenPeriodAsync(context, 2026, 4);
+        }
+
+        var now = new DateTime(2026, 4, 10, 9, 0, 0);
+        var original = await CreateService(database, now).CreateOrderAsync(
+            CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId),
+            userId,
+            "IT",
+            "77500");
+        var rowVersion = Guid.NewGuid().ToByteArray();
+        using (var context = database.CreateContext())
+        {
+            await context.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE VPP01_RequestHeader
+                SET RowVersion = {rowVersion}
+                WHERE Id = {original.Id};
+                """);
+        }
+
+        var barrier = new AsyncBarrier(2);
+        var first = CreateUpdateRequest(original.Id, userId, vppId, 2, rowVersion, "replace-race-1");
+        var second = CreateUpdateRequest(original.Id, userId, vppId, 3, rowVersion, "replace-race-2");
+        var results = await Task.WhenAll(
+            CaptureAsync(() => CreateService(database, now, barrier).UpdateOrderAsync(first)),
+            CaptureAsync(() => CreateService(database, now, barrier).UpdateOrderAsync(second)));
+
+        var outcomeDetails = string.Join(
+            " | ",
+            results.Select(result => result.Success
+                ? "success"
+                : $"{result.Exception?.GetType().Name}: {result.Exception?.Message}"));
+        Assert.True(results.Count(x => x.Success) == 1, outcomeDetails);
+        Assert.True(results.Count(x => x.Exception is ConflictException) == 1, outcomeDetails);
+        using var verifyContext = database.CreateContext();
+        var series = await verifyContext.Set<VPP01_RequestHeader>()
+            .Where(x => x.RequestSeriesId == original.RequestSeriesId)
+            .OrderBy(x => x.RevisionNumber)
+            .ToListAsync();
+        Assert.Equal(2, series.Count);
+        Assert.Single(series, x => x.IsCurrentRevision);
+        Assert.Equal(2, series.Max(x => x.RevisionNumber));
     }
 
     private static async Task<(bool Success, Exception? Exception)> CaptureAsync(Func<Task> action)
@@ -107,6 +215,26 @@ public class CreateOrderRaceConditionTests
         {
             return (false, ex);
         }
+    }
+
+    private static string DescribeException(Exception? exception)
+    {
+        if (exception is null)
+        {
+            return "unknown failure";
+        }
+
+        var current = exception;
+        var parts = new List<string>();
+        while (current is not null)
+        {
+            parts.Add(current is SqliteException sqliteException
+                ? $"{current.GetType().Name}[{sqliteException.SqliteErrorCode}/{sqliteException.SqliteExtendedErrorCode}]: {current.Message}"
+                : $"{current.GetType().Name}: {current.Message}");
+            current = current.InnerException;
+        }
+
+        return string.Join(" -> ", parts);
     }
 
     private static VPPRequestService CreateService(SqliteTestDatabase database, DateTime now, AsyncBarrier? barrier = null)
@@ -140,10 +268,62 @@ public class CreateOrderRaceConditionTests
             M = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
+            SupplementReason = isAdditionalOrder ? "Needed for a new employee" : null,
             Items = new List<VPP02_ItemReqDTO>
             {
                 new() { VPPId = vppId, Qty = 1, Description = "Item" }
             }
+        };
+
+    private static async Task SeedOpenPeriodAsync(VPPContext context, int year, int month)
+    {
+        var calculator = new PeriodCalculator();
+        var period = new Period(year, month);
+        var timestamp = calculator.StartAtUtc(period);
+        context.Set<VPP00_Period>().Add(new VPP00_Period
+        {
+            Id = Guid.NewGuid(),
+            MemberCompanyCode = "77500",
+            TimeZoneId = "Asia/Ho_Chi_Minh",
+            Y = year,
+            M = month,
+            StartAtUtc = timestamp,
+            SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(period),
+            SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
+                period, TimeSpan.FromDays(2)),
+            State = VppPeriodState.Open,
+            CreateUserId = 5615,
+            CreateDate = timestamp,
+            UpdateUserId = 5615,
+            UpdateDate = timestamp,
+            IsDeleted = false
+        });
+        await context.SaveChangesAsync();
+    }
+
+    private static VPP01_UpdateReqDTO CreateUpdateRequest(
+        Guid requestId,
+        int userId,
+        Guid vppId,
+        int quantity,
+        byte[] rowVersion,
+        string idempotencyKey)
+        => new()
+        {
+            Id = requestId,
+            UpdateUserId = userId,
+            Description = "Concurrent replacement",
+            RowVersion = rowVersion,
+            IdempotencyKey = idempotencyKey,
+            Items =
+            [
+                new VPP02_ItemReqDTO
+                {
+                    VPPId = vppId,
+                    Qty = quantity,
+                    Description = "Item"
+                }
+            ]
         };
 
     private sealed class SqliteTestDatabase : IDisposable
@@ -249,7 +429,8 @@ public class CreateOrderRaceConditionTests
 
         private static bool IsSqliteUniqueViolation(DbUpdateException exception)
             => exception.InnerException is SqliteException sqliteException
-               && sqliteException.SqliteExtendedErrorCode == 2067;
+               && sqliteException.SqliteErrorCode == 19
+               && sqliteException.SqliteExtendedErrorCode is 1555 or 2067;
 
         private static DbUpdateException CreateSqlServerUniqueViolation(DbUpdateException source)
         {

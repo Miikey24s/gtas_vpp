@@ -1,0 +1,72 @@
+@page "/Account/Register"
+@attribute [AllowAnonymous]
+@rendermode InteractiveServer
+@layout LoginLayout
+
+<PageTitle>GTAS VPP - Đăng ký</PageTitle>
+
+<div class="vpp-login-page">
+    <div class="vpp-login-shell" style="overflow-y: auto;">
+        <section class="vpp-login-card" aria-labelledby="register-title" style="align-items: flex-start; overflow-y: auto;">
+            <div class="vpp-login-card-inner">
+                <div class="vpp-login-header">
+                    <h1 class="vpp-login-title" id="register-title">
+                        Đăng ký <span class="vpp-login-title-accent">GTAS VPP</span>
+                    </h1>
+                    <p>Đăng ký chỉ tạo yêu cầu chờ quản trị viên phê duyệt.</p>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+                {
+                    <div class="vpp-login-validation" role="alert">@ErrorMessage</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(SuccessMessage))
+                {
+                    <div class="vpp-login-validation" role="status">@SuccessMessage</div>
+                }
+
+                <EditForm Model="Model" OnValidSubmit="SubmitAsync" class="vpp-login-form">
+                    <DataAnnotationsValidator />
+                    <div class="vpp-login-field">
+                        <RadzenLabel Text="Tên đăng nhập" Component="Username" class="vpp-login-label" />
+                        <RadzenTextBox Name="Username" @bind-Value="Model.Username" Disabled="@IsLoading" class="vpp-login-control" />
+                        <ValidationMessage For="@(() => Model.Username)" />
+                    </div>
+                    <div class="vpp-login-field">
+                        <RadzenLabel Text="Họ và tên" Component="FullName" class="vpp-login-label" />
+                        <RadzenTextBox Name="FullName" @bind-Value="Model.FullName" Disabled="@IsLoading" class="vpp-login-control" />
+                        <ValidationMessage For="@(() => Model.FullName)" />
+                    </div>
+                    <div class="vpp-login-field">
+                        <RadzenLabel Text="Email nội bộ" Component="Email" class="vpp-login-label" />
+                        <RadzenTextBox Name="Email" @bind-Value="Model.Email" Disabled="@IsLoading" class="vpp-login-control" />
+                        <ValidationMessage For="@(() => Model.Email)" />
+                    </div>
+                    <div class="vpp-login-field">
+                        <RadzenLabel Text="Mã nhân viên (không bắt buộc)" Component="EmployeeCode" class="vpp-login-label" />
+                        <RadzenTextBox Name="EmployeeCode" @bind-Value="Model.EmployeeCode" Disabled="@IsLoading" class="vpp-login-control" />
+                    </div>
+                    <div class="vpp-login-field">
+                        <RadzenLabel Text="Mật khẩu" Component="Password" class="vpp-login-label" />
+                        <RadzenPassword Name="Password" @bind-Value="Model.Password" Disabled="@IsLoading" class="vpp-login-control" />
+                        <ValidationMessage For="@(() => Model.Password)" />
+                    </div>
+                    <div class="vpp-login-field">
+                        <RadzenLabel Text="Nhập lại mật khẩu" Component="ConfirmPassword" class="vpp-login-label" />
+                        <RadzenPassword Name="ConfirmPassword" @bind-Value="Model.ConfirmPassword" Disabled="@IsLoading" class="vpp-login-control" />
+                        <ValidationMessage For="@(() => Model.ConfirmPassword)" />
+                    </div>
+
+                    <RadzenButton Text="Gửi yêu cầu đăng ký"
+                                  ButtonType="ButtonType.Submit"
+                                  IsBusy="@IsLoading"
+                                  class="vpp-login-btn" />
+                </EditForm>
+
+                <div class="vpp-login-links">
+                    <a href="/Account/Login">Quay lại đăng nhập</a>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

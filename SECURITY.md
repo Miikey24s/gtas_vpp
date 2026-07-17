@@ -7,14 +7,12 @@ or the deployment platform secret store. Never commit real values for:
 
 - `DB_SA_PASSWORD`
 - `JWT_KEY` (at least 32 UTF-8 bytes)
-- `PASSWORD_ENCRYPTION_KEY` (must match data encrypted in the selected database;
-  rotate it only with an account reset or re-encryption runbook)
 - GitHub, Radzen, Jira, SSH, or container-registry tokens
 
 The application intentionally fails fast when required authentication secrets are
-missing. The legacy TripleDES encoder remains only for compatibility with the
-existing GTAS_MENU login procedure; new password storage must use a one-way
-password hasher and a gradual migration path.
+missing. Application credentials are owned by ASP.NET Core Identity and stored
+only as one-way password hashes. The legacy GTAS_MENU/TripleDES login path is
+retired and must not be re-enabled as a compatibility shortcut.
 
 ## Exposed-secret response
 

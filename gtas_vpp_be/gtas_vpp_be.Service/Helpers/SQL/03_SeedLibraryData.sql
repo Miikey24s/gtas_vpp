@@ -811,12 +811,17 @@ BEGIN TRY
 
     -- 3. Bulk Map: chỉ tạo mapping còn thiếu cho các VPP đang hoạt động.
     INSERT INTO dbo.L06_VPPSupplierMapping (
-        Id, Price, L04_VPPId, L05_VPPSupplierId, L07_PriceListId, Description,
+        Id, Price, NetPrice, VatRate, MinimumOrderQuantity, LeadTimeDays,
+        L04_VPPId, L05_VPPSupplierId, L07_PriceListId, Description,
         CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
     )
     SELECT 
         NEWID(), 
-        (ABS(CHECKSUM(NEWID())) % 495001) + 5000,
+        SeedPrice.Price,
+        SeedPrice.Price,
+        0,
+        0,
+        0,
         V.Id,           -- Id từ bảng VPP hiện có
         S.Id,           -- Id của 3 NCC vừa tạo
         @DefaultPriceListId,
@@ -828,6 +833,7 @@ BEGIN TRY
         0
     FROM dbo.L04_VPP V
     CROSS JOIN @SeedSuppliers S
+    CROSS APPLY (SELECT CONVERT(decimal(19,4), (ABS(CHECKSUM(NEWID())) % 495001) + 5000) AS Price) SeedPrice
     WHERE V.IsDeleted = 0
       AND NOT EXISTS (
           SELECT 1

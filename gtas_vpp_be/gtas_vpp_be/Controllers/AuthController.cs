@@ -1,189 +1,63 @@
 using gtas_vpp_be.Authorization;
-using gtas_vpp_be.Model;
-using gtas_vpp_be.Model.Auth;
-using gtas_vpp_be.Model.VPP;
-using gtas_vpp_be.Model.Library;
-using gtas_vpp_be.Service.Helpers;
-using gtas_vpp_shared.DTOs;
 using gtas_vpp_shared.DTOs.Req;
-using gtas_vpp_shared.DTOs.Res;
-using gtas_vpp_be.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Newtonsoft.Json;
-using gtas_vpp_shared.DTOs.Res.Auth;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Serilog;
 
-namespace gtas_vpp_be.Controllers
+namespace gtas_vpp_be.Controllers;
+
+[ApiController]
+[Authorize]
+[Route("api/[controller]")]
+public sealed class AuthController(
+    IAppAuthenticationService authenticationService,
+    IPermissionService permissionService) : ControllerBase
 {
-    [ApiController]
-    [Authorize]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    private readonly IAppAuthenticationService _authenticationService = authenticationService;
+    private readonly IPermissionService _permissionService = permissionService;
+
+    [AllowAnonymous]
+    [EnableRateLimiting("login")]
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(
+        [FromBody] AuthenticationLoginRequest request,
+        CancellationToken cancellationToken)
     {
-        private readonly IStoredProcedureExecutor _storedProcedureExecutor;
-        private readonly IGenericRepository<P04_UserGroup> _userGroupRepository;
-        private readonly IGenericRepository<LEX02_CompanyDepartmentLocation> _departmentRepository;
-        private readonly IUserNameResolver _userNameResolver;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly JwtDeploymentSettings _jwtSettings;
-        private readonly IPasswordEncoder _passwordEncoder;
-        private readonly IPermissionService _permissionService;
-
-        public AuthController(
-            IStoredProcedureExecutor storedProcedureExecutor,
-            IGenericRepository<P04_UserGroup> userGroupRepository,
-            IGenericRepository<LEX02_CompanyDepartmentLocation> departmentRepository,
-            IUserNameResolver userNameResolver,
-            IUnitOfWork unitOfWork,
-            JwtDeploymentSettings jwtSettings,
-            IPasswordEncoder passwordEncoder,
-            IPermissionService permissionService)
+        if (string.IsNullOrWhiteSpace(request.Username)
+            || string.IsNullOrWhiteSpace(request.Password))
         {
-            _storedProcedureExecutor = storedProcedureExecutor;
-            _userGroupRepository = userGroupRepository;
-            _departmentRepository = departmentRepository;
-            _userNameResolver = userNameResolver;
-            _unitOfWork = unitOfWork;
-            _jwtSettings = jwtSettings;
-            _passwordEncoder = passwordEncoder;
-            _permissionService = permissionService;
+            return BadRequest(new { message = "Tên đăng nhập và mật khẩu là bắt buộc." });
         }
 
-        [AllowAnonymous]
-        [EnableRateLimiting("login")]
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AuthenticationLoginRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest(new { message = "Username and password are required." });
+        var result = await _authenticationService.AuthenticateAsync(
+            request.Username,
+            request.Password,
+            cancellationToken);
+        return result is null
+            ? Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không hợp lệ." })
+            : Ok(result);
+    }
 
-            try
-            {
-                var result = await LoginWithTripleDesAsync(request.Username, request.Password);
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
+    {
+        var currentUser = await _authenticationService.GetCurrentUserAsync(User, cancellationToken);
+        return currentUser is null
+            ? Unauthorized(new { message = "Phiên đăng nhập không còn hợp lệ." })
+            : Ok(currentUser);
+    }
 
-                if (!result.IsSuccess || string.IsNullOrEmpty(result.ResData))
-                    return Unauthorized(new { message = result.ErrorMess ?? "Login failed" });
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    {
+        var revoked = await _authenticationService.RevokeCurrentSessionAsync(User, cancellationToken);
+        return revoked ? NoContent() : Unauthorized();
+    }
 
-                var loginData = JsonConvert.DeserializeObject<sp_Authentication_Login>(result.ResData);
-
-                if (loginData == null)
-                    return Unauthorized(new { message = "Invalid username or password." });
-
-                await LoadDepartmentLocationAsync(loginData);
-
-                loginData.AccessToken = GenerateAccessToken(loginData);
-                loginData.List_PagePermission.Clear();
-
-                Serilog.Log.Information("Login success: User={Username}, IP={IP}", request.Username, HttpContext.Connection.RemoteIpAddress);
-
-                return Ok(loginData);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Warning(ex, "Login failed: User={Username}, IP={IP}", request.Username, HttpContext.Connection.RemoteIpAddress);
-                return StatusCode(500, new { message = "An error occurred during login" });
-            }
-        }
-
-        private async Task<sp_ResDTO> LoginWithTripleDesAsync(string username, string password)
-        {
-            var encrypted = _passwordEncoder.Encrypt(password);
-            var result = await _storedProcedureExecutor.ExecuteSPAsync(
-                "sp_Authen", "sp_Authen_Login",
-                new { UserLogin = username, PasswordChar = encrypted }
-            );
-
-            return result;
-        }
-
-        private async Task LoadDepartmentLocationAsync(sp_Authentication_Login loginData)
-        {
-            try
-            {
-                bool isCodeMissing = string.IsNullOrWhiteSpace(loginData.DepartmentCode);
-                bool isNameMissing = string.IsNullOrWhiteSpace(loginData.DepartmentName);
-
-                if (!isCodeMissing && !isNameMissing)
-                    return; // Already have department info
-
-                var userGroups = await _userGroupRepository.ReadAsync(x => x.UserId == loginData.UserID);
-                userGroups = await _userNameResolver.WithUserNamesAsync(userGroups, _unitOfWork.VPPContext);
-
-                var userGroup = userGroups?.FirstOrDefault();
-
-                if (userGroup == null || userGroup.LEX02_CompanyDepartmentLocationId == Guid.Empty)
-                    return;
-
-                var departments = await _departmentRepository.ReadAsync(x => x.Id == userGroup.LEX02_CompanyDepartmentLocationId && !x.IsDeleted);
-
-                var department = departments?.FirstOrDefault();
-
-                if (department != null)
-                {
-                    if (isCodeMissing && !string.IsNullOrWhiteSpace(department.LEX02Code))
-                    {
-                        loginData.DepartmentCode = department.LEX02Code;
-                    }
-
-                    if (isNameMissing && !string.IsNullOrWhiteSpace(department.LEX02Name))
-                    {
-                        loginData.DepartmentName = department.LEX02Name;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Warning(ex, "Failed to load department location for UserId={UserId}", loginData.UserID);
-            }
-        }
-
-        private string GenerateAccessToken(sp_Authentication_Login loginData)
-        {
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, loginData.UserID.ToString()),
-                new(ClaimTypes.Name, loginData.FullName ?? loginData.UserLogin ?? string.Empty),
-                new("UserID", loginData.UserID.ToString()),
-                new("UserLogin", loginData.UserLogin ?? string.Empty),
-                new("GroupId", loginData.GroupId.ToString()),
-                new("IsAdmin", loginData.IsAdmin.ToString())
-            };
-
-            if (!string.IsNullOrWhiteSpace(loginData.MemberCompanyCode))
-            {
-                claims.Add(new Claim("MemberCompanyCode", loginData.MemberCompanyCode));
-            }
-
-            // Add DepartmentCode if available
-            if (!string.IsNullOrWhiteSpace(loginData.DepartmentCode))
-            {
-                claims.Add(new Claim("DepartmentCode", loginData.DepartmentCode));
-            }
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
-            var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _jwtSettings.Issuer,
-                audience: _jwtSettings.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenMinutes),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        [HttpGet("me/permissions")]
-        public async Task<IActionResult> GetMyPermissions(CancellationToken cancellationToken)
-        {
-            var snapshot = await _permissionService.GetSnapshotAsync(User, cancellationToken);
-            return Ok(snapshot);
-        }
+    [HttpGet("me/permissions")]
+    public async Task<IActionResult> GetMyPermissions(CancellationToken cancellationToken)
+    {
+        var snapshot = await _permissionService.GetSnapshotAsync(User, cancellationToken);
+        return Ok(snapshot);
     }
 }

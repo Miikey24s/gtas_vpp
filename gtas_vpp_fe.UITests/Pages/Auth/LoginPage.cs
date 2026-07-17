@@ -37,13 +37,17 @@ namespace gtas_vpp_fe.UITests.Pages.Auth
 
         public async Task WaitForDashboardAsync()
         {
-            var timeoutAt = DateTime.UtcNow.AddSeconds(30);
+            var timeoutAt = DateTime.UtcNow.AddSeconds(60);
 
             while (DateTime.UtcNow < timeoutAt)
             {
-                if (!Regex.IsMatch(_page.Url, @".*/Account/Login.*", RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(_page.Url, @".*/dashboard(?:[/?#].*)?$", RegexOptions.IgnoreCase))
                 {
-                    await _page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+                    await _page.Locator("#main-content").WaitForAsync(new LocatorWaitForOptions
+                    {
+                        Timeout = 60_000,
+                        State = WaitForSelectorState.Visible
+                    });
                     return;
                 }
 

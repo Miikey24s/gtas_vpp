@@ -26,16 +26,15 @@ public sealed class SharedContractSerializationTests
     [Fact]
     public void AuthenticationResponse_PreservesPublicJsonShapeAndNeverSerializesPasswordHash()
     {
-        var response = new sp_Authentication_Login
-        {
-            PasswordChar = "must-not-leak"
-        };
+        var response = new sp_Authentication_Login();
 
         var properties = GetJsonProperties(response);
 
         Assert.Equal(
             Sort(
                 "accessToken",
+                "accessTokenExpiresAtUtc",
+                "accountStatus",
                 "departmentCode",
                 "departmentName",
                 "email",
@@ -48,6 +47,8 @@ public sealed class SharedContractSerializationTests
                 "memberCompanyCode",
                 "memberCompanyName",
                 "memberCompanyShortName",
+                "mustChangePassword",
+                "sessionVersion",
                 "userID",
                 "userLogin"),
             properties);
@@ -106,13 +107,18 @@ public sealed class SharedContractSerializationTests
             "isDeleted",
             "l06_VPPSupplierMappings",
             "uom",
+            "uomCode",
             "uomId",
+            "uomName",
             "updateDate",
             "updateUserId",
             "vppCategory",
+            "vppCategoryCode",
             "vppCategoryId",
+            "vppCategoryName",
             "vppCode",
-            "vppName");
+            "vppName",
+            "supplierCount");
     }
 
     [Fact]
@@ -120,21 +126,37 @@ public sealed class SharedContractSerializationTests
     {
         AssertJsonProperties(
             new VPP01_RequestHeaderResDTO(),
+            "approvedAt",
+            "approvedById",
+            "baseRequestId",
+            "baseRequestSeriesId",
             "canCancel",
             "canEdit",
+            "canReplace",
+            "cancelReason",
+            "cancelledAt",
+            "cancelledById",
             "createDate",
             "createUserId",
             "departmentCode",
             "description",
             "id",
             "isAdditionalOrder",
+            "isCurrentRevision",
             "isDeadlinePassed",
             "isDeleted",
             "items",
             "m",
             "memberCompanyCode",
             "period",
+            "periodId",
+            "rejectReason",
+            "rejectedAt",
+            "rejectedById",
+            "requestSeriesId",
             "requesterName",
+            "revisionNumber",
+            "rowVersion",
             "settledAt",
             "settledByPriceListId",
             "settledByPriceListName",
@@ -144,6 +166,11 @@ public sealed class SharedContractSerializationTests
             "statusText",
             "submittedDate",
             "submittedDateText",
+            "supplementAttemptNumber",
+            "supplementReason",
+            "supplementSequence",
+            "supersededByRequestId",
+            "supersedesRequestId",
             "totalAmount",
             "totalLines",
             "totalQty",
@@ -161,9 +188,16 @@ public sealed class SharedContractSerializationTests
             "availableYears",
             "departmentBreakdown",
             "generatedAt",
+            "isSettlementReconciled",
             "month",
             "periodTrend",
             "scope",
+            "settlementAllocationTotal",
+            "settlementGrandTotal",
+            "settlementId",
+            "settlementPrimarySupplierName",
+            "settlementRevisionNumber",
+            "settlementVariance",
             "statusBreakdown",
             "topProducts",
             "totalAmount",

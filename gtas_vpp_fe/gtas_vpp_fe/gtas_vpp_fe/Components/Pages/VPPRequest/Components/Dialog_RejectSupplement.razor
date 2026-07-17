@@ -1,0 +1,34 @@
+@inject DialogService DialogService
+
+<RadzenTemplateForm TItem="RejectModel" Data="@_model" Submit="@Submit">
+    <RadzenStack Gap="0.75rem">
+        <RadzenLabel Component="RejectReason" Text="@Loc["RejectReason"]" />
+        <RadzenTextArea Name="RejectReason"
+                        @bind-Value="_model.Reason"
+                        Rows="5"
+                        MaxLength="500"
+                        Style="width: 100%;"
+                        aria-describedby="reject-reason-help" />
+        <span id="reject-reason-help" style="font-size: 0.82rem; color: var(--vpp-text-secondary);">
+            @Loc["RejectReasonHelp"]
+        </span>
+        <RadzenRequiredValidator Component="RejectReason" Text="@Loc["RejectReasonRequired"]" Popup="false" />
+        <RadzenLengthValidator Component="RejectReason" Min="5" Max="500" Text="@Loc["RejectReasonLength"]" Popup="false" />
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem" class="rz-mt-2">
+            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" ButtonType="ButtonType.Button" Click="@(_ => DialogService.Close(null))" />
+            <RadzenButton Text="@Loc["Reject"]" Icon="cancel" ButtonStyle="ButtonStyle.Danger" ButtonType="ButtonType.Submit" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    private sealed class RejectModel
+    {
+        public string? Reason { get; set; }
+    }
+
+    private readonly RejectModel _model = new();
+
+    private void Submit(RejectModel model) => DialogService.Close(model.Reason?.Trim());
+}

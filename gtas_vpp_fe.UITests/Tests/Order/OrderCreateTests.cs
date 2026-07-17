@@ -1,39 +1,127 @@
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
-using gtas_vpp_fe.UITests.Pages.Auth;
-using gtas_vpp_fe.UITests.Pages.Order;
 using Microsoft.Playwright;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Xunit;
 
-namespace gtas_vpp_fe.UITests.Tests.Order
+namespace gtas_vpp_fe.UITests.Tests.Order;
+
+public sealed class OrderCreateTests : TestBase, IMutatingUiTest
 {
-    public class OrderCreateTests : TestBase, IMutatingUiTest
+    [Fact]
+    public async Task Employee_CanEditCancelAndInspectRegularLifecycle()
     {
-        [Fact]
-        public async Task Tao_Don_Hang_VPP_Thanh_Cong()
+        var consoleErrors = new List<string>();
+        var failedRequests = new List<string>();
+        Page.Console += (_, message) =>
         {
-            // Arrange - Login
-            var loginPage = new LoginPage(Page);
-            await Page.GotoAsync($"{BaseUrl}Account/Login");
-            await loginPage.LoginAsync(TestUsername, TestPassword);
-            await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
+            var isExpectedCircuitTransitionError = message.Text.Contains(
+                    "Failed to complete negotiation with the server",
+                    StringComparison.OrdinalIgnoreCase)
+                && message.Text.Contains("Failed to fetch", StringComparison.OrdinalIgnoreCase);
+            if (message.Type == "error" && !isExpectedCircuitTransitionError)
+            {
+                consoleErrors.Add(message.Text);
+            }
+        };
+        Page.RequestFailed += (_, request) =>
+        {
+            var isExpectedCircuitTransition = Uri.TryCreate(request.Url, UriKind.Absolute, out var uri)
+                && (uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Equals("/_blazor/negotiate", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Equals("/_blazor/initializers", StringComparison.OrdinalIgnoreCase))
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            var isExpectedNavigationAssetAbort = uri is not null
+                && (uri.AbsolutePath.Contains("/favicon.", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith("/images/login-bg-optimized.jpeg", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            if (!isExpectedCircuitTransition && !isExpectedNavigationAssetAbort)
+            {
+                failedRequests.Add($"{request.Method} {request.Url}: {request.Failure}");
+            }
+        };
 
-            // Go to Order Create
-            var orderPage = new OrderCreatePage(Page);
-            await Page.GotoAsync($"{BaseUrl}dashboard/order-create");
-            await Task.Delay(2000, TestContext.Current.CancellationToken);
+        await LoginAsAsync(TestAccounts.Employee);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
+        var orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        await orderCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
-            // Act
-            await orderPage.ClickAddFirstProductAsync();
-            await orderPage.FillNotesAsync("Đơn hàng VPP tự động tạo từ E2E test");
-            await orderPage.SubmitOrderAsync();
+        var editButton = Page.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Chỉnh sửa đơn ")
+        }).Last;
+        await editButton.ClickAsync();
+        await WaitForUrlMatchAsync(
+            new System.Text.RegularExpressions.Regex(".*/dashboard/order-create.*orderId=.*"),
+            TimeSpan.FromSeconds(30));
+        await Page.Locator(".vpp-wizard").WaitForAsync();
 
-            // Assert
-            await Task.Delay(2000, TestContext.Current.CancellationToken);
-            // Vì test tạo đơn thực tế cần điền đầy đủ dữ liệu (số lượng, phòng ban, file đính kèm...) để thỏa mãn Validate của Form,
-            // nên tạm thời chỉ verify không có crash xảy ra và test có thể click submit.
-            // Page.Url.Should().NotContain("order-create");
+        var quantity = Page.Locator(".vpp-wizard-split-right input[role='spinbutton']").First;
+        await quantity.FillAsync("4");
+        await quantity.PressAsync("Tab");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp theo" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Cập nhật đơn" }).ClickAsync();
+        await WaitForUrlMatchAsync(
+            new System.Text.RegularExpressions.Regex(".*/dashboard\\?tab=0.*"),
+            TimeSpan.FromSeconds(30));
+        orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Xem lịch sử phiên bản của đơn ")
+        }).Last.ClickAsync();
+        var historyDialog = Page.Locator(".rz-dialog:visible").Last;
+        await historyDialog.GetByText("Vòng đời đơn yêu cầu", new() { Exact = false }).WaitForAsync();
+        await historyDialog.GetByText("Phiên bản 2", new() { Exact = false }).WaitForAsync();
+        await historyDialog.GetByText("Cập nhật đơn", new() { Exact = false }).WaitForAsync();
+        await historyDialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+
+        orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Hủy đơn ")
+        }).Last.ClickAsync();
+        var cancelDialog = Page.Locator(".rz-dialog:visible").Last;
+        await cancelDialog.GetByText("Xác nhận hủy đơn", new() { Exact = false }).WaitForAsync();
+        await cancelDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy đơn" }).ClickAsync();
+        await Page.GetByText("Đã hủy đơn.", new() { Exact = false })
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+
+        orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        await orderCard.GetByText("Đã hủy", new() { Exact = false }).WaitForAsync();
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Tạo phiên bản thay thế cho đơn ")
+        }).WaitForAsync();
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Xem lịch sử phiên bản của đơn ")
+        }).Last.ClickAsync();
+        historyDialog = Page.Locator(".rz-dialog:visible").Last;
+        await historyDialog.GetByText("Phiên bản 3", new() { Exact = false }).WaitForAsync();
+        await historyDialog.GetByText("Hủy đơn", new() { Exact = false }).WaitForAsync();
+        await historyDialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+
+        failedRequests.Should().BeEmpty();
+        consoleErrors.Should().BeEmpty();
+    }
+
+    private async Task WaitForUrlMatchAsync(Regex expectedUrl, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow.Add(timeout);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (expectedUrl.IsMatch(Page.Url))
+            {
+                return;
+            }
+
+            await Task.Delay(100, TestContext.Current.CancellationToken);
         }
+
+        throw new TimeoutException(
+            $"Timed out waiting for URL '{expectedUrl}'. Last URL: {Page.Url}");
     }
 }

@@ -417,4 +417,65 @@
   <data name="Regular" xml:space="preserve"><value>Regular order</value></data>
   <data name="ReviewSubmit" xml:space="preserve"><value>Review and submit</value></data>
   <data name="SelectProducts" xml:space="preserve"><value>Select products</value></data>
+  <data name="PrimaryNavigation" xml:space="preserve"><value>Primary navigation</value></data>
+  <data name="CurrentDate" xml:space="preserve"><value>Current date</value></data>
+  <data name="PageNotFound" xml:space="preserve"><value>Page not found</value></data>
+  <data name="PageNotFoundDescription" xml:space="preserve"><value>This address does not exist or the content has moved.</value></data>
+  <data name="BackToDashboard" xml:space="preserve"><value>Back to dashboard</value></data>
+  <data name="ErrorPageTitle" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="ErrorPageDescription" xml:space="preserve"><value>The system could not complete the request. Try again or contact an administrator if the problem persists.</value></data>
+  <data name="TraceId" xml:space="preserve"><value>Trace ID</value></data>
+  <data name="RequestCancelled" xml:space="preserve"><value>The request was cancelled.</value></data>
+  <data name="RequestTimeout" xml:space="preserve"><value>The request took too long. Please try again.</value></data>
+  <data name="Unauthorized" xml:space="preserve"><value>Your session is no longer valid. Please sign in again.</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>You are not allowed to perform this action.</value></data>
+  <data name="NotFound" xml:space="preserve"><value>The requested data was not found.</value></data>
+  <data name="Conflict" xml:space="preserve"><value>The data changed or another operation is in progress. Refresh and try again.</value></data>
+  <data name="ValidationFailed" xml:space="preserve"><value>Some values are invalid. Check the form and try again.</value></data>
+  <data name="RequestInvalid" xml:space="preserve"><value>The request is not valid.</value></data>
+  <data name="RateLimited" xml:space="preserve"><value>Too many requests in a short time. Please try again later.</value></data>
+  <data name="RequestFailed" xml:space="preserve"><value>The request could not be completed. Please try again.</value></data>
+  <data name="LibraryPageDescription" xml:space="preserve"><value>Manage shared catalog, products, suppliers and price lists.</value></data>
+  <data name="PermissionPageDescription" xml:space="preserve"><value>Manage users, groups and the system access scope.</value></data>
+  <data name="ReportPageDescription" xml:space="preserve"><value>Track KPIs, trends and aggregate data within your allowed scope.</value></data>
+  <data name="SubmissionDeadline" xml:space="preserve"><value>Submission deadline:</value></data>
+  <data name="BaseRequest" xml:space="preserve"><value>Base request:</value></data>
+  <data name="SupplementQuotaSummary" xml:space="preserve"><value>{0}/{1} approved supplement slots remaining</value></data>
+  <data name="SupplementAttemptSummary" xml:space="preserve"><value>{0}/{1} supplement attempts remaining</value></data>
+  <data name="SupplementUnavailable" xml:space="preserve"><value>A supplement cannot be created right now.</value></data>
+  <data name="RegularRequestUnavailable" xml:space="preserve"><value>A regular request cannot be created right now.</value></data>
+  <data name="OrderNoLongerEditable" xml:space="preserve"><value>This request is no longer editable.</value></data>
+  <data name="RequestActionUnavailable" xml:space="preserve"><value>Action unavailable</value></data>
+  <data name="SupplementReason" xml:space="preserve"><value>Supplement reason</value></data>
+  <data name="CancelOrderConfirm" xml:space="preserve"><value>Cancel request {0}? A cancelled revision will remain in its history.</value></data>
+  <data name="CancelOrderTitle" xml:space="preserve"><value>Confirm cancellation</value></data>
+  <data name="ConfirmCancel" xml:space="preserve"><value>Cancel request</value></data>
+  <data name="KeepOrder" xml:space="preserve"><value>Keep request</value></data>
+  <data name="ViewRequestHistory" xml:space="preserve"><value>View revision history</value></data>
+  <data name="ViewRequestHistoryAria" xml:space="preserve"><value>View revision history for request {0}</value></data>
+  <data name="RequestLifecycle" xml:space="preserve"><value>Request lifecycle</value></data>
+  <data name="HistoryLoadFailed" xml:space="preserve"><value>Could not load request history</value></data>
+  <data name="NoRequestHistory" xml:space="preserve"><value>This request has no revision history.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="RevisionCount" xml:space="preserve"><value>{0} revisions</value></data>
+  <data name="TimelineEventCount" xml:space="preserve"><value>{0} events</value></data>
+  <data name="RequestTimeline" xml:space="preserve"><value>Timeline</value></data>
+  <data name="NoTimelineEvents" xml:space="preserve"><value>No timeline events yet.</value></data>
+  <data name="RevisionShort" xml:space="preserve"><value>Revision {0}</value></data>
+  <data name="Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="RequestRevisions" xml:space="preserve"><value>Request revisions</value></data>
+  <data name="Revision" xml:space="preserve"><value>Revision</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Updated at</value></data>
+  <data name="RejectReason" xml:space="preserve"><value>Rejection reason</value></data>
+  <data name="RejectReasonHelp" xml:space="preserve"><value>Give a specific reason so the requester can correct and resubmit.</value></data>
+  <data name="RejectReasonRequired" xml:space="preserve"><value>Enter a rejection reason.</value></data>
+  <data name="RejectReasonLength" xml:space="preserve"><value>The reason must contain 5 to 500 characters.</value></data>
+  <data name="ReplaceOrder" xml:space="preserve"><value>Create replacement request</value></data>
+  <data name="ReplaceOrderAria" xml:space="preserve"><value>Create a replacement revision for request {0}</value></data>
+  <data name="RequestAction_CREATE" xml:space="preserve"><value>Request created</value></data>
+  <data name="RequestAction_UPDATE" xml:space="preserve"><value>Request updated</value></data>
+  <data name="RequestAction_REPLACE" xml:space="preserve"><value>Replacement created</value></data>
+  <data name="RequestAction_CANCEL" xml:space="preserve"><value>Request cancelled</value></data>
+  <data name="RequestAction_APPROVE" xml:space="preserve"><value>Request approved</value></data>
+  <data name="RequestAction_REJECT" xml:space="preserve"><value>Request rejected</value></data>
 </root>

@@ -20,11 +20,9 @@ namespace gtas_vpp_be.Service.Services
         // Keep reference and demo markers independent. A failed profile must
         // never be recorded as applied, and production reference bootstrap
         // must not be coupled to the optional demo fixture.
-        private const string ReferenceSeedVersion = "2026-07-15-reference-1";
+        private const string ReferenceSeedVersion = "2026-07-15-reference-2-flat-rbac";
         private const string DemoSeedVersion = "2026-07-15-demo-1";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
-        private static readonly Guid AdminGroupId = Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C");
-        private static readonly Guid UserGroupId  = Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596");
 
         // ── Page IDs ───────────────────────────────────────────────
         private static readonly Guid PageDashboard  = Guid.Parse("DE4FCAAE-E585-4B10-9E4E-DBC41D9629D2");
@@ -94,19 +92,22 @@ namespace gtas_vpp_be.Service.Services
             await RunSqlRequired(context, "Helpers/SQL/00_Init_GTAS_MENU.sql");
             await RunSqlRequired(context, "Helpers/SQL/01_Views.sql");
             await RunSqlRequired(context, "Helpers/SQL/02_StoredProcedures.sql");
+            await RunSqlRequired(context, "Helpers/SQL/04_RetireLegacyAuth.sql");
 
-            if (await IsSeedVersionAppliedAsync(context, ReferenceSeedVersion))
-            {
-                Log.Information("[SeedData] Reference seed version {SeedVersion} already applied. Skipping.", ReferenceSeedVersion);
-                return;
-            }
+            var alreadyApplied = await IsSeedVersionAppliedAsync(context, ReferenceSeedVersion);
+            Log.Information(
+                "[SeedData] Reconciling reference seed {SeedVersion}; marker present: {AlreadyApplied}.",
+                ReferenceSeedVersion,
+                alreadyApplied);
 
             await SeedLEX02_Empty(context);
             await SeedP01_Page(context);
             await SeedP02_Group(context);
             await SeedP03_Component(context);
             await SeedP05_PageComponentMapping(context);
-            await MarkSeedVersionAppliedAsync(context, ReferenceSeedVersion);
+            await SeedP06_GroupPageComponentMapping(context);
+            if (!alreadyApplied)
+                await MarkSeedVersionAppliedAsync(context, ReferenceSeedVersion);
             Log.Information("[SeedData] Reference database bootstrap completed.");
         }
 
@@ -123,7 +124,6 @@ namespace gtas_vpp_be.Service.Services
             Log.Information("[SeedData] Reconciling non-sensitive demo fixture...");
             await RunSqlRequired(context, "Helpers/SQL/03_SeedLibraryData.sql");
             await SeedDefaultPricesFromFile(context);
-            await SeedP06_GroupPageComponentMapping(context);
 
             await MarkSeedVersionAppliedAsync(context, DemoSeedVersion);
 
@@ -557,24 +557,57 @@ namespace gtas_vpp_be.Service.Services
         private static async Task SeedP02_Group(VPPMigrationDbContext context)
         {
             var now = DateTime.Now;
-            var groups = new List<P02_Group>
-            {
-                new() { Id = AdminGroupId, GroupName = "Admin",
-                        Description = "Administrators with full access",
-                        CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
-                new() { Id = UserGroupId, GroupName = "User",
-                        Description = "Regular users with limited access",
-                        CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
-            };
-            var existingIds = await context.P02_Groups.Select(x => x.Id).ToListAsync();
-            var missing = groups.Where(x => !existingIds.Contains(x.Id)).ToList();
-            if (missing.Count == 0) return;
+            var personaIds = CanonicalRbac.Personas.Select(x => x.GroupId).ToArray();
+            var existing = await context.P02_Groups
+                .Where(x => personaIds.Contains(x.Id))
+                .ToListAsync();
+            var added = 0;
+            var updated = 0;
 
-            await context.P02_Groups.AddRangeAsync(missing);
+            foreach (var persona in CanonicalRbac.Personas)
+            {
+                var group = existing.SingleOrDefault(x => x.Id == persona.GroupId);
+                if (group is null)
+                {
+                    await context.P02_Groups.AddAsync(new P02_Group
+                    {
+                        Id = persona.GroupId,
+                        GroupCode = persona.GroupCode,
+                        GroupName = persona.GroupName,
+                        Description = persona.Description,
+                        ParentGroupId = null,
+                        CreateUserId = DefaultUserId,
+                        CreateDate = now,
+                        UpdateUserId = DefaultUserId,
+                        UpdateDate = now,
+                        IsDeleted = false
+                    });
+                    added++;
+                    continue;
+                }
+
+                if (group.GroupCode == persona.GroupCode
+                    && group.GroupName == persona.GroupName
+                    && group.Description == persona.Description
+                    && group.ParentGroupId is null
+                    && !group.IsDeleted)
+                {
+                    continue;
+                }
+
+                group.GroupCode = persona.GroupCode;
+                group.GroupName = persona.GroupName;
+                group.Description = persona.Description;
+                group.ParentGroupId = null;
+                group.IsDeleted = false;
+                group.UpdateUserId = DefaultUserId;
+                group.UpdateDate = now;
+                updated++;
+            }
+
+            if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P02_Group: {Count} groups", missing.Count);
+            Log.Information("[SeedData] P02_Group reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
         // ════════════════════════════════════════════════════════════
@@ -607,13 +640,64 @@ namespace gtas_vpp_be.Service.Services
                 C("PERMISSION_COMPONENT",     "Permission - Component",     "Comp Mapping",     CompPermComponent, now),
                 C("REPORT_VIEW",              "Report - View",              "View Report",      CompReportView, now)
             };
-            var existingCodes = await context.P03_Components.Select(x => x.ComponentCode).ToListAsync();
-            var missing = components.Where(x => !existingCodes.Contains(x.ComponentCode)).ToList();
-            if (missing.Count == 0) return;
 
-            await context.P03_Components.AddRangeAsync(missing);
+            foreach (var action in CanonicalRbac.Actions.Where(x => x.PermissionCode != Permissions.PeriodSettle))
+            {
+                components.Add(C(
+                    action.PermissionCode,
+                    action.Name,
+                    action.Description,
+                    CanonicalRbacSeedIds.ActionComponent(action.PermissionCode),
+                    now));
+            }
+
+            var periodSettle = CanonicalRbac.Actions.Single(x => x.PermissionCode == Permissions.PeriodSettle);
+            var desiredPeriodSettle = components.Single(x => x.ComponentCode == Permissions.PeriodSettle);
+            desiredPeriodSettle.ComponentName = periodSettle.Name;
+            desiredPeriodSettle.Description = periodSettle.Description;
+
+            var desiredCodes = components.Select(x => x.ComponentCode).ToArray();
+            var existing = await context.P03_Components
+                .Where(x => desiredCodes.Contains(x.ComponentCode))
+                .ToListAsync();
+            var existingByCode = existing
+                .GroupBy(x => x.ComponentCode, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderBy(x => x.IsDeleted).ThenBy(x => x.Id).First(),
+                    StringComparer.OrdinalIgnoreCase);
+            var added = 0;
+            var updated = 0;
+
+            foreach (var desired in components)
+            {
+                if (!existingByCode.TryGetValue(desired.ComponentCode, out var component))
+                {
+                    await context.P03_Components.AddAsync(desired);
+                    added++;
+                    continue;
+                }
+
+                if (component.ComponentCode == desired.ComponentCode
+                    && component.ComponentName == desired.ComponentName
+                    && component.Description == desired.Description
+                    && !component.IsDeleted)
+                {
+                    continue;
+                }
+
+                component.ComponentCode = desired.ComponentCode;
+                component.ComponentName = desired.ComponentName;
+                component.Description = desired.Description;
+                component.IsDeleted = false;
+                component.UpdateUserId = DefaultUserId;
+                component.UpdateDate = now;
+                updated++;
+            }
+
+            if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P03_Component: {Count} components", missing.Count);
+            Log.Information("[SeedData] P03_Component reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
         private static P03_Component C(string code, string name, string desc, Guid id, DateTime now)
@@ -626,37 +710,67 @@ namespace gtas_vpp_be.Service.Services
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP05_PageComponentMapping(VPPMigrationDbContext context)
         {
-            var mappings = new List<P05_PageComponentMapping>
-            {
-                P5(P05_SB_Dashboard,  PageSidebar,    CompMenuDashboard),
-                P5(P05_SB_Library,    PageSidebar,    CompMenuLibrary),
-                P5(P05_SB_Report,     PageSidebar,    CompMenuReport),
-                P5(P05_SB_Permission, PageSidebar,    CompMenuPermission),
-                P5(P05_DB_Order,      PageDashboard,  CompRequestOrder),
-                P5(P05_DB_Catalog,    PageDashboard,  CompRequestCatalog),
-                P5(P05_DB_History,    PageDashboard,  CompRequestHistory),
-                P5(P05_DB_DeptSum,    PageDashboard,  CompRequestDeptSummary),
-                P5(P05_DB_AllSum,     PageDashboard,  CompRequestAllSummary),
-                P5(P05_DB_Approval,   PageDashboard,  CompRequestApproval),
-                P5(P05_LB_Class,      PageLibrary,    CompLibClass),
-                P5(P05_LB_Category,   PageLibrary,    CompLibCategory),
-                P5(P05_LB_Item,       PageLibrary,    CompLibItem),
-                P5(P05_LB_Supplier,   PageLibrary,    CompLibSupplier),
-                P5(P05_LB_Price,      PageLibrary,    CompLibPrice),
-                P5(P05_LB_PriceList,  PageLibrary,    CompLibPriceList),
-                P5(P05_LB_Dept,       PageLibrary,    CompLibDepartment),
-                P5(P05_AP_PeriodSettle, PageDashboard, CompPeriodSettle),
-                P5(P05_PM_User,       PagePermission, CompPermUser),
-                P5(P05_PM_Component,  PagePermission, CompPermComponent),
-                P5(P05_RP_View,       PageReport,     CompReportView)
-            };
-            var existingIds = await context.P05_PageComponentMappings.Select(x => x.Id).ToListAsync();
-            var missing = mappings.Where(x => !existingIds.Contains(x.Id)).ToList();
-            if (missing.Count == 0) return;
+            var specs = GetP05SeedMappings();
+            var pageCodes = specs.Select(x => x.PageCode).Distinct().ToArray();
+            var componentCodes = specs.Select(x => x.ComponentCode).Distinct().ToArray();
+            var pages = await context.P01_Pages
+                .Where(x => pageCodes.Contains(x.PageCode))
+                .ToListAsync();
+            var components = await context.P03_Components
+                .Where(x => componentCodes.Contains(x.ComponentCode))
+                .ToListAsync();
+            var pageByCode = pages
+                .GroupBy(x => x.PageCode, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderBy(page => page.IsDeleted).ThenBy(page => page.Id).First(),
+                    StringComparer.OrdinalIgnoreCase);
+            var componentByCode = components
+                .GroupBy(x => x.ComponentCode, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderBy(component => component.IsDeleted).ThenBy(component => component.Id).First(),
+                    StringComparer.OrdinalIgnoreCase);
 
-            await context.P05_PageComponentMappings.AddRangeAsync(missing);
+            var desired = specs.Select(spec =>
+            {
+                if (!pageByCode.TryGetValue(spec.PageCode, out var page))
+                    throw new InvalidOperationException($"Cannot seed permission mapping: page '{spec.PageCode}' is missing.");
+                if (!componentByCode.TryGetValue(spec.ComponentCode, out var component))
+                    throw new InvalidOperationException($"Cannot seed permission mapping: component '{spec.ComponentCode}' is missing.");
+                return P5(spec.MappingId, page.Id, component.Id);
+            }).ToList();
+
+            var desiredIds = desired.Select(x => x.Id).ToArray();
+            var existing = await context.P05_PageComponentMappings
+                .Where(x => desiredIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+            var added = 0;
+            var updated = 0;
+
+            foreach (var mapping in desired)
+            {
+                if (!existing.TryGetValue(mapping.Id, out var current))
+                {
+                    await context.P05_PageComponentMappings.AddAsync(mapping);
+                    added++;
+                    continue;
+                }
+
+                if (current.P01_PageId == mapping.P01_PageId
+                    && current.P03_ComponentId == mapping.P03_ComponentId)
+                {
+                    continue;
+                }
+
+                current.P01_PageId = mapping.P01_PageId;
+                current.P03_ComponentId = mapping.P03_ComponentId;
+                updated++;
+            }
+
+            if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P05_PageComponentMapping: {Count} mappings", missing.Count);
+            Log.Information("[SeedData] P05_PageComponentMapping reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
         private static P05_PageComponentMapping P5(Guid id, Guid pageId, Guid componentId)
@@ -664,55 +778,112 @@ namespace gtas_vpp_be.Service.Services
 
         // ════════════════════════════════════════════════════════════
         //  P06_GroupPageComponentMapping
-        //  Admin: all page-component mappings, User: selected mappings
+        //  Exact action and UI grants for the four canonical personas
         // ════════════════════════════════════════════════════════════
         private static async Task SeedP06_GroupPageComponentMapping(VPPMigrationDbContext context)
         {
             var now = DateTime.Now;
-            var mappings = new List<P06_GroupPageComponentMapping>();
-
-            // Admin group → all page-component mappings
-            var allP05Ids = new[]
-            {
-                P05_SB_Dashboard, P05_SB_Library, P05_SB_Report, P05_SB_Permission,
-                P05_DB_Order, P05_DB_Catalog, P05_DB_History, P05_DB_DeptSum,
-                P05_DB_AllSum, P05_DB_Approval, P05_AP_PeriodSettle,
-                P05_LB_Class, P05_LB_Category, P05_LB_Item, P05_LB_Supplier, P05_LB_Price, P05_LB_PriceList, P05_LB_Dept,
-                P05_PM_User, P05_PM_Component,
-                P05_RP_View
-            };
-            foreach (var p05Id in allP05Ids)
-                mappings.Add(P6(p05Id, AdminGroupId, now));
-
-            // User group → 8 limited mappings
-            var userP05Ids = new[]
-            {
-                P05_SB_Dashboard, P05_SB_Report, P05_SB_Library,
-                P05_DB_Order, P05_DB_Catalog, P05_DB_History,
-                P05_DB_DeptSum, P05_RP_View
-            };
-            foreach (var p05Id in userP05Ids)
-                mappings.Add(P6(p05Id, UserGroupId, now));
-
-            var existingKeys = await context.P06_GroupPageComponentMappings
-                .Select(x => new { x.P05_PageComponentMappingId, x.P02_GroupId, x.MemberCompanyCode })
+            var mappingIdByCode = GetP05SeedMappings().ToDictionary(
+                x => x.ComponentCode,
+                x => x.MappingId,
+                StringComparer.OrdinalIgnoreCase);
+            var groupIds = CanonicalRbac.Personas.Select(x => x.GroupId).ToArray();
+            var existing = await context.P06_GroupPageComponentMappings
+                .Where(x => groupIds.Contains(x.P02_GroupId)
+                    && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode)
                 .ToListAsync();
-            var missing = mappings
-                .Where(x => !existingKeys.Any(k => k.P05_PageComponentMappingId == x.P05_PageComponentMappingId
-                                                && k.P02_GroupId == x.P02_GroupId
-                                                && k.MemberCompanyCode == x.MemberCompanyCode))
-                .ToList();
-            if (missing.Count == 0) return;
+            var existingByKey = existing.ToDictionary(
+                x => (x.P02_GroupId, x.P05_PageComponentMappingId));
+            var targetKeys = new HashSet<(Guid GroupId, Guid MappingId)>();
+            var added = 0;
+            var updated = 0;
 
-            await context.P06_GroupPageComponentMappings.AddRangeAsync(missing);
+            foreach (var persona in CanonicalRbac.Personas)
+            {
+                foreach (var componentCode in CanonicalRbac.GetAllSeedComponents(persona.GroupId))
+                {
+                    if (!mappingIdByCode.TryGetValue(componentCode, out var mappingId))
+                        throw new InvalidOperationException($"Cannot grant '{componentCode}' to '{persona.GroupCode}': P05 mapping is missing.");
+
+                    var key = (persona.GroupId, mappingId);
+                    targetKeys.Add(key);
+                    if (!existingByKey.TryGetValue(key, out var mapping))
+                    {
+                        await context.P06_GroupPageComponentMappings.AddAsync(P6(mappingId, persona.GroupId, now));
+                        added++;
+                        continue;
+                    }
+
+                    if (mapping.IsEnable && mapping.IsVisible)
+                        continue;
+
+                    mapping.IsEnable = true;
+                    mapping.IsVisible = true;
+                    mapping.UpdateUserId = DefaultUserId;
+                    mapping.UpdateDate = now;
+                    updated++;
+                }
+            }
+
+            foreach (var obsolete in existing.Where(x => !targetKeys.Contains((x.P02_GroupId, x.P05_PageComponentMappingId))))
+            {
+                if (!obsolete.IsEnable && !obsolete.IsVisible)
+                    continue;
+
+                obsolete.IsEnable = false;
+                obsolete.IsVisible = false;
+                obsolete.UpdateUserId = DefaultUserId;
+                obsolete.UpdateDate = now;
+                updated++;
+            }
+
+            if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P06_GroupPageComponentMapping: {Count} mappings", missing.Count);
+            Log.Information("[SeedData] P06_GroupPageComponentMapping reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
         private static P06_GroupPageComponentMapping P6(Guid p05Id, Guid groupId, DateTime now)
             => new() { P05_PageComponentMappingId = p05Id, P02_GroupId = groupId,
-                       MemberCompanyCode = 77500, IsEnable = true, IsVisible = true,
+                       MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode, IsEnable = true, IsVisible = true,
                        CreateUserId = DefaultUserId, CreateDate = now,
                        UpdateUserId = DefaultUserId, UpdateDate = now };
+
+        private static IReadOnlyList<P05SeedMapping> GetP05SeedMappings()
+        {
+            var mappings = new List<P05SeedMapping>
+            {
+                new(P05_SB_Dashboard, "SIDEBAR", Permissions.MenuDashboard),
+                new(P05_SB_Library, "SIDEBAR", Permissions.MenuLibrary),
+                new(P05_SB_Report, "SIDEBAR", Permissions.MenuReport),
+                new(P05_SB_Permission, "SIDEBAR", Permissions.MenuPermission),
+                new(P05_DB_Order, "DASHBOARD", Permissions.RequestOrder),
+                new(P05_DB_Catalog, "DASHBOARD", Permissions.RequestProductCatalog),
+                new(P05_DB_History, "DASHBOARD", Permissions.RequestHistory),
+                new(P05_DB_DeptSum, "DASHBOARD", Permissions.RequestDepartmentSummary),
+                new(P05_DB_AllSum, "DASHBOARD", Permissions.RequestAllOrdersSummary),
+                new(P05_DB_Approval, "DASHBOARD", Permissions.RequestAdminApproval),
+                new(P05_LB_Class, "LIBRARY", Permissions.LibraryClass),
+                new(P05_LB_Category, "LIBRARY", Permissions.LibraryCategory),
+                new(P05_LB_Item, "LIBRARY", Permissions.LibraryItem),
+                new(P05_LB_Supplier, "LIBRARY", Permissions.LibrarySupplier),
+                new(P05_LB_Price, "LIBRARY", Permissions.LibraryPrice),
+                new(P05_LB_PriceList, "LIBRARY", Permissions.LibraryPriceList),
+                new(P05_LB_Dept, "LIBRARY", Permissions.LibraryDepartment),
+                new(P05_AP_PeriodSettle, "DASHBOARD", Permissions.PeriodSettle),
+                new(P05_PM_User, "PERMISSION", Permissions.PermissionUser),
+                new(P05_PM_Component, "PERMISSION", Permissions.PermissionComponent),
+                new(P05_RP_View, "REPORT", Permissions.ReportView)
+            };
+
+            mappings.AddRange(CanonicalRbac.Actions
+                .Where(x => x.PermissionCode != Permissions.PeriodSettle)
+                .Select(x => new P05SeedMapping(
+                    CanonicalRbacSeedIds.ActionPageMapping(x.PermissionCode),
+                    x.PageCode,
+                    x.PermissionCode)));
+            return mappings;
+        }
+
+        private sealed record P05SeedMapping(Guid MappingId, string PageCode, string ComponentCode);
     }
 }

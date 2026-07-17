@@ -1,4 +1,5 @@
 using System.Globalization;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Reports;
@@ -19,6 +20,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected bool IsLoading { get; private set; }
     protected bool IsExporting { get; private set; }
     protected bool IsLoadingInsights { get; private set; }
+    private readonly AsyncLoadVersion _loadVersion = new();
     protected string SelectedScope { get; set; } = ReportScopes.Own;
     protected int? SelectedYear { get; set; }
     protected int? SelectedMonth { get; set; }
@@ -72,13 +74,21 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
         IsLoading = true;
         Insight = null;
+        var loadVersion = _loadVersion.Begin();
         try
         {
-            Summary = await Api.GetFromApiAsync<ReportSummaryResDTO>(BuildEndpoint("summary"));
+            var summary = await Api.GetFromApiAsync<ReportSummaryResDTO>(BuildEndpoint("summary"));
+            if (_loadVersion.IsCurrent(loadVersion))
+            {
+                Summary = summary;
+            }
         }
         catch (Exception ex)
         {
-            Toast.Error(Localizer["Error"], string.Format(Localizer["ReportLoadFailed"], ex.Message));
+            if (_loadVersion.IsCurrent(loadVersion))
+            {
+                Toast.Error(Localizer["Error"], UiErrorMapper.GetMessage(ex, Localizer));
+            }
         }
         finally
         {
@@ -96,7 +106,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         IsExporting = true;
         try
         {
-            var file = await Api.GetFileFromApiAsync(BuildEndpoint("export"));
+            var file = await Api.GetFileFromApiAsync(BuildEndpoint("export.xlsx"));
             await using var stream = new MemoryStream(file.Content, writable: false);
             using var streamReference = new DotNetStreamReference(stream);
             await JS.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
@@ -104,7 +114,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
         catch (Exception ex)
         {
-            Toast.Error(Localizer["Error"], string.Format(Localizer["ReportExportFailed"], ex.Message));
+            Toast.Error(Localizer["Error"], UiErrorMapper.GetMessage(ex, Localizer));
         }
         finally
         {
@@ -128,7 +138,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
         catch (Exception ex)
         {
-            Toast.Error(Localizer["Error"], string.Format(Localizer["ReportInsightsFailed"], ex.Message));
+            Toast.Error(Localizer["Error"], UiErrorMapper.GetMessage(ex, Localizer));
         }
         finally
         {

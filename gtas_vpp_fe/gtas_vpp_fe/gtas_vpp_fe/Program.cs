@@ -58,6 +58,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<GlobalClass>();
 builder.Services.AddScoped<ThemeState>();
 builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped<CurrentUserState>();
+builder.Services.AddScoped<IAuthSessionInvalidationCoordinator, AuthSessionInvalidationCoordinator>();
 builder.Services.AddScoped<PermissionRefreshSignal>();
 builder.Services.AddScoped<PermissionState>();
 builder.Services.AddScoped<PermissionRealtimeService>();
@@ -83,6 +85,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = Config.LoginPagePath;
         options.AccessDeniedPath = Config.LoginPagePath;
         options.ExpireTimeSpan = TimeSpan.FromMinutes(Config.CookieExpireMinutes);
+        options.SlidingExpiration = false;
     });
 
 // Cấu hình cho Blazor biết đang có Authentication

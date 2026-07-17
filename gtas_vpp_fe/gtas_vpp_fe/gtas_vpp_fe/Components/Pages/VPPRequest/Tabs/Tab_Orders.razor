@@ -15,10 +15,18 @@
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
                 @if (CanCreate)
                 {
-                    <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || (ActiveOrders != null && ActiveOrders.Any()))" />
+                    <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || !CanCreateRegular)" />
                     <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Light" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
+                    <RadzenButton Icon="playlist_add" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Click="@(async _ => await GoToCreatePage(true))" Disabled="@(IsLoading || !CanCreateSupplement)" data-testid="create-supplement" />
                 }
             </RadzenStack>
+            @if (PeriodInfo is not null)
+            {
+                <RadzenStack Gap="0.15rem" Style="font-size: 0.82rem; color: var(--vpp-text-secondary);">
+                    <span>@Loc["PeriodStatus"]: <strong>@PeriodInfo.PeriodState</strong> · @Loc["SubmissionDeadline"] @DateFormatter.Format(PeriodInfo.DeadlineDate, DateFormatter.LongDate)</span>
+                    <span>@Loc["SupplementQuotaSummary", PeriodInfo.RemainingApprovedSupplementQuota, PeriodInfo.MaxAdditionalOrders] · @Loc["SupplementAttemptSummary", PeriodInfo.RemainingSupplementAttempts, PeriodInfo.MaxSupplementAttempts]</span>
+                </RadzenStack>
+            }
         </RadzenStack>
 
         @* ── KPI Cards ──────────────────────────────────────────────── *@
@@ -77,7 +85,7 @@
         {
             @if (ActiveOrders == null || !ActiveOrders.Any())
             {
-                @if (CanCreate)
+                @if (CanCreateRegular)
                 {
                     <VppEmptyState Icon="inventory_2"
                                    Title="@Loc["NoOrdersFound"]"
@@ -110,30 +118,14 @@
                     <span class="rzi rzi-history"></span>
                     @Loc["PreviousOrderPeriod"] (@PreviousOrderPeriodText)
                 </div>
-                @if (CanCreate && PreviousOrders != null && PreviousOrders.Any())
-                {
-                    <RadzenButton Icon="add_circle" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(async _ => await GoToCreatePage(true))" />
-                }
             </div>
 
             @if (PreviousOrders == null || !PreviousOrders.Any())
             {
-                @if (CanCreate)
-                {
-                    <VppEmptyState Icon="history"
-                                   Title="@Loc["NoPreviousPeriodOrders"]"
-                                   Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
-                                   PrimaryText="@Loc["RequestAdditional"]"
-                                   PrimaryAction="@(async _ => await GoToCreatePage(true))"
-                                   Class="rz-mt-3 vpp-empty-state-compact" />
-                }
-                else
-                {
-                    <VppEmptyState Icon="history"
-                                   Title="@Loc["NoPreviousPeriodOrders"]"
-                                   Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
-                                   Class="rz-mt-3 vpp-empty-state-compact" />
-                }
+                <VppEmptyState Icon="history"
+                               Title="@Loc["NoPreviousPeriodOrders"]"
+                               Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
+                               Class="rz-mt-3 vpp-empty-state-compact" />
             }
             else
             {
@@ -199,15 +191,20 @@
                             @Loc["Settled"]
                         </span>
                     }
-                    @if (CanUpdate(order))
+                    @if (CanUpdate(order) || CanReplace(order))
                     {
                         @* F-28: icon-only buttons need a visible tooltip + screen-reader label. The aria-label
                            includes the order code so screen-reader users hear context (e.g. "Edit order VPP-202604-..."). *@
-                        <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Click="@(async _ => await GoToEditPage(order))" Title="@Loc["Edit"]" aria-label="@string.Format(Loc["EditOrderAria"], order.VPPCode)" />
+                        <RadzenButton Icon="@(order.CanReplace ? "restart_alt" : "edit")"
+                                      Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
+                                      Click="@(async _ => await GoToEditPage(order))"
+                                      Title="@(order.CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
+                                      aria-label="@string.Format(order.CanReplace ? Loc["ReplaceOrderAria"] : Loc["EditOrderAria"], order.VPPCode)" />
                     }
+                    <RadzenButton Icon="history" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Click="@(async _ => await OpenHistoryAsync(order))" Title="@Loc["ViewRequestHistory"]" aria-label="@string.Format(Loc["ViewRequestHistoryAria"], order.VPPCode)" />
                     @if (CanCancel(order))
                     {
-                        <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" Title="@Loc["Cancel"]" aria-label="@string.Format(Loc["CancelOrderAria"], order.VPPCode)" />
+                        <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" Title="@Loc["Cancel"]" aria-label="@string.Format(Loc["CancelOrderAria"], order.VPPCode)" Disabled="@IsCancelling(order.Id)" IsBusy="@IsCancelling(order.Id)" />
                     }
                 </RadzenStack>
             </div>

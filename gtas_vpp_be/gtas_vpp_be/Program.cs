@@ -3,10 +3,12 @@ using gtas_vpp_be.Mappings;
 using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Model;
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_be.Service.Services.AuthBootstrap;
 using gtas_vpp_shared.Constants;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
@@ -19,12 +21,25 @@ using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
+var accountTokenKeysPath = Configuration["DataProtection:KeysPath"];
+if (string.IsNullOrWhiteSpace(accountTokenKeysPath))
+{
+    accountTokenKeysPath = builder.Environment.IsProduction()
+        ? "/app/keys"
+        : Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "GTAS_VPP",
+            "Backend-DataProtection-Keys");
+}
+Directory.CreateDirectory(accountTokenKeysPath);
 var databaseBinding = DatabaseBinding.Create(Configuration);
 DeploymentConfigurationContract.ValidateDatabaseBindingForHost(
     builder.Environment.EnvironmentName,
@@ -56,6 +71,9 @@ builder.Host.UseSerilog();
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(accountTokenKeysPath))
+    .SetApplicationName("gtas_vpp_backend_identity");
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 
@@ -78,27 +96,27 @@ builder.Services.AddDbContext<VPPContext>(
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<JiraSettings>(Configuration.GetSection("JiraSettings"));
-builder.Services.AddOptions<PasswordEncoderOptions>()
-    .Bind(builder.Configuration.GetSection("PasswordEncryption"))
-    .Validate(options => !string.IsNullOrWhiteSpace(options.Key),
-        "PasswordEncryption:Key is required for legacy GTAS_MENU compatibility.")
-    .ValidateOnStart();
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
-builder.Services.AddSingleton<IPasswordEncoder, TripleDesPasswordEncoder>();
+builder.Services.AddSingleton(sp => VppRequestPolicy.FromConfiguration(
+    sp.GetRequiredService<IConfiguration>()));
 builder.Services.AddSingleton(sp => new PeriodCalculator(
-    sp.GetRequiredService<IConfiguration>().GetValue("VPPDeadlineDay", 5)));
+    sp.GetRequiredService<VppRequestPolicy>().DeadlineDay));
 builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
 builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
+builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();
+builder.Services.AddHostedService<VppPeriodRecoveryWorker>();
 builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
+builder.Services.AddScoped<IPriceAsOfResolver, PriceAsOfResolver>();
+builder.Services.AddScoped<IPriceBookWorkflowService, PriceBookWorkflowService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
+builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddOptions<ReportInsightsOptions>()
     .Bind(Configuration.GetSection(ReportInsightsOptions.SectionName))
@@ -134,6 +152,39 @@ builder.Services.AddHealthChecks()
         },
         timeout: TimeSpan.FromSeconds(5));
 builder.Services.AddSignalR();
+builder.Services
+    .AddIdentityCore<AppUser>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+        options.Password.RequiredLength = 10;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Lockout.AllowedForNewUsers = true;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    })
+    .AddEntityFrameworkStores<VPPContext>()
+    .AddDefaultTokenProviders();
+builder.Services.AddOptions<AccountEmailOptions>()
+    .Bind(Configuration.GetSection(AccountEmailOptions.SectionName))
+    .Validate(options => Uri.TryCreate(options.PublicBaseUrl, UriKind.Absolute, out _),
+        "EmailNotifications:PublicBaseUrl must be an absolute URL.")
+    .Validate(options => options.SmtpPort is >= 1 and <= 65535,
+        "EmailNotifications:SmtpPort must be a valid TCP port.")
+    .Validate(options => !options.Enabled || !string.IsNullOrWhiteSpace(options.SmtpHost),
+        "EmailNotifications:SmtpHost is required when email is enabled.")
+    .Validate(options => !options.Enabled
+            || System.Net.Mail.MailAddress.TryCreate(options.FromAddress, out _),
+        "EmailNotifications:FromAddress must be a valid email address when email is enabled.")
+    .ValidateOnStart();
+builder.Services.AddScoped<IEmailOutboxService, EmailOutboxService>();
+builder.Services.AddScoped<ICurrentMemberCompanyProvider, DefaultMemberCompanyProvider>();
+builder.Services.AddScoped<SmtpAccountEmailSender>();
+builder.Services.AddScoped<IAccountEmailSender, OutboxAccountEmailSender>();
+builder.Services.AddHostedService<EmailOutboxWorker>();
+builder.Services.AddScoped<IAccountLifecycleService, AccountLifecycleService>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -152,6 +203,47 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.User.FindFirst("UserID")?.Value
                 ?? httpContext.Connection.RemoteIpAddress?.ToString()
                 ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-register", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-recovery", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-confirm", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("account-password", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"{httpContext.User.FindFirst("UserID")?.Value ?? "anonymous"}:" +
+                          (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 5,
@@ -189,9 +281,49 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
             ClockSkew = TimeSpan.FromMinutes(jwtSettings.ClockSkewMinutes)
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async tokenContext =>
+            {
+                if (tokenContext.Principal is null)
+                {
+                    tokenContext.Fail("Session is invalid.");
+                    return;
+                }
+
+                var currentUserContext = tokenContext.HttpContext.RequestServices
+                    .GetRequiredService<ICurrentUserContext>();
+                var snapshot = await currentUserContext.GetAsync(
+                    tokenContext.Principal,
+                    tokenContext.HttpContext.RequestAborted);
+                if (snapshot is null)
+                {
+                    tokenContext.HttpContext.Items["AppSessionInvalid"] = true;
+                    tokenContext.Fail("Session is invalid.");
+                    return;
+                }
+
+                currentUserContext.EnrichPrincipal(tokenContext.Principal, snapshot);
+            },
+            OnChallenge = challengeContext =>
+            {
+                if (challengeContext.HttpContext.Items.ContainsKey("AppSessionInvalid"))
+                {
+                    challengeContext.Response.Headers["X-Auth-Reason"] = "session-invalid";
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+builder.Services.AddScoped<IAppAuthenticationService, AppAuthenticationService>();
+builder.Services.AddScoped<IMembershipAdministrationService, MembershipAdministrationService>();
+builder.Services.AddOptions<AuthBootstrapOptions>()
+    .Bind(Configuration.GetSection(AuthBootstrapOptions.SectionName));
+builder.Services.AddScoped<IAuthBootstrapProvisioner, AuthBootstrapProvisioner>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddSingleton<IPermissionChangeNotifier, PermissionChangeNotifier>();
 builder.Services.AddScoped<IAppNotificationService, AppNotificationService>();
@@ -252,11 +384,19 @@ DeploymentConfigurationContract.ValidateDemoDatabaseTarget(
     databaseInitializationMode,
     databaseBinding);
 var databaseInitializationOnly = Configuration.GetValue<bool>("DatabaseInitialization:RunOnly");
+var authBootstrapEnabled = Configuration.GetValue<bool>($"{AuthBootstrapOptions.SectionName}:Enabled");
 
 if (databaseInitializationOnly && !shouldMigrate)
 {
     throw new InvalidOperationException(
         "DatabaseInitialization:RunOnly requires Mode=Migrate, MigrateAndReference, or MigrateAndDemo.");
+}
+
+if (authBootstrapEnabled
+    && (!databaseInitializationOnly || !shouldMigrate || !shouldSeedReference || shouldSeedDemo))
+{
+    throw new InvalidOperationException(
+        "AuthBootstrap requires a one-shot RunOnly migration with reference seed and no demo seed.");
 }
 
 if (shouldMigrate)
@@ -266,6 +406,17 @@ if (shouldMigrate)
         databaseInitializationMode,
         shouldSeedReference,
         shouldSeedDemo);
+}
+
+if (authBootstrapEnabled)
+{
+    await using var bootstrapScope = app.Services.CreateAsyncScope();
+    var provisioner = bootstrapScope.ServiceProvider.GetRequiredService<IAuthBootstrapProvisioner>();
+    var result = await provisioner.ProvisionAsync();
+    Log.Information(
+        "Trusted owner bootstrap completed with outcome {Outcome} for account {AccountId}.",
+        result.Outcome,
+        result.AccountId);
 }
 
 if (databaseInitializationOnly)
@@ -290,6 +441,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.UseMiddleware<PasswordChangeRequiredMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

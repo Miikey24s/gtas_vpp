@@ -9,10 +9,29 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public string? VPPCode { get; set; }
         public int Y { get; set; }
         public int M { get; set; }
+        public Guid? PeriodId { get; set; }
+        public Guid RequestSeriesId { get; set; }
+        public int RevisionNumber { get; set; }
+        public bool IsCurrentRevision { get; set; }
+        public Guid? SupersedesRequestId { get; set; }
+        public Guid? SupersededByRequestId { get; set; }
+        public Guid? BaseRequestId { get; set; }
+        public Guid? BaseRequestSeriesId { get; set; }
+        public int? SupplementSequence { get; set; }
+        public int? SupplementAttemptNumber { get; set; }
+        public string? SupplementReason { get; set; }
         public int Status { get; set; }
         public string? DepartmentCode { get; set; }
         public string? MemberCompanyCode { get; set; }
         public DateTime? SubmittedDate { get; set; }
+        public int? ApprovedById { get; set; }
+        public DateTime? ApprovedAt { get; set; }
+        public int? RejectedById { get; set; }
+        public DateTime? RejectedAt { get; set; }
+        public string? RejectReason { get; set; }
+        public int? CancelledById { get; set; }
+        public DateTime? CancelledAt { get; set; }
+        public string? CancelReason { get; set; }
         public DateTime? SettledAt { get; set; }
         public int? SettledByUserId { get; set; }
         public string? SettledByUserName { get; set; }
@@ -22,6 +41,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public int TotalQty { get; set; }
         public long TotalAmount { get; set; }
         public bool IsAdditionalOrder { get; set; }
+        public byte[]? RowVersion { get; set; }
 
         // Display-only computed properties (no clock dependency)
         public string Period => $"{M:00}/{Y}";
@@ -37,6 +57,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public bool IsDeadlinePassed { get; set; }
         public bool CanEdit { get; set; }
         public bool CanCancel { get; set; }
+        public bool CanReplace { get; set; }
 
         public List<VPP02_RequestDetailResDTO> Items { get; set; } = new();
     }

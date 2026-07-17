@@ -27,7 +27,7 @@ public class CreateOrderAfterSettlementTests
         var ex = await Assert.ThrowsAsync<BusinessException>(() =>
             service.CreateOrderAsync(CreateOrderRequest(2026, 3, isAdditionalOrder: false, vppId), 5615, "IT", "77500"));
 
-        Assert.Contains("has been settled", ex.Message);
+        Assert.Contains("pricing/settlement", ex.Message);
     }
 
     [Fact]
@@ -37,14 +37,14 @@ public class CreateOrderAfterSettlementTests
         var now = new DateTime(2026, 4, 10, 9, 0, 0);
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
-        AddSettledHeader(context, 2026, 3, now);
+        AddSettledHeader(context, 2026, 4, now);
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
         var ex = await Assert.ThrowsAsync<BusinessException>(() =>
-            service.CreateOrderAsync(CreateOrderRequest(2026, 3, isAdditionalOrder: true, vppId), 5615, "IT", "77500"));
+            service.CreateOrderAsync(CreateOrderRequest(2026, 4, isAdditionalOrder: true, vppId), 5615, "IT", "77500"));
 
-        Assert.Contains("has been settled", ex.Message);
+        Assert.Contains("pricing/settlement", ex.Message);
     }
 
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
@@ -77,6 +77,7 @@ public class CreateOrderAfterSettlementTests
             M = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
+            SupplementReason = isAdditionalOrder ? "Needed for a new employee" : null,
             Items = new List<VPP02_ItemReqDTO>
             {
                 new() { VPPId = vppId, Qty = 1, Description = "Item" }

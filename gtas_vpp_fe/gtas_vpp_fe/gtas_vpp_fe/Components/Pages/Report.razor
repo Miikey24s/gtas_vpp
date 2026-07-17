@@ -19,6 +19,7 @@ else
         <header class="vpp-report-header">
             <div>
                 <h1 class="vpp-report-heading">@Loc["Reports"]</h1>
+                <p class="vpp-report-description">@Loc["ReportPageDescription"]</p>
                 @if (Summary is not null)
                 {
                     <p>@string.Format(Loc["GeneratedAt"], FormatGeneratedAt(Summary.GeneratedAt))</p>

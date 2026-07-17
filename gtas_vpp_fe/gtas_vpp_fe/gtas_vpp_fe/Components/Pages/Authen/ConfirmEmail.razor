@@ -1,0 +1,35 @@
+@page "/Account/ConfirmEmail"
+@attribute [AllowAnonymous]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@layout LoginLayout
+
+<PageTitle>GTAS VPP - Xác nhận email</PageTitle>
+
+<div class="vpp-login-page">
+    <div class="vpp-login-shell">
+        <section class="vpp-login-card" aria-labelledby="confirm-email-title">
+            <div class="vpp-login-card-inner">
+                <div class="vpp-login-header">
+                    <h1 class="vpp-login-title" id="confirm-email-title">
+                        Xác nhận <span class="vpp-login-title-accent">email</span>
+                    </h1>
+                </div>
+                @if (IsLoading)
+                {
+                    <p role="status">Đang kiểm tra liên kết...</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+                {
+                    <div class="vpp-login-validation" role="alert">@ErrorMessage</div>
+                }
+                else
+                {
+                    <div class="vpp-login-validation" role="status">@SuccessMessage</div>
+                }
+                <div class="vpp-login-links">
+                    <a href="/Account/Login">Đi tới đăng nhập</a>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

@@ -44,7 +44,6 @@ require_non_placeholder() {
 
 require_non_placeholder DB_SA_PASSWORD
 require_non_placeholder JWT_KEY
-require_non_placeholder PASSWORD_ENCRYPTION_KEY
 
 if jwt_key="$(read_env_value JWT_KEY 2>/dev/null)"; then
   jwt_bytes="$(LC_ALL=C printf '%s' "$jwt_key" | wc -c | tr -d ' ')"

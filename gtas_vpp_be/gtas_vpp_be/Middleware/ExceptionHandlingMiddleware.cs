@@ -1,6 +1,7 @@
 using gtas_vpp_be.Service.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace gtas_vpp_be.Middleware
@@ -44,17 +45,42 @@ namespace gtas_vpp_be.Middleware
                 _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
             };
 
+            var exposesSafeDetail = exception is ConflictException
+                or DbUpdateConcurrencyException
+                or BusinessException;
+            var traceId = Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
+            var errorCode = exception switch
+            {
+                ConflictException => "Conflict",
+                DbUpdateConcurrencyException => "ConcurrencyConflict",
+                BusinessException => "BusinessRuleViolated",
+                UnauthorizedAccessException => "Forbidden",
+                KeyNotFoundException => "NotFound",
+                ArgumentException => "RequestInvalid",
+                InvalidOperationException => "OperationInvalid",
+                _ => "ServerError"
+            };
+            var detail = exception switch
+            {
+                DbUpdateConcurrencyException => "The data has been modified by another user. Please refresh the page and try again.",
+                ConflictException or BusinessException => exception.Message,
+                ArgumentException => "The request is invalid.",
+                InvalidOperationException => "The operation is not valid in its current state.",
+                _ when env.IsDevelopment() => exception.Message,
+                _ => "An unexpected error occurred. Please contact support."
+            };
+
             var problemDetails = new ProblemDetails
             {
                 Type = "https://tools.ietf.org/html/rfc7807",
                 Title = title,
                 Status = statusCode,
-                Detail = exception is DbUpdateConcurrencyException
-                    ? "The data has been modified by another user. Please refresh the page and try again."
-                    : (exception is ConflictException || exception is BusinessException
-                        ? exception.Message
-                        : (env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please contact support."))
+                Detail = detail
             };
+
+            problemDetails.Extensions["traceId"] = traceId;
+            problemDetails.Extensions["errorCode"] = errorCode;
+            problemDetails.Extensions["safeDetail"] = exposesSafeDetail;
 
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/problem+json";

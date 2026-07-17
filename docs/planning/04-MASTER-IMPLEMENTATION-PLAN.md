@@ -99,7 +99,7 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 
 ## 4. Task registry
 
-| ID | Phase | Priority | Initial status | Dependencies / decisions |
+| ID | Phase | Priority | Baseline status (historical) | Dependencies / decisions |
 |---|---|---:|---|---|
 | BASE-001 | 0 | P0 | DONE | Plan approval |
 | SEC-001 | 0 | P0 | BLOCKED_EXTERNAL | BASE-001, D-011 |
@@ -153,6 +153,34 @@ Không bắt đầu AI trước CP4. Không đóng Word final trước CP7. P2/P
 | DOC-002 | 7 | P1 | NOT_STARTED | CP6 core, DOC-001, source freeze, D-009 decided, D-012 decided; selected optional tasks only |
 | DOC-003 | 7 | P1 | NOT_STARTED | CP7, DOC-002 |
 | REL-001 | 7 | P1 | NOT_STARTED | CP7, DOC-003, DEP-002 or approved local-only alternative, D-012 decided |
+
+The status column above is the original planning baseline and is retained for
+history. It must not be used as the current release status. The authoritative
+execution reconciliation is below and the detailed task cards retain their
+original scope so reduced/folded alternatives remain auditable.
+
+### 4.1 Current execution reconciliation — 2026-07-17
+
+| Original task(s) | Current status | Authoritative evidence / cutline |
+|---|---|---|
+| BASE-001, SEC-002, ENV-001, QA-001, ARCH-001 | DONE | Matching records under `docs/execution/` |
+| SEC-001 | DONE WITH ACCEPTED RESIDUAL RISK | `docs/execution/SEC-001.md`; eight historical Google-key alerts remain waived, not revoked |
+| AUTH-001..006 | DONE (folded into LEAN-02/03) | `docs/execution/LEAN-02.md`, `LEAN-03.md`; app-owned Identity, canonical RBAC, lifecycle, cutover and session gates |
+| PER-001, REQ-001, SUP-001 | DONE | `docs/execution/LEAN-05.md` |
+| CAT-001, PRICE-001/002, SET-001/002 | DONE | LEAN-06 execution records, including `SET-002/UI-006` |
+| UI-001..007 | DONE for the retained A+ slice | LEAN-02..06 UI work plus isolated authenticated E2E and three-viewport evidence |
+| REPORT-001/002/003, NOTIF-001/002 | DONE | `docs/execution/LEAN-07.md` |
+| NOTIF-003 | DONE (ALTERNATIVE: local SMTP sandbox) | `docs/execution/NOTIF-003.md`; no real-provider claim |
+| REPORT-004, WOW-001/002/003/004, AI-001 | DEFERRED as non-gating showcase work | D-012/source-freeze cut; existing copy/AI code may remain but is not a release claim |
+| ARCH-002 | DONE (REDUCED) | Touched-file discipline, Release build, `git diff --check` and CI ratchet; no mass-format commit |
+| ARCH-003 | DEFERRED except retained-flow security guards | Broad generic-endpoint retirement remains post-release |
+| ARCH-004 | DONE (FOLDED) | LEAN-04 shell/theme/logout/clock slice; no separate broad sweep |
+| PERF-001 | DONE (REDUCED) | Catalog synthetic scale, report/settlement targeted gates; no full-system SLA claim |
+| OBS-001 | DONE (REDUCED) | Structured scrubbed logs, trace IDs, audit and health; external telemetry platform deferred |
+| QA-002/003 | DONE (FOLDED/REDUCED) | Relational integration gates and two isolated authenticated UI rehearsals |
+| DEP-001 | IN_PROGRESS in final release integration | CI exists; PR execution and production deployment validation belong to the current release goal |
+| DEP-002 | DONE (ALTERNATIVE: local restore rehearsal) | `docs/execution/DEP-002.md`; deployed/server recovery remains conditional |
+| DOC-001/002/003, REL-001 | DONE for local-only handoff | `docs/execution/LEAN-09.md`, traceability matrix, final DOCX audit and release tag |
 
 ## 5. Detailed task cards
 

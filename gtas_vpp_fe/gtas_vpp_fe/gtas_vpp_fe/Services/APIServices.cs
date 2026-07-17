@@ -1,5 +1,4 @@
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_shared.DTOs;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -11,9 +10,6 @@ namespace gtas_vpp_fe.Services
     public interface IAPIServices
     {
         Task SetBaseUrl(string baseUrl);
-        Task<string> GetDataFromExternalApiAsync(string endpoint);
-        Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
-        Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? baseurl = null, JsonSerializerOptions? jsonOptions = null);
         Task<T?> GetFromApiAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint);
@@ -34,15 +30,17 @@ namespace gtas_vpp_fe.Services
         private readonly HttpClient _httpClient;
         private readonly AuthenticationStateProvider _authProvider;
         private readonly PermissionRefreshSignal _permissionRefreshSignal;
-        private readonly string _rootUrl = "api/SQL/StoreProcedure/";
+        private readonly IAuthSessionInvalidationCoordinator _sessionInvalidationCoordinator;
         public APIServices(
             HttpClient httpClient,
             AuthenticationStateProvider authProvider,
-            PermissionRefreshSignal permissionRefreshSignal)
+            PermissionRefreshSignal permissionRefreshSignal,
+            IAuthSessionInvalidationCoordinator sessionInvalidationCoordinator)
         {
             _httpClient = httpClient;
             _authProvider = authProvider;
             _permissionRefreshSignal = permissionRefreshSignal;
+            _sessionInvalidationCoordinator = sessionInvalidationCoordinator;
         }
 
         private async Task ApplyAuthorizationHeaderAsync()
@@ -73,85 +71,87 @@ namespace gtas_vpp_fe.Services
         {
             if (!response.IsSuccessStatusCode)
             {
-                if (response.StatusCode == HttpStatusCode.Forbidden)
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    var reason = response.Headers.TryGetValues("X-Auth-Reason", out var values)
+                        ? values.FirstOrDefault() ?? "session-invalid"
+                        : "session-invalid";
+                    await _sessionInvalidationCoordinator.InvalidateAsync(reason);
+                }
+                else if (response.StatusCode == HttpStatusCode.Forbidden)
                 {
                     await _permissionRefreshSignal.RequestAsync();
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
-                var errorMessage = $"API Error: {response.StatusCode}";
-                try
-                {
-                    // Attempt to parse standard ProblemDetails or custom error JSON
-                    var errorObj = JsonSerializer.Deserialize<JsonElement>(content);
-                    if (errorObj.TryGetProperty("message", out var msg))
-                        errorMessage = msg.GetString() ?? errorMessage;
-                    else if (errorObj.TryGetProperty("title", out var title))
-                        errorMessage = title.GetString() ?? errorMessage;
-                }
-                catch
-                {
-                    // If parsing fails, use raw content if it's short, else keep status code
-                    if (!string.IsNullOrWhiteSpace(content) && content.Length < 200)
-                        errorMessage = content;
-                }
-                throw new HttpRequestException(errorMessage);
+                var problem = ParseProblem(content, response.StatusCode);
+                throw new ApiRequestException(
+                    response.StatusCode,
+                    problem.ErrorCode,
+                    problem.TraceId,
+                    problem.SafeDetail);
             }
         }
 
-        public async Task<string> GetDataFromExternalApiAsync(string endpoint)
+        private static ApiProblem ParseProblem(string content, HttpStatusCode statusCode)
         {
-            await ApplyAuthorizationHeaderAsync();
-            using var response = await _httpClient.GetAsync(
-                _rootUrl + endpoint,
-                HttpCompletionOption.ResponseHeadersRead);
-            await EnsureSuccessWithDetailsAsync(response);
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        public async Task<sp_ResDTO> aPIFrom_sp_Authen(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
-        {
-            if (url == null) url = $"{_rootUrl}sp_Authen?sptype={sptype}";
-
-            await ApplyAuthorizationHeaderAsync();
-            using var content = JsonContent.Create(body, options: jsonOptions);
-            using var response = await _httpClient.PostAsync(url, content);
-
-            if (response.IsSuccessStatusCode)
+            var fallbackCode = statusCode switch
             {
-                var result = await response.Content.ReadFromJsonAsync<sp_ResDTO>();
-                return result!;
-            }
-            else
-            {
-                return new sp_ResDTO
-                {
-                    IsSuccess = false,
-                    ErrorMess = $"Error: {response.StatusCode}, {response.ReasonPhrase}"
-                };
-            }
-        }
+                HttpStatusCode.Unauthorized => "Unauthorized",
+                HttpStatusCode.Forbidden => "Forbidden",
+                HttpStatusCode.NotFound => "NotFound",
+                HttpStatusCode.Conflict => "Conflict",
+                HttpStatusCode.UnprocessableEntity => "UnprocessableEntity",
+                HttpStatusCode.BadRequest => "BadRequest",
+                HttpStatusCode.TooManyRequests => "RateLimited",
+                _ when (int)statusCode >= 500 => "ServerError",
+                _ => "RequestFailed"
+            };
 
-        public async Task<T?> APIFrom_sp_Authen_Typed<T>(string sptype, object body, string? url = null, JsonSerializerOptions? jsonOptions = null)
-        {
-            var apiResult = await aPIFrom_sp_Authen(sptype, body, url, jsonOptions);
-
-            if (apiResult == null || !apiResult.IsSuccess || string.IsNullOrWhiteSpace(apiResult.ResData))
+            if (string.IsNullOrWhiteSpace(content))
             {
-                return default;
+                return new ApiProblem(fallbackCode, null, null);
             }
 
             try
             {
-                return JsonSerializer.Deserialize<T>(
-                    apiResult.ResData,
-                    JsonOptions);
+                using var document = JsonDocument.Parse(content);
+                var root = document.RootElement;
+                // ASP.NET serializes ProblemDetails.Extensions as top-level
+                // properties. Accept a nested "extensions" object as well so
+                // gateways and test doubles can use either RFC-compatible form.
+                var extensions = root.TryGetProperty("extensions", out var extensionNode)
+                    ? extensionNode
+                    : root;
+                var errorCode = GetString(extensions, "errorCode")
+                    ?? GetString(root, "code")
+                    ?? fallbackCode;
+                var traceId = GetString(extensions, "traceId")
+                    ?? GetString(root, "traceId");
+                var safeDetail = GetBoolean(extensions, "safeDetail")
+                    ? GetString(root, "detail") ?? GetString(root, "message")
+                    : null;
+                return new ApiProblem(errorCode, traceId, safeDetail);
             }
-            catch
+            catch (JsonException)
             {
-                return default;
+                return new ApiProblem(fallbackCode, null, null);
             }
         }
+
+        private static string? GetString(JsonElement node, string propertyName) =>
+            node.ValueKind == JsonValueKind.Object
+                && node.TryGetProperty(propertyName, out var property)
+                && property.ValueKind == JsonValueKind.String
+                ? property.GetString()
+                : null;
+
+        private static bool GetBoolean(JsonElement node, string propertyName) =>
+            node.ValueKind == JsonValueKind.Object
+                && node.TryGetProperty(propertyName, out var property)
+                && property.ValueKind == JsonValueKind.True;
+
+        private sealed record ApiProblem(string ErrorCode, string? TraceId, string? SafeDetail);
 
         public async Task<T?> GetFromApiAsync<T>(string endpoint)
         {
@@ -319,7 +319,8 @@ namespace gtas_vpp_fe.Services
         {
             await ApplyAuthorizationHeaderAsync();
             using var response = await _httpClient.DeleteAsync(endpoint);
-            return response.IsSuccessStatusCode;
+            await EnsureSuccessWithDetailsAsync(response);
+            return true;
         }
     }
 

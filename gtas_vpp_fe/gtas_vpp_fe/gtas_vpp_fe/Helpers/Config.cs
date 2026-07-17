@@ -5,9 +5,17 @@ namespace gtas_vpp_fe.Helpers
         // HttpClient
         public const string HttpClientName = "VPP_API";
         public const string ApiLoginEndpoint = "/api/Auth/login";
+        public const string ApiAccountRegisterEndpoint = "/api/account/register";
+        public const string ApiAccountConfirmEmailEndpoint = "/api/account/confirm-email";
+        public const string ApiAccountRecoveryEndpoint = "/api/account/password/recovery";
+        public const string ApiAccountResetPasswordEndpoint = "/api/account/password/reset";
+        public const string ApiAccountChangePasswordEndpoint = "/api/account/password/change";
+        public const string ApiAccountAdminActivateEndpoint = "/api/account/admin/activate";
+        public const string ApiAccountAdminResetPasswordEndpoint = "/api/account/admin/reset-password";
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
         public const string ApiBase = "/api";
         public const string ApiLibraryBase = "/api/Library";
+        public const string ApiCatalogItems = "/api/catalog/items";
         public const string ApiVppBase = "/api/VPPRequest";
 
         public static class VppApi
@@ -41,6 +49,9 @@ namespace gtas_vpp_fe.Helpers
             public const string L07_PriceList = $"{ApiBase}/vpppricelist";
             public const string L07_PriceList_SetDefault = $"{L07_PriceList}/{{0}}/set-default";
             public const string L07_PriceList_Clone = $"{L07_PriceList}/clone";
+            public const string L07_PriceList_Publish = $"{L07_PriceList}/{{0}}/publish";
+            public const string L07_PriceList_Expire = $"{L07_PriceList}/{{0}}/expire";
+            public const string L07_PriceList_Compare = $"{L07_PriceList}/compare";
         }
 
         public static class RequestApi
@@ -49,6 +60,10 @@ namespace gtas_vpp_fe.Helpers
             {
                 public const string Base = $"{ApiBase}/periodsettlement";
                 public const string Settle = $"{Base}/settle";
+                public const string Preview = $"{Base}/preview";
+                public const string Confirm = $"{Base}/confirm";
+                public const string Current = $"{Base}/current/{{0}}/{{1}}";
+                public const string Correct = $"{Base}/{{0}}/correct";
                 public const string Status = $"{Base}/{{0}}/{{1}}";
                 public const string ListAll = Base;
             }
@@ -63,27 +78,8 @@ namespace gtas_vpp_fe.Helpers
         // ENV-001 changes the backend JWT audience. Version the cookie name so an
         // existing frontend cookie cannot trap users with an access token that the
         // deployment-bound backend now correctly rejects.
-        public const string CookieName = "VPP_AuthCookie_v2";
-        public const int CookieExpireMinutes = 1440;
-        public const int ClaimExpireHours = 24;
-        public const int AuthPropertyExpireHours = 24;
-        public static class sp_AuthenClass
-        {
-            public enum sp_Authen
-            {
-                sp_Authen
-            }
-            public enum sp_Authen_Type
-            {
-                sp_Authen_Login,
-                sp_Authen_GetPermissionSinglePage,
-                sp_Authen_TabUser_UserList,
-                sp_Authen_TabUser_SearchUser,
-                sp_Authen_Permission_GetPageWithComponentByGroupId,
-                sp_Authen_CreateNewGroup,
-                sp_Authen_CopyFromGroup
-            }
-        }
+        public const string CookieName = "VPP_AuthCookie_v3";
+        public const int CookieExpireMinutes = 60;
         // Page codes for sp_Authen_GetPermissionSinglePage payloads.
         // NB: Component-level permission codes were deduplicated with
         // gtas_vpp_shared.Constants.Permissions (P4.C / F-24). Use that

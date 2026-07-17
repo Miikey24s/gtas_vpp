@@ -1,40 +1,53 @@
 @startuml
 !include ../common/sequence-style.puml
-title ĐÓNG KỲ VÀ CHỤP GIÁ
+title SET-002 — Preview, immutable settlement close and correction
 
-actor "Quản trị viên" as Admin
-boundary "PeriodSettlementPanel\n(Blazor)" as FE
+actor "Procurement admin" as Admin
+boundary "PeriodSettlementPanel\n(Blazor/Radzen)" as FE
 control "PeriodSettlementController" as API
 control "PeriodSettlementService" as Service
 database "VPPContext /\nSQL Server" as DB
 
-Admin -> FE : Chọn kỳ, bảng giá và xác nhận đóng kỳ
-FE -> API : POST /api/PeriodSettlement/settle
-API -> Service : SettleAsync(Y, M, PriceListId, UserID)
-Service -> Service : Kiểm tra Y/M
-Service -> DB : Begin transaction
-Service -> DB : Lấy bảng giá được chọn hoặc mặc định
-Service -> DB : Đếm đơn bổ sung còn Pending
-Service -> DB : Tải đơn Submitted/Approved và chi tiết
-Service -> DB : Kiểm tra giá cho toàn bộ vật tư
+Admin -> FE : Select period and price book
+FE -> API : POST /api/PeriodSettlement/preview
+API -> Service : PreviewAsync(Y, M, PriceAsOfUtc, selection)
+Service -> DB : Aggregate current regular + approved supplement rows
+Service -> DB : Compare effective supplier price books
+DB --> Service : Coverage, net/VAT, commercial terms, blockers
+Service --> API : Preview + stable InputHash
+API --> FE : 200 OK
+FE --> Admin : Show supplier, coverage, VND total and hash
 
-alt Thiếu bảng giá, còn Pending hoặc thiếu giá
-  Service -> DB : Rollback
-  Service --> API : Business/Conflict exception
-  API --> FE : 400/409 + chi tiết
-  FE --> Admin : Hiển thị nguyên nhân chưa thể đóng kỳ
-else Đủ điều kiện
-  loop Mỗi đơn và chi tiết hợp lệ
-    Service -> DB : Chụp CurrentSinglePrice
-    Service -> DB : Ghi SettledAt/By/PriceListId
-    Service -> DB : Thêm log PERIOD_SETTLED
+alt Blocker or stale basket
+  Admin -> FE : Change inputs / run preview again
+else Confirm current Pricing period
+  Admin -> FE : Confirm after preview
+  FE -> API : POST /api/PeriodSettlement/confirm
+  API -> Service : ConfirmAsync(InputHash, IdempotencyKey)
+  Service -> DB : Verify hash, current revision and period Pricing
+  Service -> DB : Begin short transaction
+  Service -> DB : Snapshot VPP04 header revision
+  loop Each aggregated VPP item
+    Service -> DB : Snapshot VPP05 net/VAT/MOQ/lead/SKU
+    Service -> DB : Snapshot VPP07 request-detail allocation
   end
+  Service -> DB : Snapshot VPP06 charges and reconcile totals
+  Service -> DB : Pricing -> Settled
   Service -> DB : Commit
-  Service -> DB : GetStatusAsync(Y, M)
-  DB --> Service : Trạng thái kỳ sau khi đóng
-  Service --> API : VPP_PeriodSettlementResDTO
+  Service --> API : Revision summary + GrandTotal
   API --> FE : 200 OK
-  FE --> Admin : Cập nhật trạng thái và số liệu kỳ
+  FE --> Admin : Show settled revision and reconciliation
+else Correct current Settled revision
+  Admin -> FE : Fresh preview + reason
+  FE -> API : POST /api/PeriodSettlement/{id}/correct
+  API -> Service : CorrectAsync(id, reason, InputHash)
+  Service -> DB : Require current revision and four-eyes actor
+  Service -> DB : Begin short transaction
+  Service -> DB : Mark prior revision not current (snapshots unchanged)
+  Service -> DB : Insert new VPP04/VPP05/VPP06/VPP07 revision
+  Service -> DB : Keep period Settled and commit
+  Service --> API : New revision summary
+  API --> FE : 200 OK
+  FE --> Admin : Show correction revision lineage
 end
 @enduml
-

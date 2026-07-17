@@ -31,6 +31,9 @@ public abstract class TestBase : IAsyncLifetime
     protected string TestPassword => _fixture?.Accounts.SystemAdmin.Password
         ?? throw new InvalidOperationException("Authenticated UI tests require a harness-owned QA account.");
 
+    protected QaTestAccounts TestAccounts => _fixture?.Accounts
+        ?? throw new InvalidOperationException("Authenticated UI tests require a harness-owned QA fixture.");
+
     public async ValueTask InitializeAsync()
     {
         try
@@ -60,7 +63,11 @@ public abstract class TestBase : IAsyncLifetime
                 SlowMo = GetSlowMo(),
                 ExecutablePath = GetBrowserExecutablePath()
             });
-            Page = await _browser.NewPageAsync();
+            Page = await _browser.NewPageAsync(new BrowserNewPageOptions
+            {
+                Locale = "vi-VN",
+                TimezoneId = "Asia/Ho_Chi_Minh"
+            });
             Page.SetDefaultTimeout(60_000);
             Page.SetDefaultNavigationTimeout(120_000);
         }
@@ -108,11 +115,88 @@ public abstract class TestBase : IAsyncLifetime
     }
 
     protected async Task LoginAsDefaultUserAsync()
+        => await LoginAsAsync(TestAccounts.SystemAdmin);
+
+    protected async Task LoginAsAsync(QaTestAccount account)
     {
+        await Page.GotoAsync(
+            $"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin",
+            new PageGotoOptions
+            {
+                Timeout = 120_000,
+                WaitUntil = WaitUntilState.DOMContentLoaded
+            });
         var loginPage = new Pages.Auth.LoginPage(Page);
         await loginPage.GotoAsync(BaseUrl);
-        await loginPage.LoginAsync(TestUsername, TestPassword);
+        await loginPage.LoginAsync(account.Username, account.Password);
         await loginPage.WaitForDashboardAsync();
+    }
+
+    protected async Task SwitchUserAsync(QaTestAccount account)
+    {
+        await Page.GotoAsync($"{BaseUrl}perform-logout", new PageGotoOptions
+        {
+            Timeout = 120_000,
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.WaitForURLAsync(
+            new System.Text.RegularExpressions.Regex(".*/Account/Login.*", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
+            new PageWaitForURLOptions { Timeout = 30_000 });
+        await LoginAsAsync(account);
+    }
+
+    protected Task<ILocator> GetInteractiveButtonAsync(
+        ILocator scope,
+        string accessibleName,
+        bool exact = true)
+        => GetInteractiveButtonAsync(
+            scope.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions
+            {
+                Name = accessibleName,
+                Exact = exact
+            }),
+            accessibleName);
+
+    protected Task<ILocator> GetInteractiveButtonAsync(
+        ILocator scope,
+        System.Text.RegularExpressions.Regex accessibleName)
+        => GetInteractiveButtonAsync(
+            scope.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions
+            {
+                NameRegex = accessibleName
+            }),
+            accessibleName.ToString());
+
+    private static async Task<ILocator> GetInteractiveButtonAsync(
+        ILocator candidates,
+        string description)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        var lastCount = 0;
+        do
+        {
+            lastCount = await candidates.CountAsync();
+            for (var index = lastCount - 1; index >= 0; index--)
+            {
+                var candidate = candidates.Nth(index);
+                if (!await candidate.IsVisibleAsync())
+                {
+                    continue;
+                }
+
+                var hasBlazorBinding = await candidate.EvaluateAsync<bool>(
+                    "element => Array.from(element.attributes).some(attribute => attribute.name.startsWith('_bl_'))");
+                if (hasBlazorBinding)
+                {
+                    return candidate;
+                }
+            }
+
+            await Task.Delay(100);
+        } while (DateTime.UtcNow < deadline);
+
+        throw new InvalidOperationException(
+            $"No visible Blazor-interactive button matched '{description}' within 30 seconds. Candidate count: {lastCount}.");
     }
 
     private async Task<string> StartIsolatedApplicationAsync(CancellationToken cancellationToken)
@@ -123,7 +207,6 @@ public abstract class TestBase : IAsyncLifetime
         {
             $"--Parameters:test-database-connection-string={_fixture.ConnectionString}",
             $"--Parameters:jwt-key={_fixture.Secrets.JwtKey}",
-            $"--Parameters:password-encryption-key={_fixture.Secrets.PasswordEncryptionKey}",
             $"--Parameters:qa-fixture-run-id={_fixture.Options.RunId}"
         };
         var appHost = await DistributedApplicationTestingBuilder

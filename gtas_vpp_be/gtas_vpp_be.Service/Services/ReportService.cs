@@ -27,6 +27,15 @@ public interface IReportService
         int? year,
         int? month,
         CancellationToken cancellationToken = default);
+
+    Task<ReportExportResult> ExportWorkbookAsync(
+        string scope,
+        int userId,
+        string departmentCode,
+        string memberCompanyCode,
+        int? year,
+        int? month,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ReportService(VPPContext context) : IReportService
@@ -85,6 +94,32 @@ public sealed class ReportService(VPPContext context) : IReportService
                 Amount = group.Sum(detail => detail.Qty * detail.CurrentSinglePrice)
             })
             .FirstOrDefaultAsync(cancellationToken);
+
+        VPP04_Settlement? settlement = null;
+        var scopedSettlementAllocations = new List<VPP07_SettlementAllocation>();
+        if (year.HasValue && month.HasValue)
+        {
+            settlement = await _context.Set<VPP04_Settlement>()
+                .AsNoTracking()
+                .Include(item => item.Items)
+                .Include(item => item.Allocations)
+                .FirstOrDefaultAsync(item => !item.IsDeleted
+                    && item.IsCurrentRevision
+                    && item.MemberCompanyCode == memberCompanyCode
+                    && item.Y == year.Value
+                    && item.M == month.Value, cancellationToken);
+            if (settlement is not null)
+            {
+                scopedSettlementAllocations = settlement.Allocations
+                    .Where(allocation => scope switch
+                    {
+                        ReportScopes.Own => allocation.RequesterUserId == userId,
+                        ReportScopes.Department => allocation.DepartmentCode == departmentCode,
+                        _ => true
+                    })
+                    .ToList();
+            }
+        }
 
         var periodRaw = await filteredHeaders
             .GroupBy(order => new { order.Y, order.M })
@@ -146,6 +181,63 @@ public sealed class ReportService(VPPContext context) : IReportService
             .Take(10)
             .ToListAsync(cancellationToken);
 
+        var effectiveTotalOrders = totalOrders;
+        var effectiveTotalLines = detailStats?.Lines ?? 0;
+        var effectiveTotalQuantity = detailStats?.Quantity ?? 0;
+        var effectiveTotalAmount = detailStats?.Amount ?? 0;
+        if (settlement is not null)
+        {
+            effectiveTotalOrders = scopedSettlementAllocations
+                .Select(item => item.RequestHeaderId)
+                .Distinct()
+                .Count();
+            effectiveTotalLines = scopedSettlementAllocations
+                .Select(item => item.RequestDetailId)
+                .Distinct()
+                .Count();
+            effectiveTotalQuantity = (int)scopedSettlementAllocations.Sum(item => item.Quantity);
+            effectiveTotalAmount = (long)decimal.Round(
+                scopedSettlementAllocations.Sum(item => item.GrossAmount),
+                0,
+                MidpointRounding.AwayFromZero);
+
+            var allocationByDepartment = scopedSettlementAllocations
+                .GroupBy(item => item.DepartmentCode ?? "-")
+                .Select(group => new ReportDepartmentPointResDTO
+                {
+                    DepartmentCode = group.Key,
+                    OrderCount = group.Select(item => item.RequestHeaderId).Distinct().Count(),
+                    TotalQuantity = (int)group.Sum(item => item.Quantity),
+                    TotalAmount = (long)group.Sum(item => item.GrossAmount)
+                })
+                .OrderByDescending(item => item.TotalAmount)
+                .ThenBy(item => item.DepartmentCode)
+                .Take(12)
+                .ToList();
+            departmentRaw = allocationByDepartment;
+
+            var itemById = settlement.Items.ToDictionary(item => item.Id);
+            topProducts = scopedSettlementAllocations
+                .GroupBy(item => item.SettlementItemId)
+                .Where(group => itemById.ContainsKey(group.Key))
+                .Select(group => new ReportProductPointResDTO
+                {
+                    ProductCode = itemById[group.Key].VppCode,
+                    ProductName = itemById[group.Key].VppName,
+                    TotalQuantity = (int)group.Sum(item => item.Quantity),
+                    TotalAmount = (long)group.Sum(item => item.GrossAmount)
+                })
+                .OrderByDescending(item => item.TotalQuantity)
+                .ThenBy(item => item.ProductCode)
+                .Take(10)
+                .ToList();
+        }
+
+        var settlementAllocationTotal = settlement?.Allocations.Sum(item => item.GrossAmount);
+        decimal? settlementVariance = settlement is null
+            ? null
+            : settlement.GrandTotal - settlementAllocationTotal!.Value;
+
         return new ReportSummaryResDTO
         {
             Scope = scope,
@@ -153,12 +245,19 @@ public sealed class ReportService(VPPContext context) : IReportService
             Month = month,
             GeneratedAt = DateTime.UtcNow,
             AvailableYears = availableYears,
-            TotalOrders = totalOrders,
+            TotalOrders = effectiveTotalOrders,
             TotalDepartments = totalDepartments,
             TotalRequesters = totalRequesters,
-            TotalLines = detailStats?.Lines ?? 0,
-            TotalQuantity = detailStats?.Quantity ?? 0,
-            TotalAmount = detailStats?.Amount ?? 0,
+            TotalLines = effectiveTotalLines,
+            TotalQuantity = effectiveTotalQuantity,
+            TotalAmount = effectiveTotalAmount,
+            IsSettlementReconciled = settlement is not null && settlementVariance == 0m,
+            SettlementId = settlement?.Id,
+            SettlementRevisionNumber = settlement?.RevisionNumber,
+            SettlementPrimarySupplierName = settlement?.PrimarySupplierName,
+            SettlementGrandTotal = settlement?.GrandTotal,
+            SettlementAllocationTotal = settlementAllocationTotal,
+            SettlementVariance = settlementVariance,
             PeriodTrend = periodRaw.Select(item => new ReportPeriodPointResDTO
             {
                 Year = item.Year,
@@ -263,6 +362,81 @@ public sealed class ReportService(VPPContext context) : IReportService
             content,
             $"GTAS-VPP-{scope}-{periodPart}.csv",
             "text/csv; charset=utf-8");
+    }
+
+    public async Task<ReportExportResult> ExportWorkbookAsync(
+        string scope,
+        int userId,
+        string departmentCode,
+        string memberCompanyCode,
+        int? year,
+        int? month,
+        CancellationToken cancellationToken = default)
+    {
+        Validate(scope, departmentCode, memberCompanyCode, year, month);
+        var summary = await GetSummaryAsync(
+            scope, userId, departmentCode, memberCompanyCode, year, month, cancellationToken);
+        var items = new List<ReportWorkbookItem>();
+
+        if (year.HasValue && month.HasValue)
+        {
+            var settlement = await _context.Set<VPP04_Settlement>()
+                .AsNoTracking()
+                .Include(item => item.Items)
+                .Include(item => item.Allocations)
+                .FirstOrDefaultAsync(item => !item.IsDeleted
+                    && item.IsCurrentRevision
+                    && item.MemberCompanyCode == memberCompanyCode
+                    && item.Y == year.Value
+                    && item.M == month.Value, cancellationToken);
+            if (settlement is not null)
+            {
+                var itemById = settlement.Items.ToDictionary(item => item.Id);
+                var scoped = settlement.Allocations.Where(allocation => scope switch
+                {
+                    ReportScopes.Own => allocation.RequesterUserId == userId,
+                    ReportScopes.Department => allocation.DepartmentCode == departmentCode,
+                    _ => true
+                });
+                items = scoped
+                    .Where(allocation => itemById.ContainsKey(allocation.SettlementItemId))
+                    .Select(allocation =>
+                    {
+                        var item = itemById[allocation.SettlementItemId];
+                        return new ReportWorkbookItem(
+                            $"{month:00}/{year}",
+                            allocation.DepartmentCode ?? "-",
+                            allocation.RequesterUserId,
+                            item.VppCode,
+                            item.VppName,
+                            allocation.Quantity,
+                            item.NetUnitPrice,
+                            item.VatRate,
+                            allocation.NetAmount,
+                            allocation.VatAmount,
+                            allocation.CommercialAdjustmentAmount + allocation.RoundingAdjustment,
+                            allocation.GrossAmount,
+                            item.SupplierId == settlement.PrimarySupplierId
+                                ? settlement.PrimarySupplierName
+                                : $"Exception supplier {item.SupplierId}",
+                            item.PriceListId == settlement.PriceListId
+                                ? settlement.PriceListName
+                                : $"Exception price book {item.PriceListId}",
+                            item.IsSupplierException);
+                    })
+                    .OrderBy(item => item.DepartmentCode)
+                    .ThenBy(item => item.ProductCode)
+                    .ToList();
+            }
+        }
+
+        var periodPart = year.HasValue
+            ? month.HasValue ? $"{year}-{month:00}" : year.Value.ToString(CultureInfo.InvariantCulture)
+            : "all";
+        return new ReportExportResult(
+            ReportWorkbookBuilder.Build(summary, items),
+            $"GTAS-VPP-{scope}-{periodPart}.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
     public static string EscapeCsvCell(string? value)

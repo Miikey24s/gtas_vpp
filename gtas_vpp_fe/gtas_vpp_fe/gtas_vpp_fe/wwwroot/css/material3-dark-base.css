@@ -1,0 +1,4 @@
+/*
+ * Compatibility alias for persisted material3-dark preferences. The actual
+ * dark base theme is loaded from _content/Radzen.Blazor/css/material-dark-base.css.
+ */

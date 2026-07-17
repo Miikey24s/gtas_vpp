@@ -19,6 +19,7 @@ namespace gtas_vpp_be.Model.Library
         public string? Ward { get; set; }
         public string? City { get; set; }
         public virtual ICollection<L06_VPPSupplierMapping>? L06_VPPSupplierMappings { get; set; }
+        public virtual ICollection<L07_PriceList>? PriceBooks { get; set; }
         public L05_VPPSupplier() { }
     }
 }

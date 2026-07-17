@@ -15,6 +15,8 @@ namespace gtas_vpp_be.Service.Domain
     /// </remarks>
     public sealed class PeriodCalculator
     {
+        private const string WindowsVietnamTimeZone = "SE Asia Standard Time";
+        private const string IanaVietnamTimeZone = "Asia/Ho_Chi_Minh";
         private readonly int _deadlineDay;
 
         public PeriodCalculator(int deadlineDay = 5)
@@ -28,6 +30,41 @@ namespace gtas_vpp_be.Service.Domain
         }
 
         public int DeadlineDay => _deadlineDay;
+
+        /// <summary>
+        /// Resolves the business timezone used by VPP.  Windows and Linux use
+        /// different identifiers; keeping the lookup here prevents period
+        /// boundary calculations from depending on the host's local timezone.
+        /// </summary>
+        public static System.TimeZoneInfo BusinessTimeZone
+        {
+            get
+            {
+                try
+                {
+                    return System.TimeZoneInfo.FindSystemTimeZoneById(
+                        System.OperatingSystem.IsWindows()
+                            ? WindowsVietnamTimeZone
+                            : IanaVietnamTimeZone);
+                }
+                catch (System.TimeZoneNotFoundException)
+                {
+                    return System.TimeZoneInfo.CreateCustomTimeZone(
+                        IanaVietnamTimeZone,
+                        System.TimeSpan.FromHours(7),
+                        "Vietnam time",
+                        "Vietnam time");
+                }
+                catch (System.InvalidTimeZoneException)
+                {
+                    return System.TimeZoneInfo.CreateCustomTimeZone(
+                        IanaVietnamTimeZone,
+                        System.TimeSpan.FromHours(7),
+                        "Vietnam time",
+                        "Vietnam time");
+                }
+            }
+        }
 
         /// <summary>Compute the current open period at the supplied moment.</summary>
         public Period Current(System.DateTime now)
@@ -62,6 +99,64 @@ namespace gtas_vpp_be.Service.Domain
             => new System.DateTime(period.Year, period.Month, 1)
                 .AddMonths(1)
                 .AddDays(_deadlineDay - 1);
+
+        /// <summary>Returns the local business-date start of a period.</summary>
+        public System.DateTime StartAtLocal(Period period)
+            => new System.DateTime(period.Year, period.Month, _deadlineDay,
+                0, 0, 0, System.DateTimeKind.Unspecified);
+
+        /// <summary>Returns the local business deadline of a period.</summary>
+        public System.DateTime SubmissionDeadlineLocal(Period period)
+            => new System.DateTime(period.Year, period.Month, 1,
+                0, 0, 0, System.DateTimeKind.Unspecified)
+                .AddMonths(1)
+                .AddDays(_deadlineDay - 1);
+
+        /// <summary>
+        /// Converts a local Vietnam business timestamp to UTC.  An unspecified
+        /// kind is deliberate: the input is a wall-clock business time, not a
+        /// timestamp in the machine's timezone.
+        /// </summary>
+        public static System.DateTime ToUtc(System.DateTime localBusinessTime)
+        {
+            var unspecified = System.DateTime.SpecifyKind(
+                localBusinessTime, System.DateTimeKind.Unspecified);
+            return System.TimeZoneInfo.ConvertTimeToUtc(unspecified, BusinessTimeZone);
+        }
+
+        /// <summary>Returns the UTC start of the supplied period.</summary>
+        public System.DateTime StartAtUtc(Period period)
+            => ToUtc(StartAtLocal(period));
+
+        /// <summary>Returns the UTC regular submission deadline.</summary>
+        public System.DateTime SubmissionDeadlineUtc(Period period)
+            => ToUtc(SubmissionDeadlineLocal(period));
+
+        /// <summary>
+        /// Returns the UTC deadline for approving a pending supplement.  The
+        /// grace is applied after the regular deadline and must be nonnegative.
+        /// </summary>
+        public System.DateTime SupplementApprovalDeadlineUtc(
+            Period period,
+            System.TimeSpan approvalGrace)
+        {
+            if (approvalGrace < System.TimeSpan.Zero)
+            {
+                throw new System.ArgumentOutOfRangeException(
+                    nameof(approvalGrace), approvalGrace,
+                    "Approval grace cannot be negative.");
+            }
+
+            return ToUtc(SubmissionDeadlineLocal(period).Add(approvalGrace));
+        }
+
+        /// <summary>
+        /// Converts the provider's Vietnam wall-clock value to UTC.  Existing
+        /// callers expose only <c>IDateTimeProvider.Now</c>, so this helper
+        /// centralizes the kind normalization needed by persisted timestamps.
+        /// </summary>
+        public static System.DateTime NormalizeNowUtc(System.DateTime now)
+            => now.Kind == System.DateTimeKind.Utc ? now : ToUtc(now);
     }
 
     /// <summary>Calendar period (year + month) — inclusive of M.</summary>

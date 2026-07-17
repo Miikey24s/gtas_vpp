@@ -47,6 +47,19 @@ working Word file, `App.razor`, `vpp-login.css` and `vpp-responsive.css`. A
 package may touch one only after an explicit overlap decision; otherwise it
 must preserve its preflight hash and never stage it.
 
+### Current execution status — 2026-07-17
+
+| Package | Status | Evidence / next action |
+|---|---|---|
+| LEAN-02 — Trusted access and account cutover | DONE | `docs/execution/LEAN-02.md` |
+| LEAN-03 — Registration and recovery | DONE | `docs/execution/LEAN-03.md` |
+| LEAN-04 — UI foundation and independent brand | DONE | `docs/execution/LEAN-04.md` |
+| LEAN-05 — Request and supplement core | DONE | `docs/execution/LEAN-05.md`; all package gates green |
+| LEAN-06 — Procurement and immutable settlement | DONE | `CAT-001`, `PRICE-001/002`, `SET-001`, `SET-002/UI-006` DONE; see execution records |
+| LEAN-07 — Product proof | DONE | `docs/execution/LEAN-07.md`; reports/workbook/inbox/outbox gates green |
+| LEAN-08 — Release candidate quality and recovery | DONE (local RC + isolated E2E + approved local recovery alternative) | `docs/execution/LEAN-08.md`, `docs/execution/DEP-002.md`; two clean isolated rehearsals and disposable LocalDB backup/restore complete; deployed/server recovery remains conditional |
+| LEAN-09 — Thesis, defense and handoff | DONE (local-only release/handoff alternative) | Traceability/diagram delta, current anonymized screenshots, final checkpoint render/audit and release tag complete; protected working DOCX remains unchanged |
+
 ## 4. Retained execution packages
 
 | Package | Original cards folded into it | Depends on | Timebox | Exit result |
@@ -57,7 +70,7 @@ must preserve its preflight hash and never stage it.
 | **LEAN-04 — UI foundation and independent brand** | UI-001, UI-002; only directly needed ARCH-004 work | ARCH-001, D-009; access contracts from LEAN-02 | 2 d | Typed navigation/error/async states, coherent Radzen-based design system, Vietnamese-first IA, accessibility baseline and responsive shell for six core demo routes. No framework rewrite. |
 | **LEAN-05 — Request and supplement core** | PER-001, REQ-001, SUP-001, UI-003/005, existing/capped WOW-001 | LEAN-02, LEAN-04 | 4 d | Vietnam period 05→04, one regular request/user/period, revision/cancel/history, supplement reason/quota/one-pending/approval and concurrency invariants pass end-to-end. Copy-with-diff stays only if the existing flow can be completed within half a day. |
 | **LEAN-06 — Procurement and immutable settlement** | CAT-001, PRICE-001/002, SET-001/002, UI-006 | LEAN-02, LEAN-04, LEAN-05 | 6 d | Typed catalog/unit/supplier writes and paging/search for 1,000 items; effective net/VAT price books; company-wide preview; one primary supplier with reasoned exception; immutable price/discount/fee/VAT snapshot; allocation reconciliation, idempotent close and correction revision pass. Implement internally as catalog/price then settlement sub-checkpoints, not one giant commit. |
-| **LEAN-07 — Product proof: reports, Excel, inbox and email sandbox** | REPORT-001/002/003, NOTIF-001/002; approved alternative for NOTIF-003 | LEAN-03, LEAN-04, LEAN-05, LEAN-06 | 3 d | Role-scoped KPI and dashboard drill-down reconcile with settlement; one polished Excel workbook passes; durable/idempotent inbox and Vietnamese templates work; Mailpit/local sandbox proves email without a real provider blocker. Existing AI insight may remain off; no new AI implementation. |
+| **LEAN-07 — Product proof: reports, Excel, inbox and email sandbox** | REPORT-001/002/003, NOTIF-001/002; approved alternative for NOTIF-003 | LEAN-03, LEAN-04, LEAN-05, LEAN-06 | DONE | Role-scoped KPI and dashboard drill-down reconcile with settlement; one polished Excel workbook passes; durable/idempotent inbox and Vietnamese templates work; Mailpit/local sandbox proves email without a real provider blocker. Existing AI insight may remain off; no new AI implementation. |
 | **LEAN-08 — Release candidate quality and recovery** | Minimum necessary ARCH-002, PERF-001, OBS-001, QA-002/003, DEP-001/002; only blocking ARCH-003/004 findings | LEAN-03..07 | 3 d | Build/tests, security scans, migration gate, 4–5 core E2E journeys, representative 3-viewport/a11y smoke, targeted scale probes, log scrubbing, paired backup/restore rehearsal and local/server release decision are green. |
 | **LEAN-09 — Thesis, defense and handoff** | DOC-001/002/003, REL-001 | Evidence from every package; final work after LEAN-08 | 4–6 d | Source/Word/diagram/traceability agree; anonymized screenshots; fields/links/pages/render checked; clean-state demo rehearsed twice; final DOCX/package/tag handed off. |
 
@@ -93,7 +106,7 @@ waits for source freeze.
 | Original work | 2026-08-15 decision | Reason / retained substitute |
 |---|---|---|
 | REPORT-004 PDF | DEFERRED | Excel is the required business export and better thesis evidence for this release. |
-| WOW-002 favorites/recent, WOW-003 reorder suggestion, WOW-004 heatmap | DEFERRED | Useful but not worth risking auth/settlement/Word. Copy-with-diff (WOW-001), dashboard and UI polish remain. |
+| WOW-001/002/003/004 | DEFERRED as separate release claims | Existing copy-with-diff code may remain, but no showcase acceptance is claimed after source freeze; dashboard and mandatory UI polish remain. |
 | AI-001 | DEFERRED and feature flag stays off | No core decision should depend on AI; avoids provider/privacy/quota work while leaked Google keys are contained. |
 | NOTIF-003 real production provider | ALTERNATIVE: sandbox | Durable inbox and email behavior are proved with Mailpit/local sandbox. Real deliverability is post-thesis. |
 | ARCH-002 mass formatting/analyzer cleanup | REDUCED | Format only touched files; keep `git diff --check`, build and a small CI ratchet. |

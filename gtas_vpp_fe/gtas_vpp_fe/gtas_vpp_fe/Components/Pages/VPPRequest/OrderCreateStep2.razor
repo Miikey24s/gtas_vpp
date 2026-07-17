@@ -20,12 +20,25 @@
                         </RadzenStack>
                         
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Style="flex: 1; justify-content: flex-end; min-width: 280px;">
-                            <RadzenTextBox @bind-Value="Context.Description"
-                                           Placeholder="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
-                                           aria-label="@(Context.IsAdditional ? Loc["WizardAdditionalReasonHint"] : Loc["WizardApproverNotesHint"])"
-                                           Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
-                                           Change="@(_ => Context.NotifyStateChanged())" />
-                            @if (Context.IsAdditional && string.IsNullOrWhiteSpace(Context.Description))
+                            @if (Context.IsAdditional)
+                            {
+                                <RadzenTextBox @bind-Value="Context.SupplementReason"
+                                               Placeholder="@Loc["WizardAdditionalReasonHint"]"
+                                               aria-label="@Loc["WizardAdditionalReasonHint"]"
+                                               MaxLength="500"
+                                               Style="width: 100%; max-width: 420px; height: 32px; font-size: 0.85rem;"
+                                               Change="@(_ => Context.NotifyStateChanged())" />
+                            }
+                            else
+                            {
+                                <RadzenTextBox @bind-Value="Context.Description"
+                                               Placeholder="@Loc["WizardApproverNotesHint"]"
+                                               aria-label="@Loc["WizardApproverNotesHint"]"
+                                               MaxLength="500"
+                                               Style="width: 100%; max-width: 320px; height: 32px; font-size: 0.85rem;"
+                                               Change="@(_ => Context.NotifyStateChanged())" />
+                            }
+                            @if (Context.IsAdditional && (string.IsNullOrWhiteSpace(Context.SupplementReason) || Context.SupplementReason.Trim().Length < 5))
                             {
                                 <RadzenIcon Icon="warning" Style="color: var(--vpp-warning-500); font-size: 1.1rem;" Title="@Loc["WizardAdditionalReasonRequired"]" />
                             }
@@ -34,23 +47,29 @@
                 </div>
 
                 <RadzenDataGrid @ref="productGrid"
-                                TItem="ProductOption"
-                                Data="@ProductOptions"
-                                IsLoading="@IsLoadingProducts"
-                                AllowVirtualization="true"
-                                AllowPaging="false"
-                                AllowSorting="true"
-                                AllowFiltering="true"
-                                FilterMode="FilterMode.CheckBoxList"
-                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                 TItem="ProductOption"
+                                 Data="@ProductOptions"
+                                 Count="@ProductCount"
+                                 LoadData="@LoadProductsAsync"
+                                 IsLoading="@IsLoadingProducts"
+                                 AllowVirtualization="false"
+                                 AllowPaging="true"
+                                 PageSize="20"
+                                 PageSizeOptions="@(new int[] { 20, 50, 100 })"
+                                 AllowSorting="true"
+                                 AllowFiltering="true"
+                                 FilterMode="FilterMode.SimpleWithMenu"
+                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                 AllowColumnResize="true"
                                 Density="Density.Compact"
                                 GridLines="DataGridGridLines.Horizontal"
                                 RowRender="@OnRowRender"
                                 Style="border: none; flex: 1; min-height: 0;">
-                    <Columns>
+                     <Columns>
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="100px" />
                         <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="100px" />
                         <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="130px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="@Loc["UOM"]" Width="80px" />
                         <RadzenDataGridColumn TItem="ProductOption" Title="" Width="42px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 @{
@@ -181,15 +200,29 @@
     public RadzenDataGrid<OrderCreateContext.SelectedItem>? selectedGrid;
     private bool _pendingSelectedGridReload;
 
-    protected override async Task OnInitializedAsync()
+    private async Task LoadProductsAsync(LoadDataArgs args)
     {
         IsLoadingProducts = true;
         try
         {
-            var endpoint = "/api/VPPRequest/products/lookup";
-            var result = await _apiServices.GetFromApiAsync<List<ProductOption>>(endpoint);
-            ProductOptions = result ?? new();
-            ProductCount = ProductOptions.Count;
+            var query = new List<string>
+            {
+                $"skip={args.Skip ?? 0}",
+                $"top={args.Top ?? 20}"
+            };
+            if (!string.IsNullOrWhiteSpace(args.Filter))
+            {
+                query.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+            }
+            if (!string.IsNullOrWhiteSpace(args.OrderBy))
+            {
+                query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
+            }
+
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(
+                $"/api/VPPRequest/products?{string.Join("&", query)}");
+            ProductOptions = result.Data ?? new();
+            ProductCount = result.TotalCount;
         }
         catch (Exception ex)
         {

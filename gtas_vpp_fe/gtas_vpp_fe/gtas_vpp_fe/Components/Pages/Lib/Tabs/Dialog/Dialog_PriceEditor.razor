@@ -17,6 +17,20 @@
         <RadzenFormField Text="@Loc["Price"]" class="w-100">
             <RadzenNumeric Name="Price" TValue="decimal" @bind-Value="Model.Price" Min="0" Style="width:100%" />
         </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Wrap="FlexWrap.Wrap">
+            <RadzenFormField Text="VAT %" class="vpp-price-term-field">
+                <RadzenNumeric TValue="decimal" @bind-Value="Model.VatRate" Min="0" Max="100" Style="width:100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="MOQ" class="vpp-price-term-field">
+                <RadzenNumeric TValue="decimal" @bind-Value="Model.MinimumOrderQuantity" Min="0" Style="width:100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Lead days" class="vpp-price-term-field">
+                <RadzenNumeric TValue="int" @bind-Value="Model.LeadTimeDays" Min="0" Style="width:100%" />
+            </RadzenFormField>
+        </RadzenStack>
+        <RadzenFormField Text="Supplier SKU" class="w-100">
+            <RadzenTextBox @bind-Value="Model.SupplierSku" Style="width:100%" />
+        </RadzenFormField>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
             <RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" />
             <RadzenText Text="@Loc["DefaultPrice"]" TextStyle="TextStyle.Body2" />

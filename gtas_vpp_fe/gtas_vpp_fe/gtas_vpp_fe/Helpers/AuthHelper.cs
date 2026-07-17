@@ -11,12 +11,18 @@ namespace gtas_vpp_fe.Helpers
         private readonly AuthenticationStateProvider _authProvider;
         private readonly IAPIServices _api;
         private readonly GlobalClass _glb;
+        private readonly CurrentUserState _currentUserState;
 
-        public AuthHelper(AuthenticationStateProvider auth, IAPIServices api, GlobalClass glb)
+        public AuthHelper(
+            AuthenticationStateProvider auth,
+            IAPIServices api,
+            GlobalClass glb,
+            CurrentUserState currentUserState)
         {
             _authProvider = auth;
             _api = api;
             _glb = glb;
+            _currentUserState = currentUserState;
         }
 
         public async Task<(bool IsAuthenticated, IEnumerable<Claim> Claims)> EnsureAuthenticatedAsync()
@@ -29,15 +35,32 @@ namespace gtas_vpp_fe.Helpers
                 return (false, Array.Empty<Claim>());
             }
 
-            try
+            var currentUser = await _currentUserState.EnsureLoadedAsync();
+            if (currentUser is null)
             {
-                _glb.UserInfo = user.Claims.Claims_To_sp_AuthenticationLogin();
+                return (false, Array.Empty<Claim>());
             }
-            catch (Exception ex)
+
+            _glb.UserInfo = new sp_Authentication_Login
             {
-                Console.WriteLine($"ToDto ERROR: {ex}");
-                throw;
-            }
+                UserID = currentUser.UserId,
+                UserLogin = currentUser.UserLogin,
+                FullName = currentUser.FullName,
+                Email = currentUser.Email,
+                IsAdmin = string.Equals(
+                    currentUser.GroupCode,
+                    gtas_vpp_shared.Constants.CanonicalRbac.SystemAdmin.GroupCode,
+                    StringComparison.Ordinal),
+                GroupId = currentUser.GroupId,
+                GroupName = currentUser.GroupName,
+                MemberCompanyCode = currentUser.MemberCompanyCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                DepartmentName = currentUser.DepartmentName,
+                DepartmentCode = currentUser.DepartmentCode,
+                AccessToken = user.Claims.Get(ClaimKeys.AccessToken),
+                SessionVersion = currentUser.SessionVersion,
+                AccountStatus = currentUser.AccountStatus,
+                MustChangePassword = currentUser.MustChangePassword
+            };
 
             return (true, user.Claims);
         }

@@ -5,6 +5,12 @@ namespace gtas_vpp_shared.DTOs.Res.Library
     public class L06_VPPSupplierMappingResDTO : BaseResDTO
     {
         public decimal Price { get; set; }
+        public decimal NetPrice { get; set; }
+        public decimal VatRate { get; set; }
+        public decimal MinimumOrderQuantity { get; set; }
+        public int LeadTimeDays { get; set; }
+        public string? SupplierSku { get; set; }
+        public byte[]? RowVersion { get; set; }
         public bool IsDefault { get; set; }
         public Guid L04_VPPId { get; set; }
         public string? L04_VPPName { get; set; }

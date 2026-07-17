@@ -34,13 +34,23 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
             return new PermissionSnapshotResDTO();
         }
 
+        var canonicalGroupIds = CanonicalRbac.Personas
+            .Select(persona => persona.GroupId)
+            .ToArray();
         var activeGroups = await _context.Set<P04_UserGroup>()
             .AsNoTracking()
             .Where(mapping => mapping.UserId == userId
+                && mapping.AccountId == userId
                 && !mapping.IsDeleted
                 && mapping.P02_Group != null
-                && !mapping.P02_Group.IsDeleted)
-            .Select(mapping => mapping.P02_GroupId)
+                && !mapping.P02_Group.IsDeleted
+                && mapping.P02_Group.ParentGroupId == null
+                && canonicalGroupIds.Contains(mapping.P02_GroupId))
+            .Select(mapping => new
+            {
+                mapping.P02_GroupId,
+                mapping.P02_Group!.GroupCode
+            })
             .Distinct()
             .Take(2)
             .ToListAsync(cancellationToken);
@@ -52,7 +62,16 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
             return new PermissionSnapshotResDTO();
         }
 
-        var groupId = activeGroups[0];
+        var activeGroup = activeGroups[0];
+        var canonicalGroup = CanonicalRbac.Personas.SingleOrDefault(persona =>
+            persona.GroupId == activeGroup.P02_GroupId
+            && string.Equals(persona.GroupCode, activeGroup.GroupCode, StringComparison.Ordinal));
+        if (canonicalGroup is null)
+        {
+            return new PermissionSnapshotResDTO();
+        }
+
+        var groupId = canonicalGroup.GroupId;
 
         var companyClaim = user.FindFirst("MemberCompanyCode")?.Value;
         var hasCompany = long.TryParse(companyClaim, out var memberCompanyCode);
@@ -98,7 +117,15 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
             .Where(code => !string.IsNullOrWhiteSpace(code))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var effectivePermissions = PermissionCompatibility.Expand(grantedComponents);
+        // UI/menu component visibility is deliberately separate from backend
+        // authority. Only explicitly seeded action codes can satisfy a policy;
+        // no legacy component is expanded into broader permissions.
+        var actionCeiling = CanonicalRbac.GetActionPermissions(groupId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var effectivePermissions = grantedComponents
+            .Where(Permissions.IsActionCode)
+            .Where(actionCeiling.Contains)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         return new PermissionSnapshotResDTO
         {
@@ -134,67 +161,5 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
     {
         var snapshot = await GetSnapshotAsync(user, cancellationToken);
         return snapshot.Permissions.Contains(permissionCode, StringComparer.OrdinalIgnoreCase);
-    }
-}
-
-public static class PermissionCompatibility
-{
-    private static readonly IReadOnlyDictionary<string, string[]> ImpliedActions =
-        new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
-        {
-            [Permissions.RequestOrder] =
-            [
-                Permissions.RequestViewOwn,
-                Permissions.RequestCreate,
-                Permissions.RequestUpdateOwn,
-                Permissions.RequestCancelOwn,
-                Permissions.RequestCatalogView
-            ],
-            [Permissions.RequestHistory] = [Permissions.RequestViewOwn],
-            [Permissions.RequestProductCatalog] = [Permissions.RequestCatalogView],
-            [Permissions.RequestDepartmentSummary] = [Permissions.RequestViewDepartment],
-            [Permissions.RequestAllOrdersSummary] = [Permissions.RequestViewAll],
-            [Permissions.RequestAdminApproval] = [Permissions.RequestApprove, Permissions.RequestReject],
-            [Permissions.PermissionUser] = [Permissions.PermissionView, Permissions.PermissionManage],
-            [Permissions.PermissionComponent] = [Permissions.PermissionView, Permissions.PermissionManage],
-            [Permissions.ReportView] =
-            [
-                Permissions.ReportViewOwn,
-                Permissions.ReportViewDepartment,
-                Permissions.ReportViewAll,
-                Permissions.ReportExport
-            ]
-        };
-
-    private static readonly HashSet<string> LegacyLibraryPermissions =
-    [
-        Permissions.LibraryClass,
-        Permissions.LibraryCategory,
-        Permissions.LibraryItem,
-        Permissions.LibrarySupplier,
-        Permissions.LibraryPrice,
-        Permissions.LibraryPriceList,
-        Permissions.LibraryDepartment
-    ];
-
-    public static HashSet<string> Expand(IEnumerable<string> permissionCodes)
-    {
-        var effective = permissionCodes.ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var permission in effective.ToArray())
-        {
-            if (ImpliedActions.TryGetValue(permission, out var implied))
-            {
-                effective.UnionWith(implied);
-            }
-        }
-
-        if (effective.Overlaps(LegacyLibraryPermissions))
-        {
-            effective.Add(Permissions.LibraryView);
-            effective.Add(Permissions.LibraryManage);
-        }
-
-        return effective;
     }
 }

@@ -14,10 +14,17 @@ namespace gtas_vpp_be.Controllers
     public class VPPPriceListController : ControllerBase
     {
         private readonly IPriceListService _priceListService;
+        private readonly IPriceBookWorkflowService? _workflowService;
 
         public VPPPriceListController(IPriceListService priceListService)
+            : this(priceListService, null)
+        {
+        }
+
+        public VPPPriceListController(IPriceListService priceListService, IPriceBookWorkflowService? workflowService)
         {
             _priceListService = priceListService;
+            _workflowService = workflowService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -134,6 +141,41 @@ namespace gtas_vpp_be.Controllers
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
             return Ok(await _priceListService.CloneAsync(req, CurrentUserId.Value));
+        }
+
+        [HttpPost("{id:guid}/publish")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        public async Task<IActionResult> Publish(
+            Guid id,
+            [FromBody] PriceBookStatusReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_workflowService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            return Ok(await _workflowService.PublishAsync(id, req, CurrentUserId.Value, cancellationToken));
+        }
+
+        [HttpPost("{id:guid}/expire")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        public async Task<IActionResult> Expire(
+            Guid id,
+            [FromBody] PriceBookStatusReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_workflowService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            return Ok(await _workflowService.ExpireAsync(id, req, CurrentUserId.Value, cancellationToken));
+        }
+
+        [HttpPost("compare")]
+        [Authorize(Policy = Permissions.LibraryView)]
+        public async Task<IActionResult> Compare(
+            [FromBody] PriceBookComparisonReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_workflowService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            return Ok(await _workflowService.CompareAsync(req, cancellationToken));
         }
     }
 }

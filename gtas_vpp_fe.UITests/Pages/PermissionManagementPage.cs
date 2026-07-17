@@ -30,7 +30,10 @@ namespace gtas_vpp_fe.UITests.Pages
             await SelectGroupPageTabAsync(pageTabName);
 
             var componentRow = await GetComponentRowAsync(componentCode);
-            var visibleSwitch = componentRow.Locator(".rz-switch").Nth(1);
+            // The grid renders Visible before Enable. Keep this page object on
+            // the visibility control because hiding the navigation item is the
+            // behavior asserted by this journey.
+            var visibleSwitch = componentRow.Locator(".rz-switch").Nth(0);
             var switchInput = visibleSwitch.Locator("input[type='checkbox']").First;
 
             await visibleSwitch.WaitForAsync();

@@ -65,6 +65,29 @@ public sealed class ReportsController(
         return File(export.Content, export.ContentType, export.FileName);
     }
 
+    [HttpGet("export.xlsx")]
+    [Authorize(Policy = Permissions.ReportExport)]
+    public async Task<IActionResult> ExportWorkbook(
+        [FromQuery] string scope = ReportScopes.Own,
+        [FromQuery] int? year = null,
+        [FromQuery] int? month = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetIdentityScope(out var userId, out var departmentCode, out var companyCode))
+        {
+            return Unauthorized();
+        }
+
+        if (!await CanUseScopeAsync(scope, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        var export = await _reportService.ExportWorkbookAsync(
+            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+        return File(export.Content, export.ContentType, export.FileName);
+    }
+
     [HttpGet("insights")]
     [EnableRateLimiting("report-insights")]
     public async Task<IActionResult> GetInsights(

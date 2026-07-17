@@ -24,6 +24,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
     [Inject] protected NavigationManager PageNavigationManager { get; set; } = default!;
     [Inject] protected IToastService Toast { get; set; } = default!;
     [Inject] protected GlobalClass PageGlobalState { get; set; } = default!;
+    [Inject] protected Microsoft.Extensions.Localization.IStringLocalizer<App> PageLocalizer { get; set; } = default!;
 
     protected async Task<bool> LoadPageAccessAsync(
         PermissionPageOptions options,
@@ -64,7 +65,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
             {
                 Severity = NotificationSeverity.Error,
                 Summary = options.ErrorSummary,
-                Detail = options.ErrorDetailPrefix + ex.Message,
+                Detail = UiErrorMapper.GetMessage(ex, PageLocalizer),
                 Duration = 10000
             });
             return false;

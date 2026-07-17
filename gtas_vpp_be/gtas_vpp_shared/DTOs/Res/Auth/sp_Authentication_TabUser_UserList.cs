@@ -23,5 +23,10 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         public P02_GroupResDTO? UserGroup { get; set; }
         public string? DepartmentName { get; set; }
         public Guid? L05_DepartmentId { get; set; }
+        public string? AccountStatus { get; set; }
+        public long SessionVersion { get; set; }
+        public string? GroupCode { get; set; }
+        public bool IsActive { get; set; }
+        public byte[]? RowVersion { get; set; }
     }
 }

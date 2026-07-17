@@ -1,14 +1,22 @@
 @using gtas_vpp_shared.DTOs.Share
 @inject NavigationManager NavigationManager
 
-<div class="vpp-user-menu">
-    <div class="user-avatar" @onclick="@ToggleMenu" title="@UserFullName">
+<div class="vpp-user-menu" @onkeydown="HandleKeyDown">
+    <button type="button"
+            class="user-menu-trigger"
+            aria-haspopup="menu"
+            aria-expanded="@_isOpen"
+            aria-controls="user-menu-dropdown"
+            aria-label="@UserFullName"
+            @onclick="ToggleMenu">
+        <span class="user-avatar" aria-hidden="true">
         @GetInitials()
-    </div>
+        </span>
+    </button>
 
     @if (_isOpen)
     {
-        <div class="user-dropdown">
+        <div id="user-menu-dropdown" class="user-dropdown" role="menu" aria-label="@UserFullName">
             <div class="user-dropdown-header">
                 <div class="user-avatar-lg">@GetInitials()</div>
                 <div>
@@ -25,12 +33,15 @@
                 </div>
                 <div class="user-dropdown-divider"></div>
             }
-            <a href="/logoutprocess" class="user-dropdown-logout">
+            <a href="/logoutprocess" class="user-dropdown-logout" role="menuitem">
                 <span class="material-symbols-outlined user-dropdown-icon">logout</span>
                 <span>@Loc["Logout"]</span>
             </a>
         </div>
-        <div class="user-dropdown-backdrop" @onclick="@(() => _isOpen = false)"></div>
+        <button type="button"
+                class="user-dropdown-backdrop"
+                aria-label="@Loc["Close"]"
+                @onclick="CloseMenu"></button>
     }
 </div>
 
@@ -41,6 +52,16 @@
     private bool _isOpen;
 
     private void ToggleMenu() => _isOpen = !_isOpen;
+
+    private void CloseMenu() => _isOpen = false;
+
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key is "Escape" or "Esc")
+        {
+            CloseMenu();
+        }
+    }
 
     private string GetInitials()
     {

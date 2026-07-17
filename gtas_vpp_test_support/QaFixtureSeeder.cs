@@ -2,28 +2,30 @@ using gtas_vpp_be.Model;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.VPP;
+using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace gtas_vpp_test_support;
 
 internal static class QaFixtureSeeder
 {
-    private const int SeedUserId = 910006;
-    private static readonly DateTime SeedTimestamp = new(2026, 7, 15, 8, 0, 0, DateTimeKind.Unspecified);
+    private const int SeedUserId = 1_000_001_006;
+    private static readonly DateTime SeedTimestamp = new(2026, 7, 15, 8, 0, 0, DateTimeKind.Utc);
 
     private static readonly IReadOnlyDictionary<int, Guid> UserGroupMappingIds =
         new Dictionary<int, Guid>
         {
-            [910001] = Guid.Parse("30000000-0000-0000-0000-000000000001"),
-            [910002] = Guid.Parse("30000000-0000-0000-0000-000000000002"),
-            [910003] = Guid.Parse("30000000-0000-0000-0000-000000000003"),
-            [910004] = Guid.Parse("30000000-0000-0000-0000-000000000004"),
-            [910005] = Guid.Parse("30000000-0000-0000-0000-000000000005"),
-            [910006] = Guid.Parse("30000000-0000-0000-0000-000000000006")
+            [1_000_001_001] = Guid.Parse("30000000-0000-0000-0000-000000000001"),
+            [1_000_001_002] = Guid.Parse("30000000-0000-0000-0000-000000000002"),
+            [1_000_001_003] = Guid.Parse("30000000-0000-0000-0000-000000000003"),
+            [1_000_001_004] = Guid.Parse("30000000-0000-0000-0000-000000000004"),
+            [1_000_001_005] = Guid.Parse("30000000-0000-0000-0000-000000000005"),
+            [1_000_001_006] = Guid.Parse("30000000-0000-0000-0000-000000000006")
         };
 
     private static readonly IReadOnlyDictionary<Guid, Guid> RequestDetailIds =
@@ -55,11 +57,11 @@ internal static class QaFixtureSeeder
         await SeedData.SeedDemo(context);
 
         await EnsureDepartmentsAsync(context, cancellationToken);
-        var groups = await EnsureGroupsAsync(context, cancellationToken);
-        await EnsureGroupPermissionsAsync(context, groups.ManagerGroupId, groups.ProcurementGroupId, cancellationToken);
+        await EnsureCanonicalGroupsAsync(context, cancellationToken);
         await EnsureUsersAsync(context, accounts, secrets, cancellationToken);
-        await EnsureUserGroupsAsync(context, accounts, groups, cancellationToken);
-        await EnsureScopeRequestsAsync(context, accounts, cancellationToken);
+        await EnsureUserGroupsAsync(context, accounts, cancellationToken);
+        var period = await EnsureCurrentPeriodAsync(context, cancellationToken);
+        await EnsureScopeRequestsAsync(context, accounts, period, cancellationToken);
 
         await context.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE [dbo].[__GTASQARun]
@@ -114,132 +116,25 @@ internal static class QaFixtureSeeder
         department.IsDeleted = false;
     }
 
-    private static async Task<GroupIds> EnsureGroupsAsync(
+    private static async Task EnsureCanonicalGroupsAsync(
         VPPMigrationDbContext context,
         CancellationToken cancellationToken)
     {
-        var employeeGroupId = await context.P02_Groups
-            .Where(x => x.GroupName == "User" && !x.IsDeleted)
-            .Select(x => x.Id)
-            .SingleAsync(cancellationToken);
-        var systemAdminGroupId = await context.P02_Groups
-            .Where(x => x.GroupName == "Admin" && !x.IsDeleted)
-            .Select(x => x.Id)
-            .SingleAsync(cancellationToken);
-
-        await UpsertGroupAsync(
-            context,
-            QaTestData.ManagerGroupId,
-            "QA Manager",
-            "Department-scoped QA manager",
-            cancellationToken);
-        await UpsertGroupAsync(
-            context,
-            QaTestData.ProcurementGroupId,
-            "QA Procurement",
-            "Company-scoped QA procurement",
-            cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        return new GroupIds(
-            employeeGroupId,
-            QaTestData.ManagerGroupId,
-            QaTestData.ProcurementGroupId,
-            systemAdminGroupId);
-    }
-
-    private static async Task UpsertGroupAsync(
-        VPPMigrationDbContext context,
-        Guid id,
-        string name,
-        string description,
-        CancellationToken cancellationToken)
-    {
-        var group = await context.P02_Groups.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (group is null)
-        {
-            group = new P02_Group { Id = id };
-            context.P02_Groups.Add(group);
-        }
-
-        group.GroupName = name;
-        group.Description = description;
-        group.CreateUserId = SeedUserId;
-        group.CreateDate = SeedTimestamp;
-        group.UpdateUserId = SeedUserId;
-        group.UpdateDate = SeedTimestamp;
-        group.IsDeleted = false;
-    }
-
-    private static async Task EnsureGroupPermissionsAsync(
-        VPPMigrationDbContext context,
-        Guid managerGroupId,
-        Guid procurementGroupId,
-        CancellationToken cancellationToken)
-    {
-        string[] managerCodes =
-        [
-            "MENU_DASHBOARD", "MENU_REPORT", "REQUEST_ORDER", "REQUEST_PRODUCT_CATALOG",
-            "REQUEST_HISTORY", "REQUEST_DEPARTMENT_SUMMARY", "REQUEST_ADMIN_APPROVAL", "REPORT_VIEW"
-        ];
-        string[] procurementCodes =
-        [
-            "MENU_DASHBOARD", "MENU_LIBRARY", "MENU_REPORT", "REQUEST_HISTORY",
-            "REQUEST_ALL_ORDERS_SUMMARY", "REQUEST_ADMIN_APPROVAL", "PERIOD_SETTLE",
-            "LIBRARY_CLASS", "LIBRARY_CATEGORY", "LIBRARY_ITEM", "LIBRARY_SUPPLIER",
-            "LIBRARY_PRICE", "LIBRARY_PRICE_LIST", "LIBRARY_DEPARTMENT", "REPORT_VIEW"
-        ];
-
-        await EnsurePermissionsForGroupAsync(context, managerGroupId, managerCodes, cancellationToken);
-        await EnsurePermissionsForGroupAsync(context, procurementGroupId, procurementCodes, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
-    private static async Task EnsurePermissionsForGroupAsync(
-        VPPMigrationDbContext context,
-        Guid groupId,
-        IReadOnlyCollection<string> componentCodes,
-        CancellationToken cancellationToken)
-    {
-        var mappingIds = await (
-                from mapping in context.P05_PageComponentMappings
-                join component in context.P03_Components
-                    on mapping.P03_ComponentId equals component.Id
-                where componentCodes.Contains(component.ComponentCode!)
-                      && !component.IsDeleted
-                select mapping.Id)
+        var personaIds = CanonicalRbac.Personas.Select(persona => persona.GroupId).ToArray();
+        var groups = await context.P02_Groups
+            .AsNoTracking()
+            .Where(group => personaIds.Contains(group.Id) && !group.IsDeleted)
             .ToListAsync(cancellationToken);
 
-        if (mappingIds.Count != componentCodes.Count)
+        var isCanonical = groups.Count == CanonicalRbac.Personas.Count
+            && CanonicalRbac.Personas.All(persona => groups.Any(group =>
+                group.Id == persona.GroupId
+                && group.GroupCode == persona.GroupCode
+                && group.ParentGroupId is null));
+        if (!isCanonical)
         {
             throw new InvalidOperationException(
-                $"QA fixture could not resolve all permissions for group '{groupId}'.");
-        }
-
-        var existing = await context.P06_GroupPageComponentMappings
-            .Where(x => x.P02_GroupId == groupId && x.MemberCompanyCode == QaTestData.CompanyCode)
-            .ToListAsync(cancellationToken);
-
-        foreach (var mappingId in mappingIds)
-        {
-            var permission = existing.SingleOrDefault(x => x.P05_PageComponentMappingId == mappingId);
-            if (permission is null)
-            {
-                permission = new P06_GroupPageComponentMapping
-                {
-                    P02_GroupId = groupId,
-                    P05_PageComponentMappingId = mappingId,
-                    MemberCompanyCode = QaTestData.CompanyCode
-                };
-                context.P06_GroupPageComponentMappings.Add(permission);
-            }
-
-            permission.IsEnable = true;
-            permission.IsVisible = true;
-            permission.CreateUserId = SeedUserId;
-            permission.CreateDate = SeedTimestamp;
-            permission.UpdateUserId = SeedUserId;
-            permission.UpdateDate = SeedTimestamp;
+                "QA fixture requires the four reconciled canonical flat personas.");
         }
     }
 
@@ -249,70 +144,115 @@ internal static class QaFixtureSeeder
         QaFixtureSecrets secrets,
         CancellationToken cancellationToken)
     {
-        var encoder = new TripleDesPasswordEncoder(
-            Options.Create(new PasswordEncoderOptions { Key = secrets.PasswordEncryptionKey }));
-        var encryptedPassword = encoder.Encrypt(secrets.AccountPassword);
+        var passwordHasher = new PasswordHasher<AppUser>();
 
         foreach (var account in accounts.All)
         {
+            var user = new AppUser
+            {
+                Id = account.UserId,
+                UserName = account.Username,
+                NormalizedUserName = account.Username.ToUpperInvariant(),
+                Email = account.Email,
+                NormalizedEmail = account.Email.ToUpperInvariant(),
+                FullName = account.FullName,
+                MemberCompanyCode = QaTestData.CompanyCode,
+                AccountStatus = AppAccountStatus.Active,
+                EmailConfirmed = true,
+                LockoutEnabled = true,
+                SessionVersion = 1,
+                CreatedAtUtc = SeedTimestamp,
+                UpdatedAtUtc = SeedTimestamp,
+                ActivatedAtUtc = SeedTimestamp,
+                SecurityStamp = Guid.NewGuid().ToString("N"),
+                ConcurrencyStamp = Guid.NewGuid().ToString("N")
+            };
+            var passwordHash = passwordHasher.HashPassword(user, secrets.AccountPassword);
+
             await context.Database.ExecuteSqlRawAsync(
                 """
-                UPDATE [GTAS_MENU].[dbo].[tblUsers]
-                SET [UserLogin] = @username,
-                    [PasswordChar] = @password,
+                SET XACT_ABORT ON;
+
+                UPDATE [dbo].[AspNetUsers]
+                SET [UserName] = @username,
+                    [NormalizedUserName] = @normalizedUsername,
+                    [Email] = @email,
+                    [NormalizedEmail] = @normalizedEmail,
+                    [EmailConfirmed] = 1,
+                    [PasswordHash] = @passwordHash,
+                    [SecurityStamp] = @securityStamp,
+                    [ConcurrencyStamp] = @concurrencyStamp,
                     [FullName] = @fullName,
-                    [EmailAddress1] = @email,
-                    [EmailAddress2] = NULL,
-                    [GoogleEmail] = NULL,
-                    [PhoneNo1] = NULL,
-                    [PhoneNo2] = NULL,
-                    [IsInactiveFlg] = 0,
-                    [IsLockedFlg] = 0,
+                    [EmployeeCode] = NULL,
                     [MemberCompanyCode] = @companyCode,
-                    [DepartmentCode] = @departmentCode,
-                    [MemberCompanyName] = @companyName
-                WHERE [UserID] = @userId;
+                    [AccountStatus] = N'Active',
+                    [MustChangePassword] = 0,
+                    [SessionVersion] = 1,
+                    [UpdatedAtUtc] = @timestamp,
+                    [ActivatedAtUtc] = @timestamp,
+                    [DisabledAtUtc] = NULL,
+                    [LockoutEnd] = NULL,
+                    [LockoutEnabled] = 1,
+                    [AccessFailedCount] = 0
+                WHERE [Id] = @userId;
 
                 IF @@ROWCOUNT = 0
                 BEGIN
-                    INSERT INTO [GTAS_MENU].[dbo].[tblUsers]
-                    (
-                        [UserID], [UserLogin], [PasswordChar], [FullName], [EmailAddress1],
-                        [IsInactiveFlg], [IsLockedFlg], [MemberCompanyCode],
-                        [DepartmentCode], [MemberCompanyName]
-                    )
-                    VALUES
-                    (
-                        @userId, @username, @password, @fullName, @email,
-                        0, 0, @companyCode, @departmentCode, @companyName
-                    );
+                    SET IDENTITY_INSERT [dbo].[AspNetUsers] ON;
+                    BEGIN TRY
+                        INSERT INTO [dbo].[AspNetUsers]
+                        (
+                            [Id], [UserName], [NormalizedUserName], [Email], [NormalizedEmail],
+                            [EmailConfirmed], [PasswordHash], [SecurityStamp], [ConcurrencyStamp],
+                            [PhoneNumber], [PhoneNumberConfirmed], [TwoFactorEnabled], [LockoutEnd],
+                            [LockoutEnabled], [AccessFailedCount], [FullName], [EmployeeCode],
+                            [MemberCompanyCode], [AccountStatus], [MustChangePassword], [SessionVersion],
+                            [CreatedAtUtc], [UpdatedAtUtc], [ActivatedAtUtc], [DisabledAtUtc], [LastLoginAtUtc]
+                        )
+                        VALUES
+                        (
+                            @userId, @username, @normalizedUsername, @email, @normalizedEmail,
+                            1, @passwordHash, @securityStamp, @concurrencyStamp,
+                            NULL, 0, 0, NULL,
+                            1, 0, @fullName, NULL,
+                            @companyCode, N'Active', 0, 1,
+                            @timestamp, @timestamp, @timestamp, NULL, NULL
+                        );
+                        SET IDENTITY_INSERT [dbo].[AspNetUsers] OFF;
+                    END TRY
+                    BEGIN CATCH
+                        SET IDENTITY_INSERT [dbo].[AspNetUsers] OFF;
+                        THROW;
+                    END CATCH;
                 END;
                 """,
                 new SqlParameter("@userId", account.UserId),
                 new SqlParameter("@username", account.Username),
-                new SqlParameter("@password", encryptedPassword),
-                new SqlParameter("@fullName", account.FullName),
+                new SqlParameter("@normalizedUsername", account.Username.ToUpperInvariant()),
                 new SqlParameter("@email", account.Email),
+                new SqlParameter("@normalizedEmail", account.Email.ToUpperInvariant()),
+                new SqlParameter("@passwordHash", passwordHash),
+                new SqlParameter("@securityStamp", user.SecurityStamp),
+                new SqlParameter("@concurrencyStamp", user.ConcurrencyStamp),
+                new SqlParameter("@fullName", account.FullName),
                 new SqlParameter("@companyCode", QaTestData.CompanyCode),
-                new SqlParameter("@departmentCode", account.DepartmentCode),
-                new SqlParameter("@companyName", QaTestData.CompanyName));
+                new SqlParameter("@timestamp", SeedTimestamp));
         }
     }
 
     private static async Task EnsureUserGroupsAsync(
         VPPMigrationDbContext context,
         QaTestAccounts accounts,
-        GroupIds groups,
         CancellationToken cancellationToken)
     {
         foreach (var account in accounts.All)
         {
             var groupId = account.Role switch
             {
-                "Manager" => groups.ManagerGroupId,
-                "Procurement" => groups.ProcurementGroupId,
-                "SystemAdmin" => groups.SystemAdminGroupId,
-                _ => groups.EmployeeGroupId
+                "DepartmentApprover" => CanonicalRbac.DepartmentApprover.GroupId,
+                "Procurement" => CanonicalRbac.ProcurementAdmin.GroupId,
+                "SystemAdmin" => CanonicalRbac.SystemAdmin.GroupId,
+                _ => CanonicalRbac.Employee.GroupId
             };
             var mappingId = UserGroupMappingIds[account.UserId];
             var mapping = await context.P04_UserGroups
@@ -324,6 +264,7 @@ internal static class QaFixtureSeeder
             }
 
             mapping.UserId = account.UserId;
+            mapping.AccountId = account.UserId;
             mapping.P02_GroupId = groupId;
             mapping.LEX02_CompanyDepartmentLocationId = account.DepartmentId;
             mapping.Description = $"QA-001 {account.Role} account";
@@ -337,9 +278,59 @@ internal static class QaFixtureSeeder
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    private static async Task<VPP00_Period> EnsureCurrentPeriodAsync(
+        VPPMigrationDbContext context,
+        CancellationToken cancellationToken)
+    {
+        var calculator = new PeriodCalculator(deadlineDay: 5);
+        var businessNow = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            PeriodCalculator.BusinessTimeZone);
+        var businessPeriod = calculator.Current(businessNow);
+        var year = businessPeriod.Year;
+        var month = businessPeriod.Month;
+        var companyCode = QaTestData.CompanyCode.ToString();
+        var period = await context.VPP00_Periods.SingleOrDefaultAsync(
+            x => x.MemberCompanyCode == companyCode
+                 && x.Y == year
+                 && x.M == month
+                 && !x.IsDeleted,
+            cancellationToken);
+
+        if (period is null)
+        {
+            period = new VPP00_Period { Id = QaTestData.CurrentPeriodId };
+            context.VPP00_Periods.Add(period);
+        }
+
+        period.MemberCompanyCode = companyCode;
+        period.TimeZoneId = "Asia/Ho_Chi_Minh";
+        period.Y = year;
+        period.M = month;
+        period.StartAtUtc = calculator.StartAtUtc(businessPeriod);
+        period.SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(businessPeriod);
+        period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
+            businessPeriod,
+            TimeSpan.FromDays(2));
+        period.State = VppPeriodState.Open;
+        period.LastTransitionUserId = null;
+        period.LastTransitionAtUtc = null;
+        period.LastTransitionReason = null;
+        period.Description = "QA-001 deterministic current VPP period";
+        period.CreateUserId = SeedUserId;
+        period.CreateDate = SeedTimestamp;
+        period.UpdateUserId = SeedUserId;
+        period.UpdateDate = SeedTimestamp;
+        period.IsDeleted = false;
+
+        await context.SaveChangesAsync(cancellationToken);
+        return period;
+    }
+
     private static async Task EnsureScopeRequestsAsync(
         VPPMigrationDbContext context,
         QaTestAccounts accounts,
+        VPP00_Period period,
         CancellationToken cancellationToken)
     {
         var product = await context.L04_VPPs
@@ -356,20 +347,21 @@ internal static class QaFixtureSeeder
         {
             new RequestDefinition(
                 QaTestData.OwnRequestId,
-                "QA-OWN-202607",
+                $"QA-OWN-{period.Y:D4}{period.M:D2}",
                 accounts.Employee,
                 1),
             new RequestDefinition(
                 QaTestData.DepartmentPeerRequestId,
-                "QA-DEPT-202607",
+                $"QA-DEPT-{period.Y:D4}{period.M:D2}",
                 accounts.DepartmentPeer,
                 2),
             new RequestDefinition(
                 QaTestData.CompanyOtherDepartmentRequestId,
-                "QA-COMPANY-202607",
+                $"QA-COMPANY-{period.Y:D4}{period.M:D2}",
                 accounts.OtherDepartmentEmployee,
                 3)
         };
+        var requestTimestamp = period.StartAtUtc.AddHours(1);
 
         foreach (var definition in definitions)
         {
@@ -382,18 +374,34 @@ internal static class QaFixtureSeeder
             }
 
             header.VPPCode = definition.Code;
-            header.Y = 2026;
-            header.M = 7;
+            header.Y = period.Y;
+            header.M = period.M;
+            header.PeriodId = period.Id;
+            header.RequestSeriesId = definition.Id;
+            header.RevisionNumber = 1;
+            header.IsCurrentRevision = true;
+            header.SupersedesRequestId = null;
+            header.SupersededByRequestId = null;
+            header.BaseRequestId = null;
+            header.BaseRequestSeriesId = null;
+            header.SupplementSequence = null;
+            header.SupplementAttemptNumber = null;
+            header.SupplementReason = null;
             header.Status = (int)VPPStatus.Submitted;
             header.DepartmentCode = definition.Owner.DepartmentCode;
             header.MemberCompanyCode = QaTestData.CompanyCode.ToString();
-            header.SubmittedDate = SeedTimestamp;
+            header.SubmittedDate = requestTimestamp;
             header.IsAdditionalOrder = false;
+            header.CancelledById = null;
+            header.CancelledAt = null;
+            header.CancelReason = null;
+            header.IdempotencyKey = null;
+            header.CommandPayloadHash = null;
             header.Description = "QA-001 deterministic own/department/company scope data";
             header.CreateUserId = definition.Owner.UserId;
-            header.CreateDate = SeedTimestamp;
+            header.CreateDate = requestTimestamp;
             header.UpdateUserId = definition.Owner.UserId;
-            header.UpdateDate = SeedTimestamp;
+            header.UpdateDate = requestTimestamp;
             header.IsDeleted = false;
 
             var detailId = RequestDetailIds[definition.Id];
@@ -411,20 +419,14 @@ internal static class QaFixtureSeeder
             detail.VPP01_RequestHeaderId = definition.Id;
             detail.Description = "QA-001 deterministic request line";
             detail.CreateUserId = definition.Owner.UserId;
-            detail.CreateDate = SeedTimestamp;
+            detail.CreateDate = requestTimestamp;
             detail.UpdateUserId = definition.Owner.UserId;
-            detail.UpdateDate = SeedTimestamp;
+            detail.UpdateDate = requestTimestamp;
             detail.IsDeleted = false;
         }
 
         await context.SaveChangesAsync(cancellationToken);
     }
-
-    private sealed record GroupIds(
-        Guid EmployeeGroupId,
-        Guid ManagerGroupId,
-        Guid ProcurementGroupId,
-        Guid SystemAdminGroupId);
 
     private sealed record RequestDefinition(
         Guid Id,

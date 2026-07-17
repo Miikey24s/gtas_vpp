@@ -45,11 +45,13 @@
                 var isVisible = column.GetVisible();
                 var isLastVisible = isVisible && VisibleCount == 1;
 
-                <label class="vpp-column-picker-option @(isVisible ? "is-selected" : null)">
+                <label class="vpp-column-picker-option @(isVisible ? "is-selected" : null)"
+                       @onclick="@(() => SetColumnVisibilityAsync(column, !isVisible))"
+                       @onclick:preventDefault="true">
                     <input type="checkbox"
                            checked="@isVisible"
                            disabled="@isLastVisible"
-                           @onchange="@(args => SetColumnVisibilityAsync(column, args))" />
+                           @onchange="@(_ => SetColumnVisibilityAsync(column, !isVisible))" />
                     <span class="vpp-column-picker-checkbox" aria-hidden="true">
                         <span class="material-symbols-outlined">check</span>
                     </span>
@@ -74,9 +76,14 @@
 
 @code {
     private static readonly MethodInfo? SetVisibleMethod = typeof(RadzenDataGridColumn<TItem>)
-        .GetMethod("SetVisible", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly PropertyInfo? VisibleProperty = typeof(RadzenDataGridColumn<TItem>)
-        .GetProperty(nameof(RadzenDataGridColumn<TItem>.Visible));
+        .GetMethod(
+            "SetVisible",
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            types: [typeof(bool?)],
+            modifiers: null);
+    private static readonly MethodInfo? GridChangeStateMethod = typeof(RadzenDataGrid<TItem>)
+        .GetMethod("ChangeState", BindingFlags.Instance | BindingFlags.NonPublic);
 
     private readonly Dictionary<RadzenDataGridColumn<TItem>, bool> initialVisibility = [];
     private readonly string instanceId = Guid.NewGuid().ToString("N");
@@ -126,9 +133,8 @@
         searchText = args.Value?.ToString() ?? string.Empty;
     }
 
-    private async Task SetColumnVisibilityAsync(RadzenDataGridColumn<TItem> column, ChangeEventArgs args)
+    private async Task SetColumnVisibilityAsync(RadzenDataGridColumn<TItem> column, bool isVisible)
     {
-        var isVisible = args.Value is bool value && value;
         if (!isVisible && VisibleCount == 1)
         {
             return;
@@ -154,21 +160,15 @@
 
     private static void SetColumnVisibility(RadzenDataGridColumn<TItem> column, bool isVisible)
     {
-        if (SetVisibleMethod is not null)
-        {
-            SetVisibleMethod.Invoke(column, [isVisible]);
-            return;
-        }
-
-        VisibleProperty?.SetValue(column, isVisible);
+        SetVisibleMethod?.Invoke(column, [(bool?)isVisible]);
     }
 
     private async Task RefreshGridAsync()
     {
-        if (Grid is not null)
+        if (Grid is not null
+            && GridChangeStateMethod?.Invoke(Grid, null) is Task changeStateTask)
         {
-            Grid.UpdatePickableColumns();
-            await Grid.Reload();
+            await changeStateTask;
         }
 
         await InvokeAsync(StateHasChanged);

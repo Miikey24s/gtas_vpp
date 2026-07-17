@@ -635,6 +635,11 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericCreate(string tableCode, [FromBody] JsonElement payload)
         {
+            if (IsMigratedVppItemTable(tableCode))
+            {
+                return MigratedVppItemMutationProblem();
+            }
+
             var json = payload.GetRawText();
             return tableCode.ToLower() switch
             {
@@ -653,6 +658,11 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericUpdate(string tableCode, [FromBody] JsonElement payload)
         {
+            if (IsMigratedVppItemTable(tableCode))
+            {
+                return MigratedVppItemMutationProblem();
+            }
+
             var json = payload.GetRawText();
             return tableCode.ToLower() switch
             {
@@ -671,6 +681,11 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericPatch(string tableCode, Guid id, [FromBody] JsonElement payload)
         {
+            if (IsMigratedVppItemTable(tableCode))
+            {
+                return MigratedVppItemMutationProblem();
+            }
+
             if (payload.ValueKind == JsonValueKind.Undefined || payload.ValueKind == JsonValueKind.Null)
             {
                 return BadRequest(new { Message = "Update payload must not be empty." });
@@ -693,6 +708,11 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericDelete(string tableCode, Guid id)
         {
+            if (IsMigratedVppItemTable(tableCode))
+            {
+                return MigratedVppItemMutationProblem();
+            }
+
             return tableCode.ToLower() switch
             {
                 "l01" => await DeleteAsync<L01_Class>(id),
@@ -707,6 +727,21 @@ namespace gtas_vpp_be.Controllers
         }
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+        private static bool IsMigratedVppItemTable(string tableCode)
+            => string.Equals(tableCode, "l04", StringComparison.OrdinalIgnoreCase);
+
+        private IActionResult MigratedVppItemMutationProblem()
+            => Problem(
+                title: "Legacy catalog mutation disabled",
+                detail: "L04 VPP items must be changed through /api/catalog/items; hard delete is not supported.",
+                statusCode: StatusCodes.Status405MethodNotAllowed,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["errorCode"] = "CatalogTypedEndpointRequired",
+                    ["safeDetail"] = true
+                });
+
         // Audit fields the client must never write. IsDeleted is intentionally NOT here:
         // Library admin pages (Tab_ClassLibrary, etc.) toggle Enable/Disable via PATCH with
         // `IsDeleted = true|false`. Access to these admin actions is gated FE-side via

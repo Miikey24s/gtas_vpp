@@ -21,13 +21,25 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         private List<L07_PriceListResDTO> priceLists = [];
+        private List<L05_VPPSupplierResDTO> suppliers = [];
         private RadzenDataGrid<L07_PriceListResDTO> grid = default!;
         private bool isLoading;
         private int count;
         private int currentSkip;
         private string? currentFilterExpression;
 
-        protected override Task OnInitializedAsync() => Task.CompletedTask;
+        protected override async Task OnInitializedAsync()
+        {
+            try
+            {
+                suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(
+                    $"{Config.LibraryApi.L05_Supplier}?showDeleted=false") ?? [];
+            }
+            catch (Exception ex)
+            {
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+            }
+        }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -111,7 +123,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         Code = result.Code,
                         Name = result.Name,
                         Description = result.Description,
-                        IsDefault = result.IsDefault
+                        IsDefault = result.IsDefault,
+                        SupplierId = result.SupplierId,
+                        Version = result.Version,
+                        EffectiveFromUtc = result.EffectiveFromUtc,
+                        EffectiveToUtc = result.EffectiveToUtc,
+                        CurrencyCode = result.CurrencyCode,
+                        ContractCode = result.ContractCode,
+                        DiscountRate = result.DiscountRate,
+                        RebateAmount = result.RebateAmount,
+                        FeeAmount = result.FeeAmount,
+                        ShippingAmount = result.ShippingAmount
                     });
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListSaved"].Value);
                 await LoadAsync();
@@ -130,7 +152,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 Code = row.PriceListCode,
                 Name = row.PriceListName,
                 Description = row.Description,
-                IsDefault = row.IsDefault
+                IsDefault = row.IsDefault,
+                SupplierId = row.SupplierId,
+                Version = row.Version,
+                EffectiveFromUtc = row.EffectiveFromUtc,
+                EffectiveToUtc = row.EffectiveToUtc,
+                CurrencyCode = row.CurrencyCode,
+                VatPolicy = row.VatPolicy,
+                ContractCode = row.ContractCode,
+                DiscountRate = row.DiscountRate,
+                RebateAmount = row.RebateAmount,
+                FeeAmount = row.FeeAmount,
+                ShippingAmount = row.ShippingAmount,
+                RowVersion = row.RowVersion
             });
             if (result is null) return;
 
@@ -225,6 +259,59 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        private async Task PublishAsync(L07_PriceListResDTO row)
+        {
+            var confirm = await DialogService.Confirm(
+                "Publish this draft price book? Published terms and items become immutable.",
+                "Publish",
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+            if (confirm != true) return;
+
+            try
+            {
+                await _apiServices.PostFromApiAsync<L07_PriceListResDTO>(
+                    string.Format(Config.LibraryApi.L07_PriceList_Publish, row.Id),
+                    new PriceBookStatusReqDTO
+                    {
+                        RowVersion = row.RowVersion,
+                        Reason = "Approved by procurement admin"
+                    });
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, "Price book published");
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+            }
+        }
+
+        private async Task ExpireAsync(L07_PriceListResDTO row)
+        {
+            var confirm = await DialogService.Confirm(
+                "Expire this published price book? Historical data remains available.",
+                "Expire",
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+            if (confirm != true) return;
+
+            try
+            {
+                await _apiServices.PostFromApiAsync<L07_PriceListResDTO>(
+                    string.Format(Config.LibraryApi.L07_PriceList_Expire, row.Id),
+                    new PriceBookStatusReqDTO
+                    {
+                        RowVersion = row.RowVersion,
+                        Reason = "Expired by procurement admin",
+                        EffectiveToUtc = DateTime.UtcNow
+                    });
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, "Price book expired");
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+            }
+        }
+
         private async Task CloneAsync(L07_PriceListResDTO row)
         {
             var result = await OpenEditorAsync(Loc["Clone"].Value, new L07_PriceListUpdateReqDTO
@@ -271,7 +358,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 new Dictionary<string, object?>
                 {
                     [nameof(Dialog_PriceListEditor.Model)] = model,
-                    [nameof(Dialog_PriceListEditor.IsClone)] = isClone
+                    [nameof(Dialog_PriceListEditor.IsClone)] = isClone,
+                    [nameof(Dialog_PriceListEditor.Suppliers)] = suppliers
                 },
                 new DialogOptions { Width = "520px", Resizable = true, Draggable = true });
 

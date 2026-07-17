@@ -1,0 +1,6 @@
+/*
+ * Radzen 11 no longer ships the historical material3 theme name. The app
+ * keeps that persisted cookie value for backwards compatibility while the
+ * real base theme is loaded from _content/Radzen.Blazor/css/material-base.css.
+ * This intentional no-op asset prevents RadzenTheme from issuing a 404.
+ */

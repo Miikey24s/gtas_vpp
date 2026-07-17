@@ -53,8 +53,7 @@ namespace gtas_vpp_fe.Components.Layout
         public bool _sideBarExpanded { get; set; } = false;
         public bool LightTheme { get; set; } = true;
         public bool _userMenuOpen = false;
-        public DateTime currentTime = DateTime.Now;
-        public System.Threading.Timer? timer;
+        private readonly DateTime _currentDate = DateTime.Now.Date;
         private string? currentUrl { get; set; }
         public const string QueryParameter = "theme";
         public string theme = "material3-base";
@@ -71,11 +70,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             await base.OnInitializedAsync();
 
-            timer = new System.Threading.Timer(_ =>
-            {
-                currentTime = DateTime.Now;
-                InvokeAsync(StateHasChanged);
-            }, null, 0, 1000);
+            glb.BusyChanged += OnBusyChanged;
 
             try
             {
@@ -179,7 +174,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
             PermissionState.Changed -= OnPermissionStateChanged;
-            timer?.Dispose();
+            glb.BusyChanged -= OnBusyChanged;
         }
 
         public async Task ToggleLanguage()
@@ -283,6 +278,11 @@ namespace gtas_vpp_fe.Components.Layout
         }
 
         private void OnPermissionStateChanged()
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void OnBusyChanged()
         {
             _ = InvokeAsync(StateHasChanged);
         }

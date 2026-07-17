@@ -22,6 +22,13 @@ public sealed class ReportSummaryResDTO
     public int TotalLines { get; set; }
     public int TotalQuantity { get; set; }
     public long TotalAmount { get; set; }
+    public bool IsSettlementReconciled { get; set; }
+    public Guid? SettlementId { get; set; }
+    public int? SettlementRevisionNumber { get; set; }
+    public string? SettlementPrimarySupplierName { get; set; }
+    public decimal? SettlementGrandTotal { get; set; }
+    public decimal? SettlementAllocationTotal { get; set; }
+    public decimal? SettlementVariance { get; set; }
     public List<ReportPeriodPointResDTO> PeriodTrend { get; set; } = [];
     public List<ReportStatusPointResDTO> StatusBreakdown { get; set; } = [];
     public List<ReportDepartmentPointResDTO> DepartmentBreakdown { get; set; } = [];

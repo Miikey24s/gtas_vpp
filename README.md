@@ -46,14 +46,13 @@ $testDatabase = 'Server=(localdb)\MSSQLLocalDB;Database=GTAS_VPP_TEST;Trusted_Co
 
 dotnet user-secrets set "Parameters:test-database-connection-string" $testDatabase --project $appHost
 dotnet user-secrets set "Parameters:jwt-key" (New-GtasSecret) --project $appHost
-dotnet user-secrets set "Parameters:password-encryption-key" (New-GtasSecret) --project $appHost
 dotnet run --project MyAspire.AppHost/MyAspire.AppHost.csproj
 ```
 
-Reference bootstrap không tạo tài khoản hoặc credential mẫu. Với database Development cũ
-có dữ liệu đăng nhập legacy, `password-encryption-key` phải khớp key đã dùng cho dữ liệu đó;
-với database mới hãy dùng key ngẫu nhiên riêng. Không dùng connection string hoặc secret
-Production cho Development.
+Reference bootstrap không tạo tài khoản hoặc credential mẫu. Tài khoản ứng dụng dùng
+ASP.NET Core Identity và password hash một chiều; legacy stored-procedure/TripleDES login
+không còn là đường đăng nhập. Không dùng connection string hoặc secret Production cho
+Development.
 
 ## Development bằng Docker Compose
 
@@ -62,8 +61,7 @@ mới yêu cầu Docker Desktop hoặc Docker Engine có Compose.
 
 ```powershell
 Copy-Item .env.example .env
-# Tạo DB_SA_PASSWORD, JWT_KEY và PASSWORD_ENCRYPTION_KEY ngẫu nhiên, riêng cho Development.
-# Nếu dùng dữ liệu đăng nhập legacy đã có, giữ đúng PASSWORD_ENCRYPTION_KEY tương ứng.
+# Tạo DB_SA_PASSWORD và JWT_KEY ngẫu nhiên, riêng cho Development.
 # Không commit file .env.
 docker compose up -d --build
 ```

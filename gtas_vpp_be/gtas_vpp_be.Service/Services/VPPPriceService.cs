@@ -98,6 +98,11 @@ namespace gtas_vpp_be.Service.Services
                     UOMName = vpp.UOM == null ? null : vpp.UOM.ClassDetailValue,
                     PriceMappingId = mapping == null ? null : mapping.Id,
                     Price = mapping == null ? null : mapping.Price,
+                    NetPrice = mapping == null ? null : (mapping.NetPrice == 0m && mapping.Price != 0m ? mapping.Price : mapping.NetPrice),
+                    VatRate = mapping == null ? 0m : mapping.VatRate,
+                    MinimumOrderQuantity = mapping == null ? 0m : mapping.MinimumOrderQuantity,
+                    LeadTimeDays = mapping == null ? 0 : mapping.LeadTimeDays,
+                    SupplierSku = mapping == null ? null : mapping.SupplierSku,
                     IsDefault = mapping != null && mapping.IsDefault,
                     IsDeleted = mapping != null && mapping.IsDeleted,
                     Description = mapping == null ? null : mapping.Description
@@ -182,12 +187,14 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<L06_VPPSupplierMappingResDTO> CreateAsync(L06_PriceCreateReqDTO req, int userId)
         {
-            ValidatePrice(req.Price);
+            var netPrice = req.NetPrice ?? req.Price;
+            ValidatePriceTerms(netPrice, req.VatRate, req.MinimumOrderQuantity, req.LeadTimeDays);
 
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId, req.L07_PriceListId);
+                var priceBook = await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId, req.L07_PriceListId);
+                EnsureDraft(priceBook);
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
@@ -201,7 +208,12 @@ namespace gtas_vpp_be.Service.Services
                     L04_VPPId = req.L04_VPPId,
                     L05_VPPSupplierId = req.L05_VPPSupplierId,
                     L07_PriceListId = req.L07_PriceListId,
-                    Price = req.Price,
+                    Price = netPrice,
+                    NetPrice = netPrice,
+                    VatRate = req.VatRate,
+                    MinimumOrderQuantity = req.MinimumOrderQuantity,
+                    LeadTimeDays = req.LeadTimeDays,
+                    SupplierSku = NormalizeOptional(req.SupplierSku),
                     IsDefault = req.IsDefault,
                     Description = req.Description,
                     CreateUserId = userId,
@@ -230,7 +242,8 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<L06_VPPSupplierMappingResDTO> UpdateAsync(L06_PriceUpdateReqDTO req, int userId)
         {
-            ValidatePrice(req.Price);
+            var netPrice = req.NetPrice ?? req.Price;
+            ValidatePriceTerms(netPrice, req.VatRate, req.MinimumOrderQuantity, req.LeadTimeDays);
 
             await _scopedUow.BeginTransactionAsync();
             try
@@ -242,7 +255,8 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price mapping not found.");
                 }
 
-                await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId, req.L07_PriceListId);
+                var priceBook = await ValidateReferencesAsync(req.L04_VPPId, req.L05_VPPSupplierId, req.L07_PriceListId);
+                EnsureDraft(priceBook);
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
@@ -253,7 +267,12 @@ namespace gtas_vpp_be.Service.Services
                 entity.L04_VPPId = req.L04_VPPId;
                 entity.L05_VPPSupplierId = req.L05_VPPSupplierId;
                 entity.L07_PriceListId = req.L07_PriceListId;
-                entity.Price = req.Price;
+                entity.Price = netPrice;
+                entity.NetPrice = netPrice;
+                entity.VatRate = req.VatRate;
+                entity.MinimumOrderQuantity = req.MinimumOrderQuantity;
+                entity.LeadTimeDays = req.LeadTimeDays;
+                entity.SupplierSku = NormalizeOptional(req.SupplierSku);
                 entity.IsDefault = req.IsDefault;
                 entity.Description = req.Description;
                 entity.UpdateUserId = userId;
@@ -287,6 +306,8 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price mapping not found.");
                 }
 
+                await EnsureDraftAsync(entity.L07_PriceListId);
+
                 var now = _dateTimeProvider.Now;
                 entity.IsDeleted = true;
                 entity.IsDefault = false;
@@ -318,6 +339,8 @@ namespace gtas_vpp_be.Service.Services
                 {
                     throw new BusinessException("Price mapping not found.");
                 }
+
+                await EnsureDraftAsync(entity.L07_PriceListId);
 
                 var now = _dateTimeProvider.Now;
                 await DemoteDefaultsAsync(entity.L07_PriceListId, entity.L04_VPPId, userId, now);
@@ -359,6 +382,12 @@ namespace gtas_vpp_be.Service.Services
                     UpdateDate = x.UpdateDate,
                     IsDeleted = x.IsDeleted,
                     Price = x.Price,
+                    NetPrice = x.NetPrice == 0m && x.Price != 0m ? x.Price : x.NetPrice,
+                    VatRate = x.VatRate,
+                    MinimumOrderQuantity = x.MinimumOrderQuantity,
+                    LeadTimeDays = x.LeadTimeDays,
+                    SupplierSku = x.SupplierSku,
+                    RowVersion = x.RowVersion,
                     IsDefault = x.IsDefault,
                     L04_VPPId = x.L04_VPPId,
                     L04_VPPName = x.L04_VPP != null ? x.L04_VPP.VPPName : null,
@@ -374,7 +403,7 @@ namespace gtas_vpp_be.Service.Services
             return await PriceDtoQuery().FirstAsync(x => x.Id == id);
         }
 
-        private async Task ValidateReferencesAsync(Guid vppId, Guid supplierId, Guid priceListId)
+        private async Task<L07_PriceList> ValidateReferencesAsync(Guid vppId, Guid supplierId, Guid priceListId)
         {
             var vppExists = await _scopedUow.VPPContext.Set<L04_VPP>()
                 .AsNoTracking()
@@ -392,13 +421,19 @@ namespace gtas_vpp_be.Service.Services
                 throw new BusinessException("VPP supplier does not exist or has been deleted.");
             }
 
-            var priceListExists = await _scopedUow.VPPContext.Set<L07_PriceList>()
-                .AsNoTracking()
-                .AnyAsync(x => x.Id == priceListId && !x.IsDeleted);
-            if (!priceListExists)
+            var priceList = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                .FirstOrDefaultAsync(x => x.Id == priceListId && !x.IsDeleted);
+            if (priceList == null)
             {
                 throw new BusinessException("Price list does not exist or has been deleted.");
             }
+
+            if (priceList.SupplierId.HasValue && priceList.SupplierId.Value != supplierId)
+            {
+                throw new BusinessException("Price book belongs to a different supplier.");
+            }
+
+            return priceList;
         }
 
         private async Task DemoteDefaultsAsync(Guid priceListId, Guid vppId, int userId, DateTime now)
@@ -415,13 +450,48 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private static void ValidatePrice(decimal price)
+        private static void ValidatePriceTerms(decimal price, decimal vatRate, decimal moq, int leadTimeDays)
         {
             if (price < 0)
             {
                 throw new BusinessException("Price must be greater than or equal to zero.");
             }
+            if (vatRate < 0 || vatRate > 100)
+            {
+                throw new BusinessException("VAT rate must be between zero and 100.");
+            }
+            if (moq < 0)
+            {
+                throw new BusinessException("Minimum order quantity must be greater than or equal to zero.");
+            }
+            if (leadTimeDays < 0)
+            {
+                throw new BusinessException("Lead time must be greater than or equal to zero.");
+            }
         }
+
+        private static void EnsureDraft(L07_PriceList priceBook)
+        {
+            if (priceBook.Status != L07_PriceListStatus.Draft)
+            {
+                throw new BusinessException("Published or expired price books are immutable; create a new version instead.");
+            }
+        }
+
+        private async Task EnsureDraftAsync(Guid priceListId)
+        {
+            var priceBook = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                .FirstOrDefaultAsync(x => x.Id == priceListId && !x.IsDeleted);
+            if (priceBook == null)
+            {
+                throw new BusinessException("Price list does not exist or has been deleted.");
+            }
+
+            EnsureDraft(priceBook);
+        }
+
+        private static string? NormalizeOptional(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
         private static bool IsUniqueViolation(DbUpdateException exception)
             => exception.InnerException is SqlException sqlException

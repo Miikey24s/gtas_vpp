@@ -417,4 +417,65 @@
   <data name="Regular" xml:space="preserve"><value>Đơn thường</value></data>
   <data name="ReviewSubmit" xml:space="preserve"><value>Kiểm tra và gửi</value></data>
   <data name="SelectProducts" xml:space="preserve"><value>Chọn vật tư</value></data>
+  <data name="PrimaryNavigation" xml:space="preserve"><value>Điều hướng chính</value></data>
+  <data name="CurrentDate" xml:space="preserve"><value>Ngày hiện tại</value></data>
+  <data name="PageNotFound" xml:space="preserve"><value>Không tìm thấy trang</value></data>
+  <data name="PageNotFoundDescription" xml:space="preserve"><value>Đường dẫn này không tồn tại hoặc nội dung đã được chuyển sang nơi khác.</value></data>
+  <data name="BackToDashboard" xml:space="preserve"><value>Về bảng điều khiển</value></data>
+  <data name="ErrorPageTitle" xml:space="preserve"><value>Có lỗi xảy ra</value></data>
+  <data name="ErrorPageDescription" xml:space="preserve"><value>Hệ thống chưa thể hoàn tất yêu cầu. Vui lòng thử lại hoặc liên hệ quản trị viên nếu lỗi tiếp diễn.</value></data>
+  <data name="TraceId" xml:space="preserve"><value>Mã truy vết</value></data>
+  <data name="RequestCancelled" xml:space="preserve"><value>Yêu cầu đã được hủy.</value></data>
+  <data name="RequestTimeout" xml:space="preserve"><value>Yêu cầu mất quá nhiều thời gian. Vui lòng thử lại.</value></data>
+  <data name="Unauthorized" xml:space="preserve"><value>Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại.</value></data>
+  <data name="Forbidden" xml:space="preserve"><value>Bạn không có quyền thực hiện thao tác này.</value></data>
+  <data name="NotFound" xml:space="preserve"><value>Không tìm thấy dữ liệu được yêu cầu.</value></data>
+  <data name="Conflict" xml:space="preserve"><value>Dữ liệu đã thay đổi hoặc đang có thao tác khác. Vui lòng tải lại.</value></data>
+  <data name="ValidationFailed" xml:space="preserve"><value>Dữ liệu chưa hợp lệ. Vui lòng kiểm tra lại.</value></data>
+  <data name="RequestInvalid" xml:space="preserve"><value>Yêu cầu chưa hợp lệ.</value></data>
+  <data name="RateLimited" xml:space="preserve"><value>Quá nhiều yêu cầu trong thời gian ngắn. Vui lòng thử lại sau.</value></data>
+  <data name="RequestFailed" xml:space="preserve"><value>Không thể hoàn tất yêu cầu. Vui lòng thử lại.</value></data>
+  <data name="LibraryPageDescription" xml:space="preserve"><value>Quản lý danh mục, vật tư, nhà cung cấp và bảng giá dùng chung.</value></data>
+  <data name="PermissionPageDescription" xml:space="preserve"><value>Quản lý người dùng, nhóm quyền và phạm vi truy cập của hệ thống.</value></data>
+  <data name="ReportPageDescription" xml:space="preserve"><value>Theo dõi KPI, xu hướng và dữ liệu tổng hợp theo phạm vi được cấp quyền.</value></data>
+  <data name="SubmissionDeadline" xml:space="preserve"><value>Hạn gửi đơn:</value></data>
+  <data name="BaseRequest" xml:space="preserve"><value>Đơn gốc:</value></data>
+  <data name="SupplementQuotaSummary" xml:space="preserve"><value>Còn {0}/{1} lượt bổ sung được duyệt</value></data>
+  <data name="SupplementAttemptSummary" xml:space="preserve"><value>Còn {0}/{1} lần gửi bổ sung</value></data>
+  <data name="SupplementUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn bổ sung.</value></data>
+  <data name="RegularRequestUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn thường.</value></data>
+  <data name="OrderNoLongerEditable" xml:space="preserve"><value>Đơn này không còn ở trạng thái cho phép chỉnh sửa.</value></data>
+  <data name="RequestActionUnavailable" xml:space="preserve"><value>Chưa thể thực hiện thao tác</value></data>
+  <data name="SupplementReason" xml:space="preserve"><value>Lý do bổ sung</value></data>
+  <data name="CancelOrderConfirm" xml:space="preserve"><value>Bạn chắc chắn muốn hủy đơn {0}? Một phiên bản hủy sẽ được lưu vào lịch sử.</value></data>
+  <data name="CancelOrderTitle" xml:space="preserve"><value>Xác nhận hủy đơn</value></data>
+  <data name="ConfirmCancel" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="KeepOrder" xml:space="preserve"><value>Giữ đơn</value></data>
+  <data name="ViewRequestHistory" xml:space="preserve"><value>Xem lịch sử phiên bản</value></data>
+  <data name="ViewRequestHistoryAria" xml:space="preserve"><value>Xem lịch sử phiên bản của đơn {0}</value></data>
+  <data name="RequestLifecycle" xml:space="preserve"><value>Vòng đời đơn yêu cầu</value></data>
+  <data name="HistoryLoadFailed" xml:space="preserve"><value>Không tải được lịch sử đơn</value></data>
+  <data name="NoRequestHistory" xml:space="preserve"><value>Đơn chưa có lịch sử phiên bản.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Thử lại</value></data>
+  <data name="RevisionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
+  <data name="TimelineEventCount" xml:space="preserve"><value>{0} sự kiện</value></data>
+  <data name="RequestTimeline" xml:space="preserve"><value>Dòng thời gian</value></data>
+  <data name="NoTimelineEvents" xml:space="preserve"><value>Chưa có sự kiện nào.</value></data>
+  <data name="RevisionShort" xml:space="preserve"><value>Phiên bản {0}</value></data>
+  <data name="Reason" xml:space="preserve"><value>Lý do</value></data>
+  <data name="RequestRevisions" xml:space="preserve"><value>Các phiên bản của đơn</value></data>
+  <data name="Revision" xml:space="preserve"><value>Phiên bản</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Cập nhật lúc</value></data>
+  <data name="RejectReason" xml:space="preserve"><value>Lý do từ chối</value></data>
+  <data name="RejectReasonHelp" xml:space="preserve"><value>Nêu lý do cụ thể để người gửi có thể điều chỉnh và gửi lại.</value></data>
+  <data name="RejectReasonRequired" xml:space="preserve"><value>Vui lòng nhập lý do từ chối.</value></data>
+  <data name="RejectReasonLength" xml:space="preserve"><value>Lý do phải có từ 5 đến 500 ký tự.</value></data>
+  <data name="ReplaceOrder" xml:space="preserve"><value>Tạo đơn thay thế</value></data>
+  <data name="ReplaceOrderAria" xml:space="preserve"><value>Tạo phiên bản thay thế cho đơn {0}</value></data>
+  <data name="RequestAction_CREATE" xml:space="preserve"><value>Tạo đơn</value></data>
+  <data name="RequestAction_UPDATE" xml:space="preserve"><value>Cập nhật đơn</value></data>
+  <data name="RequestAction_REPLACE" xml:space="preserve"><value>Tạo đơn thay thế</value></data>
+  <data name="RequestAction_CANCEL" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="RequestAction_APPROVE" xml:space="preserve"><value>Duyệt đơn</value></data>
+  <data name="RequestAction_REJECT" xml:space="preserve"><value>Từ chối đơn</value></data>
 </root>

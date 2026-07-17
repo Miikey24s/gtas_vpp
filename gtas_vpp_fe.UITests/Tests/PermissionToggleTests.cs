@@ -60,7 +60,7 @@ namespace gtas_vpp_fe.UITests.Tests.Permission
             await Page.WaitForURLAsync(
                 new Regex(@".*report/?$"),
                 new PageWaitForURLOptions { Timeout = 60000 });
-            await Page.GetByText("Reports", new PageGetByTextOptions { Exact = true }).WaitForAsync();
+            await Page.Locator("h1.vpp-report-heading").WaitForAsync();
 
             Page.Url.Should().Contain("/report");
         }

@@ -54,9 +54,10 @@ services:
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_live_clients"
-      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
+      DataProtection__KeysPath: "/app/keys"
     volumes:
       - backend-logs:/app/logs:rw
+      - backend-keys:/app/keys:rw
     mem_limit: 512m
     read_only: true
     cap_drop:
@@ -86,7 +87,7 @@ services:
       JwtSettings__Key: "${JWT_KEY:?JWT_KEY environment variable is required.}"
       JwtSettings__Issuer: "gtas_vpp_be"
       JwtSettings__Audience: "gtas_vpp_live_clients"
-      PasswordEncryption__Key: "${PASSWORD_ENCRYPTION_KEY:?PASSWORD_ENCRYPTION_KEY environment variable is required.}"
+      DataProtection__KeysPath: "/app/keys"
       ReportInsights__Enabled: "${REPORT_INSIGHTS_ENABLED:-false}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       CorsSettings__AllowedOrigins__0: "https://gtas-vpp.annam.id.vn"
@@ -105,6 +106,7 @@ services:
     stop_grace_period: 30s
     volumes:
       - backend-logs:/app/logs:rw
+      - backend-keys:/app/keys:rw
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -171,6 +173,9 @@ volumes:
     driver: local
   backend-logs:
     name: gtas-vpp_backend-logs
+    driver: local
+  backend-keys:
+    name: gtas-vpp_backend-keys
     driver: local
   frontend-keys:
     name: gtas-vpp_frontend-keys

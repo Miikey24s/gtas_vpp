@@ -252,13 +252,16 @@
                                       title="@Loc["Edit"]"
                                       Click="@(args => EditRow(context))"
                                       @onclick:stopPropagation="true" />
-                        <RadzenButton Icon="delete_forever"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Danger"
-                                      Disabled="@onEdit"
-                                      title="@Loc["HardDelete"]"
-                                      Click="@(args => HardDeleteRow(context))"
-                                      @onclick:stopPropagation="true" />
+                        @if (AllowHardDelete)
+                        {
+                            <RadzenButton Icon="delete_forever"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Disabled="@onEdit"
+                                          title="@Loc["HardDelete"]"
+                                          Click="@(args => HardDeleteRow(context))"
+                                          @onclick:stopPropagation="true" />
+                        }
                     </div>
                 </Template>
                 <EditTemplate Context="context">

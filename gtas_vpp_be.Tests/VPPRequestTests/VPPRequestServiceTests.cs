@@ -109,14 +109,26 @@ public class VPPRequestServiceTests
         var service = CreateService(context, new DateTime(2026, 4, 10, 9, 7, 8));
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
-        var request = CreateOrderRequest(year: 2026, month: 3, isAdditionalOrder: true, vppId: vppId);
+        var regular = await service.CreateOrderAsync(
+            CreateOrderRequest(year: 2026, month: 4, isAdditionalOrder: false, vppId: vppId),
+            5615,
+            "IT",
+            "77500");
+        var request = CreateOrderRequest(year: 2026, month: 4, isAdditionalOrder: true, vppId: vppId);
+        request.BaseRequestId = regular.Id;
 
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
         Assert.Equal((int)VPPStatus.Pending, result.Status);
-        var header = Assert.Single(context.Set<VPP01_RequestHeader>());
+        var header = Assert.Single(context.Set<VPP01_RequestHeader>().Where(x => x.IsAdditionalOrder));
         Assert.Equal((int)VPPStatus.Pending, header.Status);
         Assert.True(header.IsAdditionalOrder);
+        Assert.Equal(regular.Id, header.BaseRequestId);
+        Assert.Equal("Needed for a new employee", header.SupplementReason);
+        Assert.Equal(1, header.SupplementAttemptNumber);
+        var createLog = Assert.Single(context.Set<VPP03_Log>().Where(x =>
+            x.VPP01_RequestHeaderId == header.Id && x.Action == "CREATE"));
+        Assert.Equal("Needed for a new employee", createLog.Reason);
     }
 
     [Fact]
@@ -141,15 +153,17 @@ public class VPPRequestServiceTests
     public async Task Approve_SetsApprovedByAndAt_Test()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var now = new DateTime(2026, 5, 12, 10, 30, 0);
+        var now = new DateTime(2026, 5, 2, 10, 30, 0);
         var header = CreatePendingAdditionalHeader(now);
+        header.RowVersion = new byte[] { 1, 2, 3 };
         context.Set<VPP01_RequestHeader>().Add(header);
         context.Set<VPP02_RequestDetail>().Add(CreateDetail(header.Id, now));
         await context.SaveChangesAsync();
 
         var service = CreateService(context, now);
 
-        await service.ApproveAdditionalOrderAsync(header.Id, 9001);
+        await service.ApproveAdditionalOrderAsync(
+            header.Id, 9001, header.RowVersion, "approve-test", "IT", true, "77500");
 
         var saved = Assert.Single(context.Set<VPP01_RequestHeader>());
         Assert.Equal((int)VPPStatus.Approved, saved.Status);
@@ -159,18 +173,21 @@ public class VPPRequestServiceTests
     }
 
     [Fact]
-    public async Task Reject_SetsRejectedAuditFields_AndDoesNotWriteReasonIntoLogJson()
+    public async Task Reject_SetsRejectedAuditFields_AndWritesReasonIntoTypedLog()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var now = new DateTime(2026, 5, 12, 10, 30, 0);
+        var now = new DateTime(2026, 5, 2, 10, 30, 0);
         var header = CreatePendingAdditionalHeader(now);
+        header.RowVersion = new byte[] { 4, 5, 6 };
         context.Set<VPP01_RequestHeader>().Add(header);
         context.Set<VPP02_RequestDetail>().Add(CreateDetail(header.Id, now));
         await context.SaveChangesAsync();
 
         var service = CreateService(context, now);
 
-        await service.RejectAdditionalOrderAsync(header.Id, 9002, "Budget exceeded");
+        await service.RejectAdditionalOrderAsync(
+            header.Id, 9002, "Budget exceeded", header.RowVersion,
+            "reject-test", "IT", true, "77500");
 
         var saved = Assert.Single(context.Set<VPP01_RequestHeader>());
         Assert.Equal((int)VPPStatus.Rejected, saved.Status);
@@ -180,8 +197,10 @@ public class VPPRequestServiceTests
 
         var log = Assert.Single(context.Set<VPP03_Log>());
         Assert.Equal("REJECT", log.LogTitle);
-        Assert.DoesNotContain("Budget exceeded", log.LogJS);
-        Assert.DoesNotContain("\"Reason\"", log.LogJS);
+        Assert.Equal("REJECT", log.Action);
+        Assert.Equal(9002, log.ActorUserId);
+        Assert.Equal("Budget exceeded", log.Reason);
+        Assert.Contains("\"RejectReason\":\"Budget exceeded\"", log.LogJS);
     }
 
     [Fact]
@@ -230,6 +249,7 @@ public class VPPRequestServiceTests
             M = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
+            SupplementReason = isAdditionalOrder ? "Needed for a new employee" : null,
             Items = new List<VPP02_ItemReqDTO>
             {
                 new() { VPPId = vppId ?? Guid.NewGuid(), Qty = 3, Description = "Item 1" }
@@ -245,6 +265,13 @@ public class VPPRequestServiceTests
             VPPCode = "VPP-202604-TEST-000001",
             Status = (int)VPPStatus.Pending,
             IsAdditionalOrder = true,
+            RequestSeriesId = Guid.NewGuid(),
+            RevisionNumber = 1,
+            IsCurrentRevision = true,
+            BaseRequestSeriesId = Guid.NewGuid(),
+            SupplementSequence = 1,
+            SupplementAttemptNumber = 1,
+            SupplementReason = "Needed for a new employee",
             DepartmentCode = "IT",
             MemberCompanyCode = "77500",
             CreateUserId = 5615,

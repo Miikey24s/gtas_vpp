@@ -4,6 +4,7 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
+using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
@@ -351,6 +352,24 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
+                if (typeof(T) == typeof(L04_VPPResDTO))
+                {
+                    var source = (L04_VPPResDTO)(object)data;
+                    var created = await _apiServices.PostFromApiAsync<L04_VPPResDTO>(
+                        Config.ApiCatalogItems,
+                        new L04_VppCreateReqDTO
+                        {
+                            VPPCode = source.VPPCode,
+                            VPPName = source.VPPName,
+                            Description = source.Description,
+                            UOMId = source.UOMId,
+                            VPPCategoryId = source.VPPCategoryId
+                        });
+                    if (created is null) throw new InvalidOperationException("Catalog item create returned no data.");
+                    _toastService.Show(NotificationSeverity.Success, "Success", "Record added successfully");
+                    return (T)(object)created;
+                }
+
                 string typeName = typeof(T).Name;
                 string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
@@ -371,6 +390,25 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
+                if (typeof(T) == typeof(L04_VPPResDTO))
+                {
+                    var source = (L04_VPPResDTO)(object)data;
+                    var updated = await _apiServices.PutFromApiAsync<L04_VPPResDTO>(
+                        $"{Config.ApiCatalogItems}/{source.Id}",
+                        new L04_VppUpdateReqDTO
+                        {
+                            Id = source.Id,
+                            VPPCode = source.VPPCode,
+                            VPPName = source.VPPName,
+                            Description = source.Description,
+                            UOMId = source.UOMId,
+                            VPPCategoryId = source.VPPCategoryId
+                        });
+                    if (updated is null) throw new InvalidOperationException("Catalog item update returned no data.");
+                    _toastService.Show(NotificationSeverity.Success, "Success", "Record updated successfully");
+                    return (T)(object)updated;
+                }
+
                 string typeName = typeof(T).Name;
                 string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
                 string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
@@ -406,6 +444,29 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
                 _toastService.Show(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
                 return false;
+            }
+        }
+
+        async Task<T> ApiSetStatusAsync<T>(T data, bool isDeleted) where T : BaseResDTO, new()
+        {
+            if (typeof(T) != typeof(L04_VPPResDTO))
+            {
+                return await ApiUpdateAsync(data);
+            }
+
+            try
+            {
+                var result = await _apiServices.PatchFromApiAsync<L04_VPPResDTO>(
+                    $"{Config.ApiCatalogItems}/{data.Id}/status",
+                    new L04_VppStatusReqDTO { IsDeleted = isDeleted });
+                if (result is null) throw new InvalidOperationException("Catalog item status update returned no data.");
+                _toastService.Show(NotificationSeverity.Success, "Success", isDeleted ? "Record disabled successfully" : "Record restored successfully");
+                return (T)(object)result;
+            }
+            catch (Exception ex)
+            {
+                _toastService.Show(NotificationSeverity.Error, "Error", $"Error when changing record status: {ex.Message}");
+                return default!;
             }
         }
 

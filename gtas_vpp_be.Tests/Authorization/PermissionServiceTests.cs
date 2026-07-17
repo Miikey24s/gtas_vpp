@@ -10,14 +10,51 @@ namespace gtas_vpp_be.Tests.Authorization;
 public sealed class PermissionServiceTests
 {
     [Fact]
-    public void Compatibility_ExpandsLegacyRequestPermissionToActions()
+    public async Task UiComponent_DoesNotGrantBackendAction()
     {
-        var permissions = PermissionCompatibility.Expand([Permissions.RequestOrder]);
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        await SeedPermissionAsync(
+            context,
+            userId: 9,
+            companyCode: 77500,
+            componentCode: Permissions.RequestOrder);
+        var service = new PermissionService(context);
+        var user = CreateUser(9, 77500);
 
-        Assert.Contains(Permissions.RequestCreate, permissions);
-        Assert.Contains(Permissions.RequestUpdateOwn, permissions);
-        Assert.Contains(Permissions.RequestCancelOwn, permissions);
-        Assert.Contains(Permissions.RequestViewOwn, permissions);
+        var snapshot = await service.GetSnapshotAsync(user);
+
+        Assert.Empty(snapshot.Permissions);
+        Assert.False(await service.HasPermissionAsync(user, Permissions.RequestCreate));
+    }
+
+    [Fact]
+    public async Task ExplicitAction_GrantsOnlyThatAction()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        await SeedPermissionAsync(context, userId: 8, companyCode: 77500);
+        var service = new PermissionService(context);
+        var user = CreateUser(8, 77500);
+
+        Assert.True(await service.HasPermissionAsync(user, Permissions.RequestCreate));
+        Assert.False(await service.HasPermissionAsync(user, Permissions.RequestUpdateOwn));
+    }
+
+    [Fact]
+    public async Task StoredActionOutsideCanonicalRoleCeiling_IsDenied()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        await SeedPermissionAsync(
+            context,
+            userId: 13,
+            companyCode: 77500,
+            componentCode: Permissions.PermissionManage,
+            persona: CanonicalRbac.Employee);
+        var service = new PermissionService(context);
+
+        var snapshot = await service.GetSnapshotAsync(CreateUser(13, 77500));
+
+        Assert.Empty(snapshot.Permissions);
+        Assert.False(await service.HasPermissionAsync(CreateUser(13, 77500), Permissions.PermissionManage));
     }
 
     [Fact]
@@ -54,11 +91,12 @@ public sealed class PermissionServiceTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         await SeedPermissionAsync(context, userId: 12, companyCode: 77500);
-        var secondGroupId = Guid.NewGuid();
+        var secondGroupId = CanonicalRbac.DepartmentApprover.GroupId;
         context.Set<P02_Group>().Add(new P02_Group
         {
             Id = secondGroupId,
-            GroupName = "Second group",
+            GroupCode = CanonicalRbac.DepartmentApprover.GroupCode,
+            GroupName = CanonicalRbac.DepartmentApprover.GroupName,
             CreateDate = DateTime.UtcNow,
             UpdateDate = DateTime.UtcNow
         });
@@ -66,6 +104,7 @@ public sealed class PermissionServiceTests
         {
             Id = Guid.NewGuid(),
             UserId = 12,
+            AccountId = 12,
             P02_GroupId = secondGroupId,
             LEX02_CompanyDepartmentLocationId = Guid.NewGuid(),
             CreateDate = DateTime.UtcNow,
@@ -90,10 +129,13 @@ public sealed class PermissionServiceTests
     private static async Task<PermissionSeed> SeedPermissionAsync(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         int userId,
-        long companyCode)
+        long companyCode,
+        string componentCode = Permissions.RequestCreate,
+        RbacPersonaDefinition? persona = null)
     {
+        persona ??= CanonicalRbac.Employee;
         var now = new DateTime(2026, 7, 13, 0, 0, 0, DateTimeKind.Utc);
-        var groupId = Guid.NewGuid();
+        var groupId = persona.GroupId;
         var page = new P01_Page
         {
             Id = Guid.NewGuid(),
@@ -106,8 +148,8 @@ public sealed class PermissionServiceTests
         var component = new P03_Component
         {
             Id = Guid.NewGuid(),
-            ComponentCode = Permissions.RequestOrder,
-            ComponentName = "Request order",
+            ComponentCode = componentCode,
+            ComponentName = componentCode,
             CreateDate = now,
             UpdateDate = now
         };
@@ -135,7 +177,8 @@ public sealed class PermissionServiceTests
             new P02_Group
             {
                 Id = groupId,
-                GroupName = "Test",
+                GroupCode = persona.GroupCode,
+                GroupName = persona.GroupName,
                 CreateDate = now,
                 UpdateDate = now
             },
@@ -143,6 +186,7 @@ public sealed class PermissionServiceTests
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
+                AccountId = userId,
                 P02_GroupId = groupId,
                 LEX02_CompanyDepartmentLocationId = Guid.NewGuid(),
                 CreateDate = now,

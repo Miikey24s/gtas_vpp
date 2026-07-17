@@ -1,141 +1,251 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
-@using gtas_vpp_shared.DTOs.Share
-@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
-@inject NavigationManager UriHelper
+@using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_shared.DTOs.Req.Account
+@using gtas_vpp_shared.DTOs.Res.Account
+@using gtas_vpp_fe.Helpers
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
 @inject GlobalClass glb
 @inject NavigationManager NavigationManager
-@inject ContextMenuService ContextMenuService
 @inject IToastService Toast
-@inject IJSRuntime js
-@using gtas_vpp_shared.DTOs.Res
-@using gtas_vpp_fe.Helpers
 
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-@if (sp_Authentication_GetPermissionSinglePage!.List_Component.Any(y => y.ComponentCode!.Equals(Permissions.PermissionUser) && y.IsVisible))
+@if (PermissionState.HasPermission(Permissions.PermissionView))
 {
-            <RadzenDataGrid @ref="griduser"
-                            @bind-Value=@selected_UserList
-                            AllowFiltering="true"
-                            AllowColumnResize="true"
-                            AllowMultiColumnSorting="true"
-                            AllowVirtualization="false"
-                            AllowAlternatingRows="false"
-                            AllowGrouping="false"
-                            ColumnsPickerAllowFiltering=true
-                            AllowColumnPicking="false"
-                            AllowPickAllColumns="true"
-                            ShowMultiColumnSortingIndex=true
-                            AllowSorting="true"
-                            AllowColumnReorder="true"
-                            AllowPaging="true"
-                            PageSize="20"
-                            PageSizeOptions="@(new int[] { 20, 50, 100 })"
-                            Count="@userCount"
-                            LoadData="@LoadUsersAsync"
-                            LoadColumnFilterData="@LoadUserFilterDataAsync"
-                            IsLoading="@(isUserLoading || isUserLookupLoading)"
-                            FilterMode="FilterMode.CheckBoxList"
-                            Density="Density.Compact"
-                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                            GridLines="DataGridGridLines.Horizontal"
-                            class="@($"permission-user-grid vpp-admin-page-grid vpp-admin-grid {(userCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
-                            Style="--vpp-admin-grid-min-width: 1380px;"
-                            TItem="sp_Authentication_TabUser_UserList"
-                            Data="@_sp_Authentication_TabUser_UserList"
-                            ColumnWidth="150px"
-                            LogicalFilterOperator="LogicalFilterOperator.And"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            RowRender="@OnRowRenderUser"
-                            RowDoubleClick="@OnRowDoubleClick">
-                <HeaderTemplate>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="vpp-admin-grid-toolbar permission-grid-toolbar">
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" class="vpp-admin-toolbar-main">
-                            <RadzenFormField AllowFloatingLabel=true Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
-                                <ChildContent>
-                                    <RadzenTextBox Value="@SearchText"
-                                                   aria-label="@Loc["Search"]"
-                                                   Change="@(arg => TextBoxOnChange(arg))"
-                                                   ValueChanged="@((string value) => SearchText = value)"
-                                                   ValueExpression="() => SearchText"
-                                                   @oninput="(args => SearchText = ((ChangeEventArgs)args).Value?.ToString() ?? string.Empty)"
-                                                   @onkeypress=@(arg => SearchTextOnKeyUp(arg)) />
-                                </ChildContent>
-                                <End>
-                                    <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
-                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" ButtonStyle="ButtonStyle.Secondary" Icon="filter_alt_off" title="@Loc["Reset"]" aria-label="@Loc["Reset"]" Click="ButtonOnClick_Clear" />
-                                        <RadzenButton Size="ButtonSize.ExtraSmall" Disabled="@(isUserLoading || isUserLookupLoading)" Icon="search" title="@Loc["Search"]" aria-label="@Loc["Search"]" Click="ButtonOnClick_SearchUser" />
-                                    </RadzenStack>
-                                </End>
-                            </RadzenFormField>
-                            <RadzenButton Icon="refresh"
-                                          Text="@Loc["Reload"]"
-                                          Size="ButtonSize.Small"
-                                          ButtonStyle="ButtonStyle.Light"
-                                          class="vpp-library-refresh-action"
-                                          Click="ButtonOnClick_Reload" />
-                        </RadzenStack>
-                        <VppColumnPicker TItem="sp_Authentication_TabUser_UserList" GridAccessor="@(() => griduser)" />
-                    </RadzenStack>
-                </HeaderTemplate>
-                <Columns>
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Width="52px" MinWidth="52px" Title="#" Reorderable="false" Filterable="false" Groupable="false" Pickable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
-                        <Template Context="context">
-                            @(currentUserSkip + _sp_Authentication_TabUser_UserList.IndexOf(context) + 1)
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["IsDeleted"]" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted" Width="150px" MinWidth="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
-                        <Template Context="data">
-                            <div class="vpp-admin-is-deleted-cell">
-                                <RadzenSwitch @bind-Value=@data.IsDeleted Change="@(arg => SwitchOnChange_IsDelete(data))" class="isDeleteSwitch" Style="transform: scale(0.75);" />
-                            </div>
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["UserLogin"]" Property="@nameof(sp_Authentication_TabUser_UserList.UserLogin)" Width="130px" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["FullName"]" Property="@nameof(sp_Authentication_TabUser_UserList.FullName)" Width="180px" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["Email"]" Property="@nameof(sp_Authentication_TabUser_UserList.Email)" Width="190px" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["Group"]" Property="@nameof(sp_Authentication_TabUser_UserList.GroupName)" Width="160px">
-                        <Template Context="data">
-                            <RadzenDropDown AllowClear="false"
-                                            AllowVirtualization="true"
-                                            AllowFiltering="true"
-                                            Disabled="@data.IsDeleted"
-                                            TValue="P02_GroupResDTO"
-                                            Data="p02_Groups"
-                                            class="w-100"
-                                            TextProperty="@nameof(P02_GroupResDTO.GroupName)"
-                                            Change="@(arg => DropdownOnChange_Group(data))"
-                                            @bind-Value=@data.UserGroup />
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["Admin"]" Property="@nameof(sp_Authentication_TabUser_UserList.IsAdmin)" Width="88px" Filterable="false" TextAlign="TextAlign.Center">
-                        <Template Context="data">
-                            @if (data.IsAdmin)
-                            {
-                                <RadzenIcon Icon="check_circle" />
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["Department"]" Property="@nameof(sp_Authentication_TabUser_UserList.DepartmentName)" Width="150px" Visible="true" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["UserType"]" Property="@nameof(sp_Authentication_TabUser_UserList.TypeOfUser)" Width="120px" Filterable="false" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="@Loc["Description"]" Property="@nameof(sp_Authentication_TabUser_UserList.Description)" Width="210px" Visible="true" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="User Id" Property="@nameof(sp_Authentication_TabUser_UserList.UserId)" Width="90px" Filterable="false" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Id" Property="@nameof(sp_Authentication_TabUser_UserList.Id)" Width="280px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Google Email" Property="@nameof(sp_Authentication_TabUser_UserList.GoogleEmail)" Width="220px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Group Id" Property="@nameof(sp_Authentication_TabUser_UserList.GroupId)" Width="280px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Create User Id" Property="@nameof(sp_Authentication_TabUser_UserList.CreateUserId)" Width="120px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Create Date" Property="@nameof(sp_Authentication_TabUser_UserList.CreateDate)" FormatString="{0:dd/MM/yyyy HH:mm}" Width="160px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Create User Name" Property="@nameof(sp_Authentication_TabUser_UserList.CreateUserName)" Width="150px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Update User Id" Property="@nameof(sp_Authentication_TabUser_UserList.UpdateUserId)" Width="120px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Update Date" Property="@nameof(sp_Authentication_TabUser_UserList.UpdateDate)" FormatString="{0:dd/MM/yyyy HH:mm}" Width="160px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Update User Name" Property="@nameof(sp_Authentication_TabUser_UserList.UpdateUserName)" Width="150px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList" Title="Department Id" Property="@nameof(sp_Authentication_TabUser_UserList.L05_DepartmentId)" Width="280px" Visible="false" Pickable="true" />
-                </Columns>
-            </RadzenDataGrid>
+    <RadzenDataGrid @ref="griduser"
+                    TItem="sp_Authentication_TabUser_UserList"
+                    Data="@_sp_Authentication_TabUser_UserList"
+                    Count="@userCount"
+                    LoadData="@LoadUsersAsync"
+                    LoadColumnFilterData="@LoadUserFilterDataAsync"
+                    IsLoading="@(isUserLoading || isUserLookupLoading)"
+                    @bind-Value="selected_UserList"
+                    AllowFiltering="true"
+                    AllowColumnResize="true"
+                    AllowMultiColumnSorting="true"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    AllowGrouping="false"
+                    AllowVirtualization="false"
+                    AllowAlternatingRows="false"
+                    AllowColumnReorder="true"
+                    AllowColumnPicking="false"
+                    AllowPickAllColumns="true"
+                    ColumnsPickerAllowFiltering="true"
+                    ShowMultiColumnSortingIndex="true"
+                    ShowPagingSummary="true"
+                    PageSize="20"
+                    PageSizeOptions="@(new[] { 20, 50, 100 })"
+                    FilterMode="FilterMode.CheckBoxList"
+                    FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    LogicalFilterOperator="LogicalFilterOperator.And"
+                    Density="Density.Compact"
+                    GridLines="DataGridGridLines.Horizontal"
+                    SelectionMode="DataGridSelectionMode.Single"
+                    RowDoubleClick="@OnRowDoubleClick"
+                    class="permission-user-grid vpp-admin-page-grid vpp-admin-grid"
+                    Style="--vpp-admin-grid-min-width: 1420px;">
+        <HeaderTemplate>
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         JustifyContent="JustifyContent.SpaceBetween"
+                         Gap="0.5rem"
+                         Wrap="FlexWrap.Wrap"
+                         class="vpp-admin-grid-toolbar permission-grid-toolbar">
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             AlignItems="AlignItems.Center"
+                             Gap="0.5rem"
+                             Wrap="FlexWrap.Wrap"
+                             class="vpp-admin-toolbar-main">
+                    <RadzenFormField AllowFloatingLabel="true" Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
+                        <ChildContent>
+                            <RadzenTextBox Value="@SearchText"
+                                           aria-label="@Loc["Search"]"
+                                           Change="@(arg => TextBoxOnChange(arg))"
+                                           ValueChanged="@((string value) => SearchText = value)"
+                                           ValueExpression="@(() => SearchText)"
+                                           @onkeypress="@(arg => SearchTextOnKeyUp(arg))" />
+                        </ChildContent>
+                        <End>
+                            <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
+                                <RadzenButton Size="ButtonSize.ExtraSmall"
+                                              Disabled="@(isUserLoading || isUserLookupLoading)"
+                                              ButtonStyle="ButtonStyle.Secondary"
+                                              Icon="filter_alt_off"
+                                              title="@Loc["Reset"]"
+                                              aria-label="@Loc["Reset"]"
+                                              Click="@ButtonOnClick_Clear" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall"
+                                              Disabled="@(isUserLoading || isUserLookupLoading)"
+                                              Icon="search"
+                                              title="@Loc["Search"]"
+                                              aria-label="@Loc["Search"]"
+                                              Click="@ButtonOnClick_SearchUser" />
+                            </RadzenStack>
+                        </End>
+                    </RadzenFormField>
+                    <RadzenButton Icon="refresh"
+                                  Text="@Loc["Reload"]"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  class="vpp-library-refresh-action"
+                                  Click="@ButtonOnClick_Reload" />
+                </RadzenStack>
+                <VppColumnPicker TItem="sp_Authentication_TabUser_UserList" GridAccessor="@(() => griduser)" />
+            </RadzenStack>
+        </HeaderTemplate>
+
+        <Columns>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Width="52px"
+                                  MinWidth="52px"
+                                  Title="#"
+                                  Reorderable="false"
+                                  Filterable="false"
+                                  Groupable="false"
+                                  Pickable="false"
+                                  Sortable="false"
+                                  TextAlign="TextAlign.Center">
+                <Template Context="user">
+                    @(currentUserSkip + _sp_Authentication_TabUser_UserList.IndexOf(user) + 1)
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="Trạng thái"
+                                  Width="150px"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.AccountStatus)"
+                                  Filterable="false">
+                <Template Context="user">
+                    <RadzenBadge Text="@GetAccountStatusLabel(user)"
+                                 BadgeStyle="@(user.IsActive ? BadgeStyle.Success : BadgeStyle.Light)" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["UserLogin"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.UserLogin)"
+                                  Width="150px" />
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["FullName"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.FullName)"
+                                  Width="190px" />
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["Email"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.Email)"
+                                  Width="220px" />
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["Group"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.GroupName)"
+                                  Width="190px">
+                <Template Context="user">
+                    <RadzenDropDown TValue="P02_GroupResDTO"
+                                    Data="@p02_Groups"
+                                    TextProperty="@nameof(P02_GroupResDTO.GroupName)"
+                                    @bind-Value="user.UserGroup"
+                                    AllowClear="false"
+                                    AllowFiltering="true"
+                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
+                                    Change="@(_ => DropdownOnChange_Group(user))"
+                                    Style="width: 100%;" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["Department"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.DepartmentName)"
+                                  Width="210px">
+                <Template Context="user">
+                    <RadzenDropDown TValue="Guid?"
+                                    Data="@departments"
+                                    TextProperty="@nameof(LEX02_CompanyDepartmentLocationResDTO.LEX02Name)"
+                                    ValueProperty="@nameof(LEX02_CompanyDepartmentLocationResDTO.Id)"
+                                    @bind-Value="user.L05_DepartmentId"
+                                    AllowClear="false"
+                                    AllowFiltering="true"
+                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
+                                    Change="@(_ => DropdownOnChange_Department(user))"
+                                    Style="width: 100%;" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["Admin"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.IsAdmin)"
+                                  Width="92px"
+                                  Filterable="false"
+                                  TextAlign="TextAlign.Center">
+                <Template Context="user">
+                    @if (user.IsAdmin)
+                    {
+                        <RadzenIcon Icon="check_circle" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="Kích hoạt"
+                                  Width="120px"
+                                  Filterable="false"
+                                  Sortable="false"
+                                  TextAlign="TextAlign.Center">
+                <Template Context="user">
+                    <RadzenSwitch Value="@user.IsActive"
+                                  Change="@(_ => DeactivateMembershipAsync(user))"
+                                  Disabled="@(!CanDeactivateMembership(user) || isUserLoading)"
+                                  title="@(CanDeactivateMembership(user) ? "Deactivate membership" : "Protected or inactive")" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="Quản trị tài khoản"
+                                  Width="190px"
+                                  Filterable="false"
+                                  Sortable="false"
+                                  TextAlign="TextAlign.Center">
+                <Template Context="user">
+                    @if (CanPrepareActivation(user))
+                    {
+                        <RadzenButton Icon="person_add"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Small"
+                                      Text="Kích hoạt"
+                                      Click="@(_ => ActivateAccountAsync(user))"
+                                      Disabled="@isUserLoading"
+                                      title="Kích hoạt tài khoản sau khi chọn nhóm quyền và phòng ban" />
+                    }
+                    else if (CanResetPassword(user))
+                    {
+                        <RadzenButton Icon="lock_reset"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small"
+                                      Text="Reset mật khẩu"
+                                      Click="@(_ => ResetPasswordAsync(user))"
+                                      Disabled="@isUserLoading"
+                                      title="Đặt mật khẩu tạm thời và buộc đổi ở lần đăng nhập tiếp theo" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="@Loc["Description"]"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.Description)"
+                                  Width="220px"
+                                  Visible="true"
+                                  Pickable="true" />
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="Account Id"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.UserId)"
+                                  Width="110px"
+                                  Visible="false"
+                                  Pickable="true" />
+            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+                                  Title="Row version"
+                                  Property="@nameof(sp_Authentication_TabUser_UserList.RowVersion)"
+                                  Width="220px"
+                                  Visible="false"
+                                  Pickable="true" />
+        </Columns>
+    </RadzenDataGrid>
 }
 else
 {

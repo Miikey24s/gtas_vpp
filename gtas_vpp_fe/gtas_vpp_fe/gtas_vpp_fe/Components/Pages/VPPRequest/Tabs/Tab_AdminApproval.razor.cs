@@ -1,5 +1,8 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
@@ -17,7 +20,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-        public bool IsActionLoading { get; set; }
+        private readonly HashSet<Guid> _processingOrderIds = new();
+        private readonly Dictionary<(Guid OrderId, string Action), string> _decisionIdempotencyKeys = new();
         private string ActivePeriodTab { get; set; } = PeriodReviewTab;
         private bool _pendingOrdersLoaded;
         private bool _initialized;
@@ -142,21 +146,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             if (confirm != true) return;
 
-            IsActionLoading = true;
+            if (!_processingOrderIds.Add(order.Id)) return;
             StateHasChanged();
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", null);
+                var request = new ApproveOrderReqDTO
+                {
+                    RowVersion = order.RowVersion,
+                    IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "approve")
+                };
+                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
                 await ReloadAsync();
             }
             catch (Exception ex)
             {
-                Toast.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["ApproveOrderFailedFormat"], ex.Message));
+                Toast.Notify(NotificationSeverity.Error, Loc["Error"], UiErrorMapper.GetMessage(ex, Loc, "ApproveOrderFailed"));
             }
             finally
             {
-                IsActionLoading = false;
+                _processingOrderIds.Remove(order.Id);
                 StateHasChanged();
             }
         }
@@ -165,30 +174,50 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             if (order == null || !CanReject) return;
 
-            var confirm = await DialogService.Confirm(
-                string.Format(Loc["RejectOrderConfirm"], order.VPPCode),
+            var reason = await DialogService.OpenAsync<Dialog_RejectSupplement>(
                 Loc["RejectOrderTitle"],
-                new ConfirmOptions() { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+                options: new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
 
-            if (confirm != true) return;
+            if (reason is not string rejectionReason || string.IsNullOrWhiteSpace(rejectionReason)) return;
 
-            IsActionLoading = true;
+            if (!_processingOrderIds.Add(order.Id)) return;
             StateHasChanged();
             try
             {
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", new { Reason = "" });
+                var request = new RejectOrderReqDTO
+                {
+                    Reason = rejectionReason,
+                    RowVersion = order.RowVersion,
+                    IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "reject")
+                };
+                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
                 await ReloadAsync();
             }
             catch (Exception ex)
             {
-                Toast.Notify(NotificationSeverity.Error, Loc["Error"], string.Format(Loc["RejectOrderFailedFormat"], ex.Message));
+                Toast.Notify(NotificationSeverity.Error, Loc["Error"], UiErrorMapper.GetMessage(ex, Loc, "RejectOrderFailed"));
             }
             finally
             {
-                IsActionLoading = false;
+                _processingOrderIds.Remove(order.Id);
                 StateHasChanged();
             }
+        }
+
+        private bool IsProcessing(Guid orderId) => _processingOrderIds.Contains(orderId);
+
+        private string GetDecisionIdempotencyKey(Guid orderId, string action)
+        {
+            var key = (orderId, action);
+            if (_decisionIdempotencyKeys.TryGetValue(key, out var existing))
+            {
+                return existing;
+            }
+
+            var created = Guid.NewGuid().ToString("N");
+            _decisionIdempotencyKeys[key] = created;
+            return created;
         }
     }
 }

@@ -108,9 +108,12 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
                 var ticketId = TicketCache.Add(loginData, loginReqDTO.isRememberPass);
                 var redirectUrl = $"/perform-login?id={ticketId}";
-                if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                var requestedReturnUrl = AccountLoginRedirectPolicy.Resolve(
+                    loginData.MustChangePassword,
+                    ReturnUrl);
+                if (!string.IsNullOrWhiteSpace(requestedReturnUrl))
                 {
-                    redirectUrl += $"&returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+                    redirectUrl += $"&returnUrl={Uri.EscapeDataString(requestedReturnUrl)}";
                 }
 
                 UriHelper.NavigateTo(redirectUrl, true);
