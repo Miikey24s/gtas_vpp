@@ -1,12 +1,12 @@
-﻿namespace gtas_vpp_shared.DTOs.Req.Permission
+namespace gtas_vpp_shared.DTOs.Req.Permission
 {
     public class PatchComponentMappingReqDTO
     {
-        public Guid P05_PageComponentMappingId { get; set; }
-        public Guid P02_GroupId { get; set; }
+        public Guid PageComponentMappingId { get; set; }
+        public Guid PermissionGroupId { get; set; }
         public bool IsEnable { get; set; }
         public bool IsVisible { get; set; }
-        public int UpdateUserId { get; set; }
-        public DateTime? UpdateDate { get; set; }
+        public int UpdatedByUserId { get; set; }
+        public DateTime? UpdatedAtUtc { get; set; }
     }
 }

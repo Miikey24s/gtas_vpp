@@ -22,16 +22,16 @@ public sealed class CanonicalPermissionControllerTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         foreach (var persona in CanonicalRbac.Personas)
         {
-            context.P02_Groups.Add(CreateGroup(persona));
+            context.PermissionGroups.Add(CreateGroup(persona));
         }
 
-        context.P02_Groups.Add(new P02_Group
+        context.PermissionGroups.Add(new PermissionGroup
         {
             Id = Guid.NewGuid(),
             GroupCode = "LEGACY_ADMIN",
             GroupName = "Legacy admin",
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         });
         await context.SaveChangesAsync();
         var controller = CreateController(context);
@@ -39,7 +39,7 @@ public sealed class CanonicalPermissionControllerTests
         var action = await controller.GetGroups(getFullName: false, top: 100);
 
         var response = Assert.IsType<OkObjectResult>(action);
-        var groups = Assert.IsType<List<P02_GroupResDTO>>(response.Value);
+        var groups = Assert.IsType<List<PermissionGroupResDTO>>(response.Value);
         Assert.Equal(4, groups.Count);
         Assert.Equal(
             CanonicalRbac.Personas.Select(persona => persona.GroupId).Order(),
@@ -52,7 +52,7 @@ public sealed class CanonicalPermissionControllerTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var group = CreateGroup(CanonicalRbac.SystemAdmin);
-        var groups = new Mock<IGenericRepository<P02_Group>>();
+        var groups = new Mock<IGenericRepository<PermissionGroup>>();
         groups
             .Setup(repository => repository.GetByIdAsync(It.Is<object>(id => id.Equals(group.Id))))
             .ReturnsAsync(group);
@@ -60,13 +60,13 @@ public sealed class CanonicalPermissionControllerTests
 
         var action = await controller.UpdateGroup(
             group.Id,
-            new P02_GroupUpdateReqDTO { GroupName = "Super administrator" });
+            new PermissionGroupUpdateReqDTO { GroupName = "Super administrator" });
 
         Assert.IsType<ConflictObjectResult>(action);
         groups.Verify(
             repository => repository.UpdateAsync(
-                It.IsAny<P02_Group>(),
-                It.IsAny<Expression<Func<P02_Group, object>>[]?>()),
+                It.IsAny<PermissionGroup>(),
+                It.IsAny<Expression<Func<PermissionGroup, object>>[]?>()),
             Times.Never);
     }
 
@@ -83,8 +83,8 @@ public sealed class CanonicalPermissionControllerTests
 
         var action = await controller.PatchComponentMapping(new PatchComponentMappingReqDTO
         {
-            P05_PageComponentMappingId = fixture.Mapping.P05_PageComponentMappingId,
-            P02_GroupId = fixture.Mapping.P02_GroupId,
+            PageComponentMappingId = fixture.Mapping.PageComponentMappingId,
+            PermissionGroupId = fixture.Mapping.PermissionGroupId,
             IsVisible = false,
             IsEnable = false
         });
@@ -106,8 +106,8 @@ public sealed class CanonicalPermissionControllerTests
 
         var action = await controller.PatchComponentMapping(new PatchComponentMappingReqDTO
         {
-            P05_PageComponentMappingId = fixture.Mapping.P05_PageComponentMappingId,
-            P02_GroupId = fixture.Mapping.P02_GroupId,
+            PageComponentMappingId = fixture.Mapping.PageComponentMappingId,
+            PermissionGroupId = fixture.Mapping.PermissionGroupId,
             IsVisible = true,
             IsEnable = true
         });
@@ -129,8 +129,8 @@ public sealed class CanonicalPermissionControllerTests
 
         var action = await controller.PatchComponentMapping(new PatchComponentMappingReqDTO
         {
-            P05_PageComponentMappingId = fixture.Mapping.P05_PageComponentMappingId,
-            P02_GroupId = fixture.Mapping.P02_GroupId,
+            PageComponentMappingId = fixture.Mapping.PageComponentMappingId,
+            PermissionGroupId = fixture.Mapping.PermissionGroupId,
             IsVisible = false,
             IsEnable = false
         });
@@ -152,8 +152,8 @@ public sealed class CanonicalPermissionControllerTests
 
         var action = await controller.PatchComponentMapping(new PatchComponentMappingReqDTO
         {
-            P05_PageComponentMappingId = fixture.Mapping.P05_PageComponentMappingId,
-            P02_GroupId = fixture.Mapping.P02_GroupId,
+            PageComponentMappingId = fixture.Mapping.PageComponentMappingId,
+            PermissionGroupId = fixture.Mapping.PermissionGroupId,
             IsVisible = false,
             IsEnable = true
         });
@@ -164,13 +164,13 @@ public sealed class CanonicalPermissionControllerTests
 
     private static PermissionController CreateController(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
-        Mock<IGenericRepository<P02_Group>>? groupRepository = null,
-        Mock<IGenericRepository<P06_GroupPageComponentMapping>>? mappingRepository = null)
+        Mock<IGenericRepository<PermissionGroup>>? groupRepository = null,
+        Mock<IGenericRepository<GroupPageComponentMapping>>? mappingRepository = null)
     {
         var controller = new PermissionController(
-            (groupRepository ?? new Mock<IGenericRepository<P02_Group>>()).Object,
-            (mappingRepository ?? new Mock<IGenericRepository<P06_GroupPageComponentMapping>>()).Object,
-            Mock.Of<IGenericRepository<P04_UserGroup>>(),
+            (groupRepository ?? new Mock<IGenericRepository<PermissionGroup>>()).Object,
+            (mappingRepository ?? new Mock<IGenericRepository<GroupPageComponentMapping>>()).Object,
+            Mock.Of<IGenericRepository<UserGroupMembership>>(),
             Mock.Of<IUserNameResolver>(),
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow),
@@ -186,14 +186,14 @@ public sealed class CanonicalPermissionControllerTests
         return controller;
     }
 
-    private static P02_Group CreateGroup(RbacPersonaDefinition persona) => new()
+    private static PermissionGroup CreateGroup(RbacPersonaDefinition persona) => new()
     {
         Id = persona.GroupId,
         GroupCode = persona.GroupCode,
         GroupName = persona.GroupName,
         Description = persona.Description,
-        CreateDate = DateTime.UtcNow,
-        UpdateDate = DateTime.UtcNow
+        CreatedAtUtc = DateTime.UtcNow,
+        UpdatedAtUtc = DateTime.UtcNow
     };
 
     private static async Task<MappingFixture> CreateMappingAsync(
@@ -201,30 +201,30 @@ public sealed class CanonicalPermissionControllerTests
         Guid groupId,
         string componentCode)
     {
-        var component = new P03_Component
+        var component = new PermissionComponent
         {
             Id = Guid.NewGuid(),
             ComponentCode = componentCode,
             ComponentName = componentCode,
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
-        var pageMapping = new P05_PageComponentMapping
+        var pageMapping = new PageComponentMapping
         {
             Id = Guid.NewGuid(),
-            P01_PageId = Guid.NewGuid(),
-            P03_ComponentId = component.Id,
-            P03_Component = component
+            PermissionPageId = Guid.NewGuid(),
+            PermissionComponentId = component.Id,
+            PermissionComponent = component
         };
-        var mapping = new P06_GroupPageComponentMapping
+        var mapping = new GroupPageComponentMapping
         {
-            P02_GroupId = groupId,
-            P05_PageComponentMappingId = pageMapping.Id,
+            PermissionGroupId = groupId,
+            PageComponentMappingId = pageMapping.Id,
             MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
             IsVisible = true,
             IsEnable = true,
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
 
         context.AddRange(component, pageMapping);
@@ -232,26 +232,26 @@ public sealed class CanonicalPermissionControllerTests
         return new MappingFixture(mapping);
     }
 
-    private static Mock<IGenericRepository<P06_GroupPageComponentMapping>> MappingRepository(
-        P06_GroupPageComponentMapping mapping)
+    private static Mock<IGenericRepository<GroupPageComponentMapping>> MappingRepository(
+        GroupPageComponentMapping mapping)
     {
-        var repository = new Mock<IGenericRepository<P06_GroupPageComponentMapping>>();
+        var repository = new Mock<IGenericRepository<GroupPageComponentMapping>>();
         repository
             .Setup(item => item.ReadAsync(
-                It.IsAny<Expression<Func<P06_GroupPageComponentMapping, bool>>>(),
-                It.IsAny<Func<IQueryable<P06_GroupPageComponentMapping>, IQueryable<P06_GroupPageComponentMapping>>>(),
+                It.IsAny<Expression<Func<GroupPageComponentMapping, bool>>>(),
+                It.IsAny<Func<IQueryable<GroupPageComponentMapping>, IQueryable<GroupPageComponentMapping>>>(),
                 It.IsAny<int?>()))
             .ReturnsAsync([mapping]);
         return repository;
     }
 
     private static void VerifyNeverUpdated(
-        Mock<IGenericRepository<P06_GroupPageComponentMapping>> repository) =>
+        Mock<IGenericRepository<GroupPageComponentMapping>> repository) =>
         repository.Verify(
             item => item.UpdateAsync(
-                It.IsAny<P06_GroupPageComponentMapping>(),
-                It.IsAny<Expression<Func<P06_GroupPageComponentMapping, object>>[]?>()),
+                It.IsAny<GroupPageComponentMapping>(),
+                It.IsAny<Expression<Func<GroupPageComponentMapping, object>>[]?>()),
             Times.Never);
 
-    private sealed record MappingFixture(P06_GroupPageComponentMapping Mapping);
+    private sealed record MappingFixture(GroupPageComponentMapping Mapping);
 }

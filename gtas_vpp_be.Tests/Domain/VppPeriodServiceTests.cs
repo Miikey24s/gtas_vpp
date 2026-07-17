@@ -23,7 +23,7 @@ public sealed class VppPeriodServiceTests
         var second = await service.EnsureAsync("ACME", new Period(2026, 7));
 
         Assert.Equal(first.Id, second.Id);
-        Assert.Single(context.VPP00_Periods);
+        Assert.Single(context.Periods);
         Assert.Equal(VppPeriodState.Open, first.State);
         Assert.Equal("Asia/Ho_Chi_Minh", first.TimeZoneId);
     }
@@ -80,7 +80,7 @@ public sealed class VppPeriodServiceTests
 
         Assert.Empty(first);
         Assert.Empty(second);
-        Assert.Empty(context.VPP00_Periods);
+        Assert.Empty(context.Periods);
     }
 
     private static VppPeriodService CreateService(

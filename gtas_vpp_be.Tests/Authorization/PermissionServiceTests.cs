@@ -68,7 +68,7 @@ public sealed class PermissionServiceTests
         Assert.True(await service.HasPermissionAsync(user, Permissions.RequestCreate));
 
         seed.GroupMapping.IsEnable = false;
-        seed.GroupMapping.UpdateDate = seed.GroupMapping.UpdateDate.AddSeconds(1);
+        seed.GroupMapping.UpdatedAtUtc = seed.GroupMapping.UpdatedAtUtc.AddSeconds(1);
         await context.SaveChangesAsync();
 
         Assert.False(await service.HasPermissionAsync(user, Permissions.RequestCreate));
@@ -92,23 +92,23 @@ public sealed class PermissionServiceTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         await SeedPermissionAsync(context, userId: 12, companyCode: 77500);
         var secondGroupId = CanonicalRbac.DepartmentApprover.GroupId;
-        context.Set<P02_Group>().Add(new P02_Group
+        context.Set<PermissionGroup>().Add(new PermissionGroup
         {
             Id = secondGroupId,
             GroupCode = CanonicalRbac.DepartmentApprover.GroupCode,
             GroupName = CanonicalRbac.DepartmentApprover.GroupName,
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         });
-        context.Set<P04_UserGroup>().Add(new P04_UserGroup
+        context.Set<UserGroupMembership>().Add(new UserGroupMembership
         {
             Id = Guid.NewGuid(),
             UserId = 12,
             AccountId = 12,
-            P02_GroupId = secondGroupId,
-            LEX02_CompanyDepartmentLocationId = Guid.NewGuid(),
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            PermissionGroupId = secondGroupId,
+            DepartmentId = Guid.NewGuid(),
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         });
         await context.SaveChangesAsync();
         var service = new PermissionService(context);
@@ -136,61 +136,61 @@ public sealed class PermissionServiceTests
         persona ??= CanonicalRbac.Employee;
         var now = new DateTime(2026, 7, 13, 0, 0, 0, DateTimeKind.Utc);
         var groupId = persona.GroupId;
-        var page = new P01_Page
+        var page = new PermissionPage
         {
             Id = Guid.NewGuid(),
             PageCode = "DASHBOARD",
             PageName = "Dashboard",
             Type = "PAGE",
-            CreateDate = now,
-            UpdateDate = now
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
-        var component = new P03_Component
+        var component = new PermissionComponent
         {
             Id = Guid.NewGuid(),
             ComponentCode = componentCode,
             ComponentName = componentCode,
-            CreateDate = now,
-            UpdateDate = now
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
-        var pageMapping = new P05_PageComponentMapping
+        var pageMapping = new PageComponentMapping
         {
             Id = Guid.NewGuid(),
-            P01_PageId = page.Id,
-            P01_Page = page,
-            P03_ComponentId = component.Id,
-            P03_Component = component
+            PermissionPageId = page.Id,
+            PermissionPage = page,
+            PermissionComponentId = component.Id,
+            PermissionComponent = component
         };
-        var groupMapping = new P06_GroupPageComponentMapping
+        var groupMapping = new GroupPageComponentMapping
         {
-            P02_GroupId = groupId,
-            P05_PageComponentMappingId = pageMapping.Id,
-            P05_PageComponentMapping = pageMapping,
+            PermissionGroupId = groupId,
+            PageComponentMappingId = pageMapping.Id,
+            PageComponentMapping = pageMapping,
             MemberCompanyCode = companyCode,
             IsVisible = true,
             IsEnable = true,
-            CreateDate = now,
-            UpdateDate = now
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
 
         context.AddRange(
-            new P02_Group
+            new PermissionGroup
             {
                 Id = groupId,
                 GroupCode = persona.GroupCode,
                 GroupName = persona.GroupName,
-                CreateDate = now,
-                UpdateDate = now
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             },
-            new P04_UserGroup
+            new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 AccountId = userId,
-                P02_GroupId = groupId,
-                LEX02_CompanyDepartmentLocationId = Guid.NewGuid(),
-                CreateDate = now,
-                UpdateDate = now
+                PermissionGroupId = groupId,
+                DepartmentId = Guid.NewGuid(),
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             },
             page,
             component,
@@ -201,5 +201,5 @@ public sealed class PermissionServiceTests
         return new PermissionSeed(groupMapping);
     }
 
-    private sealed record PermissionSeed(P06_GroupPageComponentMapping GroupMapping);
+    private sealed record PermissionSeed(GroupPageComponentMapping GroupMapping);
 }

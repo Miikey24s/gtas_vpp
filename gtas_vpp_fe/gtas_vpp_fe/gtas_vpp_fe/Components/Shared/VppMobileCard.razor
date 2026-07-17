@@ -9,7 +9,7 @@
                 <div class="vpp-mobile-card-head">
                     <div>
                         <div class="vpp-mobile-card-title">
-                            <span class="vpp-link-text">@item.VPPCode</span>
+                            <span class="vpp-link-text">@item.VppCode</span>
                             @if (item.IsAdditionalOrder)
                             {
                                 <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" class="rz-ml-2" />
@@ -84,7 +84,7 @@
 }
 
 @code {
-    [Parameter] public IEnumerable<VPP01_RequestHeaderResDTO>? Items { get; set; }
-    [Parameter] public RenderFragment<VPP01_RequestHeaderResDTO>? Actions { get; set; }
+    [Parameter] public IEnumerable<VppRequestResDTO>? Items { get; set; }
+    [Parameter] public RenderFragment<VppRequestResDTO>? Actions { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;
 }

@@ -37,15 +37,15 @@ public sealed class MembershipAdministrationServiceTests
             });
 
         Assert.True(result.Succeeded);
-        var membership = Assert.Single(context.P04_UserGroups.Where(item => !item.IsDeleted));
+        var membership = Assert.Single(context.UserGroupMemberships.Where(item => !item.IsDeleted));
         Assert.Equal(account.Id, membership.AccountId);
         Assert.Equal(account.Id, membership.UserId);
-        Assert.Equal(group.Id, membership.P02_GroupId);
-        Assert.Equal(department.Id, membership.LEX02_CompanyDepartmentLocationId);
+        Assert.Equal(group.Id, membership.PermissionGroupId);
+        Assert.Equal(department.Id, membership.DepartmentId);
         Assert.Equal(2, account.SessionVersion);
         Assert.NotEqual("security-before", account.SecurityStamp);
         Assert.NotEqual("concurrency-before", account.ConcurrencyStamp);
-        var audit = Assert.Single(context.A01_SecurityAudits);
+        var audit = Assert.Single(context.SecurityAudits);
         Assert.Equal("MEMBERSHIP_CREATED", audit.Action);
         Assert.Equal(account.Id, audit.TargetUserId);
         Assert.Equal("Initial assignment", audit.Reason);
@@ -94,10 +94,10 @@ public sealed class MembershipAdministrationServiceTests
         Assert.Equal(AppAccountStatus.Active, account.AccountStatus);
         Assert.NotNull(account.ActivatedAtUtc);
         Assert.Equal(2, account.SessionVersion);
-        var membership = Assert.Single(context.P04_UserGroups.Where(item => !item.IsDeleted));
+        var membership = Assert.Single(context.UserGroupMemberships.Where(item => !item.IsDeleted));
         Assert.Equal(account.Id, membership.AccountId);
-        Assert.Contains(context.A01_SecurityAudits, audit => audit.Action == "ACCOUNT_ACTIVATED");
-        Assert.Contains(context.A01_SecurityAudits, audit => audit.Action == "MEMBERSHIP_CREATED");
+        Assert.Contains(context.SecurityAudits, audit => audit.Action == "ACCOUNT_ACTIVATED");
+        Assert.Contains(context.SecurityAudits, audit => audit.Action == "MEMBERSHIP_CREATED");
     }
 
     [Fact]
@@ -125,9 +125,9 @@ public sealed class MembershipAdministrationServiceTests
 
         Assert.Equal(409, result.StatusCode);
         Assert.Equal("MEMBERSHIP_CHANGED", result.Code);
-        Assert.Equal(employeeGroup.Id, membership.P02_GroupId);
+        Assert.Equal(employeeGroup.Id, membership.PermissionGroupId);
         Assert.Equal(1, account.SessionVersion);
-        Assert.Empty(context.A01_SecurityAudits);
+        Assert.Empty(context.SecurityAudits);
         Assert.Empty(notifier.UserNotifications);
     }
 
@@ -157,7 +157,7 @@ public sealed class MembershipAdministrationServiceTests
 
         Assert.Equal(409, blocked.StatusCode);
         Assert.Equal("LAST_SYSTEM_ADMIN", blocked.Code);
-        Assert.Equal(systemGroup.Id, targetMembership.P02_GroupId);
+        Assert.Equal(systemGroup.Id, targetMembership.PermissionGroupId);
         Assert.Equal(1, target.SessionVersion);
 
         var secondAdmin = AddActiveAccount(context, 1_000_000_104, "system.admin.two");
@@ -167,7 +167,7 @@ public sealed class MembershipAdministrationServiceTests
         var succeeded = await service.UpsertAsync(1_000_000_999, command);
 
         Assert.True(succeeded.Succeeded);
-        Assert.Equal(employeeGroup.Id, targetMembership.P02_GroupId);
+        Assert.Equal(employeeGroup.Id, targetMembership.PermissionGroupId);
         Assert.Equal(2, target.SessionVersion);
     }
 
@@ -195,9 +195,9 @@ public sealed class MembershipAdministrationServiceTests
         Assert.True(result.Succeeded);
         Assert.False(result.Membership!.IsActive);
         Assert.True(membership.IsDeleted);
-        Assert.Single(context.P04_UserGroups);
+        Assert.Single(context.UserGroupMemberships);
         Assert.Equal(2, account.SessionVersion);
-        var audit = Assert.Single(context.A01_SecurityAudits);
+        var audit = Assert.Single(context.SecurityAudits);
         Assert.Equal("MEMBERSHIP_DEACTIVATED", audit.Action);
         Assert.Equal("Department transfer", audit.Reason);
         Assert.True(notifier.ObservedPersistedAudit);
@@ -253,102 +253,101 @@ public sealed class MembershipAdministrationServiceTests
         return account;
     }
 
-    private static P02_Group AddCanonicalGroup(VPPContext context, RbacPersonaDefinition persona)
+    private static PermissionGroup AddCanonicalGroup(VPPContext context, RbacPersonaDefinition persona)
     {
-        var group = new P02_Group
+        var group = new PermissionGroup
         {
             Id = persona.GroupId,
             GroupCode = persona.GroupCode,
             GroupName = persona.GroupName,
             ParentGroupId = null,
-            CreateDate = LocalNow,
-            UpdateDate = LocalNow,
+            CreatedAtUtc = LocalNow,
+            UpdatedAtUtc = LocalNow,
             IsDeleted = false
         };
-        context.P02_Groups.Add(group);
+        context.PermissionGroups.Add(group);
         return group;
     }
 
-    private static LEX02_CompanyDepartmentLocation AddDepartment(VPPContext context, string code)
+    private static Department AddDepartment(VPPContext context, string code)
     {
-        var department = new LEX02_CompanyDepartmentLocation
+        var department = new Department
         {
             Id = Guid.NewGuid(),
-            LEX02Code = code,
-            LEX02Name = code,
-            LEX02Type = "PhongBan",
-            CreateDate = LocalNow,
-            UpdateDate = LocalNow,
+            Code = code,
+            Name = code,
+            CreatedAtUtc = LocalNow,
+            UpdatedAtUtc = LocalNow,
             IsDeleted = false
         };
-        context.LEX02_CompanyDepartmentLocations.Add(department);
+        context.Departments.Add(department);
         return department;
     }
 
-    private static P04_UserGroup AddMembership(
+    private static UserGroupMembership AddMembership(
         VPPContext context,
         AppUser account,
-        P02_Group group,
-        LEX02_CompanyDepartmentLocation department,
+        PermissionGroup group,
+        Department department,
         byte[] rowVersion)
     {
-        var membership = new P04_UserGroup
+        var membership = new UserGroupMembership
         {
             Id = Guid.NewGuid(),
             AccountId = account.Id,
             UserId = account.Id,
-            P02_GroupId = group.Id,
-            LEX02_CompanyDepartmentLocationId = department.Id,
+            PermissionGroupId = group.Id,
+            DepartmentId = department.Id,
             RowVersion = rowVersion.ToArray(),
-            CreateDate = LocalNow,
-            UpdateDate = LocalNow,
+            CreatedAtUtc = LocalNow,
+            UpdatedAtUtc = LocalNow,
             IsDeleted = false
         };
-        context.P04_UserGroups.Add(membership);
+        context.UserGroupMemberships.Add(membership);
         return membership;
     }
 
     private static void AddExplicitPermission(
         VPPContext context,
-        P02_Group group,
+        PermissionGroup group,
         string permissionCode)
     {
-        var page = new P01_Page
+        var page = new PermissionPage
         {
             Id = Guid.NewGuid(),
             PageCode = "PERMISSION",
             PageName = "Permission",
             Type = "PAGE",
-            CreateDate = LocalNow,
-            UpdateDate = LocalNow
+            CreatedAtUtc = LocalNow,
+            UpdatedAtUtc = LocalNow
         };
-        var component = new P03_Component
+        var component = new PermissionComponent
         {
             Id = Guid.NewGuid(),
             ComponentCode = permissionCode,
             ComponentName = permissionCode,
-            CreateDate = LocalNow,
-            UpdateDate = LocalNow
+            CreatedAtUtc = LocalNow,
+            UpdatedAtUtc = LocalNow
         };
-        var pageMapping = new P05_PageComponentMapping
+        var pageMapping = new PageComponentMapping
         {
             Id = Guid.NewGuid(),
-            P01_PageId = page.Id,
-            P01_Page = page,
-            P03_ComponentId = component.Id,
-            P03_Component = component
+            PermissionPageId = page.Id,
+            PermissionPage = page,
+            PermissionComponentId = component.Id,
+            PermissionComponent = component
         };
-        var groupMapping = new P06_GroupPageComponentMapping
+        var groupMapping = new GroupPageComponentMapping
         {
-            P02_GroupId = group.Id,
-            P02_Group = group,
-            P05_PageComponentMappingId = pageMapping.Id,
-            P05_PageComponentMapping = pageMapping,
+            PermissionGroupId = group.Id,
+            PermissionGroup = group,
+            PageComponentMappingId = pageMapping.Id,
+            PageComponentMapping = pageMapping,
             MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
             IsVisible = true,
             IsEnable = true,
-            CreateDate = LocalNow,
-            UpdateDate = LocalNow
+            CreatedAtUtc = LocalNow,
+            UpdatedAtUtc = LocalNow
         };
         context.AddRange(page, component, pageMapping, groupMapping);
     }
@@ -364,7 +363,7 @@ public sealed class MembershipAdministrationServiceTests
             Guid groupId,
             CancellationToken cancellationToken = default)
         {
-            ObservedPersistedAudit |= _context.A01_SecurityAudits.Any();
+            ObservedPersistedAudit |= _context.SecurityAudits.Any();
             GroupNotifications.Add(groupId);
             return Task.CompletedTask;
         }
@@ -373,7 +372,7 @@ public sealed class MembershipAdministrationServiceTests
             int userId,
             CancellationToken cancellationToken = default)
         {
-            ObservedPersistedAudit |= _context.A01_SecurityAudits.Any();
+            ObservedPersistedAudit |= _context.SecurityAudits.Any();
             UserNotifications.Add(userId);
             return Task.CompletedTask;
         }

@@ -10,9 +10,9 @@ namespace gtas_vpp_be.Authorization;
 
 public sealed record CurrentUserSnapshot(
     AppUser Account,
-    P04_UserGroup Membership,
-    P02_Group Group,
-    LEX02_CompanyDepartmentLocation PrimaryDepartment);
+    UserGroupMembership Membership,
+    PermissionGroup Group,
+    Department PrimaryDepartment);
 
 public interface ICurrentUserContext
 {
@@ -68,12 +68,12 @@ public sealed class CurrentUserContext(VPPContext context) : ICurrentUserContext
             .ToArray();
         var rows = await (
                 from account in _context.Users.AsNoTracking()
-                join membership in _context.P04_UserGroups.AsNoTracking()
+                join membership in _context.UserGroupMemberships.AsNoTracking()
                     on account.Id equals membership.AccountId
-                join roleGroup in _context.P02_Groups.AsNoTracking()
-                    on membership.P02_GroupId equals roleGroup.Id
-                join department in _context.LEX02_CompanyDepartmentLocations.AsNoTracking()
-                    on membership.LEX02_CompanyDepartmentLocationId equals department.Id
+                join roleGroup in _context.PermissionGroups.AsNoTracking()
+                    on membership.PermissionGroupId equals roleGroup.Id
+                join department in _context.Departments.AsNoTracking()
+                    on membership.DepartmentId equals department.Id
                 where account.Id == userId
                       && account.AccountStatus == AppAccountStatus.Active
                       && account.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
@@ -85,7 +85,6 @@ public sealed class CurrentUserContext(VPPContext context) : ICurrentUserContext
                       && canonicalGroupIds.Contains(roleGroup.Id)
                       && !department.IsDeleted
                       && department.Id != Guid.Empty
-                      && department.LEX02Type == "PhongBan"
                 select new { account, membership, roleGroup, department })
             .Take(2)
             .ToListAsync(cancellationToken);
@@ -110,7 +109,7 @@ public sealed class CurrentUserContext(VPPContext context) : ICurrentUserContext
         ReplaceClaim(identity, AppClaimTypes.GroupId, snapshot.Group.Id.ToString());
         ReplaceClaim(identity, AppClaimTypes.GroupCode, snapshot.Group.GroupCode);
         ReplaceClaim(identity, AppClaimTypes.MemberCompanyCode, snapshot.Account.MemberCompanyCode.ToString());
-        ReplaceClaim(identity, AppClaimTypes.DepartmentCode, snapshot.PrimaryDepartment.LEX02Code ?? string.Empty);
+        ReplaceClaim(identity, AppClaimTypes.DepartmentCode, snapshot.PrimaryDepartment.Code ?? string.Empty);
         ReplaceClaim(
             identity,
             AppClaimTypes.IsAdmin,

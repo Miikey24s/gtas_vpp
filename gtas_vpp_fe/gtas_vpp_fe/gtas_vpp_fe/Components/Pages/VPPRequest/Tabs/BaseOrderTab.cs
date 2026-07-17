@@ -13,7 +13,7 @@ using Microsoft.JSInterop;
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     /// <summary>
-    /// Shared base class for the "list of VPP01 orders with paged grid + filter +
+    /// Shared base class for the "list of VPP requests with paged grid + filter +
     /// lazy-loaded detail expansion" pattern (F-24).
     ///
     /// Originally duplicated across Tab_History, Tab_AllOrdersSummary,
@@ -39,7 +39,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
         // ─── Collection state ─────────────────────────────────────────────────
-        public List<VPP01_RequestHeaderResDTO> Orders { get; set; } = new();
+        public List<VppRequestResDTO> Orders { get; set; } = new();
         protected HashSet<Guid> LoadedDetailOrderIds { get; } = new();
         protected HashSet<Guid> LoadingDetailOrderIds { get; } = new();
 
@@ -125,7 +125,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         /// Loads distinct column values for CheckBoxList filters so they show
         /// all possible values across all pages, not just the current page.
         /// </summary>
-        protected async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VPP01_RequestHeaderResDTO> args)
+        protected async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VppRequestResDTO> args)
         {
             try
             {
@@ -200,7 +200,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 var endpoint = BuildEndpoint();
                 var (data, totalCount, totalLines, totalQty) =
-                    await _apiServices.GetFromApiWithStatsAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
+                    await _apiServices.GetFromApiWithStatsAsync<List<VppRequestResDTO>>(endpoint);
 
                 Orders = data ?? new();
                 TotalCount = totalCount;
@@ -236,7 +236,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         /// Expand-row handler — lazy-loads order detail items on first expansion,
         /// cached per row-id so repeated expand/collapse doesn't re-fetch.
         /// </summary>
-        protected async Task OnRowExpandAsync(VPP01_RequestHeaderResDTO row)
+        protected async Task OnRowExpandAsync(VppRequestResDTO row)
         {
             if (row == null || row.Id == Guid.Empty
                 || LoadedDetailOrderIds.Contains(row.Id)
@@ -248,9 +248,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             LoadingDetailOrderIds.Add(row.Id);
             try
             {
-                var detail = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>(
+                var detail = await _apiServices.GetFromApiAsync<VppRequestResDTO>(
                     $"{Config.VppApi.Orders}/{row.Id}");
-                row.Items = detail?.Items ?? new List<VPP02_RequestDetailResDTO>();
+                row.Items = detail?.Items ?? new List<VppRequestDetailResDTO>();
                 LoadedDetailOrderIds.Add(row.Id);
             }
             catch (Exception ex)
@@ -287,9 +287,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 ExpandedOrderIds.Add(orderId);
         }
 
-        public string GetShortCode(VPP01_RequestHeaderResDTO order)
+        public string GetShortCode(VppRequestResDTO order)
         {
-            var code = order.VPPCode;
+            var code = order.VppCode;
             if (string.IsNullOrEmpty(code)) return "";
             var parts = code.Split('-');
             if (parts.Length >= 2)

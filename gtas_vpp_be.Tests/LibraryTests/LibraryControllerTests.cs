@@ -26,22 +26,22 @@ public class LibraryControllerTests
         var dateTimeProvider = new FakeDateTimeProvider(DateTime.UtcNow);
 
         // Real GenericRepository pointing to our UnitOfWork mock (which wraps context)
-        var repository = new GenericRepository<L05_VPPSupplier>(unitOfWork.Object);
+        var repository = new GenericRepository<Supplier>(unitOfWork.Object);
 
         var serviceProvider = new Mock<IServiceProvider>();
-        serviceProvider.Setup(x => x.GetService(typeof(IGenericRepository<L05_VPPSupplier>)))
+        serviceProvider.Setup(x => x.GetService(typeof(IGenericRepository<Supplier>)))
             .Returns(repository);
 
         // Pass entities as-is since they are mapped inside Controller
-        userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<L05_VPPSupplier>>(), context))
-            .ReturnsAsync((List<L05_VPPSupplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext ctx) => list);
+        userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
+            .ReturnsAsync((List<Supplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext ctx) => list);
 
         // Add 2 active and 2 deleted suppliers
-        context.Set<L05_VPPSupplier>().AddRange(
-            new L05_VPPSupplier { Id = Guid.NewGuid(), SupplierShortName = "Active 1", IsDeleted = false },
-            new L05_VPPSupplier { Id = Guid.NewGuid(), SupplierShortName = "Active 2", IsDeleted = false },
-            new L05_VPPSupplier { Id = Guid.NewGuid(), SupplierShortName = "Deleted 1", IsDeleted = true },
-            new L05_VPPSupplier { Id = Guid.NewGuid(), SupplierShortName = "Deleted 2", IsDeleted = true }
+        context.Set<Supplier>().AddRange(
+            new Supplier { Id = Guid.NewGuid(), SupplierShortName = "Active 1", IsDeleted = false },
+            new Supplier { Id = Guid.NewGuid(), SupplierShortName = "Active 2", IsDeleted = false },
+            new Supplier { Id = Guid.NewGuid(), SupplierShortName = "Deleted 1", IsDeleted = true },
+            new Supplier { Id = Guid.NewGuid(), SupplierShortName = "Deleted 2", IsDeleted = true }
         );
         await context.SaveChangesAsync();
 
@@ -53,12 +53,12 @@ public class LibraryControllerTests
             }
         };
 
-        // Act: Get "l05" (Suppliers)
+        // Act: Get "suppliers" (Suppliers)
         var result = await controller.GenericGet(
-            tableCode: "l05",
+            tableCode: "suppliers",
             id: null,
             searchText: null,
-            classId: null,
+            lookupCategoryId: null,
             filter: null,
             skip: null,
             top: null,
@@ -69,7 +69,7 @@ public class LibraryControllerTests
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var list = Assert.IsType<List<L05_VPPSupplierResDTO>>(okResult.Value);
+        var list = Assert.IsType<List<SupplierResDTO>>(okResult.Value);
         Assert.Equal(2, list.Count);
         Assert.Contains(list, x => x.SupplierShortName == "Active 1");
         Assert.Contains(list, x => x.SupplierShortName == "Active 2");

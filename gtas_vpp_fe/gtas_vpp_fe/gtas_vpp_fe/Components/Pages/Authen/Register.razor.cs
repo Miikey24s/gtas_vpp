@@ -57,7 +57,7 @@ public partial class Register
             using var json = JsonDocument.Parse(body);
             if (json.RootElement.TryGetProperty("message", out var message))
             {
-                return message.GetString() ?? "Yêu cầu không hợp lệ.";
+            return message.GetString() ?? "Yêu cầu không hợp lệ.";
             }
         }
         catch (JsonException)

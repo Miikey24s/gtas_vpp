@@ -5,12 +5,12 @@ namespace gtas_vpp_be.Service.Services;
 
 public interface IVppCatalogService
 {
-    Task<L04_VPPResDTO?> GetItemAsync(
+    Task<VppItemResDTO?> GetItemAsync(
         Guid id,
         bool includeDeleted = false,
         CancellationToken cancellationToken = default);
 
-    Task<(IReadOnlyList<L04_VPPResDTO> Items, int TotalCount)> QueryItemsAsync(
+    Task<(IReadOnlyList<VppItemResDTO> Items, int TotalCount)> QueryItemsAsync(
         Guid? categoryId,
         string? search,
         string? filter,
@@ -22,19 +22,19 @@ public interface IVppCatalogService
         bool showDeleted,
         CancellationToken cancellationToken = default);
 
-    Task<L04_VPPResDTO> CreateItemAsync(
-        L04_VppCreateReqDTO request,
+    Task<VppItemResDTO> CreateItemAsync(
+        VppItemCreateRequest request,
         int userId,
         CancellationToken cancellationToken = default);
 
-    Task<L04_VPPResDTO> UpdateItemAsync(
-        L04_VppUpdateReqDTO request,
+    Task<VppItemResDTO> UpdateItemAsync(
+        VppItemUpdateRequest request,
         int userId,
         CancellationToken cancellationToken = default);
 
-    Task<L04_VPPResDTO> SetItemStatusAsync(
+    Task<VppItemResDTO> SetItemStatusAsync(
         Guid id,
-        L04_VppStatusReqDTO request,
+        VppItemStatusRequest request,
         int userId,
         CancellationToken cancellationToken = default);
 }

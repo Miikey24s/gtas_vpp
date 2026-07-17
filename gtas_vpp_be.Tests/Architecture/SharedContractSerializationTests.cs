@@ -26,7 +26,7 @@ public sealed class SharedContractSerializationTests
     [Fact]
     public void AuthenticationResponse_PreservesPublicJsonShapeAndNeverSerializesPasswordHash()
     {
-        var response = new sp_Authentication_Login();
+        var response = new AuthenticationResultDTO();
 
         var properties = GetJsonProperties(response);
 
@@ -43,7 +43,7 @@ public sealed class SharedContractSerializationTests
                 "groupId",
                 "groupName",
                 "isAdmin",
-                "list_PagePermission",
+                "pagePermissions",
                 "memberCompanyCode",
                 "memberCompanyName",
                 "memberCompanyShortName",
@@ -58,7 +58,7 @@ public sealed class SharedContractSerializationTests
     [Fact]
     public void LegacyStoredProcedureEnvelope_PreservesPublicJsonShape()
     {
-        AssertJsonProperties(new sp_ResDTO(), "errorMess", "isSuccess", "resData");
+        AssertJsonProperties(new StoredProcedureResultDTO(), "errorMess", "isSuccess", "resData");
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class SharedContractSerializationTests
         {
             Pages =
             [
-                new PermissionPageResDTO
+                new PermissionSnapshotPageResDTO
                 {
                     Components = [new PermissionComponentResDTO()]
                 }
@@ -96,22 +96,22 @@ public sealed class SharedContractSerializationTests
     public void CatalogItem_PreservesFieldsPreviouslyDecoratedWithGridMetadata()
     {
         AssertJsonProperties(
-            new L04_VPPResDTO(),
-            "createDate",
-            "createUserId",
+            new VppItemResDTO(),
+            "createdAtUtc",
+            "createdByUserId",
             "defaultPrice",
             "defaultSupplierName",
             "defaultVatRate",
             "description",
             "id",
             "isDeleted",
-            "l06_VPPSupplierMappings",
+            "supplierProductMappings",
             "uom",
             "uomCode",
             "uomId",
             "uomName",
-            "updateDate",
-            "updateUserId",
+            "updatedAtUtc",
+            "updatedByUserId",
             "vppCategory",
             "vppCategoryCode",
             "vppCategoryId",
@@ -125,7 +125,7 @@ public sealed class SharedContractSerializationTests
     public void RequestHeader_PreservesInheritedAndComputedJsonFields()
     {
         AssertJsonProperties(
-            new VPP01_RequestHeaderResDTO(),
+            new VppRequestResDTO(),
             "approvedAt",
             "approvedById",
             "baseRequestId",
@@ -136,8 +136,8 @@ public sealed class SharedContractSerializationTests
             "cancelReason",
             "cancelledAt",
             "cancelledById",
-            "createDate",
-            "createUserId",
+            "createdAtUtc",
+            "createdByUserId",
             "departmentCode",
             "description",
             "id",
@@ -146,7 +146,7 @@ public sealed class SharedContractSerializationTests
             "isDeadlinePassed",
             "isDeleted",
             "items",
-            "m",
+            "month",
             "memberCompanyCode",
             "period",
             "periodId",
@@ -174,10 +174,10 @@ public sealed class SharedContractSerializationTests
             "totalAmount",
             "totalLines",
             "totalQty",
-            "updateDate",
-            "updateUserId",
+            "updatedAtUtc",
+            "updatedByUserId",
             "vppCode",
-            "y");
+            "year");
     }
 
     [Fact]

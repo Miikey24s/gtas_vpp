@@ -5,22 +5,22 @@ namespace gtas_vpp_be.Service.Services
 {
     public interface IPeriodSettlementService
     {
-        Task<VPP_PeriodSettlementResDTO> SettleAsync(VPP_SettlePeriodReqDTO req, int userId);
-        Task<VPP_PeriodSettlementResDTO> GetStatusAsync(int y, int m);
-        Task<List<VPP_PeriodSettlementResDTO>> ListSettledAsync();
-        Task<VPP_SettlementPreviewResDTO> PreviewAsync(
-            VPP_SettlementPreviewReqDTO req,
+        Task<PeriodSettlementResDTO> SettleAsync(PeriodSettlementReqDTO req, int userId);
+        Task<PeriodSettlementResDTO> GetStatusAsync(int y, int m);
+        Task<List<PeriodSettlementResDTO>> ListSettledAsync();
+        Task<SettlementPreviewResDTO> PreviewAsync(
+            SettlementPreviewReqDTO req,
             CancellationToken cancellationToken = default);
-        Task<VPP_SettlementRevisionResDTO> ConfirmAsync(
-            VPP_SettlementConfirmReqDTO req,
+        Task<SettlementRevisionResDTO> ConfirmAsync(
+            SettlementConfirmReqDTO req,
             int userId,
             CancellationToken cancellationToken = default);
-        Task<VPP_SettlementRevisionResDTO> CorrectAsync(
+        Task<SettlementRevisionResDTO> CorrectAsync(
             Guid settlementId,
-            VPP_SettlementCorrectionReqDTO req,
+            SettlementCorrectionReqDTO req,
             int userId,
             CancellationToken cancellationToken = default);
-        Task<VPP_SettlementRevisionResDTO?> GetCurrentAsync(
+        Task<SettlementRevisionResDTO?> GetCurrentAsync(
             int y,
             int m,
             CancellationToken cancellationToken = default);

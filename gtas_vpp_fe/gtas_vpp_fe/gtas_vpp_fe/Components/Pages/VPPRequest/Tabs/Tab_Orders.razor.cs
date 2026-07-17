@@ -17,14 +17,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public sealed class ProductOption
         {
             public Guid Id { get; set; }
-            public string? VPPCode { get; set; }
-            public string? VPPName { get; set; }
-            public string Display => $"{VPPCode} - {VPPName}";
+            public string? VppCode { get; set; }
+            public string? VppName { get; set; }
+            public string Display => $"{VppCode} - {VppName}";
         }
 
         public sealed class EditOrderItem
         {
-            public Guid VPPId { get; set; }
+            public Guid VppId { get; set; }
             public int Qty { get; set; } = 1;
             public string? Description { get; set; }
         }
@@ -32,8 +32,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public sealed class EditOrderModel
         {
             public Guid Id { get; set; }
-            public int Y { get; set; }
-            public int M { get; set; }
+            public int Year { get; set; }
+            public int Month { get; set; }
             public string? Description { get; set; }
             public List<EditOrderItem> Items { get; set; } = new();
         }
@@ -44,14 +44,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
-        public List<VPP01_RequestHeaderResDTO> ActiveOrders { get; set; } = new();
-        public List<VPP01_RequestHeaderResDTO> PreviousOrders { get; set; } = new();
-        public List<VPP01_RequestHeaderResDTO> AdditionalOrders { get; set; } = new();
+        public List<VppRequestResDTO> ActiveOrders { get; set; } = new();
+        public List<VppRequestResDTO> PreviousOrders { get; set; } = new();
+        public List<VppRequestResDTO> AdditionalOrders { get; set; } = new();
 
         public bool IsLoading { get; set; }
         public bool ViewerVisible { get; set; }
-        public VPP01_RequestHeaderResDTO? ViewingOrder { get; set; }
-        public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
+        public VppRequestResDTO? ViewingOrder { get; set; }
+        public VppPeriodInfoResDTO? PeriodInfo { get; set; }
         private readonly HashSet<Guid> _cancellingOrderIds = new();
 
         // P1: Period dates are derived from PeriodInfo (BE truth) — never DateTime.Now.
@@ -92,11 +92,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanCreate => PermissionState.HasPermission(Permissions.RequestCreate);
         private bool CanCreateRegular => CanCreate && PeriodInfo?.CanCreateOrder == true;
         private bool CanCreateSupplement => CanCreate && PeriodInfo?.CanCreateAdditional == true;
-        private bool CanUpdate(VPP01_RequestHeaderResDTO row) =>
+        private bool CanUpdate(VppRequestResDTO row) =>
             row.CanEdit && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
-        private bool CanReplace(VPP01_RequestHeaderResDTO row) =>
+        private bool CanReplace(VppRequestResDTO row) =>
             row.CanReplace && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
-        private bool CanCancel(VPP01_RequestHeaderResDTO row) =>
+        private bool CanCancel(VppRequestResDTO row) =>
             row.CanCancel && PermissionState.HasPermission(Permissions.RequestCancelOwn);
 
         protected override async Task OnInitializedAsync()
@@ -111,7 +111,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             try
             {
-                PeriodInfo = await _apiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
+                PeriodInfo = await _apiServices.GetFromApiAsync<VppPeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
             }
             catch (Exception ex)
             {
@@ -133,14 +133,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             try
             {
                 var endpoint = $"{Config.VppApi.MyOrders}?years={CurrentOrderPeriodDate.Year}&months={CurrentOrderPeriodDate.Month}&years={PreviousOrderPeriodDate.Year}&months={PreviousOrderPeriodDate.Month}";
-                var data = await _apiServices.GetFromApiAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
+                var data = await _apiServices.GetFromApiAsync<List<VppRequestResDTO>>(endpoint);
 
-                var allOrders = (data ?? new()).OrderByDescending(x => x.UpdateDate).ToList();
+                var allOrders = (data ?? new()).OrderByDescending(x => x.UpdatedAtUtc).ToList();
                 
                 // Separate orders by type
-                ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Y == CurrentOrderPeriodDate.Year && x.M == CurrentOrderPeriodDate.Month).ToList();
-                PreviousOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Y == PreviousOrderPeriodDate.Year && x.M == PreviousOrderPeriodDate.Month).ToList();
-                AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdateDate).ToList();
+                ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == CurrentOrderPeriodDate.Year && x.Month == CurrentOrderPeriodDate.Month).ToList();
+                PreviousOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == PreviousOrderPeriodDate.Year && x.Month == PreviousOrderPeriodDate.Month).ToList();
+                AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdatedAtUtc).ToList();
             }
             catch (Exception ex)
             {
@@ -187,18 +187,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await Task.CompletedTask;
         }
 
-        protected async Task GoToEditPage(VPP01_RequestHeaderResDTO row)
+        protected async Task GoToEditPage(VppRequestResDTO row)
         {
             NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}");
             await Task.CompletedTask;
         }
 
-        protected async Task CancelOrderAsync(VPP01_RequestHeaderResDTO row)
+        protected async Task CancelOrderAsync(VppRequestResDTO row)
         {
             if (!CanCancel(row) || !_cancellingOrderIds.Add(row.Id)) return;
 
             var confirm = await DialogService.Confirm(
-                string.Format(Loc["CancelOrderConfirm"], row.VPPCode),
+                string.Format(Loc["CancelOrderConfirm"], row.VppCode),
                 Loc["CancelOrderTitle"],
                 new ConfirmOptions { OkButtonText = Loc["ConfirmCancel"], CancelButtonText = Loc["KeepOrder"] });
 
@@ -210,7 +210,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var request = new VPP_CancelOrderReqDTO
+                var request = new VppRequestCancelReqDTO
                 {
                     RowVersion = row.RowVersion,
                     IdempotencyKey = Guid.NewGuid().ToString("N")
@@ -244,7 +244,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected bool IsCancelling(Guid orderId) => _cancellingOrderIds.Contains(orderId);
 
-        protected async Task OpenHistoryAsync(VPP01_RequestHeaderResDTO row)
+        protected async Task OpenHistoryAsync(VppRequestResDTO row)
         {
             await DialogService.OpenAsync<Dialog_RequestHistory>(
                 Loc["RequestLifecycle"],
@@ -252,10 +252,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 new DialogOptions { Width = "min(760px, 96vw)", Resizable = true, Draggable = true });
         }
 
-        protected bool IsSubmitted(VPP01_RequestHeaderResDTO row) => row.Status == 1;
-        protected bool CanEditOrDelete(VPP01_RequestHeaderResDTO row) => CanUpdate(row) || CanCancel(row);
+        protected bool IsSubmitted(VppRequestResDTO row) => row.Status == 1;
+        protected bool CanEditOrDelete(VppRequestResDTO row) => CanUpdate(row) || CanCancel(row);
 
-        protected void ViewOrder(VPP01_RequestHeaderResDTO row)
+        protected void ViewOrder(VppRequestResDTO row)
         {
             ViewingOrder = row;
             ViewerVisible = true;
@@ -281,9 +281,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 ExpandedOrderIds.Add(orderId);
         }
 
-        public string GetShortCode(VPP01_RequestHeaderResDTO order)
+        public string GetShortCode(VppRequestResDTO order)
         {
-            var code = order.VPPCode;
+            var code = order.VppCode;
             if (string.IsNullOrEmpty(code)) return "";
             var parts = code.Split('-');
             if (parts.Length >= 2)

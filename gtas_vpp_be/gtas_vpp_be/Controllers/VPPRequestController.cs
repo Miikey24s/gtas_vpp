@@ -45,7 +45,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
-        private string CurrentDepartmentCode => User.FindFirstValue("DepartmentCode") ?? string.Empty;
+        private string CurrentDepartmentCode => User.FindFirstValue(AppClaimTypes.DepartmentCode) ?? string.Empty;
         private string CurrentMemberCompanyCode => User.FindFirstValue("MemberCompanyCode") ?? string.Empty;
 
         [HttpGet("my-orders")]
@@ -141,7 +141,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("orders")]
         [Authorize(Policy = Permissions.RequestCreate)]
-        public async Task<IActionResult> CreateOrder([FromBody] VPP01_CreateReqDTO req)
+        public async Task<IActionResult> CreateOrder([FromBody] VppRequestCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
             if (string.IsNullOrWhiteSpace(CurrentDepartmentCode)
@@ -160,7 +160,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("orders/{id:guid}")]
         [Authorize(Policy = Permissions.RequestUpdateOwn)]
-        public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] VPP01_UpdateReqDTO req)
+        public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] VppRequestUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
             if (req.RowVersion is not { Length: > 0 })
@@ -171,7 +171,7 @@ namespace gtas_vpp_be.Controllers
             if (!IsOwnedByCurrentUser(current) || !IsInCurrentCompany(current)) return Forbid();
 
             req.Id = id;
-            req.UpdateUserId = CurrentUserId.Value;
+            req.UpdatedByUserId = CurrentUserId.Value;
             var result = await _vppService.UpdateOrderAsync(req);
             return Ok(result);
         }
@@ -180,7 +180,7 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.RequestCancelOwn)]
         public async Task<IActionResult> CancelOrder(
             Guid id,
-            [FromBody] VPP_CancelOrderReqDTO req)
+            [FromBody] VppRequestCancelReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
             if (req.RowVersion is not { Length: > 0 })
@@ -225,7 +225,7 @@ namespace gtas_vpp_be.Controllers
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
             var result = await _catalogService.QueryItemsAsync(
-                null, search, null, 0, Math.Clamp(top ?? 100, 1, 100), "VPPCode asc",
+                null, search, null, 0, Math.Clamp(top ?? 100, 1, 100), "VppCode asc",
                 null, null, showDeleted: false, cancellationToken);
             Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
             return Ok(ToProductResults(result.Items));
@@ -250,19 +250,19 @@ namespace gtas_vpp_be.Controllers
             return Ok(ToProductResults(result.Items));
         }
 
-        private static IEnumerable<object> ToProductResults(IEnumerable<L04_VPPResDTO> items)
+        private static IEnumerable<object> ToProductResults(IEnumerable<VppItemResDTO> items)
             => items.Select(x => new
             {
                 x.Id,
-                x.VPPCode,
-                x.VPPName,
+                x.VppCode,
+                x.VppName,
                 x.Description,
-                x.VPPCategoryId,
-                x.VPPCategoryCode,
-                x.VPPCategoryName,
-                x.UOMId,
-                x.UOMCode,
-                x.UOMName,
+                x.VppCategoryId,
+                x.VppCategoryCode,
+                x.VppCategoryName,
+                x.UomId,
+                x.UomCode,
+                x.UomName,
                 x.SupplierCount,
                 x.DefaultVatRate,
                 x.DefaultPrice,
@@ -273,15 +273,15 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.RequestCatalogView)]
         public async Task<IActionResult> GetCategories()
         {
-            var data = await ReadEntitiesAsync<L03_VPPCategory>(
+            var data = await ReadEntitiesAsync<VppCategory>(
                 true,
                 x => !x.IsDeleted);
 
             var result = (data ?? new()).Select(x => new
             {
                 x.Id,
-                x.VPPCategoryCode,
-                x.VPPCategoryName
+                x.VppCategoryCode,
+                x.VppCategoryName
             });
 
             return Ok(result);
@@ -393,7 +393,7 @@ namespace gtas_vpp_be.Controllers
             // Whitelist of allowed columns to prevent SQL injection / info leakage
             var allowedColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                "VPPCode", "DepartmentCode", "MemberCompanyCode", "StatusText", "Description", "Period", "RequesterName", "TotalLines", "TotalQty", "SubmittedDate", "SubmittedDateText"
+                "VppCode", "DepartmentCode", "MemberCompanyCode", "StatusText", "Description", "Period", "RequesterName", "TotalLines", "TotalQty", "SubmittedDate", "SubmittedDateText"
             };
 
             if (!allowedColumns.Contains(column))
@@ -425,7 +425,7 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private async Task<List<VPP01_RequestHeaderResDTO>> GetScopedOrderDataAsync(
+        private async Task<List<VppRequestResDTO>> GetScopedOrderDataAsync(
             string? scope,
             int? year,
             int? month,
@@ -453,8 +453,8 @@ namespace gtas_vpp_be.Controllers
             };
         }
 
-        private static (List<VPP01_RequestHeaderResDTO> Data, int TotalCount, int TotalLines, int TotalQty) ApplyOrderGridOperations(
-            IEnumerable<VPP01_RequestHeaderResDTO> scopedData,
+        private static (List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty) ApplyOrderGridOperations(
+            IEnumerable<VppRequestResDTO> scopedData,
             string? filter,
             string? orderby,
             int? skip,
@@ -465,7 +465,7 @@ namespace gtas_vpp_be.Controllers
             var totalLines = filteredData.Sum(x => x.TotalLines);
             var totalQty = filteredData.Sum(x => x.TotalQty);
 
-            IEnumerable<VPP01_RequestHeaderResDTO> pagedData = filteredData;
+            IEnumerable<VppRequestResDTO> pagedData = filteredData;
             if (skip.HasValue && skip.Value > 0)
             {
                 pagedData = pagedData.Skip(skip.Value);
@@ -479,7 +479,7 @@ namespace gtas_vpp_be.Controllers
             return (pagedData.ToList(), totalCount, totalLines, totalQty);
         }
 
-        private static IQueryable<VPP01_RequestHeaderResDTO> ApplyOrderQuery(IEnumerable<VPP01_RequestHeaderResDTO> scopedData, string? filter, string? orderby)
+        private static IQueryable<VppRequestResDTO> ApplyOrderQuery(IEnumerable<VppRequestResDTO> scopedData, string? filter, string? orderby)
         {
             var query = scopedData.AsQueryable();
 
@@ -508,13 +508,13 @@ namespace gtas_vpp_be.Controllers
             }
 
             return query
-                .OrderByDescending(x => x.Y)
-                .ThenByDescending(x => x.M)
-                .ThenByDescending(x => x.UpdateDate);
+                .OrderByDescending(x => x.Year)
+                .ThenByDescending(x => x.Month)
+                .ThenByDescending(x => x.UpdatedAtUtc);
         }
 
         private static List<Dictionary<string, object?>> BuildOrderFilterValues(
-            IEnumerable<VPP01_RequestHeaderResDTO> data,
+            IEnumerable<VppRequestResDTO> data,
             string column,
             string? distinctFilter)
         {
@@ -524,13 +524,13 @@ namespace gtas_vpp_be.Controllers
                     .Where(x => !string.IsNullOrWhiteSpace(x.Period))
                     .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.Period.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
                     .GroupBy(x => x.Period)
-                    .OrderBy(g => g.First().Y)
-                    .ThenBy(g => g.First().M)
+                    .OrderBy(g => g.First().Year)
+                    .ThenBy(g => g.First().Month)
                     .Select(g => new Dictionary<string, object?>
                     {
                         ["Period"] = g.Key,
-                        ["Y"] = g.First().Y,
-                        ["M"] = g.First().M
+                        ["Year"] = g.First().Year,
+                        ["Month"] = g.First().Month
                     })
                     .ToList(),
                 "StatusText" => data
@@ -594,8 +594,8 @@ namespace gtas_vpp_be.Controllers
             };
         }
 
-        private static List<VPP01_RequestHeaderResDTO> ApplyPopupFilterScope(
-            IEnumerable<VPP01_RequestHeaderResDTO> data,
+        private static List<VppRequestResDTO> ApplyPopupFilterScope(
+            IEnumerable<VppRequestResDTO> data,
             string? filtersJson)
         {
             if (string.IsNullOrWhiteSpace(filtersJson))
@@ -624,7 +624,7 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private static bool MatchesPopupFilter(VPP01_RequestHeaderResDTO order, PopupFilterScope filter)
+        private static bool MatchesPopupFilter(VppRequestResDTO order, PopupFilterScope filter)
         {
             if (string.IsNullOrWhiteSpace(filter.Property) || filter.Values == null || filter.Values.Count == 0)
             {
@@ -635,20 +635,20 @@ namespace gtas_vpp_be.Controllers
             return comparableValue != null && filter.Values.Contains(comparableValue, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static string? GetPopupFilterComparableValue(VPP01_RequestHeaderResDTO order, string property)
+        private static string? GetPopupFilterComparableValue(VppRequestResDTO order, string property)
         {
             return property switch
             {
-                nameof(VPP01_RequestHeaderResDTO.VPPCode) => order.VPPCode,
-                nameof(VPP01_RequestHeaderResDTO.DepartmentCode) => order.DepartmentCode,
-                nameof(VPP01_RequestHeaderResDTO.MemberCompanyCode) => order.MemberCompanyCode,
-                nameof(VPP01_RequestHeaderResDTO.Description) => order.Description,
-                nameof(VPP01_RequestHeaderResDTO.RequesterName) => order.RequesterName,
-                nameof(VPP01_RequestHeaderResDTO.Period) => order.Period,
-                nameof(VPP01_RequestHeaderResDTO.StatusText) => order.StatusText,
-                nameof(VPP01_RequestHeaderResDTO.SubmittedDateText) or nameof(VPP01_RequestHeaderResDTO.SubmittedDate) => order.SubmittedDateText,
-                nameof(VPP01_RequestHeaderResDTO.TotalLines) => order.TotalLines.ToString(CultureInfo.InvariantCulture),
-                nameof(VPP01_RequestHeaderResDTO.TotalQty) => order.TotalQty.ToString(CultureInfo.InvariantCulture),
+                nameof(VppRequestResDTO.VppCode) => order.VppCode,
+                nameof(VppRequestResDTO.DepartmentCode) => order.DepartmentCode,
+                nameof(VppRequestResDTO.MemberCompanyCode) => order.MemberCompanyCode,
+                nameof(VppRequestResDTO.Description) => order.Description,
+                nameof(VppRequestResDTO.RequesterName) => order.RequesterName,
+                nameof(VppRequestResDTO.Period) => order.Period,
+                nameof(VppRequestResDTO.StatusText) => order.StatusText,
+                nameof(VppRequestResDTO.SubmittedDateText) or nameof(VppRequestResDTO.SubmittedDate) => order.SubmittedDateText,
+                nameof(VppRequestResDTO.TotalLines) => order.TotalLines.ToString(CultureInfo.InvariantCulture),
+                nameof(VppRequestResDTO.TotalQty) => order.TotalQty.ToString(CultureInfo.InvariantCulture),
                 _ => GetOrderColumnValue(order, property)?.ToString()
             };
         }
@@ -659,11 +659,11 @@ namespace gtas_vpp_be.Controllers
             public List<string> Values { get; set; } = new();
         }
 
-        private static object? GetOrderColumnValue(VPP01_RequestHeaderResDTO order, string column)
+        private static object? GetOrderColumnValue(VppRequestResDTO order, string column)
         {
             return column switch
             {
-                "VPPCode" => order.VPPCode,
+                "VppCode" => order.VppCode,
                 "DepartmentCode" => order.DepartmentCode,
                 "MemberCompanyCode" => order.MemberCompanyCode,
                 "Description" => order.Description,
@@ -685,9 +685,9 @@ namespace gtas_vpp_be.Controllers
             // TotalOrders) so we never materialize the full order set per dashboard load.
             // Previously: ToListAsync() pulled every order of the user (200/year Ã— 1000 user
             // Ã— n requests/day) and grouped in memory â€” biggest dashboard hot path.
-            var baseQuery = _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VPP01_RequestHeader>()
+            var baseQuery = _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VppRequest>()
                 .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.CreateUserId == CurrentUserId.Value);
+                .Where(x => !x.IsDeleted && x.CreatedByUserId == CurrentUserId.Value);
 
             var monthlyRaw = await baseQuery
                 .Where(x => x.SubmittedDate.HasValue)
@@ -698,10 +698,10 @@ namespace gtas_vpp_be.Controllers
                     g.Key.Year,
                     g.Key.Month,
                     OrderCount = g.Count(),
-                    TotalQty = g.Sum(x => x.VPP02_RequestDetails
+                    TotalQty = g.Sum(x => x.RequestDetails
                         .Where(d => !d.IsDeleted)
                         .Sum(d => (int?)d.Qty) ?? 0),
-                    TotalLines = g.Sum(x => x.VPP02_RequestDetails.Count(d => !d.IsDeleted))
+                    TotalLines = g.Sum(x => x.RequestDetails.Count(d => !d.IsDeleted))
                 })
                 .ToListAsync();
 
@@ -784,7 +784,7 @@ namespace gtas_vpp_be.Controllers
             return Ok();
         }
 
-        private async Task TryPublishAdditionalOrderCreatedAsync(VPP01_RequestHeaderResDTO order)
+        private async Task TryPublishAdditionalOrderCreatedAsync(VppRequestResDTO order)
         {
             try
             {
@@ -798,7 +798,7 @@ namespace gtas_vpp_be.Controllers
                     CurrentMemberCompanyCode,
                     "additional-order.pending",
                     "ÄÆ¡n bá»• sung chá» duyá»‡t",
-                    $"ÄÆ¡n {order.VPPCode} cá»§a {order.RequesterName ?? "nhÃ¢n viÃªn"} Ä‘ang chá» xá»­ lÃ½.",
+                    $"ÄÆ¡n {order.VppCode} cá»§a {order.RequesterName ?? "nhÃ¢n viÃªn"} Ä‘ang chá» xá»­ lÃ½.",
                     "/dashboard?tab=5&periodTab=pending",
                     order.Id.ToString("N"),
                     HttpContext.RequestAborted);
@@ -812,7 +812,7 @@ namespace gtas_vpp_be.Controllers
         }
 
         private async Task TryPublishOrderDecisionAsync(
-            VPP01_RequestHeaderResDTO order,
+            VppRequestResDTO order,
             bool approved,
             string? reason)
         {
@@ -824,11 +824,11 @@ namespace gtas_vpp_be.Controllers
                     : string.Empty;
 
                 await _notificationService.PublishAsync(
-                    [order.CreateUserId],
+                    [order.CreatedByUserId],
                     CurrentMemberCompanyCode,
                     approved ? "additional-order.approved" : "additional-order.rejected",
                     approved ? "ÄÆ¡n bá»• sung Ä‘Ã£ Ä‘Æ°á»£c duyá»‡t" : "ÄÆ¡n bá»• sung bá»‹ tá»« chá»‘i",
-                    $"ÄÆ¡n {order.VPPCode} {decision}.{reasonSuffix}",
+                    $"ÄÆ¡n {order.VppCode} {decision}.{reasonSuffix}",
                     "/dashboard?tab=1",
                     order.Id.ToString("N"),
                     HttpContext.RequestAborted);
@@ -839,7 +839,7 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private async Task<bool> CanViewOrderAsync(VPP01_RequestHeaderResDTO order)
+        private async Task<bool> CanViewOrderAsync(VppRequestResDTO order)
         {
             if (!IsInCurrentCompany(order)) return false;
 
@@ -871,10 +871,10 @@ namespace gtas_vpp_be.Controllers
             return _permissionService.HasPermissionAsync(User, permission);
         }
 
-        private bool IsOwnedByCurrentUser(VPP01_RequestHeaderResDTO order) =>
-            CurrentUserId.HasValue && order.CreateUserId == CurrentUserId.Value;
+        private bool IsOwnedByCurrentUser(VppRequestResDTO order) =>
+            CurrentUserId.HasValue && order.CreatedByUserId == CurrentUserId.Value;
 
-        private bool IsInCurrentCompany(VPP01_RequestHeaderResDTO order) =>
+        private bool IsInCurrentCompany(VppRequestResDTO order) =>
             !string.IsNullOrWhiteSpace(CurrentMemberCompanyCode)
             && string.Equals(order.MemberCompanyCode, CurrentMemberCompanyCode, StringComparison.OrdinalIgnoreCase);
 

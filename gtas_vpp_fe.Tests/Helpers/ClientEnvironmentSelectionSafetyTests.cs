@@ -23,7 +23,7 @@ public sealed class ClientEnvironmentSelectionSafetyTests
     public void AuthenticationClientContracts_DoNotExposeEnvironmentSelection()
     {
         Assert.DoesNotContain(
-            typeof(sp_Authentication_LoginReqDTO).GetMembers(
+            typeof(LoginFormModel).GetMembers(
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static),
             IsEnvironmentSelectionMember);
         Assert.DoesNotContain(
@@ -48,7 +48,7 @@ public sealed class ClientEnvironmentSelectionSafetyTests
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static),
             IsEnvironmentSelectionMember);
 
-        var claims = LoginEndpoints.CreateAuthenticationClaims(new sp_Authentication_Login());
+        var claims = LoginEndpoints.CreateAuthenticationClaims(new AuthenticationResultDTO());
         Assert.DoesNotContain(
             claims,
             claim => IsEnvironmentSelectionName(claim.Type));
@@ -58,7 +58,7 @@ public sealed class ClientEnvironmentSelectionSafetyTests
     public void AuthenticationClaims_KeepOnlyStableSessionFields()
     {
         var expiry = DateTime.UtcNow.AddMinutes(5);
-        var claims = LoginEndpoints.CreateAuthenticationClaims(new sp_Authentication_Login
+        var claims = LoginEndpoints.CreateAuthenticationClaims(new AuthenticationResultDTO
         {
             UserID = 42,
             UserLogin = "tester",

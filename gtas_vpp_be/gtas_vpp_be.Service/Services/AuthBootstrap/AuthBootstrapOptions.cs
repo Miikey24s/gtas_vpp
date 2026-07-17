@@ -24,5 +24,13 @@ public sealed class AuthBootstrapOptions
 
     public string PrimaryDepartmentCode { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Local-only convenience for a brand-new TEST/DEMO database. Production
+    /// bootstrap must point to an existing organizational department.
+    /// </summary>
+    public bool CreatePrimaryDepartmentIfMissing { get; set; }
+
+    public string PrimaryDepartmentName { get; set; } = string.Empty;
+
     public override string ToString() => nameof(AuthBootstrapOptions);
 }

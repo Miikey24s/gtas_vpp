@@ -17,16 +17,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
     public partial class Tab_PriceLibrary : IDisposable
     {
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
-        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+        [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-        private List<L07_PriceListResDTO> priceLists = [];
-        private List<L05_VPPSupplierResDTO> suppliers = [];
-        private List<L06_VPPItemPriceResDTO> displayItems = [];
-        private RadzenDataGrid<L06_VPPItemPriceResDTO> grid = default!;
+        private List<PriceListResDTO> priceLists = [];
+        private List<SupplierResDTO> suppliers = [];
+        private List<VppItemPriceResDTO> displayItems = [];
+        private RadzenDataGrid<VppItemPriceResDTO> grid = default!;
         private Guid? selectedPriceListId;
         private Guid? selectedSupplierId;
         private string searchText = "";
@@ -71,8 +71,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
-                var priceListsTask = _apiServices.GetFromApiAsync<List<L07_PriceListResDTO>>($"{Config.LibraryApi.L07_PriceList}?showDeleted=true");
-                var suppliersTask = _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>($"{Config.LibraryApi.L05_Supplier}?showDeleted=true");
+                var priceListsTask = _apiServices.GetFromApiAsync<List<PriceListResDTO>>($"{Config.LibraryApi.PriceList}?showDeleted=true");
+                var suppliersTask = _apiServices.GetFromApiAsync<List<SupplierResDTO>>($"{Config.LibraryApi.Suppliers}?showDeleted=true");
 
                 await Task.WhenAll(priceListsTask, suppliersTask);
 
@@ -125,7 +125,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L06_VPPItemPriceResDTO>>(
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(
                     BuildPriceRowsEndpoint(args.Filter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy));
 
                 displayItems = result.Data ?? [];
@@ -142,7 +142,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task LoadPriceFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<L06_VPPItemPriceResDTO> args)
+        private async Task LoadPriceFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<VppItemPriceResDTO> args)
         {
             if (args.Column is null || !selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
@@ -159,7 +159,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     args.Column.GetFilterProperty(),
                     args.Filter);
 
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L06_VPPItemPriceResDTO>>(endpoint);
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(endpoint);
                 args.Data = result.Data ?? [];
                 args.Count = result.TotalCount;
             }
@@ -178,17 +178,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task EditPriceAsync(L06_VPPItemPriceResDTO row)
+        private async Task EditPriceAsync(VppItemPriceResDTO row)
         {
             if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue) return;
 
             if (!row.PriceMappingId.HasValue)
             {
-                var model = new L06_PriceUpdateReqDTO
+                var model = new SupplierProductPriceUpdateReqDTO
                 {
-                    L04_VPPId = row.VPPId,
-                    L07_PriceListId = selectedPriceListId.Value,
-                    L05_VPPSupplierId = selectedSupplierId.Value,
+                    VppItemId = row.VppId,
+                    PriceListId = selectedPriceListId.Value,
+                    SupplierId = selectedSupplierId.Value,
                         Price = 0,
                     IsDefault = false,
                         Description = "",
@@ -201,11 +201,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
                 try
                 {
-                    var req = new L06_PriceCreateReqDTO
+                    var req = new SupplierProductPriceCreateReqDTO
                     {
-                        L04_VPPId = row.VPPId,
-                        L05_VPPSupplierId = result.L05_VPPSupplierId,
-                        L07_PriceListId = selectedPriceListId.Value,
+                        VppItemId = row.VppId,
+                        SupplierId = result.SupplierId,
+                        PriceListId = selectedPriceListId.Value,
                         Price = result.Price,
                         NetPrice = result.NetPrice,
                         VatRate = result.VatRate,
@@ -215,7 +215,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         IsDefault = result.IsDefault,
                         Description = result.Description
                     };
-                    await _apiServices.PostFromApiAsync<L06_VPPSupplierMappingResDTO>(Config.LibraryApi.VPPPriceBase, req);
+                    await _apiServices.PostFromApiAsync<SupplierProductMappingResDTO>(Config.LibraryApi.VPPPriceBase, req);
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
                     await LoadPricesAsync();
                 }
@@ -226,12 +226,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             else
             {
-                var model = new L06_PriceUpdateReqDTO
+                var model = new SupplierProductPriceUpdateReqDTO
                 {
                     Id = row.PriceMappingId.Value,
-                    L04_VPPId = row.VPPId,
-                    L05_VPPSupplierId = selectedSupplierId.Value,
-                    L07_PriceListId = selectedPriceListId.Value,
+                    VppItemId = row.VppId,
+                    SupplierId = selectedSupplierId.Value,
+                    PriceListId = selectedPriceListId.Value,
                     Price = row.Price ?? 0,
                     NetPrice = row.NetPrice,
                     VatRate = row.VatRate,
@@ -246,7 +246,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
                 try
                 {
-                    await _apiServices.PutFromApiAsync<L06_VPPSupplierMappingResDTO>(
+                    await _apiServices.PutFromApiAsync<SupplierProductMappingResDTO>(
                         $"{Config.LibraryApi.VPPPriceBase}/{row.PriceMappingId.Value}", result);
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
                     await LoadPricesAsync();
@@ -258,14 +258,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private string GetEditPriceActionTitle(L06_VPPItemPriceResDTO row)
+        private string GetEditPriceActionTitle(VppItemPriceResDTO row)
         {
             return row.PriceMappingId.HasValue
                 ? Loc["Edit"].Value
                 : Loc["Create"].Value;
         }
 
-        private async Task SetDeletedPriceAsync(L06_VPPItemPriceResDTO row, bool isDeleted)
+        private async Task SetDeletedPriceAsync(VppItemPriceResDTO row, bool isDeleted)
         {
             if (!row.PriceMappingId.HasValue) return;
 
@@ -274,8 +274,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var result = await _apiServices.PatchFromApiAsync<L06_VPPSupplierMappingResDTO>(
-                    $"{Config.LibraryApi.L06_SupplierMapping}/{row.PriceMappingId.Value}",
+                var result = await _apiServices.PatchFromApiAsync<SupplierProductMappingResDTO>(
+                    $"{Config.LibraryApi.SupplierProductMappings}/{row.PriceMappingId.Value}",
                     new { IsDeleted = isDeleted });
 
                 if (result is null)
@@ -295,7 +295,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task HardDeletePriceAsync(L06_VPPItemPriceResDTO row)
+        private async Task HardDeletePriceAsync(VppItemPriceResDTO row)
         {
             if (!row.PriceMappingId.HasValue) return;
 
@@ -308,7 +308,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L06_SupplierMapping}/{row.PriceMappingId.Value}");
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.SupplierProductMappings}/{row.PriceMappingId.Value}");
                 if (deleted)
                 {
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceDeleted"].Value);
@@ -325,7 +325,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task SetDefaultAsync(L06_VPPItemPriceResDTO row)
+        private async Task SetDefaultAsync(VppItemPriceResDTO row)
         {
             if (!row.PriceMappingId.HasValue) return;
 
@@ -342,7 +342,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private void OnRowRenderPrice(RowRenderEventArgs<L06_VPPItemPriceResDTO> args)
+        private void OnRowRenderPrice(RowRenderEventArgs<VppItemPriceResDTO> args)
         {
             if (args.Data?.IsDeleted == true)
             {
@@ -350,7 +350,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task<L06_PriceUpdateReqDTO?> OpenEditorAsync(string title, L06_PriceUpdateReqDTO model)
+        private async Task<SupplierProductPriceUpdateReqDTO?> OpenEditorAsync(string title, SupplierProductPriceUpdateReqDTO model)
         {
             var result = await DialogService.OpenAsync<Dialog_PriceEditor>(
                 title,
@@ -361,7 +361,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 },
                 new DialogOptions { Width = "520px", Resizable = true, Draggable = true });
 
-            return result as L06_PriceUpdateReqDTO;
+            return result as SupplierProductPriceUpdateReqDTO;
         }
 
         private async Task OnPriceListChangedAsync()

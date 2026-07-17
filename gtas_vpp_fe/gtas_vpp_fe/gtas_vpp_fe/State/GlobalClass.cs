@@ -4,7 +4,7 @@ namespace gtas_vpp_fe.State;
 
 public class GlobalClass
 {
-    public sp_Authentication_Login UserInfo = new();
+    public AuthenticationResultDTO UserInfo = new();
 
     private int _busyCounter;
 

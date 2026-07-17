@@ -34,7 +34,7 @@ public sealed class VppPeriodService : IVppPeriodService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<VPP00_Period> EnsureCurrentAsync(
+    public Task<VppPeriod> EnsureCurrentAsync(
         string memberCompanyCode,
         CancellationToken cancellationToken = default)
     {
@@ -42,14 +42,14 @@ public sealed class VppPeriodService : IVppPeriodService
         return EnsureAsync(memberCompanyCode, current, cancellationToken);
     }
 
-    public Task<VPP00_Period> EnsureAsync(
+    public Task<VppPeriod> EnsureAsync(
         string memberCompanyCode,
         int year,
         int month,
         CancellationToken cancellationToken = default)
         => EnsureAsync(memberCompanyCode, new Period(year, month), cancellationToken);
 
-    public async Task<VPP00_Period> EnsureAsync(
+    public async Task<VppPeriod> EnsureAsync(
         string memberCompanyCode,
         Period period,
         CancellationToken cancellationToken = default)
@@ -57,12 +57,12 @@ public sealed class VppPeriodService : IVppPeriodService
         var company = NormalizeCompanyCode(memberCompanyCode);
         ValidatePeriod(period);
 
-        var existing = await _unitOfWork.VPPContext.Set<VPP00_Period>()
+        var existing = await _unitOfWork.VPPContext.Set<VppPeriod>()
             .FirstOrDefaultAsync(
                 x => !x.IsDeleted
                     && x.MemberCompanyCode == company
-                    && x.Y == period.Year
-                    && x.M == period.Month,
+                    && x.Year == period.Year
+                    && x.Month == period.Month,
                 cancellationToken);
         if (existing is not null)
         {
@@ -70,24 +70,24 @@ public sealed class VppPeriodService : IVppPeriodService
         }
 
         var createdAtUtc = CurrentUtc();
-        var entity = new VPP00_Period
+        var entity = new VppPeriod
         {
             Id = Guid.NewGuid(),
             MemberCompanyCode = company,
-            Y = period.Year,
-            M = period.Month,
+            Year = period.Year,
+            Month = period.Month,
             TimeZoneId = "Asia/Ho_Chi_Minh",
             StartAtUtc = _periodCalculator.StartAtUtc(period),
             SubmissionDeadlineUtc = _periodCalculator.SubmissionDeadlineUtc(period),
             SupplementApprovalDeadlineUtc = _periodCalculator
                 .SupplementApprovalDeadlineUtc(period, _policy.SupplementApprovalGrace),
             State = VppPeriodState.Open,
-            CreateDate = createdAtUtc,
-            UpdateDate = createdAtUtc,
+            CreatedAtUtc = createdAtUtc,
+            UpdatedAtUtc = createdAtUtc,
             IsDeleted = false
         };
 
-        _unitOfWork.VPPContext.Set<VPP00_Period>().Add(entity);
+        _unitOfWork.VPPContext.Set<VppPeriod>().Add(entity);
         try
         {
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -99,13 +99,13 @@ public sealed class VppPeriodService : IVppPeriodService
             // two first requests arrive concurrently.  Detach our loser and
             // return the winner; callers never see a duplicate aggregate.
             _unitOfWork.VPPContext.Entry(entity).State = EntityState.Detached;
-            var winner = await _unitOfWork.VPPContext.Set<VPP00_Period>()
+            var winner = await _unitOfWork.VPPContext.Set<VppPeriod>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(
                     x => !x.IsDeleted
                         && x.MemberCompanyCode == company
-                        && x.Y == period.Year
-                        && x.M == period.Month,
+                        && x.Year == period.Year
+                        && x.Month == period.Month,
                     cancellationToken);
             if (winner is not null)
             {
@@ -117,7 +117,7 @@ public sealed class VppPeriodService : IVppPeriodService
         }
     }
 
-    public async Task<VPP00_Period?> GetAsync(
+    public async Task<VppPeriod?> GetAsync(
         string memberCompanyCode,
         Period period,
         CancellationToken cancellationToken = default)
@@ -125,41 +125,41 @@ public sealed class VppPeriodService : IVppPeriodService
         var company = NormalizeCompanyCode(memberCompanyCode);
         ValidatePeriod(period);
 
-        return await _unitOfWork.VPPContext.Set<VPP00_Period>()
+        return await _unitOfWork.VPPContext.Set<VppPeriod>()
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => !x.IsDeleted
                     && x.MemberCompanyCode == company
-                    && x.Y == period.Year
-                    && x.M == period.Month,
+                    && x.Year == period.Year
+                    && x.Month == period.Month,
                 cancellationToken);
     }
 
-    public Task<VPP00_Period?> GetAsync(
+    public Task<VppPeriod?> GetAsync(
         string memberCompanyCode,
         int year,
         int month,
         CancellationToken cancellationToken = default)
         => GetAsync(memberCompanyCode, new Period(year, month), cancellationToken);
 
-    public async Task<VPP00_Period?> GetAsync(
+    public async Task<VppPeriod?> GetAsync(
         Guid periodId,
         CancellationToken cancellationToken = default)
-        => await _unitOfWork.VPPContext.Set<VPP00_Period>()
+        => await _unitOfWork.VPPContext.Set<VppPeriod>()
             .AsNoTracking()
             .FirstOrDefaultAsync(x => !x.IsDeleted && x.Id == periodId, cancellationToken);
 
-    public async Task<IReadOnlyList<VPP00_Period>> AdvanceDuePeriodsAsync(
+    public async Task<IReadOnlyList<VppPeriod>> AdvanceDuePeriodsAsync(
         CancellationToken cancellationToken = default)
     {
-        var transitioned = new List<VPP00_Period>();
+        var transitioned = new List<VppPeriod>();
         // Two passes are enough to recover an old period through both due
         // automatic stages (Open -> SubmissionClosed -> Pricing) in one tick.
         // A later invocation remains a no-op, which makes retries idempotent.
         for (var pass = 0; pass < 2; pass++)
         {
             var nowUtc = CurrentUtc();
-            var candidates = await _unitOfWork.VPPContext.Set<VPP00_Period>()
+            var candidates = await _unitOfWork.VPPContext.Set<VppPeriod>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted
                     && (x.State == VppPeriodState.Open
@@ -212,7 +212,7 @@ public sealed class VppPeriodService : IVppPeriodService
         for (var pass = 0; pass < 2; pass++)
         {
             var nowUtc = CurrentUtc();
-            var candidates = await _unitOfWork.VPPContext.Set<VPP00_Period>()
+            var candidates = await _unitOfWork.VPPContext.Set<VppPeriod>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted
                     && x.MemberCompanyCode == company
@@ -233,7 +233,7 @@ public sealed class VppPeriodService : IVppPeriodService
             foreach (var periodId in candidates)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var current = await _unitOfWork.VPPContext.Set<VPP00_Period>()
+                var current = await _unitOfWork.VPPContext.Set<VppPeriod>()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(
                         x => !x.IsDeleted && x.Id == periodId,
@@ -272,7 +272,7 @@ public sealed class VppPeriodService : IVppPeriodService
             periodId, targetState, actorUserId, reason, cancellationToken);
     }
 
-    public async Task<VPP00_Period> TransitionWithResultAsync(
+    public async Task<VppPeriod> TransitionWithResultAsync(
         Guid periodId,
         VppPeriodState targetState,
         int? actorUserId = null,
@@ -284,7 +284,7 @@ public sealed class VppPeriodService : IVppPeriodService
             throw new ArgumentOutOfRangeException(nameof(targetState));
         }
 
-        var period = await _unitOfWork.VPPContext.Set<VPP00_Period>()
+        var period = await _unitOfWork.VPPContext.Set<VppPeriod>()
             .FirstOrDefaultAsync(x => !x.IsDeleted && x.Id == periodId, cancellationToken);
         if (period is null)
         {
@@ -321,7 +321,7 @@ public sealed class VppPeriodService : IVppPeriodService
         period.LastTransitionReason = string.IsNullOrWhiteSpace(reason)
             ? null
             : reason.Trim();
-        period.UpdateDate = nowUtc;
+        period.UpdatedAtUtc = nowUtc;
 
         try
         {

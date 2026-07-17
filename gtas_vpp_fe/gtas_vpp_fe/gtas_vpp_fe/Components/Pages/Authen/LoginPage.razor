@@ -29,7 +29,7 @@
                     </h1>
                 </div>
 
-                <RadzenTemplateForm TItem="sp_Authentication_LoginReqDTO" Data="sp_Authentication_Login" Submit="LoginSubmit" class="vpp-login-form">
+                <RadzenTemplateForm TItem="LoginFormModel" Data="loginForm" Submit="LoginSubmit" class="vpp-login-form">
                     <AntiforgeryToken></AntiforgeryToken>
 
                     <div class="@(HasUsernameValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
@@ -37,10 +37,10 @@
                         <RadzenTextBox class="vpp-login-control"
                                        Name="Username"
                                        Disabled="@isLoading"
-                                       @bind-Value=@sp_Authentication_Login.Username
+                                       @bind-Value=@loginForm.Username
                                        @oninput="HandleUsernameInput"
                                        @onblur="HandleUsernameBlur"
-                                       @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                                       @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
 
                         @if (HasUsernameValidation)
                         {
@@ -57,18 +57,18 @@
                                            class="vpp-login-control"
                                            Name="PasswordText"
                                            Disabled="@isLoading"
-                                           @bind-Value=@sp_Authentication_Login.Password
+                                           @bind-Value=@loginForm.Password
                                            @oninput="HandlePasswordInput"
                                            @onblur="HandlePasswordBlur"
-                                           @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                                           @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
                             <RadzenPassword Visible="@isShowPass"
                                             class="vpp-login-control"
                                             Name="Password"
                                             Disabled="@isLoading"
-                                            @bind-Value=@sp_Authentication_Login.Password
+                                            @bind-Value=@loginForm.Password
                                             @oninput="HandlePasswordInput"
                                             @onblur="HandlePasswordBlur"
-                                            @onkeyup="@(args => LoginOnkeyup(args, sp_Authentication_Login))" />
+                                            @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
                             <button type="button"
                                     class="vpp-password-toggle-btn"
                                     title="@(isShowPass ? Loc["HidePassword"] : Loc["ShowPassword"])"

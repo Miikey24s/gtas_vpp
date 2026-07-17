@@ -17,26 +17,26 @@ namespace gtas_vpp_fe.Helpers
                 .ToList();
         }
 
-        public static VPP01_RequestHeaderResDTO BuildFilterValueDto(Dictionary<string, object?> dict)
+        public static VppRequestResDTO BuildFilterValueDto(Dictionary<string, object?> dict)
         {
-            var dto = new VPP01_RequestHeaderResDTO();
+            var dto = new VppRequestResDTO();
 
-            SetIntProperty(dict, dto, "Y", nameof(VPP01_RequestHeaderResDTO.Y));
-            SetIntProperty(dict, dto, "M", nameof(VPP01_RequestHeaderResDTO.M));
-            SetIntProperty(dict, dto, "Status", nameof(VPP01_RequestHeaderResDTO.Status));
-            SetIntProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.TotalLines), nameof(VPP01_RequestHeaderResDTO.TotalLines));
-            SetIntProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.TotalQty), nameof(VPP01_RequestHeaderResDTO.TotalQty));
-            SetDateTimeProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.SubmittedDate), nameof(VPP01_RequestHeaderResDTO.SubmittedDate));
-            SetBoolProperty(dict, dto, "IsAdditionalOrder", nameof(VPP01_RequestHeaderResDTO.IsAdditionalOrder));
-            SetBoolProperty(dict, dto, "IsDeadlinePassed", nameof(VPP01_RequestHeaderResDTO.IsDeadlinePassed));
+            SetIntProperty(dict, dto, "Year", nameof(VppRequestResDTO.Year));
+            SetIntProperty(dict, dto, "Month", nameof(VppRequestResDTO.Month));
+            SetIntProperty(dict, dto, "Status", nameof(VppRequestResDTO.Status));
+            SetIntProperty(dict, dto, nameof(VppRequestResDTO.TotalLines), nameof(VppRequestResDTO.TotalLines));
+            SetIntProperty(dict, dto, nameof(VppRequestResDTO.TotalQty), nameof(VppRequestResDTO.TotalQty));
+            SetDateTimeProperty(dict, dto, nameof(VppRequestResDTO.SubmittedDate), nameof(VppRequestResDTO.SubmittedDate));
+            SetBoolProperty(dict, dto, "IsAdditionalOrder", nameof(VppRequestResDTO.IsAdditionalOrder));
+            SetBoolProperty(dict, dto, "IsDeadlinePassed", nameof(VppRequestResDTO.IsDeadlinePassed));
 
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.VPPCode));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.DepartmentCode));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.MemberCompanyCode));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.RequesterName));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.Description));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.StatusText));
-            SetStringProperty(dict, dto, nameof(VPP01_RequestHeaderResDTO.SubmittedDateText));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.VppCode));
+        SetStringProperty(dict, dto, nameof(VppRequestResDTO.DepartmentCode));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.MemberCompanyCode));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.RequesterName));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.Description));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.StatusText));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.SubmittedDateText));
 
             return dto;
         }
@@ -107,35 +107,35 @@ namespace gtas_vpp_fe.Helpers
             };
         }
 
-        private static void SetIntProperty(Dictionary<string, object?> dict, VPP01_RequestHeaderResDTO dto, string dictKey, string propertyName)
+        private static void SetIntProperty(Dictionary<string, object?> dict, VppRequestResDTO dto, string dictKey, string propertyName)
         {
             if (dict.TryGetValue(dictKey, out var value) && int.TryParse(value?.ToString(), out var parsed))
             {
-                typeof(VPP01_RequestHeaderResDTO).GetProperty(propertyName)?.SetValue(dto, parsed);
+                typeof(VppRequestResDTO).GetProperty(propertyName)?.SetValue(dto, parsed);
             }
         }
 
-        private static void SetDateTimeProperty(Dictionary<string, object?> dict, VPP01_RequestHeaderResDTO dto, string dictKey, string propertyName)
+        private static void SetDateTimeProperty(Dictionary<string, object?> dict, VppRequestResDTO dto, string dictKey, string propertyName)
         {
             if (dict.TryGetValue(dictKey, out var value) && DateTime.TryParse(value?.ToString(), out var parsed))
             {
-                typeof(VPP01_RequestHeaderResDTO).GetProperty(propertyName)?.SetValue(dto, parsed);
+                typeof(VppRequestResDTO).GetProperty(propertyName)?.SetValue(dto, parsed);
             }
         }
 
-        private static void SetBoolProperty(Dictionary<string, object?> dict, VPP01_RequestHeaderResDTO dto, string dictKey, string propertyName)
+        private static void SetBoolProperty(Dictionary<string, object?> dict, VppRequestResDTO dto, string dictKey, string propertyName)
         {
             if (dict.TryGetValue(dictKey, out var value) && bool.TryParse(value?.ToString(), out var parsed))
             {
-                typeof(VPP01_RequestHeaderResDTO).GetProperty(propertyName)?.SetValue(dto, parsed);
+                typeof(VppRequestResDTO).GetProperty(propertyName)?.SetValue(dto, parsed);
             }
         }
 
-        private static void SetStringProperty(Dictionary<string, object?> dict, VPP01_RequestHeaderResDTO dto, string propertyName)
+        private static void SetStringProperty(Dictionary<string, object?> dict, VppRequestResDTO dto, string propertyName)
         {
             if (dict.TryGetValue(propertyName, out var value) && value != null)
             {
-                typeof(VPP01_RequestHeaderResDTO).GetProperty(propertyName)?.SetValue(dto, value.ToString());
+                typeof(VppRequestResDTO).GetProperty(propertyName)?.SetValue(dto, value.ToString());
             }
         }
 

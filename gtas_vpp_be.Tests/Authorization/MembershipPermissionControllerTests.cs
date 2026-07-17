@@ -22,45 +22,44 @@ public sealed class MembershipPermissionControllerTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var activeAccount = AddAccount(context, 1_000_000_201, "active.admin");
         var tombstoneOnlyAccount = AddAccount(context, 1_000_000_202, "legacy.tombstone");
-        var systemGroup = new P02_Group
+        var systemGroup = new PermissionGroup
         {
             Id = CanonicalRbac.SystemAdmin.GroupId,
             GroupCode = CanonicalRbac.SystemAdmin.GroupCode,
             GroupName = "A display name that is not Admin",
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
-        var department = new gtas_vpp_be.Model.Library.LEX02_CompanyDepartmentLocation
+        var department = new gtas_vpp_be.Model.Library.Department
         {
             Id = Guid.NewGuid(),
-            LEX02Code = "IT",
-            LEX02Name = "IT",
-            LEX02Type = "PhongBan",
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow
+            Code = "IT",
+            Name = "IT",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
         context.AddRange(systemGroup, department);
-        context.P04_UserGroups.AddRange(
-            new P04_UserGroup
+        context.UserGroupMemberships.AddRange(
+            new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 AccountId = activeAccount.Id,
                 UserId = activeAccount.Id,
-                P02_GroupId = systemGroup.Id,
-                LEX02_CompanyDepartmentLocationId = department.Id,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
+                PermissionGroupId = systemGroup.Id,
+                DepartmentId = department.Id,
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
                 IsDeleted = false
             },
-            new P04_UserGroup
+            new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 AccountId = tombstoneOnlyAccount.Id,
                 UserId = tombstoneOnlyAccount.Id,
-                P02_GroupId = systemGroup.Id,
-                LEX02_CompanyDepartmentLocationId = department.Id,
-                CreateDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
+                PermissionGroupId = systemGroup.Id,
+                DepartmentId = department.Id,
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
                 IsDeleted = true
             });
         await context.SaveChangesAsync();
@@ -68,13 +67,13 @@ public sealed class MembershipPermissionControllerTests
         var resolver = new Mock<IUserNameResolver>();
         resolver
             .Setup(service => service.WithUserNamesAsync(
-                It.IsAny<List<sp_Authentication_TabUser_UserList>>(),
+                It.IsAny<List<UserAdministrationResDTO>>(),
                 It.IsAny<DbContext>()))
-            .ReturnsAsync((List<sp_Authentication_TabUser_UserList> users, DbContext _) => users);
+            .ReturnsAsync((List<UserAdministrationResDTO> users, DbContext _) => users);
         var controller = new PermissionController(
-            Mock.Of<IGenericRepository<P02_Group>>(),
-            Mock.Of<IGenericRepository<P06_GroupPageComponentMapping>>(),
-            Mock.Of<IGenericRepository<P04_UserGroup>>(),
+            Mock.Of<IGenericRepository<PermissionGroup>>(),
+            Mock.Of<IGenericRepository<GroupPageComponentMapping>>(),
+            Mock.Of<IGenericRepository<UserGroupMembership>>(),
             resolver.Object,
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow),
@@ -90,7 +89,7 @@ public sealed class MembershipPermissionControllerTests
         var action = await controller.GetUsers(top: 20);
 
         var response = Assert.IsType<OkObjectResult>(action);
-        var users = Assert.IsType<List<sp_Authentication_TabUser_UserList>>(response.Value);
+        var users = Assert.IsType<List<UserAdministrationResDTO>>(response.Value);
         var active = Assert.Single(users, item => item.UserId == activeAccount.Id);
         Assert.True(active.IsAdmin);
         Assert.Equal(systemGroup.Id, active.GroupId);

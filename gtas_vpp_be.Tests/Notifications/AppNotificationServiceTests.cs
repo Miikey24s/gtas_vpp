@@ -50,60 +50,60 @@ public sealed class AppNotificationServiceTests
         var service = new AppNotificationService(context, Mock.Of<INotificationRealtimeNotifier>());
         var now = DateTime.UtcNow;
         var groupId = Guid.NewGuid();
-        var page = new P01_Page
+        var page = new PermissionPage
         {
             Id = Guid.NewGuid(),
             PageCode = "DASHBOARD",
             Type = "PAGE",
-            CreateDate = now,
-            UpdateDate = now
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
-        var component = new P03_Component
+        var component = new PermissionComponent
         {
             Id = Guid.NewGuid(),
             ComponentCode = Permissions.RequestAdminApproval,
             ComponentName = "Approval",
-            CreateDate = now,
-            UpdateDate = now
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
-        var pageMapping = new P05_PageComponentMapping
+        var pageMapping = new PageComponentMapping
         {
             Id = Guid.NewGuid(),
-            P01_PageId = page.Id,
-            P01_Page = page,
-            P03_ComponentId = component.Id,
-            P03_Component = component
+            PermissionPageId = page.Id,
+            PermissionPage = page,
+            PermissionComponentId = component.Id,
+            PermissionComponent = component
         };
         context.AddRange(
-            new P02_Group
+            new PermissionGroup
             {
                 Id = groupId,
                 GroupName = "Approvers",
-                CreateDate = now,
-                UpdateDate = now
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             },
-            new P04_UserGroup
+            new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 UserId = 42,
-                P02_GroupId = groupId,
-                LEX02_CompanyDepartmentLocationId = Guid.NewGuid(),
-                CreateDate = now,
-                UpdateDate = now
+                PermissionGroupId = groupId,
+                DepartmentId = Guid.NewGuid(),
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             },
             page,
             component,
             pageMapping,
-            new P06_GroupPageComponentMapping
+            new GroupPageComponentMapping
             {
-                P02_GroupId = groupId,
-                P05_PageComponentMappingId = pageMapping.Id,
-                P05_PageComponentMapping = pageMapping,
+                PermissionGroupId = groupId,
+                PageComponentMappingId = pageMapping.Id,
+                PageComponentMapping = pageMapping,
                 MemberCompanyCode = 77500,
                 IsVisible = true,
                 IsEnable = true,
-                CreateDate = now,
-                UpdateDate = now
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             });
         await context.SaveChangesAsync();
 
@@ -125,7 +125,7 @@ public sealed class AppNotificationServiceTests
         await service.PublishAsync([10, 11], "77500", "order.test", "Test", "Message", "/dashboard", "order-1");
         await service.PublishAsync([10, 11], "77500", "order.test", "Test", "Message", "/dashboard", "order-1");
 
-        Assert.Equal(2, await context.Set<gtas_vpp_be.Model.Notifications.N01_Notification>().CountAsync());
+        Assert.Equal(2, await context.Set<gtas_vpp_be.Model.Notifications.Notification>().CountAsync());
         realtime.Verify(x => x.NotifyUserAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
@@ -142,7 +142,7 @@ public sealed class AppNotificationServiceTests
         var first = await outbox.EnqueueAsync("77500", message);
         var replay = await outbox.EnqueueAsync("77500", message);
         Assert.Equal(first, replay);
-        Assert.Single(await context.Set<gtas_vpp_be.Model.Notifications.N02_EmailOutbox>().ToListAsync());
+        Assert.Single(await context.Set<gtas_vpp_be.Model.Notifications.EmailOutboxMessage>().ToListAsync());
 
         await outbox.MarkFailedAsync(first, "Mailpit unavailable", DateTime.UtcNow.AddMinutes(5));
         var pending = await outbox.GetDueAsync(DateTime.UtcNow.AddMinutes(6), 10);

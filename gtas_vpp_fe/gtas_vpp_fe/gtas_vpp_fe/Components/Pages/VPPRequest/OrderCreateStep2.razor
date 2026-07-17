@@ -66,14 +66,14 @@
                                 RowRender="@OnRowRender"
                                 Style="border: none; flex: 1; min-height: 0;">
                      <Columns>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="100px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPCategoryName" Title="@Loc["Category"]" MinWidth="100px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="130px" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="UOMName" Title="@Loc["UOM"]" Width="80px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VppCode" Title="@Loc["ProductCode"]" MinWidth="100px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VppCategoryName" Title="@Loc["Category"]" MinWidth="100px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="VppName" Title="@Loc["ProductName"]" MinWidth="130px" />
+                        <RadzenDataGridColumn TItem="ProductOption" Property="UomName" Title="@Loc["UOM"]" Width="80px" />
                         <RadzenDataGridColumn TItem="ProductOption" Title="" Width="42px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 @{
-                                    var isSelected = Context.SelectedItems.Any(x => x.VPPId == row.Id);
+                                    var isSelected = Context.SelectedItems.Any(x => x.VppId == row.Id);
                                 }
                                 @* F-28: icon-only add/added toggle gets an explicit aria-label that reflects the current state. *@
                                 <RadzenButton Icon="@(isSelected ? "check" : "add")"
@@ -139,7 +139,7 @@
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="30px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="100px" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppName" Title="@Loc["ProductName"]" MinWidth="100px" />
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="item">
                                         <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
@@ -149,7 +149,7 @@
                                                        Change="@(_ => Context.NotifyStateChanged())" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UOMName" Title="@Loc["UOM"]" Width="55px" TextAlign="TextAlign.Center" Sortable="false" />
+                                <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UomName" Title="@Loc["UOM"]" Width="55px" TextAlign="TextAlign.Center" Sortable="false" />
                                 <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Notes"]" MinWidth="90px" Sortable="false">
                                     <Template Context="item">
                                         <RadzenTextBox @bind-Value="item.Description"
@@ -186,11 +186,11 @@
     public sealed class ProductOption
     {
         public Guid Id { get; set; }
-        public string? VPPCode { get; set; }
-        public string? VPPName { get; set; }
-        public string? UOMCode { get; set; }
-        public string? UOMName { get; set; }
-        public string? VPPCategoryName { get; set; }
+        public string? VppCode { get; set; }
+        public string? VppName { get; set; }
+        public string? UomCode { get; set; }
+        public string? UomName { get; set; }
+        public string? VppCategoryName { get; set; }
     }
 
     public bool IsLoadingProducts { get; set; }
@@ -251,15 +251,15 @@
 
     private async Task AddProductAsync(ProductOption row)
     {
-        if (!Context.SelectedItems.Any(x => x.VPPId == row.Id))
+        if (!Context.SelectedItems.Any(x => x.VppId == row.Id))
         {
             Context.SelectedItems.Add(new()
             {
-                VPPId = row.Id,
-                VPPCode = row.VPPCode,
-                VPPName = row.VPPName,
-                UOMCode = row.UOMCode,
-                UOMName = row.UOMName,
+                VppId = row.Id,
+                VppCode = row.VppCode,
+                VppName = row.VppName,
+                UomCode = row.UomCode,
+                UomName = row.UomName,
                 Qty = 1
             });
             await RefreshSelectionAsync();
@@ -280,7 +280,7 @@
 
     private void OnRowRender(RowRenderEventArgs<ProductOption> args)
     {
-        if (args.Data is not null && Context.SelectedItems.Any(x => x.VPPId == args.Data.Id))
+        if (args.Data is not null && Context.SelectedItems.Any(x => x.VppId == args.Data.Id))
         {
             args.Attributes.Add("class", "vpp-wizard-row-selected");
         }
@@ -300,7 +300,7 @@
         };
 
     private static string GetItemLabel(OrderCreateContext.SelectedItem item)
-        => !string.IsNullOrWhiteSpace(item.VPPName)
-            ? item.VPPName
-            : item.VPPCode ?? string.Empty;
+        => !string.IsNullOrWhiteSpace(item.VppName)
+            ? item.VppName
+            : item.VppCode ?? string.Empty;
 }

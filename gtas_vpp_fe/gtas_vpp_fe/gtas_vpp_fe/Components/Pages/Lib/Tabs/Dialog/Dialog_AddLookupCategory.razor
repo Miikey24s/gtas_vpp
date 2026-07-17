@@ -1,0 +1,108 @@
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_shared.DTOs.Share
+@inject DialogService DialogService
+@inject IAPIServices _apiServices
+@inject IToastService _toastService
+@inject GlobalClass glb
+
+<RadzenStack Gap="1rem">
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["LookupCategoryCode"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="@Model.Code" Style="width: 100%;" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["LookupCategoryName"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="@Model.Name" Style="width: 100%;" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["ModuleName"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="@Model.ModuleName" Style="width: 100%;" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="@Model.Description" Style="width: 100%;" Rows="3" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </RadzenRow>
+    
+    <RadzenRow>
+        <RadzenColumn Size="12" class="rz-text-align-end">
+            <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
+            <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenStack>
+
+@code {
+    [Parameter] public LookupCategoryResDTO Model { get; set; } = new();
+    [Parameter] public bool IsCreate { get; set; }
+    
+    private bool isBusy = false;
+
+    private void Cancel()
+    {
+        DialogService.Close(null);
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(Model.Name))
+        {
+            _toastService.Show(NotificationSeverity.Warning, "Validation", "Class Name is required", 5000, false);
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            Model.UpdatedAtUtc = DateTime.Now;
+            Model.UpdatedByUserId = glb.UserInfo.UserID;
+
+            LookupCategoryResDTO? result;
+            if (IsCreate)
+            {
+                Model.Id = Guid.NewGuid();
+                Model.CreatedAtUtc = DateTime.Now;
+                Model.CreatedByUserId = glb.UserInfo.UserID;
+                result = await _apiServices.PostFromApiAsync<LookupCategoryResDTO>(Config.LibraryApi.LookupCategories, Model);
+            }
+            else
+            {
+                result = await _apiServices.PutFromApiAsync<LookupCategoryResDTO>(Config.LibraryApi.LookupCategories, Model);
+            }
+
+            if (result != null)
+            {
+                _toastService.Show(NotificationSeverity.Success, "Success",
+                    IsCreate ? "Class created successfully" : "Class updated successfully", 5000, false);
+                DialogService.Close(result);
+            }
+            else
+            {
+                _toastService.Show(NotificationSeverity.Error, "Error", "Failed to save class", 5000, true);
+            }
+        }
+        catch (Exception ex)
+        {
+            _toastService.Show(NotificationSeverity.Error, "Error", $"Error saving class: {ex.Message}", 15000, true);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

@@ -8,8 +8,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog
     public partial class Dialog_PriceEditor
     {
         [Inject] public DialogService DialogService { get; set; } = default!;
-        [Parameter] public L06_PriceUpdateReqDTO Model { get; set; } = new();
-        [Parameter] public List<L05_VPPSupplierResDTO> Suppliers { get; set; } = [];
+        [Parameter] public SupplierProductPriceUpdateReqDTO Model { get; set; } = new();
+        [Parameter] public List<SupplierResDTO> Suppliers { get; set; } = [];
 
         private void Save()
         {

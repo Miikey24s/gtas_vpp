@@ -21,16 +21,16 @@ public partial class Tab_User
 {
     [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
     [Parameter]
-    public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+    public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
     [Inject] public IAPIServices _apiServices { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
 
     private string SearchText { get; set; } = string.Empty;
-    public List<sp_Authentication_TabUser_UserList> _sp_Authentication_TabUser_UserList { get; set; } = [];
-    public IList<sp_Authentication_TabUser_UserList> selected_UserList { get; set; } = [];
-    public RadzenDataGrid<sp_Authentication_TabUser_UserList>? griduser { get; set; }
-    public List<P02_GroupResDTO> p02_Groups { get; set; } = [];
-    public List<LEX02_CompanyDepartmentLocationResDTO> departments { get; set; } = [];
+    public List<UserAdministrationResDTO> users { get; set; } = [];
+    public IList<UserAdministrationResDTO> selectedUsers { get; set; } = [];
+    public RadzenDataGrid<UserAdministrationResDTO>? userGrid { get; set; }
+    public List<PermissionGroupResDTO> permissionGroups { get; set; } = [];
+    public List<DepartmentResDTO> departments { get; set; } = [];
 
     private int UserClaims { get; set; }
     private int userCount;
@@ -59,19 +59,19 @@ public partial class Tab_User
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !hasRequestedInitialUserGridLoad && griduser is not null)
+        if (firstRender && !hasRequestedInitialUserGridLoad && userGrid is not null)
         {
             hasRequestedInitialUserGridLoad = true;
-            await griduser.Reload();
+            await userGrid.Reload();
         }
     }
 
     protected async Task LoadBaseData()
     {
         await LoadGroupLookupsAsync();
-        if (griduser is not null)
+        if (userGrid is not null)
         {
-            await griduser.Reload();
+            await userGrid.Reload();
         }
     }
 
@@ -80,19 +80,18 @@ public partial class Tab_User
         isUserLookupLoading = true;
         try
         {
-            var groupTask = _apiServices.GetFromApiAsync<List<P02_GroupResDTO>>(Config.ApiPermissionGroupsEndpoint);
-            var departmentTask = _apiServices.GetFromApiAsync<List<LEX02_CompanyDepartmentLocationResDTO>>(
-                "/api/Library/lex02?top=1000&showDeleted=false&orderby=LEX02Name");
+            var groupTask = _apiServices.GetFromApiAsync<List<PermissionGroupResDTO>>(Config.ApiPermissionGroupsEndpoint);
+            var departmentTask = _apiServices.GetFromApiAsync<List<DepartmentResDTO>>(
+                "/api/Library/departments?top=1000&showDeleted=false&orderby=Name");
             await Task.WhenAll(groupTask, departmentTask);
-            p02_Groups = await groupTask ?? [];
+            permissionGroups = await groupTask ?? [];
             departments = (await departmentTask ?? [])
-                .Where(department => string.Equals(department.LEX02Type, "PhongBan", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(department => department.LEX02Name)
+                .OrderBy(department => department.Name)
                 .ToList();
         }
         catch (Exception ex)
         {
-            p02_Groups = [];
+            permissionGroups = [];
             departments = [];
             NotifyError("Error when loading role/department lookups: " + ex.Message);
         }
@@ -111,18 +110,18 @@ public partial class Tab_User
             return;
         }
 
-        if (griduser is not null)
+        if (userGrid is not null)
         {
-            await griduser.FirstPage(true);
+            await userGrid.FirstPage(true);
         }
     }
 
     protected async Task ButtonOnClick_Clear()
     {
         SearchText = string.Empty;
-        if (griduser is not null)
+        if (userGrid is not null)
         {
-            await griduser.FirstPage(true);
+            await userGrid.FirstPage(true);
         }
     }
 
@@ -137,18 +136,18 @@ public partial class Tab_User
 
         try
         {
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<UserAdministrationResDTO>>(
                 BuildUsersEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
-            _sp_Authentication_TabUser_UserList = result.Data ?? [];
-            foreach (var user in _sp_Authentication_TabUser_UserList)
+            users = result.Data ?? [];
+            foreach (var user in users)
             {
-                user.UserGroup = p02_Groups.FirstOrDefault(group => group.Id == user.GroupId);
+                user.UserGroup = permissionGroups.FirstOrDefault(group => group.Id == user.GroupId);
             }
             userCount = result.TotalCount;
         }
         catch (Exception ex)
         {
-            _sp_Authentication_TabUser_UserList = [];
+            users = [];
             userCount = 0;
             NotifyError("Error when loading users: " + ex.Message);
         }
@@ -160,7 +159,7 @@ public partial class Tab_User
     }
 
     protected async Task LoadUserFilterDataAsync(
-        DataGridLoadColumnFilterDataEventArgs<sp_Authentication_TabUser_UserList> args)
+        DataGridLoadColumnFilterDataEventArgs<UserAdministrationResDTO> args)
     {
         if (args.Column is null)
         {
@@ -196,7 +195,7 @@ public partial class Tab_User
                 queryParams.Add($"top={args.Top.Value}");
             }
 
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<sp_Authentication_TabUser_UserList>>(
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<UserAdministrationResDTO>>(
                 $"/api/Permission/users?{string.Join("&", queryParams)}");
             args.Data = result.Data ?? [];
             args.Count = result.TotalCount;
@@ -207,14 +206,14 @@ public partial class Tab_User
         }
     }
 
-    protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<sp_Authentication_TabUser_UserList> args)
+    protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<UserAdministrationResDTO> args)
     {
         if (args.Data is null)
         {
             return;
         }
 
-        await DialogService.OpenSideAsync<Component_RecordInspector<sp_Authentication_TabUser_UserList>>(
+        await DialogService.OpenSideAsync<Component_RecordInspector<UserAdministrationResDTO>>(
             $"User: {args.Data.UserLogin}",
             new Dictionary<string, object?> { { "Record", args.Data } },
             options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
@@ -234,22 +233,22 @@ public partial class Tab_User
         }
     }
 
-    protected Task DropdownOnChange_Group(sp_Authentication_TabUser_UserList user) =>
+    protected Task DropdownOnChange_Group(UserAdministrationResDTO user) =>
         CanPrepareActivation(user)
             ? Task.CompletedTask
             : PersistMembershipAsync(user, "Role changed by permission administrator.");
 
-    protected Task DropdownOnChange_Department(sp_Authentication_TabUser_UserList user) =>
+    protected Task DropdownOnChange_Department(UserAdministrationResDTO user) =>
         CanPrepareActivation(user)
             ? Task.CompletedTask
             : PersistMembershipAsync(user, "Primary department changed by permission administrator.");
 
-    protected async Task ActivateAccountAsync(sp_Authentication_TabUser_UserList user)
+    protected async Task ActivateAccountAsync(UserAdministrationResDTO user)
     {
         if (!CanPrepareActivation(user)
             || user.UserGroup is null
             || user.UserGroup.Id == Guid.Empty
-            || user.L05_DepartmentId is not Guid departmentId
+            || user.DepartmentId is not Guid departmentId
             || departmentId == Guid.Empty)
         {
             NotifyError("Hãy chọn nhóm quyền và phòng ban trước khi kích hoạt tài khoản.");
@@ -299,7 +298,7 @@ public partial class Tab_User
         }
     }
 
-    protected async Task ResetPasswordAsync(sp_Authentication_TabUser_UserList user)
+    protected async Task ResetPasswordAsync(UserAdministrationResDTO user)
     {
         if (!CanResetPassword(user))
         {
@@ -349,7 +348,7 @@ public partial class Tab_User
         }
     }
 
-    protected async Task DeactivateMembershipAsync(sp_Authentication_TabUser_UserList user)
+    protected async Task DeactivateMembershipAsync(UserAdministrationResDTO user)
     {
         if (!CanDeactivateMembership(user))
         {
@@ -401,7 +400,7 @@ public partial class Tab_User
         }
     }
 
-    protected bool CanEditMembership(sp_Authentication_TabUser_UserList user) =>
+    protected bool CanEditMembership(UserAdministrationResDTO user) =>
         PermissionState.HasPermission(Permissions.PermissionManage)
         && user.UserId > 0
         && user.UserId != UserClaims
@@ -409,28 +408,28 @@ public partial class Tab_User
         && user.IsActive
         && user.RowVersion is { Length: > 0 };
 
-    protected bool CanPrepareActivation(sp_Authentication_TabUser_UserList user) =>
+    protected bool CanPrepareActivation(UserAdministrationResDTO user) =>
         PermissionState.HasPermission(Permissions.PermissionManage)
         && user.UserId > 0
         && user.UserId != UserClaims
         && string.Equals(user.AccountStatus, "PendingApproval", StringComparison.OrdinalIgnoreCase);
 
-    protected bool CanResetPassword(sp_Authentication_TabUser_UserList user) =>
+    protected bool CanResetPassword(UserAdministrationResDTO user) =>
         PermissionState.HasPermission(Permissions.PermissionManage)
         && user.UserId > 0
         && user.UserId != UserClaims
         && string.Equals(user.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase);
 
-    protected bool CanDeactivateMembership(sp_Authentication_TabUser_UserList user) =>
+    protected bool CanDeactivateMembership(UserAdministrationResDTO user) =>
         CanEditMembership(user);
 
     private async Task PersistMembershipAsync(
-        sp_Authentication_TabUser_UserList user,
+        UserAdministrationResDTO user,
         string reason)
     {
         if (!CanEditMembership(user)
             || user.UserGroup is null
-            || user.L05_DepartmentId is not Guid departmentId
+            || user.DepartmentId is not Guid departmentId
             || departmentId == Guid.Empty)
         {
             await ReloadUsersAsync();
@@ -475,18 +474,18 @@ public partial class Tab_User
 
     private async Task ReloadUsersAsync()
     {
-        if (griduser is not null)
+        if (userGrid is not null)
         {
-            await griduser.Reload();
+            await userGrid.Reload();
         }
     }
 
-    private static string GetRowVersion(sp_Authentication_TabUser_UserList user) =>
+    private static string GetRowVersion(UserAdministrationResDTO user) =>
         user.RowVersion is { Length: > 0 }
             ? Convert.ToBase64String(user.RowVersion)
             : string.Empty;
 
-    private static string GetAccountStatusLabel(sp_Authentication_TabUser_UserList user) =>
+    private static string GetAccountStatusLabel(UserAdministrationResDTO user) =>
         user.AccountStatus switch
         {
             "Active" when user.IsActive => "Active",

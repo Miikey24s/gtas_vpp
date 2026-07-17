@@ -21,7 +21,7 @@ public sealed class ApiServicesJsonTransportTests
         using var client = CreateClient(handler);
         var sut = CreateSut(client);
 
-        var result = await sut.PostFromApiAsync<sp_Authentication_Login>(
+        var result = await sut.PostFromApiAsync<AuthenticationResultDTO>(
             "api/auth/login",
             new AuthenticationLoginRequest("tester", "secret"));
 
@@ -80,7 +80,7 @@ public sealed class ApiServicesJsonTransportTests
         using var client = CreateClient(handler);
         var sut = CreateSut(client);
 
-        var result = await sut.GetFromApiAsync<sp_Authentication_Login>("api/auth/me");
+        var result = await sut.GetFromApiAsync<AuthenticationResultDTO>("api/auth/me");
 
         Assert.NotNull(result);
         Assert.Equal(expectedUserId, result.UserID);

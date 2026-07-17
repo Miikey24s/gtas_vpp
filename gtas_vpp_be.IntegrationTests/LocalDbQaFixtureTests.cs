@@ -126,7 +126,7 @@ public sealed class LocalDbQaFixtureTests
             Assert.Equal(results[0].Id, results[1].Id);
             Assert.Equal(1, await ScalarIntAsync(
                 fixture.ConnectionString,
-                "SELECT COUNT(*) FROM [dbo].[VPP00_Period] WHERE [MemberCompanyCode] = N'QA-RACE' AND [Y] = 2030 AND [M] = 7 AND [IsDeleted] = 0;",
+                "SELECT COUNT(*) FROM [dbo].[Periods] WHERE [MemberCompanyCode] = N'QA-RACE' AND [Year] = 2030 AND [Month] = 7 AND [IsDeleted] = 0;",
                 cancellationToken));
         }
         finally
@@ -200,14 +200,14 @@ public sealed class LocalDbQaFixtureTests
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[__EFMigrationsHistory];", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [sys].[procedures] WHERE [name] = N'sp_Authen_Login';", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[AspNetUsers] WHERE [Id] BETWEEN 1000001001 AND 1000001006 AND [AccountStatus] = N'Active';", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P02_Group] WHERE [GroupCode] IN (N'EMPLOYEE', N'DEPARTMENT_APPROVER', N'PROCUREMENT_ADMIN', N'SYSTEM_ADMIN') AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[P04_UserGroup] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP00_Period] WHERE [Id] = '20000000-0000-0000-0000-000000000001' AND [MemberCompanyCode] = N'77500' AND [State] = 0 AND [IsDeleted] = 0;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003') AND [PeriodId] IS NOT NULL AND [RequestSeriesId] = [Id] AND [RevisionNumber] = 1 AND [IsCurrentRevision] = 1;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [CreateUserId] = 1000001001 AND [IsDeleted] = 0;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [DepartmentCode] = N'QA-D01' AND [IsDeleted] = 0;", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[VPP01_RequestHeader] WHERE [MemberCompanyCode] = N'77500' AND [IsDeleted] = 0;", cancellationToken));
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[PermissionGroups] WHERE [GroupCode] IN (N'EMPLOYEE', N'DEPARTMENT_APPROVER', N'PROCUREMENT_ADMIN', N'SYSTEM_ADMIN') AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[UserGroupMemberships] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Periods] WHERE [Id] = '20000000-0000-0000-0000-000000000001' AND [MemberCompanyCode] = N'77500' AND [State] = 0 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003') AND [PeriodId] IS NOT NULL AND [RequestSeriesId] = [Id] AND [RevisionNumber] = 1 AND [IsCurrentRevision] = 1;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [CreatedByUserId] = 1000001001 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [DepartmentCode] = N'QA-D01' AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [MemberCompanyCode] = N'77500' AND [IsDeleted] = 0;", cancellationToken));
     }
 
     private static void AssertSnapshot(FixtureSnapshot snapshot)

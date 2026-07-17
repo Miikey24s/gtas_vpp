@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace gtas_vpp_be.Tests.VPPRequestTests;
+namespace gtas_vpp_be.Tests.VppItemRequestTests;
 
 public class CreateOrderAfterSettlementTests
 {
@@ -70,17 +70,17 @@ public class CreateOrderAfterSettlementTests
             Options.Create(new JiraSettings()));
     }
 
-    private static VPP01_CreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)
+    private static VppRequestCreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)
         => new()
         {
-            Y = year,
-            M = month,
+            Year = year,
+            Month = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
             SupplementReason = isAdditionalOrder ? "Needed for a new employee" : null,
-            Items = new List<VPP02_ItemReqDTO>
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId, Qty = 1, Description = "Item" }
+                new() { VppId = vppId, Qty = 1, Description = "Item" }
             }
         };
 
@@ -90,19 +90,19 @@ public class CreateOrderAfterSettlementTests
         int m,
         DateTime now)
     {
-        context.Set<VPP01_RequestHeader>().Add(new VPP01_RequestHeader
+        context.Set<VppRequest>().Add(new VppRequest
         {
             Id = Guid.NewGuid(),
-            Y = y,
-            M = m,
-            VPPCode = $"VPP-{Guid.NewGuid():N}"[..24],
+            Year = y,
+            Month = m,
+            VppCode = $"VPP-{Guid.NewGuid():N}"[..24],
             Status = (int)VPPStatus.Submitted,
             DepartmentCode = "IT",
             MemberCompanyCode = "77500",
-            CreateUserId = 9999,
-            CreateDate = now.AddDays(-1),
-            UpdateUserId = 9999,
-            UpdateDate = now.AddDays(-1),
+            CreatedByUserId = 9999,
+            CreatedAtUtc = now.AddDays(-1),
+            UpdatedByUserId = 9999,
+            UpdatedAtUtc = now.AddDays(-1),
             SubmittedDate = now.AddDays(-1),
             SettledAt = now.AddMinutes(-30),
             SettledByUserId = 5615

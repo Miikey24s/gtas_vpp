@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Services;
 using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -41,7 +41,7 @@ namespace gtas_vpp_fe.Helpers
                 return (false, Array.Empty<Claim>());
             }
 
-            _glb.UserInfo = new sp_Authentication_Login
+            _glb.UserInfo = new AuthenticationResultDTO
             {
                 UserID = currentUser.UserId,
                 UserLogin = currentUser.UserLogin,
@@ -54,8 +54,8 @@ namespace gtas_vpp_fe.Helpers
                 GroupId = currentUser.GroupId,
                 GroupName = currentUser.GroupName,
                 MemberCompanyCode = currentUser.MemberCompanyCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                DepartmentName = currentUser.DepartmentName,
-                DepartmentCode = currentUser.DepartmentCode,
+                DepartmentName = currentUser.PrimaryDepartmentName,
+                DepartmentCode = currentUser.PrimaryDepartmentCode,
                 AccessToken = user.Claims.Get(ClaimKeys.AccessToken),
                 SessionVersion = currentUser.SessionVersion,
                 AccountStatus = currentUser.AccountStatus,

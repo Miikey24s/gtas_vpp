@@ -13,7 +13,7 @@ public interface IReportService
     Task<ReportSummaryResDTO> GetSummaryAsync(
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month,
@@ -22,7 +22,7 @@ public interface IReportService
     Task<ReportExportResult> ExportCsvAsync(
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month,
@@ -31,7 +31,7 @@ public interface IReportService
     Task<ReportExportResult> ExportWorkbookAsync(
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month,
@@ -46,34 +46,34 @@ public sealed class ReportService(VPPContext context) : IReportService
     public async Task<ReportSummaryResDTO> GetSummaryAsync(
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month,
         CancellationToken cancellationToken = default)
     {
-        Validate(scope, departmentCode, memberCompanyCode, year, month);
+        Validate(scope, Code, memberCompanyCode, year, month);
 
         var scopedHeaders = ApplyScope(
-            _context.Set<VPP01_RequestHeader>().AsNoTracking().Where(order => !order.IsDeleted),
+            _context.Set<VppRequest>().AsNoTracking().Where(order => !order.IsDeleted),
             scope,
             userId,
-            departmentCode,
+            Code,
             memberCompanyCode);
 
         var availableYears = await scopedHeaders
-            .Select(order => order.Y)
+            .Select(order => order.Year)
             .Distinct()
             .OrderByDescending(value => value)
             .ToListAsync(cancellationToken);
 
         var filteredHeaders = scopedHeaders
-            .Where(order => !year.HasValue || order.Y == year.Value)
-            .Where(order => !month.HasValue || order.M == month.Value);
+            .Where(order => !year.HasValue || order.Year == year.Value)
+            .Where(order => !month.HasValue || order.Month == month.Value);
         var filteredHeaderIds = filteredHeaders.Select(order => order.Id);
-        var filteredDetails = _context.Set<VPP02_RequestDetail>()
+        var filteredDetails = _context.Set<VppRequestDetail>()
             .AsNoTracking()
-            .Where(detail => !detail.IsDeleted && filteredHeaderIds.Contains(detail.VPP01_RequestHeaderId));
+            .Where(detail => !detail.IsDeleted && filteredHeaderIds.Contains(detail.RequestId));
 
         var totalOrders = await filteredHeaders.CountAsync(cancellationToken);
         var totalDepartments = await filteredHeaders
@@ -82,7 +82,7 @@ public sealed class ReportService(VPPContext context) : IReportService
             .Distinct()
             .CountAsync(cancellationToken);
         var totalRequesters = await filteredHeaders
-            .Select(order => order.CreateUserId)
+            .Select(order => order.CreatedByUserId)
             .Distinct()
             .CountAsync(cancellationToken);
         var detailStats = await filteredDetails
@@ -95,26 +95,26 @@ public sealed class ReportService(VPPContext context) : IReportService
             })
             .FirstOrDefaultAsync(cancellationToken);
 
-        VPP04_Settlement? settlement = null;
-        var scopedSettlementAllocations = new List<VPP07_SettlementAllocation>();
+        Settlement? settlement = null;
+        var scopedSettlementAllocations = new List<SettlementAllocation>();
         if (year.HasValue && month.HasValue)
         {
-            settlement = await _context.Set<VPP04_Settlement>()
+            settlement = await _context.Set<Settlement>()
                 .AsNoTracking()
                 .Include(item => item.Items)
                 .Include(item => item.Allocations)
                 .FirstOrDefaultAsync(item => !item.IsDeleted
                     && item.IsCurrentRevision
                     && item.MemberCompanyCode == memberCompanyCode
-                    && item.Y == year.Value
-                    && item.M == month.Value, cancellationToken);
+                    && item.Year == year.Value
+                    && item.Month == month.Value, cancellationToken);
             if (settlement is not null)
             {
                 scopedSettlementAllocations = settlement.Allocations
                     .Where(allocation => scope switch
                     {
                         ReportScopes.Own => allocation.RequesterUserId == userId,
-                        ReportScopes.Department => allocation.DepartmentCode == departmentCode,
+                        ReportScopes.Department => allocation.DepartmentCode == Code,
                         _ => true
                     })
                     .ToList();
@@ -122,18 +122,18 @@ public sealed class ReportService(VPPContext context) : IReportService
         }
 
         var periodRaw = await filteredHeaders
-            .GroupBy(order => new { order.Y, order.M })
-            .OrderBy(group => group.Key.Y)
-            .ThenBy(group => group.Key.M)
+            .GroupBy(order => new { order.Year, order.Month })
+            .OrderBy(group => group.Key.Year)
+            .ThenBy(group => group.Key.Month)
             .Select(group => new
             {
-                Year = group.Key.Y,
-                Month = group.Key.M,
+                Year = group.Key.Year,
+                Month = group.Key.Month,
                 OrderCount = group.Count(),
-                TotalQuantity = group.Sum(order => order.VPP02_RequestDetails
+                TotalQuantity = group.Sum(order => order.RequestDetails
                     .Where(detail => !detail.IsDeleted)
                     .Sum(detail => (int?)detail.Qty) ?? 0),
-                TotalAmount = group.Sum(order => order.VPP02_RequestDetails
+                TotalAmount = group.Sum(order => order.RequestDetails
                     .Where(detail => !detail.IsDeleted)
                     .Sum(detail => (long?)(detail.Qty * detail.CurrentSinglePrice)) ?? 0)
             })
@@ -149,25 +149,25 @@ public sealed class ReportService(VPPContext context) : IReportService
             .GroupBy(order => order.DepartmentCode ?? "-")
             .Select(group => new ReportDepartmentPointResDTO
             {
-                DepartmentCode = group.Key,
+                Code = group.Key,
                 OrderCount = group.Count(),
-                TotalQuantity = group.Sum(order => order.VPP02_RequestDetails
+                TotalQuantity = group.Sum(order => order.RequestDetails
                     .Where(detail => !detail.IsDeleted)
                     .Sum(detail => (int?)detail.Qty) ?? 0),
-                TotalAmount = group.Sum(order => order.VPP02_RequestDetails
+                TotalAmount = group.Sum(order => order.RequestDetails
                     .Where(detail => !detail.IsDeleted)
                     .Sum(detail => (long?)(detail.Qty * detail.CurrentSinglePrice)) ?? 0)
             })
             .OrderByDescending(item => item.TotalAmount)
-            .ThenBy(item => item.DepartmentCode)
+            .ThenBy(item => item.Code)
             .Take(12)
             .ToListAsync(cancellationToken);
 
         var topProducts = await filteredDetails
             .GroupBy(detail => new
             {
-                Code = detail.VPP.VPPCode ?? "-",
-                Name = detail.VPP.VPPName ?? "-"
+                Code = detail.VppItem.VppCode ?? "-",
+                Name = detail.VppItem.VppName ?? "-"
             })
             .Select(group => new ReportProductPointResDTO
             {
@@ -205,13 +205,13 @@ public sealed class ReportService(VPPContext context) : IReportService
                 .GroupBy(item => item.DepartmentCode ?? "-")
                 .Select(group => new ReportDepartmentPointResDTO
                 {
-                    DepartmentCode = group.Key,
+                    Code = group.Key,
                     OrderCount = group.Select(item => item.RequestHeaderId).Distinct().Count(),
                     TotalQuantity = (int)group.Sum(item => item.Quantity),
                     TotalAmount = (long)group.Sum(item => item.GrossAmount)
                 })
                 .OrderByDescending(item => item.TotalAmount)
-                .ThenBy(item => item.DepartmentCode)
+                .ThenBy(item => item.Code)
                 .Take(12)
                 .ToList();
             departmentRaw = allocationByDepartment;
@@ -281,51 +281,51 @@ public sealed class ReportService(VPPContext context) : IReportService
     public async Task<ReportExportResult> ExportCsvAsync(
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month,
         CancellationToken cancellationToken = default)
     {
-        Validate(scope, departmentCode, memberCompanyCode, year, month);
+        Validate(scope, Code, memberCompanyCode, year, month);
 
         var headers = ApplyScope(
-                _context.Set<VPP01_RequestHeader>().AsNoTracking().Where(order => !order.IsDeleted),
+                _context.Set<VppRequest>().AsNoTracking().Where(order => !order.IsDeleted),
                 scope,
                 userId,
-                departmentCode,
+                Code,
                 memberCompanyCode)
-            .Where(order => !year.HasValue || order.Y == year.Value)
-            .Where(order => !month.HasValue || order.M == month.Value);
+            .Where(order => !year.HasValue || order.Year == year.Value)
+            .Where(order => !month.HasValue || order.Month == month.Value);
         var headerIds = headers.Select(order => order.Id);
 
-        var rowCount = await _context.Set<VPP02_RequestDetail>()
+        var rowCount = await _context.Set<VppRequestDetail>()
             .AsNoTracking()
-            .CountAsync(detail => !detail.IsDeleted && headerIds.Contains(detail.VPP01_RequestHeaderId), cancellationToken);
+            .CountAsync(detail => !detail.IsDeleted && headerIds.Contains(detail.RequestId), cancellationToken);
         if (rowCount > MaxExportRows)
         {
             throw new InvalidOperationException(
                 $"Report contains {rowCount:N0} rows. Narrow the year or month before exporting (maximum {MaxExportRows:N0}).");
         }
 
-        var rows = await _context.Set<VPP02_RequestDetail>()
+        var rows = await _context.Set<VppRequestDetail>()
             .AsNoTracking()
-            .Where(detail => !detail.IsDeleted && headerIds.Contains(detail.VPP01_RequestHeaderId))
-            .OrderByDescending(detail => detail.VPP01_RequestHeader.Y)
-            .ThenByDescending(detail => detail.VPP01_RequestHeader.M)
-            .ThenBy(detail => detail.VPP01_RequestHeader.DepartmentCode)
-            .ThenBy(detail => detail.VPP01_RequestHeader.VPPCode)
-            .ThenBy(detail => detail.VPP.VPPCode)
+            .Where(detail => !detail.IsDeleted && headerIds.Contains(detail.RequestId))
+            .OrderByDescending(detail => detail.Request.Year)
+            .ThenByDescending(detail => detail.Request.Month)
+            .ThenBy(detail => detail.Request.DepartmentCode)
+            .ThenBy(detail => detail.Request.VppCode)
+            .ThenBy(detail => detail.VppItem.VppCode)
             .Select(detail => new
             {
-                detail.VPP01_RequestHeader.Y,
-                detail.VPP01_RequestHeader.M,
-                detail.VPP01_RequestHeader.DepartmentCode,
-                OrderCode = detail.VPP01_RequestHeader.VPPCode,
-                detail.VPP01_RequestHeader.Status,
-                detail.VPP01_RequestHeader.IsAdditionalOrder,
-                ProductCode = detail.VPP.VPPCode,
-                ProductName = detail.VPP.VPPName,
+                detail.Request.Year,
+                detail.Request.Month,
+                detail.Request.DepartmentCode,
+                OrderCode = detail.Request.VppCode,
+                detail.Request.Status,
+                detail.Request.IsAdditionalOrder,
+                ProductCode = detail.VppItem.VppCode,
+                ProductName = detail.VppItem.VppName,
                 detail.Qty,
                 detail.CurrentSinglePrice
             })
@@ -339,7 +339,7 @@ public sealed class ReportService(VPPContext context) : IReportService
             var amount = row.Qty * row.CurrentSinglePrice;
             csv.AppendLine(string.Join(",",
             [
-                EscapeCsvCell($"{row.M:00}/{row.Y}"),
+                EscapeCsvCell($"{row.Month:00}/{row.Year}"),
                 EscapeCsvCell(row.DepartmentCode),
                 EscapeCsvCell(row.OrderCode),
                 EscapeCsvCell(VppStatusContract.GetText(row.Status, culture: CultureInfo.GetCultureInfo("vi-VN"))),
@@ -367,35 +367,35 @@ public sealed class ReportService(VPPContext context) : IReportService
     public async Task<ReportExportResult> ExportWorkbookAsync(
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month,
         CancellationToken cancellationToken = default)
     {
-        Validate(scope, departmentCode, memberCompanyCode, year, month);
+        Validate(scope, Code, memberCompanyCode, year, month);
         var summary = await GetSummaryAsync(
-            scope, userId, departmentCode, memberCompanyCode, year, month, cancellationToken);
+            scope, userId, Code, memberCompanyCode, year, month, cancellationToken);
         var items = new List<ReportWorkbookItem>();
 
         if (year.HasValue && month.HasValue)
         {
-            var settlement = await _context.Set<VPP04_Settlement>()
+            var settlement = await _context.Set<Settlement>()
                 .AsNoTracking()
                 .Include(item => item.Items)
                 .Include(item => item.Allocations)
                 .FirstOrDefaultAsync(item => !item.IsDeleted
                     && item.IsCurrentRevision
                     && item.MemberCompanyCode == memberCompanyCode
-                    && item.Y == year.Value
-                    && item.M == month.Value, cancellationToken);
+                    && item.Year == year.Value
+                    && item.Month == month.Value, cancellationToken);
             if (settlement is not null)
             {
                 var itemById = settlement.Items.ToDictionary(item => item.Id);
                 var scoped = settlement.Allocations.Where(allocation => scope switch
                 {
                     ReportScopes.Own => allocation.RequesterUserId == userId,
-                    ReportScopes.Department => allocation.DepartmentCode == departmentCode,
+                    ReportScopes.Department => allocation.DepartmentCode == Code,
                     _ => true
                 });
                 items = scoped
@@ -424,7 +424,7 @@ public sealed class ReportService(VPPContext context) : IReportService
                                 : $"Exception price book {item.PriceListId}",
                             item.IsSupplierException);
                     })
-                    .OrderBy(item => item.DepartmentCode)
+                    .OrderBy(item => item.Code)
                     .ThenBy(item => item.ProductCode)
                     .ToList();
             }
@@ -450,18 +450,18 @@ public sealed class ReportService(VPPContext context) : IReportService
         return $"\"{safe.Replace("\"", "\"\"")}\"";
     }
 
-    private static IQueryable<VPP01_RequestHeader> ApplyScope(
-        IQueryable<VPP01_RequestHeader> query,
+    private static IQueryable<VppRequest> ApplyScope(
+        IQueryable<VppRequest> query,
         string scope,
         int userId,
-        string departmentCode,
+        string Code,
         string memberCompanyCode)
     {
         query = query.Where(order => order.MemberCompanyCode == memberCompanyCode);
         return scope switch
         {
-            ReportScopes.Own => query.Where(order => order.CreateUserId == userId),
-            ReportScopes.Department => query.Where(order => order.DepartmentCode == departmentCode),
+            ReportScopes.Own => query.Where(order => order.CreatedByUserId == userId),
+            ReportScopes.Department => query.Where(order => order.DepartmentCode == Code),
             ReportScopes.All => query,
             _ => query.Where(_ => false)
         };
@@ -469,7 +469,7 @@ public sealed class ReportService(VPPContext context) : IReportService
 
     private static void Validate(
         string scope,
-        string departmentCode,
+        string Code,
         string memberCompanyCode,
         int? year,
         int? month)
@@ -484,9 +484,9 @@ public sealed class ReportService(VPPContext context) : IReportService
             throw new ArgumentException("Member company is required.", nameof(memberCompanyCode));
         }
 
-        if (scope == ReportScopes.Department && string.IsNullOrWhiteSpace(departmentCode))
+        if (scope == ReportScopes.Department && string.IsNullOrWhiteSpace(Code))
         {
-            throw new ArgumentException("Department is required for department reports.", nameof(departmentCode));
+            throw new ArgumentException("Department is required for department reports.", nameof(Code));
         }
 
         if (year is < 2000 or > 2100)

@@ -18,24 +18,24 @@ public class CrudOperationsTests
         var result = await repository.AddAsync(entity);
 
         Assert.NotNull(result);
-        Assert.Single(context.Set<L03_VPPCategory>());
-        Assert.Equal("CAT-ADD", context.Set<L03_VPPCategory>().Single().VPPCategoryCode);
+        Assert.Single(context.Set<VppCategory>());
+        Assert.Equal("CAT-ADD", context.Set<VppCategory>().Single().VppCategoryCode);
     }
 
     [Fact]
     public async Task ReadAsync_Filter_ReturnsMatchingEntities()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        context.Set<L03_VPPCategory>().AddRange(
+        context.Set<VppCategory>().AddRange(
             CreateCategory("KEEP", "Keep category"),
             CreateCategory("SKIP", "Skip category"));
         await context.SaveChangesAsync();
         var repository = CreateRepository(context);
 
-        var result = await repository.ReadAsync(x => x.VPPCategoryCode == "KEEP");
+        var result = await repository.ReadAsync(x => x.VppCategoryCode == "KEEP");
 
         Assert.Single(result);
-        Assert.Equal("KEEP", result[0].VPPCategoryCode);
+        Assert.Equal("KEEP", result[0].VppCategoryCode);
     }
 
     [Fact]
@@ -43,14 +43,14 @@ public class CrudOperationsTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var entity = CreateCategory("CAT-DELETE", "Delete category");
-        context.Set<L03_VPPCategory>().Add(entity);
+        context.Set<VppCategory>().Add(entity);
         await context.SaveChangesAsync();
         var repository = CreateRepository(context);
 
         var result = await repository.DeleteAsync(entity.Id);
 
         Assert.True(result);
-        Assert.Empty(context.Set<L03_VPPCategory>());
+        Assert.Empty(context.Set<VppCategory>());
     }
 
     [Fact]
@@ -58,31 +58,31 @@ public class CrudOperationsTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var entity = CreateCategory("CAT-UPDATE", "Before update");
-        context.Set<L03_VPPCategory>().Add(entity);
+        context.Set<VppCategory>().Add(entity);
         await context.SaveChangesAsync();
         var repository = CreateRepository(context);
 
-        entity.VPPCategoryName = "After update";
+        entity.VppCategoryName = "After update";
         await repository.UpdateAsync(entity);
 
-        Assert.Equal("After update", context.Set<L03_VPPCategory>().Single().VPPCategoryName);
+        Assert.Equal("After update", context.Set<VppCategory>().Single().VppCategoryName);
     }
 
-    private static GenericRepository<L03_VPPCategory> CreateRepository(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
+    private static GenericRepository<VppCategory> CreateRepository(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
-        return new GenericRepository<L03_VPPCategory>(unitOfWork.Object);
+        return new GenericRepository<VppCategory>(unitOfWork.Object);
     }
 
-    private static L03_VPPCategory CreateCategory(string code, string name)
+    private static VppCategory CreateCategory(string code, string name)
         => new()
         {
             Id = Guid.NewGuid(),
-            VPPCategoryCode = code,
-            VPPCategoryName = name,
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow,
-            CreateUserId = 1,
-            UpdateUserId = 1
+            VppCategoryCode = code,
+            VppCategoryName = name,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
+            CreatedByUserId = 1,
+            UpdatedByUserId = 1
         };
 }

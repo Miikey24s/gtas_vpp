@@ -131,11 +131,11 @@
   <data name="GroupNameRequired" xml:space="preserve"><value>Group name is required</value></data>
   <data name="CopyFrom" xml:space="preserve"><value>Copy from (optional)</value></data>
   <data name="CreateNewGroup" xml:space="preserve"><value>Create new group</value></data>
-  <data name="ClassCode" xml:space="preserve"><value>Class Code</value></data>
-  <data name="ClassName" xml:space="preserve"><value>Class Name *</value></data>
-  <data name="ClassModule" xml:space="preserve"><value>Class Module</value></data>
-  <data name="ClassDetailCode" xml:space="preserve"><value>Class Detail Code *</value></data>
-  <data name="ClassDetailValue" xml:space="preserve"><value>Class Detail Value *</value></data>
+  <data name="LookupCategoryCode" xml:space="preserve"><value>Class Code</value></data>
+  <data name="LookupCategoryName" xml:space="preserve"><value>Class Name *</value></data>
+  <data name="ModuleName" xml:space="preserve"><value>Class Module</value></data>
+  <data name="LookupValueCode" xml:space="preserve"><value>Class Detail Code *</value></data>
+  <data name="LookupValue" xml:space="preserve"><value>Class Detail Value *</value></data>
   <data name="ExtraField1" xml:space="preserve"><value>Extra Field 1</value></data>
   <data name="ExtraField2" xml:space="preserve"><value>Extra Field 2</value></data>
   <data name="ExtraField3" xml:space="preserve"><value>Extra Field 3</value></data>

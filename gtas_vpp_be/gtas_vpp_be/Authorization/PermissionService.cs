@@ -37,19 +37,19 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
         var canonicalGroupIds = CanonicalRbac.Personas
             .Select(persona => persona.GroupId)
             .ToArray();
-        var activeGroups = await _context.Set<P04_UserGroup>()
+        var activeGroups = await _context.Set<UserGroupMembership>()
             .AsNoTracking()
             .Where(mapping => mapping.UserId == userId
                 && mapping.AccountId == userId
                 && !mapping.IsDeleted
-                && mapping.P02_Group != null
-                && !mapping.P02_Group.IsDeleted
-                && mapping.P02_Group.ParentGroupId == null
-                && canonicalGroupIds.Contains(mapping.P02_GroupId))
+                && mapping.PermissionGroup != null
+                && !mapping.PermissionGroup.IsDeleted
+                && mapping.PermissionGroup.ParentGroupId == null
+                && canonicalGroupIds.Contains(mapping.PermissionGroupId))
             .Select(mapping => new
             {
-                mapping.P02_GroupId,
-                mapping.P02_Group!.GroupCode
+                mapping.PermissionGroupId,
+                mapping.PermissionGroup!.GroupCode
             })
             .Distinct()
             .Take(2)
@@ -64,7 +64,7 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
 
         var activeGroup = activeGroups[0];
         var canonicalGroup = CanonicalRbac.Personas.SingleOrDefault(persona =>
-            persona.GroupId == activeGroup.P02_GroupId
+            persona.GroupId == activeGroup.PermissionGroupId
             && string.Equals(persona.GroupCode, activeGroup.GroupCode, StringComparison.Ordinal));
         if (canonicalGroup is null)
         {
@@ -76,23 +76,23 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
         var companyClaim = user.FindFirst("MemberCompanyCode")?.Value;
         var hasCompany = long.TryParse(companyClaim, out var memberCompanyCode);
 
-        var mappings = await _context.Set<P06_GroupPageComponentMapping>()
+        var mappings = await _context.Set<GroupPageComponentMapping>()
             .AsNoTracking()
-            .Where(mapping => mapping.P02_GroupId == groupId
-                && mapping.P05_PageComponentMapping != null
-                && mapping.P05_PageComponentMapping.P01_Page != null
-                && !mapping.P05_PageComponentMapping.P01_Page.IsDeleted
-                && mapping.P05_PageComponentMapping.P03_Component != null
-                && !mapping.P05_PageComponentMapping.P03_Component.IsDeleted
+            .Where(mapping => mapping.PermissionGroupId == groupId
+                && mapping.PageComponentMapping != null
+                && mapping.PageComponentMapping.PermissionPage != null
+                && !mapping.PageComponentMapping.PermissionPage.IsDeleted
+                && mapping.PageComponentMapping.PermissionComponent != null
+                && !mapping.PageComponentMapping.PermissionComponent.IsDeleted
                 && (!hasCompany || mapping.MemberCompanyCode == memberCompanyCode))
             .Select(mapping => new
             {
                 mapping.MemberCompanyCode,
                 mapping.IsVisible,
                 mapping.IsEnable,
-                mapping.UpdateDate,
-                PageCode = mapping.P05_PageComponentMapping!.P01_Page!.PageCode,
-                ComponentCode = mapping.P05_PageComponentMapping.P03_Component!.ComponentCode
+                mapping.UpdatedAtUtc,
+                PageCode = mapping.PageComponentMapping!.PermissionPage!.PageCode,
+                ComponentCode = mapping.PageComponentMapping.PermissionComponent!.ComponentCode
             })
             .ToListAsync(cancellationToken);
 
@@ -129,14 +129,14 @@ public sealed class PermissionService(VPPContext context) : IPermissionService
 
         return new PermissionSnapshotResDTO
         {
-            Version = mappings.Count == 0 ? 0 : mappings.Max(mapping => mapping.UpdateDate.Ticks),
+            Version = mappings.Count == 0 ? 0 : mappings.Max(mapping => mapping.UpdatedAtUtc.Ticks),
             GroupId = groupId,
             MemberCompanyCode = hasCompany ? memberCompanyCode : null,
             Permissions = effectivePermissions.Order(StringComparer.OrdinalIgnoreCase).ToList(),
             Pages = mappings
                 .GroupBy(mapping => mapping.PageCode, StringComparer.OrdinalIgnoreCase)
                 .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
-                .Select(group => new PermissionPageResDTO
+                .Select(group => new PermissionSnapshotPageResDTO
                 {
                     PageCode = group.Key,
                     Components = group

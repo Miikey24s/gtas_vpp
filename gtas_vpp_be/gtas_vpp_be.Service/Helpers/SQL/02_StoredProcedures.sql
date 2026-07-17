@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- 02_StoredProcedures.sql - All Stored Procedures (auto-generated from DB)
 -- Idempotent: Uses CREATE OR ALTER
 -- ============================================================================
@@ -70,7 +70,7 @@ DROP TABLE IF EXISTS #CopyFromGroup;
         SELECT a.GroupId,
                a.GroupName,
                a.Description,
-               a.CreateUserId
+               a.CreatedByUserId
         INTO #CopyFromGroup
         FROM
             OPENJSON(@Param)
@@ -79,62 +79,62 @@ DROP TABLE IF EXISTS #CopyFromGroup;
                 GroupId UNIQUEIDENTIFIER '$.GroupId',
                 GroupName NVARCHAR(150) '$.GroupName',
                 Description NVARCHAR(MAX) '$.Description',
-                CreateUserId INT '$.CreateUserId'
+                CreatedByUserId INT '$.CreatedByUserId'
             ) a;
 
         DECLARE @CopyFromGroup_NewGroupId UNIQUEIDENTIFIER = NEWID();
-        INSERT INTO dbo.P02_Group
+        INSERT INTO dbo.PermissionGroups
         (
             Id,
             GroupName,
             Description,
-            CreateUserId,
-            CreateDate,
-            UpdateUserId,
-            UpdateDate,
+            CreatedByUserId,
+            CreatedAtUtc,
+            UpdatedByUserId,
+            UpdatedAtUtc,
             IsDeleted
         )
         SELECT @CopyFromGroup_NewGroupId,
                GroupName,
                Description,
-               CreateUserId,
+               CreatedByUserId,
                GETDATE(),
-               CreateUserId,
+               CreatedByUserId,
                GETDATE(),
                0
         FROM #CopyFromGroup;
 
         DROP TABLE IF EXISTS #tblInsertP06_Copy;
         SELECT DISTINCT
-               P05_PageComponentMappingId,
+               PageComponentMappingId,
                @CopyFromGroup_NewGroupId AS GroupId,
                IsEnable,
                IsVisible
         INTO #tblInsertP06_Copy
-        FROM dbo.P06_GroupPageComponentMapping p06 (NOLOCK)
-        WHERE p06.P02_GroupId =
+        FROM dbo.GroupPageComponentMappings p06 (NOLOCK)
+        WHERE p06.PermissionGroupId =
         (
             SELECT TOP 1 a.GroupId FROM #CopyFromGroup a
         );
 
         DECLARE @CopyFromGroup_UserId INT =
                 (
-                    SELECT TOP 1 CreateUserId FROM #CopyFromGroup
+                    SELECT TOP 1 CreatedByUserId FROM #CopyFromGroup
                 );
 
-        INSERT INTO dbo.P06_GroupPageComponentMapping
+        INSERT INTO dbo.GroupPageComponentMappings
         (
-            P05_PageComponentMappingId,
-            P02_GroupId,
-            CreateUserId,
-            CreateDate,
-            UpdateUserId,
-            UpdateDate,
+            PageComponentMappingId,
+            PermissionGroupId,
+            CreatedByUserId,
+            CreatedAtUtc,
+            UpdatedByUserId,
+            UpdatedAtUtc,
             IsEnable,
             IsVisible,
             MemberCompanyCode
         )
-        SELECT p06.P05_PageComponentMappingId,
+        SELECT p06.PageComponentMappingId,
                p06.GroupId,
                @CopyFromGroup_UserId,
                GETDATE(),
@@ -164,7 +164,7 @@ DROP TABLE IF EXISTS #CreateNewGroup;
         SELECT a.GroupId,
                a.GroupName,
                a.Description,
-               a.CreateUserId
+               a.CreatedByUserId
         INTO #CreateNewGroup
         FROM
             OPENJSON(@Param)
@@ -173,13 +173,13 @@ DROP TABLE IF EXISTS #CreateNewGroup;
                 GroupId UNIQUEIDENTIFIER '$.GroupId',
                 GroupName NVARCHAR(150) '$.GroupName',
                 Description NVARCHAR(MAX) '$.Description',
-                CreateUserId INT '$.CreateUserId'
+                CreatedByUserId INT '$.CreatedByUserId'
             ) a;
 
         IF NOT EXISTS
         (
             SELECT *
-            FROM dbo.P02_Group p02
+            FROM dbo.PermissionGroups p02
                 JOIN #CreateNewGroup gr
                     ON p02.GroupName = gr.GroupName
         )
@@ -187,54 +187,54 @@ DROP TABLE IF EXISTS #CreateNewGroup;
             DECLARE @NewGroupId UNIQUEIDENTIFIER = NEWID();
             UPDATE #CreateNewGroup
             SET GroupId = @NewGroupId;
-            INSERT INTO dbo.P02_Group
+            INSERT INTO dbo.PermissionGroups
             (
                 Id,
                 GroupName,
                 Description,
-                CreateUserId,
-                CreateDate,
-                UpdateUserId,
-                UpdateDate,
+                CreatedByUserId,
+                CreatedAtUtc,
+                UpdatedByUserId,
+                UpdatedAtUtc,
                 IsDeleted
             )
             SELECT @NewGroupId,
                    GroupName,
                    Description,
-                   CreateUserId,
+                   CreatedByUserId,
                    GETDATE(),
-                   CreateUserId,
+                   CreatedByUserId,
                    GETDATE(),
                    0
             FROM #CreateNewGroup;
 
             DROP TABLE IF EXISTS #tblInsertP06;
             SELECT DISTINCT
-                   P05_PageComponentMappingId,
+                   PageComponentMappingId,
                    (
                        SELECT TOP 1 GroupId FROM #CreateNewGroup
                    ) AS GroupId
             INTO #tblInsertP06
-            FROM dbo.P06_GroupPageComponentMapping;
+            FROM dbo.GroupPageComponentMappings;
 
             DECLARE @CreateNewGroup_UserId INT =
                     (
-                        SELECT TOP 1 CreateUserId FROM #CreateNewGroup
+                        SELECT TOP 1 CreatedByUserId FROM #CreateNewGroup
                     );
 
-            INSERT INTO dbo.P06_GroupPageComponentMapping
+            INSERT INTO dbo.GroupPageComponentMappings
             (
-                P05_PageComponentMappingId,
-                P02_GroupId,
-                CreateUserId,
-                CreateDate,
-                UpdateUserId,
-                UpdateDate,
+                PageComponentMappingId,
+                PermissionGroupId,
+                CreatedByUserId,
+                CreatedAtUtc,
+                UpdatedByUserId,
+                UpdatedAtUtc,
                 IsEnable,
                 IsVisible,
                 MemberCompanyCode
             )
-            SELECT p06.P05_PageComponentMappingId,
+            SELECT p06.PageComponentMappingId,
                    p06.GroupId,
                    @CreateNewGroup_UserId,
                    GETDATE(),
@@ -303,18 +303,18 @@ BEGIN TRY
            p06.IsVisible
     INTO #GetPermissionSinglePage_tblRawData
     FROM GTAS_MENU.dbo.tblUsers us (NOLOCK) -- �? �?i th�nh localhost
-        JOIN dbo.P04_UserGroup p04 (NOLOCK)
+        JOIN dbo.UserGroupMemberships p04 (NOLOCK)
             ON p04.UserId = us.UserID
-        JOIN dbo.P02_Group p02 (NOLOCK)
-            ON p02.Id = p04.P02_GroupId
-        JOIN dbo.P06_GroupPageComponentMapping p06 (NOLOCK)
-            ON p06.P02_GroupId = p02.Id
-        JOIN dbo.P05_PageComponentMapping p05 (NOLOCK)
-            ON p05.Id = p06.P05_PageComponentMappingId
-        JOIN dbo.P01_Page p01 (NOLOCK)
-            ON p01.Id = p05.P01_PageId
-        JOIN dbo.P03_Component p03 (NOLOCK)
-            ON p03.Id = p05.P03_ComponentId
+        JOIN dbo.PermissionGroups p02 (NOLOCK)
+            ON p02.Id = p04.PermissionGroupId
+        JOIN dbo.GroupPageComponentMappings p06 (NOLOCK)
+            ON p06.PermissionGroupId = p02.Id
+        JOIN dbo.PageComponentMappings p05 (NOLOCK)
+            ON p05.Id = p06.PageComponentMappingId
+        JOIN dbo.PermissionPages p01 (NOLOCK)
+            ON p01.Id = p05.PermissionPageId
+        JOIN dbo.PermissionComponents p03 (NOLOCK)
+            ON p03.Id = p05.PermissionComponentId
     WHERE 1 = 1
           AND us.IsInactiveFlg = 0
           AND us.IsLockedFlg = 0
@@ -336,7 +336,7 @@ BEGIN TRY
                pp.PageCode,
                pp.PageName,
                pp.PageDesctiprion,
-               List_Component =    (
+               Components =    (
         SELECT DISTINCT
                cp.ComponentId,
                cp.ComponentCode,
@@ -388,27 +388,27 @@ BEGIN TRY
                 );
         DROP TABLE IF EXISTS #Permission_GetPageWithComponentByGroupId;
         SELECT p01.Id AS PageId,
-               p06.P02_GroupId GroupId,
+               p06.PermissionGroupId GroupId,
                p01.PageCode,
                p01.PageName,
                p01.Description,
-               p01.CreateUserId,
-               p01.CreateDate,
-               CreateUserName =
+               p01.CreatedByUserId,
+               p01.CreatedAtUtc,
+               CreatedByUserName =
                (
                    SELECT TOP 1
                           FullName
                    FROM dbo.v_Users u (NOLOCK)
-                   WHERE u.UserID = p01.CreateUserId
+                   WHERE u.UserID = p01.CreatedByUserId
                ),
-               p01.UpdateUserId,
-               p01.UpdateDate,
-               UpdateUserName =
+               p01.UpdatedByUserId,
+               p01.UpdatedAtUtc,
+               UpdatedByUserName =
                (
                    SELECT TOP 1
                           FullName
                    FROM dbo.v_Users u (NOLOCK)
-                   WHERE u.UserID = p01.CreateUserId
+                   WHERE u.UserID = p01.CreatedByUserId
                ),
                p03.Id ComponentId,
                p03.ComponentCode,
@@ -418,16 +418,16 @@ BEGIN TRY
                p06.MemberCompanyCode,
                p01.IsDeleted
         INTO #Permission_GetPageWithComponentByGroupId
-        FROM dbo.P01_Page p01 (NOLOCK)
-            LEFT JOIN dbo.P05_PageComponentMapping p05 (NOLOCK)
-                ON p05.P01_PageId = p01.Id
-            LEFT JOIN dbo.P03_Component p03 (NOLOCK)
-                ON p03.Id = p05.P03_ComponentId
-            LEFT JOIN dbo.P06_GroupPageComponentMapping p06 (NOLOCK)
-                ON p06.P05_PageComponentMappingId = p05.Id
+        FROM dbo.PermissionPages p01 (NOLOCK)
+            LEFT JOIN dbo.PageComponentMappings p05 (NOLOCK)
+                ON p05.PermissionPageId = p01.Id
+            LEFT JOIN dbo.PermissionComponents p03 (NOLOCK)
+                ON p03.Id = p05.PermissionComponentId
+            LEFT JOIN dbo.GroupPageComponentMappings p06 (NOLOCK)
+                ON p06.PageComponentMappingId = p05.Id
         WHERE 1 = 1
               AND p03.IsDeleted = 0
-              AND p06.P02_GroupId = @GroupId;
+              AND p06.PermissionGroupId = @GroupId;
 
         DROP TABLE IF EXISTS #Permission_GetPageWithComponentByGroupId_Company;
         CREATE TABLE #Permission_GetPageWithComponentByGroupId_Company
@@ -458,14 +458,14 @@ BEGIN TRY
                    r.PageCode,
                    r.PageName,
                    r.Description,
-                   r.CreateUserId,
-                   r.CreateDate,
-                   r.CreateUserName,
-                   r.UpdateUserId,
-                   r.UpdateDate,
-                   r.UpdateUserName,
+                   r.CreatedByUserId,
+                   r.CreatedAtUtc,
+                   r.CreatedByUserName,
+                   r.UpdatedByUserId,
+                   r.UpdatedAtUtc,
+                   r.UpdatedByUserName,
                    r.IsDeleted,
-                   List_Component =
+                   Components =
                    (
                        SELECT p03.Id ComponentId,
                               p03.ComponentCode,
@@ -479,11 +479,11 @@ BEGIN TRY
                               p01.Id PageId,
                               r1.GroupId,
                               p05.Id GroupPageComponentMappingId
-                       FROM dbo.P01_Page p01 (NOLOCK)
-                           JOIN dbo.P05_PageComponentMapping p05 (NOLOCK)
-                               ON p05.P01_PageId = p01.Id
-                           JOIN dbo.P03_Component p03 (NOLOCK)
-                               ON p03.Id = p05.P03_ComponentId
+                       FROM dbo.PermissionPages p01 (NOLOCK)
+                           JOIN dbo.PageComponentMappings p05 (NOLOCK)
+                               ON p05.PermissionPageId = p01.Id
+                           JOIN dbo.PermissionComponents p03 (NOLOCK)
+                               ON p03.Id = p05.PermissionComponentId
                            LEFT JOIN #Permission_GetPageWithComponentByGroupId r1 (NOLOCK)
                                ON r1.PageId = p01.Id
                                   AND p03.Id = r1.ComponentId
@@ -534,41 +534,41 @@ DECLARE @SearchText_TabUser_SearchUser NVARCHAR(MAX);
                    p01.GoogleEmail,
                    p04.Description,
                    IsAdmin = IIF(p02.GroupName IN ('Admin', 'Administrator'), CAST(1 AS BIT), CAST(0 AS BIT)),
-                   ISNULL(p04.P02_GroupId, CAST(0x0 AS UNIQUEIDENTIFIER)) AS GroupId,
+                   ISNULL(p04.PermissionGroupId, CAST(0x0 AS UNIQUEIDENTIFIER)) AS GroupId,
                    GroupName = ISNULL(
                                (
                                    SELECT TOP 1
                                           p02.GroupName
-                                   FROM dbo.P02_Group p02 (NOLOCK)
-                                   WHERE p02.Id = p04.P02_GroupId
+                                   FROM dbo.PermissionGroups p02 (NOLOCK)
+                                   WHERE p02.Id = p04.PermissionGroupId
                                ),
                                ''
                                      ),
-                   TypeOfUser = IIF(ISNULL(p04.Id, CAST(0x0 AS UNIQUEIDENTIFIER)) <> CAST(0x0 AS UNIQUEIDENTIFIER),
+                   UserType = IIF(ISNULL(p04.Id, CAST(0x0 AS UNIQUEIDENTIFIER)) <> CAST(0x0 AS UNIQUEIDENTIFIER),
                                     'Transportation User',
                                     'GTAS User'),
                    ISNULL(p04.IsDeleted, 0) IsDeleted,
-                   ISNULL(p04.CreateUserId, 0) CreateUserId,
-                   p04.CreateDate,
-                   --ISNULL(CAST(p04.CreateDate AS DATETIME2), CAST(GETDATE() AS DATETIME2)) CreateDate,
-                   ISNULL(p04.UpdateUserId, 0) UpdateUserId,
-                   p04.UpdateDate,
-                   --ISNULL(CAST(p04.UpdateDate AS DATETIME2), CAST(GETDATE() AS DATETIME2)) UpdateDate,
-                   CreateUserName = IIF(ISNULL(p04.CreateUserId, 0) = 0,
+                   ISNULL(p04.CreatedByUserId, 0) CreatedByUserId,
+                   p04.CreatedAtUtc,
+                   --ISNULL(CAST(p04.CreatedAtUtc AS DATETIME2), CAST(GETDATE() AS DATETIME2)) CreatedAtUtc,
+                   ISNULL(p04.UpdatedByUserId, 0) UpdatedByUserId,
+                   p04.UpdatedAtUtc,
+                   --ISNULL(CAST(p04.UpdatedAtUtc AS DATETIME2), CAST(GETDATE() AS DATETIME2)) UpdatedAtUtc,
+                   CreatedByUserName = IIF(ISNULL(p04.CreatedByUserId, 0) = 0,
                                         '',
                                     (
                                         SELECT TOP 1
                                                FullName
                                         FROM GTAS_MENU.dbo.tblUsers u (NOLOCK)
-                                        WHERE u.UserID = p04.CreateUserId
+                                        WHERE u.UserID = p04.CreatedByUserId
                                     )),
-                   UpdateUserName = IIF(ISNULL(p04.CreateUserId, 0) = 0,
+                   UpdatedByUserName = IIF(ISNULL(p04.CreatedByUserId, 0) = 0,
                                         '',
                                     (
                                         SELECT TOP 1
                                                FullName
                                         FROM GTAS_MENU.dbo.tblUsers u (NOLOCK)
-                                        WHERE u.UserID = p04.UpdateUserId
+                                        WHERE u.UserID = p04.UpdatedByUserId
                                     )),
                    UserGroup = JSON_QUERY(
                                (
@@ -576,21 +576,21 @@ DECLARE @SearchText_TabUser_SearchUser NVARCHAR(MAX);
                                           p02.GroupName,
                                           p02.ParentGroupId,
                                           p02.Description,
-                                          p02.CreateUserId,
-                                          p02.CreateDate,
-                                          p02.UpdateUserId,
-                                          p02.UpdateDate,
+                                          p02.CreatedByUserId,
+                                          p02.CreatedAtUtc,
+                                          p02.UpdatedByUserId,
+                                          p02.UpdatedAtUtc,
                                           p02.IsDeleted
-                                   FROM dbo.P02_Group p02 (NOLOCK)
-                                   WHERE p02.Id = p04.P02_GroupId
+                                   FROM dbo.PermissionGroups p02 (NOLOCK)
+                                   WHERE p02.Id = p04.PermissionGroupId
                                    FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER
                                )
                                          )
             FROM GTAS_MENU.dbo.tblUsers p01 (NOLOCK)
-                LEFT JOIN dbo.P04_UserGroup p04 (NOLOCK)
+                LEFT JOIN dbo.UserGroupMemberships p04 (NOLOCK)
                     ON p01.UserID = p04.UserId
-                LEFT JOIN dbo.P02_Group p02 (NOLOCK)
-                    ON p02.Id = p04.P02_GroupId
+                LEFT JOIN dbo.PermissionGroups p02 (NOLOCK)
+                    ON p02.Id = p04.PermissionGroupId
             WHERE 1 = 1
                   AND
                   (
@@ -629,28 +629,28 @@ BEGIN TRY
                    us.EmailAddress1 Email,
                    us.GoogleEmail,
                    IsAdmin = IIF(p02.GroupName IN ('Admin', 'Administrator'), CAST(1 AS BIT), CAST(0 AS BIT)),
-                   p04.P02_GroupId GroupId,
+                   p04.PermissionGroupId GroupId,
                    p02.GroupName,
-                   p04.CreateUserId,
-                   p04.CreateDate,
-                   CreateUserName =
+                   p04.CreatedByUserId,
+                   p04.CreatedAtUtc,
+                   CreatedByUserName =
                    (
                        SELECT TOP 1
                               FullName
                        FROM GTAS_MENU.dbo.tblUsers u (NOLOCK)
-                       WHERE u.UserID = p04.CreateUserId
+                       WHERE u.UserID = p04.CreatedByUserId
                    ),
-                   p04.UpdateUserId,
-                   p04.UpdateDate,
-                   UpdateUserName =
+                   p04.UpdatedByUserId,
+                   p04.UpdatedAtUtc,
+                   UpdatedByUserName =
                    (
                        SELECT TOP 1
                               FullName
                        FROM GTAS_MENU.dbo.tblUsers u (NOLOCK)
-                       WHERE u.UserID = p04.UpdateUserId
+                       WHERE u.UserID = p04.UpdatedByUserId
                    ),
                    p04.IsDeleted,
-                   TypeOfUser = 'Transport User',
+                   UserType = 'Transport User',
                    p04.Description,
                    UserGroup = JSON_QUERY(
                                (
@@ -658,21 +658,21 @@ BEGIN TRY
                                           p02.GroupName,
                                           p02.ParentGroupId,
                                           p02.Description,
-                                          p02.CreateUserId,
-                                          p02.CreateDate,
-                                          p02.UpdateUserId,
-                                          p02.UpdateDate,
+                                          p02.CreatedByUserId,
+                                          p02.CreatedAtUtc,
+                                          p02.UpdatedByUserId,
+                                          p02.UpdatedAtUtc,
                                           p02.IsDeleted
-                                   FROM dbo.P02_Group p02 (NOLOCK)
-                                   WHERE p02.Id = p04.P02_GroupId
+                                   FROM dbo.PermissionGroups p02 (NOLOCK)
+                                   WHERE p02.Id = p04.PermissionGroupId
                                    FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER
                                )
                                          )
             FROM GTAS_MENU.dbo.tblUsers us (NOLOCK)
-                JOIN dbo.P04_UserGroup p04 (NOLOCK)
+                JOIN dbo.UserGroupMemberships p04 (NOLOCK)
                     ON us.UserID = p04.UserId
-                JOIN dbo.P02_Group p02 (NOLOCK)
-                    ON p02.Id = p04.P02_GroupId
+                JOIN dbo.PermissionGroups p02 (NOLOCK)
+                    ON p02.Id = p04.PermissionGroupId
 			WHERE us.IsInactiveFlg = 0
             FOR JSON PATH, INCLUDE_NULL_VALUES
         );
@@ -690,7 +690,7 @@ END CATCH;
 GO
 
 -- ============================================================================
--- PH?N 1: FIX LOGIC SP - �?Y �? C�C C?T AUDIT (77500, 5615, GETDATE)
+-- PH?N 1: FIX LOGIC SP - �?Year �? C�C C?T AUDIT (77500, 5615, GETDATE)
 -- ============================================================================
 CREATE OR ALTER PROCEDURE [dbo].[sp_ComponentsToPage]
     @PageCode NVARCHAR(255),
@@ -703,7 +703,7 @@ BEGIN
     SET NOCOUNT ON;
 
     DECLARE @PageId UNIQUEIDENTIFIER;
-    SELECT @PageId = Id FROM dbo.P01_Page WHERE PageCode = @PageCode;
+    SELECT @PageId = Id FROM dbo.PermissionPages WHERE PageCode = @PageCode;
 
     IF @PageId IS NULL RETURN;
 
@@ -711,38 +711,38 @@ BEGIN
     DROP TABLE IF EXISTS #TempCodes;
     SELECT value AS ComponentCode INTO #TempCodes FROM OPENJSON(@ComponentCodesJson);
 
-    -- Th�m Component v�o c?u tr�c Page (P05)
-    INSERT INTO dbo.P05_PageComponentMapping (Id, P01_PageId, P03_ComponentId)
+    -- Add requested components to the page definition.
+    INSERT INTO dbo.PageComponentMappings (Id, PermissionPageId, PermissionComponentId)
     SELECT NEWID(), @PageId, c.Id
     FROM #TempCodes t
-    INNER JOIN dbo.P03_Component c ON c.ComponentCode = t.ComponentCode
+    INNER JOIN dbo.PermissionComponents c ON c.ComponentCode = t.ComponentCode
     WHERE NOT EXISTS (
-        SELECT 1 FROM dbo.P05_PageComponentMapping p05
-        WHERE p05.P01_PageId = @PageId AND p05.P03_ComponentId = c.Id
+        SELECT 1 FROM dbo.PageComponentMappings p05
+        WHERE p05.PermissionPageId = @PageId AND p05.PermissionComponentId = c.Id
     );
 
     -- R�t quy?n c?a GROUP
     DELETE p06
-    FROM dbo.P06_GroupPageComponentMapping p06
-    INNER JOIN dbo.P05_PageComponentMapping p05 ON p06.P05_PageComponentMappingId = p05.Id
-    WHERE p05.P01_PageId = @PageId
-      AND p06.P02_GroupId = @GroupId
-      AND p05.P03_ComponentId NOT IN (
+    FROM dbo.GroupPageComponentMappings p06
+    INNER JOIN dbo.PageComponentMappings p05 ON p06.PageComponentMappingId = p05.Id
+    WHERE p05.PermissionPageId = @PageId
+      AND p06.PermissionGroupId = @GroupId
+      AND p05.PermissionComponentId NOT IN (
           SELECT c.Id FROM #TempCodes t
-          INNER JOIN dbo.P03_Component c ON c.ComponentCode = t.ComponentCode
+          INNER JOIN dbo.PermissionComponents c ON c.ComponentCode = t.ComponentCode
       );
 
-    -- C?p quy?n (B? sung UpdateUserId v� UpdateDate)
-    INSERT INTO dbo.P06_GroupPageComponentMapping 
-        (P05_PageComponentMappingId, P02_GroupId, IsEnable, IsVisible, MemberCompanyCode, CreateUserId, CreateDate, UpdateUserId, UpdateDate)
+    -- C?p quy?n (B? sung UpdatedByUserId v� UpdatedAtUtc)
+    INSERT INTO dbo.GroupPageComponentMappings
+        (PageComponentMappingId, PermissionGroupId, IsEnable, IsVisible, MemberCompanyCode, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc)
     SELECT 
         p05.Id, @GroupId, 1, 1, @MemberCompanyCode, @UserId, GETDATE(), @UserId, GETDATE()
     FROM #TempCodes t
-    INNER JOIN dbo.P03_Component c ON c.ComponentCode = t.ComponentCode
-    INNER JOIN dbo.P05_PageComponentMapping p05 ON p05.P03_ComponentId = c.Id AND p05.P01_PageId = @PageId
+    INNER JOIN dbo.PermissionComponents c ON c.ComponentCode = t.ComponentCode
+    INNER JOIN dbo.PageComponentMappings p05 ON p05.PermissionComponentId = c.Id AND p05.PermissionPageId = @PageId
     WHERE NOT EXISTS (
-        SELECT 1 FROM dbo.P06_GroupPageComponentMapping p06
-        WHERE p06.P05_PageComponentMappingId = p05.Id AND p06.P02_GroupId = @GroupId
+        SELECT 1 FROM dbo.GroupPageComponentMappings p06
+        WHERE p06.PageComponentMappingId = p05.Id AND p06.PermissionGroupId = @GroupId
     );
     
     DROP TABLE IF EXISTS #TempCodes;
@@ -765,22 +765,22 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                         IF NOT EXISTS
                         (
                             SELECT *
-                            FROM dbo.P01_Page p01 (NOLOCK)
+                            FROM dbo.PermissionPages p01 (NOLOCK)
                             WHERE p01.PageCode = @PageCode
                         )
                         BEGIN
                             SET @PageId = NEWID();
-                            INSERT INTO dbo.P01_Page
+                            INSERT INTO dbo.PermissionPages
                             (
                                 Id,
                                 PageCode,
                                 PageName,
                                 Type,
                                 Description,
-                                CreateUserId,
-                                CreateDate,
-                                UpdateUserId,
-                                UpdateDate,
+                                CreatedByUserId,
+                                CreatedAtUtc,
+                                UpdatedByUserId,
+                                UpdatedAtUtc,
                                 IsDeleted
                             )
                             VALUES
@@ -789,10 +789,10 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                                 @PageName,        -- PageName - nvarchar(250)
                                 @PageType,        -- Type - nvarchar(50)
                                 @PageDesctiption, -- Description - nvarchar(500)
-                                5615,             -- CreateUserId - int
-                                SYSDATETIME(),    -- CreateDate - datetime2(7)
-                                5615,             -- UpdateUserId - int
-                                SYSDATETIME(),    -- UpdateDate - datetime2(7)
+                                5615,             -- CreatedByUserId - int
+                                SYSDATETIME(),    -- CreatedAtUtc - datetime2(7)
+                                5615,             -- UpdatedByUserId - int
+                                SYSDATETIME(),    -- UpdatedAtUtc - datetime2(7)
                                 0                 -- IsDeleted - bit
                                 );
 		                    PRINT '-----------------------'
@@ -803,7 +803,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                         BEGIN
                             SET @PageId =
                             (
-                                SELECT TOP 1 Id FROM dbo.P01_Page p01 (NOLOCK) WHERE p01.PageCode = @PageCode
+                                SELECT TOP 1 Id FROM dbo.PermissionPages p01 (NOLOCK) WHERE p01.PageCode = @PageCode
                             );
 		                    PRINT '-----------------------'
 		                    PRINT 'Update Page ID'
@@ -812,21 +812,21 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                         IF NOT EXISTS
                         (
                             SELECT *
-                            FROM dbo.P03_Component p03 (NOLOCK)
+                            FROM dbo.PermissionComponents p03 (NOLOCK)
                             WHERE p03.ComponentCode = @ComponentCode
                         )
                         BEGIN
                             SET @ComponentId = NEWID();
-                            INSERT INTO dbo.P03_Component
+                            INSERT INTO dbo.PermissionComponents
                             (
                                 Id,
                                 ComponentName,
                                 ComponentCode,
                                 Description,
-                                CreateUserId,
-                                CreateDate,
-                                UpdateUserId,
-                                UpdateDate,
+                                CreatedByUserId,
+                                CreatedAtUtc,
+                                UpdatedByUserId,
+                                UpdatedAtUtc,
                                 IsDeleted
                             )
                             VALUES
@@ -834,10 +834,10 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                                 @ComponentName,        -- ComponentName - nvarchar(150)
                                 @ComponentCode,        -- ComponentCode - nvarchar(50)
                                 @ComponentDescription, -- Description - nvarchar(500)
-                                5615,                  -- CreateUserId - int
-                                SYSDATETIME(),         -- CreateDate - datetime2(7)
-                                5615,                  -- UpdateUserId - int
-                                SYSDATETIME(),         -- UpdateDate - datetime2(7)
+                                5615,                  -- CreatedByUserId - int
+                                SYSDATETIME(),         -- CreatedAtUtc - datetime2(7)
+                                5615,                  -- UpdatedByUserId - int
+                                SYSDATETIME(),         -- UpdatedAtUtc - datetime2(7)
                                 0                      -- IsDeleted - bit
                                 );
 		                    PRINT '-----------------------'
@@ -850,7 +850,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                             (
                                 SELECT TOP 1
                                        p03.Id
-                                FROM dbo.P03_Component p03 (NOLOCK)
+                                FROM dbo.PermissionComponents p03 (NOLOCK)
                                 WHERE p03.ComponentCode = @ComponentCode
                             );
 		                    PRINT '-----------------------'
@@ -860,25 +860,25 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                         IF NOT EXISTS
                         (
                             SELECT *
-                            FROM dbo.P05_PageComponentMapping p05 (NOLOCK)
-                            WHERE p05.P01_PageId = @PageId
-                                  AND p05.P03_ComponentId = @ComponentId
+                            FROM dbo.PageComponentMappings p05 (NOLOCK)
+                            WHERE p05.PermissionPageId = @PageId
+                                  AND p05.PermissionComponentId = @ComponentId
                         )
                         BEGIN
                             SET @P05Id = NEWID();
-                            INSERT INTO dbo.P05_PageComponentMapping
+                            INSERT INTO dbo.PageComponentMappings
                             (
                                 Id,
-                                P01_PageId,
-                                P03_ComponentId
+                                PermissionPageId,
+                                PermissionComponentId
                             )
                             VALUES
                             (   @P05Id,      -- Id - uniqueidentifier
-                                @PageId,     -- P01_PageId - uniqueidentifier
-                                @ComponentId -- P03_ComponentId - uniqueidentifier
+                                @PageId,     -- PermissionPageId - uniqueidentifier
+                                @ComponentId -- PermissionComponentId - uniqueidentifier
                                 );
 		                    PRINT '-----------------------'
-		                    PRINT 'Create P05 Success'
+		                    PRINT 'Create page-component mapping success'
 		                    PRINT '-----------------------'
                         END;
                         ELSE
@@ -887,39 +887,39 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                             (
                                 SELECT TOP 1
                                        p05.Id
-                                FROM dbo.P05_PageComponentMapping p05 (NOLOCK)
-                                WHERE p05.P01_PageId = @PageId
-                                      AND p05.P03_ComponentId = @ComponentId
+                                FROM dbo.PageComponentMappings p05 (NOLOCK)
+                                WHERE p05.PermissionPageId = @PageId
+                                      AND p05.PermissionComponentId = @ComponentId
                             );
 		                    PRINT '-----------------------'
-		                    PRINT 'Update P05 Success'
+		                    PRINT 'Update page-component mapping success'
 		                    PRINT '-----------------------'
                         END;
 
                         DROP TABLE IF EXISTS #tblGroup;
                         SELECT Id
                         INTO #tblGroup
-                        FROM dbo.P02_Group;
+                        FROM dbo.PermissionGroups;
 
                         IF NOT EXISTS
                         (
                             SELECT *
-                            FROM dbo.P06_GroupPageComponentMapping p06 (NOLOCK)
-                            WHERE p06.P05_PageComponentMappingId = @P05Id
-                                  AND p06.P02_GroupId NOT IN
+                            FROM dbo.GroupPageComponentMappings p06 (NOLOCK)
+                            WHERE p06.PageComponentMappingId = @P05Id
+                                  AND p06.PermissionGroupId NOT IN
                                       (
                                           SELECT * FROM #tblGroup
                                       )
                         )
                         BEGIN
-                            INSERT INTO dbo.P06_GroupPageComponentMapping
+                            INSERT INTO dbo.GroupPageComponentMappings
                             (
-                                P05_PageComponentMappingId,
-                                P02_GroupId,
-                                CreateUserId,
-                                CreateDate,
-                                UpdateUserId,
-                                UpdateDate,
+                                PageComponentMappingId,
+                                PermissionGroupId,
+                                CreatedByUserId,
+                                CreatedAtUtc,
+                                UpdatedByUserId,
+                                UpdatedAtUtc,
                                 IsEnable,
                                 IsVisible,
                                 MemberCompanyCode
@@ -935,7 +935,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_CreateNewPageComponent
                                    77500
                             FROM #tblGroup;
 		                    PRINT '-----------------------'
-		                    PRINT 'Create New P06 Success'
+		                    PRINT 'Create group permission mapping success'
 		                    PRINT '-----------------------'
                         END;
                     END;
@@ -950,7 +950,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    MERGE INTO dbo.P03_Component AS Target
+    MERGE INTO dbo.PermissionComponents AS Target
     USING (SELECT @ComponentCode AS ComponentCode) AS Source
        ON Target.ComponentCode = Source.ComponentCode
 
@@ -958,10 +958,10 @@ BEGIN
         UPDATE SET 
             Target.ComponentName = @ComponentName,
             Target.Description = @ComponentDescription,
-            Target.UpdateDate = SYSDATETIME()
+            Target.UpdatedAtUtc = SYSDATETIME()
 
     WHEN NOT MATCHED BY TARGET THEN 
-        INSERT (Id, ComponentCode, ComponentName, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+        INSERT (Id, ComponentCode, ComponentName, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
         VALUES (NEWID(), @ComponentCode, @ComponentName, @ComponentDescription, 5615, SYSDATETIME(), 5615, SYSDATETIME(), 0);
 
     PRINT '>>> L�u Component [' + @ComponentCode + '] th�nh c�ng!';
@@ -977,7 +977,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    MERGE INTO dbo.P01_Page AS Target
+    MERGE INTO dbo.PermissionPages AS Target
     USING (SELECT @PageCode AS PageCode) AS Source
        ON Target.PageCode = Source.PageCode
 
@@ -987,11 +987,11 @@ BEGIN
             Target.PageName = @PageName,
             Target.Type = @PageType,
             Target.Description = @PageDescription,
-            Target.UpdateDate = SYSDATETIME()
+            Target.UpdatedAtUtc = SYSDATETIME()
 
     -- N?u CH�A C� -> Th�m m?i
     WHEN NOT MATCHED BY TARGET THEN 
-        INSERT (Id, PageCode, PageName, Type, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+        INSERT (Id, PageCode, PageName, Type, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
         VALUES (NEWID(), @PageCode, @PageName, @PageType, @PageDescription, 5615, SYSDATETIME(), 5615, SYSDATETIME(), 0);
 
     PRINT '>>> L�u Page [' + @PageCode + '] th�nh c�ng!';

@@ -45,7 +45,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Parameter] public Func<TType, bool, Task<TType>>? SetStatus { get; set; }
         [Parameter] public string? DataEndpoint { get; set; }
         [Parameter] public bool AllowHardDelete { get; set; } = true;
-        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = default!;
+        [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = default!;
 
         private RadzenDataGrid<TType> DataGrid { get; set; } = default!;
         private TType item = default!;
@@ -57,7 +57,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private bool onEdit = false;
         private bool IsAdminUser { get; set; } = false;
         private bool CanModifyGrid =>
-            sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible && y.IsEnable);
+            PagePermissionResDTO.Components.Any(y => y.IsVisible && y.IsEnable);
 
         protected override async Task OnInitializedAsync()
         {
@@ -399,12 +399,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         protected static bool IsAuditProperty(PropertyInfo prop)
         {
             return prop.Name.Equals(nameof(BaseDTO.Id), StringComparison.OrdinalIgnoreCase) ||
-                   prop.Name.Equals(nameof(BaseDTO.CreateUserId), StringComparison.OrdinalIgnoreCase) ||
-                   prop.Name.Equals(nameof(BaseDTO.CreateDate), StringComparison.OrdinalIgnoreCase) ||
-                   prop.Name.Equals("CreateUserName", StringComparison.OrdinalIgnoreCase) ||
-                   prop.Name.Equals(nameof(BaseDTO.UpdateUserId), StringComparison.OrdinalIgnoreCase) ||
-                   prop.Name.Equals(nameof(BaseDTO.UpdateDate), StringComparison.OrdinalIgnoreCase) ||
-                   prop.Name.Equals("UpdateUserName", StringComparison.OrdinalIgnoreCase) ||
+                   prop.Name.Equals(nameof(BaseDTO.CreatedByUserId), StringComparison.OrdinalIgnoreCase) ||
+                   prop.Name.Equals(nameof(BaseDTO.CreatedAtUtc), StringComparison.OrdinalIgnoreCase) ||
+                   prop.Name.Equals("CreatedByUserName", StringComparison.OrdinalIgnoreCase) ||
+                   prop.Name.Equals(nameof(BaseDTO.UpdatedByUserId), StringComparison.OrdinalIgnoreCase) ||
+                   prop.Name.Equals(nameof(BaseDTO.UpdatedAtUtc), StringComparison.OrdinalIgnoreCase) ||
+                   prop.Name.Equals("UpdatedByUserName", StringComparison.OrdinalIgnoreCase) ||
                    IsDeletedProperty(prop);
         }
 
@@ -421,12 +421,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return 230;
             }
 
-            if (prop.Name.Equals("UOMId", StringComparison.OrdinalIgnoreCase))
+            if (prop.Name.Equals("UomId", StringComparison.OrdinalIgnoreCase))
             {
                 return 86;
             }
 
-            if (prop.Name.Equals("VPPCategoryId", StringComparison.OrdinalIgnoreCase))
+            if (prop.Name.Equals("VppCategoryId", StringComparison.OrdinalIgnoreCase))
             {
                 return 160;
             }
@@ -509,29 +509,27 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 nameof(BaseDTO.IsDeleted) => "IsDeleted",
                 nameof(BaseDTO.Description) => "Description",
                 nameof(BaseDTO.Id) => "Id",
-                nameof(BaseDTO.CreateUserId) => "CreateUserId",
-                nameof(BaseDTO.CreateDate) => "CreateDate",
-                "CreateUserName" => "CreateUserName",
-                nameof(BaseDTO.UpdateUserId) => "UpdateUserId",
-                nameof(BaseDTO.UpdateDate) => "UpdateDate",
-                "UpdateUserName" => "UpdateUserName",
-                "ClassCode" => "ClassCode",
-                "ClassName" => "ClassName",
-                "ClassModul" => "ClassModule",
-                "ClassModule" => "ClassModule",
-                "ClassDetailCode" => "ClassDetailCode",
-                "ClassDetailValue" => "ClassDetailValue",
+                nameof(BaseDTO.CreatedByUserId) => "CreatedByUserId",
+                nameof(BaseDTO.CreatedAtUtc) => "CreatedAtUtc",
+                "CreatedByUserName" => "CreatedByUserName",
+                nameof(BaseDTO.UpdatedByUserId) => "UpdatedByUserId",
+                nameof(BaseDTO.UpdatedAtUtc) => "UpdatedAtUtc",
+                "UpdatedByUserName" => "UpdatedByUserName",
+                "Code" => "Code",
+                "Name" => "Name",
+                nameof(LookupCategoryResDTO.ModuleName) => "ModuleName",
+                nameof(LookupValueResDTO.Value) => "LookupValue",
                 "ExtraField1" => "ExtraField1",
                 "ExtraField2" => "ExtraField2",
                 "ExtraField3" => "ExtraField3",
                 "Sort" => "SortOrder",
-                "VPPCategoryCode" => "CategoryCode",
-                "VPPCategoryName" => "CategoryName",
-                "VPPCategoryId" => "Category",
-                "VPPCode" => "ProductCode",
-                "VPPName" => "ProductName",
-                "UOMId" => "UOM",
-                "UOMName" => "UOM",
+                "VppCategoryCode" => "CategoryCode",
+                "VppCategoryName" => "CategoryName",
+                "VppCategoryId" => "Category",
+                "VppCode" => "ProductCode",
+                "VppName" => "ProductName",
+                "UomId" => "UOM",
+                "UomName" => "UOM",
                 "Supplier" => "Supplier",
                 "SupplierShortName" => "SupplierCode",
                 "SupplierName" => "SupplierName",
@@ -541,9 +539,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 "Ward" => "Ward",
                 "City" => "City",
                 "Price" => "Price",
-                "LEX02Code" => "DepartmentCode",
-                "LEX02Name" => "DepartmentName",
-                "LEX02Type" => "Type",
                 _ => null
             };
         }
@@ -557,7 +552,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
             var withoutPrefixes = propertyName
                 .Replace("VPP", "VPP ", StringComparison.Ordinal)
-                .Replace("LEX02", "", StringComparison.Ordinal)
                 .Trim();
 
             return Regex.Replace(withoutPrefixes, "(?<=[a-z0-9])(?=[A-Z])", " ");
@@ -654,11 +648,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private static bool ShouldRenderProperty(PropertyInfo prop)
         {
-            if (typeof(TType) == typeof(L04_VPPResDTO)
-                && prop.Name is nameof(L04_VPPResDTO.UOMCode)
-                    or nameof(L04_VPPResDTO.UOMName)
-                    or nameof(L04_VPPResDTO.VPPCategoryCode)
-                    or nameof(L04_VPPResDTO.VPPCategoryName))
+            if (typeof(TType) == typeof(VppItemResDTO)
+                && prop.Name is nameof(VppItemResDTO.UomCode)
+                    or nameof(VppItemResDTO.UomName)
+                    or nameof(VppItemResDTO.VppCategoryCode)
+                    or nameof(VppItemResDTO.VppCategoryName))
             {
                 return false;
             }

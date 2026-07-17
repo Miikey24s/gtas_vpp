@@ -7,7 +7,7 @@ public sealed class TrustedAccessMigrationSafetyTests
     private static readonly string RepositoryRoot = FindRepositoryRoot();
 
     [Fact]
-    public void Migration_ContainsFailClosedUpgradePreflightAndDataPreservingDownGuard()
+    public void Migrations_PreserveTrustedAccessGuardsAndNormalizeTheirDatabaseNames()
     {
         var migration = File.ReadAllText(Path.Combine(
             RepositoryRoot,
@@ -30,6 +30,16 @@ public sealed class TrustedAccessMigrationSafetyTests
             "AUTH_DESTRUCTIVE_DOWN_BLOCKED",
             migration[downStart..],
             StringComparison.Ordinal);
+
+        var normalizationMigration = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            "gtas_vpp_be",
+            "gtas_vpp_be.Migrations",
+            "Migrations",
+            "20260717101447_NormalizeSchemaNaming.cs"));
+        Assert.Contains("UX_UserGroupMemberships_OneActivePerUser", normalizationMigration, StringComparison.Ordinal);
+        Assert.Contains("CK_UserGroupMemberships_ActivePrimaryDepartment", normalizationMigration, StringComparison.Ordinal);
+        Assert.DoesNotContain("migrationBuilder.DropTable(", normalizationMigration, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()

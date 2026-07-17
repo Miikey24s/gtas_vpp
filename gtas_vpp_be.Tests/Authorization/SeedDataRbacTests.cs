@@ -22,10 +22,10 @@ public sealed class SeedDataRbacTests
         var personaIds = CanonicalRbac.Personas.Select(x => x.GroupId).ToArray();
 
         Assert.Equal(firstCounts, secondCounts);
-        Assert.Equal(4, await context.P02_Groups.CountAsync(x => personaIds.Contains(x.Id)));
+        Assert.Equal(4, await context.PermissionGroups.CountAsync(x => personaIds.Contains(x.Id)));
         foreach (var persona in CanonicalRbac.Personas)
         {
-            var group = await context.P02_Groups.SingleAsync(x => x.Id == persona.GroupId);
+            var group = await context.PermissionGroups.SingleAsync(x => x.Id == persona.GroupId);
             Assert.Equal(persona.GroupCode, group.GroupCode);
             Assert.Equal(persona.GroupName, group.GroupName);
             Assert.Null(group.ParentGroupId);
@@ -40,43 +40,43 @@ public sealed class SeedDataRbacTests
         await using var context = CreateContext();
         await SeedRbacAsync(context);
 
-        var employee = await context.P02_Groups.SingleAsync(x => x.Id == CanonicalRbac.Employee.GroupId);
+        var employee = await context.PermissionGroups.SingleAsync(x => x.Id == CanonicalRbac.Employee.GroupId);
         employee.GroupCode = "DRIFTED";
         employee.ParentGroupId = CanonicalRbac.SystemAdmin.GroupId;
         employee.IsDeleted = true;
 
-        var requestCreate = await context.P03_Components
+        var requestCreate = await context.PermissionComponents
             .SingleAsync(x => x.ComponentCode == Permissions.RequestCreate);
         requestCreate.ComponentName = "Drifted action";
         requestCreate.IsDeleted = true;
 
         var requestCreateMappingId = await MappingIdAsync(context, Permissions.RequestCreate);
-        var employeeRequestCreate = await context.P06_GroupPageComponentMappings.SingleAsync(x =>
-            x.P02_GroupId == CanonicalRbac.Employee.GroupId
-            && x.P05_PageComponentMappingId == requestCreateMappingId
+        var employeeRequestCreate = await context.GroupPageComponentMappings.SingleAsync(x =>
+            x.PermissionGroupId == CanonicalRbac.Employee.GroupId
+            && x.PageComponentMappingId == requestCreateMappingId
             && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode);
         employeeRequestCreate.IsEnable = false;
         employeeRequestCreate.IsVisible = false;
 
         var permissionUserMappingId = await MappingIdAsync(context, Permissions.PermissionUser);
-        context.P06_GroupPageComponentMappings.Add(new P06_GroupPageComponentMapping
+        context.GroupPageComponentMappings.Add(new GroupPageComponentMapping
         {
-            P02_GroupId = CanonicalRbac.Employee.GroupId,
-            P05_PageComponentMappingId = permissionUserMappingId,
+            PermissionGroupId = CanonicalRbac.Employee.GroupId,
+            PageComponentMappingId = permissionUserMappingId,
             MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
             IsEnable = true,
             IsVisible = true,
-            CreateUserId = 5615,
-            CreateDate = DateTime.UtcNow,
-            UpdateUserId = 5615,
-            UpdateDate = DateTime.UtcNow
+            CreatedByUserId = 5615,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = DateTime.UtcNow
         });
         await context.SaveChangesAsync();
 
-        await InvokeSeedAsync(context, "SeedP02_Group");
-        await InvokeSeedAsync(context, "SeedP03_Component");
-        await InvokeSeedAsync(context, "SeedP05_PageComponentMapping");
-        await InvokeSeedAsync(context, "SeedP06_GroupPageComponentMapping");
+        await InvokeSeedAsync(context, "SeedPermissionGroup");
+        await InvokeSeedAsync(context, "SeedPermissionComponent");
+        await InvokeSeedAsync(context, "SeedPageComponentMapping");
+        await InvokeSeedAsync(context, "SeedGroupPageComponentMapping");
 
         Assert.Equal(CanonicalRbac.Employee.GroupCode, employee.GroupCode);
         Assert.Null(employee.ParentGroupId);
@@ -88,9 +88,9 @@ public sealed class SeedDataRbacTests
         Assert.True(employeeRequestCreate.IsEnable);
         Assert.True(employeeRequestCreate.IsVisible);
 
-        var excess = await context.P06_GroupPageComponentMappings.SingleAsync(x =>
-            x.P02_GroupId == CanonicalRbac.Employee.GroupId
-            && x.P05_PageComponentMappingId == permissionUserMappingId
+        var excess = await context.GroupPageComponentMappings.SingleAsync(x =>
+            x.PermissionGroupId == CanonicalRbac.Employee.GroupId
+            && x.PageComponentMappingId == permissionUserMappingId
             && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode);
         Assert.False(excess.IsEnable);
         Assert.False(excess.IsVisible);
@@ -107,11 +107,11 @@ public sealed class SeedDataRbacTests
 
     private static async Task SeedRbacAsync(VPPMigrationDbContext context)
     {
-        await InvokeSeedAsync(context, "SeedP01_Page");
-        await InvokeSeedAsync(context, "SeedP02_Group");
-        await InvokeSeedAsync(context, "SeedP03_Component");
-        await InvokeSeedAsync(context, "SeedP05_PageComponentMapping");
-        await InvokeSeedAsync(context, "SeedP06_GroupPageComponentMapping");
+        await InvokeSeedAsync(context, "SeedPermissionPage");
+        await InvokeSeedAsync(context, "SeedPermissionGroup");
+        await InvokeSeedAsync(context, "SeedPermissionComponent");
+        await InvokeSeedAsync(context, "SeedPageComponentMapping");
+        await InvokeSeedAsync(context, "SeedGroupPageComponentMapping");
     }
 
     private static async Task InvokeSeedAsync(VPPMigrationDbContext context, string methodName)
@@ -124,21 +124,21 @@ public sealed class SeedDataRbacTests
     }
 
     private static async Task<Guid> MappingIdAsync(VPPMigrationDbContext context, string componentCode) =>
-        await context.P05_PageComponentMappings
-            .Where(x => x.P03_Component != null && x.P03_Component.ComponentCode == componentCode)
+        await context.PageComponentMappings
+            .Where(x => x.PermissionComponent != null && x.PermissionComponent.ComponentCode == componentCode)
             .Select(x => x.Id)
             .SingleAsync();
 
     private static async Task AssertActiveComponentsAsync(VPPMigrationDbContext context, Guid groupId)
     {
-        var actual = await context.P06_GroupPageComponentMappings
-            .Where(x => x.P02_GroupId == groupId
+        var actual = await context.GroupPageComponentMappings
+            .Where(x => x.PermissionGroupId == groupId
                 && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
                 && x.IsEnable
                 && x.IsVisible
-                && x.P05_PageComponentMapping != null
-                && x.P05_PageComponentMapping.P03_Component != null)
-            .Select(x => x.P05_PageComponentMapping!.P03_Component!.ComponentCode)
+                && x.PageComponentMapping != null
+                && x.PageComponentMapping.PermissionComponent != null)
+            .Select(x => x.PageComponentMapping!.PermissionComponent!.ComponentCode)
             .ToListAsync();
         Assert.Equal(
             CanonicalRbac.GetAllSeedComponents(groupId).Order(StringComparer.Ordinal),
@@ -148,8 +148,8 @@ public sealed class SeedDataRbacTests
     private static async Task<(int Groups, int Components, int PageMappings, int GroupMappings)> ReadCountsAsync(
         VPPMigrationDbContext context) =>
         (
-            await context.P02_Groups.CountAsync(),
-            await context.P03_Components.CountAsync(),
-            await context.P05_PageComponentMappings.CountAsync(),
-            await context.P06_GroupPageComponentMappings.CountAsync());
+            await context.PermissionGroups.CountAsync(),
+            await context.PermissionComponents.CountAsync(),
+            await context.PageComponentMappings.CountAsync(),
+            await context.GroupPageComponentMappings.CountAsync());
 }

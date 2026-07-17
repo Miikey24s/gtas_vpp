@@ -1,4 +1,4 @@
-﻿namespace gtas_vpp_fe.Helpers
+namespace gtas_vpp_fe.Helpers
 {
     public static class ClaimKeys
     {

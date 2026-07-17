@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -16,13 +16,13 @@ namespace gtas_vpp_be.Model.Helpers
         [StringLength(500)]
         public virtual string? Description { get; set; }
 
-        public virtual int CreateUserId { get; set; }
+        public virtual int CreatedByUserId { get; set; }
 
-        public virtual DateTime CreateDate { get; set; }
+        public virtual DateTime CreatedAtUtc { get; set; }
 
-        public virtual int UpdateUserId { get; set; }
+        public virtual int UpdatedByUserId { get; set; }
 
-        public virtual DateTime UpdateDate { get; set; }
+        public virtual DateTime UpdatedAtUtc { get; set; }
 
         [DefaultValue(false)]
         public virtual bool IsDeleted { get; set; }

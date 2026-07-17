@@ -23,15 +23,15 @@ public class PeriodSettlementServiceTests
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        var result = await service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4, PriceListId = listId }, 5615);
+        var result = await service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4, PriceListId = listId }, 5615);
 
         Assert.True(result.IsSettled);
         Assert.Equal(1, result.OrderCount);
-        var savedHeader = await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == header.Id);
+        var savedHeader = await context.Set<VppRequest>().SingleAsync(x => x.Id == header.Id);
         Assert.Equal(now, savedHeader.SettledAt);
         Assert.Equal(5615, savedHeader.SettledByUserId);
         Assert.Equal(listId, savedHeader.SettledByPriceListId);
-        Assert.Equal(1234L, (await context.Set<VPP02_RequestDetail>().SingleAsync()).CurrentSinglePrice);
+        Assert.Equal(1234L, (await context.Set<VppRequestDetail>().SingleAsync()).CurrentSinglePrice);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class PeriodSettlementServiceTests
         var service = CreateService(context, now);
 
         var ex = await Assert.ThrowsAsync<ConflictException>(() =>
-            service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4 }, 5615));
+            service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4 }, 5615));
 
         Assert.Contains("still pending approval", ex.Message);
     }
@@ -66,7 +66,7 @@ public class PeriodSettlementServiceTests
         var service = CreateService(context, now);
 
         var ex = await Assert.ThrowsAsync<BusinessException>(() =>
-            service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4 }, 5615));
+            service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4 }, 5615));
 
         Assert.Contains("is missing prices", ex.Message);
     }
@@ -83,11 +83,11 @@ public class PeriodSettlementServiceTests
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        await service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4 }, 5615);
+        await service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4 }, 5615);
 
-        var savedHeader = await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == header.Id);
+        var savedHeader = await context.Set<VppRequest>().SingleAsync(x => x.Id == header.Id);
         Assert.Equal(listId, savedHeader.SettledByPriceListId);
-        Assert.Equal(555L, (await context.Set<VPP02_RequestDetail>().SingleAsync()).CurrentSinglePrice);
+        Assert.Equal(555L, (await context.Set<VppRequestDetail>().SingleAsync()).CurrentSinglePrice);
     }
 
     [Fact]
@@ -103,13 +103,13 @@ public class PeriodSettlementServiceTests
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        await service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4 }, 5615);
-        await service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4, PriceListId = secondListId }, 5616);
+        await service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4 }, 5615);
+        await service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4, PriceListId = secondListId }, 5616);
 
-        var savedHeader = await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == header.Id);
+        var savedHeader = await context.Set<VppRequest>().SingleAsync(x => x.Id == header.Id);
         Assert.Equal(secondListId, savedHeader.SettledByPriceListId);
         Assert.Equal(5616, savedHeader.SettledByUserId);
-        Assert.Equal(900L, (await context.Set<VPP02_RequestDetail>().SingleAsync()).CurrentSinglePrice);
+        Assert.Equal(900L, (await context.Set<VppRequestDetail>().SingleAsync()).CurrentSinglePrice);
     }
 
     [Fact]
@@ -126,9 +126,9 @@ public class PeriodSettlementServiceTests
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        await service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4 }, 5615);
+        await service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4 }, 5615);
 
-        var headers = await context.Set<VPP01_RequestHeader>().ToDictionaryAsync(x => x.Id);
+        var headers = await context.Set<VppRequest>().ToDictionaryAsync(x => x.Id);
         Assert.NotNull(headers[submitted.Id].SettledAt);
         Assert.Null(headers[cancelled.Id].SettledAt);
         Assert.Null(headers[rejected.Id].SettledAt);
@@ -137,7 +137,7 @@ public class PeriodSettlementServiceTests
     }
 
     [Fact]
-    public async Task Settle_LogsToVPP03_PerHeader()
+    public async Task Settle_LogsToRequestLogPerHeader()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 5, 21, 10, 0, 0);
@@ -149,9 +149,9 @@ public class PeriodSettlementServiceTests
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        await service.SettleAsync(new VPP_SettlePeriodReqDTO { Y = 2026, M = 4 }, 5615);
+        await service.SettleAsync(new PeriodSettlementReqDTO { Year = 2026, Month = 4 }, 5615);
 
-        var logs = await context.Set<VPP03_Log>().ToListAsync();
+        var logs = await context.Set<RequestLog>().ToListAsync();
         Assert.Equal(2, logs.Count);
         Assert.All(logs, log => Assert.Equal("PERIOD_SETTLED", log.LogTitle));
     }
@@ -181,7 +181,7 @@ public class PeriodSettlementServiceTests
         return new PeriodSettlementService(unitOfWork.Object, new FakeDateTimeProvider(now));
     }
 
-    private static VPP01_RequestHeader AddHeaderWithDetail(
+    private static VppRequest AddHeaderWithDetail(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         int y,
         int m,
@@ -191,38 +191,38 @@ public class PeriodSettlementServiceTests
         bool isAdditional = false,
         long currentPrice = 0)
     {
-        var header = new VPP01_RequestHeader
+        var header = new VppRequest
         {
             Id = Guid.NewGuid(),
-            Y = y,
-            M = m,
-            VPPCode = $"VPP-{Guid.NewGuid():N}"[..24],
+            Year = y,
+            Month = m,
+            VppCode = $"VPP-{Guid.NewGuid():N}"[..24],
             Status = (int)status,
             IsAdditionalOrder = isAdditional,
             DepartmentCode = "IT",
             MemberCompanyCode = "77500",
-            CreateUserId = 1,
-            CreateDate = now.AddDays(-1),
-            UpdateUserId = 1,
-            UpdateDate = now.AddDays(-1),
+            CreatedByUserId = 1,
+            CreatedAtUtc = now.AddDays(-1),
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now.AddDays(-1),
             SubmittedDate = now.AddDays(-1),
-            VPP02_RequestDetails = new List<VPP02_RequestDetail>()
+            RequestDetails = new List<VppRequestDetail>()
         };
-        var detail = new VPP02_RequestDetail
+        var detail = new VppRequestDetail
         {
             Id = Guid.NewGuid(),
-            VPP01_RequestHeaderId = header.Id,
-            VPPId = vppId,
+            RequestId = header.Id,
+            VppId = vppId,
             Qty = 1,
             CurrentSinglePrice = currentPrice,
-            CreateUserId = 1,
-            CreateDate = now.AddDays(-1),
-            UpdateUserId = 1,
-            UpdateDate = now.AddDays(-1),
+            CreatedByUserId = 1,
+            CreatedAtUtc = now.AddDays(-1),
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now.AddDays(-1),
             IsDeleted = false
         };
-        header.VPP02_RequestDetails.Add(detail);
-        context.Set<VPP01_RequestHeader>().Add(header);
+        header.RequestDetails.Add(detail);
+        context.Set<VppRequest>().Add(header);
         return header;
     }
 
@@ -232,45 +232,45 @@ public class PeriodSettlementServiceTests
         string name,
         bool isDefault,
         DateTime now,
-        params (Guid VPPId, decimal Price)[] items)
+        params (Guid VppId, decimal Price)[] items)
     {
         var listId = Guid.NewGuid();
         var supplierId = Guid.NewGuid();
-        context.Set<L07_PriceList>().Add(new L07_PriceList
+        context.Set<PriceList>().Add(new PriceList
         {
             Id = listId,
             PriceListCode = code,
             PriceListName = name,
             IsDefault = isDefault,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now,
             IsDeleted = false
         });
-        context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+        context.Set<Supplier>().Add(new Supplier
         {
             Id = supplierId,
             SupplierShortName = code,
             SupplierName = name,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now,
             IsDeleted = false
         });
-        context.Set<L06_VPPSupplierMapping>().AddRange(items.Select(item => new L06_VPPSupplierMapping
+        context.Set<SupplierProductMapping>().AddRange(items.Select(item => new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = listId,
-            L04_VPPId = item.VPPId,
-            L05_VPPSupplierId = supplierId,
+            PriceListId = listId,
+            VppItemId = item.VppId,
+            SupplierId = supplierId,
             Price = item.Price,
             IsDefault = true,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now,
             IsDeleted = false
         }));
         await context.SaveChangesAsync();
@@ -278,8 +278,8 @@ public class PeriodSettlementServiceTests
     }
 
     private static async Task<long> DetailPriceAsync(gtas_vpp_be.Service.Helpers.Context.VPPContext context, Guid headerId)
-        => await context.Set<VPP02_RequestDetail>()
-            .Where(x => x.VPP01_RequestHeaderId == headerId)
+        => await context.Set<VppRequestDetail>()
+            .Where(x => x.RequestId == headerId)
             .Select(x => x.CurrentSinglePrice)
             .SingleAsync();
 }

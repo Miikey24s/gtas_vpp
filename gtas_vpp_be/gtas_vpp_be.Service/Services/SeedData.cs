@@ -54,32 +54,32 @@ namespace gtas_vpp_be.Service.Services
         private static readonly Guid CompPermComponent      = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
         private static readonly Guid CompReportView         = Guid.Parse("70603737-45C6-4937-A422-4E4FB0EC52CD");
 
-        // ── P05 Mapping IDs ────────────────────────────────────────
-        private static readonly Guid P05_SB_Dashboard  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
-        private static readonly Guid P05_SB_Library    = Guid.Parse("26AF4773-9D60-4AE6-B014-33D623FBA968");
-        private static readonly Guid P05_SB_Report     = Guid.Parse("97E6C9EE-CFFB-4332-AEC3-56824BF2FEFD");
-        private static readonly Guid P05_SB_Permission = Guid.Parse("CAB28621-070E-417A-8780-9F0835B0AD5F");
-        private static readonly Guid P05_DB_Order      = Guid.Parse("9347D472-AD40-40A5-BAD4-DFC4176531A7");
-        private static readonly Guid P05_DB_Catalog    = Guid.Parse("0CEA22F8-2463-4C6D-887A-AA4344B08F93");
-        private static readonly Guid P05_DB_History    = Guid.Parse("98D45C13-9637-4BB6-8351-19164FB2627A");
-        private static readonly Guid P05_DB_DeptSum    = Guid.Parse("EE872A0B-737E-4D10-87D4-68E567814623");
-        private static readonly Guid P05_DB_AllSum     = Guid.Parse("3625955F-4E4B-466D-A56D-A5EC08346F67");
-        private static readonly Guid P05_DB_Approval   = Guid.Parse("0FA7B816-82ED-49A1-A7E8-35443175778F");
-        private static readonly Guid P05_LB_Class      = Guid.Parse("4C2F1AD1-637B-4DDF-95C5-0D84F5D42ABD");
-        private static readonly Guid P05_LB_Category   = Guid.Parse("25B3721D-CDF2-41B2-A5F1-A24A5826E3C4");
-        private static readonly Guid P05_LB_Item       = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
-        private static readonly Guid P05_LB_Supplier   = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
-        private static readonly Guid P05_LB_Price      = Guid.Parse("5658FDBD-686D-4BA8-9BB8-8C629671E5FB");
-        private static readonly Guid P05_LB_PriceList  = Guid.Parse("BA035879-1C78-4F48-8297-DA3C8AA7245B");
-        private static readonly Guid P05_LB_Dept       = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
-        private static readonly Guid P05_AP_PeriodSettle = Guid.Parse("8D9A6954-56AF-4B5C-B9F2-39E4EDD0AA3F");
-        private static readonly Guid P05_PM_User       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
-        private static readonly Guid P05_PM_Component  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
-        private static readonly Guid P05_RP_View       = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
+        // ── Page-component mapping IDs ─────────────────────────────
+        private static readonly Guid SidebarDashboardMappingId  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
+        private static readonly Guid SidebarLibraryMappingId    = Guid.Parse("26AF4773-9D60-4AE6-B014-33D623FBA968");
+        private static readonly Guid SidebarReportMappingId     = Guid.Parse("97E6C9EE-CFFB-4332-AEC3-56824BF2FEFD");
+        private static readonly Guid SidebarPermissionMappingId = Guid.Parse("CAB28621-070E-417A-8780-9F0835B0AD5F");
+        private static readonly Guid DashboardOrderMappingId      = Guid.Parse("9347D472-AD40-40A5-BAD4-DFC4176531A7");
+        private static readonly Guid DashboardCatalogMappingId    = Guid.Parse("0CEA22F8-2463-4C6D-887A-AA4344B08F93");
+        private static readonly Guid DashboardHistoryMappingId    = Guid.Parse("98D45C13-9637-4BB6-8351-19164FB2627A");
+        private static readonly Guid DashboardDepartmentSummaryMappingId    = Guid.Parse("EE872A0B-737E-4D10-87D4-68E567814623");
+        private static readonly Guid DashboardAllOrdersSummaryMappingId     = Guid.Parse("3625955F-4E4B-466D-A56D-A5EC08346F67");
+        private static readonly Guid DashboardApprovalMappingId   = Guid.Parse("0FA7B816-82ED-49A1-A7E8-35443175778F");
+        private static readonly Guid LibraryLookupMappingId      = Guid.Parse("4C2F1AD1-637B-4DDF-95C5-0D84F5D42ABD");
+        private static readonly Guid LibraryCategoryMappingId   = Guid.Parse("25B3721D-CDF2-41B2-A5F1-A24A5826E3C4");
+        private static readonly Guid LibraryItemMappingId       = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
+        private static readonly Guid LibrarySupplierMappingId   = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
+        private static readonly Guid LibraryPriceMappingId      = Guid.Parse("5658FDBD-686D-4BA8-9BB8-8C629671E5FB");
+        private static readonly Guid LibraryPriceListMappingId  = Guid.Parse("BA035879-1C78-4F48-8297-DA3C8AA7245B");
+        private static readonly Guid LibraryDepartmentMappingId       = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
+        private static readonly Guid PeriodSettlementMappingId = Guid.Parse("8D9A6954-56AF-4B5C-B9F2-39E4EDD0AA3F");
+        private static readonly Guid PermissionUserMappingId       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
+        private static readonly Guid PermissionComponentMappingId  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
+        private static readonly Guid ReportViewMappingId       = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
 
         // ════════════════════════════════════════════════════════════
         //  MAIN ENTRY POINT
-        //  Luồng tối ưu: SQL infra → SQL data (LEX02 departments) → C# auth
+        //  Luồng tối ưu: SQL infra → SQL data (departments) → C# auth
         // ════════════════════════════════════════════════════════════
         public static async Task SeedReference(VPPMigrationDbContext context)
         {
@@ -100,12 +100,11 @@ namespace gtas_vpp_be.Service.Services
                 ReferenceSeedVersion,
                 alreadyApplied);
 
-            await SeedLEX02_Empty(context);
-            await SeedP01_Page(context);
-            await SeedP02_Group(context);
-            await SeedP03_Component(context);
-            await SeedP05_PageComponentMapping(context);
-            await SeedP06_GroupPageComponentMapping(context);
+            await SeedPermissionPage(context);
+            await SeedPermissionGroup(context);
+            await SeedPermissionComponent(context);
+            await SeedPageComponentMapping(context);
+            await SeedGroupPageComponentMapping(context);
             if (!alreadyApplied)
                 await MarkSeedVersionAppliedAsync(context, ReferenceSeedVersion);
             Log.Information("[SeedData] Reference database bootstrap completed.");
@@ -199,7 +198,7 @@ namespace gtas_vpp_be.Service.Services
             }
 
             var now = DateTime.Now;
-            var hcmSupplier = await context.L05_VPPSuppliers
+            var hcmSupplier = await context.Suppliers
                 .FirstOrDefaultAsync(x => x.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName && !x.IsDeleted);
             if (hcmSupplier == null)
             {
@@ -207,28 +206,28 @@ namespace gtas_vpp_be.Service.Services
                     $"Default supplier '{VppPricingDefaults.DefaultSupplierShortName}' is required by the demo price seed.");
             }
 
-            var defaultPriceList = await context.L07_PriceLists
+            var defaultPriceList = await context.PriceLists
                 .FirstOrDefaultAsync(x => x.Id == DefaultPriceListId && !x.IsDeleted);
             await using var transaction = await context.Database.BeginTransactionAsync();
             if (defaultPriceList == null)
             {
-                defaultPriceList = new L07_PriceList
+                defaultPriceList = new PriceList
                 {
                     Id = DefaultPriceListId,
                     PriceListCode = "DEFAULT",
                     PriceListName = "Default Price List",
                     IsDefault = true,
-                    CreateUserId = DefaultUserId,
-                    CreateDate = now,
-                    UpdateUserId = DefaultUserId,
-                    UpdateDate = now,
+                    CreatedByUserId = DefaultUserId,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = DefaultUserId,
+                    UpdatedAtUtc = now,
                     IsDeleted = false
                 };
-                context.L07_PriceLists.Add(defaultPriceList);
+                context.PriceLists.Add(defaultPriceList);
             }
 
-            var activeProducts = await context.L04_VPPs
-                .Include(x => x.VPPCategory)
+            var activeProducts = await context.VppItems
+                .Include(x => x.VppCategory)
                 .Where(x => !x.IsDeleted)
                 .ToListAsync();
             if (activeProducts.Count == 0)
@@ -237,36 +236,36 @@ namespace gtas_vpp_be.Service.Services
             }
             var productIds = activeProducts.Select(x => x.Id).ToArray();
 
-            var activeMappings = await context.L06_VPPSupplierMappings
-                .Where(x => x.L07_PriceListId == defaultPriceList.Id
-                         && productIds.Contains(x.L04_VPPId)
+            var activeMappings = await context.SupplierProductMappings
+                .Where(x => x.PriceListId == defaultPriceList.Id
+                         && productIds.Contains(x.VppItemId)
                          && !x.IsDeleted)
                 .ToListAsync();
 
             foreach (var mapping in activeMappings.Where(x =>
-                         x.IsDefault && x.L05_VPPSupplierId != hcmSupplier.Id))
+                         x.IsDefault && x.SupplierId != hcmSupplier.Id))
             {
                 mapping.IsDefault = false;
-                mapping.UpdateUserId = DefaultUserId;
-                mapping.UpdateDate = now;
+                mapping.UpdatedByUserId = DefaultUserId;
+                mapping.UpdatedAtUtc = now;
             }
 
             var hcmMappings = activeMappings
-                .Where(x => x.L05_VPPSupplierId == hcmSupplier.Id)
-                .GroupBy(x => x.L04_VPPId)
-                .ToDictionary(x => x.Key, x => x.OrderBy(m => m.CreateDate).First());
+                .Where(x => x.SupplierId == hcmSupplier.Id)
+                .GroupBy(x => x.VppItemId)
+                .ToDictionary(x => x.Key, x => x.OrderBy(m => m.CreatedAtUtc).First());
 
             var duplicateHcmMappings = activeMappings
-                .Where(x => x.L05_VPPSupplierId == hcmSupplier.Id)
-                .GroupBy(x => x.L04_VPPId)
-                .SelectMany(x => x.OrderBy(m => m.CreateDate).Skip(1))
+                .Where(x => x.SupplierId == hcmSupplier.Id)
+                .GroupBy(x => x.VppItemId)
+                .SelectMany(x => x.OrderBy(m => m.CreatedAtUtc).Skip(1))
                 .ToList();
             foreach (var duplicate in duplicateHcmMappings)
             {
                 duplicate.IsDeleted = true;
                 duplicate.IsDefault = false;
-                duplicate.UpdateUserId = DefaultUserId;
-                duplicate.UpdateDate = now;
+                duplicate.UpdatedByUserId = DefaultUserId;
+                duplicate.UpdatedAtUtc = now;
             }
 
             var pricesByItemAndCategory = priceRows
@@ -285,27 +284,27 @@ namespace gtas_vpp_be.Service.Services
                 var priceRow = FindPriceRow(product, pricesByItemAndCategory, pricesByItem);
                 if (priceRow == null)
                 {
-                    unmatchedProducts.Add(product.VPPName ?? product.Id.ToString());
+                    unmatchedProducts.Add(product.VppName ?? product.Id.ToString());
                 }
 
                 if (!hcmMappings.TryGetValue(product.Id, out var mapping))
                 {
-                    mapping = new L06_VPPSupplierMapping
+                    mapping = new SupplierProductMapping
                     {
                         Id = Guid.NewGuid(),
-                        L04_VPPId = product.Id,
-                        L05_VPPSupplierId = hcmSupplier.Id,
-                        L07_PriceListId = defaultPriceList.Id,
+                        VppItemId = product.Id,
+                        SupplierId = hcmSupplier.Id,
+                        PriceListId = defaultPriceList.Id,
                         Price = priceRow?.Price ?? 0,
                         IsDefault = true,
                         Description = "Seeded default price from prices.txt",
-                        CreateUserId = DefaultUserId,
-                        CreateDate = now,
-                        UpdateUserId = DefaultUserId,
-                        UpdateDate = now,
+                        CreatedByUserId = DefaultUserId,
+                        CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId,
+                        UpdatedAtUtc = now,
                         IsDeleted = false
                     };
-                    context.L06_VPPSupplierMappings.Add(mapping);
+                    context.SupplierProductMappings.Add(mapping);
                     hcmMappings[product.Id] = mapping;
                     defaultedCount++;
                     if (priceRow != null)
@@ -332,8 +331,8 @@ namespace gtas_vpp_be.Service.Services
 
                 if (mappingChanged)
                 {
-                    mapping.UpdateUserId = DefaultUserId;
-                    mapping.UpdateDate = now;
+                    mapping.UpdatedByUserId = DefaultUserId;
+                    mapping.UpdatedAtUtc = now;
                 }
             }
 
@@ -356,12 +355,12 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private static DefaultPriceSeedRow? FindPriceRow(
-            L04_VPP product,
+            VppItem product,
             IReadOnlyDictionary<(string Item, string Category), DefaultPriceSeedRow> pricesByItemAndCategory,
             IReadOnlyDictionary<string, List<DefaultPriceSeedRow>> pricesByItem)
         {
-            var itemKey = NormalizePriceKey(product.VPPName);
-            var categoryKey = NormalizePriceKey(product.VPPCategory?.VPPCategoryName);
+            var itemKey = NormalizePriceKey(product.VppName);
+            var categoryKey = NormalizePriceKey(product.VppCategory?.VppCategoryName);
 
             if (pricesByItemAndCategory.TryGetValue((itemKey, categoryKey), out var categoryMatch))
             {
@@ -497,68 +496,51 @@ namespace gtas_vpp_be.Service.Services
         }
 
         // ════════════════════════════════════════════════════════════
-        //  LEX02 — Guid.Empty row (bypass EF auto-gen)
+        //  System department — Guid.Empty row (bypass EF auto-gen)
         // ════════════════════════════════════════════════════════════
-        private static async Task SeedLEX02_Empty(VPPMigrationDbContext context)
-        {
-            bool isExist = context.LEX02_CompanyDepartmentLocations.Any(x => x.Id == Guid.Empty);
-            if (!isExist)
-            {
-                string emptyId = Guid.Empty.ToString();
-                string sql = $@"
-                    INSERT INTO LEX02_CompanyDepartmentLocation 
-                    (Id, LEX02Type, LEX02Code, LEX02Name, CreateDate, CreateUserId, UpdateDate, UpdateUserId, IsDeleted)
-                    VALUES 
-                    ('{emptyId}', 'System', 'SYS_DEFAULT', 'System Default Location', GETDATE(), {DefaultUserId}, GETDATE(), {DefaultUserId}, 0)
-                ";
-                await context.Database.ExecuteSqlRawAsync(sql);
-                Log.Information("[SeedData] LEX02: Seeded Guid.Empty row");
-            }
-        }
-
         // ════════════════════════════════════════════════════════════
-        //  P01_Page — 5 pages
+        //  PermissionPage — 5 pages
         // ════════════════════════════════════════════════════════════
-        private static async Task SeedP01_Page(VPPMigrationDbContext context)
+        private static async Task SeedPermissionPage(VPPMigrationDbContext context)
         {
             var now = DateTime.Now;
-            var pages = new List<P01_Page>
+            var pages = new List<PermissionPage>
             {
                 new() { Id = PageSidebar, PageCode = "SIDEBAR", PageName = "Sidebar Menu", Type = "Menu",
-                        Description = "Root Sidebar", CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                        Description = "Root Sidebar", CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false },
                 new() { Id = PageDashboard, PageCode = "DASHBOARD", PageName = "Dashboard", Type = "Page",
-                        Description = "Request Workspace", CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                        Description = "Request Workspace", CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false },
                 new() { Id = PageLibrary, PageCode = "LIBRARY", PageName = "Library", Type = "Page",
-                        Description = "Categories", CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                        Description = "Categories", CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false },
                 new() { Id = PagePermission, PageCode = "PERMISSION", PageName = "Permission", Type = "Page",
-                        Description = "Security", CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false },
+                        Description = "Security", CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false },
                 new() { Id = PageReport, PageCode = "REPORT", PageName = "Report", Type = "Page",
-                        Description = "System Reports", CreateUserId = DefaultUserId, CreateDate = now,
-                        UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false }
+                        Description = "System Reports", CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false }
             };
-            var existingCodes = await context.P01_Pages
+            var existingCodes = await context.PermissionPages
                 .Select(x => x.PageCode)
                 .ToListAsync();
             var missing = pages.Where(x => !existingCodes.Contains(x.PageCode)).ToList();
             if (missing.Count == 0) return;
 
-            await context.P01_Pages.AddRangeAsync(missing);
+            await context.PermissionPages.AddRangeAsync(missing);
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P01_Page: {Count} pages", missing.Count);
+            Log.Information("[SeedData] PermissionPage: {Count} pages", missing.Count);
         }
 
         // ════════════════════════════════════════════════════════════
-        //  P02_Group — 2 groups
+        //  PermissionGroup — 2 groups
         // ════════════════════════════════════════════════════════════
-        private static async Task SeedP02_Group(VPPMigrationDbContext context)
+        private static async Task SeedPermissionGroup(VPPMigrationDbContext context)
         {
             var now = DateTime.Now;
             var personaIds = CanonicalRbac.Personas.Select(x => x.GroupId).ToArray();
-            var existing = await context.P02_Groups
+            var existing = await context.PermissionGroups
                 .Where(x => personaIds.Contains(x.Id))
                 .ToListAsync();
             var added = 0;
@@ -569,17 +551,17 @@ namespace gtas_vpp_be.Service.Services
                 var group = existing.SingleOrDefault(x => x.Id == persona.GroupId);
                 if (group is null)
                 {
-                    await context.P02_Groups.AddAsync(new P02_Group
+                    await context.PermissionGroups.AddAsync(new PermissionGroup
                     {
                         Id = persona.GroupId,
                         GroupCode = persona.GroupCode,
                         GroupName = persona.GroupName,
                         Description = persona.Description,
                         ParentGroupId = null,
-                        CreateUserId = DefaultUserId,
-                        CreateDate = now,
-                        UpdateUserId = DefaultUserId,
-                        UpdateDate = now,
+                        CreatedByUserId = DefaultUserId,
+                        CreatedAtUtc = now,
+                        UpdatedByUserId = DefaultUserId,
+                        UpdatedAtUtc = now,
                         IsDeleted = false
                     });
                     added++;
@@ -600,23 +582,23 @@ namespace gtas_vpp_be.Service.Services
                 group.Description = persona.Description;
                 group.ParentGroupId = null;
                 group.IsDeleted = false;
-                group.UpdateUserId = DefaultUserId;
-                group.UpdateDate = now;
+                group.UpdatedByUserId = DefaultUserId;
+                group.UpdatedAtUtc = now;
                 updated++;
             }
 
             if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P02_Group reconciled: {Added} added, {Updated} updated", added, updated);
+            Log.Information("[SeedData] PermissionGroup reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
         // ════════════════════════════════════════════════════════════
-        //  P03_Component
+        //  PermissionComponent
         // ════════════════════════════════════════════════════════════
-        private static async Task SeedP03_Component(VPPMigrationDbContext context)
+        private static async Task SeedPermissionComponent(VPPMigrationDbContext context)
         {
             var now = DateTime.Now;
-            var components = new List<P03_Component>
+            var components = new List<PermissionComponent>
             {
                 C("MENU_DASHBOARD",           "Menu - Dashboard",           "View Dashboard",   CompMenuDashboard, now),
                 C("MENU_LIBRARY",             "Menu - Library",             "View Library",     CompMenuLibrary, now),
@@ -657,7 +639,7 @@ namespace gtas_vpp_be.Service.Services
             desiredPeriodSettle.Description = periodSettle.Description;
 
             var desiredCodes = components.Select(x => x.ComponentCode).ToArray();
-            var existing = await context.P03_Components
+            var existing = await context.PermissionComponents
                 .Where(x => desiredCodes.Contains(x.ComponentCode))
                 .ToListAsync();
             var existingByCode = existing
@@ -673,7 +655,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 if (!existingByCode.TryGetValue(desired.ComponentCode, out var component))
                 {
-                    await context.P03_Components.AddAsync(desired);
+                    await context.PermissionComponents.AddAsync(desired);
                     added++;
                     continue;
                 }
@@ -690,33 +672,33 @@ namespace gtas_vpp_be.Service.Services
                 component.ComponentName = desired.ComponentName;
                 component.Description = desired.Description;
                 component.IsDeleted = false;
-                component.UpdateUserId = DefaultUserId;
-                component.UpdateDate = now;
+                component.UpdatedByUserId = DefaultUserId;
+                component.UpdatedAtUtc = now;
                 updated++;
             }
 
             if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P03_Component reconciled: {Added} added, {Updated} updated", added, updated);
+            Log.Information("[SeedData] PermissionComponent reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
-        private static P03_Component C(string code, string name, string desc, Guid id, DateTime now)
+        private static PermissionComponent C(string code, string name, string desc, Guid id, DateTime now)
             => new() { Id = id, ComponentCode = code, ComponentName = name, Description = desc,
-                       CreateUserId = DefaultUserId, CreateDate = now,
-                       UpdateUserId = DefaultUserId, UpdateDate = now, IsDeleted = false };
+                       CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                       UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false };
 
         // ════════════════════════════════════════════════════════════
-        //  P05_PageComponentMapping
+        //  PageComponentMapping
         // ════════════════════════════════════════════════════════════
-        private static async Task SeedP05_PageComponentMapping(VPPMigrationDbContext context)
+        private static async Task SeedPageComponentMapping(VPPMigrationDbContext context)
         {
-            var specs = GetP05SeedMappings();
+            var specs = GetPageComponentSeedMappings();
             var pageCodes = specs.Select(x => x.PageCode).Distinct().ToArray();
             var componentCodes = specs.Select(x => x.ComponentCode).Distinct().ToArray();
-            var pages = await context.P01_Pages
+            var pages = await context.PermissionPages
                 .Where(x => pageCodes.Contains(x.PageCode))
                 .ToListAsync();
-            var components = await context.P03_Components
+            var components = await context.PermissionComponents
                 .Where(x => componentCodes.Contains(x.ComponentCode))
                 .ToListAsync();
             var pageByCode = pages
@@ -738,11 +720,11 @@ namespace gtas_vpp_be.Service.Services
                     throw new InvalidOperationException($"Cannot seed permission mapping: page '{spec.PageCode}' is missing.");
                 if (!componentByCode.TryGetValue(spec.ComponentCode, out var component))
                     throw new InvalidOperationException($"Cannot seed permission mapping: component '{spec.ComponentCode}' is missing.");
-                return P5(spec.MappingId, page.Id, component.Id);
+                return CreatePageComponentMapping(spec.MappingId, page.Id, component.Id);
             }).ToList();
 
             var desiredIds = desired.Select(x => x.Id).ToArray();
-            var existing = await context.P05_PageComponentMappings
+            var existing = await context.PageComponentMappings
                 .Where(x => desiredIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id);
             var added = 0;
@@ -752,48 +734,48 @@ namespace gtas_vpp_be.Service.Services
             {
                 if (!existing.TryGetValue(mapping.Id, out var current))
                 {
-                    await context.P05_PageComponentMappings.AddAsync(mapping);
+                    await context.PageComponentMappings.AddAsync(mapping);
                     added++;
                     continue;
                 }
 
-                if (current.P01_PageId == mapping.P01_PageId
-                    && current.P03_ComponentId == mapping.P03_ComponentId)
+                if (current.PermissionPageId == mapping.PermissionPageId
+                    && current.PermissionComponentId == mapping.PermissionComponentId)
                 {
                     continue;
                 }
 
-                current.P01_PageId = mapping.P01_PageId;
-                current.P03_ComponentId = mapping.P03_ComponentId;
+                current.PermissionPageId = mapping.PermissionPageId;
+                current.PermissionComponentId = mapping.PermissionComponentId;
                 updated++;
             }
 
             if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P05_PageComponentMapping reconciled: {Added} added, {Updated} updated", added, updated);
+            Log.Information("[SeedData] PageComponentMapping reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
-        private static P05_PageComponentMapping P5(Guid id, Guid pageId, Guid componentId)
-            => new() { Id = id, P01_PageId = pageId, P03_ComponentId = componentId };
+        private static PageComponentMapping CreatePageComponentMapping(Guid id, Guid pageId, Guid componentId)
+            => new() { Id = id, PermissionPageId = pageId, PermissionComponentId = componentId };
 
         // ════════════════════════════════════════════════════════════
-        //  P06_GroupPageComponentMapping
+        //  GroupPageComponentMapping
         //  Exact action and UI grants for the four canonical personas
         // ════════════════════════════════════════════════════════════
-        private static async Task SeedP06_GroupPageComponentMapping(VPPMigrationDbContext context)
+        private static async Task SeedGroupPageComponentMapping(VPPMigrationDbContext context)
         {
             var now = DateTime.Now;
-            var mappingIdByCode = GetP05SeedMappings().ToDictionary(
+            var mappingIdByCode = GetPageComponentSeedMappings().ToDictionary(
                 x => x.ComponentCode,
                 x => x.MappingId,
                 StringComparer.OrdinalIgnoreCase);
             var groupIds = CanonicalRbac.Personas.Select(x => x.GroupId).ToArray();
-            var existing = await context.P06_GroupPageComponentMappings
-                .Where(x => groupIds.Contains(x.P02_GroupId)
+            var existing = await context.GroupPageComponentMappings
+                .Where(x => groupIds.Contains(x.PermissionGroupId)
                     && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode)
                 .ToListAsync();
             var existingByKey = existing.ToDictionary(
-                x => (x.P02_GroupId, x.P05_PageComponentMappingId));
+                x => (x.PermissionGroupId, x.PageComponentMappingId));
             var targetKeys = new HashSet<(Guid GroupId, Guid MappingId)>();
             var added = 0;
             var updated = 0;
@@ -803,13 +785,13 @@ namespace gtas_vpp_be.Service.Services
                 foreach (var componentCode in CanonicalRbac.GetAllSeedComponents(persona.GroupId))
                 {
                     if (!mappingIdByCode.TryGetValue(componentCode, out var mappingId))
-                        throw new InvalidOperationException($"Cannot grant '{componentCode}' to '{persona.GroupCode}': P05 mapping is missing.");
+                        throw new InvalidOperationException($"Cannot grant '{componentCode}' to '{persona.GroupCode}': page-component mapping is missing.");
 
                     var key = (persona.GroupId, mappingId);
                     targetKeys.Add(key);
                     if (!existingByKey.TryGetValue(key, out var mapping))
                     {
-                        await context.P06_GroupPageComponentMappings.AddAsync(P6(mappingId, persona.GroupId, now));
+                        await context.GroupPageComponentMappings.AddAsync(CreateGroupPageComponentMapping(mappingId, persona.GroupId, now));
                         added++;
                         continue;
                     }
@@ -819,71 +801,71 @@ namespace gtas_vpp_be.Service.Services
 
                     mapping.IsEnable = true;
                     mapping.IsVisible = true;
-                    mapping.UpdateUserId = DefaultUserId;
-                    mapping.UpdateDate = now;
+                    mapping.UpdatedByUserId = DefaultUserId;
+                    mapping.UpdatedAtUtc = now;
                     updated++;
                 }
             }
 
-            foreach (var obsolete in existing.Where(x => !targetKeys.Contains((x.P02_GroupId, x.P05_PageComponentMappingId))))
+            foreach (var obsolete in existing.Where(x => !targetKeys.Contains((x.PermissionGroupId, x.PageComponentMappingId))))
             {
                 if (!obsolete.IsEnable && !obsolete.IsVisible)
                     continue;
 
                 obsolete.IsEnable = false;
                 obsolete.IsVisible = false;
-                obsolete.UpdateUserId = DefaultUserId;
-                obsolete.UpdateDate = now;
+                obsolete.UpdatedByUserId = DefaultUserId;
+                obsolete.UpdatedAtUtc = now;
                 updated++;
             }
 
             if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
-            Log.Information("[SeedData] P06_GroupPageComponentMapping reconciled: {Added} added, {Updated} updated", added, updated);
+            Log.Information("[SeedData] GroupPageComponentMapping reconciled: {Added} added, {Updated} updated", added, updated);
         }
 
-        private static P06_GroupPageComponentMapping P6(Guid p05Id, Guid groupId, DateTime now)
-            => new() { P05_PageComponentMappingId = p05Id, P02_GroupId = groupId,
+        private static GroupPageComponentMapping CreateGroupPageComponentMapping(Guid pageComponentMappingId, Guid groupId, DateTime now)
+            => new() { PageComponentMappingId = pageComponentMappingId, PermissionGroupId = groupId,
                        MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode, IsEnable = true, IsVisible = true,
-                       CreateUserId = DefaultUserId, CreateDate = now,
-                       UpdateUserId = DefaultUserId, UpdateDate = now };
+                       CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
+                       UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now };
 
-        private static IReadOnlyList<P05SeedMapping> GetP05SeedMappings()
+        private static IReadOnlyList<PageComponentSeedMapping> GetPageComponentSeedMappings()
         {
-            var mappings = new List<P05SeedMapping>
+            var mappings = new List<PageComponentSeedMapping>
             {
-                new(P05_SB_Dashboard, "SIDEBAR", Permissions.MenuDashboard),
-                new(P05_SB_Library, "SIDEBAR", Permissions.MenuLibrary),
-                new(P05_SB_Report, "SIDEBAR", Permissions.MenuReport),
-                new(P05_SB_Permission, "SIDEBAR", Permissions.MenuPermission),
-                new(P05_DB_Order, "DASHBOARD", Permissions.RequestOrder),
-                new(P05_DB_Catalog, "DASHBOARD", Permissions.RequestProductCatalog),
-                new(P05_DB_History, "DASHBOARD", Permissions.RequestHistory),
-                new(P05_DB_DeptSum, "DASHBOARD", Permissions.RequestDepartmentSummary),
-                new(P05_DB_AllSum, "DASHBOARD", Permissions.RequestAllOrdersSummary),
-                new(P05_DB_Approval, "DASHBOARD", Permissions.RequestAdminApproval),
-                new(P05_LB_Class, "LIBRARY", Permissions.LibraryClass),
-                new(P05_LB_Category, "LIBRARY", Permissions.LibraryCategory),
-                new(P05_LB_Item, "LIBRARY", Permissions.LibraryItem),
-                new(P05_LB_Supplier, "LIBRARY", Permissions.LibrarySupplier),
-                new(P05_LB_Price, "LIBRARY", Permissions.LibraryPrice),
-                new(P05_LB_PriceList, "LIBRARY", Permissions.LibraryPriceList),
-                new(P05_LB_Dept, "LIBRARY", Permissions.LibraryDepartment),
-                new(P05_AP_PeriodSettle, "DASHBOARD", Permissions.PeriodSettle),
-                new(P05_PM_User, "PERMISSION", Permissions.PermissionUser),
-                new(P05_PM_Component, "PERMISSION", Permissions.PermissionComponent),
-                new(P05_RP_View, "REPORT", Permissions.ReportView)
+                new(SidebarDashboardMappingId, "SIDEBAR", Permissions.MenuDashboard),
+                new(SidebarLibraryMappingId, "SIDEBAR", Permissions.MenuLibrary),
+                new(SidebarReportMappingId, "SIDEBAR", Permissions.MenuReport),
+                new(SidebarPermissionMappingId, "SIDEBAR", Permissions.MenuPermission),
+                new(DashboardOrderMappingId, "DASHBOARD", Permissions.RequestOrder),
+                new(DashboardCatalogMappingId, "DASHBOARD", Permissions.RequestProductCatalog),
+                new(DashboardHistoryMappingId, "DASHBOARD", Permissions.RequestHistory),
+                new(DashboardDepartmentSummaryMappingId, "DASHBOARD", Permissions.RequestDepartmentSummary),
+                new(DashboardAllOrdersSummaryMappingId, "DASHBOARD", Permissions.RequestAllOrdersSummary),
+                new(DashboardApprovalMappingId, "DASHBOARD", Permissions.RequestAdminApproval),
+                new(LibraryLookupMappingId, "LIBRARY", Permissions.LibraryClass),
+                new(LibraryCategoryMappingId, "LIBRARY", Permissions.LibraryCategory),
+                new(LibraryItemMappingId, "LIBRARY", Permissions.LibraryItem),
+                new(LibrarySupplierMappingId, "LIBRARY", Permissions.LibrarySupplier),
+                new(LibraryPriceMappingId, "LIBRARY", Permissions.LibraryPrice),
+                new(LibraryPriceListMappingId, "LIBRARY", Permissions.LibraryPriceList),
+                new(LibraryDepartmentMappingId, "LIBRARY", Permissions.LibraryDepartment),
+                new(PeriodSettlementMappingId, "DASHBOARD", Permissions.PeriodSettle),
+                new(PermissionUserMappingId, "PERMISSION", Permissions.PermissionUser),
+                new(PermissionComponentMappingId, "PERMISSION", Permissions.PermissionComponent),
+                new(ReportViewMappingId, "REPORT", Permissions.ReportView)
             };
 
             mappings.AddRange(CanonicalRbac.Actions
                 .Where(x => x.PermissionCode != Permissions.PeriodSettle)
-                .Select(x => new P05SeedMapping(
+                .Select(x => new PageComponentSeedMapping(
                     CanonicalRbacSeedIds.ActionPageMapping(x.PermissionCode),
                     x.PageCode,
                     x.PermissionCode)));
             return mappings;
         }
 
-        private sealed record P05SeedMapping(Guid MappingId, string PageCode, string ComponentCode);
+        private sealed record PageComponentSeedMapping(Guid MappingId, string PageCode, string ComponentCode);
     }
 }

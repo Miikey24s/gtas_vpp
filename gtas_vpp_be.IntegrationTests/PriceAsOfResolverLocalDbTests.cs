@@ -21,21 +21,21 @@ public sealed class PriceAsOfResolverLocalDbTests
         using var unitOfWork = new UnitOfWork(new TestDbContextFactory(fixture.ConnectionString));
         var context = unitOfWork.VPPContext;
 
-        var legacy = await context.Set<L07_PriceList>()
+        var legacy = await context.Set<PriceList>()
             .AsNoTracking()
-            .OrderBy(x => x.CreateDate)
+            .OrderBy(x => x.CreatedAtUtc)
             .FirstAsync(cancellationToken);
         Assert.True(legacy.Version > 0);
         Assert.Equal("VND", legacy.CurrencyCode);
         Assert.NotEqual(default, legacy.EffectiveFromUtc);
         Assert.False(string.IsNullOrWhiteSpace(legacy.LegacyBackfillStatus));
 
-        var supplier = await context.Set<L05_VPPSupplier>()
+        var supplier = await context.Set<Supplier>()
             .FirstAsync(x => !x.IsDeleted, cancellationToken);
-        var vpp = await context.Set<L04_VPP>()
+        var vpp = await context.Set<VppItem>()
             .FirstAsync(x => !x.IsDeleted, cancellationToken);
         var asOfUtc = new DateTime(2026, 7, 16, 8, 0, 0, DateTimeKind.Utc);
-        var book = new L07_PriceList
+        var book = new PriceList
         {
             Id = Guid.NewGuid(),
             PriceListCode = $"SQL-{fixture.Options.RunId}",
@@ -44,21 +44,21 @@ public sealed class PriceAsOfResolverLocalDbTests
             Version = 1,
             EffectiveFromUtc = asOfUtc.AddDays(-1),
             EffectiveToUtc = asOfUtc.AddDays(1),
-            Status = L07_PriceListStatus.Published,
+            Status = PriceListStatus.Published,
             CurrencyCode = "VND",
             VatPolicy = "item-rate",
-            CreateUserId = 1,
-            CreateDate = asOfUtc,
-            UpdateUserId = 1,
-            UpdateDate = asOfUtc
+            CreatedByUserId = 1,
+            CreatedAtUtc = asOfUtc,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = asOfUtc
         };
-        context.Set<L07_PriceList>().Add(book);
-        context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
+        context.Set<PriceList>().Add(book);
+        context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = book.Id,
-            L04_VPPId = vpp.Id,
-            L05_VPPSupplierId = supplier.Id,
+            PriceListId = book.Id,
+            VppItemId = vpp.Id,
+            SupplierId = supplier.Id,
             Price = 12500m,
             NetPrice = 12500m,
             VatRate = 8m,
@@ -66,10 +66,10 @@ public sealed class PriceAsOfResolverLocalDbTests
             LeadTimeDays = 4,
             SupplierSku = "SQL-SKU",
             IsDefault = true,
-            CreateUserId = 1,
-            CreateDate = asOfUtc,
-            UpdateUserId = 1,
-            UpdateDate = asOfUtc
+            CreatedByUserId = 1,
+            CreatedAtUtc = asOfUtc,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = asOfUtc
         });
         await context.SaveChangesAsync(cancellationToken);
 

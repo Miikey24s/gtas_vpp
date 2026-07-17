@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -11,64 +11,64 @@ namespace gtas_vpp_be.Mappings
     {
         public static void Register(TypeAdapterConfig config)
         {
-            config.NewConfig<P02_Group, P02_GroupResDTO>();
+            config.NewConfig<PermissionGroup, PermissionGroupResDTO>();
 
-            config.NewConfig<P02_GroupUpdateReqDTO, P02_Group>()
+            config.NewConfig<PermissionGroupUpdateReqDTO, PermissionGroup>()
                 .Ignore(d => d.Id)
-                .Ignore(d => d.CreateUserId)
-                .Ignore(d => d.CreateDate)
-                .Ignore(d => d.P04_UserGroups!)
-                .Ignore(d => d.P06_GroupPageComponentMapping!);
+                .Ignore(d => d.CreatedByUserId)
+                .Ignore(d => d.CreatedAtUtc)
+                .Ignore(d => d.UserGroupMemberships!)
+                .Ignore(d => d.GroupPageComponentMappings!);
 
-            config.NewConfig<PatchComponentMappingReqDTO, P06_GroupPageComponentMapping>()
-                .Ignore(d => d.P05_PageComponentMapping!)
-                .Ignore(d => d.P02_Group!)
-                .Ignore(d => d.CreateUserId)
-                .Ignore(d => d.CreateDate)
+            config.NewConfig<PatchComponentMappingReqDTO, GroupPageComponentMapping>()
+                .Ignore(d => d.PageComponentMapping!)
+                .Ignore(d => d.PermissionGroup!)
+                .Ignore(d => d.CreatedByUserId)
+                .Ignore(d => d.CreatedAtUtc)
                 .Ignore(d => d.MemberCompanyCode);
 
             // Library mappings
-            config.NewConfig<L01_Class, L01_ClassResDTO>()
-                .Ignore(dest => dest.L02_ClassDetails!);
-            config.NewConfig<L01_ClassResDTO, L01_Class>()
-                .Ignore(dest => dest.L02_ClassDetails!);
+            config.NewConfig<LookupCategory, LookupCategoryResDTO>()
+                .Ignore(dest => dest.LookupValues!);
+            config.NewConfig<LookupCategoryResDTO, LookupCategory>()
+                .Ignore(dest => dest.LookupValues!);
             
-            config.NewConfig<L02_ClassDetail, L02_ClassDetailResDTO>()
-                .Ignore(dest => dest.Class!)
-                .Ignore(dest => dest.VPPs_UOM!);
-            config.NewConfig<L02_ClassDetailResDTO, L02_ClassDetail>()
-                .Ignore(dest => dest.Class!)
-                .Ignore(dest => dest.VPPs_UOM!);
+            config.NewConfig<LookupValue, LookupValueResDTO>()
+                .Ignore(dest => dest.Category!)
+                .Ignore(dest => dest.VppItemsByUom!);
+            config.NewConfig<LookupValueResDTO, LookupValue>()
+                .Ignore(dest => dest.Category!)
+                .Ignore(dest => dest.VppItemsByUom!);
             
-            config.NewConfig<L03_VPPCategory, L03_VPPCategoryResDTO>();
-            config.NewConfig<L03_VPPCategoryResDTO, L03_VPPCategory>();
+            config.NewConfig<VppCategory, VppCategoryResDTO>();
+            config.NewConfig<VppCategoryResDTO, VppCategory>();
             
-            config.NewConfig<L04_VPP, L04_VPPResDTO>();
-            config.NewConfig<L04_VPPResDTO, L04_VPP>();
+            config.NewConfig<VppItem, VppItemResDTO>();
+            config.NewConfig<VppItemResDTO, VppItem>();
             
-            config.NewConfig<L05_VPPSupplier, L05_VPPSupplierResDTO>();
-            config.NewConfig<L05_VPPSupplierResDTO, L05_VPPSupplier>();
+            config.NewConfig<Supplier, SupplierResDTO>();
+            config.NewConfig<SupplierResDTO, Supplier>();
             
-            config.NewConfig<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>();
-            config.NewConfig<L06_VPPSupplierMappingResDTO, L06_VPPSupplierMapping>();
+            config.NewConfig<SupplierProductMapping, SupplierProductMappingResDTO>();
+            config.NewConfig<SupplierProductMappingResDTO, SupplierProductMapping>();
 
-            config.NewConfig<L07_PriceList, L07_PriceListResDTO>();
-            config.NewConfig<L07_PriceListResDTO, L07_PriceList>();
+            config.NewConfig<PriceList, PriceListResDTO>();
+            config.NewConfig<PriceListResDTO, PriceList>();
 
             // VPP Mappings
-            config.NewConfig<gtas_vpp_be.Model.VPP.VPP02_RequestDetail, gtas_vpp_shared.DTOs.Res.VPP.VPP02_RequestDetailResDTO>()
-                .Map(dest => dest.VPPCode, src => src.VPP != null ? src.VPP.VPPCode : null)
-                .Map(dest => dest.VPPName, src => src.VPP != null ? src.VPP.VPPName : null)
-                .Map(dest => dest.UOMCode, src => src.VPP != null && src.VPP.UOM != null ? src.VPP.UOM.ClassDetailCode : null)
-                .Map(dest => dest.UOMName, src => src.VPP != null && src.VPP.UOM != null ? src.VPP.UOM.ClassDetailValue : null)
-                .Map(dest => dest.CategoryName, src => src.VPP != null && src.VPP.VPPCategory != null ? src.VPP.VPPCategory.VPPCategoryName : null);
+            config.NewConfig<gtas_vpp_be.Model.VPP.VppRequestDetail, gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO>()
+                .Map(dest => dest.VppCode, src => src.VppItem != null ? src.VppItem.VppCode : null)
+                .Map(dest => dest.VppName, src => src.VppItem != null ? src.VppItem.VppName : null)
+                .Map(dest => dest.UomCode, src => src.VppItem != null && src.VppItem.Uom != null ? src.VppItem.Uom.Code : null)
+                .Map(dest => dest.UomName, src => src.VppItem != null && src.VppItem.Uom != null ? src.VppItem.Uom.Value : null)
+                .Map(dest => dest.CategoryName, src => src.VppItem != null && src.VppItem.VppCategory != null ? src.VppItem.VppCategory.VppCategoryName : null);
 
-            config.NewConfig<gtas_vpp_be.Model.VPP.VPP01_RequestHeader, gtas_vpp_shared.DTOs.Res.VPP.VPP01_RequestHeaderResDTO>()
-                .Map(dest => dest.TotalLines, src => src.VPP02_RequestDetails.Count(d => !d.IsDeleted))
-                .Map(dest => dest.TotalQty, src => src.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0)
-                .Map(dest => dest.TotalAmount, src => src.VPP02_RequestDetails.Where(d => !d.IsDeleted).Sum(d => (long?)(d.Qty * d.CurrentSinglePrice)) ?? 0)
+            config.NewConfig<gtas_vpp_be.Model.VPP.VppRequest, gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO>()
+                .Map(dest => dest.TotalLines, src => src.RequestDetails.Count(d => !d.IsDeleted))
+                .Map(dest => dest.TotalQty, src => src.RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0)
+                .Map(dest => dest.TotalAmount, src => src.RequestDetails.Where(d => !d.IsDeleted).Sum(d => (long?)(d.Qty * d.CurrentSinglePrice)) ?? 0)
                 .Map(dest => dest.SettledByPriceListName, src => src.SettledByPriceList != null ? src.SettledByPriceList.PriceListName : null)
-                .Map(dest => dest.Items, src => src.VPP02_RequestDetails.Where(d => !d.IsDeleted));
+                .Map(dest => dest.Items, src => src.RequestDetails.Where(d => !d.IsDeleted));
         }
     }
 }

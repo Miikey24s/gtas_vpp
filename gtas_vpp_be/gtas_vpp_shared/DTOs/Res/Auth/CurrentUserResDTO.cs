@@ -14,6 +14,6 @@ public sealed class CurrentUserResDTO
     public string GroupName { get; set; } = string.Empty;
     public long MemberCompanyCode { get; set; }
     public Guid PrimaryDepartmentId { get; set; }
-    public string DepartmentCode { get; set; } = string.Empty;
-    public string DepartmentName { get; set; } = string.Empty;
+    public string PrimaryDepartmentCode { get; set; } = string.Empty;
+    public string PrimaryDepartmentName { get; set; } = string.Empty;
 }

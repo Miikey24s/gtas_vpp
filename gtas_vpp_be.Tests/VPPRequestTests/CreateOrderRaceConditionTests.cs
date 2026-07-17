@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace gtas_vpp_be.Tests.VPPRequestTests;
+namespace gtas_vpp_be.Tests.VppItemRequestTests;
 
 public class CreateOrderRaceConditionTests
 {
@@ -38,7 +38,7 @@ public class CreateOrderRaceConditionTests
         var request2 = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
         var barrier = new AsyncBarrier(2);
 
-        // P1: Clock at day 10 ⇒ current period = April 2026, matching the requests' Y/M.
+        // P1: Clock at day 10 ⇒ current period = April 2026, matching the requests' Year/Month.
         var results = await Task.WhenAll(
             CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0), barrier).CreateOrderAsync(request1, userId, "IT", "77500")),
             CaptureAsync(() => CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0), barrier).CreateOrderAsync(request2, userId, "IT", "77500")));
@@ -52,8 +52,8 @@ public class CreateOrderRaceConditionTests
         Assert.True(results.Count(x => x.Exception is ConflictException) == 1, outcomeDetails);
 
         using var verifyContext = database.CreateContext();
-        Assert.Equal(1, await verifyContext.Set<VPP01_RequestHeader>()
-            .CountAsync(x => x.CreateUserId == userId && x.Y == 2026 && x.M == 4 && !x.IsAdditionalOrder && !x.IsDeleted));
+        Assert.Equal(1, await verifyContext.Set<VppRequest>()
+            .CountAsync(x => x.CreatedByUserId == userId && x.Year == 2026 && x.Month == 4 && !x.IsAdditionalOrder && !x.IsDeleted));
     }
 
     [Fact]
@@ -70,13 +70,13 @@ public class CreateOrderRaceConditionTests
         var first = CreateOrderRequest(2026, 4, isAdditionalOrder: false, vppId);
         var second = CreateOrderRequest(2026, 5, isAdditionalOrder: false, vppId);
 
-        // P1: Use mid-month clocks so each Y/M matches the BE-computed current period.
+        // P1: Use mid-month clocks so each Year/Month matches the BE-computed current period.
         await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0)).CreateOrderAsync(first, userId, "IT", "77500");
         await CreateService(database, new DateTime(2026, 5, 10, 9, 0, 0)).CreateOrderAsync(second, userId, "IT", "77500");
 
         using var verifyContext = database.CreateContext();
-        Assert.Equal(2, await verifyContext.Set<VPP01_RequestHeader>()
-            .CountAsync(x => x.CreateUserId == userId && !x.IsAdditionalOrder && !x.IsDeleted));
+        Assert.Equal(2, await verifyContext.Set<VppRequest>()
+            .CountAsync(x => x.CreatedByUserId == userId && !x.IsAdditionalOrder && !x.IsDeleted));
     }
 
     [Fact]
@@ -102,8 +102,8 @@ public class CreateOrderRaceConditionTests
             .CreateOrderAsync(additional, userId, "IT", "77500");
 
         using var verifyContext = database.CreateContext();
-        Assert.Equal(2, await verifyContext.Set<VPP01_RequestHeader>()
-            .CountAsync(x => x.CreateUserId == userId && x.Y == 2026 && x.M == 4 && !x.IsDeleted));
+        Assert.Equal(2, await verifyContext.Set<VppRequest>()
+            .CountAsync(x => x.CreatedByUserId == userId && x.Year == 2026 && x.Month == 4 && !x.IsDeleted));
     }
 
     [Fact]
@@ -140,8 +140,8 @@ public class CreateOrderRaceConditionTests
         Assert.Equal(1, results.Count(x => x.Success));
         Assert.Equal(3, results.Count(x => !x.Success));
         using var verifyContext = database.CreateContext();
-        var pending = await verifyContext.Set<VPP01_RequestHeader>()
-            .Where(x => x.CreateUserId == userId
+        var pending = await verifyContext.Set<VppRequest>()
+            .Where(x => x.CreatedByUserId == userId
                 && x.IsAdditionalOrder
                 && x.IsCurrentRevision
                 && !x.IsDeleted
@@ -174,7 +174,7 @@ public class CreateOrderRaceConditionTests
         using (var context = database.CreateContext())
         {
             await context.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE VPP01_RequestHeader
+                UPDATE Requests
                 SET RowVersion = {rowVersion}
                 WHERE Id = {original.Id};
                 """);
@@ -195,7 +195,7 @@ public class CreateOrderRaceConditionTests
         Assert.True(results.Count(x => x.Success) == 1, outcomeDetails);
         Assert.True(results.Count(x => x.Exception is ConflictException) == 1, outcomeDetails);
         using var verifyContext = database.CreateContext();
-        var series = await verifyContext.Set<VPP01_RequestHeader>()
+        var series = await verifyContext.Set<VppRequest>()
             .Where(x => x.RequestSeriesId == original.RequestSeriesId)
             .OrderBy(x => x.RevisionNumber)
             .ToListAsync();
@@ -261,17 +261,17 @@ public class CreateOrderRaceConditionTests
             Options.Create(new JiraSettings()));
     }
 
-    private static VPP01_CreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)
+    private static VppRequestCreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)
         => new()
         {
-            Y = year,
-            M = month,
+            Year = year,
+            Month = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
             SupplementReason = isAdditionalOrder ? "Needed for a new employee" : null,
-            Items = new List<VPP02_ItemReqDTO>
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId, Qty = 1, Description = "Item" }
+                new() { VppId = vppId, Qty = 1, Description = "Item" }
             }
         };
 
@@ -280,28 +280,28 @@ public class CreateOrderRaceConditionTests
         var calculator = new PeriodCalculator();
         var period = new Period(year, month);
         var timestamp = calculator.StartAtUtc(period);
-        context.Set<VPP00_Period>().Add(new VPP00_Period
+        context.Set<VppPeriod>().Add(new VppPeriod
         {
             Id = Guid.NewGuid(),
             MemberCompanyCode = "77500",
             TimeZoneId = "Asia/Ho_Chi_Minh",
-            Y = year,
-            M = month,
+            Year = year,
+            Month = month,
             StartAtUtc = timestamp,
             SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(period),
             SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
                 period, TimeSpan.FromDays(2)),
             State = VppPeriodState.Open,
-            CreateUserId = 5615,
-            CreateDate = timestamp,
-            UpdateUserId = 5615,
-            UpdateDate = timestamp,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = timestamp,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = timestamp,
             IsDeleted = false
         });
         await context.SaveChangesAsync();
     }
 
-    private static VPP01_UpdateReqDTO CreateUpdateRequest(
+    private static VppRequestUpdateReqDTO CreateUpdateRequest(
         Guid requestId,
         int userId,
         Guid vppId,
@@ -311,15 +311,15 @@ public class CreateOrderRaceConditionTests
         => new()
         {
             Id = requestId,
-            UpdateUserId = userId,
+            UpdatedByUserId = userId,
             Description = "Concurrent replacement",
             RowVersion = rowVersion,
             IdempotencyKey = idempotencyKey,
             Items =
             [
-                new VPP02_ItemReqDTO
+                new VppRequestDetailItemReqDTO
                 {
-                    VPPId = vppId,
+                    VppId = vppId,
                     Qty = quantity,
                     Description = "Item"
                 }

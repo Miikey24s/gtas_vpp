@@ -27,7 +27,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool _initialized;
 
         // Convenience alias so the razor template keeps its existing PendingOrders name.
-        public List<VPP01_RequestHeaderResDTO> PendingOrders => Orders;
+        public List<VppRequestResDTO> PendingOrders => Orders;
 
         protected override bool CanView => HasDashboardPermission(Permissions.RequestAdminApproval)
             || HasDashboardPermission(Permissions.PeriodSettle);
@@ -135,7 +135,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        private async Task HandleApproveClick(VPP01_RequestHeaderResDTO order)
+        private async Task HandleApproveClick(VppRequestResDTO order)
         {
             if (order == null || !CanApprove) return;
 
@@ -170,7 +170,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        private async Task HandleRejectClick(VPP01_RequestHeaderResDTO order)
+        private async Task HandleRejectClick(VppRequestResDTO order)
         {
             if (order == null || !CanReject) return;
 

@@ -5,7 +5,7 @@ namespace gtas_vpp_be.Model.Auth;
 
 /// <summary>
 /// Application-owned human identity. Business authorization remains in
-/// P02/P04/P06; ASP.NET Core Identity owns credentials and account security.
+/// permission groups and memberships; ASP.NET Core Identity owns credentials and account security.
 /// </summary>
 public sealed class AppUser : IdentityUser<int>
 {

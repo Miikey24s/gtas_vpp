@@ -24,7 +24,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         _priceListService = priceListService;
     }
 
-    public async Task<L07_PriceListResDTO> PublishAsync(
+    public async Task<PriceListResDTO> PublishAsync(
         Guid id,
         PriceBookStatusReqDTO request,
         int userId,
@@ -34,12 +34,12 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            var entity = await _unitOfWork.VPPContext.Set<L07_PriceList>()
-                .Include(x => x.L06_VPPSupplierMappings)
+            var entity = await _unitOfWork.VPPContext.Set<PriceList>()
+                .Include(x => x.SupplierProductMappings)
                 .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken)
                 ?? throw new BusinessException("Price book not found.");
 
-            if (entity.Status != L07_PriceListStatus.Draft)
+            if (entity.Status != PriceListStatus.Draft)
             {
                 throw new BusinessException("Only a draft price book can be published.");
             }
@@ -48,14 +48,14 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
             await ValidateForPublishAsync(entity, cancellationToken);
 
             var nowUtc = PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
-            entity.Status = L07_PriceListStatus.Published;
+            entity.Status = PriceListStatus.Published;
             entity.PublishedAtUtc = nowUtc;
             entity.PublishedByUserId = userId;
             entity.ExpiredAtUtc = null;
             entity.ExpiredByUserId = null;
             entity.StatusReason = reason;
-            entity.UpdateDate = nowUtc;
-            entity.UpdateUserId = userId;
+            entity.UpdatedAtUtc = nowUtc;
+            entity.UpdatedByUserId = userId;
 
             await _unitOfWork.CommitAsync();
             return (await _priceListService.GetByIdAsync(id))!;
@@ -67,7 +67,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         }
     }
 
-    public async Task<L07_PriceListResDTO> ExpireAsync(
+    public async Task<PriceListResDTO> ExpireAsync(
         Guid id,
         PriceBookStatusReqDTO request,
         int userId,
@@ -77,11 +77,11 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            var entity = await _unitOfWork.VPPContext.Set<L07_PriceList>()
+            var entity = await _unitOfWork.VPPContext.Set<PriceList>()
                 .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken)
                 ?? throw new BusinessException("Price book not found.");
 
-            if (entity.Status != L07_PriceListStatus.Published)
+            if (entity.Status != PriceListStatus.Published)
             {
                 throw new BusinessException("Only a published price book can be expired.");
             }
@@ -94,13 +94,13 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
                 throw new BusinessException("Expiry must be later than EffectiveFromUtc.");
             }
 
-            entity.Status = L07_PriceListStatus.Expired;
+            entity.Status = PriceListStatus.Expired;
             entity.EffectiveToUtc = effectiveToUtc;
             entity.ExpiredAtUtc = nowUtc;
             entity.ExpiredByUserId = userId;
             entity.StatusReason = reason;
-            entity.UpdateDate = nowUtc;
-            entity.UpdateUserId = userId;
+            entity.UpdatedAtUtc = nowUtc;
+            entity.UpdatedByUserId = userId;
 
             await _unitOfWork.CommitAsync();
             return (await _priceListService.GetByIdAsync(id))!;
@@ -120,10 +120,10 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         var asOfUtc = NormalizeUtc(request.PriceAsOfUtc);
         var itemIds = items.Keys.ToArray();
 
-        var booksQuery = _unitOfWork.VPPContext.Set<L07_PriceList>()
+        var booksQuery = _unitOfWork.VPPContext.Set<PriceList>()
             .AsNoTracking()
             .Where(x => !x.IsDeleted
-                        && x.Status == L07_PriceListStatus.Published
+                        && x.Status == PriceListStatus.Published
                         && x.SupplierId.HasValue
                         && x.EffectiveFromUtc <= asOfUtc
                         && (!x.EffectiveToUtc.HasValue || asOfUtc < x.EffectiveToUtc.Value));
@@ -149,11 +149,11 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
                 book.RebateAmount,
                 book.FeeAmount,
                 book.ShippingAmount,
-                Items = book.L06_VPPSupplierMappings!
-                    .Where(item => !item.IsDeleted && itemIds.Contains(item.L04_VPPId))
+                Items = book.SupplierProductMappings!
+                    .Where(item => !item.IsDeleted && itemIds.Contains(item.VppItemId))
                     .Select(item => new
                     {
-                        item.L04_VPPId,
+                        item.VppItemId,
                         item.NetPrice,
                         item.Price,
                         item.VatRate,
@@ -185,7 +185,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
 
             foreach (var requested in items)
             {
-                var matching = book.Items.Where(x => x.L04_VPPId == requested.Key).ToList();
+                var matching = book.Items.Where(x => x.VppItemId == requested.Key).ToList();
                 if (matching.Count == 0)
                 {
                     quote.MissingVppIds.Add(requested.Key);
@@ -270,7 +270,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         };
     }
 
-    private async Task ValidateForPublishAsync(L07_PriceList entity, CancellationToken cancellationToken)
+    private async Task ValidateForPublishAsync(PriceList entity, CancellationToken cancellationToken)
     {
         if (!entity.SupplierId.HasValue)
         {
@@ -286,7 +286,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         }
         ValidateCommercialTerms(entity.DiscountRate, entity.RebateAmount, entity.FeeAmount, entity.ShippingAmount);
 
-        var supplierActive = await _unitOfWork.VPPContext.Set<L05_VPPSupplier>()
+        var supplierActive = await _unitOfWork.VPPContext.Set<Supplier>()
             .AsNoTracking()
             .AnyAsync(x => x.Id == entity.SupplierId.Value && !x.IsDeleted, cancellationToken);
         if (!supplierActive)
@@ -294,16 +294,16 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
             throw new BusinessException("Supplier is missing or inactive.");
         }
 
-        var activeItems = entity.L06_VPPSupplierMappings?.Where(x => !x.IsDeleted).ToList() ?? [];
+        var activeItems = entity.SupplierProductMappings?.Where(x => !x.IsDeleted).ToList() ?? [];
         if (activeItems.Count == 0)
         {
             throw new BusinessException("At least one active price-book item is required before publish.");
         }
-        if (activeItems.Any(x => x.L05_VPPSupplierId != entity.SupplierId.Value))
+        if (activeItems.Any(x => x.SupplierId != entity.SupplierId.Value))
         {
             throw new BusinessException("Every price-book item must belong to the price book supplier.");
         }
-        if (activeItems.GroupBy(x => x.L04_VPPId).Any(group => group.Count() > 1))
+        if (activeItems.GroupBy(x => x.VppItemId).Any(group => group.Count() > 1))
         {
             throw new BusinessException("Duplicate active item rows must be resolved before publish.");
         }
@@ -313,17 +313,17 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
             throw new BusinessException("Price, VAT, MOQ or lead-time values are invalid.");
         }
 
-        var itemIds = activeItems.Select(x => x.L04_VPPId).Distinct().ToArray();
-        var overlaps = await _unitOfWork.VPPContext.Set<L07_PriceList>()
+        var itemIds = activeItems.Select(x => x.VppItemId).Distinct().ToArray();
+        var overlaps = await _unitOfWork.VPPContext.Set<PriceList>()
             .AsNoTracking()
             .AnyAsync(other => other.Id != entity.Id
                                && !other.IsDeleted
-                               && other.Status == L07_PriceListStatus.Published
+                               && other.Status == PriceListStatus.Published
                                && other.SupplierId == entity.SupplierId
                                && (other.EffectiveToUtc == null || entity.EffectiveFromUtc < other.EffectiveToUtc)
                                && (entity.EffectiveToUtc == null || other.EffectiveFromUtc < entity.EffectiveToUtc)
-                               && other.L06_VPPSupplierMappings!.Any(item =>
-                                   !item.IsDeleted && itemIds.Contains(item.L04_VPPId)),
+                               && other.SupplierProductMappings!.Any(item =>
+                                   !item.IsDeleted && itemIds.Contains(item.VppItemId)),
                 cancellationToken);
         if (overlaps)
         {
@@ -331,7 +331,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         }
     }
 
-    private void ValidateRowVersion(L07_PriceList entity, byte[]? supplied)
+    private void ValidateRowVersion(PriceList entity, byte[]? supplied)
     {
         if (supplied is not { Length: > 0 })
         {

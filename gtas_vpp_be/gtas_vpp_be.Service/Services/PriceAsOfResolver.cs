@@ -72,7 +72,7 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         DateTime asOfUtc,
         CancellationToken cancellationToken)
     {
-        var locked = await _unitOfWork.VPPContext.Set<L07_PriceList>()
+        var locked = await _unitOfWork.VPPContext.Set<PriceList>()
             .AsNoTracking()
             .Where(x => x.Id == request.LockedPriceListId!.Value && !x.IsDeleted)
             .Select(x => new
@@ -99,7 +99,7 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
                 "The locked price book belongs to a different supplier.");
         }
 
-        if (locked.PriceList.Status != L07_PriceListStatus.Published
+        if (locked.PriceList.Status != PriceListStatus.Published
             || locked.PriceList.EffectiveFromUtc > asOfUtc
             || (locked.PriceList.EffectiveToUtc.HasValue && asOfUtc >= locked.PriceList.EffectiveToUtc.Value))
         {
@@ -107,10 +107,10 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
                 "The locked price book is not published and effective at PriceAsOfUtc.");
         }
 
-        var items = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
+        var items = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
             .AsNoTracking()
-            .Where(x => x.L07_PriceListId == locked.PriceList.Id
-                        && x.L04_VPPId == request.VppId
+            .Where(x => x.PriceListId == locked.PriceList.Id
+                        && x.VppItemId == request.VppId
                         && !x.IsDeleted)
             .Select(x => new PriceCandidate(
                 locked.PriceList.Id,
@@ -141,11 +141,11 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
 
     private IQueryable<PriceCandidate> CandidateRows(Guid vppId, Guid? supplierId, DateTime asOfUtc)
     {
-        var books = _unitOfWork.VPPContext.Set<L07_PriceList>()
+        var books = _unitOfWork.VPPContext.Set<PriceList>()
             .AsNoTracking()
             .Where(x => !x.IsDeleted
                         && x.SupplierId.HasValue
-                        && x.Status == L07_PriceListStatus.Published
+                        && x.Status == PriceListStatus.Published
                         && x.EffectiveFromUtc <= asOfUtc
                         && (!x.EffectiveToUtc.HasValue || asOfUtc < x.EffectiveToUtc.Value));
 
@@ -155,9 +155,9 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         }
 
         return from book in books
-               join item in _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>().AsNoTracking()
-                   on book.Id equals item.L07_PriceListId
-               where item.L04_VPPId == vppId && !item.IsDeleted
+               join item in _unitOfWork.VPPContext.Set<SupplierProductMapping>().AsNoTracking()
+                   on book.Id equals item.PriceListId
+               where item.VppItemId == vppId && !item.IsDeleted
                select new PriceCandidate(
                    book.Id,
                    book.PriceListCode,
@@ -181,17 +181,17 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         DateTime asOfUtc,
         CancellationToken cancellationToken)
     {
-        return await (from book in _unitOfWork.VPPContext.Set<L07_PriceList>().AsNoTracking()
-                      join item in _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>().AsNoTracking()
-                          on book.Id equals item.L07_PriceListId
+        return await (from book in _unitOfWork.VPPContext.Set<PriceList>().AsNoTracking()
+                      join item in _unitOfWork.VPPContext.Set<SupplierProductMapping>().AsNoTracking()
+                          on book.Id equals item.PriceListId
                       where !book.IsDeleted
                             && !book.SupplierId.HasValue
-                            && book.Status == L07_PriceListStatus.Published
+                            && book.Status == PriceListStatus.Published
                             && book.EffectiveFromUtc <= asOfUtc
                             && (!book.EffectiveToUtc.HasValue || asOfUtc < book.EffectiveToUtc.Value)
                             && !item.IsDeleted
-                            && item.L04_VPPId == vppId
-                            && (!supplierId.HasValue || item.L05_VPPSupplierId == supplierId.Value)
+                            && item.VppItemId == vppId
+                            && (!supplierId.HasValue || item.SupplierId == supplierId.Value)
                       select item.Id).AnyAsync(cancellationToken);
     }
 
@@ -201,7 +201,7 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         DateTime asOfUtc,
         CancellationToken cancellationToken)
     {
-        var books = _unitOfWork.VPPContext.Set<L07_PriceList>()
+        var books = _unitOfWork.VPPContext.Set<PriceList>()
             .AsNoTracking()
             .Where(x => !x.IsDeleted && x.SupplierId.HasValue);
         if (supplierId.HasValue)
@@ -210,11 +210,11 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         }
 
         return await (from book in books
-                      join item in _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>().AsNoTracking()
-                          on book.Id equals item.L07_PriceListId
-                      where item.L04_VPPId == vppId
+                      join item in _unitOfWork.VPPContext.Set<SupplierProductMapping>().AsNoTracking()
+                          on book.Id equals item.PriceListId
+                      where item.VppItemId == vppId
                             && !item.IsDeleted
-                            && (book.Status != L07_PriceListStatus.Published
+                            && (book.Status != PriceListStatus.Published
                                 || book.EffectiveFromUtc > asOfUtc
                                 || (book.EffectiveToUtc.HasValue && asOfUtc >= book.EffectiveToUtc.Value))
                       select item.Id).AnyAsync(cancellationToken);

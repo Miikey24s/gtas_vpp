@@ -29,7 +29,6 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
     private const string SqlServerProvider = "Microsoft.EntityFrameworkCore.SqlServer";
     private const string InMemoryProvider = "Microsoft.EntityFrameworkCore.InMemory";
     private const string ProductionDatabase = "GTAS_VPP_LIVE";
-    private const string DepartmentType = "PhongBan";
     private const string BootstrapLockResource = "GTAS_VPP:auth:bootstrap-owner";
     private const string BootstrapAuditAction = "AUTH_BOOTSTRAP_OWNER_CREATED";
     private const int SystemActorId = -1;
@@ -135,7 +134,7 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
 
         try
         {
-            var existingOperation = await _context.A02_AuthBootstrapOperations
+            var existingOperation = await _context.AuthBootstrapOperations
                 .AsNoTracking()
                 .SingleOrDefaultAsync(
                     operation => operation.OperationKey == input.OperationKey,
@@ -155,7 +154,7 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
                     "Owner bootstrap requires zero preexisting active application accounts.");
             }
 
-            if (await _context.P04_UserGroups
+            if (await _context.UserGroupMemberships
                     .AsNoTracking()
                     .AnyAsync(membership => !membership.IsDeleted, cancellationToken))
             {
@@ -210,24 +209,24 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
                     "The generated account identifier is outside the reserved application-owned range.");
             }
 
-            var membership = new P04_UserGroup
+            var membership = new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 UserId = createdOwner.Id,
                 AccountId = createdOwner.Id,
-                P02_GroupId = CanonicalRbac.SystemAdmin.GroupId,
-                LEX02_CompanyDepartmentLocationId = prerequisites.Department.Id,
+                PermissionGroupId = CanonicalRbac.SystemAdmin.GroupId,
+                DepartmentId = prerequisites.Department.Id,
                 Description = "Initial application owner membership.",
-                CreateUserId = SystemActorId,
-                UpdateUserId = SystemActorId,
-                CreateDate = nowUtc,
-                UpdateDate = nowUtc,
+                CreatedByUserId = SystemActorId,
+                UpdatedByUserId = SystemActorId,
+                CreatedAtUtc = nowUtc,
+                UpdatedAtUtc = nowUtc,
                 IsDeleted = false
             };
 
             var correlationId = input.Fingerprint[..32];
-            _context.P04_UserGroups.Add(membership);
-            _context.A02_AuthBootstrapOperations.Add(new A02_AuthBootstrapOperation
+            _context.UserGroupMemberships.Add(membership);
+            _context.AuthBootstrapOperations.Add(new AuthBootstrapOperation
             {
                 OperationKey = input.OperationKey,
                 InputFingerprint = input.Fingerprint,
@@ -235,7 +234,7 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
                 Status = CompletedStatus,
                 CompletedAtUtc = nowUtc
             });
-            _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+            _context.SecurityAudits.Add(new SecurityAudit
             {
                 Id = Guid.NewGuid(),
                 ActorUserId = SystemActorId,
@@ -287,7 +286,7 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
     }
 
     private async Task<AuthBootstrapResult> VerifyCompletedOperationAsync(
-        A02_AuthBootstrapOperation operation,
+        AuthBootstrapOperation operation,
         ValidatedInput input,
         CancellationToken cancellationToken)
     {
@@ -330,16 +329,17 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
                 "The completed bootstrap ledger does not match the current owner account state.");
         }
 
-        var matchingMemberships = await _context.P04_UserGroups
+        var matchingMemberships = await _context.UserGroupMemberships
             .AsNoTracking()
             .Where(membership => !membership.IsDeleted && membership.AccountId == owner.Id)
+            .OrderBy(membership => membership.Id)
             .Take(2)
             .ToListAsync(cancellationToken);
 
         if (matchingMemberships.Count != 1
             || matchingMemberships[0].UserId != owner.Id
-            || matchingMemberships[0].P02_GroupId != CanonicalRbac.SystemAdmin.GroupId
-            || matchingMemberships[0].LEX02_CompanyDepartmentLocationId != prerequisites.Department.Id)
+            || matchingMemberships[0].PermissionGroupId != CanonicalRbac.SystemAdmin.GroupId
+            || matchingMemberships[0].DepartmentId != prerequisites.Department.Id)
         {
             throw Failure(
                 AuthBootstrapFailure.CompletedStateMismatch,
@@ -353,7 +353,7 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
         ValidatedInput input,
         CancellationToken cancellationToken)
     {
-        var groupExists = await _context.P02_Groups
+        var groupExists = await _context.PermissionGroups
             .AsNoTracking()
             .AnyAsync(
                 group => group.Id == CanonicalRbac.SystemAdmin.GroupId
@@ -367,12 +367,40 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
                 "The canonical active System Admin group is missing.");
         }
 
-        var departments = await _context.LEX02_CompanyDepartmentLocations
-            .AsNoTracking()
+        var departments = await _context.Departments
             .Where(department => !department.IsDeleted
-                && department.LEX02Code == input.PrimaryDepartmentCode)
+                && department.Code == input.PrimaryDepartmentCode)
+            .OrderBy(department => department.Id)
             .Take(2)
             .ToListAsync(cancellationToken);
+        if (departments.Count == 0 && input.CreatePrimaryDepartmentIfMissing)
+        {
+            if (!_databaseBinding.IsTestEnvironment
+                || !HasTestOrDemoToken(_databaseBinding.DatabaseName)
+                || !_context.Database.IsRelational())
+            {
+                throw Failure(
+                    AuthBootstrapFailure.InvalidPrimaryDepartment,
+                    "Automatic department creation is allowed only for a relational TEST or DEMO database.");
+            }
+
+            var now = DateTime.UtcNow;
+            var createdDepartment = new Department
+            {
+                Id = Guid.NewGuid(),
+                Code = input.PrimaryDepartmentCode,
+                Name = input.PrimaryDepartmentName,
+                CreatedByUserId = SystemActorId,
+                CreatedAtUtc = now,
+                UpdatedByUserId = SystemActorId,
+                UpdatedAtUtc = now,
+                IsDeleted = false
+            };
+            _context.Departments.Add(createdDepartment);
+            await _context.SaveChangesAsync(cancellationToken);
+            departments.Add(createdDepartment);
+        }
+
         if (departments.Count != 1)
         {
             throw Failure(
@@ -381,27 +409,26 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
         }
 
         var department = departments[0];
-        if (department.Id == Guid.Empty
-            || !string.Equals(department.LEX02Type, DepartmentType, StringComparison.OrdinalIgnoreCase))
+        if (department.Id == Guid.Empty)
         {
             throw Failure(
                 AuthBootstrapFailure.InvalidPrimaryDepartment,
-                "The selected location is not an active primary department.");
+                "The selected department is invalid.");
         }
 
-        var hasPermissionManage = await _context.P06_GroupPageComponentMappings
+        var hasPermissionManage = await _context.GroupPageComponentMappings
             .AsNoTracking()
             .AnyAsync(mapping =>
-                mapping.P02_GroupId == CanonicalRbac.SystemAdmin.GroupId
+                mapping.PermissionGroupId == CanonicalRbac.SystemAdmin.GroupId
                 && mapping.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
                 && mapping.IsEnable
                 && mapping.IsVisible
-                && mapping.P05_PageComponentMapping != null
-                && mapping.P05_PageComponentMapping.P01_Page != null
-                && !mapping.P05_PageComponentMapping.P01_Page.IsDeleted
-                && mapping.P05_PageComponentMapping.P03_Component != null
-                && !mapping.P05_PageComponentMapping.P03_Component.IsDeleted
-                && mapping.P05_PageComponentMapping.P03_Component.ComponentCode == Permissions.PermissionManage,
+                && mapping.PageComponentMapping != null
+                && mapping.PageComponentMapping.PermissionPage != null
+                && !mapping.PageComponentMapping.PermissionPage.IsDeleted
+                && mapping.PageComponentMapping.PermissionComponent != null
+                && !mapping.PageComponentMapping.PermissionComponent.IsDeleted
+                && mapping.PageComponentMapping.PermissionComponent.ComponentCode == Permissions.PermissionManage,
                 cancellationToken);
         if (!hasPermissionManage)
         {
@@ -425,20 +452,20 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
                 && user.EmailConfirmed
                 && user.MustChangePassword,
                 cancellationToken);
-        var activeMembershipCount = await _context.P04_UserGroups
+        var activeMembershipCount = await _context.UserGroupMemberships
             .AsNoTracking()
             .CountAsync(membership => !membership.IsDeleted
                 && membership.AccountId == accountId
                 && membership.UserId == accountId
-                && membership.P02_GroupId == CanonicalRbac.SystemAdmin.GroupId
-                && membership.LEX02_CompanyDepartmentLocationId == departmentId,
+                && membership.PermissionGroupId == CanonicalRbac.SystemAdmin.GroupId
+                && membership.DepartmentId == departmentId,
                 cancellationToken);
-        var ledgerCount = await _context.A02_AuthBootstrapOperations
+        var ledgerCount = await _context.AuthBootstrapOperations
             .AsNoTracking()
             .CountAsync(operation => operation.AccountId == accountId
                 && operation.Status == CompletedStatus,
                 cancellationToken);
-        var auditCount = await _context.A01_SecurityAudits
+        var auditCount = await _context.SecurityAudits
             .AsNoTracking()
             .CountAsync(audit => audit.TargetUserId == accountId
                 && audit.Action == BootstrapAuditAction
@@ -560,24 +587,24 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
     {
         _context.ChangeTracker.Clear();
 
-        var memberships = await _context.P04_UserGroups
+        var memberships = await _context.UserGroupMemberships
             .Where(membership => membership.AccountId == accountId)
             .ToListAsync(cancellationToken);
-        var ledger = await _context.A02_AuthBootstrapOperations
+        var ledger = await _context.AuthBootstrapOperations
             .SingleOrDefaultAsync(operation => operation.OperationKey == input.OperationKey, cancellationToken);
-        var audits = await _context.A01_SecurityAudits
+        var audits = await _context.SecurityAudits
             .Where(audit => audit.TargetUserId == accountId && audit.Action == BootstrapAuditAction)
             .ToListAsync(cancellationToken);
         var owner = await _context.Users
             .SingleOrDefaultAsync(user => user.Id == accountId, cancellationToken);
 
-        _context.P04_UserGroups.RemoveRange(memberships);
+        _context.UserGroupMemberships.RemoveRange(memberships);
         if (ledger is not null)
         {
-            _context.A02_AuthBootstrapOperations.Remove(ledger);
+            _context.AuthBootstrapOperations.Remove(ledger);
         }
 
-        _context.A01_SecurityAudits.RemoveRange(audits);
+        _context.SecurityAudits.RemoveRange(audits);
         if (owner is not null)
         {
             _context.Users.Remove(owner);
@@ -685,6 +712,8 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
         var fullName = options.FullName?.Trim().Normalize(NormalizationForm.FormC) ?? string.Empty;
         var initialPassword = options.InitialPassword ?? string.Empty;
         var primaryDepartmentCode = options.PrimaryDepartmentCode?.Trim() ?? string.Empty;
+        var primaryDepartmentName = options.PrimaryDepartmentName?.Trim()
+            .Normalize(NormalizationForm.FormC) ?? string.Empty;
 
         var operationKeyValid = operationKey.Length is >= 1 and <= 128
             && operationKey.All(character => char.IsAsciiLetterOrDigit(character)
@@ -698,7 +727,9 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
             || email.Length > 256
             || fullName.Length is < 1 or > 250
             || initialPassword.Length is < 1 or > 1024
-            || primaryDepartmentCode.Length is < 1 or > 50)
+            || primaryDepartmentCode.Length is < 1 or > 50
+            || (options.CreatePrimaryDepartmentIfMissing
+                && primaryDepartmentName.Length is < 1 or > 200))
         {
             throw Failure(
                 AuthBootstrapFailure.InvalidOptions,
@@ -719,7 +750,9 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
             normalizedUsername,
             normalizedEmail,
             fullName,
-            primaryDepartmentCode);
+            primaryDepartmentCode,
+            options.CreatePrimaryDepartmentIfMissing,
+            primaryDepartmentName);
 
         return new ValidatedInput(
             operationKey,
@@ -730,6 +763,8 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
             fullName,
             initialPassword,
             primaryDepartmentCode,
+            options.CreatePrimaryDepartmentIfMissing,
+            primaryDepartmentName,
             fingerprint);
     }
 
@@ -738,7 +773,9 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
         string normalizedUsername,
         string normalizedEmail,
         string fullName,
-        string primaryDepartmentCode)
+        string primaryDepartmentCode,
+        bool createPrimaryDepartmentIfMissing,
+        string primaryDepartmentName)
     {
         var builder = new StringBuilder();
         AppendFingerprintField(builder, "operation", operationKey);
@@ -746,6 +783,8 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
         AppendFingerprintField(builder, "email", normalizedEmail);
         AppendFingerprintField(builder, "fullName", fullName);
         AppendFingerprintField(builder, "department", primaryDepartmentCode.ToUpperInvariant());
+        AppendFingerprintField(builder, "createDepartment", createPrimaryDepartmentIfMissing ? "1" : "0");
+        AppendFingerprintField(builder, "departmentName", primaryDepartmentName);
         AppendFingerprintField(builder, "groupId", CanonicalRbac.SystemAdmin.GroupId.ToString("D"));
         AppendFingerprintField(builder, "groupCode", CanonicalRbac.SystemAdmin.GroupCode);
         AppendFingerprintField(
@@ -800,7 +839,9 @@ public sealed class AuthBootstrapProvisioner : IAuthBootstrapProvisioner
         string FullName,
         string InitialPassword,
         string PrimaryDepartmentCode,
+        bool CreatePrimaryDepartmentIfMissing,
+        string PrimaryDepartmentName,
         string Fingerprint);
 
-    private sealed record BootstrapPrerequisites(LEX02_CompanyDepartmentLocation Department);
+    private sealed record BootstrapPrerequisites(Department Department);
 }

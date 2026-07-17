@@ -15,7 +15,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         [Inject] private DialogService DialogService { get; set; } = default!;
         [Parameter] public EventCallback OnSettled { get; set; }
 
-        private List<L07_PriceListResDTO> priceLists = [];
+        private List<PriceListResDTO> priceLists = [];
         private Guid? selectedPriceListId;
         private int selectedYear = 2024;
         private int selectedMonth = 1;
@@ -27,7 +27,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private bool isSettling;
         private bool isCorrecting;
         private bool isPreviewing;
-        private VPP_SettlementPreviewResDTO? preview;
+        private SettlementPreviewResDTO? preview;
         private string correctionReason = string.Empty;
         private string? settlementIdempotencyKey;
         private string? alertMessage;
@@ -88,7 +88,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         {
             try
             {
-                priceLists = (await ApiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [])
+                priceLists = (await ApiServices.GetFromApiAsync<List<PriceListResDTO>>(Config.LibraryApi.PriceList) ?? [])
                     .Where(x => x.Status == "Published" && !x.IsDeleted)
                     .ToList();
             }
@@ -102,7 +102,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         {
             try
             {
-                var period = await ApiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>(Config.VppApi.PeriodInfo);
+                var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
                 if (period is null)
                 {
                     canSettle = false;
@@ -136,7 +136,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             isLoading = true;
             try
             {
-                var status = await ApiServices.GetFromApiAsync<VPP_PeriodSettlementResDTO>(
+                var status = await ApiServices.GetFromApiAsync<PeriodSettlementResDTO>(
                     string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
                 ApplyStatus(status);
             }
@@ -152,7 +152,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
         }
 
-        private void ApplyStatus(VPP_PeriodSettlementResDTO? status)
+        private void ApplyStatus(PeriodSettlementResDTO? status)
         {
             if (status is null)
             {
@@ -205,12 +205,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             isPreviewing = true;
             try
             {
-                preview = await ApiServices.PostFromApiAsync<VPP_SettlementPreviewResDTO>(
+                preview = await ApiServices.PostFromApiAsync<SettlementPreviewResDTO>(
                     Config.RequestApi.PeriodSettlement.Preview,
-                    new VPP_SettlementPreviewReqDTO
+                    new SettlementPreviewReqDTO
                     {
-                        Y = selectedYear,
-                        M = selectedMonth,
+                        Year = selectedYear,
+                        Month = selectedMonth,
                         PriceListId = selectedPriceListId,
                         PriceAsOfUtc = DateTime.UtcNow
                     });
@@ -267,12 +267,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             isSettling = true;
             try
             {
-                await ApiServices.PostFromApiAsync<VPP_SettlementRevisionResDTO>(
+                await ApiServices.PostFromApiAsync<SettlementRevisionResDTO>(
                     Config.RequestApi.PeriodSettlement.Confirm,
-                    new VPP_SettlementConfirmReqDTO
+                    new SettlementConfirmReqDTO
                     {
-                        Y = selectedYear,
-                        M = selectedMonth,
+                        Year = selectedYear,
+                        Month = selectedMonth,
                         PriceAsOfUtc = preview!.PriceAsOfUtc,
                         InputHash = preview.InputHash,
                         PrimarySupplierId = preview.PrimarySupplierId!.Value,
@@ -320,7 +320,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             isCorrecting = true;
             try
             {
-                var current = await ApiServices.GetFromApiAsync<VPP_PeriodSettlementResDTO>(
+                var current = await ApiServices.GetFromApiAsync<PeriodSettlementResDTO>(
                     string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
                 if (current?.SettlementId is null)
                 {
@@ -328,12 +328,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     return;
                 }
 
-                await ApiServices.PostFromApiAsync<VPP_SettlementRevisionResDTO>(
+                await ApiServices.PostFromApiAsync<SettlementRevisionResDTO>(
                     string.Format(Config.RequestApi.PeriodSettlement.Correct, current.SettlementId.Value),
-                    new VPP_SettlementCorrectionReqDTO
+                    new SettlementCorrectionReqDTO
                     {
-                        Y = selectedYear,
-                        M = selectedMonth,
+                        Year = selectedYear,
+                        Month = selectedMonth,
                         PriceAsOfUtc = preview.PriceAsOfUtc,
                         InputHash = preview.InputHash,
                         PrimarySupplierId = preview.PrimarySupplierId!.Value,

@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace gtas_vpp_be.Tests.VPPRequestTests;
+namespace gtas_vpp_be.Tests.VppItemRequestTests;
 
 public class VPPRequestServiceTests
 {
@@ -26,7 +26,7 @@ public class VPPRequestServiceTests
     [Fact]
     public void ValidateItems_EmptyItems_ThrowsInvalidOperationException()
     {
-        var exception = Assert.Throws<InvalidOperationException>(() => InvokeValidateItems(new List<VPP02_ItemReqDTO>()));
+        var exception = Assert.Throws<InvalidOperationException>(() => InvokeValidateItems(new List<VppRequestDetailItemReqDTO>()));
 
         Assert.Contains("at least one item", exception.Message);
     }
@@ -34,9 +34,9 @@ public class VPPRequestServiceTests
     [Fact]
     public void ValidateItems_NonPositiveQuantity_ThrowsInvalidOperationException()
     {
-        var items = new List<VPP02_ItemReqDTO>
+        var items = new List<VppRequestDetailItemReqDTO>
         {
-            new() { VPPId = Guid.NewGuid(), Qty = 0 }
+            new() { VppId = Guid.NewGuid(), Qty = 0 }
         };
 
         var exception = Assert.Throws<InvalidOperationException>(() => InvokeValidateItems(items));
@@ -45,13 +45,13 @@ public class VPPRequestServiceTests
     }
 
     [Fact]
-    public void ValidateItems_DuplicateVPPId_ThrowsInvalidOperationException()
+    public void ValidateItems_DuplicateVppId_ThrowsInvalidOperationException()
     {
         var vppId = Guid.NewGuid();
-        var items = new List<VPP02_ItemReqDTO>
+        var items = new List<VppRequestDetailItemReqDTO>
         {
-            new() { VPPId = vppId, Qty = 1 },
-            new() { VPPId = vppId, Qty = 2 }
+            new() { VppId = vppId, Qty = 1 },
+            new() { VppId = vppId, Qty = 2 }
         };
 
         var exception = Assert.Throws<InvalidOperationException>(() => InvokeValidateItems(items));
@@ -81,9 +81,9 @@ public class VPPRequestServiceTests
         Assert.True(result);
     }
 
-    // NOTE: Obsolete test removed — VPPCode format đã đổi sang
-    // "VPP-{Y:D4}{M:D2}-{Guid:N}" (24 chars, no userId leak) trong P0.3.
-    // Coverage chuyển sang VPPCodeGeneratorTests.cs (3 test: format/uniqueness/no-userId).
+    // NOTE: Obsolete test removed — VppCode format đã đổi sang
+    // "VPP-{Year:D4}{Month:D2}-{Guid:N}" (24 chars, no userId leak) trong P0.3.
+    // Coverage chuyển sang VppCodeGeneratorTests.cs (3 test: format/uniqueness/no-userId).
 
     [Fact]
     public async Task CreateOrderAsync_RegularOrder_CreatesSubmittedHeader()
@@ -97,7 +97,7 @@ public class VPPRequestServiceTests
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
         Assert.Equal((int)VPPStatus.Submitted, result.Status);
-        var header = Assert.Single(context.Set<VPP01_RequestHeader>());
+        var header = Assert.Single(context.Set<VppRequest>());
         Assert.Equal((int)VPPStatus.Submitted, header.Status);
         Assert.False(header.IsAdditionalOrder);
     }
@@ -120,14 +120,14 @@ public class VPPRequestServiceTests
         var result = await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
         Assert.Equal((int)VPPStatus.Pending, result.Status);
-        var header = Assert.Single(context.Set<VPP01_RequestHeader>().Where(x => x.IsAdditionalOrder));
+        var header = Assert.Single(context.Set<VppRequest>().Where(x => x.IsAdditionalOrder));
         Assert.Equal((int)VPPStatus.Pending, header.Status);
         Assert.True(header.IsAdditionalOrder);
         Assert.Equal(regular.Id, header.BaseRequestId);
         Assert.Equal("Needed for a new employee", header.SupplementReason);
         Assert.Equal(1, header.SupplementAttemptNumber);
-        var createLog = Assert.Single(context.Set<VPP03_Log>().Where(x =>
-            x.VPP01_RequestHeaderId == header.Id && x.Action == "CREATE"));
+        var createLog = Assert.Single(context.Set<RequestLog>().Where(x =>
+            x.RequestId == header.Id && x.Action == "CREATE"));
         Assert.Equal("Needed for a new employee", createLog.Reason);
     }
 
@@ -145,7 +145,7 @@ public class VPPRequestServiceTests
 
         await service.CreateOrderAsync(request, 5615, "IT", "77500");
 
-        var detail = Assert.Single(context.Set<VPP02_RequestDetail>());
+        var detail = Assert.Single(context.Set<VppRequestDetail>());
         Assert.Equal(125000L, detail.CurrentSinglePrice);
     }
 
@@ -156,8 +156,8 @@ public class VPPRequestServiceTests
         var now = new DateTime(2026, 5, 2, 10, 30, 0);
         var header = CreatePendingAdditionalHeader(now);
         header.RowVersion = new byte[] { 1, 2, 3 };
-        context.Set<VPP01_RequestHeader>().Add(header);
-        context.Set<VPP02_RequestDetail>().Add(CreateDetail(header.Id, now));
+        context.Set<VppRequest>().Add(header);
+        context.Set<VppRequestDetail>().Add(CreateDetail(header.Id, now));
         await context.SaveChangesAsync();
 
         var service = CreateService(context, now);
@@ -165,7 +165,7 @@ public class VPPRequestServiceTests
         await service.ApproveAdditionalOrderAsync(
             header.Id, 9001, header.RowVersion, "approve-test", "IT", true, "77500");
 
-        var saved = Assert.Single(context.Set<VPP01_RequestHeader>());
+        var saved = Assert.Single(context.Set<VppRequest>());
         Assert.Equal((int)VPPStatus.Approved, saved.Status);
         Assert.Equal(9001, saved.ApprovedById);
         Assert.Equal(now, saved.ApprovedAt);
@@ -179,8 +179,8 @@ public class VPPRequestServiceTests
         var now = new DateTime(2026, 5, 2, 10, 30, 0);
         var header = CreatePendingAdditionalHeader(now);
         header.RowVersion = new byte[] { 4, 5, 6 };
-        context.Set<VPP01_RequestHeader>().Add(header);
-        context.Set<VPP02_RequestDetail>().Add(CreateDetail(header.Id, now));
+        context.Set<VppRequest>().Add(header);
+        context.Set<VppRequestDetail>().Add(CreateDetail(header.Id, now));
         await context.SaveChangesAsync();
 
         var service = CreateService(context, now);
@@ -189,13 +189,13 @@ public class VPPRequestServiceTests
             header.Id, 9002, "Budget exceeded", header.RowVersion,
             "reject-test", "IT", true, "77500");
 
-        var saved = Assert.Single(context.Set<VPP01_RequestHeader>());
+        var saved = Assert.Single(context.Set<VppRequest>());
         Assert.Equal((int)VPPStatus.Rejected, saved.Status);
         Assert.Equal(9002, saved.RejectedById);
         Assert.Equal(now, saved.RejectedAt);
         Assert.Equal("Budget exceeded", saved.RejectReason);
 
-        var log = Assert.Single(context.Set<VPP03_Log>());
+        var log = Assert.Single(context.Set<RequestLog>());
         Assert.Equal("REJECT", log.LogTitle);
         Assert.Equal("REJECT", log.Action);
         Assert.Equal(9002, log.ActorUserId);
@@ -242,27 +242,27 @@ public class VPPRequestServiceTests
             Options.Create(new JiraSettings()));
     }
 
-    private static VPP01_CreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid? vppId = null)
+    private static VppRequestCreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid? vppId = null)
         => new()
         {
-            Y = year,
-            M = month,
+            Year = year,
+            Month = month,
             Description = "Test order",
             IsAdditionalOrder = isAdditionalOrder,
             SupplementReason = isAdditionalOrder ? "Needed for a new employee" : null,
-            Items = new List<VPP02_ItemReqDTO>
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId ?? Guid.NewGuid(), Qty = 3, Description = "Item 1" }
+                new() { VppId = vppId ?? Guid.NewGuid(), Qty = 3, Description = "Item 1" }
             }
         };
 
-    private static VPP01_RequestHeader CreatePendingAdditionalHeader(DateTime now)
+    private static VppRequest CreatePendingAdditionalHeader(DateTime now)
         => new()
         {
             Id = Guid.NewGuid(),
-            Y = 2026,
-            M = 4,
-            VPPCode = "VPP-202604-TEST-000001",
+            Year = 2026,
+            Month = 4,
+            VppCode = "VPP-202604-TEST-000001",
             Status = (int)VPPStatus.Pending,
             IsAdditionalOrder = true,
             RequestSeriesId = Guid.NewGuid(),
@@ -274,29 +274,29 @@ public class VPPRequestServiceTests
             SupplementReason = "Needed for a new employee",
             DepartmentCode = "IT",
             MemberCompanyCode = "77500",
-            CreateUserId = 5615,
-            CreateDate = now.AddDays(-1),
-            UpdateUserId = 5615,
-            UpdateDate = now.AddDays(-1),
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now.AddDays(-1),
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now.AddDays(-1),
             SubmittedDate = now.AddDays(-1)
         };
 
-    private static VPP02_RequestDetail CreateDetail(Guid headerId, DateTime now)
+    private static VppRequestDetail CreateDetail(Guid headerId, DateTime now)
         => new()
         {
             Id = Guid.NewGuid(),
-            VPP01_RequestHeaderId = headerId,
-            VPPId = Guid.NewGuid(),
+            RequestId = headerId,
+            VppId = Guid.NewGuid(),
             Qty = 1,
             CurrentSinglePrice = 1000,
             Description = "Seed detail",
-            CreateUserId = 5615,
-            CreateDate = now.AddDays(-1),
-            UpdateUserId = 5615,
-            UpdateDate = now.AddDays(-1)
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now.AddDays(-1),
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now.AddDays(-1)
         };
 
-    private static void InvokeValidateItems(List<VPP02_ItemReqDTO>? items)
+    private static void InvokeValidateItems(List<VppRequestDetailItemReqDTO>? items)
     {
         try
         {
@@ -315,8 +315,8 @@ public class VPPRequestServiceTests
             .GetMethod("IsDeadlinePassed", BindingFlags.NonPublic | BindingFlags.Instance)!
             .Invoke(service, new object[] { year, month })!;
 
-    private static string InvokeGenerateVPPCode(VPPRequestService service, int year, int month, int userId)
+    private static string InvokeGenerateVppCode(VPPRequestService service, int year, int month, int userId)
         => (string)typeof(VPPRequestService)
-            .GetMethod("GenerateVPPCode", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetMethod("GenerateVppCode", BindingFlags.NonPublic | BindingFlags.Instance)!
             .Invoke(service, new object[] { year, month, userId })!;
 }

@@ -16,12 +16,12 @@
 
 <PageTitle>GTAS VPP - @Loc["Library"]</PageTitle>
 
-@if (sp_Authentication_GetPermissionSinglePage.List_Component.Any(y => y.IsVisible))
+@if (PagePermissionResDTO.Components.Any(y => y.IsVisible))
 {
     <section class="vpp-admin-page">
         <VppPageHeader Title="@Loc["Library"]"
                        Description="@Loc["LibraryPageDescription"]"
                        HeadingId="library-heading" />
-        <Component_Library claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+        <Component_Library claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
     </section>
 }

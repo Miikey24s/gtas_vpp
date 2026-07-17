@@ -14,15 +14,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
     public partial class Tab_PriceListLibrary
     {
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
-        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+        [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
-        private List<L07_PriceListResDTO> priceLists = [];
-        private List<L05_VPPSupplierResDTO> suppliers = [];
-        private RadzenDataGrid<L07_PriceListResDTO> grid = default!;
+        private List<PriceListResDTO> priceLists = [];
+        private List<SupplierResDTO> suppliers = [];
+        private RadzenDataGrid<PriceListResDTO> grid = default!;
         private bool isLoading;
         private int count;
         private int currentSkip;
@@ -32,8 +32,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
-                suppliers = await _apiServices.GetFromApiAsync<List<L05_VPPSupplierResDTO>>(
-                    $"{Config.LibraryApi.L05_Supplier}?showDeleted=false") ?? [];
+                suppliers = await _apiServices.GetFromApiAsync<List<SupplierResDTO>>(
+                    $"{Config.LibraryApi.Suppliers}?showDeleted=false") ?? [];
             }
             catch (Exception ex)
             {
@@ -67,7 +67,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 var endpoint = BuildPriceListEndpoint(args.Filter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L07_PriceListResDTO>>(endpoint);
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
                 priceLists = result.Data ?? [];
                 count = result.TotalCount;
             }
@@ -82,7 +82,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<L07_PriceListResDTO> args)
+        private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<PriceListResDTO> args)
         {
             if (args.Column is null)
             {
@@ -99,7 +99,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     distinct: property,
                     distinctFilter: args.Filter);
 
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<L07_PriceListResDTO>>(endpoint);
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
                 args.Data = result.Data ?? [];
                 args.Count = result.TotalCount;
             }
@@ -111,14 +111,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task AddAsync()
         {
-            var result = await OpenEditorAsync(Loc["AddPriceList"].Value, new L07_PriceListUpdateReqDTO());
+            var result = await OpenEditorAsync(Loc["AddPriceList"].Value, new PriceListUpdateReqDTO());
             if (result is null) return;
 
             try
             {
-                await _apiServices.PostFromApiAsync<L07_PriceListResDTO>(
-                    Config.LibraryApi.L07_PriceList,
-                    new L07_PriceListCreateReqDTO
+                await _apiServices.PostFromApiAsync<PriceListResDTO>(
+                    Config.LibraryApi.PriceList,
+                    new PriceListCreateReqDTO
                     {
                         Code = result.Code,
                         Name = result.Name,
@@ -144,9 +144,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task EditAsync(L07_PriceListResDTO row)
+        private async Task EditAsync(PriceListResDTO row)
         {
-            var result = await OpenEditorAsync(Loc["Edit"].Value, new L07_PriceListUpdateReqDTO
+            var result = await OpenEditorAsync(Loc["Edit"].Value, new PriceListUpdateReqDTO
             {
                 Id = row.Id,
                 Code = row.PriceListCode,
@@ -170,8 +170,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PutFromApiAsync<L07_PriceListResDTO>(
-                    $"{Config.LibraryApi.L07_PriceList}/{row.Id}", result);
+                await _apiServices.PutFromApiAsync<PriceListResDTO>(
+                    $"{Config.LibraryApi.PriceList}/{row.Id}", result);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListSaved"].Value);
                 await LoadAsync();
             }
@@ -181,15 +181,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task SetDeletedAsync(L07_PriceListResDTO row, bool isDeleted)
+        private async Task SetDeletedAsync(PriceListResDTO row, bool isDeleted)
         {
             var previous = row.IsDeleted;
             row.IsDeleted = isDeleted;
 
             try
             {
-                var result = await _apiServices.PatchFromApiAsync<L07_PriceListResDTO>(
-                    $"{Config.LibraryApi.L07_PriceList}/{row.Id}/deleted",
+                var result = await _apiServices.PatchFromApiAsync<PriceListResDTO>(
+                    $"{Config.LibraryApi.PriceList}/{row.Id}/deleted",
                     new { IsDeleted = isDeleted });
 
                 if (result is null)
@@ -209,7 +209,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task HardDeleteAsync(L07_PriceListResDTO row)
+        private async Task HardDeleteAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
                 "This will permanently delete the price list.",
@@ -220,7 +220,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.L07_PriceList}/{row.Id}/hard");
+                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.PriceList}/{row.Id}/hard");
                 if (!deleted)
                 {
                     Notify(NotificationSeverity.Error, Loc["Error"].Value, Loc["DeleteFailed"].Value);
@@ -236,7 +236,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private void OnRowRenderPriceList(RowRenderEventArgs<L07_PriceListResDTO> args)
+        private void OnRowRenderPriceList(RowRenderEventArgs<PriceListResDTO> args)
         {
             if (args.Data?.IsDeleted == true)
             {
@@ -244,12 +244,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task SetDefaultAsync(L07_PriceListResDTO row)
+        private async Task SetDefaultAsync(PriceListResDTO row)
         {
             try
             {
                 await _apiServices.PostFromApiAsync<object>(
-                    string.Format(Config.LibraryApi.L07_PriceList_SetDefault, row.Id), null);
+                    string.Format(Config.LibraryApi.PriceList_SetDefault, row.Id), null);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["DefaultUpdated"].Value);
                 await LoadAsync();
             }
@@ -259,7 +259,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task PublishAsync(L07_PriceListResDTO row)
+        private async Task PublishAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
                 "Publish this draft price book? Published terms and items become immutable.",
@@ -269,8 +269,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<L07_PriceListResDTO>(
-                    string.Format(Config.LibraryApi.L07_PriceList_Publish, row.Id),
+                await _apiServices.PostFromApiAsync<PriceListResDTO>(
+                    string.Format(Config.LibraryApi.PriceList_Publish, row.Id),
                     new PriceBookStatusReqDTO
                     {
                         RowVersion = row.RowVersion,
@@ -285,7 +285,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task ExpireAsync(L07_PriceListResDTO row)
+        private async Task ExpireAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
                 "Expire this published price book? Historical data remains available.",
@@ -295,8 +295,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<L07_PriceListResDTO>(
-                    string.Format(Config.LibraryApi.L07_PriceList_Expire, row.Id),
+                await _apiServices.PostFromApiAsync<PriceListResDTO>(
+                    string.Format(Config.LibraryApi.PriceList_Expire, row.Id),
                     new PriceBookStatusReqDTO
                     {
                         RowVersion = row.RowVersion,
@@ -312,9 +312,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task CloneAsync(L07_PriceListResDTO row)
+        private async Task CloneAsync(PriceListResDTO row)
         {
-            var result = await OpenEditorAsync(Loc["Clone"].Value, new L07_PriceListUpdateReqDTO
+            var result = await OpenEditorAsync(Loc["Clone"].Value, new PriceListUpdateReqDTO
             {
                 Code = $"{row.PriceListCode}-COPY",
                 Name = $"{row.PriceListName} Copy",
@@ -324,9 +324,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<L07_PriceListResDTO>(
-                    Config.LibraryApi.L07_PriceList_Clone,
-                    new L07_PriceListCloneReqDTO
+                await _apiServices.PostFromApiAsync<PriceListResDTO>(
+                    Config.LibraryApi.PriceList_Clone,
+                    new PriceListCloneReqDTO
                     {
                         SourceId = row.Id,
                         Code = result.Code,
@@ -342,15 +342,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private Task OpenPricesAsync(L07_PriceListResDTO row)
+        private Task OpenPricesAsync(PriceListResDTO row)
         {
             NavigationManager.NavigateTo($"/library?tab=4&priceListId={row.Id}");
             return Task.CompletedTask;
         }
 
-        private async Task<L07_PriceListUpdateReqDTO?> OpenEditorAsync(
+        private async Task<PriceListUpdateReqDTO?> OpenEditorAsync(
             string title,
-            L07_PriceListUpdateReqDTO model,
+            PriceListUpdateReqDTO model,
             bool isClone = false)
         {
             var result = await DialogService.OpenAsync<Dialog_PriceListEditor>(
@@ -363,7 +363,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 },
                 new DialogOptions { Width = "520px", Resizable = true, Draggable = true });
 
-            return result as L07_PriceListUpdateReqDTO;
+            return result as PriceListUpdateReqDTO;
         }
 
         private async Task ReloadGridAsync()
@@ -420,7 +420,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
             }
 
-            return $"{Config.LibraryApi.L07_PriceList}?{string.Join("&", query)}";
+            return $"{Config.LibraryApi.PriceList}?{string.Join("&", query)}";
         }
 
         private static void AppendRowClass(IDictionary<string, object> attributes, string className)

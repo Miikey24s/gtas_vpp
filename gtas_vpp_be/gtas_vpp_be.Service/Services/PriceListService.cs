@@ -29,7 +29,7 @@ namespace gtas_vpp_be.Service.Services
             _userNameResolver = userNameResolver;
         }
 
-        public async Task<List<L07_PriceListResDTO>> ListAsync(bool showDeleted = false)
+        public async Task<List<PriceListResDTO>> ListAsync(bool showDeleted = false)
         {
             var result = await ApplyDefaultOrder(PriceListDtoQuery(showDeleted))
                 .ToListAsync();
@@ -37,7 +37,7 @@ namespace gtas_vpp_be.Service.Services
             return await _userNameResolver.WithUserNamesAsync(result, _scopedUow.VPPContext);
         }
 
-        public async Task<(List<L07_PriceListResDTO> Data, int TotalCount)> QueryAsync(
+        public async Task<(List<PriceListResDTO> Data, int TotalCount)> QueryAsync(
             bool showDeleted = false,
             string? filter = null,
             int? skip = null,
@@ -46,7 +46,7 @@ namespace gtas_vpp_be.Service.Services
             string? distinct = null,
             string? distinctFilter = null)
         {
-            IQueryable<L07_PriceListResDTO> query = PriceListDtoQuery(showDeleted);
+            IQueryable<PriceListResDTO> query = PriceListDtoQuery(showDeleted);
 
             if (!string.IsNullOrWhiteSpace(filter))
             {
@@ -55,7 +55,7 @@ namespace gtas_vpp_be.Service.Services
 
             if (!string.IsNullOrWhiteSpace(distinct))
             {
-                var propertyInfo = typeof(L07_PriceListResDTO).GetProperty(distinct);
+                var propertyInfo = typeof(PriceListResDTO).GetProperty(distinct);
                 if (propertyInfo != null)
                 {
                     var distinctValues = await query
@@ -82,7 +82,7 @@ namespace gtas_vpp_be.Service.Services
 
                     var distinctRows = pagedValues.Select(val =>
                     {
-                        var dto = new L07_PriceListResDTO();
+                        var dto = new PriceListResDTO();
                         propertyInfo.SetValue(dto, val);
                         return dto;
                     }).ToList();
@@ -118,7 +118,7 @@ namespace gtas_vpp_be.Service.Services
             return (await _userNameResolver.WithUserNamesAsync(result, _scopedUow.VPPContext), totalCount);
         }
 
-        public async Task<L07_PriceListResDTO?> GetByIdAsync(Guid id)
+        public async Task<PriceListResDTO?> GetByIdAsync(Guid id)
         {
             var result = await PriceListDtoQuery(true).FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
@@ -130,7 +130,7 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<L07_PriceListResDTO> CreateAsync(L07_PriceListCreateReqDTO req, int userId)
+        public async Task<PriceListResDTO> CreateAsync(PriceListCreateReqDTO req, int userId)
         {
             ValidatePriceBook(req.SupplierId, req.Version, req.EffectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
             PriceBookWorkflowService.ValidateCommercialTerms(
@@ -146,7 +146,7 @@ namespace gtas_vpp_be.Service.Services
                     await DemoteDefaultsAsync(userId, now);
                 }
 
-                var entity = new L07_PriceList
+                var entity = new PriceList
                 {
                     Id = Guid.NewGuid(),
                     PriceListCode = req.Code,
@@ -157,7 +157,7 @@ namespace gtas_vpp_be.Service.Services
                     Version = req.Version,
                     EffectiveFromUtc = req.EffectiveFromUtc.HasValue ? NormalizeUtc(req.EffectiveFromUtc.Value) : nowUtc,
                     EffectiveToUtc = req.EffectiveToUtc.HasValue ? NormalizeUtc(req.EffectiveToUtc.Value) : null,
-                    Status = L07_PriceListStatus.Draft,
+                    Status = PriceListStatus.Draft,
                     CurrencyCode = NormalizeCurrency(req.CurrencyCode),
                     VatPolicy = NormalizeVatPolicy(req.VatPolicy),
                     ContractCode = NormalizeOptional(req.ContractCode),
@@ -165,14 +165,14 @@ namespace gtas_vpp_be.Service.Services
                     RebateAmount = req.RebateAmount,
                     FeeAmount = req.FeeAmount,
                     ShippingAmount = req.ShippingAmount,
-                    CreateUserId = userId,
-                    CreateDate = now,
-                    UpdateUserId = userId,
-                    UpdateDate = now,
+                    CreatedByUserId = userId,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = userId,
+                    UpdatedAtUtc = now,
                     IsDeleted = false
                 };
 
-                _scopedUow.VPPContext.Set<L07_PriceList>().Add(entity);
+                _scopedUow.VPPContext.Set<PriceList>().Add(entity);
                 await _scopedUow.CommitAsync();
 
                 return (await GetByIdAsync(entity.Id))!;
@@ -189,19 +189,19 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<L07_PriceListResDTO> UpdateAsync(L07_PriceListUpdateReqDTO req, int userId)
+        public async Task<PriceListResDTO> UpdateAsync(PriceListUpdateReqDTO req, int userId)
         {
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                var entity = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                var entity = await _scopedUow.VPPContext.Set<PriceList>()
                     .FirstOrDefaultAsync(x => x.Id == req.Id && !x.IsDeleted);
                 if (entity == null)
                 {
                     throw new BusinessException("Price list not found.");
                 }
 
-                if (entity.Status == L07_PriceListStatus.Published)
+                if (entity.Status == PriceListStatus.Published)
                 {
                     throw new BusinessException("Published price books are immutable; create a new version instead.");
                 }
@@ -242,8 +242,8 @@ namespace gtas_vpp_be.Service.Services
                 entity.RebateAmount = req.RebateAmount;
                 entity.FeeAmount = req.FeeAmount;
                 entity.ShippingAmount = req.ShippingAmount;
-                entity.UpdateUserId = userId;
-                entity.UpdateDate = now;
+                entity.UpdatedByUserId = userId;
+                entity.UpdatedAtUtc = now;
 
                 await _scopedUow.CommitAsync();
 
@@ -261,12 +261,12 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<L07_PriceListResDTO> SetDeletedAsync(Guid id, bool isDeleted, int userId)
+        public async Task<PriceListResDTO> SetDeletedAsync(Guid id, bool isDeleted, int userId)
         {
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                var entity = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                var entity = await _scopedUow.VPPContext.Set<PriceList>()
                     .FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                 {
@@ -278,15 +278,15 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Cannot delete the default price list.");
                 }
 
-                if (isDeleted && entity.Status == L07_PriceListStatus.Published)
+                if (isDeleted && entity.Status == PriceListStatus.Published)
                 {
                     throw new BusinessException("Published price books cannot be deleted; expire them through the versioned workflow.");
                 }
 
                 if (isDeleted)
                 {
-                    var itemCount = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
-                        .CountAsync(x => x.L07_PriceListId == id && !x.IsDeleted);
+                    var itemCount = await _scopedUow.VPPContext.Set<SupplierProductMapping>()
+                        .CountAsync(x => x.PriceListId == id && !x.IsDeleted);
                     if (itemCount > 0)
                     {
                         throw new BusinessException($"Price list has {itemCount} items.");
@@ -295,8 +295,8 @@ namespace gtas_vpp_be.Service.Services
 
                 var now = _dateTimeProvider.Now;
                 entity.IsDeleted = isDeleted;
-                entity.UpdateUserId = userId;
-                entity.UpdateDate = now;
+                entity.UpdatedByUserId = userId;
+                entity.UpdatedAtUtc = now;
 
                 await _scopedUow.CommitAsync();
                 return (await GetByIdAsync(id))!;
@@ -316,19 +316,19 @@ namespace gtas_vpp_be.Service.Services
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                var entity = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                var entity = await _scopedUow.VPPContext.Set<PriceList>()
                     .FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                 {
                     throw new BusinessException("Price list not found.");
                 }
 
-                if (entity.Status == L07_PriceListStatus.Published)
+                if (entity.Status == PriceListStatus.Published)
                 {
                     throw new BusinessException("Published price books cannot be hard-deleted.");
                 }
 
-                _scopedUow.VPPContext.Set<L07_PriceList>().Remove(entity);
+                _scopedUow.VPPContext.Set<PriceList>().Remove(entity);
                 await _scopedUow.CommitAsync();
             }
             catch
@@ -343,7 +343,7 @@ namespace gtas_vpp_be.Service.Services
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                var entity = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                var entity = await _scopedUow.VPPContext.Set<PriceList>()
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
                 if (entity == null)
                 {
@@ -353,8 +353,8 @@ namespace gtas_vpp_be.Service.Services
                 var now = _dateTimeProvider.Now;
                 await DemoteDefaultsAsync(userId, now);
                 entity.IsDefault = true;
-                entity.UpdateUserId = userId;
-                entity.UpdateDate = now;
+                entity.UpdatedByUserId = userId;
+                entity.UpdatedAtUtc = now;
 
                 await _scopedUow.CommitAsync();
             }
@@ -370,12 +370,12 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<L07_PriceListResDTO> CloneAsync(L07_PriceListCloneReqDTO req, int userId)
+        public async Task<PriceListResDTO> CloneAsync(PriceListCloneReqDTO req, int userId)
         {
             await _scopedUow.BeginTransactionAsync();
             try
             {
-                var source = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                var source = await _scopedUow.VPPContext.Set<PriceList>()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == req.SourceId && !x.IsDeleted);
                 if (source == null)
@@ -385,7 +385,7 @@ namespace gtas_vpp_be.Service.Services
 
                 var now = _dateTimeProvider.Now;
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                var clone = new L07_PriceList
+                var clone = new PriceList
                 {
                     Id = Guid.NewGuid(),
                     PriceListCode = req.Code,
@@ -396,7 +396,7 @@ namespace gtas_vpp_be.Service.Services
                     Version = source.Version + 1,
                     EffectiveFromUtc = nowUtc,
                     EffectiveToUtc = null,
-                    Status = L07_PriceListStatus.Draft,
+                    Status = PriceListStatus.Draft,
                     CurrencyCode = source.CurrencyCode,
                     VatPolicy = source.VatPolicy,
                     ContractCode = source.ContractCode,
@@ -404,26 +404,26 @@ namespace gtas_vpp_be.Service.Services
                     RebateAmount = source.RebateAmount,
                     FeeAmount = source.FeeAmount,
                     ShippingAmount = source.ShippingAmount,
-                    CreateUserId = userId,
-                    CreateDate = now,
-                    UpdateUserId = userId,
-                    UpdateDate = now,
+                    CreatedByUserId = userId,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = userId,
+                    UpdatedAtUtc = now,
                     IsDeleted = false
                 };
 
-                _scopedUow.VPPContext.Set<L07_PriceList>().Add(clone);
+                _scopedUow.VPPContext.Set<PriceList>().Add(clone);
 
-                var sourceRows = await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
+                var sourceRows = await _scopedUow.VPPContext.Set<SupplierProductMapping>()
                     .AsNoTracking()
-                    .Where(x => x.L07_PriceListId == source.Id && !x.IsDeleted)
+                    .Where(x => x.PriceListId == source.Id && !x.IsDeleted)
                     .ToListAsync();
 
-                var clonedRows = sourceRows.Select(row => new L06_VPPSupplierMapping
+                var clonedRows = sourceRows.Select(row => new SupplierProductMapping
                 {
                     Id = Guid.NewGuid(),
-                    L04_VPPId = row.L04_VPPId,
-                    L05_VPPSupplierId = row.L05_VPPSupplierId,
-                    L07_PriceListId = clone.Id,
+                    VppItemId = row.VppItemId,
+                    SupplierId = row.SupplierId,
+                    PriceListId = clone.Id,
                     Price = row.Price,
                     NetPrice = row.NetPrice == 0m && row.Price != 0m ? row.Price : row.NetPrice,
                     VatRate = row.VatRate,
@@ -432,14 +432,14 @@ namespace gtas_vpp_be.Service.Services
                     SupplierSku = row.SupplierSku,
                     IsDefault = row.IsDefault,
                     Description = row.Description,
-                    CreateUserId = userId,
-                    CreateDate = now,
-                    UpdateUserId = userId,
-                    UpdateDate = now,
+                    CreatedByUserId = userId,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = userId,
+                    UpdatedAtUtc = now,
                     IsDeleted = false
                 }).ToList();
 
-                _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>().AddRange(clonedRows);
+                _scopedUow.VPPContext.Set<SupplierProductMapping>().AddRange(clonedRows);
                 await _scopedUow.CommitAsync();
 
                 return (await GetByIdAsync(clone.Id))!;
@@ -451,9 +451,9 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private IQueryable<L07_PriceListResDTO> PriceListDtoQuery(bool showDeleted = false)
+        private IQueryable<PriceListResDTO> PriceListDtoQuery(bool showDeleted = false)
         {
-            var query = _scopedUow.VPPContext.Set<L07_PriceList>()
+            var query = _scopedUow.VPPContext.Set<PriceList>()
                 .AsNoTracking();
 
             if (!showDeleted)
@@ -461,14 +461,14 @@ namespace gtas_vpp_be.Service.Services
                 query = query.Where(x => !x.IsDeleted);
             }
 
-            return query.Select(x => new L07_PriceListResDTO
+            return query.Select(x => new PriceListResDTO
                 {
                     Id = x.Id,
                     Description = x.Description,
-                    CreateUserId = x.CreateUserId,
-                    CreateDate = x.CreateDate,
-                    UpdateUserId = x.UpdateUserId,
-                    UpdateDate = x.UpdateDate,
+                    CreatedByUserId = x.CreatedByUserId,
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    UpdatedByUserId = x.UpdatedByUserId,
+                    UpdatedAtUtc = x.UpdatedAtUtc,
                     IsDeleted = x.IsDeleted,
                     PriceListCode = x.PriceListCode,
                     PriceListName = x.PriceListName,
@@ -478,9 +478,9 @@ namespace gtas_vpp_be.Service.Services
                     Version = x.Version,
                     EffectiveFromUtc = x.EffectiveFromUtc,
                     EffectiveToUtc = x.EffectiveToUtc,
-                    Status = x.Status == L07_PriceListStatus.Draft
+                    Status = x.Status == PriceListStatus.Draft
                         ? "Draft"
-                        : x.Status == L07_PriceListStatus.Published ? "Published" : "Expired",
+                        : x.Status == PriceListStatus.Published ? "Published" : "Expired",
                     CurrencyCode = x.CurrencyCode,
                     VatPolicy = x.VatPolicy,
                     ContractCode = x.ContractCode,
@@ -495,11 +495,11 @@ namespace gtas_vpp_be.Service.Services
                     ExpiredByUserId = x.ExpiredByUserId,
                     StatusReason = x.StatusReason,
                     RowVersion = x.RowVersion,
-                    ItemCount = x.L06_VPPSupplierMappings!.Count(m => showDeleted || !m.IsDeleted)
+                    ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted)
                 });
         }
 
-        private static IOrderedQueryable<L07_PriceListResDTO> ApplyDefaultOrder(IQueryable<L07_PriceListResDTO> query)
+        private static IOrderedQueryable<PriceListResDTO> ApplyDefaultOrder(IQueryable<PriceListResDTO> query)
         {
             return query
                 .OrderBy(x => x.IsDeleted)
@@ -510,15 +510,15 @@ namespace gtas_vpp_be.Service.Services
 
         private async Task DemoteDefaultsAsync(int userId, DateTime now)
         {
-            var rows = await _scopedUow.VPPContext.Set<L07_PriceList>()
+            var rows = await _scopedUow.VPPContext.Set<PriceList>()
                 .Where(x => x.IsDefault && !x.IsDeleted)
                 .ToListAsync();
 
             foreach (var row in rows)
             {
                 row.IsDefault = false;
-                row.UpdateUserId = userId;
-                row.UpdateDate = now;
+                row.UpdatedByUserId = userId;
+                row.UpdatedAtUtc = now;
             }
         }
 
@@ -533,7 +533,7 @@ namespace gtas_vpp_be.Service.Services
                 return;
             }
 
-            var exists = await _scopedUow.VPPContext.Set<L05_VPPSupplier>()
+            var exists = await _scopedUow.VPPContext.Set<Supplier>()
                 .AsNoTracking()
                 .AnyAsync(x => x.Id == supplierId.Value && !x.IsDeleted);
             if (!exists)

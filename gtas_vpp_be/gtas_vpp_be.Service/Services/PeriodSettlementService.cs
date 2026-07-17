@@ -46,19 +46,19 @@ namespace gtas_vpp_be.Service.Services
             _priceAsOfResolver = priceAsOfResolver;
         }
 
-        public async Task<VPP_SettlementPreviewResDTO> PreviewAsync(
-            VPP_SettlementPreviewReqDTO req,
+        public async Task<SettlementPreviewResDTO> PreviewAsync(
+            SettlementPreviewReqDTO req,
             CancellationToken cancellationToken = default)
         {
-            ValidatePeriod(req.Y, req.M);
+            ValidatePeriod(req.Year, req.Month);
             if (_priceBookWorkflowService is null)
             {
                 throw new BusinessException("Settlement preview is unavailable.");
             }
 
-            var headers = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var headers = await _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
-                .Where(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted
+                .Where(x => x.Year == req.Year && x.Month == req.Month && !x.IsDeleted
                          && ((x.IsAdditionalOrder
                               && x.IsCurrentRevision
                               && x.Status == (int)VPPStatus.Approved)
@@ -66,30 +66,30 @@ namespace gtas_vpp_be.Service.Services
                                  && x.IsCurrentRevision
                                  && (x.Status == (int)VPPStatus.Submitted
                                      || x.Status == (int)VPPStatus.Approved))))
-                .Include(x => x.VPP02_RequestDetails.Where(detail => !detail.IsDeleted))
+                .Include(x => x.RequestDetails.Where(detail => !detail.IsDeleted))
                 .ToListAsync(cancellationToken);
 
-            var pendingAdditionalCount = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var pendingAdditionalCount = await _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
-                .CountAsync(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted
+                .CountAsync(x => x.Year == req.Year && x.Month == req.Month && !x.IsDeleted
                               && x.IsAdditionalOrder
                               && x.Status == (int)VPPStatus.Pending, cancellationToken);
 
             var totals = headers
-                .SelectMany(x => x.VPP02_RequestDetails)
-                .GroupBy(x => x.VPPId)
+                .SelectMany(x => x.RequestDetails)
+                .GroupBy(x => x.VppId)
                 .ToDictionary(group => group.Key, group => group.Sum(detail => (decimal)detail.Qty));
 
             var asOfUtc = req.PriceAsOfUtc.HasValue
                 ? NormalizeUtc(req.PriceAsOfUtc.Value)
                 : PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
-            var response = new VPP_SettlementPreviewResDTO
+            var response = new SettlementPreviewResDTO
             {
-                Y = req.Y,
-                M = req.M,
+                Year = req.Year,
+                Month = req.Month,
                 PriceAsOfUtc = asOfUtc,
                 RequestedItemCount = totals.Count,
-                RequestedLineCount = headers.Sum(x => x.VPP02_RequestDetails.Count),
+                RequestedLineCount = headers.Sum(x => x.RequestDetails.Count),
                 PendingAdditionalCount = pendingAdditionalCount
             };
 
@@ -119,7 +119,7 @@ namespace gtas_vpp_be.Service.Services
                              && !duplicateExceptionItems.Contains(exception.VppId)
                              && !string.IsNullOrWhiteSpace(exception.Reason)
                              && exception.Reason.Trim().Length is >= 5 and <= 500;
-                response.Exceptions.Add(new VPP_SettlementExceptionResDTO
+                response.Exceptions.Add(new SettlementExceptionResDTO
                 {
                     VppId = exception.VppId,
                     SupplierId = exception.SupplierId,
@@ -185,15 +185,15 @@ namespace gtas_vpp_be.Service.Services
             return response;
         }
 
-        public Task<VPP_SettlementRevisionResDTO> ConfirmAsync(
-            VPP_SettlementConfirmReqDTO req,
+        public Task<SettlementRevisionResDTO> ConfirmAsync(
+            SettlementConfirmReqDTO req,
             int userId,
             CancellationToken cancellationToken = default)
             => SaveRevisionAsync(req, null, null, userId, cancellationToken);
 
-        public Task<VPP_SettlementRevisionResDTO> CorrectAsync(
+        public Task<SettlementRevisionResDTO> CorrectAsync(
             Guid settlementId,
-            VPP_SettlementCorrectionReqDTO req,
+            SettlementCorrectionReqDTO req,
             int userId,
             CancellationToken cancellationToken = default)
         {
@@ -201,7 +201,7 @@ namespace gtas_vpp_be.Service.Services
             return SaveRevisionAsync(req, settlementId, reason, userId, cancellationToken);
         }
 
-        public async Task<VPP_SettlementRevisionResDTO?> GetCurrentAsync(
+        public async Task<SettlementRevisionResDTO?> GetCurrentAsync(
             int y,
             int m,
             CancellationToken cancellationToken = default)
@@ -214,13 +214,13 @@ namespace gtas_vpp_be.Service.Services
                 .FirstOrDefaultAsync(x => !x.IsDeleted
                     && x.IsCurrentRevision
                     && x.MemberCompanyCode == company
-                    && x.Y == y
-                    && x.M == m, cancellationToken);
+                    && x.Year == y
+                    && x.Month == m, cancellationToken);
             return entity is null ? null : MapRevision(entity);
         }
 
-        private async Task<VPP_SettlementRevisionResDTO> SaveRevisionAsync(
-            VPP_SettlementConfirmReqDTO req,
+        private async Task<SettlementRevisionResDTO> SaveRevisionAsync(
+            SettlementConfirmReqDTO req,
             Guid? correctionSettlementId,
             string? correctionReason,
             int userId,
@@ -240,7 +240,7 @@ namespace gtas_vpp_be.Service.Services
 
             if (correctionSettlementId.HasValue)
             {
-                var correctionTarget = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                var correctionTarget = await _scopedUow.VPPContext.Set<Settlement>()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == correctionSettlementId.Value && !x.IsDeleted, cancellationToken)
                     ?? throw new BusinessException("Settlement revision not found.");
@@ -254,10 +254,10 @@ namespace gtas_vpp_be.Service.Services
                 }
             }
 
-            var previewReq = new VPP_SettlementPreviewReqDTO
+            var previewReq = new SettlementPreviewReqDTO
             {
-                Y = req.Y,
-                M = req.M,
+                Year = req.Year,
+                Month = req.Month,
                 PriceAsOfUtc = asOfUtc,
                 PriceListId = req.PriceListId,
                 PrimarySupplierId = req.PrimarySupplierId,
@@ -289,12 +289,12 @@ namespace gtas_vpp_be.Service.Services
                     return replayResult;
                 }
 
-                var current = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+                var current = await _scopedUow.VPPContext.Set<Settlement>()
                     .FirstOrDefaultAsync(x => !x.IsDeleted
                         && x.IsCurrentRevision
                         && x.MemberCompanyCode == company
-                        && x.Y == req.Y
-                        && x.M == req.M, cancellationToken);
+                        && x.Year == req.Year
+                        && x.Month == req.Month, cancellationToken);
                 if (!correctionSettlementId.HasValue && current is not null)
                 {
                     throw new ConflictException("The period is already settled. Create a correction revision instead.");
@@ -309,11 +309,11 @@ namespace gtas_vpp_be.Service.Services
                     throw new ConflictException("Four-eyes control requires another procurement user to confirm the correction.");
                 }
 
-                var period = await _scopedUow.VPPContext.Set<VPP00_Period>()
+                var period = await _scopedUow.VPPContext.Set<VppPeriod>()
                     .FirstOrDefaultAsync(x => !x.IsDeleted
                         && x.MemberCompanyCode == company
-                        && x.Y == req.Y
-                        && x.M == req.M, cancellationToken)
+                        && x.Year == req.Year
+                        && x.Month == req.Month, cancellationToken)
                     ?? throw new BusinessException("The persisted company period was not found.");
                 var requiredState = correctionSettlementId.HasValue
                     ? VppPeriodState.Settled
@@ -323,11 +323,11 @@ namespace gtas_vpp_be.Service.Services
                     throw new ConflictException($"Period must be {requiredState} before this settlement action.");
                 }
 
-                var headers = await EligibleHeaders(req.Y, req.M)
-                    .Include(x => x.VPP02_RequestDetails.Where(detail => !detail.IsDeleted))
+                var headers = await EligibleHeaders(req.Year, req.Month)
+                    .Include(x => x.RequestDetails.Where(detail => !detail.IsDeleted))
                     .ToListAsync(cancellationToken);
-                var totals = headers.SelectMany(x => x.VPP02_RequestDetails)
-                    .GroupBy(x => x.VPPId)
+                var totals = headers.SelectMany(x => x.RequestDetails)
+                    .GroupBy(x => x.VppId)
                     .ToDictionary(x => x.Key, x => x.Sum(detail => (decimal)detail.Qty));
                 var transactionHash = ComputeInputHash(previewReq, asOfUtc, totals);
                 if (!string.Equals(transactionHash, req.InputHash, StringComparison.OrdinalIgnoreCase))
@@ -336,21 +336,21 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var vppIds = totals.Keys.ToArray();
-                var book = await _scopedUow.VPPContext.Set<L07_PriceList>()
+                var book = await _scopedUow.VPPContext.Set<PriceList>()
                     .AsNoTracking()
                     .Include(x => x.Supplier)
-                    .Include(x => x.L06_VPPSupplierMappings!.Where(item => !item.IsDeleted && vppIds.Contains(item.L04_VPPId)))
+                    .Include(x => x.SupplierProductMappings!.Where(item => !item.IsDeleted && vppIds.Contains(item.VppItemId)))
                     .FirstOrDefaultAsync(x => x.Id == req.PriceListId && !x.IsDeleted, cancellationToken)
                     ?? throw new BusinessException("The selected price book was not found.");
                 if (book.SupplierId != req.PrimarySupplierId
-                    || book.Status != L07_PriceListStatus.Published
+                    || book.Status != PriceListStatus.Published
                     || book.EffectiveFromUtc > asOfUtc
                     || (book.EffectiveToUtc.HasValue && asOfUtc >= book.EffectiveToUtc.Value))
                 {
                     throw new ConflictException("The selected price book is no longer published and effective.");
                 }
 
-                var products = await _scopedUow.VPPContext.Set<L04_VPP>()
+                var products = await _scopedUow.VPPContext.Set<VppItem>()
                     .AsNoTracking()
                     .Where(x => vppIds.Contains(x.Id) && !x.IsDeleted)
                     .ToDictionaryAsync(x => x.Id, cancellationToken);
@@ -360,13 +360,13 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
-                var settlement = new VPP04_Settlement
+                var settlement = new Settlement
                 {
                     Id = Guid.NewGuid(),
                     PeriodId = period.Id,
                     MemberCompanyCode = company,
-                    Y = req.Y,
-                    M = req.M,
+                    Year = req.Year,
+                    Month = req.Month,
                     RevisionNumber = current?.RevisionNumber + 1 ?? 1,
                     IsCurrentRevision = true,
                     IsCorrection = correctionSettlementId.HasValue,
@@ -389,19 +389,19 @@ namespace gtas_vpp_be.Service.Services
                     ShippingAmount = PriceCalculationEngine.RoundMoney(book.ShippingAmount),
                     ConfirmedAtUtc = nowUtc,
                     ConfirmedByUserId = userId,
-                    CreateUserId = userId,
-                    CreateDate = nowUtc,
-                    UpdateUserId = userId,
-                    UpdateDate = nowUtc,
+                    CreatedByUserId = userId,
+                    CreatedAtUtc = nowUtc,
+                    UpdatedByUserId = userId,
+                    UpdatedAtUtc = nowUtc,
                     IsDeleted = false
                 };
 
                 var exceptionByVpp = (req.Exceptions ?? []).ToDictionary(x => x.VppId);
-                var primaryRows = (book.L06_VPPSupplierMappings ?? [])
-                    .GroupBy(x => x.L04_VPPId)
+                var primaryRows = (book.SupplierProductMappings ?? [])
+                    .GroupBy(x => x.VppItemId)
                     .ToDictionary(x => x.Key, x => x.ToList());
-                foreach (var itemGroup in headers.SelectMany(header => header.VPP02_RequestDetails.Select(detail => new { header, detail }))
-                             .GroupBy(x => x.detail.VPPId)
+                foreach (var itemGroup in headers.SelectMany(header => header.RequestDetails.Select(detail => new { header, detail }))
+                             .GroupBy(x => x.detail.VppId)
                              .OrderBy(x => x.Key))
                 {
                     var quantity = itemGroup.Sum(x => (decimal)x.detail.Qty);
@@ -411,16 +411,16 @@ namespace gtas_vpp_be.Service.Services
                         : ResolvePrimaryEvidence(itemGroup.Key, quantity, req.PrimarySupplierId, book.Id, primaryRows);
                     var product = products[itemGroup.Key];
                     var line = PriceCalculationEngine.CalculateLine(evidence.NetUnitPrice, evidence.VatRate, quantity);
-                    var settlementItem = new VPP05_SettlementItem
+                    var settlementItem = new SettlementItem
                     {
                         Id = Guid.NewGuid(),
                         SettlementId = settlement.Id,
                         VppId = product.Id,
-                        VppCode = product.VPPCode ?? product.Id.ToString(),
-                        VppName = product.VPPName ?? product.Id.ToString(),
-                        UomId = product.UOMId,
-                        UomCode = product.UOM?.ClassDetailCode ?? product.UOMId.ToString(),
-                        UomName = product.UOM?.ClassDetailValue ?? product.UOM?.ClassDetailCode ?? product.UOMId.ToString(),
+                        VppCode = product.VppCode ?? product.Id.ToString(),
+                        VppName = product.VppName ?? product.Id.ToString(),
+                        UomId = product.UomId,
+                        UomCode = product.Uom?.Code ?? product.UomId.ToString(),
+                        UomName = product.Uom?.Value ?? product.Uom?.Code ?? product.UomId.ToString(),
                         SupplierId = evidence.SupplierId,
                         PriceListId = evidence.PriceListId,
                         PriceBookItemId = evidence.PriceBookItemId,
@@ -435,10 +435,10 @@ namespace gtas_vpp_be.Service.Services
                         LeadTimeDays = evidence.LeadTimeDays,
                         IsSupplierException = isException,
                         SupplierExceptionReason = supplierException?.Reason?.Trim(),
-                        CreateUserId = userId,
-                        CreateDate = nowUtc,
-                        UpdateUserId = userId,
-                        UpdateDate = nowUtc
+                        CreatedByUserId = userId,
+                        CreatedAtUtc = nowUtc,
+                        UpdatedByUserId = userId,
+                        UpdatedAtUtc = nowUtc
                     };
                     settlement.Items.Add(settlementItem);
 
@@ -452,7 +452,7 @@ namespace gtas_vpp_be.Service.Services
                     for (var index = 0; index < sources.Count; index++)
                     {
                         var source = sources[index];
-                        settlement.Allocations.Add(new VPP07_SettlementAllocation
+                        settlement.Allocations.Add(new SettlementAllocation
                         {
                             Id = Guid.NewGuid(),
                             SettlementId = settlement.Id,
@@ -460,15 +460,15 @@ namespace gtas_vpp_be.Service.Services
                             RequestHeaderId = source.header.Id,
                             RequestDetailId = source.detail.Id,
                             DepartmentCode = source.header.DepartmentCode,
-                            RequesterUserId = source.header.CreateUserId,
+                            RequesterUserId = source.header.CreatedByUserId,
                             Quantity = source.detail.Qty,
                             NetAmount = netShares[index],
                             VatAmount = vatShares[index],
                             GrossAmount = netShares[index] + vatShares[index],
-                            CreateUserId = userId,
-                            CreateDate = nowUtc,
-                            UpdateUserId = userId,
-                            UpdateDate = nowUtc
+                            CreatedByUserId = userId,
+                            CreatedAtUtc = nowUtc,
+                            UpdatedByUserId = userId,
+                            UpdatedAtUtc = nowUtc
                         });
                     }
                 }
@@ -522,8 +522,8 @@ namespace gtas_vpp_be.Service.Services
                 {
                     current.IsCurrentRevision = false;
                     current.SupersededBySettlementId = settlement.Id;
-                    current.UpdateUserId = userId;
-                    current.UpdateDate = nowUtc;
+                    current.UpdatedByUserId = userId;
+                    current.UpdatedAtUtc = nowUtc;
                 }
                 else
                 {
@@ -534,16 +534,16 @@ namespace gtas_vpp_be.Service.Services
                 period.LastTransitionReason = correctionSettlementId.HasValue
                     ? $"Settlement correction revision {settlement.RevisionNumber}: {correctionReason}"
                     : $"Settlement confirmed revision {settlement.RevisionNumber}";
-                period.UpdateUserId = userId;
-                period.UpdateDate = nowUtc;
+                period.UpdatedByUserId = userId;
+                period.UpdatedAtUtc = nowUtc;
 
-                _scopedUow.VPPContext.Set<VPP04_Settlement>().Add(settlement);
+                _scopedUow.VPPContext.Set<Settlement>().Add(settlement);
                 foreach (var header in headers)
                 {
-                    _scopedUow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                    _scopedUow.VPPContext.Set<RequestLog>().Add(new RequestLog
                     {
                         Id = Guid.NewGuid(),
-                        VPP01_RequestHeaderId = header.Id,
+                        RequestId = header.Id,
                         LogDate = nowUtc,
                         LogTitle = correctionSettlementId.HasValue ? "SETTLEMENT_CORRECTED" : "SETTLEMENT_CONFIRMED",
                         LogJS = JsonSerializer.Serialize(new
@@ -568,9 +568,9 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<VPP_PeriodSettlementResDTO> SettleAsync(VPP_SettlePeriodReqDTO req, int userId)
+        public async Task<PeriodSettlementResDTO> SettleAsync(PeriodSettlementReqDTO req, int userId)
         {
-            ValidatePeriod(req.Y, req.M);
+            ValidatePeriod(req.Year, req.Month);
 
             await _scopedUow.BeginTransactionAsync();
             try
@@ -581,8 +581,8 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("No price list available.");
                 }
 
-                var pendingCount = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
-                    .CountAsync(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted
+                var pendingCount = await _scopedUow.VPPContext.Set<VppRequest>()
+                    .CountAsync(x => x.Year == req.Year && x.Month == req.Month && !x.IsDeleted
                                   && x.IsAdditionalOrder
                                   && x.Status == (int)VPPStatus.Pending);
                 if (pendingCount > 0)
@@ -591,36 +591,36 @@ namespace gtas_vpp_be.Service.Services
                         $"Cannot settle: {pendingCount} additional order(s) still pending approval.");
                 }
 
-                var headers = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
-                    .Where(x => x.Y == req.Y && x.M == req.M && !x.IsDeleted
+                var headers = await _scopedUow.VPPContext.Set<VppRequest>()
+                    .Where(x => x.Year == req.Year && x.Month == req.Month && !x.IsDeleted
                              && (x.Status == (int)VPPStatus.Submitted
                               || x.Status == (int)VPPStatus.Approved))
-                    .Include(h => h.VPP02_RequestDetails.Where(d => !d.IsDeleted))
+                    .Include(h => h.RequestDetails.Where(d => !d.IsDeleted))
                     .ToListAsync();
 
                 var distinctVppIds = headers
-                    .SelectMany(x => x.VPP02_RequestDetails)
-                    .Select(x => x.VPPId)
+                    .SelectMany(x => x.RequestDetails)
+                    .Select(x => x.VppId)
                     .Distinct()
                     .ToArray();
 
                 var priceRows = distinctVppIds.Length == 0
-                    ? new List<L06_VPPSupplierMapping>()
-                    : await _scopedUow.VPPContext.Set<L06_VPPSupplierMapping>()
+                    ? new List<SupplierProductMapping>()
+                    : await _scopedUow.VPPContext.Set<SupplierProductMapping>()
                         .AsNoTracking()
-                        .Where(x => x.L07_PriceListId == list.Id
+                        .Where(x => x.PriceListId == list.Id
                                  && !x.IsDeleted
-                                 && distinctVppIds.Contains(x.L04_VPPId))
+                                 && distinctVppIds.Contains(x.VppItemId))
                         .ToListAsync();
 
                 var missing = distinctVppIds
-                    .Where(id => !priceRows.Any(row => row.L04_VPPId == id))
+                    .Where(id => !priceRows.Any(row => row.VppItemId == id))
                     .ToList();
                 if (missing.Count > 0)
                 {
-                    var missingNames = await _scopedUow.VPPContext.Set<L04_VPP>()
+                    var missingNames = await _scopedUow.VPPContext.Set<VppItem>()
                         .Where(v => missing.Contains(v.Id))
-                        .Select(v => v.VPPName)
+                        .Select(v => v.VppName)
                         .ToListAsync();
 
                     throw new BusinessException(
@@ -629,7 +629,7 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var priceByVppId = priceRows
-                    .GroupBy(x => x.L04_VPPId)
+                    .GroupBy(x => x.VppItemId)
                     .ToDictionary(
                         g => g.Key,
                         g => (long)(g.FirstOrDefault(x => x.IsDefault)?.Price ?? g.First().Price));
@@ -637,29 +637,29 @@ namespace gtas_vpp_be.Service.Services
                 var now = _dateTimeProvider.Now;
                 foreach (var header in headers)
                 {
-                    foreach (var detail in header.VPP02_RequestDetails)
+                    foreach (var detail in header.RequestDetails)
                     {
-                        detail.CurrentSinglePrice = priceByVppId[detail.VPPId];
-                        detail.UpdateUserId = userId;
-                        detail.UpdateDate = now;
+                        detail.CurrentSinglePrice = priceByVppId[detail.VppId];
+                        detail.UpdatedByUserId = userId;
+                        detail.UpdatedAtUtc = now;
                     }
 
                     header.SettledAt = now;
                     header.SettledByUserId = userId;
                     header.SettledByPriceListId = list.Id;
-                    header.UpdateUserId = userId;
-                    header.UpdateDate = now;
+                    header.UpdatedByUserId = userId;
+                    header.UpdatedAtUtc = now;
 
-                    _scopedUow.VPPContext.Set<VPP03_Log>().Add(new VPP03_Log
+                    _scopedUow.VPPContext.Set<RequestLog>().Add(new RequestLog
                     {
                         Id = Guid.NewGuid(),
-                        VPP01_RequestHeaderId = header.Id,
+                        RequestId = header.Id,
                         LogDate = now,
                         LogTitle = "PERIOD_SETTLED",
                         LogJS = JsonSerializer.Serialize(new
                         {
-                            req.Y,
-                            req.M,
+                            req.Year,
+                            req.Month,
                             list.Id,
                             list.PriceListName,
                             OrderId = header.Id
@@ -668,7 +668,7 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 await _scopedUow.CommitAsync();
-                return await GetStatusAsync(req.Y, req.M);
+                return await GetStatusAsync(req.Year, req.Month);
             }
             catch
             {
@@ -677,13 +677,13 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        public async Task<VPP_PeriodSettlementResDTO> GetStatusAsync(int y, int m)
+        public async Task<PeriodSettlementResDTO> GetStatusAsync(int y, int m)
         {
             ValidatePeriod(y, m);
 
-            var baseQuery = _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var baseQuery = _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
-                .Where(x => x.Y == y && x.M == m && !x.IsDeleted);
+                .Where(x => x.Year == y && x.Month == m && !x.IsDeleted);
 
             var pendingAdditionalCount = await baseQuery
                 .CountAsync(x => x.IsAdditionalOrder && x.Status == (int)VPPStatus.Pending);
@@ -705,18 +705,18 @@ namespace gtas_vpp_be.Service.Services
 
             var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
                 System.Globalization.CultureInfo.InvariantCulture);
-            var currentSnapshot = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+            var currentSnapshot = await _scopedUow.VPPContext.Set<Settlement>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => !x.IsDeleted
                     && x.IsCurrentRevision
                     && x.MemberCompanyCode == company
-                    && x.Y == y
-                    && x.M == m);
+                    && x.Year == y
+                    && x.Month == m);
 
-            var result = new VPP_PeriodSettlementResDTO
+            var result = new PeriodSettlementResDTO
             {
-                Y = y,
-                M = m,
+                Year = y,
+                Month = m,
                 IsSettled = currentSnapshot is not null || latest?.SettledAt != null,
                 SettledAt = currentSnapshot?.ConfirmedAtUtc ?? latest?.SettledAt,
                 SettledByUserId = currentSnapshot?.ConfirmedByUserId ?? latest?.SettledByUserId,
@@ -735,48 +735,48 @@ namespace gtas_vpp_be.Service.Services
             return result;
         }
 
-        public async Task<List<VPP_PeriodSettlementResDTO>> ListSettledAsync()
+        public async Task<List<PeriodSettlementResDTO>> ListSettledAsync()
         {
-            var settledRows = await _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
+            var settledRows = await _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted && x.SettledAt != null)
                 .Select(x => new
                 {
-                    x.Y,
-                    x.M,
+                    x.Year,
+                    x.Month,
                     x.SettledAt,
                     x.SettledByUserId,
                     x.SettledByPriceListId
                 })
                 .ToListAsync();
 
-            var snapshotPeriods = await _scopedUow.VPPContext.Set<VPP04_Settlement>()
+            var snapshotPeriods = await _scopedUow.VPPContext.Set<Settlement>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted && x.IsCurrentRevision)
-                .Select(x => new { x.Y, x.M })
+                .Select(x => new { x.Year, x.Month })
                 .ToListAsync();
 
-            var result = new List<VPP_PeriodSettlementResDTO>();
-            var periods = settledRows.Select(x => new { x.Y, x.M })
+            var result = new List<PeriodSettlementResDTO>();
+            var periods = settledRows.Select(x => new { x.Year, x.Month })
                 .Concat(snapshotPeriods)
                 .Distinct()
                 .ToList();
             foreach (var period in periods)
             {
-                var status = await GetStatusAsync(period.Y, period.M);
+                var status = await GetStatusAsync(period.Year, period.Month);
                 result.Add(status);
             }
 
             await PopulateNamesAsync(result);
             return result
-                .OrderByDescending(x => x.Y)
-                .ThenByDescending(x => x.M)
+                .OrderByDescending(x => x.Year)
+                .ThenByDescending(x => x.Month)
                 .ToList();
         }
 
-        private IQueryable<VPP01_RequestHeader> EligibleHeaders(int y, int m)
-            => _scopedUow.VPPContext.Set<VPP01_RequestHeader>()
-                .Where(x => x.Y == y && x.M == m && !x.IsDeleted
+        private IQueryable<VppRequest> EligibleHeaders(int y, int m)
+            => _scopedUow.VPPContext.Set<VppRequest>()
+                .Where(x => x.Year == y && x.Month == m && !x.IsDeleted
                          && ((x.IsAdditionalOrder
                               && x.IsCurrentRevision
                               && x.Status == (int)VPPStatus.Approved)
@@ -785,12 +785,12 @@ namespace gtas_vpp_be.Service.Services
                                  && (x.Status == (int)VPPStatus.Submitted
                                      || x.Status == (int)VPPStatus.Approved))));
 
-        private IQueryable<VPP04_Settlement> SettlementQuery()
-            => _scopedUow.VPPContext.Set<VPP04_Settlement>()
+        private IQueryable<Settlement> SettlementQuery()
+            => _scopedUow.VPPContext.Set<Settlement>()
                 .Include(x => x.Items)
                 .Include(x => x.Allocations);
 
-        private async Task<VPP04_Settlement?> FindIdempotentAsync(
+        private async Task<Settlement?> FindIdempotentAsync(
             string company,
             string idempotencyKey,
             CancellationToken cancellationToken)
@@ -798,8 +798,8 @@ namespace gtas_vpp_be.Service.Services
                 && x.MemberCompanyCode == company
                 && x.IdempotencyKey == idempotencyKey.Trim(), cancellationToken);
 
-        private static VPP_SettlementRevisionResDTO MatchIdempotent(
-            VPP04_Settlement entity,
+        private static SettlementRevisionResDTO MatchIdempotent(
+            Settlement entity,
             string commandHash)
         {
             if (!string.Equals(entity.CommandPayloadHash, commandHash, StringComparison.Ordinal))
@@ -810,7 +810,7 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private async Task ApplySupplierExceptionsAsync(
-            VPP_SettlementPreviewResDTO response,
+            SettlementPreviewResDTO response,
             IReadOnlyDictionary<Guid, decimal> totals,
             DateTime asOfUtc,
             CancellationToken cancellationToken)
@@ -884,7 +884,7 @@ namespace gtas_vpp_be.Service.Services
             }
             quote.Subtotal = PriceCalculationEngine.RoundMoney(quote.Subtotal);
             quote.VatAmount = PriceCalculationEngine.RoundMoney(quote.VatAmount);
-            var terms = await _scopedUow.VPPContext.Set<L07_PriceList>()
+            var terms = await _scopedUow.VPPContext.Set<PriceList>()
                 .AsNoTracking()
                 .Where(x => x.Id == quote.PriceListId)
                 .Select(x => new { x.DiscountRate, x.RebateAmount, x.FeeAmount, x.ShippingAmount })
@@ -909,7 +909,7 @@ namespace gtas_vpp_be.Service.Services
             decimal quantity,
             Guid supplierId,
             Guid priceListId,
-            IReadOnlyDictionary<Guid, List<L06_VPPSupplierMapping>> rowsByVpp)
+            IReadOnlyDictionary<Guid, List<SupplierProductMapping>> rowsByVpp)
         {
             if (!rowsByVpp.TryGetValue(vppId, out var rows) || rows.Count == 0)
             {
@@ -920,7 +920,7 @@ namespace gtas_vpp_be.Service.Services
                 throw new ConflictException($"The selected price book has ambiguous rows for item {vppId}.");
             }
             var row = rows[0];
-            if (row.L05_VPPSupplierId != supplierId || row.L07_PriceListId != priceListId)
+            if (row.SupplierId != supplierId || row.PriceListId != priceListId)
             {
                 throw new ConflictException($"Price ownership changed for item {vppId}.");
             }
@@ -942,7 +942,7 @@ namespace gtas_vpp_be.Service.Services
         private async Task<SnapshotPriceEvidence> ResolveExceptionEvidenceAsync(
             Guid vppId,
             decimal quantity,
-            VPP_SettlementExceptionReqDTO supplierException,
+            SettlementExceptionReqDTO supplierException,
             DateTime asOfUtc,
             CancellationToken cancellationToken)
         {
@@ -993,25 +993,25 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private static void AddCharge(
-            VPP04_Settlement settlement,
+            Settlement settlement,
             string type,
             decimal amount,
             int userId,
             DateTime nowUtc)
-            => settlement.Charges.Add(new VPP06_SettlementCharge
+            => settlement.Charges.Add(new SettlementCharge
             {
                 Id = Guid.NewGuid(),
                 SettlementId = settlement.Id,
                 ChargeType = type,
                 Amount = amount,
                 AllocationBasis = "net-amount",
-                CreateUserId = userId,
-                CreateDate = nowUtc,
-                UpdateUserId = userId,
-                UpdateDate = nowUtc
+                CreatedByUserId = userId,
+                CreatedAtUtc = nowUtc,
+                UpdatedByUserId = userId,
+                UpdatedAtUtc = nowUtc
             });
 
-        private static void EnsureReconciled(VPP04_Settlement settlement)
+        private static void EnsureReconciled(Settlement settlement)
         {
             if (settlement.Items.Count == 0 || settlement.Allocations.Count == 0)
             {
@@ -1038,13 +1038,13 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private static VPP_SettlementRevisionResDTO MapRevision(VPP04_Settlement entity)
+        private static SettlementRevisionResDTO MapRevision(Settlement entity)
             => new()
             {
                 Id = entity.Id,
                 PeriodId = entity.PeriodId,
-                Y = entity.Y,
-                M = entity.M,
+                Year = entity.Year,
+                Month = entity.Month,
                 RevisionNumber = entity.RevisionNumber,
                 IsCurrentRevision = entity.IsCurrentRevision,
                 IsCorrection = entity.IsCorrection,
@@ -1073,9 +1073,9 @@ namespace gtas_vpp_be.Service.Services
                 AllocationCount = entity.Allocations.Count
             };
 
-        private static void ValidateConfirmRequest(VPP_SettlementConfirmReqDTO req)
+        private static void ValidateConfirmRequest(SettlementConfirmReqDTO req)
         {
-            ValidatePeriod(req.Y, req.M);
+            ValidatePeriod(req.Year, req.Month);
             if (req.PrimarySupplierId == Guid.Empty || req.PriceListId == Guid.Empty)
             {
                 throw new BusinessException("Primary supplier and price book are required.");
@@ -1102,7 +1102,7 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private static string ComputeCommandPayloadHash(
-            VPP_SettlementConfirmReqDTO req,
+            SettlementConfirmReqDTO req,
             Guid? correctionSettlementId,
             string? correctionReason,
             DateTime asOfUtc)
@@ -1112,8 +1112,8 @@ namespace gtas_vpp_be.Service.Services
                 Command = correctionSettlementId.HasValue ? "correct" : "confirm",
                 correctionSettlementId,
                 CorrectionReason = correctionReason,
-                req.Y,
-                req.M,
+                req.Year,
+                req.Month,
                 PriceAsOfUtc = asOfUtc,
                 InputHash = req.InputHash.Trim().ToUpperInvariant(),
                 req.PrimarySupplierId,
@@ -1135,9 +1135,9 @@ namespace gtas_vpp_be.Service.Services
             int LeadTimeDays,
             string? SupplierSku);
 
-        private async Task<L07_PriceList?> ResolvePriceListAsync(Guid? priceListId)
+        private async Task<PriceList?> ResolvePriceListAsync(Guid? priceListId)
         {
-            var query = _scopedUow.VPPContext.Set<L07_PriceList>()
+            var query = _scopedUow.VPPContext.Set<PriceList>()
                 .Where(x => !x.IsDeleted);
 
             return priceListId.HasValue
@@ -1145,7 +1145,7 @@ namespace gtas_vpp_be.Service.Services
                 : await query.FirstOrDefaultAsync(x => x.IsDefault);
         }
 
-        private async Task PopulateNamesAsync(IEnumerable<VPP_PeriodSettlementResDTO> rows)
+        private async Task PopulateNamesAsync(IEnumerable<PeriodSettlementResDTO> rows)
         {
             var rowList = rows.ToList();
             var userIds = rowList
@@ -1171,7 +1171,7 @@ namespace gtas_vpp_be.Service.Services
 
             var priceLists = listIds.Length == 0
                 ? new Dictionary<Guid, string?>()
-                : await _scopedUow.VPPContext.Set<L07_PriceList>()
+                : await _scopedUow.VPPContext.Set<PriceList>()
                     .AsNoTracking()
                     .Where(x => listIds.Contains(x.Id))
                     .Select(x => new { x.Id, x.PriceListName })
@@ -1205,14 +1205,14 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private static string ComputeInputHash(
-            VPP_SettlementPreviewReqDTO req,
+            SettlementPreviewReqDTO req,
             DateTime asOfUtc,
             IReadOnlyDictionary<Guid, decimal> totals)
         {
             var canonical = JsonSerializer.Serialize(new
             {
-                req.Y,
-                req.M,
+                req.Year,
+                req.Month,
                 PriceAsOfUtc = asOfUtc,
                 req.PriceListId,
                 req.PrimarySupplierId,

@@ -136,7 +136,7 @@ public sealed class ReportInsightServiceTests
         ],
         DepartmentBreakdown =
         [
-            new() { DepartmentCode = "IT", OrderCount = 3, TotalQuantity = 80, TotalAmount = 1_500_000 }
+            new() { Code = "IT", OrderCount = 3, TotalQuantity = 80, TotalAmount = 1_500_000 }
         ],
         TopProducts =
         [

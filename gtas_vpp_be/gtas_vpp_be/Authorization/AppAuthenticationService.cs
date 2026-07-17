@@ -17,7 +17,7 @@ namespace gtas_vpp_be.Authorization;
 
 public interface IAppAuthenticationService
 {
-    Task<sp_Authentication_Login?> AuthenticateAsync(
+    Task<AuthenticationResultDTO?> AuthenticateAsync(
         string username,
         string password,
         CancellationToken cancellationToken = default);
@@ -44,7 +44,7 @@ public sealed class AppAuthenticationService(
     private readonly JwtDeploymentSettings _jwtSettings = jwtSettings;
     private readonly ILogger<AppAuthenticationService> _logger = logger;
 
-    public async Task<sp_Authentication_Login?> AuthenticateAsync(
+    public async Task<AuthenticationResultDTO?> AuthenticateAsync(
         string username,
         string password,
         CancellationToken cancellationToken = default)
@@ -88,7 +88,7 @@ public sealed class AppAuthenticationService(
         var token = GenerateAccessToken(account, expiresAtUtc);
         _logger.LogInformation("Authentication succeeded for AccountId={AccountId}.", account.Id);
 
-        return new sp_Authentication_Login
+        return new AuthenticationResultDTO
         {
             UserID = account.Id,
             UserLogin = account.UserName,
@@ -102,8 +102,8 @@ public sealed class AppAuthenticationService(
             GroupName = snapshot.Group.GroupName,
             MemberCompanyCode = account.MemberCompanyCode.ToString(),
             MemberCompanyName = account.MemberCompanyCode.ToString(),
-            DepartmentCode = snapshot.PrimaryDepartment.LEX02Code,
-            DepartmentName = snapshot.PrimaryDepartment.LEX02Name,
+            DepartmentCode = snapshot.PrimaryDepartment.Code,
+            DepartmentName = snapshot.PrimaryDepartment.Name,
             AccessToken = token,
             AccessTokenExpiresAtUtc = expiresAtUtc,
             SessionVersion = account.SessionVersion,
@@ -150,7 +150,7 @@ public sealed class AppAuthenticationService(
             account.SecurityStamp = Guid.NewGuid().ToString("N");
             account.ConcurrencyStamp = Guid.NewGuid().ToString("N");
             account.UpdatedAtUtc = DateTime.UtcNow;
-            _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+            _context.SecurityAudits.Add(new SecurityAudit
             {
                 ActorUserId = account.Id,
                 TargetUserId = account.Id,
@@ -215,7 +215,7 @@ public sealed class AppAuthenticationService(
         GroupName = snapshot.Group.GroupName ?? string.Empty,
         MemberCompanyCode = snapshot.Account.MemberCompanyCode,
         PrimaryDepartmentId = snapshot.PrimaryDepartment.Id,
-        DepartmentCode = snapshot.PrimaryDepartment.LEX02Code ?? string.Empty,
-        DepartmentName = snapshot.PrimaryDepartment.LEX02Name ?? string.Empty
+        PrimaryDepartmentCode = snapshot.PrimaryDepartment.Code ?? string.Empty,
+        PrimaryDepartmentName = snapshot.PrimaryDepartment.Name ?? string.Empty
     };
 }

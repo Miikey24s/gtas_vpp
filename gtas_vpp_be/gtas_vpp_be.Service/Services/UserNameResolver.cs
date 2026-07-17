@@ -17,11 +17,11 @@ namespace gtas_vpp_be.Service.Services
                 return entities;
             }
 
-            var createUserIdProperty = GetProperty<T>("CreateUserId");
-            var updateUserIdProperty = GetProperty<T>("UpdateUserId", "UpdaterUserId");
+            var createUserIdProperty = GetProperty<T>("CreatedByUserId");
+            var updateUserIdProperty = GetProperty<T>("UpdatedByUserId", "UpdaterUserId");
             var settledByUserIdProperty = GetProperty<T>("SettledByUserId");
-            var createUserNameProperty = GetProperty<T>("CreateUserName");
-            var updateUserNameProperty = GetProperty<T>("UpdateUserName", "UpdaterUserName");
+            var createUserNameProperty = GetProperty<T>("CreatedByUserName");
+            var updateUserNameProperty = GetProperty<T>("UpdatedByUserName", "UpdaterUserName");
             var settledByUserNameProperty = GetProperty<T>("SettledByUserName");
 
             if (createUserNameProperty == null && updateUserNameProperty == null && settledByUserNameProperty == null)
@@ -45,11 +45,11 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task IncludeUserInfoAsync<T>(T entity, DbContext context) where T : class
         {
-            var createUserIdProperty = GetProperty<T>("CreateUserId");
-            var updateUserIdProperty = GetProperty<T>("UpdateUserId", "UpdaterUserId");
+            var createUserIdProperty = GetProperty<T>("CreatedByUserId");
+            var updateUserIdProperty = GetProperty<T>("UpdatedByUserId", "UpdaterUserId");
             var settledByUserIdProperty = GetProperty<T>("SettledByUserId");
-            var createUserNameProperty = GetProperty<T>("CreateUserName");
-            var updateUserNameProperty = GetProperty<T>("UpdateUserName", "UpdaterUserName");
+            var createUserNameProperty = GetProperty<T>("CreatedByUserName");
+            var updateUserNameProperty = GetProperty<T>("UpdatedByUserName", "UpdaterUserName");
             var settledByUserNameProperty = GetProperty<T>("SettledByUserName");
 
             if (createUserNameProperty == null && updateUserNameProperty == null && settledByUserNameProperty == null)

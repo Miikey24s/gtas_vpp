@@ -15,14 +15,14 @@
 
 @if (PermissionState.HasPermission(Permissions.PermissionView))
 {
-    <RadzenDataGrid @ref="griduser"
-                    TItem="sp_Authentication_TabUser_UserList"
-                    Data="@_sp_Authentication_TabUser_UserList"
+    <RadzenDataGrid @ref="userGrid"
+                    TItem="UserAdministrationResDTO"
+                    Data="@users"
                     Count="@userCount"
                     LoadData="@LoadUsersAsync"
                     LoadColumnFilterData="@LoadUserFilterDataAsync"
                     IsLoading="@(isUserLoading || isUserLookupLoading)"
-                    @bind-Value="selected_UserList"
+                    @bind-Value="selectedUsers"
                     AllowFiltering="true"
                     AllowColumnResize="true"
                     AllowMultiColumnSorting="true"
@@ -95,12 +95,12 @@
                                   class="vpp-library-refresh-action"
                                   Click="@ButtonOnClick_Reload" />
                 </RadzenStack>
-                <VppColumnPicker TItem="sp_Authentication_TabUser_UserList" GridAccessor="@(() => griduser)" />
+                <VppColumnPicker TItem="UserAdministrationResDTO" GridAccessor="@(() => userGrid)" />
             </RadzenStack>
         </HeaderTemplate>
 
         <Columns>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Width="52px"
                                   MinWidth="52px"
                                   Title="#"
@@ -111,39 +111,39 @@
                                   Sortable="false"
                                   TextAlign="TextAlign.Center">
                 <Template Context="user">
-                    @(currentUserSkip + _sp_Authentication_TabUser_UserList.IndexOf(user) + 1)
+                    @(currentUserSkip + users.IndexOf(user) + 1)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="Trạng thái"
                                   Width="150px"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.AccountStatus)"
+                                  Property="@nameof(UserAdministrationResDTO.AccountStatus)"
                                   Filterable="false">
                 <Template Context="user">
                     <RadzenBadge Text="@GetAccountStatusLabel(user)"
                                  BadgeStyle="@(user.IsActive ? BadgeStyle.Success : BadgeStyle.Light)" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["UserLogin"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.UserLogin)"
+                                  Property="@nameof(UserAdministrationResDTO.UserLogin)"
                                   Width="150px" />
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["FullName"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.FullName)"
+                                  Property="@nameof(UserAdministrationResDTO.FullName)"
                                   Width="190px" />
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["Email"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.Email)"
+                                  Property="@nameof(UserAdministrationResDTO.Email)"
                                   Width="220px" />
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["Group"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.GroupName)"
+                                  Property="@nameof(UserAdministrationResDTO.GroupName)"
                                   Width="190px">
                 <Template Context="user">
-                    <RadzenDropDown TValue="P02_GroupResDTO"
-                                    Data="@p02_Groups"
-                                    TextProperty="@nameof(P02_GroupResDTO.GroupName)"
+                    <RadzenDropDown TValue="PermissionGroupResDTO"
+                                    Data="@permissionGroups"
+                                    TextProperty="@nameof(PermissionGroupResDTO.GroupName)"
                                     @bind-Value="user.UserGroup"
                                     AllowClear="false"
                                     AllowFiltering="true"
@@ -153,16 +153,16 @@
                                     Style="width: 100%;" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["Department"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.DepartmentName)"
+                                  Property="@nameof(UserAdministrationResDTO.DepartmentName)"
                                   Width="210px">
                 <Template Context="user">
                     <RadzenDropDown TValue="Guid?"
                                     Data="@departments"
-                                    TextProperty="@nameof(LEX02_CompanyDepartmentLocationResDTO.LEX02Name)"
-                                    ValueProperty="@nameof(LEX02_CompanyDepartmentLocationResDTO.Id)"
-                                    @bind-Value="user.L05_DepartmentId"
+                                    TextProperty="@nameof(DepartmentResDTO.Name)"
+                                    ValueProperty="@nameof(DepartmentResDTO.Id)"
+                                    @bind-Value="user.DepartmentId"
                                     AllowClear="false"
                                     AllowFiltering="true"
                                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -171,9 +171,9 @@
                                     Style="width: 100%;" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["Admin"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.IsAdmin)"
+                                  Property="@nameof(UserAdministrationResDTO.IsAdmin)"
                                   Width="92px"
                                   Filterable="false"
                                   TextAlign="TextAlign.Center">
@@ -184,7 +184,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="Kích hoạt"
                                   Width="120px"
                                   Filterable="false"
@@ -197,7 +197,7 @@
                                   title="@(CanDeactivateMembership(user) ? "Deactivate membership" : "Protected or inactive")" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="Quản trị tài khoản"
                                   Width="190px"
                                   Filterable="false"
@@ -226,21 +226,21 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="@Loc["Description"]"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.Description)"
+                                  Property="@nameof(UserAdministrationResDTO.Description)"
                                   Width="220px"
                                   Visible="true"
                                   Pickable="true" />
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="Account Id"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.UserId)"
+                                  Property="@nameof(UserAdministrationResDTO.UserId)"
                                   Width="110px"
                                   Visible="false"
                                   Pickable="true" />
-            <RadzenDataGridColumn TItem="sp_Authentication_TabUser_UserList"
+            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Title="Row version"
-                                  Property="@nameof(sp_Authentication_TabUser_UserList.RowVersion)"
+                                  Property="@nameof(UserAdministrationResDTO.RowVersion)"
                                   Width="220px"
                                   Visible="false"
                                   Pickable="true" />

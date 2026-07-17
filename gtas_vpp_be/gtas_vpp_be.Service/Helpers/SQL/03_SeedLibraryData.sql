@@ -1,10 +1,10 @@
-﻿-- ============================================================================
--- 03_SeedLibraryData.sql - Library data: L01-L06, LEX02 departments
--- Combined from: 04_AddVPP.sql + 05_AddSuppliers.sql + 06_AddLEX.sql
+-- ============================================================================
+-- 03_SeedLibraryData.sql - Lookup, VPP catalog, supplier, and department data
+-- Consolidated from the legacy library seed scripts.
 -- Idempotent: Uses NOT EXISTS checks
 -- ============================================================================
 
--- PART 1: VPP Categories + Items + UOM (from 04_AddVPP.sql)
+-- PART 1: VPP Categories + Items + Uom (from 04_AddVPP.sql)
 
 GO
 
@@ -24,19 +24,19 @@ DECLARE @AuditUserId INT = 5615;
 DECLARE @Now DATETIME = GETDATE();
 
 -- =========================================================================================
--- 2. TẠO BẢNG TẠM CHỨA RAW DATA (thêm cột UOMName cho Đơn vị tính)
+-- 2. TẠO BẢNG TẠM CHỨA RAW DATA (thêm cột UomName cho Đơn vị tính)
 -- =========================================================================================
 IF OBJECT_ID('tempdb..#RawData') IS NOT NULL DROP TABLE #RawData;
 CREATE TABLE #RawData (
     CategoryName NVARCHAR(255),
     ItemName NVARCHAR(255),
-    UOMName NVARCHAR(50)
+    UomName NVARCHAR(50)
 );
 
 -- =========================================================================================
--- 3. INSERT FULL DATA TỪ FILE (CategoryName, ItemName, UOMName)
+-- 3. INSERT FULL DATA TỪ FILE (CategoryName, ItemName, UomName)
 -- =========================================================================================
-INSERT INTO #RawData (CategoryName, ItemName, UOMName) VALUES
+INSERT INTO #RawData (CategoryName, ItemName, UomName) VALUES
 -- Nhóm 1: Băng keo_ bấm kim_ bấm lỗ
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Acco nhựa UNI', N'Hộp'),
 (N'Băng keo_ bấm kim_ bấm lỗ', N'Acco sắt SDI', N'Hộp'),
@@ -611,50 +611,50 @@ END
 BEGIN TRAN;
     BEGIN TRY
         -- ---------------------------------------------------------------------------------
-        -- 4.1. INSERT BẢNG L01_Class (Tạo Class "Đơn vị tính" nếu chưa có)
+        -- 4.1. INSERT BẢNG LookupCategories (tạo lookup category "Đơn vị tính" nếu chưa có)
         -- ---------------------------------------------------------------------------------
-        IF NOT EXISTS (SELECT 1 FROM L01_Class WHERE ClassCode = 'UOM')
+        IF NOT EXISTS (SELECT 1 FROM LookupCategories WHERE Code = 'Uom')
         BEGIN
-            INSERT INTO L01_Class (Id, ClassCode, ClassName, ClassModul, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
-            VALUES (NEWID(), 'UOM', N'Đơn vị tính', N'VPP', N'Danh mục đơn vị tính cho Văn phòng phẩm', @AuditUserId, @Now, @AuditUserId, @Now, 0);
+            INSERT INTO LookupCategories (Id, Code, Name, ModuleName, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
+            VALUES (NEWID(), 'Uom', N'Đơn vị tính', N'VPP', N'Danh mục đơn vị tính cho Văn phòng phẩm', @AuditUserId, @Now, @AuditUserId, @Now, 0);
         END
 
-        PRINT N'✅ Đã đồng bộ Class UOM (L01_Class).';
+        PRINT N'✅ Đã đồng bộ lookup category UOM (LookupCategories).';
 
         -- ---------------------------------------------------------------------------------
-        -- 4.2. INSERT BẢNG L02_ClassDetail (Các giá trị Đơn vị tính)
-        -- Lấy danh sách UOM duy nhất từ #RawData, chống trùng ClassDetailValue
+        -- 4.2. INSERT BẢNG LookupValues (Các giá trị Đơn vị tính)
+        -- Lấy danh sách Uom duy nhất từ #RawData, chống trùng Value
         -- ---------------------------------------------------------------------------------
-        DECLARE @UOMClassId UNIQUEIDENTIFIER;
-        SELECT @UOMClassId = Id FROM L01_Class WHERE ClassCode = 'UOM';
+        DECLARE @UomLookupCategoryId UNIQUEIDENTIFIER;
+        SELECT @UomLookupCategoryId = Id FROM LookupCategories WHERE Code = 'Uom';
 
-        INSERT INTO L02_ClassDetail (Id, ClassId, ClassDetailCode, ClassDetailValue, Sort, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+        INSERT INTO LookupValues (Id, LookupCategoryId, Code, Value, Sort, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
         SELECT 
             NEWID(),
-            @UOMClassId,
-            'UOM_' + RIGHT('00' + CAST(ROW_NUMBER() OVER(ORDER BY UOMName) AS VARCHAR), 2),
-            UOMName,
-            ROW_NUMBER() OVER(ORDER BY UOMName),
-            N'Đơn vị: ' + UOMName,
+            @UomLookupCategoryId,
+            'Uom_' + RIGHT('00' + CAST(ROW_NUMBER() OVER(ORDER BY UomName) AS VARCHAR), 2),
+            UomName,
+            ROW_NUMBER() OVER(ORDER BY UomName),
+            N'Đơn vị: ' + UomName,
             @AuditUserId, @Now, @AuditUserId, @Now, 0
         FROM (
-            SELECT DISTINCT UOMName FROM #RawData
-        ) AS distUOM
+            SELECT DISTINCT UomName FROM #RawData
+        ) AS distUom
         WHERE NOT EXISTS (
-            SELECT 1 FROM L02_ClassDetail cd 
-            WHERE cd.ClassId = @UOMClassId AND cd.ClassDetailValue = distUOM.UOMName
+            SELECT 1 FROM LookupValues cd
+            WHERE cd.LookupCategoryId = @UomLookupCategoryId AND cd.Value = distUom.UomName
         );
 
-        PRINT N'✅ Đã đồng bộ Đơn vị tính (L02_ClassDetail).';
+        PRINT N'✅ Đã đồng bộ Đơn vị tính (LookupValues).';
 
         -- ---------------------------------------------------------------------------------
-        -- 4.3. INSERT BẢNG L03_VPPCategory (Nhóm Danh Mục)
+        -- 4.3. INSERT BẢNG VppCategories (Nhóm Danh Mục)
         -- Chống trùng tên nhóm, đánh mã CAT_01
         -- ---------------------------------------------------------------------------------
-        INSERT INTO L03_VPPCategory (Id, VPPCategoryCode, VPPCategoryName, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+        INSERT INTO VppCategories (Id, VppCategoryCode, VppCategoryName, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
         SELECT 
             NEWID(),
-            'CAT_' + RIGHT('00' + CAST(ROW_NUMBER() OVER(ORDER BY CategoryName) AS VARCHAR), 2) AS VPPCategoryCode,
+            'CAT_' + RIGHT('00' + CAST(ROW_NUMBER() OVER(ORDER BY CategoryName) AS VARCHAR), 2) AS VppCategoryCode,
             CategoryName,
             N'Danh mục ' + CategoryName AS Description,
             @AuditUserId, @Now, @AuditUserId, @Now, 0
@@ -662,32 +662,41 @@ BEGIN TRAN;
             SELECT DISTINCT CategoryName FROM #RawData
         ) AS distRaw
         WHERE NOT EXISTS (
-            SELECT 1 FROM L03_VPPCategory dbCat WHERE dbCat.VPPCategoryName = distRaw.CategoryName
+            SELECT 1 FROM VppCategories dbCat WHERE dbCat.VppCategoryName = distRaw.CategoryName
         );
 
-        PRINT N'✅ Đã đồng bộ Danh mục (L03_VPPCategory).';
+        PRINT N'✅ Đã đồng bộ Danh mục (VppCategories).';
 
         -- ---------------------------------------------------------------------------------
-        -- 4.4. INSERT BẢNG L04_VPP (Vật Phẩm Chi Tiết)
-        -- Liên kết (JOIN) với L03 để lấy CategoryId, JOIN L02 để lấy UOMId
+        -- 4.4. INSERT BẢNG VppItems (Vật Phẩm Chi Tiết)
+        -- Liên kết VppCategories để lấy VppCategoryId và LookupValues để lấy UomId.
         -- ---------------------------------------------------------------------------------
-        INSERT INTO L04_VPP (Id, VPPCode, VPPName, UOMId, VPPCategoryId, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+        INSERT INTO VppItems (Id, VppCode, VppName, UomId, VppCategoryId, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
         SELECT 
             NEWID(),
-            'VPP_' + UPPER(SUBSTRING(REPLACE(CAST(NEWID() AS VARCHAR(36)), '-', ''), 1, 6)) AS VPPCode,
-            r.ItemName AS VPPName,
-            uom.Id AS UOMId,
-            c.Id AS VPPCategoryId,
+            'VPP_' + LEFT(CONVERT(VARCHAR(64), HASHBYTES(
+                'SHA2_256',
+                CONCAT(r.CategoryName, N'|', r.ItemName, N'|', r.UomName)), 2), 24) AS VppCode,
+            r.ItemName AS VppName,
+            uom.Id AS UomId,
+            c.Id AS VppCategoryId,
             N'Vật phẩm ' + r.ItemName AS Description,
             @AuditUserId, @Now, @AuditUserId, @Now, 0
-        FROM #RawData r
-        INNER JOIN L03_VPPCategory c ON r.CategoryName = c.VPPCategoryName
-        INNER JOIN L02_ClassDetail uom ON uom.ClassDetailValue = r.UOMName AND uom.ClassId = @UOMClassId
+        FROM (
+            SELECT DISTINCT CategoryName, ItemName, UomName
+            FROM #RawData
+        ) r
+        INNER JOIN VppCategories c ON r.CategoryName = c.VppCategoryName
+        INNER JOIN LookupValues uom ON uom.Value = r.UomName AND uom.LookupCategoryId = @UomLookupCategoryId
         WHERE NOT EXISTS (
-            SELECT 1 FROM L04_VPP dbItem WHERE dbItem.VPPName = r.ItemName
+            SELECT 1
+            FROM VppItems dbItem
+            WHERE dbItem.VppName = r.ItemName
+              AND dbItem.VppCategoryId = c.Id
+              AND dbItem.UomId = uom.Id
         );
 
-        PRINT N'✅ Đã đồng bộ Vật Phẩm (L04_VPP).';
+        PRINT N'✅ Đã đồng bộ Vật Phẩm (VppItems).';
         
         COMMIT TRAN;
         PRINT N'🎉🎉🎉 HOÀN TẤT ĐỒNG BỘ DỮ LIỆU!!!';
@@ -715,9 +724,9 @@ BEGIN TRY
     DECLARE @DuplicateSuppliers TABLE (Id UNIQUEIDENTIFIER PRIMARY KEY);
     DECLARE @DefaultPriceListId UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000700';
     DECLARE @DefaultMappingsToRestore TABLE (
-        L04_VPPId UNIQUEIDENTIFIER NOT NULL,
+        VppItemId UNIQUEIDENTIFIER NOT NULL,
         SupplierShortName NVARCHAR(100) NOT NULL,
-        PRIMARY KEY (L04_VPPId, SupplierShortName)
+        PRIMARY KEY (VppItemId, SupplierShortName)
     );
     
     INSERT INTO @NewSuppliers (Id, Name, ShortName, City)
@@ -731,9 +740,9 @@ BEGIN TRY
             Existing.Id,
             ROW_NUMBER() OVER (
                 PARTITION BY Existing.SupplierShortName
-                ORDER BY Existing.CreateDate, Existing.Id
+                ORDER BY Existing.CreatedAtUtc, Existing.Id
             ) AS RowNumber
-        FROM dbo.L05_VPPSupplier Existing
+        FROM dbo.Suppliers Existing
         INNER JOIN @NewSuppliers S
             ON S.ShortName = Existing.SupplierShortName
         WHERE Existing.IsDeleted = 0
@@ -743,41 +752,41 @@ BEGIN TRY
     FROM RankedDefaultSuppliers
     WHERE RowNumber > 1;
 
-    INSERT INTO @DefaultMappingsToRestore (L04_VPPId, SupplierShortName)
-    SELECT DISTINCT M.L04_VPPId, S.SupplierShortName
-    FROM dbo.L06_VPPSupplierMapping M
+    INSERT INTO @DefaultMappingsToRestore (VppItemId, SupplierShortName)
+    SELECT DISTINCT Mapping.VppItemId, S.SupplierShortName
+    FROM dbo.SupplierProductMappings Mapping
     INNER JOIN @DuplicateSuppliers D
-        ON D.Id = M.L05_VPPSupplierId
-    INNER JOIN dbo.L05_VPPSupplier S
-        ON S.Id = M.L05_VPPSupplierId
-    WHERE M.IsDeleted = 0
-      AND M.IsDefault = 1;
+        ON D.Id = Mapping.SupplierId
+    INNER JOIN dbo.Suppliers S
+        ON S.Id = Mapping.SupplierId
+    WHERE Mapping.IsDeleted = 0
+      AND Mapping.IsDefault = 1;
 
-    UPDATE M
+    UPDATE Mapping
     SET
-        M.IsDeleted = 1,
-        M.IsDefault = 0,
-        M.UpdateUserId = 5615,
-        M.UpdateDate = GETDATE()
-    FROM dbo.L06_VPPSupplierMapping M
+        Mapping.IsDeleted = 1,
+        Mapping.IsDefault = 0,
+        Mapping.UpdatedByUserId = 5615,
+        Mapping.UpdatedAtUtc = GETDATE()
+    FROM dbo.SupplierProductMappings Mapping
     INNER JOIN @DuplicateSuppliers D
-        ON D.Id = M.L05_VPPSupplierId
-    WHERE M.IsDeleted = 0;
+        ON D.Id = Mapping.SupplierId
+    WHERE Mapping.IsDeleted = 0;
 
     UPDATE S
     SET
         S.IsDeleted = 1,
-        S.UpdateUserId = 5615,
-        S.UpdateDate = GETDATE()
-    FROM dbo.L05_VPPSupplier S
+        S.UpdatedByUserId = 5615,
+        S.UpdatedAtUtc = GETDATE()
+    FROM dbo.Suppliers S
     INNER JOIN @DuplicateSuppliers D
         ON D.Id = S.Id
     WHERE S.IsDeleted = 0;
 
-    -- 2. Thêm vào bảng L05_VPPSupplier nếu chưa có supplier active cùng ShortName.
-    INSERT INTO dbo.L05_VPPSupplier (
+    -- 2. Thêm vào bảng Supplier nếu chưa có supplier active cùng ShortName.
+    INSERT INTO dbo.Suppliers (
         Id, SupplierShortName, SupplierName, City, 
-        CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
+        CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted
     )
     SELECT 
         Id, ShortName, Name, City, 
@@ -785,7 +794,7 @@ BEGIN TRY
     FROM @NewSuppliers S
     WHERE NOT EXISTS (
         SELECT 1
-        FROM dbo.L05_VPPSupplier Existing
+        FROM dbo.Suppliers Existing
         WHERE Existing.SupplierShortName = S.ShortName
           AND Existing.IsDeleted = 0
     );
@@ -800,20 +809,20 @@ BEGIN TRY
             S.City,
             ROW_NUMBER() OVER (
                 PARTITION BY S.ShortName
-                ORDER BY Existing.CreateDate, Existing.Id
+                ORDER BY Existing.CreatedAtUtc, Existing.Id
             ) AS RowNumber
         FROM @NewSuppliers S
-        INNER JOIN dbo.L05_VPPSupplier Existing
+        INNER JOIN dbo.Suppliers Existing
             ON Existing.SupplierShortName = S.ShortName
            AND Existing.IsDeleted = 0
     ) CanonicalSupplier
     WHERE RowNumber = 1;
 
     -- 3. Bulk Map: chỉ tạo mapping còn thiếu cho các VPP đang hoạt động.
-    INSERT INTO dbo.L06_VPPSupplierMapping (
+    INSERT INTO dbo.SupplierProductMappings (
         Id, Price, NetPrice, VatRate, MinimumOrderQuantity, LeadTimeDays,
-        L04_VPPId, L05_VPPSupplierId, L07_PriceListId, Description,
-        CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted
+        VppItemId, SupplierId, PriceListId, Description,
+        CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted
     )
     SELECT 
         NEWID(), 
@@ -828,41 +837,41 @@ BEGIN TRY
         N'Thiết lập giá mặc định theo khu vực ' + S.City,
         5615, 
         GETDATE(), 
-        5615,           -- Gán giá trị bắt buộc cho UpdateUserId
-        GETDATE(),      -- Gán giá trị bắt buộc cho UpdateDate
+        5615,           -- Gán giá trị bắt buộc cho UpdatedByUserId
+        GETDATE(),      -- Gán giá trị bắt buộc cho UpdatedAtUtc
         0
-    FROM dbo.L04_VPP V
+    FROM dbo.VppItems V
     CROSS JOIN @SeedSuppliers S
     CROSS APPLY (SELECT CONVERT(decimal(19,4), (ABS(CHECKSUM(NEWID())) % 495001) + 5000) AS Price) SeedPrice
     WHERE V.IsDeleted = 0
       AND NOT EXISTS (
           SELECT 1
-          FROM dbo.L06_VPPSupplierMapping Existing
-          WHERE Existing.L04_VPPId = V.Id
-            AND Existing.L05_VPPSupplierId = S.Id
-            AND Existing.L07_PriceListId = @DefaultPriceListId
+          FROM dbo.SupplierProductMappings Existing
+          WHERE Existing.VppItemId = V.Id
+            AND Existing.SupplierId = S.Id
+            AND Existing.PriceListId = @DefaultPriceListId
             AND Existing.IsDeleted = 0
       );
 
-    UPDATE M
+    UPDATE Mapping
     SET
-        M.IsDefault = 1,
-        M.UpdateUserId = 5615,
-        M.UpdateDate = GETDATE()
-    FROM dbo.L06_VPPSupplierMapping M
+        Mapping.IsDefault = 1,
+        Mapping.UpdatedByUserId = 5615,
+        Mapping.UpdatedAtUtc = GETDATE()
+    FROM dbo.SupplierProductMappings Mapping
     INNER JOIN @SeedSuppliers S
-        ON S.Id = M.L05_VPPSupplierId
+        ON S.Id = Mapping.SupplierId
     INNER JOIN @DefaultMappingsToRestore R
-        ON R.L04_VPPId = M.L04_VPPId
+        ON R.VppItemId = Mapping.VppItemId
        AND R.SupplierShortName = S.ShortName
-    WHERE M.IsDeleted = 0
+    WHERE Mapping.IsDeleted = 0
       AND NOT EXISTS (
           SELECT 1
-          FROM dbo.L06_VPPSupplierMapping ExistingDefault
-          WHERE ExistingDefault.L04_VPPId = M.L04_VPPId
+          FROM dbo.SupplierProductMappings ExistingDefault
+          WHERE ExistingDefault.VppItemId = Mapping.VppItemId
             AND ExistingDefault.IsDefault = 1
             AND ExistingDefault.IsDeleted = 0
-            AND ExistingDefault.Id <> M.Id
+            AND ExistingDefault.Id <> Mapping.Id
       );
 
     COMMIT TRANSACTION;
@@ -879,66 +888,66 @@ END CATCH
 BEGIN TRY
 BEGIN TRANSACTION;
 
-INSERT INTO LEX02_CompanyDepartmentLocation 
-    (Id, LEX02Code, LEX02Name, LEX02Type, ParentId, Description, CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
-SELECT Source.Id, Source.LEX02Code, Source.LEX02Name, Source.LEX02Type,
-       Source.ParentId, Source.Description, Source.CreateUserId,
-       Source.CreateDate, Source.UpdateUserId, Source.UpdateDate, Source.IsDeleted
+INSERT INTO dbo.Departments
+    (Id, Code, Name, ParentDepartmentId, Description, CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
+SELECT Source.Id, Source.Code, Source.Name,
+       Source.ParentDepartmentId, Source.Description, Source.CreatedByUserId,
+       Source.CreatedAtUtc, Source.UpdatedByUserId, Source.UpdatedAtUtc, Source.IsDeleted
 FROM (VALUES
-    (NEWID(), 'CBSX', N'CBSX', 'PhongBan', CAST(NULL AS uniqueidentifier), CAST(NULL AS nvarchar(500)), 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'CONGNGHEMAY', N'CÔNG NGHỆ MAY', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'CONGNGHEWASH', N'CÔNG NGHỆ WASH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'SOURCING', N'SOURCING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'CPD', N'CPD', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'DAUTU', N'ĐẦU TƯ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'DINHMUC', N'ĐỊNH MỨC', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'FD', N'FD', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'FQM', N'FQM', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'GIAMDINH', N'GIÁM ĐỊNH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'HCQT', N'HCQT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'HOANTATPHUOCLONG', N'HOÀN TẤT PHƯỚC LONG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'IT', N'IT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD5+6', N'KD5+6', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD25', N'KD25', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD26', N'KD26', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD27', N'KD27', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD1', N'KD1', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD17', N'KD17+KD16+PPJW1', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD19', N'KD19', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD2', N'KD2', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD3', N'KD3', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD4', N'KD4', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD7', N'KD7', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KD8', N'KD8', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KEHOACH', N'KẾ HOẠCH', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KEHOACHPNC', N'KẾ HOẠCH PNC', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'KHOTONG', N'KHO TỔNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'LONGAN', N'LONG AN', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'MAULONGAN', N'MAY MẪU LONG AN', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'NHOMFITTECH Rap', N'NHÓM FITTECH RẬP', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'NSTL', N'NSTL', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'PHAPCHE', N'PHÁP CHẾ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'PURCHASING', N'PURCHASING', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'QA', N'QA', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'QLTBMAY', N'QLTB MAY', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'R&D', N'R&D', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'TCKT', N'TCKT', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'TCKTKHO', N'TCKT KHO', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'TCKTVTJ', N'TCKT VTJ', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'c', N'THÊU MẪU', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'TQM', N'TQM', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'TTHTLINHTRUNG', N'TTHT LINH TRUNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'WASHLINHTRUNG', N'WASH LINH TRUNG', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'XNK', N'XNK', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
-    (NEWID(), 'XUONGMAYMAU', N'XƯỞNG MAY MẪU', 'PhongBan', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0)
+    (NEWID(), 'CBSX', N'CBSX', CAST(NULL AS uniqueidentifier), CAST(NULL AS nvarchar(500)), 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'CONGNGHEMAY', N'CÔNG NGHỆ MAY', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'CONGNGHEWASH', N'CÔNG NGHỆ WASH', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'SOURCING', N'SOURCING', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'CPD', N'CPD', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'DAUTU', N'ĐẦU TƯ', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'DINHMUC', N'ĐỊNH MỨC', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'FD', N'FD', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'FQM', N'FQM', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'GIAMDINH', N'GIÁM ĐỊNH', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'HCQT', N'HCQT', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'HOANTATPHUOCLONG', N'HOÀN TẤT PHƯỚC LONG', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'IT', N'IT', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD5+6', N'KD5+6', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD25', N'KD25', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD26', N'KD26', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD27', N'KD27', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD1', N'KD1', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD17', N'KD17+KD16+PPJW1', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD19', N'KD19', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD2', N'KD2', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD3', N'KD3', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD4', N'KD4', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD7', N'KD7', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KD8', N'KD8', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KEHOACH', N'KẾ HOẠCH', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KEHOACHPNC', N'KẾ HOẠCH PNC', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'KHOTONG', N'KHO TỔNG', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'LONGAN', N'LONG AN', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'MAULONGAN', N'MAY MẪU LONG AN', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'NHOMFITTECH Rap', N'NHÓM FITTECH RẬP', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'NSTL', N'NSTL', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'PHAPCHE', N'PHÁP CHẾ', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'PURCHASING', N'PURCHASING', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'QA', N'QA', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'QLTBMAY', N'QLTB MAY', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'R&D', N'R&D', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TCKT', N'TCKT', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TCKTKHO', N'TCKT KHO', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TCKTVTJ', N'TCKT VTJ', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'c', N'THÊU MẪU', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TQM', N'TQM', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'TTHTLINHTRUNG', N'TTHT LINH TRUNG', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'WASHLINHTRUNG', N'WASH LINH TRUNG', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'XNK', N'XNK', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0),
+    (NEWID(), 'XUONGMAYMAU', N'XƯỞNG MAY MẪU', NULL, NULL, 5615, GETDATE(), 5615, GETDATE(), 0)
 ) AS Source
-    (Id, LEX02Code, LEX02Name, LEX02Type, ParentId, Description,
-     CreateUserId, CreateDate, UpdateUserId, UpdateDate, IsDeleted)
+    (Id, Code, Name, ParentDepartmentId, Description,
+     CreatedByUserId, CreatedAtUtc, UpdatedByUserId, UpdatedAtUtc, IsDeleted)
 WHERE NOT EXISTS
 (
     SELECT 1
-    FROM LEX02_CompanyDepartmentLocation Existing
-    WHERE Existing.LEX02Code = Source.LEX02Code
+    FROM dbo.Departments Existing
+    WHERE Existing.Code = Source.Code
       AND Existing.IsDeleted = 0
 );
 

@@ -19,7 +19,7 @@ public sealed class PriceBookWorkflowTests
     public async Task Publish_ValidDraft_RecordsImmutableStatusAudit()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var seed = await SeedBookAsync(context, supplierId: Guid.NewGuid(), status: L07_PriceListStatus.Draft);
+        var seed = await SeedBookAsync(context, supplierId: Guid.NewGuid(), status: PriceListStatus.Draft);
         var workflow = CreateWorkflow(context);
 
         var result = await workflow.PublishAsync(seed.BookId, new PriceBookStatusReqDTO
@@ -31,15 +31,15 @@ public sealed class PriceBookWorkflowTests
         Assert.Equal("Published", result.Status);
         Assert.Equal(5615, result.PublishedByUserId);
         Assert.Equal("Approved quote", result.StatusReason);
-        Assert.Equal(L07_PriceListStatus.Published,
-            (await context.Set<L07_PriceList>().SingleAsync(x => x.Id == seed.BookId)).Status);
+        Assert.Equal(PriceListStatus.Published,
+            (await context.Set<PriceList>().SingleAsync(x => x.Id == seed.BookId)).Status);
     }
 
     [Fact]
     public async Task Publish_StaleRowVersion_IsRejected()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var seed = await SeedBookAsync(context, supplierId: Guid.NewGuid(), status: L07_PriceListStatus.Draft);
+        var seed = await SeedBookAsync(context, supplierId: Guid.NewGuid(), status: PriceListStatus.Draft);
         var workflow = CreateWorkflow(context);
 
         var ex = await Assert.ThrowsAsync<ConflictException>(() => workflow.PublishAsync(seed.BookId, new PriceBookStatusReqDTO
@@ -56,8 +56,8 @@ public sealed class PriceBookWorkflowTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var supplierId = Guid.NewGuid();
-        var existing = await SeedBookAsync(context, supplierId, L07_PriceListStatus.Published, code: "OLD");
-        var draft = await SeedBookAsync(context, supplierId, L07_PriceListStatus.Draft, code: "NEW", vppId: existing.VppId);
+        var existing = await SeedBookAsync(context, supplierId, PriceListStatus.Published, code: "OLD");
+        var draft = await SeedBookAsync(context, supplierId, PriceListStatus.Draft, code: "NEW", vppId: existing.VppId);
         var workflow = CreateWorkflow(context);
 
         var ex = await Assert.ThrowsAsync<BusinessException>(() => workflow.PublishAsync(draft.BookId, new PriceBookStatusReqDTO
@@ -73,7 +73,7 @@ public sealed class PriceBookWorkflowTests
     public async Task Expire_PublishedBook_SetsHalfOpenEndAndAudit()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var seed = await SeedBookAsync(context, Guid.NewGuid(), L07_PriceListStatus.Published);
+        var seed = await SeedBookAsync(context, Guid.NewGuid(), PriceListStatus.Published);
         var workflow = CreateWorkflow(context);
 
         var result = await workflow.ExpireAsync(seed.BookId, new PriceBookStatusReqDTO
@@ -94,23 +94,23 @@ public sealed class PriceBookWorkflowTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var supplierA = Guid.NewGuid();
         var supplierB = Guid.NewGuid();
-        var complete = await SeedBookAsync(context, supplierA, L07_PriceListStatus.Published, code: "A", netPrice: 100m);
-        await SeedBookAsync(context, supplierB, L07_PriceListStatus.Published, code: "B", netPrice: 80m, vppId: complete.VppId);
+        var complete = await SeedBookAsync(context, supplierA, PriceListStatus.Published, code: "A", netPrice: 100m);
+        await SeedBookAsync(context, supplierB, PriceListStatus.Published, code: "B", netPrice: 80m, vppId: complete.VppId);
         var secondVpp = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, secondVpp);
-        context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
+        context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = complete.BookId,
-            L04_VPPId = secondVpp,
-            L05_VPPSupplierId = supplierA,
+            PriceListId = complete.BookId,
+            VppItemId = secondVpp,
+            SupplierId = supplierA,
             Price = 50m,
             NetPrice = 50m,
             VatRate = 8m,
-            CreateUserId = 1,
-            CreateDate = FromUtc,
-            UpdateUserId = 1,
-            UpdateDate = FromUtc
+            CreatedByUserId = 1,
+            CreatedAtUtc = FromUtc,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = FromUtc
         });
         await context.SaveChangesAsync();
         var workflow = CreateWorkflow(context);
@@ -150,31 +150,31 @@ public sealed class PriceBookWorkflowTests
     private static async Task<SeedIds> SeedBookAsync(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         Guid supplierId,
-        L07_PriceListStatus status,
+        PriceListStatus status,
         string code = "BOOK",
         Guid? vppId = null,
         decimal netPrice = 100m)
     {
         vppId ??= Guid.NewGuid();
-        if (!await context.Set<L04_VPP>().AnyAsync(x => x.Id == vppId.Value))
+        if (!await context.Set<VppItem>().AnyAsync(x => x.Id == vppId.Value))
         {
             await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId.Value);
         }
-        if (!await context.Set<L05_VPPSupplier>().AnyAsync(x => x.Id == supplierId))
+        if (!await context.Set<Supplier>().AnyAsync(x => x.Id == supplierId))
         {
-            context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+            context.Set<Supplier>().Add(new Supplier
             {
                 Id = supplierId,
                 SupplierName = $"Supplier {supplierId:N}"[..20],
                 SupplierShortName = code,
-                CreateUserId = 1,
-                CreateDate = FromUtc,
-                UpdateUserId = 1,
-                UpdateDate = FromUtc
+                CreatedByUserId = 1,
+                CreatedAtUtc = FromUtc,
+                UpdatedByUserId = 1,
+                UpdatedAtUtc = FromUtc
             });
         }
         var bookId = Guid.NewGuid();
-        context.Set<L07_PriceList>().Add(new L07_PriceList
+        context.Set<PriceList>().Add(new PriceList
         {
             Id = bookId,
             PriceListCode = code,
@@ -186,25 +186,25 @@ public sealed class PriceBookWorkflowTests
             Status = status,
             CurrencyCode = "VND",
             VatPolicy = "item-rate",
-            CreateUserId = 1,
-            CreateDate = FromUtc,
-            UpdateUserId = 1,
-            UpdateDate = FromUtc,
+            CreatedByUserId = 1,
+            CreatedAtUtc = FromUtc,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = FromUtc,
             RowVersion = [1]
         });
-        context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
+        context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = bookId,
-            L04_VPPId = vppId.Value,
-            L05_VPPSupplierId = supplierId,
+            PriceListId = bookId,
+            VppItemId = vppId.Value,
+            SupplierId = supplierId,
             Price = netPrice,
             NetPrice = netPrice,
             VatRate = 10m,
-            CreateUserId = 1,
-            CreateDate = FromUtc,
-            UpdateUserId = 1,
-            UpdateDate = FromUtc
+            CreatedByUserId = 1,
+            CreatedAtUtc = FromUtc,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = FromUtc
         });
         await context.SaveChangesAsync();
         return new SeedIds(bookId, vppId.Value);

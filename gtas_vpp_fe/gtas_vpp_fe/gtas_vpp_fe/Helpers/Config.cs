@@ -35,23 +35,24 @@ namespace gtas_vpp_fe.Helpers
 
         public static class LibraryApi
         {
-            public const string L01_Class = $"{ApiLibraryBase}/l01";
-            public const string L02_ClassDetail = $"{ApiLibraryBase}/l02";
-            public const string L03_Category = $"{ApiLibraryBase}/l03";
-            public const string L04_Item = $"{ApiLibraryBase}/l04";
-            public const string L05_Supplier = $"{ApiLibraryBase}/l05";
-            public const string L06_SupplierMapping = $"{ApiLibraryBase}/l06";
+            public const string LookupCategories = $"{ApiLibraryBase}/lookup-categories";
+            public const string LookupValues = $"{ApiLibraryBase}/lookup-values";
+            public const string VppCategories = $"{ApiLibraryBase}/vpp-categories";
+            public const string VppItems = $"{ApiLibraryBase}/vpp-items";
+            public const string Suppliers = $"{ApiLibraryBase}/suppliers";
+            public const string SupplierProductMappings = $"{ApiLibraryBase}/supplier-product-mappings";
+            public const string Departments = $"{ApiLibraryBase}/departments";
             public const string VPPPriceBase = $"{ApiBase}/vppprice";
             public const string VPPPrice_ByVpp = $"{VPPPriceBase}/by-vpp";
             public const string VPPPrice_BySupplier = $"{VPPPriceBase}/by-supplier";
             public const string VPPPrice_ItemPrices = $"{VPPPriceBase}/item-prices";
             public const string VPPPrice_SetDefault = $"{VPPPriceBase}/{{0}}/set-default";
-            public const string L07_PriceList = $"{ApiBase}/vpppricelist";
-            public const string L07_PriceList_SetDefault = $"{L07_PriceList}/{{0}}/set-default";
-            public const string L07_PriceList_Clone = $"{L07_PriceList}/clone";
-            public const string L07_PriceList_Publish = $"{L07_PriceList}/{{0}}/publish";
-            public const string L07_PriceList_Expire = $"{L07_PriceList}/{{0}}/expire";
-            public const string L07_PriceList_Compare = $"{L07_PriceList}/compare";
+            public const string PriceList = $"{ApiBase}/vpppricelist";
+            public const string PriceList_SetDefault = $"{PriceList}/{{0}}/set-default";
+            public const string PriceList_Clone = $"{PriceList}/clone";
+            public const string PriceList_Publish = $"{PriceList}/{{0}}/publish";
+            public const string PriceList_Expire = $"{PriceList}/{{0}}/expire";
+            public const string PriceList_Compare = $"{PriceList}/compare";
         }
 
         public static class RequestApi
@@ -80,7 +81,7 @@ namespace gtas_vpp_fe.Helpers
         // deployment-bound backend now correctly rejects.
         public const string CookieName = "VPP_AuthCookie_v3";
         public const int CookieExpireMinutes = 60;
-        // Page codes for sp_Authen_GetPermissionSinglePage payloads.
+        // Page codes for page permission payloads.
         // NB: Component-level permission codes were deduplicated with
         // gtas_vpp_shared.Constants.Permissions (P4.C / F-24). Use that
         // class directly instead of re-declaring REQUEST_* / PERMISSION_*

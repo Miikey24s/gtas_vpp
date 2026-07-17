@@ -9,22 +9,22 @@ using Xunit;
 
 namespace gtas_vpp_be.Tests;
 
-public class VPPCodeGeneratorTests
+public class VppCodeGeneratorTests
 {
     [Fact]
-    public void GenerateVPPCode_ValidInput_MatchesExpectedFormat()
+    public void GenerateVppCode_ValidInput_MatchesExpectedFormat()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
 
-        var result = InvokeGenerateVPPCode(service, 2026, 4);
+        var result = InvokeGenerateVppCode(service, 2026, 4);
 
         Assert.Matches("^VPP-202604-[a-f0-9]{32}$", result);
         Assert.Equal(43, result.Length);
     }
 
     [Fact]
-    public void GenerateVPPCode_1000Times_AllUnique()
+    public void GenerateVppCode_1000Times_AllUnique()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateService(context, new DateTime(2026, 4, 1, 9, 7, 8));
@@ -32,7 +32,7 @@ public class VPPCodeGeneratorTests
 
         for (var i = 0; i < 1000; i++)
         {
-            codes.Add(InvokeGenerateVPPCode(service, 2026, 4));
+            codes.Add(InvokeGenerateVppCode(service, 2026, 4));
         }
 
         Assert.Equal(1000, codes.Count);
@@ -63,8 +63,8 @@ public class VPPCodeGeneratorTests
             Options.Create(new JiraSettings()));
     }
 
-    private static string InvokeGenerateVPPCode(VPPRequestService service, int year, int month)
+    private static string InvokeGenerateVppCode(VPPRequestService service, int year, int month)
         => (string)typeof(VPPRequestService)
-            .GetMethod("GenerateVPPCode", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetMethod("GenerateVppCode", BindingFlags.NonPublic | BindingFlags.Instance)!
             .Invoke(service, new object[] { year, month })!;
 }

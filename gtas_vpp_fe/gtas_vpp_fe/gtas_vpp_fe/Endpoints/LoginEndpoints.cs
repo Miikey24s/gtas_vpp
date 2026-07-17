@@ -122,7 +122,7 @@ namespace gtas_vpp_fe.Endpoints
         }
 
         public static List<Claim> CreateAuthenticationClaims(
-            gtas_vpp_shared.DTOs.Res.Auth.sp_Authentication_Login loginData)
-            => loginData.sp_AuthenticationLogin_To_Claims();
+            gtas_vpp_shared.DTOs.Res.Auth.AuthenticationResultDTO loginData)
+            => loginData.ToAuthenticationClaims();
     }
 }

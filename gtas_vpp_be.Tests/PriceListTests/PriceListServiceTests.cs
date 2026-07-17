@@ -19,7 +19,7 @@ public class PriceListServiceTests
         await SeedListAsync(context, "OLD", "Old", isDefault: true, now);
         var service = CreateService(context, now);
 
-        var result = await service.CreateAsync(new L07_PriceListCreateReqDTO
+        var result = await service.CreateAsync(new PriceListCreateReqDTO
         {
             Code = "NEW",
             Name = "New",
@@ -27,7 +27,7 @@ public class PriceListServiceTests
         }, 5615);
 
         Assert.True(result.IsDefault);
-        var lists = await context.Set<L07_PriceList>().Where(x => !x.IsDeleted).ToListAsync();
+        var lists = await context.Set<PriceList>().Where(x => !x.IsDeleted).ToListAsync();
         Assert.Equal(2, lists.Count);
         Assert.Single(lists, x => x.IsDefault);
         Assert.True(lists.Single(x => x.Id == result.Id).IsDefault);
@@ -44,7 +44,7 @@ public class PriceListServiceTests
 
         await service.SetDefaultAsync(secondId, 5615);
 
-        var lists = await context.Set<L07_PriceList>().ToListAsync();
+        var lists = await context.Set<PriceList>().ToListAsync();
         Assert.False(lists.Single(x => x.Id == firstId).IsDefault);
         Assert.True(lists.Single(x => x.Id == secondId).IsDefault);
     }
@@ -60,7 +60,7 @@ public class PriceListServiceTests
         var ex = await Assert.ThrowsAsync<BusinessException>(() => service.DeleteAsync(id, 5615));
 
         Assert.Contains("Cannot delete the default price list", ex.Message);
-        Assert.False((await context.Set<L07_PriceList>().SingleAsync(x => x.Id == id)).IsDeleted);
+        Assert.False((await context.Set<PriceList>().SingleAsync(x => x.Id == id)).IsDeleted);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class PriceListServiceTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var supplierId = await SeedSupplierAsync(context, now);
-        context.Set<L06_VPPSupplierMapping>().Add(PriceRow(listId, vppId, supplierId, 100, isDefault: true, now));
+        context.Set<SupplierProductMapping>().Add(PriceRow(listId, vppId, supplierId, 100, isDefault: true, now));
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
@@ -93,11 +93,11 @@ public class PriceListServiceTests
         var supplierId = await SeedSupplierAsync(context, now);
         var original1 = PriceRow(sourceId, vpp1Id, supplierId, 100, isDefault: true, now);
         var original2 = PriceRow(sourceId, vpp2Id, supplierId, 200, isDefault: false, now);
-        context.Set<L06_VPPSupplierMapping>().AddRange(original1, original2);
+        context.Set<SupplierProductMapping>().AddRange(original1, original2);
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        var clone = await service.CloneAsync(new L07_PriceListCloneReqDTO
+        var clone = await service.CloneAsync(new PriceListCloneReqDTO
         {
             SourceId = sourceId,
             Code = "CLONE",
@@ -106,14 +106,14 @@ public class PriceListServiceTests
 
         Assert.False(clone.IsDefault);
         Assert.Equal(2, clone.ItemCount);
-        var clonedRows = await context.Set<L06_VPPSupplierMapping>()
-            .Where(x => x.L07_PriceListId == clone.Id)
+        var clonedRows = await context.Set<SupplierProductMapping>()
+            .Where(x => x.PriceListId == clone.Id)
             .OrderBy(x => x.Price)
             .ToListAsync();
         Assert.Equal(2, clonedRows.Count);
         Assert.DoesNotContain(clonedRows, x => x.Id == original1.Id || x.Id == original2.Id);
-        Assert.True(clonedRows.Single(x => x.L04_VPPId == vpp1Id).IsDefault);
-        Assert.False(clonedRows.Single(x => x.L04_VPPId == vpp2Id).IsDefault);
+        Assert.True(clonedRows.Single(x => x.VppItemId == vpp1Id).IsDefault);
+        Assert.False(clonedRows.Single(x => x.VppItemId == vpp2Id).IsDefault);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class PriceListServiceTests
         var secondId = await SeedListAsync(context, "B", "B", isDefault: false, now);
         var service = CreateService(context, now);
 
-        await service.UpdateAsync(new L07_PriceListUpdateReqDTO
+        await service.UpdateAsync(new PriceListUpdateReqDTO
         {
             Id = secondId,
             Code = "B2",
@@ -133,7 +133,7 @@ public class PriceListServiceTests
             IsDefault = true
         }, 5615);
 
-        var lists = await context.Set<L07_PriceList>().ToListAsync();
+        var lists = await context.Set<PriceList>().ToListAsync();
         Assert.False(lists.Single(x => x.Id == firstId).IsDefault);
         Assert.True(lists.Single(x => x.Id == secondId).IsDefault);
     }
@@ -152,16 +152,16 @@ public class PriceListServiceTests
         DateTime now)
     {
         var id = Guid.NewGuid();
-        context.Set<L07_PriceList>().Add(new L07_PriceList
+        context.Set<PriceList>().Add(new PriceList
         {
             Id = id,
             PriceListCode = code,
             PriceListName = name,
             IsDefault = isDefault,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now,
             IsDeleted = false
         });
         await context.SaveChangesAsync();
@@ -173,22 +173,22 @@ public class PriceListServiceTests
         DateTime now)
     {
         var id = Guid.NewGuid();
-        context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+        context.Set<Supplier>().Add(new Supplier
         {
             Id = id,
             SupplierShortName = "SUP",
             SupplierName = "Supplier",
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now,
             IsDeleted = false
         });
         await context.SaveChangesAsync();
         return id;
     }
 
-    private static L06_VPPSupplierMapping PriceRow(
+    private static SupplierProductMapping PriceRow(
         Guid listId,
         Guid vppId,
         Guid supplierId,
@@ -198,15 +198,15 @@ public class PriceListServiceTests
         => new()
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = listId,
-            L04_VPPId = vppId,
-            L05_VPPSupplierId = supplierId,
+            PriceListId = listId,
+            VppItemId = vppId,
+            SupplierId = supplierId,
             Price = price,
             IsDefault = isDefault,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now,
             IsDeleted = false
         };
 }

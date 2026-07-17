@@ -1,13 +1,13 @@
-﻿namespace gtas_vpp_shared.DTOs.Share
+namespace gtas_vpp_shared.DTOs.Share
 {
     public class BaseDTO
     {
         public Guid Id { get; set; }
         public string? Description { get; set; }
-        public int CreateUserId { get; set; }
-        public DateTime CreateDate { get; set; }
-        public int UpdateUserId { get; set; }
-        public DateTime UpdateDate { get; set; }
+        public int CreatedByUserId { get; set; }
+        public DateTime CreatedAtUtc { get; set; }
+        public int UpdatedByUserId { get; set; }
+        public DateTime UpdatedAtUtc { get; set; }
         public bool IsDeleted { get; set; }
         private bool _isDisposed = false;
         public void Dispose()

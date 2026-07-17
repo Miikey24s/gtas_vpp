@@ -102,7 +102,7 @@ public sealed class AppAuthenticationServiceTests
     public async Task CurrentUser_TamperedCanonicalRoleCode_IsRejected()
     {
         await using var fixture = await AuthFixture.CreateAsync();
-        var group = await fixture.Context.P02_Groups.SingleAsync();
+        var group = await fixture.Context.PermissionGroups.SingleAsync();
         group.GroupCode = "SYSTEM_ADMIN_TAMPERED";
         await fixture.Context.SaveChangesAsync();
 
@@ -145,7 +145,7 @@ public sealed class AppAuthenticationServiceTests
             ServiceProvider provider,
             VPPContext context,
             AppUser account,
-            P04_UserGroup membership,
+            UserGroupMembership membership,
             CurrentUserContext currentUserContext,
             AppAuthenticationService service)
         {
@@ -159,7 +159,7 @@ public sealed class AppAuthenticationServiceTests
 
         public VPPContext Context { get; }
         public AppUser Account { get; }
-        public P04_UserGroup Membership { get; }
+        public UserGroupMembership Membership { get; }
         public CurrentUserContext CurrentUserContext { get; }
         public AppAuthenticationService Service { get; }
 
@@ -184,22 +184,21 @@ public sealed class AppAuthenticationServiceTests
             var context = provider.GetRequiredService<VPPContext>();
             var userManager = provider.GetRequiredService<UserManager<AppUser>>();
             var now = DateTime.UtcNow;
-            var department = new LEX02_CompanyDepartmentLocation
+            var department = new Department
             {
                 Id = Guid.NewGuid(),
-                LEX02Code = "IT",
-                LEX02Name = "Công nghệ thông tin",
-                LEX02Type = "PhongBan",
-                CreateDate = now,
-                UpdateDate = now
+                Code = "IT",
+                Name = "Công nghệ thông tin",
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             };
-            var group = new P02_Group
+            var group = new PermissionGroup
             {
                 Id = CanonicalRbac.SystemAdmin.GroupId,
                 GroupCode = CanonicalRbac.SystemAdmin.GroupCode,
                 GroupName = CanonicalRbac.SystemAdmin.GroupName,
-                CreateDate = now,
-                UpdateDate = now
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             };
             context.AddRange(department, group);
             await context.SaveChangesAsync();
@@ -219,19 +218,19 @@ public sealed class AppAuthenticationServiceTests
             var createResult = await userManager.CreateAsync(account, ValidPassword);
             Assert.True(createResult.Succeeded, string.Join("; ", createResult.Errors.Select(x => x.Code)));
 
-            var membership = new P04_UserGroup
+            var membership = new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 UserId = account.Id,
                 AccountId = account.Id,
-                P02_GroupId = group.Id,
-                LEX02_CompanyDepartmentLocationId = department.Id,
-                CreateUserId = account.Id,
-                UpdateUserId = account.Id,
-                CreateDate = now,
-                UpdateDate = now
+                PermissionGroupId = group.Id,
+                DepartmentId = department.Id,
+                CreatedByUserId = account.Id,
+                UpdatedByUserId = account.Id,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             };
-            context.P04_UserGroups.Add(membership);
+            context.UserGroupMemberships.Add(membership);
             await context.SaveChangesAsync();
 
             var configuration = new ConfigurationBuilder()

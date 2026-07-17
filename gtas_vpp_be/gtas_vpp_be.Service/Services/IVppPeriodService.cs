@@ -10,22 +10,22 @@ namespace gtas_vpp_be.Service.Services;
 /// </summary>
 public interface IVppPeriodService
 {
-    Task<VPP00_Period> EnsureCurrentAsync(
+    Task<VppPeriod> EnsureCurrentAsync(
         string memberCompanyCode,
         CancellationToken cancellationToken = default);
 
-    Task<VPP00_Period> EnsureAsync(
+    Task<VppPeriod> EnsureAsync(
         string memberCompanyCode,
         int year,
         int month,
         CancellationToken cancellationToken = default);
 
-    Task<VPP00_Period> EnsureAsync(
+    Task<VppPeriod> EnsureAsync(
         string memberCompanyCode,
         Period period,
         CancellationToken cancellationToken = default);
 
-    Task<VPP00_Period?> GetAsync(
+    Task<VppPeriod?> GetAsync(
         string memberCompanyCode,
         Period period,
         CancellationToken cancellationToken = default);
@@ -35,7 +35,7 @@ public interface IVppPeriodService
         CancellationToken cancellationToken = default);
 
     /// <summary>Recovers all known company periods (used by the hosted worker).</summary>
-    Task<IReadOnlyList<VPP00_Period>> AdvanceDuePeriodsAsync(
+    Task<IReadOnlyList<VppPeriod>> AdvanceDuePeriodsAsync(
         CancellationToken cancellationToken = default);
 
     Task TransitionAsync(

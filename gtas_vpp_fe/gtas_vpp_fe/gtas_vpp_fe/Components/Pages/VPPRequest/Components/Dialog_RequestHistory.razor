@@ -66,17 +66,17 @@
 
             <section aria-labelledby="request-revisions-title">
                 <h3 id="request-revisions-title" class="rz-text-subtitle2">@Loc["RequestRevisions"]</h3>
-                <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO"
+                <RadzenDataGrid TItem="VppRequestResDTO"
                                 Data="@_history.Revisions.OrderByDescending(x => x.RevisionNumber)"
                                 AllowPaging="false" AllowSorting="false" AllowFiltering="false"
                                 Density="Density.Compact" GridLines="DataGridGridLines.Horizontal">
                     <Columns>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="RevisionNumber" Title="@Loc["Revision"]" Width="90px" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" Width="130px" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="TotalLines" Title="@Loc["Lines"]" Width="80px" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="TotalQty" Title="@Loc["TotalQuantity"]" Width="100px" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="@Loc["UpdatedAt"]" Width="165px">
-                            <Template Context="revision">@DateFormatter.Format(revision.UpdateDate, DateFormatter.LongDate)</Template>
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="RevisionNumber" Title="@Loc["Revision"]" Width="90px" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" Width="130px" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalLines" Title="@Loc["Lines"]" Width="80px" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalQty" Title="@Loc["TotalQuantity"]" Width="100px" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Title="@Loc["UpdatedAt"]" Width="165px">
+                            <Template Context="revision">@DateFormatter.Format(revision.UpdatedAtUtc, DateFormatter.LongDate)</Template>
                         </RadzenDataGridColumn>
                     </Columns>
                 </RadzenDataGrid>
@@ -92,7 +92,7 @@
 @code {
     [Parameter, EditorRequired] public Guid RequestId { get; set; }
 
-    private VPP_RequestHistoryResDTO? _history;
+    private VppRequestHistoryResDTO? _history;
     private bool _isLoading = true;
     private string? _error;
 
@@ -104,7 +104,7 @@
         _error = null;
         try
         {
-            _history = await ApiServices.GetFromApiAsync<VPP_RequestHistoryResDTO>(
+            _history = await ApiServices.GetFromApiAsync<VppRequestHistoryResDTO>(
                 $"{Config.VppApi.Orders}/{RequestId}/history");
         }
         catch (Exception ex)

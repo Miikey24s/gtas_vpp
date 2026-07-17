@@ -22,7 +22,7 @@ public sealed class VppCatalogController : ControllerBase
 
     [HttpGet("items")]
     [Authorize(Policy = Permissions.LibraryView)]
-    public async Task<ActionResult<IReadOnlyList<L04_VPPResDTO>>> GetItems(
+    public async Task<ActionResult<IReadOnlyList<VppItemResDTO>>> GetItems(
         [FromQuery] Guid? categoryId,
         [FromQuery] string? search,
         [FromQuery] string? filter,
@@ -42,8 +42,8 @@ public sealed class VppCatalogController : ControllerBase
 
     [HttpPost("items")]
     [Authorize(Policy = Permissions.LibraryManage)]
-    public async Task<ActionResult<L04_VPPResDTO>> CreateItem(
-        [FromBody] L04_VppCreateReqDTO request,
+    public async Task<ActionResult<VppItemResDTO>> CreateItem(
+        [FromBody] VppItemCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         var result = await _catalogService.CreateItemAsync(request, CurrentUserId, cancellationToken);
@@ -52,7 +52,7 @@ public sealed class VppCatalogController : ControllerBase
 
     [HttpGet("items/{id:guid}")]
     [Authorize(Policy = Permissions.LibraryView)]
-    public async Task<ActionResult<L04_VPPResDTO>> GetItem(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<VppItemResDTO>> GetItem(Guid id, CancellationToken cancellationToken = default)
     {
         var item = await _catalogService.GetItemAsync(id, includeDeleted: true, cancellationToken);
         return item is null ? NotFound() : Ok(item);
@@ -60,9 +60,9 @@ public sealed class VppCatalogController : ControllerBase
 
     [HttpPut("items/{id:guid}")]
     [Authorize(Policy = Permissions.LibraryManage)]
-    public async Task<ActionResult<L04_VPPResDTO>> UpdateItem(
+    public async Task<ActionResult<VppItemResDTO>> UpdateItem(
         Guid id,
-        [FromBody] L04_VppUpdateReqDTO request,
+        [FromBody] VppItemUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
         if (request.Id != Guid.Empty && request.Id != id)
@@ -76,9 +76,9 @@ public sealed class VppCatalogController : ControllerBase
 
     [HttpPatch("items/{id:guid}/status")]
     [Authorize(Policy = Permissions.LibraryManage)]
-    public async Task<ActionResult<L04_VPPResDTO>> SetItemStatus(
+    public async Task<ActionResult<VppItemResDTO>> SetItemStatus(
         Guid id,
-        [FromBody] L04_VppStatusReqDTO request,
+        [FromBody] VppItemStatusRequest request,
         CancellationToken cancellationToken = default)
         => Ok(await _catalogService.SetItemStatusAsync(id, request, CurrentUserId, cancellationToken));
 

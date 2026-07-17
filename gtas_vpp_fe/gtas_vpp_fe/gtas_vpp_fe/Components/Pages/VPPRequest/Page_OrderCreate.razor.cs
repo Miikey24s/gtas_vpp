@@ -54,8 +54,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
 
 
-        // P1: BE owns the period truth — FE never derives Y/M from DateTime.Now.
-        public VPP_PeriodInfoResDTO? PeriodInfo { get; set; }
+        // P1: BE owns the period truth — FE never derives Year/Month from DateTime.Now.
+        public VppPeriodInfoResDTO? PeriodInfo { get; set; }
 
         private readonly ProductOptionEqualityComparer _productComparer = new();
 
@@ -343,7 +343,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             try
             {
-                PeriodInfo = await _apiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
+                PeriodInfo = await _apiServices.GetFromApiAsync<VppPeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
             }
             catch (Exception ex)
             {
@@ -363,7 +363,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             try
             {
-                var editingOrder = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.Orders}/{OrderId.Value}");
+                var editingOrder = await _apiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{OrderId.Value}");
                 if (editingOrder == null)
                 {
                     Toast.Notify(new NotificationMessage
@@ -388,11 +388,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 Context.SelectedItems = (editingOrder.Items ?? new())
                     .Select(x => new OrderCreateContext.SelectedItem
                     {
-                        VPPId = x.VPPId,
-                        VPPCode = x.VPPCode,
-                        VPPName = x.VPPName,
-                        UOMCode = x.UOMCode,
-                        UOMName = x.UOMName,
+                        VppId = x.VppId,
+                        VppCode = x.VppCode,
+                        VppName = x.VppName,
+                        UomCode = x.UomCode,
+                        UomName = x.UomName,
                         Qty = x.Qty,
                         Description = x.Description
                     })
@@ -414,7 +414,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             try
             {
-                var previousOrder = await _apiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.ApiVppBase}/orders/previous-items");
+                var previousOrder = await _apiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.ApiVppBase}/orders/previous-items");
                 if (previousOrder == null)
                 {
                     Toast.Notify(new NotificationMessage
@@ -431,11 +431,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 Context.SelectedItems = (previousOrder.Items ?? new())
                     .Select(x => new OrderCreateContext.SelectedItem
                     {
-                        VPPId = x.VPPId,
-                        VPPCode = x.VPPCode,
-                        VPPName = x.VPPName,
-                        UOMCode = x.UOMCode,
-                        UOMName = x.UOMName,
+                        VppId = x.VppId,
+                        VppCode = x.VppCode,
+                        VppName = x.VppName,
+                        UomCode = x.UomCode,
+                        UomName = x.UomName,
                         Qty = x.Qty,
                         Description = x.Description
                     })
@@ -607,7 +607,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
 
-            if (Context.SelectedItems.Any(x => x.VPPId == Guid.Empty || x.Qty <= 0))
+            if (Context.SelectedItems.Any(x => x.VppId == Guid.Empty || x.Qty <= 0))
             {
                 Toast.Notify(new NotificationMessage
                 {
@@ -622,7 +622,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             IsSaving = true;
             try
             {
-                // P1: Pull Y/M from BE-authoritative PeriodInfo (loaded in OnInitializedAsync).
+                // P1: Pull Year/Month from BE-authoritative PeriodInfo (loaded in OnInitializedAsync).
                 // Falls back to a single fresh fetch in case the wizard sat open across the
                 // deadline boundary — BE will still re-validate via PeriodCalculator on submit.
                 if (PeriodInfo is null)
@@ -643,16 +643,16 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
                 var period = new DateTime(PeriodInfo.CurrentPeriodYear, PeriodInfo.CurrentPeriodMonth, 1);
 
-                var requestItems = Context.SelectedItems.Select(x => new VPP02_ItemReqDTO
+                var requestItems = Context.SelectedItems.Select(x => new VppRequestDetailItemReqDTO
                 {
-                    VPPId = x.VPPId,
+                    VppId = x.VppId,
                     Qty = x.Qty,
                     Description = x.Description
                 }).ToList();
 
                 if (IsEdit)
                 {
-                    var updateReq = new VPP01_UpdateReqDTO
+                    var updateReq = new VppRequestUpdateReqDTO
                     {
                         Id = OrderId!.Value,
                         Description = Context.Description,
@@ -663,14 +663,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Items = requestItems
                     };
 
-                    await _apiServices.PutFromApiAsync<VPP01_RequestHeaderResDTO>($"{Config.VppApi.Orders}/{OrderId}", updateReq);
+                    await _apiServices.PutFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{OrderId}", updateReq);
                 }
                 else
                 {
-                    var createReq = new VPP01_CreateReqDTO
+                    var createReq = new VppRequestCreateReqDTO
                     {
-                        Y = period.Year,
-                        M = period.Month,
+                        Year = period.Year,
+                        Month = period.Month,
                         Description = Context.Description,
                         IsAdditionalOrder = IsAdditional,
                         BaseRequestId = Context.IsAdditional ? PeriodInfo.BaseRequestId : null,
@@ -679,7 +679,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Items = requestItems
                     };
 
-                    await _apiServices.PostFromApiAsync<VPP01_RequestHeaderResDTO>(Config.VppApi.Orders, createReq);
+                    await _apiServices.PostFromApiAsync<VppRequestResDTO>(Config.VppApi.Orders, createReq);
                     if (!string.IsNullOrWhiteSpace(DraftStorageKey))
                     {
                         await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);

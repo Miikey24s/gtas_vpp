@@ -36,7 +36,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
-        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+        [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
         [Inject] private PermissionState PermissionState { get; set; } = default!;
 
@@ -78,10 +78,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private bool CanShowPricingTabs => AuthorizedPricingTabs.Count > 1;
 
-        public List<L03_VPPCategoryResDTO> operationCategories = new List<L03_VPPCategoryResDTO>();
-        public List<L04_VPPResDTO> operations = new List<L04_VPPResDTO>();
-        public List<L05_VPPSupplierResDTO> suppliers = new List<L05_VPPSupplierResDTO>();
-        public List<LEX02_CompanyDepartmentLocationResDTO> departments = new List<LEX02_CompanyDepartmentLocationResDTO>();
+        public List<VppCategoryResDTO> operationCategories = new List<VppCategoryResDTO>();
+        public List<VppItemResDTO> operations = new List<VppItemResDTO>();
+        public List<SupplierResDTO> suppliers = new List<SupplierResDTO>();
+        public List<DepartmentResDTO> departments = new List<DepartmentResDTO>();
         Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
@@ -269,16 +269,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             List<string> result = new List<string>();
             try
             {
-                List<L02_ClassDetailResDTO> l02_ClassDetail = await _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>(Config.LibraryApi.L02_ClassDetail)
-             ?? new List<L02_ClassDetailResDTO>();
-                foreach (var item in l02_ClassDetail)
+                List<LookupValueResDTO> lookupValues = await _apiServices.GetFromApiAsync<List<LookupValueResDTO>>(Config.LibraryApi.LookupValues)
+             ?? new List<LookupValueResDTO>();
+                foreach (var item in lookupValues)
                 {
-                    result.Add(item.ClassDetailValue!);
+                    result.Add(item.Value!);
                 }
             }
             catch
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", "Error when call EF get L02 by Id \"40A06BB8-63D5-424F-98E2-2A0E14FFFFDD\"");
+                _toastService.Show(NotificationSeverity.Error, "Error", "Unable to load the default UOM lookup value.");
             }
             finally
             {
@@ -302,28 +302,28 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                         glb.isBusyPage = true;
                         StateHasChanged();
 
-                        var categoriesTask = _apiServices.GetFromApiAsync<List<L03_VPPCategoryResDTO>>($"{Config.LibraryApi.L03_Category}?showDeleted=true");
-                        var uomListTask = _apiServices.GetFromApiAsync<List<L02_ClassDetailResDTO>>($"{Config.LibraryApi.L02_ClassDetail}?showDeleted=true");
+                        var categoriesTask = _apiServices.GetFromApiAsync<List<VppCategoryResDTO>>($"{Config.LibraryApi.VppCategories}?showDeleted=true");
+                        var uomListTask = _apiServices.GetFromApiAsync<List<LookupValueResDTO>>($"{Config.LibraryApi.LookupValues}?showDeleted=true");
 
                         await Task.WhenAll(categoriesTask, uomListTask);
 
-                        var cats = await categoriesTask ?? new List<L03_VPPCategoryResDTO>();
-                        var uoms = await uomListTask ?? new List<L02_ClassDetailResDTO>();
+                        var cats = await categoriesTask ?? new List<VppCategoryResDTO>();
+                        var uoms = await uomListTask ?? new List<LookupValueResDTO>();
 
-                        var formulaList = uoms.Select(x => x.ClassDetailValue).Where(v => v != null).Cast<string>().ToList();
+                        var formulaList = uoms.Select(x => x.Value).Where(v => v != null).Cast<string>().ToList();
 
                         CategoryDropdownDatas = new Dictionary<string, IList<DropdownModel>>()
                         {
                             {
-                                nameof(L04_VPPResDTO.VPPCategoryId),
-                                cats.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.VPPCategoryName }).ToList()
+                                nameof(VppItemResDTO.VppCategoryId),
+                                cats.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.VppCategoryName }).ToList()
                             },
                             {
-                                nameof(L04_VPPResDTO.UOMId),
-                                uoms.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.ClassDetailValue }).ToList()
+                                nameof(VppItemResDTO.UomId),
+                                uoms.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.Value }).ToList()
                             },
                             {
-                                nameof(L04_VPPResDTO),
+                                nameof(VppItemResDTO),
                                 formulaList.Select(x => new DropdownModel { Code = x, Name = x }).ToList()
                             }
                         };
@@ -352,18 +352,18 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                if (typeof(T) == typeof(L04_VPPResDTO))
+                if (typeof(T) == typeof(VppItemResDTO))
                 {
-                    var source = (L04_VPPResDTO)(object)data;
-                    var created = await _apiServices.PostFromApiAsync<L04_VPPResDTO>(
+                    var source = (VppItemResDTO)(object)data;
+                    var created = await _apiServices.PostFromApiAsync<VppItemResDTO>(
                         Config.ApiCatalogItems,
-                        new L04_VppCreateReqDTO
+                        new VppItemCreateRequest
                         {
-                            VPPCode = source.VPPCode,
-                            VPPName = source.VPPName,
+                            VppCode = source.VppCode,
+                            VppName = source.VppName,
                             Description = source.Description,
-                            UOMId = source.UOMId,
-                            VPPCategoryId = source.VPPCategoryId
+                            UomId = source.UomId,
+                            VppCategoryId = source.VppCategoryId
                         });
                     if (created is null) throw new InvalidOperationException("Catalog item create returned no data.");
                     _toastService.Show(NotificationSeverity.Success, "Success", "Record added successfully");
@@ -390,19 +390,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                if (typeof(T) == typeof(L04_VPPResDTO))
+                if (typeof(T) == typeof(VppItemResDTO))
                 {
-                    var source = (L04_VPPResDTO)(object)data;
-                    var updated = await _apiServices.PutFromApiAsync<L04_VPPResDTO>(
+                    var source = (VppItemResDTO)(object)data;
+                    var updated = await _apiServices.PutFromApiAsync<VppItemResDTO>(
                         $"{Config.ApiCatalogItems}/{source.Id}",
-                        new L04_VppUpdateReqDTO
+                        new VppItemUpdateRequest
                         {
                             Id = source.Id,
-                            VPPCode = source.VPPCode,
-                            VPPName = source.VPPName,
+                            VppCode = source.VppCode,
+                            VppName = source.VppName,
                             Description = source.Description,
-                            UOMId = source.UOMId,
-                            VPPCategoryId = source.VPPCategoryId
+                            UomId = source.UomId,
+                            VppCategoryId = source.VppCategoryId
                         });
                     if (updated is null) throw new InvalidOperationException("Catalog item update returned no data.");
                     _toastService.Show(NotificationSeverity.Success, "Success", "Record updated successfully");
@@ -449,16 +449,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         async Task<T> ApiSetStatusAsync<T>(T data, bool isDeleted) where T : BaseResDTO, new()
         {
-            if (typeof(T) != typeof(L04_VPPResDTO))
+            if (typeof(T) != typeof(VppItemResDTO))
             {
                 return await ApiUpdateAsync(data);
             }
 
             try
             {
-                var result = await _apiServices.PatchFromApiAsync<L04_VPPResDTO>(
+                var result = await _apiServices.PatchFromApiAsync<VppItemResDTO>(
                     $"{Config.ApiCatalogItems}/{data.Id}/status",
-                    new L04_VppStatusReqDTO { IsDeleted = isDeleted });
+                    new VppItemStatusRequest { IsDeleted = isDeleted });
                 if (result is null) throw new InvalidOperationException("Catalog item status update returned no data.");
                 _toastService.Show(NotificationSeverity.Success, "Success", isDeleted ? "Record disabled successfully" : "Record restored successfully");
                 return (T)(object)result;

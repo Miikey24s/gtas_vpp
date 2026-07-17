@@ -63,7 +63,6 @@ public sealed class MembershipAdministrationService(
     IDateTimeProvider dateTimeProvider,
     ILogger<MembershipAdministrationService> logger) : IMembershipAdministrationService
 {
-    private const string DepartmentType = "PhongBan";
     private const string LastSystemAdminLock = "GTAS_VPP:AUTH:LAST_SYSTEM_ADMIN";
     private readonly VPPContext _context = context;
     private readonly IPermissionChangeNotifier _permissionChangeNotifier = permissionChangeNotifier;
@@ -189,9 +188,9 @@ public sealed class MembershipAdministrationService(
                 }
             }
 
-            var oldGroupId = current?.P02_GroupId;
+            var oldGroupId = current?.PermissionGroupId;
             if (current is not null
-                && current.P02_GroupId != command.GroupId
+                && current.PermissionGroupId != command.GroupId
                 && await IsFinalEffectiveSystemAdminAsync(command.AccountId, cancellationToken))
             {
                 return MembershipAdministrationResult.Conflict(
@@ -211,7 +210,7 @@ public sealed class MembershipAdministrationService(
                 account.AccountStatus = AppAccountStatus.Active;
                 account.ActivatedAtUtc = nowUtc;
                 account.DisabledAtUtc = null;
-                _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+                _context.SecurityAudits.Add(new SecurityAudit
                 {
                     Id = Guid.NewGuid(),
                     ActorUserId = actorAccountId,
@@ -226,46 +225,46 @@ public sealed class MembershipAdministrationService(
                     OccurredAtUtc = nowUtc
                 });
             }
-            var membership = current ?? new P04_UserGroup
+            var membership = current ?? new UserGroupMembership
             {
                 Id = Guid.NewGuid(),
                 UserId = account.Id,
                 AccountId = account.Id,
-                P02_GroupId = group.Id,
-                LEX02_CompanyDepartmentLocationId = department.Id,
-                CreateUserId = actorAccountId,
-                CreateDate = now,
-                UpdateUserId = actorAccountId,
-                UpdateDate = now,
+                PermissionGroupId = group.Id,
+                DepartmentId = department.Id,
+                CreatedByUserId = actorAccountId,
+                CreatedAtUtc = now,
+                UpdatedByUserId = actorAccountId,
+                UpdatedAtUtc = now,
                 IsDeleted = false
             };
 
             if (current is null)
             {
-                _context.P04_UserGroups.Add(membership);
+                _context.UserGroupMemberships.Add(membership);
             }
             else
             {
                 _context.Entry(current).Property(x => x.RowVersion).OriginalValue = expectedRowVersion!;
-                membership.P02_GroupId = group.Id;
-                membership.LEX02_CompanyDepartmentLocationId = department.Id;
-                membership.UpdateUserId = actorAccountId;
-                membership.UpdateDate = now;
+                membership.PermissionGroupId = group.Id;
+                membership.DepartmentId = department.Id;
+                membership.UpdatedByUserId = actorAccountId;
+                membership.UpdatedAtUtc = now;
             }
 
             InvalidateSessions(account, nowUtc);
-            _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+            _context.SecurityAudits.Add(new SecurityAudit
             {
                 Id = Guid.NewGuid(),
                 ActorUserId = actorAccountId,
                 TargetUserId = account.Id,
                 Action = current is null ? "MEMBERSHIP_CREATED" : "MEMBERSHIP_UPDATED",
-                ResourceType = "P04_UserGroup",
+                ResourceType = "UserGroupMembership",
                 ResourceId = membership.Id.ToString(),
                 Outcome = "Succeeded",
                 Summary = current is null
-                    ? $"Assigned {group.GroupCode} with primary department {department.LEX02Code}."
-                    : $"Changed membership from {oldGroupId} to {group.GroupCode} with primary department {department.LEX02Code}.",
+                    ? $"Assigned {group.GroupCode} with primary department {department.Code}."
+                    : $"Changed membership from {oldGroupId} to {group.GroupCode} with primary department {department.Code}.",
                 Reason = reason,
                 CorrelationId = Activity.Current?.TraceId.ToString(),
                 OccurredAtUtc = nowUtc
@@ -377,7 +376,7 @@ public sealed class MembershipAdministrationService(
                 return rowVersionValidation;
             }
 
-            var groupResult = await GetCanonicalGroupAsync(membership.P02_GroupId, cancellationToken);
+            var groupResult = await GetCanonicalGroupAsync(membership.PermissionGroupId, cancellationToken);
             if (groupResult.Group is null)
             {
                 return MembershipAdministrationResult.Conflict(
@@ -386,7 +385,7 @@ public sealed class MembershipAdministrationService(
             }
 
             var departmentResult = await GetActiveDepartmentAsync(
-                membership.LEX02_CompanyDepartmentLocationId,
+                membership.DepartmentId,
                 cancellationToken);
             if (departmentResult.Department is null)
             {
@@ -409,20 +408,20 @@ public sealed class MembershipAdministrationService(
             var nowUtc = DateTime.UtcNow;
             _context.Entry(membership).Property(x => x.RowVersion).OriginalValue = expectedRowVersion!;
             membership.IsDeleted = true;
-            membership.UpdateUserId = actorAccountId;
-            membership.UpdateDate = now;
+            membership.UpdatedByUserId = actorAccountId;
+            membership.UpdatedAtUtc = now;
             InvalidateSessions(account, nowUtc);
 
-            _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+            _context.SecurityAudits.Add(new SecurityAudit
             {
                 Id = Guid.NewGuid(),
                 ActorUserId = actorAccountId,
                 TargetUserId = account.Id,
                 Action = "MEMBERSHIP_DEACTIVATED",
-                ResourceType = "P04_UserGroup",
+                ResourceType = "UserGroupMembership",
                 ResourceId = membership.Id.ToString(),
                 Outcome = "Succeeded",
-                Summary = $"Deactivated {group.GroupCode} membership from primary department {department.LEX02Code}.",
+                Summary = $"Deactivated {group.GroupCode} membership from primary department {department.Code}.",
                 Reason = NormalizeReason(command.Reason),
                 CorrelationId = Activity.Current?.TraceId.ToString(),
                 OccurredAtUtc = nowUtc
@@ -524,7 +523,7 @@ public sealed class MembershipAdministrationService(
         return (account, null);
     }
 
-    private async Task<(P02_Group? Group, MembershipAdministrationResult? Failure)> GetCanonicalGroupAsync(
+    private async Task<(PermissionGroup? Group, MembershipAdministrationResult? Failure)> GetCanonicalGroupAsync(
         Guid groupId,
         CancellationToken cancellationToken)
     {
@@ -536,7 +535,7 @@ public sealed class MembershipAdministrationService(
                 "The selected group is not one of the supported flat personas."));
         }
 
-        var group = await _context.P02_Groups
+        var group = await _context.PermissionGroups
             .AsNoTracking()
             .SingleOrDefaultAsync(candidate => candidate.Id == groupId, cancellationToken);
         if (group is null)
@@ -558,7 +557,7 @@ public sealed class MembershipAdministrationService(
         return (group, null);
     }
 
-    private async Task<(LEX02_CompanyDepartmentLocation? Department, MembershipAdministrationResult? Failure)>
+    private async Task<(Department? Department, MembershipAdministrationResult? Failure)>
         GetActiveDepartmentAsync(Guid departmentId, CancellationToken cancellationToken)
     {
         if (departmentId == Guid.Empty)
@@ -568,7 +567,7 @@ public sealed class MembershipAdministrationService(
                 "A primary department is required."));
         }
 
-        var department = await _context.LEX02_CompanyDepartmentLocations
+        var department = await _context.Departments
             .AsNoTracking()
             .SingleOrDefaultAsync(candidate => candidate.Id == departmentId, cancellationToken);
         if (department is null)
@@ -579,9 +578,8 @@ public sealed class MembershipAdministrationService(
         }
 
         if (department.IsDeleted
-            || string.IsNullOrWhiteSpace(department.LEX02Code)
-            || string.IsNullOrWhiteSpace(department.LEX02Name)
-            || !string.Equals(department.LEX02Type, DepartmentType, StringComparison.OrdinalIgnoreCase))
+            || string.IsNullOrWhiteSpace(department.Code)
+            || string.IsNullOrWhiteSpace(department.Name))
         {
             return (null, MembershipAdministrationResult.Conflict(
                 "PRIMARY_DEPARTMENT_NOT_ACTIVE",
@@ -591,10 +589,10 @@ public sealed class MembershipAdministrationService(
         return (department, null);
     }
 
-    private Task<List<P04_UserGroup>> GetCurrentMembershipsAsync(
+    private Task<List<UserGroupMembership>> GetCurrentMembershipsAsync(
         int accountId,
         CancellationToken cancellationToken) =>
-        _context.P04_UserGroups
+        _context.UserGroupMemberships
             .Where(membership => !membership.IsDeleted
                 && (membership.AccountId == accountId || membership.UserId == accountId))
             .OrderBy(membership => membership.Id)
@@ -607,12 +605,12 @@ public sealed class MembershipAdministrationService(
     {
         var effectiveAdminIds = await (
                 from account in _context.Users.AsNoTracking()
-                join membership in _context.P04_UserGroups.AsNoTracking()
+                join membership in _context.UserGroupMemberships.AsNoTracking()
                     on account.Id equals membership.AccountId
-                join roleGroup in _context.P02_Groups.AsNoTracking()
-                    on membership.P02_GroupId equals roleGroup.Id
-                join department in _context.LEX02_CompanyDepartmentLocations.AsNoTracking()
-                    on membership.LEX02_CompanyDepartmentLocationId equals department.Id
+                join roleGroup in _context.PermissionGroups.AsNoTracking()
+                    on membership.PermissionGroupId equals roleGroup.Id
+                join department in _context.Departments.AsNoTracking()
+                    on membership.DepartmentId equals department.Id
                 where account.AccountStatus == AppAccountStatus.Active
                       && (account.LockoutEnd == null || account.LockoutEnd <= DateTimeOffset.UtcNow)
                       && membership.UserId == account.Id
@@ -622,17 +620,17 @@ public sealed class MembershipAdministrationService(
                       && roleGroup.GroupCode == CanonicalRbac.SystemAdmin.GroupCode
                       && !department.IsDeleted
                       && department.Id != Guid.Empty
-                      && _context.P06_GroupPageComponentMappings.Any(mapping =>
-                          mapping.P02_GroupId == roleGroup.Id
+                      && _context.GroupPageComponentMappings.Any(mapping =>
+                          mapping.PermissionGroupId == roleGroup.Id
                           && mapping.MemberCompanyCode == account.MemberCompanyCode
                           && mapping.IsVisible
                           && mapping.IsEnable
-                          && mapping.P05_PageComponentMapping != null
-                          && mapping.P05_PageComponentMapping.P01_Page != null
-                          && !mapping.P05_PageComponentMapping.P01_Page.IsDeleted
-                          && mapping.P05_PageComponentMapping.P03_Component != null
-                          && !mapping.P05_PageComponentMapping.P03_Component.IsDeleted
-                          && mapping.P05_PageComponentMapping.P03_Component.ComponentCode
+                          && mapping.PageComponentMapping != null
+                          && mapping.PageComponentMapping.PermissionPage != null
+                          && !mapping.PageComponentMapping.PermissionPage.IsDeleted
+                          && mapping.PageComponentMapping.PermissionComponent != null
+                          && !mapping.PageComponentMapping.PermissionComponent.IsDeleted
+                          && mapping.PageComponentMapping.PermissionComponent.ComponentCode
                               == Permissions.PermissionManage)
                 select account.Id)
             .Distinct()
@@ -757,9 +755,9 @@ public sealed class MembershipAdministrationService(
 
     private static MembershipAdministrationResDTO MapResponse(
         AppUser account,
-        P04_UserGroup membership,
-        P02_Group group,
-        LEX02_CompanyDepartmentLocation department,
+        UserGroupMembership membership,
+        PermissionGroup group,
+        Department department,
         bool isActive) => new()
     {
         MembershipId = membership.Id,
@@ -773,12 +771,12 @@ public sealed class MembershipAdministrationService(
         GroupCode = group.GroupCode,
         GroupName = group.GroupName ?? string.Empty,
         PrimaryDepartmentId = department.Id,
-        DepartmentCode = department.LEX02Code ?? string.Empty,
-        DepartmentName = department.LEX02Name ?? string.Empty,
+        Code = department.Code ?? string.Empty,
+        Name = department.Name ?? string.Empty,
         RowVersion = Convert.ToBase64String(membership.RowVersion),
         IsActive = isActive,
-        CreatedAt = membership.CreateDate,
-        UpdatedAt = membership.UpdateDate
+        CreatedAt = membership.CreatedAtUtc,
+        UpdatedAt = membership.UpdatedAtUtc
     };
 
     private async Task NotifyAfterCommitAsync(int accountId, IReadOnlyCollection<Guid> groupIds)

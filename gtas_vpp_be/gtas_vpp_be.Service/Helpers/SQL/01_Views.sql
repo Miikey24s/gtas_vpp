@@ -15,15 +15,15 @@ SELECT app.Id AS UserID,
        app.PhoneNumber AS PhoneNo1,
        CAST(NULL AS NVARCHAR(50)) AS PhoneNo2,
        app.MemberCompanyCode,
-       dept.LEX02Code AS DepartmentCode,
+       dept.Code AS DepartmentCode,
        CAST(app.MemberCompanyCode AS NVARCHAR(250)) AS MemberCompanyName
 FROM dbo.AspNetUsers app
-LEFT JOIN dbo.P04_UserGroup membership
+LEFT JOIN dbo.UserGroupMemberships membership
     ON membership.AccountId = app.Id
    AND membership.UserId = app.Id
    AND membership.IsDeleted = 0
-LEFT JOIN dbo.LEX02_CompanyDepartmentLocation dept
-    ON dept.Id = membership.LEX02_CompanyDepartmentLocationId
+LEFT JOIN dbo.Departments dept
+    ON dept.Id = membership.DepartmentId
    AND dept.IsDeleted = 0
 UNION ALL
 SELECT legacy.UserID,
@@ -44,12 +44,12 @@ WHERE NOT EXISTS
 );
 GO
 
--- View: v_WFXCompany (lấy danh sách công ty từ P06 mapping)
+-- View: v_WFXCompany (lấy danh sách công ty từ phân quyền nhóm)
 CREATE OR ALTER VIEW dbo.v_WFXCompany
 AS
 SELECT DISTINCT
     p06.MemberCompanyCode,
     CAST(p06.MemberCompanyCode AS NVARCHAR(50)) AS CompanyName,
     CAST(NULL AS NVARCHAR(100)) AS CompanyShortName
-FROM dbo.P06_GroupPageComponentMapping p06;
+FROM dbo.GroupPageComponentMappings p06;
 GO

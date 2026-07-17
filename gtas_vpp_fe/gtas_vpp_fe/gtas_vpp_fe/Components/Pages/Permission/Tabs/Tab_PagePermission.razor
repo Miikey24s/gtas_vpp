@@ -18,7 +18,7 @@
                      Text="Bốn vai trò chuẩn là dữ liệu tham chiếu chỉ đọc. Quyền API được cố định theo ma trận đã kiểm duyệt; quản trị viên chỉ có thể điều chỉnh hiển thị giao diện trong phạm vi của từng vai trò." />
 
         <RadzenDataGrid @ref="grid"
-                        TItem="P02_GroupResDTO"
+                        TItem="PermissionGroupResDTO"
                         Data="@list_Group"
                         Count="@groupCount"
                         LoadData="@LoadGroupsAsync"
@@ -66,7 +66,7 @@
                                   class="vpp-library-refresh-action"
                                   Disabled="@IsLoading"
                                   Click="@LoadBaseData" />
-                    <VppColumnPicker TItem="P02_GroupResDTO" GridAccessor="@(() => grid)" />
+                    <VppColumnPicker TItem="PermissionGroupResDTO" GridAccessor="@(() => grid)" />
                 </RadzenStack>
             </HeaderTemplate>
 
@@ -76,7 +76,7 @@
                     {
                         <SkeletonGrid Rows="6" Cols="6" />
                     }
-                    else if (list_PermissionOfGroup.Count == 0)
+                    else if (groupPermissions.Count == 0)
                     {
                         <RadzenText TextStyle="TextStyle.Body1" class="rz-p-4 rz-text-align-center">
                             @Loc["NoPermission"]
@@ -88,9 +88,9 @@
                                     class="vpp-secondary-tabs permission-component-tabs"
                                     @bind-SelectedIndex="selectedTab">
                             <Tabs>
-                                @foreach (var page in list_PermissionOfGroup)
+                                @foreach (var page in groupPermissions)
                                 {
-                                    var components = page.List_Component ?? [];
+                                    var components = page.Components ?? [];
 
                                     <RadzenTabsItem Text="@(page.PageName + " (" + page.PageCode + ")")">
                                         <RadzenStack Gap="0.75rem" class="permission-component-panel">
@@ -99,14 +99,14 @@
                                                     <span>@Loc["Description"]</span>
                                                     <strong>@(!string.IsNullOrWhiteSpace(page.Description) ? page.Description : "-")</strong>
                                                 </div>
-                                                <VppColumnPicker TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                 GridAccessor="@(() => child_grid)" />
+                                                <VppColumnPicker TItem="PermissionComponentAccessResDTO"
+                                                                 GridAccessor="@(() => componentGrid)" />
                                             </div>
 
-                                            <RadzenDataGrid @ref="child_grid"
-                                                            TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
+                                            <RadzenDataGrid @ref="componentGrid"
+                                                            TItem="PermissionComponentAccessResDTO"
                                                             Data="@components"
-                                                            @bind-Value="selected_Component"
+                                                            @bind-Value="selectedComponents"
                                                             AllowFiltering="true"
                                                             AllowColumnResize="true"
                                                             AllowMultiColumnSorting="true"
@@ -130,7 +130,7 @@
                                                             class="permission-component-grid vpp-admin-page-grid vpp-admin-grid"
                                                             Style="--vpp-admin-grid-min-width: 980px;">
                                                 <Columns>
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
                                                                           Title="#"
                                                                           Width="52px"
                                                                           MinWidth="52px"
@@ -144,19 +144,19 @@
                                                             @(components.IndexOf(component) + 1)
                                                         </Template>
                                                     </RadzenDataGridColumn>
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                          Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentCode)"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
+                                                                          Property="@nameof(PermissionComponentAccessResDTO.ComponentCode)"
                                                                           Title="@Loc["ComponentCode"]"
                                                                           Width="190px" />
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                          Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.ComponentName)"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
+                                                                          Property="@nameof(PermissionComponentAccessResDTO.ComponentName)"
                                                                           Title="@Loc["ComponentName"]"
                                                                           Width="190px" />
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                          Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.Description)"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
+                                                                          Property="@nameof(PermissionComponentAccessResDTO.Description)"
                                                                           Title="@Loc["Description"]"
                                                                           Width="240px" />
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
                                                                           Title="Loại quyền"
                                                                           Width="135px"
                                                                           Filterable="false"
@@ -165,8 +165,8 @@
                                                             <span>@GetPermissionKind(component)</span>
                                                         </Template>
                                                     </RadzenDataGridColumn>
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                          Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsVisible)"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
+                                                                          Property="@nameof(PermissionComponentAccessResDTO.IsVisible)"
                                                                           Title="@Loc["Visible"]"
                                                                           Width="112px"
                                                                           HeaderCssClass="text-center"
@@ -178,8 +178,8 @@
                                                                           Style="flex: unset" />
                                                         </Template>
                                                     </RadzenDataGridColumn>
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                          Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.IsEnable)"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
+                                                                          Property="@nameof(PermissionComponentAccessResDTO.IsEnable)"
                                                                           Title="@Loc["Enable"]"
                                                                           Width="112px"
                                                                           HeaderCssClass="text-center"
@@ -191,8 +191,8 @@
                                                                           Style="flex: unset" />
                                                         </Template>
                                                     </RadzenDataGridColumn>
-                                                    <RadzenDataGridColumn TItem="sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component"
-                                                                          Property="@nameof(sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component.GroupPageComponentMappingId)"
+                                                    <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
+                                                                          Property="@nameof(PermissionComponentAccessResDTO.GroupPageComponentMappingId)"
                                                                           Title="Mapping Id"
                                                                           Width="280px"
                                                                           Visible="false"
@@ -209,7 +209,7 @@
             </Template>
 
             <Columns>
-                <RadzenDataGridColumn TItem="P02_GroupResDTO"
+                <RadzenDataGridColumn TItem="PermissionGroupResDTO"
                                       Title="#"
                                       Width="52px"
                                       MinWidth="52px"
@@ -223,19 +223,19 @@
                         @(currentGroupSkip + list_Group.IndexOf(group) + 1)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="P02_GroupResDTO"
-                                      Property="@nameof(P02_GroupResDTO.GroupName)"
+                <RadzenDataGridColumn TItem="PermissionGroupResDTO"
+                                      Property="@nameof(PermissionGroupResDTO.GroupName)"
                                       Title="@Loc["GroupName"]"
                                       Width="220px">
                     <Template Context="group">
                         <RadzenText Text="@group.GroupName" class="rz-mb-0" Style="font-weight: 600;" />
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="P02_GroupResDTO"
-                                      Property="@nameof(P02_GroupResDTO.Description)"
+                <RadzenDataGridColumn TItem="PermissionGroupResDTO"
+                                      Property="@nameof(PermissionGroupResDTO.Description)"
                                       Title="@Loc["Description"]"
                                       Width="360px" />
-                <RadzenDataGridColumn TItem="P02_GroupResDTO"
+                <RadzenDataGridColumn TItem="PermissionGroupResDTO"
                                       Title="Mô hình"
                                       Width="160px"
                                       Filterable="false"
@@ -244,8 +244,8 @@
                         <span>Vai trò chuẩn · chỉ đọc</span>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="P02_GroupResDTO"
-                                      Property="@nameof(P02_GroupResDTO.Id)"
+                <RadzenDataGridColumn TItem="PermissionGroupResDTO"
+                                      Property="@nameof(PermissionGroupResDTO.Id)"
                                       Title="Id"
                                       Width="280px"
                                       Visible="false"

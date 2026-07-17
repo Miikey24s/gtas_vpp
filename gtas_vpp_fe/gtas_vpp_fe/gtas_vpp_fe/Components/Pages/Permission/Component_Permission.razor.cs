@@ -1,4 +1,4 @@
-﻿using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using gtas_vpp_fe.Helpers;
@@ -21,7 +21,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         ];
 
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
-        [Parameter] public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+        [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
         [Inject] private PermissionState PermissionState { get; set; } = default!;
 

@@ -14,11 +14,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private static readonly PermissionPageOptions PageOptions = new(
             LibraryPageCode,
             "You do not have permission to access Library.",
-            ErrorDetailPrefix: "Error when call api sp_Library_GetL01Class:");
+            ErrorDetailPrefix: "Could not load page permissions:");
 
         [Parameter] public string? Lib { get; set; }
         public IEnumerable<Claim> claims { get; set; } = new List<Claim>();
-        public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new sp_Authentication_GetPermissionSinglePage();
+        public PagePermissionResDTO PagePermissionResDTO { get; set; } = new PagePermissionResDTO();
 
         protected override async Task OnInitializedAsync()
         {
@@ -54,9 +54,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             claims = newClaims;
         }
 
-        protected override void ApplyPagePermission(sp_Authentication_GetPermissionSinglePage permission)
+        protected override void ApplyPagePermission(PagePermissionResDTO permission)
         {
-            sp_Authentication_GetPermissionSinglePage = permission;
+            PagePermissionResDTO = permission;
         }
 
         public void Dispose()

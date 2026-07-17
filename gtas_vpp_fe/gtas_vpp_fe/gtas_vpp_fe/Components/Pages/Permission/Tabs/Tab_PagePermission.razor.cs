@@ -19,14 +19,14 @@ public partial class Tab_PagePermission
 
     [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
     [Parameter]
-    public sp_Authentication_GetPermissionSinglePage sp_Authentication_GetPermissionSinglePage { get; set; } = new();
+    public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
-    public List<P02_GroupResDTO> list_Group { get; set; } = [];
-    public RadzenDataGrid<P02_GroupResDTO> grid { get; set; } = default!;
-    public IList<P02_GroupResDTO> selected_Group { get; set; } = [];
-    public List<sp_Authen_Permission_GetPageWithComponentByGroupId> list_PermissionOfGroup { get; set; } = [];
-    public IList<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> selected_Component { get; set; } = [];
-    public RadzenDataGrid<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> child_grid { get; set; } = default!;
+    public List<PermissionGroupResDTO> list_Group { get; set; } = [];
+    public RadzenDataGrid<PermissionGroupResDTO> grid { get; set; } = default!;
+    public IList<PermissionGroupResDTO> selected_Group { get; set; } = [];
+    public List<PermissionPageComponentResDTO> groupPermissions { get; set; } = [];
+    public IList<PermissionComponentAccessResDTO> selectedComponents { get; set; } = [];
+    public RadzenDataGrid<PermissionComponentAccessResDTO> componentGrid { get; set; } = default!;
 
     public int selectedTab { get; set; }
     public bool IsLoading { get; set; }
@@ -62,7 +62,7 @@ public partial class Tab_PagePermission
 
     protected async Task LoadBaseData()
     {
-        list_PermissionOfGroup = [];
+        groupPermissions = [];
         selectedTab = 0;
         await grid.Reload();
     }
@@ -76,7 +76,7 @@ public partial class Tab_PagePermission
 
         try
         {
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<P02_GroupResDTO>>(
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupResDTO>>(
                 BuildGroupsEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
 
             list_Group = result.Data ?? [];
@@ -95,7 +95,7 @@ public partial class Tab_PagePermission
         }
     }
 
-    protected async Task LoadGroupFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<P02_GroupResDTO> args)
+    protected async Task LoadGroupFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<PermissionGroupResDTO> args)
     {
         if (args.Column is null)
         {
@@ -130,7 +130,7 @@ public partial class Tab_PagePermission
                 queryParams.Add($"top={args.Top.Value}");
             }
 
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<P02_GroupResDTO>>(
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupResDTO>>(
                 $"/api/Permission/groups?{string.Join("&", queryParams)}");
 
             args.Data = result.Data ?? [];
@@ -142,10 +142,10 @@ public partial class Tab_PagePermission
         }
     }
 
-    protected Task GroupRowExpand(P02_GroupResDTO group) => LoadGroupPermissionsAsync(group.Id, true);
+    protected Task GroupRowExpand(PermissionGroupResDTO group) => LoadGroupPermissionsAsync(group.Id, true);
 
     protected async Task SetComponentVisibilityAsync(
-        sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component component)
+        PermissionComponentAccessResDTO component)
     {
         if (!component.IsVisible)
         {
@@ -156,7 +156,7 @@ public partial class Tab_PagePermission
     }
 
     protected async Task SetComponentEnabledAsync(
-        sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component component)
+        PermissionComponentAccessResDTO component)
     {
         if (component.IsEnable)
         {
@@ -167,7 +167,7 @@ public partial class Tab_PagePermission
     }
 
     private async Task PersistComponentAsync(
-        sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component component)
+        PermissionComponentAccessResDTO component)
     {
         if (!CanToggleComponent(component))
         {
@@ -183,8 +183,8 @@ public partial class Tab_PagePermission
         {
             var request = new PatchComponentMappingReqDTO
             {
-                P05_PageComponentMappingId = component.GroupPageComponentMappingId,
-                P02_GroupId = component.GroupId,
+                PageComponentMappingId = component.GroupPageComponentMappingId,
+                PermissionGroupId = component.GroupId,
                 IsEnable = component.IsEnable,
                 IsVisible = component.IsVisible
             };
@@ -231,15 +231,15 @@ public partial class Tab_PagePermission
 
         try
         {
-            list_PermissionOfGroup = await _apiServices.GetFromApiAsync<
-                List<sp_Authen_Permission_GetPageWithComponentByGroupId>>(
+            groupPermissions = await _apiServices.GetFromApiAsync<
+                List<PermissionPageComponentResDTO>>(
                     $"/api/Permission/groups/{groupId}/page-components")
                 ?? [];
             selectedTab = 0;
         }
         catch (Exception ex)
         {
-            list_PermissionOfGroup = [];
+            groupPermissions = [];
             if (notifyErrors)
             {
                 NotifyError("Error when loading role permissions: " + ex.Message);
@@ -254,32 +254,32 @@ public partial class Tab_PagePermission
     }
 
     protected bool CanToggleComponent(
-        sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component component) =>
+        PermissionComponentAccessResDTO component) =>
         PermissionState.HasPermission(Permissions.PermissionManage)
         && !Permissions.IsActionCode(component.ComponentCode)
         && !component.IsDeleted;
 
     protected static string GetPermissionKind(
-        sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component component) =>
+        PermissionComponentAccessResDTO component) =>
         Permissions.IsActionCode(component.ComponentCode)
             ? "API cố định"
             : "Hiển thị UI";
 
-    protected async Task OnGroupRowDoubleClick(DataGridRowMouseEventArgs<P02_GroupResDTO> args)
+    protected async Task OnGroupRowDoubleClick(DataGridRowMouseEventArgs<PermissionGroupResDTO> args)
     {
         if (args.Data is null)
         {
             return;
         }
 
-        await DialogService.OpenSideAsync<Component_RecordInspector<P02_GroupResDTO>>(
+        await DialogService.OpenSideAsync<Component_RecordInspector<PermissionGroupResDTO>>(
             $"Role: {args.Data.GroupName}",
             new Dictionary<string, object?> { { "Record", args.Data } },
             options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
     }
 
     protected async Task OnComponentRowDoubleClick(
-        DataGridRowMouseEventArgs<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component> args)
+        DataGridRowMouseEventArgs<PermissionComponentAccessResDTO> args)
     {
         if (args.Data is null)
         {
@@ -287,7 +287,7 @@ public partial class Tab_PagePermission
         }
 
         await DialogService.OpenSideAsync<
-            Component_RecordInspector<sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component>>(
+            Component_RecordInspector<PermissionComponentAccessResDTO>>(
                 $"Component: {args.Data.ComponentName}",
                 new Dictionary<string, object?> { { "Record", args.Data } },
                 options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });

@@ -19,9 +19,9 @@ public sealed class CatalogControllerTests
         var service = new Mock<IVppCatalogService>();
         service.Setup(x => x.QueryItemsAsync(
                 null, "alpha", null, 0, 20, null, null, null, true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<L04_VPPResDTO>)new List<L04_VPPResDTO>
+            .ReturnsAsync(((IReadOnlyList<VppItemResDTO>)new List<VppItemResDTO>
             {
-                new() { Id = Guid.NewGuid(), VPPCode = "VPP-001", VPPName = "Alpha" }
+                new() { Id = Guid.NewGuid(), VppCode = "VPP-001", VppName = "Alpha" }
             }, 1));
 
         var controller = new VppCatalogController(service.Object)
@@ -32,7 +32,7 @@ public sealed class CatalogControllerTests
         var result = await controller.GetItems(null, "alpha", null, null, null, null, null, null, true);
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
-        Assert.Single(Assert.IsAssignableFrom<IReadOnlyList<L04_VPPResDTO>>(ok.Value));
+        Assert.Single(Assert.IsAssignableFrom<IReadOnlyList<VppItemResDTO>>(ok.Value));
         Assert.Equal("1", controller.Response.Headers["X-Total-Count"].ToString());
     }
 
@@ -46,7 +46,7 @@ public sealed class CatalogControllerTests
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow));
 
-        var result = await controller.GenericDelete("l04", Guid.NewGuid());
+        var result = await controller.GenericDelete("vpp-items", Guid.NewGuid());
 
         var objectResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status405MethodNotAllowed, objectResult.StatusCode);

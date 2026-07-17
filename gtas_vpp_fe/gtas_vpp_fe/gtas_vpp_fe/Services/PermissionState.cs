@@ -41,8 +41,8 @@ public sealed class PermissionState
 
     public IEnumerable<Claim> IdentityClaims { get; private set; } = Array.Empty<Claim>();
 
-    public IReadOnlyDictionary<string, sp_Authentication_GetPermissionSinglePage> PagePermissions { get; private set; } =
-        new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyDictionary<string, PagePermissionResDTO> PagePermissions { get; private set; } =
+        new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase);
 
     public bool IsLoaded { get; private set; }
 
@@ -72,7 +72,7 @@ public sealed class PermissionState
             {
                 SetState(
                     Array.Empty<Claim>(),
-                    new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase),
+                    new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase),
                     Guid.Empty,
                     0,
@@ -86,7 +86,7 @@ public sealed class PermissionState
             {
                 SetState(
                     currentClaims,
-                    new Dictionary<string, sp_Authentication_GetPermissionSinglePage>(StringComparer.OrdinalIgnoreCase),
+                    new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase),
                     Guid.Empty,
                     0,
@@ -97,10 +97,10 @@ public sealed class PermissionState
             var snapshot = await _authHelper.GetMyPermissionsAsync();
             var pagePermissions = snapshot.Pages.ToDictionary(
                 page => page.PageCode,
-                page => new sp_Authentication_GetPermissionSinglePage
+                page => new PagePermissionResDTO
                 {
                     PageCode = page.PageCode,
-                    List_Component = page.Components.Select(component =>
+                    Components = page.Components.Select(component =>
                         new childModel_Authentication_GetPermissionSinglePage_Component
                         {
                             ComponentCode = component.ComponentCode,
@@ -124,20 +124,20 @@ public sealed class PermissionState
         }
     }
 
-    public sp_Authentication_GetPermissionSinglePage GetPagePermission(string pageCode)
+    public PagePermissionResDTO GetPagePermission(string pageCode)
     {
         if (!string.IsNullOrWhiteSpace(pageCode) && PagePermissions.TryGetValue(pageCode, out var permission))
         {
             return permission;
         }
 
-        return new sp_Authentication_GetPermissionSinglePage { PageCode = pageCode };
+        return new PagePermissionResDTO { PageCode = pageCode };
     }
 
     public IReadOnlyList<childModel_Authentication_GetPermissionSinglePage_Component> GetVisibleComponents(string pageCode)
     {
         return GetPagePermission(pageCode)
-            .List_Component
+            .Components
             .Where(component => component.IsVisible
                 && !Permissions.IsActionCode(component.ComponentCode))
             .ToArray();
@@ -161,14 +161,14 @@ public sealed class PermissionState
     public bool HasVisibleComponent(string pageCode, string componentCode)
     {
         return GetPagePermission(pageCode)
-            .List_Component
+            .Components
             .Any(component => string.Equals(component.ComponentCode, componentCode, StringComparison.OrdinalIgnoreCase) && component.IsVisible);
     }
 
     public bool HasEnabledComponent(string pageCode, string componentCode)
     {
         return GetPagePermission(pageCode)
-            .List_Component
+            .Components
             .Any(component => string.Equals(component.ComponentCode, componentCode, StringComparison.OrdinalIgnoreCase) && component.IsVisible && component.IsEnable);
     }
 
@@ -208,7 +208,7 @@ public sealed class PermissionState
 
     private void SetState(
         IEnumerable<Claim> claims,
-        IReadOnlyDictionary<string, sp_Authentication_GetPermissionSinglePage> pagePermissions,
+        IReadOnlyDictionary<string, PagePermissionResDTO> pagePermissions,
         IReadOnlySet<string> effectivePermissions,
         Guid groupId,
         long version,

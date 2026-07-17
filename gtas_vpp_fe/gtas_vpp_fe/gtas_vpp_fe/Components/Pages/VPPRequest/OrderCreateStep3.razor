@@ -72,8 +72,8 @@
                     <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="35px" TextAlign="TextAlign.Center" Sortable="false">
                         <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPCode" Title="@Loc["ProductCode"]" MinWidth="90px" />
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VPPName" Title="@Loc["ProductName"]" MinWidth="140px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppCode" Title="@Loc["ProductCode"]" MinWidth="90px" />
+                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppName" Title="@Loc["ProductName"]" MinWidth="140px" />
                     <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
                         <Template Context="item">
                             <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"

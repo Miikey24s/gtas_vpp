@@ -1,5 +1,7 @@
 # GTAS VPP
 
+Lệnh local ngắn gọn: `.\scripts\gtas.cmd help`. Danh mục connection string, TEST/LIVE, migration mode, admin bootstrap, JWT, SMTP và OpenAI nằm tại [`docs/configuration/LOCAL-CONFIGURATION.md`](docs/configuration/LOCAL-CONFIGURATION.md).
+
 Website quản lý văn phòng phẩm cho doanh nghiệp, gồm luồng lập và duyệt đơn yêu cầu, quản lý danh mục - bảng giá, phân quyền và tổng hợp số liệu. Repository chứa backend ASP.NET Core, frontend Blazor Server, bộ kiểm thử và tài liệu luận văn.
 
 ## Công nghệ chính

@@ -71,7 +71,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost]
         [Authorize(Policy = Permissions.LibraryManage)]
-        public async Task<IActionResult> Create([FromBody] L07_PriceListCreateReqDTO req)
+        public async Task<IActionResult> Create([FromBody] PriceListCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
@@ -80,7 +80,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryManage)]
-        public async Task<IActionResult> Update(Guid id, [FromBody] L07_PriceListUpdateReqDTO req)
+        public async Task<IActionResult> Update(Guid id, [FromBody] PriceListUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
@@ -136,7 +136,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("clone")]
         [Authorize(Policy = Permissions.LibraryManage)]
-        public async Task<IActionResult> Clone([FromBody] L07_PriceListCloneReqDTO req)
+        public async Task<IActionResult> Clone([FromBody] PriceListCloneReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 

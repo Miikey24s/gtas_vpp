@@ -71,7 +71,7 @@ public sealed class UiErrorMapperTests
                 "Conflict" => "Dữ liệu xung đột.",
                 "ServerError" => "Lỗi máy chủ.",
                 "TraceId" => "Trace ID",
-                "RequestFailed" => "Yêu cầu thất bại.",
+            "RequestFailed" => "Yêu cầu thất bại.",
                 _ => name
             }, resourceNotFound: false);
 

@@ -147,13 +147,13 @@ unset AuthBootstrap__Enabled AuthBootstrap__OperationKey \
 ```
 
 Kết quả hợp lệ tạo đúng một account ID từ `1000000000`, một membership
-`SYSTEM_ADMIN`, một ledger `A02_AuthBootstrapOperation` trạng thái `Completed` và
+`SYSTEM_ADMIN`, một ledger `AuthBootstrapOperations` trạng thái `Completed` và
 một audit `AUTH_BOOTSTRAP_OWNER_CREATED`. Xác minh số lượng, sau đó đăng nhập bằng
 HTTPS; không chụp/log password:
 
 ```bash
 docker exec gtas-vpp-db bash -lc \
-  "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"\$MSSQL_SA_PASSWORD\" -C -d GTAS_VPP_LIVE -b -Q \"SET NOCOUNT ON; SELECT (SELECT COUNT(*) FROM dbo.AspNetUsers WHERE AccountStatus = N'Active') AS ActiveAccounts, (SELECT COUNT(*) FROM dbo.P04_UserGroup WHERE IsDeleted = 0) AS ActiveMemberships, (SELECT COUNT(*) FROM dbo.A02_AuthBootstrapOperation WHERE Status = N'Completed') AS CompletedBootstraps;\""
+  "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"\$MSSQL_SA_PASSWORD\" -C -d GTAS_VPP_LIVE -b -Q \"SET NOCOUNT ON; SELECT (SELECT COUNT(*) FROM dbo.AspNetUsers WHERE AccountStatus = N'Active') AS ActiveAccounts, (SELECT COUNT(*) FROM dbo.UserGroupMemberships WHERE IsDeleted = 0) AS ActiveMemberships, (SELECT COUNT(*) FROM dbo.AuthBootstrapOperations WHERE Status = N'Completed') AS CompletedBootstraps;\""
 ```
 
 Không lưu `AuthBootstrap__*` vào cấu hình thường trực. Nếu transaction thất bại,

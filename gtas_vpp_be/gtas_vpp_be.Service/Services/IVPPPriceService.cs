@@ -5,9 +5,9 @@ namespace gtas_vpp_be.Service.Services
 {
     public interface IVPPPriceService
     {
-        Task<List<L06_VPPSupplierMappingResDTO>> ListByVPPAsync(Guid vppId, Guid? priceListId = null);
-        Task<List<L06_VPPSupplierMappingResDTO>> ListBySupplierAsync(Guid supplierId, Guid? priceListId = null, bool showDeleted = false);
-        Task<(List<L06_VPPItemPriceResDTO> Data, int TotalCount)> QueryItemPricesAsync(
+        Task<List<SupplierProductMappingResDTO>> ListByVPPAsync(Guid vppId, Guid? priceListId = null);
+        Task<List<SupplierProductMappingResDTO>> ListBySupplierAsync(Guid supplierId, Guid? priceListId = null, bool showDeleted = false);
+        Task<(List<VppItemPriceResDTO> Data, int TotalCount)> QueryItemPricesAsync(
             Guid supplierId,
             Guid? priceListId = null,
             bool showDeleted = false,
@@ -18,8 +18,8 @@ namespace gtas_vpp_be.Service.Services
             string? orderby = null,
             string? distinct = null,
             string? distinctFilter = null);
-        Task<L06_VPPSupplierMappingResDTO> CreateAsync(L06_PriceCreateReqDTO req, int userId);
-        Task<L06_VPPSupplierMappingResDTO> UpdateAsync(L06_PriceUpdateReqDTO req, int userId);
+        Task<SupplierProductMappingResDTO> CreateAsync(SupplierProductPriceCreateReqDTO req, int userId);
+        Task<SupplierProductMappingResDTO> UpdateAsync(SupplierProductPriceUpdateReqDTO req, int userId);
         Task DeleteAsync(Guid id, int userId);
         Task SetDefaultAsync(Guid id, int userId);
     }

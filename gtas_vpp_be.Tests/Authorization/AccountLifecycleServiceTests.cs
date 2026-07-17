@@ -41,12 +41,12 @@ public sealed class AccountLifecycleServiceTests
         var account = Assert.Single(await fixture.Context.Users.AsNoTracking().ToListAsync());
         Assert.Equal(AppAccountStatus.PendingApproval, account.AccountStatus);
         Assert.False(account.EmailConfirmed);
-        Assert.Empty(await fixture.Context.P04_UserGroups.ToListAsync());
+        Assert.Empty(await fixture.Context.UserGroupMemberships.ToListAsync());
         Assert.Contains(
-            await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync(),
+            await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync(),
             audit => audit.Action == "ACCOUNT_REGISTERED");
         Assert.Contains(
-            await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync(),
+            await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync(),
             audit => audit.Action == "ACCOUNT_REGISTRATION_REJECTED" && audit.Outcome == "Duplicate");
     }
 
@@ -97,7 +97,7 @@ public sealed class AccountLifecycleServiceTests
         Assert.Contains("ResetPassword", fixture.EmailSender.Messages[0].TextBody, StringComparison.Ordinal);
         Assert.Equal(
             2,
-            await fixture.Context.A01_SecurityAudits.CountAsync(
+            await fixture.Context.SecurityAudits.CountAsync(
                 audit => audit.Action == "ACCOUNT_PASSWORD_RESET_REQUESTED"));
     }
 
@@ -114,7 +114,7 @@ public sealed class AccountLifecycleServiceTests
         Assert.Equal(202, result.StatusCode);
         Assert.Equal("PASSWORD_RESET_REQUEST_ACCEPTED", result.Code);
         Assert.Contains(
-            await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync(),
+            await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync(),
             audit => audit.Action == "ACCOUNT_PASSWORD_RESET_REQUESTED"
                      && audit.Outcome == "EmailUnavailable");
     }
@@ -155,10 +155,10 @@ public sealed class AccountLifecycleServiceTests
         Assert.True(account.SessionVersion > oldSession + 1);
         Assert.True(await fixture.UserManager.CheckPasswordAsync(account, "New-Pass3!"));
         Assert.Contains(
-            await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync(),
+            await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync(),
             audit => audit.Action == "ACCOUNT_ADMIN_PASSWORD_RESET");
         Assert.Contains(
-            await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync(),
+            await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync(),
             audit => audit.Action == "ACCOUNT_PASSWORD_CHANGED");
     }
 
@@ -176,7 +176,7 @@ public sealed class AccountLifecycleServiceTests
         Assert.True(account.EmailConfirmed);
         Assert.Equal("EMAIL_CONFIRMED", result.Code);
         Assert.Contains(
-            await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync(),
+            await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync(),
             audit => audit.Action == "ACCOUNT_EMAIL_CONFIRMED");
     }
 

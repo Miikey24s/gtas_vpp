@@ -23,7 +23,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("settle")]
         [Authorize(Policy = Permissions.PeriodSettle)]
-        public async Task<IActionResult> Settle([FromBody] VPP_SettlePeriodReqDTO req)
+        public async Task<IActionResult> Settle([FromBody] PeriodSettlementReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
@@ -33,7 +33,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPost("preview")]
         [Authorize(Policy = Permissions.PeriodSettle)]
         public async Task<IActionResult> Preview(
-            [FromBody] VPP_SettlementPreviewReqDTO req,
+            [FromBody] SettlementPreviewReqDTO req,
             CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -44,7 +44,7 @@ namespace gtas_vpp_be.Controllers
         [HttpPost("confirm")]
         [Authorize(Policy = Permissions.PeriodSettle)]
         public async Task<IActionResult> Confirm(
-            [FromBody] VPP_SettlementConfirmReqDTO req,
+            [FromBody] SettlementConfirmReqDTO req,
             CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -57,7 +57,7 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.PeriodSettle)]
         public async Task<IActionResult> Correct(
             Guid settlementId,
-            [FromBody] VPP_SettlementCorrectionReqDTO req,
+            [FromBody] SettlementCorrectionReqDTO req,
             CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });

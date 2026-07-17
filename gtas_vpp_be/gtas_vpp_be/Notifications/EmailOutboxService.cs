@@ -14,7 +14,7 @@ public interface IEmailOutboxService
         AccountEmailMessage message,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<N02_EmailOutbox>> GetDueAsync(
+    Task<IReadOnlyList<EmailOutboxMessage>> GetDueAsync(
         DateTime nowUtc,
         int take,
         CancellationToken cancellationToken = default);
@@ -34,7 +34,7 @@ public sealed class EmailOutboxService(VPPContext context) : IEmailOutboxService
         CancellationToken cancellationToken = default)
     {
         var key = ComputeDeduplicationKey(memberCompanyCode, message);
-        var existing = await _context.Set<N02_EmailOutbox>()
+        var existing = await _context.Set<EmailOutboxMessage>()
             .FirstOrDefaultAsync(item => item.DeduplicationKey == key, cancellationToken);
         if (existing is not null)
         {
@@ -42,7 +42,7 @@ public sealed class EmailOutboxService(VPPContext context) : IEmailOutboxService
         }
 
         var now = DateTime.UtcNow;
-        var entity = new N02_EmailOutbox
+        var entity = new EmailOutboxMessage
         {
             Id = Guid.NewGuid(),
             MemberCompanyCode = memberCompanyCode,
@@ -55,7 +55,7 @@ public sealed class EmailOutboxService(VPPContext context) : IEmailOutboxService
             NextAttemptAtUtc = now,
             CreatedAtUtc = now
         };
-        _context.Set<N02_EmailOutbox>().Add(entity);
+        _context.Set<EmailOutboxMessage>().Add(entity);
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
@@ -64,18 +64,18 @@ public sealed class EmailOutboxService(VPPContext context) : IEmailOutboxService
         catch (DbUpdateException)
         {
             _context.Entry(entity).State = EntityState.Detached;
-            var winner = await _context.Set<N02_EmailOutbox>()
+            var winner = await _context.Set<EmailOutboxMessage>()
                 .AsNoTracking()
                 .SingleAsync(item => item.DeduplicationKey == key, cancellationToken);
             return winner.Id;
         }
     }
 
-    public async Task<IReadOnlyList<N02_EmailOutbox>> GetDueAsync(
+    public async Task<IReadOnlyList<EmailOutboxMessage>> GetDueAsync(
         DateTime nowUtc,
         int take,
         CancellationToken cancellationToken = default)
-        => await _context.Set<N02_EmailOutbox>()
+        => await _context.Set<EmailOutboxMessage>()
             .Where(item => item.Status == "Pending" && item.NextAttemptAtUtc <= nowUtc)
             .OrderBy(item => item.NextAttemptAtUtc)
             .ThenBy(item => item.CreatedAtUtc)
@@ -84,7 +84,7 @@ public sealed class EmailOutboxService(VPPContext context) : IEmailOutboxService
 
     public async Task MarkSentAsync(Guid id, DateTime sentAtUtc, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Set<N02_EmailOutbox>().SingleAsync(item => item.Id == id, cancellationToken);
+        var entity = await _context.Set<EmailOutboxMessage>().SingleAsync(item => item.Id == id, cancellationToken);
         entity.Status = "Sent";
         entity.SentAtUtc = sentAtUtc;
         entity.LastError = null;
@@ -93,7 +93,7 @@ public sealed class EmailOutboxService(VPPContext context) : IEmailOutboxService
 
     public async Task MarkFailedAsync(Guid id, string error, DateTime nextAttemptAtUtc, CancellationToken cancellationToken = default)
     {
-        var entity = await _context.Set<N02_EmailOutbox>().SingleAsync(item => item.Id == id, cancellationToken);
+        var entity = await _context.Set<EmailOutboxMessage>().SingleAsync(item => item.Id == id, cancellationToken);
         entity.Status = "Pending";
         entity.AttemptCount++;
         entity.LastAttemptAtUtc = DateTime.UtcNow;

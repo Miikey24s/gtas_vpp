@@ -7,7 +7,7 @@ namespace gtas_vpp_fe.Helpers
     public sealed class LoginTicketCache
     {
         private sealed record Entry(
-            sp_Authentication_Login LoginData,
+            AuthenticationResultDTO LoginData,
             bool RememberMe,
             DateTimeOffset CreatedAtUtc,
             DateTimeOffset ExpiresAtUtc);
@@ -35,7 +35,7 @@ namespace gtas_vpp_fe.Helpers
                 : throw new ArgumentOutOfRangeException(nameof(capacity));
         }
 
-        public string Add(sp_Authentication_Login loginData, bool rememberMe)
+        public string Add(AuthenticationResultDTO loginData, bool rememberMe)
         {
             ArgumentNullException.ThrowIfNull(loginData);
             var now = _timeProvider.GetUtcNow();
@@ -52,7 +52,7 @@ namespace gtas_vpp_fe.Helpers
             return id;
         }
 
-        public (sp_Authentication_Login loginData, bool rememberMe)? Get(string id)
+        public (AuthenticationResultDTO loginData, bool rememberMe)? Get(string id)
         {
             if (string.IsNullOrWhiteSpace(id) || !_cache.TryRemove(id, out var entry))
             {

@@ -41,7 +41,7 @@ namespace gtas_vpp_be.Controllers
             string tableCode, 
             [FromQuery] Guid? id, 
             [FromQuery] string? searchText, 
-            [FromQuery] Guid? classId,
+            [FromQuery] Guid? lookupCategoryId,
             [FromQuery] string? filter,
             [FromQuery] int? skip,
             [FromQuery] int? top,
@@ -58,8 +58,11 @@ namespace gtas_vpp_be.Controllers
                                      !string.IsNullOrEmpty(orderby) || !string.IsNullOrEmpty(distinct) ||
                                      !string.IsNullOrEmpty(distinctFilter);
 
-            // For L02, if classId is provided without id or searchText, treat as LoadData request
-            if (tableCode.ToLower() == "l02" && classId.HasValue && !id.HasValue && string.IsNullOrEmpty(cleanSearch))
+            // Lookup values can be filtered by their parent category.
+            if (tableCode.Equals("lookup-values", StringComparison.OrdinalIgnoreCase)
+                && lookupCategoryId.HasValue
+                && !id.HasValue
+                && string.IsNullOrEmpty(cleanSearch))
             {
                 isLoadDataRequest = true;
             }
@@ -69,13 +72,13 @@ namespace gtas_vpp_be.Controllers
             {
                 return tableCode.ToLower() switch
                 {
-                    "l01" => await GetTableDataWithFilteringAsync<L01_Class, L01_ClassResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
-                    "l02" => await GetTableDataWithFilteringAsync<L02_ClassDetail, L02_ClassDetailResDTO>(filter, skip, top, orderby, distinct, distinctFilter, classId, isShowDeleted),
-                    "l03" => await GetTableDataWithFilteringAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
-                    "l04" => await GetVppItemsWithFilteringAsync(filter, skip, top, orderby, distinct, distinctFilter, isShowDeleted),
-                    "l05" => await GetTableDataWithFilteringAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
-                    "l06" => await GetTableDataWithFilteringAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
-                    "lex02" => await GetTableDataWithFilteringAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "lookup-categories" => await GetTableDataWithFilteringAsync<LookupCategory, LookupCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "lookup-values" => await GetTableDataWithFilteringAsync<LookupValue, LookupValueResDTO>(filter, skip, top, orderby, distinct, distinctFilter, lookupCategoryId, isShowDeleted),
+                    "vpp-categories" => await GetTableDataWithFilteringAsync<VppCategory, VppCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "vpp-items" => await GetVppItemsWithFilteringAsync(filter, skip, top, orderby, distinct, distinctFilter, isShowDeleted),
+                    "suppliers" => await GetTableDataWithFilteringAsync<Supplier, SupplierResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "supplier-product-mappings" => await GetTableDataWithFilteringAsync<SupplierProductMapping, SupplierProductMappingResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
+                    "departments" => await GetTableDataWithFilteringAsync<Department, DepartmentResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
                     _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
                 };
             }
@@ -83,27 +86,26 @@ namespace gtas_vpp_be.Controllers
             // Original simple filtering
             return tableCode.ToLower() switch
             {
-                "l01" => await GetTableDataAsync<L01_Class, L01_ClassResDTO>(id, cleanSearch,
+                "lookup-categories" => await GetTableDataAsync<LookupCategory, LookupCategoryResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
-                    matchSearch: x => (x.ClassName != null && x.ClassName.Contains(cleanSearch))
-                                   || (x.ClassCode != null && x.ClassCode.Contains(cleanSearch))
+                    matchSearch: x => (x.Name != null && x.Name.Contains(cleanSearch))
+                                   || (x.Code != null && x.Code.Contains(cleanSearch))
                                    || (x.Description != null && x.Description.Contains(cleanSearch)),
                     showDeleted: isShowDeleted),
-                "l02" => await GetTableDataAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id, cleanSearch, 
+                "lookup-values" => await GetTableDataAsync<LookupValue, LookupValueResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
-                    matchSearch: x => (x.ClassDetailCode != null && x.ClassDetailCode.Contains(cleanSearch))
-                                   || (x.ClassDetailValue != null && x.ClassDetailValue.Contains(cleanSearch))
+                    matchSearch: x => (x.Code != null && x.Code.Contains(cleanSearch))
+                                   || (x.Value != null && x.Value.Contains(cleanSearch))
                                    || (x.Description != null && x.Description.Contains(cleanSearch)),
                     showDeleted: isShowDeleted),
-                "l03" => await GetTableDataAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
-                "l04" => await GetVppItemsAsync(id, cleanSearch, isShowDeleted),
-                "l05" => await GetTableDataAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
-                "l06" => await GetTableDataAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
-                "lex02" => await GetTableDataAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id, cleanSearch,
+                "vpp-categories" => await GetTableDataAsync<VppCategory, VppCategoryResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
+                "vpp-items" => await GetVppItemsAsync(id, cleanSearch, isShowDeleted),
+                "suppliers" => await GetTableDataAsync<Supplier, SupplierResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
+                "supplier-product-mappings" => await GetTableDataAsync<SupplierProductMapping, SupplierProductMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
+                "departments" => await GetTableDataAsync<Department, DepartmentResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
-                    matchSearch: x => (x.LEX02Code != null && x.LEX02Code.Contains(cleanSearch))
-                                   || (x.LEX02Name != null && x.LEX02Name.Contains(cleanSearch))
-                                   || x.LEX02Type.Contains(cleanSearch),
+                    matchSearch: x => (x.Code != null && x.Code.Contains(cleanSearch))
+                                   || (x.Name != null && x.Name.Contains(cleanSearch)),
                     showDeleted: isShowDeleted),
                 _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
             };
@@ -111,7 +113,7 @@ namespace gtas_vpp_be.Controllers
 
         private async Task<Guid> GetDefaultPriceListIdAsync()
         {
-            return await _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.Library.L07_PriceList>()
+            return await _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.Library.PriceList>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted && x.IsDefault)
                 .Select(x => x.Id)
@@ -120,10 +122,10 @@ namespace gtas_vpp_be.Controllers
 
         private async Task<IActionResult> GetVppItemsAsync(Guid? id, string cleanSearch, bool showDeleted = false)
         {
-            IQueryable<L04_VPP> vppQuery = _unitOfWork.VPPContext.Set<L04_VPP>()
+            IQueryable<VppItem> vppQuery = _unitOfWork.VPPContext.Set<VppItem>()
                 .AsNoTracking()
-                .Include(x => x.UOM)
-                .Include(x => x.VPPCategory);
+                .Include(x => x.Uom)
+                .Include(x => x.VppCategory);
 
             if (!showDeleted)
             {
@@ -137,42 +139,42 @@ namespace gtas_vpp_be.Controllers
 
             if (!string.IsNullOrWhiteSpace(cleanSearch))
             {
-                vppQuery = vppQuery.Where(x => (x.VPPName != null && x.VPPName.Contains(cleanSearch))
-                                            || (x.VPPCode != null && x.VPPCode.Contains(cleanSearch)));
+                vppQuery = vppQuery.Where(x => (x.VppName != null && x.VppName.Contains(cleanSearch))
+                                            || (x.VppCode != null && x.VppCode.Contains(cleanSearch)));
             }
 
             var totalCount = await vppQuery.CountAsync();
             var vppList = await vppQuery
-                .OrderBy(x => x.VPPCode)
+                .OrderBy(x => x.VppCode)
                 .Take(5000)
                 .ToListAsync();
 
             if (!vppList.Any())
             {
                 Response.Headers["X-Total-Count"] = "0";
-                return Ok(new List<L04_VPPResDTO>());
+                return Ok(new List<VppItemResDTO>());
             }
 
             var defaultPriceListId = await GetDefaultPriceListIdAsync();
             var vppIds = vppList.Select(v => v.Id).ToList();
 
-            var mappings = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
+            var mappings = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
                 .AsNoTracking()
                 .Where(m => (showDeleted || !m.IsDeleted) 
-                    && m.L07_PriceListId == defaultPriceListId
-                    && vppIds.Contains(m.L04_VPPId)
-                    && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
+                    && m.PriceListId == defaultPriceListId
+                    && vppIds.Contains(m.VppItemId)
+                    && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
                 .Select(m => new {
-                    m.L04_VPPId,
+                    m.VppItemId,
                     m.Price,
                     m.IsDefault,
-                    SupplierShortName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierShortName : null,
-                    SupplierName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null
+                    SupplierShortName = m.Supplier != null ? m.Supplier.SupplierShortName : null,
+                    SupplierName = m.Supplier != null ? m.Supplier.SupplierName : null
                 })
                 .ToListAsync();
 
             var mappingLookup = mappings
-                .GroupBy(m => m.L04_VPPId)
+                .GroupBy(m => m.VppItemId)
                 .ToDictionary(
                     g => g.Key,
                     g => {
@@ -190,50 +192,50 @@ namespace gtas_vpp_be.Controllers
 
             var dtoList = vppList.Select(x => {
                 mappingLookup.TryGetValue(x.Id, out var priceInfo);
-                return new L04_VPPResDTO
+                return new VppItemResDTO
                 {
                     Id = x.Id,
                     Description = x.Description,
-                    CreateUserId = x.CreateUserId,
-                    CreateDate = x.CreateDate,
-                    UpdateUserId = x.UpdateUserId,
-                    UpdateDate = x.UpdateDate,
+                    CreatedByUserId = x.CreatedByUserId,
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    UpdatedByUserId = x.UpdatedByUserId,
+                    UpdatedAtUtc = x.UpdatedAtUtc,
                     IsDeleted = x.IsDeleted,
-                    VPPCode = x.VPPCode,
-                    VPPName = x.VPPName,
-                    UOMId = x.UOMId,
-                    VPPCategoryId = x.VPPCategoryId,
+                    VppCode = x.VppCode,
+                    VppName = x.VppName,
+                    UomId = x.UomId,
+                    VppCategoryId = x.VppCategoryId,
                     DefaultVatRate = VppPricingDefaults.VatRate,
                     DefaultPrice = priceInfo?.Price,
                     DefaultSupplierName = priceInfo?.SupplierName,
-                    UOM = x.UOM == null ? null : new L02_ClassDetailResDTO
+                    Uom = x.Uom == null ? null : new LookupValueResDTO
                     {
-                        Id = x.UOM.Id,
-                        Description = x.UOM.Description,
-                        CreateUserId = x.UOM.CreateUserId,
-                        CreateDate = x.UOM.CreateDate,
-                        UpdateUserId = x.UOM.UpdateUserId,
-                        UpdateDate = x.UOM.UpdateDate,
-                        IsDeleted = x.UOM.IsDeleted,
-                        ClassId = x.UOM.ClassId,
-                        ClassDetailCode = x.UOM.ClassDetailCode,
-                        ClassDetailValue = x.UOM.ClassDetailValue,
-                        ExtraField1 = x.UOM.ExtraField1,
-                        ExtraField2 = x.UOM.ExtraField2,
-                        ExtraField3 = x.UOM.ExtraField3,
-                        Sort = x.UOM.Sort
+                        Id = x.Uom.Id,
+                        Description = x.Uom.Description,
+                        CreatedByUserId = x.Uom.CreatedByUserId,
+                        CreatedAtUtc = x.Uom.CreatedAtUtc,
+                        UpdatedByUserId = x.Uom.UpdatedByUserId,
+                        UpdatedAtUtc = x.Uom.UpdatedAtUtc,
+                        IsDeleted = x.Uom.IsDeleted,
+                        LookupCategoryId = x.Uom.LookupCategoryId,
+                        Code = x.Uom.Code,
+                        Value = x.Uom.Value,
+                        ExtraField1 = x.Uom.ExtraField1,
+                        ExtraField2 = x.Uom.ExtraField2,
+                        ExtraField3 = x.Uom.ExtraField3,
+                        Sort = x.Uom.Sort
                     },
-                    VPPCategory = x.VPPCategory == null ? null : new L03_VPPCategoryResDTO
+                    VppCategory = x.VppCategory == null ? null : new VppCategoryResDTO
                     {
-                        Id = x.VPPCategory.Id,
-                        Description = x.VPPCategory.Description,
-                        CreateUserId = x.VPPCategory.CreateUserId,
-                        CreateDate = x.VPPCategory.CreateDate,
-                        UpdateUserId = x.VPPCategory.UpdateUserId,
-                        UpdateDate = x.VPPCategory.UpdateDate,
-                        IsDeleted = x.VPPCategory.IsDeleted,
-                        VPPCategoryCode = x.VPPCategory.VPPCategoryCode,
-                        VPPCategoryName = x.VPPCategory.VPPCategoryName
+                        Id = x.VppCategory.Id,
+                        Description = x.VppCategory.Description,
+                        CreatedByUserId = x.VppCategory.CreatedByUserId,
+                        CreatedAtUtc = x.VppCategory.CreatedAtUtc,
+                        UpdatedByUserId = x.VppCategory.UpdatedByUserId,
+                        UpdatedAtUtc = x.VppCategory.UpdatedAtUtc,
+                        IsDeleted = x.VppCategory.IsDeleted,
+                        VppCategoryCode = x.VppCategory.VppCategoryCode,
+                        VppCategoryName = x.VppCategory.VppCategoryName
                     }
                 };
             }).ToList();
@@ -254,73 +256,73 @@ namespace gtas_vpp_be.Controllers
             try
             {
                 var defaultPriceListId = await GetDefaultPriceListIdAsync();
-                var baseQuery = _unitOfWork.VPPContext.Set<L04_VPP>().AsNoTracking();
+                var baseQuery = _unitOfWork.VPPContext.Set<VppItem>().AsNoTracking();
 
                 if (!showDeleted)
                 {
                     baseQuery = baseQuery.Where(x => !x.IsDeleted);
                 }
 
-                var query = baseQuery.Select(x => new L04_VPPResDTO
+                var query = baseQuery.Select(x => new VppItemResDTO
                 {
                     Id = x.Id,
                     Description = x.Description,
-                    CreateUserId = x.CreateUserId,
-                    CreateDate = x.CreateDate,
-                    UpdateUserId = x.UpdateUserId,
-                    UpdateDate = x.UpdateDate,
+                    CreatedByUserId = x.CreatedByUserId,
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    UpdatedByUserId = x.UpdatedByUserId,
+                    UpdatedAtUtc = x.UpdatedAtUtc,
                     IsDeleted = x.IsDeleted,
-                    VPPCode = x.VPPCode,
-                    VPPName = x.VPPName,
-                    UOMId = x.UOMId,
-                    VPPCategoryId = x.VPPCategoryId,
+                    VppCode = x.VppCode,
+                    VppName = x.VppName,
+                    UomId = x.UomId,
+                    VppCategoryId = x.VppCategoryId,
                     DefaultVatRate = VppPricingDefaults.VatRate,
-                    DefaultPrice = x.L06_VPPSupplierMappings!
+                    DefaultPrice = x.SupplierProductMappings!
                         .Where(m => (showDeleted || !m.IsDeleted)
-                            && m.L07_PriceListId == defaultPriceListId
-                            && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
+                            && m.PriceListId == defaultPriceListId
+                            && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
                         .OrderByDescending(m => m.IsDefault)
-                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
-                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .ThenBy(m => m.Supplier != null && m.Supplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.Supplier != null ? m.Supplier.SupplierName : null)
                         .Select(m => (decimal?)m.Price)
                         .FirstOrDefault(),
-                    DefaultSupplierName = x.L06_VPPSupplierMappings!
+                    DefaultSupplierName = x.SupplierProductMappings!
                         .Where(m => (showDeleted || !m.IsDeleted)
-                            && m.L07_PriceListId == defaultPriceListId
-                            && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
+                            && m.PriceListId == defaultPriceListId
+                            && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
                         .OrderByDescending(m => m.IsDefault)
-                        .ThenBy(m => m.L05_VPPSupplier != null && m.L05_VPPSupplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
-                        .ThenBy(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
-                        .Select(m => m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null)
+                        .ThenBy(m => m.Supplier != null && m.Supplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
+                        .ThenBy(m => m.Supplier != null ? m.Supplier.SupplierName : null)
+                        .Select(m => m.Supplier != null ? m.Supplier.SupplierName : null)
                         .FirstOrDefault(),
-                    UOM = x.UOM == null ? null : new L02_ClassDetailResDTO
+                    Uom = x.Uom == null ? null : new LookupValueResDTO
                     {
-                        Id = x.UOM.Id,
-                        Description = x.UOM.Description,
-                        CreateUserId = x.UOM.CreateUserId,
-                        CreateDate = x.UOM.CreateDate,
-                        UpdateUserId = x.UOM.UpdateUserId,
-                        UpdateDate = x.UOM.UpdateDate,
-                        IsDeleted = x.UOM.IsDeleted,
-                        ClassId = x.UOM.ClassId,
-                        ClassDetailCode = x.UOM.ClassDetailCode,
-                        ClassDetailValue = x.UOM.ClassDetailValue,
-                        ExtraField1 = x.UOM.ExtraField1,
-                        ExtraField2 = x.UOM.ExtraField2,
-                        ExtraField3 = x.UOM.ExtraField3,
-                        Sort = x.UOM.Sort
+                        Id = x.Uom.Id,
+                        Description = x.Uom.Description,
+                        CreatedByUserId = x.Uom.CreatedByUserId,
+                        CreatedAtUtc = x.Uom.CreatedAtUtc,
+                        UpdatedByUserId = x.Uom.UpdatedByUserId,
+                        UpdatedAtUtc = x.Uom.UpdatedAtUtc,
+                        IsDeleted = x.Uom.IsDeleted,
+                        LookupCategoryId = x.Uom.LookupCategoryId,
+                        Code = x.Uom.Code,
+                        Value = x.Uom.Value,
+                        ExtraField1 = x.Uom.ExtraField1,
+                        ExtraField2 = x.Uom.ExtraField2,
+                        ExtraField3 = x.Uom.ExtraField3,
+                        Sort = x.Uom.Sort
                     },
-                    VPPCategory = x.VPPCategory == null ? null : new L03_VPPCategoryResDTO
+                    VppCategory = x.VppCategory == null ? null : new VppCategoryResDTO
                     {
-                        Id = x.VPPCategory.Id,
-                        Description = x.VPPCategory.Description,
-                        CreateUserId = x.VPPCategory.CreateUserId,
-                        CreateDate = x.VPPCategory.CreateDate,
-                        UpdateUserId = x.VPPCategory.UpdateUserId,
-                        UpdateDate = x.VPPCategory.UpdateDate,
-                        IsDeleted = x.VPPCategory.IsDeleted,
-                        VPPCategoryCode = x.VPPCategory.VPPCategoryCode,
-                        VPPCategoryName = x.VPPCategory.VPPCategoryName
+                        Id = x.VppCategory.Id,
+                        Description = x.VppCategory.Description,
+                        CreatedByUserId = x.VppCategory.CreatedByUserId,
+                        CreatedAtUtc = x.VppCategory.CreatedAtUtc,
+                        UpdatedByUserId = x.VppCategory.UpdatedByUserId,
+                        UpdatedAtUtc = x.VppCategory.UpdatedAtUtc,
+                        IsDeleted = x.VppCategory.IsDeleted,
+                        VppCategoryCode = x.VppCategory.VppCategoryCode,
+                        VppCategoryName = x.VppCategory.VppCategoryName
                     }
                 });
 
@@ -338,7 +340,7 @@ namespace gtas_vpp_be.Controllers
 
                 if (!string.IsNullOrWhiteSpace(distinct))
                 {
-                    var propertyInfo = typeof(L04_VPPResDTO).GetProperty(distinct);
+                    var propertyInfo = typeof(VppItemResDTO).GetProperty(distinct);
                     if (propertyInfo != null)
                     {
                         var distinctValues = await query
@@ -367,7 +369,7 @@ namespace gtas_vpp_be.Controllers
 
                         var distinctDtos = pageValues.Select(val =>
                         {
-                            var dto = new L04_VPPResDTO();
+                            var dto = new VppItemResDTO();
                             propertyInfo.SetValue(dto, val);
                             return dto;
                         }).ToList();
@@ -386,12 +388,12 @@ namespace gtas_vpp_be.Controllers
                     }
                     catch
                     {
-                        query = query.OrderBy(x => x.VPPCode);
+                        query = query.OrderBy(x => x.VppCode);
                     }
                 }
                 else
                 {
-                    query = query.OrderBy(x => x.VPPCode);
+                    query = query.OrderBy(x => x.VppCode);
                 }
 
                 if (skip.HasValue && skip.Value > 0)
@@ -417,7 +419,7 @@ namespace gtas_vpp_be.Controllers
 
         private async Task<IActionResult> GetVppItemByIdAsync(Guid id, bool showDeleted = false)
         {
-            var vpp = await _unitOfWork.VPPContext.Set<L04_VPP>()
+            var vpp = await _unitOfWork.VPPContext.Set<VppItem>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id && (showDeleted || !x.IsDeleted));
 
@@ -428,17 +430,17 @@ namespace gtas_vpp_be.Controllers
 
             var defaultPriceListId = await GetDefaultPriceListIdAsync();
 
-            var mappings = await _unitOfWork.VPPContext.Set<L06_VPPSupplierMapping>()
+            var mappings = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
                 .AsNoTracking()
                 .Where(m => (showDeleted || !m.IsDeleted) 
-                    && m.L07_PriceListId == defaultPriceListId
-                    && m.L04_VPPId == id
-                    && (m.L05_VPPSupplier == null || showDeleted || !m.L05_VPPSupplier.IsDeleted))
+                    && m.PriceListId == defaultPriceListId
+                    && m.VppItemId == id
+                    && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
                 .Select(m => new {
                     m.Price,
                     m.IsDefault,
-                    SupplierShortName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierShortName : null,
-                    SupplierName = m.L05_VPPSupplier != null ? m.L05_VPPSupplier.SupplierName : null
+                    SupplierShortName = m.Supplier != null ? m.Supplier.SupplierShortName : null,
+                    SupplierName = m.Supplier != null ? m.Supplier.SupplierName : null
                 })
                 .ToListAsync();
 
@@ -448,19 +450,19 @@ namespace gtas_vpp_be.Controllers
                 .ThenBy(m => m.SupplierName)
                 .FirstOrDefault();
 
-            var dto = new L04_VPPResDTO
+            var dto = new VppItemResDTO
             {
                 Id = vpp.Id,
                 Description = vpp.Description,
-                CreateUserId = vpp.CreateUserId,
-                CreateDate = vpp.CreateDate,
-                UpdateUserId = vpp.UpdateUserId,
-                UpdateDate = vpp.UpdateDate,
+                CreatedByUserId = vpp.CreatedByUserId,
+                CreatedAtUtc = vpp.CreatedAtUtc,
+                UpdatedByUserId = vpp.UpdatedByUserId,
+                UpdatedAtUtc = vpp.UpdatedAtUtc,
                 IsDeleted = vpp.IsDeleted,
-                VPPCode = vpp.VPPCode,
-                VPPName = vpp.VPPName,
-                UOMId = vpp.UOMId,
-                VPPCategoryId = vpp.VPPCategoryId,
+                VppCode = vpp.VppCode,
+                VppName = vpp.VppName,
+                UomId = vpp.UomId,
+                VppCategoryId = vpp.VppCategoryId,
                 DefaultVatRate = VppPricingDefaults.VatRate,
                 DefaultPrice = bestMapping?.Price,
                 DefaultSupplierName = bestMapping?.SupplierName
@@ -476,7 +478,7 @@ namespace gtas_vpp_be.Controllers
             string? orderby,
             string? distinct,
             string? distinctFilter,
-            Guid? classId = null,
+            Guid? lookupCategoryId = null,
             bool showDeleted = false) where TModel : class
         {
             // P3.2 (F-12): Build query directly on IQueryable<TModel> so filter/orderby/
@@ -495,11 +497,11 @@ namespace gtas_vpp_be.Controllers
                     }
                 }
 
-                // Apply classId filter for L02 (typed, not Dynamic LINQ)
-                if (classId.HasValue && typeof(TModel) == typeof(L02_ClassDetail))
+                // Apply lookupCategoryId filter for lookup values (typed, not Dynamic LINQ)
+                if (lookupCategoryId.HasValue && typeof(TModel) == typeof(LookupValue))
                 {
-                    query = (IQueryable<TModel>)((IQueryable<L02_ClassDetail>)query)
-                        .Where(x => x.ClassId == classId.Value);
+                    query = (IQueryable<TModel>)((IQueryable<LookupValue>)query)
+                        .Where(x => x.LookupCategoryId == lookupCategoryId.Value);
                 }
 
                 // Apply Radzen filter expression via Dynamic LINQ (translates to SQL when
@@ -620,13 +622,13 @@ namespace gtas_vpp_be.Controllers
             bool isShowDeleted = showDeleted ?? false;
             return tableCode.ToLower() switch
             {
-                "l01" => await GetByIdAsync<L01_Class, L01_ClassResDTO>(id),
-                "l02" => await GetByIdAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id),
-                "l03" => await GetByIdAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id),
-                "l04" => await GetVppItemByIdAsync(id, isShowDeleted),
-                "l05" => await GetByIdAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id),
-                "l06" => await GetByIdAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id),
-                "lex02" => await GetByIdAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id),
+                "lookup-categories" => await GetByIdAsync<LookupCategory, LookupCategoryResDTO>(id),
+                "lookup-values" => await GetByIdAsync<LookupValue, LookupValueResDTO>(id),
+                "vpp-categories" => await GetByIdAsync<VppCategory, VppCategoryResDTO>(id),
+                "vpp-items" => await GetVppItemByIdAsync(id, isShowDeleted),
+                "suppliers" => await GetByIdAsync<Supplier, SupplierResDTO>(id),
+                "supplier-product-mappings" => await GetByIdAsync<SupplierProductMapping, SupplierProductMappingResDTO>(id),
+                "departments" => await GetByIdAsync<Department, DepartmentResDTO>(id),
                 _ => BadRequest(new { Message = $"GetById for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -643,13 +645,13 @@ namespace gtas_vpp_be.Controllers
             var json = payload.GetRawText();
             return tableCode.ToLower() switch
             {
-                "l01" => await CreateAsync<L01_Class, L01_ClassResDTO>(json),
-                "l02" => await CreateAsync<L02_ClassDetail, L02_ClassDetailResDTO>(json),
-                "l03" => await CreateAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(json),
-                "l04" => await CreateAsync<L04_VPP, L04_VPPResDTO>(json),
-                "l05" => await CreateAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(json),
-                "l06" => await CreateAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(json),
-                "lex02" => await CreateAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(json),
+                "lookup-categories" => await CreateAsync<LookupCategory, LookupCategoryResDTO>(json),
+                "lookup-values" => await CreateAsync<LookupValue, LookupValueResDTO>(json),
+                "vpp-categories" => await CreateAsync<VppCategory, VppCategoryResDTO>(json),
+                "vpp-items" => await CreateAsync<VppItem, VppItemResDTO>(json),
+                "suppliers" => await CreateAsync<Supplier, SupplierResDTO>(json),
+                "supplier-product-mappings" => await CreateAsync<SupplierProductMapping, SupplierProductMappingResDTO>(json),
+                "departments" => await CreateAsync<Department, DepartmentResDTO>(json),
                 _ => BadRequest(new { Message = $"Create for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -666,13 +668,13 @@ namespace gtas_vpp_be.Controllers
             var json = payload.GetRawText();
             return tableCode.ToLower() switch
             {
-                "l01" => await UpdateAsync<L01_Class, L01_ClassResDTO>(json),
-                "l02" => await UpdateAsync<L02_ClassDetail, L02_ClassDetailResDTO>(json),
-                "l03" => await UpdateAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(json),
-                "l04" => await UpdateAsync<L04_VPP, L04_VPPResDTO>(json),
-                "l05" => await UpdateAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(json),
-                "l06" => await UpdateAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(json),
-                "lex02" => await UpdateAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(json),
+                "lookup-categories" => await UpdateAsync<LookupCategory, LookupCategoryResDTO>(json),
+                "lookup-values" => await UpdateAsync<LookupValue, LookupValueResDTO>(json),
+                "vpp-categories" => await UpdateAsync<VppCategory, VppCategoryResDTO>(json),
+                "vpp-items" => await UpdateAsync<VppItem, VppItemResDTO>(json),
+                "suppliers" => await UpdateAsync<Supplier, SupplierResDTO>(json),
+                "supplier-product-mappings" => await UpdateAsync<SupplierProductMapping, SupplierProductMappingResDTO>(json),
+                "departments" => await UpdateAsync<Department, DepartmentResDTO>(json),
                 _ => BadRequest(new { Message = $"Update for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -693,13 +695,13 @@ namespace gtas_vpp_be.Controllers
 
             return tableCode.ToLower() switch
             {
-                "l01" => await ApplyPatchAsync<L01_Class, L01_ClassResDTO>(id, payload),
-                "l02" => await ApplyPatchAsync<L02_ClassDetail, L02_ClassDetailResDTO>(id, payload),
-                "l03" => await ApplyPatchAsync<L03_VPPCategory, L03_VPPCategoryResDTO>(id, payload),
-                "l04" => await ApplyPatchAsync<L04_VPP, L04_VPPResDTO>(id, payload),
-                "l05" => await ApplyPatchAsync<L05_VPPSupplier, L05_VPPSupplierResDTO>(id, payload),
-                "l06" => await ApplyPatchAsync<L06_VPPSupplierMapping, L06_VPPSupplierMappingResDTO>(id, payload),
-                "lex02" => await ApplyPatchAsync<LEX02_CompanyDepartmentLocation, LEX02_CompanyDepartmentLocationResDTO>(id, payload),
+                "lookup-categories" => await ApplyPatchAsync<LookupCategory, LookupCategoryResDTO>(id, payload),
+                "lookup-values" => await ApplyPatchAsync<LookupValue, LookupValueResDTO>(id, payload),
+                "vpp-categories" => await ApplyPatchAsync<VppCategory, VppCategoryResDTO>(id, payload),
+                "vpp-items" => await ApplyPatchAsync<VppItem, VppItemResDTO>(id, payload),
+                "suppliers" => await ApplyPatchAsync<Supplier, SupplierResDTO>(id, payload),
+                "supplier-product-mappings" => await ApplyPatchAsync<SupplierProductMapping, SupplierProductMappingResDTO>(id, payload),
+                "departments" => await ApplyPatchAsync<Department, DepartmentResDTO>(id, payload),
                 _ => BadRequest(new { Message = $"Patch for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -715,13 +717,13 @@ namespace gtas_vpp_be.Controllers
 
             return tableCode.ToLower() switch
             {
-                "l01" => await DeleteAsync<L01_Class>(id),
-                "l02" => await DeleteAsync<L02_ClassDetail>(id),
-                "l03" => await DeleteAsync<L03_VPPCategory>(id),
-                "l04" => await DeleteAsync<L04_VPP>(id),
-                "l05" => await DeleteAsync<L05_VPPSupplier>(id),
-                "l06" => await DeleteAsync<L06_VPPSupplierMapping>(id),
-                "lex02" => await DeleteAsync<LEX02_CompanyDepartmentLocation>(id),
+                "lookup-categories" => await DeleteAsync<LookupCategory>(id),
+                "lookup-values" => await DeleteAsync<LookupValue>(id),
+                "vpp-categories" => await DeleteAsync<VppCategory>(id),
+                "vpp-items" => await DeleteAsync<VppItem>(id),
+                "suppliers" => await DeleteAsync<Supplier>(id),
+                "supplier-product-mappings" => await DeleteAsync<SupplierProductMapping>(id),
+                "departments" => await DeleteAsync<Department>(id),
                 _ => BadRequest(new { Message = $"Delete for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -729,12 +731,12 @@ namespace gtas_vpp_be.Controllers
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
         private static bool IsMigratedVppItemTable(string tableCode)
-            => string.Equals(tableCode, "l04", StringComparison.OrdinalIgnoreCase);
+            => string.Equals(tableCode, "vpp-items", StringComparison.OrdinalIgnoreCase);
 
         private IActionResult MigratedVppItemMutationProblem()
             => Problem(
                 title: "Legacy catalog mutation disabled",
-                detail: "L04 VPP items must be changed through /api/catalog/items; hard delete is not supported.",
+                detail: "VPP items must be changed through /api/catalog/items; hard delete is not supported.",
                 statusCode: StatusCodes.Status405MethodNotAllowed,
                 extensions: new Dictionary<string, object?>
                 {
@@ -751,10 +753,10 @@ namespace gtas_vpp_be.Controllers
         private static readonly HashSet<string> _writeDeniedFields = new(StringComparer.OrdinalIgnoreCase)
         {
             "Id",
-            "CreateUserId",
-            "CreateDate",
-            "UpdateUserId",
-            "UpdateDate"
+            "CreatedByUserId",
+            "CreatedAtUtc",
+            "UpdatedByUserId",
+            "UpdatedAtUtc"
         };
 
         private async Task<IActionResult> CreateAsync<TModel, TDto>(string json) where TModel : gtas_vpp_be.Model.Helpers.BaseModel where TDto : class
@@ -766,10 +768,10 @@ namespace gtas_vpp_be.Controllers
             obj.Id = Guid.Empty;
             var now = _dateTimeProvider.Now;
             var uid = int.TryParse(User.FindFirstValue("UserID"), out var x) ? x : 0;
-            obj.CreateDate = now;
-            obj.UpdateDate = now;
-            obj.CreateUserId = uid;
-            obj.UpdateUserId = uid;
+            obj.CreatedAtUtc = now;
+            obj.UpdatedAtUtc = now;
+            obj.CreatedByUserId = uid;
+            obj.UpdatedByUserId = uid;
             obj.IsDeleted = false;
             
             var created = await GetRepository<TModel>().AddAsync(obj);
@@ -788,11 +790,11 @@ namespace gtas_vpp_be.Controllers
                 return NotFound(new { Message = $"Record with ID {obj.Id} not found." });
 
             var uid = int.TryParse(User.FindFirstValue("UserID"), out var x) ? x : 0;
-            obj.CreateUserId = existing.CreateUserId;
-            obj.CreateDate = existing.CreateDate;
+            obj.CreatedByUserId = existing.CreatedByUserId;
+            obj.CreatedAtUtc = existing.CreatedAtUtc;
             obj.IsDeleted = existing.IsDeleted;
-            obj.UpdateDate = _dateTimeProvider.Now;
-            obj.UpdateUserId = uid;
+            obj.UpdatedAtUtc = _dateTimeProvider.Now;
+            obj.UpdatedByUserId = uid;
 
             _unitOfWork.VPPContext.Entry(existing).State = EntityState.Detached;
             
@@ -824,13 +826,13 @@ namespace gtas_vpp_be.Controllers
                 }
             }
 
-            var updateDateProp = type.GetProperty("UpdateDate");
+            var updateDateProp = type.GetProperty("UpdatedAtUtc");
             if (updateDateProp != null && updateDateProp.CanWrite)
             {
                 updateDateProp.SetValue(entity, _dateTimeProvider.Now);
             }
 
-            var updateUserIdProp = type.GetProperty("UpdateUserId");
+            var updateUserIdProp = type.GetProperty("UpdatedByUserId");
             if (updateUserIdProp != null && updateUserIdProp.CanWrite)
             {
                 var uid = int.TryParse(User.FindFirstValue("UserID"), out var x) ? x : 0;

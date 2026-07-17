@@ -89,7 +89,7 @@ public sealed class PriceAsOfResolverTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var seed = await SeedAsync(context);
-        var book = await context.Set<L07_PriceList>().SingleAsync(x => x.Id == seed.PriceListId);
+        var book = await context.Set<PriceList>().SingleAsync(x => x.Id == seed.PriceListId);
         book.SupplierId = null;
         book.LegacyBackfillStatus = "MULTIPLE_SUPPLIERS";
         await context.SaveChangesAsync();
@@ -121,8 +121,8 @@ public sealed class PriceAsOfResolverTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var seed = await SeedAsync(context);
-        var book = await context.Set<L07_PriceList>().SingleAsync(x => x.Id == seed.PriceListId);
-        book.Status = L07_PriceListStatus.Draft;
+        var book = await context.Set<PriceList>().SingleAsync(x => x.Id == seed.PriceListId);
+        book.Status = PriceListStatus.Draft;
         await context.SaveChangesAsync();
         var resolver = CreateResolver(context);
 
@@ -160,15 +160,15 @@ public sealed class PriceAsOfResolverTests
     {
         var supplierId = Guid.NewGuid();
         var vppId = Guid.NewGuid();
-        context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+        context.Set<Supplier>().Add(new Supplier
         {
             Id = supplierId,
             SupplierShortName = "NCC",
             SupplierName = "Nhà cung cấp",
-            CreateUserId = 1,
-            CreateDate = EffectiveFrom,
-            UpdateUserId = 1,
-            UpdateDate = EffectiveFrom
+            CreatedByUserId = 1,
+            CreatedAtUtc = EffectiveFrom,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = EffectiveFrom
         });
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var priceListId = await AddBookAndItemAsync(
@@ -190,7 +190,7 @@ public sealed class PriceAsOfResolverTests
         decimal minimumOrderQuantity = 0m)
     {
         var priceListId = Guid.NewGuid();
-        context.Set<L07_PriceList>().Add(new L07_PriceList
+        context.Set<PriceList>().Add(new PriceList
         {
             Id = priceListId,
             PriceListCode = code,
@@ -199,32 +199,32 @@ public sealed class PriceAsOfResolverTests
             Version = version,
             EffectiveFromUtc = EffectiveFrom,
             EffectiveToUtc = EffectiveTo,
-            Status = L07_PriceListStatus.Published,
+            Status = PriceListStatus.Published,
             CurrencyCode = "VND",
             VatPolicy = "item-rate",
             ContractCode = contractCode,
             IsDefault = isDefault,
-            CreateUserId = 1,
-            CreateDate = EffectiveFrom,
-            UpdateUserId = 1,
-            UpdateDate = EffectiveFrom
+            CreatedByUserId = 1,
+            CreatedAtUtc = EffectiveFrom,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = EffectiveFrom
         });
-        context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
+        context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = priceListId,
-            L05_VPPSupplierId = supplierId,
-            L04_VPPId = vppId,
+            PriceListId = priceListId,
+            SupplierId = supplierId,
+            VppItemId = vppId,
             Price = netPrice,
             NetPrice = netPrice,
             VatRate = vatRate,
             MinimumOrderQuantity = minimumOrderQuantity,
             LeadTimeDays = 3,
             IsDefault = true,
-            CreateUserId = 1,
-            CreateDate = EffectiveFrom,
-            UpdateUserId = 1,
-            UpdateDate = EffectiveFrom
+            CreatedByUserId = 1,
+            CreatedAtUtc = EffectiveFrom,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = EffectiveFrom
         });
         await context.SaveChangesAsync();
         return priceListId;

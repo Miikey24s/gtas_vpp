@@ -132,7 +132,7 @@ public sealed class ReportsController(
         out string departmentCode,
         out string companyCode)
     {
-        departmentCode = User.FindFirstValue("DepartmentCode") ?? string.Empty;
+        departmentCode = User.FindFirstValue(AppClaimTypes.DepartmentCode) ?? string.Empty;
         companyCode = User.FindFirstValue("MemberCompanyCode") ?? string.Empty;
         return int.TryParse(User.FindFirstValue("UserID"), out userId)
             && !string.IsNullOrWhiteSpace(companyCode);

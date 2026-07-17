@@ -87,12 +87,12 @@
             var name = prop.Name;
             
             // Check if it's an audit property
-            var isAudit = name == "CreateUserId" || 
-                          name == "CreateDate" || 
-                          name == "CreateUserName" ||
-                          name == "UpdateUserId" || 
-                          name == "UpdateDate" || 
-                          name == "UpdateUserName" ||
+            var isAudit = name == "CreatedByUserId" ||
+                          name == "CreatedAtUtc" ||
+                          name == "CreatedByUserName" ||
+                          name == "UpdatedByUserId" ||
+                          name == "UpdatedAtUtc" ||
+                          name == "UpdatedByUserName" ||
                           name == "IsDeleted";
                           
             // Check if it's a system ID (either Id or ends with Id/GUID)

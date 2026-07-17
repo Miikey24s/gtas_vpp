@@ -54,7 +54,7 @@ public sealed class ReportStatusPointResDTO
 
 public sealed class ReportDepartmentPointResDTO
 {
-    public string DepartmentCode { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
     public int OrderCount { get; set; }
     public int TotalQuantity { get; set; }
     public long TotalAmount { get; set; }

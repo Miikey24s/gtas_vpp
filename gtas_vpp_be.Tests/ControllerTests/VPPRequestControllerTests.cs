@@ -24,10 +24,10 @@ public class VPPRequestControllerTests
         var service = new Mock<IVPPRequestService>();
         var orderId = Guid.NewGuid();
         service.Setup(x => x.GetOrderByIdAsync(orderId))
-            .ReturnsAsync(new VPP01_RequestHeaderResDTO
+            .ReturnsAsync(new VppRequestResDTO
             {
                 Id = orderId,
-                CreateUserId = 99,
+                CreatedByUserId = 99,
                 DepartmentCode = "HR",
                 MemberCompanyCode = "88000"
             });
@@ -51,16 +51,16 @@ public class VPPRequestControllerTests
                 It.IsAny<IEnumerable<int>?>(),
                 It.IsAny<IEnumerable<int>?>(),
                 It.IsAny<IEnumerable<int>?>()))
-            .ReturnsAsync(new List<VPP01_RequestHeaderResDTO>
+            .ReturnsAsync(new List<VppRequestResDTO>
             {
-                new() { Id = Guid.NewGuid(), Y = 2026, M = 4, Status = 1 }
+                new() { Id = Guid.NewGuid(), Year = 2026, Month = 4, Status = 1 }
             });
         var controller = CreateController(service.Object, new Claim("UserID", "5615"));
 
         var result = await controller.GetMyOrders(null, null, null, null, null, null);
 
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var orders = Assert.IsAssignableFrom<List<VPP01_RequestHeaderResDTO>>(okResult.Value);
+        var orders = Assert.IsAssignableFrom<List<VppRequestResDTO>>(okResult.Value);
         Assert.Single(orders);
     }
 
@@ -84,10 +84,10 @@ public class VPPRequestControllerTests
     [Fact]
     public async Task CreateOrder_ValidRequest_ReturnsOk()
     {
-        var expected = new VPP01_RequestHeaderResDTO { Id = Guid.NewGuid(), Y = 2026, M = 4, Status = 1 };
+        var expected = new VppRequestResDTO { Id = Guid.NewGuid(), Year = 2026, Month = 4, Status = 1 };
         var service = new Mock<IVPPRequestService>();
         service.Setup(x => x.CreateOrderAsync(
-                It.IsAny<VPP01_CreateReqDTO>(),
+                It.IsAny<VppRequestCreateReqDTO>(),
                 5615,
                 "IT",
                 "77500"))
@@ -97,13 +97,13 @@ public class VPPRequestControllerTests
             new Claim("UserID", "5615"),
             new Claim("DepartmentCode", "IT"),
             new Claim("MemberCompanyCode", "77500"));
-        var request = new VPP01_CreateReqDTO
+        var request = new VppRequestCreateReqDTO
         {
-            Y = 2026,
-            M = 4,
-            Items = new List<VPP02_ItemReqDTO>
+            Year = 2026,
+            Month = 4,
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = Guid.NewGuid(), Qty = 1 }
+                new() { VppId = Guid.NewGuid(), Qty = 1 }
             }
         };
 
@@ -119,15 +119,15 @@ public class VPPRequestControllerTests
         var orderId = Guid.NewGuid();
         var service = new Mock<IVPPRequestService>();
         service.Setup(x => x.GetOrderHistoryAsync(orderId))
-            .ReturnsAsync(new VPP_RequestHistoryResDTO
+            .ReturnsAsync(new VppRequestHistoryResDTO
             {
                 CurrentRequestId = orderId,
                 Revisions =
                 [
-                    new VPP01_RequestHeaderResDTO
+                    new VppRequestResDTO
                     {
                         Id = orderId,
-                        CreateUserId = 99,
+                        CreatedByUserId = 99,
                         DepartmentCode = "HR",
                         MemberCompanyCode = "88000"
                     }
@@ -150,10 +150,10 @@ public class VPPRequestControllerTests
         var service = new Mock<IVPPRequestService>();
         var controller = CreateController(service.Object, new Claim("UserID", "5615"));
 
-        var result = await controller.UpdateOrder(Guid.NewGuid(), new VPP01_UpdateReqDTO());
+        var result = await controller.UpdateOrder(Guid.NewGuid(), new VppRequestUpdateReqDTO());
 
         Assert.IsType<BadRequestObjectResult>(result);
-        service.Verify(x => x.UpdateOrderAsync(It.IsAny<VPP01_UpdateReqDTO>()), Times.Never);
+        service.Verify(x => x.UpdateOrderAsync(It.IsAny<VppRequestUpdateReqDTO>()), Times.Never);
     }
 
     [Fact]
@@ -162,11 +162,11 @@ public class VPPRequestControllerTests
         var service = new Mock<IVPPRequestService>();
         var controller = CreateController(service.Object, new Claim("UserID", "5615"));
 
-        var result = await controller.CancelOrder(Guid.NewGuid(), new VPP_CancelOrderReqDTO());
+        var result = await controller.CancelOrder(Guid.NewGuid(), new VppRequestCancelReqDTO());
 
         Assert.IsType<BadRequestObjectResult>(result);
         service.Verify(x => x.CancelOrderAsync(
-            It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<VPP_CancelOrderReqDTO>()), Times.Never);
+            It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<VppRequestCancelReqDTO>()), Times.Never);
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class VPPRequestControllerTests
     {
         var orderId = Guid.NewGuid();
         var rowVersion = new byte[] { 1, 2, 3 };
-        var request = new VPP_CancelOrderReqDTO
+        var request = new VppRequestCancelReqDTO
         {
             RowVersion = rowVersion,
             Reason = "No longer required",
@@ -182,10 +182,10 @@ public class VPPRequestControllerTests
         };
         var service = new Mock<IVPPRequestService>();
         service.Setup(x => x.GetOrderByIdAsync(orderId))
-            .ReturnsAsync(new VPP01_RequestHeaderResDTO
+            .ReturnsAsync(new VppRequestResDTO
             {
                 Id = orderId,
-                CreateUserId = 5615,
+                CreatedByUserId = 5615,
                 DepartmentCode = "IT",
                 MemberCompanyCode = "77500"
             });
@@ -238,7 +238,7 @@ public class VPPRequestControllerTests
         var orderId = Guid.NewGuid();
         var service = new Mock<IVPPRequestService>();
         service.Setup(x => x.GetOrderByIdAsync(orderId))
-            .ReturnsAsync((VPP01_RequestHeaderResDTO?)null);
+            .ReturnsAsync((VppRequestResDTO?)null);
         var controller = CreateController(service.Object, new Claim("UserID", "5615"));
 
         var result = await controller.GetOrderById(orderId);
@@ -257,90 +257,90 @@ public class VPPRequestControllerTests
         var supplierId = Guid.NewGuid();
         var priceListId = Guid.NewGuid();
 
-        context.Add(new L02_ClassDetail
+        context.Add(new LookupValue
         {
             Id = uomId,
-            ClassDetailCode = "BOX",
-            ClassDetailValue = "Box",
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            Code = "BOX",
+            Value = "Box",
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
-        context.Add(new L03_VPPCategory
+        context.Add(new VppCategory
         {
             Id = categoryId,
-            VPPCategoryCode = "CAT",
-            VPPCategoryName = "Category",
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            VppCategoryCode = "CAT",
+            VppCategoryName = "Category",
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
-        context.Add(new L04_VPP
+        context.Add(new VppItem
         {
             Id = productId,
-            VPPCode = "VPP-001",
-            VPPName = "Blue Pen",
-            UOMId = uomId,
-            VPPCategoryId = categoryId,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            VppCode = "VPP-001",
+            VppName = "Blue Pen",
+            UomId = uomId,
+            VppCategoryId = categoryId,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
-        context.Add(new L05_VPPSupplier
+        context.Add(new Supplier
         {
             Id = supplierId,
             SupplierShortName = "VPP_HCM",
             SupplierName = "HCM Supplier",
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
-        context.Add(new L07_PriceList
+        context.Add(new PriceList
         {
             Id = priceListId,
             PriceListCode = "DEFAULT",
             PriceListName = "Default Price List",
             IsDefault = true,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
         context.AddRange(
-            new L06_VPPSupplierMapping
+            new SupplierProductMapping
             {
                 Id = Guid.NewGuid(),
-                L04_VPPId = productId,
-                L05_VPPSupplierId = supplierId,
-                L07_PriceListId = priceListId,
+                VppItemId = productId,
+                SupplierId = supplierId,
+                PriceListId = priceListId,
                 Price = 100,
                 IsDefault = true,
-                CreateUserId = 1,
-                CreateDate = now,
-                UpdateUserId = 1,
-                UpdateDate = now
+                CreatedByUserId = 1,
+                CreatedAtUtc = now,
+                UpdatedByUserId = 1,
+                UpdatedAtUtc = now
             },
-            new L06_VPPSupplierMapping
+            new SupplierProductMapping
             {
                 Id = Guid.NewGuid(),
-                L04_VPPId = productId,
-                L05_VPPSupplierId = Guid.NewGuid(),
-                L07_PriceListId = priceListId,
+                VppItemId = productId,
+                SupplierId = Guid.NewGuid(),
+                PriceListId = priceListId,
                 Price = 200,
                 IsDeleted = true,
-                CreateUserId = 1,
-                CreateDate = now,
-                UpdateUserId = 1,
-                UpdateDate = now
+                CreatedByUserId = 1,
+                CreatedAtUtc = now,
+                UpdatedByUserId = 1,
+                UpdatedAtUtc = now
             });
 
         await context.SaveChangesAsync();
@@ -354,12 +354,12 @@ public class VPPRequestControllerTests
         var product = Assert.Single(products);
 
         Assert.Equal(productId, GetPropertyValue<Guid>(product, "Id"));
-        Assert.Equal("VPP-001", GetPropertyValue<string>(product, "VPPCode"));
-        Assert.Equal("Blue Pen", GetPropertyValue<string>(product, "VPPName"));
-        Assert.Equal("CAT", GetPropertyValue<string>(product, "VPPCategoryCode"));
-        Assert.Equal("Category", GetPropertyValue<string>(product, "VPPCategoryName"));
-        Assert.Equal("BOX", GetPropertyValue<string>(product, "UOMCode"));
-        Assert.Equal("Box", GetPropertyValue<string>(product, "UOMName"));
+        Assert.Equal("VPP-001", GetPropertyValue<string>(product, "VppCode"));
+        Assert.Equal("Blue Pen", GetPropertyValue<string>(product, "VppName"));
+        Assert.Equal("CAT", GetPropertyValue<string>(product, "VppCategoryCode"));
+        Assert.Equal("Category", GetPropertyValue<string>(product, "VppCategoryName"));
+        Assert.Equal("BOX", GetPropertyValue<string>(product, "UomCode"));
+        Assert.Equal("Box", GetPropertyValue<string>(product, "UomName"));
         Assert.Equal(1, GetPropertyValue<int>(product, "SupplierCount"));
         Assert.Equal(100m, GetPropertyValue<decimal?>(product, "DefaultPrice"));
         Assert.Equal("HCM Supplier", GetPropertyValue<string>(product, "DefaultSupplierName"));
@@ -374,26 +374,26 @@ public class VPPRequestControllerTests
         var uomId = Guid.NewGuid();
         var categoryId = Guid.NewGuid();
 
-        context.Add(new L02_ClassDetail
+        context.Add(new LookupValue
         {
             Id = uomId,
-            ClassDetailCode = "PCS",
-            ClassDetailValue = "Piece",
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            Code = "PCS",
+            Value = "Piece",
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
-        context.Add(new L03_VPPCategory
+        context.Add(new VppCategory
         {
             Id = categoryId,
-            VPPCategoryCode = "CAT",
-            VPPCategoryName = "Category",
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            VppCategoryCode = "CAT",
+            VppCategoryName = "Category",
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         });
 
         context.AddRange(
@@ -404,14 +404,14 @@ public class VPPRequestControllerTests
 
         var controller = CreateController(Mock.Of<IVPPRequestService>(), context, new Claim("UserID", "5615"));
 
-        var result = await controller.GetProducts(categoryId, null, null, 0, 1, "VPPCode desc", null, null);
+        var result = await controller.GetProducts(categoryId, null, null, 0, 1, "VppCode desc", null, null);
 
         var okResult = Assert.IsType<OkObjectResult>(result);
         var products = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value).ToList();
         var product = Assert.Single(products);
 
         Assert.Equal("2", controller.Response.Headers["X-Total-Count"].ToString());
-        Assert.Equal("VPP-002", GetPropertyValue<string>(product, "VPPCode"));
+        Assert.Equal("VPP-002", GetPropertyValue<string>(product, "VppCode"));
     }
 
     [Fact]
@@ -419,7 +419,7 @@ public class VPPRequestControllerTests
     {
         var service = new Mock<IVPPRequestService>();
         service.Setup(x => x.GetAllOrdersAsync(null, null, null, null, It.IsAny<string?>()))
-            .ReturnsAsync(new List<VPP01_RequestHeaderResDTO>
+            .ReturnsAsync(new List<VppRequestResDTO>
             {
                 new() { Id = Guid.NewGuid(), DepartmentCode = "IT", Status = 1 },
                 new() { Id = Guid.NewGuid(), DepartmentCode = "IT", Status = 7 },
@@ -439,7 +439,7 @@ public class VPPRequestControllerTests
             null, // years
             null, // months
             null, // statuses
-            null, // departmentCode
+            null, // Code
             "StatusText == \"Submitted\"",
             filtersJson,
             null);
@@ -491,17 +491,17 @@ public class VPPRequestControllerTests
     private static T GetPropertyValue<T>(object instance, string propertyName)
         => (T)instance.GetType().GetProperty(propertyName)!.GetValue(instance)!;
 
-    private static L04_VPP CreateProduct(Guid id, string code, string name, Guid uomId, Guid categoryId, DateTime now)
+    private static VppItem CreateProduct(Guid id, string code, string name, Guid uomId, Guid categoryId, DateTime now)
         => new()
         {
             Id = id,
-            VPPCode = code,
-            VPPName = name,
-            UOMId = uomId,
-            VPPCategoryId = categoryId,
-            CreateUserId = 1,
-            CreateDate = now,
-            UpdateUserId = 1,
-            UpdateDate = now
+            VppCode = code,
+            VppName = name,
+            UomId = uomId,
+            VppCategoryId = categoryId,
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
         };
 }

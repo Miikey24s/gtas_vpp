@@ -63,7 +63,7 @@ public sealed class AppNotificationService(
         skip = Math.Max(0, skip);
         take = Math.Clamp(take, 1, 50);
 
-        var scoped = _context.Set<N01_Notification>()
+        var scoped = _context.Set<Notification>()
             .AsNoTracking()
             .Where(item => item.UserId == userId
                 && item.MemberCompanyCode == memberCompanyCode);
@@ -107,7 +107,7 @@ public sealed class AppNotificationService(
         string memberCompanyCode,
         CancellationToken cancellationToken = default)
     {
-        var item = await _context.Set<N01_Notification>()
+        var item = await _context.Set<Notification>()
             .FirstOrDefaultAsync(notification => notification.Id == id
                 && notification.UserId == userId
                 && notification.MemberCompanyCode == memberCompanyCode,
@@ -134,7 +134,7 @@ public sealed class AppNotificationService(
         CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
-        var unreadItems = await _context.Set<N01_Notification>()
+        var unreadItems = await _context.Set<Notification>()
             .Where(item => item.UserId == userId
                 && item.MemberCompanyCode == memberCompanyCode
                 && item.ReadAt == null)
@@ -173,15 +173,15 @@ public sealed class AppNotificationService(
             _ => new[] { permission }
         };
 
-        var groupIds = await _context.Set<P06_GroupPageComponentMapping>()
+        var groupIds = await _context.Set<GroupPageComponentMapping>()
             .AsNoTracking()
             .Where(mapping => mapping.MemberCompanyCode == companyCode
                 && mapping.IsVisible
                 && mapping.IsEnable
-                && mapping.P05_PageComponentMapping != null
-                && mapping.P05_PageComponentMapping.P03_Component != null
-                && compatibleCodes.Contains(mapping.P05_PageComponentMapping.P03_Component.ComponentCode))
-            .Select(mapping => mapping.P02_GroupId)
+                && mapping.PageComponentMapping != null
+                && mapping.PageComponentMapping.PermissionComponent != null
+                && compatibleCodes.Contains(mapping.PageComponentMapping.PermissionComponent.ComponentCode))
+            .Select(mapping => mapping.PermissionGroupId)
             .Distinct()
             .ToListAsync(cancellationToken);
 
@@ -190,12 +190,12 @@ public sealed class AppNotificationService(
             return [];
         }
 
-        return await _context.Set<P04_UserGroup>()
+        return await _context.Set<UserGroupMembership>()
             .AsNoTracking()
             .Where(mapping => !mapping.IsDeleted
-                && mapping.P02_Group != null
-                && !mapping.P02_Group.IsDeleted
-                && groupIds.Contains(mapping.P02_GroupId))
+                && mapping.PermissionGroup != null
+                && !mapping.PermissionGroup.IsDeleted
+                && groupIds.Contains(mapping.PermissionGroupId))
             .Select(mapping => mapping.UserId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -219,7 +219,7 @@ public sealed class AppNotificationService(
 
         if (!string.IsNullOrWhiteSpace(correlationId))
         {
-            var existingRecipients = await _context.Set<N01_Notification>()
+            var existingRecipients = await _context.Set<Notification>()
                 .AsNoTracking()
                 .Where(item => recipients.Contains(item.UserId)
                     && item.MemberCompanyCode == memberCompanyCode
@@ -235,7 +235,7 @@ public sealed class AppNotificationService(
         }
 
         var now = DateTime.UtcNow;
-        var notifications = recipients.Select(userId => new N01_Notification
+        var notifications = recipients.Select(userId => new Notification
         {
             Id = Guid.NewGuid(),
             UserId = userId,
@@ -248,7 +248,7 @@ public sealed class AppNotificationService(
             CreatedAt = now
         });
 
-        _context.Set<N01_Notification>().AddRange(notifications);
+        _context.Set<Notification>().AddRange(notifications);
         await _context.SaveChangesAsync(cancellationToken);
         await Task.WhenAll(recipients.Select(userId =>
             _realtimeNotifier.NotifyUserAsync(userId, cancellationToken)));

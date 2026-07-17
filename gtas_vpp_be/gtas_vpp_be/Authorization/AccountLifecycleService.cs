@@ -721,7 +721,7 @@ public sealed class AccountLifecycleService(
         string? reason,
         CancellationToken cancellationToken)
     {
-        _context.A01_SecurityAudits.Add(new A01_SecurityAudit
+        _context.SecurityAudits.Add(new SecurityAudit
         {
             Id = Guid.NewGuid(),
             ActorUserId = actorUserId,

@@ -27,85 +27,85 @@ internal static class ServiceTestHelpers
     public static async Task SeedActiveVPPAsync(VPPContext context, params Guid[] vppIds)
     {
         var idsToSeed = vppIds.Distinct().ToArray();
-        var category = new L03_VPPCategory
+        var category = new VppCategory
         {
             Id = Guid.NewGuid(),
-            VPPCategoryCode = "TEST-CATEGORY",
-            VPPCategoryName = "Test Category",
-            CreateUserId = 1,
-            CreateDate = SeedNow,
-            UpdateUserId = 1,
-            UpdateDate = SeedNow,
+            VppCategoryCode = "TEST-CATEGORY",
+            VppCategoryName = "Test Category",
+            CreatedByUserId = 1,
+            CreatedAtUtc = SeedNow,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = SeedNow,
             IsDeleted = false
         };
 
-        context.Set<L03_VPPCategory>().Add(category);
-        context.Set<L04_VPP>().AddRange(idsToSeed.Select(id => new L04_VPP
+        context.Set<VppCategory>().Add(category);
+        context.Set<VppItem>().AddRange(idsToSeed.Select(id => new VppItem
         {
             Id = id,
-            VPPCode = $"TEST-VPP-{id:N}",
-            VPPName = "Test VPP",
-            UOMId = FakeUomId,
-            VPPCategoryId = category.Id,
-            CreateUserId = 1,
-            CreateDate = SeedNow,
-            UpdateUserId = 1,
-            UpdateDate = SeedNow,
+            VppCode = $"TEST-VPP-{id:N}",
+            VppName = "Test VPP",
+            UomId = FakeUomId,
+            VppCategoryId = category.Id,
+            CreatedByUserId = 1,
+            CreatedAtUtc = SeedNow,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = SeedNow,
             IsDeleted = false
         }));
 
         await context.SaveChangesAsync();
     }
 
-    public static async Task<Guid> SeedDefaultPriceListAsync(VPPContext context, params (Guid VPPId, decimal Price)[] items)
+    public static async Task<Guid> SeedDefaultPriceListAsync(VPPContext context, params (Guid VppId, decimal Price)[] items)
     {
         var priceListId = Guid.NewGuid();
         var supplierId = Guid.NewGuid();
 
-        foreach (var list in context.Set<L07_PriceList>().Where(x => x.IsDefault && !x.IsDeleted))
+        foreach (var list in context.Set<PriceList>().Where(x => x.IsDefault && !x.IsDeleted))
         {
             list.IsDefault = false;
-            list.UpdateUserId = 1;
-            list.UpdateDate = SeedNow;
+            list.UpdatedByUserId = 1;
+            list.UpdatedAtUtc = SeedNow;
         }
 
-        context.Set<L07_PriceList>().Add(new L07_PriceList
+        context.Set<PriceList>().Add(new PriceList
         {
             Id = priceListId,
             PriceListCode = "DEFAULT",
             PriceListName = "Default Price List",
             IsDefault = true,
-            CreateUserId = 1,
-            CreateDate = SeedNow,
-            UpdateUserId = 1,
-            UpdateDate = SeedNow,
+            CreatedByUserId = 1,
+            CreatedAtUtc = SeedNow,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = SeedNow,
             IsDeleted = false
         });
 
-        context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+        context.Set<Supplier>().Add(new Supplier
         {
             Id = supplierId,
             SupplierShortName = "TEST",
             SupplierName = "Test Supplier",
-            CreateUserId = 1,
-            CreateDate = SeedNow,
-            UpdateUserId = 1,
-            UpdateDate = SeedNow,
+            CreatedByUserId = 1,
+            CreatedAtUtc = SeedNow,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = SeedNow,
             IsDeleted = false
         });
 
-        context.Set<L06_VPPSupplierMapping>().AddRange(items.Select(item => new L06_VPPSupplierMapping
+        context.Set<SupplierProductMapping>().AddRange(items.Select(item => new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L04_VPPId = item.VPPId,
-            L05_VPPSupplierId = supplierId,
-            L07_PriceListId = priceListId,
+            VppItemId = item.VppId,
+            SupplierId = supplierId,
+            PriceListId = priceListId,
             Price = item.Price,
             IsDefault = true,
-            CreateUserId = 1,
-            CreateDate = SeedNow,
-            UpdateUserId = 1,
-            UpdateDate = SeedNow,
+            CreatedByUserId = 1,
+            CreatedAtUtc = SeedNow,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = SeedNow,
             IsDeleted = false
         }));
 

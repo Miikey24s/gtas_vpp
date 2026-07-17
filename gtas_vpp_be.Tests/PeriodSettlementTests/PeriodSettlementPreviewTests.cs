@@ -26,10 +26,10 @@ public sealed class PeriodSettlementPreviewTests
         await context.SaveChangesAsync();
         var service = CreateService(context);
 
-        var result = await service.PreviewAsync(new VPP_SettlementPreviewReqDTO
+        var result = await service.PreviewAsync(new SettlementPreviewReqDTO
         {
-            Y = 2026,
-            M = 7,
+            Year = 2026,
+            Month = 7,
             PriceAsOfUtc = AsOfUtc
         });
 
@@ -54,10 +54,10 @@ public sealed class PeriodSettlementPreviewTests
         await context.SaveChangesAsync();
         var service = CreateService(context);
 
-        var result = await service.PreviewAsync(new VPP_SettlementPreviewReqDTO
+        var result = await service.PreviewAsync(new SettlementPreviewReqDTO
         {
-            Y = 2026,
-            M = 7,
+            Year = 2026,
+            Month = 7,
             PriceAsOfUtc = AsOfUtc
         });
 
@@ -78,10 +78,10 @@ public sealed class PeriodSettlementPreviewTests
         await context.SaveChangesAsync();
         var service = CreateService(context);
 
-        var result = await service.PreviewAsync(new VPP_SettlementPreviewReqDTO
+        var result = await service.PreviewAsync(new SettlementPreviewReqDTO
         {
-            Y = 2026,
-            M = 7,
+            Year = 2026,
+            Month = 7,
             PriceAsOfUtc = AsOfUtc,
             PrimarySupplierId = supplierA.SupplierId,
             Exceptions = [new() { VppId = vppId, SupplierId = supplierB.SupplierId, Reason = "bad" }]
@@ -108,17 +108,17 @@ public sealed class PeriodSettlementPreviewTests
     {
         var supplierId = Guid.NewGuid();
         var bookId = Guid.NewGuid();
-        context.Set<L05_VPPSupplier>().Add(new L05_VPPSupplier
+        context.Set<Supplier>().Add(new Supplier
         {
             Id = supplierId,
             SupplierShortName = code,
             SupplierName = code,
-            CreateUserId = 1,
-            CreateDate = Now,
-            UpdateUserId = 1,
-            UpdateDate = Now
+            CreatedByUserId = 1,
+            CreatedAtUtc = Now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = Now
         });
-        context.Set<L07_PriceList>().Add(new L07_PriceList
+        context.Set<PriceList>().Add(new PriceList
         {
             Id = bookId,
             PriceListCode = code,
@@ -127,33 +127,33 @@ public sealed class PeriodSettlementPreviewTests
             Version = 1,
             EffectiveFromUtc = AsOfUtc.AddDays(-1),
             EffectiveToUtc = AsOfUtc.AddDays(1),
-            Status = L07_PriceListStatus.Published,
+            Status = PriceListStatus.Published,
             CurrencyCode = "VND",
             VatPolicy = "item-rate",
-            CreateUserId = 1,
-            CreateDate = Now,
-            UpdateUserId = 1,
-            UpdateDate = Now
+            CreatedByUserId = 1,
+            CreatedAtUtc = Now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = Now
         });
-        context.Set<L06_VPPSupplierMapping>().Add(new L06_VPPSupplierMapping
+        context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
         {
             Id = Guid.NewGuid(),
-            L07_PriceListId = bookId,
-            L04_VPPId = vppId,
-            L05_VPPSupplierId = supplierId,
+            PriceListId = bookId,
+            VppItemId = vppId,
+            SupplierId = supplierId,
             Price = netPrice,
             NetPrice = netPrice,
             VatRate = 10m,
-            CreateUserId = 1,
-            CreateDate = Now,
-            UpdateUserId = 1,
-            UpdateDate = Now
+            CreatedByUserId = 1,
+            CreatedAtUtc = Now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = Now
         });
         await context.SaveChangesAsync();
         return new SeedBook(bookId, supplierId);
     }
 
-    private static VPP01_RequestHeader AddHeader(
+    private static VppRequest AddHeader(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         Guid vppId,
         VPPStatus status,
@@ -161,33 +161,33 @@ public sealed class PeriodSettlementPreviewTests
         int quantity,
         Guid? baseRequestId = null)
     {
-        var header = new VPP01_RequestHeader
+        var header = new VppRequest
         {
             Id = Guid.NewGuid(),
-            Y = 2026,
-            M = 7,
+            Year = 2026,
+            Month = 7,
             Status = (int)status,
             IsAdditionalOrder = isAdditional,
             BaseRequestId = baseRequestId,
             IsCurrentRevision = true,
-            CreateUserId = 1,
-            CreateDate = Now,
-            UpdateUserId = 1,
-            UpdateDate = Now,
-            VPP02_RequestDetails = []
+            CreatedByUserId = 1,
+            CreatedAtUtc = Now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = Now,
+            RequestDetails = []
         };
-        header.VPP02_RequestDetails.Add(new VPP02_RequestDetail
+        header.RequestDetails.Add(new VppRequestDetail
         {
             Id = Guid.NewGuid(),
-            VPP01_RequestHeaderId = header.Id,
-            VPPId = vppId,
+            RequestId = header.Id,
+            VppId = vppId,
             Qty = quantity,
-            CreateUserId = 1,
-            CreateDate = Now,
-            UpdateUserId = 1,
-            UpdateDate = Now
+            CreatedByUserId = 1,
+            CreatedAtUtc = Now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = Now
         });
-        context.Set<VPP01_RequestHeader>().Add(header);
+        context.Set<VppRequest>().Add(header);
         return header;
     }
 

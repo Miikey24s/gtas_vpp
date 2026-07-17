@@ -28,11 +28,11 @@ public class OrderCreateContext
 
     public sealed class SelectedItem
     {
-        public Guid VPPId { get; set; }
-        public string? VPPCode { get; set; }
-        public string? VPPName { get; set; }
-        public string? UOMCode { get; set; }
-        public string? UOMName { get; set; }
+        public Guid VppId { get; set; }
+        public string? VppCode { get; set; }
+        public string? VppName { get; set; }
+        public string? UomCode { get; set; }
+        public string? UomName { get; set; }
         public int Qty { get; set; } = 1;
         public string? Description { get; set; }
     }

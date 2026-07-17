@@ -1,7 +1,7 @@
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 
-<RadzenTemplateForm TItem="L06_PriceUpdateReqDTO" Data="@Model" Submit="@Save">
+<RadzenTemplateForm TItem="SupplierProductPriceUpdateReqDTO" Data="@Model" Submit="@Save">
     <RadzenStack Gap="1rem">
         <RadzenFormField Text="@Loc["Supplier"]" class="w-100">
             <RadzenDropDown Name="Supplier"
@@ -9,7 +9,7 @@
                             Data="@Suppliers"
                             TextProperty="SupplierName"
                             ValueProperty="Id"
-                            @bind-Value="Model.L05_VPPSupplierId"
+                            @bind-Value="Model.SupplierId"
                             AllowFiltering="true"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             Style="width:100%" />

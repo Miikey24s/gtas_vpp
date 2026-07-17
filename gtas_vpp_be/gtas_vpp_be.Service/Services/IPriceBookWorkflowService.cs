@@ -5,13 +5,13 @@ namespace gtas_vpp_be.Service.Services;
 
 public interface IPriceBookWorkflowService
 {
-    Task<L07_PriceListResDTO> PublishAsync(
+    Task<PriceListResDTO> PublishAsync(
         Guid id,
         PriceBookStatusReqDTO request,
         int userId,
         CancellationToken cancellationToken = default);
 
-    Task<L07_PriceListResDTO> ExpireAsync(
+    Task<PriceListResDTO> ExpireAsync(
         Guid id,
         PriceBookStatusReqDTO request,
         int userId,

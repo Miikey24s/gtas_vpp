@@ -22,8 +22,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private readonly List<int> months = Enumerable.Range(1, 12).ToList();
         private readonly HashSet<Guid> loadedDetailOrderIds = new();
         private readonly HashSet<Guid> loadingDetailOrderIds = new();
-        private List<L07_PriceListResDTO> priceLists = [];
-        private List<VPP01_RequestHeaderResDTO> orders = [];
+        private List<PriceListResDTO> priceLists = [];
+        private List<VppRequestResDTO> orders = [];
         private Guid? selectedPriceListId;
         private int selectedYear = 2024;
         private int selectedMonth = 1;
@@ -77,7 +77,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         {
             try
             {
-                priceLists = await ApiServices.GetFromApiAsync<List<L07_PriceListResDTO>>(Config.LibraryApi.L07_PriceList) ?? [];
+                priceLists = await ApiServices.GetFromApiAsync<List<PriceListResDTO>>(Config.LibraryApi.PriceList) ?? [];
             }
             catch (Exception ex)
             {
@@ -87,7 +87,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
 
         private async Task LoadDefaultPeriodAsync()
         {
-            var period = await ApiServices.GetFromApiAsync<VPP_PeriodInfoResDTO>(Config.VppApi.PeriodInfo);
+            var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
             if (period is null)
             {
                 return;
@@ -110,7 +110,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         {
             try
             {
-                var status = await ApiServices.GetFromApiAsync<VPP_PeriodSettlementResDTO>(
+                var status = await ApiServices.GetFromApiAsync<PeriodSettlementResDTO>(
                     string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
                 ApplyStatus(status);
             }
@@ -121,7 +121,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
         }
 
-        private void ApplyStatus(VPP_PeriodSettlementResDTO? status)
+        private void ApplyStatus(PeriodSettlementResDTO? status)
         {
             if (status is null)
             {
@@ -168,7 +168,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             try
             {
                 var endpoint = BuildOrdersEndpoint();
-                var (data, count, lines, qty, amount) = await ApiServices.GetFromApiWithAmountStatsAsync<List<VPP01_RequestHeaderResDTO>>(endpoint);
+                var (data, count, lines, qty, amount) = await ApiServices.GetFromApiWithAmountStatsAsync<List<VppRequestResDTO>>(endpoint);
                 orders = data ?? [];
                 totalCount = count;
                 totalLines = lines;
@@ -216,7 +216,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             await LoadOrdersAsync(firstLoad: false);
         }
 
-        private async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VPP01_RequestHeaderResDTO> args)
+        private async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VppRequestResDTO> args)
         {
             try
             {
@@ -305,12 +305,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             isSettling = true;
             try
             {
-                await ApiServices.PostFromApiAsync<VPP_PeriodSettlementResDTO>(
+                await ApiServices.PostFromApiAsync<PeriodSettlementResDTO>(
                     Config.RequestApi.PeriodSettlement.Settle,
-                    new VPP_SettlePeriodReqDTO
+                    new PeriodSettlementReqDTO
                     {
-                        Y = selectedYear,
-                        M = selectedMonth,
+                        Year = selectedYear,
+                        Month = selectedMonth,
                         PriceListId = selectedPriceListId
                     });
 
@@ -329,7 +329,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
         }
 
-        private async Task OnRowExpandAsync(VPP01_RequestHeaderResDTO row)
+        private async Task OnRowExpandAsync(VppRequestResDTO row)
         {
             if (row == null || row.Id == Guid.Empty
                 || loadedDetailOrderIds.Contains(row.Id)
@@ -341,7 +341,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             loadingDetailOrderIds.Add(row.Id);
             try
             {
-                var detail = await ApiServices.GetFromApiAsync<VPP01_RequestHeaderResDTO>(
+                var detail = await ApiServices.GetFromApiAsync<VppRequestResDTO>(
                     $"{Config.VppApi.Orders}/{row.Id}");
                 row.Items = detail?.Items ?? [];
                 loadedDetailOrderIds.Add(row.Id);
@@ -371,9 +371,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 ExpandedOrderIds.Add(orderId);
         }
 
-        public string GetShortCode(VPP01_RequestHeaderResDTO order)
+        public string GetShortCode(VppRequestResDTO order)
         {
-            var code = order.VPPCode;
+            var code = order.VppCode;
             if (string.IsNullOrEmpty(code)) return "";
             var parts = code.Split('-');
             if (parts.Length >= 2)

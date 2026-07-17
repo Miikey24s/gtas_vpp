@@ -7,7 +7,7 @@ namespace gtas_vpp_be.Service.Services;
 
 public sealed record ReportWorkbookItem(
     string Period,
-    string DepartmentCode,
+    string Code,
     int RequesterUserId,
     string ProductCode,
     string ProductName,
@@ -76,7 +76,7 @@ public static class ReportWorkbookBuilder
     {
         var rows = items.Select(item => (IReadOnlyList<object?>)[
             item.Period,
-            item.DepartmentCode,
+            item.Code,
             item.RequesterUserId,
             item.ProductCode,
             item.ProductName,
@@ -101,7 +101,7 @@ public static class ReportWorkbookBuilder
     private static XElement DepartmentsSheet(ReportSummaryResDTO summary)
         => Worksheet("Departments", ["Department", "Orders", "Quantity", "AmountVND"],
             summary.DepartmentBreakdown.Select(item => (IReadOnlyList<object?>)[
-                item.DepartmentCode, item.OrderCount, item.TotalQuantity, item.TotalAmount]).ToList());
+                item.Code, item.OrderCount, item.TotalQuantity, item.TotalAmount]).ToList());
 
     private static XElement TrendSheet(ReportSummaryResDTO summary)
         => Worksheet("Trend", ["Period", "Orders", "Quantity", "AmountVND"],

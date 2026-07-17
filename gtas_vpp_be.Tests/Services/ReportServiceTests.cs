@@ -77,42 +77,42 @@ public sealed class ReportServiceTests
         var headerId = Guid.NewGuid();
         var detailId = Guid.NewGuid();
         var now = new DateTime(2026, 7, 16, 0, 0, 0, DateTimeKind.Utc);
-        context.Set<VPP01_RequestHeader>().Add(new VPP01_RequestHeader
+        context.Set<VppRequest>().Add(new VppRequest
         {
             Id = headerId,
-            Y = 2026,
-            M = 7,
+            Year = 2026,
+            Month = 7,
             Status = (int)VPPStatus.Submitted,
             DepartmentCode = "IT",
             MemberCompanyCode = "77500",
-            CreateUserId = 10,
-            CreateDate = now,
-            UpdateUserId = 10,
-            UpdateDate = now,
-            VPP02_RequestDetails =
+            CreatedByUserId = 10,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 10,
+            UpdatedAtUtc = now,
+            RequestDetails =
             [
-                new VPP02_RequestDetail
+                new VppRequestDetail
                 {
                     Id = detailId,
-                    VPPId = productId,
+                    VppId = productId,
                     Qty = 2,
                     CurrentSinglePrice = 100,
-                    CreateUserId = 10,
-                    CreateDate = now,
-                    UpdateUserId = 10,
-                    UpdateDate = now
+                    CreatedByUserId = 10,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = 10,
+                    UpdatedAtUtc = now
                 }
             ]
         });
         var settlementId = Guid.NewGuid();
         var itemId = Guid.NewGuid();
-        context.Set<VPP04_Settlement>().Add(new VPP04_Settlement
+        context.Set<Settlement>().Add(new Settlement
         {
             Id = settlementId,
             PeriodId = Guid.NewGuid(),
             MemberCompanyCode = "77500",
-            Y = 2026,
-            M = 7,
+            Year = 2026,
+            Month = 7,
             RevisionNumber = 1,
             IsCurrentRevision = true,
             PrimarySupplierId = Guid.NewGuid(),
@@ -131,13 +131,13 @@ public sealed class ReportServiceTests
             GrandTotal = 1234,
             ConfirmedAtUtc = now,
             ConfirmedByUserId = 5615,
-            CreateUserId = 5615,
-            CreateDate = now,
-            UpdateUserId = 5615,
-            UpdateDate = now,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now,
             Items =
             [
-                new VPP05_SettlementItem
+                new SettlementItem
                 {
                     Id = itemId,
                     SettlementId = settlementId,
@@ -156,15 +156,15 @@ public sealed class ReportServiceTests
                     NetAmount = 200,
                     VatAmount = 20,
                     GrossAmount = 220,
-                    CreateUserId = 5615,
-                    CreateDate = now,
-                    UpdateUserId = 5615,
-                    UpdateDate = now
+                    CreatedByUserId = 5615,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = 5615,
+                    UpdatedAtUtc = now
                 }
             ],
             Allocations =
             [
-                new VPP07_SettlementAllocation
+                new SettlementAllocation
                 {
                     Id = Guid.NewGuid(),
                     SettlementId = settlementId,
@@ -178,10 +178,10 @@ public sealed class ReportServiceTests
                     VatAmount = 20,
                     CommercialAdjustmentAmount = 1014,
                     GrossAmount = 1234,
-                    CreateUserId = 5615,
-                    CreateDate = now,
-                    UpdateUserId = 5615,
-                    UpdateDate = now
+                    CreatedByUserId = 5615,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = 5615,
+                    UpdatedAtUtc = now
                 }
             ]
         });
@@ -207,32 +207,32 @@ public sealed class ReportServiceTests
     {
         var now = new DateTime(2026, 7, 1, 8, 0, 0, DateTimeKind.Utc);
         var headerId = Guid.NewGuid();
-        var header = new VPP01_RequestHeader
+        var header = new VppRequest
         {
             Id = headerId,
-            VPPCode = $"VPP-{headerId:N}",
-            Y = 2026,
-            M = 7,
+            VppCode = $"VPP-{headerId:N}",
+            Year = 2026,
+            Month = 7,
             Status = (int)VPPStatus.Submitted,
             DepartmentCode = department,
             MemberCompanyCode = company,
-            CreateUserId = userId,
-            CreateDate = now,
-            UpdateUserId = userId,
-            UpdateDate = now,
+            CreatedByUserId = userId,
+            CreatedAtUtc = now,
+            UpdatedByUserId = userId,
+            UpdatedAtUtc = now,
             SubmittedDate = now
         };
-        header.VPP02_RequestDetails.Add(new VPP02_RequestDetail
+        header.RequestDetails.Add(new VppRequestDetail
         {
             Id = Guid.NewGuid(),
-            VPPId = productId,
-            VPP01_RequestHeaderId = headerId,
+            VppId = productId,
+            RequestId = headerId,
             Qty = quantity,
             CurrentSinglePrice = price,
-            CreateUserId = userId,
-            CreateDate = now,
-            UpdateUserId = userId,
-            UpdateDate = now
+            CreatedByUserId = userId,
+            CreatedAtUtc = now,
+            UpdatedByUserId = userId,
+            UpdatedAtUtc = now
         });
         context.Add(header);
         await context.SaveChangesAsync();

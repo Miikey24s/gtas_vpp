@@ -1,4 +1,4 @@
-﻿using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Res.Auth;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -37,33 +37,33 @@ namespace gtas_vpp_fe.Helpers
             return Guid.TryParse(value, out var v) ? v : Guid.Empty;
         }
 
-        public static List<Claim> sp_AuthenticationLogin_To_Claims(this sp_Authentication_Login sp_Authentication_Login)
+        public static List<Claim> ToAuthenticationClaims(this AuthenticationResultDTO AuthenticationResultDTO)
         {
-            if (sp_Authentication_Login == null) return new List<Claim>();
+            if (AuthenticationResultDTO == null) return new List<Claim>();
 
-            var userId = sp_Authentication_Login.UserID.ToString(CultureInfo.InvariantCulture);
+            var userId = AuthenticationResultDTO.UserID.ToString(CultureInfo.InvariantCulture);
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, userId),
-                new(ClaimTypes.Name, sp_Authentication_Login.UserLogin ?? string.Empty),
+                new(ClaimTypes.Name, AuthenticationResultDTO.UserLogin ?? string.Empty),
                 new(ClaimKeys.UserID, userId),
-                new(ClaimKeys.UserLogin, sp_Authentication_Login.UserLogin ?? string.Empty),
-                new(ClaimKeys.AccessToken, sp_Authentication_Login.AccessToken ?? string.Empty),
-                new(ClaimKeys.SessionVersion, sp_Authentication_Login.SessionVersion.ToString(CultureInfo.InvariantCulture)),
+                new(ClaimKeys.UserLogin, AuthenticationResultDTO.UserLogin ?? string.Empty),
+                new(ClaimKeys.AccessToken, AuthenticationResultDTO.AccessToken ?? string.Empty),
+                new(ClaimKeys.SessionVersion, AuthenticationResultDTO.SessionVersion.ToString(CultureInfo.InvariantCulture)),
                 new(
                     ClaimKeys.AccessTokenExpiresAtUtc,
-                    sp_Authentication_Login.AccessTokenExpiresAtUtc?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)
+                    AuthenticationResultDTO.AccessTokenExpiresAtUtc?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)
                         ?? string.Empty)
             };
 
             return claims;
         }
 
-        public static sp_Authentication_Login Claims_To_sp_AuthenticationLogin(this IEnumerable<Claim> claims)
+        public static AuthenticationResultDTO ToAuthenticationResult(this IEnumerable<Claim> claims)
         {
-            if (claims == null) return new sp_Authentication_Login();
+            if (claims == null) return new AuthenticationResultDTO();
 
-            return new sp_Authentication_Login
+            return new AuthenticationResultDTO
             {
                 UserID = claims.GetInt(ClaimKeys.UserID),
                 UserLogin = claims.Get(ClaimKeys.UserLogin),

@@ -16,10 +16,10 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using static gtas_vpp_be.Service.Helpers.Config;
-using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authen_Permission_GetPageWithComponentByGroupId;
-using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authen_Permission_GetPageWithComponentByGroupId_List_Component;
-using AuthGroupDto = gtas_vpp_shared.DTOs.Res.Auth.P02_GroupResDTO;
-using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.sp_Authentication_TabUser_UserList;
+using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentResDTO;
+using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionComponentAccessResDTO;
+using AuthGroupDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionGroupResDTO;
+using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.UserAdministrationResDTO;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -28,9 +28,9 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {
-        private readonly IGenericRepository<P02_Group> _groupRepository;
-        private readonly IGenericRepository<P06_GroupPageComponentMapping> _groupPageComponentMappingRepository;
-        private readonly IGenericRepository<P04_UserGroup> _userGroupRepository;
+        private readonly IGenericRepository<PermissionGroup> _groupRepository;
+        private readonly IGenericRepository<GroupPageComponentMapping> _groupPageComponentMappingRepository;
+        private readonly IGenericRepository<UserGroupMembership> _userGroupRepository;
         private readonly IUserNameResolver _userNameResolver;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDateTimeProvider _dateTimeProvider;
@@ -38,9 +38,9 @@ namespace gtas_vpp_be.Controllers
         private readonly IMembershipAdministrationService _membershipAdministrationService;
 
         public PermissionController(
-            IGenericRepository<P02_Group> groupRepository,
-            IGenericRepository<P06_GroupPageComponentMapping> groupPageComponentMappingRepository,
-            IGenericRepository<P04_UserGroup> userGroupRepository,
+            IGenericRepository<PermissionGroup> groupRepository,
+            IGenericRepository<GroupPageComponentMapping> groupPageComponentMappingRepository,
+            IGenericRepository<UserGroupMembership> userGroupRepository,
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
             IDateTimeProvider dateTimeProvider,
@@ -75,17 +75,17 @@ namespace gtas_vpp_be.Controllers
                 .Select(persona => persona.GroupId)
                 .ToArray();
 
-            IQueryable<P02_GroupResDTO> query = _unitOfWork.VPPContext.Set<P02_Group>()
+            IQueryable<PermissionGroupResDTO> query = _unitOfWork.VPPContext.Set<PermissionGroup>()
                 .AsNoTracking()
                 .Where(group => canonicalGroupIds.Contains(group.Id) && !group.IsDeleted)
-                .Select(group => new P02_GroupResDTO
+                .Select(group => new PermissionGroupResDTO
                 {
                     Id = group.Id,
                     Description = group.Description,
-                    CreateUserId = group.CreateUserId,
-                    CreateDate = group.CreateDate,
-                    UpdateUserId = group.UpdateUserId,
-                    UpdateDate = group.UpdateDate,
+                    CreatedByUserId = group.CreatedByUserId,
+                    CreatedAtUtc = group.CreatedAtUtc,
+                    UpdatedByUserId = group.UpdatedByUserId,
+                    UpdatedAtUtc = group.UpdatedAtUtc,
                     IsDeleted = group.IsDeleted,
                     MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
                     GroupName = group.GroupName,
@@ -106,7 +106,7 @@ namespace gtas_vpp_be.Controllers
 
             if (!string.IsNullOrWhiteSpace(distinct))
             {
-                var propertyInfo = typeof(P02_GroupResDTO).GetProperty(distinct);
+                var propertyInfo = typeof(PermissionGroupResDTO).GetProperty(distinct);
                 if (propertyInfo != null)
                 {
                     var distinctValues = await query
@@ -135,7 +135,7 @@ namespace gtas_vpp_be.Controllers
 
                     var distinctDtos = pageValues.Select(val =>
                     {
-                        var dto = new P02_GroupResDTO();
+                        var dto = new PermissionGroupResDTO();
                         propertyInfo.SetValue(dto, val);
                         return dto;
                     }).ToList();
@@ -194,7 +194,7 @@ namespace gtas_vpp_be.Controllers
             var entity = await GetByIdAsync(_groupRepository, id, getFullName);
             if (entity is null || entity.IsDeleted) return NotFound();
 
-            var rs = entity.Adapt<P02_GroupResDTO>();
+            var rs = entity.Adapt<PermissionGroupResDTO>();
             return Ok(rs);
         }
 
@@ -206,20 +206,20 @@ namespace gtas_vpp_be.Controllers
                 return NotFound();
             }
 
-            var query = _unitOfWork.VPPContext.Set<P06_GroupPageComponentMapping>()
+            var query = _unitOfWork.VPPContext.Set<GroupPageComponentMapping>()
                 .AsNoTracking()
-                .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P01_Page)
-                .Include(x => x.P05_PageComponentMapping)!.ThenInclude(x => x!.P03_Component)
-                .Where(x => x.P02_GroupId == id
+                .Include(x => x.PageComponentMapping)!.ThenInclude(x => x!.PermissionPage)
+                .Include(x => x.PageComponentMapping)!.ThenInclude(x => x!.PermissionComponent)
+                .Where(x => x.PermissionGroupId == id
                             && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
-                            && x.P05_PageComponentMapping != null
-                            && x.P05_PageComponentMapping.P01_Page != null
-                            && x.P05_PageComponentMapping.P03_Component != null);
+                            && x.PageComponentMapping != null
+                            && x.PageComponentMapping.PermissionPage != null
+                            && x.PageComponentMapping.PermissionComponent != null);
 
             if (showDeleted != true)
             {
-                query = query.Where(x => !x.P05_PageComponentMapping!.P01_Page!.IsDeleted
-                                         && !x.P05_PageComponentMapping!.P03_Component!.IsDeleted);
+                query = query.Where(x => !x.PageComponentMapping!.PermissionPage!.IsDeleted
+                                         && !x.PageComponentMapping!.PermissionComponent!.IsDeleted);
             }
 
             var groupMappings = await query.ToListAsync();
@@ -244,11 +244,11 @@ namespace gtas_vpp_be.Controllers
                     .ToDictionary(x => x.Key, x => x.First());
 
             var result = groupMappings
-                .GroupBy(x => x.P05_PageComponentMapping!.P01_PageId)
-                .OrderBy(x => x.First().P05_PageComponentMapping!.P01_Page!.PageCode)
+                .GroupBy(x => x.PageComponentMapping!.PermissionPageId)
+                .OrderBy(x => x.First().PageComponentMapping!.PermissionPage!.PageCode)
                 .Select(pageGroup =>
                 {
-                    var page = pageGroup.First().P05_PageComponentMapping!.P01_Page!;
+                    var page = pageGroup.First().PageComponentMapping!.PermissionPage!;
 
                     return new PermissionPageDto
                     {
@@ -257,17 +257,17 @@ namespace gtas_vpp_be.Controllers
                         PageCode = page.PageCode,
                         PageName = page.PageName,
                         Description = page.Description,
-                        CreateUserId = page.CreateUserId,
-                        CreateDate = page.CreateDate,
-                        UpdateUserId = page.UpdateUserId,
-                        UpdateDate = page.UpdateDate,
+                        CreatedByUserId = page.CreatedByUserId,
+                        CreatedAtUtc = page.CreatedAtUtc,
+                        UpdatedByUserId = page.UpdatedByUserId,
+                        UpdatedAtUtc = page.UpdatedAtUtc,
                         IsDeleted = page.IsDeleted,
-                        List_Component = pageGroup
-                            .OrderBy(x => x.P05_PageComponentMapping!.P03_Component!.ComponentName)
+                        Components = pageGroup
+                            .OrderBy(x => x.PageComponentMapping!.PermissionComponent!.ComponentName)
                             .Select(groupMapping =>
                             {
-                                var pageComponentMapping = groupMapping.P05_PageComponentMapping!;
-                                var component = pageComponentMapping.P03_Component!;
+                                var pageComponentMapping = groupMapping.PageComponentMapping!;
+                                var component = pageComponentMapping.PermissionComponent!;
                                 companyLookup.TryGetValue(groupMapping.MemberCompanyCode, out var company);
 
                                 return new PermissionComponentDto
@@ -297,7 +297,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("groups/{id:guid}")]
         [Authorize(Policy = Permissions.PermissionManage)]
-        public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] P02_GroupUpdateReqDTO req)
+        public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] PermissionGroupUpdateReqDTO req)
         {
             var current = await GetByIdAsync(_groupRepository, id, true);
 
@@ -319,8 +319,8 @@ namespace gtas_vpp_be.Controllers
         {
             var current = (await ReadAsync(
                     _groupPageComponentMappingRepository,
-                    expression: x => x.P05_PageComponentMappingId == req.P05_PageComponentMappingId
-                                  && x.P02_GroupId == req.P02_GroupId))
+                    expression: x => x.PageComponentMappingId == req.PageComponentMappingId
+                                  && x.PermissionGroupId == req.PermissionGroupId))
                 .FirstOrDefault();
 
             if (current is null)
@@ -329,16 +329,16 @@ namespace gtas_vpp_be.Controllers
             }
 
             var before = new { current.IsVisible, current.IsEnable };
-            var componentCode = await _unitOfWork.VPPContext.Set<P05_PageComponentMapping>()
+            var componentCode = await _unitOfWork.VPPContext.Set<PageComponentMapping>()
                 .AsNoTracking()
-                .Where(mapping => mapping.Id == current.P05_PageComponentMappingId)
-                .Select(mapping => mapping.P03_Component != null
-                    ? mapping.P03_Component.ComponentCode
+                .Where(mapping => mapping.Id == current.PageComponentMappingId)
+                .Select(mapping => mapping.PermissionComponent != null
+                    ? mapping.PermissionComponent.ComponentCode
                     : string.Empty)
                 .FirstOrDefaultAsync();
 
             if (current.MemberCompanyCode != CanonicalRbac.DefaultMemberCompanyCode
-                || !CanonicalRbac.Personas.Any(persona => persona.GroupId == current.P02_GroupId))
+                || !CanonicalRbac.Personas.Any(persona => persona.GroupId == current.PermissionGroupId))
             {
                 return Conflict(new
                 {
@@ -356,7 +356,7 @@ namespace gtas_vpp_be.Controllers
                 });
             }
 
-            if (!CanonicalRbac.GetUiComponents(current.P02_GroupId)
+            if (!CanonicalRbac.GetUiComponents(current.PermissionGroupId)
                     .Contains(componentCode, StringComparer.OrdinalIgnoreCase))
             {
                 return Conflict(new
@@ -375,7 +375,7 @@ namespace gtas_vpp_be.Controllers
                 });
             }
 
-            var isProtectedSystemAdminNavigation = current.P02_GroupId == CanonicalRbac.SystemAdmin.GroupId
+            var isProtectedSystemAdminNavigation = current.PermissionGroupId == CanonicalRbac.SystemAdmin.GroupId
                 && (string.Equals(componentCode, Permissions.MenuPermission, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(componentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(componentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase));
@@ -389,29 +389,29 @@ namespace gtas_vpp_be.Controllers
             }
 
             req.Adapt(current);
-            current.UpdateUserId = CurrentUserId;
-            current.UpdateDate = _dateTimeProvider.Now;
+            current.UpdatedByUserId = CurrentUserId;
+            current.UpdatedAtUtc = _dateTimeProvider.Now;
 
             var rs = await _groupPageComponentMappingRepository.UpdateAsync(
                 current,
-                new Expression<Func<P06_GroupPageComponentMapping, object>>[]
+                new Expression<Func<GroupPageComponentMapping, object>>[]
                 {
                     x => x.IsEnable,
                     x => x.IsVisible,
-                    x => x.UpdateUserId,
-                    x => x.UpdateDate
+                    x => x.UpdatedByUserId,
+                    x => x.UpdatedAtUtc
                 });
 
             Serilog.Log.Information(
                 "Permission changed: Actor={ActorUserId}, Group={GroupId}, Company={CompanyCode}, Component={ComponentCode}, Before={@Before}, After={@After}",
                 CurrentUserId,
-                current.P02_GroupId,
+                current.PermissionGroupId,
                 current.MemberCompanyCode,
                 componentCode,
                 before,
                 new { current.IsVisible, current.IsEnable });
 
-            await _permissionChangeNotifier.NotifyGroupChangedAsync(current.P02_GroupId, HttpContext.RequestAborted);
+            await _permissionChangeNotifier.NotifyGroupChangedAsync(current.PermissionGroupId, HttpContext.RequestAborted);
             return Ok(rs);
         }
 
@@ -439,13 +439,13 @@ namespace gtas_vpp_be.Controllers
                     || (x.FullName != null && x.FullName.Contains(searchText)));
             }
 
-            var userGroupsQuery = _unitOfWork.VPPContext.Set<P04_UserGroup>()
+            var userGroupsQuery = _unitOfWork.VPPContext.Set<UserGroupMembership>()
                 .AsNoTracking()
                 .Where(mapping => !mapping.IsDeleted
                     && mapping.AccountId.HasValue
                     && mapping.UserId == mapping.AccountId)
-                .Include(x => x.P02_Group)
-                .Include(x => x.LEX02_CompanyDepartmentLocation);
+                .Include(x => x.PermissionGroup)
+                .Include(x => x.Department);
 
             IQueryable<UserListDto> query =
                 from user in usersQuery
@@ -460,51 +460,51 @@ namespace gtas_vpp_be.Controllers
                     Email = user.Email,
                     GoogleEmail = null,
                     IsAdmin = userGroup != null
-                              && userGroup.P02_Group != null
-                              && userGroup.P02_Group.GroupCode == CanonicalRbac.SystemAdmin.GroupCode,
-                    GroupId = userGroup == null ? Guid.Empty : userGroup.P02_GroupId,
-                    GroupName = userGroup == null || userGroup.P02_Group == null ? string.Empty : userGroup.P02_Group.GroupName,
-                    CreateUserId = userGroup == null ? 0 : userGroup.CreateUserId,
-                    CreateDate = userGroup == null ? null : userGroup.CreateDate,
-                    UpdateUserId = userGroup == null ? 0 : userGroup.UpdateUserId,
-                    UpdateDate = userGroup == null ? null : userGroup.UpdateDate,
+                              && userGroup.PermissionGroup != null
+                              && userGroup.PermissionGroup.GroupCode == CanonicalRbac.SystemAdmin.GroupCode,
+                    GroupId = userGroup == null ? Guid.Empty : userGroup.PermissionGroupId,
+                    GroupName = userGroup == null || userGroup.PermissionGroup == null ? string.Empty : userGroup.PermissionGroup.GroupName,
+                    CreatedByUserId = userGroup == null ? 0 : userGroup.CreatedByUserId,
+                    CreatedAtUtc = userGroup == null ? null : userGroup.CreatedAtUtc,
+                    UpdatedByUserId = userGroup == null ? 0 : userGroup.UpdatedByUserId,
+                    UpdatedAtUtc = userGroup == null ? null : userGroup.UpdatedAtUtc,
                     // Compatibility fields for the current Radzen grid. The
                     // dedicated administration UI will expose both statuses.
                     IsDeleted = user.AccountStatus != AppAccountStatus.Active || userGroup == null,
-                    TypeOfUser = user.AccountStatus == AppAccountStatus.Active
+                    UserType = user.AccountStatus == AppAccountStatus.Active
                         ? "Active application account"
                         : user.AccountStatus == AppAccountStatus.PendingApproval
                             ? "Pending approval"
                             : "Disabled application account",
                     Description = userGroup == null ? null : userGroup.Description,
-                     DepartmentName = userGroup == null || userGroup.LEX02_CompanyDepartmentLocation == null
+                     DepartmentName = userGroup == null || userGroup.Department == null
                          ? string.Empty
-                         : userGroup.LEX02_CompanyDepartmentLocation.LEX02Name,
-                     L05_DepartmentId = userGroup == null ? null : userGroup.LEX02_CompanyDepartmentLocationId,
+                         : userGroup.Department.Name,
+                     DepartmentId = userGroup == null ? null : userGroup.DepartmentId,
                      AccountStatus = user.AccountStatus == AppAccountStatus.Active
                          ? nameof(AppAccountStatus.Active)
                          : user.AccountStatus == AppAccountStatus.PendingApproval
                              ? nameof(AppAccountStatus.PendingApproval)
                              : nameof(AppAccountStatus.Disabled),
                      SessionVersion = user.SessionVersion,
-                     GroupCode = userGroup == null || userGroup.P02_Group == null
+                     GroupCode = userGroup == null || userGroup.PermissionGroup == null
                          ? null
-                         : userGroup.P02_Group.GroupCode,
+                         : userGroup.PermissionGroup.GroupCode,
                      IsActive = user.AccountStatus == AppAccountStatus.Active && userGroup != null,
                      RowVersion = userGroup == null ? null : userGroup.RowVersion,
-                     UserGroup = userGroup == null || userGroup.P02_Group == null
+                     UserGroup = userGroup == null || userGroup.PermissionGroup == null
                         ? null
                         : new AuthGroupDto
                         {
-                            Id = userGroup.P02_Group.Id,
-                            GroupName = userGroup.P02_Group.GroupName,
-                            ParentGroupId = userGroup.P02_Group.ParentGroupId,
-                            Description = userGroup.P02_Group.Description,
-                            CreateUserId = userGroup.P02_Group.CreateUserId,
-                            CreateDate = userGroup.P02_Group.CreateDate,
-                            UpdateUserId = userGroup.P02_Group.UpdateUserId,
-                            UpdateDate = userGroup.P02_Group.UpdateDate,
-                            IsDeleted = userGroup.P02_Group.IsDeleted
+                            Id = userGroup.PermissionGroup.Id,
+                            GroupName = userGroup.PermissionGroup.GroupName,
+                            ParentGroupId = userGroup.PermissionGroup.ParentGroupId,
+                            Description = userGroup.PermissionGroup.Description,
+                            CreatedByUserId = userGroup.PermissionGroup.CreatedByUserId,
+                            CreatedAtUtc = userGroup.PermissionGroup.CreatedAtUtc,
+                            UpdatedByUserId = userGroup.PermissionGroup.UpdatedByUserId,
+                            UpdatedAtUtc = userGroup.PermissionGroup.UpdatedAtUtc,
+                            IsDeleted = userGroup.PermissionGroup.IsDeleted
                         }
                 };
 
@@ -610,8 +610,8 @@ namespace gtas_vpp_be.Controllers
                                          && x.AccountId == userId.Value
                                          && !x.IsDeleted);
 
-                    var dtoList = userGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
-                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
+                    var dtoList = userGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>>();
+                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>());
                 }
                 else
                 {
@@ -622,8 +622,8 @@ namespace gtas_vpp_be.Controllers
                                          && x.UserId == x.AccountId.Value
                                          && !x.IsDeleted);
 
-                    var dtoList = allUserGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>>();
-                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.P04_UserGroupResDTO>());
+                    var dtoList = allUserGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>>();
+                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>());
                 }
             }
             catch (Exception ex)

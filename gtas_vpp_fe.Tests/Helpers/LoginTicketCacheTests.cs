@@ -10,7 +10,7 @@ public sealed class LoginTicketCacheTests
     public void AddThenGet_ReturnsTicketOnceWithoutEnvironmentInput()
     {
         var cache = new LoginTicketCache();
-        var loginData = new sp_Authentication_Login
+        var loginData = new AuthenticationResultDTO
         {
             UserID = 42,
             UserLogin = "test-user"
@@ -38,7 +38,7 @@ public sealed class LoginTicketCacheTests
     {
         var clock = new ManualTimeProvider(DateTimeOffset.Parse("2026-07-16T00:00:00Z"));
         var cache = new LoginTicketCache(clock, TimeSpan.FromMinutes(2), capacity: 4);
-        var ticketId = cache.Add(new sp_Authentication_Login { UserID = 1 }, rememberMe: false);
+        var ticketId = cache.Add(new AuthenticationResultDTO { UserID = 1 }, rememberMe: false);
 
         clock.Advance(TimeSpan.FromMinutes(2));
 
@@ -50,11 +50,11 @@ public sealed class LoginTicketCacheTests
     {
         var clock = new ManualTimeProvider(DateTimeOffset.Parse("2026-07-16T00:00:00Z"));
         var cache = new LoginTicketCache(clock, TimeSpan.FromMinutes(10), capacity: 2);
-        var first = cache.Add(new sp_Authentication_Login { UserID = 1 }, rememberMe: false);
+        var first = cache.Add(new AuthenticationResultDTO { UserID = 1 }, rememberMe: false);
         clock.Advance(TimeSpan.FromSeconds(1));
-        var second = cache.Add(new sp_Authentication_Login { UserID = 2 }, rememberMe: false);
+        var second = cache.Add(new AuthenticationResultDTO { UserID = 2 }, rememberMe: false);
         clock.Advance(TimeSpan.FromSeconds(1));
-        var third = cache.Add(new sp_Authentication_Login { UserID = 3 }, rememberMe: false);
+        var third = cache.Add(new AuthenticationResultDTO { UserID = 3 }, rememberMe: false);
 
         Assert.Null(cache.Get(first));
         Assert.Equal(2, cache.Get(second)?.loginData.UserID);

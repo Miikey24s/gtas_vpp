@@ -19,28 +19,28 @@ public sealed class VppCatalogLocalDbTests
         await using var fixture = await LocalDbQaFixture.CreateAsync(cancellationToken: cancellationToken);
         using var unitOfWork = new UnitOfWork(new TestDbContextFactory(fixture.ConnectionString));
         var context = unitOfWork.VPPContext;
-        var uomId = await context.Set<L02_ClassDetail>()
+        var uomId = await context.Set<LookupValue>()
             .Where(x => !x.IsDeleted)
             .Select(x => x.Id)
             .FirstAsync(cancellationToken);
-        var categoryId = await context.Set<L03_VPPCategory>()
+        var categoryId = await context.Set<VppCategory>()
             .Where(x => !x.IsDeleted)
             .Select(x => x.Id)
             .FirstAsync(cancellationToken);
         var now = new DateTime(2026, 7, 16, 10, 0, 0);
-        var item = new L04_VPP
+        var item = new VppItem
         {
             Id = Guid.NewGuid(),
-            VPPCode = $"LEAN06-{fixture.Options.RunId}",
-            VPPName = "Bút bi 100% xanh",
-            UOMId = uomId,
-            VPPCategoryId = categoryId,
-            CreateUserId = 1,
-            UpdateUserId = 1,
-            CreateDate = now,
-            UpdateDate = now
+            VppCode = $"LEAN06-{fixture.Options.RunId}",
+            VppName = "Bút bi 100% xanh",
+            UomId = uomId,
+            VppCategoryId = categoryId,
+            CreatedByUserId = 1,
+            UpdatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
-        context.Set<L04_VPP>().Add(item);
+        context.Set<VppItem>().Add(item);
         await context.SaveChangesAsync(cancellationToken);
 
         var service = new VppCatalogService(unitOfWork, new FixedDateTimeProvider(now));

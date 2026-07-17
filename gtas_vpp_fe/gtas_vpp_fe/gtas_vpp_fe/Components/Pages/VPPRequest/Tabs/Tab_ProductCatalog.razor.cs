@@ -20,13 +20,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public sealed class ProductItem
         {
             public Guid Id { get; set; }
-            public string? VPPCode { get; set; }
-            public string? VPPName { get; set; }
+            public string? VppCode { get; set; }
+            public string? VppName { get; set; }
             public string? Description { get; set; }
-            public string? VPPCategoryCode { get; set; }
-            public string? VPPCategoryName { get; set; }
-            public string? UOMCode { get; set; }
-            public string? UOMName { get; set; }
+            public string? VppCategoryCode { get; set; }
+            public string? VppCategoryName { get; set; }
+            public string? UomCode { get; set; }
+            public string? UomName { get; set; }
             public int SupplierCount { get; set; }
             public string? DefaultSupplierName { get; set; }
             public decimal? DefaultPrice { get; set; }
@@ -75,7 +75,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 CategoryOptions.AddRange(data.Select(c => new CategoryOption
                 {
                     Value = c.Id,
-                    Text = $"{c.VPPCategoryCode} - {c.VPPCategoryName}"
+                    Text = $"{c.VppCategoryCode} - {c.VppCategoryName}"
                 }));
             }
             catch
@@ -200,8 +200,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private sealed class CategoryItem
         {
             public Guid Id { get; set; }
-            public string? VPPCategoryCode { get; set; }
-            public string? VPPCategoryName { get; set; }
+            public string? VppCategoryCode { get; set; }
+            public string? VppCategoryName { get; set; }
         }
     }
 }

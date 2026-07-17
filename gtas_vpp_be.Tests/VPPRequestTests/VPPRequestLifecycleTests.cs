@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace gtas_vpp_be.Tests.VPPRequestTests;
+namespace gtas_vpp_be.Tests.VppItemRequestTests;
 
 public sealed class VPPRequestLifecycleTests
 {
@@ -39,21 +39,21 @@ public sealed class VPPRequestLifecycleTests
         update.RowVersion = rowVersion;
         var updated = await service.UpdateOrderAsync(update);
 
-        var revisions = await context.Set<VPP01_RequestHeader>()
-            .Include(x => x.VPP02_RequestDetails)
+        var revisions = await context.Set<VppRequest>()
+            .Include(x => x.RequestDetails)
             .OrderBy(x => x.RevisionNumber)
             .ToListAsync();
         Assert.Equal(2, revisions.Count);
         Assert.False(revisions[0].IsCurrentRevision);
         Assert.Equal(updated.Id, revisions[0].SupersededByRequestId);
-        Assert.Equal(1, Assert.Single(revisions[0].VPP02_RequestDetails).Qty);
+        Assert.Equal(1, Assert.Single(revisions[0].RequestDetails).Qty);
         Assert.True(revisions[1].IsCurrentRevision);
         Assert.Equal(2, revisions[1].RevisionNumber);
         Assert.Equal(original.Id, revisions[1].SupersedesRequestId);
         Assert.Equal(original.RequestSeriesId, revisions[1].RequestSeriesId);
-        Assert.Equal(4, Assert.Single(revisions[1].VPP02_RequestDetails).Qty);
+        Assert.Equal(4, Assert.Single(revisions[1].RequestDetails).Qty);
 
-        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VPP_RequestHistoryResDTO>(
+        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
             await service.GetOrderHistoryAsync(original.Id));
         Assert.Equal(updated.Id, history.CurrentRequestId);
         Assert.Equal(new[] { 1, 2 }, history.Revisions.Select(x => x.RevisionNumber));
@@ -73,24 +73,24 @@ public sealed class VPPRequestLifecycleTests
         var original = await CreateRegularAsync(service, vppId, qty: 2);
         var originalRowVersion = await SetRowVersionAsync(context, original.Id);
 
-        await service.CancelOrderAsync(original.Id, RequesterId, new VPP_CancelOrderReqDTO
+        await service.CancelOrderAsync(original.Id, RequesterId, new VppRequestCancelReqDTO
         {
             Reason = "No longer required",
             IdempotencyKey = "cancel-lifecycle-1",
             RowVersion = originalRowVersion
         });
 
-        var cancelled = await context.Set<VPP01_RequestHeader>()
-            .Include(x => x.VPP02_RequestDetails)
+        var cancelled = await context.Set<VppRequest>()
+            .Include(x => x.RequestDetails)
             .SingleAsync(x => x.IsCurrentRevision);
         Assert.Equal((int)VPPStatus.Cancelled, cancelled.Status);
         Assert.Equal(2, cancelled.RevisionNumber);
         Assert.Equal(original.Id, cancelled.SupersedesRequestId);
         Assert.Equal(RequesterId, cancelled.CancelledById);
         Assert.Equal("No longer required", cancelled.CancelReason);
-        Assert.Equal(2, Assert.Single(cancelled.VPP02_RequestDetails).Qty);
+        Assert.Equal(2, Assert.Single(cancelled.RequestDetails).Qty);
 
-        var cancelledHistory = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VPP_RequestHistoryResDTO>(
+        var cancelledHistory = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
             await service.GetOrderHistoryAsync(original.Id));
         Assert.Equal(2, cancelledHistory.Revisions.Count);
         Assert.False(cancelledHistory.Revisions[0].CanEdit);
@@ -103,7 +103,7 @@ public sealed class VPPRequestLifecycleTests
             cancelled.Id, vppId, qty: 3, description: "Replacement request");
         replacementCommand.RowVersion = cancelledRowVersion;
         var replacement = await service.UpdateOrderAsync(replacementCommand);
-        var finalHistory = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VPP_RequestHistoryResDTO>(
+        var finalHistory = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
             await service.GetOrderHistoryAsync(original.Id));
         Assert.Equal(replacement.Id, finalHistory.CurrentRequestId);
         Assert.Equal(3, finalHistory.Revisions.Count);
@@ -123,20 +123,20 @@ public sealed class VPPRequestLifecycleTests
         var original = await CreateRegularAsync(service, vppId);
         var rowVersion = await SetRowVersionAsync(context, original.Id);
 
-        await service.CancelOrderAsync(original.Id, RequesterId, new VPP_CancelOrderReqDTO
+        await service.CancelOrderAsync(original.Id, RequesterId, new VppRequestCancelReqDTO
         {
             Reason = "No longer required",
             RowVersion = rowVersion
         });
 
-        var duplicate = new VPP01_CreateReqDTO
+        var duplicate = new VppRequestCreateReqDTO
         {
-            Y = 2026,
-            M = 4,
+            Year = 2026,
+            Month = 4,
             Description = "Attempted second series",
-            Items = new List<VPP02_ItemReqDTO>
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId, Qty = 1, Description = "Paper" }
+                new() { VppId = vppId, Qty = 1, Description = "Paper" }
             }
         };
         await Assert.ThrowsAsync<ConflictException>(() =>
@@ -148,7 +148,7 @@ public sealed class VPPRequestLifecycleTests
         Assert.False(periodInfo.CanCreateAdditional);
         Assert.Contains("ineligible", periodInfo.CanCreateAdditionalReason);
 
-        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VPP_RequestHistoryResDTO>(
+        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
             await service.GetOrderHistoryAsync(original.Id));
         var cancelled = Assert.Single(history.Revisions, x => x.IsCurrentRevision);
         Assert.Equal((int)VPPStatus.Cancelled, cancelled.Status);
@@ -165,7 +165,7 @@ public sealed class VPPRequestLifecycleTests
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
         var original = await CreateRegularAsync(service, vppId);
-        var header = await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == original.Id);
+        var header = await context.Set<VppRequest>().SingleAsync(x => x.Id == original.Id);
         header.RowVersion = new byte[] { 1, 2, 3 };
         await context.SaveChangesAsync();
         var request = CreateUpdate(original.Id, vppId, qty: 2, description: "Stale update");
@@ -175,7 +175,7 @@ public sealed class VPPRequestLifecycleTests
             service.UpdateOrderAsync(request));
 
         Assert.Contains("changed while you were editing", exception.Message);
-        Assert.Single(context.Set<VPP01_RequestHeader>());
+        Assert.Single(context.Set<VppRequest>());
         Assert.True(header.IsCurrentRevision);
     }
 
@@ -196,8 +196,8 @@ public sealed class VPPRequestLifecycleTests
         var replay = await service.UpdateOrderAsync(command);
 
         Assert.Equal(first.Id, replay.Id);
-        Assert.Equal(2, await context.Set<VPP01_RequestHeader>().CountAsync());
-        Assert.Single(context.Set<VPP03_Log>(), x => x.Action == "UPDATE");
+        Assert.Equal(2, await context.Set<VppRequest>().CountAsync());
+        Assert.Single(context.Set<RequestLog>(), x => x.Action == "UPDATE");
 
         var changedPayload = CreateUpdate(
             original.Id, vppId, qty: 3, description: "Different update payload");
@@ -205,7 +205,7 @@ public sealed class VPPRequestLifecycleTests
         var exception = await Assert.ThrowsAsync<ConflictException>(() =>
             service.UpdateOrderAsync(changedPayload));
         Assert.Contains("different update", exception.Message);
-        Assert.Equal(2, await context.Set<VPP01_RequestHeader>().CountAsync());
+        Assert.Equal(2, await context.Set<VppRequest>().CountAsync());
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public sealed class VPPRequestLifecycleTests
         var service = CreateService(context);
         var original = await CreateRegularAsync(service, vppId);
         var rowVersion = await SetRowVersionAsync(context, original.Id);
-        var command = new VPP_CancelOrderReqDTO
+        var command = new VppRequestCancelReqDTO
         {
             Reason = "No longer required",
             IdempotencyKey = "cancel-retry-1",
@@ -227,10 +227,10 @@ public sealed class VPPRequestLifecycleTests
         await service.CancelOrderAsync(original.Id, RequesterId, command);
         await service.CancelOrderAsync(original.Id, RequesterId, command);
 
-        Assert.Equal(2, await context.Set<VPP01_RequestHeader>().CountAsync());
-        Assert.Single(context.Set<VPP03_Log>(), x => x.Action == "CANCEL");
+        Assert.Equal(2, await context.Set<VppRequest>().CountAsync());
+        Assert.Single(context.Set<RequestLog>(), x => x.Action == "CANCEL");
 
-        var changedPayload = new VPP_CancelOrderReqDTO
+        var changedPayload = new VppRequestCancelReqDTO
         {
             Reason = "A different cancellation reason",
             IdempotencyKey = command.IdempotencyKey
@@ -238,7 +238,7 @@ public sealed class VPPRequestLifecycleTests
         var exception = await Assert.ThrowsAsync<ConflictException>(() =>
             service.CancelOrderAsync(original.Id, RequesterId, changedPayload));
         Assert.Contains("different command", exception.Message);
-        Assert.Equal(2, await context.Set<VPP01_RequestHeader>().CountAsync());
+        Assert.Equal(2, await context.Set<VppRequest>().CountAsync());
     }
 
     [Theory]
@@ -262,7 +262,7 @@ public sealed class VPPRequestLifecycleTests
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(Decision);
         Assert.Contains("own supplement", exception.Message);
         Assert.Equal((int)VPPStatus.Pending,
-            (await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == supplement.Id)).Status);
+            (await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id)).Status);
     }
 
     [Theory]
@@ -285,7 +285,7 @@ public sealed class VPPRequestLifecycleTests
                 canApproveCrossDepartment, actorCompany));
 
         Assert.Equal((int)VPPStatus.Pending,
-            (await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == supplement.Id)).Status);
+            (await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id)).Status);
     }
 
     [Theory]
@@ -298,7 +298,7 @@ public sealed class VPPRequestLifecycleTests
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
         var supplement = await CreateSupplementAsync(service, vppId);
-        var header = await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == supplement.Id);
+        var header = await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id);
         header.RowVersion = new byte[] { 1, 2, 3 };
         await context.SaveChangesAsync();
         var stale = new byte[] { 7, 8, 9 };
@@ -322,11 +322,11 @@ public sealed class VPPRequestLifecycleTests
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
         var pending = await CreateSupplementAsync(service, vppId);
-        var pendingHeader = await context.Set<VPP01_RequestHeader>()
+        var pendingHeader = await context.Set<VppRequest>()
             .SingleAsync(x => x.Id == pending.Id);
         pendingHeader.RowVersion = new byte[] { 4, 5, 6 };
 
-        context.Set<VPP01_RequestHeader>().AddRange(Enumerable.Range(0, 3).Select(index =>
+        context.Set<VppRequest>().AddRange(Enumerable.Range(0, 3).Select(index =>
             CreateApprovedSupplement(pendingHeader, index + 2)));
         await context.SaveChangesAsync();
 
@@ -347,21 +347,21 @@ public sealed class VPPRequestLifecycleTests
         var service = CreateService(context);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() =>
-            service.CreateOrderAsync(new VPP01_CreateReqDTO
+            service.CreateOrderAsync(new VppRequestCreateReqDTO
             {
-                Y = 2026,
-                M = 4,
+                Year = 2026,
+                Month = 4,
                 IsAdditionalOrder = true,
                 BaseRequestId = Guid.NewGuid(),
                 SupplementReason = "Needed for a new employee",
                 Items =
                 [
-                    new VPP02_ItemReqDTO { VPPId = vppId, Qty = 1, Description = "Paper" }
+                    new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
                 ]
             }, RequesterId, Department, Company));
 
         Assert.Contains("current regular order", exception.Message);
-        Assert.Empty(context.Set<VPP01_RequestHeader>());
+        Assert.Empty(context.Set<VppRequest>());
     }
 
     [Theory]
@@ -380,7 +380,7 @@ public sealed class VPPRequestLifecycleTests
             CreateSupplementForBaseAsync(service, vppId, regular.Id, reason));
 
         Assert.Contains("5 to 500", exception.Message);
-        Assert.Single(context.Set<VPP01_RequestHeader>());
+        Assert.Single(context.Set<VppRequest>());
     }
 
     [Fact]
@@ -391,7 +391,7 @@ public sealed class VPPRequestLifecycleTests
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
         var regular = await CreateRegularAsync(service, vppId);
-        var period = Assert.Single(context.Set<VPP00_Period>());
+        var period = Assert.Single(context.Set<VppPeriod>());
         period.State = VppPeriodState.SubmissionClosed;
         await context.SaveChangesAsync();
 
@@ -400,7 +400,7 @@ public sealed class VPPRequestLifecycleTests
                 service, vppId, regular.Id, "Needed after the deadline"));
 
         Assert.Contains("submission window", exception.Message);
-        Assert.Single(context.Set<VPP01_RequestHeader>());
+        Assert.Single(context.Set<VppRequest>());
     }
 
     [Theory]
@@ -420,7 +420,7 @@ public sealed class VPPRequestLifecycleTests
         var service = CreateService(context);
         var regular = await CreateRegularAsync(service, vppId);
         var rowVersion = await SetRowVersionAsync(context, regular.Id);
-        var period = Assert.Single(context.Set<VPP00_Period>());
+        var period = Assert.Single(context.Set<VppPeriod>());
         period.State = state;
         await context.SaveChangesAsync();
 
@@ -428,7 +428,7 @@ public sealed class VPPRequestLifecycleTests
         {
             if (!update)
             {
-                return service.CancelOrderAsync(regular.Id, RequesterId, new VPP_CancelOrderReqDTO
+                return service.CancelOrderAsync(regular.Id, RequesterId, new VppRequestCancelReqDTO
                 {
                     RowVersion = rowVersion,
                     Reason = "No longer required"
@@ -442,7 +442,7 @@ public sealed class VPPRequestLifecycleTests
         }
 
         await Assert.ThrowsAsync<ConflictException>(Mutation);
-        Assert.Single(context.Set<VPP01_RequestHeader>());
+        Assert.Single(context.Set<VppRequest>());
     }
 
     [Theory]
@@ -456,7 +456,7 @@ public sealed class VPPRequestLifecycleTests
         var service = CreateService(context);
         var supplement = await CreateSupplementAsync(service, vppId);
         var rowVersion = await SetRowVersionAsync(context, supplement.Id);
-        var period = Assert.Single(context.Set<VPP00_Period>());
+        var period = Assert.Single(context.Set<VppPeriod>());
         period.State = VppPeriodState.SubmissionClosed;
         period.SupplementApprovalDeadlineUtc =
             PeriodCalculator.NormalizeNowUtc(OpenPeriodNow).AddMinutes(-1);
@@ -472,7 +472,7 @@ public sealed class VPPRequestLifecycleTests
 
         await Assert.ThrowsAsync<ConflictException>(Decision);
         Assert.Equal((int)VPPStatus.Pending,
-            (await context.Set<VPP01_RequestHeader>().SingleAsync(x => x.Id == supplement.Id)).Status);
+            (await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id)).Status);
     }
 
     [Fact]
@@ -499,7 +499,7 @@ public sealed class VPPRequestLifecycleTests
                 await service.CancelOrderAsync(
                     supplement.Id,
                     RequesterId,
-                    new VPP_CancelOrderReqDTO
+                    new VppRequestCancelReqDTO
                     {
                         RowVersion = rowVersion,
                         Reason = "Requester cancelled this attempt",
@@ -534,7 +534,7 @@ public sealed class VPPRequestLifecycleTests
         Assert.Equal(6, periodInfo.SupplementAttemptCount);
         Assert.Equal(0, periodInfo.RemainingSupplementAttempts);
         Assert.False(periodInfo.CanCreateAdditional);
-        Assert.Equal(6, await context.Set<VPP01_RequestHeader>()
+        Assert.Equal(6, await context.Set<VppRequest>()
             .Where(x => x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted)
             .Select(x => x.RequestSeriesId)
             .Distinct()
@@ -558,7 +558,7 @@ public sealed class VPPRequestLifecycleTests
             supplement.Id, ApproverId, "Budget exceeded", rowVersion,
             "reject-replay-1", Department, false, Company);
 
-        Assert.Single(context.Set<VPP03_Log>(), x => x.Action == "REJECT");
+        Assert.Single(context.Set<RequestLog>(), x => x.Action == "REJECT");
         var exception = await Assert.ThrowsAsync<ConflictException>(() =>
             service.RejectAdditionalOrderAsync(
                 supplement.Id, ApproverId, "Different rejection reason", rowVersion,
@@ -580,7 +580,7 @@ public sealed class VPPRequestLifecycleTests
             service.UpdateOrderAsync(update));
 
         Assert.Contains("RowVersion is required", exception.Message);
-        Assert.Single(context.Set<VPP01_RequestHeader>());
+        Assert.Single(context.Set<VppRequest>());
     }
 
     [Fact]
@@ -592,50 +592,50 @@ public sealed class VPPRequestLifecycleTests
         var service = CreateService(context);
 
         var itRegular = await service.CreateOrderAsync(
-            new VPP01_CreateReqDTO
+            new VppRequestCreateReqDTO
             {
-                Y = 2026,
-                M = 4,
+                Year = 2026,
+                Month = 4,
                 Description = "IT regular",
-                Items = [new VPP02_ItemReqDTO { VPPId = vppId, Qty = 1 }]
+                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
             },
             5615,
             "IT",
             Company);
         await service.CreateOrderAsync(
-            new VPP01_CreateReqDTO
+            new VppRequestCreateReqDTO
             {
-                Y = 2026,
-                M = 4,
+                Year = 2026,
+                Month = 4,
                 IsAdditionalOrder = true,
                 BaseRequestId = itRegular.Id,
                 SupplementReason = "IT supplement for scope test",
-                Items = [new VPP02_ItemReqDTO { VPPId = vppId, Qty = 1 }]
+                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
             },
             5615,
             "IT",
             Company);
 
         var hrRegular = await service.CreateOrderAsync(
-            new VPP01_CreateReqDTO
+            new VppRequestCreateReqDTO
             {
-                Y = 2026,
-                M = 4,
+                Year = 2026,
+                Month = 4,
                 Description = "HR regular",
-                Items = [new VPP02_ItemReqDTO { VPPId = vppId, Qty = 1 }]
+                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
             },
             7777,
             "HR",
             Company);
         await service.CreateOrderAsync(
-            new VPP01_CreateReqDTO
+            new VppRequestCreateReqDTO
             {
-                Y = 2026,
-                M = 4,
+                Year = 2026,
+                Month = 4,
                 IsAdditionalOrder = true,
                 BaseRequestId = hrRegular.Id,
                 SupplementReason = "HR supplement for scope test",
-                Items = [new VPP02_ItemReqDTO { VPPId = vppId, Qty = 1 }]
+                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
             },
             7777,
             "HR",
@@ -694,62 +694,62 @@ public sealed class VPPRequestLifecycleTests
         await context.SaveChangesAsync();
     }
 
-    private static async Task<gtas_vpp_shared.DTOs.Res.VPP.VPP01_RequestHeaderResDTO> CreateRegularAsync(
+    private static async Task<gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO> CreateRegularAsync(
         VPPRequestService service,
         Guid vppId,
         int qty = 1)
-        => await service.CreateOrderAsync(new VPP01_CreateReqDTO
+        => await service.CreateOrderAsync(new VppRequestCreateReqDTO
         {
-            Y = 2026,
-            M = 4,
+            Year = 2026,
+            Month = 4,
             Description = "Regular request",
-            Items = new List<VPP02_ItemReqDTO>
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId, Qty = qty, Description = "Paper" }
+                new() { VppId = vppId, Qty = qty, Description = "Paper" }
             }
         }, RequesterId, Department, Company);
 
-    private static async Task<gtas_vpp_shared.DTOs.Res.VPP.VPP01_RequestHeaderResDTO> CreateSupplementAsync(
+    private static async Task<gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO> CreateSupplementAsync(
         VPPRequestService service,
         Guid vppId)
     {
         var regular = await CreateRegularAsync(service, vppId);
-        return await service.CreateOrderAsync(new VPP01_CreateReqDTO
+        return await service.CreateOrderAsync(new VppRequestCreateReqDTO
         {
-            Y = 2026,
-            M = 4,
+            Year = 2026,
+            Month = 4,
             IsAdditionalOrder = true,
             BaseRequestId = regular.Id,
             SupplementReason = "Needed for a new employee",
-            Items = new List<VPP02_ItemReqDTO>
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId, Qty = 1, Description = "Paper" }
+                new() { VppId = vppId, Qty = 1, Description = "Paper" }
             }
         }, RequesterId, Department, Company);
     }
 
-    private static Task<gtas_vpp_shared.DTOs.Res.VPP.VPP01_RequestHeaderResDTO>
+    private static Task<gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO>
         CreateSupplementForBaseAsync(
             VPPRequestService service,
             Guid vppId,
             Guid baseRequestId,
             string? reason,
             string? idempotencyKey = null)
-        => service.CreateOrderAsync(new VPP01_CreateReqDTO
+        => service.CreateOrderAsync(new VppRequestCreateReqDTO
         {
-            Y = 2026,
-            M = 4,
+            Year = 2026,
+            Month = 4,
             IsAdditionalOrder = true,
             BaseRequestId = baseRequestId,
             SupplementReason = reason,
             IdempotencyKey = idempotencyKey,
             Items =
             [
-                new VPP02_ItemReqDTO { VPPId = vppId, Qty = 1, Description = "Paper" }
+                new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
             ]
         }, RequesterId, Department, Company);
 
-    private static VPP01_UpdateReqDTO CreateUpdate(
+    private static VppRequestUpdateReqDTO CreateUpdate(
         Guid id,
         Guid vppId,
         int qty,
@@ -758,36 +758,36 @@ public sealed class VPPRequestLifecycleTests
         {
             Id = id,
             Description = description,
-            UpdateUserId = RequesterId,
-            Items = new List<VPP02_ItemReqDTO>
+            UpdatedByUserId = RequesterId,
+            Items = new List<VppRequestDetailItemReqDTO>
             {
-                new() { VPPId = vppId, Qty = qty, Description = "Paper" }
+                new() { VppId = vppId, Qty = qty, Description = "Paper" }
             }
         };
 
     private static async Task<byte[]> SetRowVersionAsync(VPPContext context, Guid requestId)
     {
         var rowVersion = Guid.NewGuid().ToByteArray();
-        var header = await context.Set<VPP01_RequestHeader>()
+        var header = await context.Set<VppRequest>()
             .SingleAsync(x => x.Id == requestId);
         header.RowVersion = rowVersion;
         await context.SaveChangesAsync();
         return rowVersion;
     }
 
-    private static VPP01_RequestHeader CreateApprovedSupplement(
-        VPP01_RequestHeader pending,
+    private static VppRequest CreateApprovedSupplement(
+        VppRequest pending,
         int attempt)
         => new()
         {
             Id = Guid.NewGuid(),
-            Y = pending.Y,
-            M = pending.M,
+            Year = pending.Year,
+            Month = pending.Month,
             PeriodId = pending.PeriodId,
             RequestSeriesId = Guid.NewGuid(),
             RevisionNumber = 1,
             IsCurrentRevision = true,
-            VPPCode = $"VPP-APPROVED-{attempt}",
+            VppCode = $"VPP-APPROVED-{attempt}",
             Status = (int)VPPStatus.Approved,
             IsAdditionalOrder = true,
             BaseRequestId = pending.BaseRequestId,
@@ -797,10 +797,10 @@ public sealed class VPPRequestLifecycleTests
             SupplementReason = "Previously approved supplement",
             DepartmentCode = pending.DepartmentCode,
             MemberCompanyCode = pending.MemberCompanyCode,
-            CreateUserId = pending.CreateUserId,
-            CreateDate = OpenPeriodNow.AddDays(-attempt),
-            UpdateUserId = ApproverId,
-            UpdateDate = OpenPeriodNow.AddDays(-attempt),
+            CreatedByUserId = pending.CreatedByUserId,
+            CreatedAtUtc = OpenPeriodNow.AddDays(-attempt),
+            UpdatedByUserId = ApproverId,
+            UpdatedAtUtc = OpenPeriodNow.AddDays(-attempt),
             SubmittedDate = OpenPeriodNow.AddDays(-attempt),
             ApprovedById = ApproverId,
             ApprovedAt = OpenPeriodNow.AddDays(-attempt)

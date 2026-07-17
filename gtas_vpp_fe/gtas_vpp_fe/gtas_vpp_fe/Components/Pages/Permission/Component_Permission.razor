@@ -18,7 +18,7 @@
                 <RadzenTabsItem Text="@Loc["Users"]">
                     @if (IsActiveTab(0))
                     {
-                        <Tab_User claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                        <Tab_User claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
                     }
                 </RadzenTabsItem>
             }
@@ -27,7 +27,7 @@
                 <RadzenTabsItem Text="@Loc["GroupsAndPermissions"]">
                     @if (IsActiveTab(1))
                     {
-                        <Tab_PagePermission claims="@claims" sp_Authentication_GetPermissionSinglePage="@sp_Authentication_GetPermissionSinglePage" />
+                        <Tab_PagePermission claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
                     }
                 </RadzenTabsItem>
             }

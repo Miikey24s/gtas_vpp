@@ -8,9 +8,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog
     public partial class Dialog_PriceListEditor
     {
         [Inject] public DialogService DialogService { get; set; } = default!;
-        [Parameter] public L07_PriceListUpdateReqDTO Model { get; set; } = new();
+        [Parameter] public PriceListUpdateReqDTO Model { get; set; } = new();
         [Parameter] public bool IsClone { get; set; }
-        [Parameter] public List<L05_VPPSupplierResDTO> Suppliers { get; set; } = [];
+        [Parameter] public List<SupplierResDTO> Suppliers { get; set; } = [];
 
         private void Save()
         {

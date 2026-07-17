@@ -95,7 +95,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost]
         [Authorize(Policy = Permissions.LibraryManage)]
-        public async Task<IActionResult> Create([FromBody] L06_PriceCreateReqDTO req)
+        public async Task<IActionResult> Create([FromBody] SupplierProductPriceCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
@@ -105,7 +105,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryManage)]
-        public async Task<IActionResult> Update(Guid id, [FromBody] L06_PriceUpdateReqDTO req)
+        public async Task<IActionResult> Update(Guid id, [FromBody] SupplierProductPriceUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 

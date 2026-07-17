@@ -6,10 +6,10 @@ public sealed class PermissionSnapshotResDTO
     public Guid GroupId { get; set; }
     public long? MemberCompanyCode { get; set; }
     public List<string> Permissions { get; set; } = new();
-    public List<PermissionPageResDTO> Pages { get; set; } = new();
+    public List<PermissionSnapshotPageResDTO> Pages { get; set; } = new();
 }
 
-public sealed class PermissionPageResDTO
+public sealed class PermissionSnapshotPageResDTO
 {
     public string PageCode { get; set; } = string.Empty;
     public List<PermissionComponentResDTO> Components { get; set; } = new();

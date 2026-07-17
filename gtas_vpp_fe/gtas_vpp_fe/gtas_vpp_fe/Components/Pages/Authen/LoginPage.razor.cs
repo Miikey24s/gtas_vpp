@@ -19,7 +19,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         [SupplyParameterFromQuery(Name = "returnUrl")]
         public string? ReturnUrl { get; set; }
 
-        public sp_Authentication_LoginReqDTO sp_Authentication_Login { get; set; } = new sp_Authentication_LoginReqDTO();
+        public LoginFormModel loginForm { get; set; } = new LoginFormModel();
         bool isLoading = false;
         bool isShowPass = true;
         private bool hasSubmittedValidation;
@@ -77,7 +77,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             ValidatePassword();
         }
 
-        private async Task LoginOnkeyup(KeyboardEventArgs e, sp_Authentication_LoginReqDTO loginReqDTO)
+        private async Task LoginOnkeyup(KeyboardEventArgs e, LoginFormModel loginReqDTO)
         {
             if (e.Code == "Enter" || e.Code == "NumpadEnter")
             {
@@ -85,7 +85,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             }
         }
 
-        public async Task LoginSubmit(sp_Authentication_LoginReqDTO loginReqDTO)
+        public async Task LoginSubmit(LoginFormModel loginReqDTO)
         {
             isLoading = true;
             try
@@ -107,7 +107,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
                     return;
                 }
 
-                var ticketId = TicketCache.Add(loginData, loginReqDTO.isRememberPass);
+                var ticketId = TicketCache.Add(loginData, loginReqDTO.RememberMe);
                 var redirectUrl = $"/perform-login?id={ticketId}";
                 var requestedReturnUrl = AccountLoginRedirectPolicy.Resolve(
                     loginData.MustChangePassword,
@@ -126,7 +126,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             }
         }
 
-        private async Task<sp_Authentication_Login?> DoLogin(string username, string password)
+        private async Task<AuthenticationResultDTO?> DoLogin(string username, string password)
         {
             var client = HttpClientFactory.CreateClient(Config.HttpClientName);
             try
@@ -141,7 +141,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
                     return null;
                 }
 
-                var loginData = await response.Content.ReadFromJsonAsync<sp_Authentication_Login>();
+                var loginData = await response.Content.ReadFromJsonAsync<AuthenticationResultDTO>();
                 if (loginData is null)
                 {
                     ShowError(ComponentLoc["LoginRequestFailed"].Value);
@@ -191,14 +191,14 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         private void ValidateUsername()
         {
-            UsernameValidationMessage = string.IsNullOrWhiteSpace(sp_Authentication_Login.Username)
+            UsernameValidationMessage = string.IsNullOrWhiteSpace(loginForm.Username)
                 ? ComponentLoc["LoginUsernameRequired"].Value
                 : null;
         }
 
         private void ValidatePassword()
         {
-            PasswordValidationMessage = string.IsNullOrWhiteSpace(sp_Authentication_Login.Password)
+            PasswordValidationMessage = string.IsNullOrWhiteSpace(loginForm.Password)
                 ? ComponentLoc["LoginPasswordRequired"].Value
                 : null;
         }

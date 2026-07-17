@@ -31,9 +31,9 @@ public sealed class AuthBootstrapProvisionerTests
 
         Assert.Equal(AuthBootstrapFailure.Disabled, exception.Failure);
         Assert.Empty(await fixture.Context.Users.ToListAsync());
-        Assert.Empty(await fixture.Context.P04_UserGroups.ToListAsync());
-        Assert.Empty(await fixture.Context.A02_AuthBootstrapOperations.ToListAsync());
-        Assert.Empty(await fixture.Context.A01_SecurityAudits.ToListAsync());
+        Assert.Empty(await fixture.Context.UserGroupMemberships.ToListAsync());
+        Assert.Empty(await fixture.Context.AuthBootstrapOperations.ToListAsync());
+        Assert.Empty(await fixture.Context.SecurityAudits.ToListAsync());
     }
 
     [Fact]
@@ -62,21 +62,21 @@ public sealed class AuthBootstrapProvisionerTests
                 owner.PasswordHash!,
                 options.InitialPassword));
 
-        var membership = Assert.Single(await fixture.Context.P04_UserGroups.AsNoTracking().ToListAsync());
+        var membership = Assert.Single(await fixture.Context.UserGroupMemberships.AsNoTracking().ToListAsync());
         Assert.Equal(owner.Id, membership.AccountId);
         Assert.Equal(owner.Id, membership.UserId);
-        Assert.Equal(CanonicalRbac.SystemAdmin.GroupId, membership.P02_GroupId);
-        Assert.Equal(BootstrapFixture.DepartmentId, membership.LEX02_CompanyDepartmentLocationId);
+        Assert.Equal(CanonicalRbac.SystemAdmin.GroupId, membership.PermissionGroupId);
+        Assert.Equal(BootstrapFixture.DepartmentId, membership.DepartmentId);
         Assert.False(membership.IsDeleted);
 
-        var ledger = Assert.Single(await fixture.Context.A02_AuthBootstrapOperations.AsNoTracking().ToListAsync());
+        var ledger = Assert.Single(await fixture.Context.AuthBootstrapOperations.AsNoTracking().ToListAsync());
         Assert.Equal(options.OperationKey, ledger.OperationKey);
         Assert.Equal(owner.Id, ledger.AccountId);
         Assert.Equal("Completed", ledger.Status);
         Assert.Equal(64, ledger.InputFingerprint.Length);
         Assert.DoesNotContain(options.InitialPassword, ledger.InputFingerprint, StringComparison.Ordinal);
 
-        var audit = Assert.Single(await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync());
+        var audit = Assert.Single(await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync());
         Assert.Equal(owner.Id, audit.TargetUserId);
         Assert.Equal(-1, audit.ActorUserId);
         Assert.Equal("AUTH_BOOTSTRAP_OWNER_CREATED", audit.Action);
@@ -104,9 +104,9 @@ public sealed class AuthBootstrapProvisionerTests
         Assert.Equal(AuthBootstrapOutcome.AlreadyCompleted, second.Outcome);
         Assert.Equal(first.AccountId, second.AccountId);
         Assert.Equal(1, await fixture.Context.Users.CountAsync());
-        Assert.Equal(1, await fixture.Context.P04_UserGroups.CountAsync(membership => !membership.IsDeleted));
-        Assert.Equal(1, await fixture.Context.A02_AuthBootstrapOperations.CountAsync());
-        Assert.Equal(1, await fixture.Context.A01_SecurityAudits.CountAsync());
+        Assert.Equal(1, await fixture.Context.UserGroupMemberships.CountAsync(membership => !membership.IsDeleted));
+        Assert.Equal(1, await fixture.Context.AuthBootstrapOperations.CountAsync());
+        Assert.Equal(1, await fixture.Context.SecurityAudits.CountAsync());
     }
 
     [Fact]
@@ -123,9 +123,9 @@ public sealed class AuthBootstrapProvisionerTests
 
         Assert.Equal(AuthBootstrapFailure.OperationFingerprintMismatch, exception.Failure);
         Assert.Equal(1, await fixture.Context.Users.CountAsync());
-        Assert.Equal(1, await fixture.Context.P04_UserGroups.CountAsync(membership => !membership.IsDeleted));
-        Assert.Equal(1, await fixture.Context.A02_AuthBootstrapOperations.CountAsync());
-        Assert.Equal(1, await fixture.Context.A01_SecurityAudits.CountAsync());
+        Assert.Equal(1, await fixture.Context.UserGroupMemberships.CountAsync(membership => !membership.IsDeleted));
+        Assert.Equal(1, await fixture.Context.AuthBootstrapOperations.CountAsync());
+        Assert.Equal(1, await fixture.Context.SecurityAudits.CountAsync());
     }
 
     [Fact]
@@ -180,24 +180,24 @@ public sealed class AuthBootstrapProvisionerTests
 
         Assert.Equal(AuthBootstrapFailure.PreexistingActiveAccount, exception.Failure);
         Assert.Equal(1, await fixture.Context.Users.CountAsync());
-        Assert.Empty(await fixture.Context.A02_AuthBootstrapOperations.ToListAsync());
+        Assert.Empty(await fixture.Context.AuthBootstrapOperations.ToListAsync());
     }
 
     [Fact]
     public async Task ProvisionAsync_PreexistingActiveP04_FailsClosed()
     {
         await using var fixture = await BootstrapFixture.CreateAsync();
-        fixture.Context.P04_UserGroups.Add(new P04_UserGroup
+        fixture.Context.UserGroupMemberships.Add(new UserGroupMembership
         {
             Id = Guid.NewGuid(),
             UserId = 42,
             AccountId = null,
-            P02_GroupId = CanonicalRbac.SystemAdmin.GroupId,
-            LEX02_CompanyDepartmentLocationId = BootstrapFixture.DepartmentId,
-            CreateUserId = -1,
-            UpdateUserId = -1,
-            CreateDate = DateTime.UtcNow,
-            UpdateDate = DateTime.UtcNow,
+            PermissionGroupId = CanonicalRbac.SystemAdmin.GroupId,
+            DepartmentId = BootstrapFixture.DepartmentId,
+            CreatedByUserId = -1,
+            UpdatedByUserId = -1,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
             IsDeleted = false
         });
         await fixture.Context.SaveChangesAsync();
@@ -207,15 +207,15 @@ public sealed class AuthBootstrapProvisionerTests
 
         Assert.Equal(AuthBootstrapFailure.PreexistingActiveMembership, exception.Failure);
         Assert.Empty(await fixture.Context.Users.ToListAsync());
-        Assert.Empty(await fixture.Context.A02_AuthBootstrapOperations.ToListAsync());
+        Assert.Empty(await fixture.Context.AuthBootstrapOperations.ToListAsync());
     }
 
     [Fact]
     public async Task ProvisionAsync_MissingEffectivePermissionManage_FailsBeforeAccountCreation()
     {
         await using var fixture = await BootstrapFixture.CreateAsync();
-        fixture.Context.P06_GroupPageComponentMappings.RemoveRange(
-            await fixture.Context.P06_GroupPageComponentMappings.ToListAsync());
+        fixture.Context.GroupPageComponentMappings.RemoveRange(
+            await fixture.Context.GroupPageComponentMappings.ToListAsync());
         await fixture.Context.SaveChangesAsync();
 
         var exception = await Assert.ThrowsAsync<AuthBootstrapProvisioningException>(
@@ -223,23 +223,7 @@ public sealed class AuthBootstrapProvisionerTests
 
         Assert.Equal(AuthBootstrapFailure.MissingPermissionManage, exception.Failure);
         Assert.Empty(await fixture.Context.Users.ToListAsync());
-        Assert.Empty(await fixture.Context.P04_UserGroups.ToListAsync());
-    }
-
-    [Fact]
-    public async Task ProvisionAsync_InvalidDepartmentType_FailsBeforeAccountCreation()
-    {
-        await using var fixture = await BootstrapFixture.CreateAsync();
-        var department = await fixture.Context.LEX02_CompanyDepartmentLocations
-            .SingleAsync(item => item.Id == BootstrapFixture.DepartmentId);
-        department.LEX02Type = "Location";
-        await fixture.Context.SaveChangesAsync();
-
-        var exception = await Assert.ThrowsAsync<AuthBootstrapProvisioningException>(
-            () => fixture.CreateProvisioner(ValidOptions()).ProvisionAsync());
-
-        Assert.Equal(AuthBootstrapFailure.InvalidPrimaryDepartment, exception.Failure);
-        Assert.Empty(await fixture.Context.Users.ToListAsync());
+        Assert.Empty(await fixture.Context.UserGroupMemberships.ToListAsync());
     }
 
     [Fact]
@@ -314,9 +298,9 @@ public sealed class AuthBootstrapProvisionerTests
             databaseName,
             seedPrerequisites: false);
         Assert.Equal(1, await verifyFixture.Context.Users.CountAsync());
-        Assert.Equal(1, await verifyFixture.Context.P04_UserGroups.CountAsync(membership => !membership.IsDeleted));
-        Assert.Equal(1, await verifyFixture.Context.A02_AuthBootstrapOperations.CountAsync());
-        Assert.Equal(1, await verifyFixture.Context.A01_SecurityAudits.CountAsync());
+        Assert.Equal(1, await verifyFixture.Context.UserGroupMemberships.CountAsync(membership => !membership.IsDeleted));
+        Assert.Equal(1, await verifyFixture.Context.AuthBootstrapOperations.CountAsync());
+        Assert.Equal(1, await verifyFixture.Context.SecurityAudits.CountAsync());
     }
 
     [Fact]
@@ -339,9 +323,9 @@ public sealed class AuthBootstrapProvisionerTests
 
         Assert.Equal(AuthBootstrapFailure.PersistenceFailed, exception.Failure);
         Assert.Empty(await fixture.Context.Users.AsNoTracking().ToListAsync());
-        Assert.Empty(await fixture.Context.P04_UserGroups.AsNoTracking().ToListAsync());
-        Assert.Empty(await fixture.Context.A02_AuthBootstrapOperations.AsNoTracking().ToListAsync());
-        Assert.Empty(await fixture.Context.A01_SecurityAudits.AsNoTracking().ToListAsync());
+        Assert.Empty(await fixture.Context.UserGroupMemberships.AsNoTracking().ToListAsync());
+        Assert.Empty(await fixture.Context.AuthBootstrapOperations.AsNoTracking().ToListAsync());
+        Assert.Empty(await fixture.Context.SecurityAudits.AsNoTracking().ToListAsync());
     }
 
     private static AuthBootstrapOptions ValidOptions() => new()
@@ -494,80 +478,79 @@ public sealed class AuthBootstrapProvisionerTests
 
         private async Task SeedPrerequisitesAsync()
         {
-            if (await Context.P02_Groups.AnyAsync(group => group.Id == CanonicalRbac.SystemAdmin.GroupId))
+            if (await Context.PermissionGroups.AnyAsync(group => group.Id == CanonicalRbac.SystemAdmin.GroupId))
             {
                 return;
             }
 
             var now = DateTime.UtcNow;
-            var group = new P02_Group
+            var group = new PermissionGroup
             {
                 Id = CanonicalRbac.SystemAdmin.GroupId,
                 GroupCode = CanonicalRbac.SystemAdmin.GroupCode,
                 GroupName = CanonicalRbac.SystemAdmin.GroupName,
                 Description = CanonicalRbac.SystemAdmin.Description,
-                CreateUserId = -1,
-                UpdateUserId = -1,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedByUserId = -1,
+                UpdatedByUserId = -1,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
                 IsDeleted = false
             };
-            var department = new LEX02_CompanyDepartmentLocation
+            var department = new Department
             {
                 Id = DepartmentId,
-                LEX02Code = "IT",
-                LEX02Name = "IT",
-                LEX02Type = "PhongBan",
-                CreateUserId = -1,
-                UpdateUserId = -1,
-                CreateDate = now,
-                UpdateDate = now,
+                Code = "IT",
+                Name = "IT",
+                CreatedByUserId = -1,
+                UpdatedByUserId = -1,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
                 IsDeleted = false
             };
-            var page = new P01_Page
+            var page = new PermissionPage
             {
                 Id = PermissionPageId,
                 PageCode = "PERMISSION",
                 PageName = "Permission",
                 Type = "Page",
-                CreateUserId = -1,
-                UpdateUserId = -1,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedByUserId = -1,
+                UpdatedByUserId = -1,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
                 IsDeleted = false
             };
-            var component = new P03_Component
+            var component = new PermissionComponent
             {
                 Id = PermissionComponentId,
                 ComponentCode = Permissions.PermissionManage,
                 ComponentName = "Manage access",
-                CreateUserId = -1,
-                UpdateUserId = -1,
-                CreateDate = now,
-                UpdateDate = now,
+                CreatedByUserId = -1,
+                UpdatedByUserId = -1,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
                 IsDeleted = false
             };
-            var pageComponent = new P05_PageComponentMapping
+            var pageComponent = new PageComponentMapping
             {
                 Id = PermissionMappingId,
-                P01_PageId = page.Id,
-                P01_Page = page,
-                P03_ComponentId = component.Id,
-                P03_Component = component
+                PermissionPageId = page.Id,
+                PermissionPage = page,
+                PermissionComponentId = component.Id,
+                PermissionComponent = component
             };
-            var permission = new P06_GroupPageComponentMapping
+            var permission = new GroupPageComponentMapping
             {
-                P02_GroupId = group.Id,
-                P02_Group = group,
-                P05_PageComponentMappingId = pageComponent.Id,
-                P05_PageComponentMapping = pageComponent,
+                PermissionGroupId = group.Id,
+                PermissionGroup = group,
+                PageComponentMappingId = pageComponent.Id,
+                PageComponentMapping = pageComponent,
                 MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
                 IsEnable = true,
                 IsVisible = true,
-                CreateUserId = -1,
-                UpdateUserId = -1,
-                CreateDate = now,
-                UpdateDate = now
+                CreatedByUserId = -1,
+                UpdatedByUserId = -1,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
             };
 
             Context.AddRange(group, department, page, component, pageComponent, permission);

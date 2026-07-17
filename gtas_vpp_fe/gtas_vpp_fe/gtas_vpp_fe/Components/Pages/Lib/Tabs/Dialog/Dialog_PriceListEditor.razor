@@ -1,7 +1,7 @@
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 
-<RadzenTemplateForm TItem="L07_PriceListUpdateReqDTO" Data="@Model" Submit="@Save">
+<RadzenTemplateForm TItem="PriceListUpdateReqDTO" Data="@Model" Submit="@Save">
     <RadzenStack Gap="1rem">
         <RadzenFormField Text="@Loc["PriceListCode"]" class="w-100">
             <RadzenTextBox Name="Code" @bind-Value="Model.Code" Style="width:100%" />

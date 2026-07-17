@@ -16,7 +16,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int? StatusFilter { get; set; }
 
         private string CurrentDepartmentCode =>
-            claims?.FirstOrDefault(c => c.Type == "DepartmentCode")?.Value ?? string.Empty;
+            claims?.FirstOrDefault(c => c.Type == ClaimKeys.DepartmentCode)?.Value ?? string.Empty;
 
         public List<OptionItem> YearOptions { get; } = new();
         public List<OptionItem> MonthOptions { get; } = new();

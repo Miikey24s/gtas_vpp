@@ -273,7 +273,7 @@ namespace gtas_vpp_fe.Components.Layout
         private bool HasSidebarMenu(string permission)
         {
             var sidebarPermission = PermissionState.GetPagePermission(Config.Page_ComponentCode.PageCode.Sidebar);
-            return sidebarPermission.List_Component.Count == 0
+            return sidebarPermission.Components.Count == 0
                 || PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Sidebar, permission);
         }
 

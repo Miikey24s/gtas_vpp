@@ -75,22 +75,22 @@
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCode" Title="@Loc["ProductCode"]" Width="140px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VppCode" Title="@Loc["ProductCode"]" Width="140px" TextAlign="TextAlign.Left">
                             <Template Context="row">
-                                <span class="vpp-link-text">@row.VPPCode</span>
+                                <span class="vpp-link-text">@row.VppCode</span>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VppName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left">
                             <Template Context="row">
-                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.VPPName</span>
+                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.VppName</span>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VPPCategoryName" Title="@Loc["Category"]" Width="220px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VppCategoryName" Title="@Loc["Category"]" Width="220px" TextAlign="TextAlign.Left">
                             <Template Context="row">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.VPPCategoryName" IsPill="true" />
+                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.VppCategoryName" IsPill="true" />
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UOMName" Title="@Loc["UOM"]" Width="80px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UomName" Title="@Loc["UOM"]" Width="80px" TextAlign="TextAlign.Center" />
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultSupplierName" Title="@Loc["Supplier"]" Width="145px" TextAlign="TextAlign.Left" />
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultPrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right" FormatString="{0:N0}" />
                         <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" Width="270px" TextAlign="TextAlign.Left" />

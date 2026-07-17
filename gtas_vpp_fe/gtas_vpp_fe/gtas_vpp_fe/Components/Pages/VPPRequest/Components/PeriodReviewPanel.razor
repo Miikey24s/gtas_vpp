@@ -126,7 +126,7 @@
         else
         {
             <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
-                <RadzenDataGrid TItem="VPP01_RequestHeaderResDTO" Data="@orders"
+                <RadzenDataGrid TItem="VppRequestResDTO" Data="@orders"
                                 Count="@totalCount" LoadData="@OnLoadData"
                                 AllowPaging="true" PageSize="@pageSize"
                                 PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
@@ -148,20 +148,20 @@
                                 class="vpp-order-grid"
                                 Style="border: none; --vpp-grid-min-width: 1420px;">
                     <Columns>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                             <Template Context="row">@(currentSkip + orders.IndexOf(row) + 1)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.DepartmentCode)" Title="@Loc["Department"]" Width="105px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.RequesterName)" Title="@Loc["Username"]" Width="150px" TextAlign="TextAlign.Left" />
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.VPPCode)" Title="@Loc["OrderCode"]" Width="220px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.DepartmentCode)" Title="@Loc["Department"]" Width="105px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.RequesterName)" Title="@Loc["Username"]" Width="150px" TextAlign="TextAlign.Left" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.VppCode)" Title="@Loc["OrderCode"]" Width="220px" TextAlign="TextAlign.Left">
                             <Template Context="row">
                                 <div class="vpp-order-code-cell">
-                                    <span class="vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@row.VPPCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
+                                    <span class="vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@row.VppCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
                                         @GetShortCode(row)
                                     </span>
                                     <div class="vpp-order-code-popover">
-                                        <span class="vpp-order-code-popover-text">@row.VPPCode</span>
-                                        <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(row.VPPCode))" Title="@Loc["Copy"]" />
+                                        <span class="vpp-order-code-popover-text">@row.VppCode</span>
+                                        <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(row.VppCode))" Title="@Loc["Copy"]" />
                                     </div>
                                     @if (row.IsAdditionalOrder)
                                     {
@@ -170,7 +170,7 @@
                                 </div>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="StatusText" Title="@Loc["Status"]" Width="120px" TextAlign="TextAlign.Center">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" Width="120px" TextAlign="TextAlign.Center">
                             <Template Context="row">
                                 <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
                                 @if (row.SettledAt.HasValue)
@@ -181,19 +181,19 @@
                                 }
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalLines)" Title="@Loc["TotalLineItems"]" Width="125px" TextAlign="TextAlign.Center">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalLines)" Title="@Loc["TotalLineItems"]" Width="125px" TextAlign="TextAlign.Center">
                             <Template Context="row"><strong>@row.TotalLines</strong></Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="125px" TextAlign="TextAlign.Center">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="125px" TextAlign="TextAlign.Center">
                             <Template Context="row"><strong>@row.TotalQty</strong></Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.TotalAmount)" Title="@Loc["Amount"]" Width="130px" TextAlign="TextAlign.Right" Filterable="false">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalAmount)" Title="@Loc["Amount"]" Width="130px" TextAlign="TextAlign.Right" Filterable="false">
                             <Template Context="row"><strong>@FormatMoney(row.TotalAmount)</strong></Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.SubmittedDate)" FilterProperty="@nameof(VPP01_RequestHeaderResDTO.SubmittedDateText)" Title="@Loc["SubmittedDate"]" Width="160px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.SubmittedDate)" FilterProperty="@nameof(VppRequestResDTO.SubmittedDateText)" Title="@Loc["SubmittedDate"]" Width="160px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
                             <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VPP01_RequestHeaderResDTO" Property="@nameof(VPP01_RequestHeaderResDTO.Description)" Title="@Loc["Note"]" Width="190px" TextAlign="TextAlign.Left" />
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.Description)" Title="@Loc["Note"]" Width="190px" TextAlign="TextAlign.Left" />
                     </Columns>
                     <Template Context="row">
                         <div class="vpp-expand-detail">
@@ -205,23 +205,23 @@
                             {
                                 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
                             }
-                            <RadzenDataGrid TItem="VPP02_RequestDetailResDTO" Data="@(row.Items ?? new())"
+                            <RadzenDataGrid TItem="VppRequestDetailResDTO" Data="@(row.Items ?? new())"
                                             AllowPaging="false" AllowFiltering="false" AllowSorting="false"
                                             Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
                                             class="vpp-order-grid"
                                             Style="border: none;">
                                 <Columns>
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
                                         <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
                                     </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPCode" Title="@Loc["ProductCode"]" Width="130px" TextAlign="TextAlign.Left" />
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="VPPName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left" />
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="UOMName" Title="@Loc["UOM"]" Width="100px" TextAlign="TextAlign.Center" />
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="CurrentSinglePrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right">
+                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="130px" TextAlign="TextAlign.Left" />
+                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="VppName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left" />
+                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
+<RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="UomName" Title="@Loc["UOM"]" Width="100px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="CurrentSinglePrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right">
                                         <Template Context="item">@FormatMoney(item.CurrentSinglePrice)</Template>
                                     </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn TItem="VPP02_RequestDetailResDTO" Property="TotalPrice" Title="@Loc["Total"]" Width="120px" TextAlign="TextAlign.Right">
+                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="TotalPrice" Title="@Loc["Total"]" Width="120px" TextAlign="TextAlign.Right">
                                         <Template Context="item"><strong>@FormatMoney(item.TotalPrice)</strong></Template>
                                     </RadzenDataGridColumn>
                                 </Columns>

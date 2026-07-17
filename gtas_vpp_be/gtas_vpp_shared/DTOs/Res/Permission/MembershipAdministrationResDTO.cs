@@ -16,8 +16,8 @@ public sealed class MembershipAdministrationResDTO
     public string GroupCode { get; init; } = string.Empty;
     public string GroupName { get; init; } = string.Empty;
     public Guid PrimaryDepartmentId { get; init; }
-    public string DepartmentCode { get; init; } = string.Empty;
-    public string DepartmentName { get; init; } = string.Empty;
+    public string Code { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
     public string RowVersion { get; init; } = string.Empty;
     public bool IsActive { get; init; }
     public DateTime CreatedAt { get; init; }

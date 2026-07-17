@@ -93,7 +93,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
         }
 
-        private async Task OpenHistoryAsync(VPP01_RequestHeaderResDTO row)
+        private async Task OpenHistoryAsync(VppRequestResDTO row)
         {
             await DialogService.OpenAsync<Dialog_RequestHistory>(
                 Loc["RequestLifecycle"],

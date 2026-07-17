@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Helpers;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.Notifications;
@@ -14,40 +14,40 @@ namespace gtas_vpp_be.Model
     public class VPPMigrationDbContext : IdentityUserContext<AppUser, int>
     {
         #region Auth
-        public virtual DbSet<P01_Page> P01_Pages { get; set; }
-        public virtual DbSet<P02_Group> P02_Groups { get; set; }
-        public virtual DbSet<P03_Component> P03_Components { get; set; }
-        public virtual DbSet<P04_UserGroup> P04_UserGroups { get; set; }
-        public virtual DbSet<P05_PageComponentMapping> P05_PageComponentMappings { get; set; }
-        public virtual DbSet<P06_GroupPageComponentMapping> P06_GroupPageComponentMappings { get; set; }
-        public virtual DbSet<A01_SecurityAudit> A01_SecurityAudits { get; set; }
-        public virtual DbSet<A02_AuthBootstrapOperation> A02_AuthBootstrapOperations { get; set; }
+        public virtual DbSet<PermissionPage> PermissionPages { get; set; }
+        public virtual DbSet<PermissionGroup> PermissionGroups { get; set; }
+        public virtual DbSet<PermissionComponent> PermissionComponents { get; set; }
+        public virtual DbSet<UserGroupMembership> UserGroupMemberships { get; set; }
+        public virtual DbSet<PageComponentMapping> PageComponentMappings { get; set; }
+        public virtual DbSet<GroupPageComponentMapping> GroupPageComponentMappings { get; set; }
+        public virtual DbSet<SecurityAudit> SecurityAudits { get; set; }
+        public virtual DbSet<AuthBootstrapOperation> AuthBootstrapOperations { get; set; }
         #endregion
 
         #region Library
-        public virtual DbSet<L01_Class> L01_Classes { get; set; }
-        public virtual DbSet<L02_ClassDetail> L02_ClassesDetail { get; set; }
-        public virtual DbSet<L03_VPPCategory> L03_VPPCategories { get; set; }
-        public virtual DbSet<L04_VPP> L04_VPPs { get; set; }
-        public virtual DbSet<L05_VPPSupplier> L05_VPPSuppliers { get; set; }
-        public virtual DbSet<L06_VPPSupplierMapping> L06_VPPSupplierMappings { get; set; }
-        public virtual DbSet<L07_PriceList> L07_PriceLists { get; set; }
-        public virtual DbSet<LEX02_CompanyDepartmentLocation> LEX02_CompanyDepartmentLocations { get; set; }
+        public virtual DbSet<LookupCategory> LookupCategories { get; set; }
+        public virtual DbSet<LookupValue> LookupValues { get; set; }
+        public virtual DbSet<VppCategory> VppCategories { get; set; }
+        public virtual DbSet<VppItem> VppItems { get; set; }
+        public virtual DbSet<Supplier> Suppliers { get; set; }
+        public virtual DbSet<SupplierProductMapping> SupplierProductMappings { get; set; }
+        public virtual DbSet<PriceList> PriceLists { get; set; }
+        public virtual DbSet<Department> Departments { get; set; }
         #endregion
 
         #region Data
-        public virtual DbSet<VPP00_Period> VPP00_Periods { get; set; }
-        public virtual DbSet<VPP01_RequestHeader> VPP01_RequestHeaders { get; set; }
-        public virtual DbSet<VPP02_RequestDetail> VPP02_RequestDetail { get; set; }
-        public virtual DbSet<VPP03_Log> VPP03_Logs { get; set; }
-        public virtual DbSet<VPP04_Settlement> VPP04_Settlements { get; set; }
-        public virtual DbSet<VPP05_SettlementItem> VPP05_SettlementItems { get; set; }
-        public virtual DbSet<VPP06_SettlementCharge> VPP06_SettlementCharges { get; set; }
-        public virtual DbSet<VPP07_SettlementAllocation> VPP07_SettlementAllocations { get; set; }
+        public virtual DbSet<VppPeriod> Periods { get; set; }
+        public virtual DbSet<VppRequest> Requests { get; set; }
+        public virtual DbSet<VppRequestDetail> RequestDetails { get; set; }
+        public virtual DbSet<RequestLog> RequestLogs { get; set; }
+        public virtual DbSet<Settlement> Settlements { get; set; }
+        public virtual DbSet<SettlementItem> SettlementItems { get; set; }
+        public virtual DbSet<SettlementCharge> SettlementCharges { get; set; }
+        public virtual DbSet<SettlementAllocation> SettlementAllocations { get; set; }
         #endregion
 
-        public virtual DbSet<N01_Notification> N01_Notifications { get; set; }
-        public virtual DbSet<N02_EmailOutbox> N02_EmailOutbox { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<EmailOutboxMessage> EmailOutboxMessages { get; set; }
 
         public VPPMigrationDbContext(DbContextOptions<VPPMigrationDbContext> options) : base(options)
         {
@@ -56,41 +56,53 @@ namespace gtas_vpp_be.Model
         {
             base.OnModelCreating(modelBuilder);
             ConfigureTrustedAccess(modelBuilder);
-            modelBuilder.Entity<P05_PageComponentMapping>(en =>
+            modelBuilder.Entity<PageComponentMapping>(en =>
             {
                 en.HasKey(x => x.Id);
-                en.HasOne(x => x.P03_Component).WithMany(x => x.P05_PageComponentMappings).OnDelete(DeleteBehavior.Restrict);
-                en.HasOne(x => x.P01_Page).WithMany(x => x.P05_PageComponentMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.PermissionComponent).WithMany(x => x.PageComponentMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.PermissionPage).WithMany(x => x.PageComponentMappings).OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<P04_UserGroup>(en =>
+            modelBuilder.Entity<UserGroupMembership>(en =>
             {
-                en.HasOne(x => x.P02_Group).WithMany(x => x.P04_UserGroups).OnDelete(DeleteBehavior.Restrict);
-                en.HasOne(x => x.LEX02_CompanyDepartmentLocation).WithMany(x => x.P04_UserGroups).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.PermissionGroup).WithMany(x => x.UserGroupMemberships).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.Department).WithMany(x => x.UserGroupMemberships).OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<P06_GroupPageComponentMapping>(en =>
+            modelBuilder.Entity<Department>(en =>
             {
-                en.HasKey(x => new { x.P02_GroupId, x.P05_PageComponentMappingId, x.MemberCompanyCode });
-                en.HasOne(x => x.P05_PageComponentMapping).WithMany(x => x.P06_GroupPageComponentMappings).OnDelete(DeleteBehavior.Restrict);
-                en.HasOne(x => x.P02_Group).WithMany(x => x.P06_GroupPageComponentMapping).OnDelete(DeleteBehavior.Restrict);
-            });
-            modelBuilder.Entity<L02_ClassDetail>(en =>
-            {
-                en.HasOne(x => x.Class).WithMany(x => x.L02_ClassDetails).OnDelete(DeleteBehavior.Restrict);
-            });
-            modelBuilder.Entity<L04_VPP>(en =>
-            {
-                en.Property(x => x.VPPCode).HasMaxLength(64).IsRequired();
-                en.Property(x => x.VPPName).HasMaxLength(250).IsRequired();
-                en.HasIndex(x => x.VPPCode)
-                    .HasDatabaseName("UX_L04_VPP_VPPCode")
+                en.Property(x => x.Code).HasMaxLength(50).IsRequired();
+                en.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                en.HasOne(x => x.ParentDepartment).WithMany(x => x.ChildDepartments)
+                    .HasForeignKey(x => x.ParentDepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => x.Code)
+                    .HasDatabaseName("UX_Departments_Code_Active")
+                    .HasFilter("[IsDeleted] = 0")
                     .IsUnique();
-                en.HasIndex(x => new { x.IsDeleted, x.VPPCategoryId, x.VPPCode })
-                    .HasDatabaseName("IX_L04_VPP_Active_Category_Code")
-                    .IncludeProperties(x => new { x.VPPName, x.UOMId });
-                en.HasOne(x => x.UOM).WithMany(x => x.VPPs_UOM).OnDelete(DeleteBehavior.Restrict);
-                en.HasOne(x => x.VPPCategory).WithMany(x => x.VPPs).OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<L06_VPPSupplierMapping>(en =>
+            modelBuilder.Entity<GroupPageComponentMapping>(en =>
+            {
+                en.HasKey(x => new { x.PermissionGroupId, x.PageComponentMappingId, x.MemberCompanyCode });
+                en.HasOne(x => x.PageComponentMapping).WithMany(x => x.GroupPageComponentMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.PermissionGroup).WithMany(x => x.GroupPageComponentMappings).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<LookupValue>(en =>
+            {
+                en.HasOne(x => x.Category).WithMany(x => x.LookupValues).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<VppItem>(en =>
+            {
+                en.Property(x => x.VppCode).HasMaxLength(64).IsRequired();
+                en.Property(x => x.VppName).HasMaxLength(250).IsRequired();
+                en.HasIndex(x => x.VppCode)
+                    .HasDatabaseName("UX_VppItems_VppCode")
+                    .IsUnique();
+                en.HasIndex(x => new { x.IsDeleted, x.VppCategoryId, x.VppCode })
+                    .HasDatabaseName("IX_VppItems_ActiveCategoryCode")
+                    .IncludeProperties(x => new { x.VppName, x.UomId });
+                en.HasOne(x => x.Uom).WithMany(x => x.VppItemsByUom).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.VppCategory).WithMany(x => x.VppItems).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<SupplierProductMapping>(en =>
             {
                 en.Property(x => x.Price).HasColumnType("decimal(19,4)");
                 en.Property(x => x.NetPrice).HasColumnType("decimal(19,4)");
@@ -98,23 +110,23 @@ namespace gtas_vpp_be.Model
                 en.Property(x => x.MinimumOrderQuantity).HasColumnType("decimal(19,4)");
                 en.Property(x => x.SupplierSku).HasMaxLength(128);
                 en.Property(x => x.RowVersion).IsRowVersion();
-                en.HasOne(x => x.L04_VPP).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
-                en.HasOne(x => x.L05_VPPSupplier).WithMany(x => x.L06_VPPSupplierMappings).OnDelete(DeleteBehavior.Restrict);
-                en.HasOne(x => x.L07_PriceList).WithMany(x => x.L06_VPPSupplierMappings)
-                    .HasForeignKey(x => x.L07_PriceListId).OnDelete(DeleteBehavior.Restrict);
-                en.HasIndex(x => new { x.L07_PriceListId, x.L04_VPPId })
-                    .HasDatabaseName("UX_L06_OneDefaultPerVPPPerList")
+                en.HasOne(x => x.VppItem).WithMany(x => x.SupplierProductMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.Supplier).WithMany(x => x.SupplierProductMappings).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.PriceList).WithMany(x => x.SupplierProductMappings)
+                    .HasForeignKey(x => x.PriceListId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.PriceListId, x.VppItemId })
+                    .HasDatabaseName("UX_SupplierProductMappings_OneDefaultPerItemAndList")
                     .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
                     .IsUnique();
-                en.HasIndex(x => new { x.L07_PriceListId, x.L04_VPPId, x.IsDeleted })
-                    .HasDatabaseName("IX_L06_PriceBookItem_Resolve")
+                en.HasIndex(x => new { x.PriceListId, x.VppItemId, x.IsDeleted })
+                    .HasDatabaseName("IX_SupplierProductMappings_PriceResolution")
                     .IncludeProperties(x => new { x.NetPrice, x.VatRate, x.MinimumOrderQuantity, x.LeadTimeDays });
-                en.ToTable(t => t.HasCheckConstraint("CK_L06_Price_NonNegative", "[NetPrice] >= 0"));
-                en.ToTable(t => t.HasCheckConstraint("CK_L06_VatRate_Range", "[VatRate] >= 0 AND [VatRate] <= 100"));
-                en.ToTable(t => t.HasCheckConstraint("CK_L06_Moq_NonNegative", "[MinimumOrderQuantity] >= 0"));
-                en.ToTable(t => t.HasCheckConstraint("CK_L06_LeadTime_NonNegative", "[LeadTimeDays] >= 0"));
+                en.ToTable(t => t.HasCheckConstraint("CK_SupplierProductMappings_NetPriceNonNegative", "[NetPrice] >= 0"));
+                en.ToTable(t => t.HasCheckConstraint("CK_SupplierProductMappings_VatRateRange", "[VatRate] >= 0 AND [VatRate] <= 100"));
+                en.ToTable(t => t.HasCheckConstraint("CK_SupplierProductMappings_MinimumOrderQuantityNonNegative", "[MinimumOrderQuantity] >= 0"));
+                en.ToTable(t => t.HasCheckConstraint("CK_SupplierProductMappings_LeadTimeDaysNonNegative", "[LeadTimeDays] >= 0"));
             });
-            modelBuilder.Entity<L07_PriceList>(en =>
+            modelBuilder.Entity<PriceList>(en =>
             {
                 en.Property(x => x.PriceListCode).HasMaxLength(50);
                 en.Property(x => x.PriceListName).HasMaxLength(200);
@@ -129,100 +141,105 @@ namespace gtas_vpp_be.Model
                 en.Property(x => x.StatusReason).HasMaxLength(500);
                 en.Property(x => x.Status).HasConversion<int>().IsRequired();
                 en.Property(x => x.RowVersion).IsRowVersion();
-                en.HasOne(x => x.Supplier).WithMany(x => x.PriceBooks)
+                en.HasOne(x => x.Supplier).WithMany(x => x.PriceLists)
                     .HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
                 en.HasIndex(x => x.IsDefault)
-                    .HasDatabaseName("UX_L07_OneDefault")
+                    .HasDatabaseName("UX_PriceLists_OneDefault")
                     .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
                     .IsUnique();
                 en.HasIndex(x => new { x.SupplierId, x.PriceListCode, x.Version })
-                    .HasDatabaseName("UX_L07_PriceBook_Supplier_Version")
+                    .HasDatabaseName("UX_PriceLists_SupplierCodeVersion")
                     .HasFilter("[IsDeleted] = 0 AND [SupplierId] IS NOT NULL AND [PriceListCode] IS NOT NULL")
                     .IsUnique();
                 en.HasIndex(x => new { x.SupplierId, x.Status, x.EffectiveFromUtc, x.EffectiveToUtc })
-                    .HasDatabaseName("IX_L07_PriceBook_Effective");
+                    .HasDatabaseName("IX_PriceLists_Effective");
                 en.ToTable(t => t.HasCheckConstraint(
-                    "CK_L07_PriceBook_EffectiveWindow",
+                    "CK_PriceLists_EffectiveWindow",
                     "[EffectiveToUtc] IS NULL OR [EffectiveToUtc] > [EffectiveFromUtc]"));
                 en.ToTable(t => t.HasCheckConstraint(
-                    "CK_L07_PriceBook_VersionPositive",
+                    "CK_PriceLists_VersionPositive",
                     "[Version] > 0"));
                 en.ToTable(t => t.HasCheckConstraint(
-                    "CK_L07_PriceBook_DiscountRate",
+                    "CK_PriceLists_DiscountRateRange",
                     "[DiscountRate] >= 0 AND [DiscountRate] <= 100"));
                 en.ToTable(t => t.HasCheckConstraint(
-                    "CK_L07_PriceBook_CommercialAmounts",
+                    "CK_PriceLists_CommercialAmountsNonNegative",
                     "[RebateAmount] >= 0 AND [FeeAmount] >= 0 AND [ShippingAmount] >= 0"));
             });
-            modelBuilder.Entity<VPP02_RequestDetail>(en =>
+            modelBuilder.Entity<VppRequestDetail>(en =>
             {
-                en.HasOne(x => x.VPP01_RequestHeader).WithMany(x => x.VPP02_RequestDetails).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.Request).WithMany(x => x.RequestDetails)
+                    .HasForeignKey(x => x.RequestId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.VppItem).WithMany()
+                    .HasForeignKey(x => x.VppId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<VPP00_Period>(en =>
+            modelBuilder.Entity<VppPeriod>(en =>
             {
                 en.Property(x => x.MemberCompanyCode).HasMaxLength(50).IsRequired();
                 en.Property(x => x.TimeZoneId).HasMaxLength(64).IsRequired();
                 en.Property(x => x.State).HasConversion<int>().IsRequired();
                 en.Property(x => x.RowVersion).IsRowVersion();
-                en.HasIndex(x => new { x.MemberCompanyCode, x.Y, x.M })
-                    .HasDatabaseName("UX_VPP00_Period_Company_Year_Month_Active")
+                en.HasIndex(x => new { x.MemberCompanyCode, x.Year, x.Month })
+                    .HasDatabaseName("UX_Periods_Company_Year_Month_Active")
                     .HasFilter("[IsDeleted] = 0")
                     .IsUnique();
                 en.HasIndex(x => new { x.MemberCompanyCode, x.State, x.SubmissionDeadlineUtc })
-                    .HasDatabaseName("IX_VPP00_Period_Company_State_Deadline");
+                    .HasDatabaseName("IX_Periods_CompanyStateDeadline");
                 en.ToTable(table => table.HasCheckConstraint(
-                    "CK_VPP00_Period_ValidRange",
-                    "[Y] BETWEEN 1 AND 9999 AND [M] BETWEEN 1 AND 12 " +
+                    "CK_Periods_ValidRange",
+                    "[Year] BETWEEN 1 AND 9999 AND [Month] BETWEEN 1 AND 12 " +
                     "AND [SubmissionDeadlineUtc] > [StartAtUtc] " +
                     "AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] " +
                     "AND [State] IN (0, 1, 2, 3)"));
-                en.HasMany(x => x.RequestHeaders)
+                en.HasMany(x => x.Requests)
                     .WithOne(x => x.Period)
                     .HasForeignKey(x => x.PeriodId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<VPP01_RequestHeader>(en =>
+            modelBuilder.Entity<VppRequest>(en =>
             {
-                en.Property(x => x.VPPCode).HasMaxLength(64);
+                en.Property(x => x.VppCode).HasMaxLength(64);
                 en.Property(x => x.RejectReason).HasMaxLength(500);
                 en.Property(x => x.CancelReason).HasMaxLength(500);
                 en.Property(x => x.SupplementReason).HasMaxLength(500);
                 en.Property(x => x.IdempotencyKey).HasMaxLength(128);
                 en.Property(x => x.CommandPayloadHash).HasMaxLength(64);
                 en.Property(x => x.RowVersion).IsRowVersion();
-                en.HasIndex(x => new { x.CreateUserId, x.Y, x.M, x.IsDeleted, x.IsAdditionalOrder, x.Status })
-                    .HasDatabaseName("IX_VPP01_RequestHeader_User_Period_Status");
-                en.HasIndex(x => new { x.Y, x.M, x.IsDeleted, x.Status, x.IsAdditionalOrder })
-                    .HasDatabaseName("IX_VPP01_RequestHeader_Period_Status");
-                en.HasIndex(x => new { x.CreateUserId, x.PeriodId })
-                    .HasDatabaseName("UX_VPP01_OneRegularPerUserPeriod")
+                en.HasIndex(x => new { x.CreatedByUserId, x.Year, x.Month, x.IsDeleted, x.IsAdditionalOrder, x.Status })
+                    .HasDatabaseName("IX_Requests_UserPeriodStatus");
+                en.HasIndex(x => new { x.Year, x.Month, x.IsDeleted, x.Status, x.IsAdditionalOrder })
+                    .HasDatabaseName("IX_Requests_PeriodStatus");
+                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId })
+                    .HasDatabaseName("UX_Requests_OneRegularPerUserPeriod")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 0")
                     .IsUnique();
                 en.HasIndex(x => x.RequestSeriesId)
-                    .HasDatabaseName("UX_VPP01_CurrentRevisionSeries")
+                    .HasDatabaseName("UX_Requests_CurrentRevisionSeries")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1")
                     .IsUnique();
-                en.HasIndex(x => new { x.CreateUserId, x.PeriodId, x.BaseRequestSeriesId })
-                    .HasDatabaseName("UX_VPP01_OnePendingSupplement")
+                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId, x.BaseRequestSeriesId })
+                    .HasDatabaseName("UX_Requests_OnePendingSupplement")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [Status] = 6")
                     .IsUnique();
-                en.HasIndex(x => new { x.CreateUserId, x.PeriodId, x.BaseRequestSeriesId, x.SupplementAttemptNumber })
-                    .HasDatabaseName("UX_VPP01_SupplementAttempt")
+                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId, x.BaseRequestSeriesId, x.SupplementAttemptNumber })
+                    .HasDatabaseName("UX_Requests_SupplementAttempt")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [SupplementAttemptNumber] IS NOT NULL")
                     .IsUnique();
-                en.HasIndex(x => new { x.CreateUserId, x.IdempotencyKey })
-                    .HasDatabaseName("UX_VPP01_IdempotencyKey")
+                en.HasIndex(x => new { x.CreatedByUserId, x.IdempotencyKey })
+                    .HasDatabaseName("UX_Requests_IdempotencyKey")
                     .HasFilter("[IsDeleted] = 0 AND [IdempotencyKey] IS NOT NULL")
                     .IsUnique();
-                en.HasIndex(x => x.VPPCode)
-                    .HasDatabaseName("UX_VPP01_VPPCode")
-                    .HasFilter("[VPPCode] IS NOT NULL")
+                en.HasIndex(x => x.VppCode)
+                    .HasDatabaseName("UX_Requests_VppCode")
+                    .HasFilter("[VppCode] IS NOT NULL")
                     .IsUnique();
                 en.HasOne(x => x.SettledByPriceList).WithMany()
                     .HasForeignKey(x => x.SettledByPriceListId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
-            modelBuilder.Entity<VPP03_Log>(en =>
+            modelBuilder.Entity<RequestLog>(en =>
             {
                 en.HasKey(x => x.Id);
 
@@ -233,24 +250,24 @@ namespace gtas_vpp_be.Model
                 en.Property(x => x.CorrelationId).HasMaxLength(128);
                 en.Property(x => x.Reason).HasMaxLength(500);
 
-                en.HasOne(x => x.VPP01_RequestHeader)
-                      .WithMany(x => x.VPP03_Logs)
-                      .HasForeignKey(x => x.VPP01_RequestHeaderId)
+                en.HasOne(x => x.Request)
+                      .WithMany(x => x.RequestLogs)
+                      .HasForeignKey(x => x.RequestId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.ConfigureSettlementSnapshots();
-            modelBuilder.Entity<N01_Notification>(en =>
+            modelBuilder.Entity<Notification>(en =>
             {
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.ReadAt, x.CreatedAt })
-                    .HasDatabaseName("IX_N01_User_Company_Read_Created");
+                    .HasDatabaseName("IX_Notifications_UserCompanyReadCreated");
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.CorrelationId })
-                    .HasDatabaseName("IX_N01_User_Company_Correlation");
+                    .HasDatabaseName("IX_Notifications_UserCompanyCorrelation");
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.Type, x.CorrelationId })
-                    .HasDatabaseName("UX_N01_User_Company_Type_Correlation")
+                    .HasDatabaseName("UX_Notifications_UserCompanyTypeCorrelation")
                     .HasFilter("[CorrelationId] IS NOT NULL")
                     .IsUnique();
             });
-            modelBuilder.Entity<N02_EmailOutbox>(en =>
+            modelBuilder.Entity<EmailOutboxMessage>(en =>
             {
                 en.Property(x => x.MemberCompanyCode).HasMaxLength(50).IsRequired();
                 en.Property(x => x.Recipient).HasMaxLength(320).IsRequired();
@@ -259,10 +276,10 @@ namespace gtas_vpp_be.Model
                 en.Property(x => x.Status).HasMaxLength(24).IsRequired();
                 en.Property(x => x.LastError).HasMaxLength(1000);
                 en.HasIndex(x => x.DeduplicationKey)
-                    .HasDatabaseName("UX_N02_EmailOutbox_DeduplicationKey")
+                    .HasDatabaseName("UX_EmailOutboxMessages_DeduplicationKey")
                     .IsUnique();
                 en.HasIndex(x => new { x.Status, x.NextAttemptAtUtc })
-                    .HasDatabaseName("IX_N02_EmailOutbox_Due");
+                    .HasDatabaseName("IX_EmailOutboxMessages_Due");
             });
         }
 
@@ -285,15 +302,15 @@ namespace gtas_vpp_be.Model
                     .HasFilter("[EmployeeCode] IS NOT NULL")
                     .IsUnique();
             });
-            modelBuilder.Entity<P02_Group>(en =>
+            modelBuilder.Entity<PermissionGroup>(en =>
             {
                 en.Property(x => x.GroupCode).HasMaxLength(50);
                 en.HasIndex(x => x.GroupCode)
-                    .HasDatabaseName("UX_P02_Group_GroupCode_Active")
+                    .HasDatabaseName("UX_PermissionGroups_GroupCode_Active")
                     .HasFilter("[IsDeleted] = 0")
                     .IsUnique();
             });
-            modelBuilder.Entity<P04_UserGroup>(en =>
+            modelBuilder.Entity<UserGroupMembership>(en =>
             {
                 en.Property(x => x.RowVersion).IsRowVersion();
                 en.HasOne<AppUser>()
@@ -301,23 +318,23 @@ namespace gtas_vpp_be.Model
                     .HasForeignKey(x => x.AccountId)
                     .OnDelete(DeleteBehavior.Restrict);
                 en.HasIndex(x => x.AccountId)
-                    .HasDatabaseName("UX_P04_UserGroup_OneActivePerUser")
+                    .HasDatabaseName("UX_UserGroupMemberships_OneActivePerUser")
                     .HasFilter("[IsDeleted] = 0 AND [AccountId] IS NOT NULL")
                     .IsUnique();
                 en.ToTable(table => table.HasCheckConstraint(
-                    "CK_P04_UserGroup_ActivePrimaryDepartment",
-                    "[IsDeleted] = 1 OR ([AccountId] IS NOT NULL AND [UserId] = [AccountId] AND [LEX02_CompanyDepartmentLocationId] <> '00000000-0000-0000-0000-000000000000')"));
+                    "CK_UserGroupMemberships_ActivePrimaryDepartment",
+                    "[IsDeleted] = 1 OR ([AccountId] IS NOT NULL AND [UserId] = [AccountId] AND [DepartmentId] <> '00000000-0000-0000-0000-000000000000')"));
             });
-            modelBuilder.Entity<A01_SecurityAudit>(en =>
+            modelBuilder.Entity<SecurityAudit>(en =>
             {
                 en.Property(x => x.Id).HasDefaultValueSql("NEWID()");
                 en.Property(x => x.OccurredAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
                 en.HasIndex(x => new { x.TargetUserId, x.OccurredAtUtc })
-                    .HasDatabaseName("IX_A01_Target_Occurred");
+                    .HasDatabaseName("IX_SecurityAudits_TargetOccurredAt");
                 en.HasIndex(x => new { x.Action, x.OccurredAtUtc })
-                    .HasDatabaseName("IX_A01_Action_Occurred");
+                    .HasDatabaseName("IX_SecurityAudits_ActionOccurredAt");
             });
-            modelBuilder.Entity<A02_AuthBootstrapOperation>(en =>
+            modelBuilder.Entity<AuthBootstrapOperation>(en =>
             {
                 en.Property(x => x.OperationKey).HasMaxLength(128);
                 en.Property(x => x.InputFingerprint).HasMaxLength(64);

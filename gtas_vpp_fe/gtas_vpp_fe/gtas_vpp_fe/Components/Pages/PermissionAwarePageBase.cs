@@ -122,7 +122,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
     {
     }
 
-    protected virtual void ApplyPagePermission(sp_Authentication_GetPermissionSinglePage permission)
+    protected virtual void ApplyPagePermission(PagePermissionResDTO permission)
     {
     }
 

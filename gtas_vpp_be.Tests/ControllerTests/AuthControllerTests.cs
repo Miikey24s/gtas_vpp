@@ -16,7 +16,7 @@ public sealed class AuthControllerTests
     [Fact]
     public async Task Login_ValidCredentials_ReturnsTypedLoginResponse()
     {
-        var expected = new sp_Authentication_Login
+        var expected = new AuthenticationResultDTO
         {
             UserID = 1_000_000_000,
             UserLogin = "tester",
@@ -50,7 +50,7 @@ public sealed class AuthControllerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((sp_Authentication_Login?)null);
+            .ReturnsAsync((AuthenticationResultDTO?)null);
         var controller = CreateController(authentication.Object);
 
         var result = await controller.Login(

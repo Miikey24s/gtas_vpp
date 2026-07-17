@@ -85,7 +85,7 @@ namespace gtas_vpp_be.Service.Domain
         /// <summary>Returns true once the regular submission deadline has passed for the supplied period.</summary>
         public bool IsDeadlinePassed(System.DateTime now, Period period)
         {
-            // Regular orders for period (Y, M) close at the start of day _deadlineDay
+            // Regular orders for period (Year, Month) close at the start of day _deadlineDay
             // of the FOLLOWING month (so that the entire month N can submit during
             // days 1..(deadlineDay-1) of month N+1).
             var deadline = new System.DateTime(period.Year, period.Month, 1)
@@ -159,7 +159,7 @@ namespace gtas_vpp_be.Service.Domain
             => now.Kind == System.DateTimeKind.Utc ? now : ToUtc(now);
     }
 
-    /// <summary>Calendar period (year + month) — inclusive of M.</summary>
+    /// <summary>Calendar period (year + month) — inclusive of Month.</summary>
     public readonly record struct Period(int Year, int Month)
     {
         public override string ToString() => $"{Year:D4}-{Month:D2}";

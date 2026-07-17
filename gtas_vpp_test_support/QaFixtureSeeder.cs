@@ -97,22 +97,21 @@ internal static class QaFixtureSeeder
         string name,
         CancellationToken cancellationToken)
     {
-        var department = await context.LEX02_CompanyDepartmentLocations
+        var department = await context.Departments
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (department is null)
         {
-            department = new LEX02_CompanyDepartmentLocation { Id = id };
-            context.LEX02_CompanyDepartmentLocations.Add(department);
+            department = new Department { Id = id };
+            context.Departments.Add(department);
         }
 
-        department.LEX02Code = code;
-        department.LEX02Name = name;
-        department.LEX02Type = "PhongBan";
+        department.Code = code;
+        department.Name = name;
         department.Description = "QA-001 deterministic scope fixture";
-        department.CreateUserId = SeedUserId;
-        department.CreateDate = SeedTimestamp;
-        department.UpdateUserId = SeedUserId;
-        department.UpdateDate = SeedTimestamp;
+        department.CreatedByUserId = SeedUserId;
+        department.CreatedAtUtc = SeedTimestamp;
+        department.UpdatedByUserId = SeedUserId;
+        department.UpdatedAtUtc = SeedTimestamp;
         department.IsDeleted = false;
     }
 
@@ -121,7 +120,7 @@ internal static class QaFixtureSeeder
         CancellationToken cancellationToken)
     {
         var personaIds = CanonicalRbac.Personas.Select(persona => persona.GroupId).ToArray();
-        var groups = await context.P02_Groups
+        var groups = await context.PermissionGroups
             .AsNoTracking()
             .Where(group => personaIds.Contains(group.Id) && !group.IsDeleted)
             .ToListAsync(cancellationToken);
@@ -255,30 +254,30 @@ internal static class QaFixtureSeeder
                 _ => CanonicalRbac.Employee.GroupId
             };
             var mappingId = UserGroupMappingIds[account.UserId];
-            var mapping = await context.P04_UserGroups
+            var mapping = await context.UserGroupMemberships
                 .SingleOrDefaultAsync(x => x.Id == mappingId, cancellationToken);
             if (mapping is null)
             {
-                mapping = new P04_UserGroup { Id = mappingId, UserId = account.UserId };
-                context.P04_UserGroups.Add(mapping);
+                mapping = new UserGroupMembership { Id = mappingId, UserId = account.UserId };
+                context.UserGroupMemberships.Add(mapping);
             }
 
             mapping.UserId = account.UserId;
             mapping.AccountId = account.UserId;
-            mapping.P02_GroupId = groupId;
-            mapping.LEX02_CompanyDepartmentLocationId = account.DepartmentId;
+            mapping.PermissionGroupId = groupId;
+            mapping.DepartmentId = account.DepartmentId;
             mapping.Description = $"QA-001 {account.Role} account";
-            mapping.CreateUserId = SeedUserId;
-            mapping.CreateDate = SeedTimestamp;
-            mapping.UpdateUserId = SeedUserId;
-            mapping.UpdateDate = SeedTimestamp;
+            mapping.CreatedByUserId = SeedUserId;
+            mapping.CreatedAtUtc = SeedTimestamp;
+            mapping.UpdatedByUserId = SeedUserId;
+            mapping.UpdatedAtUtc = SeedTimestamp;
             mapping.IsDeleted = false;
         }
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private static async Task<VPP00_Period> EnsureCurrentPeriodAsync(
+    private static async Task<VppPeriod> EnsureCurrentPeriodAsync(
         VPPMigrationDbContext context,
         CancellationToken cancellationToken)
     {
@@ -290,23 +289,23 @@ internal static class QaFixtureSeeder
         var year = businessPeriod.Year;
         var month = businessPeriod.Month;
         var companyCode = QaTestData.CompanyCode.ToString();
-        var period = await context.VPP00_Periods.SingleOrDefaultAsync(
+        var period = await context.Periods.SingleOrDefaultAsync(
             x => x.MemberCompanyCode == companyCode
-                 && x.Y == year
-                 && x.M == month
+                 && x.Year == year
+                 && x.Month == month
                  && !x.IsDeleted,
             cancellationToken);
 
         if (period is null)
         {
-            period = new VPP00_Period { Id = QaTestData.CurrentPeriodId };
-            context.VPP00_Periods.Add(period);
+            period = new VppPeriod { Id = QaTestData.CurrentPeriodId };
+            context.Periods.Add(period);
         }
 
         period.MemberCompanyCode = companyCode;
         period.TimeZoneId = "Asia/Ho_Chi_Minh";
-        period.Y = year;
-        period.M = month;
+        period.Year = year;
+        period.Month = month;
         period.StartAtUtc = calculator.StartAtUtc(businessPeriod);
         period.SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(businessPeriod);
         period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
@@ -317,10 +316,10 @@ internal static class QaFixtureSeeder
         period.LastTransitionAtUtc = null;
         period.LastTransitionReason = null;
         period.Description = "QA-001 deterministic current VPP period";
-        period.CreateUserId = SeedUserId;
-        period.CreateDate = SeedTimestamp;
-        period.UpdateUserId = SeedUserId;
-        period.UpdateDate = SeedTimestamp;
+        period.CreatedByUserId = SeedUserId;
+        period.CreatedAtUtc = SeedTimestamp;
+        period.UpdatedByUserId = SeedUserId;
+        period.UpdatedAtUtc = SeedTimestamp;
         period.IsDeleted = false;
 
         await context.SaveChangesAsync(cancellationToken);
@@ -330,16 +329,16 @@ internal static class QaFixtureSeeder
     private static async Task EnsureScopeRequestsAsync(
         VPPMigrationDbContext context,
         QaTestAccounts accounts,
-        VPP00_Period period,
+        VppPeriod period,
         CancellationToken cancellationToken)
     {
-        var product = await context.L04_VPPs
+        var product = await context.VppItems
             .Where(x => !x.IsDeleted)
             .OrderBy(x => x.Id)
             .Select(x => new { x.Id })
             .FirstAsync(cancellationToken);
-        var price = await context.L06_VPPSupplierMappings
-            .Where(x => x.L04_VPPId == product.Id && x.IsDefault && !x.IsDeleted)
+        var price = await context.SupplierProductMappings
+            .Where(x => x.VppItemId == product.Id && x.IsDefault && !x.IsDeleted)
             .Select(x => (long?)x.Price)
             .FirstOrDefaultAsync(cancellationToken) ?? 25_000L;
 
@@ -347,17 +346,17 @@ internal static class QaFixtureSeeder
         {
             new RequestDefinition(
                 QaTestData.OwnRequestId,
-                $"QA-OWN-{period.Y:D4}{period.M:D2}",
+                $"QA-OWN-{period.Year:D4}{period.Month:D2}",
                 accounts.Employee,
                 1),
             new RequestDefinition(
                 QaTestData.DepartmentPeerRequestId,
-                $"QA-DEPT-{period.Y:D4}{period.M:D2}",
+                $"QA-DEPT-{period.Year:D4}{period.Month:D2}",
                 accounts.DepartmentPeer,
                 2),
             new RequestDefinition(
                 QaTestData.CompanyOtherDepartmentRequestId,
-                $"QA-COMPANY-{period.Y:D4}{period.M:D2}",
+                $"QA-COMPANY-{period.Year:D4}{period.Month:D2}",
                 accounts.OtherDepartmentEmployee,
                 3)
         };
@@ -365,17 +364,17 @@ internal static class QaFixtureSeeder
 
         foreach (var definition in definitions)
         {
-            var header = await context.VPP01_RequestHeaders
+            var header = await context.Requests
                 .SingleOrDefaultAsync(x => x.Id == definition.Id, cancellationToken);
             if (header is null)
             {
-                header = new VPP01_RequestHeader { Id = definition.Id };
-                context.VPP01_RequestHeaders.Add(header);
+                header = new VppRequest { Id = definition.Id };
+                context.Requests.Add(header);
             }
 
-            header.VPPCode = definition.Code;
-            header.Y = period.Y;
-            header.M = period.M;
+            header.VppCode = definition.Code;
+            header.Year = period.Year;
+            header.Month = period.Month;
             header.PeriodId = period.Id;
             header.RequestSeriesId = definition.Id;
             header.RevisionNumber = 1;
@@ -398,30 +397,30 @@ internal static class QaFixtureSeeder
             header.IdempotencyKey = null;
             header.CommandPayloadHash = null;
             header.Description = "QA-001 deterministic own/department/company scope data";
-            header.CreateUserId = definition.Owner.UserId;
-            header.CreateDate = requestTimestamp;
-            header.UpdateUserId = definition.Owner.UserId;
-            header.UpdateDate = requestTimestamp;
+            header.CreatedByUserId = definition.Owner.UserId;
+            header.CreatedAtUtc = requestTimestamp;
+            header.UpdatedByUserId = definition.Owner.UserId;
+            header.UpdatedAtUtc = requestTimestamp;
             header.IsDeleted = false;
 
             var detailId = RequestDetailIds[definition.Id];
-            var detail = await context.VPP02_RequestDetail
+            var detail = await context.RequestDetails
                 .SingleOrDefaultAsync(x => x.Id == detailId, cancellationToken);
             if (detail is null)
             {
-                detail = new VPP02_RequestDetail { Id = detailId };
-                context.VPP02_RequestDetail.Add(detail);
+                detail = new VppRequestDetail { Id = detailId };
+                context.RequestDetails.Add(detail);
             }
 
-            detail.VPPId = product.Id;
+            detail.VppId = product.Id;
             detail.Qty = definition.Quantity;
             detail.CurrentSinglePrice = price;
-            detail.VPP01_RequestHeaderId = definition.Id;
+            detail.RequestId = definition.Id;
             detail.Description = "QA-001 deterministic request line";
-            detail.CreateUserId = definition.Owner.UserId;
-            detail.CreateDate = requestTimestamp;
-            detail.UpdateUserId = definition.Owner.UserId;
-            detail.UpdateDate = requestTimestamp;
+            detail.CreatedByUserId = definition.Owner.UserId;
+            detail.CreatedAtUtc = requestTimestamp;
+            detail.UpdatedByUserId = definition.Owner.UserId;
+            detail.UpdatedAtUtc = requestTimestamp;
             detail.IsDeleted = false;
         }
 
