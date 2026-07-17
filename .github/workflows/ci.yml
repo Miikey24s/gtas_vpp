@@ -74,8 +74,8 @@ jobs:
 
       - name: Check EF migration model
         run: |
-          dotnet tool install --global dotnet-ef --version 10.0.9
-          dotnet ef migrations has-pending-model-changes \
+          dotnet tool restore
+          dotnet tool run dotnet-ef migrations has-pending-model-changes \
             --project gtas_vpp_be/gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj \
             --startup-project gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
             --context VPPMigrationDbContext \
