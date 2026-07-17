@@ -16,6 +16,13 @@
   <data name="Login" xml:space="preserve"><value>Đăng nhập</value></data>
   <data name="LoginUsernameRequired" xml:space="preserve"><value>Vui lòng nhập tên đăng nhập.</value></data>
   <data name="LoginPasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu.</value></data>
+  <data name="LoginError" xml:space="preserve"><value>Không thể đăng nhập</value></data>
+  <data name="LoginInvalidCredentials" xml:space="preserve"><value>Tên đăng nhập hoặc mật khẩu không hợp lệ.</value></data>
+  <data name="LoginRequestInvalid" xml:space="preserve"><value>Thông tin đăng nhập chưa hợp lệ. Vui lòng kiểm tra lại.</value></data>
+  <data name="LoginRateLimited" xml:space="preserve"><value>Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ một lúc rồi thử lại.</value></data>
+  <data name="LoginTimeout" xml:space="preserve"><value>Yêu cầu đăng nhập mất quá nhiều thời gian. Vui lòng thử lại.</value></data>
+  <data name="LoginUnavailable" xml:space="preserve"><value>Chưa thể kết nối tới hệ thống đăng nhập. Vui lòng thử lại sau.</value></data>
+  <data name="LoginRequestFailed" xml:space="preserve"><value>Hệ thống chưa thể xử lý yêu cầu đăng nhập. Vui lòng thử lại.</value></data>
   <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
   <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
   <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
@@ -373,6 +380,9 @@
   <data name="MarkAllNotificationsRead" xml:space="preserve"><value>Đánh dấu đã đọc</value></data>
   <data name="NoNotifications" xml:space="preserve"><value>Chưa có thông báo</value></data>
   <data name="NoNotificationsDescription" xml:space="preserve"><value>Các cập nhật nghiệp vụ mới sẽ xuất hiện tại đây.</value></data>
+  <data name="NotificationLoadFailed" xml:space="preserve"><value>Chưa thể tải thông báo</value></data>
+  <data name="NotificationLoadFailedDescription" xml:space="preserve"><value>Kiểm tra kết nối rồi thử tải lại.</value></data>
+  <data name="NotificationActionFailed" xml:space="preserve"><value>Thao tác với thông báo chưa thành công. Vui lòng thử lại.</value></data>
   <data name="NoReportData" xml:space="preserve"><value>Chưa có dữ liệu báo cáo</value></data>
   <data name="NoReportDataDescription" xml:space="preserve"><value>Hãy đổi phạm vi hoặc kỳ báo cáo rồi thử lại.</value></data>
   <data name="Pricing" xml:space="preserve"><value>Bảng giá</value></data>

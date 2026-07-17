@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
 using Radzen;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Authen
 {
@@ -136,21 +137,31 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var errorMsg = await response.Content.ReadAsStringAsync();
-                    ShowError(errorMsg);
+                    ShowError(LoginFailureMapper.GetMessage(response.StatusCode, ComponentLoc));
                     return null;
                 }
 
-                return await response.Content.ReadFromJsonAsync<sp_Authentication_Login>();
+                var loginData = await response.Content.ReadFromJsonAsync<sp_Authentication_Login>();
+                if (loginData is null)
+                {
+                    ShowError(ComponentLoc["LoginRequestFailed"].Value);
+                }
+
+                return loginData;
             }
             catch (TaskCanceledException)
             {
-                ShowError("Login request timed out. Please verify the API server is running and try again.");
+                ShowError(ComponentLoc["LoginTimeout"].Value);
                 return null;
             }
             catch (HttpRequestException)
             {
-                ShowError("Cannot connect to the authentication API. Verify the API server is running and ApiSettings:BaseUrl is correct, then try again.");
+                ShowError(ComponentLoc["LoginUnavailable"].Value);
+                return null;
+            }
+            catch (JsonException)
+            {
+                ShowError(ComponentLoc["LoginRequestFailed"].Value);
                 return null;
             }
         }
@@ -160,9 +171,8 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
-                Summary = "Login failed",
-                Detail = detail,
-                Duration = 8000
+                Summary = ComponentLoc["LoginError"].Value,
+                Detail = detail
             });
         }
 
