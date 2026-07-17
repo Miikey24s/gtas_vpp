@@ -1,6 +1,7 @@
 # LEAN-07 — Product proof: reports, Excel, inbox and email sandbox
 
-Status: DONE for REPORT-001/002/003 and NOTIF-001/002.
+Status: DONE for REPORT-001/002/003, NOTIF-001/002 and the approved
+NOTIF-003 local SMTP sandbox alternative.
 
 ## Delivered
 
@@ -37,6 +38,9 @@ Status: DONE for REPORT-001/002/003 and NOTIF-001/002.
   `0FC336D7387FF392344C0C05FA250E942A82B37ADD1E90D3184592D1FBF38AE6`.
 - Targeted tests cover settlement-aware report totals, XLSX package sheets,
   notification dedupe and email outbox enqueue/retry/sent transitions.
+- The local SMTP adapter was exercised end-to-end against a loopback capture
+  server; recipient, subject and body were received and asserted. See
+  `docs/execution/NOTIF-003.md`.
 
 ## Recovery and cutline
 

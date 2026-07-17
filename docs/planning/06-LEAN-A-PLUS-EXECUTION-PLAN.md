@@ -106,7 +106,7 @@ waits for source freeze.
 | Original work | 2026-08-15 decision | Reason / retained substitute |
 |---|---|---|
 | REPORT-004 PDF | DEFERRED | Excel is the required business export and better thesis evidence for this release. |
-| WOW-002 favorites/recent, WOW-003 reorder suggestion, WOW-004 heatmap | DEFERRED | Useful but not worth risking auth/settlement/Word. Copy-with-diff (WOW-001), dashboard and UI polish remain. |
+| WOW-001/002/003/004 | DEFERRED as separate release claims | Existing copy-with-diff code may remain, but no showcase acceptance is claimed after source freeze; dashboard and mandatory UI polish remain. |
 | AI-001 | DEFERRED and feature flag stays off | No core decision should depend on AI; avoids provider/privacy/quota work while leaked Google keys are contained. |
 | NOTIF-003 real production provider | ALTERNATIVE: sandbox | Durable inbox and email behavior are proved with Mailpit/local sandbox. Real deliverability is post-thesis. |
 | ARCH-002 mass formatting/analyzer cleanup | REDUCED | Format only touched files; keep `git diff --check`, build and a small CI ratchet. |
