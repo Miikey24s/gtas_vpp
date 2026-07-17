@@ -20,11 +20,17 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Parameters:qa-fixture-run-
         .WithEnvironment("QaFixture__RunId", qaFixtureRunId);
 }
 
-builder.AddProject<Projects.gtas_vpp_fe>("frontend")
+var frontend = builder.AddProject<Projects.gtas_vpp_fe>("frontend")
     .WithReference(api)
     .WaitFor(api)
     .WithEnvironment("ApiSettings__BaseUrl", api.GetEndpoint("https"))
     .WithEnvironment("DOTNET_USE_SHARED_COMPILATION", "false")
     .WithEnvironment("MSBUILDDISABLENODEREUSE", "1");
+
+frontend.WithUrlForEndpoint("https", url =>
+{
+    url.DisplayText = "GTAS Login";
+    url.Url = "/Account/Login";
+});
 
 builder.Build().Run();

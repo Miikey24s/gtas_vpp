@@ -176,7 +176,7 @@ Commands:
   status           Show branch and whether required Aspire secret keys exist.
   init-db          Migrate and seed a TEST/DEMO database; safe to run repeatedly.
   bootstrap-admin  Migrate, ensure one local department, and create the first System Admin once.
-  run              Start backend + frontend through .NET Aspire.
+  run              Start Aspire in watch/Hot Reload mode for local development.
   test             Build and run backend/frontend unit tests.
 
 DatabaseInitialization modes:
@@ -275,8 +275,12 @@ try {
             Write-Host "System Admin bootstrap completed for $databaseName. Use the same OperationKey to verify/re-run safely."
         }
         'run' {
-            & dotnet run --project $AppHostProject
-            if ($LASTEXITCODE -ne 0) { throw "Aspire exited with code $LASTEXITCODE." }
+            Write-Host 'Starting GTAS with dotnet watch (Hot Reload enabled).'
+            Write-Host 'GTAS Login: https://localhost:7009/Account/Login'
+            Write-Host 'The tokenized Aspire Login URL authenticates the infrastructure dashboard, not GTAS users.'
+            Write-Host 'When frontend is Running, open Dashboard > frontend > GTAS Login.'
+            & dotnet watch --project $AppHostProject --launch-profile https --non-interactive
+            if ($LASTEXITCODE -ne 0) { throw "Aspire watch exited with code $LASTEXITCODE." }
         }
         'test' {
             & dotnet build gtas_vpp.sln -c Release

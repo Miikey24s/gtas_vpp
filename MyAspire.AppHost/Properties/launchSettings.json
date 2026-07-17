@@ -26,20 +26,6 @@
         "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "http://localhost:18293",
         "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "http://localhost:20189"
       }
-    },
-    "dotnet-watch": {
-      "commandName": "Executable",
-      "executablePath": "dotnet",
-      "commandLineArgs": "watch run",
-      "workingDirectory": "$(ProjectDir)",
-      "launchBrowser": true,
-      "applicationUrl": "http://localhost:15315",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DOTNET_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:15315",
-        "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
-      }
     }
   }
 

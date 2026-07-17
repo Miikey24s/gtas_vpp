@@ -18,7 +18,7 @@ Chạy từ thư mục gốc repository:
 # 3. Tạo System Admin đầu tiên; script sẽ hỏi thông tin còn thiếu và mật khẩu ẩn
 .\scripts\gtas.cmd bootstrap-admin -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_01;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True" -DepartmentCode IT -DepartmentName "Information Technology"
 
-# 4. Chạy backend và frontend bằng Aspire
+# 4. Chạy backend và frontend bằng Aspire + Hot Reload
 .\scripts\gtas.cmd run
 ```
 
@@ -26,7 +26,9 @@ Chạy từ thư mục gốc repository:
 
 Mật khẩu admin phải có ít nhất 10 ký tự, gồm chữ thường, chữ hoa, số và ký tự đặc biệt. Script sẽ kiểm tra và yêu cầu nhập lại trước khi chạy migration.
 
-Chỉ cần `run`. `init-db` và `bootstrap-admin` có thể chạy lại an toàn: migration/seed idempotent và admin không bị tạo trùng.
+`run` dùng `dotnet watch`: thay đổi hỗ trợ Hot Reload được áp dụng ngay, thay đổi lớn sẽ tự restart AppHost. Trang ứng dụng là `https://localhost:7009/Account/Login`; URL có token `?t=...` chỉ dùng để đăng nhập Aspire Dashboard. Trong Dashboard cũng có link **frontend → GTAS Login**.
+
+Những lần sau chỉ cần `run`. `init-db` và `bootstrap-admin` có thể chạy lại an toàn: migration/seed idempotent và admin không bị tạo trùng.
 
 Các lệnh khác:
 
