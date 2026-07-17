@@ -1,11 +1,12 @@
 # LEAN-09 — Thesis, defense and handoff
 
-Status: DONE via the approved local-only release/handoff alternative; current
-anonymized UI evidence is embedded and the final checkpoint is refreshed from
-the protected working source.
+Status: DONE; production deployment and public health validation completed on
+DigitalOcean. Current anonymized UI evidence is embedded and the final
+checkpoint is refreshed from the protected working source.
 
-Release tag: `lean-a-plus-final-20260717` (created on the final evidence
-commit after the gates below were rechecked).
+Release tag: `lean-a-plus-final-20260717` (evidence checkpoint) and
+`production/gtas-vpp-20260717` (deployed commit; created after the production
+health gate below).
 
 ## Completed safely in this workspace
 
@@ -50,6 +51,13 @@ commit after the gates below were rechecked).
   evidence, not production evidence. After the screenshot-capture change,
   the targeted `ShellResponsiveTests` rerun passed `1/1` in 49.0 seconds with
   `GTAS_E2E_ISOLATED=1`.
+- The release was merged into the repository default/deploy branch `Nam` with
+  merge commit `b681c5565723d7b977a5a4b4963785efbdbb2506`. DigitalOcean run
+  `29553512300` passed verification, pushed both immutable GHCR images, rolled
+  out the release, confirmed both application containers healthy, rechecked
+  key-only SSH access and passed the public boundary check. The public
+  `https://gtas-vpp.annam.id.vn/healthz` endpoint independently returned
+  `200 Healthy` from this workspace.
 - Reviewed the four deployment backup/restore scripts without touching a
   database: Git Bash `-n` syntax validation passed, the backup script rejected
   an unsafe database name, and both restore entry points rejected missing
@@ -60,7 +68,7 @@ commit after the gates below were rechecked).
   probe, post-restore verify and cleanup all passed. The exact evidence and
   backup hash are recorded in `docs/execution/DEP-002.md`.
 - Final source recheck after the recovery evidence passed: solution Release
-  build `0 warnings / 0 errors`, backend Release `384/384`, and frontend
+  build `0 warnings / 0 errors`, backend Release `385/385`, and frontend
   Release `96/96`.
 
 ## Explicit handoff boundaries
@@ -72,6 +80,7 @@ commit after the gates below were rechecked).
   persona-correct screenshots from the isolated fixture. They document the
   local QA state only; they are not production/provider evidence.
 - A deployed/server backup, off-host copy and production restore remain an
-  owner-controlled conditional boundary; no production/provider mutation, real
-  email delivery, or credential handoff was performed. The local-only
-  alternative is the release evidence used here.
+  owner-controlled conditional boundary; the deployment itself was validated,
+  but no production database restore or real-provider email delivery was
+  claimed. Credentials remained in GitHub/host secret stores and were not
+  handed off.
