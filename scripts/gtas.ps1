@@ -57,6 +57,41 @@ function Read-PlainPassword {
     }
 }
 
+function Get-AdminPasswordValidationErrors([string]$Password) {
+    $characters = @($Password.ToCharArray())
+
+    if ($Password.Length -lt 10) {
+        'at least 10 characters'
+    }
+    if (-not ($characters | Where-Object { [char]::IsLower($_) })) {
+        'one lowercase letter'
+    }
+    if (-not ($characters | Where-Object { [char]::IsUpper($_) })) {
+        'one uppercase letter'
+    }
+    if (-not ($characters | Where-Object { [char]::IsDigit($_) })) {
+        'one digit'
+    }
+    if (-not ($characters | Where-Object { -not [char]::IsLetterOrDigit($_) })) {
+        'one special character'
+    }
+}
+
+function Read-ValidAdminPassword {
+    Write-Host 'Password requires: 10+ characters, lowercase, uppercase, digit, and special character.'
+
+    while ($true) {
+        $password = Read-PlainPassword
+        $errors = @(Get-AdminPasswordValidationErrors $password)
+        if ($errors.Count -eq 0) {
+            return $password
+        }
+
+        Write-Warning ("Password is invalid; missing " + ($errors -join ', ') + '. Please try again.')
+        $password = $null
+    }
+}
+
 function Get-DatabaseName([string]$Value) {
     $builder = New-Object System.Data.Common.DbConnectionStringBuilder
     try {
@@ -214,7 +249,7 @@ try {
             $FullName = Read-RequiredValue 'Admin full name' $FullName
             $DepartmentCode = Read-RequiredValue 'Primary department code' $DepartmentCode
             $DepartmentName = Read-RequiredValue 'Primary department name' $DepartmentName
-            $password = Read-PlainPassword
+            $password = Read-ValidAdminPassword
             if ([string]::IsNullOrWhiteSpace($OperationKey)) {
                 $safeKey = "$databaseName-$Username" -replace '[^A-Za-z0-9_.:-]', '-'
                 $OperationKey = "local-owner-$safeKey"
