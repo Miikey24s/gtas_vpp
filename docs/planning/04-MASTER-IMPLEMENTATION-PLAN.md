@@ -178,7 +178,7 @@ original scope so reduced/folded alternatives remain auditable.
 | PERF-001 | DONE (REDUCED) | Catalog synthetic scale, report/settlement targeted gates; no full-system SLA claim |
 | OBS-001 | DONE (REDUCED) | Structured scrubbed logs, trace IDs, audit and health; external telemetry platform deferred |
 | QA-002/003 | DONE (FOLDED/REDUCED) | Relational integration gates and two isolated authenticated UI rehearsals |
-| DEP-001 | IN_PROGRESS in final release integration | CI exists; PR execution and production deployment validation belong to the current release goal |
+| DEP-001 | DONE (PRODUCTION VALIDATED) | `docs/execution/DEP-001.md`; PR #4/#5, CI gates and DigitalOcean run `29553512300` |
 | DEP-002 | DONE (ALTERNATIVE: local restore rehearsal) | `docs/execution/DEP-002.md`; deployed/server recovery remains conditional |
 | DOC-001/002/003, REL-001 | DONE for local-only handoff | `docs/execution/LEAN-09.md`, traceability matrix, final DOCX audit and release tag |
 
