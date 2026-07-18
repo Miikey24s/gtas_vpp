@@ -24,6 +24,8 @@
   <data name="LoginUnavailable" xml:space="preserve"><value>Chưa thể kết nối tới hệ thống đăng nhập. Vui lòng thử lại sau.</value></data>
   <data name="LoginRequestFailed" xml:space="preserve"><value>Hệ thống chưa thể xử lý yêu cầu đăng nhập. Vui lòng thử lại.</value></data>
   <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="SigningOut" xml:space="preserve"><value>Đang đăng xuất</value></data>
+  <data name="LogoutRedirectMessage" xml:space="preserve"><value>Đang kết thúc phiên và quay lại trang đăng nhập...</value></data>
   <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
   <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
   <data name="Dashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>

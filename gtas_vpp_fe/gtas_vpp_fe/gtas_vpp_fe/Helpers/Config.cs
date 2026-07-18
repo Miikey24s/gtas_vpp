@@ -74,6 +74,7 @@ namespace gtas_vpp_fe.Helpers
         public const string LoginPagePath = "/Account/Login";
         public const string LoginProcessPath = "/loginprocess";
         public const string LogoutProcessPath = "/logoutprocess";
+        public const string PerformLogoutPath = "/perform-logout";
 
         // Cookie
         // ENV-001 changes the backend JWT audience. Version the cookie name so an

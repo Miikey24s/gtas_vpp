@@ -56,7 +56,7 @@ namespace gtas_vpp_fe.Endpoints
                 return Results.Redirect(GetSafeLocalReturnUrl(returnUrl));
             });
 
-            app.MapGet("/perform-logout", async (
+            app.MapGet(Config.PerformLogoutPath, async (
                 IHttpClientFactory httpClientFactory,
                 HttpContext context,
                 ILoggerFactory loggerFactory) =>
