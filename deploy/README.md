@@ -88,7 +88,8 @@ chạy `workflow_dispatch`, thực hiện:
 8. thay backend, chờ healthy; thay frontend, chờ healthy;
 9. validate/reload Nginx, tắt SSH password, chỉ cho root đăng nhập bằng key, xóa các
    rule UFW public cũ của `1433`/`5000`/`8080`, rồi audit host;
-10. kết nối SSH lại bằng public-key-only và gọi public `/healthz`;
+10. kết nối SSH lại bằng public-key-only, kiểm tra public `/healthz`, HTML trang
+    đăng nhập và SignalR negotiate có WebSocket bằng `deploy/smoke-frontend.sh`;
 11. chỉ khi mọi bước pass mới chuyển symlink `/app/gtas-vpp/current`.
 
 Không dùng `docker rename` để giữ container SQL dự phòng vì nhãn Docker Compose vẫn
@@ -227,7 +228,7 @@ FE_IMAGE=$(grep '^FE_IMAGE=' deploy-state.env | cut -d= -f2-)
 export BE_IMAGE FE_IMAGE
 docker compose -f docker-compose.prod.yml ps
 bash deploy/audit-host.sh
-curl -fsS https://gtas-vpp.annam.id.vn/healthz
+bash deploy/smoke-frontend.sh
 sudo nginx -t
 sudo certbot renew --dry-run
 ```

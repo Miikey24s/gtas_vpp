@@ -12,6 +12,16 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
     public async Task AuthenticatedShell_IsVietnameseBrandedAccessibleAndResponsive()
     {
         var screenshotDirectory = ResolveScreenshotDirectory();
+        if (screenshotDirectory is not null)
+        {
+            await Page.SetViewportSizeAsync(1920, 1080);
+            await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
+            await Page.GotoAsync($"{BaseUrl}Account/Login");
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Đăng nhập", Exact = true }).WaitForAsync();
+            await CaptureScreenshotAsync(screenshotDirectory, "ui-login.png");
+        }
+
+        await LoginAsDefaultUserAsync();
         var browserErrors = new List<string>();
         var requestFailures = new List<string>();
         var notFoundResponses = new List<string>();
@@ -47,16 +57,6 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
             }
         };
 
-        if (screenshotDirectory is not null)
-        {
-            await Page.SetViewportSizeAsync(1920, 1080);
-            await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
-            await Page.GotoAsync($"{BaseUrl}Account/Login");
-            await Page.GetByRole(AriaRole.Button, new() { Name = "Đăng nhập", Exact = true }).WaitForAsync();
-            await CaptureScreenshotAsync(screenshotDirectory, "ui-login.png");
-        }
-
-        await LoginAsDefaultUserAsync();
         var coreRoutes = new[]
         {
             "dashboard?tab=0",

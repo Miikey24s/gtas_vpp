@@ -50,8 +50,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddHubOptions(options =>
     {
-        // Tăng giới hạn payload của SignalR lên 50MB để tránh lỗi khi gửi/nhận dữ liệu lớn
-        options.MaximumReceiveMessageSize = 50 * 1024 * 1024;
+        // Keep one explicit production profile for the global Interactive Server
+        // circuit. The application has no large client-to-server upload workflow,
+        // so a bounded 64 KB message limit avoids the former 50 MB DoS surface.
+        options.MaximumReceiveMessageSize = 64 * 1024;
+        options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+        options.HandshakeTimeout = TimeSpan.FromSeconds(30);
     });
 builder.Services.AddRadzenComponents();
 builder.Services.AddHttpContextAccessor();

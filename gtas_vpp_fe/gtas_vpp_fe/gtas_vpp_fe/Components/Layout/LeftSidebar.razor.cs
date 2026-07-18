@@ -70,6 +70,12 @@ namespace gtas_vpp_fe.Components.Layout
         {
             await base.OnInitializedAsync();
 
+            if (!RendererInfo.IsInteractive)
+            {
+                currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+                return;
+            }
+
             glb.BusyChanged += OnBusyChanged;
 
             try

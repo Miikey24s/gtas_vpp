@@ -1,5 +1,4 @@
 @using gtas_vpp_fe.Services
-@implements IDisposable
 
 <!DOCTYPE html>
 <html lang="@_htmlLang" class="@HtmlThemeClass">
@@ -37,15 +36,14 @@
             if (t.indexOf('dark') !== -1) document.documentElement.classList.add('rz-theme-dark');
         })();
     </script>
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
     <RadzenTheme Theme="@ThemeState.CurrentTheme"/>
     <link rel="stylesheet" href="@(ThemeState.IsDark ? "_content/Radzen.Blazor/css/material-dark-base.css" : "_content/Radzen.Blazor/css/material-base.css")" />
     <link rel="stylesheet" href="@Assets["css/vpp-toast.css"]" />
 </head>
 
 <body>
-    <ThemeInitializer />
-    <Routes />
+    <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
@@ -59,24 +57,14 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     [Inject]
-    private ThemeService ThemeService { get; set; } = default!;
-
-    [Inject]
-    private IJSRuntime JS { get; set; } = default!;
-
-    [Inject]
     private ThemeState ThemeState { get; set; } = default!;
 
     private string _htmlLang = "vi";
 
     private string HtmlThemeClass => ThemeState.IsDark ? "rz-theme-dark" : string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await base.OnInitializedAsync();
-
-        ThemeState.Changed += OnThemeChanged;
-        
         var cultureFeature = HttpContext?.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
         if (cultureFeature != null)
         {
@@ -88,48 +76,5 @@
         {
             ThemeState.SetTheme(themeCookie);
         }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
-
-        var browserTheme = await GetBrowserThemeAsync();
-        if (string.IsNullOrWhiteSpace(browserTheme) || string.Equals(browserTheme, ThemeState.CurrentTheme, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        ThemeState.SetTheme(browserTheme);
-        ThemeService.SetTheme(ThemeState.CurrentTheme);
-    }
-
-    private void OnThemeChanged()
-    {
-        _ = InvokeAsync(StateHasChanged);
-    }
-
-    private async Task<string?> GetBrowserThemeAsync()
-    {
-        try
-        {
-            return await JS.InvokeAsync<string>("vppTheme.current");
-        }
-        catch (InvalidOperationException)
-        {
-            return null;
-        }
-        catch (JSDisconnectedException)
-        {
-            return null;
-        }
-    }
-
-    public void Dispose()
-    {
-        ThemeState.Changed -= OnThemeChanged;
     }
 }

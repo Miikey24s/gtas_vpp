@@ -41,11 +41,11 @@ public sealed class AccountLifecycleRouteTests
     }
 
     [Fact]
-    public void LogoutPage_IsInteractiveAndAlwaysContinuesToSessionRevocation()
+    public void LogoutPage_AlwaysContinuesToSessionRevocation()
     {
         var source = ReadSource("Components", "Pages", "Authen", "Logout.razor");
 
-        Assert.Contains("@rendermode InteractiveServer", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("@rendermode", source, StringComparison.Ordinal);
         Assert.Contains("finally", source, StringComparison.Ordinal);
         Assert.Contains("NavigateTo(Config.PerformLogoutPath, true)", source, StringComparison.Ordinal);
     }

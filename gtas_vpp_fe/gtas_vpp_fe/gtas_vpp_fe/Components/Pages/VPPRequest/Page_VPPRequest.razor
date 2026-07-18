@@ -11,8 +11,16 @@
 @inject IJSRuntime js
 @inject GlobalClass glb
 
-@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>GTAS VPP - VPP Request</PageTitle>
 
-<Component_VPPRequest claims="@claims" />
+@if (!RendererInfo.IsInteractive)
+{
+    <section class="vpp-page" aria-busy="true">
+        <SkeletonPage Cards="3" Rows="8" Cols="5" />
+    </section>
+}
+else
+{
+    <Component_VPPRequest claims="@claims" />
+}

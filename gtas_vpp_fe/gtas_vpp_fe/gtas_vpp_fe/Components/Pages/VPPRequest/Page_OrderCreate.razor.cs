@@ -198,6 +198,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         protected override async Task OnInitializedAsync()
         {
+            if (!RendererInfo.IsInteractive)
+            {
+                return;
+            }
+
             try
             {
                 var (isAuthenticated, userClaims) = await AuthHelper.EnsureAuthenticatedAsync();

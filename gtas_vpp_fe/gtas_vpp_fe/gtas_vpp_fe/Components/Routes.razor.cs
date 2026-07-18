@@ -11,16 +11,38 @@ public partial class Routes
     [Inject] private AuthHelper AuthHelper { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private PermissionState PermissionState { get; set; } = default!;
+    [Inject] private ILogger<Routes> Logger { get; set; } = default!;
 
     private bool _isRedirecting;
 
     private async Task OnNavigateAsync(NavigationContext context)
     {
-        if (_isRedirecting)
+        if (!RendererInfo.IsInteractive || _isRedirecting)
         {
             return;
         }
 
+        try
+        {
+            await ApplyDynamicPermissionGuardAsync(context);
+        }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested)
+        {
+            // A newer navigation superseded this permission check.
+        }
+        catch (Exception exception)
+        {
+            // Individual protected pages have their own guarded loading/error UI.
+            // Never let an optional pre-navigation optimization terminate the circuit.
+            Logger.LogError(
+                exception,
+                "Dynamic permission guard failed while navigating to {TargetPath}",
+                context.Path);
+        }
+    }
+
+    private async Task ApplyDynamicPermissionGuardAsync(NavigationContext context)
+    {
         var targetPath = NormalizePath(context.Path);
         if (!RequiresDynamicPermissionGuard(targetPath) || IsAnonymousPath(targetPath))
         {

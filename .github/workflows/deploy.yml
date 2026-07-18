@@ -230,8 +230,8 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
-            https://gtas-vpp.annam.id.vn/healthz >/dev/null
+          PUBLIC_BASE_URL=https://gtas-vpp.annam.id.vn \
+            bash deploy/smoke-frontend.sh
           if timeout 5 bash -c "</dev/tcp/$SSH_HOST/1433" 2>/dev/null; then
             echo "SQL Server port 1433 is still reachable from the public internet." >&2
             exit 1

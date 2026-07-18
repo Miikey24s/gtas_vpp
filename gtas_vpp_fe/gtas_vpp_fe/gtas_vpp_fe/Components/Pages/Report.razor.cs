@@ -51,6 +51,11 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
         PermissionState.Changed += OnPermissionStateChanged;
         await PermissionState.EnsureLoadedAsync();
         SelectedScope = ScopeOptions.LastOrDefault()?.Value ?? ReportScopes.Own;

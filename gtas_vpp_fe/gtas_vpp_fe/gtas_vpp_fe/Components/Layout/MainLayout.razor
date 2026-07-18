@@ -5,19 +5,41 @@
 @inject NotificationInboxState NotificationInbox
 @inject ILogger<MainLayout> Logger
 
-<RadzenComponents @rendermode="InteractiveServer" />
+<RadzenComponents />
 
 <a class="vpp-skip-link" href="#main-content">@Loc["SkipToContent"]</a>
 <RadzenLayout class="vpp-layout">
     <LeftSidebar />
     <RadzenBody class="vpp-layout-body">
         <div id="main-content" class="vpp-content" role="main" tabindex="-1">
-            @Body
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <VppStatePanel State="error"
+                                   Icon="error_outline"
+                                   Title="@Loc["ErrorPageTitle"]"
+                                   Description="@Loc["ErrorPageDescription"]" />
+                    <div class="vpp-system-page-actions">
+                        <a class="vpp-empty-state-link" href="/" data-enhance-nav="false">
+                            @Loc["BackToDashboard"]
+                        </a>
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
         </div>
     </RadzenBody>
 </RadzenLayout>
 
 @code {
+    private ErrorBoundary? _errorBoundary;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)

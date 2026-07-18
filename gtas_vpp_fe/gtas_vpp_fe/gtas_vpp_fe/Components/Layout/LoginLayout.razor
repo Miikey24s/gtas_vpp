@@ -1,10 +1,36 @@
 ﻿@attribute [AllowAnonymous]
 @inherits LayoutComponentBase
 
-<RadzenComponents @rendermode="InteractiveServer" />
+<RadzenComponents />
 
 <RadzenRow>
     <RadzenColumn Size="12">
-        @Body
+        <ErrorBoundary @ref="_errorBoundary">
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent>
+                <main class="vpp-system-page">
+                    <VppStatePanel State="error"
+                                   Icon="error_outline"
+                                   Title="@Loc["ErrorPageTitle"]"
+                                   Description="@Loc["ErrorPageDescription"]" />
+                    <div class="vpp-system-page-actions">
+                        <a class="vpp-empty-state-link" href="@Config.LoginPagePath" data-enhance-nav="false">
+                            @Loc["Login"]
+                        </a>
+                    </div>
+                </main>
+            </ErrorContent>
+        </ErrorBoundary>
     </RadzenColumn>
 </RadzenRow>
+
+@code {
+    private ErrorBoundary? _errorBoundary;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+}

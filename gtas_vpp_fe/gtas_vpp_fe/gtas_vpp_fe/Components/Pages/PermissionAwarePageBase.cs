@@ -30,6 +30,13 @@ public abstract class PermissionAwarePageBase : ComponentBase
         PermissionPageOptions options,
         Func<Task<bool>>? beforePermissionLoad = null)
     {
+        // Protected pages render a lightweight shell during prerendering. The
+        // authenticated API work runs once after the global Server circuit is live.
+        if (!RendererInfo.IsInteractive)
+        {
+            return false;
+        }
+
         var (isAuthenticated, userClaims) = await PageAuthHelper.EnsureAuthenticatedAsync();
         if (!isAuthenticated)
         {

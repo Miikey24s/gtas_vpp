@@ -23,6 +23,13 @@ public partial class ConfirmEmail
 
     protected override async Task OnInitializedAsync()
     {
+        // Confirmation changes server state. Never issue it once during
+        // prerendering and a second time when the interactive circuit starts.
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
         if (UserId <= 0 || string.IsNullOrWhiteSpace(Token))
         {
             ErrorMessage = "Liên kết xác nhận không hợp lệ hoặc đã hết hạn.";

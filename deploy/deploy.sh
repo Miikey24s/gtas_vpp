@@ -8,7 +8,8 @@ DB_CONTAINER="${DB_CONTAINER:-gtas-vpp-db}"
 BACKEND_CONTAINER="${BACKEND_CONTAINER:-gtas-vpp-backend}"
 FRONTEND_CONTAINER="${FRONTEND_CONTAINER:-gtas-vpp-frontend}"
 DB_FALLBACK_CONTAINER="${DB_FALLBACK_CONTAINER:-${DB_CONTAINER}-previous}"
-PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-https://gtas-vpp.annam.id.vn/healthz}"
+PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-https://gtas-vpp.annam.id.vn}"
+PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-${PUBLIC_BASE_URL%/}/healthz}"
 DEPLOY_SHA="${DEPLOY_SHA:-unknown}"
 
 : "${BE_IMAGE:?BE_IMAGE is required}"
@@ -508,8 +509,10 @@ fi
 bash deploy/harden-host.sh
 bash deploy/audit-host.sh
 
-curl --fail --silent --show-error --retry 10 --retry-delay 2 --retry-all-errors \
-  "$PUBLIC_HEALTH_URL" >/dev/null
+PUBLIC_BASE_URL="$PUBLIC_BASE_URL" \
+PUBLIC_HEALTH_URL="$PUBLIC_HEALTH_URL" \
+SMOKE_RETRY_COUNT=10 \
+  bash deploy/smoke-frontend.sh
 
 cat > deploy-state.env <<EOF
 DEPLOY_SHA=$DEPLOY_SHA
@@ -526,4 +529,4 @@ DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
 APP_ENV_ROLL_FORWARD_REQUIRED=false
 trap - ERR
 compose ps
-echo "Deployment completed and public health check passed."
+echo "Deployment completed and public frontend smoke checks passed."

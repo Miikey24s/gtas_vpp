@@ -1,6 +1,6 @@
 <script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
 
-<dialog id="components-reconnect-modal" data-nosnippet>
+<dialog id="components-reconnect-modal" data-nosnippet aria-live="assertive" aria-modal="true">
     <div class="components-reconnect-container">
         <div class="components-rejoining-animation" aria-hidden="true">
             <div></div>
@@ -8,25 +8,25 @@
             <div></div>
         </div>
         <p class="components-reconnect-first-attempt-visible">
-            Reconnecting to server...
+            @Loc["ReconnectingToServer"]
         </p>
         <p class="components-reconnect-repeated-attempt-visible">
-            Still trying... <span id="components-seconds-to-next-attempt"></span>s
+            @Loc["ReconnectStillTrying"] <span id="components-seconds-to-next-attempt"></span>s
         </p>
         <p class="components-reconnect-failed-visible">
-            Connection lost. Please check your network.
+            @Loc["ConnectionLostCheckNetwork"]
         </p>
         <button id="components-reconnect-button" class="components-reconnect-failed-visible">
-            Retry Connection
+            @Loc["RetryConnection"]
         </button>
         <p class="components-pause-visible">
-            Session paused by server.
+            @Loc["SessionPausedByServer"]
         </p>
         <p class="components-resume-failed-visible">
-            Failed to resume session.
+            @Loc["SessionResumeFailed"]
         </p>
         <button id="components-resume-button" class="components-pause-visible components-resume-failed-visible">
-            Resume
+            @Loc["ResumeSession"]
         </button>
     </div>
 </dialog>

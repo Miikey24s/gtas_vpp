@@ -11,13 +11,21 @@
 @inject IJSRuntime js
 @inject GlobalClass glb
 
-@rendermode InteractiveServer
 
 <PageTitle>GTAS VPP - @Loc["Permissions"]</PageTitle>
 
-<section class="vpp-admin-page">
-    <VppPageHeader Title="@Loc["Permissions"]"
-                   Description="@Loc["PermissionPageDescription"]"
-                   HeadingId="permission-heading" />
-    <Component_Permission claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
-</section>
+@if (!RendererInfo.IsInteractive)
+{
+    <section class="vpp-admin-page" aria-busy="true">
+        <SkeletonPage Cards="0" Rows="8" Cols="5" />
+    </section>
+}
+else
+{
+    <section class="vpp-admin-page">
+        <VppPageHeader Title="@Loc["Permissions"]"
+                       Description="@Loc["PermissionPageDescription"]"
+                       HeadingId="permission-heading" />
+        <Component_Permission claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
+    </section>
+}

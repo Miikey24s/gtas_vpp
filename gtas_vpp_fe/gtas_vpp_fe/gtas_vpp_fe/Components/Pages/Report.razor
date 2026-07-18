@@ -3,11 +3,16 @@
 @inherits ReportBase
 @using gtas_vpp_shared.DTOs.Res.Reports
 
-@rendermode InteractiveServer
 
 <PageTitle>GTAS VPP - @Loc["Reports"]</PageTitle>
 
-@if (!CanViewReport)
+@if (!RendererInfo.IsInteractive)
+{
+    <main class="vpp-report-page" aria-busy="true">
+        <SkeletonPage Cards="3" Rows="8" Cols="5" />
+    </main>
+}
+else if (!CanViewReport)
 {
     <VppEmptyState Icon="lock"
                    Title="@Loc["AccessDenied"]"
