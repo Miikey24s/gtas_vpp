@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DesignDnaStudio.Engine/DesignDnaStudio.Engine.csproj" />
+    <Project Path="src/DesignDnaStudio.Web/DesignDnaStudio.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DesignDnaStudio.Tests/DesignDnaStudio.Tests.csproj" />
+  </Folder>
+</Solution>

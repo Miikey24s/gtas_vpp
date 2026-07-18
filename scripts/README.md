@@ -38,3 +38,16 @@ Các lệnh khác:
 ```
 
 Script chỉ cho phép `init-db` và `bootstrap-admin` trên database có `TEST` hoặc `DEMO`; không lưu secret trong repository. Danh mục cấu hình đầy đủ nằm tại [`../docs/configuration/LOCAL-CONFIGURATION.md`](../docs/configuration/LOCAL-CONFIGURATION.md).
+
+## DesignDNA Studio
+
+DesignDNA Studio dùng SQLite local, không cần connection string, Docker hay SQL Server:
+
+```powershell
+.\scripts\design-dna.cmd run       # Chạy Blazor bằng dotnet watch
+.\scripts\design-dna.cmd test      # Build + test Release
+.\scripts\design-dna.cmd data-path # Xem nơi lưu database local
+.\scripts\design-dna.cmd reset     # Tạo lại database sạch, có xác nhận
+```
+
+Chi tiết về phạm vi, dữ liệu và đường dẫn tùy chỉnh nằm tại [`../design_dna_studio/README.md`](../design_dna_studio/README.md).

@@ -1,0 +1,46 @@
+@inherits LayoutComponentBase
+
+<div class="dna-app-shell">
+    <aside class="dna-app-sidebar">
+        <NavLink class="dna-brand" href="/" Match="NavLinkMatch.All">
+            <span class="dna-brand-mark"><i></i><i></i><i></i></span>
+            <span><strong>DesignDNA</strong><small>Studio</small></span>
+        </NavLink>
+
+        <nav aria-label="Điều hướng chính">
+            <NavLink href="/" Match="NavLinkMatch.All"><span class="material-symbols-outlined">space_dashboard</span>Tổng quan</NavLink>
+            <a href="/#assessments"><span class="material-symbols-outlined">compare</span>Phiên khảo sát</a>
+            <a href="/#method"><span class="material-symbols-outlined">neurology</span>Phương pháp</a>
+        </nav>
+
+        <div class="dna-sidebar-note">
+            <span>Deadline LVTN lần 1</span>
+            <strong>27.07.2026</strong>
+            <small>Local-first · Evidence-based</small>
+        </div>
+    </aside>
+
+    <div class="dna-app-main">
+        <header class="dna-app-header">
+            <div>
+                <span class="dna-context-dot"></span>
+                GTAS VPP / PPJ-inspired research
+            </div>
+            <span class="dna-local-status"><span class="material-symbols-outlined">shield_lock</span>Local workspace</span>
+        </header>
+        <main class="dna-app-content">
+            @Body
+        </main>
+    </div>
+</div>
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />
+
+<div id="blazor-error-ui" data-nosnippet>
+    Đã xảy ra lỗi ngoài dự kiến.
+    <a href="." class="reload">Tải lại</a>
+    <span class="dismiss">🗙</span>
+</div>

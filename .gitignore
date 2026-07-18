@@ -367,6 +367,12 @@ FodyWeavers.xsd
 scripts/db_export/
 scripts/export_db_full.sql
 
+# DesignDNA Studio local data
+/design_dna_studio/**/*.db
+/design_dna_studio/**/*.db-journal
+/design_dna_studio/**/*.db-shm
+/design_dna_studio/**/*.db-wal
+
 # Local Dev Tools
 .ai_workspace/
 .codex/
