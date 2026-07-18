@@ -1,7 +1,7 @@
 # VPP Pulse — Product-wide UI/UX & Data Storytelling Blueprint
 
 > **Trạng thái:** Ready for design review — production UI chưa sửa
-> **Phiên bản:** 0.4
+> **Phiên bản:** 0.5
 > **Ngày:** 2026-07-18
 > **Phạm vi:** Toàn bộ GTAS VPP — Auth, Employee, Management, Procurement, Reports, Library, Permission và system states
 > **Nguồn visual:** [GTAS VPP — VPP Pulse](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE)
@@ -30,6 +30,8 @@ Bản Figma đã mở rộng từ art-direction baseline thành product blueprin
 | Access Control | [`69:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=69-2) | User activation, flat personas, permission matrix |
 | QA & Handoff | [`74:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=74-2) | Coverage, states, responsive rules, acceptance, implementation order |
 | Review Prototypes | [`93:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=93-2) | 4 top-level core flows, 11 review frames và 7 verified navigation hotspot |
+| AI & Intelligence | [`103:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=103-2) | Report insight, anomaly review, Ask the Report, governance và safety states |
+| Full Masterplan Coverage | [`111:269`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=111-269) | A+ evidence, designed/not coded, deferred và out-of-scope |
 
 QA Figma ngày 2026-07-18:
 
@@ -40,6 +42,8 @@ QA Figma ngày 2026-07-18:
 - Screenshot QA đã phát hiện và sửa notification/reconnect overlay bị auto-layout đẩy khỏi canvas.
 - Các concept screen đã bind semantic color/spacing/radius token. Component library và reference implementation là nguồn chuyển sang code sau khi direction được duyệt; không cần detach component để triển khai.
 - Page prototype riêng giữ các destination ở top-level frame cùng page theo đúng Figma navigation contract: Auth, Employee Request, Management Decision và Procurement Settlement.
+- Status Badge (`22:17`) đã sửa từ fixed 90px sang hug-content với min-width 110px; screenshot QA xác nhận cả 5 trạng thái không còn clipping/overlap.
+- Chi tiết kiến trúc AI, data boundary, secret, provider và acceptance nằm trong [VPP-PULSE-AI-BRIEF.md](./VPP-PULSE-AI-BRIEF.md); phạm vi full-plan nằm trong [VPP-PULSE-FULL-MASTERPLAN-DESIGN-AUDIT.md](./VPP-PULSE-FULL-MASTERPLAN-DESIGN-AUDIT.md).
 
 ## 1. Quyết định tổng quát
 
