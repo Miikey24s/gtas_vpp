@@ -1,7 +1,7 @@
 # VPP Pulse — Product-wide UI/UX & Data Storytelling Blueprint
 
 > **Trạng thái:** Ready for design review — production UI chưa sửa
-> **Phiên bản:** 0.3
+> **Phiên bản:** 0.4
 > **Ngày:** 2026-07-18
 > **Phạm vi:** Toàn bộ GTAS VPP — Auth, Employee, Management, Procurement, Reports, Library, Permission và system states
 > **Nguồn visual:** [GTAS VPP — VPP Pulse](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE)
@@ -29,6 +29,7 @@ Bản Figma đã mở rộng từ art-direction baseline thành product blueprin
 | Library | [`68:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=68-2) | Products, suppliers, price lists/prices |
 | Access Control | [`69:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=69-2) | User activation, flat personas, permission matrix |
 | QA & Handoff | [`74:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=74-2) | Coverage, states, responsive rules, acceptance, implementation order |
+| Review Prototypes | [`93:2`](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE?node-id=93-2) | 4 top-level core flows, 11 review frames và 7 verified navigation hotspot |
 
 QA Figma ngày 2026-07-18:
 
@@ -38,6 +39,7 @@ QA Figma ngày 2026-07-18:
 - Các root mới được gắn run `dsb-vpp-pulse-002` để có thể tiếp tục và kiểm tra lại xác định.
 - Screenshot QA đã phát hiện và sửa notification/reconnect overlay bị auto-layout đẩy khỏi canvas.
 - Các concept screen đã bind semantic color/spacing/radius token. Component library và reference implementation là nguồn chuyển sang code sau khi direction được duyệt; không cần detach component để triển khai.
+- Page prototype riêng giữ các destination ở top-level frame cùng page theo đúng Figma navigation contract: Auth, Employee Request, Management Decision và Procurement Settlement.
 
 ## 1. Quyết định tổng quát
 
