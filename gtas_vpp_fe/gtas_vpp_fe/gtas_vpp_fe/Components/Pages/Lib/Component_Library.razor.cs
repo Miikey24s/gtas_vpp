@@ -370,9 +370,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     return (T)(object)created;
                 }
 
-                string typeName = typeof(T).Name;
-                string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
-                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}";
+                string endpoint = LibraryEndpointResolver.Resolve<T>();
                 T result = await _apiServices.PostFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result.Id != Guid.Empty)
                     _toastService.Show(NotificationSeverity.Success, "Success", "Record added successfully");
@@ -409,9 +407,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     return (T)(object)updated;
                 }
 
-                string typeName = typeof(T).Name;
-                string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
-                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
+                string endpoint = $"{LibraryEndpointResolver.Resolve<T>()}/{data.Id}";
                 T result = await _apiServices.PatchFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result != null)
                     _toastService.Show(NotificationSeverity.Success, "Success", "Record updated successfully");
@@ -429,9 +425,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             try
             {
-                string typeName = typeof(T).Name;
-                string tableCode = typeName.StartsWith("LEX") ? typeName.Substring(0, 5).ToLower() : typeName.Substring(0, 3).ToLower();
-                string endpoint = $"{Config.ApiLibraryBase}/{tableCode}/{data.Id}";
+                string endpoint = $"{LibraryEndpointResolver.Resolve<T>()}/{data.Id}";
                 var result = await _apiServices.DeleteFromApiAsync(endpoint);
 
                 if (result is true)

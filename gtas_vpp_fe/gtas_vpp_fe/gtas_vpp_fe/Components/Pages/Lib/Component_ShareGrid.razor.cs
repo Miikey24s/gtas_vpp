@@ -26,6 +26,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Inject]
         private IAPIServices ApiServices { get; set; } = default!;
 
+        [Inject]
+        private IToastService ToastService { get; set; } = default!;
+
+        [Inject]
+        private ILogger<Component_ShareGrid<TType>> Logger { get; set; } = default!;
+
         private List<TType> data = new();
         [Parameter]
         public List<TType> Data
@@ -294,9 +300,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             currentFilterExpression = args.Filter;
             StateHasChanged();
 
+            string? endpoint = null;
             try
             {
-                var endpoint = BuildGridEndpoint(
+                endpoint = BuildGridEndpoint(
                     filter: args.Filter,
                     skip: args.Skip ?? 0,
                     top: args.Top ?? 20,
@@ -306,6 +313,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 data = result.Data ?? [];
                 totalCount = result.TotalCount;
                 await DataChanged.InvokeAsync(data);
+            }
+            catch (Exception ex)
+            {
+                data = [];
+                totalCount = 0;
+                await DataChanged.InvokeAsync(data);
+                NotifyLoadFailure(ex, endpoint);
             }
             finally
             {
@@ -327,16 +341,26 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return;
             }
 
-            var endpoint = BuildGridEndpoint(
-                filter: currentFilterExpression,
-                skip: args.Skip,
-                top: args.Top,
-                distinct: property,
-                distinctFilter: args.Filter);
+            string? endpoint = null;
+            try
+            {
+                endpoint = BuildGridEndpoint(
+                    filter: currentFilterExpression,
+                    skip: args.Skip,
+                    top: args.Top,
+                    distinct: property,
+                    distinctFilter: args.Filter);
 
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<TType>>(endpoint);
-            args.Data = result.Data ?? [];
-            args.Count = result.TotalCount;
+                var result = await ApiServices.GetFromApiWithTotalCountAsync<List<TType>>(endpoint);
+                args.Data = result.Data ?? [];
+                args.Count = result.TotalCount;
+            }
+            catch (Exception ex)
+            {
+                args.Data = Array.Empty<TType>();
+                args.Count = 0;
+                NotifyLoadFailure(ex, endpoint);
+            }
         }
 
         protected string GetColumnMinWidth(
@@ -592,15 +616,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private string GetEndpointBase()
             => string.IsNullOrWhiteSpace(DataEndpoint)
-                ? $"{Config.ApiLibraryBase}/{GetTableCode()}"
+                ? LibraryEndpointResolver.Resolve<TType>()
                 : DataEndpoint.TrimEnd('/');
 
-        private static string GetTableCode()
+        private void NotifyLoadFailure(Exception exception, string? endpoint)
         {
-            var typeName = typeof(TType).Name;
-            return typeName.StartsWith("LEX", StringComparison.OrdinalIgnoreCase)
-                ? typeName[..5].ToLowerInvariant()
-                : typeName[..3].ToLowerInvariant();
+            Logger.LogError(
+                exception,
+                "Failed to load library grid {ResponseType} from {Endpoint}",
+                typeof(TType).Name,
+                endpoint ?? "<unresolved>");
+            ToastService.Error(Loc["Error"].Value, UiErrorMapper.GetMessage(exception, Loc));
         }
 
         private string BuildGridEndpoint(
