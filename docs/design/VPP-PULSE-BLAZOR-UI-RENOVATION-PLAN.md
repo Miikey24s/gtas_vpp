@@ -1,8 +1,8 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `AWAITING OWNER APPROVAL`
+> **Trạng thái:** `OWNER FEEDBACK RECEIVED — AWAITING IMPLEMENTATION APPROVAL`
 >
-> **Phiên bản:** `1.0` — 2026-07-19
+> **Phiên bản:** `1.1` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -214,8 +214,44 @@ Không dùng mặc định:
 - Dense table thiếu inspector/drawer ở trường hợp nhiều cột.
 - Dashboard/report chưa luôn đi từ takeaway tới evidence và action.
 - Figma thiếu parity với route thật như Departments, Classes, Categories và Prices.
+- Account pages chưa dùng chung một brand lockup, spacing và link treatment.
+- Icon đang có dấu hiệu trộn `RadzenIcon` với Material Symbols; cần một wrapper/icon map duy nhất.
+- Empty state dashboard đang lặp CTA, status và vùng trắng quá lớn; không ép mọi route phải vừa một viewport bằng cách làm chữ hoặc target quá nhỏ.
+- History cần phân biệt rõ `không có lịch sử`, `không có kết quả theo bộ lọc` và `kỳ trước không có đơn`.
+- Error toast không được hiển thị raw error code như `OperationInvalid`; phải đi qua mapper, localized safe message và trace/correlation id khi cần.
+- Grid quản trị cần route-specific column profile, không dùng reflection để mặc định phơi toàn bộ field.
 
 Không coi screenshot hiện tại hoặc Figma hiện tại là final; chúng chỉ là baseline và research evidence.
+
+### 6.1 Screenshot review — W0.0 evidence từ owner
+
+Các ảnh owner gửi ngày 2026-07-19 được ghi nhận là evidence của runtime hiện tại; chưa thay thế cho lần baseline capture trực tiếp bằng `dotnet watch`.
+
+| Nhóm | Quan sát | Phân loại | Quyết định/đề xuất |
+|---|---|---|---|
+| Account shell | Login có illustration tốt; Forgot Password quá trơ và link quay lại nhỏ; header/menu và logout chưa đồng bộ | Visual + usability | Giữ illustration ở Login/Register và các success state phù hợp; dùng cùng logo mark, title scale, link/button tokens cho toàn bộ account flow. Trang recovery giữ compact, không thêm hero lớn nếu làm tăng chiều cao. |
+| Brand asset | Có nhu cầu thêm logo/hình | Product/brand | Không dùng AI để tạo logo hoặc icon chức năng. Dùng logo/vector mark chuẩn và icon system hiện hữu; AI art chỉ là asset phụ cho hero/empty state, phải review contrast, licensing và render thật trước khi nhận. |
+| Icon | Một số icon nhìn sai hoặc không cùng nét | Visual/accessibility | Audit font/icon loading và các call-site; hợp nhất về `VppIcon`/semantic icon map, không sửa từng màn hình bằng ký tự Unicode rời. |
+| Dashboard empty | Lặp CTA ở toolbar và empty state; status copy dài; vùng trắng lớn; kỳ trước trống gây scroll | Information architecture | Một primary action ở toolbar, empty state chỉ giữ context + next action khi cần. Gộp status thành summary ngắn; khi không có dữ liệu kỳ trước dùng compact row hoặc ẩn section, không dựng panel lớn. |
+| Viewport/scroll | Một số màn hình phải cuộn dù nội dung ngắn | Usability | Mục tiêu là loại bỏ page scroll vô ích ở shell/dashboard/form ngắn. Bảng, form dài và detail nhiều trường vẫn dùng internal scroll, paging hoặc drawer có chiều cao rõ ràng. |
+| History | Copy “Không có lịch sử...” không nói rõ đây là empty dataset hay filter miss | Content/data | Tạo state enum riêng và message VI/EN theo ngữ cảnh; không dùng một câu cho mọi trường hợp. |
+| Error feedback | Toast hiển thị `OperationInvalid` | Correctness | Evidence cho thấy một caller có thể bypass `UiErrorMapper`; cần truy ra call-site, map thành safe localized message (`RequestInvalid`/business message), giữ raw code chỉ trong log và hiển thị trace id cho lỗi không mong đợi. |
+| Library/admin grid | Nhiều cột, khó đọc nhưng vẫn cần CRUD/filter | Information architecture | Giữ server-side `LoadData`, filter/sort/paging; tạo column profile theo route/DTO: mặc định chỉ code, name, status và field quyết định; cột phụ qua column picker/filter drawer; detail/edit mở drawer hoặc full page tùy độ dài. Departments là route parity bắt buộc. |
+
+### 6.2 Quy tắc hiển thị không lặp (data storytelling)
+
+Mỗi vùng chỉ trả lời một câu hỏi: **đang ở đâu → điều gì cần biết → nên làm gì tiếp theo**. Không lặp cùng một deadline/trạng thái ở toolbar, KPI và empty panel nếu không có thêm ngữ cảnh. Với dashboard, ưu tiên `takeaway → evidence → action`; với grid, ưu tiên `scope/filter → essential columns → row action → detail on demand`. Quy tắc này áp dụng cho cả VI và EN, Light/Dark/Print.
+
+### 6.3 Thứ tự triển khai đề xuất trước khi sửa code
+
+1. **W0.1 Shared foundation:** audit icon loading, notification/error pipeline, typography/spacing/link/button tokens và height/overflow contract.
+2. **W0.2 Account shell:** Login, Forgot/Reset/Change Password, Register, logout menu; chốt brand lockup và các state lỗi/thành công.
+3. **W1 Dashboard:** My Orders empty/non-empty, status summary, previous-period behavior và above-the-fold layout.
+4. **W2 History:** filter, loading, empty-by-filter, no-history, error, retry và pagination copy.
+5. **W3 Library/admin:** Departments trước, sau đó Classes/Categories/Items/Suppliers/Price Lists; áp dụng column profiles và CRUD drawer/form states.
+6. **W4 còn lại:** period operations, permissions, reports và các route detail; mỗi route phải kế thừa primitive đã chốt, không tạo style riêng.
+
+Mỗi wave phải chạy browser review ở `1920×1080`, spot-check `768×1024`/`390×844`, VI/EN, Light/Dark/Print, loading/empty/error/success/disabled và kiểm tra console/network trước khi chuyển wave.
 
 ---
 
@@ -462,12 +498,20 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 |---|---|---|---|---|---|---|---|
 | 2026-07-19 | Workflow | Không dùng UI Lab; code trực tiếp từng route | UI thật đã tồn tại và đẹp hơn Figma prototype | Global | Living plan này | N/A | Recorded |
 | 2026-07-19 | Design authority | Browser runtime thắng Figma | Tránh design/code drift và route coverage thiếu | Global | Figma chuyển thành reference | Toàn bộ route | Recorded |
+| 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Login hiện có illustration; recovery cần ngắn và tập trung | Global | Bổ sung account consistency rule | Login/Register/Forgot/Reset/Change/Logout | Proposed |
+| 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |
+| 2026-07-19 | Admin grid | Column profile theo route + detail on demand | Departments screenshot cho thấy nhiều cột và khó đọc | Shared pattern | Bổ sung 6.1 và W3 | Library/*, shared grid | Proposed |
+| 2026-07-19 | Error feedback | Không để raw `OperationInvalid` lên toast | `UiErrorMapper` đã tồn tại nhưng có caller nghi bypass | Global | Thêm audit ở W0.1 | ToastService + API callers | Proposed |
 
 ### Retrofit queue
 
 | Priority | Source feedback | Target route/component | Required change | Status |
 |---|---|---|---|---|
-| — | — | — | — | Empty |
+| P0 | Mixed icon implementations | `VppEmptyState`, `EmptyState`, shared header/menu | Hợp nhất icon wrapper + semantic map, kiểm tra font/fallback | Proposed |
+| P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Proposed |
+| P1 | Account shell drift | Login/Register/Forgot/Reset/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Proposed |
+| P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Proposed |
+| P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Proposed |
 
 Retrofit không mặc định làm ngay giữa route hiện tại nếu không ảnh hưởng correctness/accessibility. Agent phải ghi queue và đề xuất thời điểm xử lý để tránh scope explosion.
 
