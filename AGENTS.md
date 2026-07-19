@@ -10,6 +10,14 @@
 - Khi sửa UI, đọc và tuân thủ `.codexrules` cùng `.github/copilot-instructions.md`.
 - Khi sửa stored procedure, ưu tiên kiểm tra câu lệnh trong SQL Server Management Studio trước hoặc song song với debug trong code.
 
+## UI renovation plan
+
+- Trước mọi thay đổi UI/UX, phải đọc và cập nhật `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
+- Blazor chạy thật trong browser là nguồn quyết định visual cuối; Figma chỉ là tài liệu flow, nghiên cứu và so sánh phương án, không phải nguồn pixel/code authority.
+- Không tạo UI Lab hoặc project preview riêng theo quyết định hiện tại. Nâng cấp trực tiếp từng route trên frontend hiện có, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- Sau mỗi vòng người dùng duyệt hoặc từ chối một route, cập nhật route ledger, decision/learning log và retrofit queue trong living plan trước khi tiếp tục.
+- Giữ một kiến trúc global `InteractiveServer`; không thêm `@rendermode` cục bộ nếu chưa có quyết định kiến trúc mới.
+
 ## Build và kiểm thử
 
 Chạy tối thiểu các lệnh phù hợp với phạm vi thay đổi:
