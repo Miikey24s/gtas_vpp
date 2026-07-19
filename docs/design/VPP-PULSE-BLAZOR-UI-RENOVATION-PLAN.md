@@ -53,6 +53,9 @@ Khi có xung đột:
 - Không chuyển/generate nguyên Figma thành code.
 - Không rewrite framework, shell hoặc toàn frontend.
 - Dùng UI Blazor hiện tại làm baseline và nâng cấp trực tiếp từng route.
+- `dotnet watch` là vòng lặp local mặc định trong suốt quá trình UI; không chạy một bản build tĩnh để đánh giá thay đổi hằng ngày.
+- Lệnh chuẩn là `.\scripts\gtas.cmd run`; script này khởi động Aspire AppHost bằng `dotnet watch`, giữ Hot Reload và các resource mapping hiện tại.
+- Release build/test chỉ là gate trước review cuối, commit route và deploy; không thay thế browser review trong vòng lặp phát triển.
 - Browser review là approval gate cuối về visual và interaction.
 - Figma chỉ dùng khi cần so sánh phương án, minh họa flow hoặc lưu research.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
@@ -579,6 +582,40 @@ Khi tiếp tục UI renovation trong thread/session mới:
 8. Không tạo UI Lab, project preview hay architecture render mode khác.
 9. Không thay đổi API/DB/nghiệp vụ chỉ để đạt visual.
 10. Cập nhật file này trước khi báo route hoàn tất.
+
+### 10.1 Local development loop bằng dotnet-watch
+
+Mỗi phiên làm UI bắt đầu như sau:
+
+```powershell
+cd D:\WORK\gtas_vpp
+.\scripts\gtas.cmd status
+.\scripts\gtas.cmd run
+```
+
+Sau khi Aspire khởi động:
+
+1. Mở GTAS frontend từ resource/dashboard URL, không nhầm Aspire dashboard login URL với login của GTAS.
+2. Chọn database TEST đã cấu hình và role phù hợp.
+3. Mở route đang làm ở browser.
+4. Sửa `.razor`/`.razor.cs`/CSS trong branch hiện tại; để `dotnet watch` tự rebuild/Hot Reload.
+5. Kiểm tra browser console, network, reconnect và state sau mỗi thay đổi lớn.
+6. Nếu watch báo lỗi Razor generator/hint name hoặc state incremental bất thường, restart watch rồi chạy clean Release build; không kết luận lỗi sản phẩm chỉ từ watch state.
+
+Trong vòng lặp watch không chạy migration/mutation tùy tiện. Dữ liệu phải đến từ TEST/isolated fixture đã chuẩn bị trước; các test mutation vẫn cần explicit opt-in theo Section 3.2.
+
+### 10.2 Bước đầu tiên của renovation
+
+**W0.0 — Baseline capture, không sửa code:**
+
+- Chạy `.\scripts\gtas.cmd run`.
+- Kiểm tra shell, login, theme/language switch và resource frontend.
+- Chụp baseline route ưu tiên ở `1920×1080`, sau đó spot-check `768×1024` và `390×844`.
+- Ghi đúng dữ liệu/role/permission/state đã dùng vào route ledger.
+- Đánh dấu issue theo ba nhóm: correctness, usability, visual polish.
+- Chỉ sau khi baseline được lưu mới bắt đầu W0 shared foundation hoặc route đầu tiên.
+
+Baseline là bằng chứng so sánh; không được sửa screenshot để khớp thiết kế, không được xóa baseline vì route mới trông khác.
 
 Prompt tiếp tục ngắn:
 
