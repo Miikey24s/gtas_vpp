@@ -276,9 +276,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     result.Add(item.Value!);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", "Unable to load the default UOM lookup value.");
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
             {
@@ -340,7 +340,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading library tab data: {ex.Message}");
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
             {
@@ -366,21 +366,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                             VppCategoryId = source.VppCategoryId
                         });
                     if (created is null) throw new InvalidOperationException("Catalog item create returned no data.");
-                    _toastService.Show(NotificationSeverity.Success, "Success", "Record added successfully");
+                    _toastService.Success(Loc["Success"].Value, Loc["RecordAddedSuccess"].Value);
                     return (T)(object)created;
                 }
 
                 string endpoint = LibraryEndpointResolver.Resolve<T>();
                 T result = await _apiServices.PostFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result.Id != Guid.Empty)
-                    _toastService.Show(NotificationSeverity.Success, "Success", "Record added successfully");
+                    _toastService.Success(Loc["Success"].Value, Loc["RecordAddedSuccess"].Value);
                 else
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Error when adding record");
+                    _toastService.Error(Loc["Error"].Value, Loc["CreateRecordFailed"].Value);
                 return result!;
             }
-            catch
+            catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", "Error when adding record");
+                _toastService.Error(ex, Loc, "CreateRecordFailed");
                 return default!;
             }
         }
@@ -403,21 +403,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                             VppCategoryId = source.VppCategoryId
                         });
                     if (updated is null) throw new InvalidOperationException("Catalog item update returned no data.");
-                    _toastService.Show(NotificationSeverity.Success, "Success", "Record updated successfully");
+                    _toastService.Success(Loc["Success"].Value, Loc["RecordUpdatedSuccess"].Value);
                     return (T)(object)updated;
                 }
 
                 string endpoint = $"{LibraryEndpointResolver.Resolve<T>()}/{data.Id}";
                 T result = await _apiServices.PatchFromApiAsync<T>(endpoint, data) ?? new T();
                 if (result != null)
-                    _toastService.Show(NotificationSeverity.Success, "Success", "Record updated successfully");
+                    _toastService.Success(Loc["Success"].Value, Loc["RecordUpdatedSuccess"].Value);
                 else
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Error when updating record");
+                    _toastService.Error(Loc["Error"].Value, Loc["UpdateRecordFailed"].Value);
                 return result!;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error when updating record: {ex.Message}");
+                _toastService.Error(ex, Loc, "UpdateRecordFailed");
                 return default!;
             }
         }
@@ -429,14 +429,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 var result = await _apiServices.DeleteFromApiAsync(endpoint);
 
                 if (result is true)
-                    _toastService.Show(NotificationSeverity.Success, "Success", "Record deleted successfully");
+                    _toastService.Success(Loc["Success"].Value, Loc["RecordDeletedSuccess"].Value);
                 else
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Error when deleting record");
+                    _toastService.Error(Loc["Error"].Value, Loc["DeleteRecordFailed"].Value);
                 return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error when deleting record: {ex.Message}");
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
                 return false;
             }
         }
@@ -454,12 +454,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                     $"{Config.ApiCatalogItems}/{data.Id}/status",
                     new VppItemStatusRequest { IsDeleted = isDeleted });
                 if (result is null) throw new InvalidOperationException("Catalog item status update returned no data.");
-                _toastService.Show(NotificationSeverity.Success, "Success", isDeleted ? "Record disabled successfully" : "Record restored successfully");
+                _toastService.Success(
+                    Loc["Success"].Value,
+                    isDeleted ? Loc["RecordDisabledSuccess"].Value : Loc["RecordRestoredSuccess"].Value);
                 return (T)(object)result;
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error when changing record status: {ex.Message}");
+                _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
                 return default!;
             }
         }

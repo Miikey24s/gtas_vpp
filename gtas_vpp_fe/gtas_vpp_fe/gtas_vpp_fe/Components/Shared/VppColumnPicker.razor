@@ -7,10 +7,10 @@
             popovertarget="@PopoverId"
             style="anchor-name: @AnchorName"
             aria-label="@Loc["VisibleColumns"]">
-        <span class="material-symbols-outlined" aria-hidden="true">view_column</span>
+        <VppIcon Name="@VppIcons.Columns" Class="vpp-column-picker-leading-icon" />
         <span>@Loc["Columns"]</span>
         <span class="vpp-column-picker-count">@VisibleCount</span>
-        <span class="material-symbols-outlined vpp-column-picker-chevron" aria-hidden="true">expand_more</span>
+        <VppIcon Name="@VppIcons.ExpandMore" Class="vpp-column-picker-chevron" />
     </button>
 
     <div id="@PopoverId"
@@ -27,12 +27,12 @@
                     popovertarget="@PopoverId"
                     popovertargetaction="hide"
                     aria-label="@Loc["Close"]">
-                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                <VppIcon Name="@VppIcons.Close" />
             </button>
         </div>
 
         <label class="vpp-column-picker-search">
-            <span class="material-symbols-outlined" aria-hidden="true">search</span>
+            <VppIcon Name="@VppIcons.Search" />
             <input value="@searchText"
                    @oninput="OnSearchChanged"
                    placeholder="@Loc["SearchColumns"]"
@@ -53,7 +53,7 @@
                            disabled="@isLastVisible"
                            @onchange="@(_ => SetColumnVisibilityAsync(column, !isVisible))" />
                     <span class="vpp-column-picker-checkbox" aria-hidden="true">
-                        <span class="material-symbols-outlined">check</span>
+                        <VppIcon Name="@VppIcons.Check" />
                     </span>
                     <span class="vpp-column-picker-label" title="@GetColumnTitle(column)">@GetColumnTitle(column)</span>
                 </label>
@@ -67,7 +67,7 @@
 
         <div class="vpp-column-picker-footer">
             <button type="button" class="vpp-column-picker-reset" @onclick="ResetAsync" disabled="@(!CanReset)">
-                <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+                <VppIcon Name="@VppIcons.Reset" />
                 <span>@Loc["Reset"]</span>
             </button>
         </div>

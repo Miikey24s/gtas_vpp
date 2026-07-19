@@ -56,6 +56,16 @@
   <data name="Error" xml:space="preserve"><value>Error</value></data>
   <data name="Success" xml:space="preserve"><value>Success</value></data>
   <data name="Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="LoadLibraryDataFailed" xml:space="preserve"><value>Library data could not be loaded. Please try again.</value></data>
+  <data name="CreateRecordFailed" xml:space="preserve"><value>The record could not be created. Check the data and try again.</value></data>
+  <data name="UpdateRecordFailed" xml:space="preserve"><value>The record could not be updated. Check the data and try again.</value></data>
+  <data name="DeleteRecordFailed" xml:space="preserve"><value>The record could not be deleted. Please try again.</value></data>
+  <data name="ChangeRecordStatusFailed" xml:space="preserve"><value>The record status could not be changed. Please try again.</value></data>
+  <data name="RecordAddedSuccess" xml:space="preserve"><value>Record created.</value></data>
+  <data name="RecordUpdatedSuccess" xml:space="preserve"><value>Record updated.</value></data>
+  <data name="RecordDeletedSuccess" xml:space="preserve"><value>Record deleted.</value></data>
+  <data name="RecordDisabledSuccess" xml:space="preserve"><value>Record disabled.</value></data>
+  <data name="RecordRestoredSuccess" xml:space="preserve"><value>Record restored.</value></data>
   <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete?</value></data>
   <data name="PermanentDeleteWarning" xml:space="preserve"><value>This will permanently delete the record. This action cannot be undone.</value></data>

@@ -1,7 +1,7 @@
 <section class="vpp-state-panel vpp-state-panel-@State.ToLowerInvariant() @Class"
          aria-live="@(State.Equals("error", StringComparison.OrdinalIgnoreCase) ? "assertive" : "polite")"
          aria-labelledby="@TitleId">
-    <RadzenIcon Icon="@Icon" class="vpp-state-panel-icon" aria-hidden="true" />
+    <VppIcon Name="@Icon" Class="vpp-state-panel-icon" />
     <div class="vpp-state-panel-copy">
         <h2 id="@TitleId" class="vpp-state-panel-title">@Title</h2>
         @if (!string.IsNullOrWhiteSpace(Description))
@@ -12,7 +12,7 @@
     @if (RetryAction.HasDelegate)
     {
         <RadzenButton Text="@RetryText"
-                      Icon="refresh"
+                      Icon="@VppIcons.Refresh"
                       ButtonStyle="ButtonStyle.Light"
                       Click="@RetryAction"
                       class="vpp-state-panel-action" />
@@ -21,7 +21,7 @@
 
 @code {
     [Parameter] public string State { get; set; } = "empty";
-    [Parameter] public string Icon { get; set; } = "inbox";
+    [Parameter] public string Icon { get; set; } = VppIcons.Inbox;
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
     [Parameter] public string? Description { get; set; }
     [Parameter] public string RetryText { get; set; } = "Thử lại";

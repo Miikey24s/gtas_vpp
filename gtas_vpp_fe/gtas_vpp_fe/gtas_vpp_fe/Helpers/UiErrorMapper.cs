@@ -79,7 +79,10 @@ public static class UiErrorMapper
         string? fallbackKey = null)
     {
         var key = GetErrorCode(exception);
-        var localizedKey = string.IsNullOrWhiteSpace(fallbackKey) ? key : fallbackKey;
+        var localizedKey = !string.IsNullOrWhiteSpace(fallbackKey)
+            && key is "RequestFailed" or "ServerError"
+                ? fallbackKey
+                : key;
         var localized = localizer[localizedKey];
         var message = localized.ResourceNotFound ? localizer["RequestFailed"].Value : localized.Value;
 

@@ -56,6 +56,16 @@
   <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
   <data name="Success" xml:space="preserve"><value>Thành công</value></data>
   <data name="Warning" xml:space="preserve"><value>Cảnh báo</value></data>
+  <data name="LoadLibraryDataFailed" xml:space="preserve"><value>Không thể tải dữ liệu danh mục. Vui lòng thử lại.</value></data>
+  <data name="CreateRecordFailed" xml:space="preserve"><value>Không thể tạo bản ghi. Vui lòng kiểm tra dữ liệu và thử lại.</value></data>
+  <data name="UpdateRecordFailed" xml:space="preserve"><value>Không thể cập nhật bản ghi. Vui lòng kiểm tra dữ liệu và thử lại.</value></data>
+  <data name="DeleteRecordFailed" xml:space="preserve"><value>Không thể xóa bản ghi. Vui lòng thử lại.</value></data>
+  <data name="ChangeRecordStatusFailed" xml:space="preserve"><value>Không thể thay đổi trạng thái bản ghi. Vui lòng thử lại.</value></data>
+  <data name="RecordAddedSuccess" xml:space="preserve"><value>Đã tạo bản ghi.</value></data>
+  <data name="RecordUpdatedSuccess" xml:space="preserve"><value>Đã cập nhật bản ghi.</value></data>
+  <data name="RecordDeletedSuccess" xml:space="preserve"><value>Đã xóa bản ghi.</value></data>
+  <data name="RecordDisabledSuccess" xml:space="preserve"><value>Đã ngừng sử dụng bản ghi.</value></data>
+  <data name="RecordRestoredSuccess" xml:space="preserve"><value>Đã khôi phục bản ghi.</value></data>
   <data name="Confirm" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="ConfirmDelete" xml:space="preserve"><value>Bạn có chắc muốn xóa?</value></data>
   <data name="PermanentDeleteWarning" xml:space="preserve"><value>Bản ghi sẽ bị xóa vĩnh viễn và không thể khôi phục.</value></data>

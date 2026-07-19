@@ -1,25 +1,17 @@
-<div class="vpp-empty-state">
-    @if (!string.IsNullOrEmpty(Icon))
-    {
-        <span class="vpp-empty-state-icon material-symbols-outlined">@Icon</span>
-    }
-    <h3 class="vpp-empty-state-title">@Title</h3>
-    @if (!string.IsNullOrEmpty(Description))
-    {
-        <p class="vpp-empty-state-desc">@Description</p>
-    }
-    @if (ActionLabel != null && OnAction.HasDelegate)
-    {
-        <button class="vpp-empty-state-action" @onclick="() => OnAction.InvokeAsync()">
-            @ActionLabel
-        </button>
-    }
-</div>
+@using Microsoft.AspNetCore.Components.Web
+
+<VppEmptyState Icon="@Icon"
+               Title="@Title"
+               Description="@Description"
+               PrimaryText="@(ActionLabel ?? string.Empty)"
+               PrimaryAction="@HandleActionAsync" />
 
 @code {
-    [Parameter] public string Icon { get; set; } = "inbox";
+    [Parameter] public string Icon { get; set; } = VppIcons.Inbox;
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Description { get; set; } = "";
     [Parameter] public string? ActionLabel { get; set; }
     [Parameter] public EventCallback OnAction { get; set; }
+
+    private Task HandleActionAsync(MouseEventArgs _) => OnAction.InvokeAsync();
 }

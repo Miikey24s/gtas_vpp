@@ -3,7 +3,7 @@
     <div class="kpi-card-content">
         <div class="kpi-card-header">
             <span class="kpi-card-label">@Label</span>
-            <span class="kpi-card-icon material-symbols-outlined">@Icon</span>
+            <VppIcon Name="@Icon" Class="kpi-card-icon" />
         </div>
         <div class="kpi-card-value">@Value</div>
         @if (!string.IsNullOrEmpty(Trend))

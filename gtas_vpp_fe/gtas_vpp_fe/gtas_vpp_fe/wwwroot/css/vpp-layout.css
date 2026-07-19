@@ -21,6 +21,7 @@ body:has(.vpp-layout) {
         "rz-header rz-header"
         "rz-sidebar rz-body";
     height: 100vh;
+    height: 100dvh;
     width: 100%;
     max-width: 100%;
     overflow: hidden;
@@ -66,9 +67,10 @@ leftsidebar {
 
 .vpp-layout-body {
     grid-area: rz-body;
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;
+    min-height: 0;
     min-width: 0;
     padding: var(--vpp-space-4) var(--vpp-space-5);
     background-color: var(--vpp-bg-elevated) !important;
@@ -627,6 +629,23 @@ leftsidebar {
 .vpp-content {
     width: 100%;
     min-width: 0;
+    min-height: 0;
+}
+
+/* Route-level contract: use viewport-fit for short dashboard/form pages and
+   scroll-region for intentionally dense grids or inspectors. */
+.vpp-viewport-fit {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.vpp-scroll-region {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
 }
 
 /* ── Page Title ────────────────────────────────────────────────── */

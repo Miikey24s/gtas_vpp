@@ -74,9 +74,7 @@
                                     aria-label="@(isShowPass ? Loc["HidePassword"] : Loc["ShowPassword"])"
                                     aria-pressed="@isShowPass"
                                     @onclick="TogglePasswordVisibility">
-                                <span class="material-symbols-outlined" aria-hidden="true">
-                                    @(isShowPass ? "visibility_off" : "visibility")
-                                </span>
+                                <VppIcon Name="@(isShowPass ? VppIcons.VisibilityOff : VppIcons.Visibility)" />
                             </button>
                         </div>
 

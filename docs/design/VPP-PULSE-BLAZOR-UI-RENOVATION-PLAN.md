@@ -1,8 +1,8 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `OWNER FEEDBACK RECEIVED — AWAITING IMPLEMENTATION APPROVAL`
+> **Trạng thái:** `IN_IMPLEMENTATION — W0.1 VERIFIED, W0.2 NEXT`
 >
-> **Phiên bản:** `1.1` — 2026-07-19
+> **Phiên bản:** `1.2` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -341,11 +341,21 @@ Status hợp lệ:
 
 | Target | Status | Scope |
 |---|---|---|
-| Tokens/themes/print | PENDING | Semantic token, Light/Dark/Print, contrast |
+| Tokens/themes/print | IN_IMPLEMENTATION | Viewport/overflow contract verified; Light/Dark/Print tokens remain |
 | Page header/action hierarchy | PENDING | `VppPageHeader`, action placement, breadcrumbs |
-| Status/state primitives | PENDING | Badge, loading, empty, error, success, 403 |
+| Status/state primitives | IN_IMPLEMENTATION | `VppIcon` centralized; legacy empty state delegates to `VppEmptyState` |
 | DataGrid/admin pattern | PENDING | Toolbar, paging, column picker, inspector, mobile card |
-| Dialog/form/notification | PENDING | Validation, focus, confirmation, retry, durable feedback |
+| Dialog/form/notification | IN_IMPLEMENTATION | Raw exception/error codes removed from user feedback; dialog/form consistency remains |
+
+**W0.1 verified evidence — 2026-07-19:**
+
+- self-hosted Material Symbols render only through `VppIcon`; semantic names live in `VppIcons`;
+- all user-facing frontend exception paths use `UiErrorMapper`; raw `ex.Message` remains diagnostic-only;
+- `OperationInvalid` maps to localized `RequestInvalid`, while safe detail/trace rules remain enforced;
+- app shell uses `100dvh` fallback and `overflow-y: auto`, so short pages no longer show a forced scrollbar;
+- Release solution build: `0 warning / 0 error`; frontend unit/architecture tests: `127/127`;
+- anonymous login browser QA passed at `390×844`, `768×1024`, `1920×1080`;
+- authenticated shell QA passed on isolated Aspire/LocalDB across core routes and three viewports.
 
 ### W1 — Shell + Auth/System
 
@@ -501,14 +511,16 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Login hiện có illustration; recovery cần ngắn và tập trung | Global | Bổ sung account consistency rule | Login/Register/Forgot/Reset/Change/Logout | Proposed |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |
 | 2026-07-19 | Admin grid | Column profile theo route + detail on demand | Departments screenshot cho thấy nhiều cột và khó đọc | Shared pattern | Bổ sung 6.1 và W3 | Library/*, shared grid | Proposed |
-| 2026-07-19 | Error feedback | Không để raw `OperationInvalid` lên toast | `UiErrorMapper` đã tồn tại nhưng có caller nghi bypass | Global | Thêm audit ở W0.1 | ToastService + API callers | Proposed |
+| 2026-07-19 | Error feedback | Không để raw `OperationInvalid` lên toast | Caller dùng trực tiếp `ApiRequestException.Message`, chính là backend error code | Global | Hoàn tất W0.1 safe mapper pipeline | Toàn bộ frontend user feedback | Verified |
+| 2026-07-19 | Icon system | Material Symbols chỉ render qua `VppIcon` + semantic map | Tránh mixed markup, fallback font và glyph drift giữa route | Global | Hoàn tất W0.1 icon primitive | Shared/layout/account/admin consumers | Verified |
+| 2026-07-19 | Viewport contract | Không cưỡng bức scrollbar ở trang ngắn; dense content dùng scroll region có chủ đích | `overflow-y: scroll` làm shell luôn có scrollbar | Global | Hoàn tất W0.1 shell overflow foundation | Dashboard/form/grid waves | Verified |
 
 ### Retrofit queue
 
 | Priority | Source feedback | Target route/component | Required change | Status |
 |---|---|---|---|---|
-| P0 | Mixed icon implementations | `VppEmptyState`, `EmptyState`, shared header/menu | Hợp nhất icon wrapper + semantic map, kiểm tra font/fallback | Proposed |
-| P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Proposed |
+| P0 | Mixed icon implementations | `VppEmptyState`, `EmptyState`, shared header/menu | Hợp nhất icon wrapper + semantic map, kiểm tra font/fallback | Verified |
+| P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Verified |
 | P1 | Account shell drift | Login/Register/Forgot/Reset/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Proposed |
 | P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Proposed |
 | P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Proposed |
@@ -521,7 +533,7 @@ Retrofit không mặc định làm ngay giữa route hiện tại nếu không �
 
 ### Per-route browser matrix
 
-- Desktop: `1920×1080`.
+- Desktop baseline: `1366×768` và `1440×900`; wide-screen evidence: `1920×1080`.
 - Tablet: `768×1024`.
 - Mobile: `390×844`.
 - Light và Dark cho route authenticated.

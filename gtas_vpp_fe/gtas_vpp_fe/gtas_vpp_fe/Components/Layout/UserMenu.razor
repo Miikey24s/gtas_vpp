@@ -28,13 +28,13 @@
             @if (!string.IsNullOrEmpty(Department))
             {
                 <div class="user-dropdown-info">
-                    <span class="material-symbols-outlined user-dropdown-icon">apartment</span>
+                    <VppIcon Name="@VppIcons.Apartment" Class="user-dropdown-icon" />
                     <span>@Department</span>
                 </div>
                 <div class="user-dropdown-divider"></div>
             }
             <a href="/logoutprocess" class="user-dropdown-logout" role="menuitem">
-                <span class="material-symbols-outlined user-dropdown-icon">logout</span>
+                <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
                 <span>@Loc["Logout"]</span>
             </a>
         </div>

@@ -88,7 +88,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -133,7 +133,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
             {
@@ -165,7 +165,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -291,7 +291,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 row.IsDeleted = previous;
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
             }
         }
 
@@ -321,7 +321,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 
@@ -399,9 +399,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private void NotifyPriceError(Exception ex)
         {
-            var detail = ex.Message.Contains("Conflict", StringComparison.OrdinalIgnoreCase)
+            var detail = UiErrorMapper.GetErrorCode(ex) == "Conflict"
                 ? Loc["OnlyOneDefaultPerVPPAllowed"].Value
-                : ex.Message;
+                : UiErrorMapper.GetMessage(ex, Loc, "UpdateRecordFailed");
             Notify(NotificationSeverity.Error, Loc["Error"].Value, detail);
         }
 

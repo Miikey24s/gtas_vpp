@@ -37,7 +37,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -73,7 +73,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
             {
@@ -105,7 +105,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -140,7 +140,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "CreateRecordFailed");
             }
         }
 
@@ -177,7 +177,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "UpdateRecordFailed");
             }
         }
 
@@ -205,7 +205,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 row.IsDeleted = previous;
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
             }
         }
 
@@ -232,7 +232,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 
@@ -255,7 +255,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "UpdateRecordFailed");
             }
         }
 
@@ -281,7 +281,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "UpdateRecordFailed");
             }
         }
 
@@ -308,7 +308,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "UpdateRecordFailed");
             }
         }
 
@@ -338,7 +338,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                Notify(NotificationSeverity.Error, Loc["Error"].Value, ex.Message);
+                _toastService.Error(ex, Loc, "CreateRecordFailed");
             }
         }
 

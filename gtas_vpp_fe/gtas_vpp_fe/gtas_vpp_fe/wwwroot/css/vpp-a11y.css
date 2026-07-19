@@ -13,6 +13,14 @@
     border-radius: 2px;
 }
 
+/* FocusOnNavigate moves accessibility focus to the page heading. Announce it
+   to assistive technology without drawing an interactive-control ring around
+   a non-interactive title. */
+h1[tabindex="-1"]:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+}
+
 .rz-button:focus-visible,
 .rz-textbox:focus-visible,
 .rz-dropdown:focus-visible,

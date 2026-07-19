@@ -110,7 +110,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = Loc["ProductCatalog"],
-                    Detail = string.Format(Loc["LoadFailedFormat"], ex.Message),
+                Detail = UiErrorMapper.GetMessage(ex, Loc),
                     Duration = 6000
                 });
             }

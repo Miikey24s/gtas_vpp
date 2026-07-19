@@ -93,7 +93,7 @@ public partial class Tab_User
         {
             permissionGroups = [];
             departments = [];
-            NotifyError("Error when loading role/department lookups: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
         finally
         {
@@ -149,7 +149,7 @@ public partial class Tab_User
         {
             users = [];
             userCount = 0;
-            NotifyError("Error when loading users: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
         finally
         {
@@ -202,7 +202,7 @@ public partial class Tab_User
         }
         catch (Exception ex)
         {
-            NotifyError("Error when loading user filters: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
     }
 
@@ -287,7 +287,7 @@ public partial class Tab_User
         }
         catch (Exception ex)
         {
-            NotifyError("Kích hoạt tài khoản thất bại: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
             await ReloadUsersAsync();
         }
         finally
@@ -338,7 +338,7 @@ public partial class Tab_User
         }
         catch (Exception ex)
         {
-            NotifyError("Reset mật khẩu thất bại: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
         finally
         {
@@ -389,7 +389,7 @@ public partial class Tab_User
         }
         catch (Exception ex)
         {
-            NotifyError("Membership deactivation failed: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
             await ReloadUsersAsync();
         }
         finally
@@ -461,7 +461,7 @@ public partial class Tab_User
         }
         catch (Exception ex)
         {
-            NotifyError("Membership update failed: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
             await ReloadUsersAsync();
         }
         finally

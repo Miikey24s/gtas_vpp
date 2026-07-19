@@ -63,17 +63,53 @@ public sealed class UiErrorMapperTests
         Assert.Equal("RequestCancelled", UiErrorMapper.GetErrorCode(new OperationCanceledException()));
     }
 
+    [Fact]
+    public void GetMessage_MapsOperationInvalidInsteadOfShowingRawCode()
+    {
+        var localizer = new StubLocalizer();
+        var exception = new ApiRequestException(
+            HttpStatusCode.BadRequest,
+            "OperationInvalid");
+
+        var message = UiErrorMapper.GetMessage(exception, localizer, "UpdateRecordFailed");
+
+        Assert.Equal("Yêu cầu chưa hợp lệ.", message);
+        Assert.DoesNotContain("OperationInvalid", message);
+    }
+
+    [Fact]
+    public void GetMessage_UsesContextualFallbackForGenericFailure()
+    {
+        var localizer = new StubLocalizer();
+
+        var message = UiErrorMapper.GetMessage(
+            new InvalidOperationException("internal"),
+            localizer,
+            "UpdateRecordFailed");
+
+        Assert.Equal("Không thể cập nhật bản ghi.", message);
+    }
+
     private sealed class StubLocalizer : IStringLocalizer<App>
     {
-        public LocalizedString this[string name] =>
-            new(name, name switch
+        public LocalizedString this[string name]
+        {
+            get
             {
-                "Conflict" => "Dữ liệu xung đột.",
-                "ServerError" => "Lỗi máy chủ.",
-                "TraceId" => "Trace ID",
-            "RequestFailed" => "Yêu cầu thất bại.",
-                _ => name
-            }, resourceNotFound: false);
+                var value = name switch
+                {
+                    "Conflict" => "Dữ liệu xung đột.",
+                    "ServerError" => "Lỗi máy chủ.",
+                    "TraceId" => "Trace ID",
+                    "RequestInvalid" => "Yêu cầu chưa hợp lệ.",
+                    "RequestFailed" => "Yêu cầu thất bại.",
+                    "UpdateRecordFailed" => "Không thể cập nhật bản ghi.",
+                    _ => name
+                };
+
+                return new LocalizedString(name, value, resourceNotFound: value == name);
+            }
+        }
 
         public LocalizedString this[string name, params object[] arguments] => this[name];
 

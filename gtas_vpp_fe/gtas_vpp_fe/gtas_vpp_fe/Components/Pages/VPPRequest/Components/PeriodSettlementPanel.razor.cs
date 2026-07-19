@@ -94,7 +94,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
             catch (Exception ex)
             {
-                SetAlert(AlertStyle.Warning, ex.Message);
+                SetAlert(AlertStyle.Warning, UiErrorMapper.GetMessage(ex, Loc));
             }
         }
 
@@ -120,7 +120,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             catch (Exception ex)
             {
                 canSettle = false;
-                SetAlert(AlertStyle.Danger, ex.Message);
+                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
                 return false;
             }
         }
@@ -143,7 +143,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             catch (Exception ex)
             {
                 canSettle = false;
-                SetAlert(AlertStyle.Danger, ex.Message);
+                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
             }
             finally
             {
@@ -240,7 +240,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             catch (Exception ex)
             {
                 canSettle = false;
-                SetAlert(AlertStyle.Danger, ex.Message);
+                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
             }
             finally
             {
@@ -286,7 +286,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
             catch (Exception ex)
             {
-                SetAlert(AlertStyle.Danger, ex.Message);
+                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
             }
             finally
             {
@@ -349,7 +349,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
             catch (Exception ex)
             {
-                SetAlert(AlertStyle.Danger, ex.Message);
+                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
             }
             finally
             {

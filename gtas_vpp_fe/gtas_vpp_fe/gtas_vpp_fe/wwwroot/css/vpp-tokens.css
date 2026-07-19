@@ -89,6 +89,14 @@
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
+.vpp-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
 /* ── Typography ──────────────────────────────────────────────── */
 :root {
     --vpp-font-display: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;

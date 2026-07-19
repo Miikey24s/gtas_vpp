@@ -86,7 +86,7 @@ public partial class Tab_PagePermission
         {
             list_Group = [];
             groupCount = 0;
-            NotifyError("Error when loading roles: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
         finally
         {
@@ -138,7 +138,7 @@ public partial class Tab_PagePermission
         }
         catch (Exception ex)
         {
-            NotifyError("Error when loading role filters: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
     }
 
@@ -212,7 +212,7 @@ public partial class Tab_PagePermission
         }
         catch (Exception ex)
         {
-            NotifyError("Error when updating component permission: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
             await LoadGroupPermissionsAsync(component.GroupId, false);
         }
         finally
@@ -242,7 +242,7 @@ public partial class Tab_PagePermission
             groupPermissions = [];
             if (notifyErrors)
             {
-                NotifyError("Error when loading role permissions: " + ex.Message);
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
             }
         }
         finally

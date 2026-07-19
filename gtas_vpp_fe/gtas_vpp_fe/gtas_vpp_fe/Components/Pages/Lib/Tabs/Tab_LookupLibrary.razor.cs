@@ -100,7 +100,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading lookup categories: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
             {
@@ -152,7 +152,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading filter data: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -191,7 +191,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 data.IsDeleted = !isDeleted;
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error updating lookup category status: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
             }
         }
 
@@ -229,7 +229,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error permanently deleting lookup category: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 
@@ -281,7 +281,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading lookup values: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
             {
@@ -336,7 +336,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error loading filter data: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -369,7 +369,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 data.IsDeleted = !isDeleted;
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error updating lookup value status: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
             }
         }
 
@@ -399,7 +399,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
             catch (Exception ex)
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", $"Error permanently deleting lookup category detail: {ex.Message}", 15000, true);
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 
