@@ -124,6 +124,7 @@ public sealed class AccountShellSmokeTests : TestBase
 
         (await Page.Locator("input[name=EmployeeCode]").CountAsync()).Should().Be(0);
         (await Page.GetByText("Email công ty", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.GetByText("Nhập lại mật khẩu", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
         (await Page.Locator(".vpp-account-description").CountAsync()).Should().Be(0);
 
         var registerButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng ký");
@@ -165,6 +166,7 @@ public sealed class AccountShellSmokeTests : TestBase
         await englishButton.ClickAsync();
         await Page.GetByText("Please enter your username.", new() { Exact = true }).WaitForAsync();
         (await Page.GetByText("Company email", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.GetByText("Confirm password", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
         var loginButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng nhập");
@@ -174,9 +176,12 @@ public sealed class AccountShellSmokeTests : TestBase
                 const password = document.querySelector('.vpp-login-password-wrapper')?.getBoundingClientRect();
                 const button = document.querySelector('.vpp-login-btn')?.getBoundingClientRect();
                 const links = document.querySelector('.vpp-login-links')?.getBoundingClientRect();
-                const separator = document.querySelector('.vpp-login-links > span')?.getBoundingClientRect();
+                const firstLink = document.querySelector('.vpp-login-links > a:first-child')?.getBoundingClientRect();
+                const secondLink = document.querySelector('.vpp-login-links > a:last-child')?.getBoundingClientRect();
+                const passwordControl = document.querySelector('.vpp-login-password-wrapper .vpp-login-control');
+                const passwordInput = document.querySelector('.vpp-login-password-wrapper input');
 
-                if (!username || !password || !button || !links || !separator) {
+                if (!username || !password || !button || !links || !firstLink || !secondLink || !passwordControl || !passwordInput) {
                     throw new Error('Unable to measure login alignment geometry.');
                 }
 
@@ -187,19 +192,42 @@ public sealed class AccountShellSmokeTests : TestBase
                     username.right,
                     password.right,
                     button.right,
-                    separator.left + separator.width / 2,
+                    links.left + links.width / 2,
                     button.left + button.width / 2,
-                    links.left,
-                    links.right
+                    firstLink.width,
+                    secondLink.width,
+                    parseFloat(getComputedStyle(document.querySelector('input[name="Username"]')).borderBottomWidth),
+                    parseFloat(getComputedStyle(document.querySelector('.vpp-login-password-wrapper')).borderBottomWidth),
+                    parseFloat(getComputedStyle(passwordControl).borderBottomWidth),
+                    parseFloat(getComputedStyle(passwordInput).borderBottomWidth)
                 ];
+            }
+            """);
+        var passwordLayout = await Page.EvaluateAsync<string>("""
+            () => {
+                const wrapper = document.querySelector('.vpp-login-password-wrapper');
+                return JSON.stringify(wrapper ? [...wrapper.querySelectorAll('*')].map(element => {
+                    const style = getComputedStyle(element);
+                    return {
+                        tag: element.tagName,
+                        classes: element.className,
+                        name: element.getAttribute('name'),
+                        borderBottomWidth: style.borderBottomWidth,
+                        borderBottomStyle: style.borderBottomStyle
+                    };
+                }) : []);
             }
             """);
         Math.Abs(alignment[0] - alignment[1]).Should().BeLessThan(1, "username and password underlines should start together");
         Math.Abs(alignment[0] - alignment[2]).Should().BeLessThan(1, "fields and primary action should share the same left edge");
         Math.Abs(alignment[3] - alignment[4]).Should().BeLessThan(1, "username and password underlines should end together");
         Math.Abs(alignment[3] - alignment[5]).Should().BeLessThan(1, "fields and primary action should share the same right edge");
-        Math.Abs(alignment[2] - alignment[8]).Should().BeLessThan(1, "account links should share the primary action left edge");
-        Math.Abs(alignment[5] - alignment[9]).Should().BeLessThan(1, "account links should share the primary action right edge");
+        Math.Abs(alignment[6] - alignment[7]).Should().BeLessThan(1, "the secondary action row should sit on the primary action centerline");
+        Math.Abs(alignment[8] - alignment[9]).Should().BeLessThan(1, "forgot-password and registration actions should have equal widths");
+        alignment[10].Should().Be(1, "standard account inputs should use a one-pixel underline");
+        alignment[11].Should().Be(1, "the password wrapper should own one one-pixel underline");
+        alignment[12].Should().Be(0, $"the nested Radzen password control must not add another underline; layout={passwordLayout}");
+        alignment[13].Should().Be(0, $"the nested password input must not add another underline; layout={passwordLayout}");
         var linkLayout = await Page.EvaluateAsync<string>("""
             () => {
                 const links = document.querySelector('.vpp-login-links');
@@ -215,7 +243,19 @@ public sealed class AccountShellSmokeTests : TestBase
                 });
             }
             """);
-        Math.Abs(alignment[6] - alignment[7]).Should().BeLessThan(1, $"the separator between account links should sit on the card centerline; layout={linkLayout}");
+        linkLayout.Should().Contain("\"display\":\"grid\"", "the account actions should retain the balanced two-column layout");
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "account-login-actions-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
 
         var loginBefore = await loginButton.BoundingBoxAsync();
         await loginButton.ClickAsync();

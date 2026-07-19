@@ -1,8 +1,8 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 OWNER REVIEW ROUND 3; W1 DASHBOARD NEXT`
+> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 OWNER REVIEW ROUND 4; W1 DASHBOARD NEXT`
 >
-> **Phiên bản:** `1.5` — 2026-07-19
+> **Phiên bản:** `1.6` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -396,6 +396,13 @@ Status hợp lệ:
 - xóa CSS scoped legacy của Login từng ghi đè shared account shell và gây lệch link dù CSS global đã đúng;
 - browser geometry test khóa chung left/right edge giữa username, password và primary action.
 
+**W0.2 round-4 owner feedback — 2026-07-19:**
+
+- rút gọn confirm-password copy thành `Nhập lại mật khẩu` / `Confirm password` trên Register, Reset và Change Password;
+- mọi account underline dùng nét nền `1px`; password wrapper sở hữu nét duy nhất, Radzen control/input bên trong bắt buộc `0px`;
+- Login bỏ dấu phân cách dạng text và dùng secondary action row hai cột bằng nhau, có divider nhẹ để VI/EN luôn cân đối;
+- browser geometry test đo trực tiếp độ dày border, tâm action row và chiều rộng hai secondary action.
+
 ### W2 — Employee
 
 | Logical route | Status | Notes |
@@ -534,6 +541,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-19 | Account round 2 | Bỏ hero; centered grid shell, copy ngắn, VI/EN switch và validation không layout shift | Owner ưu tiên consistency, viewport-fit và ít text hơn illustration | Global | Cập nhật toàn bộ W0.2 account flow | Login/Register/Forgot/Reset/Confirm/Change/Logout | Owner review |
 | 2026-07-19 | Brand/navigation | Thay chữ `G` bằng vector request-document mark; dùng semantic icon map và phân biệt Product catalog/Master data | Chữ G và icon/label cũ khó hiểu, mixed icon font gây missing glyph | Shared shell | Retrofit header/sidebar/notification center | Mọi authenticated route | Owner review |
 | 2026-07-19 | Account round 3 | Dùng solid geometric `V` mark; khóa hình học underline/action/link centerline bằng browser test | Owner thấy outline mark chưa đẹp và field/link còn lệch về thị giác | Shared account shell | Cập nhật W0.2 và thay brand mark dùng chung | Account routes + authenticated shell | Owner review |
+| 2026-07-19 | Account round 4 | Underline `1px`, confirm-password copy ngắn và secondary actions 50–50 | Owner phát hiện password line nặng hơn field khác và hàng link dù thẳng vẫn chưa cân đối | Shared account form | Cập nhật W0.2 shared password/link treatment | Login/Register/Reset/Change | Owner review |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Account errors | Dịch theo stable error code, không render raw backend message | Bảo mật, VI/EN nhất quán và tránh technical leakage | Global | Thêm `AccountLifecycleUiMapper` | Register/Forgot/Reset/Confirm/Change | Verified |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |

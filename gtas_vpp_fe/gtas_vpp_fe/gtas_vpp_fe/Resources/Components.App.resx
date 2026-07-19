@@ -67,7 +67,7 @@
   <data name="ResetPasswordTitle" xml:space="preserve"><value>Đặt lại</value></data>
   <data name="ResetPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
   <data name="NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
-  <data name="ConfirmNewPassword" xml:space="preserve"><value>Nhập lại mật khẩu mới</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Nhập lại mật khẩu</value></data>
   <data name="ResetPasswordAction" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
   <data name="ResetPasswordSuccess" xml:space="preserve"><value>Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>Liên kết đặt lại không hợp lệ hoặc đã hết hạn.</value></data>

@@ -169,7 +169,7 @@
     width: 100% !important;
     min-height: var(--vpp-login-field-min-height) !important;
     border: none !important;
-    border-bottom: 2px solid rgba(9, 30, 66, 0.16) !important;
+    border-bottom: 1px solid rgba(9, 30, 66, 0.16) !important;
     border-radius: 0 !important;
     background-color: transparent !important;
     background: transparent !important;
@@ -203,7 +203,7 @@
 .vpp-login-field .vpp-login-control.rz-textbox,
 .vpp-login-field .vpp-login-control.rz-password,
 .vpp-login-field .vpp-login-control.rz-dropdown {
-    border-bottom: 2px solid rgba(9, 30, 66, 0.16) !important;
+    border-bottom: 1px solid rgba(9, 30, 66, 0.16) !important;
 }
 
 .vpp-login-field .rz-password {
@@ -418,16 +418,22 @@
     position: relative;
     width: 100%;
     min-height: var(--vpp-login-field-min-height);
-    border-bottom: 2px solid rgba(9, 30, 66, 0.16);
+    border-bottom: 1px solid rgba(9, 30, 66, 0.16);
     transition: border-color 0.2s ease-in-out;
 }
 
 .vpp-login-password-wrapper .rz-password,
-.vpp-login-password-wrapper .rz-textbox {
+.vpp-login-password-wrapper .rz-textbox,
+.vpp-login-password-wrapper .rz-inputtext,
+.vpp-login-password-wrapper .vpp-login-control {
     width: 100% !important;
     min-height: var(--vpp-login-field-min-height) !important;
     border: 0 !important;
     padding: 0 !important;
+}
+
+.vpp-login-field .vpp-login-password-wrapper .vpp-login-control {
+    border: 0 !important;
 }
 
 .vpp-login-password-wrapper:hover,
@@ -660,44 +666,58 @@
 
 .vpp-login-links {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: center;
-    width: 100%;
-    gap: 12px;
-    margin-top: 18px;
+    width: min(100%, 320px);
+    gap: 0;
+    margin: 14px auto 0;
     color: var(--vpp-text-tertiary);
     font-size: 0.875rem;
     font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-login-links a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: var(--vpp-radius-md);
     color: var(--vpp-primary-600);
     text-decoration: none;
+    transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .vpp-login-links a:hover,
 .vpp-login-links a:focus-visible {
-    text-decoration: underline;
+    color: var(--vpp-primary-700);
+    background: rgba(var(--vpp-primary-rgb), 0.07);
+    text-decoration: none;
 }
 
-.vpp-login-links > a:first-child {
-    justify-self: end;
-    text-align: right;
-}
-
-.vpp-login-links > span {
-    justify-self: center;
-}
-
-.vpp-login-links > a:last-child {
-    justify-self: start;
-    text-align: left;
+.vpp-login-links:not(.vpp-login-links-single) > a + a::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 1px;
+    height: 18px;
+    background: var(--vpp-border-default);
+    content: "";
+    transform: translateY(-50%);
 }
 
 .vpp-login-links-single {
     display: flex;
+    width: 100%;
     justify-content: flex-start;
-    margin-top: 22px;
+    margin: 22px 0 0;
+}
+
+.vpp-login-links-single a {
+    justify-content: flex-start;
+    width: auto;
 }
 
 .vpp-account-back-link {

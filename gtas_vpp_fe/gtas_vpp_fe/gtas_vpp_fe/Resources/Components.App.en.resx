@@ -67,7 +67,7 @@
   <data name="ResetPasswordTitle" xml:space="preserve"><value>Reset</value></data>
   <data name="ResetPasswordAccent" xml:space="preserve"><value>password</value></data>
   <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
-  <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm new password</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm password</value></data>
   <data name="ResetPasswordAction" xml:space="preserve"><value>Reset password</value></data>
   <data name="ResetPasswordSuccess" xml:space="preserve"><value>Password reset. You can now sign in with the new password.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>The reset link is invalid or expired.</value></data>
