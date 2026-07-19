@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `IN_IMPLEMENTATION — W0.2 APPROVED; W1 DASHBOARD OWNER REVIEW`
 >
-> **Phiên bản:** `1.9` — 2026-07-19
+> **Phiên bản:** `1.10` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -353,7 +353,8 @@ Status hợp lệ:
 - all user-facing frontend exception paths use `UiErrorMapper`; raw `ex.Message` remains diagnostic-only;
 - `OperationInvalid` maps to localized `RequestInvalid`, while safe detail/trace rules remain enforced;
 - app shell uses `100dvh` fallback and `overflow-y: auto`, so short pages no longer show a forced scrollbar;
-- Release solution build: `0 warning / 0 error`; frontend unit/architecture tests: `127/127`;
+- notification trigger dùng chung header-control primitive với theme switch: cùng kích thước, border/surface/shadow, hover/active/focus; unread badge giữ semantic riêng;
+- Release solution build: `0 warning / 0 error`; frontend unit/architecture tests: `140/140`;
 - anonymous login browser QA passed at `390×844`, `768×1024`, `1920×1080`;
 - authenticated shell QA passed on isolated Aspire/LocalDB across core routes and three viewports.
 
@@ -568,6 +569,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-19 | W0.2 approval | Forgot title một dòng, tăng nhẹ title-to-field spacing; chuyển W1 | Owner duyệt account flow sau retrofit cuối | Account shell | Khóa W0.2, mở W1 Dashboard | Account routes → dashboard.my-orders | Approved |
 | 2026-07-19 | W1 My Orders round 1 | Story header + ba metric hiện tại + single-source CTA + compact previous archive | Loại bỏ lặp kỳ/deadline/action và giữ current story above-the-fold | Employee workspace | Hoàn tất dashboard.my-orders để owner review | dashboard?tab=0 | Owner review |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
+| 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |
 | 2026-07-19 | Account errors | Dịch theo stable error code, không render raw backend message | Bảo mật, VI/EN nhất quán và tránh technical leakage | Global | Thêm `AccountLifecycleUiMapper` | Register/Forgot/Reset/Confirm/Change | Verified |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |
 | 2026-07-19 | Admin grid | Column profile theo route + detail on demand | Departments screenshot cho thấy nhiều cột và khó đọc | Shared pattern | Bổ sung 6.1 và W3 | Library/*, shared grid | Proposed |

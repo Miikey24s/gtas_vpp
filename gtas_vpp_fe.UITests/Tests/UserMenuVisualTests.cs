@@ -15,6 +15,53 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator(".vpp-brand-mark svg").CountAsync()).Should().Be(1, "the authenticated shell should use the shared vector brand mark");
 
         var notificationButton = Page.Locator(".vpp-header-notification-button");
+        var themeButton = Page.Locator(".vpp-theme-switch");
+        await notificationButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await themeButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var controlGeometry = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const notification = document.querySelector('.vpp-header-notification-button')?.getBoundingClientRect();
+                const theme = document.querySelector('.vpp-theme-switch')?.getBoundingClientRect();
+                if (!notification || !theme) {
+                    throw new Error('Unable to measure header icon controls.');
+                }
+
+                return [
+                    notification.width,
+                    notification.height,
+                    theme.width,
+                    theme.height,
+                    Math.abs((notification.top + notification.height / 2) - (theme.top + theme.height / 2))
+                ];
+            }
+            """);
+        controlGeometry[0].Should().BeApproximately(controlGeometry[2], 1, "notification and theme controls should share one width");
+        controlGeometry[1].Should().BeApproximately(controlGeometry[3], 1, "notification and theme controls should share one height");
+        controlGeometry[4].Should().BeLessThan(1, "notification and theme controls should share one centerline");
+
+        var notificationBaseStyle = await ReadHeaderControlStyleAsync(notificationButton);
+        var themeBaseStyle = await ReadHeaderControlStyleAsync(themeButton);
+        notificationBaseStyle.Should().Equal(themeBaseStyle, "notification and theme controls should share border, surface, radius and shadow tokens");
+
+        await notificationButton.HoverAsync();
+        await Page.WaitForTimeoutAsync(200);
+        var notificationHoverStyle = await ReadHeaderControlStyleAsync(notificationButton);
+        await themeButton.HoverAsync();
+        await Page.WaitForTimeoutAsync(200);
+        var themeHoverStyle = await ReadHeaderControlStyleAsync(themeButton);
+        notificationHoverStyle.Should().Equal(themeHoverStyle, "notification and theme controls should share hover treatment");
+
+        await themeButton.ClickAsync();
+        await Page.WaitForFunctionAsync("() => document.documentElement.classList.contains('rz-theme-dark')");
+        await Page.Mouse.MoveAsync(4, 4);
+        await Page.WaitForTimeoutAsync(200);
+        var notificationDarkStyle = await ReadHeaderControlStyleAsync(notificationButton);
+        var themeDarkStyle = await ReadHeaderControlStyleAsync(themeButton);
+        notificationDarkStyle.Should().Equal(themeDarkStyle, "notification and theme controls should share the dark-mode surface treatment");
+
+        await themeButton.ClickAsync();
+        await Page.WaitForFunctionAsync("() => !document.documentElement.classList.contains('rz-theme-dark')");
+
         await notificationButton.ClickAsync();
         var notificationPanel = Page.Locator("#vpp-notification-panel");
         await notificationPanel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
@@ -86,4 +133,19 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Detached
         });
     }
+
+    private static Task<string[]> ReadHeaderControlStyleAsync(ILocator control)
+        => control.EvaluateAsync<string[]>("""
+            element => {
+                const style = getComputedStyle(element);
+                return [
+                    style.borderTopWidth,
+                    style.borderTopColor,
+                    style.borderRadius,
+                    style.backgroundColor,
+                    style.boxShadow,
+                    style.transform
+                ];
+            }
+            """);
 }
