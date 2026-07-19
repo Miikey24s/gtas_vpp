@@ -4,6 +4,9 @@ public static class ReportInsightSources
 {
     public const string Rules = "rules";
     public const string OpenAI = "openai";
+    public const string Groq = "groq";
+    public const string Gemini = "gemini";
+    public const string Ollama = "ollama";
 }
 
 public sealed class ReportInsightResDTO
@@ -15,5 +18,5 @@ public sealed class ReportInsightResDTO
     public string Source { get; set; } = ReportInsightSources.Rules;
     public string? Model { get; set; }
     public DateTime GeneratedAt { get; set; }
-    public bool IsAiGenerated => Source == ReportInsightSources.OpenAI;
+    public bool IsAiGenerated => !string.Equals(Source, ReportInsightSources.Rules, StringComparison.OrdinalIgnoreCase);
 }

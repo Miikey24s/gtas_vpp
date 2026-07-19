@@ -305,9 +305,9 @@ Identity hỗ trợ user lifecycle, confirmation/reset và lockout ([Identity](h
 
 ### AI-01 — AI insight là nền tảng tốt nhưng thiếu governance
 
-**Bằng chứng.** `ReportInsightService` dùng aggregate, schema, `store=false`, timeout và deterministic fallback; model cấu hình `gpt-5.6-luna` là model cost-sensitive hiện có trong official catalog ([OpenAI models](https://developers.openai.com/api/docs/models)).
+**Bằng chứng.** `ReportInsightService` dùng aggregate, provider abstraction, structured JSON validation, timeout, in-memory daily quota gate và deterministic fallback; OpenAI vẫn được giữ tương thích nhưng không còn là provider duy nhất.
 
-**Thiếu.** Permission riêng, cache/budget/rate limit, prompt/output version/audit, evidence link, user disclosure, evaluation set và privacy review.
+**Thiếu.** Permission riêng, cache/persistent budget, prompt/output version/audit, evidence link, user disclosure, evaluation set và privacy review. Rate limit cơ bản hiện mới là per-process daily gate và provider HTTP fallback.
 
 **Đề xuất.** Giữ đây là AI feature chính; không mở tool/mutation. Structured output đảm bảo schema chứ không đảm bảo nội dung đúng, nên phải deterministic-number-first, evidence và human review ([Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [Safety](https://developers.openai.com/api/docs/guides/safety-best-practices)).
 

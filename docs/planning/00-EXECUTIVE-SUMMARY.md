@@ -100,7 +100,7 @@ Audit không thay đổi source, database hay cấu hình. Các file đang dirty
 - Notification action center có deep link, trạng thái và chống trùng.
 - Dashboard role-based, KPI có định nghĩa và drill-down.
 
-Nếu checkpoint core còn thời gian, AI feature duy nhất được đưa vào release là **Vietnamese report narrative + anomaly explanation** dựa trên aggregate đã phân quyền, luôn có evidence link, feature flag, budget/cache/audit và deterministic fallback. OpenAI khuyến nghị structured output để bám schema và human review trước khi dùng output trong thực tế ([Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [Safety best practices](https://developers.openai.com/api/docs/guides/safety-best-practices)). Không cho AI mutation, duyệt đơn, chọn NCC cuối cùng hay đóng kỳ.
+Nếu checkpoint core còn thời gian, AI feature duy nhất được đưa vào release là **Vietnamese report narrative + anomaly explanation** dựa trên aggregate đã phân quyền, luôn có evidence link, feature flag, budget/rate-limit và deterministic fallback. Provider được chọn qua abstraction (Groq/Gemini/Ollama/OpenAI), structured JSON được validate ở backend và human review được giữ trước khi dùng output trong thực tế. Không cho AI mutation, duyệt đơn, chọn NCC cuối cùng hay đóng kỳ.
 
 ## 6. Phạm vi phù hợp cho luận văn
 

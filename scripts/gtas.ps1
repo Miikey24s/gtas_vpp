@@ -192,7 +192,9 @@ Configuration catalog:
   Admin bootstrap  : AuthBootstrap__* (one-shot RunOnly; this script supplies it)
   JWT key          : JwtSettings__Key
   SMTP password    : EmailNotifications__Password
-  OpenAI API key   : OPENAI_API_KEY (ReportInsights__Enabled must also be true)
+  AI provider keys  : GROQ_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY
+  AI local provider : ReportInsights:Providers:Ollama:Enabled=true (Ollama, no key)
+  AI provider order : ReportInsights:ProviderPriority:0..n
 
 Examples:
   .\scripts\gtas.cmd configure

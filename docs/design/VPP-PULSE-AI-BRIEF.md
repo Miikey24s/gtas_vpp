@@ -1,12 +1,12 @@
 # VPP Pulse — AI Product, Architecture & UX Brief
 
-> **Trạng thái:** Design/review only — chưa bật AI release và chưa sửa production code
+> **Trạng thái:** Khung provider đã triển khai; feature vẫn tắt mặc định và cần benchmark trước khi bật production
 > **Ngày:** 2026-07-18
 > **Figma:** [11 — AI & Intelligence](https://www.figma.com/design/jguNtPeThzRM0N3o8536dE)
 
 ## 1. Kết luận nên chọn
 
-GTAS VPP nên dùng **server-side AI gateway + OpenAI Responses API**, với **local deterministic provider cho test/offline**, và giữ một interface `IAiProvider` để có thể thêm local model sau này. Không đưa API key xuống browser, không cho AI truy vấn DB tùy ý và không cho AI thực hiện mutation nghiệp vụ.
+GTAS VPP dùng **server-side AI gateway + provider abstraction**, với Groq/Gemini/Ollama/OpenAI adapters và rule-based provider làm fallback. Không đưa API key xuống browser, không cho AI truy vấn DB tùy ý và không cho AI thực hiện mutation nghiệp vụ.
 
 Đây là hybrid theo nghĩa vận hành:
 
@@ -14,10 +14,10 @@ GTAS VPP nên dùng **server-side AI gateway + OpenAI Responses API**, với **l
 |---|---|---|
 | Browser/Blazor | Hiển thị insight, evidence, trạng thái và feedback | Không chứa secret, không gọi provider trực tiếp |
 | Backend gateway | Authorization, aggregate DTO, prompt/schema, budget, cache, audit, fallback | Nguồn kiểm soát duy nhất |
-| Provider chính | Narrative/anomaly explanation chất lượng cao | Responses API, `store=false` mặc định |
-| Provider test/offline | Test ổn định, không tốn phí, chạy khi mất mạng | Deterministic stub; local model chỉ là adapter tùy chọn |
+| Provider chính | Narrative/anomaly explanation chất lượng cao | Chọn theo `ReportInsights:ProviderPriority`; adapter lỗi/quota thì chuyển provider kế tiếp |
+| Provider test/offline | Test ổn định, không tốn phí, chạy khi mất mạng | Rule-based fallback bắt buộc; Ollama local là adapter tùy chọn |
 
-OpenAI khuyến nghị Responses API cho tích hợp mới, Structured Outputs cho JSON theo schema, và function calling chỉ khi ứng dụng cần thực thi tool có kiểm soát. VPP v1 chỉ cần Structured Outputs; chưa cần tool calling.
+Các provider hỗ trợ Structured Outputs/JSON mode theo khả năng model. VPP v1 chỉ cần structured JSON; chưa cần tool calling.
 
 ## 2. Phạm vi AI được phép
 
@@ -62,13 +62,15 @@ Source of truth:
 - Admin UI chỉ cho xem provider/model/budget/feature flag/audit; **không cho xem hoặc nhập API key**.
 - Đổi key phải là thao tác hạ tầng, có rotation/runbook, không phải UI feature.
 
-OpenAI ghi rõ API key phải được bảo vệ bằng environment/secret management và nên tách staging/production project. Dữ liệu API không dùng để train nếu không opt-in; tuy vậy ứng dụng vẫn phải tự quyết retention/audit của mình. Với Responses API, `store=false` là mặc định của VPP để tránh lưu state phía provider khi không cần.
+API key phải được bảo vệ bằng environment/secret management và tách theo môi trường. Provider free có chính sách dữ liệu khác nhau; Gemini free chỉ được nhận aggregate/synthetic data. Ứng dụng vẫn tự quyết retention/audit và không log prompt/response.
 
-## 5. OpenAI API vs local model
+## 5. Cloud providers vs local model
 
 | Phương án | Ưu điểm | Nhược điểm | Quyết định cho VPP |
 |---|---|---|---|
-| OpenAI API | Chất lượng/latency ổn định, không phải vận hành GPU, phù hợp demo và report narrative | Có phí, phụ thuộc mạng/provider, cần data boundary và quota | **Primary cho Test/Demo/DO khi feature được bật** |
+| Groq/Gemini API | Chất lượng/latency tốt, không phải vận hành GPU, phù hợp demo và report narrative | Phụ thuộc mạng/provider, free quota và data policy khác nhau | **Primary tùy benchmark; chỉ aggregate** |
+| Ollama local | Không phí, không gửi dữ liệu ra ngoài, có thể chạy offline | Cần runtime/GPU, chất lượng và latency phụ thuộc máy | **Provider local tùy chọn** |
+| OpenAI API | Chất lượng/latency ổn định, tương thích cấu hình cũ | Có phí, phụ thuộc mạng/provider | **Provider trả phí tùy chọn** |
 | Local deterministic | Test lặp lại, không phí, không leak dữ liệu, chạy được trong CI | Không phải LLM thật; không đánh giá prompt/quality | **Bắt buộc cho test và fallback** |
 | Local gpt-oss/LLM | Kiểm soát dữ liệu, chạy trên hạ tầng mình quản lý, có thể offline | Cần RAM/GPU, vận hành model/runtime, đo quality tiếng Việt, latency và license/hardware | **Chỉ thêm sau benchmark; không dùng mặc định** |
 | Browser direct | Dễ demo nhanh | Lộ key, bypass authorization, khó audit/cost control | **Không dùng** |
@@ -78,8 +80,8 @@ OpenAI công bố gpt-oss-20b có thể chạy với khoảng 16 GB memory và g
 ## 6. Contract kỹ thuật đề xuất
 
 ```text
-IAiProvider.GenerateReportInsightAsync(ReportInsightInput, CancellationToken)
- -> AiInsightResult
+IReportInsightProvider.GenerateAsync(ReportInsightPrompt, CancellationToken)
+ -> ReportInsightProviderResult
 
 AiInsightResult
   summary, highlights[], risks[], recommendations[]

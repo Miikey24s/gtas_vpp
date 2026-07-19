@@ -106,18 +106,21 @@ Runbook đầy đủ nằm tại [`deploy/README.md`](deploy/README.md). Không 
 
 ## Nhận định báo cáo bằng AI (tùy chọn)
 
-Trang Report luôn có phân tích theo quy tắc xác định. OpenAI chỉ được gọi khi người dùng chủ động
-chọn **Tạo nhận định** và cả hai biến sau đã được cấu hình ở backend:
+Trang Report luôn có phân tích theo quy tắc xác định. AI chỉ được gọi khi người dùng chủ động
+chọn **Tạo nhận định**, feature được bật và provider có secret server-side. Khung hiện hỗ trợ
+Groq, Gemini, Ollama local và OpenAI tương thích cũ:
 
 ```powershell
 $env:REPORT_INSIGHTS_ENABLED = 'true'
-$env:OPENAI_API_KEY = '<server-side-secret>'
+$env:GROQ_API_KEY = '<server-side-secret>'
 ```
 
-Mặc định tính năng AI tắt, model cấu hình là `gpt-5.6-luna`. Backend chỉ gửi số liệu tổng hợp đã
-được giới hạn theo quyền hiện tại, không gửi danh tính người yêu cầu hay dòng đơn gốc. Khi API tắt,
-thiếu khóa, quá thời gian hoặc trả lỗi, hệ thống tự động dùng phân tích theo quy tắc. Không đưa API
-key vào `appsettings*.json`, source hoặc frontend; ở production dùng secret manager/GitHub Secret.
+Thứ tự provider mặc định là `groq`, `gemini`, `ollama`, `openai`; có thể đổi bằng
+`ReportInsights__ProviderPriority__0..n`. Mặc định tính năng AI tắt. Backend chỉ gửi số liệu tổng hợp
+đã được giới hạn theo quyền hiện tại, không gửi danh tính người yêu cầu hay dòng đơn gốc. Khi API
+tắt, thiếu khóa, hết quota, quá thời gian hoặc trả JSON không hợp lệ, hệ thống tự động dùng phân tích
+theo quy tắc. Không đưa API key vào `appsettings*.json`, source hoặc frontend; ở production dùng
+secret manager/GitHub Secret.
 
 ## Luận văn và sơ đồ
 

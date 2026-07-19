@@ -9,8 +9,7 @@ var api = builder.AddProject<Projects.gtas_vpp_be>("backend")
     .WithEnvironment("DatabaseInitialization__Mode", "MigrateAndReference")
     .WithEnvironment("DatabaseInitialization__Environments__0", "TestEnv")
     .WithEnvironment("JwtSettings__Key", jwtKey)
-    .WithEnvironment("JwtSettings__Audience", "gtas_vpp_test_clients")
-    .WithEnvironment("ReportInsights__Enabled", "false");
+    .WithEnvironment("JwtSettings__Audience", "gtas_vpp_test_clients");
 
 if (!string.IsNullOrWhiteSpace(builder.Configuration["Parameters:qa-fixture-run-id"]))
 {

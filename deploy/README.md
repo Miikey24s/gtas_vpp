@@ -63,11 +63,15 @@ secret khi gói GitHub hiện tại hỗ trợ:
 MSSQL_MEMORY_LIMIT_MB=4096
 REPORT_INSIGHTS_ENABLED=false
 OPENAI_API_KEY=
+GROQ_API_KEY=
+GEMINI_API_KEY=
+GOOGLE_API_KEY=
 ```
 
 Script `deploy/validate-env.sh` chặn secret trống, placeholder, JWT ngắn, password
-SQL quá yếu và trường hợp bật AI nhưng thiếu API key. Giá trị secret không được
-in vào log.
+SQL quá yếu và trường hợp bật AI nhưng thiếu toàn bộ provider key. Giá trị secret không được
+in vào log. Khi bật AI, backend thử theo `ReportInsights:ProviderPriority`; cấu hình production
+nên ưu tiên một provider cloud (Groq/Gemini/OpenAI), còn Ollama chỉ phù hợp host có runtime local.
 
 ## Luồng CI/CD
 

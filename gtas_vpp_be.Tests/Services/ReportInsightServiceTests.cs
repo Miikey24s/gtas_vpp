@@ -1,9 +1,7 @@
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.DTOs.Res.Reports;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -15,8 +13,8 @@ public sealed class ReportInsightServiceTests
     [Fact]
     public async Task GenerateAsync_UsesDeterministicFallbackWhenFeatureIsDisabled()
     {
-        var handler = new StubHttpMessageHandler(_ => throw new InvalidOperationException("HTTP must not be called."));
-        var service = CreateService(handler, enabled: false, apiKey: null);
+        var provider = new FakeProvider(ReportInsightSources.Groq, configured: true);
+        var service = CreateService([provider], enabled: false);
 
         var result = await service.GenerateAsync(CreateSummary(), "en");
 
@@ -24,100 +22,148 @@ public sealed class ReportInsightServiceTests
         Assert.Equal(ReportInsightSources.Rules, result.Source);
         Assert.NotEmpty(result.Highlights);
         Assert.NotEmpty(result.Recommendations);
-        Assert.Equal(0, handler.CallCount);
+        Assert.Equal(0, provider.CallCount);
     }
 
     [Fact]
-    public async Task GenerateAsync_UsesStructuredOpenAiOutputWithoutSendingRawOrders()
+    public async Task GenerateAsync_UsesPriorityProviderAndOnlySendsAggregateJson()
     {
-        string? requestBody = null;
-        var generated = JsonSerializer.Serialize(new
+        var provider = new FakeProvider(ReportInsightSources.Groq, configured: true)
         {
-            summary = "Aggregate demand increased.",
-            highlights = new[] { "One", "Two", "Three", "Four", "Five" },
-            risks = new[] { "Concentration" },
-            recommendations = new[] { "Review stock" }
-        });
-        var responseBody = JsonSerializer.Serialize(new
-        {
-            output = new[]
-            {
-                new
-                {
-                    content = new[]
-                    {
-                        new { type = "output_text", text = generated }
-                    }
-                }
-            }
-        });
-        var handler = new StubHttpMessageHandler(async request =>
-        {
-            requestBody = await request.Content!.ReadAsStringAsync();
-            Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
-            Assert.Equal("test-key", request.Headers.Authorization?.Parameter);
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
-            };
-        });
-        var service = CreateService(handler, enabled: true, apiKey: "test-key");
+            ResponseJson = CreateAiJson()
+        };
+        var service = CreateService([provider], enabled: true, priority: [ReportInsightSources.Groq]);
 
         var result = await service.GenerateAsync(CreateSummary(), "en");
 
         Assert.True(result.IsAiGenerated);
-        Assert.Equal("gpt-5.6-luna", result.Model);
+        Assert.Equal(ReportInsightSources.Groq, result.Source);
+        Assert.Equal("qwen/qwen3-32b", result.Model);
         Assert.Equal("Aggregate demand increased.", result.Summary);
         Assert.Equal(4, result.Highlights.Count);
-        Assert.NotNull(requestBody);
-        Assert.Contains("\"store\":false", requestBody, StringComparison.Ordinal);
-        Assert.DoesNotContain("UserLogin", requestBody, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(provider.LastPrompt);
+        Assert.Contains("totalOrders", provider.LastPrompt!.AggregateJson, StringComparison.Ordinal);
+        Assert.DoesNotContain("UserLogin", provider.LastPrompt.AggregateJson, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public async Task GenerateAsync_FallsBackWhenOpenAiReturnsAnError()
+    public async Task GenerateAsync_ContinuesToNextProviderWhenFirstProviderIsRateLimited()
     {
-        var handler = new StubHttpMessageHandler(_ =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.TooManyRequests)));
-        var service = CreateService(handler, enabled: true, apiKey: "test-key");
+        var groq = new FakeProvider(ReportInsightSources.Groq, configured: true)
+        {
+            FailureKind = ReportInsightFailureKind.RateLimited
+        };
+        var gemini = new FakeProvider(ReportInsightSources.Gemini, configured: true)
+        {
+            ResponseJson = CreateAiJson()
+        };
+        var service = CreateService(
+            [groq, gemini],
+            enabled: true,
+            priority: [ReportInsightSources.Groq, ReportInsightSources.Gemini]);
+
+        var result = await service.GenerateAsync(CreateSummary(), "vi");
+
+        Assert.Equal(ReportInsightSources.Gemini, result.Source);
+        Assert.Equal(1, groq.CallCount);
+        Assert.Equal(1, gemini.CallCount);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_StillSupportsLegacyOpenAiConfiguration()
+    {
+        var provider = new FakeProvider(ReportInsightSources.OpenAI, configured: true)
+        {
+            ResponseJson = CreateAiJson()
+        };
+        var service = CreateService(
+            [provider],
+            enabled: true,
+            priority: [ReportInsightSources.Groq, ReportInsightSources.Gemini, ReportInsightSources.Ollama, ReportInsightSources.OpenAI]);
+
+        var result = await service.GenerateAsync(CreateSummary(), "vi");
+
+        Assert.Equal(ReportInsightSources.OpenAI, result.Source);
+        Assert.Equal(1, provider.CallCount);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_UsesRulesWhenProviderReturnsInvalidStructuredOutput()
+    {
+        var provider = new FakeProvider(ReportInsightSources.Groq, configured: true)
+        {
+            ResponseJson = "not-json"
+        };
+        var service = CreateService([provider], enabled: true, priority: [ReportInsightSources.Groq]);
 
         var result = await service.GenerateAsync(CreateSummary(), "vi");
 
         Assert.False(result.IsAiGenerated);
-        Assert.Equal(1, handler.CallCount);
-        Assert.NotEmpty(result.Summary);
+        Assert.Equal(ReportInsightSources.Rules, result.Source);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_EnforcesConfiguredDailyProviderLimit()
+    {
+        var provider = new FakeProvider(ReportInsightSources.Groq, configured: true)
+        {
+            ResponseJson = CreateAiJson()
+        };
+        var service = CreateService(
+            [provider],
+            enabled: true,
+            priority: [ReportInsightSources.Groq],
+            dailyLimit: 1);
+
+        var first = await service.GenerateAsync(CreateSummary(), "vi");
+        var second = await service.GenerateAsync(CreateSummary(), "vi");
+
+        Assert.True(first.IsAiGenerated);
+        Assert.False(second.IsAiGenerated);
+        Assert.Equal(1, provider.CallCount);
     }
 
     private static ReportInsightService CreateService(
-        HttpMessageHandler handler,
+        IEnumerable<IReportInsightProvider> providers,
         bool enabled,
-        string? apiKey)
+        IReadOnlyList<string>? priority = null,
+        int dailyLimit = 0)
     {
-        var httpClient = new HttpClient(handler)
+        var providerOptions = new Dictionary<string, ReportInsightProviderOptions>(StringComparer.OrdinalIgnoreCase)
         {
-            BaseAddress = new Uri("https://api.openai.com/")
+            [ReportInsightSources.Groq] = new()
+            {
+                Enabled = true,
+                Model = "qwen/qwen3-32b",
+                DailyRequestLimit = dailyLimit
+            },
+            [ReportInsightSources.Gemini] = new() { Enabled = true, Model = "gemini-2.5-flash-lite" },
+            [ReportInsightSources.OpenAI] = new() { Enabled = true, Model = "gpt-5.6-luna" }
         };
-        var configurationValues = new Dictionary<string, string?>
-        {
-            ["OPENAI_API_KEY"] = apiKey
-        };
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configurationValues)
-            .Build();
         var options = Options.Create(new ReportInsightsOptions
         {
             Enabled = enabled,
-            Model = "gpt-5.6-luna",
+            ProviderPriority = priority?.ToList() ?? [ReportInsightSources.Groq],
+            Providers = providerOptions,
             TimeoutSeconds = 20,
-            MaxOutputTokens = 700
+            MaxOutputTokens = 700,
+            MaxProvidersPerRequest = 3
         });
 
         return new ReportInsightService(
-            httpClient,
+            providers,
             options,
-            configuration,
+            new ReportInsightQuotaGate(),
             NullLogger<ReportInsightService>.Instance);
     }
+
+    private static string CreateAiJson() => JsonSerializer.Serialize(new
+    {
+        summary = "Aggregate demand increased.",
+        highlights = new[] { "One", "Two", "Three", "Four", "Five" },
+        risks = new[] { "Concentration" },
+        recommendations = new[] { "Review stock" }
+    });
 
     private static ReportSummaryResDTO CreateSummary() => new()
     {
@@ -144,19 +190,26 @@ public sealed class ReportInsightServiceTests
         ]
     };
 
-    private sealed class StubHttpMessageHandler(
-        Func<HttpRequestMessage, Task<HttpResponseMessage>> handler) : HttpMessageHandler
+    private sealed class FakeProvider(string name, bool configured) : IReportInsightProvider
     {
-        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _handler = handler;
-
+        public string Name { get; } = name;
+        public bool IsConfigured { get; } = configured;
         public int CallCount { get; private set; }
+        public ReportInsightPrompt? LastPrompt { get; private set; }
+        public string? ResponseJson { get; set; }
+        public ReportInsightFailureKind FailureKind { get; set; }
 
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
+        public Task<ReportInsightProviderResult> GenerateAsync(
+            ReportInsightPrompt prompt,
+            CancellationToken cancellationToken = default)
         {
             CallCount++;
-            return _handler(request);
+            LastPrompt = prompt;
+            return Task.FromResult(new ReportInsightProviderResult(
+                Name,
+                Name == ReportInsightSources.Groq ? "qwen/qwen3-32b" : "gemini-2.5-flash-lite",
+                ResponseJson,
+                FailureKind));
         }
     }
 }

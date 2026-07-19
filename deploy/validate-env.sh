@@ -70,7 +70,16 @@ fi
 report_insights_enabled="$(read_env_value REPORT_INSIGHTS_ENABLED 2>/dev/null || printf 'false')"
 case "${report_insights_enabled,,}" in
   true)
-    require_non_placeholder OPENAI_API_KEY
+    ai_provider_key_count=0
+    for ai_key in OPENAI_API_KEY GROQ_API_KEY GEMINI_API_KEY GOOGLE_API_KEY; do
+      if ai_value="$(read_env_value "$ai_key" 2>/dev/null)" && [[ -n "$ai_value" ]]; then
+        require_non_placeholder "$ai_key"
+        ai_provider_key_count=$((ai_provider_key_count + 1))
+      fi
+    done
+    if (( ai_provider_key_count == 0 )); then
+      errors+=("REPORT_INSIGHTS_ENABLED=true requires at least one of OPENAI_API_KEY, GROQ_API_KEY, GEMINI_API_KEY or GOOGLE_API_KEY")
+    fi
     ;;
   false)
     ;;

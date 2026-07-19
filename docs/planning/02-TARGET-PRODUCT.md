@@ -175,7 +175,7 @@ Mọi chart có table alternative và drill-down giữ nguyên filter/scope. CSV
 - Structured schema, evidence link, disclosure “Nội dung do AI hỗ trợ”, timestamp/model/prompt version và human review.
 - Cache theo user/scope/filter/data-version, budget/rate limit, timeout, audit và deterministic fallback.
 - Không gửi username/email/raw request line nếu không cần; không mutation/tool access.
-- Model là config, không hard-code logic theo model; current `gpt-5.6-luna` phù hợp cost-sensitive workload theo official catalog, nhưng phải kiểm tra lại tại thời điểm deploy ([OpenAI models](https://developers.openai.com/api/docs/models)).
+- Model là config, không hard-code logic theo model; provider priority và model đều được cấu hình để benchmark Groq/Gemini/Ollama/OpenAI trước khi bật production.
 
 ## 5. Kiến trúc kỹ thuật mục tiêu
 

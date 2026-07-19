@@ -118,19 +118,7 @@ builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddOptions<ReportInsightsOptions>()
-    .Bind(Configuration.GetSection(ReportInsightsOptions.SectionName))
-    .Validate(options => !string.IsNullOrWhiteSpace(options.Model), "ReportInsights:Model is required.")
-    .Validate(options => options.TimeoutSeconds is >= 5 and <= 60,
-        "ReportInsights:TimeoutSeconds must be between 5 and 60.")
-    .Validate(options => options.MaxOutputTokens is >= 300 and <= 1_500,
-        "ReportInsights:MaxOutputTokens must be between 300 and 1500.")
-    .ValidateOnStart();
-builder.Services.AddHttpClient<IReportInsightService, ReportInsightService>(client =>
-{
-    client.BaseAddress = new Uri("https://api.openai.com/");
-    client.Timeout = Timeout.InfiniteTimeSpan;
-});
+builder.Services.AddReportInsights(Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

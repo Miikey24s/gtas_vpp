@@ -24,7 +24,11 @@
 | JWT key | `JwtSettings__Key` | Secret server-side, nên là chuỗi ngẫu nhiên dài. |
 | Admin bootstrap | `AuthBootstrap__*` | One-shot, chỉ chạy cùng `RunOnly` + reference seed. |
 | SMTP password | `EmailNotifications__Password` | Chỉ cần khi bật gửi email. |
-| OpenAI API key | `OPENAI_API_KEY` | Chỉ cần khi `ReportInsights__Enabled=true`. |
+| AI provider priority | `ReportInsights__ProviderPriority__0..n` | Thứ tự thử: `groq`, `gemini`, `ollama`, `openai`. Provider lỗi/quota sẽ chuyển provider kế tiếp. |
+| Groq API key | `GROQ_API_KEY` | Free online provider; chỉ cần khi muốn dùng Groq. |
+| Gemini API key | `GEMINI_API_KEY` hoặc `GOOGLE_API_KEY` | Free online provider; chỉ gửi aggregate/synthetic data. |
+| OpenAI API key | `OPENAI_API_KEY` | Provider trả phí tùy chọn; tương thích cấu hình cũ. |
+| Ollama local | `ReportInsights:Providers:Ollama:Enabled=true` | Không cần key; mặc định `false`, model mặc định `qwen3:8b`. |
 
 ## Bốn migration mode
 
@@ -44,3 +48,25 @@
 Script dùng `OperationKey` ổn định theo database + username. Chạy lần 2, 3, 4 với cùng thông tin là idempotent; không tạo thêm admin. Mật khẩu được nhập ẩn và chỉ tồn tại trong environment của process đang chạy.
 
 Không đặt connection string, JWT key, SMTP password, mật khẩu admin hoặc OpenAI key trong `appsettings.Development.json`. File đó chỉ giữ default không nhạy cảm; local dùng user-secrets, production dùng GitHub/DigitalOcean secrets.
+
+## Bật AI report local
+
+Tính năng vẫn tắt mặc định. Đặt secret cho backend project (không phải AppHost và không commit):
+
+```powershell
+$backend = 'gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj'
+dotnet user-secrets set 'ReportInsights:Enabled' 'true' --project $backend
+dotnet user-secrets set 'GROQ_API_KEY' '<groq-key>' --project $backend
+dotnet user-secrets set 'ReportInsights:ProviderPriority:0' 'groq' --project $backend
+```
+
+Hoặc chạy local hoàn toàn bằng Ollama:
+
+```powershell
+ollama pull qwen3:8b
+dotnet user-secrets set 'ReportInsights:Enabled' 'true' --project $backend
+dotnet user-secrets set 'ReportInsights:Providers:Ollama:Enabled' 'true' --project $backend
+dotnet user-secrets set 'ReportInsights:ProviderPriority:0' 'ollama' --project $backend
+```
+
+Backend luôn gửi aggregate DTO đã kiểm tra; provider không được truy vấn database. Nếu hết quota, timeout, trả JSON lỗi hoặc không có key, hệ thống dùng rule-based insight.

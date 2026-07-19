@@ -1,22 +1,9 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 using gtas_vpp_shared.DTOs.Res.Reports;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace gtas_vpp_be.Service.Services;
-
-public sealed class ReportInsightsOptions
-{
-    public const string SectionName = "ReportInsights";
-
-    public bool Enabled { get; set; }
-    public string Model { get; set; } = "gpt-5.6-luna";
-    public int TimeoutSeconds { get; set; } = 20;
-    public int MaxOutputTokens { get; set; } = 700;
-}
 
 public interface IReportInsightService
 {
@@ -27,19 +14,20 @@ public interface IReportInsightService
 }
 
 public sealed class ReportInsightService(
-    HttpClient httpClient,
+    IEnumerable<IReportInsightProvider> providers,
     IOptions<ReportInsightsOptions> options,
-    IConfiguration configuration,
+    ReportInsightQuotaGate quotaGate,
     ILogger<ReportInsightService> logger) : IReportInsightService
 {
-    private const string ResponsesPath = "v1/responses";
     private const int MaxListItems = 4;
     private const int MaxTextLength = 500;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly Dictionary<string, IReportInsightProvider> _providers = providers
+        .GroupBy(provider => provider.Name, StringComparer.OrdinalIgnoreCase)
+        .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
     private readonly ReportInsightsOptions _options = options.Value;
-    private readonly string? _apiKey = configuration["OPENAI_API_KEY"];
+    private readonly ReportInsightQuotaGate _quotaGate = quotaGate;
     private readonly ILogger<ReportInsightService> _logger = logger;
 
     public async Task<ReportInsightResDTO> GenerateAsync(
@@ -49,132 +37,149 @@ public sealed class ReportInsightService(
     {
         ArgumentNullException.ThrowIfNull(report);
         var normalizedLanguage = NormalizeLanguage(language);
-        var fallback = BuildRuleBasedInsight(report, normalizedLanguage);
+        var fallback = ReportInsightRules.Build(report, normalizedLanguage);
 
-        if (!_options.Enabled || string.IsNullOrWhiteSpace(_apiKey))
+        if (!_options.Enabled)
         {
             return fallback;
         }
 
-        try
+        var prompt = ReportInsightPromptFactory.Create(report, normalizedLanguage, _options.MaxOutputTokens);
+        var providerNames = (_options.ProviderPriority ?? [])
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(name => _providers.TryGetValue(name, out var provider) && provider.IsConfigured)
+            .Take(Math.Clamp(_options.MaxProvidersPerRequest, 1, 8));
+
+        foreach (var providerName in providerNames)
         {
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 60)));
+            if (!_providers.TryGetValue(providerName, out var provider))
+            {
+                continue;
+            }
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, ResponsesPath);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-            request.Content = JsonContent.Create(BuildRequest(report, normalizedLanguage), options: JsonOptions);
-
-            using var response = await _httpClient.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                timeout.Token);
-            if (!response.IsSuccessStatusCode)
+            var providerOptions = _options.GetProvider(provider.Name);
+            if (!_quotaGate.TryAcquire(provider.Name, providerOptions.DailyRequestLimit))
             {
                 _logger.LogWarning(
-                    "OpenAI report insight request returned HTTP {StatusCode}; using rule-based fallback.",
-                    (int)response.StatusCode);
-                return fallback;
+                    "AI report insight provider {Provider} reached the configured daily request limit; trying fallback provider.",
+                    provider.Name);
+                continue;
             }
 
-            await using var responseStream = await response.Content.ReadAsStreamAsync(timeout.Token);
-            using var responseDocument = await JsonDocument.ParseAsync(
-                responseStream,
-                cancellationToken: timeout.Token);
-            var outputText = ExtractOutputText(responseDocument.RootElement);
-            if (string.IsNullOrWhiteSpace(outputText))
+            ReportInsightProviderResult providerResult;
+            try
             {
-                return fallback;
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeout.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 60)));
+                providerResult = await provider.GenerateAsync(prompt, timeout.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning(
+                    "AI report insight provider {Provider} timed out; trying fallback provider.",
+                    provider.Name);
+                continue;
+            }
+            catch (Exception exception) when (
+                exception is HttpRequestException or JsonException or NotSupportedException or UriFormatException)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "AI report insight provider {Provider} failed; trying fallback provider.",
+                    provider.Name);
+                continue;
             }
 
-            var generated = JsonSerializer.Deserialize<InsightPayload>(outputText, JsonOptions);
-            if (generated is null || string.IsNullOrWhiteSpace(generated.Summary))
+            if (!providerResult.IsSuccess)
             {
-                return fallback;
+                _logger.LogWarning(
+                    "AI report insight provider {Provider} failed with {FailureKind} and HTTP {StatusCode}; trying fallback provider.",
+                    provider.Name,
+                    providerResult.FailureKind,
+                    providerResult.StatusCode);
+                continue;
+            }
+
+            if (!TryParsePayload(providerResult.ResponseJson, out var payload))
+            {
+                _logger.LogWarning(
+                    "AI report insight provider {Provider} returned invalid structured output; trying fallback provider.",
+                    provider.Name);
+                continue;
             }
 
             return new ReportInsightResDTO
             {
-                Summary = ClampText(generated.Summary),
-                Highlights = NormalizeItems(generated.Highlights),
-                Risks = NormalizeItems(generated.Risks),
-                Recommendations = NormalizeItems(generated.Recommendations),
-                Source = ReportInsightSources.OpenAI,
-                Model = _options.Model,
+                Summary = ClampText(payload.Summary),
+                Highlights = NormalizeItems(payload.Highlights),
+                Risks = NormalizeItems(payload.Risks),
+                Recommendations = NormalizeItems(payload.Recommendations),
+                Source = providerResult.Provider,
+                Model = providerResult.Model,
                 GeneratedAt = DateTime.UtcNow
             };
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogWarning("OpenAI report insight request timed out; using rule-based fallback.");
-            return fallback;
-        }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException)
-        {
-            _logger.LogWarning(ex, "OpenAI report insight generation failed; using rule-based fallback.");
-            return fallback;
-        }
+
+        return fallback;
     }
 
-    private object BuildRequest(ReportSummaryResDTO report, string language)
+    private static bool TryParsePayload(string? json, out InsightPayload payload)
     {
-        var languageName = language == "en" ? "English" : "Vietnamese";
-        var aggregateInput = new
+        payload = new InsightPayload();
+        if (string.IsNullOrWhiteSpace(json))
         {
-            report.Scope,
-            report.Year,
-            report.Month,
-            report.TotalOrders,
-            report.TotalDepartments,
-            report.TotalRequesters,
-            report.TotalLines,
-            report.TotalQuantity,
-            report.TotalAmount,
-            PeriodTrend = report.PeriodTrend.Take(24),
-            StatusBreakdown = report.StatusBreakdown.Take(12),
-            DepartmentBreakdown = report.DepartmentBreakdown.Take(12),
-            TopProducts = report.TopProducts.Take(10)
-        };
+            return false;
+        }
 
-        return new
+        try
         {
-            model = _options.Model,
-            store = false,
-            reasoning = new { effort = "low" },
-            max_output_tokens = Math.Clamp(_options.MaxOutputTokens, 300, 1_500),
-            instructions = $"""
-                You are a procurement reporting analyst for an office-supply request system.
-                Analyze only the aggregate metrics supplied by the application. Do not invent causes,
-                users, departments, prices, or events that are absent from the data. Distinguish facts
-                from cautious recommendations. Write concise {languageName} suitable for a business dashboard.
-                """,
-            input = JsonSerializer.Serialize(aggregateInput, JsonOptions),
-            text = new
+            var parsed = JsonSerializer.Deserialize<InsightPayload>(json, JsonOptions);
+            if (parsed is null || string.IsNullOrWhiteSpace(parsed.Summary))
             {
-                format = new
-                {
-                    type = "json_schema",
-                    name = "report_insight",
-                    strict = true,
-                    schema = new
-                    {
-                        type = "object",
-                        properties = new
-                        {
-                            summary = new { type = "string" },
-                            highlights = new { type = "array", items = new { type = "string" } },
-                            risks = new { type = "array", items = new { type = "string" } },
-                            recommendations = new { type = "array", items = new { type = "string" } }
-                        },
-                        required = new[] { "summary", "highlights", "risks", "recommendations" },
-                        additionalProperties = false
-                    }
-                }
+                return false;
             }
-        };
+
+            payload = parsed;
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
-    private static ReportInsightResDTO BuildRuleBasedInsight(ReportSummaryResDTO report, string language)
+    private static List<string> NormalizeItems(IEnumerable<string>? items) =>
+        items?
+            .Where(item => !string.IsNullOrWhiteSpace(item))
+            .Select(ClampText)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(MaxListItems)
+            .ToList() ?? [];
+
+    private static string ClampText(string value)
+    {
+        var text = value.Trim();
+        return text.Length <= MaxTextLength ? text : text[..MaxTextLength];
+    }
+
+    private static string NormalizeLanguage(string? language) =>
+        string.Equals(language, "en", StringComparison.OrdinalIgnoreCase) ? "en" : "vi";
+
+    private sealed class InsightPayload
+    {
+        public string Summary { get; set; } = string.Empty;
+        public List<string> Highlights { get; set; } = [];
+        public List<string> Risks { get; set; } = [];
+        public List<string> Recommendations { get; set; } = [];
+    }
+}
+
+public static class ReportInsightRules
+{
+    private const int MaxListItems = 4;
+
+    public static ReportInsightResDTO Build(ReportSummaryResDTO report, string language)
     {
         var english = language == "en";
         if (report.TotalOrders == 0)
@@ -217,7 +222,9 @@ public sealed class ReportInsightService(
 
         var risks = new List<string>();
         var recommendations = new List<string>();
-        if (topProduct is not null && report.TotalQuantity > 0 && topProduct.TotalQuantity * 100L / report.TotalQuantity >= 50)
+        if (topProduct is not null
+            && report.TotalQuantity > 0
+            && topProduct.TotalQuantity * 100L / report.TotalQuantity >= 50)
         {
             risks.Add(english
                 ? "Demand is concentrated in one product, which can increase supply disruption impact."
@@ -227,7 +234,9 @@ public sealed class ReportInsightService(
                 : "Rà soát tồn kho an toàn và nhà cung cấp thay thế cho vật tư đứng đầu.");
         }
 
-        if (topDepartment is not null && report.TotalOrders > 0 && topDepartment.OrderCount * 100L / report.TotalOrders >= 60)
+        if (topDepartment is not null
+            && report.TotalOrders > 0
+            && topDepartment.OrderCount * 100L / report.TotalOrders >= 60)
         {
             risks.Add(english
                 ? "A single department accounts for most orders in the selected scope."
@@ -270,55 +279,5 @@ public sealed class ReportInsightService(
             Recommendations = recommendations.Take(MaxListItems).ToList(),
             GeneratedAt = DateTime.UtcNow
         };
-    }
-
-    private static string? ExtractOutputText(JsonElement root)
-    {
-        if (!root.TryGetProperty("output", out var output) || output.ValueKind != JsonValueKind.Array)
-        {
-            return null;
-        }
-
-        foreach (var outputItem in output.EnumerateArray())
-        {
-            if (!outputItem.TryGetProperty("content", out var content) || content.ValueKind != JsonValueKind.Array)
-            {
-                continue;
-            }
-
-            foreach (var contentItem in content.EnumerateArray())
-            {
-                if (contentItem.TryGetProperty("type", out var type)
-                    && type.GetString() == "output_text"
-                    && contentItem.TryGetProperty("text", out var text))
-                {
-                    return text.GetString();
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static List<string> NormalizeItems(IEnumerable<string>? items) =>
-        items?
-            .Where(item => !string.IsNullOrWhiteSpace(item))
-            .Select(ClampText)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(MaxListItems)
-            .ToList() ?? [];
-
-    private static string ClampText(string value) =>
-        value.Trim().Length <= MaxTextLength ? value.Trim() : value.Trim()[..MaxTextLength];
-
-    private static string NormalizeLanguage(string? language) =>
-        string.Equals(language, "en", StringComparison.OrdinalIgnoreCase) ? "en" : "vi";
-
-    private sealed class InsightPayload
-    {
-        public string Summary { get; set; } = string.Empty;
-        public List<string> Highlights { get; set; } = [];
-        public List<string> Risks { get; set; } = [];
-        public List<string> Recommendations { get; set; } = [];
     }
 }
