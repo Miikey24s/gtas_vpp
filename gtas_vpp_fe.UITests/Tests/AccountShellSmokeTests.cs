@@ -266,7 +266,86 @@ public sealed class AccountShellSmokeTests : TestBase
         await Page.Locator("input[name=Username]").FillAsync("invalid-account-for-inline-feedback");
         await Page.Locator("input[name=Password]").FillAsync("Invalid-password-1!");
         await loginButton.ClickAsync();
-        await Page.Locator(".vpp-login-form-error-slot [role=alert]").WaitForAsync();
+        await Page.Locator(".vpp-login-password-wrapper + .vpp-validation-slot [role=alert]").WaitForAsync();
         (await Page.Locator(".rz-notification:visible").CountAsync()).Should().Be(0, "credential failures should stay next to the form instead of opening a toast");
+    }
+
+    [Fact]
+    public async Task LoginRegisterAndRecovery_ShareOneVerticalRhythm()
+    {
+        await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
+
+        var routes = new[]
+        {
+            "Account/Login",
+            "Account/Register",
+            "Account/ForgotPassword"
+        };
+
+        foreach (var viewport in new[]
+                 {
+                     new ViewportSize { Width = 390, Height = 844 },
+                     new ViewportSize { Width = 768, Height = 1024 },
+                     new ViewportSize { Width = 1366, Height = 768 },
+                     new ViewportSize { Width = 1920, Height = 1080 }
+                 })
+        {
+            await Page.SetViewportSizeAsync(viewport.Width, viewport.Height);
+            var measurements = new Dictionary<string, double[]>();
+
+            foreach (var route in routes)
+            {
+                await Page.GotoAsync($"{BaseUrl}{route}", new PageGotoOptions
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded
+                });
+                await Page.Locator(".vpp-login-card").WaitForAsync();
+
+                measurements[route] = await Page.EvaluateAsync<double[]>("""
+                    () => {
+                        const topbar = document.querySelector('.vpp-account-topbar')?.getBoundingClientRect();
+                        const brand = document.querySelector('.vpp-account-brand')?.getBoundingClientRect();
+                        const language = document.querySelector('.vpp-account-language-switch')?.getBoundingClientRect();
+                        const header = document.querySelector('.vpp-login-header')?.getBoundingClientRect();
+                        const fields = [...document.querySelectorAll('.vpp-login-form > .vpp-login-field')]
+                            .map(element => element.getBoundingClientRect());
+                        const button = document.querySelector('.vpp-login-btn')?.getBoundingClientRect();
+                        const links = document.querySelector('.vpp-login-links')?.getBoundingClientRect();
+
+                        if (!topbar || !brand || !language || !header || fields.length === 0 || !button || !links) {
+                            throw new Error('Unable to measure the shared account rhythm.');
+                        }
+
+                        return [
+                            Math.abs((brand.top + brand.height / 2) - (language.top + language.height / 2)),
+                            header.top - topbar.bottom,
+                            fields[0].top - header.bottom,
+                            button.top - fields.at(-1).bottom,
+                            links.top - button.bottom,
+                            brand.height,
+                            language.height,
+                            button.height
+                        ];
+                    }
+                    """);
+            }
+
+            foreach (var (route, rhythm) in measurements)
+            {
+                rhythm[0].Should().BeLessThan(1, $"brand and language controls must share one centerline on {route} at {viewport.Width}px");
+                rhythm[5].Should().BeApproximately(rhythm[6], 1, $"topbar controls must share one height on {route} at {viewport.Width}px");
+                rhythm[7].Should().BeApproximately(48, 1, $"primary actions must share one height on {route} at {viewport.Width}px");
+            }
+
+            var reference = measurements["Account/Login"];
+            foreach (var route in routes.Skip(1))
+            {
+                var rhythm = measurements[route];
+                rhythm[1].Should().BeApproximately(reference[1], 1, $"topbar-to-title spacing must match on {route} at {viewport.Width}px");
+                rhythm[2].Should().BeApproximately(reference[2], 1, $"title-to-first-field spacing must match on {route} at {viewport.Width}px");
+                rhythm[3].Should().BeApproximately(reference[3], 1, $"last-field-to-button spacing must match on {route} at {viewport.Width}px");
+                rhythm[4].Should().BeApproximately(reference[4], 1, $"button-to-secondary-action spacing must match on {route} at {viewport.Width}px");
+            }
+        }
     }
 }

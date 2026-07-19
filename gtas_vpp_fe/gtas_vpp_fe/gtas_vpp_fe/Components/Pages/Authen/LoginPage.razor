@@ -26,7 +26,7 @@
                         </div>
                     </div>
 
-                    <div class="@(HasPasswordValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
+                    <div class="@(HasPasswordFeedback ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
                         <RadzenLabel class="vpp-login-label"
                                      Text="@Loc["Password"]"
                                      Component="@(isShowPass ? "Password" : "PasswordText")" />
@@ -57,16 +57,9 @@
                             </button>
                         </div>
 
-                        <div class="vpp-validation-slot">
-                            <span class="vpp-login-validation" role="alert">@PasswordValidationMessage</span>
+                        <div class="vpp-validation-slot" aria-live="polite">
+                            <span class="vpp-login-validation" role="alert">@PasswordFeedbackMessage</span>
                         </div>
-                    </div>
-
-                    <div class="vpp-login-form-error-slot" aria-live="polite">
-                        @if (!string.IsNullOrWhiteSpace(LoginErrorMessage))
-                        {
-                            <span class="vpp-login-validation" role="alert">@LoginErrorMessage</span>
-                        }
                     </div>
 
                     <RadzenButton Text="@Loc["Login"]"

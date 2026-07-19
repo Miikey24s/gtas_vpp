@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `IN_IMPLEMENTATION — W0.2 APPROVED; W1 DASHBOARD OWNER REVIEW`
 >
-> **Phiên bản:** `1.8` — 2026-07-19
+> **Phiên bản:** `1.9` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -408,6 +408,13 @@ Status hợp lệ:
 - Forgot Password dùng tiêu đề một dòng `Khôi phục mật khẩu` / `Recover password`, không tách accent;
 - khoảng cách từ account title xuống field đầu tăng nhẹ và áp dụng đồng bộ toàn bộ account route;
 - owner duyệt W0.2 và cho phép chuyển sang W1 Dashboard.
+
+**W0.2 post-approval rhythm refinement — 2026-07-19:**
+
+- Login/Register/Forgot Password dùng chung token cho topbar, title-to-form, field, submit và secondary-action spacing;
+- brand lockup và VI/EN switch khóa cùng chiều cao/tâm dọc; primary action giữ cùng chiều cao `48px`;
+- lỗi credential của Login dùng chính validation slot dưới password, bỏ error row riêng từng làm nút Login thấp hơn hai route còn lại;
+- browser geometry QA khóa parity ở `390×844`, `768×1024`, `1366×768`, `1920×1080`; frontend unit/architecture `140/140` pass.
 
 ### W2 — Employee
 

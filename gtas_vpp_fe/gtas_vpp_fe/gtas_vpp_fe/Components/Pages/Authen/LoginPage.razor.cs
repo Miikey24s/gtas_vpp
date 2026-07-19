@@ -29,6 +29,10 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         private string? LoginErrorMessage { get; set; }
         private bool HasUsernameValidation => !string.IsNullOrWhiteSpace(UsernameValidationMessage);
         private bool HasPasswordValidation => !string.IsNullOrWhiteSpace(PasswordValidationMessage);
+        private bool HasPasswordFeedback => HasPasswordValidation || !string.IsNullOrWhiteSpace(LoginErrorMessage);
+        private string? PasswordFeedbackMessage => HasPasswordValidation
+            ? PasswordValidationMessage
+            : LoginErrorMessage;
         private IStringLocalizer ComponentLoc => LocalizerFactory.Create("Components.App", typeof(LoginPage).Assembly.GetName().Name!);
 
         protected override async Task OnInitializedAsync()

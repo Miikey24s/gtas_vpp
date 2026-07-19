@@ -5,7 +5,7 @@ using Microsoft.Playwright;
 
 namespace gtas_vpp_fe.UITests.Tests.Auth;
 
-public sealed class LoginFeedbackTests : TestBase, IAuthenticatedUiTest
+public sealed class LoginFeedbackTests : TestBase
 {
     [Fact]
     public async Task InvalidLogin_ShowsBoundedLocalizedFeedbackAtThreeViewports()
@@ -36,7 +36,7 @@ public sealed class LoginFeedbackTests : TestBase, IAuthenticatedUiTest
             await loginPage.GotoAsync(BaseUrl);
             await loginPage.LoginAsync("invalid-login-user", "Invalid-Pass1!");
 
-            var feedback = Page.Locator(".rz-notification-item").Last;
+            var feedback = Page.Locator(".vpp-login-password-wrapper + .vpp-validation-slot [role=alert]");
             await feedback.WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible,
@@ -44,20 +44,17 @@ public sealed class LoginFeedbackTests : TestBase, IAuthenticatedUiTest
             });
 
             var text = await feedback.InnerTextAsync();
-            text.Should().Contain("Không thể đăng nhập");
             text.Should().Contain("Tên đăng nhập hoặc mật khẩu không hợp lệ.");
             text.Should().NotContain("{\"message\"");
             text.Should().NotContain("Login failed");
 
             var bounds = await feedback.BoundingBoxAsync();
             bounds.Should().NotBeNull();
-            bounds!.Width.Should().BeLessThanOrEqualTo(
-                viewport.Width < 768 ? viewport.Width - 24 : 400.5f);
-            var inlineEndGap = await feedback.EvaluateAsync<float>(
-                "element => document.documentElement.clientWidth - element.getBoundingClientRect().right");
-            // Chromium may reserve a scrollbar gutter on the login page; the
-            // effective right inset is therefore 12/20px plus that gutter.
-            inlineEndGap.Should().BeInRange(10, 36);
+            var passwordBounds = await Page.Locator(".vpp-login-password-wrapper").BoundingBoxAsync();
+            passwordBounds.Should().NotBeNull();
+            bounds!.X.Should().BeApproximately(passwordBounds!.X, 1, "credential feedback should align with the password field");
+            bounds.Width.Should().BeLessThanOrEqualTo(passwordBounds.Width + 1);
+            (await Page.Locator(".rz-notification:visible").CountAsync()).Should().Be(0);
 
             var overflows = await Page.EvaluateAsync<bool>(
                 "() => document.documentElement.scrollWidth > window.innerWidth + 1");
