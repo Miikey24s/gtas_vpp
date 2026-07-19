@@ -1,8 +1,8 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 OWNER REVIEW ROUND 4; W1 DASHBOARD NEXT`
+> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 APPROVED; W1 DASHBOARD OWNER REVIEW`
 >
-> **Phiên bản:** `1.6` — 2026-07-19
+> **Phiên bản:** `1.8` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -362,14 +362,14 @@ Status hợp lệ:
 | Route/state | Status | Notes |
 |---|---|---|
 | `/` redirect | PENDING | First accessible route, no blank flash |
-| `/Account/Login` | OWNER_REVIEW | Centered shell; inline credential feedback; VI/EN switch |
-| `/Account/Register` | OWNER_REVIEW | No employee-code field; localized stable validation; no desktop scroll |
-| `/Account/ConfirmEmail` | OWNER_REVIEW | Success/expired/invalid; compact shell |
-| `/Account/ForgotPassword` | OWNER_REVIEW | Anti-enumeration; compact recovery shell |
-| `/Account/ResetPassword` | OWNER_REVIEW | Policy/expired/replay; invalid link hides form |
-| `/Account/ChangePassword` | OWNER_REVIEW | Current/new/confirm; forced-change context |
+| `/Account/Login` | APPROVED | Centered shell; inline credential feedback; VI/EN switch |
+| `/Account/Register` | APPROVED | No employee-code field; localized stable validation; no desktop scroll |
+| `/Account/ConfirmEmail` | APPROVED | Success/expired/invalid; compact shell |
+| `/Account/ForgotPassword` | APPROVED | Anti-enumeration; compact recovery shell |
+| `/Account/ResetPassword` | APPROVED | Policy/expired/replay; invalid link hides form |
+| `/Account/ChangePassword` | APPROVED | Current/new/confirm; forced-change context |
 | `/loginprocess` | PENDING | Progress/fallback only |
-| `/logoutprocess` | OWNER_REVIEW | Safe clear + redirect login; branded progress shell |
+| `/logoutprocess` | APPROVED | Safe clear + redirect login; branded progress shell |
 | `/Error` | PENDING | Safe message + correlation + retry |
 | `/not-found` | PENDING | Return to valid workspace |
 | Shell/notification/reconnect | PENDING | Context preservation, action inbox |
@@ -403,17 +403,33 @@ Status hợp lệ:
 - Login bỏ dấu phân cách dạng text và dùng secondary action row hai cột bằng nhau, có divider nhẹ để VI/EN luôn cân đối;
 - browser geometry test đo trực tiếp độ dày border, tâm action row và chiều rộng hai secondary action.
 
+**W0.2 approval — 2026-07-19:**
+
+- Forgot Password dùng tiêu đề một dòng `Khôi phục mật khẩu` / `Recover password`, không tách accent;
+- khoảng cách từ account title xuống field đầu tăng nhẹ và áp dụng đồng bộ toàn bộ account route;
+- owner duyệt W0.2 và cho phép chuyển sang W1 Dashboard.
+
 ### W2 — Employee
 
 | Logical route | Status | Notes |
 |---|---|---|
-| `dashboard.my-orders` | PENDING | Period story, quota, next action |
+| `dashboard.my-orders` | OWNER_REVIEW | Period story, quota, next action |
 | `dashboard.history` | PENDING | Timeline/revision/detail |
 | `dashboard.catalog` | PENDING | Browse/search/read-only detail |
 | `dashboard.order-create.new` | PENDING | Select → review → submit |
 | `dashboard.order-create.edit` | PENDING | Update + stale/permission guard |
 | Copy previous | PENDING | Diff and source context |
 | Additional request | PENDING | Reason/quota/current attempt |
+
+**W1 My Orders round-1 evidence — 2026-07-19:**
+
+- thay toolbar + bốn KPI rời rạc bằng một story header: kỳ hiện tại, deadline, trạng thái và hạn mức bổ sung có một nguồn hiển thị;
+- KPI chỉ tính dữ liệu kỳ hiện tại và rút còn ba câu hỏi: số đơn, số dòng hàng, tổng số lượng;
+- CTA chỉ xuất hiện ở story header; empty state không lặp lại Tạo đơn/Sao chép kỳ trước;
+- đơn thường, đơn bổ sung hiện tại và kỳ trước được phân tầng; kỳ trước thu gọn thành archive row để giữ current story above-the-fold;
+- khi period API không xác định được trạng thái, UI hiển thị `Không xác định` thay vì suy diễn là đã đóng kỳ;
+- browser QA pass ở `390×844`, `768×1024`, `1366×768`, `1920×1080`, gồm VI/EN, overflow, legacy icon, duplicate CTA và above-the-fold contract;
+- isolated lifecycle E2E có dữ liệu pass: sửa đơn → cập nhật → lịch sử → hủy; frontend unit/architecture tests `140/140`; Release solution build `0 warning / 0 error`.
 
 ### W3 — Management
 
@@ -542,6 +558,8 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-19 | Brand/navigation | Thay chữ `G` bằng vector request-document mark; dùng semantic icon map và phân biệt Product catalog/Master data | Chữ G và icon/label cũ khó hiểu, mixed icon font gây missing glyph | Shared shell | Retrofit header/sidebar/notification center | Mọi authenticated route | Owner review |
 | 2026-07-19 | Account round 3 | Dùng solid geometric `V` mark; khóa hình học underline/action/link centerline bằng browser test | Owner thấy outline mark chưa đẹp và field/link còn lệch về thị giác | Shared account shell | Cập nhật W0.2 và thay brand mark dùng chung | Account routes + authenticated shell | Owner review |
 | 2026-07-19 | Account round 4 | Underline `1px`, confirm-password copy ngắn và secondary actions 50–50 | Owner phát hiện password line nặng hơn field khác và hàng link dù thẳng vẫn chưa cân đối | Shared account form | Cập nhật W0.2 shared password/link treatment | Login/Register/Reset/Change | Owner review |
+| 2026-07-19 | W0.2 approval | Forgot title một dòng, tăng nhẹ title-to-field spacing; chuyển W1 | Owner duyệt account flow sau retrofit cuối | Account shell | Khóa W0.2, mở W1 Dashboard | Account routes → dashboard.my-orders | Approved |
+| 2026-07-19 | W1 My Orders round 1 | Story header + ba metric hiện tại + single-source CTA + compact previous archive | Loại bỏ lặp kỳ/deadline/action và giữ current story above-the-fold | Employee workspace | Hoàn tất dashboard.my-orders để owner review | dashboard?tab=0 | Owner review |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Account errors | Dịch theo stable error code, không render raw backend message | Bảo mật, VI/EN nhất quán và tránh technical leakage | Global | Thêm `AccountLifecycleUiMapper` | Register/Forgot/Reset/Confirm/Change | Verified |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |

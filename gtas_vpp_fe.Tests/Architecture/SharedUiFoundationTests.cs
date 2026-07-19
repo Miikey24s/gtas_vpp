@@ -64,6 +64,16 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<VppIcon", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void MyOrders_UsesTheSharedIconSystem()
+    {
+        var root = GetFrontendRoot();
+        var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
+
+        Assert.DoesNotContain("class=\"rzi", source, StringComparison.Ordinal);
+        Assert.Contains("<VppIcon", source, StringComparison.Ordinal);
+    }
+
     private static string GetFrontendRoot()
     {
         var repositoryRoot = FindRepositoryRoot();

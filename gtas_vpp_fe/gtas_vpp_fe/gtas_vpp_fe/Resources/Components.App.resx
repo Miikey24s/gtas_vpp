@@ -57,7 +57,7 @@
   <data name="Success" xml:space="preserve"><value>Thành công</value></data>
   <data name="Warning" xml:space="preserve"><value>Cảnh báo</value></data>
   <data name="AccountAccessNavigation" xml:space="preserve"><value>Truy cập tài khoản</value></data>
-  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Khôi phục</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Khôi phục mật khẩu</value></data>
   <data name="ForgotPasswordLink" xml:space="preserve"><value>Quên mật khẩu?</value></data>
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
   <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi</value></data>
@@ -519,6 +519,20 @@
   <data name="SupplementQuotaSummary" xml:space="preserve"><value>Còn {0}/{1} lượt bổ sung được duyệt</value></data>
   <data name="SupplementAttemptSummary" xml:space="preserve"><value>Còn {0}/{1} lần gửi bổ sung</value></data>
   <data name="SupplementUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn bổ sung.</value></data>
+  <data name="OrdersStoryEmptyTitle" xml:space="preserve"><value>Bắt đầu đơn hàng kỳ này</value></data>
+  <data name="OrdersStoryActiveTitle" xml:space="preserve"><value>Theo dõi đơn hàng kỳ này</value></data>
+  <data name="OrdersStoryOpenDescriptionFormat" xml:space="preserve"><value>Còn {0} ngày để gửi đơn, hạn chót {1}.</value></data>
+  <data name="OrdersStoryTodayDescriptionFormat" xml:space="preserve"><value>Hạn gửi đơn là hôm nay, {0}.</value></data>
+  <data name="OrdersStoryClosedDescription" xml:space="preserve"><value>Kỳ đặt hàng đã đóng. Bạn vẫn có thể xem lại đơn và lịch sử xử lý.</value></data>
+  <data name="OrderPeriodOpen" xml:space="preserve"><value>Đang nhận đơn</value></data>
+  <data name="OrderPeriodClosed" xml:space="preserve"><value>Đã đóng kỳ</value></data>
+  <data name="OrdersInCurrentPeriod" xml:space="preserve"><value>Đơn trong kỳ</value></data>
+  <data name="RegularOrdersCurrentPeriod" xml:space="preserve"><value>Đơn thường kỳ này</value></data>
+  <data name="CurrentOrderMetrics" xml:space="preserve"><value>Tổng quan đơn kỳ hiện tại</value></data>
+  <data name="SupplementCapacity" xml:space="preserve"><value>Hạn mức bổ sung</value></data>
+  <data name="NoCurrentRegularOrders" xml:space="preserve"><value>Chưa có đơn thường trong kỳ này</value></data>
+  <data name="NoCurrentRegularOrdersNextStep" xml:space="preserve"><value>Dùng nút tạo đơn phía trên để bắt đầu; bạn cũng có thể sao chép dữ liệu kỳ trước nếu có.</value></data>
+  <data name="PreviousOrderCountFormat" xml:space="preserve"><value>{0} đơn</value></data>
   <data name="RegularRequestUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn thường.</value></data>
   <data name="OrderNoLongerEditable" xml:space="preserve"><value>Đơn này không còn ở trạng thái cho phép chỉnh sửa.</value></data>
   <data name="RequestActionUnavailable" xml:space="preserve"><value>Chưa thể thực hiện thao tác</value></data>

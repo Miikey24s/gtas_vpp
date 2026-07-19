@@ -8,153 +8,182 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1rem" class="rz-p-0 order-page" Style="width: 100%; max-width: none; margin: 0;">
-        @* ── Action Buttons ─────────────────────────────────────────── *@
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                @if (CanCreate)
-                {
-                    <RadzenButton Icon="add" Text="@Loc["NewOrder"]" ButtonStyle="ButtonStyle.Primary" Click="@(async _ => await GoToCreatePage(false))" Disabled="@(IsLoading || !CanCreateRegular)" />
-                    <RadzenButton Icon="add" Text="@Loc["CopyPreviousOrder"]" ButtonStyle="ButtonStyle.Light" Click="@(async _ => await CopyPreviousAsync())" Disabled="@(IsLoading || PeriodInfo == null || !PeriodInfo.CanCopyPrevious)" />
-                    <RadzenButton Icon="playlist_add" Text="@Loc["RequestAdditional"]" ButtonStyle="ButtonStyle.Secondary" Click="@(async _ => await GoToCreatePage(true))" Disabled="@(IsLoading || !CanCreateSupplement)" data-testid="create-supplement" />
-                }
-            </RadzenStack>
-            @if (PeriodInfo is not null)
-            {
-                <RadzenStack Gap="0.15rem" Style="font-size: 0.82rem; color: var(--vpp-text-secondary);">
-                    <span>@Loc["PeriodStatus"]: <strong>@PeriodInfo.PeriodState</strong> · @Loc["SubmissionDeadline"] @DateFormatter.Format(PeriodInfo.DeadlineDate, DateFormatter.LongDate)</span>
-                    <span>@Loc["SupplementQuotaSummary", PeriodInfo.RemainingApprovedSupplementQuota, PeriodInfo.MaxAdditionalOrders] · @Loc["SupplementAttemptSummary", PeriodInfo.RemainingSupplementAttempts, PeriodInfo.MaxSupplementAttempts]</span>
-                </RadzenStack>
-            }
-        </RadzenStack>
-
-        @* ── KPI Cards ──────────────────────────────────────────────── *@
-        <div class="kpi-grid">
-            <div class="kpi-card kpi-blue">
-                <div class="kpi-card-shine"></div>
-                <div class="kpi-card-content">
-                    <div class="kpi-card-header">
-                        <span class="kpi-card-label">@Loc["ActiveOrderPeriod"]</span>
-                        <span class="kpi-card-icon rzi rzi-calendar-today"></span>
-                    </div>
-                    <div class="kpi-card-value">@CurrentOrderPeriodText</div>
-                </div>
-            </div>
-
-            <div class="kpi-card kpi-purple">
-                <div class="kpi-card-shine"></div>
-                <div class="kpi-card-content">
-                    <div class="kpi-card-header">
-                        <span class="kpi-card-label">@Loc["PeriodEnd"]</span>
-                        <span class="kpi-card-icon rzi rzi-event"></span>
-                    </div>
-                    <div class="kpi-card-value">@PeriodEndText</div>
-                </div>
-            </div>
-
-            <div class="kpi-card kpi-emerald">
-                <div class="kpi-card-shine"></div>
-                <div class="kpi-card-content">
-                    <div class="kpi-card-header">
-                        <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
-                        <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
-                    </div>
-                    <div class="kpi-card-value">@TotalLinesText</div>
-                </div>
-            </div>
-
-            <div class="kpi-card kpi-amber">
-                <div class="kpi-card-shine"></div>
-                <div class="kpi-card-content">
-                    <div class="kpi-card-header">
-                        <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
-                        <span class="kpi-card-icon rzi rzi-inventory-2"></span>
-                    </div>
-                    <div class="kpi-card-value">@TotalQtyText</div>
-                </div>
-            </div>
-        </div>
-
-        @* ── Orders Content ─────────────────────────────────────────── *@
+    <div class="vpp-orders-workspace order-page">
         @if (IsLoading)
         {
-            <SkeletonPage Cards="4" Rows="5" Cols="4" />
+            <SkeletonPage Cards="3" Rows="5" Cols="4" />
         }
         else
         {
+            <section class="vpp-orders-story" aria-labelledby="orders-story-title">
+                <div class="vpp-orders-story-main">
+                    <div class="vpp-orders-eyebrow">
+                        <VppIcon Name="@VppIcons.Calendar" />
+                        <span>@Loc["ActiveOrderPeriod"]</span>
+                        <strong>@CurrentOrderPeriodText</strong>
+                    </div>
+
+                    <div class="vpp-orders-story-heading">
+                        <div>
+                            <h2 id="orders-story-title">@OrdersStoryTitle</h2>
+                            <p>@OrdersStoryDescription</p>
+                        </div>
+                        <span class="vpp-orders-state @SubmissionStateCss">
+                            <VppIcon Name="@SubmissionStateIcon" />
+                            @SubmissionStateText
+                        </span>
+                    </div>
+
+                    @if (PeriodInfo is not null)
+                    {
+                        <div class="vpp-orders-facts">
+                            <div class="vpp-orders-fact">
+                                <VppIcon Name="@VppIcons.Schedule" />
+                                <span>
+                                    <small>@Loc["SubmissionDeadline"]</small>
+                                    <strong>@CurrentDeadlineText</strong>
+                                </span>
+                            </div>
+                            <div class="vpp-orders-fact">
+                                <VppIcon Name="@VppIcons.Supplement" />
+                                <span>
+                                    <small>@Loc["SupplementCapacity"]</small>
+                                    <strong>@Loc["SupplementQuotaSummary", PeriodInfo.RemainingApprovedSupplementQuota, PeriodInfo.MaxAdditionalOrders]</strong>
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (CanCreate && HasAvailableStoryAction)
+                {
+                    <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
+                        @if (CanCreateRegular)
+                        {
+                            <RadzenButton Icon="@VppIcons.Add"
+                                          Text="@Loc["NewOrder"]"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Click="@(async _ => await GoToCreatePage(false))" />
+                        }
+                        @if (CanCopyPrevious)
+                        {
+                            <RadzenButton Icon="@VppIcons.Copy"
+                                          Text="@Loc["CopyPreviousOrder"]"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          Variant="Variant.Outlined"
+                                          Click="@(async _ => await CopyPreviousAsync())" />
+                        }
+                        @if (ShowSupplementAction)
+                        {
+                            <RadzenButton Icon="@VppIcons.Supplement"
+                                          Text="@Loc["RequestAdditional"]"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Variant="Variant.Outlined"
+                                          Click="@(async _ => await GoToCreatePage(true))"
+                                          Disabled="@(!CanCreateSupplement)"
+                                          Title="@SupplementActionHint"
+                                          data-testid="create-supplement" />
+                        }
+                    </div>
+                }
+            </section>
+
+            <div class="vpp-orders-metrics" role="group" aria-label="@Loc["CurrentOrderMetrics"]">
+                <article class="vpp-orders-metric">
+                    <VppIcon Name="@VppIcons.Orders" />
+                    <span>@Loc["OrdersInCurrentPeriod"]</span>
+                    <strong>@TotalOrdersText</strong>
+                </article>
+                <article class="vpp-orders-metric">
+                    <VppIcon Name="@VppIcons.Columns" />
+                    <span>@Loc["TotalLineItems"]</span>
+                    <strong>@TotalLinesText</strong>
+                </article>
+                <article class="vpp-orders-metric">
+                    <VppIcon Name="@VppIcons.Catalog" />
+                    <span>@Loc["TotalQuantity"]</span>
+                    <strong>@TotalQtyText</strong>
+                </article>
+            </div>
+
+            <section class="vpp-orders-section" aria-labelledby="current-orders-title">
+                <header class="vpp-orders-section-header">
+                    <div>
+                        <span class="vpp-orders-section-kicker">@CurrentOrderPeriodText</span>
+                        <h3 id="current-orders-title">@Loc["RegularOrdersCurrentPeriod"]</h3>
+                    </div>
+                    <span class="vpp-orders-count">@ActiveOrders.Count</span>
+                </header>
+
             @if (ActiveOrders == null || !ActiveOrders.Any())
             {
-                @if (CanCreateRegular)
-                {
-                    <VppEmptyState Icon="inventory_2"
-                                   Title="@Loc["NoOrdersFound"]"
-                                   Description="@Loc["NoOrdersSubmittedCurrentPeriod"]"
-                                   PrimaryText="@Loc["NewOrder"]"
-                                   PrimaryAction="@(async _ => await GoToCreatePage(false))"
-                                   SecondaryText="@Loc["CopyPreviousOrder"]"
-                                   SecondaryAction="@(async _ => await CopyPreviousAsync())" />
-                }
-                else
-                {
-                    <VppEmptyState Icon="inventory_2"
-                                   Title="@Loc["NoOrdersFound"]"
-                                   Description="@Loc["NoOrdersSubmittedCurrentPeriod"]" />
-                }
+                    <VppEmptyState Icon="@VppIcons.Orders"
+                                   Title="@Loc["NoCurrentRegularOrders"]"
+                                   Description="@EmptyCurrentOrdersDescription"
+                                   Class="vpp-orders-empty" />
             }
             else
             {
-                <RadzenStack Gap="1rem">
+                    <RadzenStack Gap="1rem" class="vpp-orders-card-list">
                     @foreach (var order in ActiveOrders)
                     {
                         @RenderOrderCard(order)
                     }
                 </RadzenStack>
             }
+            </section>
 
-            @* ── Previous Period Section ────────────────────────────── *@
-            <div class="vpp-section-divider">
-                <div class="vpp-section-title">
-                    <span class="rzi rzi-history"></span>
-                    @Loc["PreviousOrderPeriod"] (@PreviousOrderPeriodText)
-                </div>
-            </div>
-
-            @if (PreviousOrders == null || !PreviousOrders.Any())
+            @if (CurrentPeriodAdditionalOrders.Count > 0)
             {
-                <VppEmptyState Icon="history"
-                               Title="@Loc["NoPreviousPeriodOrders"]"
-                               Description="@Loc["NoRegularOrdersFoundPreviousCycle"]"
-                               Class="rz-mt-3 vpp-empty-state-compact" />
+                <section class="vpp-orders-section" aria-labelledby="additional-orders-title">
+                    <header class="vpp-orders-section-header">
+                        <div>
+                            <span class="vpp-orders-section-kicker">@CurrentOrderPeriodText</span>
+                            <h3 id="additional-orders-title">@Loc["AdditionalOrders"]</h3>
+                        </div>
+                        <span class="vpp-orders-count">@CurrentPeriodAdditionalOrders.Count</span>
+                    </header>
+                    <RadzenStack Gap="1rem" class="vpp-orders-card-list">
+                    @foreach (var order in CurrentPeriodAdditionalOrders)
+                    {
+                        @RenderOrderCard(order)
+                    }
+                </RadzenStack>
+                </section>
+            }
+
+            @if (PreviousOrders.Count > 0)
+            {
+                <details class="vpp-orders-archive">
+                    <summary>
+                        <span class="vpp-orders-archive-icon"><VppIcon Name="@VppIcons.History" /></span>
+                        <span>
+                            <strong>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</strong>
+                            <small>@string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count)</small>
+                        </span>
+                        <VppIcon Name="@VppIcons.ExpandMore" Class="vpp-orders-archive-chevron" />
+                    </summary>
+                    <RadzenStack Gap="1rem" class="vpp-orders-archive-content">
+                        @foreach (var order in PreviousOrders)
+                        {
+                            @RenderOrderCard(order)
+                        }
+                    </RadzenStack>
+                </details>
             }
             else
             {
-                <RadzenStack Gap="1rem">
-                    @foreach (var order in PreviousOrders)
-                    {
-                        @RenderOrderCard(order)
-                    }
-                </RadzenStack>
-            }
-
-            @* ── Additional Orders Section ──────────────────────────── *@
-            @if (AdditionalOrders != null && AdditionalOrders.Any())
-            {
-                <div class="vpp-section-divider">
-                    <div class="vpp-section-title">
-                        <span class="rzi rzi-playlist-add"></span>
-                        @Loc["AdditionalOrders"]
-                    </div>
+                <div class="vpp-orders-archive vpp-orders-archive-empty">
+                    <span class="vpp-orders-archive-icon"><VppIcon Name="@VppIcons.History" /></span>
+                    <span>
+                        <strong>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</strong>
+                        <small>@Loc["NoRegularOrdersFoundPreviousCycle"]</small>
+                    </span>
+                    <span class="vpp-orders-count">0</span>
                 </div>
-
-                <RadzenStack Gap="1rem">
-                    @foreach (var order in AdditionalOrders)
-                    {
-                        @RenderOrderCard(order)
-                    }
-                </RadzenStack>
             }
         }
-    </RadzenStack>
+    </div>
 }
 
 @code {

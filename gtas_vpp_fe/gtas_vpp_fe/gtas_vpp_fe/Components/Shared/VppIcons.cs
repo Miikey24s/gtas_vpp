@@ -6,6 +6,7 @@ namespace gtas_vpp_fe.Components.Shared;
 /// </summary>
 public static class VppIcons
 {
+    public const string Add = "add";
     public const string ArrowBack = "arrow_back";
     public const string Apartment = "apartment";
     public const string Approved = "task_alt";
@@ -15,6 +16,7 @@ public static class VppIcons
     public const string Check = "check";
     public const string Close = "close";
     public const string Columns = "view_column";
+    public const string Copy = "content_copy";
     public const string DarkMode = "dark_mode";
     public const string Dashboard = "dashboard";
     public const string Department = "corporate_fare";
@@ -48,6 +50,8 @@ public static class VppIcons
     public const string Refresh = "refresh";
     public const string Reset = "restart_alt";
     public const string Search = "search";
+    public const string Schedule = "schedule";
+    public const string Supplement = "playlist_add";
     public const string Visibility = "visibility";
     public const string VisibilityOff = "visibility_off";
     public const string Warning = "warning";

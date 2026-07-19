@@ -57,7 +57,7 @@
   <data name="Success" xml:space="preserve"><value>Success</value></data>
   <data name="Warning" xml:space="preserve"><value>Warning</value></data>
   <data name="AccountAccessNavigation" xml:space="preserve"><value>Account access</value></data>
-  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Recover</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Recover password</value></data>
   <data name="ForgotPasswordLink" xml:space="preserve"><value>Forgot password?</value></data>
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>password</value></data>
   <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send</value></data>
@@ -519,6 +519,20 @@
   <data name="SupplementQuotaSummary" xml:space="preserve"><value>{0}/{1} approved supplement slots remaining</value></data>
   <data name="SupplementAttemptSummary" xml:space="preserve"><value>{0}/{1} supplement attempts remaining</value></data>
   <data name="SupplementUnavailable" xml:space="preserve"><value>A supplement cannot be created right now.</value></data>
+  <data name="OrdersStoryEmptyTitle" xml:space="preserve"><value>Start this cycle's order</value></data>
+  <data name="OrdersStoryActiveTitle" xml:space="preserve"><value>Track this cycle's orders</value></data>
+  <data name="OrdersStoryOpenDescriptionFormat" xml:space="preserve"><value>{0} day(s) remain to submit, with a deadline of {1}.</value></data>
+  <data name="OrdersStoryTodayDescriptionFormat" xml:space="preserve"><value>Orders are due today, {0}.</value></data>
+  <data name="OrdersStoryClosedDescription" xml:space="preserve"><value>The ordering cycle is closed. You can still review orders and their processing history.</value></data>
+  <data name="OrderPeriodOpen" xml:space="preserve"><value>Accepting orders</value></data>
+  <data name="OrderPeriodClosed" xml:space="preserve"><value>Cycle closed</value></data>
+  <data name="OrdersInCurrentPeriod" xml:space="preserve"><value>Orders this cycle</value></data>
+  <data name="RegularOrdersCurrentPeriod" xml:space="preserve"><value>Regular orders this cycle</value></data>
+  <data name="CurrentOrderMetrics" xml:space="preserve"><value>Current cycle order summary</value></data>
+  <data name="SupplementCapacity" xml:space="preserve"><value>Supplement capacity</value></data>
+  <data name="NoCurrentRegularOrders" xml:space="preserve"><value>No regular order in this cycle yet</value></data>
+  <data name="NoCurrentRegularOrdersNextStep" xml:space="preserve"><value>Use the create action above to begin; you can also copy the previous cycle when available.</value></data>
+  <data name="PreviousOrderCountFormat" xml:space="preserve"><value>{0} order(s)</value></data>
   <data name="RegularRequestUnavailable" xml:space="preserve"><value>A regular request cannot be created right now.</value></data>
   <data name="OrderNoLongerEditable" xml:space="preserve"><value>This request is no longer editable.</value></data>
   <data name="RequestActionUnavailable" xml:space="preserve"><value>Action unavailable</value></data>
