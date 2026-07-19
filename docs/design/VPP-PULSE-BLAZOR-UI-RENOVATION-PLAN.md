@@ -1,8 +1,8 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `IN_IMPLEMENTATION — W0.1 VERIFIED, W0.2 NEXT`
+> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 QA VERIFIED, OWNER REVIEW; W1 DASHBOARD NEXT`
 >
-> **Phiên bản:** `1.2` — 2026-07-19
+> **Phiên bản:** `1.3` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -214,7 +214,7 @@ Không dùng mặc định:
 - Dense table thiếu inspector/drawer ở trường hợp nhiều cột.
 - Dashboard/report chưa luôn đi từ takeaway tới evidence và action.
 - Figma thiếu parity với route thật như Departments, Classes, Categories và Prices.
-- Account pages chưa dùng chung một brand lockup, spacing và link treatment.
+- Account pages đã dùng chung account shell, brand lockup, spacing, link/button và feedback treatment; đang chờ owner review trước khi chuyển W1.
 - Icon đang có dấu hiệu trộn `RadzenIcon` với Material Symbols; cần một wrapper/icon map duy nhất.
 - Empty state dashboard đang lặp CTA, status và vùng trắng quá lớn; không ép mọi route phải vừa một viewport bằng cách làm chữ hoặc target quá nhỏ.
 - History cần phân biệt rõ `không có lịch sử`, `không có kết quả theo bộ lọc` và `kỳ trước không có đơn`.
@@ -362,17 +362,27 @@ Status hợp lệ:
 | Route/state | Status | Notes |
 |---|---|---|
 | `/` redirect | PENDING | First accessible route, no blank flash |
-| `/Account/Login` | PENDING | Keep illustration; safe localized feedback |
-| `/Account/Register` | PENDING | Validation + pending approval |
-| `/Account/ConfirmEmail` | PENDING | Success/expired/invalid |
-| `/Account/ForgotPassword` | PENDING | Anti-enumeration |
-| `/Account/ResetPassword` | PENDING | Policy/expired/replay |
-| `/Account/ChangePassword` | PENDING | Current/new/confirm |
+| `/Account/Login` | OWNER_REVIEW | Illustration retained; localized access links and safe feedback |
+| `/Account/Register` | OWNER_REVIEW | Validation + pending approval; shared hero shell |
+| `/Account/ConfirmEmail` | OWNER_REVIEW | Success/expired/invalid; compact shell |
+| `/Account/ForgotPassword` | OWNER_REVIEW | Anti-enumeration; compact recovery shell |
+| `/Account/ResetPassword` | OWNER_REVIEW | Policy/expired/replay; invalid link hides form |
+| `/Account/ChangePassword` | OWNER_REVIEW | Current/new/confirm; forced-change context |
 | `/loginprocess` | PENDING | Progress/fallback only |
-| `/logoutprocess` | PENDING | Safe clear + redirect login |
+| `/logoutprocess` | OWNER_REVIEW | Safe clear + redirect login; branded progress shell |
 | `/Error` | PENDING | Safe message + correlation + retry |
 | `/not-found` | PENDING | Return to valid workspace |
 | Shell/notification/reconnect | PENDING | Context preservation, action inbox |
+
+**W0.2 verified evidence — 2026-07-19:**
+
+- `VppAccountShell` chốt hai biến thể: hero cho Login/Register/Logout và compact cho Forgot/Reset/Confirm/Change Password;
+- cùng brand lockup, title scale, password field, inline alert, back-link và action treatment được dùng xuyên account flow;
+- account API error code đi qua `AccountLifecycleUiMapper`; raw backend message không render ra UI;
+- user menu chỉ hiển thị department một lần; logout giữ neutral mặc định và chỉ dùng danger tone khi hover/focus;
+- account browser QA pass ở `390×844`, `1366×768`, `1920×1080`, gồm VI/EN, invalid reset link, icon centralization và horizontal overflow;
+- isolated account-menu QA và authenticated shell responsive QA pass; accessibility/logout regression pass;
+- frontend unit/architecture tests: `129/129`; Release solution build: `0 warning / 0 error`.
 
 ### W2 — Employee
 
@@ -508,7 +518,9 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 |---|---|---|---|---|---|---|---|
 | 2026-07-19 | Workflow | Không dùng UI Lab; code trực tiếp từng route | UI thật đã tồn tại và đẹp hơn Figma prototype | Global | Living plan này | N/A | Recorded |
 | 2026-07-19 | Design authority | Browser runtime thắng Figma | Tránh design/code drift và route coverage thiếu | Global | Figma chuyển thành reference | Toàn bộ route | Recorded |
-| 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Login hiện có illustration; recovery cần ngắn và tập trung | Global | Bổ sung account consistency rule | Login/Register/Forgot/Reset/Change/Logout | Proposed |
+| 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Login/Register hưởng lợi từ illustration; recovery cần ngắn và tập trung | Global | Hoàn tất W0.2 account-shell variants | Login/Register/Forgot/Reset/Confirm/Change/Logout | Verified |
+| 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
+| 2026-07-19 | Account errors | Dịch theo stable error code, không render raw backend message | Bảo mật, VI/EN nhất quán và tránh technical leakage | Global | Thêm `AccountLifecycleUiMapper` | Register/Forgot/Reset/Confirm/Change | Verified |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |
 | 2026-07-19 | Admin grid | Column profile theo route + detail on demand | Departments screenshot cho thấy nhiều cột và khó đọc | Shared pattern | Bổ sung 6.1 và W3 | Library/*, shared grid | Proposed |
 | 2026-07-19 | Error feedback | Không để raw `OperationInvalid` lên toast | Caller dùng trực tiếp `ApiRequestException.Message`, chính là backend error code | Global | Hoàn tất W0.1 safe mapper pipeline | Toàn bộ frontend user feedback | Verified |
@@ -521,7 +533,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 |---|---|---|---|---|
 | P0 | Mixed icon implementations | `VppEmptyState`, `EmptyState`, shared header/menu | Hợp nhất icon wrapper + semantic map, kiểm tra font/fallback | Verified |
 | P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Verified |
-| P1 | Account shell drift | Login/Register/Forgot/Reset/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Proposed |
+| P1 | Account shell drift | Login/Register/Forgot/Reset/Confirm/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Verified |
 | P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Proposed |
 | P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Proposed |
 

@@ -6,29 +6,12 @@
 
 <PageTitle>GTAS VPP - @Loc["Login"]</PageTitle>
 
-<div class="vpp-login-page">
-    <div class="vpp-login-shell">
-        <div class="vpp-login-art" aria-hidden="true">
-            <img class="vpp-login-art-image"
-                 src="@Assets["images/login-bg-gtas.png"]"
-                 width="1678"
-                 height="937"
-                 loading="eager"
-                 fetchpriority="high"
-                 decoding="async"
-                 alt="" />
-        </div>
-
-        <section class="vpp-login-card" aria-labelledby="vpp-login-title">
-            <div class="vpp-login-card-inner">
-                <div class="vpp-login-header">
-                    <h1 class="vpp-login-title" id="vpp-login-title">
-                        @Loc["Login"]
-                        <span class="vpp-login-title-accent">GTAS VPP</span>
-                    </h1>
-                </div>
-
-                <RadzenTemplateForm TItem="LoginFormModel" Data="loginForm" Submit="LoginSubmit" class="vpp-login-form">
+<VppAccountShell Title="@Loc["Login"]"
+                 Accent="GTAS VPP"
+                 TitleId="vpp-login-title"
+                 ShowArtwork="true"
+                 ShowBrand="false">
+    <RadzenTemplateForm TItem="LoginFormModel" Data="loginForm" Submit="LoginSubmit" class="vpp-login-form">
                     <AntiforgeryToken></AntiforgeryToken>
 
                     <div class="@(HasUsernameValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
@@ -88,14 +71,11 @@
                                   ButtonType="ButtonType.Submit"
                                   IsBusy="@isLoading"
                                   class="vpp-login-btn" />
-                </RadzenTemplateForm>
+    </RadzenTemplateForm>
 
-                <div class="vpp-login-links" role="navigation" aria-label="Account access">
-                    <a href="/Account/ForgotPassword">Quên mật khẩu?</a>
-                    <span aria-hidden="true">·</span>
-                    <a href="/Account/Register">Đăng ký tài khoản</a>
-                </div>
-            </div>
-        </section>
+    <div class="vpp-login-links" role="navigation" aria-label="@Loc["AccountAccessNavigation"]">
+        <a href="/Account/ForgotPassword">@Loc["ForgotPasswordLink"]</a>
+        <span aria-hidden="true">·</span>
+        <a href="/Account/Register">@Loc["RegisterTitle"]</a>
     </div>
-</div>
+</VppAccountShell>

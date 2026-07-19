@@ -2,70 +2,59 @@
 @attribute [AllowAnonymous]
 @layout LoginLayout
 
-<PageTitle>GTAS VPP - Đăng ký</PageTitle>
+<PageTitle>GTAS VPP - @Loc["RegisterTitle"]</PageTitle>
 
-<div class="vpp-login-page">
-    <div class="vpp-login-shell" style="overflow-y: auto;">
-        <section class="vpp-login-card" aria-labelledby="register-title" style="align-items: flex-start; overflow-y: auto;">
-            <div class="vpp-login-card-inner">
-                <div class="vpp-login-header">
-                    <h1 class="vpp-login-title" id="register-title">
-                        Đăng ký <span class="vpp-login-title-accent">GTAS VPP</span>
-                    </h1>
-                    <p>Đăng ký chỉ tạo yêu cầu chờ quản trị viên phê duyệt.</p>
-                </div>
+<VppAccountShell Title="@Loc["RegisterTitle"]"
+                 Accent="GTAS VPP"
+                 Description="@Loc["RegisterDescription"]"
+                 TitleId="register-title"
+                 ShowArtwork="true"
+                 ShowBrand="false"
+                 Scrollable="true">
+    <VppInlineAlert Message="@ErrorMessage" Tone="VppAlertTone.Error" />
+    <VppInlineAlert Message="@SuccessMessage" Tone="VppAlertTone.Success" />
 
-                @if (!string.IsNullOrWhiteSpace(ErrorMessage))
-                {
-                    <div class="vpp-login-validation" role="alert">@ErrorMessage</div>
-                }
-                @if (!string.IsNullOrWhiteSpace(SuccessMessage))
-                {
-                    <div class="vpp-login-validation" role="status">@SuccessMessage</div>
-                }
-
-                <EditForm Model="Model" OnValidSubmit="SubmitAsync" class="vpp-login-form">
+    <EditForm Model="Model" OnValidSubmit="SubmitAsync" class="vpp-login-form">
                     <DataAnnotationsValidator />
                     <div class="vpp-login-field">
-                        <RadzenLabel Text="Tên đăng nhập" Component="Username" class="vpp-login-label" />
-                        <RadzenTextBox Name="Username" @bind-Value="Model.Username" Disabled="@IsLoading" class="vpp-login-control" />
+                        <RadzenLabel Text="@Loc["Username"]" Component="Username" class="vpp-login-label" />
+                        <RadzenTextBox Name="Username" @bind-Value="Model.Username" Disabled="@IsLoading" autocomplete="username" class="vpp-login-control" />
                         <ValidationMessage For="@(() => Model.Username)" />
                     </div>
                     <div class="vpp-login-field">
-                        <RadzenLabel Text="Họ và tên" Component="FullName" class="vpp-login-label" />
+                        <RadzenLabel Text="@Loc["FullName"]" Component="FullName" class="vpp-login-label" />
                         <RadzenTextBox Name="FullName" @bind-Value="Model.FullName" Disabled="@IsLoading" class="vpp-login-control" />
                         <ValidationMessage For="@(() => Model.FullName)" />
                     </div>
                     <div class="vpp-login-field">
-                        <RadzenLabel Text="Email nội bộ" Component="Email" class="vpp-login-label" />
-                        <RadzenTextBox Name="Email" @bind-Value="Model.Email" Disabled="@IsLoading" class="vpp-login-control" />
+                        <RadzenLabel Text="@Loc["InternalEmail"]" Component="Email" class="vpp-login-label" />
+                        <RadzenTextBox Name="Email" @bind-Value="Model.Email" Disabled="@IsLoading" autocomplete="email" class="vpp-login-control" />
                         <ValidationMessage For="@(() => Model.Email)" />
                     </div>
                     <div class="vpp-login-field">
-                        <RadzenLabel Text="Mã nhân viên (không bắt buộc)" Component="EmployeeCode" class="vpp-login-label" />
+                        <RadzenLabel Text="@Loc["EmployeeCodeOptional"]" Component="EmployeeCode" class="vpp-login-label" />
                         <RadzenTextBox Name="EmployeeCode" @bind-Value="Model.EmployeeCode" Disabled="@IsLoading" class="vpp-login-control" />
                     </div>
-                    <div class="vpp-login-field">
-                        <RadzenLabel Text="Mật khẩu" Component="Password" class="vpp-login-label" />
-                        <RadzenPassword Name="Password" @bind-Value="Model.Password" Disabled="@IsLoading" class="vpp-login-control" />
-                        <ValidationMessage For="@(() => Model.Password)" />
-                    </div>
-                    <div class="vpp-login-field">
-                        <RadzenLabel Text="Nhập lại mật khẩu" Component="ConfirmPassword" class="vpp-login-label" />
-                        <RadzenPassword Name="ConfirmPassword" @bind-Value="Model.ConfirmPassword" Disabled="@IsLoading" class="vpp-login-control" />
-                        <ValidationMessage For="@(() => Model.ConfirmPassword)" />
-                    </div>
+                    <VppPasswordField Name="Password"
+                                      Label="@Loc["Password"]"
+                                      @bind-Value="Model.Password"
+                                      Disabled="@IsLoading"
+                                      Hint="@Loc["PasswordRequirementHint"]" />
+                    <VppPasswordField Name="ConfirmPassword"
+                                      Label="@Loc["ConfirmNewPassword"]"
+                                      @bind-Value="Model.ConfirmPassword"
+                                      Disabled="@IsLoading" />
 
-                    <RadzenButton Text="Gửi yêu cầu đăng ký"
+                    <RadzenButton Text="@Loc["RegisterAction"]"
                                   ButtonType="ButtonType.Submit"
                                   IsBusy="@IsLoading"
                                   class="vpp-login-btn" />
-                </EditForm>
+    </EditForm>
 
-                <div class="vpp-login-links">
-                    <a href="/Account/Login">Quay lại đăng nhập</a>
-                </div>
-            </div>
-        </section>
+    <div class="vpp-login-links vpp-login-links-single">
+        <a class="vpp-account-back-link" href="/Account/Login">
+            <VppIcon Name="@VppIcons.ArrowBack" />
+            <span>@Loc["BackToLogin"]</span>
+        </a>
     </div>
-</div>
+</VppAccountShell>

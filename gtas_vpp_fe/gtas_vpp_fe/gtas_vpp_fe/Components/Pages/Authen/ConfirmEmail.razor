@@ -2,33 +2,29 @@
 @attribute [AllowAnonymous]
 @layout LoginLayout
 
-<PageTitle>GTAS VPP - Xác nhận email</PageTitle>
+<PageTitle>GTAS VPP - @Loc["ConfirmEmailTitle"] @Loc["ConfirmEmailAccent"]</PageTitle>
 
-<div class="vpp-login-page">
-    <div class="vpp-login-shell">
-        <section class="vpp-login-card" aria-labelledby="confirm-email-title">
-            <div class="vpp-login-card-inner">
-                <div class="vpp-login-header">
-                    <h1 class="vpp-login-title" id="confirm-email-title">
-                        Xác nhận <span class="vpp-login-title-accent">email</span>
-                    </h1>
-                </div>
-                @if (IsLoading)
-                {
-                    <p role="status">Đang kiểm tra liên kết...</p>
-                }
-                else if (!string.IsNullOrWhiteSpace(ErrorMessage))
-                {
-                    <div class="vpp-login-validation" role="alert">@ErrorMessage</div>
-                }
-                else
-                {
-                    <div class="vpp-login-validation" role="status">@SuccessMessage</div>
-                }
-                <div class="vpp-login-links">
-                    <a href="/Account/Login">Đi tới đăng nhập</a>
-                </div>
-            </div>
-        </section>
+<VppAccountShell Title="@Loc["ConfirmEmailTitle"]"
+                 Accent="@Loc["ConfirmEmailAccent"]"
+                 TitleId="confirm-email-title"
+                 Compact="true">
+    @if (IsLoading)
+    {
+        <VppInlineAlert Message="@Loc["CheckingConfirmationLink"]" Tone="VppAlertTone.Info" />
+    }
+    else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <VppInlineAlert Message="@ErrorMessage" Tone="VppAlertTone.Error" />
+    }
+    else
+    {
+        <VppInlineAlert Message="@SuccessMessage" Tone="VppAlertTone.Success" />
+    }
+
+    <div class="vpp-login-links vpp-login-links-single">
+        <a class="vpp-account-back-link" href="/Account/Login">
+            <VppIcon Name="@VppIcons.ArrowBack" />
+            <span>@Loc["GoToLogin"]</span>
+        </a>
     </div>
-</div>
+</VppAccountShell>

@@ -455,3 +455,281 @@
     font-size: 22px !important;
     line-height: 1 !important;
 }
+
+/* ── Shared account flows ─────────────────────────────────────── */
+.vpp-account-page-compact {
+    background:
+        radial-gradient(circle at 14% 18%, rgba(14, 165, 233, 0.11), transparent 32%),
+        radial-gradient(circle at 88% 82%, rgba(20, 184, 166, 0.09), transparent 28%),
+        #f4f7fa;
+}
+
+.vpp-account-page-compact .vpp-login-shell {
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 4vw, 48px);
+    overflow-y: auto;
+    background: transparent;
+}
+
+.vpp-account-page-compact .vpp-login-shell::before {
+    background:
+        linear-gradient(rgba(9, 30, 66, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(9, 30, 66, 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+}
+
+.vpp-account-page-compact .vpp-login-card {
+    width: min(100%, 560px);
+    min-height: auto;
+    max-height: calc(100dvh - clamp(40px, 8vw, 96px));
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: clamp(32px, 5vw, 52px);
+    overflow-y: auto;
+    border: 1px solid var(--vpp-border-strong);
+    border-radius: var(--vpp-radius-lg);
+    box-shadow: 0 22px 60px rgba(23, 43, 77, 0.12);
+}
+
+.vpp-account-page-compact .vpp-login-card-inner {
+    width: 100%;
+}
+
+.vpp-account-page-compact .vpp-login-header {
+    margin-bottom: 30px;
+}
+
+.vpp-account-page-compact .vpp-login-title {
+    font-size: clamp(2.25rem, 5vw, 3.1rem);
+}
+
+.vpp-account-page-compact .vpp-login-form {
+    gap: 24px;
+}
+
+.vpp-account-page-compact .vpp-login-field {
+    gap: 10px;
+}
+
+.vpp-account-page-compact,
+.vpp-account-page-scrollable {
+    --vpp-login-field-min-height: 3.5rem;
+    --vpp-login-field-label-size: 0.9375rem;
+    --vpp-login-field-value-size: 1rem;
+    --vpp-login-field-text-padding: 0.625rem;
+}
+
+.vpp-account-page-scrollable .vpp-login-card {
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: 100dvh;
+    overflow-y: auto;
+    padding-block: 48px;
+}
+
+.vpp-account-page-scrollable .vpp-login-card-inner {
+    width: min(100%, 450px);
+}
+
+.vpp-account-page-scrollable .vpp-login-header {
+    margin-bottom: 30px;
+}
+
+.vpp-account-page-scrollable .vpp-login-form {
+    gap: 20px;
+}
+
+.vpp-account-page-scrollable .vpp-login-field {
+    gap: 9px;
+}
+
+.vpp-account-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    min-height: 44px;
+    margin-bottom: 34px;
+    color: var(--vpp-text-primary);
+    text-decoration: none;
+}
+
+.vpp-account-brand:hover {
+    color: var(--vpp-text-primary);
+    text-decoration: none;
+}
+
+.vpp-account-brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.15;
+}
+
+.vpp-account-brand-copy strong {
+    font-family: var(--vpp-font-display);
+    font-size: 0.95rem;
+}
+
+.vpp-account-brand-copy span {
+    color: var(--vpp-text-tertiary);
+    font-size: 0.75rem;
+}
+
+.vpp-account-eyebrow {
+    margin-bottom: var(--vpp-space-2);
+    color: var(--vpp-primary-600);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.vpp-account-description {
+    max-width: 52ch;
+    margin: 14px 0 0;
+    color: var(--vpp-text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+}
+
+.vpp-inline-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--vpp-space-3);
+    margin: 0 0 var(--vpp-space-5);
+    padding: 12px 14px;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-text-secondary);
+    background: rgba(9, 30, 66, 0.035);
+    font-size: var(--vpp-text-sm);
+    line-height: 1.45;
+}
+
+.vpp-inline-alert-icon {
+    margin-top: 1px;
+    font-size: 1.2rem;
+}
+
+.vpp-inline-alert-info {
+    border-color: color-mix(in srgb, var(--vpp-info) 28%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-info) 72%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-info) 8%, white);
+}
+
+.vpp-inline-alert-success {
+    border-color: color-mix(in srgb, var(--vpp-success) 30%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-success) 72%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-success) 8%, white);
+}
+
+.vpp-inline-alert-warning {
+    border-color: color-mix(in srgb, var(--vpp-warning) 32%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-warning) 72%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-warning) 9%, white);
+}
+
+.vpp-inline-alert-error {
+    border-color: color-mix(in srgb, var(--vpp-danger) 30%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-danger) 78%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-danger) 8%, white);
+}
+
+.vpp-login-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 18px;
+    color: var(--vpp-text-tertiary);
+    font-size: 0.875rem;
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-login-links a {
+    color: var(--vpp-primary-600);
+}
+
+.vpp-login-links-single {
+    justify-content: flex-start;
+    margin-top: 22px;
+}
+
+.vpp-account-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-height: 40px;
+    padding: 8px 10px;
+    border-radius: var(--vpp-radius-md);
+    text-decoration: none;
+}
+
+.vpp-account-back-link:hover {
+    background: rgba(var(--vpp-primary-rgb), 0.08);
+    text-decoration: none;
+}
+
+.vpp-account-back-link .vpp-icon {
+    font-size: 1.1rem;
+}
+
+.vpp-account-field-hint,
+.vpp-login-field .validation-message {
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-xs);
+    line-height: 1.4;
+}
+
+.vpp-login-field .validation-message {
+    color: var(--vpp-danger);
+}
+
+.vpp-account-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    color: var(--vpp-text-secondary);
+    line-height: 1.5;
+}
+
+.vpp-password-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+@media (max-width: 767px) {
+    .vpp-account-page-compact .vpp-login-shell {
+        align-items: center;
+        padding: 16px;
+    }
+
+    .vpp-account-page-compact .vpp-login-card {
+        max-height: calc(100dvh - 32px);
+        padding: 28px 22px;
+        border-radius: var(--vpp-radius-lg);
+        box-shadow: 0 16px 40px rgba(23, 43, 77, 0.12);
+    }
+
+    .vpp-account-page-scrollable {
+        overflow-y: auto;
+    }
+
+    .vpp-account-page-scrollable .vpp-login-shell {
+        align-items: flex-end;
+        overflow: visible;
+    }
+
+    .vpp-account-page-scrollable .vpp-login-card {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        padding-block: 32px 40px;
+    }
+
+    .vpp-account-brand {
+        margin-bottom: 26px;
+    }
+}

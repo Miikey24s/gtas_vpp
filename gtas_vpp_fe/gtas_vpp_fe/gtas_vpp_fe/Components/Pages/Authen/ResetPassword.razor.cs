@@ -3,7 +3,6 @@ using gtas_vpp_shared.DTOs.Req.Account;
 using gtas_vpp_shared.DTOs.Res.Account;
 using Microsoft.AspNetCore.Components;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Authen;
 
@@ -20,11 +19,19 @@ public partial class ResetPassword
 
     protected PasswordResetReqDTO Model { get; set; } = new();
     protected bool IsLoading { get; set; }
+    protected bool HasValidResetLink { get; set; }
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
 
     protected override void OnParametersSet()
     {
+        HasValidResetLink = UserId > 0 && !string.IsNullOrWhiteSpace(Token);
+        if (!HasValidResetLink)
+        {
+            ErrorMessage = Loc["ResetLinkInvalid"];
+            return;
+        }
+
         Model.UserId = UserId;
         Model.Token = Token ?? string.Empty;
     }
@@ -42,17 +49,20 @@ public partial class ResetPassword
                 Model);
             if (!response.IsSuccessStatusCode)
             {
-                ErrorMessage = await ReadMessageAsync(response);
+                ErrorMessage = await AccountLifecycleUiMapper.ReadErrorMessageAsync(
+                    response,
+                    Loc,
+                    "ResetLinkInvalid");
                 return;
             }
 
-            SuccessMessage = "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập lại.";
-            await Task.Delay(500);
+            SuccessMessage = Loc["ResetPasswordSuccess"];
+            await Task.Delay(1200);
             Navigation.NavigateTo(Config.LoginPagePath, forceLoad: true);
         }
         catch (HttpRequestException)
         {
-            ErrorMessage = "Không thể kết nối máy chủ. Vui lòng thử lại sau.";
+            ErrorMessage = Loc["RecoveryConnectionFailed"];
         }
         finally
         {
@@ -60,22 +70,4 @@ public partial class ResetPassword
         }
     }
 
-    private static async Task<string> ReadMessageAsync(HttpResponseMessage response)
-    {
-        var body = await response.Content.ReadAsStringAsync();
-        try
-        {
-            using var json = JsonDocument.Parse(body);
-            if (json.RootElement.TryGetProperty("message", out var message))
-            {
-                return message.GetString() ?? "Liên kết đặt lại không hợp lệ hoặc đã hết hạn.";
-            }
-        }
-        catch (JsonException)
-        {
-            // Use the generic message below.
-        }
-
-        return "Liên kết đặt lại không hợp lệ hoặc đã hết hạn.";
-    }
 }

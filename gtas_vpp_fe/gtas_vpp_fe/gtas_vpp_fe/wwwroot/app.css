@@ -143,16 +143,26 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    margin: 0.25rem 0.5rem 0;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--vpp-radius-md);
     font-size: 0.875rem;
-    color: var(--vpp-danger);
+    color: var(--vpp-text-secondary) !important;
+    background: transparent;
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background-color 0.15s, color 0.15s;
 }
 
 .user-dropdown-logout:hover {
-    background: var(--vpp-danger-muted);
+    color: var(--vpp-danger) !important;
+    background: color-mix(in srgb, var(--vpp-danger) 9%, transparent);
+    text-decoration: none;
+}
+
+.user-dropdown-logout:focus-visible {
+    color: var(--vpp-danger) !important;
+    background: color-mix(in srgb, var(--vpp-danger) 9%, transparent);
 }
 
 .user-dropdown-backdrop {

@@ -3,7 +3,6 @@ using gtas_vpp_shared.DTOs.Req.Account;
 using gtas_vpp_shared.DTOs.Res.Account;
 using Microsoft.AspNetCore.Components;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Authen;
 
@@ -32,7 +31,7 @@ public partial class ConfirmEmail
 
         if (UserId <= 0 || string.IsNullOrWhiteSpace(Token))
         {
-            ErrorMessage = "Liên kết xác nhận không hợp lệ hoặc đã hết hạn.";
+            ErrorMessage = Loc["ConfirmationLinkInvalid"];
             IsLoading = false;
             return;
         }
@@ -44,16 +43,19 @@ public partial class ConfirmEmail
             using var response = await client.GetAsync(endpoint);
             if (!response.IsSuccessStatusCode)
             {
-                ErrorMessage = await ReadMessageAsync(response);
+                ErrorMessage = await AccountLifecycleUiMapper.ReadErrorMessageAsync(
+                    response,
+                    Loc,
+                    "ConfirmationLinkInvalid");
                 return;
             }
 
-            var result = await response.Content.ReadFromJsonAsync<AccountLifecycleResDTO>();
-            SuccessMessage = result?.Message ?? "Email đã được xác nhận.";
+            _ = await response.Content.ReadFromJsonAsync<AccountLifecycleResDTO>();
+            SuccessMessage = Loc["EmailConfirmed"];
         }
         catch (HttpRequestException)
         {
-            ErrorMessage = "Không thể kết nối máy chủ. Vui lòng thử lại sau.";
+            ErrorMessage = Loc["RecoveryConnectionFailed"];
         }
         finally
         {
@@ -61,22 +63,4 @@ public partial class ConfirmEmail
         }
     }
 
-    private static async Task<string> ReadMessageAsync(HttpResponseMessage response)
-    {
-        var body = await response.Content.ReadAsStringAsync();
-        try
-        {
-            using var json = JsonDocument.Parse(body);
-            if (json.RootElement.TryGetProperty("message", out var message))
-            {
-                return message.GetString() ?? "Liên kết xác nhận không hợp lệ hoặc đã hết hạn.";
-            }
-        }
-        catch (JsonException)
-        {
-            // Use the generic message below.
-        }
-
-        return "Liên kết xác nhận không hợp lệ hoặc đã hết hạn.";
-    }
 }

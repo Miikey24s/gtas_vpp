@@ -32,14 +32,16 @@ public partial class ChangePassword
             var result = await Api.PostFromApiAsync<AccountLifecycleResDTO>(
                 Helpers.Config.ApiAccountChangePasswordEndpoint,
                 Model);
-            SuccessMessage = result?.Message
-                ?? "Đổi mật khẩu thành công. Đang yêu cầu đăng nhập lại...";
-            await Task.Delay(500);
+            SuccessMessage = Localizer["ChangePasswordSuccess"];
+            await Task.Delay(1200);
             Navigation.NavigateTo("/perform-logout", forceLoad: true);
         }
         catch (Exception exception)
         {
-            ErrorMessage = UiErrorMapper.GetMessage(exception, Localizer);
+            ErrorMessage = AccountLifecycleUiMapper.GetMessage(
+                exception,
+                Localizer,
+                "PasswordChangeInvalid");
         }
         finally
         {

@@ -56,6 +56,49 @@
   <data name="Error" xml:space="preserve"><value>Error</value></data>
   <data name="Success" xml:space="preserve"><value>Success</value></data>
   <data name="Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="OfficeRequestPortal" xml:space="preserve"><value>Office request portal</value></data>
+  <data name="AccountAccessNavigation" xml:space="preserve"><value>Account access</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Recover</value></data>
+  <data name="ForgotPasswordLink" xml:space="preserve"><value>Forgot password?</value></data>
+  <data name="ForgotPasswordAccent" xml:space="preserve"><value>password</value></data>
+  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Enter the registered email. The system always returns the same result to protect account information.</value></data>
+  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send recovery instructions</value></data>
+  <data name="BackToLogin" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="RecoveryRequestAccepted" xml:space="preserve"><value>If the account exists, recovery instructions were sent to the registered email.</value></data>
+  <data name="RecoveryConnectionFailed" xml:space="preserve"><value>The server is currently unavailable. Please try again later.</value></data>
+  <data name="ResetPasswordTitle" xml:space="preserve"><value>Reset</value></data>
+  <data name="ResetPasswordAccent" xml:space="preserve"><value>password</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm new password</value></data>
+  <data name="ResetPasswordAction" xml:space="preserve"><value>Reset password</value></data>
+  <data name="ResetPasswordSuccess" xml:space="preserve"><value>Password reset. You can now sign in with the new password.</value></data>
+  <data name="ResetLinkInvalid" xml:space="preserve"><value>The reset link is invalid or expired.</value></data>
+  <data name="RegisterTitle" xml:space="preserve"><value>Register</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Submit an account request. An administrator will review and approve it before the account can be used.</value></data>
+  <data name="InternalEmail" xml:space="preserve"><value>Internal email</value></data>
+  <data name="EmployeeCodeOptional" xml:space="preserve"><value>Employee code (optional)</value></data>
+  <data name="RegisterAction" xml:space="preserve"><value>Submit registration request</value></data>
+  <data name="RegistrationAccepted" xml:space="preserve"><value>If the information is valid, the request was received and is awaiting administrator approval.</value></data>
+  <data name="RegistrationFieldsRequired" xml:space="preserve"><value>Enter a username, email, and full name.</value></data>
+  <data name="RegistrationInvalid" xml:space="preserve"><value>The registration information does not meet the account policy. Check it and try again.</value></data>
+  <data name="ConfirmEmailTitle" xml:space="preserve"><value>Confirm</value></data>
+  <data name="ConfirmEmailAccent" xml:space="preserve"><value>email</value></data>
+  <data name="CheckingConfirmationLink" xml:space="preserve"><value>Checking the confirmation link...</value></data>
+  <data name="GoToLogin" xml:space="preserve"><value>Go to sign in</value></data>
+  <data name="EmailConfirmed" xml:space="preserve"><value>Email confirmed.</value></data>
+  <data name="ConfirmationLinkInvalid" xml:space="preserve"><value>The confirmation link is invalid or expired.</value></data>
+  <data name="ChangePasswordTitle" xml:space="preserve"><value>Change password</value></data>
+  <data name="ChangePasswordRequired" xml:space="preserve"><value>You must change the temporary password before continuing.</value></data>
+  <data name="CurrentPassword" xml:space="preserve"><value>Current password</value></data>
+  <data name="SaveNewPassword" xml:space="preserve"><value>Save new password</value></data>
+  <data name="ChangePasswordSuccess" xml:space="preserve"><value>Password changed. The system will ask you to sign in again.</value></data>
+  <data name="PasswordConfirmationMismatch" xml:space="preserve"><value>The password confirmation does not match.</value></data>
+  <data name="PasswordChangeInvalid" xml:space="preserve"><value>The current password is incorrect or the new password does not meet policy.</value></data>
+  <data name="AccountUnavailable" xml:space="preserve"><value>The account is currently unavailable.</value></data>
+  <data name="AccountNotFound" xml:space="preserve"><value>The account was not found.</value></data>
+  <data name="AccountNotActive" xml:space="preserve"><value>Only an active account can perform this action.</value></data>
+  <data name="PasswordRequirementHint" xml:space="preserve"><value>At least 10 characters, including uppercase, lowercase, a number, and a symbol.</value></data>
+  <data name="BackToApplication" xml:space="preserve"><value>Back to the application</value></data>
   <data name="LoadLibraryDataFailed" xml:space="preserve"><value>Library data could not be loaded. Please try again.</value></data>
   <data name="CreateRecordFailed" xml:space="preserve"><value>The record could not be created. Check the data and try again.</value></data>
   <data name="UpdateRecordFailed" xml:space="preserve"><value>The record could not be updated. Check the data and try again.</value></data>

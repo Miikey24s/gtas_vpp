@@ -1,0 +1,95 @@
+<main class="@PageClass">
+    <div class="@ShellClass">
+        @if (ShowArtwork)
+        {
+            <div class="vpp-login-art" aria-hidden="true">
+                <img class="vpp-login-art-image"
+                     src="@Assets["images/login-bg-gtas.png"]"
+                     width="1678"
+                     height="937"
+                     loading="eager"
+                     fetchpriority="high"
+                     decoding="async"
+                     alt="" />
+            </div>
+        }
+
+        <section class="vpp-login-card" aria-labelledby="@TitleId">
+            <div class="vpp-login-card-inner">
+                @if (ShowBrand)
+                {
+                    <a class="vpp-account-brand" href="@Config.LoginPagePath" aria-label="GTAS VPP">
+                        <span class="vpp-brand-mark" aria-hidden="true">G</span>
+                        <span class="vpp-account-brand-copy">
+                            <strong>GTAS VPP</strong>
+                            <span>@Loc["OfficeRequestPortal"]</span>
+                        </span>
+                    </a>
+                }
+
+                <header class="vpp-login-header">
+                    @if (!string.IsNullOrWhiteSpace(Eyebrow))
+                    {
+                        <div class="vpp-account-eyebrow">@Eyebrow</div>
+                    }
+                    <h1 class="vpp-login-title" id="@TitleId">
+                        @Title
+                        @if (!string.IsNullOrWhiteSpace(Accent))
+                        {
+                            <span class="vpp-login-title-accent">@Accent</span>
+                        }
+                    </h1>
+                    @if (!string.IsNullOrWhiteSpace(Description))
+                    {
+                        <p class="vpp-account-description">@Description</p>
+                    }
+                </header>
+
+                @ChildContent
+            </div>
+        </section>
+    </div>
+</main>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Accent { get; set; }
+
+    [Parameter]
+    public string? Eyebrow { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string TitleId { get; set; } = $"account-title-{Guid.NewGuid():N}";
+
+    [Parameter]
+    public bool ShowArtwork { get; set; }
+
+    [Parameter]
+    public bool ShowBrand { get; set; } = true;
+
+    [Parameter]
+    public bool Compact { get; set; }
+
+    [Parameter]
+    public bool Scrollable { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string PageClass => string.Join(
+        " ",
+        new[]
+        {
+            "vpp-login-page",
+            Compact ? "vpp-account-page-compact" : null,
+            Scrollable ? "vpp-account-page-scrollable" : null
+        }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    private string ShellClass => "vpp-login-shell";
+}

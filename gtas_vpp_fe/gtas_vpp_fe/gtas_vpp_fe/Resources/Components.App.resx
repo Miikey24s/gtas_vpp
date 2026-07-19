@@ -56,6 +56,49 @@
   <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
   <data name="Success" xml:space="preserve"><value>Thành công</value></data>
   <data name="Warning" xml:space="preserve"><value>Cảnh báo</value></data>
+  <data name="OfficeRequestPortal" xml:space="preserve"><value>Cổng yêu cầu văn phòng phẩm</value></data>
+  <data name="AccountAccessNavigation" xml:space="preserve"><value>Truy cập tài khoản</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Khôi phục</value></data>
+  <data name="ForgotPasswordLink" xml:space="preserve"><value>Quên mật khẩu?</value></data>
+  <data name="ForgotPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
+  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Nhập email đã đăng ký. Hệ thống luôn trả về cùng một kết quả để bảo vệ thông tin tài khoản.</value></data>
+  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi hướng dẫn khôi phục</value></data>
+  <data name="BackToLogin" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
+  <data name="RecoveryRequestAccepted" xml:space="preserve"><value>Nếu tài khoản tồn tại, hướng dẫn khôi phục đã được gửi tới email đã đăng ký.</value></data>
+  <data name="RecoveryConnectionFailed" xml:space="preserve"><value>Chưa thể kết nối máy chủ. Vui lòng thử lại sau.</value></data>
+  <data name="ResetPasswordTitle" xml:space="preserve"><value>Đặt lại</value></data>
+  <data name="ResetPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Nhập lại mật khẩu mới</value></data>
+  <data name="ResetPasswordAction" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
+  <data name="ResetPasswordSuccess" xml:space="preserve"><value>Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.</value></data>
+  <data name="ResetLinkInvalid" xml:space="preserve"><value>Liên kết đặt lại không hợp lệ hoặc đã hết hạn.</value></data>
+  <data name="RegisterTitle" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Gửi yêu cầu tạo tài khoản. Quản trị viên sẽ kiểm tra và phê duyệt trước khi tài khoản được sử dụng.</value></data>
+  <data name="InternalEmail" xml:space="preserve"><value>Email nội bộ</value></data>
+  <data name="EmployeeCodeOptional" xml:space="preserve"><value>Mã nhân viên (không bắt buộc)</value></data>
+  <data name="RegisterAction" xml:space="preserve"><value>Gửi yêu cầu đăng ký</value></data>
+  <data name="RegistrationAccepted" xml:space="preserve"><value>Nếu thông tin hợp lệ, yêu cầu đăng ký đã được tiếp nhận và đang chờ quản trị viên phê duyệt.</value></data>
+  <data name="RegistrationFieldsRequired" xml:space="preserve"><value>Vui lòng nhập đầy đủ tên đăng nhập, email và họ tên.</value></data>
+  <data name="RegistrationInvalid" xml:space="preserve"><value>Thông tin đăng ký chưa đáp ứng chính sách tài khoản. Vui lòng kiểm tra lại.</value></data>
+  <data name="ConfirmEmailTitle" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="ConfirmEmailAccent" xml:space="preserve"><value>email</value></data>
+  <data name="CheckingConfirmationLink" xml:space="preserve"><value>Đang kiểm tra liên kết xác nhận...</value></data>
+  <data name="GoToLogin" xml:space="preserve"><value>Đi tới đăng nhập</value></data>
+  <data name="EmailConfirmed" xml:space="preserve"><value>Email đã được xác nhận.</value></data>
+  <data name="ConfirmationLinkInvalid" xml:space="preserve"><value>Liên kết xác nhận không hợp lệ hoặc đã hết hạn.</value></data>
+  <data name="ChangePasswordTitle" xml:space="preserve"><value>Đổi mật khẩu</value></data>
+  <data name="ChangePasswordRequired" xml:space="preserve"><value>Bạn cần đổi mật khẩu tạm thời trước khi tiếp tục sử dụng hệ thống.</value></data>
+  <data name="CurrentPassword" xml:space="preserve"><value>Mật khẩu hiện tại</value></data>
+  <data name="SaveNewPassword" xml:space="preserve"><value>Lưu mật khẩu mới</value></data>
+  <data name="ChangePasswordSuccess" xml:space="preserve"><value>Đã đổi mật khẩu. Hệ thống sẽ yêu cầu bạn đăng nhập lại.</value></data>
+  <data name="PasswordConfirmationMismatch" xml:space="preserve"><value>Mật khẩu nhập lại chưa khớp.</value></data>
+  <data name="PasswordChangeInvalid" xml:space="preserve"><value>Mật khẩu hiện tại chưa đúng hoặc mật khẩu mới chưa đáp ứng chính sách.</value></data>
+  <data name="AccountUnavailable" xml:space="preserve"><value>Tài khoản hiện không khả dụng.</value></data>
+  <data name="AccountNotFound" xml:space="preserve"><value>Không tìm thấy tài khoản.</value></data>
+  <data name="AccountNotActive" xml:space="preserve"><value>Chỉ tài khoản đang hoạt động mới thực hiện được thao tác này.</value></data>
+  <data name="PasswordRequirementHint" xml:space="preserve"><value>Tối thiểu 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</value></data>
+  <data name="BackToApplication" xml:space="preserve"><value>Quay lại ứng dụng</value></data>
   <data name="LoadLibraryDataFailed" xml:space="preserve"><value>Không thể tải dữ liệu danh mục. Vui lòng thử lại.</value></data>
   <data name="CreateRecordFailed" xml:space="preserve"><value>Không thể tạo bản ghi. Vui lòng kiểm tra dữ liệu và thử lại.</value></data>
   <data name="UpdateRecordFailed" xml:space="preserve"><value>Không thể cập nhật bản ghi. Vui lòng kiểm tra dữ liệu và thử lại.</value></data>

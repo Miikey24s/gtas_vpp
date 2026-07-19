@@ -6,6 +6,7 @@ namespace gtas_vpp_fe.Components.Shared;
 /// </summary>
 public static class VppIcons
 {
+    public const string ArrowBack = "arrow_back";
     public const string Apartment = "apartment";
     public const string Calendar = "calendar_today";
     public const string Check = "check";

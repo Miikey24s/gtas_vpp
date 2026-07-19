@@ -8,35 +8,16 @@
 
 <PageTitle>GTAS VPP - @Loc["Logout"]</PageTitle>
 
-<main class="vpp-login-page">
-    <div class="vpp-login-shell">
-        <div class="vpp-login-art" aria-hidden="true">
-            <img class="vpp-login-art-image"
-                 src="@Assets["images/login-bg-gtas.png"]"
-                 width="1678"
-                 height="937"
-                 loading="eager"
-                 decoding="async"
-                 alt="" />
-        </div>
-
-        <section class="vpp-login-card" aria-live="polite" aria-busy="true">
-            <div class="vpp-login-card-inner">
-                <div class="vpp-login-header">
-                    <h1 class="vpp-login-title">
-                        @Loc["SigningOut"]
-                        <span class="vpp-login-title-accent">GTAS VPP</span>
-                    </h1>
-                </div>
-
-                <div class="d-flex align-items-center gap-3 text-secondary" role="status">
-                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                    <span>@Loc["LogoutRedirectMessage"]</span>
-                </div>
-            </div>
-        </section>
+<VppAccountShell Title="@Loc["SigningOut"]"
+                 Accent="GTAS VPP"
+                 TitleId="logout-title"
+                 ShowArtwork="true"
+                 ShowBrand="false">
+    <div class="vpp-account-progress" role="status" aria-live="polite" aria-busy="true">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        <span>@Loc["LogoutRedirectMessage"]</span>
     </div>
-</main>
+</VppAccountShell>
 
 @code {
     private bool _logoutStarted;

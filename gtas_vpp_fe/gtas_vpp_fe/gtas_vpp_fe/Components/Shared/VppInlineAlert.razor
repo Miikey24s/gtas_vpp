@@ -1,0 +1,31 @@
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <div class="vpp-inline-alert @ToneClass @Class"
+         role="@Role"
+         aria-live="@AriaLive">
+        <VppIcon Name="@Icon" Class="vpp-inline-alert-icon" />
+        <span>@Message</span>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Message { get; set; }
+
+    [Parameter]
+    public VppAlertTone Tone { get; set; } = VppAlertTone.Info;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private string ToneClass => $"vpp-inline-alert-{Tone.ToString().ToLowerInvariant()}";
+    private string Role => Tone == VppAlertTone.Error ? "alert" : "status";
+    private string AriaLive => Tone == VppAlertTone.Error ? "assertive" : "polite";
+    private string Icon => Tone switch
+    {
+        VppAlertTone.Success => "check_circle",
+        VppAlertTone.Warning => "warning",
+        VppAlertTone.Error => "error_outline",
+        _ => "info"
+    };
+}
