@@ -36,7 +36,7 @@ public partial class ResetPassword
         Model.Token = Token ?? string.Empty;
     }
 
-    private async Task SubmitAsync()
+    private async Task SubmitAsync(PasswordResetReqDTO _submittedModel)
     {
         IsLoading = true;
         ErrorMessage = null;

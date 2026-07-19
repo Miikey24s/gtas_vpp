@@ -22,7 +22,7 @@ public partial class ChangePassword
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
 
-    private async Task SubmitAsync()
+    private async Task SubmitAsync(PasswordChangeReqDTO _submittedModel)
     {
         IsLoading = true;
         ErrorMessage = null;

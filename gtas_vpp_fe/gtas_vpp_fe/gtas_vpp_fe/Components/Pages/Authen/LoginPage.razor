@@ -2,15 +2,12 @@
 @attribute [AllowAnonymous]
 @layout LoginLayout
 @inject NavigationManager UriHelper
-@inject IToastService Toast
 
 <PageTitle>GTAS VPP - @Loc["Login"]</PageTitle>
 
 <VppAccountShell Title="@Loc["Login"]"
-                 Accent="GTAS VPP"
                  TitleId="vpp-login-title"
-                 ShowArtwork="true"
-                 ShowBrand="false">
+                 Compact="true">
     <RadzenTemplateForm TItem="LoginFormModel" Data="loginForm" Submit="LoginSubmit" class="vpp-login-form">
                     <AntiforgeryToken></AntiforgeryToken>
 
@@ -24,10 +21,9 @@
                                        @onblur="HandleUsernameBlur"
                                        @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
 
-                        @if (HasUsernameValidation)
-                        {
-                            <div class="vpp-login-validation" role="alert">@UsernameValidationMessage</div>
-                        }
+                        <div class="vpp-validation-slot">
+                            <span class="vpp-login-validation" role="alert">@UsernameValidationMessage</span>
+                        </div>
                     </div>
 
                     <div class="@(HasPasswordValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
@@ -61,9 +57,15 @@
                             </button>
                         </div>
 
-                        @if (HasPasswordValidation)
+                        <div class="vpp-validation-slot">
+                            <span class="vpp-login-validation" role="alert">@PasswordValidationMessage</span>
+                        </div>
+                    </div>
+
+                    <div class="vpp-login-form-error-slot" aria-live="polite">
+                        @if (!string.IsNullOrWhiteSpace(LoginErrorMessage))
                         {
-                            <div class="vpp-login-validation" role="alert">@PasswordValidationMessage</div>
+                            <span class="vpp-login-validation" role="alert">@LoginErrorMessage</span>
                         }
                     </div>
 

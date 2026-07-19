@@ -54,6 +54,16 @@ public sealed class SharedUiFoundationTests
         Assert.True(offenders.Count == 0, $"Map exceptions with UiErrorMapper before displaying them: {string.Join(", ", offenders)}");
     }
 
+    [Fact]
+    public void NotificationCenter_UsesTheSharedIconSystem()
+    {
+        var root = GetFrontendRoot();
+        var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
+
+        Assert.DoesNotContain("class=\"rzi", source, StringComparison.Ordinal);
+        Assert.Contains("<VppIcon", source, StringComparison.Ordinal);
+    }
+
     private static string GetFrontendRoot()
     {
         var repositoryRoot = FindRepositoryRoot();

@@ -453,6 +453,10 @@ leftsidebar {
     outline: none;
 }
 
+.vpp-header-notification-button .vpp-icon {
+    font-size: 1.25rem;
+}
+
 .vpp-header-notification-count {
     position: absolute;
     top: -5px;
@@ -600,12 +604,12 @@ leftsidebar {
     text-align: center;
 }
 
-.vpp-notification-empty .rzi {
+.vpp-notification-empty .vpp-icon {
     font-size: 2rem;
 }
 
-.vpp-notification-empty--error .rzi,
-.vpp-notification-inline-status .rzi {
+.vpp-notification-empty--error .vpp-icon,
+.vpp-notification-inline-status .vpp-icon {
     color: var(--vpp-warning);
 }
 
@@ -630,6 +634,12 @@ leftsidebar {
     width: 100%;
     min-width: 0;
     min-height: 0;
+}
+
+.vpp-notification-panel-footer button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
 }
 
 /* Route-level contract: use viewport-fit for short dashboard/form pages and

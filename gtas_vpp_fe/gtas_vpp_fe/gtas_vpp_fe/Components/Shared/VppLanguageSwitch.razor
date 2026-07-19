@@ -1,0 +1,38 @@
+@using System.Globalization
+@inject NavigationManager Navigation
+
+<button type="button"
+        class="@SwitchClass"
+        title="@ToggleTitle"
+        aria-label="@ToggleTitle"
+        aria-pressed="@IsEnglishUi"
+        aria-busy="@_isSwitching"
+        disabled="@_isSwitching"
+        @onclick="ToggleAsync">
+    <span class="vpp-lang-switch-thumb" aria-hidden="true"></span>
+    <span class="vpp-lang-option @(IsEnglishUi ? "is-active" : string.Empty)">EN</span>
+    <span class="vpp-lang-option @(!IsEnglishUi ? "is-active" : string.Empty)">VI</span>
+</button>
+
+@code {
+    private bool _isSwitching;
+    private bool IsEnglishUi => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    private string ToggleTitle => IsEnglishUi ? Loc["SwitchToVietnamese"] : Loc["SwitchToEnglish"];
+    private string SwitchClass => $"vpp-lang-switch vpp-account-language-switch {(IsEnglishUi ? "is-en" : "is-vi")}";
+
+    private Task ToggleAsync()
+    {
+        if (_isSwitching)
+        {
+            return Task.CompletedTask;
+        }
+
+        _isSwitching = true;
+        var culture = IsEnglishUi ? "vi" : "en";
+        var returnUrl = $"/{Navigation.ToBaseRelativePath(Navigation.Uri)}";
+        Navigation.NavigateTo(
+            $"/set-language?culture={culture}&returnUrl={Uri.EscapeDataString(returnUrl)}",
+            forceLoad: true);
+        return Task.CompletedTask;
+    }
+}

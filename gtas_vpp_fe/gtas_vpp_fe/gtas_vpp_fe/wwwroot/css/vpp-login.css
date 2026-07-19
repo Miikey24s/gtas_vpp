@@ -467,7 +467,7 @@
 .vpp-account-page-compact .vpp-login-shell {
     align-items: center;
     justify-content: center;
-    padding: clamp(20px, 4vw, 48px);
+    padding: clamp(16px, 2.5vw, 24px) clamp(20px, 4vw, 48px);
     overflow-y: auto;
     background: transparent;
 }
@@ -483,11 +483,11 @@
 .vpp-account-page-compact .vpp-login-card {
     width: min(100%, 560px);
     min-height: auto;
-    max-height: calc(100dvh - clamp(40px, 8vw, 96px));
+    max-height: none;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: clamp(32px, 5vw, 52px);
-    overflow-y: auto;
+    padding: 24px clamp(28px, 4vw, 40px);
+    overflow: visible;
     border: 1px solid var(--vpp-border-strong);
     border-radius: var(--vpp-radius-lg);
     box-shadow: 0 22px 60px rgba(23, 43, 77, 0.12);
@@ -498,24 +498,24 @@
 }
 
 .vpp-account-page-compact .vpp-login-header {
-    margin-bottom: 30px;
+    margin-bottom: 14px;
 }
 
 .vpp-account-page-compact .vpp-login-title {
-    font-size: clamp(2.25rem, 5vw, 3.1rem);
+    font-size: clamp(2.15rem, 4.5vw, 2.75rem);
 }
 
 .vpp-account-page-compact .vpp-login-form {
-    gap: 24px;
+    gap: 6px;
 }
 
 .vpp-account-page-compact .vpp-login-field {
-    gap: 10px;
+    gap: 4px;
 }
 
 .vpp-account-page-compact,
 .vpp-account-page-scrollable {
-    --vpp-login-field-min-height: 3.5rem;
+    --vpp-login-field-min-height: 2.75rem;
     --vpp-login-field-label-size: 0.9375rem;
     --vpp-login-field-value-size: 1rem;
     --vpp-login-field-text-padding: 0.625rem;
@@ -545,12 +545,20 @@
     gap: 9px;
 }
 
+.vpp-account-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-4);
+    min-height: 40px;
+    margin-bottom: 16px;
+}
+
 .vpp-account-brand {
     display: inline-flex;
     align-items: center;
     gap: var(--vpp-space-3);
-    min-height: 44px;
-    margin-bottom: 34px;
+    min-height: 40px;
     color: var(--vpp-text-primary);
     text-decoration: none;
 }
@@ -560,21 +568,14 @@
     text-decoration: none;
 }
 
-.vpp-account-brand-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    line-height: 1.15;
-}
-
-.vpp-account-brand-copy strong {
+.vpp-account-brand strong {
     font-family: var(--vpp-font-display);
-    font-size: 0.95rem;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
 }
 
-.vpp-account-brand-copy span {
-    color: var(--vpp-text-tertiary);
-    font-size: 0.75rem;
+.vpp-account-language-switch {
+    flex: 0 0 auto;
 }
 
 .vpp-account-eyebrow {
@@ -676,6 +677,34 @@
     font-size: 1.1rem;
 }
 
+.vpp-validation-slot,
+.vpp-login-form-error-slot {
+    position: relative;
+    min-height: 18px;
+    overflow: hidden;
+    font-size: var(--vpp-text-xs);
+    line-height: 1.35;
+}
+
+.vpp-login-form-error-slot {
+    margin-top: -6px;
+    color: var(--vpp-danger);
+}
+
+.vpp-validation-slot .vpp-field-validator {
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0;
+    color: var(--vpp-danger) !important;
+    background: var(--vpp-bg-surface);
+    font-size: var(--vpp-text-xs) !important;
+    line-height: 1.35 !important;
+}
+
+.vpp-validation-slot.has-hint .vpp-field-validator {
+    z-index: 1;
+}
+
 .vpp-account-field-hint,
 .vpp-login-field .validation-message {
     color: var(--vpp-text-tertiary);
@@ -685,6 +714,14 @@
 
 .vpp-login-field .validation-message {
     color: var(--vpp-danger);
+}
+
+.vpp-login-validation:empty {
+    visibility: hidden;
+}
+
+.vpp-account-page-compact .vpp-login-btn {
+    margin-top: 2px;
 }
 
 .vpp-account-progress {
@@ -707,8 +744,8 @@
     }
 
     .vpp-account-page-compact .vpp-login-card {
-        max-height: calc(100dvh - 32px);
-        padding: 28px 22px;
+        max-height: none;
+        padding: 22px;
         border-radius: var(--vpp-radius-lg);
         box-shadow: 0 16px 40px rgba(23, 43, 77, 0.12);
     }
@@ -729,7 +766,7 @@
         padding-block: 32px 40px;
     }
 
-    .vpp-account-brand {
-        margin-bottom: 26px;
+    .vpp-account-topbar {
+        margin-bottom: 14px;
     }
 }

@@ -16,16 +16,16 @@
 
         <section class="vpp-login-card" aria-labelledby="@TitleId">
             <div class="vpp-login-card-inner">
-                @if (ShowBrand)
-                {
-                    <a class="vpp-account-brand" href="@Config.LoginPagePath" aria-label="GTAS VPP">
-                        <span class="vpp-brand-mark" aria-hidden="true">G</span>
-                        <span class="vpp-account-brand-copy">
+                <div class="vpp-account-topbar">
+                    @if (ShowBrand)
+                    {
+                        <a class="vpp-account-brand" href="@Config.LoginPagePath" aria-label="GTAS VPP">
+                            <VppBrandMark />
                             <strong>GTAS VPP</strong>
-                            <span>@Loc["OfficeRequestPortal"]</span>
-                        </span>
-                    </a>
-                }
+                        </a>
+                    }
+                    <VppLanguageSwitch />
+                </div>
 
                 <header class="vpp-login-header">
                     @if (!string.IsNullOrWhiteSpace(Eyebrow))

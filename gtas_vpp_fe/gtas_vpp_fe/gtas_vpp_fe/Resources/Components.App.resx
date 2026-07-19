@@ -30,7 +30,7 @@
   <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
   <data name="Dashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>
   <data name="Orders" xml:space="preserve"><value>Đơn hàng</value></data>
-  <data name="Library" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="Library" xml:space="preserve"><value>Quản trị danh mục</value></data>
   <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
   <data name="ExportReport" xml:space="preserve"><value>Xuất báo cáo</value></data>
   <data name="ReportContentNotConfigured" xml:space="preserve"><value>Nội dung báo cáo chưa được cấu hình. Chức năng xuất báo cáo sẽ được bổ sung sau.</value></data>
@@ -56,13 +56,11 @@
   <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
   <data name="Success" xml:space="preserve"><value>Thành công</value></data>
   <data name="Warning" xml:space="preserve"><value>Cảnh báo</value></data>
-  <data name="OfficeRequestPortal" xml:space="preserve"><value>Cổng yêu cầu văn phòng phẩm</value></data>
   <data name="AccountAccessNavigation" xml:space="preserve"><value>Truy cập tài khoản</value></data>
   <data name="ForgotPasswordTitle" xml:space="preserve"><value>Khôi phục</value></data>
   <data name="ForgotPasswordLink" xml:space="preserve"><value>Quên mật khẩu?</value></data>
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
-  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Nhập email đã đăng ký. Hệ thống luôn trả về cùng một kết quả để bảo vệ thông tin tài khoản.</value></data>
-  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi hướng dẫn khôi phục</value></data>
+  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi</value></data>
   <data name="BackToLogin" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
   <data name="RecoveryRequestAccepted" xml:space="preserve"><value>Nếu tài khoản tồn tại, hướng dẫn khôi phục đã được gửi tới email đã đăng ký.</value></data>
   <data name="RecoveryConnectionFailed" xml:space="preserve"><value>Chưa thể kết nối máy chủ. Vui lòng thử lại sau.</value></data>
@@ -74,10 +72,16 @@
   <data name="ResetPasswordSuccess" xml:space="preserve"><value>Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>Liên kết đặt lại không hợp lệ hoặc đã hết hạn.</value></data>
   <data name="RegisterTitle" xml:space="preserve"><value>Đăng ký</value></data>
-  <data name="RegisterDescription" xml:space="preserve"><value>Gửi yêu cầu tạo tài khoản. Quản trị viên sẽ kiểm tra và phê duyệt trước khi tài khoản được sử dụng.</value></data>
-  <data name="InternalEmail" xml:space="preserve"><value>Email nội bộ</value></data>
-  <data name="EmployeeCodeOptional" xml:space="preserve"><value>Mã nhân viên (không bắt buộc)</value></data>
-  <data name="RegisterAction" xml:space="preserve"><value>Gửi yêu cầu đăng ký</value></data>
+  <data name="CompanyEmail" xml:space="preserve"><value>Email công ty</value></data>
+  <data name="RegisterAction" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="CompanyEmailRequired" xml:space="preserve"><value>Vui lòng nhập email công ty.</value></data>
+  <data name="CompanyEmailInvalid" xml:space="preserve"><value>Email công ty chưa đúng định dạng.</value></data>
+  <data name="UsernameLengthValidation" xml:space="preserve"><value>Tên đăng nhập phải có từ 3 đến 100 ký tự.</value></data>
+  <data name="FullNameRequired" xml:space="preserve"><value>Vui lòng nhập họ và tên.</value></data>
+  <data name="FullNameLengthValidation" xml:space="preserve"><value>Họ và tên phải có từ 2 đến 250 ký tự.</value></data>
+  <data name="ConfirmPasswordRequired" xml:space="preserve"><value>Vui lòng nhập lại mật khẩu.</value></data>
+  <data name="NewPasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu mới.</value></data>
+  <data name="CurrentPasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu hiện tại.</value></data>
   <data name="RegistrationAccepted" xml:space="preserve"><value>Nếu thông tin hợp lệ, yêu cầu đăng ký đã được tiếp nhận và đang chờ quản trị viên phê duyệt.</value></data>
   <data name="RegistrationFieldsRequired" xml:space="preserve"><value>Vui lòng nhập đầy đủ tên đăng nhập, email và họ tên.</value></data>
   <data name="RegistrationInvalid" xml:space="preserve"><value>Thông tin đăng ký chưa đáp ứng chính sách tài khoản. Vui lòng kiểm tra lại.</value></data>
@@ -434,7 +438,7 @@
   <data name="AllMonths" xml:space="preserve"><value>Tất cả tháng</value></data>
   <data name="AllYears" xml:space="preserve"><value>Tất cả năm</value></data>
   <data name="ApplyFilters" xml:space="preserve"><value>Áp dụng</value></data>
-  <data name="Catalog" xml:space="preserve"><value>Danh mục</value></data>
+  <data name="Catalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>
   <data name="CloseNavigation" xml:space="preserve"><value>Đóng điều hướng</value></data>
   <data name="GeneratedAt" xml:space="preserve"><value>Cập nhật lúc {0}</value></data>
   <data name="HidePassword" xml:space="preserve"><value>Ẩn mật khẩu</value></data>

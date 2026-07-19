@@ -5,51 +5,65 @@
 <PageTitle>GTAS VPP - @Loc["RegisterTitle"]</PageTitle>
 
 <VppAccountShell Title="@Loc["RegisterTitle"]"
-                 Accent="GTAS VPP"
-                 Description="@Loc["RegisterDescription"]"
                  TitleId="register-title"
-                 ShowArtwork="true"
-                 ShowBrand="false"
-                 Scrollable="true">
+                 Compact="true">
     <VppInlineAlert Message="@ErrorMessage" Tone="VppAlertTone.Error" />
     <VppInlineAlert Message="@SuccessMessage" Tone="VppAlertTone.Success" />
 
-    <EditForm Model="Model" OnValidSubmit="SubmitAsync" class="vpp-login-form">
-                    <DataAnnotationsValidator />
-                    <div class="vpp-login-field">
-                        <RadzenLabel Text="@Loc["Username"]" Component="Username" class="vpp-login-label" />
-                        <RadzenTextBox Name="Username" @bind-Value="Model.Username" Disabled="@IsLoading" autocomplete="username" class="vpp-login-control" />
-                        <ValidationMessage For="@(() => Model.Username)" />
-                    </div>
-                    <div class="vpp-login-field">
-                        <RadzenLabel Text="@Loc["FullName"]" Component="FullName" class="vpp-login-label" />
-                        <RadzenTextBox Name="FullName" @bind-Value="Model.FullName" Disabled="@IsLoading" class="vpp-login-control" />
-                        <ValidationMessage For="@(() => Model.FullName)" />
-                    </div>
-                    <div class="vpp-login-field">
-                        <RadzenLabel Text="@Loc["InternalEmail"]" Component="Email" class="vpp-login-label" />
-                        <RadzenTextBox Name="Email" @bind-Value="Model.Email" Disabled="@IsLoading" autocomplete="email" class="vpp-login-control" />
-                        <ValidationMessage For="@(() => Model.Email)" />
-                    </div>
-                    <div class="vpp-login-field">
-                        <RadzenLabel Text="@Loc["EmployeeCodeOptional"]" Component="EmployeeCode" class="vpp-login-label" />
-                        <RadzenTextBox Name="EmployeeCode" @bind-Value="Model.EmployeeCode" Disabled="@IsLoading" class="vpp-login-control" />
-                    </div>
-                    <VppPasswordField Name="Password"
-                                      Label="@Loc["Password"]"
-                                      @bind-Value="Model.Password"
-                                      Disabled="@IsLoading"
-                                      Hint="@Loc["PasswordRequirementHint"]" />
-                    <VppPasswordField Name="ConfirmPassword"
-                                      Label="@Loc["ConfirmNewPassword"]"
-                                      @bind-Value="Model.ConfirmPassword"
-                                      Disabled="@IsLoading" />
+    <RadzenTemplateForm TItem="AccountRegistrationReqDTO" Data="@Model" Submit="@SubmitAsync" class="vpp-login-form">
+        <div class="vpp-login-field">
+            <RadzenLabel Text="@Loc["Username"]" Component="Username" class="vpp-login-label" />
+            <RadzenTextBox Name="Username" @bind-Value="Model.Username" Disabled="@IsLoading" autocomplete="username" class="vpp-login-control" />
+            <div class="vpp-validation-slot">
+                <RadzenRequiredValidator Component="Username" Text="@Loc["LoginUsernameRequired"]" class="vpp-field-validator" Style="position: absolute" />
+                <RadzenLengthValidator Component="Username" Min="3" Max="100" Visible="@(!string.IsNullOrWhiteSpace(Model.Username))" Text="@Loc["UsernameLengthValidation"]" class="vpp-field-validator" Style="position: absolute" />
+            </div>
+        </div>
 
-                    <RadzenButton Text="@Loc["RegisterAction"]"
-                                  ButtonType="ButtonType.Submit"
-                                  IsBusy="@IsLoading"
-                                  class="vpp-login-btn" />
-    </EditForm>
+        <div class="vpp-login-field">
+            <RadzenLabel Text="@Loc["FullName"]" Component="FullName" class="vpp-login-label" />
+            <RadzenTextBox Name="FullName" @bind-Value="Model.FullName" Disabled="@IsLoading" autocomplete="name" class="vpp-login-control" />
+            <div class="vpp-validation-slot">
+                <RadzenRequiredValidator Component="FullName" Text="@Loc["FullNameRequired"]" class="vpp-field-validator" Style="position: absolute" />
+                <RadzenLengthValidator Component="FullName" Min="2" Max="250" Visible="@(!string.IsNullOrWhiteSpace(Model.FullName))" Text="@Loc["FullNameLengthValidation"]" class="vpp-field-validator" Style="position: absolute" />
+            </div>
+        </div>
+
+        <div class="vpp-login-field">
+            <RadzenLabel Text="@Loc["CompanyEmail"]" Component="Email" class="vpp-login-label" />
+            <RadzenTextBox Name="Email" @bind-Value="Model.Email" Disabled="@IsLoading" autocomplete="email" class="vpp-login-control" />
+            <div class="vpp-validation-slot">
+                <RadzenRequiredValidator Component="Email" Text="@Loc["CompanyEmailRequired"]" class="vpp-field-validator" Style="position: absolute" />
+                <RadzenEmailValidator Component="Email" Visible="@(!string.IsNullOrWhiteSpace(Model.Email))" Text="@Loc["CompanyEmailInvalid"]" class="vpp-field-validator" Style="position: absolute" />
+            </div>
+        </div>
+
+        <VppPasswordField Name="Password"
+                          Label="@Loc["Password"]"
+                          @bind-Value="Model.Password"
+                          Disabled="@IsLoading"
+                          Hint="@Loc["PasswordRequirementHint"]">
+            <ValidationContent>
+                <RadzenRequiredValidator Component="Password" Text="@Loc["LoginPasswordRequired"]" class="vpp-field-validator" Style="position: absolute" />
+                <RadzenCustomValidator Component="Password" Visible="@(!string.IsNullOrWhiteSpace(Model.Password))" Validator="@(() => AccountPasswordPolicy.IsValid(Model.Password))" Text="@Loc["PasswordRequirementHint"]" class="vpp-field-validator" Style="position: absolute" />
+            </ValidationContent>
+        </VppPasswordField>
+
+        <VppPasswordField Name="ConfirmPassword"
+                          Label="@Loc["ConfirmNewPassword"]"
+                          @bind-Value="Model.ConfirmPassword"
+                          Disabled="@IsLoading">
+            <ValidationContent>
+                <RadzenRequiredValidator Component="ConfirmPassword" Text="@Loc["ConfirmPasswordRequired"]" class="vpp-field-validator" Style="position: absolute" />
+                <RadzenCompareValidator Component="ConfirmPassword" Value="@Model.Password" Visible="@(!string.IsNullOrWhiteSpace(Model.ConfirmPassword))" Text="@Loc["PasswordConfirmationMismatch"]" class="vpp-field-validator" Style="position: absolute" />
+            </ValidationContent>
+        </VppPasswordField>
+
+        <RadzenButton Text="@Loc["RegisterAction"]"
+                      ButtonType="ButtonType.Submit"
+                      IsBusy="@IsLoading"
+                      class="vpp-login-btn" />
+    </RadzenTemplateForm>
 
     <div class="vpp-login-links vpp-login-links-single">
         <a class="vpp-account-back-link" href="/Account/Login">

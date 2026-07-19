@@ -15,7 +15,7 @@ public partial class ForgotPassword
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
 
-    private async Task SubmitAsync()
+    private async Task SubmitAsync(PasswordRecoveryReqDTO _submittedModel)
     {
         IsLoading = true;
         ErrorMessage = null;

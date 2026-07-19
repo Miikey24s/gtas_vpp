@@ -190,7 +190,8 @@ namespace gtas_vpp_fe.Components.Layout
 
             await ProtectedLocalStore.SetAsync("VPP_Language", newCulture);
             await PrepareLanguageSwitchAsync();
-            NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
+            var returnUrl = $"/{NavigationManager.ToBaseRelativePath(NavigationManager.Uri)}";
+            NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(returnUrl)}", forceLoad: true);
         }
 
         private async Task ApplyBrowserThemeAsync(string newTheme)

@@ -30,7 +30,7 @@
   <data name="Password" xml:space="preserve"><value>Password</value></data>
   <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
   <data name="Orders" xml:space="preserve"><value>Orders</value></data>
-  <data name="Library" xml:space="preserve"><value>Library</value></data>
+  <data name="Library" xml:space="preserve"><value>Master data</value></data>
   <data name="Reports" xml:space="preserve"><value>Reports</value></data>
   <data name="ExportReport" xml:space="preserve"><value>Export Report</value></data>
   <data name="ReportContentNotConfigured" xml:space="preserve"><value>Report content has not been configured yet. Export functionality is coming soon.</value></data>
@@ -56,13 +56,11 @@
   <data name="Error" xml:space="preserve"><value>Error</value></data>
   <data name="Success" xml:space="preserve"><value>Success</value></data>
   <data name="Warning" xml:space="preserve"><value>Warning</value></data>
-  <data name="OfficeRequestPortal" xml:space="preserve"><value>Office request portal</value></data>
   <data name="AccountAccessNavigation" xml:space="preserve"><value>Account access</value></data>
   <data name="ForgotPasswordTitle" xml:space="preserve"><value>Recover</value></data>
   <data name="ForgotPasswordLink" xml:space="preserve"><value>Forgot password?</value></data>
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>password</value></data>
-  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Enter the registered email. The system always returns the same result to protect account information.</value></data>
-  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send recovery instructions</value></data>
+  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send</value></data>
   <data name="BackToLogin" xml:space="preserve"><value>Back to sign in</value></data>
   <data name="RecoveryRequestAccepted" xml:space="preserve"><value>If the account exists, recovery instructions were sent to the registered email.</value></data>
   <data name="RecoveryConnectionFailed" xml:space="preserve"><value>The server is currently unavailable. Please try again later.</value></data>
@@ -74,10 +72,16 @@
   <data name="ResetPasswordSuccess" xml:space="preserve"><value>Password reset. You can now sign in with the new password.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>The reset link is invalid or expired.</value></data>
   <data name="RegisterTitle" xml:space="preserve"><value>Register</value></data>
-  <data name="RegisterDescription" xml:space="preserve"><value>Submit an account request. An administrator will review and approve it before the account can be used.</value></data>
-  <data name="InternalEmail" xml:space="preserve"><value>Internal email</value></data>
-  <data name="EmployeeCodeOptional" xml:space="preserve"><value>Employee code (optional)</value></data>
-  <data name="RegisterAction" xml:space="preserve"><value>Submit registration request</value></data>
+  <data name="CompanyEmail" xml:space="preserve"><value>Company email</value></data>
+  <data name="RegisterAction" xml:space="preserve"><value>Register</value></data>
+  <data name="CompanyEmailRequired" xml:space="preserve"><value>Please enter your company email.</value></data>
+  <data name="CompanyEmailInvalid" xml:space="preserve"><value>Enter a valid company email address.</value></data>
+  <data name="UsernameLengthValidation" xml:space="preserve"><value>Username must be between 3 and 100 characters.</value></data>
+  <data name="FullNameRequired" xml:space="preserve"><value>Please enter your full name.</value></data>
+  <data name="FullNameLengthValidation" xml:space="preserve"><value>Full name must be between 2 and 250 characters.</value></data>
+  <data name="ConfirmPasswordRequired" xml:space="preserve"><value>Please confirm your password.</value></data>
+  <data name="NewPasswordRequired" xml:space="preserve"><value>Please enter a new password.</value></data>
+  <data name="CurrentPasswordRequired" xml:space="preserve"><value>Please enter your current password.</value></data>
   <data name="RegistrationAccepted" xml:space="preserve"><value>If the information is valid, the request was received and is awaiting administrator approval.</value></data>
   <data name="RegistrationFieldsRequired" xml:space="preserve"><value>Enter a username, email, and full name.</value></data>
   <data name="RegistrationInvalid" xml:space="preserve"><value>The registration information does not meet the account policy. Check it and try again.</value></data>
@@ -434,7 +438,7 @@
   <data name="AllMonths" xml:space="preserve"><value>All months</value></data>
   <data name="AllYears" xml:space="preserve"><value>All years</value></data>
   <data name="ApplyFilters" xml:space="preserve"><value>Apply</value></data>
-  <data name="Catalog" xml:space="preserve"><value>Catalog</value></data>
+  <data name="Catalog" xml:space="preserve"><value>Product catalog</value></data>
   <data name="CloseNavigation" xml:space="preserve"><value>Close navigation</value></data>
   <data name="GeneratedAt" xml:space="preserve"><value>Updated at {0}</value></data>
   <data name="HidePassword" xml:space="preserve"><value>Hide password</value></data>

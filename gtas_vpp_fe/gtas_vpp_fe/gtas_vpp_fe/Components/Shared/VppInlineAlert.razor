@@ -23,9 +23,9 @@
     private string AriaLive => Tone == VppAlertTone.Error ? "assertive" : "polite";
     private string Icon => Tone switch
     {
-        VppAlertTone.Success => "check_circle",
-        VppAlertTone.Warning => "warning",
-        VppAlertTone.Error => "error_outline",
-        _ => "info"
+        VppAlertTone.Success => VppIcons.Approved,
+        VppAlertTone.Warning => VppIcons.Warning,
+        VppAlertTone.Error => VppIcons.Error,
+        _ => VppIcons.Info
     };
 }

@@ -13,7 +13,7 @@
             aria-haspopup="dialog"
             aria-controls="vpp-notification-panel"
             @onclick="ToggleAsync">
-        <span class="rzi rzi-notifications" aria-hidden="true"></span>
+        <VppIcon Name="@VppIcons.Notifications" />
         @if (Inbox.UnreadCount > 0)
         {
             <span class="vpp-header-notification-count" aria-hidden="true">@FormatUnreadCount()</span>
@@ -45,7 +45,7 @@
                 @if (Inbox.HasError && Inbox.Items.Count == 0)
                 {
                     <div class="vpp-notification-empty vpp-notification-empty--error" role="alert">
-                        <span class="rzi rzi-warning" aria-hidden="true"></span>
+                        <VppIcon Name="@VppIcons.Warning" />
                         <strong>@Loc["NotificationLoadFailed"]</strong>
                         <span>@Loc["NotificationLoadFailedDescription"]</span>
                     </div>
@@ -57,7 +57,7 @@
                 else if (Inbox.Items.Count == 0)
                 {
                     <div class="vpp-notification-empty">
-                        <span class="rzi rzi-notifications-none" aria-hidden="true"></span>
+                        <VppIcon Name="@VppIcons.NotificationsOff" />
                         <strong>@Loc["NoNotifications"]</strong>
                         <span>@Loc["NoNotificationsDescription"]</span>
                     </div>
@@ -67,14 +67,14 @@
                     @if (_actionFailed)
                     {
                         <div class="vpp-notification-inline-status" role="alert">
-                            <span class="rzi rzi-warning" aria-hidden="true"></span>
+                            <VppIcon Name="@VppIcons.Warning" />
                             @Loc["NotificationActionFailed"]
                         </div>
                     }
                     else if (Inbox.HasError)
                     {
                         <div class="vpp-notification-inline-status" role="status">
-                            <span class="rzi rzi-warning" aria-hidden="true"></span>
+                            <VppIcon Name="@VppIcons.Warning" />
                             @Loc["NotificationLoadFailedDescription"]
                         </div>
                     }
@@ -84,7 +84,7 @@
                         <button type="button"
                                 class="vpp-notification-item @(item.IsRead ? string.Empty : "is-unread")"
                                 @onclick="(() => OpenNotificationAsync(item))">
-                            <span class="vpp-notification-item-icon rzi @GetIcon(item.Type)" aria-hidden="true"></span>
+                            <VppIcon Name="@GetIcon(item.Type)" Class="vpp-notification-item-icon" />
                             <span class="vpp-notification-item-content">
                                 <strong>@item.Title</strong>
                                 <span>@item.Message</span>
@@ -101,7 +101,7 @@
 
             <footer class="vpp-notification-panel-footer">
                 <button type="button" @onclick="RefreshAsync" disabled="@Inbox.IsLoading">
-                    <span class="rzi rzi-refresh" aria-hidden="true"></span>
+                    <VppIcon Name="@VppIcons.Refresh" />
                     @(Inbox.HasError ? Loc["Retry"] : Loc["Refresh"])
                 </button>
             </footer>
@@ -191,10 +191,11 @@
 
     private static string GetIcon(string type) => type switch
     {
-        "additional-order.approved" => "rzi-check-circle",
-        "additional-order.rejected" => "rzi-cancel",
-        "additional-order.pending" => "rzi-pending-actions",
-        _ => "rzi-info"
+        "additional-order.approved" => VppIcons.Approved,
+        "additional-order.rejected" => VppIcons.Rejected,
+        "additional-order.pending" => VppIcons.Pending,
+        "account.registration.pending" => VppIcons.Pending,
+        _ => VppIcons.Info
     };
 
     private static string FormatTime(DateTime createdAt) =>

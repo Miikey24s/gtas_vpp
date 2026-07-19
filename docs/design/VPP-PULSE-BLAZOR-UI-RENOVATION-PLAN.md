@@ -1,8 +1,8 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 QA VERIFIED, OWNER REVIEW; W1 DASHBOARD NEXT`
+> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 OWNER REVIEW ROUND 2; W1 DASHBOARD NEXT`
 >
-> **Phiên bản:** `1.3` — 2026-07-19
+> **Phiên bản:** `1.4` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -229,7 +229,7 @@ Các ảnh owner gửi ngày 2026-07-19 được ghi nhận là evidence của r
 
 | Nhóm | Quan sát | Phân loại | Quyết định/đề xuất |
 |---|---|---|---|
-| Account shell | Login có illustration tốt; Forgot Password quá trơ và link quay lại nhỏ; header/menu và logout chưa đồng bộ | Visual + usability | Giữ illustration ở Login/Register và các success state phù hợp; dùng cùng logo mark, title scale, link/button tokens cho toàn bộ account flow. Trang recovery giữ compact, không thêm hero lớn nếu làm tăng chiều cao. |
+| Account shell | Login/Register dùng hero khác recovery; form đăng ký cuộn, copy dài và validation mixed VI/EN | Visual + usability | Owner review round 2 chốt bỏ hero trên toàn account flow; mọi route dùng centered grid shell, copy ngắn, VI/EN switch, reserved validation slots và không internal-scroll ở desktop. |
 | Brand asset | Có nhu cầu thêm logo/hình | Product/brand | Không dùng AI để tạo logo hoặc icon chức năng. Dùng logo/vector mark chuẩn và icon system hiện hữu; AI art chỉ là asset phụ cho hero/empty state, phải review contrast, licensing và render thật trước khi nhận. |
 | Icon | Một số icon nhìn sai hoặc không cùng nét | Visual/accessibility | Audit font/icon loading và các call-site; hợp nhất về `VppIcon`/semantic icon map, không sửa từng màn hình bằng ký tự Unicode rời. |
 | Dashboard empty | Lặp CTA ở toolbar và empty state; status copy dài; vùng trắng lớn; kỳ trước trống gây scroll | Information architecture | Một primary action ở toolbar, empty state chỉ giữ context + next action khi cần. Gộp status thành summary ngắn; khi không có dữ liệu kỳ trước dùng compact row hoặc ẩn section, không dựng panel lớn. |
@@ -362,8 +362,8 @@ Status hợp lệ:
 | Route/state | Status | Notes |
 |---|---|---|
 | `/` redirect | PENDING | First accessible route, no blank flash |
-| `/Account/Login` | OWNER_REVIEW | Illustration retained; localized access links and safe feedback |
-| `/Account/Register` | OWNER_REVIEW | Validation + pending approval; shared hero shell |
+| `/Account/Login` | OWNER_REVIEW | Centered shell; inline credential feedback; VI/EN switch |
+| `/Account/Register` | OWNER_REVIEW | No employee-code field; localized stable validation; no desktop scroll |
 | `/Account/ConfirmEmail` | OWNER_REVIEW | Success/expired/invalid; compact shell |
 | `/Account/ForgotPassword` | OWNER_REVIEW | Anti-enumeration; compact recovery shell |
 | `/Account/ResetPassword` | OWNER_REVIEW | Policy/expired/replay; invalid link hides form |
@@ -374,15 +374,19 @@ Status hợp lệ:
 | `/not-found` | PENDING | Return to valid workspace |
 | Shell/notification/reconnect | PENDING | Context preservation, action inbox |
 
-**W0.2 verified evidence — 2026-07-19:**
+**W0.2 round-2 evidence — 2026-07-19:**
 
-- `VppAccountShell` chốt hai biến thể: hero cho Login/Register/Logout và compact cho Forgot/Reset/Confirm/Change Password;
+- toàn bộ account route dùng cùng centered grid shell; hero artwork không còn render;
+- account card dùng shared vector request-document mark và có VI/EN switch giữ nguyên route hiện tại;
 - cùng brand lockup, title scale, password field, inline alert, back-link và action treatment được dùng xuyên account flow;
+- Register bỏ `EmployeeCode` khỏi UI nhưng giữ DTO/API field optional để không tạo schema/API breaking change;
+- form validation dùng localized Radzen validators, mirror Identity password policy và reserve message slots để không layout shift;
+- credential failure hiển thị trong form thay vì toast; button copy rút gọn thành Login/Register/Send tương ứng ngôn ngữ;
 - account API error code đi qua `AccountLifecycleUiMapper`; raw backend message không render ra UI;
-- user menu chỉ hiển thị department một lần; logout giữ neutral mặc định và chỉ dùng danger tone khi hover/focus;
+- shared shell dùng semantic sidebar icon map; notification center bỏ legacy `rzi` markup để tránh missing glyph;
 - account browser QA pass ở `390×844`, `1366×768`, `1920×1080`, gồm VI/EN, invalid reset link, icon centralization và horizontal overflow;
 - isolated account-menu QA và authenticated shell responsive QA pass; accessibility/logout regression pass;
-- frontend unit/architecture tests: `129/129`; Release solution build: `0 warning / 0 error`.
+- frontend unit/architecture tests: `139/139`; Release solution build: `0 warning / 0 error`.
 
 ### W2 — Employee
 
@@ -518,7 +522,9 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 |---|---|---|---|---|---|---|---|
 | 2026-07-19 | Workflow | Không dùng UI Lab; code trực tiếp từng route | UI thật đã tồn tại và đẹp hơn Figma prototype | Global | Living plan này | N/A | Recorded |
 | 2026-07-19 | Design authority | Browser runtime thắng Figma | Tránh design/code drift và route coverage thiếu | Global | Figma chuyển thành reference | Toàn bộ route | Recorded |
-| 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Login/Register hưởng lợi từ illustration; recovery cần ngắn và tập trung | Global | Hoàn tất W0.2 account-shell variants | Login/Register/Forgot/Reset/Confirm/Change/Logout | Verified |
+| 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Quyết định vòng đầu trước khi owner review runtime | Global | Được thay thế bởi round 2 centered shell | Login/Register/Forgot/Reset/Confirm/Change/Logout | Superseded |
+| 2026-07-19 | Account round 2 | Bỏ hero; centered grid shell, copy ngắn, VI/EN switch và validation không layout shift | Owner ưu tiên consistency, viewport-fit và ít text hơn illustration | Global | Cập nhật toàn bộ W0.2 account flow | Login/Register/Forgot/Reset/Confirm/Change/Logout | Owner review |
+| 2026-07-19 | Brand/navigation | Thay chữ `G` bằng vector request-document mark; dùng semantic icon map và phân biệt Product catalog/Master data | Chữ G và icon/label cũ khó hiểu, mixed icon font gây missing glyph | Shared shell | Retrofit header/sidebar/notification center | Mọi authenticated route | Owner review |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Account errors | Dịch theo stable error code, không render raw backend message | Bảo mật, VI/EN nhất quán và tránh technical leakage | Global | Thêm `AccountLifecycleUiMapper` | Register/Forgot/Reset/Confirm/Change | Verified |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |
@@ -534,6 +540,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | P0 | Mixed icon implementations | `VppEmptyState`, `EmptyState`, shared header/menu | Hợp nhất icon wrapper + semantic map, kiểm tra font/fallback | Verified |
 | P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Verified |
 | P1 | Account shell drift | Login/Register/Forgot/Reset/Confirm/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Verified |
+| P1 | Notification payload localization | Notification producer + DTO/persistence + presentation mapper | Lưu translation key/arguments hoặc bilingual payload; không dịch chuỗi English đã ghép cứng ở UI | Proposed |
 | P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Proposed |
 | P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Proposed |
 

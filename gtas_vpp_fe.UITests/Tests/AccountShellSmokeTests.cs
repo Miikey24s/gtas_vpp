@@ -34,11 +34,11 @@ public sealed class AccountShellSmokeTests : TestBase
 
         var routes = new[]
         {
-            new AccountRoute("Account/Login", Artwork: true, Compact: false),
-            new AccountRoute("Account/ForgotPassword", Artwork: false, Compact: true),
-            new AccountRoute("Account/ResetPassword", Artwork: false, Compact: true),
-            new AccountRoute("Account/Register", Artwork: true, Compact: false),
-            new AccountRoute("Account/ConfirmEmail", Artwork: false, Compact: true)
+            "Account/Login",
+            "Account/ForgotPassword",
+            "Account/ResetPassword",
+            "Account/Register",
+            "Account/ConfirmEmail"
         };
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
@@ -53,7 +53,7 @@ public sealed class AccountShellSmokeTests : TestBase
             await Page.SetViewportSizeAsync(viewport.Width, viewport.Height);
             foreach (var route in routes)
             {
-                await Page.GotoAsync($"{BaseUrl}{route.Path}", new PageGotoOptions
+                await Page.GotoAsync($"{BaseUrl}{route}", new PageGotoOptions
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded
                 });
@@ -72,15 +72,16 @@ public sealed class AccountShellSmokeTests : TestBase
                     ]
                     """);
 
-                audit[0].Should().Be(0, $"{route.Path} must not overflow at {viewport.Width}px");
-                audit[1].Should().Be(1, $"{route.Path} should render one account card");
-                audit[2].Should().Be(1, $"{route.Path} should render one account title");
-                audit[3].Should().Be(0, $"{route.Path} should use VppIcon for functional icons");
+                audit[0].Should().Be(0, $"{route} must not overflow at {viewport.Width}px");
+                audit[1].Should().Be(1, $"{route} should render one account card");
+                audit[2].Should().Be(1, $"{route} should render one account title");
+                audit[3].Should().Be(0, $"{route} should use VppIcon for functional icons");
 
-                (await Page.Locator(".vpp-login-art").CountAsync()).Should()
-                    .Be(route.Artwork ? 1 : 0, $"{route.Path} artwork policy should be explicit");
+                (await Page.Locator(".vpp-login-art").CountAsync()).Should().Be(0, $"{route} should use the centered account shell without hero artwork");
                 (await Page.Locator(".vpp-account-page-compact").CountAsync()).Should()
-                    .Be(route.Compact ? 1 : 0, $"{route.Path} compact policy should be explicit");
+                    .Be(1, $"{route} should use the centered compact shell");
+                (await Page.Locator(".vpp-brand-mark svg").CountAsync()).Should().Be(1, $"{route} should use the shared vector brand mark");
+                (await Page.Locator(".vpp-account-language-switch").CountAsync()).Should().Be(1, $"{route} should expose VI/EN switching");
 
                 if (!string.IsNullOrWhiteSpace(evidenceDirectory) && viewport.Width == 1366)
                 {
@@ -89,7 +90,7 @@ public sealed class AccountShellSmokeTests : TestBase
                     {
                         Path = Path.Combine(
                             evidenceDirectory,
-                            $"account-{route.Path.Split('/').Last().ToLowerInvariant()}-1366x768.png"),
+                            $"account-{route.Split('/').Last().ToLowerInvariant()}-1366x768.png"),
                         FullPage = true,
                         Animations = ScreenshotAnimations.Disabled,
                         Caret = ScreenshotCaret.Hide,
@@ -114,5 +115,69 @@ public sealed class AccountShellSmokeTests : TestBase
         requestFailures.Should().BeEmpty("account routes should not issue failed requests");
     }
 
-    private sealed record AccountRoute(string Path, bool Artwork, bool Compact);
+    [Fact]
+    public async Task AccountForms_UseLocalizedValidationWithoutLayoutShiftOrInternalScroll()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FRegister");
+        await Page.GetByRole(AriaRole.Heading, new() { Name = "Đăng ký" }).WaitForAsync();
+
+        (await Page.Locator("input[name=EmployeeCode]").CountAsync()).Should().Be(0);
+        (await Page.GetByText("Email công ty", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.Locator(".vpp-account-description").CountAsync()).Should().Be(0);
+
+        var registerButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng ký");
+        var before = await registerButton.BoundingBoxAsync();
+        await registerButton.ClickAsync();
+        await Page.GetByText("Vui lòng nhập tên đăng nhập.", new() { Exact = true }).WaitForAsync();
+        var after = await registerButton.BoundingBoxAsync();
+        Math.Abs((before?.Y ?? 0) - (after?.Y ?? 0)).Should().BeLessThan(1.5f, "reserved validation slots should prevent button movement");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "account-register-validation-vi-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
+        (await Page.Locator(".vpp-login-card").EvaluateAsync<bool>("element => element.scrollHeight <= element.clientHeight + 1"))
+            .Should().BeTrue("the desktop registration card must not have an internal scrollbar");
+        var viewportMetrics = await Page.EvaluateAsync<int[]>("""
+            () => {
+                const card = document.querySelector('.vpp-login-card');
+                return [document.documentElement.scrollHeight, window.innerHeight, Math.round(card?.getBoundingClientRect().height ?? 0)];
+            }
+            """);
+        viewportMetrics[0].Should().BeLessThanOrEqualTo(
+            viewportMetrics[1] + 1,
+            $"the desktop registration route should fit without page scrolling (page={viewportMetrics[0]}, viewport={viewportMetrics[1]}, card={viewportMetrics[2]})");
+
+        await Page.Locator(".vpp-account-language-switch").ClickAsync();
+        await Page.GetByRole(AriaRole.Heading, new() { Name = "Register" }).WaitForAsync();
+        var englishButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Register");
+        await englishButton.ClickAsync();
+        await Page.GetByText("Please enter your username.", new() { Exact = true }).WaitForAsync();
+        (await Page.GetByText("Company email", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+
+        await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
+        var loginButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng nhập");
+        var loginBefore = await loginButton.BoundingBoxAsync();
+        await loginButton.ClickAsync();
+        await Page.GetByText("Vui lòng nhập tên đăng nhập.", new() { Exact = true }).WaitForAsync();
+        var loginAfter = await loginButton.BoundingBoxAsync();
+        Math.Abs((loginBefore?.Y ?? 0) - (loginAfter?.Y ?? 0)).Should().BeLessThan(1.5f, "login validation should not shift the action area");
+
+        await Page.Locator("input[name=Username]").FillAsync("invalid-account-for-inline-feedback");
+        await Page.Locator("input[name=Password]").FillAsync("Invalid-password-1!");
+        await loginButton.ClickAsync();
+        await Page.Locator(".vpp-login-form-error-slot [role=alert]").WaitForAsync();
+        (await Page.Locator(".rz-notification:visible").CountAsync()).Should().Be(0, "credential failures should stay next to the form instead of opening a toast");
+    }
 }

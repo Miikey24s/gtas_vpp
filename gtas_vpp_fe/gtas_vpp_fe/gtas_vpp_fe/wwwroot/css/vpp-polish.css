@@ -271,17 +271,35 @@ a:hover {
 .vpp-brand-mark {
     display: inline-grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
-    flex: 0 0 32px;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
     border: 1px solid color-mix(in srgb, var(--vpp-primary-400) 55%, transparent);
-    border-radius: 9px;
+    border-radius: 8px;
     color: var(--vpp-primary-500);
     background: color-mix(in srgb, var(--vpp-primary-400) 13%, transparent);
-    font-family: var(--vpp-font-display);
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: -0.04em;
+}
+
+.vpp-brand-mark svg {
+    width: 24px;
+    height: 24px;
+    overflow: visible;
+}
+
+.vpp-brand-mark-sheet,
+.vpp-brand-mark-fold,
+.vpp-brand-mark-check {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.vpp-brand-mark-check {
+    color: var(--vpp-accent-500, #14b8a6);
+    stroke: currentColor;
+    stroke-width: 2.2;
 }
 
 .vpp-sidebar-nav {

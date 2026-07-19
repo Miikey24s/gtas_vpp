@@ -4,7 +4,6 @@ using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
-using Radzen;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -27,6 +26,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         private bool passwordTouched;
         private string? UsernameValidationMessage { get; set; }
         private string? PasswordValidationMessage { get; set; }
+        private string? LoginErrorMessage { get; set; }
         private bool HasUsernameValidation => !string.IsNullOrWhiteSpace(UsernameValidationMessage);
         private bool HasPasswordValidation => !string.IsNullOrWhiteSpace(PasswordValidationMessage);
         private IStringLocalizer ComponentLoc => LocalizerFactory.Create("Components.App", typeof(LoginPage).Assembly.GetName().Name!);
@@ -51,6 +51,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         private void HandleUsernameInput(ChangeEventArgs _)
         {
+            LoginErrorMessage = null;
             if (usernameTouched || hasSubmittedValidation)
             {
                 ValidateUsername();
@@ -65,6 +66,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         private void HandlePasswordInput(ChangeEventArgs _)
         {
+            LoginErrorMessage = null;
             if (passwordTouched || hasSubmittedValidation)
             {
                 ValidatePassword();
@@ -88,6 +90,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
         public async Task LoginSubmit(LoginFormModel loginReqDTO)
         {
             isLoading = true;
+            LoginErrorMessage = null;
             try
             {
                 if (!ValidateLoginForm())
@@ -168,12 +171,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         private void ShowError(string detail)
         {
-            Toast.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Error,
-                Summary = ComponentLoc["LoginError"].Value,
-                Detail = detail
-            });
+            LoginErrorMessage = detail;
         }
 
         private bool ValidateLoginForm()
