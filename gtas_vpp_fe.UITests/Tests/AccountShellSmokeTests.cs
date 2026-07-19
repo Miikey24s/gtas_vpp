@@ -168,6 +168,55 @@ public sealed class AccountShellSmokeTests : TestBase
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
         var loginButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng nhập");
+        var alignment = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const username = document.querySelector('input[name="Username"]')?.getBoundingClientRect();
+                const password = document.querySelector('.vpp-login-password-wrapper')?.getBoundingClientRect();
+                const button = document.querySelector('.vpp-login-btn')?.getBoundingClientRect();
+                const links = document.querySelector('.vpp-login-links')?.getBoundingClientRect();
+                const separator = document.querySelector('.vpp-login-links > span')?.getBoundingClientRect();
+
+                if (!username || !password || !button || !links || !separator) {
+                    throw new Error('Unable to measure login alignment geometry.');
+                }
+
+                return [
+                    username.left,
+                    password.left,
+                    button.left,
+                    username.right,
+                    password.right,
+                    button.right,
+                    separator.left + separator.width / 2,
+                    button.left + button.width / 2,
+                    links.left,
+                    links.right
+                ];
+            }
+            """);
+        Math.Abs(alignment[0] - alignment[1]).Should().BeLessThan(1, "username and password underlines should start together");
+        Math.Abs(alignment[0] - alignment[2]).Should().BeLessThan(1, "fields and primary action should share the same left edge");
+        Math.Abs(alignment[3] - alignment[4]).Should().BeLessThan(1, "username and password underlines should end together");
+        Math.Abs(alignment[3] - alignment[5]).Should().BeLessThan(1, "fields and primary action should share the same right edge");
+        Math.Abs(alignment[2] - alignment[8]).Should().BeLessThan(1, "account links should share the primary action left edge");
+        Math.Abs(alignment[5] - alignment[9]).Should().BeLessThan(1, "account links should share the primary action right edge");
+        var linkLayout = await Page.EvaluateAsync<string>("""
+            () => {
+                const links = document.querySelector('.vpp-login-links');
+                const style = links ? getComputedStyle(links) : null;
+                return JSON.stringify({
+                    display: style?.display,
+                    columns: style?.gridTemplateColumns,
+                    gap: style?.gap,
+                    children: links ? [...links.children].map(element => {
+                        const rect = element.getBoundingClientRect();
+                        return { tag: element.tagName, text: element.textContent?.trim(), left: rect.left, right: rect.right };
+                    }) : []
+                });
+            }
+            """);
+        Math.Abs(alignment[6] - alignment[7]).Should().BeLessThan(1, $"the separator between account links should sit on the card centerline; layout={linkLayout}");
+
         var loginBefore = await loginButton.BoundingBoxAsync();
         await loginButton.ClickAsync();
         await Page.GetByText("Vui lòng nhập tên đăng nhập.", new() { Exact = true }).WaitForAsync();

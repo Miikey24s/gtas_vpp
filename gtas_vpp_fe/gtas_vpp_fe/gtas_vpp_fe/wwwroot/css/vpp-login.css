@@ -417,27 +417,47 @@
 .vpp-login-password-wrapper {
     position: relative;
     width: 100%;
+    min-height: var(--vpp-login-field-min-height);
+    border-bottom: 2px solid rgba(9, 30, 66, 0.16);
+    transition: border-color 0.2s ease-in-out;
 }
 
 .vpp-login-password-wrapper .rz-password,
 .vpp-login-password-wrapper .rz-textbox {
-    border-bottom: 2px solid rgba(9, 30, 66, 0.16) !important;
+    width: 100% !important;
+    min-height: var(--vpp-login-field-min-height) !important;
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+.vpp-login-password-wrapper:hover,
+.vpp-login-password-wrapper:focus-within {
+    border-bottom-color: var(--vpp-primary-500);
+}
+
+.vpp-login-field--invalid .vpp-login-password-wrapper {
+    border-bottom-color: var(--vpp-danger);
 }
 
 .vpp-login-field .rz-password input,
 .vpp-login-field .rz-textbox[name="PasswordText"] {
-    padding-right: 40px !important; /* Prevent text overlap with eye icon */
+    min-height: var(--vpp-login-field-min-height) !important;
+    border: 0 !important;
+    padding-right: 44px !important;
 }
 
 .vpp-password-toggle-btn {
     position: absolute;
-    right: 0;
-    bottom: 8px; /* Align perfectly with inputs bottom underline */
+    top: 50%;
+    right: 2px;
+    width: 36px;
+    height: 36px;
+    transform: translateY(-50%);
     background: transparent !important;
     border: none !important;
     cursor: pointer;
     color: var(--vpp-text-secondary) !important;
-    padding: 6px !important;
+    padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -639,9 +659,10 @@
 }
 
 .vpp-login-links {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    justify-content: center;
+    width: 100%;
     gap: 12px;
     margin-top: 18px;
     color: var(--vpp-text-tertiary);
@@ -651,9 +672,30 @@
 
 .vpp-login-links a {
     color: var(--vpp-primary-600);
+    text-decoration: none;
+}
+
+.vpp-login-links a:hover,
+.vpp-login-links a:focus-visible {
+    text-decoration: underline;
+}
+
+.vpp-login-links > a:first-child {
+    justify-self: end;
+    text-align: right;
+}
+
+.vpp-login-links > span {
+    justify-self: center;
+}
+
+.vpp-login-links > a:last-child {
+    justify-self: start;
+    text-align: left;
 }
 
 .vpp-login-links-single {
+    display: flex;
     justify-content: flex-start;
     margin-top: 22px;
 }
