@@ -363,6 +363,7 @@ var databaseInitializationEnvironments = DeploymentConfigurationContract.GetData
     databaseBinding,
     requireExplicitTarget: shouldMigrate);
 var allowDemoData = Configuration.GetValue<bool>("DatabaseInitialization:AllowDemoData");
+var demoOwnerUsername = Configuration["DatabaseInitialization:DemoOwnerUsername"];
 DatabaseInitializationModeParser.ValidateForEnvironment(
     databaseInitializationMode,
     builder.Environment.IsProduction(),
@@ -371,6 +372,11 @@ DatabaseInitializationModeParser.ValidateForEnvironment(
 DeploymentConfigurationContract.ValidateDemoDatabaseTarget(
     databaseInitializationMode,
     databaseBinding);
+if (shouldSeedDemo && string.IsNullOrWhiteSpace(demoOwnerUsername))
+{
+    throw new InvalidOperationException(
+        "MigrateAndDemo requires DatabaseInitialization:DemoOwnerUsername so workbook orders can be bound to an active account and primary department.");
+}
 var databaseInitializationOnly = Configuration.GetValue<bool>("DatabaseInitialization:RunOnly");
 var authBootstrapEnabled = Configuration.GetValue<bool>($"{AuthBootstrapOptions.SectionName}:Enabled");
 
@@ -393,7 +399,8 @@ if (shouldMigrate)
         databaseBinding,
         databaseInitializationMode,
         shouldSeedReference,
-        shouldSeedDemo);
+        shouldSeedDemo,
+        shouldSeedDemo ? new DemoWorkbookSeedOptions(demoOwnerUsername) : null);
 }
 
 if (authBootstrapEnabled)
@@ -463,7 +470,8 @@ static async Task InitializeDatabaseAsync(
     DatabaseBinding databaseBinding,
     DatabaseInitializationMode initializationMode,
     bool shouldSeedReference,
-    bool shouldSeedDemo)
+    bool shouldSeedDemo,
+    DemoWorkbookSeedOptions? demoSeedOptions)
 {
     const int maxRetries = 5;
     for (var retry = 0; retry < maxRetries; retry++)
@@ -486,7 +494,7 @@ static async Task InitializeDatabaseAsync(
                 {
                     if (shouldSeedDemo)
                     {
-                        await SeedData.SeedDemo(dbContext);
+                        await SeedData.SeedDemo(dbContext, demoSeedOptions);
                     }
                     else
                     {

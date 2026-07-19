@@ -21,7 +21,7 @@ namespace gtas_vpp_be.Service.Services
         // never be recorded as applied, and production reference bootstrap
         // must not be coupled to the optional demo fixture.
         private const string ReferenceSeedVersion = "2026-07-15-reference-2-flat-rbac";
-        private const string DemoSeedVersion = "2026-07-15-demo-1";
+        private const string DemoSeedVersion = "2026-07-19-demo-2-workbook-orders";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
 
         // ── Page IDs ───────────────────────────────────────────────
@@ -110,23 +110,24 @@ namespace gtas_vpp_be.Service.Services
             Log.Information("[SeedData] Reference database bootstrap completed.");
         }
 
-        public static async Task SeedDemo(VPPMigrationDbContext context)
+        public static async Task SeedDemo(
+            VPPMigrationDbContext context,
+            DemoWorkbookSeedOptions? options = null,
+            CancellationToken cancellationToken = default)
         {
             await SeedReference(context);
             await EnsureSeedHistoryTableAsync(context);
 
-            // Demo mode deliberately contains no users, credentials, e-mail
-            // addresses or user-to-role assignments. Account provisioning is
-            // owned by the authenticated registration/admin workflow.
-            // Reconcile this idempotent fixture on every explicit demo run so
-            // a stale history marker cannot hide missing catalog/permission data.
-            Log.Information("[SeedData] Reconciling non-sensitive demo fixture...");
-            await RunSqlRequired(context, "Helpers/SQL/03_SeedLibraryData.sql");
-            await SeedDefaultPricesFromFile(context);
+            // The normalized workbook dataset is the authoritative demo
+            // catalog, department, price and optional order fixture. Do not
+            // run the legacy catalog SQL here: it derives different item codes
+            // and is therefore not idempotent after canonical reconciliation.
+            Log.Information("[SeedData] Reconciling normalized workbook demo fixture...");
+            await DemoWorkbookSeeder.SeedAsync(context, options, cancellationToken);
 
             await MarkSeedVersionAppliedAsync(context, DemoSeedVersion);
 
-            Log.Information("[SeedData] Non-sensitive demo fixture completed.");
+            Log.Information("[SeedData] Normalized workbook demo fixture completed.");
         }
 
         private static Task EnsureSeedHistoryTableAsync(VPPMigrationDbContext context)

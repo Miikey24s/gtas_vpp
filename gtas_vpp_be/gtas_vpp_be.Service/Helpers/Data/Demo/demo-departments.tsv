@@ -1,0 +1,53 @@
+DepartmentCode	DepartmentName	LegacyCodes	SourceSheets
+CBSX	CBSX		CBSX
+CONGNGHEMAY	Công nghệ may		CongNgheMay
+CONGNGHEWASH	Công nghệ Wash		CongNgheWash
+CPD	CPD		CPD
+DAUTU	Đầu tư phát triển		DauTu
+DINHMUC	Định mức		DinhMuc
+FD	FD		FD
+FQM	FQM		FQM
+GIAMDINH	Giám định		GiamDinh
+HCQT	Hành chính Quản trị		P.HCQT
+HOANTATPHUOCLONG	Hoàn tất Phước Long		TTHTPhuocLong
+IT	Công nghệ thông tin		IT
+KD1	KD1		KD1
+KD16	KD16		KD16
+KD17	KD17		KD17
+KD19	KD19		KD19
+KD2	KD2		KD2
+KD25	KD25		KD25
+KD26	KD26		KD26
+KD27	KD27		KD27
+KD28	KD28		KD28
+KD3	KD3		KD3
+KD4	KD4		KD4
+KD5+6+18	KD5 + KD6 + KD18	KD5+6	KD5+6+18
+KD7	KD7		KD7;Sale7
+KD8	KD8		KD8
+KEHOACH	Kế hoạch		KeHoach
+KEHOACHPNC	Kế hoạch PNC		KeHoachPNC
+KHOLA	Kho Long An		KHO LA
+KHOTONG	Kho tổng		KhoTong
+LIENVUNG1	Liên vùng 1		LIÊN VÙNG 1
+LONGAN	Long An		LongAn
+MAULONGAN	May mẫu Long An		MayMauLongAn
+NHOMFITTECHRAP	Nhóm Fittech Rập	NHOMFITTECH Rap	FittechRap
+NSTL	NSTL		NSTL
+PHAPCHE	Pháp chế		PhapChe
+PKTLA	Phòng Kỹ thuật Long An		P.KT LA
+PPJWISER	PPJ-WISER		PPJ-WISER
+PURCHASING	Purchasing		Purchasing
+QA	QA		QA
+QLTBMAY	Quản lý thiết bị may		QLTBMay
+RD	R&D	R&D	RandD
+SOURCING	Sourcing		Sourcing
+TCKT	TCKT		TCKT
+TCKTKHO	TCKT Kho		TCKTKho
+TCKTVTJ	TCKT VTJ		TCKTVTJ
+THEUMAU	Thêu mẫu	c	TheuMau
+TQM	TQM		TQM
+TTHTLINHTRUNG	TTHT Linh Trung		TTHTLinhTrung
+WASHLINHTRUNG	Wash Linh Trung		WashLinhTrung
+XNK	Xuất nhập khẩu		XNK
+XUONGMAYMAU	Xưởng may mẫu HCM		MayMauHCM

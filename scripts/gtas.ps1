@@ -162,7 +162,9 @@ function Invoke-DatabaseRunOnly(
     }
 
     Invoke-WithEnvironment $variables {
-        & dotnet run --project $BackendProject --no-launch-profile
+        # Run one-shot database work from Release output so a developer-owned
+        # Debug dotnet-watch process cannot lock the migration binaries.
+        & dotnet run --project $BackendProject --configuration Release --no-launch-profile
     }
 }
 
@@ -183,12 +185,13 @@ DatabaseInitialization modes:
   None                 No migration or seed.
   Migrate              Apply EF migrations only.
   MigrateAndReference  Migrate + idempotent permission/reference data (recommended).
-  MigrateAndDemo       Reference + non-sensitive demo catalog; TEST/DEMO only.
+  MigrateAndDemo       Reference + normalized catalog, departments and orders; TEST/DEMO only.
 
 Configuration catalog:
   Connection string : ConnectionStrings__TestEnv / ConnectionStrings__LiveEnv
   TEST or LIVE      : DatabaseSettings__DefaultEnvironment = TestEnv | LiveEnv
   Migration mode   : DatabaseInitialization__Mode
+  Demo owner       : DatabaseInitialization__DemoOwnerUsername (active username; MigrateAndDemo only)
   Admin bootstrap  : AuthBootstrap__* (one-shot RunOnly; this script supplies it)
   JWT key          : JwtSettings__Key
   SMTP password    : EmailNotifications__Password
@@ -198,7 +201,7 @@ Configuration catalog:
 
 Examples:
   .\scripts\gtas.cmd configure
-  .\scripts\gtas.cmd init-db -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
+  .\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
   .\scripts\gtas.cmd bootstrap-admin -ConnectionString "..." -DepartmentCode IT -DepartmentName "Information Technology"
   .\scripts\gtas.cmd run
 '@ | Write-Host
@@ -240,7 +243,13 @@ try {
         'init-db' {
             $ConnectionString = Read-RequiredValue 'TEST/DEMO database connection string' $ConnectionString
             $databaseName = Assert-LocalDatabase $ConnectionString
-            Invoke-DatabaseRunOnly $ConnectionString $Mode
+            $additionalVariables = @{}
+            if ($Mode -eq 'MigrateAndDemo') {
+                $Username = Read-RequiredValue 'Existing active account that owns the demo orders' $Username
+                $additionalVariables['DatabaseInitialization__DemoOwnerUsername'] = $Username
+            }
+
+            Invoke-DatabaseRunOnly $ConnectionString $Mode $additionalVariables
             Write-Host "Database $databaseName initialized with mode $Mode. Re-running is idempotent."
         }
         'bootstrap-admin' {

@@ -38,6 +38,7 @@
   <ItemGroup>
     <Content Include="Helpers\SQL\*.sql" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Helpers\Data\prices.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Helpers\Data\Demo\*.*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

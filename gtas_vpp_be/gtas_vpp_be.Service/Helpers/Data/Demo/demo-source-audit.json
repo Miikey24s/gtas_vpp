@@ -1,0 +1,161 @@
+{
+  "source": "LVTN/data/DANG KY VPP - CAC DON VI.xlsx",
+  "source_sha256": "c3bf132b584b044843f7511b653e71b41a28c4f127cd62e8073f11f8d535bafc",
+  "source_sheet_count": 55,
+  "source_catalog_rows": 548,
+  "canonical_catalog_items": 547,
+  "canonical_categories": 8,
+  "canonical_uoms": 27,
+  "vat_percent_distribution": {
+    "8.00": 547
+  },
+  "duplicate_catalog_groups_resolved": [
+    {
+      "item_key": "bang keo trong 2 4cm 100y",
+      "chosen_source_row": 34,
+      "all_source_rows": [
+        34,
+        41
+      ]
+    },
+    {
+      "item_key": "ho kho 8gr g 36s",
+      "chosen_source_row": 112,
+      "all_source_rows": [
+        112,
+        345
+      ]
+    },
+    {
+      "item_key": "but son century s",
+      "chosen_source_row": 191,
+      "all_source_rows": [
+        191,
+        318
+      ]
+    },
+    {
+      "item_key": "muc long bang tl 25ml do",
+      "chosen_source_row": 348,
+      "all_source_rows": [
+        348,
+        509
+      ]
+    }
+  ],
+  "item_aliases_applied": [
+    {
+      "source_key": "bao nilon 20x35cm khong quai",
+      "target_item": "Bao PE 20x35cm không quai"
+    },
+    {
+      "source_key": "bao nilon 40x50cm khong quai",
+      "target_item": "Bao PE 40x50cm không quai"
+    },
+    {
+      "source_key": "bao nilon 45x60cm khong quai",
+      "target_item": "Bao PE 45x60cm không quai"
+    },
+    {
+      "source_key": "bao pe 37x47cm",
+      "target_item": "Bao PE ( 37 x 47 cm)"
+    },
+    {
+      "source_key": "bao ziper 14x10cm",
+      "target_item": "Bao zipper 14x10"
+    },
+    {
+      "source_key": "bao ziper 5x8cm",
+      "target_item": "Bao zipper đựng mẫu 5*8cm"
+    },
+    {
+      "source_key": "bao zipper 12x17cm",
+      "target_item": "Bao zipper 12x17 cm"
+    },
+    {
+      "source_key": "but gel b 01 master xanh",
+      "target_item": "Bút Gel B-01 Master"
+    },
+    {
+      "source_key": "giay bia day a4 250gsm",
+      "target_item": "Giấy bìa dày - A4 250gam"
+    },
+    {
+      "source_key": "ho kho hq 8g",
+      "target_item": "Hồ khô 8gr G-36S"
+    },
+    {
+      "source_key": "kim sung ban gia",
+      "target_item": "Kim súng bắn giá (N4-P)"
+    }
+  ],
+  "inferred_catalog_items": [
+    {
+      "item_name": "Giấy hộp Pulppy",
+      "resolution": "inferred_from_giay_hop_japani",
+      "unit_price": 23500
+    },
+    {
+      "item_name": "Hộp bút xoay Xukiva - 174",
+      "resolution": "inferred_from_hop_but_xoay_ttm_3006",
+      "unit_price": 45000
+    },
+    {
+      "item_name": "Tủ y tế",
+      "resolution": "inferred_missing_price",
+      "unit_price": 450000
+    }
+  ],
+  "canonical_departments": 52,
+  "department_aliases": [
+    {
+      "department_code": "KD5+6+18",
+      "legacy_codes": "KD5+6",
+      "source_sheets": "KD5+6+18"
+    },
+    {
+      "department_code": "KD7",
+      "legacy_codes": "",
+      "source_sheets": "KD7;Sale7"
+    },
+    {
+      "department_code": "NHOMFITTECHRAP",
+      "legacy_codes": "NHOMFITTECH Rap",
+      "source_sheets": "FittechRap"
+    },
+    {
+      "department_code": "RD",
+      "legacy_codes": "R&D",
+      "source_sheets": "RandD"
+    },
+    {
+      "department_code": "THEUMAU",
+      "legacy_codes": "c",
+      "source_sheets": "TheuMau"
+    }
+  ],
+  "raw_positive_quantity_rows": 2876,
+  "source_valid_order_rows": 2875,
+  "invalid_category_rows_removed": 1,
+  "normalized_order_lines": 2828,
+  "duplicate_order_rows_merged": 53,
+  "source_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "skipped_blank_quantity_rows": 200,
+  "personal_note_rows_removed": 274,
+  "synthetic_it_lines": 6,
+  "latest_source_month": 3,
+  "period_mapping": "rolling_12_months_ending_at_current_business_period"
+}

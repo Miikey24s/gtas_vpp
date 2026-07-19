@@ -7,6 +7,7 @@
 .\scripts\gtas.cmd configure
 .\scripts\gtas.cmd init-db -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
 .\scripts\gtas.cmd bootstrap-admin -ConnectionString "..." -DepartmentCode IT -DepartmentName "Information Technology"
+.\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "..."
 .\scripts\gtas.cmd run
 ```
 
@@ -21,6 +22,7 @@
 | Chọn TEST/LIVE | `DatabaseSettings__DefaultEnvironment` | `TestEnv` hoặc `LiveEnv`. |
 | Migration mode | `DatabaseInitialization__Mode` | Một trong bốn mode ở dưới. |
 | Chạy migration rồi thoát | `DatabaseInitialization__RunOnly=true` | Dùng cho CI/CD và script bootstrap. |
+| Owner dữ liệu Demo | `DatabaseInitialization__DemoOwnerUsername` | Username active nhận đơn của phòng ban chính; script tự truyền khi dùng `-Mode MigrateAndDemo -Username ...`. |
 | JWT key | `JwtSettings__Key` | Secret server-side, nên là chuỗi ngẫu nhiên dài. |
 | Admin bootstrap | `AuthBootstrap__*` | One-shot, chỉ chạy cùng `RunOnly` + reference seed. |
 | SMTP password | `EmailNotifications__Password` | Chỉ cần khi bật gửi email. |
@@ -35,7 +37,7 @@
 - `None`: không migrate, không seed.
 - `Migrate`: chỉ áp dụng EF migrations.
 - `MigrateAndReference`: migrate và seed permission/reference idempotent; lựa chọn mặc định nên dùng.
-- `MigrateAndDemo`: thêm dữ liệu demo không nhạy cảm; chỉ cho database TEST/DEMO và cần `DatabaseInitialization__AllowDemoData=true`.
+- `MigrateAndDemo`: thêm catalog, phòng ban, bảng giá và đơn hàng đã chuẩn hoá từ workbook; chỉ cho database TEST/DEMO, cần `AllowDemoData=true` và một owner active. Tài khoản phụ là hồ sơ giả, không có mật khẩu và bị khóa đăng nhập.
 
 ## Bootstrap System Admin local
 

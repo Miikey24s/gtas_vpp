@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `IN_IMPLEMENTATION — W0.2 APPROVED; W1 DASHBOARD OWNER REVIEW`
 >
-> **Phiên bản:** `1.10` — 2026-07-19
+> **Phiên bản:** `1.11` — 2026-07-19
 >
 > **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
 >
@@ -63,6 +63,8 @@ Khi có xung đột:
 ### 3.2 Dữ liệu và môi trường
 
 - Primary review dùng DTO/API thật với `TEST_01` hoặc isolated LocalDB fixture.
+- `MigrateAndDemo` dùng projection TSV đã kiểm tra từ workbook đăng ký VPP: 547 mặt hàng, 52 phòng ban, 161 đơn/2.828 dòng được map vào rolling 12-month window.
+- Owner active nhận dữ liệu phòng ban chính; các phòng ban còn lại dùng identity giả bị `Disabled`, không password và e-mail `.demo.local`. Ghi chú nguồn có tên cá nhân không được đưa vào runtime dataset.
 - Không tạo model mock riêng khác `gtas_vpp_shared`.
 - Edge case khó dựng được tạo bằng typed fixture/seed cùng DTO và validation contract thật.
 - Không chạy mutation UI trên shared/prod database.
@@ -570,6 +572,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-19 | W1 My Orders round 1 | Story header + ba metric hiện tại + single-source CTA + compact previous archive | Loại bỏ lặp kỳ/deadline/action và giữ current story above-the-fold | Employee workspace | Hoàn tất dashboard.my-orders để owner review | dashboard?tab=0 | Owner review |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |
+| 2026-07-19 | W1 demo data | Dùng workbook thật qua normalized TSV; map tháng nguồn thành rolling 12 tháng và bind đơn theo user/phòng ban | W1 cần normal/history state thực tế, seed cũ chỉ có catalog và không có đơn | TEST/DEMO fixture | Thay `MigrateAndDemo` bằng catalog/department/user/order fixture idempotent | Dashboard/History/Report/Library | Verified |
 | 2026-07-19 | Account errors | Dịch theo stable error code, không render raw backend message | Bảo mật, VI/EN nhất quán và tránh technical leakage | Global | Thêm `AccountLifecycleUiMapper` | Register/Forgot/Reset/Confirm/Change | Verified |
 | 2026-07-19 | Empty/data story | Không lặp CTA/status; phân biệt từng empty context | Dashboard và history hiện có vùng trắng/copy gây hiểu sai | Global | Bổ sung 6.2 và state enum rule | Dashboard/History/Period | Proposed |
 | 2026-07-19 | Admin grid | Column profile theo route + detail on demand | Departments screenshot cho thấy nhiều cột và khó đọc | Shared pattern | Bổ sung 6.1 và W3 | Library/*, shared grid | Proposed |
