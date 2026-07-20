@@ -114,6 +114,7 @@ const resources = {
         periods: 'Kỳ và quyết toán',
         library: 'Quản trị danh mục',
         access: 'Quản trị truy cập',
+        reports: 'Báo cáo và phân tích',
       },
       user: { openMenu: 'Mở menu tài khoản' },
       notifications: {
@@ -817,6 +818,124 @@ const resources = {
         genericMutationError:
           'Không thể hoàn tất thao tác. Hãy kiểm tra dữ liệu hoặc tải lại.',
       },
+      reports: {
+        eyebrow: 'Báo cáo vận hành',
+        title: 'Báo cáo và phân tích',
+        description:
+          'Một góc nhìn có kiểm chứng về nhu cầu, trạng thái xử lý và giá trị văn phòng phẩm theo phạm vi bạn được phép xem.',
+        forbiddenTitle: 'Bạn chưa có quyền xem báo cáo',
+        forbiddenDescription:
+          'Tài khoản cần một trong các quyền xem báo cáo được cấp bởi backend.',
+        generatedAt: 'Tạo lúc {{value}}',
+        scope: {
+          own: 'Đơn của tôi',
+          department: 'Phòng ban của tôi',
+          all: 'Toàn công ty',
+        },
+        tabs: {
+          label: 'Điều hướng báo cáo',
+          overview: 'Tổng quan',
+          insights: 'AI insight',
+        },
+        actions: {
+          refresh: 'Tải lại',
+          export: 'Xuất Excel',
+          print: 'In báo cáo',
+        },
+        filters: {
+          scope: 'Phạm vi dữ liệu',
+          year: 'Năm',
+          month: 'Tháng',
+          allYears: 'Tất cả các năm',
+          allMonths: 'Tất cả các tháng',
+          allPeriods: 'Tất cả kỳ có dữ liệu',
+        },
+        story: { title: '{{orders}} đơn · {{amount}} giá trị nhu cầu' },
+        kpi: {
+          label: 'Chỉ số chính của báo cáo',
+          orders: 'Đơn hàng',
+          requesters: 'Người gửi đơn',
+          lines: 'Dòng mặt hàng',
+          quantity: 'Tổng số lượng',
+          amount: 'Tổng giá trị',
+        },
+        reconciliation: {
+          title: 'Đối soát quyết toán',
+          selectPeriod: 'Chọn một tháng cụ thể để xem bằng chứng quyết toán.',
+          unavailable: 'Chưa có quyết toán cuối kỳ cho khoảng đang chọn.',
+          reconciled: 'Đã khớp ở phiên bản {{revision}}.',
+          variance: 'Chưa khớp; chênh lệch hiện tại {{value}}.',
+          supplier: 'Nhà cung cấp chính',
+          total: 'Tổng quyết toán',
+        },
+        charts: {
+          trendTitle: 'Giá trị thay đổi theo kỳ',
+          trendDescription:
+            'Câu hỏi: tổng giá trị nhu cầu tăng hay giảm qua các kỳ?',
+          trendSummary: 'Biểu đồ có {{count}} kỳ dữ liệu.',
+          statusTitle: 'Đơn đang ở đâu trong quy trình?',
+          statusDescription:
+            'Câu hỏi: số đơn đang tập trung ở trạng thái xử lý nào?',
+          statusSummary: 'Biểu đồ có {{count}} trạng thái.',
+          departmentTitle: 'Phòng ban tạo ra nhu cầu lớn nhất',
+          departmentDescription:
+            'Câu hỏi: phòng ban nào đang đóng góp nhiều giá trị nhất trong phạm vi này?',
+          departmentSummary: 'Biểu đồ có {{count}} phòng ban.',
+          emptyTitle: 'Chưa đủ dữ liệu để kể câu chuyện',
+          emptyDescription:
+            'Hãy đổi phạm vi hoặc kỳ lọc; dữ liệu exact vẫn nằm trong bảng bên dưới.',
+        },
+        status: {
+          submitted: 'Đã gửi',
+          submittedClosed: 'Đã gửi · kỳ đã khóa',
+          cancelled: 'Đã hủy',
+          pending: 'Chờ duyệt',
+          approved: 'Đã duyệt',
+          rejected: 'Từ chối',
+          unknown: 'Chưa xác định',
+        },
+        products: {
+          title: 'Mặt hàng dẫn đầu',
+          description:
+            'Bảng exact-data để tra cứu và đối chiếu; biểu đồ không thay thế số liệu gốc.',
+          emptyTitle: 'Chưa có mặt hàng trong phạm vi này',
+          emptyDescription: 'Không có dòng mặt hàng phù hợp với bộ lọc.',
+          item: 'Mặt hàng',
+          code: 'Mã mặt hàng',
+          quantity: 'Số lượng',
+          amount: 'Giá trị',
+        },
+        insights: {
+          title: 'AI insight có bằng chứng',
+          description:
+            'AI chỉ được gọi khi bạn yêu cầu. Khóa API nằm ở backend; kết quả luôn gắn với cùng phạm vi và thời điểm báo cáo.',
+          generate: 'Tạo insight',
+          regenerate: 'Tạo lại',
+          idleTitle: 'Chưa chạy phân tích',
+          idleDescription:
+            'Bấm “Tạo insight” để backend phân tích bộ số liệu hiện tại. Nếu provider AI không khả dụng, hệ thống sẽ trả về rules fallback và ghi rõ nguồn.',
+          aiGenerated: 'AI tạo',
+          rulesFallback: 'Rules fallback',
+          source: 'Nguồn: {{value}}',
+          noSummary: 'Chưa có phần tóm tắt.',
+          highlights: 'Điểm đáng chú ý',
+          risks: 'Rủi ro cần lưu ý',
+          recommendations: 'Gợi ý hành động',
+          evidence:
+            'Bằng chứng: {{scope}}, {{period}} · phân tích lúc {{value}}. Đây là diễn giải hỗ trợ quyết định, không thay thế dữ liệu exact.',
+          errorTitle: 'Không tạo được insight',
+          errorDescription:
+            'Provider AI hoặc giới hạn tốc độ chưa sẵn sàng. Bạn có thể thử lại; báo cáo số liệu vẫn dùng bình thường.',
+        },
+        feedback: {
+          exported: 'Đã tải báo cáo Excel.',
+          exportFailed:
+            'Không thể xuất Excel. Hãy thử lại hoặc thu hẹp bộ lọc.',
+        },
+        loadErrorTitle: 'Không tải được báo cáo',
+        loadErrorDescription:
+          'Kiểm tra kết nối, quyền truy cập và bộ lọc rồi thử lại.',
+      },
       access: {
         eyebrow: 'Quản trị danh tính và quyền truy cập',
         forbiddenTitle: 'Bạn không có quyền xem khu vực này',
@@ -1064,6 +1183,7 @@ const resources = {
         periods: 'Periods & settlement',
         library: 'Master data',
         access: 'Access administration',
+        reports: 'Reports and analytics',
       },
       user: { openMenu: 'Open account menu' },
       notifications: {
@@ -1778,6 +1898,124 @@ const resources = {
         priceDefaultSuccess: 'The default item price was updated.',
         genericMutationError:
           'The action could not be completed. Check the data or reload.',
+      },
+      reports: {
+        eyebrow: 'Operational reporting',
+        title: 'Reports and analytics',
+        description:
+          'A reconciled view of demand, workflow status, and stationery value within your permitted scope.',
+        forbiddenTitle: 'You cannot view reports',
+        forbiddenDescription:
+          'This account needs one of the report-view permissions granted by the backend.',
+        generatedAt: 'Generated {{value}}',
+        scope: {
+          own: 'My orders',
+          department: 'My department',
+          all: 'Entire company',
+        },
+        tabs: {
+          label: 'Report navigation',
+          overview: 'Overview',
+          insights: 'AI insight',
+        },
+        actions: {
+          refresh: 'Refresh',
+          export: 'Export Excel',
+          print: 'Print report',
+        },
+        filters: {
+          scope: 'Data scope',
+          year: 'Year',
+          month: 'Month',
+          allYears: 'All years',
+          allMonths: 'All months',
+          allPeriods: 'All periods with data',
+        },
+        story: { title: '{{orders}} orders · {{amount}} requested value' },
+        kpi: {
+          label: 'Report key metrics',
+          orders: 'Orders',
+          requesters: 'Requesters',
+          lines: 'Item lines',
+          quantity: 'Total quantity',
+          amount: 'Total value',
+        },
+        reconciliation: {
+          title: 'Settlement reconciliation',
+          selectPeriod: 'Choose one month to inspect settlement evidence.',
+          unavailable:
+            'No final settlement is available for the selected range.',
+          reconciled: 'Matched at revision {{revision}}.',
+          variance: 'Not matched; current variance is {{value}}.',
+          supplier: 'Primary supplier',
+          total: 'Settlement total',
+        },
+        charts: {
+          trendTitle: 'Value over time',
+          trendDescription:
+            'Question: did requested value rise or fall across periods?',
+          trendSummary: 'The chart contains {{count}} periods.',
+          statusTitle: 'Where are orders in the workflow?',
+          statusDescription:
+            'Question: which processing status contains the most orders?',
+          statusSummary: 'The chart contains {{count}} statuses.',
+          departmentTitle: 'Departments driving the most value',
+          departmentDescription:
+            'Question: which departments contribute the most value in this scope?',
+          departmentSummary: 'The chart contains {{count}} departments.',
+          emptyTitle: 'Not enough data for a story yet',
+          emptyDescription:
+            'Change the scope or period; the exact data remains available in the table below.',
+        },
+        status: {
+          submitted: 'Submitted',
+          submittedClosed: 'Submitted · period locked',
+          cancelled: 'Cancelled',
+          pending: 'Pending approval',
+          approved: 'Approved',
+          rejected: 'Rejected',
+          unknown: 'Unknown',
+        },
+        products: {
+          title: 'Leading items',
+          description:
+            'Exact data for lookup and audit; charts do not replace source values.',
+          emptyTitle: 'No items in this scope',
+          emptyDescription: 'No item lines match the selected filters.',
+          item: 'Item',
+          code: 'Item code',
+          quantity: 'Quantity',
+          amount: 'Value',
+        },
+        insights: {
+          title: 'Evidence-backed AI insight',
+          description:
+            'AI runs only when requested. Keys stay on the backend; every result is tied to the same scope and report timestamp.',
+          generate: 'Generate insight',
+          regenerate: 'Generate again',
+          idleTitle: 'Analysis has not run',
+          idleDescription:
+            'Select “Generate insight” to analyze the current dataset. If the AI provider is unavailable, the system returns an explicit rules fallback with its source.',
+          aiGenerated: 'AI generated',
+          rulesFallback: 'Rules fallback',
+          source: 'Source: {{value}}',
+          noSummary: 'No summary is available.',
+          highlights: 'Highlights',
+          risks: 'Risks to watch',
+          recommendations: 'Recommended actions',
+          evidence:
+            'Evidence: {{scope}}, {{period}} · analyzed {{value}}. This supports decisions; it does not replace exact data.',
+          errorTitle: 'Insight could not be generated',
+          errorDescription:
+            'The AI provider or rate limit is not ready. Try again; the numeric report remains available.',
+        },
+        feedback: {
+          exported: 'Excel report downloaded.',
+          exportFailed: 'Excel export failed. Try again or narrow the filters.',
+        },
+        loadErrorTitle: 'Report could not be loaded',
+        loadErrorDescription:
+          'Check the connection, permissions, and filters, then try again.',
       },
       access: {
         eyebrow: 'Identity and access administration',

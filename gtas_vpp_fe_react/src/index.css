@@ -233,4 +233,19 @@ body {
   details {
     break-inside: avoid;
   }
+
+  .report-print-root {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .report-section {
+    break-inside: avoid;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .report-section svg text {
+    fill: #000 !important;
+  }
 }

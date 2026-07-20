@@ -22,6 +22,7 @@ public sealed class ReportsController(
     private readonly IPermissionService _permissionService = permissionService;
 
     [HttpGet("summary")]
+    [ProducesResponseType(typeof(ReportSummaryResDTO), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSummary(
         [FromQuery] string scope = ReportScopes.Own,
         [FromQuery] int? year = null,
@@ -44,6 +45,8 @@ public sealed class ReportsController(
 
     [HttpGet("export")]
     [Authorize(Policy = Permissions.ReportExport)]
+    [Produces("text/csv")]
+    [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
     public async Task<IActionResult> Export(
         [FromQuery] string scope = ReportScopes.Own,
         [FromQuery] int? year = null,
@@ -67,6 +70,8 @@ public sealed class ReportsController(
 
     [HttpGet("export.xlsx")]
     [Authorize(Policy = Permissions.ReportExport)]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
     public async Task<IActionResult> ExportWorkbook(
         [FromQuery] string scope = ReportScopes.Own,
         [FromQuery] int? year = null,
@@ -90,6 +95,7 @@ public sealed class ReportsController(
 
     [HttpGet("insights")]
     [EnableRateLimiting("report-insights")]
+    [ProducesResponseType(typeof(ReportInsightResDTO), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetInsights(
         [FromQuery] string scope = ReportScopes.Own,
         [FromQuery] int? year = null,

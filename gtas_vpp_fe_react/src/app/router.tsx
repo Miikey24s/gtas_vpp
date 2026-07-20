@@ -309,6 +309,23 @@ export const router = createBrowserRouter([
               return { Component: AccessPermissionsPage }
             },
           },
+          {
+            path: 'reports',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { ReportsPage } = await import('@/app/routes/reports-page')
+              return { Component: ReportsPage }
+            },
+          },
+          {
+            path: 'reports/insights',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { ReportsInsightsPage } =
+                await import('@/app/routes/reports-insights-page')
+              return { Component: ReportsInsightsPage }
+            },
+          },
         ],
       },
     ],

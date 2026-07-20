@@ -524,6 +524,71 @@ export type RejectOrderReqDto = {
     idempotencyKey?: string | null;
 };
 
+export type ReportDepartmentPointResDto = {
+    code?: string | null;
+    orderCount?: number;
+    totalQuantity?: number;
+    totalAmount?: number;
+};
+
+export type ReportInsightResDto = {
+    summary?: string | null;
+    highlights?: Array<string> | null;
+    risks?: Array<string> | null;
+    recommendations?: Array<string> | null;
+    source?: string | null;
+    model?: string | null;
+    generatedAt?: string;
+    readonly isAiGenerated?: boolean;
+};
+
+export type ReportPeriodPointResDto = {
+    year?: number;
+    month?: number;
+    period?: string | null;
+    orderCount?: number;
+    totalQuantity?: number;
+    totalAmount?: number;
+};
+
+export type ReportProductPointResDto = {
+    productCode?: string | null;
+    productName?: string | null;
+    totalQuantity?: number;
+    totalAmount?: number;
+};
+
+export type ReportStatusPointResDto = {
+    status?: number;
+    resourceKey?: string | null;
+    orderCount?: number;
+};
+
+export type ReportSummaryResDto = {
+    scope?: string | null;
+    year?: number | null;
+    month?: number | null;
+    generatedAt?: string;
+    availableYears?: Array<number> | null;
+    totalOrders?: number;
+    totalDepartments?: number;
+    totalRequesters?: number;
+    totalLines?: number;
+    totalQuantity?: number;
+    totalAmount?: number;
+    isSettlementReconciled?: boolean;
+    settlementId?: string | null;
+    settlementRevisionNumber?: number | null;
+    settlementPrimarySupplierName?: string | null;
+    settlementGrandTotal?: number | null;
+    settlementAllocationTotal?: number | null;
+    settlementVariance?: number | null;
+    periodTrend?: Array<ReportPeriodPointResDto> | null;
+    statusBreakdown?: Array<ReportStatusPointResDto> | null;
+    departmentBreakdown?: Array<ReportDepartmentPointResDto> | null;
+    topProducts?: Array<ReportProductPointResDto> | null;
+};
+
 export type SettlementConfirmReqDto = {
     year?: number;
     month?: number;
@@ -994,6 +1059,16 @@ export type NotificationResDtoWritable = {
     correlationId?: string | null;
     createdAt?: string;
     readAt?: string | null;
+};
+
+export type ReportInsightResDtoWritable = {
+    summary?: string | null;
+    highlights?: Array<string> | null;
+    risks?: Array<string> | null;
+    recommendations?: Array<string> | null;
+    source?: string | null;
+    model?: string | null;
+    generatedAt?: string;
 };
 
 export type VppRequestDetailResDtoWritable = {
@@ -1836,8 +1911,10 @@ export type GetApiReportsSummaryResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: ReportSummaryResDto;
 };
+
+export type GetApiReportsSummaryResponse = GetApiReportsSummaryResponses[keyof GetApiReportsSummaryResponses];
 
 export type GetApiReportsExportData = {
     body?: never;
@@ -1854,8 +1931,10 @@ export type GetApiReportsExportResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: string;
 };
+
+export type GetApiReportsExportResponse = GetApiReportsExportResponses[keyof GetApiReportsExportResponses];
 
 export type GetApiReportsExportXlsxData = {
     body?: never;
@@ -1872,8 +1951,10 @@ export type GetApiReportsExportXlsxResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: string;
 };
+
+export type GetApiReportsExportXlsxResponse = GetApiReportsExportXlsxResponses[keyof GetApiReportsExportXlsxResponses];
 
 export type GetApiReportsInsightsData = {
     body?: never;
@@ -1891,8 +1972,10 @@ export type GetApiReportsInsightsResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: ReportInsightResDto;
 };
+
+export type GetApiReportsInsightsResponse = GetApiReportsInsightsResponses[keyof GetApiReportsInsightsResponses];
 
 export type GetApiCatalogItemsData = {
     body?: never;

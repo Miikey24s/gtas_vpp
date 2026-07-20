@@ -1960,7 +1960,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSummaryResDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSummaryResDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportSummaryResDTO"
+                }
+              }
+            }
           }
         }
       }
@@ -1998,7 +2015,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
           }
         }
       }
@@ -2036,7 +2061,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
           }
         }
       }
@@ -2082,7 +2115,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportInsightResDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportInsightResDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportInsightResDTO"
+                }
+              }
+            }
           }
         }
       }
@@ -7047,6 +7097,261 @@
           },
           "idempotencyKey": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReportDepartmentPointResDTO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReportInsightResDTO": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isAiGenerated": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReportPeriodPointResDTO": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "period": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReportProductPointResDTO": {
+        "type": "object",
+        "properties": {
+          "productCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "productName": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReportStatusPointResDTO": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "resourceKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReportSummaryResDTO": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "nullable": true
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableYears": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "totalOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalDepartments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRequesters": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalLines": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isSettlementReconciled": {
+            "type": "boolean"
+          },
+          "settlementId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "settlementRevisionNumber": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "settlementPrimarySupplierName": {
+            "type": "string",
+            "nullable": true
+          },
+          "settlementGrandTotal": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "settlementAllocationTotal": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "settlementVariance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "periodTrend": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportPeriodPointResDTO"
+            },
+            "nullable": true
+          },
+          "statusBreakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportStatusPointResDTO"
+            },
+            "nullable": true
+          },
+          "departmentBreakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportDepartmentPointResDTO"
+            },
+            "nullable": true
+          },
+          "topProducts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportProductPointResDTO"
+            },
             "nullable": true
           }
         },

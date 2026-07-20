@@ -66,7 +66,7 @@ export function ThemeControl() {
   )
 }
 
-export function PrintControl() {
+export function PrintControl({ showLabel = false }: { showLabel?: boolean }) {
   const { t } = useTranslation()
 
   return (
@@ -74,11 +74,12 @@ export function PrintControl() {
       type="button"
       variant="outline"
       size="icon-sm"
-      className="no-print size-9"
+      className={cn('no-print', showLabel ? undefined : 'size-9')}
       onClick={() => window.print()}
       aria-label={t('actions.print')}
     >
       <Printer aria-hidden="true" />
+      {showLabel ? t('actions.print') : null}
     </Button>
   )
 }

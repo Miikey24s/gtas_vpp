@@ -280,10 +280,12 @@ Phải bao phủ preview, exception, confirm, correction, immutable history và 
 
 | React route | Permission | Status |
 |---|---|---|
-| `/app/reports` | `REPORT_VIEW_OWN/DEPARTMENT/ALL` | PENDING |
-| `/app/reports/insights` | report scope + feature config | PENDING |
+| `/app/reports` | `REPORT_VIEW_OWN/DEPARTMENT/ALL` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/reports/insights` | report scope + feature config | IMPLEMENTED — OWNER_REVIEW |
 
 Report phải bao phủ scope, filter, summary, trend/status, department/product, exact table, export XLSX, print và AI-disabled/error/evidence states.
+
+R7 dùng một `ReportWorkspace` chung cho hai route để không lặp query/filter/data story. `/app/reports` ưu tiên số liệu và bằng chứng; `/app/reports/insights` mở cùng workspace với vùng phân tích được ưu tiên. Mỗi chart chỉ trả lời một câu hỏi, luôn đi kèm số liệu exact-data và thời điểm tạo báo cáo.
 
 ## 10. Implementation waves
 
@@ -296,7 +298,7 @@ Report phải bao phủ scope, filter, summary, trend/status, department/product
 | R4 | Period/procurement/settlement | COMPLETE — period overview, quote comparison, supplier exception, confirm/correction, immutable revision history và reconciliation evidence + automated QA pass |
 | R5 | Library/master data | COMPLETE — generic master data, typed catalog, supplier price-book lifecycle, item pricing, restore flow + automated QA pass |
 | R6 | Access control | COMPLETE — account activation, membership, canonical role overview, UI component permission + automated QA pass |
-| R7 | Reports/AI/print/export | Data story reconcile số thật, export/print/AI fallback pass |
+| R7 | Reports/AI/print/export | COMPLETE — typed data story, XLSX, print, AI error/rules/AI states + automated QA pass |
 | R8 | Global hardening + cutover | Cookie/BFF, a11y/perf/security/regression/deploy/rollback green |
 
 Thứ tự trong wave ưu tiên một end-to-end journey hoạt động trước khi mở rộng breadth. Owner review theo checkpoint; feedback shared primitive phải được retrofit các route đã làm.
@@ -441,6 +443,10 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | Swagger schema ID chỉ phân biệt hai DTO Auth trùng tên | Giữ tên generated contract ổn định cho phần còn lại, dùng `AuthPermissionGroupResDTO`/`AuthUserGroupMembershipResDTO` để typed client không va chạm |
 | 2026-07-20 | Backend trả `AdministrationMode` và `CanConfigure` cho component permission | React không lặp lại role ceiling/action-matrix rule; UI chỉ bật switch khi backend xác nhận mapping có thể cấu hình |
 | 2026-07-20 | R6 automated gate đạt 9 Playwright journeys toàn bộ | Luồng mới bao phủ activate account, canonical role overview, component toggle, reduced-motion, axe, console/network; backend đạt 401 tests |
+| 2026-07-20 | R7 dùng Recharts qua shadcn Chart foundation đã kiểm tra MCP | Giữ Recharts 3.9.2 hiện có; area/bar chart dùng accessibility layer, `ResponsiveContainer` và animation `auto` để tôn trọng reduced-motion; không thêm chart/animation package khác |
+| 2026-07-20 | AI insight chỉ chạy theo yêu cầu và không giữ key ở browser | React gọi backend typed endpoint; backend tự chọn provider hoặc rules fallback. UI luôn hiện source, model, thời điểm và bằng chứng từ cùng bộ lọc báo cáo, không trình bày fallback như kết luận AI |
+| 2026-07-20 | Báo cáo là một workspace chia sẻ cho số liệu và insight | Hai route dùng chung filter/query để số liệu, XLSX, print và insight không lệch scope; trend trả lời biến động theo kỳ, status trả lời vị trí trong workflow, department trả lời nơi tạo giá trị, top items giữ bảng exact-data |
+| 2026-07-20 | R7 automated gate đạt 10 Playwright journeys toàn bộ | Report journey bao phủ permission scope, filter, reconciliation, chart/table, XLSX, print, VI/EN, AI idle/error/rules/AI, reduced-motion, axe và console/network; backend đạt 401 tests |
 
 ## 18. Immediate execution queue
 
@@ -451,8 +457,8 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 5. R4 hoàn tất kỹ thuật: period overview, preview, exception, confirm, settlement, correction, immutable history và reconciliation; chờ owner visual review.
 6. R5 hoàn tất kỹ thuật: master data, catalog, supplier price book và item pricing; chờ owner visual review.
 7. R6 hoàn tất kỹ thuật: account activation, membership, canonical group overview và component permission; chờ owner visual review.
-8. R7 là wave tiếp theo: reports, AI evidence/fallback, export XLSX và print-mode.
-9. R8 mới thực hiện cookie/BFF, production hosting, cutover và deployment.
+8. R7 hoàn tất kỹ thuật: shared report workspace, AI evidence/fallback, export XLSX và print-mode; chờ owner visual review.
+9. R8 là wave tiếp theo: cookie/BFF, production hosting, a11y/performance/security regression, cutover và rollback readiness.
 
 Prompt tiếp tục:
 

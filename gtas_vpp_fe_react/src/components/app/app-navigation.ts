@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   Building2,
   CalendarRange,
   ClipboardList,
@@ -67,6 +68,16 @@ export const appNavigation: AppNavigationItem[] = [
     labelKey: 'navigation.access',
     icon: Shield,
     anyPermission: [permissions.permissionView],
+  },
+  {
+    to: '/app/reports',
+    labelKey: 'navigation.reports',
+    icon: BarChart3,
+    anyPermission: [
+      permissions.reportViewOwn,
+      permissions.reportViewDepartment,
+      permissions.reportViewAll,
+    ],
   },
 ]
 
