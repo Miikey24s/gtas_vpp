@@ -64,27 +64,7 @@ public sealed class MembershipPermissionControllerTests
             });
         await context.SaveChangesAsync();
 
-        var resolver = new Mock<IUserNameResolver>();
-        resolver
-            .Setup(service => service.WithUserNamesAsync(
-                It.IsAny<List<UserAdministrationResDTO>>(),
-                It.IsAny<DbContext>()))
-            .ReturnsAsync((List<UserAdministrationResDTO> users, DbContext _) => users);
-        var controller = new PermissionController(
-            Mock.Of<IGenericRepository<PermissionGroup>>(),
-            Mock.Of<IGenericRepository<GroupPageComponentMapping>>(),
-            Mock.Of<IGenericRepository<UserGroupMembership>>(),
-            resolver.Object,
-            ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
-            new FakeDateTimeProvider(DateTime.UtcNow),
-            Mock.Of<IPermissionChangeNotifier>(),
-            Mock.Of<IMembershipAdministrationService>())
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext()
-            }
-        };
+        var controller = CreateController(context);
 
         var action = await controller.GetUsers(top: 20);
 
@@ -100,7 +80,116 @@ public sealed class MembershipPermissionControllerTests
         Assert.True(tombstone.IsDeleted);
     }
 
-    private static AppUser AddAccount(VPPContext context, int id, string userName)
+    [Fact]
+    public async Task GetUsers_AppliesTypedAccountAndMembershipFilters()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var member = AddAccount(context, 1_000_000_211, "member.user");
+        var noMembership = AddAccount(context, 1_000_000_212, "unassigned.user");
+        var pending = AddAccount(
+            context,
+            1_000_000_213,
+            "pending.user",
+            AppAccountStatus.PendingApproval);
+        var group = new PermissionGroup
+        {
+            Id = CanonicalRbac.Employee.GroupId,
+            GroupCode = CanonicalRbac.Employee.GroupCode,
+            GroupName = CanonicalRbac.Employee.GroupName,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+        var department = new gtas_vpp_be.Model.Library.Department
+        {
+            Id = Guid.NewGuid(),
+            Code = "OPS",
+            Name = "Operations",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+        context.AddRange(group, department);
+        context.UserGroupMemberships.Add(new UserGroupMembership
+        {
+            Id = Guid.NewGuid(),
+            AccountId = member.Id,
+            UserId = member.Id,
+            PermissionGroupId = group.Id,
+            DepartmentId = department.Id,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
+            IsDeleted = false
+        });
+        await context.SaveChangesAsync();
+        var controller = CreateController(context);
+
+        var assignedAction = await controller.GetUsers(
+            accountStatus: nameof(AppAccountStatus.Active),
+            groupId: group.Id,
+            departmentId: department.Id,
+            hasActiveMembership: true,
+            top: 20);
+        var assigned = Assert.IsType<List<UserAdministrationResDTO>>(
+            Assert.IsType<OkObjectResult>(assignedAction).Value);
+        Assert.Equal(member.Id, Assert.Single(assigned).UserId);
+
+        var unassignedAction = await controller.GetUsers(
+            accountStatus: nameof(AppAccountStatus.Active),
+            hasActiveMembership: false,
+            top: 20);
+        var unassigned = Assert.IsType<List<UserAdministrationResDTO>>(
+            Assert.IsType<OkObjectResult>(unassignedAction).Value);
+        Assert.Equal(noMembership.Id, Assert.Single(unassigned).UserId);
+
+        var pendingAction = await controller.GetUsers(
+            accountStatus: nameof(AppAccountStatus.PendingApproval),
+            top: 20);
+        var pendingUsers = Assert.IsType<List<UserAdministrationResDTO>>(
+            Assert.IsType<OkObjectResult>(pendingAction).Value);
+        Assert.Equal(pending.Id, Assert.Single(pendingUsers).UserId);
+    }
+
+    [Fact]
+    public async Task GetUsers_RejectsUnknownAccountStatus()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var controller = CreateController(context);
+
+        var action = await controller.GetUsers(accountStatus: "Archived");
+
+        Assert.IsType<BadRequestObjectResult>(action);
+    }
+
+    private static PermissionController CreateController(VPPContext context)
+    {
+        var resolver = new Mock<IUserNameResolver>();
+        resolver
+            .Setup(service => service.WithUserNamesAsync(
+                It.IsAny<List<UserAdministrationResDTO>>(),
+                It.IsAny<DbContext>()))
+            .ReturnsAsync((List<UserAdministrationResDTO> users, DbContext _) => users);
+
+        return new PermissionController(
+            Mock.Of<IGenericRepository<PermissionGroup>>(),
+            Mock.Of<IGenericRepository<GroupPageComponentMapping>>(),
+            Mock.Of<IGenericRepository<UserGroupMembership>>(),
+            resolver.Object,
+            ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
+            new FakeDateTimeProvider(DateTime.UtcNow),
+            Mock.Of<IPermissionChangeNotifier>(),
+            Mock.Of<IMembershipAdministrationService>())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
+        };
+    }
+
+    private static AppUser AddAccount(
+        VPPContext context,
+        int id,
+        string userName,
+        AppAccountStatus status = AppAccountStatus.Active)
     {
         var account = new AppUser
         {
@@ -108,7 +197,7 @@ public sealed class MembershipPermissionControllerTests
             UserName = userName,
             NormalizedUserName = userName.ToUpperInvariant(),
             FullName = userName,
-            AccountStatus = AppAccountStatus.Active,
+            AccountStatus = status,
             SecurityStamp = Guid.NewGuid().ToString("N"),
             ConcurrencyStamp = Guid.NewGuid().ToString("N"),
             CreatedAtUtc = DateTime.UtcNow,

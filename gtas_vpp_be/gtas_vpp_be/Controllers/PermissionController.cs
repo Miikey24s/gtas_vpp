@@ -20,6 +20,8 @@ using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentR
 using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionComponentAccessResDTO;
 using AuthGroupDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionGroupResDTO;
 using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.UserAdministrationResDTO;
+using MembershipDto = gtas_vpp_shared.DTOs.Res.Permission.MembershipAdministrationResDTO;
+using UserMembershipDto = gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -62,6 +64,7 @@ namespace gtas_vpp_be.Controllers
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
 
         [HttpGet("groups")]
+        [ProducesResponseType(typeof(List<PermissionGroupResDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGroups(
             [FromQuery] bool getFullName = true,
             [FromQuery] string? filter = null,
@@ -88,6 +91,7 @@ namespace gtas_vpp_be.Controllers
                     UpdatedAtUtc = group.UpdatedAtUtc,
                     IsDeleted = group.IsDeleted,
                     MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+                    GroupCode = group.GroupCode,
                     GroupName = group.GroupName,
                     ParentGroupId = group.ParentGroupId
                 });
@@ -184,6 +188,8 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("groups/{id:guid}")]
+        [ProducesResponseType(typeof(PermissionGroupResDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGroupById(Guid id, [FromQuery] bool getFullName = true)
         {
             if (!CanonicalRbac.Personas.Any(persona => persona.GroupId == id))
@@ -199,6 +205,8 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("groups/{id:guid}/page-components")]
+        [ProducesResponseType(typeof(List<PermissionPageDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGroupPageComponents(Guid id, [FromQuery] bool? showDeleted = false)
         {
             if (!CanonicalRbac.Personas.Any(persona => persona.GroupId == id))
@@ -269,6 +277,20 @@ namespace gtas_vpp_be.Controllers
                                 var pageComponentMapping = groupMapping.PageComponentMapping!;
                                 var component = pageComponentMapping.PermissionComponent!;
                                 companyLookup.TryGetValue(groupMapping.MemberCompanyCode, out var company);
+                                var isActionGrant = Permissions.IsActionCode(component.ComponentCode);
+                                var isProtectedSystemAdminNavigation = id == CanonicalRbac.SystemAdmin.GroupId
+                                    && (string.Equals(component.ComponentCode, Permissions.MenuPermission, StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(component.ComponentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(component.ComponentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase));
+                                var isInsideRoleCeiling = CanonicalRbac.GetUiComponents(id)
+                                    .Contains(component.ComponentCode, StringComparer.OrdinalIgnoreCase);
+                                var administrationMode = isActionGrant
+                                    ? "ActionMatrix"
+                                    : isProtectedSystemAdminNavigation
+                                        ? "Required"
+                                        : isInsideRoleCeiling
+                                            ? "Configurable"
+                                            : "OutsideRoleCeiling";
 
                                 return new PermissionComponentDto
                                 {
@@ -284,7 +306,11 @@ namespace gtas_vpp_be.Controllers
                                     MemberCompanyCode = groupMapping.MemberCompanyCode,
                                     CompanyName = company?.CompanyName,
                                     CompanyShortName = company?.CompanyShortName,
-                                    IsDeleted = component.IsDeleted
+                                    IsDeleted = component.IsDeleted,
+                                    IsActionGrant = isActionGrant,
+                                    CanConfigure = !component.IsDeleted
+                                        && string.Equals(administrationMode, "Configurable", StringComparison.Ordinal),
+                                    AdministrationMode = administrationMode
                                 };
                             })
                             .ToList()
@@ -416,8 +442,14 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("users")]
+        [ProducesResponseType(typeof(List<UserListDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetUsers(
             [FromQuery] string? search = null,
+            [FromQuery] string? accountStatus = null,
+            [FromQuery] Guid? groupId = null,
+            [FromQuery] Guid? departmentId = null,
+            [FromQuery] bool? hasActiveMembership = null,
             [FromQuery] string? filter = null,
             [FromQuery] int? skip = null,
             [FromQuery] int? top = null,
@@ -429,6 +461,20 @@ namespace gtas_vpp_be.Controllers
             // App-owned Identity is the authority for accounts. Historical
             // GTAS_MENU/v_Users rows must never create a writable membership.
             var usersQuery = _unitOfWork.VPPContext.Users.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(accountStatus))
+            {
+                if (!Enum.TryParse<AppAccountStatus>(accountStatus.Trim(), true, out var parsedStatus))
+                {
+                    return BadRequest(new
+                    {
+                        code = "INVALID_ACCOUNT_STATUS",
+                        message = "Account status must be Active, PendingApproval or Disabled."
+                    });
+                }
+
+                usersQuery = usersQuery.Where(user => user.AccountStatus == parsedStatus);
+            }
 
             if (hasSearch)
             {
@@ -507,6 +553,23 @@ namespace gtas_vpp_be.Controllers
                             IsDeleted = userGroup.PermissionGroup.IsDeleted
                         }
                 };
+
+            if (groupId.HasValue)
+            {
+                query = query.Where(user => user.GroupId == groupId.Value);
+            }
+
+            if (departmentId.HasValue)
+            {
+                query = query.Where(user => user.DepartmentId == departmentId.Value);
+            }
+
+            if (hasActiveMembership.HasValue)
+            {
+                query = hasActiveMembership.Value
+                    ? query.Where(user => user.GroupId != Guid.Empty)
+                    : query.Where(user => user.GroupId == Guid.Empty);
+            }
 
             if (!string.IsNullOrWhiteSpace(filter))
             {
@@ -597,6 +660,8 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("user-groups")]
+        [ProducesResponseType(typeof(List<UserMembershipDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetUserGroups([FromQuery] int? userId)
         {
             try
@@ -634,6 +699,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("memberships")]
         [Authorize(Policy = Permissions.PermissionManage)]
+        [ProducesResponseType(typeof(MembershipDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpsertMembership(
             [FromBody] MembershipUpsertReqDTO command,
             CancellationToken cancellationToken)
@@ -647,6 +713,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("memberships/deactivate")]
         [Authorize(Policy = Permissions.PermissionManage)]
+        [ProducesResponseType(typeof(MembershipDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> DeactivateMembership(
             [FromBody] MembershipDeactivateReqDTO command,
             CancellationToken cancellationToken)

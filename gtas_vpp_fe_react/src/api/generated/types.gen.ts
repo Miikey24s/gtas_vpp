@@ -4,6 +4,14 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type AccountLifecycleResDto = {
+    accountId?: number;
+    accountStatus?: string | null;
+    mustChangePassword?: boolean;
+    emailConfirmed?: boolean;
+    message?: string | null;
+};
+
 export type AccountRegistrationReqDto = {
     username: string;
     email: string;
@@ -30,6 +38,35 @@ export type AdminPasswordResetReqDto = {
 export type ApproveOrderReqDto = {
     rowVersion?: string | null;
     idempotencyKey?: string | null;
+};
+
+export type AuthPermissionGroupResDto = {
+    id?: string;
+    description?: string | null;
+    createdByUserId?: number;
+    createdAtUtc?: string;
+    updatedByUserId?: number;
+    updatedAtUtc?: string;
+    isDeleted?: boolean;
+    createdByUserName?: string | null;
+    updatedByUserName?: string | null;
+    memberCompanyCode?: number;
+    groupName?: string | null;
+    parentGroupId?: string | null;
+    permissions?: Array<PermissionPageComponentResDto> | null;
+};
+
+export type AuthUserGroupMembershipResDto = {
+    id?: string;
+    description?: string | null;
+    createdByUserId?: number;
+    createdAtUtc?: string;
+    updatedByUserId?: number;
+    updatedAtUtc?: string;
+    isDeleted?: boolean;
+    userId?: number;
+    permissionGroupId?: string;
+    departmentId?: string;
 };
 
 export type AuthenticationLoginRequest = {
@@ -111,6 +148,26 @@ export type LookupValueResDto = {
     vppItemsByUom?: Array<VppItemResDto> | null;
     createdByUserName?: string | null;
     updatedByUserName?: string | null;
+};
+
+export type MembershipAdministrationResDto = {
+    membershipId?: string;
+    accountId?: number;
+    userLogin?: string | null;
+    fullName?: string | null;
+    email?: string | null;
+    accountStatus?: string | null;
+    sessionVersion?: number;
+    groupId?: string;
+    groupCode?: string | null;
+    groupName?: string | null;
+    primaryDepartmentId?: string;
+    code?: string | null;
+    name?: string | null;
+    rowVersion?: string | null;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
 export type MembershipDeactivateReqDto = {
@@ -207,10 +264,45 @@ export type PeriodSettlementResDto = {
     primarySupplierName?: string | null;
 };
 
+export type PermissionComponentAccessResDto = {
+    componentId?: string;
+    componentCode?: string | null;
+    componentName?: string | null;
+    isVisible?: boolean;
+    isEnable?: boolean;
+    pageId?: string;
+    groupId?: string;
+    groupPageComponentMappingId?: string;
+    description?: string | null;
+    memberCompanyCode?: number;
+    companyName?: string | null;
+    companyShortName?: string | null;
+    isDeleted?: boolean;
+    isActionGrant?: boolean;
+    canConfigure?: boolean;
+    administrationMode?: string | null;
+};
+
 export type PermissionComponentResDto = {
     componentCode?: string | null;
     isVisible?: boolean;
     isEnable?: boolean;
+};
+
+export type PermissionGroupResDto = {
+    id?: string;
+    description?: string | null;
+    createdByUserId?: number;
+    createdAtUtc?: string;
+    updatedByUserId?: number;
+    updatedAtUtc?: string;
+    isDeleted?: boolean;
+    createdByUserName?: string | null;
+    updatedByUserName?: string | null;
+    memberCompanyCode?: number;
+    groupCode?: string | null;
+    groupName?: string | null;
+    parentGroupId?: string | null;
 };
 
 export type PermissionGroupUpdateReqDto = {
@@ -220,6 +312,22 @@ export type PermissionGroupUpdateReqDto = {
     isDeleted?: boolean;
     updatedByUserId?: number;
     updatedAtUtc?: string | null;
+};
+
+export type PermissionPageComponentResDto = {
+    groupId?: string;
+    pageId?: string;
+    pageName?: string | null;
+    description?: string | null;
+    pageCode?: string | null;
+    createdByUserId?: number;
+    createdAtUtc?: string;
+    createdByUserName?: string | null;
+    updatedByUserId?: number;
+    updatedAtUtc?: string;
+    updatedByUserName?: string | null;
+    isDeleted?: boolean;
+    components?: Array<PermissionComponentAccessResDto> | null;
 };
 
 export type PermissionSnapshotPageResDto = {
@@ -592,6 +700,35 @@ export type SupplierResDto = {
     ward?: string | null;
     city?: string | null;
     supplierProductMappings?: Array<SupplierProductMappingResDto> | null;
+};
+
+export type UserAdministrationResDto = {
+    id?: string;
+    userId?: number;
+    userLogin?: string | null;
+    fullName?: string | null;
+    email?: string | null;
+    googleEmail?: string | null;
+    isAdmin?: boolean;
+    groupId?: string;
+    groupName?: string | null;
+    createdByUserId?: number;
+    createdAtUtc?: string | null;
+    createdByUserName?: string | null;
+    updatedByUserId?: number;
+    updatedAtUtc?: string | null;
+    updatedByUserName?: string | null;
+    isDeleted?: boolean;
+    userType?: string | null;
+    description?: string | null;
+    userGroup?: AuthPermissionGroupResDto;
+    departmentName?: string | null;
+    departmentId?: string | null;
+    accountStatus?: string | null;
+    sessionVersion?: number;
+    groupCode?: string | null;
+    isActive?: boolean;
+    rowVersion?: string | null;
 };
 
 export type VppCategoryResDto = {
@@ -1020,8 +1157,10 @@ export type PostApiAccountAdminActivateResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: MembershipAdministrationResDto;
 };
+
+export type PostApiAccountAdminActivateResponse = PostApiAccountAdminActivateResponses[keyof PostApiAccountAdminActivateResponses];
 
 export type PostApiAccountAdminResetPasswordData = {
     body?: AdminPasswordResetReqDto;
@@ -1034,8 +1173,10 @@ export type PostApiAccountAdminResetPasswordResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: AccountLifecycleResDto;
 };
+
+export type PostApiAccountAdminResetPasswordResponse = PostApiAccountAdminResetPasswordResponses[keyof PostApiAccountAdminResetPasswordResponses];
 
 export type PostApiAuthLoginData = {
     body?: AuthenticationLoginRequest;
@@ -1491,8 +1632,10 @@ export type GetApiPermissionGroupsResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<PermissionGroupResDto>;
 };
+
+export type GetApiPermissionGroupsResponse = GetApiPermissionGroupsResponses[keyof GetApiPermissionGroupsResponses];
 
 export type GetApiPermissionGroupsByIdData = {
     body?: never;
@@ -1505,12 +1648,23 @@ export type GetApiPermissionGroupsByIdData = {
     url: '/api/Permission/groups/{id}';
 };
 
+export type GetApiPermissionGroupsByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiPermissionGroupsByIdError = GetApiPermissionGroupsByIdErrors[keyof GetApiPermissionGroupsByIdErrors];
+
 export type GetApiPermissionGroupsByIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PermissionGroupResDto;
 };
+
+export type GetApiPermissionGroupsByIdResponse = GetApiPermissionGroupsByIdResponses[keyof GetApiPermissionGroupsByIdResponses];
 
 export type PutApiPermissionGroupsByIdData = {
     body?: PermissionGroupUpdateReqDto;
@@ -1539,12 +1693,23 @@ export type GetApiPermissionGroupsByIdPageComponentsData = {
     url: '/api/Permission/groups/{id}/page-components';
 };
 
+export type GetApiPermissionGroupsByIdPageComponentsErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiPermissionGroupsByIdPageComponentsError = GetApiPermissionGroupsByIdPageComponentsErrors[keyof GetApiPermissionGroupsByIdPageComponentsErrors];
+
 export type GetApiPermissionGroupsByIdPageComponentsResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<PermissionPageComponentResDto>;
 };
+
+export type GetApiPermissionGroupsByIdPageComponentsResponse = GetApiPermissionGroupsByIdPageComponentsResponses[keyof GetApiPermissionGroupsByIdPageComponentsResponses];
 
 export type PatchApiPermissionComponentMappingData = {
     body?: PatchComponentMappingReqDto;
@@ -1565,6 +1730,10 @@ export type GetApiPermissionUsersData = {
     path?: never;
     query?: {
         search?: string;
+        accountStatus?: string;
+        groupId?: string;
+        departmentId?: string;
+        hasActiveMembership?: boolean;
         filter?: string;
         skip?: number;
         top?: number;
@@ -1575,12 +1744,23 @@ export type GetApiPermissionUsersData = {
     url: '/api/Permission/users';
 };
 
+export type GetApiPermissionUsersErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+};
+
+export type GetApiPermissionUsersError = GetApiPermissionUsersErrors[keyof GetApiPermissionUsersErrors];
+
 export type GetApiPermissionUsersResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<UserAdministrationResDto>;
 };
+
+export type GetApiPermissionUsersResponse = GetApiPermissionUsersResponses[keyof GetApiPermissionUsersResponses];
 
 export type GetApiPermissionUserGroupsData = {
     body?: never;
@@ -1591,12 +1771,23 @@ export type GetApiPermissionUserGroupsData = {
     url: '/api/Permission/user-groups';
 };
 
+export type GetApiPermissionUserGroupsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+};
+
+export type GetApiPermissionUserGroupsError = GetApiPermissionUserGroupsErrors[keyof GetApiPermissionUserGroupsErrors];
+
 export type GetApiPermissionUserGroupsResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<AuthUserGroupMembershipResDto>;
 };
+
+export type GetApiPermissionUserGroupsResponse = GetApiPermissionUserGroupsResponses[keyof GetApiPermissionUserGroupsResponses];
 
 export type PutApiPermissionMembershipsData = {
     body?: MembershipUpsertReqDto;
@@ -1609,8 +1800,10 @@ export type PutApiPermissionMembershipsResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: MembershipAdministrationResDto;
 };
+
+export type PutApiPermissionMembershipsResponse = PutApiPermissionMembershipsResponses[keyof PutApiPermissionMembershipsResponses];
 
 export type PostApiPermissionMembershipsDeactivateData = {
     body?: MembershipDeactivateReqDto;
@@ -1623,8 +1816,10 @@ export type PostApiPermissionMembershipsDeactivateResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: MembershipAdministrationResDto;
 };
+
+export type PostApiPermissionMembershipsDeactivateResponse = PostApiPermissionMembershipsDeactivateResponses[keyof PostApiPermissionMembershipsDeactivateResponses];
 
 export type GetApiReportsSummaryData = {
     body?: never;

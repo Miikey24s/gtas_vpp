@@ -13,6 +13,7 @@ namespace gtas_vpp_shared.DTOs.Res.Permission
         public string? CreatedByUserName { get; set; }
         public string? UpdatedByUserName { get; set; }
         public decimal MemberCompanyCode { get; set; }
+        public string? GroupCode { get; set; }
         public string? GroupName { get; set; }
         public Guid? ParentGroupId { get; set; }
     }

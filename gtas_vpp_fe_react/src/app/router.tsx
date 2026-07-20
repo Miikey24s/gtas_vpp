@@ -278,6 +278,37 @@ export const router = createBrowserRouter([
               return { Component: LibraryPricesPage }
             },
           },
+          {
+            path: 'access',
+            loader: () => redirect('/app/access/users'),
+          },
+          {
+            path: 'access/users',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { AccessUsersPage } =
+                await import('@/app/routes/access-users-page')
+              return { Component: AccessUsersPage }
+            },
+          },
+          {
+            path: 'access/groups',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { AccessGroupsPage } =
+                await import('@/app/routes/access-groups-page')
+              return { Component: AccessGroupsPage }
+            },
+          },
+          {
+            path: 'access/permissions',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { AccessPermissionsPage } =
+                await import('@/app/routes/access-permissions-page')
+              return { Component: AccessPermissionsPage }
+            },
+          },
         ],
       },
     ],

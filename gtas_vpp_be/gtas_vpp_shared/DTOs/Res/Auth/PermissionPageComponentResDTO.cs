@@ -32,6 +32,9 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         public string? CompanyName { get; set; }
         public string? CompanyShortName { get; set; }
         public bool IsDeleted { get; set; }
+        public bool IsActionGrant { get; set; }
+        public bool CanConfigure { get; set; }
+        public string AdministrationMode { get; set; } = string.Empty;
     }
 }
 

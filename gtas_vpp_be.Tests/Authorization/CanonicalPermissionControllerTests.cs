@@ -45,6 +45,9 @@ public sealed class CanonicalPermissionControllerTests
             CanonicalRbac.Personas.Select(persona => persona.GroupId).Order(),
             groups.Select(group => group.Id).Order());
         Assert.All(groups, group => Assert.Equal(CanonicalRbac.DefaultMemberCompanyCode, group.MemberCompanyCode));
+        Assert.Equal(
+            CanonicalRbac.Personas.Select(persona => persona.GroupCode).Order(),
+            groups.Select(group => group.GroupCode).Order());
     }
 
     [Fact]

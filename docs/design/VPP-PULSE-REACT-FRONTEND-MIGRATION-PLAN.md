@@ -272,9 +272,9 @@ Phải bao phủ preview, exception, confirm, correction, immutable history và 
 
 | React route | Permission | Status |
 |---|---|---|
-| `/app/access/users` | `PERMISSION_VIEW/MANAGE` | PENDING |
-| `/app/access/groups` | `PERMISSION_VIEW/MANAGE` | PENDING |
-| `/app/access/permissions` | `PERMISSION_VIEW/MANAGE` | PENDING |
+| `/app/access/users` | `PERMISSION_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/access/groups` | `PERMISSION_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/access/permissions` | `PERMISSION_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
 
 ### 9.7 Reports và intelligence
 
@@ -295,7 +295,7 @@ Report phải bao phủ scope, filter, summary, trend/status, department/product
 | R3 | Department/company management | COMPLETE — scoped overview, filters, supplement decisions, direct API guard + automated QA pass |
 | R4 | Period/procurement/settlement | COMPLETE — period overview, quote comparison, supplier exception, confirm/correction, immutable revision history và reconciliation evidence + automated QA pass |
 | R5 | Library/master data | COMPLETE — generic master data, typed catalog, supplier price-book lifecycle, item pricing, restore flow + automated QA pass |
-| R6 | Access control | Account activation, membership, group và component permission pass |
+| R6 | Access control | COMPLETE — account activation, membership, canonical role overview, UI component permission + automated QA pass |
 | R7 | Reports/AI/print/export | Data story reconcile số thật, export/print/AI fallback pass |
 | R8 | Global hardening + cutover | Cookie/BFF, a11y/perf/security/regression/deploy/rollback green |
 
@@ -436,6 +436,11 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | Price mapping cần archive và restore đối xứng | Bổ sung typed PATCH `/api/VPPPrice/{id}/deleted`; fix readback để dữ liệu vừa archive vẫn trả DTO hợp lệ |
 | 2026-07-20 | Price admin luôn có một price-list context cụ thể | Không hiển thị lựa chọn “tất cả bảng giá” sai nghĩa; mutation chỉ bật với bảng giá Draft đã chọn |
 | 2026-07-20 | R5 automated gate bao phủ master-data-to-publish lifecycle | E2E tạo class, item, price book, item price, publish, reduced-motion, axe, console/network; backend service tests kiểm tra search và restore |
+| 2026-07-20 | R6 tách ba workspace thay vì một lưới phân quyền tổng hợp | `users` xử lý account lifecycle/membership, `groups` giải thích bốn canonical persona bất biến, `permissions` chỉ quản trị UI visibility/enable trong role ceiling; action grant vẫn read-only theo backend matrix |
+| 2026-07-20 | R6 dùng switch/tabs/table hiện có sau khi kiểm tra shadcn MCP | Không thêm UI package hoặc animation dependency; mutation dùng Dialog/Sheet, state transition dùng motion foundation và reduced-motion gate hiện có |
+| 2026-07-20 | Swagger schema ID chỉ phân biệt hai DTO Auth trùng tên | Giữ tên generated contract ổn định cho phần còn lại, dùng `AuthPermissionGroupResDTO`/`AuthUserGroupMembershipResDTO` để typed client không va chạm |
+| 2026-07-20 | Backend trả `AdministrationMode` và `CanConfigure` cho component permission | React không lặp lại role ceiling/action-matrix rule; UI chỉ bật switch khi backend xác nhận mapping có thể cấu hình |
+| 2026-07-20 | R6 automated gate đạt 9 Playwright journeys toàn bộ | Luồng mới bao phủ activate account, canonical role overview, component toggle, reduced-motion, axe, console/network; backend đạt 401 tests |
 
 ## 18. Immediate execution queue
 
@@ -445,8 +450,9 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 4. R3 hoàn tất kỹ thuật: department/company management + supplement decision; chờ owner visual review.
 5. R4 hoàn tất kỹ thuật: period overview, preview, exception, confirm, settlement, correction, immutable history và reconciliation; chờ owner visual review.
 6. R5 hoàn tất kỹ thuật: master data, catalog, supplier price book và item pricing; chờ owner visual review.
-7. R6 là wave tiếp theo: account activation, membership, permission group và component permission.
-8. R8 mới thực hiện cookie/BFF, production hosting, cutover và deployment.
+7. R6 hoàn tất kỹ thuật: account activation, membership, canonical group overview và component permission; chờ owner visual review.
+8. R7 là wave tiếp theo: reports, AI evidence/fallback, export XLSX và print-mode.
+9. R8 mới thực hiện cookie/BFF, production hosting, cutover và deployment.
 
 Prompt tiếp tục:
 

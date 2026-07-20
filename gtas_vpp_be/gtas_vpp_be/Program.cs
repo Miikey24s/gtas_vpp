@@ -121,7 +121,21 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddReportInsights(Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.CustomSchemaIds(type =>
+    {
+        var isAuthResponseNamespace = string.Equals(
+            type.Namespace,
+            "gtas_vpp_shared.DTOs.Res.Auth",
+            StringComparison.Ordinal);
+
+        return isAuthResponseNamespace
+            && type.Name is "PermissionGroupResDTO" or "UserGroupMembershipResDTO"
+                ? $"Auth{type.Name}"
+                : type.Name;
+    });
+});
 builder.Services.AddHealthChecks()
     .AddAsyncCheck(
         "database",

@@ -1,6 +1,8 @@
 using gtas_vpp_be.Authorization;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Account;
+using gtas_vpp_shared.DTOs.Res.Account;
+using gtas_vpp_shared.DTOs.Res.Permission;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -81,6 +83,7 @@ public sealed class AccountController(IAccountLifecycleService lifecycleService)
 
     [Authorize(Policy = Permissions.PermissionManage)]
     [HttpPost("admin/activate")]
+    [ProducesResponseType(typeof(MembershipAdministrationResDTO), StatusCodes.Status200OK)]
     public async Task<IActionResult> Activate(
         [FromBody] AdminAccountActivationReqDTO request,
         CancellationToken cancellationToken)
@@ -100,6 +103,7 @@ public sealed class AccountController(IAccountLifecycleService lifecycleService)
     [Authorize(Policy = Permissions.PermissionManage)]
     [EnableRateLimiting("account-password")]
     [HttpPost("admin/reset-password")]
+    [ProducesResponseType(typeof(AccountLifecycleResDTO), StatusCodes.Status200OK)]
     public async Task<IActionResult> AdminResetPassword(
         [FromBody] AdminPasswordResetReqDTO request,
         CancellationToken cancellationToken)

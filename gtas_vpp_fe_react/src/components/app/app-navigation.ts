@@ -5,6 +5,7 @@ import {
   Landmark,
   LibraryBig,
   PackageSearch,
+  Shield,
   ShieldCheck,
   type LucideIcon,
 } from 'lucide-react'
@@ -60,6 +61,12 @@ export const appNavigation: AppNavigationItem[] = [
     labelKey: 'navigation.library',
     icon: LibraryBig,
     anyPermission: [permissions.libraryView],
+  },
+  {
+    to: '/app/access',
+    labelKey: 'navigation.access',
+    icon: Shield,
+    anyPermission: [permissions.permissionView],
   },
 ]
 
