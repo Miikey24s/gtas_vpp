@@ -328,6 +328,44 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
+        public async Task<SupplierProductMappingResDTO> SetDeletedAsync(Guid id, bool isDeleted, int userId)
+        {
+            await _scopedUow.BeginTransactionAsync();
+            try
+            {
+                var entity = await _scopedUow.VPPContext.Set<SupplierProductMapping>()
+                    .FirstOrDefaultAsync(x => x.Id == id);
+                if (entity == null)
+                {
+                    throw new BusinessException("Price mapping not found.");
+                }
+
+                await EnsureDraftAsync(entity.PriceListId);
+
+                var now = _dateTimeProvider.Now;
+                entity.IsDeleted = isDeleted;
+                if (isDeleted)
+                {
+                    entity.IsDefault = false;
+                }
+                entity.UpdatedByUserId = userId;
+                entity.UpdatedAtUtc = now;
+
+                await _scopedUow.CommitAsync();
+                return await GetRequiredDtoAsync(entity.Id, includeDeleted: true);
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                await _scopedUow.RollbackAsync();
+                throw new ConflictException(OneDefaultConflictMessage, ex);
+            }
+            catch
+            {
+                await _scopedUow.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task SetDefaultAsync(Guid id, int userId)
         {
             await _scopedUow.BeginTransactionAsync();
@@ -398,9 +436,11 @@ namespace gtas_vpp_be.Service.Services
                 });
         }
 
-        private async Task<SupplierProductMappingResDTO> GetRequiredDtoAsync(Guid id)
+        private async Task<SupplierProductMappingResDTO> GetRequiredDtoAsync(
+            Guid id,
+            bool includeDeleted = false)
         {
-            return await PriceDtoQuery().FirstAsync(x => x.Id == id);
+            return await PriceDtoQuery(includeDeleted).FirstAsync(x => x.Id == id);
         }
 
         private async Task<PriceList> ValidateReferencesAsync(Guid vppId, Guid supplierId, Guid priceListId)

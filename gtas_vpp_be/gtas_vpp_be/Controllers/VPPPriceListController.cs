@@ -1,6 +1,7 @@
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Library;
+using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -31,8 +32,10 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<List<PriceListResDTO>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(
             [FromQuery] bool? showDeleted = false,
+            [FromQuery] string? search = null,
             [FromQuery] string? filter = null,
             [FromQuery] int? skip = null,
             [FromQuery] int? top = null,
@@ -42,7 +45,8 @@ namespace gtas_vpp_be.Controllers
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var isGridRequest = !string.IsNullOrWhiteSpace(filter)
+            var isGridRequest = !string.IsNullOrWhiteSpace(search)
+                                || !string.IsNullOrWhiteSpace(filter)
                                 || skip.HasValue
                                 || top.HasValue
                                 || !string.IsNullOrWhiteSpace(orderby)
@@ -51,7 +55,7 @@ namespace gtas_vpp_be.Controllers
 
             if (isGridRequest)
             {
-                var result = await _priceListService.QueryAsync(showDeleted == true, filter, skip, top, orderby, distinct, distinctFilter);
+                var result = await _priceListService.QueryAsync(showDeleted == true, search, filter, skip, top, orderby, distinct, distinctFilter);
                 Response.Headers.Append("X-Total-Count", result.TotalCount.ToString());
                 return Ok(result.Data);
             }
@@ -61,6 +65,8 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -71,6 +77,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Create([FromBody] PriceListCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -80,6 +87,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update(Guid id, [FromBody] PriceListUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -90,6 +98,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpDelete("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -100,6 +109,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPatch("{id:guid}/deleted")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> SetDeleted(Guid id, [FromBody] JsonElement payload)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -116,6 +126,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpDelete("{id:guid}/hard")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> HardDelete(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -126,6 +137,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("{id:guid}/set-default")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SetDefault(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -136,6 +148,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("clone")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Clone([FromBody] PriceListCloneReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -145,6 +158,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("{id:guid}/publish")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Publish(
             Guid id,
             [FromBody] PriceBookStatusReqDTO req,
@@ -157,6 +171,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("{id:guid}/expire")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Expire(
             Guid id,
             [FromBody] PriceBookStatusReqDTO req,
@@ -169,6 +184,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("compare")]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<PriceBookComparisonResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Compare(
             [FromBody] PriceBookComparisonReqDTO req,
             CancellationToken cancellationToken)

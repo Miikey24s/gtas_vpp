@@ -3,6 +3,7 @@ import {
   CalendarRange,
   ClipboardList,
   Landmark,
+  LibraryBig,
   PackageSearch,
   ShieldCheck,
   type LucideIcon,
@@ -53,6 +54,12 @@ export const appNavigation: AppNavigationItem[] = [
     labelKey: 'navigation.periods',
     icon: CalendarRange,
     anyPermission: [permissions.periodSettle],
+  },
+  {
+    to: '/app/library',
+    labelKey: 'navigation.library',
+    icon: LibraryBig,
+    anyPermission: [permissions.libraryView],
   },
 ]
 

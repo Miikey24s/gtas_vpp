@@ -177,7 +177,9 @@ test('period preview, confirmation, supplier exception, and immutable correction
       return
     }
     if (path === '/api/notifications') {
-      await route.fulfill({ json: { items: [], totalCount: 0, unreadCount: 0 } })
+      await route.fulfill({
+        json: { items: [], totalCount: 0, unreadCount: 0 },
+      })
       return
     }
     if (path === '/api/vpprequest/period-info') {
@@ -189,6 +191,13 @@ test('period preview, confirmation, supplier exception, and immutable correction
           previousPeriodMonth: periodMonth,
           periodState: 'Open',
         },
+      })
+      return
+    }
+    if (path === '/api/vpprequest/my-orders') {
+      await route.fulfill({
+        headers: { 'X-Total-Count': '0' },
+        json: [],
       })
       return
     }
@@ -215,9 +224,7 @@ test('period preview, confirmation, supplier exception, and immutable correction
       })
       return
     }
-    if (
-      path === `/api/periodsettlement/current/${periodYear}/${periodMonth}`
-    ) {
+    if (path === `/api/periodsettlement/current/${periodYear}/${periodMonth}`) {
       const current = revisions().find((revision) => revision.isCurrentRevision)
       if (!current) {
         await route.fulfill({ status: 204 })
@@ -247,9 +254,16 @@ test('period preview, confirmation, supplier exception, and immutable correction
       const body = route.request().postDataJSON() as {
         priceListId?: string
         primarySupplierId?: string
-        exceptions?: Array<{ vppId?: string; supplierId?: string; reason?: string }>
+        exceptions?: Array<{
+          vppId?: string
+          supplierId?: string
+          reason?: string
+        }>
       }
-      if (body.priceListId === priceBookAlternateId && body.exceptions?.length) {
+      if (
+        body.priceListId === priceBookAlternateId &&
+        body.exceptions?.length
+      ) {
         expect(body.exceptions[0]).toMatchObject({
           vppId: missingItemId,
           supplierId: supplierPrimaryId,
@@ -380,32 +394,44 @@ test('period preview, confirmation, supplier exception, and immutable correction
 
   await page.goto('/login')
   await page.getByLabel('Tên đăng nhập').fill('procurement')
-  await page.getByLabel('Mật khẩu', { exact: true }).fill('Correct-Password-123!')
+  await page
+    .getByLabel('Mật khẩu', { exact: true })
+    .fill('Correct-Password-123!')
   await page.getByRole('button', { name: 'Đăng nhập' }).click()
   await expect(page).toHaveURL(/\/app\/orders/)
 
   await page.goto('/app/periods')
-  await expect(page.getByRole('heading', { name: 'Kỳ và quyết toán' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Kỳ và quyết toán' }),
+  ).toBeVisible()
   await expect(page.getByText('07/2026', { exact: true }).first()).toBeVisible()
   await page.getByRole('link', { name: 'Mở kỳ' }).first().click()
   await expect(page.getByRole('heading', { name: '07/2026' })).toBeVisible()
   await page.getByRole('link', { name: 'Bắt đầu preview' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Preview kỳ 07/2026' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Preview kỳ 07/2026' }),
+  ).toBeVisible()
   await expect(page.getByText('1.067.000 ₫').first()).toBeVisible()
   await page.getByRole('button', { name: 'Xác nhận quyết toán' }).click()
   await page.getByRole('button', { name: 'Xác nhận quyết toán' }).last().click()
 
-  await expect(page.getByRole('heading', { name: 'Quyết toán kỳ 07/2026' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Quyết toán kỳ 07/2026' }),
+  ).toBeVisible()
   await expect(page.getByText('Revision #1 hiện hành')).toBeVisible()
   await page.getByRole('link', { name: 'Tạo revision hiệu chỉnh' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Hiệu chỉnh kỳ 07/2026' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Hiệu chỉnh kỳ 07/2026' }),
+  ).toBeVisible()
   await page.getByRole('button', { name: /Nhà cung cấp Minh Long/ }).click()
   await expect(page.getByText('Pin đồng hồ 2A')).toBeVisible()
   await page.getByLabel('Nhà cung cấp thay thế').click()
   await page.getByRole('option', { name: 'Nhà cung cấp Phong Phú' }).click()
-  await page.getByLabel('Lý do ngoại lệ').fill('Nguồn thay thế đã có giá hợp đồng')
+  await page
+    .getByLabel('Lý do ngoại lệ')
+    .fill('Nguồn thay thế đã có giá hợp đồng')
   await page.getByRole('button', { name: 'Kiểm tra ngoại lệ' }).click()
   await expect(page.getByText('Sẵn sàng xác nhận')).toBeVisible()
   await page.getByRole('button', { name: 'Tạo revision hiệu chỉnh' }).click()
@@ -416,7 +442,9 @@ test('period preview, confirmation, supplier exception, and immutable correction
 
   await expect(page.getByText('Revision #2 hiện hành')).toBeVisible()
   await expect(page.getByText('Revision #1')).toBeVisible()
-  await expect(page.getByText('Điều chỉnh nguồn cung cho mặt hàng thiếu giá')).toBeVisible()
+  await expect(
+    page.getByText('Điều chỉnh nguồn cung cho mặt hàng thiếu giá'),
+  ).toBeVisible()
 
   const accessibility = await new AxeBuilder({ page }).analyze()
   expect(

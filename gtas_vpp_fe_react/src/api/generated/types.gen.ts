@@ -246,6 +246,13 @@ export type PriceBookComparisonReqDto = {
     supplierIds?: Array<string> | null;
 };
 
+export type PriceBookComparisonResDto = {
+    priceAsOfUtc?: string;
+    calculationVersion?: string | null;
+    requestedItemCount?: number;
+    quotes?: Array<PriceBookQuoteResDto> | null;
+};
+
 export type PriceBookQuoteResDto = {
     rank?: number;
     priceListId?: string;
@@ -359,12 +366,39 @@ export type PriceListUpdateReqDto = {
     rowVersion?: string | null;
 };
 
+export type PriceResolutionBlockerCode = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
 export type PriceResolutionReqDto = {
     vppId?: string;
     supplierId?: string | null;
     lockedPriceListId?: string | null;
     priceAsOfUtc?: string;
     quantity?: number;
+};
+
+export type PriceResolutionResDto = {
+    isResolved?: boolean;
+    blockerCode?: PriceResolutionBlockerCode;
+    blockerMessage?: string | null;
+    priceAsOfUtc?: string;
+    vppId?: string;
+    supplierId?: string | null;
+    supplierName?: string | null;
+    priceListId?: string | null;
+    priceListCode?: string | null;
+    priceListVersion?: number | null;
+    priceBookItemId?: string | null;
+    currencyCode?: string | null;
+    quantity?: number;
+    netUnitPrice?: number;
+    vatRate?: number;
+    netAmount?: number;
+    vatAmount?: number;
+    grossAmount?: number;
+    minimumOrderQuantity?: number;
+    leadTimeDays?: number;
+    supplierSku?: string | null;
+    calculationVersion?: string | null;
 };
 
 export type ProblemDetails = {
@@ -578,6 +612,24 @@ export type VppItemCreateRequest = {
     vppName: string;
     uomId?: string;
     vppCategoryId?: string;
+    description?: string | null;
+};
+
+export type VppItemPriceResDto = {
+    vppId?: string;
+    vppCode?: string | null;
+    vppName?: string | null;
+    categoryName?: string | null;
+    uomName?: string | null;
+    priceMappingId?: string | null;
+    price?: number | null;
+    netPrice?: number | null;
+    vatRate?: number;
+    minimumOrderQuantity?: number;
+    leadTimeDays?: number;
+    supplierSku?: string | null;
+    isDefault?: boolean;
+    isDeleted?: boolean;
     description?: string | null;
 };
 
@@ -1758,8 +1810,10 @@ export type GetApiVppPriceByVppByVppIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<SupplierProductMappingResDto>;
 };
+
+export type GetApiVppPriceByVppByVppIdResponse = GetApiVppPriceByVppByVppIdResponses[keyof GetApiVppPriceByVppByVppIdResponses];
 
 export type GetApiVppPriceBySupplierBySupplierIdData = {
     body?: never;
@@ -1777,8 +1831,10 @@ export type GetApiVppPriceBySupplierBySupplierIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<SupplierProductMappingResDto>;
 };
+
+export type GetApiVppPriceBySupplierBySupplierIdResponse = GetApiVppPriceBySupplierBySupplierIdResponses[keyof GetApiVppPriceBySupplierBySupplierIdResponses];
 
 export type GetApiVppPriceItemPricesData = {
     body?: never;
@@ -1802,8 +1858,10 @@ export type GetApiVppPriceItemPricesResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<VppItemPriceResDto>;
 };
+
+export type GetApiVppPriceItemPricesResponse = GetApiVppPriceItemPricesResponses[keyof GetApiVppPriceItemPricesResponses];
 
 export type PostApiVppPriceResolveData = {
     body?: PriceResolutionReqDto;
@@ -1816,8 +1874,10 @@ export type PostApiVppPriceResolveResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceResolutionResDto;
 };
+
+export type PostApiVppPriceResolveResponse = PostApiVppPriceResolveResponses[keyof PostApiVppPriceResolveResponses];
 
 export type PostApiVppPriceData = {
     body?: SupplierProductPriceCreateReqDto;
@@ -1830,8 +1890,10 @@ export type PostApiVppPriceResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: SupplierProductMappingResDto;
 };
+
+export type PostApiVppPriceResponse = PostApiVppPriceResponses[keyof PostApiVppPriceResponses];
 
 export type DeleteApiVppPriceByIdData = {
     body?: never;
@@ -1844,10 +1906,12 @@ export type DeleteApiVppPriceByIdData = {
 
 export type DeleteApiVppPriceByIdResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type DeleteApiVppPriceByIdResponse = DeleteApiVppPriceByIdResponses[keyof DeleteApiVppPriceByIdResponses];
 
 export type PutApiVppPriceByIdData = {
     body?: SupplierProductPriceUpdateReqDto;
@@ -1862,8 +1926,28 @@ export type PutApiVppPriceByIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: SupplierProductMappingResDto;
 };
+
+export type PutApiVppPriceByIdResponse = PutApiVppPriceByIdResponses[keyof PutApiVppPriceByIdResponses];
+
+export type PatchApiVppPriceByIdDeletedData = {
+    body?: unknown;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/VPPPrice/{id}/deleted';
+};
+
+export type PatchApiVppPriceByIdDeletedResponses = {
+    /**
+     * OK
+     */
+    200: SupplierProductMappingResDto;
+};
+
+export type PatchApiVppPriceByIdDeletedResponse = PatchApiVppPriceByIdDeletedResponses[keyof PatchApiVppPriceByIdDeletedResponses];
 
 export type PostApiVppPriceByIdSetDefaultData = {
     body?: never;
@@ -1876,16 +1960,19 @@ export type PostApiVppPriceByIdSetDefaultData = {
 
 export type PostApiVppPriceByIdSetDefaultResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type PostApiVppPriceByIdSetDefaultResponse = PostApiVppPriceByIdSetDefaultResponses[keyof PostApiVppPriceByIdSetDefaultResponses];
 
 export type GetApiVppPriceListData = {
     body?: never;
     path?: never;
     query?: {
         showDeleted?: boolean;
+        search?: string;
         filter?: string;
         skip?: number;
         top?: number;
@@ -1900,8 +1987,10 @@ export type GetApiVppPriceListResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<PriceListResDto>;
 };
+
+export type GetApiVppPriceListResponse = GetApiVppPriceListResponses[keyof GetApiVppPriceListResponses];
 
 export type PostApiVppPriceListData = {
     body?: PriceListCreateReqDto;
@@ -1914,8 +2003,10 @@ export type PostApiVppPriceListResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type PostApiVppPriceListResponse = PostApiVppPriceListResponses[keyof PostApiVppPriceListResponses];
 
 export type DeleteApiVppPriceListByIdData = {
     body?: never;
@@ -1928,10 +2019,12 @@ export type DeleteApiVppPriceListByIdData = {
 
 export type DeleteApiVppPriceListByIdResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type DeleteApiVppPriceListByIdResponse = DeleteApiVppPriceListByIdResponses[keyof DeleteApiVppPriceListByIdResponses];
 
 export type GetApiVppPriceListByIdData = {
     body?: never;
@@ -1942,12 +2035,23 @@ export type GetApiVppPriceListByIdData = {
     url: '/api/VPPPriceList/{id}';
 };
 
+export type GetApiVppPriceListByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiVppPriceListByIdError = GetApiVppPriceListByIdErrors[keyof GetApiVppPriceListByIdErrors];
+
 export type GetApiVppPriceListByIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type GetApiVppPriceListByIdResponse = GetApiVppPriceListByIdResponses[keyof GetApiVppPriceListByIdResponses];
 
 export type PutApiVppPriceListByIdData = {
     body?: PriceListUpdateReqDto;
@@ -1962,8 +2066,10 @@ export type PutApiVppPriceListByIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type PutApiVppPriceListByIdResponse = PutApiVppPriceListByIdResponses[keyof PutApiVppPriceListByIdResponses];
 
 export type PatchApiVppPriceListByIdDeletedData = {
     body?: unknown;
@@ -1978,8 +2084,10 @@ export type PatchApiVppPriceListByIdDeletedResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type PatchApiVppPriceListByIdDeletedResponse = PatchApiVppPriceListByIdDeletedResponses[keyof PatchApiVppPriceListByIdDeletedResponses];
 
 export type DeleteApiVppPriceListByIdHardData = {
     body?: never;
@@ -1992,10 +2100,12 @@ export type DeleteApiVppPriceListByIdHardData = {
 
 export type DeleteApiVppPriceListByIdHardResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type DeleteApiVppPriceListByIdHardResponse = DeleteApiVppPriceListByIdHardResponses[keyof DeleteApiVppPriceListByIdHardResponses];
 
 export type PostApiVppPriceListByIdSetDefaultData = {
     body?: never;
@@ -2008,10 +2118,12 @@ export type PostApiVppPriceListByIdSetDefaultData = {
 
 export type PostApiVppPriceListByIdSetDefaultResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type PostApiVppPriceListByIdSetDefaultResponse = PostApiVppPriceListByIdSetDefaultResponses[keyof PostApiVppPriceListByIdSetDefaultResponses];
 
 export type PostApiVppPriceListCloneData = {
     body?: PriceListCloneReqDto;
@@ -2024,8 +2136,10 @@ export type PostApiVppPriceListCloneResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type PostApiVppPriceListCloneResponse = PostApiVppPriceListCloneResponses[keyof PostApiVppPriceListCloneResponses];
 
 export type PostApiVppPriceListByIdPublishData = {
     body?: PriceBookStatusReqDto;
@@ -2040,8 +2154,10 @@ export type PostApiVppPriceListByIdPublishResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type PostApiVppPriceListByIdPublishResponse = PostApiVppPriceListByIdPublishResponses[keyof PostApiVppPriceListByIdPublishResponses];
 
 export type PostApiVppPriceListByIdExpireData = {
     body?: PriceBookStatusReqDto;
@@ -2056,8 +2172,10 @@ export type PostApiVppPriceListByIdExpireResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceListResDto;
 };
+
+export type PostApiVppPriceListByIdExpireResponse = PostApiVppPriceListByIdExpireResponses[keyof PostApiVppPriceListByIdExpireResponses];
 
 export type PostApiVppPriceListCompareData = {
     body?: PriceBookComparisonReqDto;
@@ -2070,8 +2188,10 @@ export type PostApiVppPriceListCompareResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: PriceBookComparisonResDto;
 };
+
+export type PostApiVppPriceListCompareResponse = PostApiVppPriceListCompareResponses[keyof PostApiVppPriceListCompareResponses];
 
 export type GetApiVppRequestMyOrdersData = {
     body?: never;

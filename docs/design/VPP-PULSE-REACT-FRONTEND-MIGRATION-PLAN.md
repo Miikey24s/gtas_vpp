@@ -260,13 +260,13 @@ Phải bao phủ preview, exception, confirm, correction, immutable history và 
 
 | React route | Permission | Status |
 |---|---|---|
-| `/app/library/classes` | `LIBRARY_VIEW/MANAGE` | PENDING |
-| `/app/library/categories` | `LIBRARY_VIEW/MANAGE` | PENDING |
-| `/app/library/items` | `LIBRARY_VIEW/MANAGE` | PENDING |
-| `/app/library/suppliers` | `LIBRARY_VIEW/MANAGE` | PENDING |
-| `/app/library/departments` | `LIBRARY_VIEW/MANAGE` | PENDING |
-| `/app/library/price-lists` | `LIBRARY_VIEW/MANAGE` | PENDING |
-| `/app/library/prices` | `LIBRARY_VIEW/MANAGE` | PENDING |
+| `/app/library/classes` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/library/categories` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/library/items` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/library/suppliers` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/library/departments` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/library/price-lists` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
+| `/app/library/prices` | `LIBRARY_VIEW/MANAGE` | IMPLEMENTED — OWNER_REVIEW |
 
 ### 9.6 Access control
 
@@ -294,7 +294,7 @@ Report phải bao phủ scope, filter, summary, trend/status, department/product
 | R2 | Employee order journey | COMPLETE — view/create/edit/copy/supplement/submit/cancel/history/catalog + automated QA pass |
 | R3 | Department/company management | COMPLETE — scoped overview, filters, supplement decisions, direct API guard + automated QA pass |
 | R4 | Period/procurement/settlement | COMPLETE — period overview, quote comparison, supplier exception, confirm/correction, immutable revision history và reconciliation evidence + automated QA pass |
-| R5 | Library/master data | Shared data-table/form/drawer pattern cover toàn bộ CRUD |
+| R5 | Library/master data | COMPLETE — generic master data, typed catalog, supplier price-book lifecycle, item pricing, restore flow + automated QA pass |
 | R6 | Access control | Account activation, membership, group và component permission pass |
 | R7 | Reports/AI/print/export | Data story reconcile số thật, export/print/AI fallback pass |
 | R8 | Global hardening + cutover | Cookie/BFF, a11y/perf/security/regression/deploy/rollback green |
@@ -430,6 +430,12 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | Supplier exception là phần của preview, không phải form CRUD rời | Chọn quote chính trước; chỉ hiện editor cho `missingVppIds`, backend resolve price-as-of và blocker trước khi cho xác nhận |
 | 2026-07-20 | Không dùng HTTP 404 cho trạng thái “chưa có settlement” | `current/{year}/{month}` trả 204 No Content; đây là trạng thái bình thường và không làm bẩn browser console |
 | 2026-07-20 | R4 automated gate bao phủ settlement lifecycle | E2E xác nhận lần đầu, snapshot, quote thiếu độ phủ, supplier exception, four-eyes correction, revision history, axe và console/network gate |
+| 2026-07-20 | shadcn MCP được kiểm tra trực tiếp trước R5 | Registry `@shadcn` hoạt động; Data Table/Sheet/Dialog dùng pattern registry nhưng code vẫn thuộc repository và được QA trên route thật |
+| 2026-07-20 | Master data dùng shared workspace, price book dùng task flow chuyên biệt | Class/category/supplier/department chia sẻ list-form-status; catalog/price list/price mapping giữ typed contract và state nghiệp vụ riêng |
+| 2026-07-20 | Không cho browser ghép Dynamic LINQ filter từ ô tìm kiếm | Bổ sung `search` an toàn cho price-list API; LINQ xử lý code/name/supplier/contract phía server |
+| 2026-07-20 | Price mapping cần archive và restore đối xứng | Bổ sung typed PATCH `/api/VPPPrice/{id}/deleted`; fix readback để dữ liệu vừa archive vẫn trả DTO hợp lệ |
+| 2026-07-20 | Price admin luôn có một price-list context cụ thể | Không hiển thị lựa chọn “tất cả bảng giá” sai nghĩa; mutation chỉ bật với bảng giá Draft đã chọn |
+| 2026-07-20 | R5 automated gate bao phủ master-data-to-publish lifecycle | E2E tạo class, item, price book, item price, publish, reduced-motion, axe, console/network; backend service tests kiểm tra search và restore |
 
 ## 18. Immediate execution queue
 
@@ -438,8 +444,9 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 3. R2 hoàn tất kỹ thuật: employee order journey + catalog; chờ owner visual review/retrofit.
 4. R3 hoàn tất kỹ thuật: department/company management + supplement decision; chờ owner visual review.
 5. R4 hoàn tất kỹ thuật: period overview, preview, exception, confirm, settlement, correction, immutable history và reconciliation; chờ owner visual review.
-6. R5 là wave đang thực thi: library/master data, supplier và price-list administration theo shared data-table/form pattern.
-7. R8 mới thực hiện cookie/BFF, production hosting, cutover và deployment.
+6. R5 hoàn tất kỹ thuật: master data, catalog, supplier price book và item pricing; chờ owner visual review.
+7. R6 là wave tiếp theo: account activation, membership, permission group và component permission.
+8. R8 mới thực hiện cookie/BFF, production hosting, cutover và deployment.
 
 Prompt tiếp tục:
 

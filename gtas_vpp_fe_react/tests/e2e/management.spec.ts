@@ -229,6 +229,7 @@ test('management scopes and supplement decisions stay permission-aware', async (
     .getByLabel('Mật khẩu', { exact: true })
     .fill('Correct-Password-123!')
   await page.getByRole('button', { name: 'Đăng nhập' }).click()
+  await expect(page).toHaveURL(/\/app\/orders/)
 
   await page.goto('/app/management/department')
   await expect(

@@ -39,6 +39,7 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<(List<PriceListResDTO> Data, int TotalCount)> QueryAsync(
             bool showDeleted = false,
+            string? search = null,
             string? filter = null,
             int? skip = null,
             int? top = null,
@@ -47,6 +48,16 @@ namespace gtas_vpp_be.Service.Services
             string? distinctFilter = null)
         {
             IQueryable<PriceListResDTO> query = PriceListDtoQuery(showDeleted);
+
+            var normalizedSearch = search?.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                query = query.Where(x =>
+                    (x.PriceListCode != null && x.PriceListCode.Contains(normalizedSearch))
+                    || (x.PriceListName != null && x.PriceListName.Contains(normalizedSearch))
+                    || (x.SupplierName != null && x.SupplierName.Contains(normalizedSearch))
+                    || (x.ContractCode != null && x.ContractCode.Contains(normalizedSearch)));
+            }
 
             if (!string.IsNullOrWhiteSpace(filter))
             {

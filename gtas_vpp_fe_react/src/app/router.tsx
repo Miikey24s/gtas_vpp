@@ -211,6 +211,73 @@ export const router = createBrowserRouter([
               return { Component: SettlementDetailPage }
             },
           },
+          {
+            path: 'library',
+            loader: () => redirect('/app/library/classes'),
+          },
+          {
+            path: 'library/classes',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibraryClassesPage } =
+                await import('@/app/routes/library-classes-page')
+              return { Component: LibraryClassesPage }
+            },
+          },
+          {
+            path: 'library/categories',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibraryCategoriesPage } =
+                await import('@/app/routes/library-categories-page')
+              return { Component: LibraryCategoriesPage }
+            },
+          },
+          {
+            path: 'library/items',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibraryItemsPage } =
+                await import('@/app/routes/library-items-page')
+              return { Component: LibraryItemsPage }
+            },
+          },
+          {
+            path: 'library/suppliers',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibrarySuppliersPage } =
+                await import('@/app/routes/library-suppliers-page')
+              return { Component: LibrarySuppliersPage }
+            },
+          },
+          {
+            path: 'library/departments',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibraryDepartmentsPage } =
+                await import('@/app/routes/library-departments-page')
+              return { Component: LibraryDepartmentsPage }
+            },
+          },
+          {
+            path: 'library/price-lists',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibraryPriceListsPage } =
+                await import('@/app/routes/library-price-lists-page')
+              return { Component: LibraryPriceListsPage }
+            },
+          },
+          {
+            path: 'library/prices',
+            hydrateFallbackElement: <RouteFallback />,
+            lazy: async () => {
+              const { LibraryPricesPage } =
+                await import('@/app/routes/library-prices-page')
+              return { Component: LibraryPricesPage }
+            },
+          },
         ],
       },
     ],

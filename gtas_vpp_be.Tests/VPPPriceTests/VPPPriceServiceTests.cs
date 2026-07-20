@@ -133,6 +133,30 @@ public class VPPPriceServiceTests
     }
 
     [Fact]
+    public async Task SetDeleted_RestoresArchivedPriceMapping()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 7, 20, 9, 0, 0);
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
+        var supplierId = await SeedSupplierAsync(context, "Supplier 1", now);
+        var service = CreatePriceService(context, now);
+        var created = await service.CreateAsync(
+            CreateReq(vppId, supplierId, priceListId, 1000, isDefault: true),
+            5615);
+
+        var archived = await service.SetDeletedAsync(created.Id, true, 5615);
+        var restored = await service.SetDeletedAsync(created.Id, false, 5615);
+
+        Assert.True(archived.IsDeleted);
+        Assert.False(archived.IsDefault);
+        Assert.False(restored.IsDeleted);
+        Assert.False(restored.IsDefault);
+        Assert.False((await context.Set<SupplierProductMapping>().SingleAsync()).IsDeleted);
+    }
+
+    [Fact]
     public async Task ListBySupplier_FiltersCorrectly()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

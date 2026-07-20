@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteApiLibraryByTableCodeById, deleteApiVppPriceById, deleteApiVppPriceListById, deleteApiVppPriceListByIdHard, getApiAccountConfirmEmail, getApiAuthMe, getApiAuthMePermissions, getApiCatalogItems, getApiCatalogItemsById, getApiLibraryByTableCode, getApiLibraryByTableCodeById, getApiNotifications, getApiPeriodSettlement, getApiPeriodSettlementByYByM, getApiPeriodSettlementCurrentByYByM, getApiPeriodSettlementRevisionsByYByM, getApiPermissionGroups, getApiPermissionGroupsById, getApiPermissionGroupsByIdPageComponents, getApiPermissionUserGroups, getApiPermissionUsers, getApiReportsExport, getApiReportsExportXlsx, getApiReportsInsights, getApiReportsSummary, getApiVppPriceBySupplierBySupplierId, getApiVppPriceByVppByVppId, getApiVppPriceItemPrices, getApiVppPriceList, getApiVppPriceListById, getApiVppRequestAdditionalOrdersPending, getApiVppRequestAllOrders, getApiVppRequestCategories, getApiVppRequestDashboardCharts, getApiVppRequestDepartmentOrders, getApiVppRequestMyOrders, getApiVppRequestMyOrdersSummary, getApiVppRequestOrderFilterValues, getApiVppRequestOrdersById, getApiVppRequestOrdersByIdHistory, getApiVppRequestOrdersPreviousItems, getApiVppRequestPeriodInfo, getApiVppRequestProducts, getApiVppRequestProductsLookup, type Options, patchApiCatalogItemsByIdStatus, patchApiLibraryByTableCodeById, patchApiPermissionComponentMapping, patchApiVppPriceListByIdDeleted, postApiAccountAdminActivate, postApiAccountAdminResetPassword, postApiAccountPasswordChange, postApiAccountPasswordRecovery, postApiAccountPasswordReset, postApiAccountRegister, postApiAuthLogin, postApiAuthLogout, postApiCatalogItems, postApiLibraryByTableCode, postApiNotificationsByIdRead, postApiNotificationsReadAll, postApiPeriodSettlementBySettlementIdCorrect, postApiPeriodSettlementConfirm, postApiPeriodSettlementPreview, postApiPeriodSettlementSettle, postApiPermissionMembershipsDeactivate, postApiVppPrice, postApiVppPriceByIdSetDefault, postApiVppPriceList, postApiVppPriceListByIdExpire, postApiVppPriceListByIdPublish, postApiVppPriceListByIdSetDefault, postApiVppPriceListClone, postApiVppPriceListCompare, postApiVppPriceResolve, postApiVppRequestAdditionalOrdersByIdApprove, postApiVppRequestAdditionalOrdersByIdReject, postApiVppRequestOrders, postApiVppRequestOrdersByIdCancel, putApiCatalogItemsById, putApiLibraryByTableCode, putApiPermissionGroupsById, putApiPermissionMemberships, putApiVppPriceById, putApiVppPriceListById, putApiVppRequestOrdersById } from '../sdk.gen';
-import type { DeleteApiLibraryByTableCodeByIdData, DeleteApiVppPriceByIdData, DeleteApiVppPriceListByIdData, DeleteApiVppPriceListByIdHardData, GetApiAccountConfirmEmailData, GetApiAuthMeData, GetApiAuthMeError, GetApiAuthMePermissionsData, GetApiAuthMePermissionsResponse, GetApiAuthMeResponse, GetApiCatalogItemsByIdData, GetApiCatalogItemsByIdResponse, GetApiCatalogItemsData, GetApiCatalogItemsResponse, GetApiLibraryByTableCodeByIdData, GetApiLibraryByTableCodeData, GetApiNotificationsData, GetApiNotificationsError, GetApiNotificationsResponse, GetApiPeriodSettlementByYByMData, GetApiPeriodSettlementByYByMResponse, GetApiPeriodSettlementCurrentByYByMData, GetApiPeriodSettlementCurrentByYByMResponse, GetApiPeriodSettlementData, GetApiPeriodSettlementResponse, GetApiPeriodSettlementRevisionsByYByMData, GetApiPeriodSettlementRevisionsByYByMResponse, GetApiPermissionGroupsByIdData, GetApiPermissionGroupsByIdPageComponentsData, GetApiPermissionGroupsData, GetApiPermissionUserGroupsData, GetApiPermissionUsersData, GetApiReportsExportData, GetApiReportsExportXlsxData, GetApiReportsInsightsData, GetApiReportsSummaryData, GetApiVppPriceBySupplierBySupplierIdData, GetApiVppPriceByVppByVppIdData, GetApiVppPriceItemPricesData, GetApiVppPriceListByIdData, GetApiVppPriceListData, GetApiVppRequestAdditionalOrdersPendingData, GetApiVppRequestAdditionalOrdersPendingError, GetApiVppRequestAdditionalOrdersPendingResponse, GetApiVppRequestAllOrdersData, GetApiVppRequestAllOrdersError, GetApiVppRequestAllOrdersResponse, GetApiVppRequestCategoriesData, GetApiVppRequestCategoriesError, GetApiVppRequestCategoriesResponse, GetApiVppRequestDashboardChartsData, GetApiVppRequestDepartmentOrdersData, GetApiVppRequestDepartmentOrdersError, GetApiVppRequestDepartmentOrdersResponse, GetApiVppRequestMyOrdersData, GetApiVppRequestMyOrdersError, GetApiVppRequestMyOrdersResponse, GetApiVppRequestMyOrdersSummaryData, GetApiVppRequestOrderFilterValuesData, GetApiVppRequestOrdersByIdData, GetApiVppRequestOrdersByIdError, GetApiVppRequestOrdersByIdHistoryData, GetApiVppRequestOrdersByIdHistoryError, GetApiVppRequestOrdersByIdHistoryResponse, GetApiVppRequestOrdersByIdResponse, GetApiVppRequestOrdersPreviousItemsData, GetApiVppRequestOrdersPreviousItemsError, GetApiVppRequestOrdersPreviousItemsResponse, GetApiVppRequestPeriodInfoData, GetApiVppRequestPeriodInfoError, GetApiVppRequestPeriodInfoResponse, GetApiVppRequestProductsData, GetApiVppRequestProductsError, GetApiVppRequestProductsLookupData, GetApiVppRequestProductsLookupError, GetApiVppRequestProductsLookupResponse, GetApiVppRequestProductsResponse, PatchApiCatalogItemsByIdStatusData, PatchApiCatalogItemsByIdStatusResponse, PatchApiLibraryByTableCodeByIdData, PatchApiPermissionComponentMappingData, PatchApiVppPriceListByIdDeletedData, PostApiAccountAdminActivateData, PostApiAccountAdminResetPasswordData, PostApiAccountPasswordChangeData, PostApiAccountPasswordRecoveryData, PostApiAccountPasswordResetData, PostApiAccountRegisterData, PostApiAuthLoginData, PostApiAuthLoginError, PostApiAuthLoginResponse, PostApiAuthLogoutData, PostApiAuthLogoutError, PostApiAuthLogoutResponse, PostApiCatalogItemsData, PostApiCatalogItemsResponse, PostApiLibraryByTableCodeData, PostApiNotificationsByIdReadData, PostApiNotificationsByIdReadError, PostApiNotificationsByIdReadResponse, PostApiNotificationsReadAllData, PostApiNotificationsReadAllError, PostApiNotificationsReadAllResponse, PostApiPeriodSettlementBySettlementIdCorrectData, PostApiPeriodSettlementBySettlementIdCorrectResponse, PostApiPeriodSettlementConfirmData, PostApiPeriodSettlementConfirmResponse, PostApiPeriodSettlementPreviewData, PostApiPeriodSettlementPreviewResponse, PostApiPeriodSettlementSettleData, PostApiPeriodSettlementSettleResponse, PostApiPermissionMembershipsDeactivateData, PostApiVppPriceByIdSetDefaultData, PostApiVppPriceData, PostApiVppPriceListByIdExpireData, PostApiVppPriceListByIdPublishData, PostApiVppPriceListByIdSetDefaultData, PostApiVppPriceListCloneData, PostApiVppPriceListCompareData, PostApiVppPriceListData, PostApiVppPriceResolveData, PostApiVppRequestAdditionalOrdersByIdApproveData, PostApiVppRequestAdditionalOrdersByIdRejectData, PostApiVppRequestOrdersByIdCancelData, PostApiVppRequestOrdersData, PostApiVppRequestOrdersError, PostApiVppRequestOrdersResponse, PutApiCatalogItemsByIdData, PutApiCatalogItemsByIdResponse, PutApiLibraryByTableCodeData, PutApiPermissionGroupsByIdData, PutApiPermissionMembershipsData, PutApiVppPriceByIdData, PutApiVppPriceListByIdData, PutApiVppRequestOrdersByIdData, PutApiVppRequestOrdersByIdError, PutApiVppRequestOrdersByIdResponse } from '../types.gen';
+import { deleteApiLibraryByTableCodeById, deleteApiVppPriceById, deleteApiVppPriceListById, deleteApiVppPriceListByIdHard, getApiAccountConfirmEmail, getApiAuthMe, getApiAuthMePermissions, getApiCatalogItems, getApiCatalogItemsById, getApiLibraryByTableCode, getApiLibraryByTableCodeById, getApiNotifications, getApiPeriodSettlement, getApiPeriodSettlementByYByM, getApiPeriodSettlementCurrentByYByM, getApiPeriodSettlementRevisionsByYByM, getApiPermissionGroups, getApiPermissionGroupsById, getApiPermissionGroupsByIdPageComponents, getApiPermissionUserGroups, getApiPermissionUsers, getApiReportsExport, getApiReportsExportXlsx, getApiReportsInsights, getApiReportsSummary, getApiVppPriceBySupplierBySupplierId, getApiVppPriceByVppByVppId, getApiVppPriceItemPrices, getApiVppPriceList, getApiVppPriceListById, getApiVppRequestAdditionalOrdersPending, getApiVppRequestAllOrders, getApiVppRequestCategories, getApiVppRequestDashboardCharts, getApiVppRequestDepartmentOrders, getApiVppRequestMyOrders, getApiVppRequestMyOrdersSummary, getApiVppRequestOrderFilterValues, getApiVppRequestOrdersById, getApiVppRequestOrdersByIdHistory, getApiVppRequestOrdersPreviousItems, getApiVppRequestPeriodInfo, getApiVppRequestProducts, getApiVppRequestProductsLookup, type Options, patchApiCatalogItemsByIdStatus, patchApiLibraryByTableCodeById, patchApiPermissionComponentMapping, patchApiVppPriceByIdDeleted, patchApiVppPriceListByIdDeleted, postApiAccountAdminActivate, postApiAccountAdminResetPassword, postApiAccountPasswordChange, postApiAccountPasswordRecovery, postApiAccountPasswordReset, postApiAccountRegister, postApiAuthLogin, postApiAuthLogout, postApiCatalogItems, postApiLibraryByTableCode, postApiNotificationsByIdRead, postApiNotificationsReadAll, postApiPeriodSettlementBySettlementIdCorrect, postApiPeriodSettlementConfirm, postApiPeriodSettlementPreview, postApiPeriodSettlementSettle, postApiPermissionMembershipsDeactivate, postApiVppPrice, postApiVppPriceByIdSetDefault, postApiVppPriceList, postApiVppPriceListByIdExpire, postApiVppPriceListByIdPublish, postApiVppPriceListByIdSetDefault, postApiVppPriceListClone, postApiVppPriceListCompare, postApiVppPriceResolve, postApiVppRequestAdditionalOrdersByIdApprove, postApiVppRequestAdditionalOrdersByIdReject, postApiVppRequestOrders, postApiVppRequestOrdersByIdCancel, putApiCatalogItemsById, putApiLibraryByTableCode, putApiPermissionGroupsById, putApiPermissionMemberships, putApiVppPriceById, putApiVppPriceListById, putApiVppRequestOrdersById } from '../sdk.gen';
+import type { DeleteApiLibraryByTableCodeByIdData, DeleteApiVppPriceByIdData, DeleteApiVppPriceByIdResponse, DeleteApiVppPriceListByIdData, DeleteApiVppPriceListByIdHardData, DeleteApiVppPriceListByIdHardResponse, DeleteApiVppPriceListByIdResponse, GetApiAccountConfirmEmailData, GetApiAuthMeData, GetApiAuthMeError, GetApiAuthMePermissionsData, GetApiAuthMePermissionsResponse, GetApiAuthMeResponse, GetApiCatalogItemsByIdData, GetApiCatalogItemsByIdResponse, GetApiCatalogItemsData, GetApiCatalogItemsResponse, GetApiLibraryByTableCodeByIdData, GetApiLibraryByTableCodeData, GetApiNotificationsData, GetApiNotificationsError, GetApiNotificationsResponse, GetApiPeriodSettlementByYByMData, GetApiPeriodSettlementByYByMResponse, GetApiPeriodSettlementCurrentByYByMData, GetApiPeriodSettlementCurrentByYByMResponse, GetApiPeriodSettlementData, GetApiPeriodSettlementResponse, GetApiPeriodSettlementRevisionsByYByMData, GetApiPeriodSettlementRevisionsByYByMResponse, GetApiPermissionGroupsByIdData, GetApiPermissionGroupsByIdPageComponentsData, GetApiPermissionGroupsData, GetApiPermissionUserGroupsData, GetApiPermissionUsersData, GetApiReportsExportData, GetApiReportsExportXlsxData, GetApiReportsInsightsData, GetApiReportsSummaryData, GetApiVppPriceBySupplierBySupplierIdData, GetApiVppPriceBySupplierBySupplierIdResponse, GetApiVppPriceByVppByVppIdData, GetApiVppPriceByVppByVppIdResponse, GetApiVppPriceItemPricesData, GetApiVppPriceItemPricesResponse, GetApiVppPriceListByIdData, GetApiVppPriceListByIdError, GetApiVppPriceListByIdResponse, GetApiVppPriceListData, GetApiVppPriceListResponse, GetApiVppRequestAdditionalOrdersPendingData, GetApiVppRequestAdditionalOrdersPendingError, GetApiVppRequestAdditionalOrdersPendingResponse, GetApiVppRequestAllOrdersData, GetApiVppRequestAllOrdersError, GetApiVppRequestAllOrdersResponse, GetApiVppRequestCategoriesData, GetApiVppRequestCategoriesError, GetApiVppRequestCategoriesResponse, GetApiVppRequestDashboardChartsData, GetApiVppRequestDepartmentOrdersData, GetApiVppRequestDepartmentOrdersError, GetApiVppRequestDepartmentOrdersResponse, GetApiVppRequestMyOrdersData, GetApiVppRequestMyOrdersError, GetApiVppRequestMyOrdersResponse, GetApiVppRequestMyOrdersSummaryData, GetApiVppRequestOrderFilterValuesData, GetApiVppRequestOrdersByIdData, GetApiVppRequestOrdersByIdError, GetApiVppRequestOrdersByIdHistoryData, GetApiVppRequestOrdersByIdHistoryError, GetApiVppRequestOrdersByIdHistoryResponse, GetApiVppRequestOrdersByIdResponse, GetApiVppRequestOrdersPreviousItemsData, GetApiVppRequestOrdersPreviousItemsError, GetApiVppRequestOrdersPreviousItemsResponse, GetApiVppRequestPeriodInfoData, GetApiVppRequestPeriodInfoError, GetApiVppRequestPeriodInfoResponse, GetApiVppRequestProductsData, GetApiVppRequestProductsError, GetApiVppRequestProductsLookupData, GetApiVppRequestProductsLookupError, GetApiVppRequestProductsLookupResponse, GetApiVppRequestProductsResponse, PatchApiCatalogItemsByIdStatusData, PatchApiCatalogItemsByIdStatusResponse, PatchApiLibraryByTableCodeByIdData, PatchApiPermissionComponentMappingData, PatchApiVppPriceByIdDeletedData, PatchApiVppPriceByIdDeletedResponse, PatchApiVppPriceListByIdDeletedData, PatchApiVppPriceListByIdDeletedResponse, PostApiAccountAdminActivateData, PostApiAccountAdminResetPasswordData, PostApiAccountPasswordChangeData, PostApiAccountPasswordRecoveryData, PostApiAccountPasswordResetData, PostApiAccountRegisterData, PostApiAuthLoginData, PostApiAuthLoginError, PostApiAuthLoginResponse, PostApiAuthLogoutData, PostApiAuthLogoutError, PostApiAuthLogoutResponse, PostApiCatalogItemsData, PostApiCatalogItemsResponse, PostApiLibraryByTableCodeData, PostApiNotificationsByIdReadData, PostApiNotificationsByIdReadError, PostApiNotificationsByIdReadResponse, PostApiNotificationsReadAllData, PostApiNotificationsReadAllError, PostApiNotificationsReadAllResponse, PostApiPeriodSettlementBySettlementIdCorrectData, PostApiPeriodSettlementBySettlementIdCorrectResponse, PostApiPeriodSettlementConfirmData, PostApiPeriodSettlementConfirmResponse, PostApiPeriodSettlementPreviewData, PostApiPeriodSettlementPreviewResponse, PostApiPeriodSettlementSettleData, PostApiPeriodSettlementSettleResponse, PostApiPermissionMembershipsDeactivateData, PostApiVppPriceByIdSetDefaultData, PostApiVppPriceByIdSetDefaultResponse, PostApiVppPriceData, PostApiVppPriceListByIdExpireData, PostApiVppPriceListByIdExpireResponse, PostApiVppPriceListByIdPublishData, PostApiVppPriceListByIdPublishResponse, PostApiVppPriceListByIdSetDefaultData, PostApiVppPriceListByIdSetDefaultResponse, PostApiVppPriceListCloneData, PostApiVppPriceListCloneResponse, PostApiVppPriceListCompareData, PostApiVppPriceListCompareResponse, PostApiVppPriceListData, PostApiVppPriceListResponse, PostApiVppPriceResolveData, PostApiVppPriceResolveResponse, PostApiVppPriceResponse, PostApiVppRequestAdditionalOrdersByIdApproveData, PostApiVppRequestAdditionalOrdersByIdRejectData, PostApiVppRequestOrdersByIdCancelData, PostApiVppRequestOrdersData, PostApiVppRequestOrdersError, PostApiVppRequestOrdersResponse, PutApiCatalogItemsByIdData, PutApiCatalogItemsByIdResponse, PutApiLibraryByTableCodeData, PutApiPermissionGroupsByIdData, PutApiPermissionMembershipsData, PutApiVppPriceByIdData, PutApiVppPriceByIdResponse, PutApiVppPriceListByIdData, PutApiVppPriceListByIdResponse, PutApiVppRequestOrdersByIdData, PutApiVppRequestOrdersByIdError, PutApiVppRequestOrdersByIdResponse } from '../types.gen';
 
 export const postApiAccountRegisterMutation = (options?: Partial<Options<PostApiAccountRegisterData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiAccountRegisterData>> => {
     const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiAccountRegisterData>> = {
@@ -706,7 +706,7 @@ export const patchApiCatalogItemsByIdStatusMutation = (options?: Partial<Options
 
 export const getApiVppPriceByVppByVppIdQueryKey = (options: Options<GetApiVppPriceByVppByVppIdData>) => createQueryKey('getApiVppPriceByVppByVppId', options);
 
-export const getApiVppPriceByVppByVppIdOptions = (options: Options<GetApiVppPriceByVppByVppIdData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getApiVppPriceByVppByVppIdQueryKey>>({
+export const getApiVppPriceByVppByVppIdOptions = (options: Options<GetApiVppPriceByVppByVppIdData>) => queryOptions<GetApiVppPriceByVppByVppIdResponse, DefaultError, GetApiVppPriceByVppByVppIdResponse, ReturnType<typeof getApiVppPriceByVppByVppIdQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getApiVppPriceByVppByVppId({
             ...options,
@@ -721,7 +721,7 @@ export const getApiVppPriceByVppByVppIdOptions = (options: Options<GetApiVppPric
 
 export const getApiVppPriceBySupplierBySupplierIdQueryKey = (options: Options<GetApiVppPriceBySupplierBySupplierIdData>) => createQueryKey('getApiVppPriceBySupplierBySupplierId', options);
 
-export const getApiVppPriceBySupplierBySupplierIdOptions = (options: Options<GetApiVppPriceBySupplierBySupplierIdData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getApiVppPriceBySupplierBySupplierIdQueryKey>>({
+export const getApiVppPriceBySupplierBySupplierIdOptions = (options: Options<GetApiVppPriceBySupplierBySupplierIdData>) => queryOptions<GetApiVppPriceBySupplierBySupplierIdResponse, DefaultError, GetApiVppPriceBySupplierBySupplierIdResponse, ReturnType<typeof getApiVppPriceBySupplierBySupplierIdQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getApiVppPriceBySupplierBySupplierId({
             ...options,
@@ -736,7 +736,7 @@ export const getApiVppPriceBySupplierBySupplierIdOptions = (options: Options<Get
 
 export const getApiVppPriceItemPricesQueryKey = (options?: Options<GetApiVppPriceItemPricesData>) => createQueryKey('getApiVppPriceItemPrices', options);
 
-export const getApiVppPriceItemPricesOptions = (options?: Options<GetApiVppPriceItemPricesData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getApiVppPriceItemPricesQueryKey>>({
+export const getApiVppPriceItemPricesOptions = (options?: Options<GetApiVppPriceItemPricesData>) => queryOptions<GetApiVppPriceItemPricesResponse, DefaultError, GetApiVppPriceItemPricesResponse, ReturnType<typeof getApiVppPriceItemPricesQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getApiVppPriceItemPrices({
             ...options,
@@ -749,8 +749,8 @@ export const getApiVppPriceItemPricesOptions = (options?: Options<GetApiVppPrice
     queryKey: getApiVppPriceItemPricesQueryKey(options)
 });
 
-export const postApiVppPriceResolveMutation = (options?: Partial<Options<PostApiVppPriceResolveData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceResolveData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceResolveData>> = {
+export const postApiVppPriceResolveMutation = (options?: Partial<Options<PostApiVppPriceResolveData>>): UseMutationOptions<PostApiVppPriceResolveResponse, DefaultError, Options<PostApiVppPriceResolveData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceResolveResponse, DefaultError, Options<PostApiVppPriceResolveData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceResolve({
                 ...options,
@@ -763,8 +763,8 @@ export const postApiVppPriceResolveMutation = (options?: Partial<Options<PostApi
     return mutationOptions;
 };
 
-export const postApiVppPriceMutation = (options?: Partial<Options<PostApiVppPriceData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceData>> = {
+export const postApiVppPriceMutation = (options?: Partial<Options<PostApiVppPriceData>>): UseMutationOptions<PostApiVppPriceResponse, DefaultError, Options<PostApiVppPriceData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceResponse, DefaultError, Options<PostApiVppPriceData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPrice({
                 ...options,
@@ -777,8 +777,8 @@ export const postApiVppPriceMutation = (options?: Partial<Options<PostApiVppPric
     return mutationOptions;
 };
 
-export const deleteApiVppPriceByIdMutation = (options?: Partial<Options<DeleteApiVppPriceByIdData>>): UseMutationOptions<unknown, DefaultError, Options<DeleteApiVppPriceByIdData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<DeleteApiVppPriceByIdData>> = {
+export const deleteApiVppPriceByIdMutation = (options?: Partial<Options<DeleteApiVppPriceByIdData>>): UseMutationOptions<DeleteApiVppPriceByIdResponse, DefaultError, Options<DeleteApiVppPriceByIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteApiVppPriceByIdResponse, DefaultError, Options<DeleteApiVppPriceByIdData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await deleteApiVppPriceById({
                 ...options,
@@ -791,8 +791,8 @@ export const deleteApiVppPriceByIdMutation = (options?: Partial<Options<DeleteAp
     return mutationOptions;
 };
 
-export const putApiVppPriceByIdMutation = (options?: Partial<Options<PutApiVppPriceByIdData>>): UseMutationOptions<unknown, DefaultError, Options<PutApiVppPriceByIdData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PutApiVppPriceByIdData>> = {
+export const putApiVppPriceByIdMutation = (options?: Partial<Options<PutApiVppPriceByIdData>>): UseMutationOptions<PutApiVppPriceByIdResponse, DefaultError, Options<PutApiVppPriceByIdData>> => {
+    const mutationOptions: UseMutationOptions<PutApiVppPriceByIdResponse, DefaultError, Options<PutApiVppPriceByIdData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await putApiVppPriceById({
                 ...options,
@@ -805,8 +805,22 @@ export const putApiVppPriceByIdMutation = (options?: Partial<Options<PutApiVppPr
     return mutationOptions;
 };
 
-export const postApiVppPriceByIdSetDefaultMutation = (options?: Partial<Options<PostApiVppPriceByIdSetDefaultData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceByIdSetDefaultData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceByIdSetDefaultData>> = {
+export const patchApiVppPriceByIdDeletedMutation = (options?: Partial<Options<PatchApiVppPriceByIdDeletedData>>): UseMutationOptions<PatchApiVppPriceByIdDeletedResponse, DefaultError, Options<PatchApiVppPriceByIdDeletedData>> => {
+    const mutationOptions: UseMutationOptions<PatchApiVppPriceByIdDeletedResponse, DefaultError, Options<PatchApiVppPriceByIdDeletedData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await patchApiVppPriceByIdDeleted({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postApiVppPriceByIdSetDefaultMutation = (options?: Partial<Options<PostApiVppPriceByIdSetDefaultData>>): UseMutationOptions<PostApiVppPriceByIdSetDefaultResponse, DefaultError, Options<PostApiVppPriceByIdSetDefaultData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceByIdSetDefaultResponse, DefaultError, Options<PostApiVppPriceByIdSetDefaultData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceByIdSetDefault({
                 ...options,
@@ -821,7 +835,7 @@ export const postApiVppPriceByIdSetDefaultMutation = (options?: Partial<Options<
 
 export const getApiVppPriceListQueryKey = (options?: Options<GetApiVppPriceListData>) => createQueryKey('getApiVppPriceList', options);
 
-export const getApiVppPriceListOptions = (options?: Options<GetApiVppPriceListData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getApiVppPriceListQueryKey>>({
+export const getApiVppPriceListOptions = (options?: Options<GetApiVppPriceListData>) => queryOptions<GetApiVppPriceListResponse, DefaultError, GetApiVppPriceListResponse, ReturnType<typeof getApiVppPriceListQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getApiVppPriceList({
             ...options,
@@ -834,8 +848,8 @@ export const getApiVppPriceListOptions = (options?: Options<GetApiVppPriceListDa
     queryKey: getApiVppPriceListQueryKey(options)
 });
 
-export const postApiVppPriceListMutation = (options?: Partial<Options<PostApiVppPriceListData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListData>> = {
+export const postApiVppPriceListMutation = (options?: Partial<Options<PostApiVppPriceListData>>): UseMutationOptions<PostApiVppPriceListResponse, DefaultError, Options<PostApiVppPriceListData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceListResponse, DefaultError, Options<PostApiVppPriceListData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceList({
                 ...options,
@@ -848,8 +862,8 @@ export const postApiVppPriceListMutation = (options?: Partial<Options<PostApiVpp
     return mutationOptions;
 };
 
-export const deleteApiVppPriceListByIdMutation = (options?: Partial<Options<DeleteApiVppPriceListByIdData>>): UseMutationOptions<unknown, DefaultError, Options<DeleteApiVppPriceListByIdData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<DeleteApiVppPriceListByIdData>> = {
+export const deleteApiVppPriceListByIdMutation = (options?: Partial<Options<DeleteApiVppPriceListByIdData>>): UseMutationOptions<DeleteApiVppPriceListByIdResponse, DefaultError, Options<DeleteApiVppPriceListByIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteApiVppPriceListByIdResponse, DefaultError, Options<DeleteApiVppPriceListByIdData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await deleteApiVppPriceListById({
                 ...options,
@@ -864,7 +878,7 @@ export const deleteApiVppPriceListByIdMutation = (options?: Partial<Options<Dele
 
 export const getApiVppPriceListByIdQueryKey = (options: Options<GetApiVppPriceListByIdData>) => createQueryKey('getApiVppPriceListById', options);
 
-export const getApiVppPriceListByIdOptions = (options: Options<GetApiVppPriceListByIdData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getApiVppPriceListByIdQueryKey>>({
+export const getApiVppPriceListByIdOptions = (options: Options<GetApiVppPriceListByIdData>) => queryOptions<GetApiVppPriceListByIdResponse, GetApiVppPriceListByIdError, GetApiVppPriceListByIdResponse, ReturnType<typeof getApiVppPriceListByIdQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getApiVppPriceListById({
             ...options,
@@ -877,8 +891,8 @@ export const getApiVppPriceListByIdOptions = (options: Options<GetApiVppPriceLis
     queryKey: getApiVppPriceListByIdQueryKey(options)
 });
 
-export const putApiVppPriceListByIdMutation = (options?: Partial<Options<PutApiVppPriceListByIdData>>): UseMutationOptions<unknown, DefaultError, Options<PutApiVppPriceListByIdData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PutApiVppPriceListByIdData>> = {
+export const putApiVppPriceListByIdMutation = (options?: Partial<Options<PutApiVppPriceListByIdData>>): UseMutationOptions<PutApiVppPriceListByIdResponse, DefaultError, Options<PutApiVppPriceListByIdData>> => {
+    const mutationOptions: UseMutationOptions<PutApiVppPriceListByIdResponse, DefaultError, Options<PutApiVppPriceListByIdData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await putApiVppPriceListById({
                 ...options,
@@ -891,8 +905,8 @@ export const putApiVppPriceListByIdMutation = (options?: Partial<Options<PutApiV
     return mutationOptions;
 };
 
-export const patchApiVppPriceListByIdDeletedMutation = (options?: Partial<Options<PatchApiVppPriceListByIdDeletedData>>): UseMutationOptions<unknown, DefaultError, Options<PatchApiVppPriceListByIdDeletedData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PatchApiVppPriceListByIdDeletedData>> = {
+export const patchApiVppPriceListByIdDeletedMutation = (options?: Partial<Options<PatchApiVppPriceListByIdDeletedData>>): UseMutationOptions<PatchApiVppPriceListByIdDeletedResponse, DefaultError, Options<PatchApiVppPriceListByIdDeletedData>> => {
+    const mutationOptions: UseMutationOptions<PatchApiVppPriceListByIdDeletedResponse, DefaultError, Options<PatchApiVppPriceListByIdDeletedData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await patchApiVppPriceListByIdDeleted({
                 ...options,
@@ -905,8 +919,8 @@ export const patchApiVppPriceListByIdDeletedMutation = (options?: Partial<Option
     return mutationOptions;
 };
 
-export const deleteApiVppPriceListByIdHardMutation = (options?: Partial<Options<DeleteApiVppPriceListByIdHardData>>): UseMutationOptions<unknown, DefaultError, Options<DeleteApiVppPriceListByIdHardData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<DeleteApiVppPriceListByIdHardData>> = {
+export const deleteApiVppPriceListByIdHardMutation = (options?: Partial<Options<DeleteApiVppPriceListByIdHardData>>): UseMutationOptions<DeleteApiVppPriceListByIdHardResponse, DefaultError, Options<DeleteApiVppPriceListByIdHardData>> => {
+    const mutationOptions: UseMutationOptions<DeleteApiVppPriceListByIdHardResponse, DefaultError, Options<DeleteApiVppPriceListByIdHardData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await deleteApiVppPriceListByIdHard({
                 ...options,
@@ -919,8 +933,8 @@ export const deleteApiVppPriceListByIdHardMutation = (options?: Partial<Options<
     return mutationOptions;
 };
 
-export const postApiVppPriceListByIdSetDefaultMutation = (options?: Partial<Options<PostApiVppPriceListByIdSetDefaultData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListByIdSetDefaultData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListByIdSetDefaultData>> = {
+export const postApiVppPriceListByIdSetDefaultMutation = (options?: Partial<Options<PostApiVppPriceListByIdSetDefaultData>>): UseMutationOptions<PostApiVppPriceListByIdSetDefaultResponse, DefaultError, Options<PostApiVppPriceListByIdSetDefaultData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceListByIdSetDefaultResponse, DefaultError, Options<PostApiVppPriceListByIdSetDefaultData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceListByIdSetDefault({
                 ...options,
@@ -933,8 +947,8 @@ export const postApiVppPriceListByIdSetDefaultMutation = (options?: Partial<Opti
     return mutationOptions;
 };
 
-export const postApiVppPriceListCloneMutation = (options?: Partial<Options<PostApiVppPriceListCloneData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListCloneData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListCloneData>> = {
+export const postApiVppPriceListCloneMutation = (options?: Partial<Options<PostApiVppPriceListCloneData>>): UseMutationOptions<PostApiVppPriceListCloneResponse, DefaultError, Options<PostApiVppPriceListCloneData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceListCloneResponse, DefaultError, Options<PostApiVppPriceListCloneData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceListClone({
                 ...options,
@@ -947,8 +961,8 @@ export const postApiVppPriceListCloneMutation = (options?: Partial<Options<PostA
     return mutationOptions;
 };
 
-export const postApiVppPriceListByIdPublishMutation = (options?: Partial<Options<PostApiVppPriceListByIdPublishData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListByIdPublishData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListByIdPublishData>> = {
+export const postApiVppPriceListByIdPublishMutation = (options?: Partial<Options<PostApiVppPriceListByIdPublishData>>): UseMutationOptions<PostApiVppPriceListByIdPublishResponse, DefaultError, Options<PostApiVppPriceListByIdPublishData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceListByIdPublishResponse, DefaultError, Options<PostApiVppPriceListByIdPublishData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceListByIdPublish({
                 ...options,
@@ -961,8 +975,8 @@ export const postApiVppPriceListByIdPublishMutation = (options?: Partial<Options
     return mutationOptions;
 };
 
-export const postApiVppPriceListByIdExpireMutation = (options?: Partial<Options<PostApiVppPriceListByIdExpireData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListByIdExpireData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListByIdExpireData>> = {
+export const postApiVppPriceListByIdExpireMutation = (options?: Partial<Options<PostApiVppPriceListByIdExpireData>>): UseMutationOptions<PostApiVppPriceListByIdExpireResponse, DefaultError, Options<PostApiVppPriceListByIdExpireData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceListByIdExpireResponse, DefaultError, Options<PostApiVppPriceListByIdExpireData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceListByIdExpire({
                 ...options,
@@ -975,8 +989,8 @@ export const postApiVppPriceListByIdExpireMutation = (options?: Partial<Options<
     return mutationOptions;
 };
 
-export const postApiVppPriceListCompareMutation = (options?: Partial<Options<PostApiVppPriceListCompareData>>): UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListCompareData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<PostApiVppPriceListCompareData>> = {
+export const postApiVppPriceListCompareMutation = (options?: Partial<Options<PostApiVppPriceListCompareData>>): UseMutationOptions<PostApiVppPriceListCompareResponse, DefaultError, Options<PostApiVppPriceListCompareData>> => {
+    const mutationOptions: UseMutationOptions<PostApiVppPriceListCompareResponse, DefaultError, Options<PostApiVppPriceListCompareData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postApiVppPriceListCompare({
                 ...options,

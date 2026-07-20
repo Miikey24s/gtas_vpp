@@ -8,6 +8,7 @@ namespace gtas_vpp_be.Service.Services
         Task<List<PriceListResDTO>> ListAsync(bool showDeleted = false);
         Task<(List<PriceListResDTO> Data, int TotalCount)> QueryAsync(
             bool showDeleted = false,
+            string? search = null,
             string? filter = null,
             int? skip = null,
             int? top = null,

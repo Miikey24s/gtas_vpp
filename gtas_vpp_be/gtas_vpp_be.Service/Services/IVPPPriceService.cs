@@ -20,6 +20,7 @@ namespace gtas_vpp_be.Service.Services
             string? distinctFilter = null);
         Task<SupplierProductMappingResDTO> CreateAsync(SupplierProductPriceCreateReqDTO req, int userId);
         Task<SupplierProductMappingResDTO> UpdateAsync(SupplierProductPriceUpdateReqDTO req, int userId);
+        Task<SupplierProductMappingResDTO> SetDeletedAsync(Guid id, bool isDeleted, int userId);
         Task DeleteAsync(Guid id, int userId);
         Task SetDefaultAsync(Guid id, int userId);
     }

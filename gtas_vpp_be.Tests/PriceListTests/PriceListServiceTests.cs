@@ -12,6 +12,54 @@ namespace gtas_vpp_be.Tests.PriceListTests;
 public class PriceListServiceTests
 {
     [Fact]
+    public async Task Query_Search_MatchesCodeNameSupplierAndContract()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 7, 20, 9, 0, 0);
+        var supplierId = await SeedSupplierAsync(context, now);
+        context.Set<PriceList>().AddRange(
+            new PriceList
+            {
+                Id = Guid.NewGuid(),
+                PriceListCode = "PPJ-2026",
+                PriceListName = "Office supplies",
+                SupplierId = supplierId,
+                ContractCode = "CTR-ALPHA",
+                Version = 1,
+                CurrencyCode = "VND",
+                CreatedByUserId = 1,
+                CreatedAtUtc = now,
+                UpdatedByUserId = 1,
+                UpdatedAtUtc = now,
+                IsDeleted = false
+            },
+            new PriceList
+            {
+                Id = Guid.NewGuid(),
+                PriceListCode = "OTHER",
+                PriceListName = "Unrelated",
+                Version = 1,
+                CurrencyCode = "VND",
+                CreatedByUserId = 1,
+                CreatedAtUtc = now,
+                UpdatedByUserId = 1,
+                UpdatedAtUtc = now,
+                IsDeleted = false
+            });
+        await context.SaveChangesAsync();
+        var service = CreateService(context, now);
+
+        var byCode = await service.QueryAsync(search: "PPJ");
+        var bySupplier = await service.QueryAsync(search: "Supplier");
+        var byContract = await service.QueryAsync(search: "ALPHA");
+
+        Assert.Single(byCode.Data);
+        Assert.Single(bySupplier.Data);
+        Assert.Single(byContract.Data);
+        Assert.Equal("PPJ-2026", byCode.Data[0].PriceListCode);
+    }
+
+    [Fact]
     public async Task Create_DefaultTrue_DemotesPrevious()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

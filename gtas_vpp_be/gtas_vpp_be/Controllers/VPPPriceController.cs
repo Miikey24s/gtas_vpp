@@ -1,9 +1,11 @@
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Library;
+using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace gtas_vpp_be.Controllers
 {
@@ -30,6 +32,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("by-vpp/{vppId:guid}")]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<List<SupplierProductMappingResDTO>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> ListByVPP(Guid vppId, [FromQuery] Guid? priceListId)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -40,6 +43,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("by-supplier/{supplierId:guid}")]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<List<SupplierProductMappingResDTO>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> ListBySupplier(Guid supplierId, [FromQuery] Guid? priceListId, [FromQuery] bool? showDeleted = false)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -50,6 +54,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("item-prices")]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<List<VppItemPriceResDTO>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> QueryItemPrices(
             [FromQuery] Guid supplierId,
             [FromQuery] Guid? priceListId = null,
@@ -83,6 +88,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("resolve")]
         [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType<PriceResolutionResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Resolve(
             [FromBody] PriceResolutionReqDTO request,
             CancellationToken cancellationToken)
@@ -95,6 +101,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<SupplierProductMappingResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Create([FromBody] SupplierProductPriceCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -105,6 +112,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<SupplierProductMappingResDTO>(StatusCodes.Status200OK)]
         public async Task<IActionResult> Update(Guid id, [FromBody] SupplierProductPriceUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -116,6 +124,7 @@ namespace gtas_vpp_be.Controllers
 
         [HttpDelete("{id:guid}")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -124,8 +133,25 @@ namespace gtas_vpp_be.Controllers
             return NoContent();
         }
 
+        [HttpPatch("{id:guid}/deleted")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<SupplierProductMappingResDTO>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> SetDeleted(Guid id, [FromBody] JsonElement payload)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+
+            if (!payload.TryGetProperty("isDeleted", out var isDeletedJson)
+                && !payload.TryGetProperty("IsDeleted", out isDeletedJson))
+            {
+                return BadRequest(new { Message = "IsDeleted is required." });
+            }
+
+            return Ok(await _priceService.SetDeletedAsync(id, isDeletedJson.GetBoolean(), CurrentUserId.Value));
+        }
+
         [HttpPost("{id:guid}/set-default")]
         [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SetDefault(Guid id)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
