@@ -49,11 +49,12 @@ fi
 
 BE_IMAGE="$(grep '^BE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
 FE_IMAGE="$(grep '^FE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
-if [[ -z "$BE_IMAGE" || -z "$FE_IMAGE" ]]; then
+REACT_FE_IMAGE="$(grep '^REACT_FE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
+if [[ -z "$BE_IMAGE" || -z "$FE_IMAGE" || -z "$REACT_FE_IMAGE" ]]; then
   echo "Current application image metadata is incomplete." >&2
   exit 2
 fi
-export BE_IMAGE FE_IMAGE
+export BE_IMAGE FE_IMAGE REACT_FE_IMAGE
 
 compose() {
   docker compose -f "$COMPOSE_FILE" "$@"
@@ -101,7 +102,7 @@ ensure_multi_user() {
 }
 
 start_apps() {
-  compose up -d --wait --wait-timeout 180 backend frontend
+  compose up -d --wait --wait-timeout 180 backend frontend react-frontend
 }
 
 verify_backup "$PRIMARY_DB_NAME" "$primary_source"
@@ -140,7 +141,7 @@ recover_on_exit() {
 trap recover_on_exit EXIT
 
 apps_stopped=true
-compose stop frontend backend
+compose stop react-frontend frontend backend
 
 BACKUP_TIMESTAMP="$recovery_timestamp" \
 DB_CONTAINER="$DB_CONTAINER" \
@@ -160,4 +161,4 @@ start_apps
 apps_stopped=false
 trap - EXIT
 
-echo "Paired restore completed and both application containers are healthy. Verify the public boundary."
+echo "Paired restore completed and all application containers are healthy. Verify the public boundary."

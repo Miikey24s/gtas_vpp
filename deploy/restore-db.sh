@@ -30,9 +30,10 @@ fi
 
 BE_IMAGE="$(grep '^BE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
 FE_IMAGE="$(grep '^FE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
-export BE_IMAGE FE_IMAGE
+REACT_FE_IMAGE="$(grep '^REACT_FE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
+export BE_IMAGE FE_IMAGE REACT_FE_IMAGE
 
-if [[ -z "$BE_IMAGE" || -z "$FE_IMAGE" ]]; then
+if [[ -z "$BE_IMAGE" || -z "$FE_IMAGE" || -z "$REACT_FE_IMAGE" ]]; then
   echo "Current application image metadata is incomplete." >&2
   exit 2
 fi
@@ -66,7 +67,7 @@ recover_on_exit() {
   fi
 
   if [[ "$apps_stopped" == "true" ]]; then
-    docker compose -f "$COMPOSE_FILE" up -d backend frontend || true
+    docker compose -f "$COMPOSE_FILE" up -d backend frontend react-frontend || true
   fi
 
   exit "$exit_code"
@@ -75,7 +76,7 @@ trap recover_on_exit EXIT
 
 # Quiesce application writes before capturing the paired recovery point.
 apps_stopped=true
-docker compose -f "$COMPOSE_FILE" stop frontend backend
+docker compose -f "$COMPOSE_FILE" stop react-frontend frontend backend
 bash "$SCRIPT_DIR/backup-db-pair.sh" before-restore
 
 restore_in_progress=true
@@ -90,8 +91,8 @@ docker exec \
   '
 
 restore_in_progress=false
-docker compose -f "$COMPOSE_FILE" up -d --wait --wait-timeout 180 backend frontend
+docker compose -f "$COMPOSE_FILE" up -d --wait --wait-timeout 180 backend frontend react-frontend
 apps_stopped=false
 trap - EXIT
 
-echo "Restore completed and both application containers are healthy. Verify the public application."
+echo "Restore completed and all application containers are healthy. Verify the public application."

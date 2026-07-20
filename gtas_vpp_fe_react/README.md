@@ -1,6 +1,8 @@
 # GTAS VPP React Frontend
 
-Frontend React chạy song song với ứng dụng Blazor hiện hành. Chưa route nào được xem là đã migrate cho đến khi đạt API/permission/state parity và được owner duyệt trong browser.
+Frontend React là public target mới và chạy song song với ứng dụng Blazor fallback.
+Trạng thái từng route, quality gate và owner review được quản lý tại
+`docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
 
 ## Chạy local
 
@@ -57,3 +59,17 @@ phải được xuất lại khi API contract thay đổi; không chứa connect
 npm run check
 npm run test:e2e
 ```
+
+## Production image
+
+Image production build Vite bằng Node LTS, sau đó chỉ chép static asset sang
+unprivileged Nginx. Container phục vụ SPA deep-link, cache immutable cho asset đã
+fingerprint và health probe tại `/healthz`:
+
+```powershell
+docker build -t gtas-vpp-react-frontend:local .
+docker run --rm -p 5100:8080 gtas-vpp-react-frontend:local
+```
+
+Public Nginx route `/api/` và `/hubs/` tới backend, phần còn lại tới React. Blazor
+vẫn chạy song song; hướng dẫn chuyển fallback nằm trong `deploy/README.md`.

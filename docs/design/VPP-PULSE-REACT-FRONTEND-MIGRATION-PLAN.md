@@ -311,7 +311,7 @@ R7 dùng một `ReportWorkspace` chung cho hai route để không lặp query/fi
 | R5 | Library/master data | COMPLETE — generic master data, typed catalog, supplier price-book lifecycle, item pricing, restore flow + automated QA pass |
 | R6 | Access control | COMPLETE — account activation, membership, canonical role overview, UI component permission + automated QA pass |
 | R7 | Reports/AI/print/export | COMPLETE — typed data story, XLSX, print, AI error/rules/AI states + automated QA pass |
-| R8 | Global hardening + cutover | IN_PROGRESS — cookie/antiforgery foundation and React motion hardening complete; production hosting/cutover/rollback gates còn lại |
+| R8 | Global hardening + cutover | TECH_READY — cookie/antiforgery, transform-only motion, bundle budget, production container, dual-frontend hosting, CI/smoke/rollback và automated audit đã đạt; còn owner visual review và production cutover do owner kích hoạt |
 
 Thứ tự trong wave ưu tiên một end-to-end journey hoạt động trước khi mở rộng breadth. Owner review theo checkpoint; feedback shared primitive phải được retrofit các route đã làm.
 
@@ -461,6 +461,11 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | R7 automated gate đạt 10 Playwright journeys toàn bộ | Report journey bao phủ permission scope, filter, reconciliation, chart/table, XLSX, print, VI/EN, AI idle/error/rules/AI, reduced-motion, axe và console/network; backend đạt 401 tests |
 | 2026-07-20 | Motion research trước R8 | Giữ `motion@12.42.2` + CSS + React Router/browser View Transitions; không thêm package/MCP animation. Áp dụng motion contract 3 lớp, reduced-motion và QA bằng Playwright/axe |
 | 2026-07-20 | Route motion dùng transform-only | AppShell có chuyển route nhẹ bằng `y` transform; không fade toàn bộ main để không làm sai contrast trong lúc axe quét. E2E mutation serialize 1 worker vì fixture dùng chung và cần deterministic |
+| 2026-07-20 | Production chạy React và Blazor song song | React static container ở loopback `5100` là public target; Blazor giữ healthy ở `5000`. Nginx có config React và Blazor, `switch-frontend.sh` đổi target và tự restore config trước nếu smoke fail; không rollback database |
+| 2026-07-20 | CI/CD phát hành ba immutable image | Workflow verify .NET + React check/E2E + Nginx syntax, sau đó build backend, Blazor fallback và React target. Public smoke kiểm tra React production entry, deep-link và immutable cache trước khi ghi deploy state |
+| 2026-07-20 | Radix phải import theo từng primitive, không dùng umbrella package | Giảm shared UI chunk khoảng `116 KiB` xuống `47 KiB` gzip; thêm gate `140 KiB/chunk`, `30 KiB CSS` và `550 KiB tổng JS/CSS`, build hiện đạt `506.1 KiB` gzip |
+| 2026-07-20 | Không fade nội dung có chữ trong surface/toast | Tất cả entrance motion đọc được dùng transform-only; disabled control giữ contrast đầy đủ. Axe không còn bắt trạng thái giữa transition |
+| 2026-07-20 | R8 automated cutover package đạt local production gate | Docker image build sạch, container healthy, React deep-link/cache smoke pass, bốn Nginx config pass syntax, Actionlint/Compose/Bash pass, React E2E `10/10`, backend `405/405`; production vẫn cần owner phê duyệt và kích hoạt |
 
 ## 18. Immediate execution queue
 
@@ -472,7 +477,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 6. R5 hoàn tất kỹ thuật: master data, catalog, supplier price book và item pricing; chờ owner visual review.
 7. R6 hoàn tất kỹ thuật: account activation, membership, canonical group overview và component permission; chờ owner visual review.
 8. R7 hoàn tất kỹ thuật: shared report workspace, AI evidence/fallback, export XLSX và print-mode; chờ owner visual review.
-9. R8 đang triển khai: cookie/antiforgery foundation, motion/accessibility hardening đã có; tiếp tục production hosting, a11y/performance/security regression, cutover và rollback readiness.
+9. R8 đã sẵn sàng kỹ thuật: cookie/antiforgery, motion/accessibility, bundle budget, production image, dual frontend, CI/CD, smoke và rollback đã được kiểm chứng local. Phần còn lại chỉ gồm owner visual review, cho phép push/deploy và production smoke sau cutover.
 
 Prompt tiếp tục:
 

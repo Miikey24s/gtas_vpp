@@ -185,7 +185,9 @@ public sealed class ProductionDeploymentSafetyTests
     public void Restore_QuiescesWritesAndRecoversApplicationsOnFailure()
     {
         var restore = ReadRepositoryFile("deploy", "restore-db.sh");
-        var stopIndex = restore.IndexOf("stop frontend backend", StringComparison.Ordinal);
+        var stopIndex = restore.IndexOf(
+            "stop react-frontend frontend backend",
+            StringComparison.Ordinal);
         var backupIndex = restore.IndexOf("backup-db-pair.sh\" before-restore", StringComparison.Ordinal);
 
         Assert.True(stopIndex >= 0, "Restore must stop application writers.");
@@ -205,7 +207,10 @@ public sealed class ProductionDeploymentSafetyTests
         Assert.Contains("RESTORE_PAIR_CONFIRM", restorePair, StringComparison.Ordinal);
         Assert.Contains("PRIMARY_DB_NAME:-GTAS_VPP_LIVE", restorePair, StringComparison.Ordinal);
         Assert.Contains("IDENTITY_DB_NAME:-GTAS_MENU", restorePair, StringComparison.Ordinal);
-        Assert.Contains("stop frontend backend", restorePair, StringComparison.Ordinal);
+        Assert.Contains(
+            "stop react-frontend frontend backend",
+            restorePair,
+            StringComparison.Ordinal);
         Assert.Contains("backup-db-pair.sh\" before-pair-restore", restorePair, StringComparison.Ordinal);
         Assert.Contains("RESTORE VERIFYONLY", restorePair, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("WITH CHECKSUM", restorePair, StringComparison.OrdinalIgnoreCase);

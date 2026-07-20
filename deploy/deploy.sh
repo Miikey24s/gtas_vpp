@@ -7,6 +7,7 @@ APP_NETWORK="${APP_NETWORK:-gtas-vpp-internal}"
 DB_CONTAINER="${DB_CONTAINER:-gtas-vpp-db}"
 BACKEND_CONTAINER="${BACKEND_CONTAINER:-gtas-vpp-backend}"
 FRONTEND_CONTAINER="${FRONTEND_CONTAINER:-gtas-vpp-frontend}"
+REACT_FRONTEND_CONTAINER="${REACT_FRONTEND_CONTAINER:-gtas-vpp-react-frontend}"
 DB_FALLBACK_CONTAINER="${DB_FALLBACK_CONTAINER:-${DB_CONTAINER}-previous}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-https://gtas-vpp.annam.id.vn}"
 PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-${PUBLIC_BASE_URL%/}/healthz}"
@@ -14,6 +15,7 @@ DEPLOY_SHA="${DEPLOY_SHA:-unknown}"
 
 : "${BE_IMAGE:?BE_IMAGE is required}"
 : "${FE_IMAGE:?FE_IMAGE is required}"
+: "${REACT_FE_IMAGE:?REACT_FE_IMAGE is required}"
 
 compose() {
   docker compose -f "$COMPOSE_FILE" "$@"
@@ -152,7 +154,9 @@ ensure_desired_db_container() {
 
 OLD_BE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$BACKEND_CONTAINER" 2>/dev/null || true)"
 OLD_FE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$FRONTEND_CONTAINER" 2>/dev/null || true)"
+OLD_REACT_FE_IMAGE="$(docker inspect --format='{{.Config.Image}}' "$REACT_FRONTEND_CONTAINER" 2>/dev/null || true)"
 DEPLOYING_APPS=false
+NGINX_SWITCHED=false
 DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
 APP_ENV_ROLL_FORWARD_REQUIRED=false
 DB_RUNTIME_PINNED=false
@@ -171,16 +175,40 @@ rollback_apps() {
   fi
 
   echo "Rolling application containers back to their previous images with the current environment..." >&2
-  BE_IMAGE="$OLD_BE_IMAGE" FE_IMAGE="$OLD_FE_IMAGE" \
+  BE_IMAGE="$OLD_BE_IMAGE" FE_IMAGE="$OLD_FE_IMAGE" REACT_FE_IMAGE="$REACT_FE_IMAGE" \
     docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate backend \
       || rollback_failed=true
   wait_for_healthy "$BACKEND_CONTAINER" 60 || rollback_failed=true
-  BE_IMAGE="$OLD_BE_IMAGE" FE_IMAGE="$OLD_FE_IMAGE" \
+  BE_IMAGE="$OLD_BE_IMAGE" FE_IMAGE="$OLD_FE_IMAGE" REACT_FE_IMAGE="$REACT_FE_IMAGE" \
     docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate frontend \
       || rollback_failed=true
   wait_for_healthy "$FRONTEND_CONTAINER" 60 || rollback_failed=true
+  if [[ -n "$OLD_REACT_FE_IMAGE" ]]; then
+    BE_IMAGE="$OLD_BE_IMAGE" FE_IMAGE="$OLD_FE_IMAGE" REACT_FE_IMAGE="$OLD_REACT_FE_IMAGE" \
+      docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate react-frontend \
+        || rollback_failed=true
+    wait_for_healthy "$REACT_FRONTEND_CONTAINER" 60 || rollback_failed=true
+  else
+    docker rm -f "$REACT_FRONTEND_CONTAINER" >/dev/null 2>&1 || true
+  fi
 
   [[ "$rollback_failed" == "false" ]]
+}
+
+rollback_nginx() {
+  trap - ERR
+  set +e
+  local backup="$APP_ROOT/shared/nginx.before-switch.conf"
+  local target="/etc/nginx/sites-available/gtas-vpp"
+
+  if [[ "$NGINX_SWITCHED" != "true" || ! -f "$backup" ]]; then
+    return 0
+  fi
+
+  echo "Restoring the previous public frontend routing..." >&2
+  sudo cp "$backup" "$target" || return 1
+  sudo nginx -t || return 1
+  sudo systemctl reload nginx
 }
 
 roll_forward_db_password() {
@@ -322,6 +350,7 @@ on_error() {
     ensure_desired_db_container || recovery_failed=true
   fi
   if [[ "$DEPLOYING_APPS" == "true" || "$APP_ENV_ROLL_FORWARD_REQUIRED" == "true" ]]; then
+    rollback_nginx || recovery_failed=true
     rollback_apps || recovery_failed=true
   fi
   if [[ "$recovery_failed" == "true" ]]; then
@@ -470,7 +499,7 @@ done < <(docker port "$DB_CONTAINER" 1433/tcp 2>/dev/null || true)
 
 bash deploy/backup-db-pair.sh pre-deploy
 
-compose --profile tools pull backend frontend migrator
+compose --profile tools pull backend frontend react-frontend migrator
 compose run --rm --no-deps migrator
 
 DEPLOYING_APPS=true
@@ -478,23 +507,14 @@ compose up -d --no-deps --force-recreate backend
 wait_for_healthy "$BACKEND_CONTAINER" 60
 compose up -d --no-deps --force-recreate frontend
 wait_for_healthy "$FRONTEND_CONTAINER" 60
+compose up -d --no-deps --force-recreate react-frontend
+wait_for_healthy "$REACT_FRONTEND_CONTAINER" 60
 
 if command -v nginx >/dev/null 2>&1; then
-  nginx_target="/etc/nginx/sites-available/gtas-vpp"
-  nginx_backup="$APP_ROOT/shared/nginx.previous.conf"
-  if sudo test -f "$nginx_target"; then
-    sudo cp "$nginx_target" "$nginx_backup"
-  fi
-  sudo install -m 0644 nginx/gtas-vpp.conf "$nginx_target"
-  sudo ln -sfn "$nginx_target" /etc/nginx/sites-enabled/gtas-vpp
-  if ! sudo nginx -t; then
-    if sudo test -f "$nginx_backup"; then
-      sudo cp "$nginx_backup" "$nginx_target"
-    fi
-    echo "Nginx validation failed; the previous configuration was restored." >&2
-    exit 1
-  fi
-  sudo systemctl reload nginx
+  APP_ROOT="$APP_ROOT" \
+  PUBLIC_BASE_URL="$PUBLIC_BASE_URL" \
+    bash deploy/switch-frontend.sh react
+  NGINX_SWITCHED=true
 fi
 
 if command -v systemctl >/dev/null 2>&1; then
@@ -511,6 +531,7 @@ bash deploy/audit-host.sh
 
 PUBLIC_BASE_URL="$PUBLIC_BASE_URL" \
 PUBLIC_HEALTH_URL="$PUBLIC_HEALTH_URL" \
+FRONTEND_MODE=react \
 SMOKE_RETRY_COUNT=10 \
   bash deploy/smoke-frontend.sh
 
@@ -520,11 +541,13 @@ DB_IMAGE=$DB_IMAGE
 DB_DATA_VOLUME=${DB_DATA_VOLUME:-gtas-vpp_sqlserver-data}
 BE_IMAGE=$BE_IMAGE
 FE_IMAGE=$FE_IMAGE
+REACT_FE_IMAGE=$REACT_FE_IMAGE
 DEPLOYED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
 chmod 600 deploy-state.env
 
 DEPLOYING_APPS=false
+NGINX_SWITCHED=false
 DB_PASSWORD_ROLL_FORWARD_REQUIRED=false
 APP_ENV_ROLL_FORWARD_REQUIRED=false
 trap - ERR

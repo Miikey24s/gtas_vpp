@@ -5,7 +5,6 @@
 name: gtas-vpp
 
 services:
-
   # ── SQL Server Database ──────────────────────────────────
   db:
     image: "${DB_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}"
@@ -164,6 +163,49 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    networks:
+      - vpp-internal
+
+  # ── Frontend mục tiêu (React SPA) ───────────────────────
+  # Chạy song song với Blazor để có thể đổi Nginx về fallback mà không
+  # rollback database hoặc khởi động lại backend.
+  react-frontend:
+    image: "${REACT_FE_IMAGE:?REACT_FE_IMAGE must be an immutable React frontend image tag.}"
+    container_name: gtas-vpp-react-frontend
+    restart: unless-stopped
+    init: true
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5100:8080"
+    mem_limit: 192m
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://localhost:8080/healthz",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - vpp-internal
 
