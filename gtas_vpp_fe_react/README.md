@@ -22,7 +22,7 @@ Nếu cần xem đơn demo từ workbook, nạp dữ liệu một lần trước
 .\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_01;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
 ```
 
-POC chỉ lưu JWT trong `sessionStorage` của tab local/TEST. Không dùng frontend này cho production cho đến khi backend có BFF hoặc secure HttpOnly cookie session.
+Khi chạy qua Aspire hoặc production, React dùng secure HttpOnly cookie session và antiforgery header; access token không được lưu trong browser storage. `VITE_AUTH_MODE=token` chỉ dành cho isolated legacy/Bearer compatibility tests và không được dùng cho production.
 
 Hoặc chạy riêng frontend:
 

@@ -1,4 +1,5 @@
 import { LogOut, UserRound } from 'lucide-react'
+import { main as MotionMain } from 'motion/react-m'
 import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -11,6 +12,7 @@ import {
 } from '@/components/app/app-navigation'
 import { LanguageControl, ThemeControl } from '@/components/app/header-controls'
 import { NotificationCenter } from '@/features/notifications/notification-center'
+import { routeEnter } from '@/lib/motion'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -206,9 +208,15 @@ export function AppShell() {
             </DropdownMenu>
           </div>
         </header>
-        <div id="main-content" tabIndex={-1} className="min-w-0 flex-1">
+        <MotionMain
+          key={location.pathname}
+          id="main-content"
+          tabIndex={-1}
+          {...routeEnter}
+          className="min-w-0 flex-1"
+        >
           <Outlet />
-        </div>
+        </MotionMain>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -4,8 +4,10 @@ using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Controllers;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -61,6 +63,42 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
+    public async Task Login_CookieMode_UsesHttpOnlyAuthenticationServiceAndDoesNotReturnBearerToken()
+    {
+        var expected = new AuthenticationResultDTO
+        {
+            UserID = 1_000_000_000,
+            UserLogin = "tester",
+            AccessToken = "must-not-reach-browser",
+            AccessTokenExpiresAtUtc = DateTime.UtcNow.AddMinutes(30),
+            SessionVersion = 1,
+            AccountStatus = "Active"
+        };
+        var authentication = new Mock<IAppAuthenticationService>();
+        authentication.Setup(x => x.AuthenticateAsync(
+                "tester",
+                "Valid-Pass1!",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var cookieAuthentication = new Mock<IAuthenticationService>();
+        var controller = CreateController(authentication.Object, cookieAuthentication.Object);
+
+        var result = await controller.Login(
+            new AuthenticationLoginRequest("tester", "Valid-Pass1!"),
+            CancellationToken.None,
+            useCookies: true);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+        Assert.Null(expected.AccessToken);
+        cookieAuthentication.Verify(service => service.SignInAsync(
+            It.IsAny<HttpContext>(),
+            AppAuthenticationSchemes.Cookie,
+            It.IsAny<System.Security.Claims.ClaimsPrincipal>(),
+            It.IsAny<AuthenticationProperties>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Login_MissingInput_ReturnsBadRequestWithoutCallingAuthenticator()
     {
         var authentication = new Mock<IAppAuthenticationService>();
@@ -90,13 +128,23 @@ public sealed class AuthControllerTests
         Assert.Null(typeof(AuthenticationLoginRequest).GetProperty("Server"));
     }
 
-    private static AuthController CreateController(IAppAuthenticationService authentication)
+    private static AuthController CreateController(
+        IAppAuthenticationService authentication,
+        IAuthenticationService? cookieAuthentication = null)
     {
+        var services = new ServiceCollection();
+        if (cookieAuthentication is not null)
+        {
+            services.AddSingleton(cookieAuthentication);
+        }
         var controller = new AuthController(authentication, Mock.Of<IPermissionService>())
         {
             ControllerContext = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext()
+                HttpContext = new DefaultHttpContext
+                {
+                    RequestServices = services.BuildServiceProvider()
+                }
             }
         };
         controller.HttpContext.Connection.RemoteIpAddress = IPAddress.Loopback;

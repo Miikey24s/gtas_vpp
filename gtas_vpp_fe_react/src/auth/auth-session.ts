@@ -1,4 +1,5 @@
 import type { AuthenticationResultDto } from '@/api/generated'
+import { isCookieSessionEnabled } from '@/auth/auth-mode'
 
 const SESSION_KEY = 'gtas-vpp-react-session-v1'
 export const AUTH_SESSION_CHANGED_EVENT = 'gtas:auth-session-changed'
@@ -42,6 +43,11 @@ export function readAuthSession(): StoredAuthSession | null {
 }
 
 export function saveAuthSession(result: AuthenticationResultDto) {
+  if (isCookieSessionEnabled()) {
+    notifyAuthSessionChanged()
+    return
+  }
+
   if (!result.accessToken || !result.accessTokenExpiresAtUtc) {
     throw new Error(
       'The authentication response did not include a valid session.',
@@ -58,10 +64,15 @@ export function saveAuthSession(result: AuthenticationResultDto) {
 }
 
 export function clearAuthSession() {
+  if (isCookieSessionEnabled()) {
+    document.cookie = 'XSRF-TOKEN=; Max-Age=0; Path=/'
+    return
+  }
   window.sessionStorage.removeItem(SESSION_KEY)
 }
 
 export function getAccessToken() {
+  if (isCookieSessionEnabled()) return undefined
   return readAuthSession()?.accessToken
 }
 

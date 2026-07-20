@@ -7,9 +7,7 @@
   "paths": {
     "/api/account/register": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -38,9 +36,7 @@
     },
     "/api/account/confirm-email": {
       "get": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "parameters": [
           {
             "name": "userId",
@@ -67,9 +63,7 @@
     },
     "/api/account/password/recovery": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -98,9 +92,7 @@
     },
     "/api/account/password/reset": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -129,9 +121,7 @@
     },
     "/api/account/password/change": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -160,9 +150,7 @@
     },
     "/api/account/admin/activate": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -208,9 +196,7 @@
     },
     "/api/account/admin/reset-password": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -256,8 +242,16 @@
     },
     "/api/Auth/login": {
       "post": {
-        "tags": [
-          "Auth"
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "useCookies",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
         ],
         "requestBody": {
           "content": {
@@ -342,11 +336,19 @@
         }
       }
     },
+    "/api/Auth/antiforgery": {
+      "get": {
+        "tags": ["Auth"],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/api/Auth/me": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "responses": {
           "200": {
             "description": "OK",
@@ -393,9 +395,7 @@
     },
     "/api/Auth/logout": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "responses": {
           "204": {
             "description": "No Content"
@@ -425,9 +425,7 @@
     },
     "/api/Auth/me/permissions": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "responses": {
           "200": {
             "description": "OK",
@@ -454,9 +452,7 @@
     },
     "/api/Library/{tableCode}": {
       "get": {
-        "tags": [
-          "Library"
-        ],
+        "tags": ["Library"],
         "parameters": [
           {
             "name": "tableCode",
@@ -549,9 +545,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Library"
-        ],
+        "tags": ["Library"],
         "parameters": [
           {
             "name": "tableCode",
@@ -565,13 +559,13 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { }
+              "schema": {}
             },
             "text/json": {
-              "schema": { }
+              "schema": {}
             },
             "application/*+json": {
-              "schema": { }
+              "schema": {}
             }
           }
         },
@@ -582,9 +576,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Library"
-        ],
+        "tags": ["Library"],
         "parameters": [
           {
             "name": "tableCode",
@@ -598,13 +590,13 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { }
+              "schema": {}
             },
             "text/json": {
-              "schema": { }
+              "schema": {}
             },
             "application/*+json": {
-              "schema": { }
+              "schema": {}
             }
           }
         },
@@ -617,9 +609,7 @@
     },
     "/api/Library/{tableCode}/{id}": {
       "get": {
-        "tags": [
-          "Library"
-        ],
+        "tags": ["Library"],
         "parameters": [
           {
             "name": "tableCode",
@@ -654,9 +644,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Library"
-        ],
+        "tags": ["Library"],
         "parameters": [
           {
             "name": "tableCode",
@@ -679,13 +667,13 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { }
+              "schema": {}
             },
             "text/json": {
-              "schema": { }
+              "schema": {}
             },
             "application/*+json": {
-              "schema": { }
+              "schema": {}
             }
           }
         },
@@ -696,9 +684,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Library"
-        ],
+        "tags": ["Library"],
         "parameters": [
           {
             "name": "tableCode",
@@ -727,9 +713,7 @@
     },
     "/api/notifications": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "parameters": [
           {
             "name": "skip",
@@ -804,9 +788,7 @@
     },
     "/api/notifications/{id}/read": {
       "post": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "parameters": [
           {
             "name": "id",
@@ -867,9 +849,7 @@
     },
     "/api/notifications/read-all": {
       "post": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "responses": {
           "200": {
             "description": "OK",
@@ -916,9 +896,7 @@
     },
     "/api/PeriodSettlement/settle": {
       "post": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -964,9 +942,7 @@
     },
     "/api/PeriodSettlement/preview": {
       "post": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1012,9 +988,7 @@
     },
     "/api/PeriodSettlement/confirm": {
       "post": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1060,9 +1034,7 @@
     },
     "/api/PeriodSettlement/{settlementId}/correct": {
       "post": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "parameters": [
           {
             "name": "settlementId",
@@ -1119,9 +1091,7 @@
     },
     "/api/PeriodSettlement/current/{y}/{m}": {
       "get": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "parameters": [
           {
             "name": "y",
@@ -1171,9 +1141,7 @@
     },
     "/api/PeriodSettlement/revisions/{y}/{m}": {
       "get": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "parameters": [
           {
             "name": "y",
@@ -1229,9 +1197,7 @@
     },
     "/api/PeriodSettlement/{y}/{m}": {
       "get": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "parameters": [
           {
             "name": "y",
@@ -1278,9 +1244,7 @@
     },
     "/api/PeriodSettlement": {
       "get": {
-        "tags": [
-          "PeriodSettlement"
-        ],
+        "tags": ["PeriodSettlement"],
         "responses": {
           "200": {
             "description": "OK",
@@ -1316,9 +1280,7 @@
     },
     "/api/Permission/groups": {
       "get": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "parameters": [
           {
             "name": "getFullName",
@@ -1408,9 +1370,7 @@
     },
     "/api/Permission/groups/{id}": {
       "get": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "parameters": [
           {
             "name": "id",
@@ -1474,9 +1434,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "parameters": [
           {
             "name": "id",
@@ -1516,9 +1474,7 @@
     },
     "/api/Permission/groups/{id}/page-components": {
       "get": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "parameters": [
           {
             "name": "id",
@@ -1593,9 +1549,7 @@
     },
     "/api/Permission/component-mapping": {
       "patch": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1624,9 +1578,7 @@
     },
     "/api/Permission/users": {
       "get": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "parameters": [
           {
             "name": "search",
@@ -1765,9 +1717,7 @@
     },
     "/api/Permission/user-groups": {
       "get": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "parameters": [
           {
             "name": "userId",
@@ -1833,9 +1783,7 @@
     },
     "/api/Permission/memberships": {
       "put": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1881,9 +1829,7 @@
     },
     "/api/Permission/memberships/deactivate": {
       "post": {
-        "tags": [
-          "Permission"
-        ],
+        "tags": ["Permission"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1929,9 +1875,7 @@
     },
     "/api/reports/summary": {
       "get": {
-        "tags": [
-          "Reports"
-        ],
+        "tags": ["Reports"],
         "parameters": [
           {
             "name": "scope",
@@ -1984,9 +1928,7 @@
     },
     "/api/reports/export": {
       "get": {
-        "tags": [
-          "Reports"
-        ],
+        "tags": ["Reports"],
         "parameters": [
           {
             "name": "scope",
@@ -2030,9 +1972,7 @@
     },
     "/api/reports/export.xlsx": {
       "get": {
-        "tags": [
-          "Reports"
-        ],
+        "tags": ["Reports"],
         "parameters": [
           {
             "name": "scope",
@@ -2076,9 +2016,7 @@
     },
     "/api/reports/insights": {
       "get": {
-        "tags": [
-          "Reports"
-        ],
+        "tags": ["Reports"],
         "parameters": [
           {
             "name": "scope",
@@ -2139,9 +2077,7 @@
     },
     "/api/catalog/items": {
       "get": {
-        "tags": [
-          "VppCatalog"
-        ],
+        "tags": ["VppCatalog"],
         "parameters": [
           {
             "name": "categoryId",
@@ -2244,9 +2180,7 @@
         }
       },
       "post": {
-        "tags": [
-          "VppCatalog"
-        ],
+        "tags": ["VppCatalog"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2292,9 +2226,7 @@
     },
     "/api/catalog/items/{id}": {
       "get": {
-        "tags": [
-          "VppCatalog"
-        ],
+        "tags": ["VppCatalog"],
         "parameters": [
           {
             "name": "id",
@@ -2330,9 +2262,7 @@
         }
       },
       "put": {
-        "tags": [
-          "VppCatalog"
-        ],
+        "tags": ["VppCatalog"],
         "parameters": [
           {
             "name": "id",
@@ -2389,9 +2319,7 @@
     },
     "/api/catalog/items/{id}/status": {
       "patch": {
-        "tags": [
-          "VppCatalog"
-        ],
+        "tags": ["VppCatalog"],
         "parameters": [
           {
             "name": "id",
@@ -2448,9 +2376,7 @@
     },
     "/api/VPPPrice/by-vpp/{vppId}": {
       "get": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "vppId",
@@ -2505,9 +2431,7 @@
     },
     "/api/VPPPrice/by-supplier/{supplierId}": {
       "get": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "supplierId",
@@ -2570,9 +2494,7 @@
     },
     "/api/VPPPrice/item-prices": {
       "get": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "supplierId",
@@ -2685,9 +2607,7 @@
     },
     "/api/VPPPrice/resolve": {
       "post": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2733,9 +2653,7 @@
     },
     "/api/VPPPrice": {
       "post": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2781,9 +2699,7 @@
     },
     "/api/VPPPrice/{id}": {
       "put": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "id",
@@ -2838,9 +2754,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "id",
@@ -2861,9 +2775,7 @@
     },
     "/api/VPPPrice/{id}/deleted": {
       "patch": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "id",
@@ -2878,13 +2790,13 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { }
+              "schema": {}
             },
             "text/json": {
-              "schema": { }
+              "schema": {}
             },
             "application/*+json": {
-              "schema": { }
+              "schema": {}
             }
           }
         },
@@ -2914,9 +2826,7 @@
     },
     "/api/VPPPrice/{id}/set-default": {
       "post": {
-        "tags": [
-          "VPPPrice"
-        ],
+        "tags": ["VPPPrice"],
         "parameters": [
           {
             "name": "id",
@@ -2937,9 +2847,7 @@
     },
     "/api/VPPPriceList": {
       "get": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "showDeleted",
@@ -3034,9 +2942,7 @@
         }
       },
       "post": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3082,9 +2988,7 @@
     },
     "/api/VPPPriceList/{id}": {
       "get": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3140,9 +3044,7 @@
         }
       },
       "put": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3197,9 +3099,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3220,9 +3120,7 @@
     },
     "/api/VPPPriceList/{id}/deleted": {
       "patch": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3237,13 +3135,13 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { }
+              "schema": {}
             },
             "text/json": {
-              "schema": { }
+              "schema": {}
             },
             "application/*+json": {
-              "schema": { }
+              "schema": {}
             }
           }
         },
@@ -3273,9 +3171,7 @@
     },
     "/api/VPPPriceList/{id}/hard": {
       "delete": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3296,9 +3192,7 @@
     },
     "/api/VPPPriceList/{id}/set-default": {
       "post": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3319,9 +3213,7 @@
     },
     "/api/VPPPriceList/clone": {
       "post": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3367,9 +3259,7 @@
     },
     "/api/VPPPriceList/{id}/publish": {
       "post": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3426,9 +3316,7 @@
     },
     "/api/VPPPriceList/{id}/expire": {
       "post": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "parameters": [
           {
             "name": "id",
@@ -3485,9 +3373,7 @@
     },
     "/api/VPPPriceList/compare": {
       "post": {
-        "tags": [
-          "VPPPriceList"
-        ],
+        "tags": ["VPPPriceList"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3533,9 +3419,7 @@
     },
     "/api/VPPRequest/my-orders": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "year",
@@ -3670,9 +3554,7 @@
     },
     "/api/VPPRequest/my-orders-summary": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "year",
@@ -3771,9 +3653,7 @@
     },
     "/api/VPPRequest/orders/{id}": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "id",
@@ -3849,9 +3729,7 @@
         }
       },
       "put": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "id",
@@ -3988,9 +3866,7 @@
     },
     "/api/VPPRequest/orders/{id}/history": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "id",
@@ -4068,9 +3944,7 @@
     },
     "/api/VPPRequest/orders": {
       "post": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -4176,9 +4050,7 @@
     },
     "/api/VPPRequest/orders/{id}/cancel": {
       "post": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "id",
@@ -4218,9 +4090,7 @@
     },
     "/api/VPPRequest/orders/previous-items": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "responses": {
           "200": {
             "description": "OK",
@@ -4287,9 +4157,7 @@
     },
     "/api/VPPRequest/period-info": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "responses": {
           "200": {
             "description": "OK",
@@ -4356,9 +4224,7 @@
     },
     "/api/VPPRequest/products/lookup": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "search",
@@ -4451,9 +4317,7 @@
     },
     "/api/VPPRequest/products": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "categoryId",
@@ -4570,9 +4434,7 @@
     },
     "/api/VPPRequest/categories": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "responses": {
           "200": {
             "description": "OK",
@@ -4628,9 +4490,7 @@
     },
     "/api/VPPRequest/all-orders": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "year",
@@ -4749,9 +4609,7 @@
     },
     "/api/VPPRequest/department-orders": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "year",
@@ -4870,9 +4728,7 @@
     },
     "/api/VPPRequest/additional-orders/pending": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "skip",
@@ -4960,9 +4816,7 @@
     },
     "/api/VPPRequest/order-filter-values": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "column",
@@ -5073,9 +4927,7 @@
     },
     "/api/VPPRequest/dashboard-charts": {
       "get": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "responses": {
           "200": {
             "description": "OK"
@@ -5085,9 +4937,7 @@
     },
     "/api/VPPRequest/additional-orders/{id}/approve": {
       "post": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "id",
@@ -5127,9 +4977,7 @@
     },
     "/api/VPPRequest/additional-orders/{id}/reject": {
       "post": {
-        "tags": [
-          "VPPRequest"
-        ],
+        "tags": ["VPPRequest"],
         "parameters": [
           {
             "name": "id",
@@ -5266,10 +5114,7 @@
         "additionalProperties": false
       },
       "AdminPasswordResetReqDTO": {
-        "required": [
-          "confirmPassword",
-          "temporaryPassword"
-        ],
+        "required": ["confirmPassword", "temporaryPassword"],
         "type": "object",
         "properties": {
           "accountId": {
@@ -5790,9 +5635,7 @@
         "additionalProperties": false
       },
       "MembershipDeactivateReqDTO": {
-        "required": [
-          "expectedRowVersion"
-        ],
+        "required": ["expectedRowVersion"],
         "type": "object",
         "properties": {
           "accountId": {
@@ -5951,11 +5794,7 @@
         "additionalProperties": false
       },
       "PasswordChangeReqDTO": {
-        "required": [
-          "confirmPassword",
-          "currentPassword",
-          "newPassword"
-        ],
+        "required": ["confirmPassword", "currentPassword", "newPassword"],
         "type": "object",
         "properties": {
           "currentPassword": {
@@ -5976,9 +5815,7 @@
         "additionalProperties": false
       },
       "PasswordRecoveryReqDTO": {
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "type": "object",
         "properties": {
           "email": {
@@ -5990,12 +5827,7 @@
         "additionalProperties": false
       },
       "PasswordResetReqDTO": {
-        "required": [
-          "confirmPassword",
-          "newPassword",
-          "token",
-          "userId"
-        ],
+        "required": ["confirmPassword", "newPassword", "token", "userId"],
         "type": "object",
         "properties": {
           "userId": {
@@ -6919,16 +6751,7 @@
         "additionalProperties": false
       },
       "PriceResolutionBlockerCode": {
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7
-        ],
+        "enum": [0, 1, 2, 3, 4, 5, 6, 7],
         "type": "integer",
         "format": "int32"
       },
@@ -7081,7 +6904,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": { }
+        "additionalProperties": {}
       },
       "RejectOrderReqDTO": {
         "type": "object",
@@ -8184,10 +8007,7 @@
         "additionalProperties": false
       },
       "VppItemCreateRequest": {
-        "required": [
-          "vppCode",
-          "vppName"
-        ],
+        "required": ["vppCode", "vppName"],
         "type": "object",
         "properties": {
           "vppCode": {
@@ -8389,11 +8209,7 @@
         "additionalProperties": false
       },
       "VppItemUpdateRequest": {
-        "required": [
-          "id",
-          "vppCode",
-          "vppName"
-        ],
+        "required": ["id", "vppCode", "vppName"],
         "type": "object",
         "properties": {
           "id": {

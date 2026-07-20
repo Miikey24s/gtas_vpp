@@ -4,6 +4,10 @@ using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using gtas_vpp_shared.Constants;
 
 namespace gtas_vpp_be.Controllers;
 
@@ -25,7 +29,8 @@ public sealed class AuthController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(
         [FromBody] AuthenticationLoginRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] bool useCookies = false)
     {
         if (string.IsNullOrWhiteSpace(request.Username)
             || string.IsNullOrWhiteSpace(request.Password))
@@ -37,9 +42,46 @@ public sealed class AuthController(
             request.Username,
             request.Password,
             cancellationToken);
-        return result is null
-            ? Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không hợp lệ." })
-            : Ok(result);
+        if (result is null)
+        {
+            return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không hợp lệ." });
+        }
+
+        if (useCookies)
+        {
+            var principal = CreateCookiePrincipal(result);
+            await HttpContext.SignInAsync(
+                AppAuthenticationSchemes.Cookie,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = false,
+                    AllowRefresh = false,
+                    ExpiresUtc = result.AccessTokenExpiresAtUtc
+                });
+            result.AccessToken = null;
+        }
+
+        return Ok(result);
+    }
+
+    [HttpGet("antiforgery")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult GetAntiforgeryToken([FromServices] IAntiforgery antiforgery)
+    {
+        var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+        Response.Cookies.Append(
+            AppAuthenticationSchemes.AntiforgeryCookieName,
+            tokens.RequestToken!,
+            new CookieOptions
+            {
+                HttpOnly = false,
+                IsEssential = true,
+                SameSite = SameSiteMode.Strict,
+                Secure = Request.IsHttps,
+                Path = "/"
+            });
+        return NoContent();
     }
 
     [HttpGet("me")]
@@ -59,7 +101,16 @@ public sealed class AuthController(
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
         var revoked = await _authenticationService.RevokeCurrentSessionAsync(User, cancellationToken);
-        return revoked ? NoContent() : Unauthorized();
+        if (!revoked)
+        {
+            return Unauthorized();
+        }
+
+        await HttpContext.SignOutAsync(AppAuthenticationSchemes.Cookie);
+        Response.Cookies.Delete(
+            AppAuthenticationSchemes.AntiforgeryCookieName,
+            new CookieOptions { Path = "/" });
+        return NoContent();
     }
 
     [HttpGet("me/permissions")]
@@ -68,5 +119,18 @@ public sealed class AuthController(
     {
         var snapshot = await _permissionService.GetSnapshotAsync(User, cancellationToken);
         return Ok(snapshot);
+    }
+
+    private static ClaimsPrincipal CreateCookiePrincipal(AuthenticationResultDTO result)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, result.UserID.ToString()),
+            new Claim(AppClaimTypes.UserId, result.UserID.ToString()),
+            new Claim(AppClaimTypes.UserLogin, result.UserLogin ?? string.Empty),
+            new Claim(AppClaimTypes.SessionVersion, result.SessionVersion.ToString())
+        };
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(claims, AppAuthenticationSchemes.Cookie));
     }
 }

@@ -1256,7 +1256,9 @@ export type PostApiAccountAdminResetPasswordResponse = PostApiAccountAdminResetP
 export type PostApiAuthLoginData = {
     body?: AuthenticationLoginRequest;
     path?: never;
-    query?: never;
+    query?: {
+        useCookies?: boolean;
+    };
     url: '/api/Auth/login';
 };
 
@@ -1281,6 +1283,22 @@ export type PostApiAuthLoginResponses = {
 };
 
 export type PostApiAuthLoginResponse = PostApiAuthLoginResponses[keyof PostApiAuthLoginResponses];
+
+export type GetApiAuthAntiforgeryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/Auth/antiforgery';
+};
+
+export type GetApiAuthAntiforgeryResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type GetApiAuthAntiforgeryResponse = GetApiAuthAntiforgeryResponses[keyof GetApiAuthAntiforgeryResponses];
 
 export type GetApiAuthMeData = {
     body?: never;

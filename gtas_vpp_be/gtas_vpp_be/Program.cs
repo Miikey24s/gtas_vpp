@@ -13,6 +13,7 @@ using gtas_vpp_shared.Constants;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -26,6 +27,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
@@ -261,11 +263,82 @@ builder.Services.AddResponseCompression(opts =>
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
 });
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = AppAuthenticationSchemes.AntiforgeryHeaderName;
+    options.Cookie.Name = "gtas-vpp-antiforgery";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+});
+
 builder.Services
     .AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme = AppAuthenticationSchemes.Default;
+        options.DefaultChallengeScheme = AppAuthenticationSchemes.Default;
+    })
+    .AddPolicyScheme(
+        AppAuthenticationSchemes.Default,
+        displayName: null,
+        options =>
+        {
+            options.ForwardDefaultSelector = context =>
+                context.Request.Headers.Authorization.ToString()
+                    .StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                    ? JwtBearerDefaults.AuthenticationScheme
+                    : AppAuthenticationSchemes.Cookie;
+        })
+    .AddCookie(AppAuthenticationSchemes.Cookie, options =>
+    {
+        options.Cookie.Name = AppAuthenticationSchemes.SessionCookieName;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = builder.Environment.IsProduction()
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
+        options.SlidingExpiration = false;
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = async cookieContext =>
+            {
+                if (cookieContext.Principal is null)
+                {
+                    cookieContext.RejectPrincipal();
+                    return;
+                }
+
+                var currentUserContext = cookieContext.HttpContext.RequestServices
+                    .GetRequiredService<ICurrentUserContext>();
+                var snapshot = await currentUserContext.GetAsync(
+                    cookieContext.Principal,
+                    cookieContext.HttpContext.RequestAborted);
+                if (snapshot is null)
+                {
+                    cookieContext.HttpContext.Items["AppSessionInvalid"] = true;
+                    cookieContext.RejectPrincipal();
+                    return;
+                }
+
+                currentUserContext.EnrichPrincipal(cookieContext.Principal, snapshot);
+            },
+            OnRedirectToLogin = redirectContext =>
+            {
+                redirectContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                if (redirectContext.HttpContext.Items.ContainsKey("AppSessionInvalid"))
+                {
+                    redirectContext.Response.Headers["X-Auth-Reason"] = "session-invalid";
+                }
+
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = redirectContext =>
+            {
+                redirectContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+        };
     })
     .AddJwtBearer(options =>
     {
@@ -450,6 +523,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.UseMiddleware<CookieAntiforgeryMiddleware>();
 app.UseMiddleware<PasswordChangeRequiredMiddleware>();
 app.UseAuthorization();
 

@@ -161,6 +161,18 @@ Hướng mới là **Apple-inspired Operational Clarity**:
 - Không dùng React Canary `<ViewTransition>`; chỉ dùng API stable của React Router/browser và Motion stable.
 - Focus ring rõ và thống nhất; target tương tác tối thiểu hợp lý trên touch.
 
+### 6.4 Motion contract (animation dùng có chủ đích)
+
+Motion là **feedback cho trạng thái và quan hệ không gian**, không phải hiệu ứng trang trí. Mọi animation mới phải trả lời được một trong ba câu hỏi: người dùng vừa làm gì, dữ liệu vừa thay đổi gì, hoặc giao diện đang chuyển sang vùng nào.
+
+- **Micro (CSS/Tailwind, 120 ms):** hover/focus/pressed, màu viền, opacity, icon rotation nhỏ. Chỉ animate `transform`, `opacity`, màu hoặc shadow; không animate `width/height/top/left` gây layout thrash.
+- **Component (Motion, 180 ms):** enter/exit của empty/error/loading, drawer/dialog, list reorder và thay đổi layout cục bộ. Dùng `m` với `LazyMotion`, `AnimatePresence` cho unmount và `layout`/`layoutId` khi cần giữ quan hệ giữa hai trạng thái.
+- **Route (View Transition, 260 ms):** chuyển giữa các route hoặc vùng có cùng ngữ cảnh. Chỉ dùng progressive enhancement; browser không hỗ trợ vẫn phải render bình thường.
+- **Accessibility:** `MotionConfig reducedMotion="user"`, CSS `prefers-reduced-motion: reduce`, và Playwright chạy một vòng reduced-motion. Khi giảm chuyển động, giữ feedback bằng màu, focus, thứ tự nội dung hoặc cross-fade rất ngắn; không làm mất thông tin.
+- **Data-heavy screens:** không stagger từng dòng bảng, không animate KPI mỗi lần refetch, không dùng parallax/auto-loop. Chỉ animate vùng vừa thay đổi và giữ input/focus ổn định.
+
+Nguồn tham khảo chính thức: [Motion for React](https://motion.dev/docs/react), [Motion layout animation](https://motion.dev/docs/react-layout-animations), [MDN View Transition API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API), [MDN prefers-reduced-motion](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion). Không thêm Rive/Lottie/GSAP hoặc MCP animation riêng trước khi có nhu cầu sản phẩm cụ thể.
+
 ### 6.3 Shared component backlog
 
 | Primitive | Trách nhiệm |
@@ -299,7 +311,7 @@ R7 dùng một `ReportWorkspace` chung cho hai route để không lặp query/fi
 | R5 | Library/master data | COMPLETE — generic master data, typed catalog, supplier price-book lifecycle, item pricing, restore flow + automated QA pass |
 | R6 | Access control | COMPLETE — account activation, membership, canonical role overview, UI component permission + automated QA pass |
 | R7 | Reports/AI/print/export | COMPLETE — typed data story, XLSX, print, AI error/rules/AI states + automated QA pass |
-| R8 | Global hardening + cutover | Cookie/BFF, a11y/perf/security/regression/deploy/rollback green |
+| R8 | Global hardening + cutover | IN_PROGRESS — cookie/antiforgery foundation and React motion hardening complete; production hosting/cutover/rollback gates còn lại |
 
 Thứ tự trong wave ưu tiên một end-to-end journey hoạt động trước khi mở rộng breadth. Owner review theo checkpoint; feedback shared primitive phải được retrofit các route đã làm.
 
@@ -447,6 +459,8 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | AI insight chỉ chạy theo yêu cầu và không giữ key ở browser | React gọi backend typed endpoint; backend tự chọn provider hoặc rules fallback. UI luôn hiện source, model, thời điểm và bằng chứng từ cùng bộ lọc báo cáo, không trình bày fallback như kết luận AI |
 | 2026-07-20 | Báo cáo là một workspace chia sẻ cho số liệu và insight | Hai route dùng chung filter/query để số liệu, XLSX, print và insight không lệch scope; trend trả lời biến động theo kỳ, status trả lời vị trí trong workflow, department trả lời nơi tạo giá trị, top items giữ bảng exact-data |
 | 2026-07-20 | R7 automated gate đạt 10 Playwright journeys toàn bộ | Report journey bao phủ permission scope, filter, reconciliation, chart/table, XLSX, print, VI/EN, AI idle/error/rules/AI, reduced-motion, axe và console/network; backend đạt 401 tests |
+| 2026-07-20 | Motion research trước R8 | Giữ `motion@12.42.2` + CSS + React Router/browser View Transitions; không thêm package/MCP animation. Áp dụng motion contract 3 lớp, reduced-motion và QA bằng Playwright/axe |
+| 2026-07-20 | Route motion dùng transform-only | AppShell có chuyển route nhẹ bằng `y` transform; không fade toàn bộ main để không làm sai contrast trong lúc axe quét. E2E mutation serialize 1 worker vì fixture dùng chung và cần deterministic |
 
 ## 18. Immediate execution queue
 
@@ -458,7 +472,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 6. R5 hoàn tất kỹ thuật: master data, catalog, supplier price book và item pricing; chờ owner visual review.
 7. R6 hoàn tất kỹ thuật: account activation, membership, canonical group overview và component permission; chờ owner visual review.
 8. R7 hoàn tất kỹ thuật: shared report workspace, AI evidence/fallback, export XLSX và print-mode; chờ owner visual review.
-9. R8 là wave tiếp theo: cookie/BFF, production hosting, a11y/performance/security regression, cutover và rollback readiness.
+9. R8 đang triển khai: cookie/antiforgery foundation, motion/accessibility hardening đã có; tiếp tục production hosting, a11y/performance/security regression, cutover và rollback readiness.
 
 Prompt tiếp tục:
 

@@ -9,6 +9,7 @@ import {
 
 import { toApiRequestError } from '@/api/api-error'
 import {
+  getApiAuthAntiforgery,
   getApiAuthMe,
   getApiAuthMePermissions,
   postApiAuthLogin,
@@ -17,6 +18,7 @@ import {
   type CurrentUserResDto,
   type PermissionSnapshotResDto,
 } from '@/api/generated'
+import { isCookieSessionEnabled } from '@/auth/auth-mode'
 import {
   AUTH_SESSION_CHANGED_EVENT,
   readAuthSession,
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [queryClient])
 
   const refresh = useCallback(async () => {
-    if (!readAuthSession()) {
+    if (!isCookieSessionEnabled() && !readAuthSession()) {
       setAnonymous()
       return 'anonymous' as const
     }
@@ -60,6 +62,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     setUser(userResult.data)
     if (userResult.data.mustChangePassword) {
+      if (isCookieSessionEnabled()) {
+        const antiforgeryResult = await getApiAuthAntiforgery()
+        if (antiforgeryResult.error) {
+          removeAuthSession()
+          setAnonymous()
+          throw toApiRequestError(
+            antiforgeryResult.error,
+            antiforgeryResult.response,
+          )
+        }
+      }
       setPermissionSnapshot(null)
       setStatus('password-change-required')
       return 'password-change-required' as const
@@ -76,6 +89,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
 
     setPermissionSnapshot(permissionsResult.data)
+    if (isCookieSessionEnabled()) {
+      const antiforgeryResult = await getApiAuthAntiforgery()
+      if (antiforgeryResult.error) {
+        removeAuthSession()
+        setAnonymous()
+        throw toApiRequestError(
+          antiforgeryResult.error,
+          antiforgeryResult.response,
+        )
+      }
+    }
     setStatus('authenticated')
     return 'authenticated' as const
   }, [setAnonymous])
@@ -86,10 +110,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const handleSessionChanged = () => {
-      if (!readAuthSession()) setAnonymous()
+      if (!isCookieSessionEnabled() && !readAuthSession()) setAnonymous()
     }
     const handleFocus = () => {
       if (
+        !isCookieSessionEnabled() &&
         (status === 'authenticated' || status === 'password-change-required') &&
         !readAuthSession()
       ) {
@@ -110,7 +135,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login = useCallback(
     async (credentials: AuthenticationLoginRequest) => {
-      const result = await postApiAuthLogin({ body: credentials })
+      const result = await postApiAuthLogin({
+        query: { useCookies: isCookieSessionEnabled() },
+        body: credentials,
+      })
       if (!result.data) {
         throw toApiRequestError(result.error, result.response)
       }
@@ -127,7 +155,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const logout = useCallback(async () => {
     try {
-      if (readAuthSession()) await postApiAuthLogout()
+      if (isCookieSessionEnabled() || readAuthSession()) {
+        await postApiAuthLogout()
+      }
     } finally {
       removeAuthSession()
       setAnonymous()

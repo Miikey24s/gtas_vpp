@@ -6,6 +6,7 @@ import {
 import { useEffect } from 'react'
 
 import { getAccessToken } from '@/auth/auth-session'
+import { isCookieSessionEnabled, readAntiforgeryToken } from '@/auth/auth-mode'
 import { toApiUrl } from '@/lib/api-url'
 
 const realtimeEnabled =
@@ -18,6 +19,10 @@ export function useNotificationRealtime(onChanged: () => void) {
     const connection = new HubConnectionBuilder()
       .withUrl(toApiUrl('/hubs/notifications'), {
         accessTokenFactory: () => getAccessToken() ?? '',
+        withCredentials: true,
+        headers: isCookieSessionEnabled()
+          ? { 'X-XSRF-TOKEN': readAntiforgeryToken() ?? '' }
+          : undefined,
         transport:
           HttpTransportType.WebSockets |
           HttpTransportType.ServerSentEvents |
