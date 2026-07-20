@@ -30,7 +30,10 @@ import {
 } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDateTime, formatPeriod } from '@/features/orders/order-format'
-import { formatMoney, parsePeriodParams } from '@/features/periods/period-format'
+import {
+  formatMoney,
+  parsePeriodParams,
+} from '@/features/periods/period-format'
 
 function FinancialBreakdown({
   settlement,
@@ -52,17 +55,28 @@ function FinancialBreakdown({
   return (
     <dl className="divide-border divide-y">
       {rows.map(([label, value]) => (
-        <div key={String(label)} className="flex items-center justify-between gap-4 py-3 text-sm">
+        <div
+          key={String(label)}
+          className="flex items-center justify-between gap-4 py-3 text-sm"
+        >
           <dt className="text-muted-foreground">{String(label)}</dt>
           <dd className="font-medium tabular-nums">
-            {formatMoney(Number(value), language, settlement.currencyCode || 'VND')}
+            {formatMoney(
+              Number(value),
+              language,
+              settlement.currencyCode || 'VND',
+            )}
           </dd>
         </div>
       ))}
       <div className="flex items-center justify-between gap-4 pt-4">
         <dt className="font-semibold">{t('periods.grandTotal')}</dt>
         <dd className="text-xl font-semibold tabular-nums">
-          {formatMoney(settlement.grandTotal, language, settlement.currencyCode || 'VND')}
+          {formatMoney(
+            settlement.grandTotal,
+            language,
+            settlement.currencyCode || 'VND',
+          )}
         </dd>
       </div>
     </dl>
@@ -76,7 +90,13 @@ export function SettlementDetailPage() {
   const language = i18n.resolvedLanguage ?? 'vi'
 
   const currentQuery = useQuery({
-    queryKey: ['vpp', 'period-settlement', 'current', period?.year, period?.month],
+    queryKey: [
+      'vpp',
+      'period-settlement',
+      'current',
+      period?.year,
+      period?.month,
+    ],
     enabled: Boolean(period),
     retry: false,
     queryFn: async () => {
@@ -89,7 +109,13 @@ export function SettlementDetailPage() {
     },
   })
   const revisionsQuery = useQuery({
-    queryKey: ['vpp', 'period-settlement', 'revisions', period?.year, period?.month],
+    queryKey: [
+      'vpp',
+      'period-settlement',
+      'revisions',
+      period?.year,
+      period?.month,
+    ],
     enabled: Boolean(period),
     queryFn: async () => {
       const result = await getApiPeriodSettlementRevisionsByYByM({
@@ -105,9 +131,13 @@ export function SettlementDetailPage() {
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         <Empty className="min-h-80 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <CircleAlert aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.invalidTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.invalidDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.invalidDescription')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
@@ -119,7 +149,8 @@ export function SettlementDetailPage() {
       <div className="mx-auto w-full max-w-[92rem] px-4 py-8 sm:px-6 lg:px-8">
         <Skeleton className="h-8 w-48" />
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          <Skeleton className="h-96" /><Skeleton className="h-96" />
+          <Skeleton className="h-96" />
+          <Skeleton className="h-96" />
         </div>
       </div>
     )
@@ -130,9 +161,13 @@ export function SettlementDetailPage() {
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         <Empty className="min-h-80 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <CircleAlert aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.settlementErrorTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.settlementErrorDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.settlementErrorDescription')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
@@ -145,13 +180,21 @@ export function SettlementDetailPage() {
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         <Empty className="min-h-80 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><FileClock aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <FileClock aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.noSettlementTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.noSettlementDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.noSettlementDescription')}
+            </EmptyDescription>
           </EmptyHeader>
           <Button asChild>
-            <Link to={`/app/periods/${period.year}/${period.month}/preview`} viewTransition>
-              {t('periods.startPreview')}<ArrowRight aria-hidden="true" />
+            <Link
+              to={`/app/periods/${period.year}/${period.month}/preview`}
+              viewTransition
+            >
+              {t('periods.startPreview')}
+              <ArrowRight aria-hidden="true" />
             </Link>
           </Button>
         </Empty>
@@ -198,11 +241,17 @@ export function SettlementDetailPage() {
         <article className="border-border border p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <Landmark className="text-primary mt-0.5 size-5" aria-hidden="true" />
+              <Landmark
+                className="text-primary mt-0.5 size-5"
+                aria-hidden="true"
+              />
               <div>
-                <h2 className="font-semibold">{current.primarySupplierName || '—'}</h2>
+                <h2 className="font-semibold">
+                  {current.primarySupplierName || '—'}
+                </h2>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {current.priceListName || '—'} · v{current.priceListVersion ?? 0}
+                  {current.priceListName || '—'} · v
+                  {current.priceListVersion ?? 0}
                 </p>
               </div>
             </div>
@@ -211,35 +260,61 @@ export function SettlementDetailPage() {
               className="rounded-[4px] border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300"
             >
               <BadgeCheck aria-hidden="true" />
-              {t('periods.currentRevision', { revision: current.revisionNumber ?? 1 })}
+              {t('periods.currentRevision', {
+                revision: current.revisionNumber ?? 1,
+              })}
             </Badge>
           </div>
           <div className="mt-6 grid grid-cols-2 gap-5 border-y py-5 text-sm sm:grid-cols-4">
             <div>
-              <p className="text-muted-foreground text-xs">{t('periods.items')}</p>
-              <p className="mt-1 font-semibold tabular-nums">{current.itemCount ?? 0}</p>
+              <p className="text-muted-foreground text-xs">
+                {t('periods.items')}
+              </p>
+              <p className="mt-1 font-semibold tabular-nums">
+                {current.itemCount ?? 0}
+              </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">{t('periods.allocations')}</p>
-              <p className="mt-1 font-semibold tabular-nums">{current.allocationCount ?? 0}</p>
+              <p className="text-muted-foreground text-xs">
+                {t('periods.allocations')}
+              </p>
+              <p className="mt-1 font-semibold tabular-nums">
+                {current.allocationCount ?? 0}
+              </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">{t('periods.confirmedAt')}</p>
-              <p className="mt-1 font-semibold">{formatDateTime(current.confirmedAtUtc, language)}</p>
+              <p className="text-muted-foreground text-xs">
+                {t('periods.confirmedAt')}
+              </p>
+              <p className="mt-1 font-semibold">
+                {formatDateTime(current.confirmedAtUtc, language)}
+              </p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">{t('periods.confirmedBy')}</p>
-              <p className="mt-1 font-semibold tabular-nums">#{current.confirmedByUserId ?? '—'}</p>
+              <p className="text-muted-foreground text-xs">
+                {t('periods.confirmedBy')}
+              </p>
+              <p className="mt-1 font-semibold tabular-nums">
+                #{current.confirmedByUserId ?? '—'}
+              </p>
             </div>
           </div>
           <div className="mt-6">
             <FinancialBreakdown settlement={current} language={language} />
           </div>
           <div className="bg-muted/40 mt-6 flex items-start gap-3 p-4">
-            <Fingerprint className="text-muted-foreground mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <Fingerprint
+              className="text-muted-foreground mt-0.5 size-4 shrink-0"
+              aria-hidden="true"
+            />
             <div className="min-w-0 text-xs">
-              <p className="font-medium">{t('periods.reconciliationEvidence')}</p>
-              <p className="text-muted-foreground mt-1 truncate font-mono" title={current.inputHash || undefined}>
+              <p className="font-medium">
+                {t('periods.reconciliationEvidence')}
+              </p>
+              <p
+                className="text-muted-foreground mt-1 truncate font-mono"
+                title={current.inputHash || undefined}
+              >
                 {current.calculationVersion || '—'} · {current.inputHash || '—'}
               </p>
             </div>
@@ -248,9 +323,14 @@ export function SettlementDetailPage() {
 
         <article className="border-border border p-5 sm:p-6">
           <div className="flex items-start gap-3">
-            <FileClock className="text-primary mt-0.5 size-5" aria-hidden="true" />
+            <FileClock
+              className="text-primary mt-0.5 size-5"
+              aria-hidden="true"
+            />
             <div>
-              <h2 className="font-semibold">{t('periods.revisionHistoryTitle')}</h2>
+              <h2 className="font-semibold">
+                {t('periods.revisionHistoryTitle')}
+              </h2>
               <p className="text-muted-foreground mt-1 text-sm leading-6">
                 {t('periods.revisionHistoryDescription')}
               </p>
@@ -260,12 +340,15 @@ export function SettlementDetailPage() {
             {revisions.map((revision, index) => (
               <li key={revision.id} className="relative pl-8">
                 {index < revisions.length - 1 ? (
-                  <span className="bg-border absolute top-5 bottom-0 left-[9px] w-px" aria-hidden="true" />
+                  <span
+                    className="bg-border absolute top-5 bottom-0 left-[9px] w-px"
+                    aria-hidden="true"
+                  />
                 ) : null}
                 <span
                   className={
                     revision.isCurrentRevision
-                      ? 'bg-primary absolute top-1 left-1 size-3 rounded-full ring-4 ring-primary/10'
+                      ? 'bg-primary ring-primary/10 absolute top-1 left-1 size-3 rounded-full ring-4'
                       : 'bg-muted-foreground/35 absolute top-1 left-1 size-3 rounded-full'
                   }
                   aria-hidden="true"
@@ -274,10 +357,13 @@ export function SettlementDetailPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-medium">
-                        {t('periods.revisionLabel', { revision: revision.revisionNumber ?? 0 })}
+                        {t('periods.revisionLabel', {
+                          revision: revision.revisionNumber ?? 0,
+                        })}
                       </p>
                       <p className="text-muted-foreground mt-1 text-xs">
-                        {revision.primarySupplierName || '—'} · {formatDateTime(revision.confirmedAtUtc, language)}
+                        {revision.primarySupplierName || '—'} ·{' '}
+                        {formatDateTime(revision.confirmedAtUtc, language)}
                       </p>
                     </div>
                     <Badge variant="outline" className="rounded-[4px]">
@@ -290,10 +376,15 @@ export function SettlementDetailPage() {
                   </div>
                   <div className="mt-3 flex items-end justify-between gap-4">
                     <p className="text-muted-foreground line-clamp-2 text-xs">
-                      {revision.correctionReason || t('periods.initialConfirmation')}
+                      {revision.correctionReason ||
+                        t('periods.initialConfirmation')}
                     </p>
                     <p className="shrink-0 font-semibold tabular-nums">
-                      {formatMoney(revision.grandTotal, language, revision.currencyCode || 'VND')}
+                      {formatMoney(
+                        revision.grandTotal,
+                        language,
+                        revision.currencyCode || 'VND',
+                      )}
                     </p>
                   </div>
                 </div>
@@ -301,8 +392,13 @@ export function SettlementDetailPage() {
             ))}
           </ol>
           <div className="border-border flex items-start gap-3 border-t pt-5 text-xs">
-            <ShieldCheck className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
-            <p className="text-muted-foreground leading-5">{t('periods.immutableHistoryHint')}</p>
+            <ShieldCheck
+              className="text-muted-foreground size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <p className="text-muted-foreground leading-5">
+              {t('periods.immutableHistoryHint')}
+            </p>
           </div>
         </article>
       </section>

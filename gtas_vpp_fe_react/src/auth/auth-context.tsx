@@ -113,11 +113,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (!isCookieSessionEnabled() && !readAuthSession()) setAnonymous()
     }
     const handleFocus = () => {
-      if (
-        !isCookieSessionEnabled() &&
-        (status === 'authenticated' || status === 'password-change-required') &&
-        !readAuthSession()
-      ) {
+      if (!isCookieSessionEnabled() && !readAuthSession()) {
         setAnonymous()
       }
     }
@@ -131,7 +127,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       )
       window.removeEventListener('focus', handleFocus)
     }
-  }, [setAnonymous, status])
+  }, [setAnonymous])
 
   const login = useCallback(
     async (credentials: AuthenticationLoginRequest) => {

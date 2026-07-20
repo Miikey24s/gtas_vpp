@@ -106,7 +106,10 @@ function MissingItemEditor({
   return (
     <article className="border-border border p-4">
       <div className="flex items-start gap-3">
-        <PackageSearch className="text-muted-foreground mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <PackageSearch
+          className="text-muted-foreground mt-0.5 size-4 shrink-0"
+          aria-hidden="true"
+        />
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-medium">
             {itemQuery.data?.vppName || t('periods.exceptionItem')}
@@ -118,7 +121,9 @@ function MissingItemEditor({
       </div>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor={`supplier-${vppId}`}>{t('periods.exceptionSupplier')}</Label>
+          <Label htmlFor={`supplier-${vppId}`}>
+            {t('periods.exceptionSupplier')}
+          </Label>
           <Select
             value={value?.supplierId ?? ''}
             onValueChange={(supplierId: string) =>
@@ -130,7 +135,9 @@ function MissingItemEditor({
             }
           >
             <SelectTrigger id={`supplier-${vppId}`} className="w-full">
-              <SelectValue placeholder={t('periods.exceptionSupplierPlaceholder')} />
+              <SelectValue
+                placeholder={t('periods.exceptionSupplierPlaceholder')}
+              />
             </SelectTrigger>
             <SelectContent>
               {alternatives.map((quote) => (
@@ -142,7 +149,9 @@ function MissingItemEditor({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`reason-${vppId}`}>{t('periods.exceptionReason')}</Label>
+          <Label htmlFor={`reason-${vppId}`}>
+            {t('periods.exceptionReason')}
+          </Label>
           <Textarea
             id={`reason-${vppId}`}
             value={value?.reason ?? ''}
@@ -171,14 +180,22 @@ export function SettlementPreviewPage() {
   const period = parsePeriodParams(params.year, params.month)
   const language = i18n.resolvedLanguage ?? 'vi'
   const correctionMode = searchParams.get('mode') === 'correction'
-  const [appliedInput, setAppliedInput] = useState<PreviewInput>({ exceptions: [] })
+  const [appliedInput, setAppliedInput] = useState<PreviewInput>({
+    exceptions: [],
+  })
   const [draftInput, setDraftInput] = useState<PreviewInput>({ exceptions: [] })
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [correctionReason, setCorrectionReason] = useState('')
   const idempotencyKeys = useRef(new Map<string, string>())
 
   const statusQuery = useQuery({
-    queryKey: ['vpp', 'period-settlement', 'status', period?.year, period?.month],
+    queryKey: [
+      'vpp',
+      'period-settlement',
+      'status',
+      period?.year,
+      period?.month,
+    ],
     enabled: Boolean(period),
     queryFn: async () => {
       const result = await getApiPeriodSettlementByYByM({
@@ -228,11 +245,11 @@ export function SettlementPreviewPage() {
   const blockers = preview?.blockers ?? []
   const canConfirm = Boolean(
     preview?.inputHash &&
-      preview.primarySupplierId &&
-      preview.primaryPriceListId &&
-      preview.primaryQuote?.isEligible &&
-      blockers.length === 0 &&
-      (statusQuery.data?.pendingAdditionalCount ?? 0) === 0,
+    preview.primarySupplierId &&
+    preview.primaryPriceListId &&
+    preview.primaryQuote?.isEligible &&
+    blockers.length === 0 &&
+    (statusQuery.data?.pendingAdditionalCount ?? 0) === 0,
   )
 
   const getIdempotencyKey = () => {
@@ -319,9 +336,13 @@ export function SettlementPreviewPage() {
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         <Empty className="min-h-80 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <CircleAlert aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.invalidTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.invalidDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.invalidDescription')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
@@ -351,8 +372,12 @@ export function SettlementPreviewPage() {
   const exceptionDraftValid =
     missingIds.length > 0 &&
     missingIds.every((vppId) => {
-      const exception = draftInput.exceptions.find((item) => item.vppId === vppId)
-      return Boolean(exception?.supplierId && (exception.reason?.trim().length ?? 0) >= 5)
+      const exception = draftInput.exceptions.find(
+        (item) => item.vppId === vppId,
+      )
+      return Boolean(
+        exception?.supplierId && (exception.reason?.trim().length ?? 0) >= 5,
+      )
     })
 
   return (
@@ -367,12 +392,19 @@ export function SettlementPreviewPage() {
       <header className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-primary text-xs font-semibold tracking-[0.14em] uppercase">
-            {correctionMode ? t('periods.correctionEyebrow') : t('periods.previewEyebrow')}
+            {correctionMode
+              ? t('periods.correctionEyebrow')
+              : t('periods.previewEyebrow')}
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-            {t(correctionMode ? 'periods.correctionPageTitle' : 'periods.previewPageTitle', {
-              period: formatPeriod(period.month, period.year),
-            })}
+            {t(
+              correctionMode
+                ? 'periods.correctionPageTitle'
+                : 'periods.previewPageTitle',
+              {
+                period: formatPeriod(period.month, period.year),
+              },
+            )}
           </h1>
           <p className="text-muted-foreground mt-2 max-w-3xl text-sm leading-6">
             {t('periods.previewPageDescription')}
@@ -401,9 +433,13 @@ export function SettlementPreviewPage() {
       {previewQuery.isError ? (
         <Empty className="mt-6 min-h-72 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <CircleAlert aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.previewErrorTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.previewErrorDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.previewErrorDescription')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : null}
@@ -415,7 +451,10 @@ export function SettlementPreviewPage() {
               [t('periods.requestedItems'), preview.requestedItemCount ?? 0],
               [t('periods.requestedLines'), preview.requestedLineCount ?? 0],
               [t('periods.quoteCount'), quotes.length],
-              [t('periods.pendingSupplements'), preview.pendingAdditionalCount ?? 0],
+              [
+                t('periods.pendingSupplements'),
+                preview.pendingAdditionalCount ?? 0,
+              ],
             ].map(([label, value], index) => (
               <div
                 key={String(label)}
@@ -432,8 +471,12 @@ export function SettlementPreviewPage() {
               <section>
                 <div className="flex items-end justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold">{t('periods.quotesTitle')}</h2>
-                    <p className="text-muted-foreground mt-1 text-sm">{t('periods.quotesDescription')}</p>
+                    <h2 className="text-lg font-semibold">
+                      {t('periods.quotesTitle')}
+                    </h2>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      {t('periods.quotesDescription')}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -455,10 +498,12 @@ export function SettlementPreviewPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <p className="truncate font-semibold">
-                              {quote.supplierName || t('periods.unnamedSupplier')}
+                              {quote.supplierName ||
+                                t('periods.unnamedSupplier')}
                             </p>
                             <p className="text-muted-foreground mt-1 truncate text-xs">
-                              {quote.priceListCode || quote.priceListId} · v{quote.version ?? 0}
+                              {quote.priceListCode || quote.priceListId} · v
+                              {quote.version ?? 0}
                             </p>
                           </div>
                           {selected ? (
@@ -469,18 +514,28 @@ export function SettlementPreviewPage() {
                         </div>
                         <div className="mt-5 flex items-end justify-between gap-4">
                           <div>
-                            <p className="text-muted-foreground text-xs">{t('periods.coverage')}</p>
+                            <p className="text-muted-foreground text-xs">
+                              {t('periods.coverage')}
+                            </p>
                             <p className="mt-1 font-semibold tabular-nums">
-                              {quote.coveredItemCount ?? 0}/{quote.requestedItemCount ?? 0} · {quote.coveragePercent ?? 0}%
+                              {quote.coveredItemCount ?? 0}/
+                              {quote.requestedItemCount ?? 0} ·{' '}
+                              {quote.coveragePercent ?? 0}%
                             </p>
                           </div>
                           <p className="text-right text-lg font-semibold tabular-nums">
-                            {formatMoney(quote.grandTotal, language, quote.currencyCode || 'VND')}
+                            {formatMoney(
+                              quote.grandTotal,
+                              language,
+                              quote.currencyCode || 'VND',
+                            )}
                           </p>
                         </div>
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="rounded-[4px]">
-                            {t('periods.leadTime', { count: quote.maximumLeadTimeDays ?? 0 })}
+                            {t('periods.leadTime', {
+                              count: quote.maximumLeadTimeDays ?? 0,
+                            })}
                           </Badge>
                           <Badge
                             variant="outline"
@@ -491,7 +546,9 @@ export function SettlementPreviewPage() {
                                 : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300',
                             )}
                           >
-                            {quote.isEligible ? t('periods.completeCoverage') : t('periods.needsExceptions')}
+                            {quote.isEligible
+                              ? t('periods.completeCoverage')
+                              : t('periods.needsExceptions')}
                           </Badge>
                         </div>
                       </button>
@@ -503,9 +560,13 @@ export function SettlementPreviewPage() {
               {selectedQuote && missingIds.length > 0 ? (
                 <section>
                   <div>
-                    <h2 className="text-lg font-semibold">{t('periods.exceptionsTitle')}</h2>
+                    <h2 className="text-lg font-semibold">
+                      {t('periods.exceptionsTitle')}
+                    </h2>
                     <p className="text-muted-foreground mt-1 text-sm leading-6">
-                      {t('periods.exceptionsDescription', { count: missingIds.length })}
+                      {t('periods.exceptionsDescription', {
+                        count: missingIds.length,
+                      })}
                     </p>
                   </div>
                   <div className="mt-4 space-y-3">
@@ -515,7 +576,9 @@ export function SettlementPreviewPage() {
                         vppId={vppId}
                         suppliers={suppliers}
                         primarySupplierId={selectedQuote.supplierId}
-                        value={draftInput.exceptions.find((item) => item.vppId === vppId)}
+                        value={draftInput.exceptions.find(
+                          (item) => item.vppId === vppId,
+                        )}
                         onChange={updateException}
                       />
                     ))}
@@ -525,7 +588,14 @@ export function SettlementPreviewPage() {
                       onClick={() => setAppliedInput(draftInput)}
                       disabled={!exceptionDraftValid || previewQuery.isFetching}
                     >
-                      {previewQuery.isFetching ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}
+                      {previewQuery.isFetching ? (
+                        <LoaderCircle
+                          className="animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <ShieldCheck aria-hidden="true" />
+                      )}
                       {t('periods.validateExceptions')}
                     </Button>
                   </div>
@@ -534,14 +604,18 @@ export function SettlementPreviewPage() {
 
               {preview.exceptions?.length ? (
                 <section className="border-border border p-5">
-                  <h2 className="font-semibold">{t('periods.exceptionEvidenceTitle')}</h2>
+                  <h2 className="font-semibold">
+                    {t('periods.exceptionEvidenceTitle')}
+                  </h2>
                   <div className="mt-4 space-y-3">
                     {preview.exceptions.map((exception) => (
                       <div
                         key={exception.vppId}
                         className="flex flex-wrap items-center justify-between gap-3 text-sm"
                       >
-                        <span className="font-mono text-xs">{exception.vppId}</span>
+                        <span className="font-mono text-xs">
+                          {exception.vppId}
+                        </span>
                         <div className="flex items-center gap-3">
                           <span className="tabular-nums">
                             {formatMoney(exception.grossAmount, language)}
@@ -555,7 +629,9 @@ export function SettlementPreviewPage() {
                                 : 'border-destructive/30 text-destructive',
                             )}
                           >
-                            {exception.isValid ? t('periods.valid') : t('periods.invalid')}
+                            {exception.isValid
+                              ? t('periods.valid')
+                              : t('periods.invalid')}
                           </Badge>
                         </div>
                       </div>
@@ -568,9 +644,14 @@ export function SettlementPreviewPage() {
             <aside className="h-fit xl:sticky xl:top-24">
               <div className="border-border border p-5">
                 <div className="flex items-start gap-3">
-                  <Landmark className="text-primary mt-0.5 size-5" aria-hidden="true" />
+                  <Landmark
+                    className="text-primary mt-0.5 size-5"
+                    aria-hidden="true"
+                  />
                   <div>
-                    <h2 className="font-semibold">{t('periods.decisionTitle')}</h2>
+                    <h2 className="font-semibold">
+                      {t('periods.decisionTitle')}
+                    </h2>
                     <p className="text-muted-foreground mt-1 text-xs leading-5">
                       {t('periods.decisionDescription')}
                     </p>
@@ -580,22 +661,36 @@ export function SettlementPreviewPage() {
                 {selectedQuote ? (
                   <dl className="mt-5 space-y-3 text-sm">
                     <div className="flex justify-between gap-4">
-                      <dt className="text-muted-foreground">{t('periods.supplier')}</dt>
-                      <dd className="max-w-44 text-right font-medium">{selectedQuote.supplierName || '—'}</dd>
+                      <dt className="text-muted-foreground">
+                        {t('periods.supplier')}
+                      </dt>
+                      <dd className="max-w-44 text-right font-medium">
+                        {selectedQuote.supplierName || '—'}
+                      </dd>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <dt className="text-muted-foreground">{t('periods.coverage')}</dt>
-                      <dd className="font-medium tabular-nums">{selectedQuote.coveragePercent ?? 0}%</dd>
+                      <dt className="text-muted-foreground">
+                        {t('periods.coverage')}
+                      </dt>
+                      <dd className="font-medium tabular-nums">
+                        {selectedQuote.coveragePercent ?? 0}%
+                      </dd>
                     </div>
                     <div className="flex justify-between gap-4 border-t pt-3">
                       <dt className="font-medium">{t('periods.total')}</dt>
                       <dd className="font-semibold tabular-nums">
-                        {formatMoney(selectedQuote.grandTotal, language, selectedQuote.currencyCode || 'VND')}
+                        {formatMoney(
+                          selectedQuote.grandTotal,
+                          language,
+                          selectedQuote.currencyCode || 'VND',
+                        )}
                       </dd>
                     </div>
                   </dl>
                 ) : (
-                  <p className="text-muted-foreground mt-5 text-sm">{t('periods.chooseQuoteHint')}</p>
+                  <p className="text-muted-foreground mt-5 text-sm">
+                    {t('periods.chooseQuoteHint')}
+                  </p>
                 )}
 
                 {blockers.length > 0 ? (
@@ -605,7 +700,9 @@ export function SettlementPreviewPage() {
                     <AlertDescription>
                       <ul className="list-disc space-y-1 pl-4">
                         {blockers.map((blocker) => (
-                          <li key={blocker}>{settlementBlockerLabel(blocker, t)}</li>
+                          <li key={blocker}>
+                            {settlementBlockerLabel(blocker, t)}
+                          </li>
                         ))}
                       </ul>
                     </AlertDescription>
@@ -614,7 +711,9 @@ export function SettlementPreviewPage() {
                   <Alert className="mt-5 rounded-none border-emerald-200 text-emerald-800 dark:border-emerald-900 dark:text-emerald-200">
                     <BadgeCheck aria-hidden="true" />
                     <AlertTitle>{t('periods.readyTitle')}</AlertTitle>
-                    <AlertDescription>{t('periods.readyDescription')}</AlertDescription>
+                    <AlertDescription>
+                      {t('periods.readyDescription')}
+                    </AlertDescription>
                   </Alert>
                 ) : null}
 
@@ -624,10 +723,15 @@ export function SettlementPreviewPage() {
                   onClick={() => setConfirmOpen(true)}
                 >
                   <ShieldCheck aria-hidden="true" />
-                  {correctionMode ? t('periods.createCorrection') : t('periods.confirmSettlement')}
+                  {correctionMode
+                    ? t('periods.createCorrection')
+                    : t('periods.confirmSettlement')}
                 </Button>
                 {preview.inputHash ? (
-                  <p className="text-muted-foreground mt-3 truncate font-mono text-[10px]" title={preview.inputHash}>
+                  <p
+                    className="text-muted-foreground mt-3 truncate font-mono text-[10px]"
+                    title={preview.inputHash}
+                  >
                     {t('periods.inputHash')}: {preview.inputHash.slice(0, 16)}…
                   </p>
                 ) : null}
@@ -641,15 +745,21 @@ export function SettlementPreviewPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {correctionMode ? t('periods.correctionConfirmTitle') : t('periods.confirmTitle')}
+              {correctionMode
+                ? t('periods.correctionConfirmTitle')
+                : t('periods.confirmTitle')}
             </DialogTitle>
             <DialogDescription>
-              {correctionMode ? t('periods.correctionConfirmDescription') : t('periods.confirmDescription')}
+              {correctionMode
+                ? t('periods.correctionConfirmDescription')
+                : t('periods.confirmDescription')}
             </DialogDescription>
           </DialogHeader>
           {correctionMode ? (
             <div className="space-y-2">
-              <Label htmlFor="correction-reason">{t('periods.correctionReason')}</Label>
+              <Label htmlFor="correction-reason">
+                {t('periods.correctionReason')}
+              </Label>
               <Textarea
                 id="correction-reason"
                 value={correctionReason}
@@ -657,7 +767,9 @@ export function SettlementPreviewPage() {
                 placeholder={t('periods.correctionReasonPlaceholder')}
                 onChange={(event) => setCorrectionReason(event.target.value)}
               />
-              <p className="text-muted-foreground text-xs">{t('periods.fourEyesHint')}</p>
+              <p className="text-muted-foreground text-xs">
+                {t('periods.fourEyesHint')}
+              </p>
             </div>
           ) : null}
           <DialogFooter>
@@ -671,8 +783,14 @@ export function SettlementPreviewPage() {
                 (correctionMode && correctionReason.trim().length < 5)
               }
             >
-              {confirmMutation.isPending ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}
-              {correctionMode ? t('periods.confirmCorrection') : t('periods.confirmSettlement')}
+              {confirmMutation.isPending ? (
+                <LoaderCircle className="animate-spin" aria-hidden="true" />
+              ) : (
+                <ShieldCheck aria-hidden="true" />
+              )}
+              {correctionMode
+                ? t('periods.confirmCorrection')
+                : t('periods.confirmSettlement')}
             </Button>
           </DialogFooter>
         </DialogContent>

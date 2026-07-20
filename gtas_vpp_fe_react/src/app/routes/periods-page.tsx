@@ -59,7 +59,9 @@ function PeriodCard({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase">
-            {featured ? t('periods.targetPeriod') : t('periods.completedPeriod')}
+            {featured
+              ? t('periods.targetPeriod')
+              : t('periods.completedPeriod')}
           </p>
           <h2 className="mt-1 text-2xl font-semibold tracking-[-0.035em]">
             {formatPeriod(month, year)}
@@ -84,8 +86,12 @@ function PeriodCard({
       </div>
       <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-5 text-sm sm:grid-cols-4">
         <div>
-          <dt className="text-muted-foreground text-xs">{t('periods.orders')}</dt>
-          <dd className="mt-1 font-semibold tabular-nums">{period.orderCount ?? 0}</dd>
+          <dt className="text-muted-foreground text-xs">
+            {t('periods.orders')}
+          </dt>
+          <dd className="mt-1 font-semibold tabular-nums">
+            {period.orderCount ?? 0}
+          </dd>
         </div>
         <div>
           <dt className="text-muted-foreground text-xs">
@@ -96,15 +102,17 @@ function PeriodCard({
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground text-xs">{t('periods.total')}</dt>
+          <dt className="text-muted-foreground text-xs">
+            {t('periods.total')}
+          </dt>
           <dd className="mt-1 font-semibold tabular-nums">
-            {period.isSettled
-              ? formatMoney(period.grandTotal, language)
-              : '—'}
+            {period.isSettled ? formatMoney(period.grandTotal, language) : '—'}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground text-xs">{t('periods.revision')}</dt>
+          <dt className="text-muted-foreground text-xs">
+            {t('periods.revision')}
+          </dt>
           <dd className="mt-1 font-semibold tabular-nums">
             {period.revisionNumber ? `#${period.revisionNumber}` : '—'}
           </dd>
@@ -181,7 +189,9 @@ export function PeriodsPage() {
               <ShieldX aria-hidden="true" />
             </EmptyMedia>
             <EmptyTitle>{t('periods.forbiddenTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.forbiddenDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.forbiddenDescription')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
@@ -213,9 +223,23 @@ export function PeriodsPage() {
       <section className="border-border mt-6 grid grid-cols-2 border lg:grid-cols-4">
         {[
           [CalendarRange, t('periods.historyCount'), settled.length],
-          [ReceiptText, t('periods.currentOrders'), targetQuery.data?.orderCount ?? 0],
-          [Landmark, t('periods.settledValue'), formatMoney(settledTotal, language)],
-          [Clock3, t('periods.lastSettlement'), settled[0]?.settledAt ? formatDateTime(settled[0].settledAt, language) : '—'],
+          [
+            ReceiptText,
+            t('periods.currentOrders'),
+            targetQuery.data?.orderCount ?? 0,
+          ],
+          [
+            Landmark,
+            t('periods.settledValue'),
+            formatMoney(settledTotal, language),
+          ],
+          [
+            Clock3,
+            t('periods.lastSettlement'),
+            settled[0]?.settledAt
+              ? formatDateTime(settled[0].settledAt, language)
+              : '—',
+          ],
         ].map(([Icon, label, value], index) => {
           const MetricIcon = Icon as typeof CalendarRange
           return (
@@ -223,9 +247,16 @@ export function PeriodsPage() {
               key={String(label)}
               className={`min-w-0 p-4 sm:p-5 ${index % 2 === 1 ? 'border-l' : ''} ${index >= 2 ? 'border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l' : ''}`}
             >
-              <MetricIcon className="text-muted-foreground size-4" aria-hidden="true" />
-              <p className="mt-3 truncate text-lg font-semibold tabular-nums">{String(value)}</p>
-              <p className="text-muted-foreground mt-1 truncate text-xs">{String(label)}</p>
+              <MetricIcon
+                className="text-muted-foreground size-4"
+                aria-hidden="true"
+              />
+              <p className="mt-3 truncate text-lg font-semibold tabular-nums">
+                {String(value)}
+              </p>
+              <p className="text-muted-foreground mt-1 truncate text-xs">
+                {String(label)}
+              </p>
             </div>
           )
         })}
@@ -236,9 +267,13 @@ export function PeriodsPage() {
         {targetQuery.isError ? (
           <Empty className="min-h-60 border">
             <EmptyHeader>
-              <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+              <EmptyMedia variant="icon">
+                <CircleAlert aria-hidden="true" />
+              </EmptyMedia>
               <EmptyTitle>{t('periods.errorTitle')}</EmptyTitle>
-              <EmptyDescription>{t('periods.errorDescription')}</EmptyDescription>
+              <EmptyDescription>
+                {t('periods.errorDescription')}
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : null}
@@ -250,21 +285,30 @@ export function PeriodsPage() {
       <section className="mt-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold">{t('periods.historyTitle')}</h2>
-            <p className="text-muted-foreground mt-1 text-sm">{t('periods.historyDescription')}</p>
+            <h2 className="text-lg font-semibold">
+              {t('periods.historyTitle')}
+            </h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {t('periods.historyDescription')}
+            </p>
           </div>
         </div>
         {settledQuery.isLoading ? (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <Skeleton className="h-64" /><Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
           </div>
         ) : null}
         {!settledQuery.isLoading && settled.length === 0 ? (
           <Empty className="mt-4 min-h-52 border">
             <EmptyHeader>
-              <EmptyMedia variant="icon"><ReceiptText aria-hidden="true" /></EmptyMedia>
+              <EmptyMedia variant="icon">
+                <ReceiptText aria-hidden="true" />
+              </EmptyMedia>
               <EmptyTitle>{t('periods.historyEmptyTitle')}</EmptyTitle>
-              <EmptyDescription>{t('periods.historyEmptyDescription')}</EmptyDescription>
+              <EmptyDescription>
+                {t('periods.historyEmptyDescription')}
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : null}

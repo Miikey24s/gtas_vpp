@@ -6,8 +6,10 @@ export const motionTransition = {
 } satisfies Transition
 
 export const surfaceEnter = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
+  // Keep readable content fully opaque during accessibility sampling.  The
+  // surface still gets a subtle transform-only entrance motion.
+  initial: { y: 6, scale: 0.99 },
+  animate: { y: 0, scale: 1 },
   transition: motionTransition,
 } as const
 

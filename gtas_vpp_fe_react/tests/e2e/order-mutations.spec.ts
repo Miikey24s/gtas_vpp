@@ -192,6 +192,7 @@ test('editing creates a revision and cancellation preserves the workflow', async
     .getByLabel('Mật khẩu', { exact: true })
     .fill('Correct-Password-123!')
   await page.getByRole('button', { name: 'Đăng nhập' }).click()
+  await expect(page).toHaveURL(/\/app\/orders$/)
   await page.goto(`/app/orders/${originalId}`)
 
   await page.getByRole('link', { name: 'Chỉnh sửa' }).click()
@@ -376,6 +377,7 @@ test('a supplement is bound to the regular order and requires a reason', async (
     .getByLabel('Mật khẩu', { exact: true })
     .fill('Correct-Password-123!')
   await page.getByRole('button', { name: 'Đăng nhập' }).click()
+  await expect(page).toHaveURL(/\/app\/orders$/)
   await page.goto('/app/orders/new')
 
   await expect(

@@ -43,21 +43,15 @@ export function settlementBlockerLabel(blocker: string, t: TFunction) {
     NO_COMPLETE_PRICE_COVERAGE: t('periods.blockers.noCoverage'),
     PRIMARY_SUPPLIER_NOT_COVERED: t('periods.blockers.supplierNotCovered'),
     PRICE_BOOK_NOT_COVERED: t('periods.blockers.priceBookNotCovered'),
-    PRIMARY_QUOTE_HAS_UNRESOLVED_ITEMS: t(
-      'periods.blockers.unresolvedItems',
-    ),
+    PRIMARY_QUOTE_HAS_UNRESOLVED_ITEMS: t('periods.blockers.unresolvedItems'),
     SUPPLEMENT_WITHOUT_BASE: t('periods.blockers.supplementWithoutBase'),
     INVALID_SUPPLIER_EXCEPTION: t('periods.blockers.invalidException'),
     EXCEPTION_MUST_USE_ANOTHER_SUPPLIER: t(
       'periods.blockers.sameSupplierException',
     ),
     EXCEPTION_NOT_REQUIRED: t('periods.blockers.exceptionNotRequired'),
-    EXCEPTION_RESOLVER_UNAVAILABLE: t(
-      'periods.blockers.exceptionUnavailable',
-    ),
-    SUPPLIER_EXCEPTION_UNRESOLVED: t(
-      'periods.blockers.exceptionUnresolved',
-    ),
+    EXCEPTION_RESOLVER_UNAVAILABLE: t('periods.blockers.exceptionUnavailable'),
+    SUPPLIER_EXCEPTION_UNRESOLVED: t('periods.blockers.exceptionUnresolved'),
   }
   return labels[code] ?? t('periods.blockers.unknown', { code })
 }

@@ -30,7 +30,10 @@ import {
 } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDateTime, formatPeriod } from '@/features/orders/order-format'
-import { formatMoney, parsePeriodParams } from '@/features/periods/period-format'
+import {
+  formatMoney,
+  parsePeriodParams,
+} from '@/features/periods/period-format'
 
 export function PeriodOverviewPage() {
   const { t, i18n } = useTranslation()
@@ -39,7 +42,13 @@ export function PeriodOverviewPage() {
   const language = i18n.resolvedLanguage ?? 'vi'
 
   const statusQuery = useQuery({
-    queryKey: ['vpp', 'period-settlement', 'status', period?.year, period?.month],
+    queryKey: [
+      'vpp',
+      'period-settlement',
+      'status',
+      period?.year,
+      period?.month,
+    ],
     enabled: Boolean(period),
     queryFn: async () => {
       const result = await getApiPeriodSettlementByYByM({
@@ -50,7 +59,13 @@ export function PeriodOverviewPage() {
     },
   })
   const revisionQuery = useQuery({
-    queryKey: ['vpp', 'period-settlement', 'current', period?.year, period?.month],
+    queryKey: [
+      'vpp',
+      'period-settlement',
+      'current',
+      period?.year,
+      period?.month,
+    ],
     enabled: Boolean(period),
     retry: false,
     queryFn: async () => {
@@ -68,9 +83,13 @@ export function PeriodOverviewPage() {
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         <Empty className="min-h-80 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <CircleAlert aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.invalidTitle')}</EmptyTitle>
-            <EmptyDescription>{t('periods.invalidDescription')}</EmptyDescription>
+            <EmptyDescription>
+              {t('periods.invalidDescription')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
@@ -91,7 +110,9 @@ export function PeriodOverviewPage() {
       <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
         <Empty className="min-h-80 border">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><CircleAlert aria-hidden="true" /></EmptyMedia>
+            <EmptyMedia variant="icon">
+              <CircleAlert aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>{t('periods.errorTitle')}</EmptyTitle>
             <EmptyDescription>{t('periods.errorDescription')}</EmptyDescription>
           </EmptyHeader>
@@ -149,9 +170,21 @@ export function PeriodOverviewPage() {
         <div className="grid grid-cols-2 border-t lg:grid-cols-4">
           {[
             [PackageCheck, t('periods.orders'), status.orderCount ?? 0],
-            [ShieldAlert, t('periods.pendingSupplements'), status.pendingAdditionalCount ?? 0],
-            [Landmark, t('periods.total'), status.isSettled ? formatMoney(status.grandTotal, language) : '—'],
-            [ReceiptText, t('periods.revision'), status.revisionNumber ? `#${status.revisionNumber}` : '—'],
+            [
+              ShieldAlert,
+              t('periods.pendingSupplements'),
+              status.pendingAdditionalCount ?? 0,
+            ],
+            [
+              Landmark,
+              t('periods.total'),
+              status.isSettled ? formatMoney(status.grandTotal, language) : '—',
+            ],
+            [
+              ReceiptText,
+              t('periods.revision'),
+              status.revisionNumber ? `#${status.revisionNumber}` : '—',
+            ],
           ].map(([Icon, label, value], index) => {
             const MetricIcon = Icon as typeof PackageCheck
             return (
@@ -159,9 +192,16 @@ export function PeriodOverviewPage() {
                 key={String(label)}
                 className={`p-4 sm:p-5 ${index % 2 === 1 ? 'border-l' : ''} ${index >= 2 ? 'border-t lg:border-t-0' : ''} ${index > 0 ? 'lg:border-l' : ''}`}
               >
-                <MetricIcon className="text-muted-foreground size-4" aria-hidden="true" />
-                <p className="mt-3 text-lg font-semibold tabular-nums">{String(value)}</p>
-                <p className="text-muted-foreground mt-1 text-xs">{String(label)}</p>
+                <MetricIcon
+                  className="text-muted-foreground size-4"
+                  aria-hidden="true"
+                />
+                <p className="mt-3 text-lg font-semibold tabular-nums">
+                  {String(value)}
+                </p>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {String(label)}
+                </p>
               </div>
             )
           })}
@@ -172,7 +212,9 @@ export function PeriodOverviewPage() {
         <div className="mt-5 flex gap-3 border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
           <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <div>
-            <p className="text-sm font-medium">{t('periods.pendingBlockTitle')}</p>
+            <p className="text-sm font-medium">
+              {t('periods.pendingBlockTitle')}
+            </p>
             <p className="mt-1 text-xs leading-5">
               {t('periods.pendingBlockDescription', {
                 count: status.pendingAdditionalCount,
@@ -185,7 +227,10 @@ export function PeriodOverviewPage() {
       <section className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <article className="border-border border p-5 sm:p-6">
           <div className="flex items-start gap-3">
-            <FileSearch className="text-primary mt-0.5 size-5" aria-hidden="true" />
+            <FileSearch
+              className="text-primary mt-0.5 size-5"
+              aria-hidden="true"
+            />
             <div>
               <h2 className="font-semibold">{t('periods.previewTitle')}</h2>
               <p className="text-muted-foreground mt-1 text-sm leading-6">
@@ -200,7 +245,9 @@ export function PeriodOverviewPage() {
                   to={`/app/periods/${period.year}/${period.month}/preview${status.isSettled ? '?mode=correction' : ''}`}
                   viewTransition
                 >
-                  {status.isSettled ? t('periods.previewCorrection') : t('periods.startPreview')}
+                  {status.isSettled
+                    ? t('periods.previewCorrection')
+                    : t('periods.startPreview')}
                   <ArrowRight aria-hidden="true" />
                 </Link>
               ) : (
@@ -213,9 +260,15 @@ export function PeriodOverviewPage() {
         <article className="border-border border p-5 sm:p-6">
           <div className="flex items-start gap-3">
             {revision ? (
-              <BadgeCheck className="text-emerald-600 mt-0.5 size-5" aria-hidden="true" />
+              <BadgeCheck
+                className="mt-0.5 size-5 text-emerald-600"
+                aria-hidden="true"
+              />
             ) : (
-              <Clock3 className="text-muted-foreground mt-0.5 size-5" aria-hidden="true" />
+              <Clock3
+                className="text-muted-foreground mt-0.5 size-5"
+                aria-hidden="true"
+              />
             )}
             <div className="min-w-0">
               <h2 className="font-semibold">{t('periods.settlementTitle')}</h2>
