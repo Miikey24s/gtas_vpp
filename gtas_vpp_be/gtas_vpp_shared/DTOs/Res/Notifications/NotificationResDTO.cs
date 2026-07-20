@@ -19,3 +19,8 @@ public sealed class NotificationInboxResDTO
     public int TotalCount { get; set; }
     public int UnreadCount { get; set; }
 }
+
+public sealed class NotificationReadAllResDTO
+{
+    public int Changed { get; set; }
+}

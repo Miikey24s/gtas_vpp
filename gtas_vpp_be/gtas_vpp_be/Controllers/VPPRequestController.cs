@@ -50,6 +50,9 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("my-orders")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
+        [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetMyOrders(
             [FromQuery] int? year,
             [FromQuery] int? month,
@@ -118,6 +121,9 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("orders/{id:guid}")]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetOrderById(Guid id)
         {
             var data = await _vppService.GetOrderByIdAsync(id);
@@ -129,6 +135,9 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("orders/{id:guid}/history")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
+        [ProducesResponseType<VppRequestHistoryResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetOrderHistory(Guid id)
         {
             var data = await _vppService.GetOrderHistoryAsync(id);
@@ -141,6 +150,10 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPost("orders")]
         [Authorize(Policy = Permissions.RequestCreate)]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> CreateOrder([FromBody] VppRequestCreateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -160,6 +173,11 @@ namespace gtas_vpp_be.Controllers
 
         [HttpPut("orders/{id:guid}")]
         [Authorize(Policy = Permissions.RequestUpdateOwn)]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] VppRequestUpdateReqDTO req)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -196,6 +214,9 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("orders/previous-items")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetPreviousOrderItems()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -207,6 +228,9 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("period-info")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
+        [ProducesResponseType<VppPeriodInfoResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetPeriodInfo()
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -217,6 +241,9 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("products/lookup")]
         [Authorize(Policy = Permissions.RequestCatalogView)]
+        [ProducesResponseType<List<VppItemResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetProductsLookup(
             [FromQuery] string? search,
             [FromQuery] int? top,
@@ -233,6 +260,8 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("products")]
         [Authorize(Policy = Permissions.RequestCatalogView)]
+        [ProducesResponseType<List<VppItemResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetProducts(
             [FromQuery] Guid? categoryId,
             [FromQuery] string? search,
@@ -250,45 +279,49 @@ namespace gtas_vpp_be.Controllers
             return Ok(ToProductResults(result.Items));
         }
 
-        private static IEnumerable<object> ToProductResults(IEnumerable<VppItemResDTO> items)
-            => items.Select(x => new
+        private static List<VppItemResDTO> ToProductResults(IEnumerable<VppItemResDTO> items)
+            => items.Select(x => new VppItemResDTO
             {
-                x.Id,
-                x.VppCode,
-                x.VppName,
-                x.Description,
-                x.VppCategoryId,
-                x.VppCategoryCode,
-                x.VppCategoryName,
-                x.UomId,
-                x.UomCode,
-                x.UomName,
-                x.SupplierCount,
-                x.DefaultVatRate,
-                x.DefaultPrice,
-                x.DefaultSupplierName
-            });
+                Id = x.Id,
+                VppCode = x.VppCode,
+                VppName = x.VppName,
+                Description = x.Description,
+                VppCategoryId = x.VppCategoryId,
+                VppCategoryCode = x.VppCategoryCode,
+                VppCategoryName = x.VppCategoryName,
+                UomId = x.UomId,
+                UomCode = x.UomCode,
+                UomName = x.UomName,
+                SupplierCount = x.SupplierCount,
+                DefaultVatRate = x.DefaultVatRate,
+                DefaultPrice = x.DefaultPrice,
+                DefaultSupplierName = x.DefaultSupplierName
+            }).ToList();
 
         [HttpGet("categories")]
         [Authorize(Policy = Permissions.RequestCatalogView)]
+        [ProducesResponseType<List<VppCategoryResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetCategories()
         {
             var data = await ReadEntitiesAsync<VppCategory>(
                 true,
                 x => !x.IsDeleted);
 
-            var result = (data ?? new()).Select(x => new
+            var result = (data ?? new()).Select(x => new VppCategoryResDTO
             {
-                x.Id,
-                x.VppCategoryCode,
-                x.VppCategoryName
-            });
+                Id = x.Id,
+                VppCategoryCode = x.VppCategoryCode,
+                VppCategoryName = x.VppCategoryName
+            }).ToList();
 
             return Ok(result);
         }
 
         [HttpGet("all-orders")]
         [Authorize(Policy = Permissions.RequestViewAll)]
+        [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))
@@ -313,6 +346,8 @@ namespace gtas_vpp_be.Controllers
 
         [HttpGet("department-orders")]
         [Authorize(Policy = Permissions.RequestViewDepartment)]
+        [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetDepartmentOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
             departmentCode = CurrentDepartmentCode;
@@ -335,9 +370,17 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("additional-orders/pending")]
-        [Authorize(Policy = Permissions.RequestApprove)]
+        [Authorize]
+        [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
+            var canApprove = await _permissionService
+                .HasPermissionAsync(User, Permissions.RequestApprove);
+            var canReject = await _permissionService
+                .HasPermissionAsync(User, Permissions.RequestReject);
+            if (!canApprove && !canReject) return Forbid();
+
             var canViewAllDepartments = await _permissionService
                 .HasPermissionAsync(User, Permissions.RequestViewAll);
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))

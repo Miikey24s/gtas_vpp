@@ -4,7 +4,7 @@
 
 ## Phạm vi và cấu trúc chuẩn
 
-- Backend nằm trong `gtas_vpp_be/`; frontend nằm trong `gtas_vpp_fe/`.
+- Backend nằm trong `gtas_vpp_be/`; frontend Blazor hiện hành nằm trong `gtas_vpp_fe/`; frontend React chạy song song nằm trong `gtas_vpp_fe_react/`.
 - Shared DTO duy nhất là `gtas_vpp_be/gtas_vpp_shared`. Không tạo lại `gtas_vpp_fe/gtas_vpp_shared`.
 - Không sửa API, database hoặc nghiệp vụ chỉ để làm cho nội dung luận văn khớp; luận văn phải mô tả đúng source thực tế.
 - Khi sửa UI, đọc và tuân thủ `.codexrules` cùng `.github/copilot-instructions.md`.
@@ -12,11 +12,23 @@
 
 ## UI renovation plan
 
-- Trước mọi thay đổi UI/UX, phải đọc và cập nhật `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
-- Blazor chạy thật trong browser là nguồn quyết định visual cuối; Figma chỉ là tài liệu flow, nghiên cứu và so sánh phương án, không phải nguồn pixel/code authority.
-- Không tạo UI Lab hoặc project preview riêng theo quyết định hiện tại. Nâng cấp trực tiếp từng route trên frontend hiện có, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- React là frontend mục tiêu. Trước mọi thay đổi trong `gtas_vpp_fe_react/`, phải đọc và cập nhật `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
+- `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` chỉ còn là historical baseline/ledger cho Blazor; chỉ cập nhật file đó khi sửa hoặc ghi nhận riêng frontend Blazor.
+- Đọc `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` để chọn đúng nguồn tài liệu, browser tool và QA layer; không cài hoặc gọi nhiều MCP trùng chức năng chỉ để tăng số lượng công cụ.
+- React chạy thật trong browser là nguồn quyết định visual cuối cho frontend mới; Figma và Blazor chỉ là tài liệu nghiên cứu/baseline, không phải nguồn pixel/route authority.
+- React là modernization, không port 1:1. Được tối ưu route, workflow, component và API contract khi giữ business invariant/permission/audit và có test/migration phù hợp.
+- Không tạo thêm UI Lab hoặc frontend preview khác. Triển khai trực tiếp trong `gtas_vpp_fe_react/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
 - Sau mỗi vòng người dùng duyệt hoặc từ chối một route, cập nhật route ledger, decision/learning log và retrofit queue trong living plan trước khi tiếp tục.
 - Giữ một kiến trúc global `InteractiveServer`; không thêm `@rendermode` cục bộ nếu chưa có quyết định kiến trúc mới.
+
+### Công cụ UI/UX cho AI agent
+
+- Tra Microsoft Learn MCP trước cho .NET, Blazor, ASP.NET Core, Aspire và tài liệu Microsoft; tra Radzen MCP trước khi sửa Radzen component/API; dùng Context7 cho package bên thứ ba khi tài liệu chính chủ chưa đủ.
+- Hạn mức Radzen MCP hiện tại là 50 request trong 15 ngày. Nếu Radzen MCP báo hết quota, key lỗi hoặc không còn truy cập được thì dừng toàn bộ công việc ngay và yêu cầu người dùng bổ sung key mới; không âm thầm làm tiếp bằng suy đoán.
+- Dùng Playwright MCP cho DOM/accessibility snapshot, interaction, screenshot, console và network của route thật. Dùng Chrome DevTools MCP khi cần trace performance hoặc debug sâu; chỉ kết nối browser/profile TEST riêng, không chứa tài khoản cá nhân, cookie hoặc secret.
+- Figma MCP chỉ bổ sung flow, token và design context. Với GTAS VPP, code/browser đã duyệt vẫn thắng Figma khi có khác biệt.
+- Screenshot thông thường chỉ là evidence. Chỉ gọi là visual regression khi đã có baseline được người dùng duyệt, môi trường/browser/viewport ổn định và phép so sánh tự động.
+- Accessibility phải kết hợp axe tự động với kiểm tra keyboard/focus và review thủ công; không xem một lần scan axe hoặc Lighthouse là bằng chứng WCAG đầy đủ.
 
 ## Build và kiểm thử
 
@@ -28,7 +40,7 @@ dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release
 dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 
-Mốc kiểm tra gần nhất của repository sạch là 132 backend test và 26 frontend test đều pass. Không xem con số này là thay thế cho việc chạy lại test sau khi sửa code.
+Mốc gần nhất được ghi trong W1 change-set là 397 backend test và 143 frontend test đều pass. Đây chỉ là evidence theo thời điểm; luôn chạy lại test phù hợp sau khi sửa code.
 
 ## Luận văn
 

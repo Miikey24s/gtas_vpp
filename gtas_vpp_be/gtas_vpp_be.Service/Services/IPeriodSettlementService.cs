@@ -24,5 +24,9 @@ namespace gtas_vpp_be.Service.Services
             int y,
             int m,
             CancellationToken cancellationToken = default);
+        Task<List<SettlementRevisionResDTO>> ListRevisionsAsync(
+            int y,
+            int m,
+            CancellationToken cancellationToken = default);
     }
 }

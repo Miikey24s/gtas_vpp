@@ -107,6 +107,21 @@ public sealed class SettlementConfirmationTests
         Assert.Equal(first.GrandTotal, revisions[0].GrandTotal);
         Assert.NotEqual(revisions[0].PriceListId, revisions[1].PriceListId);
         Assert.Equal(VppPeriodState.Settled, (await context.Set<VppPeriod>().SingleAsync()).State);
+
+        var history = await service.ListRevisionsAsync(2026, 7);
+        Assert.Collection(
+            history,
+            latest =>
+            {
+                Assert.Equal(2, latest.RevisionNumber);
+                Assert.True(latest.IsCurrentRevision);
+                Assert.Equal(first.Id, latest.SupersedesSettlementId);
+            },
+            original =>
+            {
+                Assert.Equal(1, original.RevisionNumber);
+                Assert.False(original.IsCurrentRevision);
+            });
     }
 
     private static async Task<SeedData> SeedAsync(

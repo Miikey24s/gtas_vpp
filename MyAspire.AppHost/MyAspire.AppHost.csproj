@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.4.6" />
     <ProjectReference Include="..\gtas_vpp_be\gtas_vpp_be\gtas_vpp_be.csproj" />
     <ProjectReference Include="..\gtas_vpp_fe\gtas_vpp_fe\gtas_vpp_fe\gtas_vpp_fe.csproj" />
   </ItemGroup>

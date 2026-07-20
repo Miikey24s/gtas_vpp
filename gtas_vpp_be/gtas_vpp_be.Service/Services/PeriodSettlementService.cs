@@ -219,6 +219,25 @@ namespace gtas_vpp_be.Service.Services
             return entity is null ? null : MapRevision(entity);
         }
 
+        public async Task<List<SettlementRevisionResDTO>> ListRevisionsAsync(
+            int y,
+            int m,
+            CancellationToken cancellationToken = default)
+        {
+            ValidatePeriod(y, m);
+            var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
+                System.Globalization.CultureInfo.InvariantCulture);
+            var entities = await SettlementQuery()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                    && x.MemberCompanyCode == company
+                    && x.Year == y
+                    && x.Month == m)
+                .OrderByDescending(x => x.RevisionNumber)
+                .ToListAsync(cancellationToken);
+            return entities.Select(MapRevision).ToList();
+        }
+
         private async Task<SettlementRevisionResDTO> SaveRevisionAsync(
             SettlementConfirmReqDTO req,
             Guid? correctionSettlementId,
