@@ -4,6 +4,8 @@
 
 - Đây là frontend React chạy song song; không xóa hoặc sửa frontend Blazor chỉ để React hoạt động.
 - Trước mọi thay đổi, đọc và cập nhật `../docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
+- Agent chạy trong Figma Make phải đọc thêm `Guidelines.md` và `../docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md`; không dùng branch `agents/ui-improvements-font-size-alignment` hoặc chat/code Figma cũ làm baseline.
+- Figma Make phải bắt đầu từ latest `origin/Nam`, tạo branch `figma/*`, lập `plan.md` trước và không push trực tiếp vào `Nam`.
 - React là modernization, không chép route/layout Blazor 1:1. Giữ business invariant, permission, audit và dữ liệu; chủ động tối ưu IA, workflow, component và API contract có kiểm soát.
 - Stack chuẩn: React + TypeScript + Vite, shadcn/ui + Tailwind CSS, React Router, TanStack Query/Table, React Hook Form + Zod và i18next.
 - Dùng shadcn MCP trước khi thêm component mới. Component shadcn là source thuộc repository: đọc, sửa và test trực tiếp; không bọc override CSS dài như cách dùng package UI đóng.

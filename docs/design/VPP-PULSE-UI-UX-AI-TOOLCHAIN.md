@@ -1,6 +1,6 @@
 # VPP Pulse — UI/UX AI Agent Toolchain
 
-> **Trạng thái:** `ADOPTED — 2026-07-19`
+> **Trạng thái:** `ADOPTED — UPDATED 2026-07-21`
 >
 > **Mục tiêu:** Giúp AI agent hiểu đúng source, dữ liệu, layout, accessibility, performance và data story của GTAS VPP mà không tạo một UI Lab hoặc toolchain trùng lặp.
 
@@ -9,7 +9,7 @@
 ## 1. Nguyên tắc chọn công cụ
 
 1. Tài liệu chính chủ trước, nguồn tổng hợp sau.
-2. Browser Blazor thật là visual authority; Figma là design/research context.
+2. Browser runtime thật của frontend đang được triển khai là visual authority; Figma là design/research context, không tự thắng code đã được owner duyệt.
 3. Mỗi công cụ có một vai trò rõ. Không cài nhiều MCP cùng đọc browser hoặc cùng tra docs nếu không tạo thêm bằng chứng.
 4. Công cụ tự động phát hiện regression; quyết định UX và data storytelling vẫn cần người review.
 5. Browser test, trace và screenshot chỉ dùng TEST/isolated fixture, không dùng profile cá nhân hoặc production secret.
@@ -45,11 +45,20 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 
 ### Reference stack cho quyết định UI
 
-- **Apple HIG:** nguồn dẫn hướng về hierarchy, clarity, spacing, feedback, restraint và accessibility.
-- **Radzen + Microsoft:** nguồn quyết định khả năng triển khai đúng component/framework đang dùng.
+- **Owner feedback + GTAS token/runtime:** nguồn quyết định visual cuối cùng.
+- **Apple HIG, ChatGPT, Notion, Linear và Figma:** nguồn tham khảo theo từng pattern về hierarchy, clarity, spacing, feedback và interaction; không có nguồn nào là art direction độc quyền hoặc mẫu để sao chép.
+- **Radzen + Microsoft:** nguồn quyết định khả năng triển khai Blazor/Radzen đúng component/framework đang dùng.
+- **React/Tailwind/shadcn docs:** nguồn quyết định implementation React; code shadcn được đưa vào repository và phải được review/test như source sở hữu.
 - **W3C/Deque:** nguồn quyết định accessibility; không được hy sinh để bắt chước một visual reference.
 - **Carbon/Tableau/Microsoft data guidance:** chỉ dùng khi cần chọn table, comparison, KPI hoặc data storytelling; không mang nguyên art direction của sản phẩm khác vào GTAS.
-- Mọi nguồn ngoài Apple chỉ được giữ khi giải quyết vấn đề mà HIG không mô tả đủ cho dashboard web enterprise.
+
+### Figma Make / Opus 4.8 Build
+
+- Dùng `Guidelines.md` làm context định tuyến và `gtas_vpp_fe_react/Guidelines.md` làm standing rules cho React; brief/prompt nằm trong `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` và `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
+- Opus phù hợp prompt đầu phức tạp; prompt đầu chỉ audit và tạo `plan.md`, prompt sau mới triển khai slice đã duyệt. Không gửi một prompt “làm lại toàn bộ app” thiếu state/contract/file boundary.
+- Context cũ hoặc chat dài phải được bỏ khi source đã thay đổi đáng kể. Branch `agents/ui-improvements-font-size-alignment` tại `da02844` không còn là baseline hợp lệ.
+- Nếu có Make on local codebase beta: fetch latest `origin/Nam`, tạo `figma/*`, review diff/test và mở PR. Nếu chỉ có Make prototype/GitHub push kiểu cũ: coi output là prototype/repository trung gian vì sync là một chiều, rồi tích hợp thủ công qua Codex.
+- Attachment chỉ gồm file cần cho route hiện tại, nêu rõ file nào là authority hay inspiration; không tải secret, cookie, token, connection string hoặc dữ liệu production.
 
 ### Vì sao không cài thêm browser MCP khác
 
@@ -121,8 +130,8 @@ Chart chỉ được thêm khi nó trả lời câu hỏi tốt hơn số, bản
 2. Tra đúng MCP tài liệu trước khi sửa component/framework.
 3. Dùng Playwright/Chrome DevTools để chụp baseline, DOM/ARIA, console/network và performance evidence.
 4. Viết route brief theo `task → takeaway → evidence → action → states`.
-5. Sửa trực tiếp Blazor thật trong vòng lặp `dotnet watch` của owner.
-6. Chạy unit/architecture test, Playwright responsive/functional và axe.
+5. Sửa trực tiếp frontend đang được giao: Blazor dùng vòng lặp `dotnet watch`; React dùng Vite/Aspire và shared OpenAPI contract. Không trộn hai frontend trong cùng visual change-set.
+6. Chạy unit/architecture test, Playwright responsive/functional và axe phù hợp với frontend được sửa.
 7. Owner review runtime.
 8. Chỉ sau `APPROVED` mới tạo visual golden baseline và commit route.
 
@@ -143,3 +152,8 @@ Chart chỉ được thêm khi nó trả lời câu hỏi tốt hơn số, bản
 - [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)
 - [Figma MCP Server](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Dev-Mode-MCP-Server)
 - [Figma Code Connect](https://help.figma.com/hc/en-us/articles/23920389749655-Code-Connect)
+- [Figma Make guidelines](https://help.figma.com/hc/en-us/articles/33665861260823-Add-guidelines-to-Figma-Make)
+- [Figma Make attachments](https://help.figma.com/hc/en-us/articles/31304529835671-Attach-designs-and-images-to-a-prompt)
+- [Figma Make plan-first workflow](https://help.figma.com/hc/en-us/articles/35710574222487-Beyond-the-basics-Using-Figma-Make)
+- [Figma Make on local code](https://www.figma.com/blog/figma-make-now-on-your-local-code/)
+- [Tailwind CSS source detection](https://tailwindcss.com/docs/detecting-classes-in-source-files)

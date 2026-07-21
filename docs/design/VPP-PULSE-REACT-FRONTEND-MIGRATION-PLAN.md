@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — REACT TARGET FRONTEND`
 >
-> **Phiên bản:** `1.1` — 2026-07-21
+> **Phiên bản:** `1.2` — 2026-07-21
 >
 > **Mục tiêu:** Thiết kế và xây dựng đầy đủ frontend React tốt hơn cho GTAS VPP, bảo toàn business invariant, dữ liệu, permission và audit bắt buộc nhưng được quyền tối ưu lại information architecture, route, workflow, API contract và cách trình bày; sau đó cutover có kiểm soát khỏi Blazor/Radzen.
 >
@@ -59,6 +59,15 @@ Khi có xung đột:
 6. Blazor UI cũ chỉ làm bằng chứng capability/gap, không phải route, workflow hay pixel authority.
 
 Không thay API/database chỉ để che một implementation frontend yếu. Được cải tiến contract/schema khi chứng minh được lợi ích sản phẩm hoặc kỹ thuật, giữ invariant và có migration/test/rollback tương xứng.
+
+### 3.1 Figma Make collaboration boundary
+
+- Figma Make/Opus 4.8 được dùng để audit, thử visual direction và chỉnh React/Tailwind trên branch riêng; không phải nguồn thay thế business rule, API, permission hoặc living plan.
+- Root `Guidelines.md` định tuyến context monorepo; standing context React là `gtas_vpp_fe_react/Guidelines.md`; brief đầy đủ và prompt khởi động nằm ở `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` và `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
+- Branch `agents/ui-improvements-font-size-alignment` tại `da02844` là snapshot 27/06/2026, cũ hơn toàn bộ React implementation hiện hành và không được dùng làm baseline.
+- Mọi phiên Figma production-code phải fetch latest `origin/Nam`, xác minh `bf2cb10` là ancestor, tạo branch `figma/*`, lập `plan.md` trước, rồi mới sửa slice được owner duyệt.
+- Figma Make dạng prototype/GitHub push một chiều chỉ tạo design evidence hoặc repository trung gian; không được ghi đè GTAS source of truth. Integration vào repo này phải qua diff/QA/PR hoặc Codex review.
+- Không gửi secret, cookie, token, connection string hoặc dữ liệu production vào attachment/context của Figma.
 
 ## 4. Hiện trạng React đã có
 
@@ -151,7 +160,7 @@ Quy tắc:
 
 ### 6.1 Visual direction
 
-Hướng mới là **Apple-inspired Operational Clarity**:
+Hướng mới là **Operational Clarity**:
 
 - nhẹ, trung tính, nhiều khoảng thở có mục đích;
 - typography và alignment tạo hierarchy, không dựa vào nhiều card/màu;
@@ -159,6 +168,8 @@ Hướng mới là **Apple-inspired Operational Clarity**:
 - hairline, surface và spacing thay cho shadow nặng;
 - PPJ/Personal DNA chỉ xuất hiện tinh tế qua nhịp layout, typography, threadline và cyan/teal accent;
 - không glassmorphism nặng, gradient trang trí, card lồng card hoặc animation phô diễn.
+- Apple, ChatGPT, Notion, Linear và Figma chỉ là nguồn tham khảo theo từng vấn đề; không có sản phẩm nào là art direction độc quyền hoặc mẫu để sao chép.
+- Ưu tiên hình học vuông, radius nhỏ `4–6px`, hitbox đầy đủ và interaction grammar nhất quán theo feedback mới nhất của owner.
 
 ### 6.2 Foundations
 
@@ -487,7 +498,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 |---|---|---|
 | 2026-07-20 | Owner chọn React sau POC Login → Shell → My Orders | React trở thành target; lập lại master plan từ đầu |
 | 2026-07-20 | Không dùng Next.js | Vite SPA + ASP.NET Core API/static hosting; giảm production moving parts |
-| 2026-07-20 | React visual nhẹ và rõ hơn Blazor/Radzen | Apple-inspired hierarchy trở thành visual baseline |
+| 2026-07-20 | React visual nhẹ và rõ hơn Blazor/Radzen | Operational hierarchy trở thành visual baseline; không khóa vào một nguồn tham khảo duy nhất |
 | 2026-07-20 | Không review từng route trước khi agent tiếp tục | Build full theo wave; owner review checkpoint và retrofit sau |
 | 2026-07-20 | Blazor không bị xóa trong migration | Có behavior baseline và rollback an toàn |
 | 2026-07-20 | Browser token chỉ là POC | Cookie/BFF + antiforgery là cutover blocker |
@@ -537,6 +548,8 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-21 | R9 dùng typed translation tables có trạng thái Approved/Draft | Chỉ bản dịch Approved xuất hiện ở luồng vận hành; owner/library manager duyệt trước, AI draft không tự ghi đè dữ liệu gốc |
 | 2026-07-21 | Tìm kiếm master data phải khớp cả original và bản dịch đã duyệt | Paging/search server-side dùng cùng language contract; thêm regression test tìm supplier bằng tên EN khi request culture là EN |
 | 2026-07-21 | Lịch sử đơn/settlement giữ snapshot bất biến | Đổi bản dịch reference data không rewrite evidence; print/export lịch sử phải dùng snapshot, còn catalog/library dùng display text đã resolve |
+| 2026-07-21 | Figma Make phải re-baseline từ latest `Nam` | Bỏ branch/chat Figma cũ; dùng `Guidelines.md` + plan-first + branch `figma/*`, không push trực tiếp hoặc xem prototype là source authority |
+| 2026-07-21 | Bỏ art direction Apple-only | Dùng Operational Clarity; học theo từng pattern tốt từ nhiều nguồn nhưng quyết định cuối dựa trên owner feedback, token và browser runtime GTAS |
 
 ## 18. Immediate execution queue
 
@@ -544,8 +557,9 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 2. **R10 — Account/system completion:** public Pending Approval, durable notification inbox, offline/reconnect/session-expired/forbidden/error states.
 3. **R11 — Cross-route product hardening:** per-route table profiles, export/email state matrix, persona/permission review, admin safety và legacy redirects.
 4. **Owner review R1–R8:** kiểm tra runtime theo persona/route/viewport; feedback shared primitive được retrofit cả route cũ.
-5. **R12 — Advanced intelligence:** triển khai sau core review nhưng vẫn giữ trong full plan; không trình bày Report Insight hiện tại như toàn bộ AI scope.
-6. **Cutover:** chỉ chạy sau toàn bộ gate ở Section 16 và owner cho phép push/deploy.
+5. **Figma Make design review:** audit shared foundation trên branch `figma/*` bằng App shell + My Orders + một dense CRUD route; chỉ tích hợp sau `plan.md`, diff review và automated/browser QA.
+6. **R12 — Advanced intelligence:** triển khai sau core review nhưng vẫn giữ trong full plan; không trình bày Report Insight hiện tại như toàn bộ AI scope.
+7. **Cutover:** chỉ chạy sau toàn bộ gate ở Section 16 và owner cho phép push/deploy.
 
 Prompt tiếp tục:
 
@@ -568,6 +582,9 @@ React là target; Blazor là baseline/fallback. Không cutover hoặc xóa Blazo
 - [ASP.NET Core cookie authentication](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/cookie?view=aspnetcore-10.0)
 - [ASP.NET Core antiforgery](https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-10.0)
 - [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/)
+- [Figma Make guidelines](https://help.figma.com/hc/en-us/articles/33665861260823-Add-guidelines-to-Figma-Make)
+- [Figma Make plan-first workflow](https://help.figma.com/hc/en-us/articles/35710574222487-Beyond-the-basics-Using-Figma-Make)
+- [Tailwind CSS source detection](https://tailwindcss.com/docs/detecting-classes-in-source-files)
 - `VPP-PULSE-DESIGN-BRIEF.md`
 - `VPP-PULSE-PRODUCT-BLUEPRINT.md`
 - `VPP-PULSE-UI-UX-AI-TOOLCHAIN.md`
