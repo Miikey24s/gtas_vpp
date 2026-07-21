@@ -27,6 +27,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IPermissionService _permissionService;
         private readonly IAppNotificationService _notificationService;
         private readonly IVppCatalogService _catalogService;
+        private readonly IBusinessDataLocalizationService? _businessDataLocalizationService;
 
         public VPPRequestController(
             IServiceProvider serviceProvider,
@@ -35,13 +36,15 @@ namespace gtas_vpp_be.Controllers
             IVPPRequestService vppService,
             IPermissionService permissionService,
             IAppNotificationService notificationService,
-            IVppCatalogService catalogService)
+            IVppCatalogService catalogService,
+            IBusinessDataLocalizationService? businessDataLocalizationService = null)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
             _permissionService = permissionService;
             _notificationService = notificationService;
             _catalogService = catalogService;
+            _businessDataLocalizationService = businessDataLocalizationService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -286,6 +289,11 @@ namespace gtas_vpp_be.Controllers
                 VppCode = x.VppCode,
                 VppName = x.VppName,
                 Description = x.Description,
+                OriginalLanguageCode = x.OriginalLanguageCode,
+                DisplayName = x.DisplayName,
+                DisplayDescription = x.DisplayDescription,
+                ResolvedLanguageCode = x.ResolvedLanguageCode,
+                IsTranslationFallback = x.IsTranslationFallback,
                 VppCategoryId = x.VppCategoryId,
                 VppCategoryCode = x.VppCategoryCode,
                 VppCategoryName = x.VppCategoryName,
@@ -314,6 +322,26 @@ namespace gtas_vpp_be.Controllers
                 VppCategoryCode = x.VppCategoryCode,
                 VppCategoryName = x.VppCategoryName
             }).ToList();
+
+            if (_businessDataLocalizationService is not null)
+            {
+                var resolved = await _businessDataLocalizationService.ResolveAsync(
+                BusinessDataEntityTypes.VppCategory,
+                result.Select(x => new BusinessDataOriginalValue(
+                    x.Id,
+                    x.OriginalLanguageCode,
+                    x.VppCategoryName ?? string.Empty,
+                    x.Description)).ToList(),
+                cancellationToken: HttpContext.RequestAborted);
+                foreach (var category in result)
+                {
+                    if (!resolved.TryGetValue(category.Id, out var value)) continue;
+                    category.DisplayName = value.DisplayName;
+                    category.DisplayDescription = value.DisplayDescription;
+                    category.ResolvedLanguageCode = value.ResolvedLanguageCode;
+                    category.IsTranslationFallback = value.IsFallback;
+                }
+            }
 
             return Ok(result);
         }

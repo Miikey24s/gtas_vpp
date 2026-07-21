@@ -72,7 +72,7 @@ Không thay API/database chỉ để che một implementation frontend yếu. Đ
 | App shell | IMPLEMENTED — baseline accepted | responsive sidebar/header/user menu |
 | My Orders | IMPLEMENTED — baseline accepted | period + order API, data story, responsive detail |
 | Logout | IMPLEMENTED | client session cleanup + redirect |
-| Automated QA | GREEN | React check/build, E2E 3 viewport, axe, AppHost build, backend 397 tests |
+| Automated QA | GREEN | React check/build, E2E 3 viewport, axe, AppHost build, backend 410 tests (2026-07-21) |
 
 Baseline accepted nghĩa là hướng công nghệ và visual đã được owner chọn; route vẫn có thể được retrofit khi shared foundation hoặc nghiệp vụ liên quan thay đổi.
 
@@ -231,6 +231,12 @@ Kiến trúc đã chốt:
 - migration phải backfill ngôn ngữ gốc, idempotent trên TEST/LIVE học tập và có test unique/FK/fallback/search/sort;
 - form quản trị hiển thị original cạnh VI/EN translation, trạng thái bản dịch và cảnh báo fallback; người dùng nghiệp vụ bình thường chỉ thấy `displayName` phù hợp.
 
+### 7.2 Dữ liệu lịch sử và bản in
+
+- **Reference/master data** (mặt hàng, danh mục, lookup, phòng ban, nhà cung cấp, bảng giá) là dữ liệu mutable nên đọc theo ngôn ngữ request và có thể fallback.
+- **Order/settlement/history snapshot** là bằng chứng bất biến theo thời điểm nghiệp vụ; không tự đổi tên lịch sử chỉ vì người quản trị sửa bản dịch hiện tại. Bản in và export lịch sử giữ snapshot đã chốt, còn các màn hình chọn reference data dùng `displayName` theo VI/EN.
+- Khi cần đối chiếu, UI có thể hiển thị thêm mã định danh ổn định (`VppCode`, department code, supplier short name), không dùng dịch ngược để thay thế evidence gốc.
+
 Không xem VI/EN hoàn tất chỉ vì frontend đổi được label. Gate hoàn tất cần schema + API + generated client + CRUD quản trị + search/export/print + automated test.
 
 ## 8. Data storytelling contract
@@ -368,7 +374,7 @@ Các capability sau không được ẩn dưới một route status tổng quát
 | R6 | Access control | TECH_COMPLETE — automated QA pass; OWNER_REVIEW và admin-safety audit |
 | R7 | Reports/insight/print/export baseline | TECH_COMPLETE — automated QA pass; export/email edge states và advanced AI chưa hoàn tất |
 | R8 | Technical hardening/cutover package | TECH_READY — local production gate đạt; owner review, legacy redirect matrix và production activation còn mở |
-| R9 | Business data VI/EN | IN_PROGRESS — schema/translation service/API/admin UI/search/export/print/test |
+| R9 | Business data VI/EN | IN_PROGRESS — typed schema/API/admin UI/search/display đã GREEN; export/print theo snapshot và runtime owner review còn mở |
 | R10 | Account/system completion | PLANNED — Pending Approval, durable inbox route, offline/reconnect/session/error contract |
 | R11 | Cross-route product hardening | PLANNED — data-table profiles, persona matrix, export/email states, admin safety, redirects |
 | R12 | Advanced intelligence | PLANNED — anomaly review, Ask the Report, governance, budget/retention/kill switch |
@@ -528,10 +534,13 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | R8 automated cutover package đạt local production gate | Docker image build sạch, container healthy, React deep-link/cache smoke pass, bốn Nginx config pass syntax, Actionlint/Compose/Bash pass, React E2E `10/10`, backend `405/405`; production vẫn cần owner phê duyệt và kích hoạt |
 | 2026-07-21 | Owner duyệt đối chiếu lại plan React với Blazor baseline/full blueprint | Không coi R0–R8 là product-complete khi còn owner review; khôi phục data VI/EN, Pending Approval, durable inbox, resilience, table/export/persona/admin/redirect và advanced AI vào execution ledger |
 | 2026-07-21 | Dữ liệu nghiệp vụ song ngữ dùng một DB + typed translation tables | Original data được bảo toàn; API resolve theo request culture, có fallback/search/audit và UI quản trị VI/EN; không dùng hai DB hoặc machine translation âm thầm |
+| 2026-07-21 | R9 dùng typed translation tables có trạng thái Approved/Draft | Chỉ bản dịch Approved xuất hiện ở luồng vận hành; owner/library manager duyệt trước, AI draft không tự ghi đè dữ liệu gốc |
+| 2026-07-21 | Tìm kiếm master data phải khớp cả original và bản dịch đã duyệt | Paging/search server-side dùng cùng language contract; thêm regression test tìm supplier bằng tên EN khi request culture là EN |
+| 2026-07-21 | Lịch sử đơn/settlement giữ snapshot bất biến | Đổi bản dịch reference data không rewrite evidence; print/export lịch sử phải dùng snapshot, còn catalog/library dùng display text đã resolve |
 
 ## 18. Immediate execution queue
 
-1. **R9 — Business data VI/EN:** migration, typed translation contract, language resolver, localized catalog/library API, generated client, admin editor, search/export/print và test.
+1. **R9 — Business data VI/EN:** migration, typed translation contract, language resolver, localized catalog/library API, generated client, admin editor, search/display và test đã triển khai; tiếp tục chốt export/print policy + runtime review trước khi đóng wave.
 2. **R10 — Account/system completion:** public Pending Approval, durable notification inbox, offline/reconnect/session-expired/forbidden/error states.
 3. **R11 — Cross-route product hardening:** per-route table profiles, export/email state matrix, persona/permission review, admin safety và legacy redirects.
 4. **Owner review R1–R8:** kiểm tra runtime theo persona/route/viewport; feedback shared primitive được retrofit cả route cũ.

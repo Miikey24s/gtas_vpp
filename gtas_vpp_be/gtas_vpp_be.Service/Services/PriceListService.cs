@@ -18,15 +18,18 @@ namespace gtas_vpp_be.Service.Services
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IUserNameResolver _userNameResolver;
+        private readonly IRequestLanguageProvider _requestLanguageProvider;
 
         public PriceListService(
             IUnitOfWork scopedUow,
             IDateTimeProvider dateTimeProvider,
-            IUserNameResolver userNameResolver)
+            IUserNameResolver userNameResolver,
+            IRequestLanguageProvider? requestLanguageProvider = null)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
             _userNameResolver = userNameResolver;
+            _requestLanguageProvider = requestLanguageProvider ?? new RequestLanguageProvider();
         }
 
         public async Task<List<PriceListResDTO>> ListAsync(bool showDeleted = false)
@@ -55,6 +58,7 @@ namespace gtas_vpp_be.Service.Services
                 query = query.Where(x =>
                     (x.PriceListCode != null && x.PriceListCode.Contains(normalizedSearch))
                     || (x.PriceListName != null && x.PriceListName.Contains(normalizedSearch))
+                    || (x.DisplayName != null && x.DisplayName.Contains(normalizedSearch))
                     || (x.SupplierName != null && x.SupplierName.Contains(normalizedSearch))
                     || (x.ContractCode != null && x.ContractCode.Contains(normalizedSearch)));
             }
@@ -106,7 +110,10 @@ namespace gtas_vpp_be.Service.Services
 
             if (!string.IsNullOrWhiteSpace(orderby))
             {
-                query = query.OrderBy(orderby);
+                query = query.OrderBy(orderby.Replace(
+                    nameof(PriceListResDTO.PriceListName),
+                    nameof(PriceListResDTO.DisplayName),
+                    StringComparison.Ordinal));
             }
             else
             {
@@ -464,6 +471,7 @@ namespace gtas_vpp_be.Service.Services
 
         private IQueryable<PriceListResDTO> PriceListDtoQuery(bool showDeleted = false)
         {
+            var languageCode = _requestLanguageProvider.LanguageCode;
             var query = _scopedUow.VPPContext.Set<PriceList>()
                 .AsNoTracking();
 
@@ -483,9 +491,24 @@ namespace gtas_vpp_be.Service.Services
                     IsDeleted = x.IsDeleted,
                     PriceListCode = x.PriceListCode,
                     PriceListName = x.PriceListName,
+                    OriginalLanguageCode = x.OriginalLanguageCode,
+                    DisplayName = x.OriginalLanguageCode == languageCode
+                        ? x.PriceListName
+                        : x.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.PriceListName,
+                    DisplayDescription = x.OriginalLanguageCode == languageCode
+                        ? x.Description
+                        : x.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Description).FirstOrDefault() ?? x.Description,
+                    ResolvedLanguageCode = x.OriginalLanguageCode == languageCode || x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode)
+                        ? languageCode
+                        : x.OriginalLanguageCode,
+                    IsTranslationFallback = x.OriginalLanguageCode != languageCode && !x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode),
                     IsDefault = x.IsDefault,
                     SupplierId = x.SupplierId,
-                    SupplierName = x.Supplier == null ? null : x.Supplier.SupplierName,
+                    SupplierName = x.Supplier == null
+                        ? null
+                        : x.Supplier.OriginalLanguageCode == languageCode
+                            ? x.Supplier.SupplierName
+                            : x.Supplier.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.Supplier.SupplierName,
                     Version = x.Version,
                     EffectiveFromUtc = x.EffectiveFromUtc,
                     EffectiveToUtc = x.EffectiveToUtc,
@@ -515,7 +538,7 @@ namespace gtas_vpp_be.Service.Services
             return query
                 .OrderBy(x => x.IsDeleted)
                 .ThenByDescending(x => x.IsDefault)
-                .ThenBy(x => x.PriceListName)
+                .ThenBy(x => x.DisplayName)
                 .ThenBy(x => x.PriceListCode);
         }
 

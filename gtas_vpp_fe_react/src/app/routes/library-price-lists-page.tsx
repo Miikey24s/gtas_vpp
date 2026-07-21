@@ -91,6 +91,7 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { LibraryTabs } from '@/features/library/master-data-workspace'
+import { BusinessDataLocalizationEditor } from '@/features/library/business-data-localization-editor'
 import { surfaceEnter } from '@/lib/motion'
 
 type PriceListForm = {
@@ -161,7 +162,7 @@ function statusKey(status?: string | null) {
 }
 
 export function LibraryPriceListsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { hasPermission } = useAuth()
   const queryClient = useQueryClient()
   const canView = hasPermission(permissions.libraryView)
@@ -186,7 +187,7 @@ export function LibraryPriceListsPage() {
   useEffect(() => setPage(0), [deferredSearch, showDeleted])
 
   const suppliersQuery = useQuery({
-    queryKey: ['library', 'price-list-suppliers'],
+    queryKey: ['library', 'price-list-suppliers', i18n.resolvedLanguage],
     enabled: canView,
     queryFn: async () => {
       const result = await getApiLibraryByTableCode({
@@ -199,7 +200,14 @@ export function LibraryPriceListsPage() {
   })
 
   const listsQuery = useQuery({
-    queryKey: ['library', 'price-lists', deferredSearch, showDeleted, page],
+    queryKey: [
+      'library',
+      'price-lists',
+      i18n.resolvedLanguage,
+      deferredSearch,
+      showDeleted,
+      page,
+    ],
     enabled: canView,
     queryFn: async () => {
       const result = await getApiVppPriceList({
@@ -532,7 +540,9 @@ export function LibraryPriceListsPage() {
                       <TableCell>
                         <div className="flex items-start gap-2">
                           <div className="min-w-0">
-                            <p className="font-medium">{item.priceListName}</p>
+                            <p className="font-medium">
+                              {item.displayName || item.priceListName}
+                            </p>
                             <p className="text-muted-foreground mt-0.5 truncate text-xs">
                               {item.priceListCode} · v{item.version}
                             </p>
@@ -668,7 +678,9 @@ export function LibraryPriceListsPage() {
               <article key={item.id} className="border-border border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-semibold">{item.priceListName}</h2>
+                    <h2 className="font-semibold">
+                      {item.displayName || item.priceListName}
+                    </h2>
                     <p className="text-muted-foreground mt-1 text-xs">
                       {item.priceListCode} · v{item.version} ·{' '}
                       {item.supplierName}
@@ -832,7 +844,9 @@ export function LibraryPriceListsPage() {
                   {(suppliersQuery.data ?? []).map((supplier) =>
                     supplier.id ? (
                       <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.supplierName || supplier.supplierShortName}
+                        {supplier.displayName ||
+                          supplier.supplierName ||
+                          supplier.supplierShortName}
                       </SelectItem>
                     ) : null,
                   )}
@@ -968,6 +982,19 @@ export function LibraryPriceListsPage() {
               </Label>
             </div>
           </div>
+          {editing?.id ? (
+            <div className="px-4 pb-6">
+              <BusinessDataLocalizationEditor
+                entityType="price-list"
+                entityId={editing.id}
+                onChanged={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ['library', 'price-lists'],
+                  })
+                }
+              />
+            </div>
+          ) : null}
           <SheetFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>
               {t('actions.cancel')}
@@ -1000,7 +1027,10 @@ export function LibraryPriceListsPage() {
                 archiveTarget?.isDeleted
                   ? 'library.restoreDescription'
                   : 'library.archiveDescription',
-                { name: archiveTarget?.priceListName },
+                {
+                  name:
+                    archiveTarget?.displayName || archiveTarget?.priceListName,
+                },
               )}
             </DialogDescription>
           </DialogHeader>
@@ -1032,7 +1062,7 @@ export function LibraryPriceListsPage() {
             <DialogTitle>{t('library.cloneTitle')}</DialogTitle>
             <DialogDescription>
               {t('library.cloneDescription', {
-                name: cloneTarget?.priceListName,
+                name: cloneTarget?.displayName || cloneTarget?.priceListName,
               })}
             </DialogDescription>
           </DialogHeader>

@@ -96,6 +96,41 @@ export type AuthenticationResultDto = {
     pagePermissions?: Array<PagePermissionResDto> | null;
 };
 
+export type BusinessDataOriginalLanguageUpdateReqDto = {
+    languageCode: string;
+};
+
+export type BusinessDataTranslationBundleResDto = {
+    entityType?: string | null;
+    entityId?: string;
+    originalLanguageCode?: string | null;
+    originalName?: string | null;
+    originalDescription?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isFallback?: boolean;
+    translations?: Array<BusinessDataTranslationResDto> | null;
+};
+
+export type BusinessDataTranslationResDto = {
+    id?: string;
+    languageCode?: string | null;
+    name?: string | null;
+    description?: string | null;
+    status?: string | null;
+    source?: string | null;
+    updatedAtUtc?: string;
+    updatedByUserId?: number;
+};
+
+export type BusinessDataTranslationUpsertReqDto = {
+    name: string;
+    description?: string | null;
+    status: string;
+    source: string;
+};
+
 export type CurrentUserResDto = {
     userId?: number;
     userLogin?: string | null;
@@ -121,6 +156,11 @@ export type LookupCategoryResDto = {
     updatedByUserId?: number;
     updatedAtUtc?: string;
     isDeleted?: boolean;
+    originalLanguageCode?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isTranslationFallback?: boolean;
     code?: string | null;
     name?: string | null;
     moduleName?: string | null;
@@ -137,6 +177,11 @@ export type LookupValueResDto = {
     updatedByUserId?: number;
     updatedAtUtc?: string;
     isDeleted?: boolean;
+    originalLanguageCode?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isTranslationFallback?: boolean;
     category?: LookupCategoryResDto;
     lookupCategoryId?: string | null;
     code?: string | null;
@@ -426,6 +471,11 @@ export type PriceListResDto = {
     updatedByUserId?: number;
     updatedAtUtc?: string;
     isDeleted?: boolean;
+    originalLanguageCode?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isTranslationFallback?: boolean;
     priceListCode?: string | null;
     priceListName?: string | null;
     isDefault?: boolean;
@@ -757,6 +807,11 @@ export type SupplierResDto = {
     updatedByUserId?: number;
     updatedAtUtc?: string;
     isDeleted?: boolean;
+    originalLanguageCode?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isTranslationFallback?: boolean;
     supplierShortName?: string | null;
     supplierName?: string | null;
     address1?: string | null;
@@ -804,6 +859,11 @@ export type VppCategoryResDto = {
     updatedByUserId?: number;
     updatedAtUtc?: string;
     isDeleted?: boolean;
+    originalLanguageCode?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isTranslationFallback?: boolean;
     vppCategoryCode?: string | null;
     vppCategoryName?: string | null;
     vppItems?: Array<VppItemResDto> | null;
@@ -843,6 +903,11 @@ export type VppItemResDto = {
     updatedByUserId?: number;
     updatedAtUtc?: string;
     isDeleted?: boolean;
+    originalLanguageCode?: string | null;
+    displayName?: string | null;
+    displayDescription?: string | null;
+    resolvedLanguageCode?: string | null;
+    isTranslationFallback?: boolean;
     vppCode?: string | null;
     vppName?: string | null;
     uomId?: string;
@@ -1365,6 +1430,102 @@ export type GetApiAuthMePermissionsResponses = {
 };
 
 export type GetApiAuthMePermissionsResponse = GetApiAuthMePermissionsResponses[keyof GetApiAuthMePermissionsResponses];
+
+export type GetApiBusinessDataByEntityTypeByEntityIdLocalizationData = {
+    body?: never;
+    path: {
+        entityType: string;
+        entityId: string;
+    };
+    query?: never;
+    url: '/api/business-data/{entityType}/{entityId}/localization';
+};
+
+export type GetApiBusinessDataByEntityTypeByEntityIdLocalizationErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiBusinessDataByEntityTypeByEntityIdLocalizationError = GetApiBusinessDataByEntityTypeByEntityIdLocalizationErrors[keyof GetApiBusinessDataByEntityTypeByEntityIdLocalizationErrors];
+
+export type GetApiBusinessDataByEntityTypeByEntityIdLocalizationResponses = {
+    /**
+     * OK
+     */
+    200: BusinessDataTranslationBundleResDto;
+};
+
+export type GetApiBusinessDataByEntityTypeByEntityIdLocalizationResponse = GetApiBusinessDataByEntityTypeByEntityIdLocalizationResponses[keyof GetApiBusinessDataByEntityTypeByEntityIdLocalizationResponses];
+
+export type DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeData = {
+    body?: never;
+    path: {
+        entityType: string;
+        entityId: string;
+        languageCode: string;
+    };
+    query?: never;
+    url: '/api/business-data/{entityType}/{entityId}/localization/translations/{languageCode}';
+};
+
+export type DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeError = DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeErrors[keyof DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeErrors];
+
+export type DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponse = DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponses[keyof DeleteApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponses];
+
+export type PutApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeData = {
+    body?: BusinessDataTranslationUpsertReqDto;
+    path: {
+        entityType: string;
+        entityId: string;
+        languageCode: string;
+    };
+    query?: never;
+    url: '/api/business-data/{entityType}/{entityId}/localization/translations/{languageCode}';
+};
+
+export type PutApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponses = {
+    /**
+     * OK
+     */
+    200: BusinessDataTranslationBundleResDto;
+};
+
+export type PutApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponse = PutApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponses[keyof PutApiBusinessDataByEntityTypeByEntityIdLocalizationTranslationsByLanguageCodeResponses];
+
+export type PutApiBusinessDataByEntityTypeByEntityIdLocalizationOriginalLanguageData = {
+    body?: BusinessDataOriginalLanguageUpdateReqDto;
+    path: {
+        entityType: string;
+        entityId: string;
+    };
+    query?: never;
+    url: '/api/business-data/{entityType}/{entityId}/localization/original-language';
+};
+
+export type PutApiBusinessDataByEntityTypeByEntityIdLocalizationOriginalLanguageResponses = {
+    /**
+     * OK
+     */
+    200: BusinessDataTranslationBundleResDto;
+};
+
+export type PutApiBusinessDataByEntityTypeByEntityIdLocalizationOriginalLanguageResponse = PutApiBusinessDataByEntityTypeByEntityIdLocalizationOriginalLanguageResponses[keyof PutApiBusinessDataByEntityTypeByEntityIdLocalizationOriginalLanguageResponses];
 
 export type GetApiLibraryByTableCodeData = {
     body?: never;

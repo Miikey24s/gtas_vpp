@@ -16,11 +16,16 @@ namespace gtas_vpp_be.Service.Services
 
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IRequestLanguageProvider _requestLanguageProvider;
 
-        public VPPPriceService(IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider)
+        public VPPPriceService(
+            IUnitOfWork scopedUow,
+            IDateTimeProvider dateTimeProvider,
+            IRequestLanguageProvider? requestLanguageProvider = null)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
+            _requestLanguageProvider = requestLanguageProvider ?? new RequestLanguageProvider();
         }
 
         public async Task<List<SupplierProductMappingResDTO>> ListByVPPAsync(Guid vppId, Guid? priceListId = null)
@@ -85,6 +90,7 @@ namespace gtas_vpp_be.Service.Services
                 .Where(x => x.SupplierId == supplierId
                             && x.PriceListId == effectivePriceListId.Value
                             && (showDeleted || !x.IsDeleted));
+            var languageCode = _requestLanguageProvider.LanguageCode;
 
             IQueryable<VppItemPriceResDTO> query =
                 from vpp in vppQuery
@@ -93,9 +99,34 @@ namespace gtas_vpp_be.Service.Services
                 {
                     VppId = vpp.Id,
                     VppCode = vpp.VppCode,
-                    VppName = vpp.VppName,
-                    CategoryName = vpp.VppCategory == null ? null : vpp.VppCategory.VppCategoryName,
-                    UomName = vpp.Uom == null ? null : vpp.Uom.Value,
+                    VppName = vpp.OriginalLanguageCode == languageCode
+                        ? vpp.VppName
+                        : vpp.Translations
+                            .Where(t => !t.IsDeleted
+                                && t.Status == BusinessTranslationStatus.Approved
+                                && t.LanguageCode == languageCode)
+                            .Select(t => t.Name)
+                            .FirstOrDefault() ?? vpp.VppName,
+                    CategoryName = vpp.VppCategory == null
+                        ? null
+                        : vpp.VppCategory.OriginalLanguageCode == languageCode
+                            ? vpp.VppCategory.VppCategoryName
+                            : vpp.VppCategory.Translations
+                                .Where(t => !t.IsDeleted
+                                    && t.Status == BusinessTranslationStatus.Approved
+                                    && t.LanguageCode == languageCode)
+                                .Select(t => t.Name)
+                                .FirstOrDefault() ?? vpp.VppCategory.VppCategoryName,
+                    UomName = vpp.Uom == null
+                        ? null
+                        : vpp.Uom.OriginalLanguageCode == languageCode
+                            ? vpp.Uom.Value
+                            : vpp.Uom.Translations
+                                .Where(t => !t.IsDeleted
+                                    && t.Status == BusinessTranslationStatus.Approved
+                                    && t.LanguageCode == languageCode)
+                                .Select(t => t.Name)
+                                .FirstOrDefault() ?? vpp.Uom.Value,
                     PriceMappingId = mapping == null ? null : mapping.Id,
                     Price = mapping == null ? null : mapping.Price,
                     NetPrice = mapping == null ? null : (mapping.NetPrice == 0m && mapping.Price != 0m ? mapping.Price : mapping.NetPrice),
@@ -403,6 +434,7 @@ namespace gtas_vpp_be.Service.Services
 
         private IQueryable<SupplierProductMappingResDTO> PriceDtoQuery(bool showDeleted = false)
         {
+            var languageCode = _requestLanguageProvider.LanguageCode;
             var query = _scopedUow.VPPContext.Set<SupplierProductMapping>()
                 .AsNoTracking();
             if (!showDeleted)
@@ -428,11 +460,38 @@ namespace gtas_vpp_be.Service.Services
                     RowVersion = x.RowVersion,
                     IsDefault = x.IsDefault,
                     VppItemId = x.VppItemId,
-                    VppItemName = x.VppItem != null ? x.VppItem.VppName : null,
+                    VppItemName = x.VppItem == null
+                        ? null
+                        : x.VppItem.OriginalLanguageCode == languageCode
+                            ? x.VppItem.VppName
+                            : x.VppItem.Translations
+                                .Where(t => !t.IsDeleted
+                                    && t.Status == BusinessTranslationStatus.Approved
+                                    && t.LanguageCode == languageCode)
+                                .Select(t => t.Name)
+                                .FirstOrDefault() ?? x.VppItem.VppName,
                     SupplierId = x.SupplierId,
-                    SupplierName = x.Supplier != null ? x.Supplier.SupplierName : null,
+                    SupplierName = x.Supplier == null
+                        ? null
+                        : x.Supplier.OriginalLanguageCode == languageCode
+                            ? x.Supplier.SupplierName
+                            : x.Supplier.Translations
+                                .Where(t => !t.IsDeleted
+                                    && t.Status == BusinessTranslationStatus.Approved
+                                    && t.LanguageCode == languageCode)
+                                .Select(t => t.Name)
+                                .FirstOrDefault() ?? x.Supplier.SupplierName,
                     PriceListId = x.PriceListId,
-                    PriceListName = x.PriceList != null ? x.PriceList.PriceListName : null
+                    PriceListName = x.PriceList == null
+                        ? null
+                        : x.PriceList.OriginalLanguageCode == languageCode
+                            ? x.PriceList.PriceListName
+                            : x.PriceList.Translations
+                                .Where(t => !t.IsDeleted
+                                    && t.Status == BusinessTranslationStatus.Approved
+                                    && t.LanguageCode == languageCode)
+                                .Select(t => t.Name)
+                                .FirstOrDefault() ?? x.PriceList.PriceListName
                 });
         }
 

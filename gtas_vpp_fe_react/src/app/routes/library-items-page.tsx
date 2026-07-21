@@ -76,6 +76,7 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { LibraryTabs } from '@/features/library/master-data-workspace'
+import { BusinessDataLocalizationEditor } from '@/features/library/business-data-localization-editor'
 import { surfaceEnter } from '@/lib/motion'
 
 type ItemForm = {
@@ -106,7 +107,7 @@ function formatMoney(value?: number | null) {
 }
 
 export function LibraryItemsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { hasPermission } = useAuth()
   const queryClient = useQueryClient()
   const canView = hasPermission(permissions.libraryView)
@@ -124,7 +125,7 @@ export function LibraryItemsPage() {
   useEffect(() => setPage(0), [deferredSearch, categoryId, showDeleted])
 
   const referencesQuery = useQuery({
-    queryKey: ['library', 'item-references'],
+    queryKey: ['library', 'item-references', i18n.resolvedLanguage],
     enabled: canView,
     queryFn: async () => {
       const [categoryResult, lookupCategoryResult] = await Promise.all([
@@ -177,6 +178,7 @@ export function LibraryItemsPage() {
     queryKey: [
       'library',
       'items',
+      i18n.resolvedLanguage,
       categoryId,
       deferredSearch,
       showDeleted,
@@ -342,7 +344,9 @@ export function LibraryItemsPage() {
             {(referencesQuery.data?.categories ?? []).map((category) =>
               category.id ? (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.vppCategoryName || category.vppCategoryCode}
+                  {category.displayName ||
+                    category.vppCategoryName ||
+                    category.vppCategoryCode}
                 </SelectItem>
               ) : null,
             )}
@@ -423,14 +427,23 @@ export function LibraryItemsPage() {
                     className={item.isDeleted ? 'opacity-60' : undefined}
                   >
                     <TableCell>
-                      <p className="font-medium">{item.vppName}</p>
+                      <p className="font-medium">
+                        {item.displayName || item.vppName}
+                      </p>
                       <p className="text-muted-foreground mt-0.5 max-w-80 truncate text-xs">
                         {item.vppCode}
                       </p>
                     </TableCell>
-                    <TableCell>{item.vppCategoryName || '—'}</TableCell>
                     <TableCell>
-                      {item.uomName || item.uom?.value || '—'}
+                      {item.vppCategory?.displayName ||
+                        item.vppCategoryName ||
+                        '—'}
+                    </TableCell>
+                    <TableCell>
+                      {item.uom?.displayName ||
+                        item.uomName ||
+                        item.uom?.value ||
+                        '—'}
                     </TableCell>
                     <TableCell>
                       {item.defaultPrice != null ? (
@@ -496,9 +509,15 @@ export function LibraryItemsPage() {
               <article key={item.id} className="border-border border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h2 className="font-semibold">{item.vppName}</h2>
+                    <h2 className="font-semibold">
+                      {item.displayName || item.vppName}
+                    </h2>
                     <p className="text-muted-foreground mt-1 truncate text-xs">
-                      {item.vppCode} · {item.uomName || item.uom?.value || '—'}
+                      {item.vppCode} ·{' '}
+                      {item.uom?.displayName ||
+                        item.uomName ||
+                        item.uom?.value ||
+                        '—'}
                     </p>
                   </div>
                   <Badge variant="outline" className="rounded-[4px]">
@@ -512,7 +531,11 @@ export function LibraryItemsPage() {
                     <dt className="text-muted-foreground text-xs">
                       {t('library.category')}
                     </dt>
-                    <dd className="mt-1">{item.vppCategoryName || '—'}</dd>
+                    <dd className="mt-1">
+                      {item.vppCategory?.displayName ||
+                        item.vppCategoryName ||
+                        '—'}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground text-xs">
@@ -635,7 +658,9 @@ export function LibraryItemsPage() {
                   {(referencesQuery.data?.categories ?? []).map((category) =>
                     category.id ? (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.vppCategoryName || category.vppCategoryCode}
+                        {category.displayName ||
+                          category.vppCategoryName ||
+                          category.vppCategoryCode}
                       </SelectItem>
                     ) : null,
                   )}
@@ -657,7 +682,7 @@ export function LibraryItemsPage() {
                   {(referencesQuery.data?.uoms ?? []).map((uom) =>
                     uom.id ? (
                       <SelectItem key={uom.id} value={uom.id}>
-                        {uom.value || uom.code}
+                        {uom.displayName || uom.value || uom.code}
                       </SelectItem>
                     ) : null,
                   )}
@@ -680,6 +705,17 @@ export function LibraryItemsPage() {
                 }
               />
             </div>
+            {editing?.id ? (
+              <BusinessDataLocalizationEditor
+                entityType="vpp-item"
+                entityId={editing.id}
+                onChanged={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ['library', 'items'],
+                  })
+                }
+              />
+            ) : null}
           </div>
           <SheetFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>
@@ -713,7 +749,7 @@ export function LibraryItemsPage() {
                 confirmItem?.isDeleted
                   ? 'library.restoreDescription'
                   : 'library.archiveDescription',
-                { name: confirmItem?.vppName },
+                { name: confirmItem?.displayName || confirmItem?.vppName },
               )}
             </DialogDescription>
           </DialogHeader>

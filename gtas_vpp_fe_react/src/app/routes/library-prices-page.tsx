@@ -123,7 +123,7 @@ function money(value?: number | null) {
 }
 
 export function LibraryPricesPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { hasPermission } = useAuth()
   const queryClient = useQueryClient()
   const [urlParams, setUrlParams] = useSearchParams()
@@ -147,7 +147,7 @@ export function LibraryPricesPage() {
   )
 
   const referencesQuery = useQuery({
-    queryKey: ['library', 'price-references'],
+    queryKey: ['library', 'price-references', i18n.resolvedLanguage],
     enabled: canView,
     queryFn: async () => {
       const [suppliersResult, priceListsResult, itemsResult] =
@@ -219,6 +219,7 @@ export function LibraryPricesPage() {
     queryKey: [
       'library',
       'prices',
+      i18n.resolvedLanguage,
       supplierId,
       priceListId,
       deferredSearch,

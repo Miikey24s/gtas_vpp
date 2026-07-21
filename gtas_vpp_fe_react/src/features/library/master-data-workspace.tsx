@@ -73,6 +73,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { surfaceEnter } from '@/lib/motion'
+import { BusinessDataLocalizationEditor } from './business-data-localization-editor'
 
 export type MasterDataSection =
   'classes' | 'categories' | 'suppliers' | 'departments'
@@ -80,6 +81,11 @@ export type MasterDataSection =
 type LibraryRecord = Record<string, unknown> & {
   id?: string
   description?: string | null
+  displayName?: string | null
+  displayDescription?: string | null
+  originalLanguageCode?: string | null
+  resolvedLanguageCode?: string | null
+  isTranslationFallback?: boolean
   isDeleted?: boolean
 }
 
@@ -207,6 +213,13 @@ const configs: Record<MasterDataSection, SectionConfig> = {
   },
 }
 
+const localizationEntityTypes: Record<MasterDataSection, string> = {
+  classes: 'lookup-category',
+  categories: 'vpp-category',
+  suppliers: 'supplier',
+  departments: 'department',
+}
+
 const libraryTabs = [
   ['classes', 'library.tabs.classes'],
   ['categories', 'library.tabs.categories'],
@@ -255,7 +268,7 @@ export function MasterDataWorkspace({
 }: {
   section: MasterDataSection
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { hasPermission } = useAuth()
   const queryClient = useQueryClient()
   const config = configs[section]
@@ -274,7 +287,14 @@ export function MasterDataWorkspace({
   useEffect(() => setPage(0), [deferredSearch, showDeleted])
 
   const listQuery = useQuery({
-    queryKey: ['library', config.tableCode, deferredSearch, showDeleted, page],
+    queryKey: [
+      'library',
+      config.tableCode,
+      i18n.resolvedLanguage,
+      deferredSearch,
+      showDeleted,
+      page,
+    ],
     enabled: canView,
     queryFn: async () => {
       const result = await getApiLibraryByTableCode({
@@ -298,7 +318,7 @@ export function MasterDataWorkspace({
   })
 
   const departmentOptionsQuery = useQuery({
-    queryKey: ['library', 'departments', 'options'],
+    queryKey: ['library', 'departments', 'options', i18n.resolvedLanguage],
     enabled: canView && section === 'departments',
     queryFn: async () => {
       const result = await getApiLibraryByTableCode({
@@ -384,13 +404,19 @@ export function MasterDataWorkspace({
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const activeCount = records.filter((record) => !record.isDeleted).length
   const displayValue = (record: LibraryRecord, key: string) => {
+    if (key === config.primaryKey && record.displayName) {
+      return record.displayName
+    }
+    if (key === 'description' && record.displayDescription) {
+      return record.displayDescription
+    }
     if (key !== 'parentDepartmentId') return stringValue(record, key)
     const parentId = stringValue(record, key)
     if (!parentId) return ''
     const parent = departmentOptionsQuery.data?.find(
       (candidate) => candidate.id === parentId,
     )
-    return parent ? stringValue(parent, 'name') : parentId
+    return parent ? parent.displayName || stringValue(parent, 'name') : parentId
   }
 
   if (!canView) {
@@ -608,7 +634,7 @@ export function MasterDataWorkspace({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="truncate font-semibold">
-                      {stringValue(record, config.primaryKey) || '—'}
+                      {displayValue(record, config.primaryKey) || '—'}
                     </h2>
                     {config.secondaryKey ? (
                       <p className="text-muted-foreground mt-1 truncate text-xs">
@@ -719,7 +745,8 @@ export function MasterDataWorkspace({
                         .map((option) =>
                           option.id ? (
                             <SelectItem key={option.id} value={option.id}>
-                              {stringValue(option, 'name') ||
+                              {option.displayName ||
+                                stringValue(option, 'name') ||
                                 stringValue(option, 'code')}
                             </SelectItem>
                           ) : null,
@@ -753,6 +780,17 @@ export function MasterDataWorkspace({
                 )}
               </div>
             ))}
+            {editing?.id ? (
+              <BusinessDataLocalizationEditor
+                entityType={localizationEntityTypes[section]}
+                entityId={editing.id}
+                onChanged={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ['library', config.tableCode],
+                  })
+                }
+              />
+            ) : null}
           </div>
           <SheetFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>
@@ -788,7 +826,7 @@ export function MasterDataWorkspace({
                   : 'library.archiveDescription',
                 {
                   name: confirmRecord
-                    ? stringValue(confirmRecord, config.primaryKey)
+                    ? displayValue(confirmRecord, config.primaryKey)
                     : '',
                 },
               )}

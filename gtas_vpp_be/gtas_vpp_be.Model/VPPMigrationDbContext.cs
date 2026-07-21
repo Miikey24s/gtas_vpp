@@ -33,6 +33,13 @@ namespace gtas_vpp_be.Model
         public virtual DbSet<SupplierProductMapping> SupplierProductMappings { get; set; }
         public virtual DbSet<PriceList> PriceLists { get; set; }
         public virtual DbSet<Department> Departments { get; set; }
+        public virtual DbSet<LookupCategoryTranslation> LookupCategoryTranslations { get; set; }
+        public virtual DbSet<LookupValueTranslation> LookupValueTranslations { get; set; }
+        public virtual DbSet<VppCategoryTranslation> VppCategoryTranslations { get; set; }
+        public virtual DbSet<VppItemTranslation> VppItemTranslations { get; set; }
+        public virtual DbSet<SupplierTranslation> SupplierTranslations { get; set; }
+        public virtual DbSet<PriceListTranslation> PriceListTranslations { get; set; }
+        public virtual DbSet<DepartmentTranslation> DepartmentTranslations { get; set; }
         #endregion
 
         #region Data
@@ -71,6 +78,7 @@ namespace gtas_vpp_be.Model
             {
                 en.Property(x => x.Code).HasMaxLength(50).IsRequired();
                 en.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
                 en.HasOne(x => x.ParentDepartment).WithMany(x => x.ChildDepartments)
                     .HasForeignKey(x => x.ParentDepartmentId)
                     .OnDelete(DeleteBehavior.Restrict);
@@ -87,12 +95,18 @@ namespace gtas_vpp_be.Model
             });
             modelBuilder.Entity<LookupValue>(en =>
             {
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
                 en.HasOne(x => x.Category).WithMany(x => x.LookupValues).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<LookupCategory>(en =>
+            {
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
             });
             modelBuilder.Entity<VppItem>(en =>
             {
                 en.Property(x => x.VppCode).HasMaxLength(64).IsRequired();
                 en.Property(x => x.VppName).HasMaxLength(250).IsRequired();
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
                 en.HasIndex(x => x.VppCode)
                     .HasDatabaseName("UX_VppItems_VppCode")
                     .IsUnique();
@@ -139,6 +153,7 @@ namespace gtas_vpp_be.Model
                 en.Property(x => x.FeeAmount).HasColumnType("decimal(19,4)");
                 en.Property(x => x.ShippingAmount).HasColumnType("decimal(19,4)");
                 en.Property(x => x.StatusReason).HasMaxLength(500);
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
                 en.Property(x => x.Status).HasConversion<int>().IsRequired();
                 en.Property(x => x.RowVersion).IsRowVersion();
                 en.HasOne(x => x.Supplier).WithMany(x => x.PriceLists)
@@ -166,6 +181,15 @@ namespace gtas_vpp_be.Model
                     "CK_PriceLists_CommercialAmountsNonNegative",
                     "[RebateAmount] >= 0 AND [FeeAmount] >= 0 AND [ShippingAmount] >= 0"));
             });
+            modelBuilder.Entity<VppCategory>(en =>
+            {
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
+            });
+            modelBuilder.Entity<Supplier>(en =>
+            {
+                en.Property(x => x.OriginalLanguageCode).HasMaxLength(5).HasDefaultValue("vi").IsRequired();
+            });
+            ConfigureBusinessDataTranslations(modelBuilder);
             modelBuilder.Entity<VppRequestDetail>(en =>
             {
                 en.HasOne(x => x.Request).WithMany(x => x.RequestDetails)
@@ -343,6 +367,76 @@ namespace gtas_vpp_be.Model
                     .WithMany()
                     .HasForeignKey(x => x.AccountId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureBusinessDataTranslations(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BusinessDataTranslationBase>().UseTpcMappingStrategy();
+            modelBuilder.Entity<BusinessDataTranslationBase>(en =>
+            {
+                en.Property(x => x.LanguageCode).HasMaxLength(5).IsRequired();
+                en.Property(x => x.Name).HasMaxLength(250).IsRequired();
+                en.Property(x => x.Description).HasMaxLength(500);
+                en.Property(x => x.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
+                en.Property(x => x.Source).HasConversion<string>().HasMaxLength(16).IsRequired();
+            });
+
+            modelBuilder.Entity<LookupCategoryTranslation>(en =>
+            {
+                en.HasOne(x => x.LookupCategory).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.LookupCategoryId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.LookupCategoryId, x.LanguageCode })
+                    .HasDatabaseName("UX_LookupCategoryTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
+            });
+            modelBuilder.Entity<LookupValueTranslation>(en =>
+            {
+                en.HasOne(x => x.LookupValue).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.LookupValueId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.LookupValueId, x.LanguageCode })
+                    .HasDatabaseName("UX_LookupValueTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
+            });
+            modelBuilder.Entity<VppCategoryTranslation>(en =>
+            {
+                en.HasOne(x => x.VppCategory).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.VppCategoryId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.VppCategoryId, x.LanguageCode })
+                    .HasDatabaseName("UX_VppCategoryTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
+            });
+            modelBuilder.Entity<VppItemTranslation>(en =>
+            {
+                en.HasOne(x => x.VppItem).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.VppItemId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.VppItemId, x.LanguageCode })
+                    .HasDatabaseName("UX_VppItemTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
+            });
+            modelBuilder.Entity<SupplierTranslation>(en =>
+            {
+                en.HasOne(x => x.Supplier).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.SupplierId, x.LanguageCode })
+                    .HasDatabaseName("UX_SupplierTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
+            });
+            modelBuilder.Entity<PriceListTranslation>(en =>
+            {
+                en.HasOne(x => x.PriceList).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.PriceListId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.PriceListId, x.LanguageCode })
+                    .HasDatabaseName("UX_PriceListTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
+            });
+            modelBuilder.Entity<DepartmentTranslation>(en =>
+            {
+                en.HasOne(x => x.Department).WithMany(x => x.Translations)
+                    .HasForeignKey(x => x.DepartmentId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.DepartmentId, x.LanguageCode })
+                    .HasDatabaseName("UX_DepartmentTranslations_EntityLanguage")
+                    .HasFilter("[IsDeleted] = 0").IsUnique();
             });
         }
     }

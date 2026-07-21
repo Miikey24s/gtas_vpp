@@ -5,6 +5,7 @@ const resources = {
   vi: {
     translation: {
       accessibility: { skipToContent: 'Chuyển đến nội dung chính' },
+      languages: { vi: 'Tiếng Việt', en: 'English' },
       actions: {
         changeLanguage: 'Đổi ngôn ngữ',
         changeTheme: 'Đổi giao diện sáng hoặc tối',
@@ -817,6 +818,30 @@ const resources = {
         priceDefaultSuccess: 'Đã đặt mức giá mặc định cho mặt hàng.',
         genericMutationError:
           'Không thể hoàn tất thao tác. Hãy kiểm tra dữ liệu hoặc tải lại.',
+        localization: {
+          title: 'Bản dịch dữ liệu',
+          description:
+            'Giữ dữ liệu gốc trong database và quản lý bản dịch đã được duyệt theo từng ngôn ngữ.',
+          originalData: 'Dữ liệu gốc',
+          originalLanguage: 'Ngôn ngữ gốc',
+          translationFor: 'Bản dịch {{language}}',
+          translationHelp:
+            'Chỉ bản dịch có trạng thái Đã duyệt mới xuất hiện trong luồng nghiệp vụ.',
+          translationName: 'Tên hiển thị',
+          translationDescription: 'Mô tả hiển thị',
+          translationStatus: 'Trạng thái bản dịch',
+          saveTranslation: 'Lưu bản dịch',
+          removeTranslation: 'Xóa bản dịch',
+          notTranslated: 'Chưa có bản dịch',
+          fallbackNotice:
+            'Đang hiển thị dữ liệu gốc bằng {{language}} vì ngôn ngữ đang chọn chưa có bản dịch được duyệt.',
+          originalLanguageSaved: 'Đã cập nhật ngôn ngữ gốc.',
+          translationSaved: 'Đã lưu bản dịch.',
+          translationRemoved: 'Đã xóa bản dịch.',
+          saveError: 'Không thể lưu bản dịch. Hãy kiểm tra quyền và thử lại.',
+          errorTitle: 'Không tải được thông tin bản dịch.',
+          status: { draft: 'Bản nháp', approved: 'Đã duyệt' },
+        },
       },
       reports: {
         eyebrow: 'Báo cáo vận hành',
@@ -1075,6 +1100,7 @@ const resources = {
   en: {
     translation: {
       accessibility: { skipToContent: 'Skip to main content' },
+      languages: { vi: 'Vietnamese', en: 'English' },
       actions: {
         changeLanguage: 'Change language',
         changeTheme: 'Switch between light and dark themes',
@@ -1898,6 +1924,31 @@ const resources = {
         priceDefaultSuccess: 'The default item price was updated.',
         genericMutationError:
           'The action could not be completed. Check the data or reload.',
+        localization: {
+          title: 'Business-data translations',
+          description:
+            'Keep canonical data in one database and manage reviewed translations per language.',
+          originalData: 'Original data',
+          originalLanguage: 'Original language',
+          translationFor: '{{language}} translation',
+          translationHelp:
+            'Only translations marked Approved appear in operational workflows.',
+          translationName: 'Displayed name',
+          translationDescription: 'Displayed description',
+          translationStatus: 'Translation status',
+          saveTranslation: 'Save translation',
+          removeTranslation: 'Remove translation',
+          notTranslated: 'Not translated',
+          fallbackNotice:
+            'Showing original data in {{language}} because no approved translation exists for the selected language.',
+          originalLanguageSaved: 'The original language was updated.',
+          translationSaved: 'The translation was saved.',
+          translationRemoved: 'The translation was removed.',
+          saveError:
+            'The translation could not be saved. Check access and try again.',
+          errorTitle: 'Translation data is unavailable.',
+          status: { draft: 'Draft', approved: 'Approved' },
+        },
       },
       reports: {
         eyebrow: 'Operational reporting',

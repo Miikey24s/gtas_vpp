@@ -19,7 +19,7 @@ export function productToDraftLine(product: VppItemResDto): OrderDraftLine {
   return {
     vppId: product.id ?? '',
     vppCode: product.vppCode ?? '',
-    vppName: product.vppName ?? '',
+    vppName: product.displayName ?? product.vppName ?? '',
     uomName: product.uomName ?? product.uomCode ?? '',
     qty: 1,
     description: '',

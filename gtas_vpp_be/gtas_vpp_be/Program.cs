@@ -28,6 +28,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 using System.Security.Claims;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
@@ -97,6 +99,18 @@ builder.Services.AddDbContext<VPPContext>(
 );
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("vi-VN"),
+        new CultureInfo("en-US")
+    };
+    options.DefaultRequestCulture = new RequestCulture("vi-VN");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
 builder.Services.Configure<JiraSettings>(Configuration.GetSection("JiraSettings"));
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
@@ -119,6 +133,8 @@ builder.Services.AddScoped<IPriceBookWorkflowService, PriceBookWorkflowService>(
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
+builder.Services.AddScoped<IRequestLanguageProvider, RequestLanguageProvider>();
+builder.Services.AddScoped<IBusinessDataLocalizationService, BusinessDataLocalizationService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddReportInsights(Configuration);
 builder.Services.AddControllersWithViews();
@@ -508,6 +524,7 @@ if (databaseInitializationOnly)
 }
 
 app.UseForwardedHeaders();
+app.UseRequestLocalization();
 
 app.UseCors("AllowFrontend");
 app.UseResponseCompression();

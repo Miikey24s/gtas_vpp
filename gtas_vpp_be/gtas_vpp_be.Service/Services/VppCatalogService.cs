@@ -44,11 +44,16 @@ public sealed class VppCatalogService : IVppCatalogService
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IRequestLanguageProvider _requestLanguageProvider;
 
-    public VppCatalogService(IUnitOfWork unitOfWork, IDateTimeProvider dateTimeProvider)
+    public VppCatalogService(
+        IUnitOfWork unitOfWork,
+        IDateTimeProvider dateTimeProvider,
+        IRequestLanguageProvider? requestLanguageProvider = null)
     {
         _unitOfWork = unitOfWork;
         _dateTimeProvider = dateTimeProvider;
+        _requestLanguageProvider = requestLanguageProvider ?? new RequestLanguageProvider();
     }
 
     public async Task<VppItemResDTO?> GetItemAsync(
@@ -60,7 +65,7 @@ public sealed class VppCatalogService : IVppCatalogService
         var row = await BuildRowQuery(null, null, includeDeleted, defaultPriceListId)
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
-        return row is null ? null : ToDto(row);
+        return row is null ? null : await ToLocalizedDtoAsync(row, cancellationToken);
     }
 
     public async Task<(IReadOnlyList<VppItemResDTO> Items, int TotalCount)> QueryItemsAsync(
@@ -102,7 +107,7 @@ public sealed class VppCatalogService : IVppCatalogService
         var totalCount = await query.CountAsync(cancellationToken);
         query = ApplyOrdering(query, orderby);
         var rows = await query.Skip(skip).Take(top).ToListAsync(cancellationToken);
-        return (rows.Select(ToDto).ToList(), totalCount);
+        return (await ToLocalizedDtosAsync(rows, cancellationToken), totalCount);
     }
 
     public async Task<VppItemResDTO> CreateItemAsync(
@@ -196,6 +201,7 @@ public sealed class VppCatalogService : IVppCatalogService
     private IQueryable<CatalogRow> BuildRowQuery(Guid? categoryId, string? search, bool showDeleted, Guid? defaultPriceListId)
     {
         var context = _unitOfWork.VPPContext;
+        var languageCode = _requestLanguageProvider.LanguageCode;
         var baseQuery = context.Set<VppItem>().AsNoTracking();
         if (!showDeleted)
         {
@@ -217,10 +223,13 @@ public sealed class VppCatalogService : IVppCatalogService
                 baseQuery = baseQuery.Where(x =>
                     (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode, SearchCollation), pattern, "\\"))
                     || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName, SearchCollation), pattern, "\\"))
+                    || x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode && EF.Functions.Like(EF.Functions.Collate(t.Name, SearchCollation), pattern, "\\"))
                     || (x.VppCategory != null && x.VppCategory.VppCategoryCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryCode, SearchCollation), pattern, "\\"))
                     || (x.VppCategory != null && x.VppCategory.VppCategoryName != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryName, SearchCollation), pattern, "\\"))
+                    || (x.VppCategory != null && x.VppCategory.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode && EF.Functions.Like(EF.Functions.Collate(t.Name, SearchCollation), pattern, "\\")))
                     || (x.Uom != null && x.Uom.Code != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Code, SearchCollation), pattern, "\\"))
-                    || (x.Uom != null && x.Uom.Value != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Value, SearchCollation), pattern, "\\")));
+                    || (x.Uom != null && x.Uom.Value != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Value, SearchCollation), pattern, "\\"))
+                    || (x.Uom != null && x.Uom.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode && EF.Functions.Like(EF.Functions.Collate(t.Name, SearchCollation), pattern, "\\"))));
             }
             else
             {
@@ -228,10 +237,13 @@ public sealed class VppCatalogService : IVppCatalogService
                 baseQuery = baseQuery.Where(x =>
                     (x.VppCode != null && x.VppCode.ToUpper().Contains(searchUpper))
                     || (x.VppName != null && x.VppName.ToUpper().Contains(searchUpper))
+                    || x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode && t.Name.ToUpper().Contains(searchUpper))
                     || (x.VppCategory != null && x.VppCategory.VppCategoryCode != null && x.VppCategory.VppCategoryCode.ToUpper().Contains(searchUpper))
                     || (x.VppCategory != null && x.VppCategory.VppCategoryName != null && x.VppCategory.VppCategoryName.ToUpper().Contains(searchUpper))
+                    || (x.VppCategory != null && x.VppCategory.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode && t.Name.ToUpper().Contains(searchUpper)))
                     || (x.Uom != null && x.Uom.Code != null && x.Uom.Code.ToUpper().Contains(searchUpper))
-                    || (x.Uom != null && x.Uom.Value != null && x.Uom.Value.ToUpper().Contains(searchUpper)));
+                    || (x.Uom != null && x.Uom.Value != null && x.Uom.Value.ToUpper().Contains(searchUpper))
+                    || (x.Uom != null && x.Uom.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode && t.Name.ToUpper().Contains(searchUpper))));
             }
         }
 
@@ -241,12 +253,39 @@ public sealed class VppCatalogService : IVppCatalogService
             VppCode = x.VppCode,
             VppName = x.VppName,
             Description = x.Description,
+            OriginalLanguageCode = x.OriginalLanguageCode,
+            DisplayName = x.OriginalLanguageCode == languageCode
+                ? x.VppName
+                : x.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.VppName,
+            DisplayDescription = x.OriginalLanguageCode == languageCode
+                ? x.Description
+                : x.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Description).FirstOrDefault() ?? x.Description,
+            ResolvedLanguageCode = x.OriginalLanguageCode == languageCode || x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode)
+                ? languageCode
+                : x.OriginalLanguageCode,
+            IsTranslationFallback = x.OriginalLanguageCode != languageCode && !x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode),
             UomId = x.UomId,
             UomCode = x.Uom != null ? x.Uom.Code : null,
             UomName = x.Uom != null ? x.Uom.Value : null,
+            UomOriginalLanguageCode = x.Uom != null ? x.Uom.OriginalLanguageCode : "vi",
+            UomDisplayName = x.Uom == null || x.Uom.OriginalLanguageCode == languageCode
+                ? (x.Uom != null ? x.Uom.Value : null)
+                : x.Uom.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.Uom.Value,
+            UomResolvedLanguageCode = x.Uom == null || x.Uom.OriginalLanguageCode == languageCode || x.Uom.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode)
+                ? languageCode
+                : x.Uom.OriginalLanguageCode,
+            UomTranslationFallback = x.Uom != null && x.Uom.OriginalLanguageCode != languageCode && !x.Uom.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode),
             VppCategoryId = x.VppCategoryId,
             VppCategoryCode = x.VppCategory != null ? x.VppCategory.VppCategoryCode : null,
             VppCategoryName = x.VppCategory != null ? x.VppCategory.VppCategoryName : null,
+            CategoryOriginalLanguageCode = x.VppCategory != null ? x.VppCategory.OriginalLanguageCode : "vi",
+            CategoryDisplayName = x.VppCategory == null || x.VppCategory.OriginalLanguageCode == languageCode
+                ? (x.VppCategory != null ? x.VppCategory.VppCategoryName : null)
+                : x.VppCategory.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.VppCategory.VppCategoryName,
+            CategoryResolvedLanguageCode = x.VppCategory == null || x.VppCategory.OriginalLanguageCode == languageCode || x.VppCategory.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode)
+                ? languageCode
+                : x.VppCategory.OriginalLanguageCode,
+            CategoryTranslationFallback = x.VppCategory != null && x.VppCategory.OriginalLanguageCode != languageCode && !x.VppCategory.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode),
             SupplierCount = x.SupplierProductMappings!.Count(m => !m.IsDeleted
                 && m.PriceListId == defaultPriceListId
                 && m.PriceList != null && !m.PriceList.IsDeleted
@@ -270,7 +309,16 @@ public sealed class VppCatalogService : IVppCatalogService
                 .OrderByDescending(m => m.IsDefault)
                 .ThenBy(m => m.Supplier != null && m.Supplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
                 .ThenBy(m => m.Supplier != null ? m.Supplier.SupplierName : null)
-                .Select(m => m.Supplier != null ? m.Supplier.SupplierName : null)
+                .Select(m => m.Supplier == null
+                    ? null
+                    : m.Supplier.OriginalLanguageCode == languageCode
+                        ? m.Supplier.SupplierName
+                        : m.Supplier.Translations
+                            .Where(t => !t.IsDeleted
+                                && t.Status == BusinessTranslationStatus.Approved
+                                && t.LanguageCode == languageCode)
+                            .Select(t => t.Name)
+                            .FirstOrDefault() ?? m.Supplier.SupplierName)
                 .FirstOrDefault(),
             IsDeleted = x.IsDeleted
         });
@@ -336,7 +384,15 @@ public sealed class VppCatalogService : IVppCatalogService
                 throw new ArgumentException("The requested sort column is not supported.");
             }
 
-            result.Add((match.Groups["property"].Value, match.Groups["direction"].Value.Equals("desc", StringComparison.OrdinalIgnoreCase)));
+            var property = match.Groups["property"].Value;
+            property = property switch
+            {
+                "VppName" => "DisplayName",
+                "VppCategoryName" => "CategoryDisplayName",
+                "UomName" => "UomDisplayName",
+                _ => property
+            };
+            result.Add((property, match.Groups["direction"].Value.Equals("desc", StringComparison.OrdinalIgnoreCase)));
         }
 
         return result;
@@ -431,12 +487,17 @@ public sealed class VppCatalogService : IVppCatalogService
         VppCode = row.VppCode,
         VppName = row.VppName,
         Description = row.Description,
+        OriginalLanguageCode = row.OriginalLanguageCode,
+        DisplayName = row.DisplayName,
+        DisplayDescription = row.DisplayDescription,
+        ResolvedLanguageCode = row.ResolvedLanguageCode,
+        IsTranslationFallback = row.IsTranslationFallback,
         UomId = row.UomId,
         UomCode = row.UomCode,
-        UomName = row.UomName,
+        UomName = row.UomDisplayName,
         VppCategoryId = row.VppCategoryId,
         VppCategoryCode = row.VppCategoryCode,
-        VppCategoryName = row.VppCategoryName,
+        VppCategoryName = row.CategoryDisplayName,
         DefaultSupplierName = row.DefaultSupplierName,
         DefaultPrice = row.DefaultPrice,
         DefaultVatRate = row.DefaultVatRate,
@@ -446,15 +507,35 @@ public sealed class VppCatalogService : IVppCatalogService
         {
             Id = row.UomId,
             Code = row.UomCode,
-            Value = row.UomName
+            Value = row.UomName,
+            OriginalLanguageCode = row.UomOriginalLanguageCode,
+            DisplayName = row.UomDisplayName,
+            ResolvedLanguageCode = row.UomResolvedLanguageCode,
+            IsTranslationFallback = row.UomTranslationFallback
         },
         VppCategory = row.VppCategoryCode is null && row.VppCategoryName is null ? null : new VppCategoryResDTO
         {
             Id = row.VppCategoryId,
             VppCategoryCode = row.VppCategoryCode,
-            VppCategoryName = row.VppCategoryName
+            VppCategoryName = row.VppCategoryName,
+            OriginalLanguageCode = row.CategoryOriginalLanguageCode,
+            DisplayName = row.CategoryDisplayName,
+            ResolvedLanguageCode = row.CategoryResolvedLanguageCode,
+            IsTranslationFallback = row.CategoryTranslationFallback
         }
     };
+
+    private async Task<VppItemResDTO> ToLocalizedDtoAsync(CatalogRow row, CancellationToken cancellationToken)
+        => (await ToLocalizedDtosAsync([row], cancellationToken)).Single();
+
+    private async Task<List<VppItemResDTO>> ToLocalizedDtosAsync(
+        IReadOnlyCollection<CatalogRow> rows,
+        CancellationToken cancellationToken)
+    {
+        // The SQL projection already resolves the selected language for display and ordering.
+        // This pass keeps the nested DTO metadata consistent for detail and lookup consumers.
+        return rows.Select(ToDto).ToList();
+    }
 
     private static VppItemResDTO CreateDistinctDto(string property, object? value)
     {
@@ -483,12 +564,25 @@ public sealed class VppCatalogService : IVppCatalogService
         public string? VppCode { get; set; }
         public string? VppName { get; set; }
         public string? Description { get; set; }
+        public string OriginalLanguageCode { get; set; } = "vi";
+        public string? DisplayName { get; set; }
+        public string? DisplayDescription { get; set; }
+        public string ResolvedLanguageCode { get; set; } = "vi";
+        public bool IsTranslationFallback { get; set; }
         public Guid UomId { get; set; }
         public string? UomCode { get; set; }
         public string? UomName { get; set; }
+        public string UomOriginalLanguageCode { get; set; } = "vi";
+        public string? UomDisplayName { get; set; }
+        public string UomResolvedLanguageCode { get; set; } = "vi";
+        public bool UomTranslationFallback { get; set; }
         public Guid VppCategoryId { get; set; }
         public string? VppCategoryCode { get; set; }
         public string? VppCategoryName { get; set; }
+        public string CategoryOriginalLanguageCode { get; set; } = "vi";
+        public string? CategoryDisplayName { get; set; }
+        public string CategoryResolvedLanguageCode { get; set; } = "vi";
+        public bool CategoryTranslationFallback { get; set; }
         public int SupplierCount { get; set; }
         public decimal? DefaultPrice { get; set; }
         public decimal DefaultVatRate { get; set; }

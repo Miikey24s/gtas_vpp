@@ -450,6 +450,265 @@
         }
       }
     },
+    "/api/business-data/{entityType}/{entityId}/localization": {
+      "get": {
+        "tags": ["BusinessDataLocalization"],
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/business-data/{entityType}/{entityId}/localization/translations/{languageCode}": {
+      "put": {
+        "tags": ["BusinessDataLocalization"],
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "languageCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDataTranslationUpsertReqDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDataTranslationUpsertReqDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDataTranslationUpsertReqDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["BusinessDataLocalization"],
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "languageCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/business-data/{entityType}/{entityId}/localization/original-language": {
+      "put": {
+        "tags": ["BusinessDataLocalization"],
+        "parameters": [
+          {
+            "name": "entityType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDataOriginalLanguageUpdateReqDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDataOriginalLanguageUpdateReqDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDataOriginalLanguageUpdateReqDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDataTranslationBundleResDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Library/{tableCode}": {
       "get": {
         "tags": ["Library"],
@@ -5360,6 +5619,132 @@
         },
         "additionalProperties": false
       },
+      "BusinessDataOriginalLanguageUpdateReqDTO": {
+        "required": ["languageCode"],
+        "type": "object",
+        "properties": {
+          "languageCode": {
+            "minLength": 1,
+            "pattern": "^(vi|en)$",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BusinessDataTranslationBundleResDTO": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "nullable": true
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "originalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "originalDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isFallback": {
+            "type": "boolean"
+          },
+          "translations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessDataTranslationResDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BusinessDataTranslationResDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "languageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedByUserId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BusinessDataTranslationUpsertReqDTO": {
+        "required": ["name", "source", "status"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 250,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "minLength": 1,
+            "pattern": "^(Draft|Approved)$",
+            "type": "string"
+          },
+          "source": {
+            "minLength": 1,
+            "pattern": "^(Manual|Import|AiDraft)$",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "CurrentUserResDTO": {
         "type": "object",
         "properties": {
@@ -5451,6 +5836,25 @@
           "isDeleted": {
             "type": "boolean"
           },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isTranslationFallback": {
+            "type": "boolean"
+          },
           "code": {
             "type": "string",
             "nullable": true
@@ -5509,6 +5913,25 @@
             "format": "date-time"
           },
           "isDeleted": {
+            "type": "boolean"
+          },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isTranslationFallback": {
             "type": "boolean"
           },
           "category": {
@@ -6558,6 +6981,25 @@
             "format": "date-time"
           },
           "isDeleted": {
+            "type": "boolean"
+          },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isTranslationFallback": {
             "type": "boolean"
           },
           "priceListCode": {
@@ -7810,6 +8252,25 @@
           "isDeleted": {
             "type": "boolean"
           },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isTranslationFallback": {
+            "type": "boolean"
+          },
           "supplierShortName": {
             "type": "string",
             "nullable": true
@@ -7988,6 +8449,25 @@
           "isDeleted": {
             "type": "boolean"
           },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isTranslationFallback": {
+            "type": "boolean"
+          },
           "vppCategoryCode": {
             "type": "string",
             "nullable": true
@@ -8132,6 +8612,25 @@
             "format": "date-time"
           },
           "isDeleted": {
+            "type": "boolean"
+          },
+          "originalLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "displayDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedLanguageCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isTranslationFallback": {
             "type": "boolean"
           },
           "vppCode": {
@@ -8900,6 +9399,9 @@
     },
     {
       "name": "Auth"
+    },
+    {
+      "name": "BusinessDataLocalization"
     },
     {
       "name": "Library"

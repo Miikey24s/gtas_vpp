@@ -84,7 +84,7 @@ function CatalogCard({
             {item.vppCode}
           </p>
           <h2 className="mt-1 text-sm leading-5 font-semibold">
-            {item.vppName}
+            {item.displayName || item.vppName}
           </h2>
         </div>
         <Badge variant="outline" className="shrink-0 rounded-[4px]">
@@ -132,7 +132,7 @@ export function CatalogPage() {
   useEffect(() => setPage(0), [deferredSearch, categoryId])
 
   const categoriesQuery = useQuery({
-    queryKey: ['vpp', 'catalog', 'categories'],
+    queryKey: ['vpp', 'catalog', 'categories', language],
     enabled: canView,
     queryFn: async () => {
       const result = await getApiVppRequestCategories()
@@ -142,7 +142,15 @@ export function CatalogPage() {
   })
 
   const productsQuery = useQuery({
-    queryKey: ['vpp', 'catalog', 'products', categoryId, deferredSearch, page],
+    queryKey: [
+      'vpp',
+      'catalog',
+      'products',
+      language,
+      categoryId,
+      deferredSearch,
+      page,
+    ],
     enabled: canView,
     queryFn: async () => {
       const result = await getApiVppRequestProducts({
@@ -358,7 +366,7 @@ export function CatalogPage() {
                           {item.vppCode}
                         </span>
                         <span className="mt-0.5 block font-medium">
-                          {item.vppName}
+                          {item.displayName || item.vppName}
                         </span>
                       </TableCell>
                       <TableCell className="max-w-52 whitespace-normal">

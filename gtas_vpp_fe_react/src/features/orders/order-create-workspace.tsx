@@ -88,7 +88,7 @@ export function ProductRow({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <h3 className="truncate text-sm font-medium">
-            {product.vppName || '—'}
+            {product.displayName || product.vppName || '—'}
           </h3>
           <span className="text-muted-foreground text-xs">
             {product.uomName || product.uomCode || '—'}
@@ -262,7 +262,7 @@ export function OrderCreateWorkspace() {
   const formValues = useWatch({ control })
 
   const periodQuery = useQuery({
-    queryKey: ['vpp', 'period-info'],
+    queryKey: ['vpp', 'period-info', language],
     enabled: canCreate && canUseCatalog,
     queryFn: async () => {
       const result = await getApiVppRequestPeriodInfo()
@@ -325,7 +325,7 @@ export function OrderCreateWorkspace() {
   }, [draftKey, draftReady, formValues, lines])
 
   const productsQuery = useQuery({
-    queryKey: ['vpp', 'products', 'lookup', deferredSearch],
+    queryKey: ['vpp', 'products', 'lookup', language, deferredSearch],
     enabled:
       canCreate &&
       canUseCatalog &&
