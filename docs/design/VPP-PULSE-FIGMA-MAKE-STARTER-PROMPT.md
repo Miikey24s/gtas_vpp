@@ -1,108 +1,63 @@
-# VPP Pulse — Opus 4.8 Build Starter Prompts
+# VPP Pulse — Prompt duy nhất cho Figma Make
 
-Use a fresh Figma Make conversation. The prompts are written in English for a
-precise code/build contract; the product UI must still support Vietnamese and
-English.
-
-## Prompt 1 — Re-baseline and create the plan only
+Sử dụng nguyên prompt tiếng Việt dưới đây trong một phiên Figma Make mới với
+Claude Opus 4.8 Build.
 
 ```text
-You are working in Figma Make Build mode with Claude Opus 4.8 on the GTAS VPP
-production React codebase.
+Bạn là Principal Product Designer kiêm Senior React Frontend Architect, đang làm
+việc trong Figma Make Build với Claude Opus 4.8 cho GTAS VPP.
 
-IMPORTANT: Do not change application code in this prompt. Your only output change
-is to create or replace plan.md.
+Hãy đọc đầy đủ Guidelines.md, gtas_vpp_fe_react/Guidelines.md,
+gtas_vpp_fe_react/AGENTS.md,
+docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md,
+docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md và source hiện tại trong
+gtas_vpp_fe_react/. Sau đó trực tiếp tự thiết kế và dựng bản xem trước UI/UX hoàn
+chỉnh, có thể tương tác cho toàn bộ frontend React/Tailwind hiện có. Không chỉ
+audit, không chỉ viết kế hoạch, không chờ tôi chọn style và không hỏi lại các câu
+hỏi thẩm mỹ trước khi thiết kế.
 
-Preflight:
-1. Read gtas_vpp_fe_react/Guidelines.md, gtas_vpp_fe_react/AGENTS.md, and
-   docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md completely.
-2. Verify the Git branch is a new figma/* branch based on the latest origin/Nam.
-3. Verify commit bf2cb10 is an ancestor of HEAD. If it is not, stop and report
-   that this codebase is stale. Do not design against the old
-   agents/ui-improvements-font-size-alignment branch or its chat history.
-4. Inspect the current React package.json, src/index.css, AppShell, navigation,
-   router, i18n, My Orders, and one dense CRUD route. Do not assume the attached
-   screenshot or old Make version is current.
+Bạn được toàn quyền tự chọn một art direction tốt nhất: information architecture,
+layout, typography, màu sắc, spacing, hình khối, component, navigation, table,
+chart, data storytelling, animation và micro-interaction. Giao diện hiện tại,
+screenshot, Blazor, Personal Design DNA và các sản phẩm như Apple, ChatGPT,
+Notion, Linear hoặc Figma chỉ là dữ liệu tham khảo tùy chọn; không sao chép và
+không xem bất kỳ style cũ nào là ràng buộc. Hãy dùng năng lực thiết kế và nghiên
+cứu của bạn để tạo một hệ thống riêng, hiện đại, chuyên nghiệp, dễ hiểu và phù hợp
+nhất với sản phẩm.
 
-Create plan.md for a shared UI foundation review covering:
-- App shell: remove prototype wording, resolve duplicate user identity, improve
-  expanded/collapsed sidebar, header utilities, notification, and account menu.
-- My Orders: takeaway, four or fewer useful evidence points, a single source of
-  truth for the next action, exact order detail, and complete state handling.
-- One dense CRUD route: Library Items or Access Users, including filter, paging,
-  column density, row actions, drawer/dialog, and long-data behavior.
+Bối cảnh nghiệp vụ: GTAS VPP là hệ thống nội bộ quản lý nhu cầu và mua sắm văn
+phòng phẩm, gồm account/auth, My Orders, tạo/sửa/xem/lịch sử đơn, đơn bổ sung,
+duyệt phòng ban/công ty, kỳ đặt hàng, quyết toán và revision, catalog/library,
+master data, nhà cung cấp, bảng giá, người dùng/nhóm quyền, thông báo, báo cáo,
+print/export và audit history. Hãy khảo sát router, navigation, OpenAPI types,
+i18n và code của từng route để không bỏ sót capability hiện có.
 
-The visual direction is Operational Clarity: square, precise, low-radius,
-sky/teal-accented, data-first, calm, and distinctive. Apple, ChatGPT, Notion,
-Linear, and Figma are references only—do not copy them and do not use an
-Apple-only art direction. Avoid generic dashboard cards, excessive pills,
-glassmorphism, decorative gradients, heavy shadows, duplicated copy/actions,
-and animation without meaning.
+Các điều bắt buộc phải giữ đúng:
+- business rule, API contract, permission, audit và dữ liệu hiện hành; không tự
+  phát minh field, status, quyền hoặc nghiệp vụ;
+- mọi nội dung hiển thị đều có VI/EN, kể cả validation, tooltip, notification,
+  empty/error state, bảng, biểu đồ và accessible name;
+- Light, Dark và Print là ba mode thật;
+- desktop là ưu tiên review nhưng tablet/mobile phải dùng được;
+- có đầy đủ state phù hợp: loading, empty, normal, long-data, filtered-empty,
+  error/retry, unauthorized/forbidden, disabled, pending, conflict, success và
+  offline;
+- accessibility: semantic, keyboard/focus, contrast, reduced motion và trạng
+  thái không phụ thuộc riêng vào màu;
+- không dùng secret, cookie, connection string, dữ liệu production hoặc mock
+  runtime để che API còn thiếu;
+- không sửa backend, Blazor, database, deployment hoặc business logic.
 
-plan.md must include:
-- verified branch and HEAD;
-- current issues backed by inspected source;
-- business, permission, API, audit, and localization invariants;
-- design tokens and shared primitives to reuse or change;
-- a state matrix for loading, empty, normal, long-data, filtered-empty, error,
-  retry, forbidden, disabled, pending, conflict, success, and offline where
-  relevant;
-- desktop 1366x768 and 1920x1080 designs, then tablet 768x1024 and mobile
-  390x844 behavior;
-- VI/EN, Light/Dark/Print, keyboard/focus, reduced-motion, axe, console/network,
-  and performance coverage;
-- exact files expected to change;
-- QA commands and rollback boundary;
-- explicit non-goals and anything blocked by a missing backend contract.
+Hãy tạo một design system thống nhất và áp dụng nó xuyên suốt App Shell, auth,
+dashboard/workspace, tất cả route nghiệp vụ và các modal/drawer/form/table/chart/
+notification cần thiết. Mỗi route hiện có phải có ít nhất một màn hình hoàn chỉnh
+để review; các luồng quan trọng phải có thêm state và interaction tiêu biểu. Hãy
+dùng dữ liệu/contract hiện có để giao diện trông thật và kiểm chứng được, không
+chỉ tạo vài màn hình showcase.
 
-Do not install dependencies, rewrite routing, invent DTOs, use mock production
-data, change backend/Blazor/deployment, commit, push, or open a PR in this prompt.
-Finish by summarizing the proposed design direction and the decisions that need
-owner review.
-```
-
-## Prompt 2 — Implement the approved foundation slice
-
-Use only after reviewing and editing `plan.md`.
-
-```text
-Use the latest approved plan.md and implement only its first shared-foundation
-slice in the current figma/* branch.
-
-Follow gtas_vpp_fe_react/Guidelines.md. Preserve API, permission, audit, i18n,
-Light/Dark/Print, and reduced-motion contracts. Use current repository-owned
-shadcn/Tailwind primitives and semantic tokens; do not add a UI framework or
-construct Tailwind class names dynamically.
-
-Work in this order:
-1. shared tokens and primitives;
-2. App shell and both expanded/collapsed navigation states;
-3. My Orders normal/empty/error states;
-4. the selected dense CRUD route;
-5. tests and visual/accessibility QA;
-6. update the React living plan and retrofit queue.
-
-Run npm run format:check, npm run check, the relevant Playwright tests, and npm
-audit --audit-level=high. Inspect all four required viewports, VI/EN, Light/Dark,
-Print where applicable, keyboard focus, reduced motion, console/network, and axe.
-
-Do not modify backend, Blazor, database, deployment, generated API files, or
-unrelated routes. Do not merge, deploy, or push directly to Nam. At the end,
-provide the changed-file list, test evidence, screenshots/views that need owner
-review, remaining risks, and a small commit proposal.
-```
-
-## Prompt 3 — A focused owner correction
-
-Use this pattern after selecting an element or attaching one screenshot:
-
-```text
-Apply only this owner correction to the selected element and every instance of
-the same shared primitive: <describe the correction>.
-
-First identify the owning shared component and token. Do not patch each route
-with duplicate classes. Preserve layout at 390, 768, 1366, and 1920 widths,
-VI/EN text expansion, keyboard focus, Light/Dark/Print, and reduced motion.
-Show the exact files changed and the focused QA performed. Do not modify other
-visual decisions or business behavior.
+Hãy bắt đầu xây dựng ngay trong Figma Make và tự đưa ra các giả định hợp lý. Kết
+quả cuối phải là prototype điều hướng được để tôi mở lên xem trực tiếp. Sau khi
+dựng xong, chỉ cần kèm một bản tóm tắt ngắn về design direction đã chọn, các quyết
+định UX lớn, giả định đã dùng và những contract thật sự còn thiếu. Không commit,
+push, merge hay deploy; tôi sẽ review giao diện trước rồi mới quyết định phần code.
 ```

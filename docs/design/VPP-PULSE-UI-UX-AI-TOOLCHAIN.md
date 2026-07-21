@@ -45,8 +45,9 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 
 ### Reference stack cho quyết định UI
 
-- **Owner feedback + GTAS token/runtime:** nguồn quyết định visual cuối cùng.
-- **Apple HIG, ChatGPT, Notion, Linear và Figma:** nguồn tham khảo theo từng pattern về hierarchy, clarity, spacing, feedback và interaction; không có nguồn nào là art direction độc quyền hoặc mẫu để sao chép.
+- **Figma Make/Opus:** được tự nghiên cứu và chọn art direction cho prototype; không bị khóa bởi token/style cũ.
+- **Owner feedback + GTAS runtime:** nguồn quyết định cuối sau khi prototype đã có để review trực quan.
+- **Apple HIG, ChatGPT, Notion, Linear và Figma:** nguồn nghiên cứu tùy chọn, không có nguồn nào là art direction độc quyền hoặc mẫu phải sao chép.
 - **Radzen + Microsoft:** nguồn quyết định khả năng triển khai Blazor/Radzen đúng component/framework đang dùng.
 - **React/Tailwind/shadcn docs:** nguồn quyết định implementation React; code shadcn được đưa vào repository và phải được review/test như source sở hữu.
 - **W3C/Deque:** nguồn quyết định accessibility; không được hy sinh để bắt chước một visual reference.
@@ -54,9 +55,9 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 
 ### Figma Make / Opus 4.8 Build
 
-- Dùng `Guidelines.md` làm context định tuyến và `gtas_vpp_fe_react/Guidelines.md` làm standing rules cho React; brief/prompt nằm trong `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` và `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
-- Opus phù hợp prompt đầu phức tạp; prompt đầu chỉ audit và tạo `plan.md`, prompt sau mới triển khai slice đã duyệt. Không gửi một prompt “làm lại toàn bộ app” thiếu state/contract/file boundary.
-- Context cũ hoặc chat dài phải được bỏ khi source đã thay đổi đáng kể. Branch `agents/ui-improvements-font-size-alignment` tại `da02844` không còn là baseline hợp lệ.
+- Dùng `Guidelines.md` làm context định tuyến, `gtas_vpp_fe_react/Guidelines.md` làm invariant tối thiểu và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm bối cảnh sản phẩm.
+- Chỉ dùng một prompt tiếng Việt trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Opus tự thiết kế và dựng trực tiếp prototype để owner xem; không bắt tạo `plan.md`, không yêu cầu owner chọn style trước.
+- Bắt đầu phiên Make mới khi source/context cũ đã lỗi thời; không tiếp tục từ chat hoặc code snapshot cũ.
 - Nếu có Make on local codebase beta: fetch latest `origin/Nam`, tạo `figma/*`, review diff/test và mở PR. Nếu chỉ có Make prototype/GitHub push kiểu cũ: coi output là prototype/repository trung gian vì sync là một chiều, rồi tích hợp thủ công qua Codex.
 - Attachment chỉ gồm file cần cho route hiện tại, nêu rõ file nào là authority hay inspiration; không tải secret, cookie, token, connection string hoặc dữ liệu production.
 
