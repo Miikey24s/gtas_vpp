@@ -8,7 +8,9 @@
 >
 > **Mục tiêu:** tự thiết kế một prototype đầy đủ để owner xem và phản hồi
 >
-> **Môi trường thực tế:** Figma Make workspace trống, không đọc được repository
+> **Workflow chính:** Import GitHub codebase thật vào Figma
+>
+> **Fallback:** Figma Make workspace trống + context attachment
 
 ## 1. Cách dùng tài liệu này
 
@@ -18,16 +20,20 @@ interaction, motion và cách trình bày dữ liệu. Không cần bảo toàn 
 hiện tại và không phải làm giống Blazor, React cũ, Personal Design DNA hoặc một
 sản phẩm tham khảo nào.
 
-Upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` làm text attachment, sau đó dùng đúng
-một prompt ngắn trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Không yêu cầu
-Figma đọc file/path GitHub vì chúng không tồn tại trong Make workspace. Context
-attachment chứa route, persona, permission, business rule, state và mock data;
-prompt chỉ giao phase cần xây. Agent dựng thẳng giao diện để owner review, không
-dừng ở `plan.md`.
+Nếu tài khoản có **Import GitHub repository / Code on Canvas**, dùng workflow
+chính: import `Miikey24s/gtas_vpp`, chọn `Nam`, project root
+`gtas_vpp_fe_react`, tạo branch `figma/*` và chạy prompt trong
+`VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`. Đây là cách ưu tiên vì agent đọc
+được router, OpenAPI, i18n, permission, component và test thật.
 
-Không yêu cầu Make hoàn thiện hơn 30 màn hình trong one-shot. Phase 1 khóa design
-system, App Shell, Auth và Employee north star; các workspace còn lại được tiếp
-tục sau khi owner đã phản hồi trực quan.
+Chỉ khi tính năng import không khả dụng mới upload
+`VPP-PULSE-FIGMA-MAKE-CONTEXT.md` và dùng prompt fallback trong
+`VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Workflow fallback dùng mock rõ ràng và
+không được coi là production integration.
+
+Cả hai workflow đều không yêu cầu hoàn thiện hơn 30 màn hình trong one-shot.
+Phase 1 khóa design system, App Shell, Auth và Employee north star; các workspace
+còn lại được tiếp tục sau khi owner đã phản hồi trực quan.
 
 ## 2. Bối cảnh sản phẩm
 

@@ -63,7 +63,7 @@ Không thay API/database chỉ để che một implementation frontend yếu. Đ
 ### 3.1 Figma Make collaboration boundary
 
 - Figma Make/Opus 4.8 được toàn quyền tự chọn visual direction, IA, layout, component và motion để dựng trực tiếp prototype cho owner review; không phải nguồn thay thế business rule, API, permission hoặc living plan.
-- Root `Guidelines.md` định tuyến context monorepo; standing context React là `gtas_vpp_fe_react/Guidelines.md`; workflow Figma dùng `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` làm attachment và một prompt ngắn trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
+- Root `Guidelines.md` định tuyến context monorepo; standing context React là `gtas_vpp_fe_react/Guidelines.md`. Workflow chính import GitHub codebase và dùng `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`; context attachment + `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md` chỉ là fallback.
 - Agent thiết kế ngay để owner xem, không bị chặn bởi vòng `plan.md` hoặc yêu cầu chọn style trước; ứng dụng lớn được chia phase để tránh one-shot thiếu màn hình hoặc mất nhất quán.
 - Nếu chỉnh production-code, phiên Figma phải fetch latest `origin/Nam` và tạo branch `figma/*`; vòng thiết kế hiện tại không commit, push, merge hoặc deploy.
 - Figma Make dạng prototype/GitHub push một chiều chỉ tạo design evidence hoặc repository trung gian; không được ghi đè GTAS source of truth. Integration vào repo này phải qua diff/QA/PR hoặc Codex review.
@@ -550,7 +550,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-21 | Lịch sử đơn/settlement giữ snapshot bất biến | Đổi bản dịch reference data không rewrite evidence; print/export lịch sử phải dùng snapshot, còn catalog/library dùng display text đã resolve |
 | 2026-07-21 | Figma Make phải re-baseline từ latest `Nam` | Dùng source/context hiện hành và branch `figma/*` nếu chỉnh code; không push trực tiếp hoặc xem prototype là source authority |
 | 2026-07-21 | Trao toàn quyền visual cho Figma agent | Context không khóa art direction; mỗi phase dùng một prompt tiếng Việt ngắn để agent dựng trực tiếp prototype cho owner review |
-| 2026-07-21 | Figma Make thực tế là workspace trống | Upload một context `.md` tự chứa route/persona/permission/workflow/state/mock data, rồi dùng prompt ngắn theo phase; không tham chiếu file/path repository mà Make không thể đọc |
+| 2026-07-21 | Tài khoản Figma có Import GitHub codebase | Workflow chính đọc source `gtas_vpp_fe_react` thật trên branch `figma/*`; context `.md` + mock chỉ giữ làm fallback khi import không khả dụng |
 | 2026-07-21 | Không dùng one-shot cho full Figma prototype | Phase 1 khóa foundation + App Shell + Auth + Employee; owner review rồi mới tiếp tục Management/Procurement/Library/Access/Reports |
 
 ## 18. Immediate execution queue
@@ -559,7 +559,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 2. **R10 — Account/system completion:** public Pending Approval, durable notification inbox, offline/reconnect/session-expired/forbidden/error states.
 3. **R11 — Cross-route product hardening:** per-route table profiles, export/email state matrix, persona/permission review, admin safety và legacy redirects.
 4. **Owner review R1–R8:** kiểm tra runtime theo persona/route/viewport; feedback shared primitive được retrofit cả route cũ.
-5. **Figma Make design review:** upload context `.md`, chạy prompt Phase 1 cho foundation + App Shell + Auth + Employee, owner review visual/flow rồi mới tiếp tục từng workspace và chọn phần cần tích hợp qua diff/QA.
+5. **Figma codebase design review:** import repo/branch thật, chạy prompt Phase 1 cho foundation + App Shell + Auth + Employee, owner review visual/flow rồi mới tiếp tục từng workspace và chọn phần cần tích hợp qua diff/QA; context `.md` là fallback.
 6. **R12 — Advanced intelligence:** triển khai sau core review nhưng vẫn giữ trong full plan; không trình bày Report Insight hiện tại như toàn bộ AI scope.
 7. **Cutover:** chỉ chạy sau toàn bộ gate ở Section 16 và owner cho phép push/deploy.
 
@@ -586,6 +586,7 @@ React là target; Blazor là baseline/fallback. Không cutover hoặc xóa Blazo
 - [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [Figma Make guidelines](https://help.figma.com/hc/en-us/articles/33665861260823-Add-guidelines-to-Figma-Make)
 - [Figma Make workflows](https://help.figma.com/hc/en-us/articles/35710574222487-Beyond-the-basics-Using-Figma-Make)
+- [Code on the Figma Canvas](https://www.figma.com/blog/code-on-the-figma-canvas/)
 - [Tailwind CSS source detection](https://tailwindcss.com/docs/detecting-classes-in-source-files)
 - `VPP-PULSE-DESIGN-BRIEF.md`
 - `VPP-PULSE-PRODUCT-BLUEPRINT.md`

@@ -56,10 +56,11 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 ### Figma Make / Opus 4.8 Build
 
 - Dùng `Guidelines.md` làm context định tuyến, `gtas_vpp_fe_react/Guidelines.md` làm invariant tối thiểu và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm bối cảnh sản phẩm.
-- Upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` làm text attachment và dùng một prompt tiếng Việt ngắn trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Opus tự thiết kế và dựng trực tiếp Phase 1 để owner xem; không bắt tạo `plan.md`, không yêu cầu owner chọn style trước.
+- Khi tài khoản có Import GitHub/Code on Canvas, ưu tiên import `Miikey24s/gtas_vpp`, chọn `Nam`, root `gtas_vpp_fe_react`, tạo branch `figma/*` và dùng `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md` để Opus đọc source thật.
+- Chỉ khi import không khả dụng mới upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` và dùng prompt fallback trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
 - Với app phức tạp, làm theo phase và screen/workspace thay vì một prompt full end-to-end. Context attachment được giữ xuyên conversation; prompt tiếp theo chỉ giao workspace/state cần mở rộng sau owner review.
 - Bắt đầu phiên Make mới khi source/context cũ đã lỗi thời; không tiếp tục từ chat hoặc code snapshot cũ.
-- Nếu có Make on local codebase beta: fetch latest `origin/Nam`, tạo `figma/*`, review diff/test và mở PR. Nếu chỉ có Make prototype/GitHub push kiểu cũ: coi output là prototype/repository trung gian vì sync là một chiều, rồi tích hợp thủ công qua Codex.
+- Với imported codebase: xác minh latest `origin/Nam`, tạo `figma/*`, review diff/test và chỉ mở PR sau owner review. Nút GitHub Push của Make file trống vẫn là luồng một chiều sang repository do Make tạo, không thay thế import codebase thật.
 - Attachment chỉ gồm file cần cho route hiện tại, nêu rõ file nào là authority hay inspiration; không tải secret, cookie, token, connection string hoặc dữ liệu production.
 
 ### Vì sao không cài thêm browser MCP khác
@@ -158,4 +159,5 @@ Chart chỉ được thêm khi nó trả lời câu hỏi tốt hơn số, bản
 - [Figma Make attachments](https://help.figma.com/hc/en-us/articles/31304529835671-Attach-designs-and-images-to-a-prompt)
 - [Figma Make plan-first workflow](https://help.figma.com/hc/en-us/articles/35710574222487-Beyond-the-basics-Using-Figma-Make)
 - [Figma Make on local code](https://www.figma.com/blog/figma-make-now-on-your-local-code/)
+- [Code on the Figma Canvas](https://www.figma.com/blog/code-on-the-figma-canvas/)
 - [Tailwind CSS source detection](https://tailwindcss.com/docs/detecting-classes-in-source-files)
