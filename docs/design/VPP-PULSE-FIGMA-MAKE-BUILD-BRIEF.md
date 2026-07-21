@@ -1,46 +1,37 @@
-# VPP Pulse — Bối cảnh cho Figma Make
+# VPP Pulse — Bối cảnh cho Figma
 
-> **Agent:** Claude Opus 4.8 Build trong Figma Make
+> **Agent:** Claude Opus 4.8 Build trong Figma
 >
 > **Repository:** `Miikey24s/gtas_vpp`
 >
-> **Frontend:** `gtas_vpp_fe_react/` — React + TypeScript + Tailwind + shadcn/ui
+> **Frontend chính:** `gtas_vpp_fe/` — Blazor Interactive Server + Radzen
 >
-> **Mục tiêu:** tự thiết kế một prototype đầy đủ để owner xem và phản hồi
+> **Frontend phụ:** `gtas_vpp_fe_react/` — proof-of-concept đang tạm dừng
 >
-> **Workflow chính:** Import GitHub codebase thật vào Figma
->
-> **Fallback:** Figma Make workspace trống + context attachment
+> **Mục tiêu:** thiết kế prototype đầy đủ để owner review trước khi Codex triển
+> khai vào Blazor/Radzen
 
-## 1. Cách dùng tài liệu này
+## 1. Workflow đúng
 
-Đây là bối cảnh sản phẩm và các invariant không được làm sai, không phải design
-spec. Figma agent được toàn quyền chọn visual direction, layout, component,
-interaction, motion và cách trình bày dữ liệu. Không cần bảo toàn style của UI
-hiện tại và không phải làm giống Blazor, React cũ, Personal Design DNA hoặc một
-sản phẩm tham khảo nào.
+Import toàn repository, branch `Nam`, để agent đọc được Razor, CSS, resource,
+route catalog, shared DTO, permission, test và living plan thật. Không chọn React
+phụ làm project target chỉ vì môi trường code layer của Figma dùng React.
 
-Nếu tài khoản có **Import GitHub repository / Code on Canvas**, dùng workflow
-chính: import `Miikey24s/gtas_vpp`, chọn `Nam`, project root
-`gtas_vpp_fe_react`, tạo branch `figma/*` và chạy prompt trong
-`VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`. Đây là cách ưu tiên vì agent đọc
-được router, OpenAPI, i18n, permission, component và test thật.
+Figma được tự quyết visual direction, layout, component, interaction, motion và
+cách trình bày dữ liệu. Nếu cần code React để dựng preview, output đó là design
+evidence cô lập. Nó không được merge nguyên vẹn, không thay thế Blazor và không
+biến `gtas_vpp_fe_react/` thành frontend mục tiêu.
 
-Chỉ khi tính năng import không khả dụng mới upload
-`VPP-PULSE-FIGMA-MAKE-CONTEXT.md` và dùng prompt fallback trong
-`VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Workflow fallback dùng mock rõ ràng và
-không được coi là production integration.
-
-Cả hai workflow đều không yêu cầu hoàn thiện hơn 30 màn hình trong one-shot.
-Phase 1 khóa design system, App Shell, Auth và Employee north star; các workspace
-còn lại được tiếp tục sau khi owner đã phản hồi trực quan.
+Prompt duy nhất cho vòng import codebase nằm trong
+`VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`. Chỉ dùng context attachment/fallback
+khi chức năng import không khả dụng.
 
 ## 2. Bối cảnh sản phẩm
 
 GTAS VPP quản lý nhu cầu và mua sắm văn phòng phẩm nội bộ từ lúc nhân viên tạo
 đơn đến duyệt, bổ sung, tổng hợp, quyết toán và lưu bằng chứng lịch sử.
 
-Các nhóm capability hiện có gồm:
+Capability hiện có gồm:
 
 - đăng nhập, đăng ký, khôi phục mật khẩu và protected session;
 - App Shell, navigation, account menu, notification, VI/EN và theme;
@@ -51,56 +42,55 @@ Các nhóm capability hiện có gồm:
 - người dùng, nhóm quyền và component permission;
 - báo cáo, print/export, insight và immutable audit history.
 
-Router, navigation, generated OpenAPI client và source route hiện tại là danh
-sách capability cụ thể để agent tự khảo sát. Không dựa vào một screenshot cũ để
-suy luận toàn hệ thống.
+`RouteCatalog.cs`, navigation, Razor routes, API/shared DTO và tests là danh sách
+capability cụ thể. Không suy luận toàn hệ thống từ một screenshot.
 
 ## 3. Thứ tự nguồn sự thật
 
 1. Business invariant, authorization và immutable audit behavior.
-2. Backend source, Swagger/OpenAPI và generated React client hiện tại.
-3. Quyết định nghiệp vụ mới nhất trong React living plan.
-4. Dữ liệu TEST/fixture hợp lệ và browser runtime đã được owner duyệt.
-5. Figma exploration và các nguồn nghiên cứu visual.
-6. Blazor chỉ làm bằng chứng capability, không phải mẫu giao diện.
+2. Backend source, Swagger/API và shared DTO hiện tại.
+3. Quyết định mới nhất trong Blazor living plan.
+4. Razor/CSS/resource/test và dữ liệu TEST hợp lệ.
+5. Browser runtime Blazor đã được owner duyệt.
+6. Figma exploration, React POC và nguồn visual chỉ là evidence tham khảo.
 
-Nếu thiếu contract, ghi rõ blocker; không tự tạo field, permission, status hoặc
-business rule ở client.
+Nếu thiếu contract, ghi blocker; không tự tạo field, permission, status hoặc
+business rule trong prototype.
 
-## 4. Tiêu chí bắt buộc của prototype
+## 4. Tiêu chí bắt buộc
 
-- Bao phủ toàn bộ route/capability React hiện có; không chỉ dựng vài hero screen.
-- Một design system và interaction language xuyên suốt toàn ứng dụng.
+- Bao phủ route/flow/state theo từng phase, không chỉ dựng hero screen.
+- Một design system và interaction language xuyên suốt ứng dụng.
 - Toàn bộ text UI-owned có VI/EN.
-- Có Light, Dark, Print và responsive desktop/tablet/mobile.
-- Có các state cần thiết như loading, empty, long-data, error/retry, forbidden,
-  pending, conflict, success và offline.
-- Form có validation/feedback; dữ liệu dày có search/filter/paging/action/detail
-  hợp lý; action quan trọng có trạng thái pending và confirmation phù hợp.
-- Semantic HTML, keyboard/focus, contrast, accessible name và reduced motion.
-- Dữ liệu, permission và audit không bị làm sai để phục vụ visual.
+- Light, Dark, Print và responsive desktop/tablet/mobile.
+- Loading, empty, long-data, error/retry, forbidden, pending, conflict, success
+  và offline khi phù hợp.
+- Form có validation/feedback; màn hình dữ liệu dày có search/filter/paging,
+  action/detail hợp lý; mutation có pending/confirmation.
+- Semantic structure, keyboard/focus, contrast, accessible name và reduced motion.
+- Thiết kế khả thi với Razor/HTML/CSS/SVG; Radzen chỉ cần giữ cho DataGrid, Dialog,
+  DatePicker, validation và component phức tạp tạo giá trị thật.
 
-Những mục này là tiêu chí sản phẩm và chất lượng, không quy định UI phải dùng màu,
-font, bo góc, card, sidebar, tab, chart hoặc animation theo cách nào.
+## 5. Ranh giới an toàn và Git
 
-## 5. Ranh giới an toàn
-
-- Không tải secret, cookie, token, connection string hoặc dữ liệu production vào
+- Không đưa secret, cookie, token, connection string hoặc production data vào
   Figma.
-- Không sửa backend, Blazor, database, deployment hoặc generated API files.
-- Không commit, push, merge hoặc deploy trong vòng thiết kế.
-- Nếu dùng Make trên local codebase, bắt đầu từ latest `origin/Nam` trên branch
-  `figma/*` riêng. Nếu chỉ có Figma Make prototype thông thường, coi output là
-  design evidence để Codex tích hợp sau khi owner duyệt.
+- Không sửa backend, database, deployment, React phụ hoặc production Blazor
+  trong vòng thiết kế.
+- Không commit, push, merge hoặc deploy trước owner review.
+- Nếu Figma bắt buộc tạo branch/files, dùng `figma/*`; mọi output phải qua diff,
+  QA và implementation Blazor riêng sau khi owner duyệt.
+- Repository đã ignore build/test artifacts của .NET và React. Không thêm pattern
+  `.figma*` suy đoán khi Figma không tạo file local được tài liệu hóa.
 
-## 6. Owner sẽ review gì
+## 6. Owner review
 
-- Tổng thể có đẹp, có bản sắc và phù hợp hệ thống nội bộ hay không.
-- Information architecture và luồng tác vụ có dễ hiểu hơn hay không.
+- Tổng thể có đẹp, có bản sắc và phù hợp hệ thống nội bộ không.
+- Information architecture và flow có dễ hiểu hơn không.
 - App Shell, auth, data-heavy screen, CRUD, report và state có cùng một hệ thống
-  hay không.
+  không.
 - VI/EN, Light/Dark/Print, responsive, accessibility và motion có hợp lý không.
-- Dữ liệu quan trọng, ngữ cảnh, next action và detail có được trình bày rõ không.
+- Data story có làm rõ scope, takeaway, evidence và next action không.
 
-Agent tự đưa ra câu trả lời thiết kế tốt nhất trước; owner phản hồi trực tiếp trên
-prototype thay vì phải chọn style bằng mô tả trừu tượng.
+Agent đưa ra phương án tốt nhất trước; owner phản hồi trực tiếp trên prototype,
+sau đó Codex mới triển khai vào frontend Blazor chính.

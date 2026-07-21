@@ -9,14 +9,16 @@
 3. Chọn Claude Opus 4.8 Build và dán đúng một prompt dưới đây.
 
 ```text
-Bạn là Principal Product Designer, UX Researcher và Senior React Frontend
-Architect. File VPP-PULSE-FIGMA-MAKE-CONTEXT.md đính kèm là nguồn sự thật về
+Bạn là Principal Product Designer, UX Researcher và Design Engineer. File
+VPP-PULSE-FIGMA-MAKE-CONTEXT.md đính kèm là nguồn sự thật về
 sản phẩm, route, persona, permission, business rule, state và mock data của GTAS
 VPP; nó không phải visual style guide.
 
-Đây là Figma Make workspace React/Tailwind + shadcn/ui trống. Không tìm source
-GTAS VPP, Guidelines.md, AGENTS.md, router hay OpenAPI khác. Dùng mock rõ ràng
-cho prototype và không tuyên bố đã tích hợp API thật.
+Frontend production chính của GTAS VPP là Blazor Interactive Server + Radzen.
+Đây chỉ là Figma Make workspace React/Tailwind + shadcn/ui trống dùng để render
+prototype thiết kế cho Blazor. Không tìm source GTAS VPP, Guidelines.md,
+AGENTS.md, router hay OpenAPI khác; dùng mock rõ ràng và không tuyên bố đã tích
+hợp API thật hoặc đang xây frontend React production.
 
 Trước khi dựng, hãy tự nghiên cứu enterprise SaaS/internal operations,
 procurement workflow, data-dense UI, accessibility và design system hiện hành.
@@ -53,6 +55,6 @@ xây sâu Management, Procurement, Library, Access và Reports trong phase này.
 
 Tự kiểm tra navigation, console, language, theme và viewport. Khi hoàn thành,
 hiển thị prototype để owner review và chỉ tóm tắt ngắn: art direction đã chọn,
-nghiên cứu đã áp dụng, giả định còn thiếu và đề xuất scope Phase 2. Không tự bắt
-đầu Phase 2 trước khi owner review Phase 1.
+nghiên cứu đã áp dụng, giả định còn thiếu và lưu ý triển khai vào Blazor. Không
+tự bắt đầu Phase 2 trước khi owner review Phase 1.
 ```

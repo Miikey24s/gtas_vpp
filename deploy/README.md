@@ -80,7 +80,7 @@ Mỗi push vào `Nam` có thay đổi source backend/frontend hoặc hạ tầng
 chạy `workflow_dispatch`, thực hiện:
 
 1. restore, build Release, chạy backend/frontend tests và React E2E;
-2. build ba image (backend, Blazor fallback, React target), push tag bất biến `sha-<commit>` lên GHCR;
+2. build ba image (backend, Blazor target, React auxiliary), push tag bất biến `sha-<commit>` lên GHCR;
 3. tạo release `/app/gtas-vpp/releases/<commit>` và chuyển `.env` bằng SCP;
 4. đăng nhập GHCR bằng Docker config tạm, tự xóa khi phiên SSH kết thúc;
 5. kiểm tra/khắc phục mapping SQL public và pin image SHA cùng named volume từ
@@ -90,11 +90,11 @@ chạy `workflow_dispatch`, thực hiện:
    `ALTER LOGIN sa`, rồi recreate container với credential mới và nguyên volume;
 7. tạo `BACKUP ... WITH COPY_ONLY, CHECKSUM` và `RESTORE VERIFYONLY ... WITH CHECKSUM`
    cho cả `GTAS_VPP_LIVE` lẫn `GTAS_MENU`, rồi mới migration;
-8. thay backend, chờ healthy; thay Blazor fallback, chờ healthy; thay React target, chờ healthy;
-9. chuyển Nginx sang React, kiểm tra SPA deep-link, asset cache và `/healthz`; tắt SSH password, chỉ cho root đăng nhập bằng key, xóa các
+8. thay backend, chờ healthy; thay Blazor target, chờ healthy; thay React auxiliary, chờ healthy;
+9. giữ Nginx trên Blazor, kiểm tra render, SignalR và `/healthz`; tắt SSH password, chỉ cho root đăng nhập bằng key, xóa các
    rule UFW public cũ của `1433`/`5000`/`8080`, rồi audit host;
 10. kết nối SSH lại bằng public-key-only, kiểm tra public `/healthz`, HTML trang
-    React, deep-link `/app/orders`, cache asset và SignalR `/hubs/` bằng `deploy/smoke-frontend.sh`;
+    Blazor và SignalR/WebSockets bằng `deploy/smoke-frontend.sh`;
 11. chỉ khi mọi bước pass mới chuyển symlink `/app/gtas-vpp/current`.
 
 Không dùng `docker rename` để giữ container SQL dự phòng vì nhãn Docker Compose vẫn
@@ -104,8 +104,8 @@ volume chưa được pin. Nếu xuất hiện container service `db` không đ�
 dừng để điều tra thay vì tự xóa hoặc đổi tên.
 
 Nếu backend hoặc một frontend mới lỗi, script tự khôi phục routing Nginx trước đó và
-quay về image ứng dụng trước nếu image đó tồn tại. Có thể chuyển ngay về Blazor mà
-không rollback database bằng:
+quay về image ứng dụng trước nếu image đó tồn tại. Nếu một thử nghiệm từng chuyển
+public route sang React, khôi phục frontend chính Blazor mà không rollback database bằng:
 
 ```bash
 cd /app/gtas-vpp/current

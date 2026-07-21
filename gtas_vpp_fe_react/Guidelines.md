@@ -1,9 +1,15 @@
 # GTAS VPP — Figma Make Guidelines
 
+> **Trạng thái:** `PAUSED/DEFERRED`. File này chỉ áp dụng khi owner mở lại frontend
+> React phụ. Vòng Figma hiện tại phải đọc root `../Guidelines.md` và thiết kế cho
+> frontend Blazor/Radzen chính; không dùng các hướng dẫn React bên dưới làm scope
+> đang hoạt động.
+
 ## Mục tiêu
 
-Tự thiết kế và dựng một bản xem trước React/Tailwind hoàn chỉnh, có thể tương tác
-và đủ rõ để owner đánh giá trực tiếp. Không dừng ở audit hoặc kế hoạch.
+Khi React được mở lại, tự thiết kế và dựng một bản xem trước React/Tailwind hoàn
+chỉnh, có thể tương tác và đủ rõ để owner đánh giá trực tiếp. Không dừng ở audit
+hoặc kế hoạch.
 
 ## Quyền tự chủ thiết kế
 

@@ -4,6 +4,10 @@
 > Figma Make workspace mới. Đây là nguồn sự thật về sản phẩm/nghiệp vụ, không
 > phải visual style guide và không phải prompt thực thi.
 
+> Frontend production chính là Blazor Interactive Server + Radzen. React/Tailwind
+> trong Figma Make chỉ dùng để render prototype thiết kế; không phải frontend mục
+> tiêu và không được merge nguyên vẹn vào production.
+
 ## Quyền tự chủ thiết kế
 
 Figma agent được toàn quyền nghiên cứu và chọn art direction, information
@@ -330,8 +334,9 @@ người dùng.
 
 ## 10. Ranh giới prototype
 
-- Figma Make workspace là project React/Tailwind + shadcn/ui trống, không có
-  source GTAS VPP, router, OpenAPI hoặc i18n thật.
+- Figma Make workspace là project React/Tailwind + shadcn/ui trống để dựng
+  prototype cho frontend Blazor chính; không có source GTAS VPP, router, OpenAPI
+  hoặc i18n thật.
 - Được tạo mock data, mock types và mock repository/service layer dùng chung cho
   prototype. Phải gọi rõ là prototype mock, không tuyên bố đã tích hợp API thật.
 - Không kết nối backend, không dùng secret/API key, không commit/push/deploy.

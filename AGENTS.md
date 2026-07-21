@@ -4,7 +4,7 @@
 
 ## Phạm vi và cấu trúc chuẩn
 
-- Backend nằm trong `gtas_vpp_be/`; frontend Blazor hiện hành nằm trong `gtas_vpp_fe/`; frontend React chạy song song nằm trong `gtas_vpp_fe_react/`.
+- Backend nằm trong `gtas_vpp_be/`; frontend chính hiện hành là Blazor/Radzen trong `gtas_vpp_fe/`; frontend React trong `gtas_vpp_fe_react/` chỉ là dự án phụ/proof-of-concept đang tạm dừng.
 - Shared DTO duy nhất là `gtas_vpp_be/gtas_vpp_shared`. Không tạo lại `gtas_vpp_fe/gtas_vpp_shared`.
 - Không sửa API, database hoặc nghiệp vụ chỉ để làm cho nội dung luận văn khớp; luận văn phải mô tả đúng source thực tế.
 - Khi sửa UI, đọc và tuân thủ `.codexrules` cùng `.github/copilot-instructions.md`.
@@ -12,12 +12,12 @@
 
 ## UI renovation plan
 
-- React là frontend mục tiêu. Trước mọi thay đổi trong `gtas_vpp_fe_react/`, phải đọc và cập nhật `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
-- `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` chỉ còn là historical baseline/ledger cho Blazor; chỉ cập nhật file đó khi sửa hoặc ghi nhận riêng frontend Blazor.
+- Blazor/Radzen là frontend chính và execution authority hiện tại. Trước mọi thay đổi trong `gtas_vpp_fe/`, phải đọc và cập nhật `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
+- `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md` là hồ sơ của dự án phụ/proof-of-concept đang `PAUSED/DEFERRED`; chỉ sửa `gtas_vpp_fe_react/` khi owner mở lại phạm vi React rõ ràng.
 - Đọc `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` để chọn đúng nguồn tài liệu, browser tool và QA layer; không cài hoặc gọi nhiều MCP trùng chức năng chỉ để tăng số lượng công cụ.
-- React chạy thật trong browser là nguồn quyết định visual cuối cho frontend mới; Figma và Blazor chỉ là tài liệu nghiên cứu/baseline, không phải nguồn pixel/route authority.
-- React là modernization, không port 1:1. Được tối ưu route, workflow, component và API contract khi giữ business invariant/permission/audit và có test/migration phù hợp.
-- Không tạo thêm UI Lab hoặc frontend preview khác. Triển khai trực tiếp trong `gtas_vpp_fe_react/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- Blazor chạy thật trong browser là nguồn quyết định visual cuối. Figma là nơi nghiên cứu/prototype để owner duyệt; React phụ chỉ là evidence tham khảo, không phải pixel/route authority.
+- Figma có thể import toàn repository để đọc source. Nếu môi trường Figma cần React để dựng code layer, output đó chỉ là design prototype cô lập; không được coi `gtas_vpp_fe_react/` là frontend chính hoặc tự ghi đè production Blazor.
+- Không tạo thêm UI Lab trong repository. Phần đã duyệt phải được triển khai trực tiếp trong `gtas_vpp_fe/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
 - Sau mỗi vòng người dùng duyệt hoặc từ chối một route, cập nhật route ledger, decision/learning log và retrofit queue trong living plan trước khi tiếp tục.
 - Giữ một kiến trúc global `InteractiveServer`; không thêm `@rendermode` cục bộ nếu chưa có quyết định kiến trúc mới.
 

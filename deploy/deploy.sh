@@ -513,7 +513,7 @@ wait_for_healthy "$REACT_FRONTEND_CONTAINER" 60
 if command -v nginx >/dev/null 2>&1; then
   APP_ROOT="$APP_ROOT" \
   PUBLIC_BASE_URL="$PUBLIC_BASE_URL" \
-    bash deploy/switch-frontend.sh react
+    bash deploy/switch-frontend.sh blazor
   NGINX_SWITCHED=true
 fi
 
@@ -531,7 +531,7 @@ bash deploy/audit-host.sh
 
 PUBLIC_BASE_URL="$PUBLIC_BASE_URL" \
 PUBLIC_HEALTH_URL="$PUBLIC_HEALTH_URL" \
-FRONTEND_MODE=react \
+FRONTEND_MODE=blazor \
 SMOKE_RETRY_COUNT=10 \
   bash deploy/smoke-frontend.sh
 

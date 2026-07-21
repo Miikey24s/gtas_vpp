@@ -1,8 +1,12 @@
-# GTAS VPP React Frontend
+# GTAS VPP React Auxiliary Frontend
 
-Frontend React là public target mới và chạy song song với ứng dụng Blazor fallback.
+Frontend React là proof-of-concept phụ đang tạm dừng; frontend chính và public
+target hiện tại là Blazor/Radzen trong `../gtas_vpp_fe/`.
 Trạng thái từng route, quality gate và owner review được quản lý tại
 `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
+
+Không tiếp tục migration/cutover hoặc dùng project này làm Figma target nếu owner
+chưa mở lại phạm vi React rõ ràng.
 
 ## Chạy local
 
@@ -71,5 +75,6 @@ docker build -t gtas-vpp-react-frontend:local .
 docker run --rm -p 5100:8080 gtas-vpp-react-frontend:local
 ```
 
-Public Nginx route `/api/` và `/hubs/` tới backend, phần còn lại tới React. Blazor
-vẫn chạy song song; hướng dẫn chuyển fallback nằm trong `deploy/README.md`.
+Image này chỉ phục vụ proof-of-concept/rollback experiment. Public Nginx mặc định
+route tới Blazor; chỉ chuyển sang React bằng thao tác có chủ đích theo
+`deploy/README.md`.

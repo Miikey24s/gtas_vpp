@@ -1,10 +1,11 @@
-# GTAS VPP React frontend
+# GTAS VPP React auxiliary frontend
 
 Áp dụng cho toàn bộ `gtas_vpp_fe_react/`.
 
-- Đây là frontend React chạy song song; không xóa hoặc sửa frontend Blazor chỉ để React hoạt động.
-- Trước mọi thay đổi, đọc và cập nhật `../docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
-- Agent chạy trong Figma trên imported codebase phải đọc thêm `Guidelines.md`, `../docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` và `../docs/design/VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`. Agent được tự quyết toàn bộ visual/UX và dựng thẳng bản xem trước để owner review; không bị ràng buộc bởi style cũ. Bắt đầu từ latest `origin/Nam` trên branch `figma/*`, không push trực tiếp vào `Nam`.
+- Đây là frontend React phụ/proof-of-concept đang `PAUSED/DEFERRED`; frontend chính hiện hành là Blazor/Radzen trong `../gtas_vpp_fe/`.
+- Không sửa thư mục này nếu owner chưa mở lại phạm vi React rõ ràng. Khi được mở lại, đọc và cập nhật `../docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
+- Figma import repository hiện dùng để thiết kế cho frontend Blazor chính. Không chọn thư mục này làm project target chỉ vì Figma code layer dùng React; mọi React output của vòng thiết kế là prototype/evidence, không phải production authority.
+- Không xóa hoặc sửa frontend Blazor chỉ để React hoạt động.
 - React là modernization, không chép route/layout Blazor 1:1. Giữ business invariant, permission, audit và dữ liệu; chủ động tối ưu IA, workflow, component và API contract có kiểm soát.
 - Stack chuẩn: React + TypeScript + Vite, shadcn/ui + Tailwind CSS, React Router, TanStack Query/Table, React Hook Form + Zod và i18next.
 - Dùng shadcn MCP trước khi thêm component mới. Component shadcn là source thuộc repository: đọc, sửa và test trực tiếp; không bọc override CSS dài như cách dùng package UI đóng.

@@ -1,21 +1,23 @@
 # VPP Pulse — React Frontend Migration Master Plan
 
-> **Trạng thái:** `ACTIVE — REACT TARGET FRONTEND`
+> **Trạng thái:** `PAUSED/DEFERRED — AUXILIARY PROOF-OF-CONCEPT`
 >
-> **Phiên bản:** `1.3` — 2026-07-21
+> **Phiên bản:** `1.4` — 2026-07-21
 >
-> **Mục tiêu:** Thiết kế và xây dựng đầy đủ frontend React tốt hơn cho GTAS VPP, bảo toàn business invariant, dữ liệu, permission và audit bắt buộc nhưng được quyền tối ưu lại information architecture, route, workflow, API contract và cách trình bày; sau đó cutover có kiểm soát khỏi Blazor/Radzen.
+> **Mục tiêu hiện tại:** Lưu hồ sơ kỹ thuật và bằng chứng của frontend React phụ. Không tiếp tục migration hoặc cutover cho đến khi owner mở lại phạm vi bằng quyết định mới.
 >
-> **Execution authority:** file này + source/API/permission hiện hành + browser runtime.
+> **Execution authority hiện tại:** `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` + frontend Blazor/Radzen `gtas_vpp_fe/` + browser runtime.
 >
-> **Historical baseline:** `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` giữ các quyết định và feedback đã học từ Blazor, nhưng không còn quyết định thứ tự triển khai React.
+> **Phạm vi file này:** chỉ áp dụng khi sửa dự án phụ `gtas_vpp_fe_react/`; các queue/cutover gate bên dưới được đóng băng, không phải kế hoạch đang chạy.
 
 ---
 
 ## 1. Quyết định kiến trúc đã chốt
 
-- React là frontend mục tiêu chính thức.
-- Blazor/Radzen được giữ nguyên làm baseline, fallback và nguồn phát hiện capability/nghiệp vụ trong giai đoạn migration; không phải mẫu để React chép lại route, layout hoặc interaction.
+- Blazor/Radzen là frontend chính hiện hành và đường hoàn thiện ưu tiên cho deadline/luận văn.
+- React là dự án phụ/proof-of-concept được giữ nguyên để tham khảo hoặc mở lại sau; không phải target production hiện tại.
+- Không sửa thêm React, migration route hay cutover config nếu owner chưa mở lại phạm vi rõ ràng.
+- Khi phạm vi React được mở lại, modernization vẫn không chép Blazor 1:1 và phải đạt lại toàn bộ gate trước một quyết định cutover mới.
 - Không dùng Next.js ở giai đoạn này. GTAS VPP là ứng dụng nội bộ, backend ASP.NET Core đã độc lập, không cần SEO, React Server Components hoặc một Node production server riêng.
 - Stack chuẩn: React 19, TypeScript, Vite, React Router, TanStack Query/Table, shadcn/ui, Tailwind CSS, React Hook Form, Zod, i18next, Lucide và Recharts.
 - DTO/API client phải sinh từ Swagger/OpenAPI bằng `npm run api:generate`; không copy interface C# bằng tay.
@@ -54,18 +56,18 @@ Khi có xung đột:
 1. Business invariant, authorization và database hiện hành.
 2. API contract/Swagger và backend source hiện tại, trừ khi plan mới chủ động nâng contract bằng change-set đã test.
 3. Quyết định mới nhất của owner trong file này.
-4. Browser runtime React đã được owner duyệt.
+4. Browser runtime Blazor đã được owner duyệt; runtime React chỉ là evidence phụ.
 5. Product blueprint, Personal Design DNA và Figma.
-6. Blazor UI cũ chỉ làm bằng chứng capability/gap, không phải route, workflow hay pixel authority.
+6. React UI chỉ làm bằng chứng capability/gap, không phải route, workflow hay pixel authority hiện tại.
 
 Không thay API/database chỉ để che một implementation frontend yếu. Được cải tiến contract/schema khi chứng minh được lợi ích sản phẩm hoặc kỹ thuật, giữ invariant và có migration/test/rollback tương xứng.
 
-### 3.1 Figma Make collaboration boundary
+### 3.1 Figma collaboration boundary
 
 - Figma Make/Opus 4.8 được toàn quyền tự chọn visual direction, IA, layout, component và motion để dựng trực tiếp prototype cho owner review; không phải nguồn thay thế business rule, API, permission hoặc living plan.
-- Root `Guidelines.md` định tuyến context monorepo; standing context React là `gtas_vpp_fe_react/Guidelines.md`. Workflow chính import GitHub codebase và dùng `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`; context attachment + `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md` chỉ là fallback.
+- Root `Guidelines.md` định tuyến Figma về frontend Blazor chính và living plan Blazor. `gtas_vpp_fe_react/Guidelines.md` chỉ có hiệu lực khi owner mở lại dự án React phụ.
 - Agent thiết kế ngay để owner xem, không bị chặn bởi vòng `plan.md` hoặc yêu cầu chọn style trước; ứng dụng lớn được chia phase để tránh one-shot thiếu màn hình hoặc mất nhất quán.
-- Nếu chỉnh production-code, phiên Figma phải fetch latest `origin/Nam` và tạo branch `figma/*`; vòng thiết kế hiện tại không commit, push, merge hoặc deploy.
+- Vòng Figma hiện tại tạo design evidence cho Blazor; không chỉnh production code. Nếu công cụ bắt buộc dùng React code layer để render, giữ output cô lập và không ghi vào `gtas_vpp_fe_react/` như target mới.
 - Figma Make dạng prototype/GitHub push một chiều chỉ tạo design evidence hoặc repository trung gian; không được ghi đè GTAS source of truth. Integration vào repo này phải qua diff/QA/PR hoặc Codex review.
 - Không gửi secret, cookie, token, connection string hoặc dữ liệu production vào attachment/context của Figma.
 
@@ -539,7 +541,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | Motion research trước R8 | Giữ `motion@12.42.2` + CSS + React Router/browser View Transitions; không thêm package/MCP animation. Áp dụng motion contract 3 lớp, reduced-motion và QA bằng Playwright/axe |
 | 2026-07-20 | Route motion dùng transform-only | AppShell có chuyển route nhẹ bằng `y` transform; không fade toàn bộ main để không làm sai contrast trong lúc axe quét. E2E mutation serialize 1 worker vì fixture dùng chung và cần deterministic |
 | 2026-07-20 | Production chạy React và Blazor song song | React static container ở loopback `5100` là public target; Blazor giữ healthy ở `5000`. Nginx có config React và Blazor, `switch-frontend.sh` đổi target và tự restore config trước nếu smoke fail; không rollback database |
-| 2026-07-20 | CI/CD phát hành ba immutable image | Workflow verify .NET + React check/E2E + Nginx syntax, sau đó build backend, Blazor fallback và React target. Public smoke kiểm tra React production entry, deep-link và immutable cache trước khi ghi deploy state |
+| 2026-07-20 | CI/CD React-target experiment (superseded 2026-07-21) | Workflow lịch sử từng build backend, Blazor fallback và React target; quyết định hiện hành đã trả public target về Blazor và giữ React auxiliary |
 | 2026-07-20 | Radix phải import theo từng primitive, không dùng umbrella package | Giảm shared UI chunk khoảng `116 KiB` xuống `47 KiB` gzip; thêm gate `140 KiB/chunk`, `30 KiB CSS` và `550 KiB tổng JS/CSS`, build hiện đạt `506.1 KiB` gzip |
 | 2026-07-20 | Không fade nội dung có chữ trong surface/toast | Tất cả entrance motion đọc được dùng transform-only; disabled control giữ contrast đầy đủ. Axe không còn bắt trạng thái giữa transition |
 | 2026-07-20 | R8 automated cutover package đạt local production gate | Docker image build sạch, container healthy, React deep-link/cache smoke pass, bốn Nginx config pass syntax, Actionlint/Compose/Bash pass, React E2E `10/10`, backend `405/405`; production vẫn cần owner phê duyệt và kích hoạt |
@@ -550,26 +552,23 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-21 | Lịch sử đơn/settlement giữ snapshot bất biến | Đổi bản dịch reference data không rewrite evidence; print/export lịch sử phải dùng snapshot, còn catalog/library dùng display text đã resolve |
 | 2026-07-21 | Figma Make phải re-baseline từ latest `Nam` | Dùng source/context hiện hành và branch `figma/*` nếu chỉnh code; không push trực tiếp hoặc xem prototype là source authority |
 | 2026-07-21 | Trao toàn quyền visual cho Figma agent | Context không khóa art direction; mỗi phase dùng một prompt tiếng Việt ngắn để agent dựng trực tiếp prototype cho owner review |
-| 2026-07-21 | Tài khoản Figma có Import GitHub codebase | Workflow chính đọc source `gtas_vpp_fe_react` thật trên branch `figma/*`; context `.md` + mock chỉ giữ làm fallback khi import không khả dụng |
+| 2026-07-21 | Tài khoản Figma có Import GitHub codebase | Import toàn repo để đọc Blazor/shared DTO/docs thật; React code layer nếu có chỉ là prototype thiết kế, không phải target hoặc production code |
 | 2026-07-21 | Không dùng one-shot cho full Figma prototype | Phase 1 khóa foundation + App Shell + Auth + Employee; owner review rồi mới tiếp tục Management/Procurement/Library/Access/Reports |
 
-## 18. Immediate execution queue
+## 18. Frozen execution queue
 
-1. **R9 — Business data VI/EN:** migration, typed translation contract, language resolver, localized catalog/library API, generated client, admin editor, search/display và test đã triển khai; tiếp tục chốt export/print policy + runtime review trước khi đóng wave.
-2. **R10 — Account/system completion:** public Pending Approval, durable notification inbox, offline/reconnect/session-expired/forbidden/error states.
-3. **R11 — Cross-route product hardening:** per-route table profiles, export/email state matrix, persona/permission review, admin safety và legacy redirects.
-4. **Owner review R1–R8:** kiểm tra runtime theo persona/route/viewport; feedback shared primitive được retrofit cả route cũ.
-5. **Figma codebase design review:** import repo/branch thật, chạy prompt Phase 1 cho foundation + App Shell + Auth + Employee, owner review visual/flow rồi mới tiếp tục từng workspace và chọn phần cần tích hợp qua diff/QA; context `.md` là fallback.
-6. **R12 — Advanced intelligence:** triển khai sau core review nhưng vẫn giữ trong full plan; không trình bày Report Insight hiện tại như toàn bộ AI scope.
-7. **Cutover:** chỉ chạy sau toàn bộ gate ở Section 16 và owner cho phép push/deploy.
+R9–R12, owner review React và cutover gate bên dưới được giữ làm backlog lịch sử,
+không phải queue đang chạy. Queue hiện hành nằm trong
+`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`. Chỉ mở lại các mục React sau khi owner
+ra quyết định mới, rebase source hiện hành và đánh giá lại contract/test/deploy.
 
 Prompt tiếp tục:
 
 ```text
-Tiếp tục Goal React full UI theo
-docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md.
-Đọc route ledger, decision log, git status và làm vertical slice tiếp theo.
-React là target; Blazor là baseline/fallback. Không cutover hoặc xóa Blazor trước R8.
+Owner đã mở lại frontend React phụ. Trước khi làm, đọc
+docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md, rebase latest Nam và cập
+nhật plan thành ACTIVE bằng một quyết định mới. Cho đến lúc đó, Blazor/Radzen là
+frontend chính; không thay đổi React hoặc cutover config.
 ```
 
 ## 19. Nguồn chính

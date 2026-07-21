@@ -4,7 +4,7 @@ set -euo pipefail
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-https://gtas-vpp.annam.id.vn}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL%/}"
 PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-${PUBLIC_BASE_URL}/healthz}"
-FRONTEND_MODE="${FRONTEND_MODE:-react}"
+FRONTEND_MODE="${FRONTEND_MODE:-blazor}"
 
 curl_args=(
   --fail

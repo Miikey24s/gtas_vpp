@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.26` — 2026-07-21
+> **Phiên bản:** `1.27` — 2026-07-21
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -76,6 +76,8 @@ Khi có xung đột:
 - Release build/test chỉ là gate trước review cuối, commit route và deploy; không thay thế browser review trong vòng lặp phát triển.
 - Browser review là approval gate cuối về visual và interaction.
 - Figma chỉ dùng khi cần so sánh phương án, minh họa flow hoặc lưu research.
+- Khi Figma có Import GitHub/Code on Canvas, import toàn repository để đọc đúng Blazor, shared DTO, route catalog và living plan; không chọn `gtas_vpp_fe_react` làm frontend target.
+- Figma không chạy/ship Blazor thay Codex. Nếu cần React code layer để dựng preview, output đó chỉ là prototype thiết kế cô lập; sau owner review, implementation thật vẫn được viết và QA trong `gtas_vpp_fe`.
 - Toolchain phải đi theo vai trò: Sosumi/Apple HIG cho hierarchy/clarity/spacing/feedback, Microsoft Learn/Radzen cho framework/component, Playwright cho route/DOM/ARIA, Chrome DevTools cho debug/performance, axe cho accessibility và Figma cho design context.
 - Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
@@ -816,6 +818,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-21 | W1 shell round 9 + line navigation | Sidebar active state dùng vạch dọc mảnh, tab underline phủ toàn bộ hitbox, hamburger cùng motif | Owner từ chối visual và yêu cầu quay lại shell Radzen trước round 7 | Shared shell + accessibility/responsive | Hoàn tác native/line-navigation experiment | Header, sidebar, primary/secondary tabs | Reverted |
 | 2026-07-21 | W1 shell round 10 — native Blazor | Chuyển shell/tab sang native Razor/HTML/SVG | Owner yêu cầu bỏ thử nghiệm native và quay lại code trước Apple-only | Shared shell + Dashboard | Hoàn tác native primitives; giữ Radzen shell/tab baseline | Header/sidebar + Dashboard | Reverted |
 | 2026-07-21 | W1 rollback — owner requested round-6 baseline | Bỏ Apple-only, angular system và native shell thử nghiệm; giữ composition round 6 làm visual authority | Owner yêu cầu khôi phục đúng trạng thái trước vòng Apple-only để tiếp tục ổn định repo | W1 My Orders + shared shell | Khôi phục command center một cột, 4 evidence, compact order identity và Radzen shell/tab; business policy supplement vẫn giữ | dashboard?tab=0 + authenticated shell | Restored — OWNER_REVIEW |
+| 2026-07-21 | Frontend/Figma authority correction | Blazor/Radzen là frontend chính; React chỉ là POC phụ và Figma React code layer chỉ là design evidence | Tài liệu Figma trước đó hiểu nhầm React là target sau khi owner đã quay lại Blazor vì deadline | Global workflow | Re-route Figma về source Blazor, đóng băng React plan và giữ browser Blazor làm authority | AGENTS, Figma brief/prompt/toolchain, React plan | Recorded |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |

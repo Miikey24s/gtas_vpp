@@ -49,18 +49,19 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 - **Owner feedback + GTAS runtime:** nguồn quyết định cuối sau khi prototype đã có để review trực quan.
 - **Apple HIG, ChatGPT, Notion, Linear và Figma:** nguồn nghiên cứu tùy chọn, không có nguồn nào là art direction độc quyền hoặc mẫu phải sao chép.
 - **Radzen + Microsoft:** nguồn quyết định khả năng triển khai Blazor/Radzen đúng component/framework đang dùng.
-- **React/Tailwind/shadcn docs:** nguồn quyết định implementation React; code shadcn được đưa vào repository và phải được review/test như source sở hữu.
+- **React/Tailwind/shadcn docs:** chỉ dùng khi owner mở lại frontend React phụ hoặc khi Figma cần code layer cô lập; không quyết định implementation Blazor hiện tại.
 - **W3C/Deque:** nguồn quyết định accessibility; không được hy sinh để bắt chước một visual reference.
 - **Carbon/Tableau/Microsoft data guidance:** chỉ dùng khi cần chọn table, comparison, KPI hoặc data storytelling; không mang nguyên art direction của sản phẩm khác vào GTAS.
 
-### Figma Make / Opus 4.8 Build
+### Figma / Opus 4.8 Build
 
-- Dùng `Guidelines.md` làm context định tuyến, `gtas_vpp_fe_react/Guidelines.md` làm invariant tối thiểu và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm bối cảnh sản phẩm.
-- Khi tài khoản có Import GitHub/Code on Canvas, ưu tiên import `Miikey24s/gtas_vpp`, chọn `Nam`, root `gtas_vpp_fe_react`, tạo branch `figma/*` và dùng `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md` để Opus đọc source thật.
+- Dùng root `Guidelines.md`, Blazor living plan và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm context; không dùng `gtas_vpp_fe_react/Guidelines.md` trừ khi owner mở lại React.
+- Khi tài khoản có Import GitHub/Code on Canvas, import toàn `Miikey24s/gtas_vpp` ở branch `Nam` để đọc source Blazor, shared DTO và docs thật; không chọn `gtas_vpp_fe_react` làm target. Dùng `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`.
 - Chỉ khi import không khả dụng mới upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` và dùng prompt fallback trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
 - Với app phức tạp, làm theo phase và screen/workspace thay vì một prompt full end-to-end. Context attachment được giữ xuyên conversation; prompt tiếp theo chỉ giao workspace/state cần mở rộng sau owner review.
 - Bắt đầu phiên Make mới khi source/context cũ đã lỗi thời; không tiếp tục từ chat hoặc code snapshot cũ.
-- Với imported codebase: xác minh latest `origin/Nam`, tạo `figma/*`, review diff/test và chỉ mở PR sau owner review. Nút GitHub Push của Make file trống vẫn là luồng một chiều sang repository do Make tạo, không thay thế import codebase thật.
+- Nếu Figma cần React code layer để render, giữ output như prototype/evidence cô lập. Implementation sau review phải được viết lại có kiểm soát trong `gtas_vpp_fe`; không merge code layer vào React phụ hoặc coi nó là cutover.
+- Nếu imported workflow bắt buộc ghi file, xác minh latest `origin/Nam`, tạo `figma/*` và không push/PR/merge trước owner review. Nút GitHub Push của Make file trống vẫn là luồng một chiều sang repository do Make tạo, không thay thế import codebase thật.
 - Attachment chỉ gồm file cần cho route hiện tại, nêu rõ file nào là authority hay inspiration; không tải secret, cookie, token, connection string hoặc dữ liệu production.
 
 ### Vì sao không cài thêm browser MCP khác
