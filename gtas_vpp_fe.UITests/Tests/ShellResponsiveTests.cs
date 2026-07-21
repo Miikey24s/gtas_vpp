@@ -106,7 +106,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                         document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
                         main && main.getAttribute('role') === 'main' ? 0 : 1,
                         nav ? 0 : 1,
-                        menu && menu.getAttribute('aria-haspopup') === 'menu' ? 0 : 1,
+                        menu && menu.getAttribute('aria-haspopup') === 'dialog' ? 0 : 1,
                         brand && /GTAS VPP/i.test(brand.textContent) && !/PPJ/i.test(brand.textContent) ? 0 : 1,
                         document.querySelector('.vpp-header-logo') ? 1 : 0,
                         unlabeledButtons.length
@@ -117,7 +117,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 audit[0].Should().Be(0, $"{route} must not overflow at {viewport.Width}px");
                 audit[1].Should().Be(0, "the content landmark should be semantic");
                 audit[2].Should().Be(0, "primary navigation should have an accessible name");
-                audit[3].Should().Be(0, "the account menu trigger should expose menu semantics");
+                audit[3].Should().Be(0, "the account summary trigger should expose its dialog popup semantics");
                 audit[4].Should().Be(0, "the shell should display the independent GTAS VPP brand");
                 audit[5].Should().Be(0, "the legacy PPJ logo must not be visible in the shell");
                 audit[6].Should().Be(0, $"icon-only buttons on {route} need accessible names");

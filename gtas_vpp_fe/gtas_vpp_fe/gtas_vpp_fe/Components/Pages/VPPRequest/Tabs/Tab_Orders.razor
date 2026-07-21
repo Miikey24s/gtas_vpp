@@ -17,101 +17,105 @@
         {
             <section class="vpp-orders-story" aria-labelledby="orders-story-title">
                 <div class="vpp-orders-story-main">
-                    <div class="vpp-orders-eyebrow">
-                        <VppIcon Name="@VppIcons.Calendar" />
-                        <span>@Loc["ActiveOrderPeriod"]</span>
-                        <strong>@CurrentOrderPeriodText</strong>
-                    </div>
+                    <header class="vpp-orders-story-header">
+                        <div class="vpp-orders-story-intro">
+                            <div class="vpp-orders-eyebrow">
+                                <VppIcon Name="@VppIcons.Calendar" />
+                                <span class="vpp-orders-period-label">@Loc["ActiveOrderPeriod"]</span>
+                                <strong class="vpp-orders-period-value">@CurrentOrderPeriodText</strong>
+                            </div>
 
-                    <div class="vpp-orders-story-heading">
-                        <div>
-                            <h2 id="orders-story-title">@OrdersStoryTitle</h2>
-                            <p>@OrdersStoryDescription</p>
+                            <div class="vpp-orders-story-heading">
+                                <h2 id="orders-story-title">@OrdersStoryTitle</h2>
+                                @if (!string.IsNullOrWhiteSpace(OrdersStoryDescription))
+                                {
+                                    <p>@OrdersStoryDescription</p>
+                                }
+                            </div>
                         </div>
-                        <span class="vpp-orders-state @SubmissionStateCss">
-                            <VppIcon Name="@SubmissionStateIcon" />
-                            @SubmissionStateText
-                        </span>
-                    </div>
+
+                        <div class="vpp-orders-story-commands">
+                            <span class="vpp-orders-state @SubmissionStateCss">
+                                <VppIcon Name="@SubmissionStateIcon" />
+                                @SubmissionStateText
+                            </span>
+
+                            @if (CanCreate && HasAvailableStoryAction)
+                            {
+                                <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
+                                    @if (CanCreateRegular)
+                                    {
+                                        <RadzenButton Icon="@VppIcons.Add"
+                                                      Text="@Loc["NewOrder"]"
+                                                      ButtonStyle="ButtonStyle.Primary"
+                                                      Click="@(async _ => await GoToCreatePage(false))" />
+                                    }
+                                    @if (CanCopyPrevious)
+                                    {
+                                        <RadzenButton Icon="@VppIcons.Copy"
+                                                      Text="@Loc["CopyPreviousOrder"]"
+                                                      ButtonStyle="ButtonStyle.Light"
+                                                      Variant="Variant.Outlined"
+                                                      Click="@(async _ => await CopyPreviousAsync())" />
+                                    }
+                                    @if (ShowSupplementAction)
+                                    {
+                                        <RadzenButton Icon="@VppIcons.Supplement"
+                                                      Text="@Loc["RequestAdditional"]"
+                                                      ButtonStyle="ButtonStyle.Primary"
+                                                      Variant="Variant.Outlined"
+                                                      Click="@(async _ => await GoToCreatePage(true))"
+                                                      Disabled="@(!CanCreateSupplement)"
+                                                      Title="@SupplementActionHint"
+                                                      data-testid="create-supplement" />
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </header>
 
                     @if (PeriodInfo is not null)
                     {
-                        <div class="vpp-orders-facts">
-                            <div class="vpp-orders-fact">
-                                <VppIcon Name="@VppIcons.Schedule" />
-                                <span>
-                                    <small>@Loc["SubmissionDeadline"]</small>
-                                    <strong>@CurrentDeadlineText</strong>
-                                </span>
+                        <div class="vpp-orders-deadline">
+                            <div class="vpp-orders-deadline-copy">
+                                <strong><VppIcon Name="@VppIcons.Schedule" /> @RemainingDeadlineText</strong>
+                                <span>@Loc["SubmissionDeadline"] @CurrentDeadlineText</span>
                             </div>
-                            <div class="vpp-orders-fact">
-                                <VppIcon Name="@VppIcons.Supplement" />
-                                <span>
-                                    <small>@Loc["SupplementCapacity"]</small>
-                                    <strong>@Loc["SupplementQuotaSummary", PeriodInfo.RemainingApprovedSupplementQuota, PeriodInfo.MaxAdditionalOrders]</strong>
-                                </span>
+                            <div class="vpp-orders-deadline-track"
+                                 role="progressbar"
+                                 aria-label="@Loc["SubmissionDeadline"]"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100"
+                                 aria-valuenow="@OrderPeriodProgressPercent">
+                                <span style="width: @OrderPeriodProgressPercent%"></span>
                             </div>
                         </div>
                     }
-                </div>
 
-                @if (CanCreate && HasAvailableStoryAction)
-                {
-                    <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
-                        @if (CanCreateRegular)
-                        {
-                            <RadzenButton Icon="@VppIcons.Add"
-                                          Text="@Loc["NewOrder"]"
-                                          ButtonStyle="ButtonStyle.Primary"
-                                          Click="@(async _ => await GoToCreatePage(false))" />
-                        }
-                        @if (CanCopyPrevious)
-                        {
-                            <RadzenButton Icon="@VppIcons.Copy"
-                                          Text="@Loc["CopyPreviousOrder"]"
-                                          ButtonStyle="ButtonStyle.Light"
-                                          Variant="Variant.Outlined"
-                                          Click="@(async _ => await CopyPreviousAsync())" />
-                        }
-                        @if (ShowSupplementAction)
-                        {
-                            <RadzenButton Icon="@VppIcons.Supplement"
-                                          Text="@Loc["RequestAdditional"]"
-                                          ButtonStyle="ButtonStyle.Secondary"
-                                          Variant="Variant.Outlined"
-                                          Click="@(async _ => await GoToCreatePage(true))"
-                                          Disabled="@(!CanCreateSupplement)"
-                                          Title="@SupplementActionHint"
-                                          data-testid="create-supplement" />
-                        }
+                    <div class="vpp-orders-evidence" role="group" aria-label="@Loc["CurrentOrderMetrics"]">
+                        <article>
+                            <strong>@TotalLinesText</strong>
+                            <span>@Loc["TotalLineItems"]</span>
+                        </article>
+                        <article>
+                            <strong>@TotalQtyText</strong>
+                            <span>@Loc["TotalQuantity"]</span>
+                        </article>
+                        <article>
+                            <strong>@LatestSubmittedTimeText</strong>
+                            <span>@LatestSubmittedDateText</span>
+                        </article>
+                        <article>
+                            <strong>@TopRequestedQuantityText</strong>
+                            <span>@TopRequestedItemText</span>
+                        </article>
                     </div>
-                }
+                </div>
             </section>
-
-            <div class="vpp-orders-metrics" role="group" aria-label="@Loc["CurrentOrderMetrics"]">
-                <article class="vpp-orders-metric">
-                    <VppIcon Name="@VppIcons.Orders" />
-                    <span>@Loc["OrdersInCurrentPeriod"]</span>
-                    <strong>@TotalOrdersText</strong>
-                </article>
-                <article class="vpp-orders-metric">
-                    <VppIcon Name="@VppIcons.Columns" />
-                    <span>@Loc["TotalLineItems"]</span>
-                    <strong>@TotalLinesText</strong>
-                </article>
-                <article class="vpp-orders-metric">
-                    <VppIcon Name="@VppIcons.Catalog" />
-                    <span>@Loc["TotalQuantity"]</span>
-                    <strong>@TotalQtyText</strong>
-                </article>
-            </div>
 
             <section class="vpp-orders-section" aria-labelledby="current-orders-title">
                 <header class="vpp-orders-section-header">
-                    <div>
-                        <span class="vpp-orders-section-kicker">@CurrentOrderPeriodText</span>
-                        <h3 id="current-orders-title">@Loc["RegularOrdersCurrentPeriod"]</h3>
-                    </div>
+                    <h3 id="current-orders-title">@CurrentOrdersSectionTitle</h3>
                     <span class="vpp-orders-count">@ActiveOrders.Count</span>
                 </header>
 
@@ -137,10 +141,7 @@
             {
                 <section class="vpp-orders-section" aria-labelledby="additional-orders-title">
                     <header class="vpp-orders-section-header">
-                        <div>
-                            <span class="vpp-orders-section-kicker">@CurrentOrderPeriodText</span>
-                            <h3 id="additional-orders-title">@Loc["AdditionalOrders"]</h3>
-                        </div>
+                        <h3 id="additional-orders-title">@Loc["AdditionalOrders"]</h3>
                         <span class="vpp-orders-count">@CurrentPeriodAdditionalOrders.Count</span>
                     </header>
                     <RadzenStack Gap="1rem" class="vpp-orders-card-list">
@@ -179,7 +180,6 @@
                         <strong>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</strong>
                         <small>@Loc["NoRegularOrdersFoundPreviousCycle"]</small>
                     </span>
-                    <span class="vpp-orders-count">0</span>
                 </div>
             }
         }
@@ -191,25 +191,21 @@
     {
         <div class="vpp-data-card vpp-data-card-grid-shell">
             <div class="vpp-data-card-header">
-                <div>
-                    <div class="vpp-data-card-summary">
-                        <span class="vpp-data-card-label">@Loc["OrderCodeLabel"]</span>
-                        <div class="vpp-data-card-value-row vpp-order-code-cell">
-                            <span class="vpp-data-card-value vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@order.VppCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
-                                @GetShortCode(order)
-                            </span>
-                            <div class="vpp-order-code-popover">
-                                <span class="vpp-order-code-popover-text">@order.VppCode</span>
-                                <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(order.VppCode))" Title="@Loc["Copy"]" />
-                            </div>
-                            @if (order.IsAdditionalOrder)
-                            {
-                                <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
-                            }
+                <div class="vpp-order-card-identity">
+                    <div class="vpp-data-card-value-row vpp-order-code-cell">
+                        <span class="vpp-data-card-value vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@order.VppCode" style="cursor: pointer; user-select: all;">
+                            @GetShortCode(order)
+                        </span>
+                        <div class="vpp-order-code-popover">
+                            <span class="vpp-order-code-popover-text">@order.VppCode</span>
+                            <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(order.VppCode))" Title="@Loc["Copy"]" />
                         </div>
-                        <span class="vpp-data-card-label">@Loc["SubmittedLabel"]</span>
-                        <span class="vpp-data-card-value">@DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate)</span>
+                        @if (order.IsAdditionalOrder)
+                        {
+                            <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                        }
                     </div>
+                    <span class="vpp-order-card-submitted">@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate))</span>
                 </div>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem" class="vpp-data-card-actions">
                     <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@Loc[StatusDisplay.GetResourceKey(order.Status, order.IsDeadlinePassed, order.IsAdditionalOrder)]</span>
@@ -251,18 +247,26 @@
                         <Template Context="item">@((order.Items?.IndexOf(item) ?? -1) + 1)</Template>
                     </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="VppCode" Title="@Loc["ItemCode"]" Width="130px" TextAlign="TextAlign.Left" />
-
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="VppName" Title="@Loc["ItemName"]" Width="280px" TextAlign="TextAlign.Left" />
+                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="VppName" Title="@Loc["ItemName"]" Width="360px" TextAlign="TextAlign.Left">
+                        <Template Context="item">
+                            <div class="vpp-order-product-cell">
+                                <strong>@item.VppName</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.VppCode))
+                                {
+                                    <small>@item.VppCode</small>
+                                }
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
 
                     <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
 
 <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="UomName" Title="@Loc["UOM"]" Width="90px" TextAlign="TextAlign.Center" />
 
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="180px" TextAlign="TextAlign.Left">
+                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="220px" TextAlign="TextAlign.Left" Visible="@HasBusinessNotes(order)">
                         <Template Context="item">
-                            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;" title="@item.Description">
-                                @item.Description
+                            <div class="vpp-order-note" title="@GetBusinessNote(item.Description)">
+                                @GetBusinessNote(item.Description)
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

@@ -11,6 +11,7 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
     [Fact]
     public async Task Employee_CanEditCancelAndInspectRegularLifecycle()
     {
+        await Page.SetViewportSizeAsync(1366, 768);
         var consoleErrors = new List<string>();
         var failedRequests = new List<string>();
         Page.Console += (_, message) =>
@@ -48,6 +49,28 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
         var orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
         await orderCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await Page.GetByText("Đơn đã gửi", new() { Exact = true }).WaitForAsync();
+        await orderCard.Locator(".vpp-order-grid tbody tr").First.WaitForAsync(
+            new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        (await Page.Locator(".vpp-orders-story-heading p").CountAsync()).Should().Be(0,
+            "a submitted order should not repeat navigation or processing guidance below the takeaway");
+        (await Page.Locator(".vpp-orders-evidence article").CountAsync()).Should().Be(4,
+            "the submitted story should keep one balanced row of non-duplicated evidence");
+        await Page.GetByText("Chi tiết đơn", new() { Exact = true }).WaitForAsync();
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "w1-dashboard-my-orders-submitted-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
 
         var editButton = Page.GetByRole(AriaRole.Button, new()
         {

@@ -69,9 +69,22 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public DateTime CurrentDeadlineDate => PeriodInfo?.DeadlineDate
             ?? new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 1).AddMonths(1).AddDays(4);
 
-        // Period end = day before the deadline. F-29: all date strings go through DateFormatter.
-        public DateTime PeriodEndDate => CurrentDeadlineDate.AddDays(-1);
-        public string PeriodEndText => DateFormatter.Format(PeriodEndDate, DateFormatter.ShortDate);
+        public DateTime CurrentPeriodStartDate => PeriodInfo?.StartDate ?? CurrentOrderPeriodDate;
+        public int OrderPeriodProgressPercent
+        {
+            get
+            {
+                var total = (CurrentDeadlineDate - CurrentPeriodStartDate).TotalSeconds;
+                if (total <= 0)
+                {
+                    return 100;
+                }
+
+                var elapsed = (DateTime.Today - CurrentPeriodStartDate.Date).TotalSeconds;
+                return (int)Math.Clamp(Math.Round(elapsed / total * 100), 0, 100);
+            }
+        }
+
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
         public string PreviousOrderPeriodText => DateFormatter.Format(PreviousOrderPeriodDate, DateFormatter.MonthYear);
@@ -82,7 +95,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             .ToArray();
         public IEnumerable<VppRequestResDTO> CurrentPeriodOrders => ActiveOrders.Concat(CurrentPeriodAdditionalOrders);
         public int TotalOrders => CurrentPeriodOrders.Count();
-        public string TotalOrdersText => TotalOrders.ToString();
         public int TotalLines => CurrentPeriodOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
         public string TotalLinesText => TotalLines.ToString();
         public int TotalQty => CurrentPeriodOrders.Sum(order => order.Items?.Sum(item => item.Qty) ?? order.TotalQty);
@@ -90,6 +102,29 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string OrdersStoryTitle => TotalOrders == 0
             ? Loc["OrdersStoryEmptyTitle"].Value
             : Loc["OrdersStoryActiveTitle"].Value;
+        public string CurrentOrdersSectionTitle => ActiveOrders.Count == 0
+            ? Loc["RegularOrdersCurrentPeriod"].Value
+            : Loc["CurrentOrderDetails"].Value;
+        public DateTime? LatestSubmittedAt => CurrentPeriodOrders
+            .Where(order => order.SubmittedDate.HasValue)
+            .Select(order => order.SubmittedDate)
+            .OrderByDescending(date => date)
+            .FirstOrDefault();
+        public VppRequestDetailResDTO? TopRequestedItem => CurrentPeriodOrders
+            .SelectMany(order => order.Items ?? Enumerable.Empty<VppRequestDetailResDTO>())
+            .OrderByDescending(item => item.Qty)
+            .ThenBy(item => item.VppName)
+            .FirstOrDefault();
+        public string LatestSubmittedTimeText => DateFormatter.Format(LatestSubmittedAt, DateFormatter.TimeOnly);
+        public string LatestSubmittedDateText => LatestSubmittedAt.HasValue
+            ? string.Format(Loc["LatestSubmissionDateFormat"].Value, DateFormatter.Format(LatestSubmittedAt, DateFormatter.ShortDate))
+            : Loc["NoData"].Value;
+        public string TopRequestedQuantityText => TopRequestedItem is null
+            ? "-"
+            : $"{TopRequestedItem.Qty} {TopRequestedItem.UomName}".Trim();
+        public string TopRequestedItemText => TopRequestedItem is null
+            ? Loc["NoData"].Value
+            : string.Format(Loc["MostRequestedItemFormat"].Value, TopRequestedItem.VppName);
         public string OrdersStoryDescription
         {
             get
@@ -102,6 +137,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 if (!PeriodInfo.IsSubmissionOpen || PeriodInfo.IsDeadlinePassed)
                 {
                     return Loc["OrdersStoryClosedDescription"].Value;
+                }
+
+                if (TotalOrders > 0)
+                {
+                    return string.Empty;
                 }
 
                 return RemainingDeadlineDays == 0
@@ -141,6 +181,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private string SupplementActionHint => CanCreateSupplement
             ? Loc["RequestAdditional"].Value
             : PeriodInfo?.CanCreateAdditionalReason ?? Loc["SupplementUnavailable"].Value;
+
+        private static string? GetBusinessNote(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                return null;
+            }
+
+            var value = description.Trim();
+            return value.StartsWith("Demo quantity inferred", StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("Normalized from", StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("QA-", StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : value;
+        }
+
+        private static bool HasBusinessNotes(VppRequestResDTO order)
+            => order.Items?.Any(item => GetBusinessNote(item.Description) is not null) == true;
         private bool CanUpdate(VppRequestResDTO row) =>
             row.CanEdit && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
         private bool CanReplace(VppRequestResDTO row) =>

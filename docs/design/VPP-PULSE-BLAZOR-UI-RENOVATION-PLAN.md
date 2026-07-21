@@ -1,14 +1,14 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `IN_IMPLEMENTATION — W0.2 APPROVED; W1 DASHBOARD OWNER REVIEW`
+> **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.11` — 2026-07-19
+> **Phiên bản:** `1.26` — 2026-07-21
 >
-> **Mục tiêu:** Nâng cấp toàn bộ UI/UX GTAS VPP trực tiếp trên Blazor/Radzen hiện tại, theo từng route có review, dùng dữ liệu TEST/isolated fixture thật và giữ nguyên nghiệp vụ.
+> **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
-> **Implementation authority:** Browser runtime + source hiện tại + `RouteCatalog.cs`.
+> **Implementation authority:** Blazor/Radzen là implementation authority hiện tại. React chỉ ở trạng thái `PAUSED/DEFERRED`; không sửa React trong giai đoạn này nếu không có quyết định mới.
 >
-> **Research/reference:** Personal Design DNA, VPP Pulse/Figma, PPJ-inspired operating values và các nguồn UI/data/accessibility chính thức.
+> **Research/reference:** Personal Design DNA, VPP Pulse/Figma, PPJ-inspired operating values, Apple HIG và các nguồn UI/data/accessibility chính thức phù hợp từng vấn đề.
 
 ---
 
@@ -32,6 +32,7 @@ File này phải được cập nhật trong cùng change-set khi một quyết 
 - `docs/planning/06-LEAN-A-PLUS-EXECUTION-PLAN.md` vẫn là execution authority của release/nghiệp vụ.
 - `docs/design/VPP-PULSE-DESIGN-BRIEF.md` giữ nghiên cứu art direction và Personal Design DNA.
 - `docs/design/VPP-PULSE-PRODUCT-BLUEPRINT.md` giữ IA, data storytelling và screen inventory mở rộng.
+- `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` định nghĩa MCP, browser QA, accessibility, visual regression và performance workflow cho AI agent.
 - Figma `GTAS VPP — VPP Pulse` là tài liệu tham khảo flow/visual/state, không thay thế route/source audit.
 - `.github/copilot-instructions.md` và `.codexrules` giữ convention Blazor/Radzen hiện hành.
 - `gtas_vpp_fe/.../Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
@@ -47,18 +48,78 @@ Khi có xung đột:
 
 ## 3. Quyết định đã chốt
 
+### 3.0 Quyết định chuyển ưu tiên — 2026-07-21
+
+- Owner tạm ngưng React vì sắp tới đợt deadline và tiếp tục hoàn thiện frontend Blazor/Radzen hiện hành.
+- Không xóa `gtas_vpp_fe_react`, không hoàn tác các commit React đã có; chỉ đóng băng thay đổi mới trên React.
+- Mọi UI work tiếp theo phải sửa trực tiếp `gtas_vpp_fe`, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- Thứ tự hiện tại: khóa lại W1 `dashboard.my-orders` theo baseline round 6 → QA/owner review/commit vertical slice → W2 employee/order flows → W3 management → W4 procurement/period.
+- Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
+
+**Bằng chứng kích hoạt lại Blazor/Radzen — 2026-07-21:**
+
+- Radzen MCP đã được kiểm tra và còn hoạt động; quy tắc hard-stop khi hết quota/key lỗi vẫn giữ nguyên.
+- Sau rollback round 6: `dotnet build gtas_vpp.sln -c Release --no-restore` pass `0 warning / 0 error`; frontend tests `143/143` và backend tests `410/410` pass.
+- Blazor isolated browser harness đã bổ sung runtime dependency `Aspire.Hosting.JavaScript` do AppHost vẫn giữ React resource ở trạng thái paused; `DashboardMyOrdersVisualTests` pass trên Aspire/LocalDB cô lập ở `390×844`, `768×1024`, `1366×768`, `1920×1080`, gồm kiểm tra VI/EN, overflow, 4 evidence và single-source CTA/archive.
+- Ảnh evidence mới nhất của isolated fixture là trạng thái empty; trạng thái submitted/non-empty với demo data TEST vẫn phải được owner mở trên `dotnet-watch` để duyệt trực quan.
+- W1 vẫn giữ `OWNER_REVIEW` cho đến khi owner duyệt trực quan trên phiên TEST đã đăng nhập; build/test không thay thế browser approval.
+
 ### 3.1 Workflow
 
 - Không tạo UI Lab hoặc project preview riêng.
 - Không chuyển/generate nguyên Figma thành code.
-- Không rewrite framework, shell hoặc toàn frontend.
-- Dùng UI Blazor hiện tại làm baseline và nâng cấp trực tiếp từng route.
+- Không rewrite framework hoặc toàn frontend; tiếp tục giữ global Blazor `InteractiveServer`.
+- Shared shell, navigation và tab được phép chuyển từ Radzen sang native Razor/HTML/SVG khi cần DOM ổn định, CSS isolation và visual control. Radzen chỉ giữ ở component phức tạp tạo giá trị rõ như DataGrid, Dialog, DatePicker và form CRUD.
+- Dùng UI Blazor hiện tại làm baseline nghiệp vụ, nhưng không bắt buộc kế thừa markup hoặc visual Radzen đã bị owner từ chối.
 - `dotnet watch` là vòng lặp local mặc định trong suốt quá trình UI; không chạy một bản build tĩnh để đánh giá thay đổi hằng ngày.
 - Lệnh chuẩn là `.\scripts\gtas.cmd run`; script này khởi động Aspire AppHost bằng `dotnet watch`, giữ Hot Reload và các resource mapping hiện tại.
 - Release build/test chỉ là gate trước review cuối, commit route và deploy; không thay thế browser review trong vòng lặp phát triển.
 - Browser review là approval gate cuối về visual và interaction.
 - Figma chỉ dùng khi cần so sánh phương án, minh họa flow hoặc lưu research.
+- Toolchain phải đi theo vai trò: Sosumi/Apple HIG cho hierarchy/clarity/spacing/feedback, Microsoft Learn/Radzen cho framework/component, Playwright cho route/DOM/ARIA, Chrome DevTools cho debug/performance, axe cho accessibility và Figma cho design context.
+- Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
+
+### 3.1.1 Frontend React — PAUSED/DEFERRED (quyết định 2026-07-21)
+
+- Tạo frontend mới tại `gtas_vpp_fe_react`; hậu tố công nghệ giúp phân biệt rõ với `gtas_vpp_fe` Blazor trong giai đoạn hai stack cùng tồn tại.
+- Các nội dung bên dưới là hồ sơ kỹ thuật và bằng chứng đã làm, không phải phạm vi triển khai của giai đoạn deadline hiện tại.
+- Không thực hiện thêm thay đổi, QA hoặc migration route React cho đến khi owner mở lại phạm vi này.
+- Không đổi tên, ghi đè hoặc xóa frontend Blazor. Blazor vẫn là bản luận văn/runtime authority cho đến khi React đạt route parity và owner duyệt cutover rõ ràng.
+- Stack nền: React + TypeScript + Vite, shadcn/ui + Tailwind CSS, React Router, TanStack Query/Table, React Hook Form + Zod, i18next, Lucide và Recharts.
+- Không dùng Next.js cho giai đoạn này: GTAS là application nội bộ, backend ASP.NET Core/JWT đã tách riêng và không cần SEO/React Server Components hoặc thêm một Node production server.
+- TypeScript contract phải sinh từ Swagger/OpenAPI của backend; không tự chép DTO C# bằng tay và không tạo contract nghiệp vụ song song.
+- Local orchestration dùng Aspire `AddViteApp`; production serving model chỉ được chốt sau proof-of-concept, vì Vite dev server không phải production web server.
+- Proof-of-concept đầu tiên là `Login → App shell → My Orders` với API/TEST thật, đủ VI/EN, Light/Dark/Print, responsive, loading/empty/error/success, permissions và accessibility.
+- Chỉ bắt đầu migrate route tiếp theo khi proof-of-concept được chứng minh tốt hơn Blazor bằng runtime review và test, không dựa vào mock screenshot.
+
+**React foundation evidence — 2026-07-20:**
+
+- `gtas_vpp_fe_react` đã được scaffold bằng React 19 + TypeScript 6 + Vite 8; không sửa hoặc ghi đè frontend Blazor.
+- Foundation đã có React Router lazy routes, TanStack Query provider, i18next VI/EN, Light/Dark/Print tokens, shadcn/ui source components, responsive shell và error/not-found boundary.
+- OpenAPI client dùng `@hey-api/openapi-ts`; URL Swagger lấy từ `GTAS_OPENAPI_URL`, còn runtime `/api` dùng Aspire service discovery/proxy hoặc `.env.local` khi chạy Vite độc lập.
+- `MyAspire.AppHost` đã tích hợp resource `frontend-react` bằng `AddViteApp`, reference/wait backend và external HTTP endpoint; owner vẫn tự quản lý tiến trình AppHost/dotnet-watch.
+- shadcn MCP đã được cài vào Codex user profile; cần restart Codex hoặc mở task mới để tool xuất hiện trong phiên.
+- Vertical slice `Login → App shell → My Orders → Logout` đã dùng generated client từ Swagger, auth/permission bootstrap thật, API query thật và không tạo DTO nghiệp vụ song song.
+- QA tự động đã pass: Prettier, Oxlint, TypeScript, Vitest, Vite production build, Playwright Chromium ở `390`, `768`, `1366` px, axe không có violation critical/serious, không horizontal overflow, `npm audit` không có vulnerability, AppHost Release build `0 warning / 0 error` và backend `397/397` test pass.
+- Playwright chỉ dùng contract fixture để phủ loading/auth/layout/a11y một cách cô lập. Owner vẫn phải chạy Aspire với database TEST và đăng nhập tài khoản thật trước khi duyệt visual/runtime hoặc cân nhắc route tiếp theo.
+
+**React proof-of-concept ledger:**
+
+| Route/state | Status | Contract và phạm vi |
+|---|---|---|
+| `/login` | OWNER_REVIEW — TEST runtime pending | `/api/Auth/login`; inline validation, safe credential error, VI/EN, password visibility, return URL nội bộ |
+| Protected auth bootstrap | OWNER_REVIEW — TEST runtime pending | `/api/Auth/me` + `/api/Auth/me/permissions`; hết hạn/401 xóa session và quay về login |
+| `/app/orders` | OWNER_REVIEW — TEST runtime pending | App shell + `/api/VPPRequest/period-info` + `/api/VPPRequest/my-orders`; permission `REQUEST_VIEW_OWN` |
+| Logout | OWNER_REVIEW — TEST runtime pending | `/api/Auth/logout`; luôn dọn client session và quay về `/login` kể cả backend tạm unavailable |
+
+Quyết định auth cho POC:
+
+- Backend hiện tại chỉ cung cấp JWT qua username/password; chưa có BFF/cookie contract cho React.
+- POC dùng bearer token trong `sessionStorage` để giữ phiên khi reload tab, không dùng `localStorage` và không ghi token vào log/error/telemetry.
+- Đây là giới hạn chỉ dành cho local/TEST runtime review. Production cutover bị chặn cho đến khi có BFF hoặc secure HttpOnly cookie session, vì browser storage vẫn có rủi ro khi ứng dụng bị XSS.
+- React không tự giải mã JWT để quyết định quyền; user/permission state luôn lấy từ endpoint backend và API vẫn là authorization authority.
+- Swagger snapshot được xuất trực tiếp từ backend với `DatabaseInitialization=None`; response annotations được bổ sung chỉ để sinh typed client, không đổi runtime behavior.
 
 ### 3.2 Dữ liệu và môi trường
 
@@ -199,7 +260,7 @@ Không dùng mặc định:
 
 ### Giữ
 
-- Login split-screen và illustration hiện tại.
+- Centered account shell đã được owner duyệt: grid background, shared brand lockup, shared field/button/link rhythm và VI/EN switch.
 - Global shell, language/theme switch và Radzen foundation.
 - Sky/Teal palette, Poppins/Inter và token namespace `--vpp-*`.
 - Permission-aware navigation, API contract và business workflows.
@@ -216,7 +277,7 @@ Không dùng mặc định:
 - Dense table thiếu inspector/drawer ở trường hợp nhiều cột.
 - Dashboard/report chưa luôn đi từ takeaway tới evidence và action.
 - Figma thiếu parity với route thật như Departments, Classes, Categories và Prices.
-- Account pages đã dùng chung account shell, brand lockup, spacing, link/button và feedback treatment; đang chờ owner review trước khi chuyển W1.
+- Account pages đã dùng chung account shell, brand lockup, spacing, link/button và feedback treatment; W0.2 đã được owner duyệt và khóa trước khi chuyển W1.
 - Icon đang có dấu hiệu trộn `RadzenIcon` với Material Symbols; cần một wrapper/icon map duy nhất.
 - Empty state dashboard đang lặp CTA, status và vùng trắng quá lớn; không ép mọi route phải vừa một viewport bằng cách làm chữ hoặc target quá nhỏ.
 - History cần phân biệt rõ `không có lịch sử`, `không có kết quả theo bộ lọc` và `kỳ trước không có đơn`.
@@ -244,7 +305,25 @@ Các ảnh owner gửi ngày 2026-07-19 được ghi nhận là evidence của r
 
 Mỗi vùng chỉ trả lời một câu hỏi: **đang ở đâu → điều gì cần biết → nên làm gì tiếp theo**. Không lặp cùng một deadline/trạng thái ở toolbar, KPI và empty panel nếu không có thêm ngữ cảnh. Với dashboard, ưu tiên `takeaway → evidence → action`; với grid, ưu tiên `scope/filter → essential columns → row action → detail on demand`. Quy tắc này áp dụng cho cả VI và EN, Light/Dark/Print.
 
-### 6.3 Thứ tự triển khai đề xuất trước khi sửa code
+### 6.3 Hợp đồng thuật ngữ nghiệp vụ
+
+- entity `VPP item/product` hiển thị cho người dùng là **mặt hàng** / **item**;
+- dùng `Mã mặt hàng`, `Tên mặt hàng`, `Danh mục mặt hàng`, `Tổng mặt hàng` nhất quán;
+- `dòng hàng` chỉ là thuật ngữ kỹ thuật nội bộ cho row/line, không dùng trong UI;
+- `vật tư` chỉ dùng khi mô tả phạm vi nghiệp vụ rộng trong tài liệu, không trộn với `mặt hàng` trên cùng luồng UI/report/export;
+- resource VI/EN, insight tự động, export header và UI test phải cùng tuân theo contract này.
+
+### 6.4 Bài học toàn cục từ owner review
+
+- Các route cùng flow phải dùng cùng nhịp dọc: brand → title → field đầu → field cuối → primary action → secondary action; không chỉnh từng trang bằng khoảng cách rời.
+- Hình/illustration chỉ được giữ khi giúp nhận diện hoặc nhiệm vụ. Asset đẹp nhưng không còn phục vụ flow phải bỏ thay vì cố bảo vệ thiết kế cũ.
+- Header, tab, sidebar, hamburger và utility control phải dùng cùng interaction grammar: full hitbox, tint nhẹ, active mạnh hơn hover, không dịch chuyển layout.
+- Owner ưu tiên thấy nội dung chính gọn trong viewport, nhưng không được ép mọi bảng/form dài thành chữ nhỏ hoặc target khó bấm; dùng hierarchy, paging, drawer và scroll region có chủ đích.
+- KPI/evidence phải “kiếm được chỗ”: quota đặt ngay tại CTA, terminology theo nghiệp vụ, không lặp kỳ/trạng thái/deadline chỉ để lấp layout.
+- Copy VI/EN phải viết theo ngữ cảnh và cùng nghĩa; không ghép resource máy móc hoặc để technical term lọt lên UI.
+- Agent phải cập nhật living plan ngay khi feedback tạo thành quy tắc shared/global, thay vì chỉ sửa screenshot đang được nhắc tới.
+
+### 6.5 Thứ tự triển khai đề xuất trước khi sửa code
 
 1. **W0.1 Shared foundation:** audit icon loading, notification/error pipeline, typography/spacing/link/button tokens và height/overflow contract.
 2. **W0.2 Account shell:** Login, Forgot/Reset/Change Password, Register, logout menu; chốt brand lockup và các state lỗi/thành công.
@@ -423,7 +502,7 @@ Status hợp lệ:
 
 | Logical route | Status | Notes |
 |---|---|---|
-| `dashboard.my-orders` | OWNER_REVIEW | Period story, quota, next action |
+| `dashboard.my-orders` | OWNER_REVIEW | Round 6 restored: Radzen shell/tab, compact command center, four evidence points and one previous-period archive |
 | `dashboard.history` | PENDING | Timeline/revision/detail |
 | `dashboard.catalog` | PENDING | Browse/search/read-only detail |
 | `dashboard.order-create.new` | PENDING | Select → review → submit |
@@ -434,12 +513,168 @@ Status hợp lệ:
 **W1 My Orders round-1 evidence — 2026-07-19:**
 
 - thay toolbar + bốn KPI rời rạc bằng một story header: kỳ hiện tại, deadline, trạng thái và hạn mức bổ sung có một nguồn hiển thị;
-- KPI chỉ tính dữ liệu kỳ hiện tại và rút còn ba câu hỏi: số đơn, số dòng hàng, tổng số lượng;
+- KPI chỉ tính dữ liệu kỳ hiện tại và rút còn ba câu hỏi: số đơn, số mặt hàng, tổng số lượng;
 - CTA chỉ xuất hiện ở story header; empty state không lặp lại Tạo đơn/Sao chép kỳ trước;
 - đơn thường, đơn bổ sung hiện tại và kỳ trước được phân tầng; kỳ trước thu gọn thành archive row để giữ current story above-the-fold;
 - khi period API không xác định được trạng thái, UI hiển thị `Không xác định` thay vì suy diễn là đã đóng kỳ;
 - browser QA pass ở `390×844`, `768×1024`, `1366×768`, `1920×1080`, gồm VI/EN, overflow, legacy icon, duplicate CTA và above-the-fold contract;
 - isolated lifecycle E2E có dữ liệu pass: sửa đơn → cập nhật → lịch sử → hủy; frontend unit/architecture tests `140/140`; Release solution build `0 warning / 0 error`.
+
+**W1 My Orders round-2 owner direction — 2026-07-19:**
+
+- giữ header ở vai trò product/global utility shell; chỉ khóa lại nhịp, hitbox và ranh giới trước account;
+- sidebar collapsed phải còn wayfinding rõ, active parent phản ánh route con; metadata ngày không được giả dạng navigation item;
+- primary tab dùng full-height hitbox, hover phủ trọn container và active underline; secondary tab vẫn thấp hơn một bậc phân cấp;
+- thay story header + ba KPI ngang cấp bằng period command center theo thứ tự `kết luận → bằng chứng → hành động`;
+- trạng thái kỳ và trạng thái đơn phải tách nghĩa; deadline rail là controlled wow có giá trị vận hành;
+- bỏ thông tin demo kỹ thuật khỏi bảng người dùng, giảm ưu tiên mã hàng và tránh lặp kỳ/trạng thái/CTA.
+
+**W1 My Orders round-2 implementation evidence — 2026-07-19:**
+
+- primary/secondary tabs có full-height hitbox, hover/focus rõ và `AriaLabel` cho tablist;
+- collapsed sidebar dùng rounded-square active surface, phản ánh section theo URL và không render date metadata như một icon navigation;
+- header giữ product/global hierarchy, thêm ranh giới nhẹ trước account menu;
+- period command center hợp nhất trạng thái kỳ, kết luận theo dữ liệu, deadline rail, item/quantity evidence, quota và action panel;
+- bảng hạ mã hàng thành metadata phụ, chỉ render cột ghi chú khi có business note; demo seeder không còn ghi provenance vào description;
+- `dotnet build gtas_vpp.sln -c Release --no-restore` pass `0 warning / 0 error`;
+- frontend tests `142/142`, backend tests `397/397` pass; browser automation độc lập bị chuyển tới logout vì không dùng phiên đăng nhập của owner, nên visual runtime chờ owner review trên phiên `dotnet-watch` hiện có.
+
+**W1 shell round-3 owner feedback — 2026-07-19:**
+
+- owner duyệt hover/interaction của tab và muốn sidebar cùng nút hamburger dùng chung mô-típ;
+- interaction token được chuẩn hóa thành full hitbox, primary tint nhẹ, icon/text tăng nhấn và focus ring rõ;
+- không dùng translate/scale làm item dịch chuyển; active state vẫn mạnh hơn hover và giữ indicator theo trục điều hướng.
+
+**W1 shell round-3 implementation evidence — 2026-07-19:**
+
+- sidebar expanded/collapsed và hamburger cùng dùng `7%` primary tint khi hover, radius `md` và transition không dịch chuyển;
+- hover tăng nhấn icon bằng primary color; active/current section dùng tint mạnh hơn và giữ left indicator;
+- keyboard focus có outline nội bộ nhất quán với tab;
+- frontend tests `142/142` pass, CSS brace validation và `git diff --check` pass.
+
+**W1 My Orders round-4 owner feedback — 2026-07-19:**
+
+- bỏ lặp kỳ giữa eyebrow và takeaway title; copy VI/EN phải đúng ngữ cảnh thay vì ghép máy móc;
+- chuẩn hóa toàn bộ user-facing terminology sang `mặt hàng` / `item`;
+- quota bổ sung chuyển vào chính CTA để người dùng thấy khả năng thực hiện ngay tại action;
+- evidence strip thay quota trùng lặp bằng nhiều dữ liệu có ích hơn: lần gửi gần nhất, mặt hàng có số lượng cao nhất và dữ liệu kỳ trước.
+
+**W1 My Orders round-4 implementation evidence — 2026-07-19:**
+
+- period chỉ còn một nguồn hiển thị trong eyebrow; takeaway đổi thành `Đơn của bạn đã được gửi` / `Bạn chưa gửi đơn`;
+- `Đang nhận đơn` đổi thành `Kỳ đang mở`, deadline copy rút gọn và thời điểm gửi dùng đúng nhãn;
+- quota được đưa vào CTA dạng `Tạo đơn bổ sung · 3/3`; action panel mô tả bước tiếp theo thay vì lặp trạng thái đơn;
+- evidence strip gồm tổng mặt hàng, tổng số lượng, lần gửi gần nhất, mặt hàng có số lượng cao nhất và số đơn kỳ trước;
+- resource VI/EN, insight tự động, CSV export, Design DNA preview và UI test đã thống nhất `mặt hàng` / `item`; terminology audit không còn `sản phẩm`, `vật tư`, `dòng hàng` trong runtime surfaces;
+- Release solution build pass `0 warning / 0 error`; frontend tests `143/143`, backend tests `397/397`; Design DNA Engine/Web/Tests build pass.
+
+**W1 shell + My Orders round-5 owner feedback — 2026-07-20:**
+
+- notification icon vẫn dùng màu secondary trong khi theme control dùng primary, làm header utility group chưa thật sự đồng bộ;
+- account popover chỉ hiển thị tên và mã phòng ban nên chưa kể rõ `tôi là ai → đang ở ngữ cảnh tổ chức nào → hành động phiên làm việc`;
+- sau khi bỏ lặp kỳ, `07/2026` trở thành metadata quá nhỏ và chìm; cần tăng visual hierarchy nhưng không đưa kỳ trở lại title hoặc lặp thêm nơi khác.
+- description `Theo dõi xử lý hoặc tạo đơn bổ sung...`, block `Hành động tiếp theo` và CTA bổ sung đang nói cùng một ý; action copy không phải data quan trọng nên không được chiếm ba vùng.
+
+**W1 round-5 implementation direction — 2026-07-20:**
+
+- notification và theme icon dùng cùng primary color/hover treatment; regression test phải so cả icon color, không chỉ border/surface geometry;
+- user popover theo thứ tự `identity → username → department name + code → logout`, không thêm field không hỗ trợ quyết định;
+- kỳ hiện tại dùng editorial time anchor: nhãn nhỏ, giá trị lớn/đậm ở đầu story; vẫn chỉ có một nguồn hiển thị period;
+- bỏ block `Hành động tiếp theo`; khi đã gửi đơn, description chỉ mô tả khả năng theo dõi, còn nhu cầu bổ sung chỉ xuất hiện một lần tại CTA có quota;
+- áp dụng nguyên tắc dashboard chính chủ: context rõ, thông tin quan trọng lớn hơn, màu nhấn tiết chế và layout dẫn mắt từ trên-trái xuống evidence/action.
+
+**W1 shell + My Orders round-5 implementation evidence — 2026-07-20:**
+
+- notification bell và theme toggle dùng cùng surface, border, hover và màu primary trong Light/Dark; browser regression so cả icon đang hiển thị sau khi transition hoàn tất;
+- account popover dùng thứ tự `họ tên → tên đăng nhập → tên phòng ban + mã → đăng xuất`, bỏ dữ liệu không giúp quyết định và giữ logout neutral mặc định;
+- kỳ hiện tại chỉ xuất hiện một lần dưới dạng time anchor `07/2026`, lớn và đậm hơn nhãn nhưng không lặp lại trong takeaway title;
+- bỏ hoàn toàn `Hành động tiếp theo` và câu mô tả bổ sung trùng nghĩa; description chỉ còn lịch sử xử lý, CTA là nơi duy nhất hiển thị `Tạo đơn bổ sung · còn/tổng`;
+- Release solution build pass `0 warning / 0 error`; frontend tests `143/143`; isolated browser QA pass cho My Orders ở `390×844`, `768×1024`, `1366×768`, `1920×1080` và account/header Light/Dark.
+
+**W1 My Orders round-6 owner feedback — 2026-07-20:**
+
+- bỏ hẳn câu `Theo dõi chi tiết đơn và lịch sử xử lý.` ở trạng thái đã gửi vì title, bảng chi tiết và tab lịch sử đã đủ truyền đạt;
+- command center đang bị kéo quá ngang: CTA chiếm một cột riêng nhưng phần lớn cột là khoảng trống, deadline rail dài hơn giá trị thông tin;
+- năm evidence chưa cân bằng và `0 đơn kỳ trước` bị lặp với archive row ngay bên dưới;
+- count của section nằm quá xa title; order header trình bày như form hai hàng nên tốn chiều cao và làm table bị tách khỏi identity/action của đơn.
+
+**W1 round-6 implementation direction — 2026-07-20:**
+
+- dùng command center một cột: identity/title và status/action cùng header, deadline thành rail compact có giới hạn chiều dài, evidence thành grid bốn cột cân bằng;
+- trạng thái đã gửi không render description; chỉ trạng thái empty/closed/unknown mới dùng explanatory copy khi thực sự cần;
+- bỏ previous-cycle count khỏi evidence, giữ archive row làm nguồn duy nhất cho kỳ trước;
+- đặt section count sát title; nén order metadata thành hai field ngang `mã đơn` và `thời điểm gửi`, giữ action cùng header và DataGrid làm evidence ngay bên dưới.
+
+**Design reference extraction cho round 6:**
+
+- **Apple:** simplicity không đồng nghĩa với xóa sạch; mỗi phần tử phải có mục đích, copy ngắn, hierarchy rõ và UI phải tránh cản trở tác vụ chính;
+- **Notion:** tạo nhịp bằng spacing chuẩn; các block liên quan đứng sát nhau hơn, chuyển section mới mới dùng khoảng thở lớn hơn;
+- **Figma UI3:** ưu tiên nội dung thay vì chrome, đặt control quan trọng gần đúng context, giữ action sẵn dùng nhưng không cấp một panel riêng khi không cần;
+- **Linear:** giao diện bình tĩnh, nhất quán và dễ quét; navigation/chrome lùi lại để nội dung vận hành nổi lên;
+- GTAS VPP áp dụng các nguyên tắc trên theo ngữ cảnh enterprise: sắc nét, ít decoration, action rõ, density vừa và không hy sinh VI/EN, accessibility hoặc Radzen behavior.
+
+**W1 My Orders round-6 implementation evidence — 2026-07-20:**
+
+- submitted state bỏ description hoàn toàn; title rút thành `Đơn đã gửi` / `Order submitted`, section rút thành `Chi tiết đơn` / `Order details`;
+- command center bỏ dedicated action column: status và CTA nằm cạnh context ở header; deadline rail giới hạn chiều dài và bốn evidence chia grid cân bằng;
+- previous-cycle count không còn ở evidence; archive row là nguồn duy nhất mô tả kỳ trước;
+- count nằm sát section title; order header chuyển từ label/value form hai dòng thành hai metadata field ngang, action giữ cùng hàng;
+- Radzen docs đã được đối chiếu cho contextual Button/DataGrid composition; Release build pass `0 warning / 0 error`, frontend `143/143`, isolated browser tests `2/2` pass gồm bốn viewport và submitted lifecycle state.
+
+**W1 My Orders round-7 owner feedback — 2026-07-20:**
+
+- round 6 vẫn mang cảm giác dashboard template và còn quá nhiều lớp trang trí;
+- owner yêu cầu route này chỉ học Apple, không pha Notion/Figma/Linear: nhẹ, đơn giản và tối ưu;
+- gradient, left accent, progress rail, pill background, outlined CTA, evidence kéo hết chiều ngang và card lồng nhau đều làm nội dung nặng hơn giá trị thực.
+
+**W1 round-7 Apple-led direction — 2026-07-20:**
+
+- `Simplicity`: mỗi thành phần phải có mục đích; bỏ progress visualization khi deadline text đã đủ trả lời;
+- `Hierarchy`: dùng typography và spacing để phân cấp; không dùng nhiều màu, gradient hoặc border cạnh tranh;
+- `Agency`: primary action ở ngay context, dùng một filled accent button; secondary/status controls giữ monochrome;
+- `Lists and tables`: text ngắn, header rõ, row dễ quét; table nền phẳng với hairline separator thay vì zebra/card decoration nặng;
+- `Color`: chỉ giữ accent cho primary action và status dot; không dùng cùng màu để trang trí text, icon và background đồng thời;
+- Apple HIG là bộ lọc thẩm mỹ chính, không phải mẫu để sao chép pixel; W3C/Deque, Radzen/Microsoft và nguồn data visualization chính chủ vẫn được dùng cho accessibility, component behavior và cách trình bày dữ liệu mà HIG không đặc tả đủ cho dashboard web;
+- các nguồn Notion/Figma/Linear ở round 6 chỉ còn là lịch sử nghiên cứu, không còn là art direction chủ động của `dashboard.my-orders`.
+
+**W1 round-7 MCP/reference decision — 2026-07-20:**
+
+- Apple cung cấp MCP chính thức qua Xcode nhưng yêu cầu macOS/Xcode, không phù hợp workstation Windows hiện tại;
+- chọn Sosumi Apple Docs MCP vì truy xuất on-demand Apple Developer Documentation, HIG và WWDC, không cần API key và không cài index cũ vào repository;
+- đã thêm global endpoint `https://sosumi.ai/mcp` và xác minh handshake MCP `2025-06-18`, server `sosumi.ai` version `1.0.0`;
+- Sosumi là dịch vụ mã nguồn mở không chính thức; mỗi quyết định quan trọng phải giữ liên kết Apple gốc, browser runtime và QA GTAS vẫn là authority cuối.
+
+**W1 My Orders round-7 implementation evidence — 2026-07-20:**
+
+- overview chuyển thành content section phẳng: bỏ gradient, left accent, progress rail và border-card; kỳ, takeaway, deadline và evidence dùng typography/spacing làm hierarchy;
+- status dùng dot + text; CTA bổ sung là filled primary action duy nhất, không shadow; bốn evidence co theo nội dung thay vì giãn toàn viewport;
+- section count đổi thành metadata trong ngoặc, archive rỗng bỏ số `0` lặp, order status bỏ pill background/border và technical fixture note không còn xuất hiện trên UI;
+- order detail giữ một grouped surface nhẹ, header nén thành code + thời điểm gửi, table dùng hairline/horizontal rows và không zebra decoration;
+- Release solution build pass `0 warning / 0 error`; frontend tests `143/143`; isolated My Orders responsive + regular lifecycle `2/2` pass; submitted screenshot đã chờ row dữ liệu render trước khi capture;
+- route vẫn ở `OWNER_REVIEW`; chưa tạo golden baseline và chưa commit W1 cho đến khi owner duyệt runtime.
+
+**W1 My Orders round-8 owner feedback — 2026-07-21:**
+
+- khôi phục composition command center đã được owner thích: surface xanh nhẹ, left accent, period/status/action rõ, deadline rail và evidence ngang;
+- đặt `07/2026` cùng dòng ngay sau `Kỳ đặt hàng hiện tại`, không tách thành time anchor hai dòng;
+- nghiệp vụ chỉ cho tối đa một đơn bổ sung được duyệt; CTA không hiển thị quota dạng `3/3` hoặc `1/1`, chỉ ghi `Tạo đơn bổ sung`;
+- art direction toàn cục chuyển sang vuông/góc cạnh: card, button, input, tab, menu, dialog, notification và panel dùng corner radius bằng `0`; chỉ giữ hình tròn cho avatar, status dot và biểu tượng có semantics hình tròn.
+
+**W1 round-8 implementation direction — 2026-07-21:**
+
+- phục hồi hierarchy và bố cục theo screenshot owner cung cấp nhưng không phục hồi copy trùng lặp đã loại bỏ ở các round trước;
+- giới hạn supplement phải được enforcement ở backend policy/config/service và test, không chỉ ẩn quota trên UI;
+- radius thay đổi qua shared design tokens/Radzen variables trước, sau đó audit các literal radius còn lại theo từng route để tránh CSS override phân mảnh;
+- W1 quay về `CHANGES_REQUESTED`; sau implementation phải chạy Release build, unit tests và isolated responsive/browser QA trước khi owner review lại.
+
+**W1 My Orders round-8 implementation evidence — 2026-07-21:**
+
+- command center đã khôi phục surface xanh nhẹ, left accent, status, deadline progress, năm evidence và contextual action column; không khôi phục copy submitted bị owner đánh giá là lặp;
+- `Kỳ đặt hàng hiện tại 07/2026` nằm cùng một centerline trên desktop; responsive tự wrap ở viewport hẹp;
+- CTA supplement dùng copy `Tạo đơn bổ sung` / `Create supplement`, không còn quota fraction; backend default/config/legacy fallback đều enforcement `MaxApprovedSupplements=1`, test và tài liệu quyết định đã đồng bộ;
+- shared radius tokens, Radzen/Bootstrap compatibility variables và shell controls chuyển sang góc vuông; avatar, status dot và icon có semantics hình tròn được giữ lại;
+- Release solution build pass `0 warning / 0 error`; frontend tests `144/144`, backend tests `410/410`; isolated My Orders + header/user-menu browser QA pass `2/2` và không overflow trên bốn viewport;
+- route trở lại `OWNER_REVIEW`; evidence local mới nằm ngoài repository tại `%TEMP%\\gtas-vpp-w1-round8`.
 
 ### W3 — Management
 
@@ -570,6 +805,18 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-19 | Account round 4 | Underline `1px`, confirm-password copy ngắn và secondary actions 50–50 | Owner phát hiện password line nặng hơn field khác và hàng link dù thẳng vẫn chưa cân đối | Shared account form | Cập nhật W0.2 shared password/link treatment | Login/Register/Reset/Change | Owner review |
 | 2026-07-19 | W0.2 approval | Forgot title một dòng, tăng nhẹ title-to-field spacing; chuyển W1 | Owner duyệt account flow sau retrofit cuối | Account shell | Khóa W0.2, mở W1 Dashboard | Account routes → dashboard.my-orders | Approved |
 | 2026-07-19 | W1 My Orders round 1 | Story header + ba metric hiện tại + single-source CTA + compact previous archive | Loại bỏ lặp kỳ/deadline/action và giữ current story above-the-fold | Employee workspace | Hoàn tất dashboard.my-orders để owner review | dashboard?tab=0 | Owner review |
+| 2026-07-19 | W1 My Orders round 2 | Full-height tabs, shell wayfinding và period command center theo `takeaway → evidence → action` | Owner thấy hover bị crop, trạng thái/CTA lệch và câu chuyện dữ liệu chưa đủ rõ/wow | Shared shell + employee workspace | Sửa trực tiếp Blazor thật; giữ chi tiết trong order card | Header/sidebar/tabs + dashboard?tab=0 | Owner review |
+| 2026-07-19 | W1 shell round 3 | Sidebar và hamburger kế thừa hover motif đã được duyệt ở tab | Owner muốn shell có cùng ngôn ngữ tương tác | Shared shell | Chuẩn hóa tint/radius/focus/active hierarchy | Header + sidebar trên mọi authenticated route | Owner review |
+| 2026-07-19 | W1 My Orders round 4 | Bỏ period/copy trùng, đưa quota vào CTA và chuẩn hóa `mặt hàng` / `item` | Owner yêu cầu copy theo ngữ cảnh và evidence hữu ích hơn | Global content + employee workspace | Thêm terminology contract; cập nhật resource/report/export/test | Toàn bộ runtime UI + report/export | Owner review |
+| 2026-07-19 | AI UI/UX toolchain | Dùng official docs MCP + Playwright/Chrome DevTools + Deque axe; chỉ khóa visual baseline sau owner approval | Agent cần hiểu layout/data/accessibility bằng bằng chứng, không dựa vào screenshot hoặc cài nhiều MCP trùng vai trò | Global engineering workflow | Thêm toolchain doc, AGENTS rules và layered QA gates | Mọi route UI hiện tại và tương lai | Adopted |
+| 2026-07-20 | W1 shell + period round 5 | Đồng bộ notification icon, kể lại account context, nâng period thành time anchor và bỏ action copy trùng | Owner thấy utility icon lệch màu, user info chưa hữu ích, kỳ hiện tại quá chìm và bổ sung bị nói lại ba lần | Shared shell + employee workspace | Update header/user popover/period hierarchy, single-source CTA và regression assertions | Mọi authenticated route + dashboard?tab=0 | Owner review |
+| 2026-07-20 | W1 My Orders round 6 | Nén command center, bỏ submitted description và hợp nhất order detail hierarchy | Owner chưa ưng tổng thể vì card quá ngang, khoảng trống vô nghĩa, evidence/archive lặp và detail header rời rạc | Employee workspace | Recompose story header/deadline/evidence/action + compact order identity header | dashboard?tab=0 | Restored baseline |
+| 2026-07-20 | W1 My Orders round 7 | Apple-only content hierarchy, monochrome surface và single accent action | Owner yêu cầu bỏ art direction Apple-only và quay lại baseline round 6 | Employee workspace | Không dùng làm visual authority | dashboard?tab=0 | Reverted |
+| 2026-07-21 | W1 My Orders round 8 + angular system | Khôi phục command center trong screenshot, period cùng dòng, supplement tối đa 1 và bỏ quota khỏi CTA; toàn UI ưu tiên góc vuông | Owner yêu cầu bỏ angular experiment cùng Apple-only và quay lại baseline round 6 | Global visual + business rule + employee workspace | Giữ lại business policy tối đa một supplement; hoàn tác visual angular | Toàn bộ Radzen UI | Reverted visual |
+| 2026-07-21 | W1 shell round 9 + line navigation | Sidebar active state dùng vạch dọc mảnh, tab underline phủ toàn bộ hitbox, hamburger cùng motif | Owner từ chối visual và yêu cầu quay lại shell Radzen trước round 7 | Shared shell + accessibility/responsive | Hoàn tác native/line-navigation experiment | Header, sidebar, primary/secondary tabs | Reverted |
+| 2026-07-21 | W1 shell round 10 — native Blazor | Chuyển shell/tab sang native Razor/HTML/SVG | Owner yêu cầu bỏ thử nghiệm native và quay lại code trước Apple-only | Shared shell + Dashboard | Hoàn tác native primitives; giữ Radzen shell/tab baseline | Header/sidebar + Dashboard | Reverted |
+| 2026-07-21 | W1 rollback — owner requested round-6 baseline | Bỏ Apple-only, angular system và native shell thử nghiệm; giữ composition round 6 làm visual authority | Owner yêu cầu khôi phục đúng trạng thái trước vòng Apple-only để tiếp tục ổn định repo | W1 My Orders + shared shell | Khôi phục command center một cột, 4 evidence, compact order identity và Radzen shell/tab; business policy supplement vẫn giữ | dashboard?tab=0 + authenticated shell | Restored — OWNER_REVIEW |
+| 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |
 | 2026-07-19 | W1 demo data | Dùng workbook thật qua normalized TSV; map tháng nguồn thành rolling 12 tháng và bind đơn theo user/phòng ban | W1 cần normal/history state thực tế, seed cũ chỉ có catalog và không có đơn | TEST/DEMO fixture | Thay `MigrateAndDemo` bằng catalog/department/user/order fixture idempotent | Dashboard/History/Report/Library | Verified |
@@ -588,7 +835,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Verified |
 | P1 | Account shell drift | Login/Register/Forgot/Reset/Confirm/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Verified |
 | P1 | Notification payload localization | Notification producer + DTO/persistence + presentation mapper | Lưu translation key/arguments hoặc bilingual payload; không dịch chuỗi English đã ghép cứng ở UI | Proposed |
-| P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Proposed |
+| P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Dashboard implemented; History/Period pending |
 | P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Proposed |
 
 Retrofit không mặc định làm ngay giữa route hiện tại nếu không ảnh hưởng correctness/accessibility. Agent phải ghi queue và đề xuất thời điểm xử lý để tránh scope explosion.
@@ -624,12 +871,15 @@ Retrofit không mặc định làm ngay giữa route hiện tại nếu không �
 - Không horizontal page overflow.
 - Keyboard/focus order hợp lý.
 - Không visible control thiếu accessible name.
-- Axe không critical/serious hoặc exception được ghi rõ.
+- `Deque.AxeCore.Playwright` không có violation `critical`/`serious`; dialog/menu/drawer/validation hiện ra phải scan lại hoặc exception được ghi rõ.
 - Không unexpected console error hoặc failed API.
 - Không raw exception/JSON trong user notification.
 - Authorization đúng cả UI và direct API.
 - Mutation không double-submit và retry idempotent khi cần.
 - DataGrid lớn dùng server paging/`LoadData`; virtualization chỉ sau benchmark.
+- Accessibility Insights FastPass/keyboard review chạy trước khi khóa shared primitive hoặc route quan trọng.
+- Screenshot ở route `OWNER_REVIEW` chỉ là evidence; visual golden regression chỉ tạo sau `APPROVED` trên fixture/browser/viewport/font ổn định.
+- Lighthouse/Chrome performance không có regression lớn ở route public hoặc route được chọn làm performance budget.
 
 ### Commands tối thiểu theo scope
 
@@ -659,17 +909,18 @@ git status --short
 
 ---
 
-## 14. Owner approval gate cho version 1.0
+## 14. Owner approval gate hiện tại
 
-Các quyết định chờ người dùng duyệt:
+Các quyết định nền đã được owner duyệt và đang áp dụng:
 
-- [ ] Browser runtime là nguồn visual cuối; Figma chỉ hỗ trợ.
-- [ ] Giữ login illustration và visual baseline hiện tại, chỉ polish có kiểm soát.
-- [ ] Controlled wow: mạnh ở heading/data story, tiết chế ở table/form/permission.
-- [ ] Desktop-first theo từng route nhưng mọi route phải không vỡ tablet/mobile.
-- [ ] Thứ tự thực thi W0 → W1 → W2 → W3 → W4 → W7 → W5 → W6 → W8 được chấp nhận.
+- [x] Browser runtime là nguồn visual cuối; Figma chỉ hỗ trợ.
+- [x] Không UI Lab; sửa trực tiếp Blazor thật theo từng route.
+- [x] Account flow dùng centered grid shell và không còn PPJ illustration.
+- [x] Controlled wow: mạnh ở heading/data story, tiết chế ở table/form/permission.
+- [x] Desktop-first theo từng route nhưng mọi route phải không vỡ tablet/mobile.
+- [x] W0.2 đã duyệt; W1 Dashboard đang triển khai trước các wave sau.
 
-Chưa bắt đầu implementation trước khi các quyết định trên được duyệt hoặc chỉnh lại trong file này.
+Gate đang chờ: owner review W1 My Orders round-6 baseline trên Blazor/Radzen. Sau khi owner xác nhận browser TEST, khóa visual baseline và commit vertical slice. React không phải gate hiện tại.
 
 ---
 
@@ -680,13 +931,37 @@ Chưa bắt đầu implementation trước khi các quyết định trên đư�
 - [PPJ International — Sustainability](https://www.ppj-international.com/sustainability.html)
 - [Atlassian Design — Foundations](https://atlassian.design/foundations)
 - [Atlassian Design — Design Tokens](https://atlassian.design/tokens/design-tokens)
+- [Apple Human Interface Guidelines — Design principles](https://developer.apple.com/design/human-interface-guidelines/design-principles)
+- [Apple Human Interface Guidelines — Layout](https://developer.apple.com/design/human-interface-guidelines/layout)
+- [Apple Human Interface Guidelines — Color](https://developer.apple.com/design/human-interface-guidelines/color)
+- [Apple Human Interface Guidelines — Lists and tables](https://developer.apple.com/design/human-interface-guidelines/lists-and-tables)
+- [Apple — Giving external agents access to Xcode](https://developer.apple.com/documentation/Xcode/giving-external-agents-access-to-xcode)
+- [Sosumi — Apple Docs for LLMs](https://sosumi.ai/)
+- [Notion — Updating the design of Notion pages](https://www.notion.com/blog/updating-the-design-of-notion-pages)
+- [Figma — Inside the redesigned Figma UI3](https://www.figma.com/blog/behind-our-redesign-ui3/)
+- [Linear — UI refresh](https://linear.app/changelog/2026-03-12-ui-refresh)
 - [Carbon Design System — Dashboards](https://carbondesignsystem.com/data-visualization/dashboards/)
 - [Tableau Blueprint — Visual Best Practices](https://help.tableau.com/current/blueprint/en-us/bp_visual_best_practices.htm)
 - [Microsoft Learn — Accessible Power BI Reports](https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-accessibility-creating-reports)
 - [W3C — WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [Radzen Blazor DataGrid](https://blazor.radzen.com/datagrid?theme=default&wcag=true)
+- [Radzen Blazor MCP Documentation](https://www.radzen.com/blazor-mcp/documentation)
 - [Radzen DataGrid Performance](https://blazor.radzen.com/datagrid-performance)
 - [MDN — prefers-reduced-motion](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion)
+- [Microsoft Learn MCP Server](https://learn.microsoft.com/en-us/training/support/mcp-get-started)
+- [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
+- [Playwright — Accessibility testing](https://playwright.dev/docs/accessibility-testing)
+- [Playwright — Visual comparisons](https://playwright.dev/docs/test-snapshots)
+- [Deque axe-core](https://github.com/dequelabs/axe-core)
+- [Deque.AxeCore.Playwright](https://www.nuget.org/packages/Deque.AxeCore.Playwright)
+- [Accessibility Insights for Web](https://accessibilityinsights.io/docs/web/overview/)
+- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)
+- [Figma MCP Server](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Dev-Mode-MCP-Server)
+- [Vite — Getting Started](https://vite.dev/guide/)
+- [shadcn/ui — Introduction](https://ui.shadcn.com/docs)
+- [shadcn/ui — MCP Server](https://ui.shadcn.com/docs/mcp)
+- [Aspire — AddViteApp](https://aspire.dev/reference/api/typescript/aspire.hosting.javascript/addviteapp/)
+- [Hey API — OpenAPI TypeScript](https://heyapi.dev/openapi-ts/get-started)
 
 ---
 
@@ -701,7 +976,7 @@ Khi tiếp tục UI renovation trong thread/session mới:
 5. Đọc ledger, feedback log và retrofit queue mới nhất.
 6. Chọn đúng route `PENDING`/`CHANGES_REQUESTED` theo thứ tự đã duyệt.
 7. Không suy luận rằng Figma đã cover đủ route.
-8. Không tạo UI Lab, project preview hay architecture render mode khác.
+8. Không tạo thêm UI Lab/project preview ngoài `gtas_vpp_fe_react` proof-of-concept đã được owner duyệt; không đổi architecture render mode của Blazor.
 9. Không thay đổi API/DB/nghiệp vụ chỉ để đạt visual.
 10. Cập nhật file này trước khi báo route hoàn tất.
 

@@ -4,7 +4,7 @@
 <div class="vpp-user-menu" @onkeydown="HandleKeyDown">
     <button type="button"
             class="user-menu-trigger"
-            aria-haspopup="menu"
+            aria-haspopup="dialog"
             aria-expanded="@_isOpen"
             aria-controls="user-menu-dropdown"
             aria-label="@UserFullName"
@@ -16,27 +16,41 @@
 
     @if (_isOpen)
     {
-        <div id="user-menu-dropdown" class="user-dropdown" role="menu" aria-label="@UserFullName">
+        <section id="user-menu-dropdown" class="user-dropdown" role="dialog" aria-label="@Loc["Profile"]">
             <div class="user-dropdown-header">
-                <div class="user-avatar-lg">@GetInitials()</div>
-                <div>
+                <div class="user-avatar-lg" aria-hidden="true">@GetInitials()</div>
+                <div class="user-dropdown-identity">
                     <div class="user-dropdown-name">@UserFullName</div>
+                    @if (!string.IsNullOrWhiteSpace(UserLogin))
+                    {
+                        <div class="user-dropdown-login">
+                            <span>@Loc["Username"]</span>
+                            <strong>@UserLogin</strong>
+                        </div>
+                    }
                 </div>
             </div>
-            <div class="user-dropdown-divider"></div>
-            @if (!string.IsNullOrEmpty(Department))
+            @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
             {
-                <div class="user-dropdown-info">
-                    <VppIcon Name="@VppIcons.Apartment" Class="user-dropdown-icon" />
-                    <span>@Department</span>
+                <div class="user-dropdown-context">
+                    <span class="user-dropdown-context-icon" aria-hidden="true">
+                        <VppIcon Name="@VppIcons.Apartment" />
+                    </span>
+                    <span class="user-dropdown-context-copy">
+                        <small>@Loc["Department"]</small>
+                        <strong class="user-dropdown-context-value">@DepartmentDisplayName</strong>
+                    </span>
+                    @if (ShowDepartmentCode)
+                    {
+                        <span class="user-dropdown-code">@DepartmentCode</span>
+                    }
                 </div>
-                <div class="user-dropdown-divider"></div>
             }
-            <a href="/logoutprocess" class="user-dropdown-logout" role="menuitem">
+            <a href="/logoutprocess" class="user-dropdown-logout">
                 <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
                 <span>@Loc["Logout"]</span>
             </a>
-        </div>
+        </section>
         <button type="button"
                 class="user-dropdown-backdrop"
                 aria-label="@Loc["Close"]"
@@ -45,10 +59,19 @@
 </div>
 
 @code {
-    [Parameter] public string UserFullName { get; set; } = "";
-    [Parameter] public string Department { get; set; } = "";
+    [Parameter] public string? UserFullName { get; set; }
+    [Parameter] public string? UserLogin { get; set; }
+    [Parameter] public string? DepartmentName { get; set; }
+    [Parameter] public string? DepartmentCode { get; set; }
 
     private bool _isOpen;
+
+    private string DepartmentDisplayName => !string.IsNullOrWhiteSpace(DepartmentName)
+        ? DepartmentName.Trim()
+        : DepartmentCode?.Trim() ?? string.Empty;
+
+    private bool ShowDepartmentCode => !string.IsNullOrWhiteSpace(DepartmentCode)
+        && !string.Equals(DepartmentCode.Trim(), DepartmentDisplayName, StringComparison.OrdinalIgnoreCase);
 
     private void ToggleMenu() => _isOpen = !_isOpen;
 

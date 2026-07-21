@@ -74,6 +74,43 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<VppIcon", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void DashboardTabs_KeepTheRadzenAccessibilityBaseline()
+    {
+        var root = GetFrontendRoot();
+        var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Component_VPPRequest.razor"));
+
+        Assert.Contains("<RadzenTabs", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-admin-tabs", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-secondary-tabs", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MyOrders_UsesTheRoundSixCommandCenterContract()
+    {
+        var root = GetFrontendRoot();
+        var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
+        var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
+
+        Assert.Contains("vpp-orders-evidence", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-orders-story-commands", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-orders-deadline-track", source, StringComparison.Ordinal);
+        Assert.Contains("CurrentOrderDetails", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-native-tab-list", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SharedDesignTokens_KeepThePreAngularRadiusSystem()
+    {
+        var root = GetFrontendRoot();
+        var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+
+        Assert.Contains("--vpp-radius-sm: 4px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-radius-md: 6px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-radius-lg: 8px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-radius-badge: var(--vpp-radius-full);", tokens, StringComparison.Ordinal);
+    }
+
     private static string GetFrontendRoot()
     {
         var repositoryRoot = FindRepositoryRoot();

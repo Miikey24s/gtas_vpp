@@ -70,7 +70,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                     return [
                         document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
                         document.querySelectorAll('.vpp-orders-story').length,
-                        document.querySelectorAll('.vpp-orders-metric').length,
+                        document.querySelectorAll('.vpp-orders-evidence article').length,
                         document.querySelectorAll('.vpp-orders-section').length,
                         document.querySelectorAll('.vpp-orders-archive').length,
                         orderPage?.querySelectorAll('.rzi').length ?? -1,
@@ -83,7 +83,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
 
             audit[0].Should().Be(0, $"My Orders must not overflow at {viewport.Width}px");
             audit[1].Should().Be(1, "the period takeaway should appear exactly once");
-            audit[2].Should().Be(3, "the current-cycle story should use three non-duplicated metrics");
+            audit[2].Should().Be(4, "the round-six story should use four balanced evidence points");
             audit[3].Should().BeGreaterThanOrEqualTo(1, "the current regular-order section must remain visible");
             audit[4].Should().Be(1, "previous-period behavior should use one compact archive row");
             audit[5].Should().Be(0, "My Orders should use VppIcon instead of legacy rzi markup");
@@ -120,7 +120,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         await Page.GotoAsync($"{BaseUrl}set-language?culture=en&returnUrl=%2Fdashboard%3Ftab%3D0");
         await Page.Locator(".vpp-orders-story").WaitForAsync();
         (await Page.GetByText("Current Order Cycle", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
-        (await Page.GetByText("Orders this cycle", new() { Exact = true }).CountAsync()).Should().Be(1);
+        (await Page.GetByText("Total items", new() { Exact = true }).CountAsync()).Should().Be(1);
 
         browserErrors.Should().BeEmpty();
         requestFailures.Should().BeEmpty();

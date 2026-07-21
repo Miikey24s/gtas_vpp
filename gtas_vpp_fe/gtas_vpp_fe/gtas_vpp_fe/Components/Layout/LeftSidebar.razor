@@ -30,7 +30,10 @@
                             OnThemeToggle="ThemeOnChange"
                             OnLanguageToggle="ToggleLanguage" />
             <NotificationCenter />
-            <UserMenu UserFullName="@glb.UserInfo.FullName" Department="@glb.UserInfo.DepartmentCode" />
+            <UserMenu UserFullName="@glb.UserInfo.FullName"
+                      UserLogin="@glb.UserInfo.UserLogin"
+                      DepartmentName="@glb.UserInfo.DepartmentName"
+                      DepartmentCode="@glb.UserInfo.DepartmentCode" />
         </RadzenStack>
     </RadzenStack>
 </RadzenHeader>

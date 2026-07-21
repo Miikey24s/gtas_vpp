@@ -586,9 +586,8 @@ public static class DemoWorkbookSeeder
 
                 detail.Qty = row.Quantity;
                 detail.CurrentSinglePrice = row.UnitPrice;
-                detail.Description = row.IsSynthesized
-                    ? "Demo quantity inferred from the workbook month median"
-                    : $"Normalized from {row.SourceRowCount} workbook row(s)";
+                // Workbook provenance belongs in the demo audit pipeline, not in the user's business note.
+                detail.Description = null;
                 detail.UpdatedByUserId = owner.User.Id;
                 detail.UpdatedAtUtc = nowUtc;
                 detail.IsDeleted = false;

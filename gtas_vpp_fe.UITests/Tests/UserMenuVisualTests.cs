@@ -41,7 +41,7 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
 
         var notificationBaseStyle = await ReadHeaderControlStyleAsync(notificationButton);
         var themeBaseStyle = await ReadHeaderControlStyleAsync(themeButton);
-        notificationBaseStyle.Should().Equal(themeBaseStyle, "notification and theme controls should share border, surface, radius and shadow tokens");
+        notificationBaseStyle.Should().Equal(themeBaseStyle, "notification and theme controls should share border, surface, icon color, radius and shadow tokens");
 
         await notificationButton.HoverAsync();
         await Page.WaitForTimeoutAsync(200);
@@ -53,8 +53,18 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
 
         await themeButton.ClickAsync();
         await Page.WaitForFunctionAsync("() => document.documentElement.classList.contains('rz-theme-dark')");
+        await Page.WaitForFunctionAsync("() => !document.querySelector('.vpp-theme-switch')?.classList.contains('is-switching')");
         await Page.Mouse.MoveAsync(4, 4);
-        await Page.WaitForTimeoutAsync(200);
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const notificationIcon = document.querySelector('.vpp-header-notification-button .vpp-icon');
+                const themeIcon = [...document.querySelectorAll('.vpp-theme-switch .vpp-icon')]
+                    .find(candidate => Number.parseFloat(getComputedStyle(candidate).opacity || '1') > 0.5);
+                return notificationIcon
+                    && themeIcon
+                    && getComputedStyle(notificationIcon).color === getComputedStyle(themeIcon).color;
+            }
+            """);
         var notificationDarkStyle = await ReadHeaderControlStyleAsync(notificationButton);
         var themeDarkStyle = await ReadHeaderControlStyleAsync(themeButton);
         notificationDarkStyle.Should().Equal(themeDarkStyle, "notification and theme controls should share the dark-mode surface treatment");
@@ -97,11 +107,16 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Visible
         });
 
-        var department = Page.Locator(".user-dropdown-info > span:not(.vpp-icon)");
-        (await department.CountAsync()).Should().Be(1, "the department should appear in one dedicated information row");
-        var departmentText = (await department.InnerTextAsync()).Trim();
-        departmentText.Should().NotBeNullOrWhiteSpace();
-        (await Page.Locator(".user-dropdown-header").InnerTextAsync()).Should().NotContain(departmentText);
+        (await dropdown.GetAttributeAsync("role")).Should().Be("dialog", "the account summary contains static context plus one session action");
+        (await Page.Locator(".user-dropdown-login strong").InnerTextAsync()).Trim().Should().NotBeNullOrWhiteSpace();
+
+        var department = Page.Locator(".user-dropdown-context");
+        (await department.CountAsync()).Should().Be(1, "the department should appear in one contextual information block");
+        var departmentName = (await department.Locator(".user-dropdown-context-value").InnerTextAsync()).Trim();
+        departmentName.Should().NotBeNullOrWhiteSpace();
+        var departmentCode = (await department.Locator(".user-dropdown-code").InnerTextAsync()).Trim();
+        departmentCode.Should().NotBeNullOrWhiteSpace();
+        (await Page.Locator(".user-dropdown-header").InnerTextAsync()).Should().NotContain(departmentName);
 
         var logout = Page.Locator(".user-dropdown-logout");
         var appearance = await logout.EvaluateAsync<string[]>("""
@@ -138,13 +153,16 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
         => control.EvaluateAsync<string[]>("""
             element => {
                 const style = getComputedStyle(element);
+                const icon = [...element.querySelectorAll('.vpp-icon')]
+                    .find(candidate => Number.parseFloat(getComputedStyle(candidate).opacity || '1') > 0.5);
                 return [
                     style.borderTopWidth,
                     style.borderTopColor,
                     style.borderRadius,
                     style.backgroundColor,
                     style.boxShadow,
-                    style.transform
+                    style.transform,
+                    icon ? getComputedStyle(icon).color : ''
                 ];
             }
             """);

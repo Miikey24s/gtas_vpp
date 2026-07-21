@@ -344,6 +344,14 @@ a:hover {
     cursor: inherit;
 }
 
+.user-menu-trigger:hover {
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
+}
+
+.user-menu-trigger:hover .user-avatar {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-primary-400) 34%, transparent);
+}
+
 .vpp-page-header {
     display: flex;
     align-items: flex-start;

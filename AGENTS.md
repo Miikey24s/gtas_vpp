@@ -24,7 +24,12 @@
 ### Công cụ UI/UX cho AI agent
 
 - Tra Microsoft Learn MCP trước cho .NET, Blazor, ASP.NET Core, Aspire và tài liệu Microsoft; tra Radzen MCP trước khi sửa Radzen component/API; dùng Context7 cho package bên thứ ba khi tài liệu chính chủ chưa đủ.
+- Tài liệu vận hành Radzen MCP chính thức: https://www.radzen.com/blazor-mcp/documentation; khi cần đối chiếu markup/version, kiểm tra thêm package `Radzen.Blazor` thực tế trong repository.
 - Hạn mức Radzen MCP hiện tại là 50 request trong 15 ngày. Nếu Radzen MCP báo hết quota, key lỗi hoặc không còn truy cập được thì dừng toàn bộ công việc ngay và yêu cầu người dùng bổ sung key mới; không âm thầm làm tiếp bằng suy đoán.
+- Khi gọi Radzen MCP, dùng đúng tên component như `RadzenDataGrid`, `RadzenTabs`, `RadzenPanelMenu`; nêu rõ model, field, quan hệ dữ liệu, binding/event và hành vi cần đạt. Tránh câu hỏi rộng kiểu "làm cả trang" vì kết quả kém chính xác và tốn quota.
+- Chia truy vấn Radzen theo từng component hoặc vấn đề có thể kiểm chứng: lấy API/pattern cần thiết, đối chiếu source hiện tại, triển khai rồi test trước khi hỏi phần tiếp theo. Tái sử dụng kết quả đã có trong cùng task và chỉ gọi lại khi còn điểm chưa rõ.
+- Mẫu truy vấn ưu tiên: `<Tên component> + <bối cảnh/model hiện tại> + <hành vi cần đạt> + <ràng buộc accessibility/responsive/render mode>`. Ví dụ: `RadzenTabs: giữ label không xuống dòng, tablist cuộn ngang ở zoom 400%, full hitbox hover/focus, InteractiveServer`.
+- Radzen MCP là nguồn cho API, property, event và pattern đúng phiên bản; không thay thế việc đọc DOM/CSS của repository. Kết quả cuối phải được xác nhận bằng build, test và route thật trong browser.
 - Dùng Playwright MCP cho DOM/accessibility snapshot, interaction, screenshot, console và network của route thật. Dùng Chrome DevTools MCP khi cần trace performance hoặc debug sâu; chỉ kết nối browser/profile TEST riêng, không chứa tài khoản cá nhân, cookie hoặc secret.
 - Figma MCP chỉ bổ sung flow, token và design context. Với GTAS VPP, code/browser đã duyệt vẫn thắng Figma khi có khác biệt.
 - Screenshot thông thường chỉ là evidence. Chỉ gọi là visual regression khi đã có baseline được người dùng duyệt, môi trường/browser/viewport ổn định và phép so sánh tự động.

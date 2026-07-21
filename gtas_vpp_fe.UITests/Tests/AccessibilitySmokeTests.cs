@@ -1,3 +1,4 @@
+using Deque.AxeCore.Playwright;
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using Microsoft.Playwright;
@@ -89,6 +90,17 @@ public sealed class AccessibilitySmokeTests : TestBase
             audit[2].Should().Be(1, "the password visibility action needs an accessible name");
             audit[3].Should().Be(0, "deployment environment must not be a login control");
             audit[4].Should().Be(0, "Test/Live environment options must not be rendered");
+
+            var axeResult = await Page.RunAxe();
+            var blockingViolations = axeResult.Violations
+                .Where(violation =>
+                    string.Equals(violation.Impact, "critical", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(violation.Impact, "serious", StringComparison.OrdinalIgnoreCase))
+                .Select(violation =>
+                    $"{violation.Id} ({violation.Impact}): {violation.Help} — {violation.HelpUrl}")
+                .ToArray();
+            blockingViolations.Should().BeEmpty(
+                $"the login page must have no critical/serious axe violations at {viewport.Width}px");
 
             if (!string.IsNullOrWhiteSpace(evidenceDirectory))
             {

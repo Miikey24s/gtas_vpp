@@ -124,11 +124,20 @@
 .vpp-data-card-grid-shell {
     padding: 0;
     overflow: hidden;
+    border-color: var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    box-shadow: none;
     cursor: default;
 }
 
+.vpp-data-card-grid-shell:hover {
+    border-color: var(--vpp-border-default);
+    box-shadow: none;
+}
+
 .vpp-data-card-grid-shell .vpp-data-card-header {
-    padding: var(--vpp-space-5) var(--vpp-space-5) var(--vpp-space-3);
+    align-items: center;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
     margin-bottom: 0;
 }
 

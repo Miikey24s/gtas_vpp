@@ -54,18 +54,9 @@
     justify-content: center;
     font-weight: 700;
     font-size: 0.85rem;
-    cursor: pointer;
+    cursor: inherit;
     user-select: none;
-    transition: box-shadow var(--vpp-transition-fast), transform var(--vpp-transition-fast);
-}
-
-.user-avatar:hover {
-    box-shadow: 0 0 0 3px rgba(var(--vpp-primary-rgb), 0.3);
-    transform: scale(1.05);
-}
-
-.user-avatar:active {
-    transform: scale(0.95);
+    transition: box-shadow var(--vpp-transition-fast);
 }
 
 .user-avatar-lg {
@@ -86,13 +77,13 @@
     position: absolute;
     top: 48px;
     right: 0;
-    min-width: 260px;
+    width: min(310px, calc(100vw - 2rem));
     background: var(--vpp-bg-elevated);
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-lg);
     box-shadow: var(--vpp-shadow-lg);
     z-index: 1000;
-    padding: 0.75rem 0;
+    padding: 0.625rem;
     animation: userDropdownIn var(--vpp-transition-base);
     transform-origin: top right;
 }
@@ -105,33 +96,94 @@
 .user-dropdown-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem 0.75rem;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2);
+}
+
+.user-dropdown-identity {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
 }
 
 .user-dropdown-name {
+    overflow: hidden;
     font-weight: var(--vpp-font-weight-semibold);
     color: var(--vpp-text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.user-dropdown-department {
+.user-dropdown-login {
+    display: flex;
+    gap: var(--vpp-space-1);
+    align-items: baseline;
+    min-width: 0;
     font-size: var(--vpp-text-xs);
     color: var(--vpp-text-tertiary);
 }
 
-.user-dropdown-divider {
-    height: 1px;
-    background: var(--vpp-border-default);
-    margin: 0.25rem 0;
+.user-dropdown-login strong {
+    overflow: hidden;
+    color: var(--vpp-text-secondary);
+    font-family: var(--vpp-font-mono);
+    font-size: 0.72rem;
+    font-weight: var(--vpp-font-weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.user-dropdown-info {
-    display: flex;
+.user-dropdown-context {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    gap: var(--vpp-space-3);
+    margin-top: var(--vpp-space-2);
+    padding: var(--vpp-space-3);
+    border: 1px solid color-mix(in srgb, var(--vpp-primary-500) 16%, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-md);
+    background: color-mix(in srgb, var(--vpp-primary-500) 5%, var(--vpp-bg-surface));
+}
+
+.user-dropdown-context-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-primary-600);
+    background: color-mix(in srgb, var(--vpp-primary-500) 10%, transparent);
+}
+
+.user-dropdown-context-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.user-dropdown-context-copy small {
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-xs);
+}
+
+.user-dropdown-context-value {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-dropdown-code {
+    padding: 2px 6px;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-sm);
     color: var(--vpp-text-secondary);
+    background: var(--vpp-bg-elevated);
+    font-family: var(--vpp-font-mono);
+    font-size: 0.7rem;
+    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .user-dropdown-icon {
@@ -143,8 +195,8 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0.25rem 0.5rem 0;
-    padding: 0.625rem 0.75rem;
+    margin-top: var(--vpp-space-2);
+    padding: 0.625rem var(--vpp-space-3);
     border-radius: var(--vpp-radius-md);
     font-size: 0.875rem;
     color: var(--vpp-text-secondary) !important;
