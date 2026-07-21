@@ -333,7 +333,7 @@ public sealed class ReportService(VPPContext context) : IReportService
 
         var csv = new StringBuilder(Math.Max(1024, rows.Count * 120));
         csv.AppendLine("sep=,");
-        csv.AppendLine("Kỳ,Phòng ban,Mã đơn,Trạng thái,Đơn bổ sung,Mã vật tư,Tên vật tư,Số lượng,Đơn giá,Thành tiền");
+        csv.AppendLine("Kỳ,Phòng ban,Mã đơn,Trạng thái,Đơn bổ sung,Mã mặt hàng,Tên mặt hàng,Số lượng,Đơn giá,Thành tiền");
         foreach (var row in rows)
         {
             var amount = row.Qty * row.CurrentSinglePrice;

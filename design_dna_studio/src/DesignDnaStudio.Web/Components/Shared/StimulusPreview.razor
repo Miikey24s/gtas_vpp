@@ -73,15 +73,15 @@
                 else if (Spec.Context == "datagrid")
                 {
                     <div class="dna-preview-toolbar">
-                        <div class="dna-preview-search">Tìm vật tư...</div>
+                        <div class="dna-preview-search">Tìm mặt hàng...</div>
                         <div class="dna-preview-secondary">Bộ lọc</div>
                         <div class="dna-preview-primary compact">Thêm mới</div>
                     </div>
                     <div class="dna-preview-table">
-                        <div class="dna-preview-row header"><span>Mã</span><span>Tên vật tư</span><span>Nhóm</span><span>Trạng thái</span></div>
+                        <div class="dna-preview-row header"><span>Mã</span><span>Tên mặt hàng</span><span>Nhóm</span><span>Trạng thái</span></div>
                         @for (var index = 0; index < 4; index++)
                         {
-                            <div class="dna-preview-row"><span>VP-0@(index + 1)</span><span>Vật tư văn phòng @(index + 1)</span><span>Thiết yếu</span><span><b class="dna-preview-status">Sẵn sàng</b></span></div>
+                            <div class="dna-preview-row"><span>VP-0@(index + 1)</span><span>Mặt hàng văn phòng @(index + 1)</span><span>Thiết yếu</span><span><b class="dna-preview-status">Sẵn sàng</b></span></div>
                         }
                     </div>
                 }
@@ -137,7 +137,7 @@
 
     private string TitleForContext() => Spec.Context switch
     {
-        "datagrid" => "Thư viện vật tư",
+        "datagrid" => "Thư viện mặt hàng",
         "form" => "Tạo yêu cầu mới",
         _ => "Không gian vận hành"
     };

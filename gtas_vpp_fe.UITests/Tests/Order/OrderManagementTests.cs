@@ -131,7 +131,7 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         var wizard = Page.Locator(".vpp-wizard:visible");
         await wizard.WaitForAsync();
 
-        await (await GetInteractiveButtonAsync(wizard, "Thêm sản phẩm vào đơn")).ClickAsync();
+        await (await GetInteractiveButtonAsync(wizard, "Thêm mặt hàng vào đơn")).ClickAsync();
         await (await GetInteractiveButtonAsync(wizard, "Tiếp theo")).ClickAsync();
 
         if (verifyRequiredReason)

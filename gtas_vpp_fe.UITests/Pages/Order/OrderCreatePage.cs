@@ -16,7 +16,7 @@ namespace gtas_vpp_fe.UITests.Pages.Order
         public async Task WaitForLoadedAsync()
         {
             await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Back to Orders", RegexOptions.IgnoreCase) }).WaitForAsync();
-            await _page.GetByRole(AriaRole.Heading, new() { Name = "Product Catalog" }).WaitForAsync();
+            await _page.GetByRole(AriaRole.Heading, new() { Name = "Item catalog" }).WaitForAsync();
             await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Create Order", RegexOptions.IgnoreCase) }).WaitForAsync();
         }
 

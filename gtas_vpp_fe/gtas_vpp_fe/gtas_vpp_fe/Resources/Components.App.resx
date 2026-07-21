@@ -152,7 +152,7 @@
   <data name="Value" xml:space="preserve"><value>Giá trị</value></data>
   <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
   <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
-  <data name="ProductCatalog" xml:space="preserve"><value>Danh mục VPP</value></data>
+  <data name="ProductCatalog" xml:space="preserve"><value>Danh mục mặt hàng</value></data>
   <data name="DepartmentSummary" xml:space="preserve"><value>Đơn theo phòng ban</value></data>
   <data name="AllOrdersSummary" xml:space="preserve"><value>Toàn bộ đơn</value></data>
   <data name="AdminApproval" xml:space="preserve"><value>Duyệt đơn bổ sung</value></data>
@@ -173,7 +173,7 @@
   <data name="CopyPreviousOrder" xml:space="preserve"><value>Sao chép kỳ trước</value></data>
   <data name="ActiveOrderPeriod" xml:space="preserve"><value>Kỳ đặt hàng hiện tại</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Hạn gửi đơn</value></data>
-  <data name="TotalLineItems" xml:space="preserve"><value>Tổng dòng hàng</value></data>
+  <data name="TotalLineItems" xml:space="preserve"><value>Tổng mặt hàng</value></data>
   <data name="TotalQuantity" xml:space="preserve"><value>Tổng số lượng</value></data>
   <data name="RequestAdditional" xml:space="preserve"><value>Tạo đơn bổ sung</value></data>
   <data name="NoPermission" xml:space="preserve"><value>Bạn không có quyền xem trang này.</value></data>
@@ -246,12 +246,12 @@
   <data name="Cancelled" xml:space="preserve"><value>Đã hủy</value></data>
   <data name="CancelOrderAria" xml:space="preserve"><value>Hủy đơn {0}</value></data>
   <data name="Categories" xml:space="preserve"><value>Nhóm hàng</value></data>
-  <data name="ItemCode" xml:space="preserve"><value>Mã hàng</value></data>
-  <data name="ItemName" xml:space="preserve"><value>Tên hàng</value></data>
+  <data name="ItemCode" xml:space="preserve"><value>Mã mặt hàng</value></data>
+  <data name="ItemName" xml:space="preserve"><value>Tên mặt hàng</value></data>
   <data name="ItemsPerPage" xml:space="preserve"><value>mục/trang</value></data>
   <data name="Month" xml:space="preserve"><value>Tháng</value></data>
   <data name="No" xml:space="preserve"><value>Không</value></data>
-  <data name="NoCatalogProductsMatchQuery" xml:space="preserve"><value>Không có sản phẩm nào khớp truy vấn hiện tại.</value></data>
+  <data name="NoCatalogProductsMatchQuery" xml:space="preserve"><value>Không có mặt hàng nào khớp điều kiện tìm kiếm hiện tại.</value></data>
   <data name="NoDepartmentOrdersFound" xml:space="preserve"><value>Không có đơn phòng ban nào khớp bộ lọc đã chọn.</value></data>
   <data name="NoHistoryOrders" xml:space="preserve"><value>Không có lịch sử đơn hàng</value></data>
   <data name="NoOrdersFound" xml:space="preserve"><value>Chưa có đơn hàng</value></data>
@@ -259,6 +259,7 @@
   <data name="NoOrdersSubmittedCurrentPeriod" xml:space="preserve"><value>Bạn chưa gửi đơn nào trong kỳ này.</value></data>
   <data name="NoPendingAdditionalOrders" xml:space="preserve"><value>Không có đơn bổ sung nào cần duyệt.</value></data>
   <data name="NoPreviousPeriodOrders" xml:space="preserve"><value>Không có đơn ở kỳ trước</value></data>
+  <data name="PreviousPeriodOrders" xml:space="preserve"><value>Đơn kỳ trước</value></data>
   <data name="NoRegularOrdersFoundPreviousCycle" xml:space="preserve"><value>Không có đơn thường nào trong kỳ trước.</value></data>
   <data name="Note" xml:space="preserve"><value>Ghi chú</value></data>
   <data name="OrderApprovedSuccess" xml:space="preserve"><value>Đã duyệt đơn thành công.</value></data>
@@ -269,8 +270,8 @@
   <data name="PendingOrders" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
   <data name="Period" xml:space="preserve"><value>Kỳ</value></data>
   <data name="PreviousOrderPeriod" xml:space="preserve"><value>Kỳ trước</value></data>
-  <data name="ProductCode" xml:space="preserve"><value>Mã sản phẩm</value></data>
-  <data name="ProductName" xml:space="preserve"><value>Tên sản phẩm</value></data>
+  <data name="ProductCode" xml:space="preserve"><value>Mã mặt hàng</value></data>
+  <data name="ProductName" xml:space="preserve"><value>Tên mặt hàng</value></data>
   <data name="Rejected" xml:space="preserve"><value>Đã từ chối</value></data>
   <data name="Reject" xml:space="preserve"><value>Từ chối</value></data>
   <data name="RejectOrderAria" xml:space="preserve"><value>Từ chối đơn {0}</value></data>
@@ -281,15 +282,15 @@
   <data name="StatusUnknown" xml:space="preserve"><value>Không xác định</value></data>
   <data name="Submitted" xml:space="preserve"><value>Đã gửi</value></data>
   <data name="SubmittedDate" xml:space="preserve"><value>Ngày gửi</value></data>
-  <data name="SubmittedLabel" xml:space="preserve"><value>Ngày gửi:</value></data>
+  <data name="SubmittedLabel" xml:space="preserve"><value>Thời điểm gửi:</value></data>
   <data name="SubmittedPeriodClosed" xml:space="preserve"><value>Đã gửi (đã khóa kỳ)</value></data>
   <data name="TotalOrders" xml:space="preserve"><value>Tổng đơn</value></data>
-  <data name="TotalProducts" xml:space="preserve"><value>Tổng sản phẩm</value></data>
+  <data name="TotalProducts" xml:space="preserve"><value>Tổng mặt hàng</value></data>
   <data name="UOM" xml:space="preserve"><value>ĐVT</value></data>
   <data name="Year" xml:space="preserve"><value>Năm</value></data>
   <data name="Yes" xml:space="preserve"><value>Có</value></data>
-  <data name="AddAtLeastOneItemBeforeSubmitting" xml:space="preserve"><value>Hãy thêm ít nhất một sản phẩm trước khi gửi yêu cầu.</value></data>
-  <data name="AddProductToOrder" xml:space="preserve"><value>Thêm sản phẩm vào đơn</value></data>
+  <data name="AddAtLeastOneItemBeforeSubmitting" xml:space="preserve"><value>Hãy thêm ít nhất một mặt hàng trước khi gửi đơn.</value></data>
+  <data name="AddProductToOrder" xml:space="preserve"><value>Thêm mặt hàng vào đơn</value></data>
   <data name="AddToOrder" xml:space="preserve"><value>Thêm vào đơn</value></data>
   <data name="AlreadyAdded" xml:space="preserve"><value>Đã thêm</value></data>
   <data name="AlreadyAddedToOrder" xml:space="preserve"><value>Đã thêm vào đơn</value></data>
@@ -304,7 +305,7 @@
   <data name="CopyPrevious" xml:space="preserve"><value>Sao chép kỳ trước</value></data>
   <data name="CouldNotDetermineCurrentPeriodPleaseReload" xml:space="preserve"><value>Không xác định được kỳ hiện tại. Vui lòng tải lại trang.</value></data>
   <data name="CurrentStepHintContext" xml:space="preserve"><value>Xác nhận khung kỳ, loại yêu cầu và ghi chú hoặc lý do trước khi tiếp tục.</value></data>
-  <data name="CurrentStepHintProducts" xml:space="preserve"><value>Chọn sản phẩm, điều chỉnh số lượng và tạo giỏ yêu cầu.</value></data>
+  <data name="CurrentStepHintProducts" xml:space="preserve"><value>Chọn mặt hàng, điều chỉnh số lượng và hoàn thiện danh sách đặt.</value></data>
   <data name="CurrentStepHintReview" xml:space="preserve"><value>Rà soát số lượng và ghi chú lần cuối trước khi gửi đơn.</value></data>
   <data name="DeadlineIsToday" xml:space="preserve"><value>Hạn chót là hôm nay</value></data>
   <data name="DraftRestored" xml:space="preserve"><value>Đã khôi phục bản nháp</value></data>
@@ -312,7 +313,7 @@
   <data name="EditOrder" xml:space="preserve"><value>Sửa đơn</value></data>
   <data name="FailedToLoadPreviousOrderFormat" xml:space="preserve"><value>Tải đơn kỳ trước thất bại: {0}</value></data>
   <data name="FailedToSaveOrderFormat" xml:space="preserve"><value>Lưu đơn thất bại: {0}</value></data>
-  <data name="InvalidProductOrQuantity" xml:space="preserve"><value>Sản phẩm hoặc số lượng không hợp lệ.</value></data>
+  <data name="InvalidProductOrQuantity" xml:space="preserve"><value>Mặt hàng hoặc số lượng chưa hợp lệ.</value></data>
   <data name="ItemsCountFormat" xml:space="preserve"><value>{0} mục</value></data>
   <data name="LastSavedAtFormat" xml:space="preserve"><value>Lưu gần nhất lúc {0}</value></data>
   <data name="Lines" xml:space="preserve"><value>Dòng</value></data>
@@ -323,7 +324,7 @@
   <data name="LoadOrdersFailedFormat" xml:space="preserve"><value>Tải danh sách đơn thất bại: {0}</value></data>
   <data name="Mode" xml:space="preserve"><value>Chế độ</value></data>
   <data name="New" xml:space="preserve"><value>Mới</value></data>
-  <data name="NoItemsSelectedYetStartCatalogLeft" xml:space="preserve"><value>Chưa có sản phẩm nào được chọn. Hãy bắt đầu từ danh mục bên trái.</value></data>
+  <data name="NoItemsSelectedYetStartCatalogLeft" xml:space="preserve"><value>Chưa có mặt hàng nào được chọn. Hãy bắt đầu từ danh mục bên trái.</value></data>
   <data name="NoPermissionCreateOrEditOrders" xml:space="preserve"><value>Bạn không có quyền tạo hoặc sửa đơn hàng.</value></data>
   <data name="NoPreviousOrderFoundToCopy" xml:space="preserve"><value>Không tìm thấy đơn kỳ trước để sao chép.</value></data>
   <data name="Notes" xml:space="preserve"><value>Ghi chú</value></data>
@@ -335,12 +336,12 @@
   <data name="OrderToUpdateNotFound" xml:space="preserve"><value>Không tìm thấy đơn cần cập nhật.</value></data>
   <data name="OrderUpdatedSuccessfully" xml:space="preserve"><value>Cập nhật đơn thành công.</value></data>
   <data name="OrdersTitleFormat" xml:space="preserve"><value>Đơn hàng - {0}</value></data>
-  <data name="PleaseSelectAtLeastOneProduct" xml:space="preserve"><value>Vui lòng chọn ít nhất một sản phẩm.</value></data>
+  <data name="PleaseSelectAtLeastOneProduct" xml:space="preserve"><value>Vui lòng chọn ít nhất một mặt hàng.</value></data>
   <data name="ProvideReasonBeforeContinue" xml:space="preserve"><value>Vui lòng nhập lý do cho đơn bổ sung trước khi tiếp tục.</value></data>
   <data name="ReadyToSubmitItemsTotalQuantityFormat" xml:space="preserve"><value>Sẵn sàng gửi {0} mục với tổng số lượng {1}.</value></data>
-  <data name="RemainingDeadlineDaysFormat" xml:space="preserve"><value>Còn lại: {0} ngày</value></data>
+  <data name="RemainingDeadlineDaysFormat" xml:space="preserve"><value>Còn {0} ngày</value></data>
   <data name="Remove" xml:space="preserve"><value>Xóa</value></data>
-  <data name="RemoveItemFromOrder" xml:space="preserve"><value>Xóa sản phẩm khỏi đơn</value></data>
+  <data name="RemoveItemFromOrder" xml:space="preserve"><value>Xóa mặt hàng khỏi đơn</value></data>
   <data name="RestoredDraft" xml:space="preserve"><value>Đã khôi phục nháp</value></data>
   <data name="Saving" xml:space="preserve"><value>Đang lưu...</value></data>
   <data name="Selected" xml:space="preserve"><value>Đã chọn</value></data>
@@ -352,7 +353,7 @@
   <data name="WizardAdditionalReasonHint" xml:space="preserve"><value>Trường này bắt buộc với đơn bổ sung.</value></data>
   <data name="WizardAdditionalReasonLabel" xml:space="preserve"><value>Lý do cho đơn bổ sung *</value></data>
   <data name="WizardAdditionalReasonRequired" xml:space="preserve"><value>Cần nhập lý do cho đơn bổ sung.</value></data>
-  <data name="WizardAISearchCopy" xml:space="preserve"><value>Tìm bằng ngôn ngữ tự nhiên, từ khóa trộn hoặc một phần tên sản phẩm.</value></data>
+  <data name="WizardAISearchCopy" xml:space="preserve"><value>Tìm bằng ngôn ngữ tự nhiên, từ khóa kết hợp hoặc một phần tên mặt hàng.</value></data>
   <data name="WizardApprovalRequired" xml:space="preserve"><value>Cần duyệt</value></data>
   <data name="WizardApproverNotesHint" xml:space="preserve"><value>Ghi chú</value></data>
   <data name="WizardApproverNotesLabel" xml:space="preserve"><value>Ghi chú cho người duyệt</value></data>
@@ -372,10 +373,10 @@
   <data name="WizardModeEditingExistingOrder" xml:space="preserve"><value>Đang sửa đơn hiện có</value></data>
   <data name="WizardModeNewDesc" xml:space="preserve"><value>Yêu cầu định kỳ cho kỳ đang mở.</value></data>
   <data name="WizardModeRegularRequest" xml:space="preserve"><value>Yêu cầu định kỳ</value></data>
-  <data name="WizardNoItemsSelected" xml:space="preserve"><value>Chưa chọn sản phẩm</value></data>
-  <data name="WizardNoItemsSelectedDesc" xml:space="preserve"><value>Dùng danh mục để thêm sản phẩm, rồi điều chỉnh số lượng tại đây.</value></data>
-  <data name="WizardNoItemsToSubmit" xml:space="preserve"><value>Không có sản phẩm để gửi</value></data>
-  <data name="WizardNoItemsToSubmitDesc" xml:space="preserve"><value>Quay lại Bước 2 và thêm sản phẩm vào đơn.</value></data>
+  <data name="WizardNoItemsSelected" xml:space="preserve"><value>Chưa chọn mặt hàng</value></data>
+  <data name="WizardNoItemsSelectedDesc" xml:space="preserve"><value>Dùng danh mục để thêm mặt hàng, rồi điều chỉnh số lượng tại đây.</value></data>
+  <data name="WizardNoItemsToSubmit" xml:space="preserve"><value>Không có mặt hàng để gửi</value></data>
+  <data name="WizardNoItemsToSubmitDesc" xml:space="preserve"><value>Quay lại Bước 2 và thêm mặt hàng vào đơn.</value></data>
   <data name="WizardOrderModeSummaryAdditional" xml:space="preserve"><value>Yêu cầu này nhắm vào kỳ đã khóa và sẽ đi qua luồng duyệt bổ sung.</value></data>
   <data name="WizardOrderModeSummaryCopy" xml:space="preserve"><value>Các mặt hàng kỳ trước đã được nạp sẵn để bạn điều chỉnh nhanh trước khi gửi lại.</value></data>
   <data name="WizardOrderModeSummaryCreate" xml:space="preserve"><value>Tìm trong danh mục, tạo giỏ hàng và kiểm tra lần cuối trước khi gửi yêu cầu.</value></data>
@@ -384,10 +385,10 @@
   <data name="WizardOrderReviewTitle" xml:space="preserve"><value>Xác nhận đơn hàng</value></data>
   <data name="WizardPeriodWindowCopy" xml:space="preserve"><value>Dịch vụ kỳ ở backend đã xác định đúng chu kỳ. Yêu cầu này sẽ được gửi theo khoảng thời gian bên dưới.</value></data>
   <data name="WizardPeriodWindowTitle" xml:space="preserve"><value>Khung thời gian kỳ</value></data>
-  <data name="WizardProductCatalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>
+  <data name="WizardProductCatalog" xml:space="preserve"><value>Danh mục mặt hàng</value></data>
   <data name="WizardQtyBadgeFormat" xml:space="preserve"><value>Số lượng: {0}</value></data>
   <data name="WizardRegularRequest" xml:space="preserve"><value>Yêu cầu thông thường</value></data>
-  <data name="WizardRequestContextCopy" xml:space="preserve"><value>Xác nhận kỳ đích, loại yêu cầu và ghi chú mà người duyệt sẽ thấy trước khi bạn bắt đầu thêm sản phẩm.</value></data>
+  <data name="WizardRequestContextCopy" xml:space="preserve"><value>Xác nhận kỳ đặt hàng, loại đơn và ghi chú người duyệt sẽ thấy trước khi bạn thêm mặt hàng.</value></data>
   <data name="WizardRequestContextTitle" xml:space="preserve"><value>Bối cảnh yêu cầu</value></data>
   <data name="WizardReviewFooterCopy" xml:space="preserve"><value>Bạn vẫn có thể chỉnh số lượng hoặc xóa dòng trước khi gửi cuối cùng.</value></data>
   <data name="WizardRowsAddedFoot" xml:space="preserve"><value>Các dòng đã thêm vào đơn sẽ được tô nổi để bạn tiếp tục duyệt mà không mất ngữ cảnh.</value></data>
@@ -438,7 +439,7 @@
   <data name="AllMonths" xml:space="preserve"><value>Tất cả tháng</value></data>
   <data name="AllYears" xml:space="preserve"><value>Tất cả năm</value></data>
   <data name="ApplyFilters" xml:space="preserve"><value>Áp dụng</value></data>
-  <data name="Catalog" xml:space="preserve"><value>Danh mục sản phẩm</value></data>
+  <data name="Catalog" xml:space="preserve"><value>Danh mục mặt hàng</value></data>
   <data name="CloseNavigation" xml:space="preserve"><value>Đóng điều hướng</value></data>
   <data name="GeneratedAt" xml:space="preserve"><value>Cập nhật lúc {0}</value></data>
   <data name="HidePassword" xml:space="preserve"><value>Ẩn mật khẩu</value></data>
@@ -482,8 +483,8 @@
   <data name="ShowPassword" xml:space="preserve"><value>Hiện mật khẩu</value></data>
   <data name="SkipToContent" xml:space="preserve"><value>Chuyển đến nội dung chính</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Đóng hoặc mở điều hướng</value></data>
-  <data name="TopProducts" xml:space="preserve"><value>Vật tư được yêu cầu nhiều nhất</value></data>
-  <data name="TopProductsDescription" xml:space="preserve"><value>Top 10 vật tư theo tổng số lượng yêu cầu.</value></data>
+  <data name="TopProducts" xml:space="preserve"><value>Mặt hàng được yêu cầu nhiều nhất</value></data>
+  <data name="TopProductsDescription" xml:space="preserve"><value>10 mặt hàng có tổng số lượng yêu cầu cao nhất.</value></data>
   <data name="TotalAmount" xml:space="preserve"><value>Tổng giá trị</value></data>
   <data name="Unread" xml:space="preserve"><value>Chưa đọc</value></data>
   <data name="UnreadNotificationCount" xml:space="preserve"><value>{0} thông báo chưa đọc</value></data>
@@ -492,7 +493,7 @@
   <data name="Previous" xml:space="preserve"><value>Quay lại</value></data>
   <data name="Regular" xml:space="preserve"><value>Đơn thường</value></data>
   <data name="ReviewSubmit" xml:space="preserve"><value>Kiểm tra và gửi</value></data>
-  <data name="SelectProducts" xml:space="preserve"><value>Chọn vật tư</value></data>
+  <data name="SelectProducts" xml:space="preserve"><value>Chọn mặt hàng</value></data>
   <data name="PrimaryNavigation" xml:space="preserve"><value>Điều hướng chính</value></data>
   <data name="CurrentDate" xml:space="preserve"><value>Ngày hiện tại</value></data>
   <data name="PageNotFound" xml:space="preserve"><value>Không tìm thấy trang</value></data>
@@ -511,7 +512,7 @@
   <data name="RequestInvalid" xml:space="preserve"><value>Yêu cầu chưa hợp lệ.</value></data>
   <data name="RateLimited" xml:space="preserve"><value>Quá nhiều yêu cầu trong thời gian ngắn. Vui lòng thử lại sau.</value></data>
   <data name="RequestFailed" xml:space="preserve"><value>Không thể hoàn tất yêu cầu. Vui lòng thử lại.</value></data>
-  <data name="LibraryPageDescription" xml:space="preserve"><value>Quản lý danh mục, vật tư, nhà cung cấp và bảng giá dùng chung.</value></data>
+  <data name="LibraryPageDescription" xml:space="preserve"><value>Quản lý danh mục mặt hàng, nhà cung cấp và bảng giá dùng chung.</value></data>
   <data name="PermissionPageDescription" xml:space="preserve"><value>Quản lý người dùng, nhóm quyền và phạm vi truy cập của hệ thống.</value></data>
   <data name="ReportPageDescription" xml:space="preserve"><value>Theo dõi KPI, xu hướng và dữ liệu tổng hợp theo phạm vi được cấp quyền.</value></data>
   <data name="SubmissionDeadline" xml:space="preserve"><value>Hạn gửi đơn:</value></data>
@@ -519,17 +520,21 @@
   <data name="SupplementQuotaSummary" xml:space="preserve"><value>Còn {0}/{1} lượt bổ sung được duyệt</value></data>
   <data name="SupplementAttemptSummary" xml:space="preserve"><value>Còn {0}/{1} lần gửi bổ sung</value></data>
   <data name="SupplementUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn bổ sung.</value></data>
-  <data name="OrdersStoryEmptyTitle" xml:space="preserve"><value>Bắt đầu đơn hàng kỳ này</value></data>
-  <data name="OrdersStoryActiveTitle" xml:space="preserve"><value>Theo dõi đơn hàng kỳ này</value></data>
+  <data name="OrdersStoryEmptyTitle" xml:space="preserve"><value>Bạn chưa gửi đơn</value></data>
+  <data name="OrdersStoryActiveTitle" xml:space="preserve"><value>Đơn đã gửi</value></data>
   <data name="OrdersStoryOpenDescriptionFormat" xml:space="preserve"><value>Còn {0} ngày để gửi đơn, hạn chót {1}.</value></data>
   <data name="OrdersStoryTodayDescriptionFormat" xml:space="preserve"><value>Hạn gửi đơn là hôm nay, {0}.</value></data>
   <data name="OrdersStoryClosedDescription" xml:space="preserve"><value>Kỳ đặt hàng đã đóng. Bạn vẫn có thể xem lại đơn và lịch sử xử lý.</value></data>
-  <data name="OrderPeriodOpen" xml:space="preserve"><value>Đang nhận đơn</value></data>
+  <data name="OrderPeriodOpen" xml:space="preserve"><value>Kỳ đang mở</value></data>
   <data name="OrderPeriodClosed" xml:space="preserve"><value>Đã đóng kỳ</value></data>
   <data name="OrdersInCurrentPeriod" xml:space="preserve"><value>Đơn trong kỳ</value></data>
   <data name="RegularOrdersCurrentPeriod" xml:space="preserve"><value>Đơn thường kỳ này</value></data>
   <data name="CurrentOrderMetrics" xml:space="preserve"><value>Tổng quan đơn kỳ hiện tại</value></data>
   <data name="SupplementCapacity" xml:space="preserve"><value>Hạn mức bổ sung</value></data>
+  <data name="CurrentOrderDetails" xml:space="preserve"><value>Chi tiết đơn</value></data>
+  <data name="LatestSubmissionDateFormat" xml:space="preserve"><value>Gửi gần nhất · {0}</value></data>
+  <data name="SubmittedAtInlineFormat" xml:space="preserve"><value>Gửi lúc {0}</value></data>
+  <data name="MostRequestedItemFormat" xml:space="preserve"><value>Nhiều nhất · {0}</value></data>
   <data name="NoCurrentRegularOrders" xml:space="preserve"><value>Chưa có đơn thường trong kỳ này</value></data>
   <data name="NoCurrentRegularOrdersNextStep" xml:space="preserve"><value>Dùng nút tạo đơn phía trên để bắt đầu; bạn cũng có thể sao chép dữ liệu kỳ trước nếu có.</value></data>
   <data name="PreviousOrderCountFormat" xml:space="preserve"><value>{0} đơn</value></data>

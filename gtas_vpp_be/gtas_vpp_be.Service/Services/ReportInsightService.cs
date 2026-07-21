@@ -206,7 +206,7 @@ public static class ReportInsightRules
         {
             english
                 ? $"{report.TotalOrders:N0} orders contain {report.TotalQuantity:N0} requested units, with a total value of {report.TotalAmount:N0}."
-                : $"{report.TotalOrders:N0} đơn gồm {report.TotalQuantity:N0} sản phẩm được yêu cầu, tổng giá trị {report.TotalAmount:N0} đồng.",
+                : $"{report.TotalOrders:N0} đơn có tổng số lượng yêu cầu {report.TotalQuantity:N0}, tổng giá trị {report.TotalAmount:N0} đồng.",
             english
                 ? $"Average value per order is {averageAmount:N0}."
                 : $"Giá trị trung bình mỗi đơn là {averageAmount:N0} đồng."
@@ -215,8 +215,8 @@ public static class ReportInsightRules
         if (topProduct is not null)
         {
             highlights.Add(english
-                ? $"The most requested product is {topProduct.ProductName} ({topProduct.TotalQuantity:N0} units)."
-                : $"Vật tư được yêu cầu nhiều nhất là {topProduct.ProductName} ({topProduct.TotalQuantity:N0} sản phẩm)."
+                ? $"The most requested item is {topProduct.ProductName} ({topProduct.TotalQuantity:N0} units)."
+                : $"Mặt hàng được yêu cầu nhiều nhất là {topProduct.ProductName} (số lượng {topProduct.TotalQuantity:N0})."
             );
         }
 
@@ -227,11 +227,11 @@ public static class ReportInsightRules
             && topProduct.TotalQuantity * 100L / report.TotalQuantity >= 50)
         {
             risks.Add(english
-                ? "Demand is concentrated in one product, which can increase supply disruption impact."
-                : "Nhu cầu tập trung vào một vật tư, có thể làm tăng ảnh hưởng khi nguồn cung gián đoạn.");
+                ? "Demand is concentrated in one item, which can increase supply disruption impact."
+                : "Nhu cầu tập trung vào một mặt hàng, có thể làm tăng ảnh hưởng khi nguồn cung gián đoạn.");
             recommendations.Add(english
-                ? "Review safety stock and alternative suppliers for the leading product."
-                : "Rà soát tồn kho an toàn và nhà cung cấp thay thế cho vật tư đứng đầu.");
+                ? "Review safety stock and alternative suppliers for the leading item."
+                : "Rà soát tồn kho an toàn và nhà cung cấp thay thế cho mặt hàng đứng đầu.");
         }
 
         if (topDepartment is not null
@@ -265,8 +265,8 @@ public static class ReportInsightRules
         if (recommendations.Count == 0)
         {
             recommendations.Add(english
-                ? "Continue monitoring product and department concentration when new periods are added."
-                : "Tiếp tục theo dõi mức tập trung theo vật tư và phòng ban khi có thêm kỳ dữ liệu.");
+                ? "Continue monitoring item and department concentration when new periods are added."
+                : "Tiếp tục theo dõi mức tập trung theo mặt hàng và phòng ban khi có thêm kỳ dữ liệu.");
         }
 
         return new ReportInsightResDTO

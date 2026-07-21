@@ -14,7 +14,7 @@ namespace gtas_vpp_fe.UITests.Pages.Order
 
         public async Task NavigateToProductCatalogTabAsync()
         {
-            await _page.Locator("text='Product Catalog'").ClickAsync();
+            await _page.Locator("text='Item catalog'").ClickAsync();
         }
 
         public async Task<int> GetGridRowCountAsync()
