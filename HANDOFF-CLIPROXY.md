@@ -76,7 +76,7 @@ Mục tiêu kỹ thuật/nghiệp vụ:
 | D-002 | Single-company v1. Giữ key/migration đủ sạch để mở rộng sau, nhưng không over-engineer multi-tenant. |
 | D-003 | Mỗi user chỉ có một request thường trong mỗi kỳ. Hủy giữ lịch sử; thay đổi/hủy tạo revision có liên kết. Cuối kỳ gom toàn công ty rồi phân bổ lại về request/phòng ban. Không giả vờ có inventory/receipt nếu chưa làm. |
 | D-004 | Bốn persona phẳng: Employee, Department Approver, Procurement/Period Admin, System Admin. Một active group và một primary department; self-approval/four-eyes được chặn. System Admin không tự có quyền procurement. |
-| D-005 | Supplement bắt buộc có request gốc và reason; một pending tại một thời điểm; `MaxApproved=3` theo user/base/period mặc định; rejected/cancelled không tiêu quota approved nhưng mọi attempt audit; `MaxAttempts=6`; có approval grace deadline. |
+| D-005 | Supplement bắt buộc có request gốc và reason; một pending tại một thời điểm; `MaxApproved=1` theo user/base/period mặc định; rejected/cancelled không tiêu quota approved nhưng mọi attempt audit; `MaxAttempts=6`; có approval grace deadline. |
 | D-006 | Một `PrimarySupplier` cho toàn bộ basket của công ty/kỳ theo effective settlement revision để hưởng giá sỉ. Item exception chỉ khi thiếu/không có giá, phải có permission và actor/time/reason; không fallback im lặng. Đổi NCC phải là correction revision bất biến. |
 | D-007 | Đơn giá lưu net chưa VAT; VAT lấy theo price-book/contract; settlement snapshot net, rate và gross. |
 | D-008 | Self-register → `PendingApproval` zero privilege → admin map employee/department/group → activate. Username/email unique; employee code unique nếu có; email confirm/reset khi cấu hình được, nếu không dùng admin fallback có audit; rate-limit và anti-enumeration bắt buộc. |

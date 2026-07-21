@@ -11,7 +11,7 @@ The existing “maximum three” rule lacks a stable quota key, concurrency cont
 
 ## Decision
 
-A supplement must link to the user’s regular base request and include a reason. Configure `MaxApproved` per user/base request/period, default 3; allow at most one Pending supplement. Rejected/cancelled attempts do not consume the final approved quota but remain audited. Configure a separate anti-spam `MaxAttempts`, default 6 for the demo.
+A supplement must link to the user’s regular base request and include a reason. Configure `MaxApproved` per user/base request/period, default 1; allow at most one Pending supplement. Rejected/cancelled attempts do not consume the final approved quota but remain audited. Configure a separate anti-spam `MaxAttempts`, default 6 for the demo.
 
 Creation closes with the regular submission deadline. An existing Pending item may be approved until the period’s separate `SupplementApprovalDeadline`. A pending or ambiguous supplement blocks settlement.
 

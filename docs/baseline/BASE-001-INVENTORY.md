@@ -215,7 +215,7 @@ All commands re-evaluate server-side period state/time; client clocks are not au
 
 1. A supplement created before regular close enters Pending and blocks settlement while unresolved.
 2. It may be approved after `SubmissionClosed` only before `SupplementApprovalDeadline`; an approved item joins the basket, while rejected/cancelled attempts remain audit facts.
-3. `MaxApproved=3` per user/base request/period, one Pending and `MaxAttempts=6` by demo default; concurrent operations cannot exceed the invariants.
+3. `MaxApproved=1` per user/base request/period, one Pending and `MaxAttempts=6` by demo default; concurrent operations cannot exceed the invariants.
 4. Self-approval is 403 under ADR-004.
 
 ### Whole-company basket and allocation fixture (VND)

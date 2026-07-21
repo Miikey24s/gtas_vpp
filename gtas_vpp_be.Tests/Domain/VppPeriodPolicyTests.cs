@@ -14,7 +14,7 @@ public sealed class VppPeriodPolicyTests
 
         Assert.Equal(5, policy.DeadlineDay);
         Assert.Equal(2, policy.SupplementApprovalGraceDays);
-        Assert.Equal(3, policy.MaxApprovedSupplements);
+        Assert.Equal(1, policy.MaxApprovedSupplements);
         Assert.Equal(6, policy.MaxSupplementAttempts);
     }
 

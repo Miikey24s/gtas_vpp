@@ -1399,10 +1399,10 @@ namespace gtas_vpp_be.Service.Services
                 IsDeadlinePassed = deadlinePassed,
                 HasCurrentPeriodOrder = hasCurrentOrder,
                 AdditionalOrderCount = additionalCount,
-                MaxAdditionalOrders = 3,
+                MaxAdditionalOrders = _policy.MaxApprovedSupplements,
                 HasPendingAdditional = hasPendingAdditional,
                 CanCreateOrder = !deadlinePassed && !hasCurrentOrder,
-                CanCreateAdditional = additionalCount < 3 && !hasPendingAdditional,
+                CanCreateAdditional = additionalCount < _policy.MaxApprovedSupplements && !hasPendingAdditional,
                 HasPreviousOrder = hasPreviousOrder,
                 CanCopyPrevious = !deadlinePassed && !hasCurrentOrder && hasPreviousOrder
             };

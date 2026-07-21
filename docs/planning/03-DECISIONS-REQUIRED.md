@@ -144,7 +144,7 @@ Cột trên chỉ liệt kê **direct decision touchpoints** và phải đồng 
 
 **Khuyến nghị:** A. Deadline cấu hình trong Period, không hard-code ngày khác; approver và rejected/resubmit semantics phải nằm trong audit/state transition.
 
-**Quyết định 15/07/2026:** Chọn A. Default tạo supplement không muộn hơn regular submission deadline; approval có thể tiếp tục trong `SubmissionClosed` đến `SupplementApprovalDeadline` cấu hình của Period. Rejected/cancelled không chiếm quota cuối nhưng mọi attempt/revision được audit. Để chống spam mà không biến thành quota nghiệp vụ, thêm `MaxAttempts` cấu hình riêng (mặc định 6 cho demo); giá trị này có thể điều chỉnh bằng config/ADR mà không đổi `MaxApproved=3`.
+**Quyết định 15/07/2026:** Chọn A. Default tạo supplement không muộn hơn regular submission deadline; approval có thể tiếp tục trong `SubmissionClosed` đến `SupplementApprovalDeadline` cấu hình của Period. Rejected/cancelled không chiếm quota cuối nhưng mọi attempt/revision được audit. Để chống spam mà không biến thành quota nghiệp vụ, thêm `MaxAttempts` cấu hình riêng (mặc định 6 cho demo); `MaxApproved=1` là quota nghiệp vụ mặc định hiện hành.
 
 **Nếu chưa quyết định:** Không thể thiết kế constraint/quota/report supplement rate.
 

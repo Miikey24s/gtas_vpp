@@ -487,7 +487,7 @@ original scope so reduced/folded alternatives remain auditable.
 | Frontend | Eligibility explanation, remaining quota, reason validator, base link, approve/reject reason, clear status badges. |
 | Backend | Atomic create/approve/reject/resubmit; resource scope; no self-approval if four-eyes. |
 | Database | BaseRequestId, Sequence, Reason, State, reviewer/audit, rowversion; pending uniqueness/app lock/quota và configurable `MaxAttempts`. |
-| Business rule | `MaxApproved=3` per user/base/period; one pending; rejected/cancelled không chiếm quota approved nhưng audit; `MaxAttempts` là anti-spam cap cấu hình riêng (mặc định 6 cho demo), áp dụng cả reject/resubmit; create trước submission deadline, approval trước SupplementApprovalDeadline; pending blocks settlement. |
+| Business rule | `MaxApproved=1` per user/base/period; one pending; rejected/cancelled không chiếm quota approved nhưng audit; `MaxAttempts` là anti-spam cap cấu hình riêng (mặc định 6 cho demo), áp dụng cả reject/resubmit; create trước submission deadline, approval trước SupplementApprovalDeadline; pending blocks settlement. |
 | Tests | Four concurrent create never exceed max/one pending; repeated reject→resubmit/cancel obeys MaxAttempts while approved quota remains correct; approval scope; stale/retry; deadline; no base request. |
 | Verification | SQL concurrency integration, UI manager/employee flow, report reconciliation. |
 | Acceptance | Policy enforced DB/server, not only UI; lineage/audit complete; state colors/terms unambiguous. |
@@ -1314,7 +1314,7 @@ Trước `REL-001`, phải chứng minh tối thiểu:
 - Concurrent membership assign: một commit, một 409; last admin không thể mất.
 - Kỳ đổi đúng tại 04:59:59/05:00 giờ Việt Nam qua tháng/năm.
 - Concurrent regular create chỉ một current revision; replacement/cancel vẫn giữ history; Settled immutable.
-- Bốn supplement đồng thời không vượt `MaxApproved=3`, `MaxAttempts` và tối đa một Pending; reject/resubmit/cancel không làm sai approved quota.
+- Bốn supplement đồng thời không vượt `MaxApproved=1`, `MaxAttempts` và tối đa một Pending; reject/resubmit/cancel không làm sai approved quota.
 - Whole-company settlement chặn pending/missing/ambiguous; mọi dòng phải có resolved supplier/quote sau exception được audit; đúng một NCC chính trên mỗi effective revision, correction có thể đổi supplier nhưng revision cũ bất biến; duplicate key one settlement; snapshot không đổi sau price edit.
 - Settlement header/item/charge/allocation reconcile: subtotal − discount + fee + VAT = grand total; tổng phân bổ phòng ban bằng tổng settlement sau deterministic rounding.
 - KPI requested/approved/settled/allocation/savings tách và reconcile SQL; savings chỉ hiển thị khi có baseline snapshot so sánh được; scope không leak.

@@ -12,7 +12,7 @@ public sealed class VppRequestPolicy
 {
     public const int DefaultDeadlineDay = 5;
     public const int DefaultSupplementApprovalGraceDays = 2;
-    public const int DefaultMaxApprovedSupplements = 3;
+    public const int DefaultMaxApprovedSupplements = 1;
     public const int DefaultMaxSupplementAttempts = 6;
 
     public VppRequestPolicy(
