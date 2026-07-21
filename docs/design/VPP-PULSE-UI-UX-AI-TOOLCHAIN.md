@@ -56,7 +56,8 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 ### Figma Make / Opus 4.8 Build
 
 - Dùng `Guidelines.md` làm context định tuyến, `gtas_vpp_fe_react/Guidelines.md` làm invariant tối thiểu và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm bối cảnh sản phẩm.
-- Chỉ dùng một prompt tiếng Việt trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Opus tự thiết kế và dựng trực tiếp prototype để owner xem; không bắt tạo `plan.md`, không yêu cầu owner chọn style trước.
+- Upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` làm text attachment và dùng một prompt tiếng Việt ngắn trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Opus tự thiết kế và dựng trực tiếp Phase 1 để owner xem; không bắt tạo `plan.md`, không yêu cầu owner chọn style trước.
+- Với app phức tạp, làm theo phase và screen/workspace thay vì một prompt full end-to-end. Context attachment được giữ xuyên conversation; prompt tiếp theo chỉ giao workspace/state cần mở rộng sau owner review.
 - Bắt đầu phiên Make mới khi source/context cũ đã lỗi thời; không tiếp tục từ chat hoặc code snapshot cũ.
 - Nếu có Make on local codebase beta: fetch latest `origin/Nam`, tạo `figma/*`, review diff/test và mở PR. Nếu chỉ có Make prototype/GitHub push kiểu cũ: coi output là prototype/repository trung gian vì sync là một chiều, rồi tích hợp thủ công qua Codex.
 - Attachment chỉ gồm file cần cho route hiện tại, nêu rõ file nào là authority hay inspiration; không tải secret, cookie, token, connection string hoặc dữ liệu production.

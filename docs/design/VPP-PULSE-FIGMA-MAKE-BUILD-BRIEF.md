@@ -18,11 +18,16 @@ interaction, motion và cách trình bày dữ liệu. Không cần bảo toàn 
 hiện tại và không phải làm giống Blazor, React cũ, Personal Design DNA hoặc một
 sản phẩm tham khảo nào.
 
-Dùng đúng một prompt tự chứa trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
-Không yêu cầu Figma đọc file/path GitHub vì chúng không tồn tại trong Make
-workspace. Prompt đã nhúng route, persona, permission, business rule, state và
-mock data cần thiết. Agent phải dựng thẳng giao diện để owner review, không dừng
-ở `plan.md`.
+Upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` làm text attachment, sau đó dùng đúng
+một prompt ngắn trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Không yêu cầu
+Figma đọc file/path GitHub vì chúng không tồn tại trong Make workspace. Context
+attachment chứa route, persona, permission, business rule, state và mock data;
+prompt chỉ giao phase cần xây. Agent dựng thẳng giao diện để owner review, không
+dừng ở `plan.md`.
+
+Không yêu cầu Make hoàn thiện hơn 30 màn hình trong one-shot. Phase 1 khóa design
+system, App Shell, Auth và Employee north star; các workspace còn lại được tiếp
+tục sau khi owner đã phản hồi trực quan.
 
 ## 2. Bối cảnh sản phẩm
 
