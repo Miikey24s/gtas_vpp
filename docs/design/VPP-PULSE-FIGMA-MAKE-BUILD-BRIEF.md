@@ -7,6 +7,8 @@
 > **Frontend:** `gtas_vpp_fe_react/` — React + TypeScript + Tailwind + shadcn/ui
 >
 > **Mục tiêu:** tự thiết kế một prototype đầy đủ để owner xem và phản hồi
+>
+> **Môi trường thực tế:** Figma Make workspace trống, không đọc được repository
 
 ## 1. Cách dùng tài liệu này
 
@@ -16,8 +18,11 @@ interaction, motion và cách trình bày dữ liệu. Không cần bảo toàn 
 hiện tại và không phải làm giống Blazor, React cũ, Personal Design DNA hoặc một
 sản phẩm tham khảo nào.
 
-Dùng đúng một prompt trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`. Agent phải
-dựng thẳng giao diện để owner review, không dừng ở `plan.md`.
+Dùng đúng một prompt tự chứa trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
+Không yêu cầu Figma đọc file/path GitHub vì chúng không tồn tại trong Make
+workspace. Prompt đã nhúng route, persona, permission, business rule, state và
+mock data cần thiết. Agent phải dựng thẳng giao diện để owner review, không dừng
+ở `plan.md`.
 
 ## 2. Bối cảnh sản phẩm
 

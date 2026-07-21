@@ -550,6 +550,7 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-21 | Lịch sử đơn/settlement giữ snapshot bất biến | Đổi bản dịch reference data không rewrite evidence; print/export lịch sử phải dùng snapshot, còn catalog/library dùng display text đã resolve |
 | 2026-07-21 | Figma Make phải re-baseline từ latest `Nam` | Dùng source/context hiện hành và branch `figma/*` nếu chỉnh code; không push trực tiếp hoặc xem prototype là source authority |
 | 2026-07-21 | Trao toàn quyền visual cho Figma agent | Dùng một prompt tiếng Việt, không khóa art direction hoặc bắt plan-first; agent dựng trực tiếp prototype đầy đủ để owner review |
+| 2026-07-21 | Figma Make thực tế là workspace trống | Prompt phải tự chứa route, persona, permission, workflow, state và mock data; không tham chiếu file/path repository mà Make không thể đọc |
 
 ## 18. Immediate execution queue
 
