@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — REACT TARGET FRONTEND`
 >
-> **Phiên bản:** `1.0` — 2026-07-20
+> **Phiên bản:** `1.1` — 2026-07-21
 >
 > **Mục tiêu:** Thiết kế và xây dựng đầy đủ frontend React tốt hơn cho GTAS VPP, bảo toàn business invariant, dữ liệu, permission và audit bắt buộc nhưng được quyền tối ưu lại information architecture, route, workflow, API contract và cách trình bày; sau đó cutover có kiểm soát khỏi Blazor/Radzen.
 >
@@ -75,6 +75,17 @@ Không thay API/database chỉ để che một implementation frontend yếu. Đ
 | Automated QA | GREEN | React check/build, E2E 3 viewport, axe, AppHost build, backend 397 tests |
 
 Baseline accepted nghĩa là hướng công nghệ và visual đã được owner chọn; route vẫn có thể được retrofit khi shared foundation hoặc nghiệp vụ liên quan thay đổi.
+
+### 4.1 Quy ước trạng thái
+
+- `TECH_COMPLETE`: implementation và automated gate đã đạt tại thời điểm ghi nhận, nhưng chưa đồng nghĩa owner đã duyệt visual/workflow.
+- `OWNER_ACCEPTED`: owner đã duyệt route/capability trên runtime thật; feedback sau vẫn có thể tạo retrofit.
+- `OWNER_REVIEW`: đã có implementation để owner kiểm tra, chưa được xem là product-complete.
+- `PLANNED`: contract đã được duyệt nhưng chưa triển khai.
+- `BLOCKED_CONTRACT`: frontend không được tạo workaround; phải nâng API/schema/test trước.
+- `DEFERRED`: vẫn thuộc blueprint nhưng không nằm trong release slice hiện tại; phải ghi rõ điều kiện kích hoạt lại.
+
+Không dùng từ `COMPLETE` đơn lẻ cho một wave vẫn còn `OWNER_REVIEW`, thiếu runtime evidence hoặc thiếu capability đã được master plan giữ lại.
 
 ## 5. Kiến trúc frontend chuẩn
 
@@ -200,6 +211,28 @@ Nguồn tham khảo chính thức: [Motion for React](https://motion.dev/docs/re
 - Dữ liệu chưa có bản dịch hiển thị bản gốc và optional translated field rõ nguồn; không giả vờ đã dịch chính xác.
 - Print/export phải dùng cùng ngôn ngữ và filter/scope đang chọn.
 
+### 7.1 Contract dữ liệu nghiệp vụ VI/EN
+
+VI/EN gồm hai lớp độc lập nhưng phải phối hợp:
+
+1. **UI-owned content:** label, heading, validation, enum, error và feedback dùng i18next.
+2. **Business data:** tên/mô tả mặt hàng, danh mục, phòng ban, nhà cung cấp và lookup được lưu trong database, không thể dịch chỉ bằng resource frontend.
+
+Kiến trúc đã chốt:
+
+- dùng một database và giữ entity gốc làm canonical/original data; không tạo database VI và EN riêng;
+- entity cần dịch dùng translation table có foreign key thật, tối thiểu gồm `LanguageCode`, `Name`, `Description`, `TranslationStatus`, `Source`, audit fields và unique key `(EntityId, LanguageCode)`;
+- ưu tiên table typed theo aggregate như `VppItemTranslations`, `VppCategoryTranslations`, `DepartmentTranslations`, `SupplierTranslations`; không dùng một bảng EAV generic không có foreign key nghiệp vụ;
+- ngôn ngữ request lấy từ request culture/`Accept-Language`, chỉ chấp nhận `vi` và `en` trong release đầu;
+- fallback bắt buộc: requested language → original language → original value; không trả chuỗi rỗng và không giả vờ machine translation là dữ liệu đã duyệt;
+- read DTO trả `displayName`/`displayDescription`, original value, resolved language và fallback flag; collection `translations` chỉ trả ở contract quản trị cần chỉnh sửa;
+- search phải khớp code, original text và translation; sort/export/print dùng resolved display text theo ngôn ngữ đang chọn;
+- bản dịch AI chỉ được lưu dưới trạng thái draft và cần người có quyền library manage duyệt; không tự ghi đè original data;
+- migration phải backfill ngôn ngữ gốc, idempotent trên TEST/LIVE học tập và có test unique/FK/fallback/search/sort;
+- form quản trị hiển thị original cạnh VI/EN translation, trạng thái bản dịch và cảnh báo fallback; người dùng nghiệp vụ bình thường chỉ thấy `displayName` phù hợp.
+
+Không xem VI/EN hoàn tất chỉ vì frontend đổi được label. Gate hoàn tất cần schema + API + generated client + CRUD quản trị + search/export/print + automated test.
+
 ## 8. Data storytelling contract
 
 Mỗi màn hình dữ liệu theo thứ tự:
@@ -227,6 +260,7 @@ Route map dưới đây là target capability ban đầu, không phải bản sa
 |---|---|---|
 | `/login` | `/api/Auth/login` | IMPLEMENTED — baseline accepted |
 | `/register` | `/api/account/register` | IMPLEMENTED — OWNER_REVIEW |
+| `/registration/pending` | registration result/status contract | PLANNED — reference, submitted time, next step, email fallback |
 | `/account/confirm-email` | `/api/account/confirm-email` | IMPLEMENTED — OWNER_REVIEW |
 | `/forgot-password` | `/api/account/password-recovery` | IMPLEMENTED — OWNER_REVIEW |
 | `/reset-password` | `/api/account/password-reset` | IMPLEMENTED — OWNER_REVIEW |
@@ -299,19 +333,45 @@ Report phải bao phủ scope, filter, summary, trend/status, department/product
 
 R7 dùng một `ReportWorkspace` chung cho hai route để không lặp query/filter/data story. `/app/reports` ưu tiên số liệu và bằng chứng; `/app/reports/insights` mở cùng workspace với vùng phân tích được ưu tiên. Mỗi chart chỉ trả lời một câu hỏi, luôn đi kèm số liệu exact-data và thời điểm tạo báo cáo.
 
+### 9.8 Notification và system workspace
+
+| React route/state | Contract | Status |
+|---|---|---|
+| Header notification popover | unread, recent items, read/read-all, realtime/polling | TECH_COMPLETE — OWNER_REVIEW |
+| `/app/notifications` | durable history, cursor/load-more, read/expired/deep-link, retry | PLANNED |
+| Offline banner | browser/network state + safe retry | PLANNED |
+| Reconnect/session-expired dialog | preserve safe context, login return URL, no white screen | PLANNED |
+| `/forbidden` | permission boundary + safe next action | PLANNED |
+| `/error` | safe message, correlation ID, retry/support context | TECH_COMPLETE — cần chuẩn hóa contract |
+
+### 9.9 Cross-cutting capability ledger
+
+Các capability sau không được ẩn dưới một route status tổng quát:
+
+- **Data table:** default columns, column picker, filter, sort, paging, long-data, empty-filter, mobile representation và detail-on-demand cho từng workspace.
+- **Export/print/email:** loading, row/file limit, formula-safe XLSX, selected language/scope/filter, retry, sandbox/unavailable và error state.
+- **Persona/permission:** landing focus, visible data, hidden scope và allowed mutation cho Employee, Department Approver, Procurement/Period Admin và System Admin.
+- **Admin safety:** session invalidation, password reset, last-admin protection, membership/primary department impact và durable audit feedback.
+- **Legacy cutover:** một ma trận URL Blazor cũ → canonical React route, gồm query/tab mapping, deep-link refresh và fallback an toàn.
+- **AI:** deterministic evidence trước; Report Insight hiện hành không đại diện cho toàn bộ Anomaly Review, Ask the Report và Governance.
+
 ## 10. Implementation waves
 
 | Wave | Phạm vi | Gate hoàn tất |
 |---|---|---|
-| R0 | Re-baseline, architecture, tokens, shared contracts | COMPLETE — plan authority, API/auth/i18n/theme/motion/QA foundation đã khóa |
-| R1 | Auth/account + global shell/system states | COMPLETE — automated QA pass; chờ owner visual review |
-| R2 | Employee order journey | COMPLETE — view/create/edit/copy/supplement/submit/cancel/history/catalog + automated QA pass |
-| R3 | Department/company management | COMPLETE — scoped overview, filters, supplement decisions, direct API guard + automated QA pass |
-| R4 | Period/procurement/settlement | COMPLETE — period overview, quote comparison, supplier exception, confirm/correction, immutable revision history và reconciliation evidence + automated QA pass |
-| R5 | Library/master data | COMPLETE — generic master data, typed catalog, supplier price-book lifecycle, item pricing, restore flow + automated QA pass |
-| R6 | Access control | COMPLETE — account activation, membership, canonical role overview, UI component permission + automated QA pass |
-| R7 | Reports/AI/print/export | COMPLETE — typed data story, XLSX, print, AI error/rules/AI states + automated QA pass |
-| R8 | Global hardening + cutover | TECH_READY — cookie/antiforgery, transform-only motion, bundle budget, production container, dual-frontend hosting, CI/smoke/rollback và automated audit đã đạt; còn owner visual review và production cutover do owner kích hoạt |
+| R0 | Re-baseline, architecture, tokens, shared contracts | TECH_COMPLETE — plan authority và foundation đã khóa; owner review tiếp tục theo route |
+| R1 | Auth/account + shell baseline | TECH_COMPLETE — automated QA pass; Pending Approval và resilience được chuyển sang R10 |
+| R2 | Employee order journey | TECH_COMPLETE — automated QA pass; OWNER_REVIEW |
+| R3 | Department/company management | TECH_COMPLETE — automated QA pass; OWNER_REVIEW và data-story retrofit |
+| R4 | Period/procurement/settlement | TECH_COMPLETE — automated QA pass; OWNER_REVIEW và cross-route acceptance audit |
+| R5 | Library/master data | TECH_COMPLETE — automated QA pass; business-data VI/EN được chuyển sang R9 |
+| R6 | Access control | TECH_COMPLETE — automated QA pass; OWNER_REVIEW và admin-safety audit |
+| R7 | Reports/insight/print/export baseline | TECH_COMPLETE — automated QA pass; export/email edge states và advanced AI chưa hoàn tất |
+| R8 | Technical hardening/cutover package | TECH_READY — local production gate đạt; owner review, legacy redirect matrix và production activation còn mở |
+| R9 | Business data VI/EN | IN_PROGRESS — schema/translation service/API/admin UI/search/export/print/test |
+| R10 | Account/system completion | PLANNED — Pending Approval, durable inbox route, offline/reconnect/session/error contract |
+| R11 | Cross-route product hardening | PLANNED — data-table profiles, persona matrix, export/email states, admin safety, redirects |
+| R12 | Advanced intelligence | PLANNED — anomaly review, Ask the Report, governance, budget/retention/kill switch |
 
 Thứ tự trong wave ưu tiên một end-to-end journey hoạt động trước khi mở rộng breadth. Owner review theo checkpoint; feedback shared primitive phải được retrofit các route đã làm.
 
@@ -466,18 +526,17 @@ Blazor chỉ được xóa hoặc archive sau khi React đã chạy ổn định
 | 2026-07-20 | Radix phải import theo từng primitive, không dùng umbrella package | Giảm shared UI chunk khoảng `116 KiB` xuống `47 KiB` gzip; thêm gate `140 KiB/chunk`, `30 KiB CSS` và `550 KiB tổng JS/CSS`, build hiện đạt `506.1 KiB` gzip |
 | 2026-07-20 | Không fade nội dung có chữ trong surface/toast | Tất cả entrance motion đọc được dùng transform-only; disabled control giữ contrast đầy đủ. Axe không còn bắt trạng thái giữa transition |
 | 2026-07-20 | R8 automated cutover package đạt local production gate | Docker image build sạch, container healthy, React deep-link/cache smoke pass, bốn Nginx config pass syntax, Actionlint/Compose/Bash pass, React E2E `10/10`, backend `405/405`; production vẫn cần owner phê duyệt và kích hoạt |
+| 2026-07-21 | Owner duyệt đối chiếu lại plan React với Blazor baseline/full blueprint | Không coi R0–R8 là product-complete khi còn owner review; khôi phục data VI/EN, Pending Approval, durable inbox, resilience, table/export/persona/admin/redirect và advanced AI vào execution ledger |
+| 2026-07-21 | Dữ liệu nghiệp vụ song ngữ dùng một DB + typed translation tables | Original data được bảo toàn; API resolve theo request culture, có fallback/search/audit và UI quản trị VI/EN; không dùng hai DB hoặc machine translation âm thầm |
 
 ## 18. Immediate execution queue
 
-1. R0 hoàn tất: plan authority, permission/error/query/route conventions, motion foundation và QA harness.
-2. R1 hoàn tất kỹ thuật: account lifecycle, permission navigation, notification realtime/polling, reconnect/session expiry; chờ owner visual review.
-3. R2 hoàn tất kỹ thuật: employee order journey + catalog; chờ owner visual review/retrofit.
-4. R3 hoàn tất kỹ thuật: department/company management + supplement decision; chờ owner visual review.
-5. R4 hoàn tất kỹ thuật: period overview, preview, exception, confirm, settlement, correction, immutable history và reconciliation; chờ owner visual review.
-6. R5 hoàn tất kỹ thuật: master data, catalog, supplier price book và item pricing; chờ owner visual review.
-7. R6 hoàn tất kỹ thuật: account activation, membership, canonical group overview và component permission; chờ owner visual review.
-8. R7 hoàn tất kỹ thuật: shared report workspace, AI evidence/fallback, export XLSX và print-mode; chờ owner visual review.
-9. R8 đã sẵn sàng kỹ thuật: cookie/antiforgery, motion/accessibility, bundle budget, production image, dual frontend, CI/CD, smoke và rollback đã được kiểm chứng local. Phần còn lại chỉ gồm owner visual review, cho phép push/deploy và production smoke sau cutover.
+1. **R9 — Business data VI/EN:** migration, typed translation contract, language resolver, localized catalog/library API, generated client, admin editor, search/export/print và test.
+2. **R10 — Account/system completion:** public Pending Approval, durable notification inbox, offline/reconnect/session-expired/forbidden/error states.
+3. **R11 — Cross-route product hardening:** per-route table profiles, export/email state matrix, persona/permission review, admin safety và legacy redirects.
+4. **Owner review R1–R8:** kiểm tra runtime theo persona/route/viewport; feedback shared primitive được retrofit cả route cũ.
+5. **R12 — Advanced intelligence:** triển khai sau core review nhưng vẫn giữ trong full plan; không trình bày Report Insight hiện tại như toàn bộ AI scope.
+6. **Cutover:** chỉ chạy sau toàn bộ gate ở Section 16 và owner cho phép push/deploy.
 
 Prompt tiếp tục:
 
