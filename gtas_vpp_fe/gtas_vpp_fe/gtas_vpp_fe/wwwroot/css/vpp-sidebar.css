@@ -5,6 +5,7 @@
 
 /* ── Sidebar Container ───────────────────────────────────────── */
 .vpp-sidebar {
+    font-family: var(--vpp-font-sidebar);
     transition: width var(--vpp-transition-base);
     overflow: visible !important;
 }
@@ -22,7 +23,7 @@
 /* ── Panel Menu Item — Base ──────────────────────────────────── */
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
     box-sizing: border-box;
-    min-height: 44px;
+    min-height: 40px;
     border: none;
     border-radius: var(--vpp-radius-md);
     margin: 2px var(--vpp-space-1);
@@ -33,6 +34,23 @@
 
 .rz-navigation-item.ppjsidebarmenu {
     position: relative;
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    min-height: 40px;
+    font: inherit;
+    line-height: 20px;
+}
+
+.rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
 }
 
 /* Active indicator — blue rail aligned with the shared tab underline */
@@ -80,6 +98,14 @@
 
 /* Icon color enhancement */
 .rz-navigation-item.ppjsidebarmenu .rzi.rz-navigation-item-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    margin-inline-end: var(--vpp-space-2);
+    font-size: 20px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     transition: color var(--vpp-transition-fast);
 }
 
@@ -98,20 +124,20 @@
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rz-navigation-item-text,
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rz-navigation-item-text {
     color: var(--vpp-text-primary);
-    font-weight: var(--vpp-font-weight-medium);
+    font-weight: 400;
 }
 
 /* Compact chevron for expandable groups; Radzen owns expanded/collapsed state. */
 .vpp-sidebar .rz-navigation-item-icon-children {
     margin-inline-start: auto;
     color: var(--vpp-text-secondary);
-    font-size: 1rem;
+    font-size: 16px;
     opacity: 0.82;
 }
 
 /* ── Submenu — indent + smaller font ─────────────────────────── */
 .rz-navigation-item.ppjsidebarmenu.submenu {
-    font-size: var(--vpp-text-sm);
+    font-size: 14px;
 }
 
 /* Full-width submenu surface; keep content and active rail at the child indent. */
@@ -129,7 +155,7 @@
 }
 
 .rz-navigation-item.ppjsidebarmenu.submenu .rzi.rz-navigation-item-icon {
-    font-size: 1rem;
+    font-size: 20px;
 }
 
 /* ── Divider ─────────────────────────────────────────────────── */
@@ -179,7 +205,9 @@
     margin-right: 0 !important;
     margin-inline-end: 0 !important;
     padding: 0 !important;
-    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 20px !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;

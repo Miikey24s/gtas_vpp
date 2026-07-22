@@ -337,7 +337,8 @@ a:hover {
 .user-menu-trigger-name {
     min-width: 0;
     overflow: hidden;
-    font-size: var(--vpp-text-sm);
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px;
     font-weight: var(--vpp-font-weight-medium);
     text-overflow: ellipsis;
     white-space: nowrap;

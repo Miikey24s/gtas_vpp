@@ -138,10 +138,17 @@ public sealed class SharedUiFoundationTests
         var root = GetFrontendRoot();
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
+        var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
 
         Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-hover-bg: rgba(9, 30, 66, 0.075);", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("min-height: 44px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-font-sidebar: -apple-system", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-width: 286px;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-collapsed-width: 72px;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("font-size: 14px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("line-height: 20px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("min-height: 40px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("font-size: 20px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1)) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("height: 48px !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Collapsed active state stays line-only", sidebarCss, StringComparison.Ordinal);

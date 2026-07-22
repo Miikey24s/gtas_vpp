@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.43` — 2026-07-22
+> **Phiên bản:** `1.44` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -835,6 +835,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-22 | Neutral collapsed brand idle state | Logo collapsed không có nền khi idle; surface chỉ xuất hiện khi hover hoặc keyboard focus rồi chuyển sang icon expand | Owner phát hiện nền mặc định của button khiến logo trông như đang bị hover | Shared shell + accessibility | Reset background của brand button về transparent, giữ nguyên hover/focus và logo-to-expand transition | Sidebar collapsed trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Expanded-only account divider | Đường phân cách phía trên user footer chỉ hiển thị khi sidebar expanded; collapsed rail giữ nền liền mạch | Owner yêu cầu bỏ đường ngang thừa phía trên avatar khi collapse | Shared shell | Override border-top của user footer về `0` trong collapsed state, giữ rule expanded hiện tại | Sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Fuller sidebar interaction surfaces | Hover/focus surface của menu cha và menu con rõ, cao và rộng hơn; collapsed rail dùng gần trọn bề rộng 68px thay vì khối 44px | Owner muốn hiệu ứng đầy đặn như reference Apple Music ở cả expanded và collapsed | Shared shell + RadzenPanelMenu + accessibility | Tăng contrast token, chuẩn hóa row 44px, giảm inset expanded và mở collapsed surface thành 64x48px; active rail vẫn độc lập | Sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
+| 2026-07-22 | Apple Music sidebar type and geometry scale | Đồng bộ menu cha/con ở 14px, line-height 20px, weight 400; icon box 24px với glyph 20px; expanded 286px và collapsed 72px | Owner phát hiện hierarchy cũ dùng 14px/13px và icon 24px/16px nên nhìn to nhỏ không đều | Shared shell + RadzenPanelMenu | Đo live Apple Music Web: system/SF Pro stack, 14px text, 20px line-height, 24px icon box, 36px web row; chọn row 40px và width 286px theo Apple Music app reference để đủ nhãn tiếng Việt, dùng Segoe UI fallback hợp pháp trên Windows | Sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |

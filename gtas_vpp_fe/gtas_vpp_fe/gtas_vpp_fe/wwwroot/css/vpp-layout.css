@@ -189,10 +189,10 @@ leftsidebar {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: var(--vpp-font-display);
-    font-size: var(--vpp-text-md);
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px;
     font-weight: var(--vpp-font-weight-semibold);
-    letter-spacing: var(--vpp-tracking-tight);
+    letter-spacing: 0;
 }
 
 .vpp-sidebar-toggle,

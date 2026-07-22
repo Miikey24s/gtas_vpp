@@ -102,6 +102,7 @@
     --vpp-font-display: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
     --vpp-font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --vpp-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --vpp-font-sidebar: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI Variable Text', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
     --vpp-font-weight-normal: 400;
     --vpp-font-weight-medium: 500;
@@ -226,8 +227,8 @@
     --vpp-space-20: 5rem;      /* 80px */
 
     /* Layout */
-    --vpp-sidebar-width: 260px;
-    --vpp-sidebar-collapsed-width: 68px;
+    --vpp-sidebar-width: 286px;
+    --vpp-sidebar-collapsed-width: 72px;
     --vpp-header-height: 60px;
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;
