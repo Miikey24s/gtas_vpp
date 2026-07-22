@@ -90,6 +90,8 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var tabsCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tabs.css"));
+        var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
+        var adminCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
@@ -113,6 +115,15 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".rz-tabview .vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
         Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-layout-body-inset: var(--vpp-space-4);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("width: calc(100% + (2 * var(--vpp-layout-body-inset)));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-block-start: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-block-end: var(--vpp-layout-body-inset);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("display: flow-root;", adminCss, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-admin-tabs .rz-tabview-nav-container", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
         Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var tabListSelector = \".rz-tabview-nav\";", interactionsJs, StringComparison.Ordinal);

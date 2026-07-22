@@ -144,16 +144,22 @@
 
 .vpp-admin-tabs > .rz-tabview-nav-container,
 .vpp-admin-tabs > .rz-tabview-nav {
+    box-sizing: border-box;
     position: sticky !important;
-    top: var(--vpp-tabs-sticky-top);
+    top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-layout-body-inset));
     z-index: var(--vpp-z-sticky);
+    width: calc(100% + (2 * var(--vpp-layout-body-inset)));
+    max-width: none;
     height: var(--vpp-library-primary-tabs-height);
     min-height: var(--vpp-library-primary-tabs-height);
+    margin-block-start: calc(-1 * var(--vpp-layout-body-inset));
+    margin-block-end: var(--vpp-layout-body-inset);
+    margin-inline: calc(-1 * var(--vpp-layout-body-inset));
     background: var(--vpp-navigation-chrome-bg);
     border: 0;
     border-bottom: 1px solid var(--vpp-border-default);
     border-radius: 0;
-    box-shadow: 0 1px 0 var(--vpp-border-default);
+    box-shadow: none;
     isolation: isolate;
     transform: translateZ(0);
     backface-visibility: hidden;

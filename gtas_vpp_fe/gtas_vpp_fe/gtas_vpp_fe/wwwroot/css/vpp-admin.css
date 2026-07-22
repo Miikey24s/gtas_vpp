@@ -5,14 +5,8 @@
 }
 
 .vpp-admin-tabs {
+    display: flow-root;
     width: 100%;
-}
-
-.vpp-admin-tabs .rz-tabview-nav-container {
-    border-bottom: 1px solid var(--vpp-border-default);
-    border-radius: 0;
-    background: var(--vpp-navigation-chrome-bg);
-    padding-inline: var(--vpp-space-1);
 }
 
 .vpp-admin-tabs .rz-tabview-panel {
