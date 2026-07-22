@@ -92,6 +92,7 @@ public sealed class SharedUiFoundationTests
         var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
         var userMenuSource = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
+        var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
 
         var sidebarStart = source.IndexOf("<RadzenSidebar", StringComparison.Ordinal);
@@ -113,6 +114,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-sidebar-collapsed-expand-icon", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-expanded-brand", source, StringComparison.Ordinal);
         Assert.Contains("background: transparent;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-footer", polishCss, StringComparison.Ordinal);
+        Assert.Contains("border-top: 0;", polishCss, StringComparison.Ordinal);
         Assert.Equal(1, source.Split("<VppBrandMark", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("href=\"/dashboard?tab=0\"", source, StringComparison.Ordinal);
         Assert.Contains("@if (_sideBarExpanded)", source, StringComparison.Ordinal);

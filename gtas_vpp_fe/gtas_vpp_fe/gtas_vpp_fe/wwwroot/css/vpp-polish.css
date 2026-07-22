@@ -472,6 +472,7 @@ a:hover {
 
 .sidebar-collapsed .vpp-sidebar-user-footer {
     padding-inline: var(--vpp-space-3);
+    border-top: 0;
 }
 
 .sidebar-collapsed .user-dropdown-actions .vpp-notification-panel {
