@@ -315,7 +315,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-department", polishCss, StringComparison.Ordinal);
         Assert.Contains("display: inline-flex;", polishCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 999px;", polishCss, StringComparison.Ordinal);
-        Assert.Contains("background: var(--vpp-navigation-item-hover-bg);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("height: 18px;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("color: var(--vpp-primary-600);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("background: rgba(var(--vpp-primary-rgb), 0.08);", polishCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".user-dropdown-department-code::before", polishCss, StringComparison.Ordinal);
         Assert.Contains("background: transparent;", polishCss, StringComparison.Ordinal);
         Assert.Contains("justify-content: center;", polishCss, StringComparison.Ordinal);

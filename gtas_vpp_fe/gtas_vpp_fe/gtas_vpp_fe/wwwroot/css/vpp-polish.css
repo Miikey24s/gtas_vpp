@@ -424,19 +424,21 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-dropdown-department-code {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 24px;
+    height: 18px;
     min-height: 18px;
     padding-inline: 5px;
-    border: 1px solid var(--vpp-border-default);
+    border: 1px solid rgba(var(--vpp-primary-rgb), 0.22);
     border-radius: 999px;
-    color: var(--vpp-text-secondary);
-    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-primary-600);
+    background: rgba(var(--vpp-primary-rgb), 0.08);
     font-size: 11px;
     font-weight: 600;
-    line-height: 16px;
+    line-height: 14px;
     letter-spacing: 0.02em;
 }
 
