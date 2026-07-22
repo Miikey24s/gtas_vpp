@@ -15,6 +15,7 @@ body:has(.vpp-layout) {
 
 .rz-layout.vpp-layout {
     display: grid;
+    gap: 0 !important;
     grid-template-columns: var(--vpp-sidebar-width) 1fr;
     grid-template-rows: var(--vpp-header-height) 1fr;
     grid-template-areas:
@@ -80,7 +81,10 @@ leftsidebar {
 }
 
 .vpp-layout-body {
-    --vpp-layout-body-inset: var(--vpp-space-5);
+    /* Legacy app.css owns the actual RadzenBody padding with !important.
+       Full-bleed chrome must use that same runtime token; a separate 1.25rem
+       value pulled the 72px tab header 10.5px above the viewport. */
+    --vpp-layout-body-inset: var(--rz-layout-body-padding-1, var(--vpp-space-2));
     grid-area: rz-body;
     overflow-y: auto;
     overflow-x: hidden;
@@ -858,7 +862,7 @@ leftsidebar {
     }
 
     .rz-layout.vpp-layout > .rz-body.vpp-layout-body {
-        --vpp-layout-body-inset: var(--vpp-space-4);
+        --vpp-layout-body-inset: var(--rz-layout-body-padding-1, var(--vpp-space-2));
         padding: var(--vpp-layout-body-inset);
     }
 

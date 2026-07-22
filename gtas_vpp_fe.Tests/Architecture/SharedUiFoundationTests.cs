@@ -177,8 +177,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-layout-body-inset: var(--vpp-space-4);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-layout-body-inset: var(--rz-layout-body-padding-1, var(--vpp-space-2));", layoutCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("gap: 0 !important;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(100% + (2 * var(--vpp-layout-body-inset)));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-block-start: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
