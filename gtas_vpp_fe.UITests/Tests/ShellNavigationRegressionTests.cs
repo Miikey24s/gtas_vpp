@@ -64,16 +64,23 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                 const grandchild = parts('Giá');
                 const indicator = document.querySelector('.vpp-sidebar-shared-indicator').getBoundingClientRect();
                 return {
+                    rootIconLeft: root.icon.left,
                     rootTextLeft: root.text.left,
                     childIconLeft: child.icon.left,
                     childIconRight: child.icon.right,
                     childTextLeft: child.text.left,
                     childParentTextLeft: childParent.text.left,
                     grandchildIconLeft: grandchild.icon.left,
-                    activeIndicatorLeft: indicator.left
+                    activeIndicatorLeft: indicator.left,
+                    logoLeft: document.querySelector('.vpp-sidebar-expanded-logo').getBoundingClientRect().left,
+                    avatarLeft: document.querySelector('.vpp-sidebar-user-menu .user-avatar').getBoundingClientRect().left
                 };
             }
             """);
+        hierarchy.RootIconLeft.Should().BeApproximately(8, 0.1,
+            "the expanded content rail should sit close to the sidebar edge like Apple Music");
+        hierarchy.LogoLeft.Should().BeApproximately(hierarchy.RootIconLeft, 0.1);
+        hierarchy.AvatarLeft.Should().BeApproximately(hierarchy.RootIconLeft, 0.1);
         hierarchy.ChildIconLeft.Should().BeApproximately(hierarchy.RootTextLeft, 0.1,
             "a child icon must start on the same column as its parent label");
         hierarchy.GrandchildIconLeft.Should().BeApproximately(hierarchy.ChildParentTextLeft, 0.1,
@@ -310,6 +317,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
 
     private sealed class SidebarHierarchyGeometry
     {
+        public double RootIconLeft { get; set; }
         public double RootTextLeft { get; set; }
         public double ChildIconLeft { get; set; }
         public double ChildIconRight { get; set; }
@@ -317,6 +325,8 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         public double ChildParentTextLeft { get; set; }
         public double GrandchildIconLeft { get; set; }
         public double ActiveIndicatorLeft { get; set; }
+        public double LogoLeft { get; set; }
+        public double AvatarLeft { get; set; }
     }
 
     private sealed class CollapsedRailGeometry

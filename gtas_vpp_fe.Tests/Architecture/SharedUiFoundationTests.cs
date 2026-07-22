@@ -356,7 +356,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("margin-block: var(--vpp-sidebar-row-half-gap) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain("margin-block-start: var(--vpp-space-1) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-icon-box-size: 24px;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-sidebar-primary-content-offset: 16px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-primary-content-offset: 8px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .rz-panel-menu", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("width: 100% !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding: 0 0 var(--vpp-space-3);", layoutCss, StringComparison.Ordinal);
@@ -369,7 +369,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: calc(var(--vpp-sidebar-primary-content-offset) - var(--vpp-space-1));", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-header", File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css")), StringComparison.Ordinal);
-        Assert.Contains("var(--vpp-sidebar-primary-content-offset, 16px)", File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css")), StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-sidebar-primary-content-offset, 8px)", File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css")), StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: calc(var(--vpp-sidebar-primary-content-offset) - var(--vpp-space-1));", polishCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-menu", polishCss, StringComparison.Ordinal);
         Assert.Contains("justify-content: center;", polishCss, StringComparison.Ordinal);

@@ -185,7 +185,7 @@ leftsidebar {
     min-width: 0;
     flex: 1 1 auto;
     height: var(--vpp-navigation-row-height);
-    padding: var(--vpp-space-1) var(--vpp-space-2) var(--vpp-space-1) var(--vpp-sidebar-primary-content-offset, 16px);
+    padding: var(--vpp-space-1) var(--vpp-space-2) var(--vpp-space-1) var(--vpp-sidebar-primary-content-offset, 8px);
     color: var(--vpp-text-primary);
 }
 
