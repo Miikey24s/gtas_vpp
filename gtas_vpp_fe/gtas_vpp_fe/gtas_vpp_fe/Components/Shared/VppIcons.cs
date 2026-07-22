@@ -28,6 +28,7 @@ public static class VppIcons
     public const string Inbox = "inbox";
     public const string Info = "info";
     public const string Item = "inventory";
+    public const string Language = "translate";
     public const string LightMode = "light_mode";
     public const string Logout = "logout";
     public const string Menu = "menu";

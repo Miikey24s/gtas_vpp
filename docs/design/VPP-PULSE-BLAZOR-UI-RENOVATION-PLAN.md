@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.35` — 2026-07-22
+> **Phiên bản:** `1.36` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -827,6 +827,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-22 | Expanded text-only brand | Expanded sidebar chỉ hiện chữ `GTAS VPP`, bỏ logo và bỏ link/underline; collapsed rail vẫn giữ logo-to-expand affordance | Owner chỉ ra brand expanded còn giống link và thừa logo so với reference ChatGPT | Shared shell | Brand expanded trở thành text label không tương tác; navigation không đổi | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Sidebar utility consolidation | Chuyển language, theme và notification khỏi desktop header xuống footer sidebar phía trên user; collapsed xếp icon dọc và language chỉ hiện mã active; mobile vẫn giữ header hamburger | Owner muốn dọn toàn bộ utility icon còn lại khỏi header | Shared shell + responsive | Desktop header thu về `0px`; notification/account popover neo sang phải sidebar; giữ nguyên behavior và accessibility label | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Account-contained utilities | Bỏ utility row rời ở footer; language, theme và notification nằm trong account popover mở từ avatar, sidebar chỉ giữ một user row sạch | Owner phản hồi utility row rời rạc và yêu cầu đưa control vào trong icon user | Shared shell + responsive | UserMenu nhận theme/language callbacks; notification panel mở cạnh account popover, mobile overlay an toàn | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
+| 2026-07-22 | Vertical account action menu | Account popover đổi utility từ hàng ngang thành danh sách dọc full-width: language, theme, notifications, logout; mỗi hàng có icon, label và trailing state/badge | Owner muốn menu user giống cấu trúc action list trong reference thay vì cụm control ngang | Shared shell + accessibility | UserMenu xử lý callback language/theme trực tiếp; NotificationCenter có `MenuMode` để giữ logic inbox nhưng dùng trigger dạng row | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |

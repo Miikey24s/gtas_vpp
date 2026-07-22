@@ -1,3 +1,4 @@
+@using System.Globalization
 @using gtas_vpp_shared.DTOs.Share
 @inject NavigationManager NavigationManager
 
@@ -50,17 +51,34 @@
                     }
                 </div>
             }
-            <div class="user-dropdown-utilities" aria-label="@Loc["Settings"]">
-                <HeaderControls IsLightTheme="@IsLightTheme"
-                                IsLightThemeChanged="@IsLightThemeChanged"
-                                OnThemeToggle="@OnThemeToggle"
-                                OnLanguageToggle="@OnLanguageToggle" />
-                <NotificationCenter />
+            <div class="user-dropdown-actions" aria-label="@Loc["Settings"]">
+                <button type="button"
+                        class="user-dropdown-action"
+                        title="@LanguageToggleTitle"
+                        aria-label="@LanguageToggleTitle"
+                        aria-busy="@_isLanguageSwitching"
+                        disabled="@_isLanguageSwitching"
+                        @onclick="HandleLanguageToggleAsync">
+                    <VppIcon Name="@VppIcons.Language" />
+                    <span class="user-dropdown-action-label">@Loc["Language"]</span>
+                    <span class="user-dropdown-action-trailing">@(IsEnglishUi ? "EN" : "VI")</span>
+                </button>
+                <button type="button"
+                        class="user-dropdown-action"
+                        title="@ThemeToggleTitle"
+                        aria-label="@ThemeToggleTitle"
+                        aria-pressed="@(!IsLightTheme)"
+                        disabled="@_isThemeSwitching"
+                        @onclick="HandleThemeToggleAsync">
+                    <VppIcon Name="@(IsLightTheme ? VppIcons.DarkMode : VppIcons.LightMode)" />
+                    <span class="user-dropdown-action-label">@ThemeToggleTitle</span>
+                </button>
+                <NotificationCenter MenuMode="true" />
+                <a href="/logoutprocess" class="user-dropdown-action user-dropdown-logout">
+                    <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
+                    <span class="user-dropdown-action-label">@Loc["Logout"]</span>
+                </a>
             </div>
-            <a href="/logoutprocess" class="user-dropdown-logout">
-                <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
-                <span>@Loc["Logout"]</span>
-            </a>
         </section>
         <button type="button"
                 class="user-dropdown-backdrop"
@@ -82,6 +100,14 @@
     [Parameter] public bool SidebarMode { get; set; }
 
     private bool _isOpen;
+    private bool _isLanguageSwitching;
+    private bool _isThemeSwitching;
+
+    private bool IsEnglishUi => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+
+    private string LanguageToggleTitle => IsEnglishUi ? Loc["SwitchToVietnamese"] : Loc["SwitchToEnglish"];
+
+    private string ThemeToggleTitle => IsLightTheme ? Loc["SwitchToDarkMode"] : Loc["SwitchToLightMode"];
 
     private string RootClass => SidebarMode
         ? "vpp-user-menu vpp-sidebar-user-menu"
@@ -97,6 +123,43 @@
     private void ToggleMenu() => _isOpen = !_isOpen;
 
     private void CloseMenu() => _isOpen = false;
+
+    private async Task HandleLanguageToggleAsync()
+    {
+        if (_isLanguageSwitching)
+        {
+            return;
+        }
+
+        _isLanguageSwitching = true;
+        try
+        {
+            await OnLanguageToggle.InvokeAsync();
+        }
+        finally
+        {
+            _isLanguageSwitching = false;
+        }
+    }
+
+    private async Task HandleThemeToggleAsync()
+    {
+        if (_isThemeSwitching)
+        {
+            return;
+        }
+
+        _isThemeSwitching = true;
+        try
+        {
+            await OnThemeToggle.InvokeAsync();
+            await Task.Delay(180);
+        }
+        finally
+        {
+            _isThemeSwitching = false;
+        }
+    }
 
     private void HandleKeyDown(KeyboardEventArgs args)
     {

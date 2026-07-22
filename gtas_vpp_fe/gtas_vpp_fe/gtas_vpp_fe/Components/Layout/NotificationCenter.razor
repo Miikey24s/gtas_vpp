@@ -6,7 +6,7 @@
 
 <div class="vpp-header-notifications" @onkeydown="HandleKeyDown">
     <button type="button"
-            class="vpp-header-notification-button"
+            class="@(MenuMode ? "vpp-header-notification-button user-dropdown-action" : "vpp-header-notification-button")"
             title="@Loc["Notifications"]"
             aria-label="@GetBellAriaLabel()"
             aria-expanded="@_isOpen"
@@ -14,6 +14,10 @@
             aria-controls="vpp-notification-panel"
             @onclick="ToggleAsync">
         <VppIcon Name="@VppIcons.Notifications" />
+        @if (MenuMode)
+        {
+            <span class="user-dropdown-action-label">@Loc["Notifications"]</span>
+        }
         @if (Inbox.UnreadCount > 0)
         {
             <span class="vpp-header-notification-count" aria-hidden="true">@FormatUnreadCount()</span>
@@ -110,6 +114,8 @@
 </div>
 
 @code {
+    [Parameter] public bool MenuMode { get; set; }
+
     private bool _isOpen;
     private bool _actionFailed;
 
