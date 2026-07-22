@@ -174,7 +174,7 @@
     --vpp-library-primary-tabs-height: var(--vpp-header-height);
     --vpp-primary-tab-row-height: var(--vpp-header-height);
     --vpp-primary-tab-inline-padding: 20px;
-    --vpp-primary-tab-indicator-preferred-width: 72px;
+    --vpp-primary-tab-indicator-preferred-width: 60px;
 }
 
 .librariestab > .rz-tabview-nav-container > .rz-tabview-nav {
@@ -269,14 +269,19 @@
     text-align: center;
 }
 
-/* Runtime font metrics provide the visual (ink-bound) centre independently
-   for each localized label. Individual translate keeps the 72px hitbox,
-   keyboard focus geometry and underline baseline unchanged. */
+/* Let the browser centre the native text line box inside the full 72px
+   control. Per-glyph Canvas offsets drift from the browser's actual font
+   shaping and fallback, especially between Vietnamese and English labels. */
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > .rz-tabview-nav-link > .rz-tabview-title,
 .vpp-admin-tabs > .rz-tabview-nav > li > .rz-tabview-nav-link > .rz-tabview-title,
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title,
 .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title {
-    translate: var(--vpp-optical-x, 0px) var(--vpp-optical-y, 0px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    line-height: 20px;
+    translate: none;
 }
 
 /* Selection is communicated by the shared blue underline only. Keep the

@@ -95,16 +95,6 @@
     var tabIndicatorDuration = 180;
     var sidebarNavSelector = ".vpp-sidebar-nav";
     var sidebarIndicatorDuration = 180;
-    var opticalTextSelector = ".vpp-admin-tabs .rz-tabview-title, .vpp-sidebar-product";
-    var opticalTextCanvas;
-
-    function roundToQuarterPixel(value) {
-        return Math.round(value * 4) / 4;
-    }
-
-    function clampOpticalOffset(value) {
-        return Math.max(-3, Math.min(3, roundToQuarterPixel(value)));
-    }
 
     function resolveCssPixelLength(element, value, fallback) {
         var trimmed = String(value || "").trim();
@@ -112,96 +102,26 @@
             return fallback;
         }
 
+        var amount = parseFloat(trimmed);
+        if (!Number.isFinite(amount)) {
+            return fallback;
+        }
+
         if (trimmed.endsWith("px")) {
-            var pixels = parseFloat(trimmed);
-            return Number.isFinite(pixels) ? pixels : fallback;
+            return amount;
         }
 
-        var probe = document.createElement("span");
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        probe.style.pointerEvents = "none";
-        probe.style.width = trimmed;
-        element.appendChild(probe);
-        var resolved = parseFloat(window.getComputedStyle(probe).width);
-        probe.remove();
-        return Number.isFinite(resolved) ? resolved : fallback;
-    }
-
-    function alignOpticalTextElement(element) {
-        if (!(element instanceof Element)) {
-            return;
+        if (trimmed.endsWith("rem")) {
+            var rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize);
+            return Number.isFinite(rootFontSize) ? amount * rootFontSize : fallback;
         }
 
-        var text = (element.textContent || "").trim();
-        if (!text) {
-            return;
+        if (trimmed.endsWith("em")) {
+            var elementFontSize = parseFloat(window.getComputedStyle(element).fontSize);
+            return Number.isFinite(elementFontSize) ? amount * elementFontSize : fallback;
         }
 
-        opticalTextCanvas = opticalTextCanvas || document.createElement("canvas");
-        var context = opticalTextCanvas.getContext("2d");
-        if (!context) {
-            return;
-        }
-
-        var styles = window.getComputedStyle(element);
-        context.font = [
-            styles.fontStyle,
-            styles.fontVariant,
-            styles.fontWeight,
-            styles.fontSize,
-            styles.fontFamily
-        ].join(" ");
-        context.textAlign = "left";
-        context.textBaseline = "alphabetic";
-
-        var metrics = context.measureText(text);
-        var requiredMetrics = [
-            metrics.width,
-            metrics.actualBoundingBoxLeft,
-            metrics.actualBoundingBoxRight,
-            metrics.actualBoundingBoxAscent,
-            metrics.actualBoundingBoxDescent
-        ];
-        if (!requiredMetrics.every(Number.isFinite)) {
-            return;
-        }
-
-        var letterSpacing = parseFloat(styles.letterSpacing);
-        var extraAdvance = Number.isFinite(letterSpacing)
-            ? letterSpacing * Math.max(0, text.length - 1)
-            : 0;
-        var advanceWidth = metrics.width + extraAdvance;
-        var inkRight = metrics.actualBoundingBoxRight + extraAdvance;
-        var inkWidth = Math.max(0, metrics.actualBoundingBoxLeft + inkRight);
-        var inkCenterX = (inkRight - metrics.actualBoundingBoxLeft) / 2;
-        var offsetX = clampOpticalOffset((advanceWidth / 2) - inkCenterX);
-        var offsetY = 0;
-
-        if (Number.isFinite(metrics.fontBoundingBoxAscent)
-            && Number.isFinite(metrics.fontBoundingBoxDescent)) {
-            offsetY = clampOpticalOffset((
-                metrics.actualBoundingBoxAscent
-                - metrics.actualBoundingBoxDescent
-                - metrics.fontBoundingBoxAscent
-                + metrics.fontBoundingBoxDescent
-            ) / 2);
-        }
-
-        element.style.setProperty("--vpp-optical-x", offsetX + "px");
-        element.style.setProperty("--vpp-optical-y", offsetY + "px");
-        element.dataset.vppInkWidth = String(inkWidth);
-        element.dataset.vppInkCenterX = String(inkCenterX);
-    }
-
-    function alignOpticalText(root) {
-        if (root instanceof Element && root.matches(opticalTextSelector)) {
-            alignOpticalTextElement(root);
-        }
-
-        if (root.querySelectorAll) {
-            root.querySelectorAll(opticalTextSelector).forEach(alignOpticalTextElement);
-        }
+        return fallback;
     }
 
     function readPrimaryTabIndicatorWidth(tabList) {
@@ -212,18 +132,18 @@
 
         var preferredWidth = parseFloat(window.getComputedStyle(primaryTabs)
             .getPropertyValue("--vpp-primary-tab-indicator-preferred-width"));
-        var inkWidths = Array.from(tabList.querySelectorAll(".rz-tabview-title"))
-            .map(function (title) { return parseFloat(title.dataset.vppInkWidth); })
+        var labelWidths = Array.from(tabList.querySelectorAll(".rz-tabview-title"))
+            .map(function (title) { return title.getBoundingClientRect().width; })
             .filter(function (width) { return Number.isFinite(width) && width > 0; });
 
-        if (!inkWidths.length) {
+        if (!labelWidths.length) {
             return Number.isFinite(preferredWidth) ? preferredWidth : null;
         }
 
-        var shortestInkWidth = Math.min.apply(Math, inkWidths);
+        var shortestLabelWidth = Math.min.apply(Math, labelWidths);
         return Number.isFinite(preferredWidth)
-            ? Math.min(preferredWidth, shortestInkWidth)
-            : shortestInkWidth;
+            ? Math.min(preferredWidth, shortestLabelWidth)
+            : shortestLabelWidth;
     }
 
     function findTabHost(tabList) {
@@ -246,22 +166,14 @@
 
         if (title) {
             var titleRect = title.getBoundingClientRect();
-            var measuredInkWidth = parseFloat(title.dataset.vppInkWidth);
-            var measuredInkCenterX = parseFloat(title.dataset.vppInkCenterX);
-            var measuredIndicatorWidth = Number.isFinite(measuredInkWidth) && measuredInkWidth > 0
-                ? measuredInkWidth
-                : titleRect.width;
             var commonIndicatorWidth = readPrimaryTabIndicatorWidth(tabList);
             var indicatorWidth = Number.isFinite(commonIndicatorWidth)
-                ? Math.min(commonIndicatorWidth, measuredIndicatorWidth)
-                : measuredIndicatorWidth;
-            var indicatorCenterX = Number.isFinite(measuredInkCenterX)
-                ? measuredInkCenterX
-                : titleRect.width / 2;
+                ? Math.min(commonIndicatorWidth, titleRect.width)
+                : titleRect.width;
 
             return {
                 left: titleRect.left - hostRect.left + scrollOffset
-                    + indicatorCenterX - (indicatorWidth / 2),
+                    + (titleRect.width - indicatorWidth) / 2,
                 width: indicatorWidth
             };
         }
@@ -326,9 +238,16 @@
         }
 
         if (!tabList.vppIndicatorObserver) {
-            tabList.vppIndicatorObserver = new MutationObserver(function () {
+            tabList.vppIndicatorObserver = new MutationObserver(function (mutations) {
+                var hasExternalChange = mutations.some(function (mutation) {
+                    return !mutation.target.classList
+                        || !mutation.target.classList.contains("vpp-tab-shared-indicator");
+                });
+                if (!hasExternalChange) {
+                    return;
+                }
+
                 window.requestAnimationFrame(function () {
-                    alignOpticalText(tabList);
                     moveTabIndicator(tabList, findActiveTab(tabList), true);
                 });
             });
@@ -345,7 +264,6 @@
 
             if (window.ResizeObserver) {
                 tabList.vppIndicatorResizeObserver = new ResizeObserver(function () {
-                    alignOpticalText(tabList);
                     moveTabIndicator(tabList, findActiveTab(tabList), false);
                 });
                 tabList.vppIndicatorResizeObserver.observe(tabList);
@@ -434,8 +352,6 @@
     }
 
     function initializeTabIndicators(root) {
-        alignOpticalText(root);
-
         if (root instanceof Element && root.matches(tabListSelector)) {
             moveTabIndicator(root, findActiveTab(root), false);
         }
@@ -602,7 +518,15 @@
         }
 
         if (!nav.vppSidebarIndicatorObserver) {
-            nav.vppSidebarIndicatorObserver = new MutationObserver(function () {
+            nav.vppSidebarIndicatorObserver = new MutationObserver(function (mutations) {
+                var hasExternalChange = mutations.some(function (mutation) {
+                    return !mutation.target.classList
+                        || !mutation.target.classList.contains("vpp-sidebar-shared-indicator");
+                });
+                if (!hasExternalChange) {
+                    return;
+                }
+
                 window.requestAnimationFrame(function () {
                     moveSidebarIndicator(nav, findActiveSidebarTarget(nav), true);
                 });
@@ -773,11 +697,6 @@
 
     var tabTreeObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
-            if (mutation.type === "characterData") {
-                alignOpticalText(mutation.target.parentElement);
-                return;
-            }
-
             mutation.removedNodes.forEach(function (node) {
                 disposeTabIndicators(node);
                 disposeSidebarIndicators(node);
@@ -792,18 +711,15 @@
     });
 
     function startTabIndicators() {
-        alignOpticalText(document);
         initializeTabIndicators(document);
         initializeSidebarIndicators(document);
         tabTreeObserver.observe(document.body, {
             childList: true,
-            characterData: true,
             subtree: true
         });
 
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function () {
-                alignOpticalText(document);
                 initializeTabIndicators(document);
                 initializeSidebarIndicators(document);
             });

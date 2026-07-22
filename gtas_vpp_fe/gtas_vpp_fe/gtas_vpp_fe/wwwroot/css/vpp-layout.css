@@ -222,7 +222,7 @@ leftsidebar {
 }
 
 .vpp-sidebar-product {
-    translate: var(--vpp-optical-x, 0px) var(--vpp-optical-y, 0px);
+    translate: none;
     max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
