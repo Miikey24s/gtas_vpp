@@ -249,6 +249,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap));", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-nested-indent-step: calc(var(--vpp-sidebar-icon-box-size) + var(--vpp-sidebar-rail-content-gap));", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: var(--vpp-sidebar-child-content-offset);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("every child/grandchild icon exactly one shared rhythm", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("padding-inline-start: 0 !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("padding-inline-end: var(--vpp-space-4) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("inset-inline-start: var(--vpp-sidebar-child-rail-offset);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".rz-navigation-menu .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: calc(var(--vpp-sidebar-child-content-offset) + var(--vpp-sidebar-nested-indent-step));", sidebarCss, StringComparison.Ordinal);
