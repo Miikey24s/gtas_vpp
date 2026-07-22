@@ -161,17 +161,14 @@
         </RadzenPanelMenu>
     </nav>
     <footer class="vpp-sidebar-user-footer">
-        <div class="vpp-sidebar-utilities" aria-label="@Loc["Settings"]">
-            <HeaderControls IsLightTheme="@LightTheme"
-                            IsLightThemeChanged="@(isLight => LightTheme = isLight)"
-                            OnThemeToggle="ThemeOnChange"
-                            OnLanguageToggle="ToggleLanguage" />
-            <NotificationCenter />
-        </div>
         <UserMenu UserFullName="@glb.UserInfo.FullName"
                   UserLogin="@glb.UserInfo.UserLogin"
                   DepartmentName="@glb.UserInfo.DepartmentName"
                   DepartmentCode="@glb.UserInfo.DepartmentCode"
+                  IsLightTheme="@LightTheme"
+                  IsLightThemeChanged="@(isLight => LightTheme = isLight)"
+                  OnThemeToggle="ThemeOnChange"
+                  OnLanguageToggle="ToggleLanguage"
                   ShowName="true"
                   SidebarMode="true" />
     </footer>

@@ -90,23 +90,23 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
+        var userMenuSource = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
         var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
 
         var sidebarStart = source.IndexOf("<RadzenSidebar", StringComparison.Ordinal);
         var brand = source.IndexOf("vpp-sidebar-brand", StringComparison.Ordinal);
         var desktopToggle = source.IndexOf("vpp-sidebar-toggle", StringComparison.Ordinal);
-        var sidebarUtilities = source.IndexOf("vpp-sidebar-utilities", StringComparison.Ordinal);
-        var headerControls = source.IndexOf("<HeaderControls", StringComparison.Ordinal);
-        var notificationCenter = source.IndexOf("<NotificationCenter", StringComparison.Ordinal);
         var userFooter = source.IndexOf("vpp-sidebar-user-footer", StringComparison.Ordinal);
         var userMenu = source.IndexOf("<UserMenu", StringComparison.Ordinal);
 
         Assert.True(sidebarStart >= 0 && brand > sidebarStart, "the GTAS VPP brand should live inside the sidebar");
         Assert.True(desktopToggle > sidebarStart, "the desktop expand/collapse control should live inside the sidebar");
         Assert.True(userFooter > sidebarStart && userMenu > userFooter, "the account trigger should live at the bottom of the sidebar");
-        Assert.True(sidebarUtilities > sidebarStart && headerControls > sidebarUtilities && notificationCenter > sidebarUtilities,
-            "language, theme and notifications should live in the sidebar footer");
+        Assert.DoesNotContain("vpp-sidebar-utilities", source, StringComparison.Ordinal);
+        Assert.Contains("user-dropdown-utilities", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("<HeaderControls", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("<NotificationCenter", userMenuSource, StringComparison.Ordinal);
         Assert.Equal(1, source.Split("<UserMenu", StringSplitOptions.None).Length - 1);
         Assert.Contains("vpp-sidebar-collapsed-brand", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-collapsed-logo", source, StringComparison.Ordinal);

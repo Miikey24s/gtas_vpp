@@ -50,6 +50,13 @@
                     }
                 </div>
             }
+            <div class="user-dropdown-utilities" aria-label="@Loc["Settings"]">
+                <HeaderControls IsLightTheme="@IsLightTheme"
+                                IsLightThemeChanged="@IsLightThemeChanged"
+                                OnThemeToggle="@OnThemeToggle"
+                                OnLanguageToggle="@OnLanguageToggle" />
+                <NotificationCenter />
+            </div>
             <a href="/logoutprocess" class="user-dropdown-logout">
                 <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
                 <span>@Loc["Logout"]</span>
@@ -67,6 +74,10 @@
     [Parameter] public string? UserLogin { get; set; }
     [Parameter] public string? DepartmentName { get; set; }
     [Parameter] public string? DepartmentCode { get; set; }
+    [Parameter] public bool IsLightTheme { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsLightThemeChanged { get; set; }
+    [Parameter] public EventCallback OnThemeToggle { get; set; }
+    [Parameter] public EventCallback OnLanguageToggle { get; set; }
     [Parameter] public bool ShowName { get; set; }
     [Parameter] public bool SidebarMode { get; set; }
 
