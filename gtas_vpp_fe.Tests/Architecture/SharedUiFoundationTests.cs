@@ -137,6 +137,9 @@ public sealed class SharedUiFoundationTests
 
         Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Collapsed active state stays line-only", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("Full-width submenu surface", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline: 0;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("padding-inline-start: var(--vpp-space-8);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-nav-indicator-color);", sidebarCss, StringComparison.Ordinal);

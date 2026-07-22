@@ -111,9 +111,18 @@
     font-size: var(--vpp-text-sm);
 }
 
-.rz-navigation-item.ppjsidebarmenu.submenu .rz-navigation-item-wrapper {
-    margin-left: var(--vpp-space-8);
+/* Full-width submenu surface; keep content and active rail at the child indent. */
+.rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper {
+    box-sizing: border-box;
+    margin-inline: 0;
+    padding-inline-start: var(--vpp-space-8);
     border-radius: var(--vpp-radius-sm);
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu.submenu.rz-navigation-item-active:not(:has(> .rz-navigation-item-wrapper-active))::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper-active::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active)::before {
+    inset-inline-start: var(--vpp-space-8);
 }
 
 .rz-navigation-item.ppjsidebarmenu.submenu .rzi.rz-navigation-item-icon {
