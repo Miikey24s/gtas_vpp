@@ -1,7 +1,7 @@
 @using gtas_vpp_shared.DTOs.Share
 @inject NavigationManager NavigationManager
 
-<div class="vpp-user-menu" @onkeydown="HandleKeyDown">
+<div class="@RootClass" @onkeydown="HandleKeyDown">
     <button type="button"
             class="user-menu-trigger"
             aria-haspopup="dialog"
@@ -12,6 +12,10 @@
         <span class="user-avatar" aria-hidden="true">
         @GetInitials()
         </span>
+        @if (ShowName)
+        {
+            <span class="user-menu-trigger-name">@UserFullName</span>
+        }
     </button>
 
     @if (_isOpen)
@@ -63,8 +67,14 @@
     [Parameter] public string? UserLogin { get; set; }
     [Parameter] public string? DepartmentName { get; set; }
     [Parameter] public string? DepartmentCode { get; set; }
+    [Parameter] public bool ShowName { get; set; }
+    [Parameter] public bool SidebarMode { get; set; }
 
     private bool _isOpen;
+
+    private string RootClass => SidebarMode
+        ? "vpp-user-menu vpp-sidebar-user-menu"
+        : "vpp-user-menu";
 
     private string DepartmentDisplayName => !string.IsNullOrWhiteSpace(DepartmentName)
         ? DepartmentName.Trim()

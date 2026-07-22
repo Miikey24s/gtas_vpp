@@ -305,20 +305,78 @@ a:hover {
     overflow: auto;
 }
 
-.vpp-sidebar-meta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--vpp-space-2);
-    min-height: 42px;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
+.vpp-sidebar-user-footer {
+    position: relative;
+    flex: 0 0 auto;
+    padding: var(--vpp-space-2);
     border-top: 1px solid var(--vpp-border-default);
-    color: var(--vpp-text-tertiary);
-    font-size: var(--vpp-text-xs);
 }
 
-.sidebar-collapsed .vpp-sidebar-meta time {
+.vpp-sidebar-user-menu {
+    width: 100%;
+}
+
+.vpp-sidebar-user-menu .user-menu-trigger {
+    justify-content: flex-start;
+    gap: var(--vpp-space-3);
+    width: 100%;
+    padding: 3px var(--vpp-space-2);
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-text-primary);
+    text-align: left;
+}
+
+.vpp-sidebar-user-menu .user-menu-trigger:hover {
+    background: var(--vpp-sidebar-item-hover-bg, rgba(9, 30, 66, 0.055));
+}
+
+.vpp-sidebar-user-menu .user-menu-trigger:hover .user-avatar {
+    box-shadow: none;
+}
+
+.user-menu-trigger-name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-sidebar-user-menu .user-dropdown {
+    position: fixed;
+    top: auto;
+    right: auto;
+    bottom: var(--vpp-space-2);
+    left: calc(var(--vpp-sidebar-width) + var(--vpp-space-2));
+    transform-origin: bottom left;
+}
+
+.sidebar-collapsed .vpp-sidebar-user-footer {
+    padding-inline: var(--vpp-space-3);
+}
+
+.sidebar-collapsed .vpp-sidebar-user-menu .user-menu-trigger {
+    justify-content: center;
+    width: 44px;
+    padding: 3px;
+}
+
+.sidebar-collapsed .vpp-sidebar-user-menu .user-menu-trigger-name {
     display: none;
+}
+
+.sidebar-collapsed .vpp-sidebar-user-menu .user-dropdown {
+    left: calc(var(--vpp-sidebar-collapsed-width) + var(--vpp-space-2));
+}
+
+@media (max-width: 767px) {
+    .vpp-sidebar-user-menu .user-dropdown,
+    .sidebar-collapsed .vpp-sidebar-user-menu .user-dropdown {
+        right: auto;
+        bottom: calc(60px + var(--vpp-space-2));
+        left: var(--vpp-space-2);
+    }
 }
 
 .user-menu-trigger {

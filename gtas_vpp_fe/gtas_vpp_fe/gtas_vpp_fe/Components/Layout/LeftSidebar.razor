@@ -1,6 +1,5 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @using Radzen.Blazor.Rendering
-@using System.Globalization
 @using gtas_vpp_shared.Constants
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @* @inject Radzen.ThemeService ThemeService *@
@@ -26,10 +25,6 @@
                             OnThemeToggle="ThemeOnChange"
                             OnLanguageToggle="ToggleLanguage" />
             <NotificationCenter />
-            <UserMenu UserFullName="@glb.UserInfo.FullName"
-                      UserLogin="@glb.UserInfo.UserLogin"
-                      DepartmentName="@glb.UserInfo.DepartmentName"
-                      DepartmentCode="@glb.UserInfo.DepartmentCode" />
         </RadzenStack>
     </RadzenStack>
 </RadzenHeader>
@@ -53,7 +48,7 @@
         </button>
     </div>
     <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
-        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
+        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="true" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)
         {
             <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]">
@@ -159,13 +154,16 @@
                 }
             </RadzenPanelMenuItem>
         }
-        <RadzenPanelMenuItem Text="@Loc["Logout"]" Icon="@VppIcons.Logout" class="ppjsidebarmenu" Path="/logoutprocess" title="@Loc["Logout"]" />
         </RadzenPanelMenu>
     </nav>
-    <div class="vpp-sidebar-meta" aria-label="@Loc["CurrentDate"]">
-        <VppIcon Name="@VppIcons.Calendar" />
-        <time datetime="@_currentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@_currentDate.ToString("dd-MM-yyyy", CultureInfo.CurrentCulture)</time>
-    </div>
+    <footer class="vpp-sidebar-user-footer">
+        <UserMenu UserFullName="@glb.UserInfo.FullName"
+                  UserLogin="@glb.UserInfo.UserLogin"
+                  DepartmentName="@glb.UserInfo.DepartmentName"
+                  DepartmentCode="@glb.UserInfo.DepartmentCode"
+                  ShowName="true"
+                  SidebarMode="true" />
+    </footer>
 </RadzenSidebar>
 @if (_sideBarExpanded)
 {

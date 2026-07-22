@@ -96,9 +96,16 @@ public sealed class SharedUiFoundationTests
         var sidebarStart = source.IndexOf("<RadzenSidebar", StringComparison.Ordinal);
         var brand = source.IndexOf("vpp-sidebar-brand", StringComparison.Ordinal);
         var desktopToggle = source.IndexOf("vpp-sidebar-toggle", StringComparison.Ordinal);
+        var userFooter = source.IndexOf("vpp-sidebar-user-footer", StringComparison.Ordinal);
+        var userMenu = source.IndexOf("<UserMenu", StringComparison.Ordinal);
 
         Assert.True(sidebarStart >= 0 && brand > sidebarStart, "the GTAS VPP brand should live inside the sidebar");
         Assert.True(desktopToggle > sidebarStart, "the desktop expand/collapse control should live inside the sidebar");
+        Assert.True(userFooter > sidebarStart && userMenu > userFooter, "the account trigger should live at the bottom of the sidebar");
+        Assert.Equal(1, source.Split("<UserMenu", StringSplitOptions.None).Length - 1);
+        Assert.Contains("ShowArrow=\"true\"", source, StringComparison.Ordinal);
+        Assert.Contains("ShowName=\"true\"", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("<RadzenPanelMenuItem Text=\"@Loc[\"Logout\"]\"", source, StringComparison.Ordinal);
         Assert.Contains("vpp-mobile-sidebar-toggle", source, StringComparison.Ordinal);
         Assert.DoesNotContain("VppIcons.Search", source, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout", layoutCss, StringComparison.Ordinal);
@@ -107,13 +114,18 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
-    public void SidebarHover_UsesTheSharedTabInteractionTint()
+    public void SidebarNavigation_UsesAppleMusicInspiredRowStates()
     {
         var root = GetFrontendRoot();
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
+        var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
 
-        Assert.Contains("same tint, radius and timing as tabs", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("background-color: rgba(14, 165, 233, 0.04);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("background: var(--vpp-nav-indicator-color);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar .rz-navigation-item-icon-children", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transform: translateX(2px);", sidebarCss, StringComparison.Ordinal);
     }
 

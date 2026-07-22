@@ -93,6 +93,15 @@
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+.vpp-sidebar-user-menu .user-dropdown {
+    animation-name: userDropdownUpIn;
+}
+
+@keyframes userDropdownUpIn {
+    from { opacity: 0; transform: scale(0.95) translateY(4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 .user-dropdown-header {
     display: flex;
     align-items: center;

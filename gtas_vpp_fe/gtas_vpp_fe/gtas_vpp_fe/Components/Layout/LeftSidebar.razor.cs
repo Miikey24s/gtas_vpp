@@ -53,7 +53,6 @@ namespace gtas_vpp_fe.Components.Layout
         public bool _sideBarExpanded { get; set; } = false;
         public bool LightTheme { get; set; } = true;
         public bool _userMenuOpen = false;
-        private readonly DateTime _currentDate = DateTime.Now.Date;
         private string? currentUrl { get; set; }
         public const string QueryParameter = "theme";
         public string theme = "material3-base";

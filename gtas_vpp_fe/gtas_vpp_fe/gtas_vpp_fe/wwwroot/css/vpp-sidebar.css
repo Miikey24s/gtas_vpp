@@ -1,12 +1,22 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    VPP SIDEBAR ENHANCEMENTS — Phase 2 (v2)
-   Smooth collapse, active indicators, hover animations, icon-only tooltips
+   Smooth collapse, Apple Music-inspired row states, icon-only tooltips
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Sidebar Container ───────────────────────────────────────── */
 .vpp-sidebar {
     transition: width var(--vpp-transition-base);
-    overflow: hidden;
+    overflow: visible !important;
+}
+
+.vpp-sidebar {
+    --vpp-sidebar-item-hover-bg: rgba(255, 255, 255, 0.06);
+    --vpp-sidebar-item-active-bg: rgba(255, 255, 255, 0.09);
+}
+
+:root:not(.rz-theme-dark) .vpp-sidebar {
+    --vpp-sidebar-item-hover-bg: rgba(9, 30, 66, 0.055);
+    --vpp-sidebar-item-active-bg: rgba(9, 30, 66, 0.08);
 }
 
 /* ── Panel Menu Item — Base ──────────────────────────────────── */
@@ -47,31 +57,22 @@
     to   { transform: scaleY(1); opacity: 1; }
 }
 
-/* Hover — same tint, radius and timing as tabs */
+/* Apple Music-inspired hover: a neutral full-row surface with no movement. */
 .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
-    background-color: rgba(14, 165, 233, 0.04);
+    background-color: var(--vpp-sidebar-item-hover-bg) !important;
 }
 
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
-    background-color: rgba(14, 165, 233, 0.06);
-}
-
-/* Line-only active state; Radzen 11 applies active state to the wrapper/link. */
-.vpp-sidebar .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active,
+/* Radzen 11 applies the route state to the wrapper/link. Keep a neutral row
+   surface and reserve VPP blue for the active rail. */
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active,
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) {
-    background-color: transparent !important;
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
     border-color: transparent !important;
 }
 
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active:hover,
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
-    background-color: rgba(14, 165, 233, 0.04) !important;
-}
-
-:root:not(.rz-theme-dark) .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active:hover,
-:root:not(.rz-theme-dark) .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
-    background-color: rgba(14, 165, 233, 0.06) !important;
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
 }
 
 /* Icon color enhancement */
@@ -82,16 +83,7 @@
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rzi.rz-navigation-item-icon,
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rzi.rz-navigation-item-icon {
-    color: var(--vpp-primary-400);
-}
-
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text,
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rzi.rz-navigation-item-icon,
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rz-navigation-item-text,
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rzi.rz-navigation-item-icon,
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rz-navigation-item-text {
-    color: var(--vpp-primary-700);
+    color: var(--vpp-text-primary);
 }
 
 .rz-navigation-item.ppjsidebarmenu:hover .rzi.rz-navigation-item-icon {
@@ -102,8 +94,16 @@
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text,
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rz-navigation-item-text,
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rz-navigation-item-text {
-    color: var(--vpp-primary-400);
+    color: var(--vpp-text-primary);
     font-weight: var(--vpp-font-weight-medium);
+}
+
+/* Compact chevron for expandable groups; Radzen owns expanded/collapsed state. */
+.vpp-sidebar .rz-navigation-item-icon-children {
+    margin-inline-start: auto;
+    color: var(--vpp-text-secondary);
+    font-size: 1rem;
+    opacity: 0.82;
 }
 
 /* ── Submenu — indent + smaller font ─────────────────────────── */
@@ -205,7 +205,7 @@
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-wrapper-active) > .rz-navigation-item-wrapper {
-    background-color: transparent !important;
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
     box-shadow: none !important;
 }
 
@@ -227,22 +227,13 @@
 
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) .rzi.rz-navigation-item-icon {
-    color: var(--vpp-primary-400) !important;
-}
-
-:root:not(.rz-theme-dark) .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
-:root:not(.rz-theme-dark) .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) .rzi.rz-navigation-item-icon {
-    color: var(--vpp-primary-700) !important;
+    color: var(--vpp-text-primary) !important;
 }
 
 /* Collapsed: hover effect on icons */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
-    background: rgba(14, 165, 233, 0.04) !important;
+    background: var(--vpp-sidebar-item-hover-bg) !important;
     border-radius: var(--vpp-radius-md) !important;
-}
-
-:root:not(.rz-theme-dark) .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
-    background: rgba(14, 165, 233, 0.06) !important;
 }
 
 
@@ -292,8 +283,8 @@
 
 /* Ensure panel menu has transparent background to inherit the sidebar's background */
 .vpp-sidebar .rz-panel-menu {
-    --rz-panel-menu-item-active-background-color: transparent;
-    --rz-panel-menu-item-2nd-level-active-background-color: transparent;
+    --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);
+    --rz-panel-menu-item-2nd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-active-indicator: var(--vpp-nav-indicator-color);
     background: transparent !important;
     background-color: transparent !important;
