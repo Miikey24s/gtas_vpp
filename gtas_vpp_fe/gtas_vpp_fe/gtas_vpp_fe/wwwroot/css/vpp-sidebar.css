@@ -74,6 +74,16 @@
     line-height: 20px;
 }
 
+/* Keep labels equally legible in every interaction state. Radzen uses a
+   softer nested-item color by default, which made idle submenu text look
+   disabled and then become darker only while hovering. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu:hover .rz-navigation-item-text,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu:focus-within .rz-navigation-item-text {
+    color: var(--vpp-text-primary) !important;
+    opacity: 1 !important;
+}
+
 /* Active indicator — blue rail aligned with the shared tab underline */
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active:not(:has(> .rz-navigation-item-wrapper-active))::before,
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active::before,

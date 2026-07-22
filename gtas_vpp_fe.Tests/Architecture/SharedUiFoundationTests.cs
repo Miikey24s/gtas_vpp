@@ -228,6 +228,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-sidebar-collapsed-width: 72px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("line-height: 20px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("equally legible in every interaction state", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("color: var(--vpp-text-primary) !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("opacity: 1 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-navigation-row-height);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("min-height: var(--vpp-navigation-row-height);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-block: 0 !important;", sidebarCss, StringComparison.Ordinal);
