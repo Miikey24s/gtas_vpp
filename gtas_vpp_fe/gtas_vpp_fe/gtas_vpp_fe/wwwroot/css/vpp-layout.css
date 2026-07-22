@@ -32,6 +32,16 @@ body:has(.vpp-layout) {
     grid-template-columns: var(--vpp-sidebar-collapsed-width) 1fr;
 }
 
+@media (min-width: 768px) {
+    .rz-layout.vpp-layout {
+        grid-template-rows: 0 1fr;
+    }
+
+    .vpp-layout .rz-header.vpp-layout-header {
+        display: none;
+    }
+}
+
 leftsidebar {
     display: contents;
 }

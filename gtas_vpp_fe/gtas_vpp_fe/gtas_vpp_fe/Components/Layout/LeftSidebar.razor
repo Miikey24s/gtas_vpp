@@ -10,7 +10,7 @@
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" class="vpp-global-loader" />
 
 <RadzenHeader class="vpp-header-glass vpp-layout-header">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="vpp-header-row">
+    <RadzenStack Orientation="Orientation.Horizontal" class="vpp-header-row">
         <button type="button"
                 class="vpp-mobile-sidebar-toggle"
                 title="@Loc["ToggleNavigation"]"
@@ -19,13 +19,6 @@
                 @onclick="@(() => _sideBarExpanded = !_sideBarExpanded)">
             <VppIcon Name="@VppIcons.Menu" />
         </button>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem" class="vpp-header-actions">
-            <HeaderControls IsLightTheme="@LightTheme"
-                            IsLightThemeChanged="@(isLight => LightTheme = isLight)"
-                            OnThemeToggle="ThemeOnChange"
-                            OnLanguageToggle="ToggleLanguage" />
-            <NotificationCenter />
-        </RadzenStack>
     </RadzenStack>
 </RadzenHeader>
 
@@ -168,6 +161,13 @@
         </RadzenPanelMenu>
     </nav>
     <footer class="vpp-sidebar-user-footer">
+        <div class="vpp-sidebar-utilities" aria-label="@Loc["Settings"]">
+            <HeaderControls IsLightTheme="@LightTheme"
+                            IsLightThemeChanged="@(isLight => LightTheme = isLight)"
+                            OnThemeToggle="ThemeOnChange"
+                            OnLanguageToggle="ToggleLanguage" />
+            <NotificationCenter />
+        </div>
         <UserMenu UserFullName="@glb.UserInfo.FullName"
                   UserLogin="@glb.UserInfo.UserLogin"
                   DepartmentName="@glb.UserInfo.DepartmentName"

@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.33` — 2026-07-22
+> **Phiên bản:** `1.34` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -825,6 +825,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-22 | Apple Music-inspired sidebar states | Menu dùng nền trung tính full-row khi hover/active, vạch dọc xanh VPP ở mép trái, nhóm có chevron Radzen và không có nút `+`; account chuyển xuống footer sidebar, collapsed chỉ giữ avatar | Owner cung cấp reference Apple Music và yêu cầu giữ màu xanh của GTAS VPP | Shared shell + responsive | Bỏ account khỏi header và mục logout trùng; giữ logout/context trong account popover mở lên từ footer | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Collapsed brand-to-expand affordance | Collapsed rail chỉ giữ logo; hover hoặc keyboard focus đổi logo thành icon expand, click mở sidebar; không render thêm nút toggle thứ hai | Owner muốn rail gọn như ChatGPT, tránh logo và nút mở xếp dọc | Shared shell + accessibility | Expanded giữ logo/tên và nút collapse riêng; collapsed hợp nhất brand với expand action | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Expanded text-only brand | Expanded sidebar chỉ hiện chữ `GTAS VPP`, bỏ logo và bỏ link/underline; collapsed rail vẫn giữ logo-to-expand affordance | Owner chỉ ra brand expanded còn giống link và thừa logo so với reference ChatGPT | Shared shell | Brand expanded trở thành text label không tương tác; navigation không đổi | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
+| 2026-07-22 | Sidebar utility consolidation | Chuyển language, theme và notification khỏi desktop header xuống footer sidebar phía trên user; collapsed xếp icon dọc và language chỉ hiện mã active; mobile vẫn giữ header hamburger | Owner muốn dọn toàn bộ utility icon còn lại khỏi header | Shared shell + responsive | Desktop header thu về `0px`; notification/account popover neo sang phải sidebar; giữ nguyên behavior và accessibility label | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |
