@@ -112,7 +112,7 @@ leftsidebar {
 }
 
 .rz-theme-dark .vpp-sidebar {
-    background-color: var(--vpp-bg-surface);
+    background-color: var(--vpp-navigation-chrome-bg);
     border-right-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -129,7 +129,7 @@ leftsidebar {
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
 .vpp-sidebar {
-    background-color: var(--vpp-bg-base);
+    background-color: var(--vpp-navigation-chrome-bg);
     border-right: 1px solid var(--vpp-border-default);
     display: flex;
     flex-direction: column;

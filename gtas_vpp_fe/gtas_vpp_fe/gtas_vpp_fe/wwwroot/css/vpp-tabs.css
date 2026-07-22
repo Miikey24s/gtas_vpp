@@ -100,7 +100,7 @@ ul[role="tablist"]::-webkit-scrollbar {
 .rz-tabview > .rz-tabview-nav {
     padding: 0 var(--vpp-space-1);
     border-bottom: 1px solid var(--vpp-border-default);
-    background: var(--vpp-bg-elevated);
+    background: var(--vpp-navigation-chrome-bg);
     border-radius: var(--vpp-radius-md);
 }
 
@@ -138,7 +138,7 @@ ul[role="tablist"]::-webkit-scrollbar {
     z-index: var(--vpp-z-sticky);
     height: var(--vpp-library-primary-tabs-height);
     min-height: var(--vpp-library-primary-tabs-height);
-    background: var(--vpp-bg-elevated);
+    background: var(--vpp-navigation-chrome-bg);
     border-radius: 0;
     box-shadow: 0 1px 0 var(--vpp-border-default);
     isolation: isolate;
@@ -171,7 +171,7 @@ ul[role="tablist"]::-webkit-scrollbar {
     height: var(--vpp-library-secondary-tabs-height);
     min-height: var(--vpp-library-secondary-tabs-height);
     border-bottom: 1px solid var(--vpp-border-default);
-    background: var(--vpp-bg-elevated);
+    background: var(--vpp-navigation-chrome-bg);
     border-radius: 0;
     box-shadow: 0 1px 0 var(--vpp-border-default);
     isolation: isolate;
@@ -239,7 +239,7 @@ ul[role="tablist"]::-webkit-scrollbar {
     top: 0;
     bottom: 0;
     width: 32px;
-    background: linear-gradient(to right, transparent, var(--vpp-bg-elevated));
+    background: linear-gradient(to right, transparent, var(--vpp-navigation-chrome-bg));
     pointer-events: none;
     opacity: 0;
     transition: opacity var(--vpp-transition-fast);

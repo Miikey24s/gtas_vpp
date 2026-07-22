@@ -99,6 +99,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-tabs-bar-height: 44px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-hover-bg", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-active-bg", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-surface);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-base);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("background: var(--vpp-navigation-chrome-bg);", tabsCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("background: var(--vpp-bg-elevated);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-hover-bg", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-navigation-row-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px !important;", tabsCss, StringComparison.Ordinal);
