@@ -1152,10 +1152,6 @@ h1:focus {
     text-align: right !important;
 }
 
-.ppjsidebarmenu.submenu {
-    margin-left: 1rem !important;
-}
-
 .disable-black .rz-form-field-content input {
     color: var(--rz-base-900) !important;
 }
