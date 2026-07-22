@@ -166,6 +166,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--rz-panel-menu-item-padding-block: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-item-2nd-level-padding-block: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-2nd-level-vertical-offset: 0;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-navigation-item.ppjsidebarmenu + .rz-navigation-item.ppjsidebarmenu", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin-block-start: var(--vpp-space-1) !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin-block: 0 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: var(--vpp-space-8);", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".ppjsidebarmenu.submenu", appCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
