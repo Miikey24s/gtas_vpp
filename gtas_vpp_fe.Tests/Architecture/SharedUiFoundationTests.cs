@@ -116,6 +116,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("background: transparent;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-footer", polishCss, StringComparison.Ordinal);
         Assert.Contains("border-top: 0;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("width: var(--vpp-sidebar-collapsed-control-width);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-sidebar-collapsed-control-height);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("flex: 0 0 var(--vpp-sidebar-collapsed-control-width);", layoutCss, StringComparison.Ordinal);
         Assert.Equal(1, source.Split("<VppBrandMark", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("href=\"/dashboard?tab=0\"", source, StringComparison.Ordinal);
         Assert.Contains("@if (_sideBarExpanded)", source, StringComparison.Ordinal);
@@ -150,8 +153,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("line-height: 20px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("min-height: 40px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 20px;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1)) !important;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("height: 48px !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-collapsed-control-width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1));", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-collapsed-control-height: 48px;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("width: var(--vpp-sidebar-collapsed-control-width) !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-sidebar-collapsed-control-height) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Collapsed active state stays line-only", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Parent-child surface edge parity", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);

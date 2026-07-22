@@ -175,8 +175,8 @@
     align-items: center !important;
     margin: 2px auto !important;
     padding: 0 !important;
-    width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1)) !important;
-    height: 48px !important;
+    width: var(--vpp-sidebar-collapsed-control-width) !important;
+    height: var(--vpp-sidebar-collapsed-control-height) !important;
     border-radius: var(--vpp-radius-md) !important;
     border: none !important;
     background: transparent !important;

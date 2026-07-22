@@ -229,6 +229,8 @@
     /* Layout */
     --vpp-sidebar-width: 286px;
     --vpp-sidebar-collapsed-width: 72px;
+    --vpp-sidebar-collapsed-control-width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1));
+    --vpp-sidebar-collapsed-control-height: 48px;
     --vpp-header-height: 60px;
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;

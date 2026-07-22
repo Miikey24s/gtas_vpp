@@ -238,13 +238,14 @@ leftsidebar {
     min-height: var(--vpp-header-height);
     flex-direction: row;
     justify-content: center;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
+    padding: 6px 2px;
 }
 
 .sidebar-collapsed .vpp-sidebar-brand {
     position: relative;
-    flex: 0 0 44px;
-    width: 44px;
+    flex: 0 0 var(--vpp-sidebar-collapsed-control-width);
+    width: var(--vpp-sidebar-collapsed-control-width);
+    height: var(--vpp-sidebar-collapsed-control-height);
     padding: var(--vpp-space-1);
     justify-content: center;
 }

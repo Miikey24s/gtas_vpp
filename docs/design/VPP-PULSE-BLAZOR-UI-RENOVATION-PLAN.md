@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.47` — 2026-07-22
+> **Phiên bản:** `1.48` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -839,6 +839,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-22 | Parent-child surface edge parity | Hover/active surface của menu cha và menu con dùng cùng inset 4px và cùng radius; chỉ icon/chữ của child thụt cấp | Owner phát hiện child surface bắt đầu lệch vào trong so với parent | Shared shell + RadzenPanelMenu | Override cả Radzen level-2 margin token và submenu wrapper về cùng `space-1`; giữ content/active rail indent riêng | Sidebar expanded trên mọi authenticated route | Superseded — legacy margin remained |
 | 2026-07-22 | Legacy submenu offset removal | Xóa `margin-left: 1rem !important` cũ trên toàn bộ submenu item để child surface thực sự cùng mép parent | Browser evidence cho thấy legacy `app.css` tiếp tục đẩy cả `<li>` child 16px dù wrapper/token đã đồng bộ | Shared shell + CSS cascade | Loại bỏ rule legacy tại nguồn; giữ indent bằng padding nội dung trong `vpp-sidebar.css` | Sidebar expanded trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Uniform Apple Music row gap | Parent–child và child–child đều giữ khoảng cách thị giác 4px giữa hai interaction surface | Owner phát hiện parent–first-child còn rộng hơn khoảng cách giữa các child | Shared shell + RadzenPanelMenu | Đo Apple Music Web live: row surface 36px, margin-bottom 4px; reset `--rz-panel-menu-2nd-level-vertical-offset` về 0 để Radzen không cộng khoảng đệm riêng trước/sau submenu | Sidebar expanded trên mọi authenticated route | Implemented — OWNER_REVIEW |
+| 2026-07-22 | Unified collapsed control hitbox | Nav icon, user trigger và logo-to-expand trigger dùng chung surface 68×48px trên collapsed rail 72px; glyph/avatar/logo giữ nguyên kích thước | Owner phát hiện user hover và expand hover vẫn là ô 44×44px nhỏ hơn nav hover | Shared shell + accessibility | Tạo shared collapsed-control width/height tokens; giảm header/footer inline padding còn 2px và áp cùng token cho ba loại trigger | Sidebar collapsed trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |
