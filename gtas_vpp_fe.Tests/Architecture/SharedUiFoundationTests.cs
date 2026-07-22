@@ -118,6 +118,8 @@ public sealed class SharedUiFoundationTests
         var root = GetFrontendRoot();
         var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
         var userMenuSource = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
+        var brandMarkSource = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppBrandMark.razor"));
+        var appSource = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
@@ -146,7 +148,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("width: var(--vpp-sidebar-collapsed-control-width);", polishCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-sidebar-collapsed-control-height);", polishCss, StringComparison.Ordinal);
         Assert.Contains("flex: 0 0 var(--vpp-sidebar-collapsed-control-width);", layoutCss, StringComparison.Ordinal);
-        Assert.Equal(1, source.Split("<VppBrandMark", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, source.Split("<VppBrandMark", StringSplitOptions.None).Length - 1);
+        Assert.Contains("vpp-sidebar-expanded-logo", source, StringComparison.Ordinal);
+        Assert.Contains("images/vpp-app-icon.svg", brandMarkSource, StringComparison.Ordinal);
+        Assert.Contains("images/vpp-app-icon.svg", appSource, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(root, "wwwroot", "images", "vpp-app-icon.svg")));
         Assert.DoesNotContain("href=\"/dashboard?tab=0\"", source, StringComparison.Ordinal);
         Assert.Contains("@if (_sideBarExpanded)", source, StringComparison.Ordinal);
         Assert.Contains("ShowArrow=\"true\"", source, StringComparison.Ordinal);

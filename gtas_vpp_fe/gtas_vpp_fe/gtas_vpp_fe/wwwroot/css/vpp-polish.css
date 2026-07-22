@@ -276,27 +276,11 @@ a:hover {
     flex: 0 0 36px;
 }
 
-.vpp-brand-mark svg {
+.vpp-brand-mark img {
     display: block;
     width: 36px;
     height: 36px;
-}
-
-.vpp-brand-mark-tile {
-    fill: var(--vpp-primary-600);
-}
-
-.vpp-brand-mark-depth {
-    fill: var(--vpp-primary-700);
-    opacity: 0.72;
-}
-
-.vpp-brand-mark-glyph {
-    fill: var(--vpp-text-on-surface, #fff);
-}
-
-.vpp-brand-mark-accent {
-    fill: var(--vpp-accent-500, #14b8a6);
+    user-select: none;
 }
 
 .vpp-sidebar-nav {

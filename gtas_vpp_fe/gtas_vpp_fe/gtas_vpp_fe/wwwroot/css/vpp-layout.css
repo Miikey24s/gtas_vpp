@@ -149,11 +149,19 @@ leftsidebar {
 .vpp-sidebar-expanded-brand {
     display: flex;
     align-items: center;
+    gap: var(--vpp-space-2);
     min-width: 0;
     flex: 1 1 auto;
     height: 44px;
     padding: var(--vpp-space-1) var(--vpp-space-2);
     color: var(--vpp-text-primary);
+}
+
+.vpp-sidebar-expanded-logo.vpp-brand-mark,
+.vpp-sidebar-expanded-logo.vpp-brand-mark img {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
 }
 
 .vpp-sidebar-brand {
@@ -289,7 +297,7 @@ leftsidebar {
 }
 
 .sidebar-collapsed .vpp-sidebar-brand-mark.vpp-brand-mark,
-.sidebar-collapsed .vpp-sidebar-brand-mark.vpp-brand-mark svg {
+.sidebar-collapsed .vpp-sidebar-brand-mark.vpp-brand-mark img {
     width: 32px;
     height: 32px;
     flex-basis: 32px;
