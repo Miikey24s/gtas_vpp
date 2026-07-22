@@ -24,6 +24,8 @@
     --vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));
     --vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap) - var(--vpp-space-1));
     --vpp-sidebar-nested-indent-step: calc(var(--vpp-sidebar-icon-box-size) + var(--vpp-sidebar-rail-content-gap));
+    --vpp-sidebar-expanded-nav-overlap: 14px;
+    --vpp-sidebar-collapsed-nav-overlap: 16px;
 }
 
 :root:not(.rz-theme-dark) .vpp-sidebar {
@@ -61,6 +63,19 @@
     font-size: 14px;
     font-weight: 400;
     line-height: 20px;
+    border-block-end: 0 !important;
+}
+
+/* Radzen adds a 1px divider to every PanelMenu item. Besides drawing unwanted
+   horizontal seams, it makes each visual step 45/53px instead of the intended
+   44/52px. Remove it, then use the unused lower half of the 72px brand header
+   so logo -> first row and row -> row share exactly the same rhythm. */
+.vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-nav {
+    margin-block-start: calc(-1 * var(--vpp-sidebar-expanded-nav-overlap));
+}
+
+.vpp-sidebar.sidebar-collapsed .vpp-sidebar-nav {
+    margin-block-start: calc(-1 * var(--vpp-sidebar-collapsed-nav-overlap));
 }
 
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {

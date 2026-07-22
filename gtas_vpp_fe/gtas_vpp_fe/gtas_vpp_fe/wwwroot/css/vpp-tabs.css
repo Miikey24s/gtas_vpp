@@ -172,7 +172,7 @@
 
 .vpp-admin-tabs {
     --vpp-library-primary-tabs-height: var(--vpp-header-height);
-    --vpp-primary-tab-row-height: var(--vpp-sidebar-collapsed-control-height);
+    --vpp-primary-tab-row-height: var(--vpp-header-height);
     --vpp-primary-tab-inline-padding: 20px;
 }
 
@@ -218,7 +218,7 @@
 .vpp-admin-tabs > .rz-tabview-nav {
     box-sizing: border-box;
     align-items: center;
-    padding-block: calc((var(--vpp-library-primary-tabs-height) - var(--vpp-primary-tab-row-height)) / 2) !important;
+    padding-block: 0 !important;
     border-radius: 0;
 }
 
@@ -244,9 +244,9 @@
     background: transparent !important;
 }
 
-/* Primary tabs share the collapsed-sidebar control height. Equal inline
-   padding and a full-height flex hitbox keep every label optically centered
-   inside the 72px header while preserving horizontal scrolling. */
+/* Primary labels are centered by the outer 72px header itself, not by a
+   smaller nested control. This removes the extra visual box that previously
+   made correctly centered text appear top-heavy against the shell header. */
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li,
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected,
 .vpp-admin-tabs > .rz-tabview-nav > li,
@@ -266,6 +266,27 @@
     min-height: var(--vpp-primary-tab-row-height) !important;
     padding: 0 var(--vpp-primary-tab-inline-padding) !important;
     text-align: center;
+}
+
+/* Selection is communicated by the shared blue underline only. Keep the
+   primary selected surface transparent even while the pointer remains over
+   it after a click; unselected tabs retain the shared hover feedback. */
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected > .rz-tabview-nav-link,
+.vpp-admin-tabs > .rz-tabview-nav > li.rz-tabview-selected > .rz-tabview-nav-link,
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
+.vpp-admin-tabs > .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"],
+.vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"] {
+    background: transparent !important;
+}
+
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected > .rz-tabview-nav-link:hover,
+.vpp-admin-tabs > .rz-tabview-nav > li.rz-tabview-selected > .rz-tabview-nav-link:hover,
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"]:hover,
+.vpp-admin-tabs > .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"]:hover,
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"]:hover,
+.vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"]:hover {
+    background: transparent !important;
 }
 
 .vpp-secondary-tabs {

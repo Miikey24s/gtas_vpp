@@ -180,7 +180,7 @@ leftsidebar {
     gap: var(--vpp-space-2);
     min-width: 0;
     flex: 1 1 auto;
-    height: 44px;
+    height: var(--vpp-navigation-row-height);
     padding: var(--vpp-space-1) var(--vpp-space-2) var(--vpp-space-1) var(--vpp-sidebar-primary-content-offset, 16px);
     color: var(--vpp-text-primary);
 }
