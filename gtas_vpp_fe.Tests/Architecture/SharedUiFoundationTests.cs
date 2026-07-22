@@ -330,6 +330,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("display: inline-flex;", polishCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 999px;", polishCss, StringComparison.Ordinal);
         Assert.Contains("height: 18px;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("align-items: baseline;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("vertical-align: baseline;", polishCss, StringComparison.Ordinal);
         Assert.Contains("color: var(--vpp-primary-600);", polishCss, StringComparison.Ordinal);
         Assert.Contains("background: rgba(var(--vpp-primary-rgb), 0.08);", polishCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".user-dropdown-department-code::before", polishCss, StringComparison.Ordinal);

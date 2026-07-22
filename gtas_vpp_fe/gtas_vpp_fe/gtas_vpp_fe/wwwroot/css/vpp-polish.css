@@ -401,7 +401,7 @@ a:hover {
 
 .vpp-sidebar-user-menu .user-dropdown-department {
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: center;
     gap: var(--vpp-space-1);
     max-width: 100%;
@@ -425,9 +425,8 @@ a:hover {
 
 .vpp-sidebar-user-menu .user-dropdown-department-code {
     box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
+    vertical-align: baseline;
     min-width: 24px;
     height: 18px;
     min-height: 18px;
@@ -438,7 +437,8 @@ a:hover {
     background: rgba(var(--vpp-primary-rgb), 0.08);
     font-size: 11px;
     font-weight: 600;
-    line-height: 14px;
+    line-height: 16px;
+    text-align: center;
     letter-spacing: 0.02em;
 }
 
