@@ -136,10 +136,12 @@ public sealed class SharedUiFoundationTests
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
 
         Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("Collapsed active state stays line-only", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-nav-indicator-color);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar .rz-navigation-item-icon-children", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-navigation-item-wrapper:focus-within", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(var(--vpp-sidebar-width) - 16px);", polishCss, StringComparison.Ordinal);
         Assert.Contains("bottom: calc(52px + var(--vpp-space-2));", polishCss, StringComparison.Ordinal);

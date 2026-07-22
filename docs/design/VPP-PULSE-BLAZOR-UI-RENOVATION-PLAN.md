@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.38` — 2026-07-22
+> **Phiên bản:** `1.39` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -830,6 +830,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-22 | Vertical account action menu | Account popover đổi utility từ hàng ngang thành danh sách dọc full-width: language, theme, notifications, logout; mỗi hàng có icon, label và trailing state/badge | Owner muốn menu user giống cấu trúc action list trong reference thay vì cụm control ngang | Shared shell + accessibility | UserMenu xử lý callback language/theme trực tiếp; NotificationCenter có `MenuMode` để giữ logic inbox nhưng dùng trigger dạng row | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Upward account popover alignment | Account popover neo trực tiếp phía trên user row và nằm trong bề rộng sidebar khi expanded, thay vì mở lệch sang vùng content bên phải | Owner phát hiện popup dọc đúng cấu trúc nhưng sai hướng/điểm neo | Shared shell + responsive | Expanded dùng `left: space-2` và width theo sidebar; collapsed/mobile mở từ avatar với width đọc được | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Desktop empty-header removal | Xóa hoàn toàn khoảng header trống 60px trên desktop; mobile vẫn giữ header hamburger | Rule desktop `display:none` bị rule base phía sau ghi đè do cùng specificity | Shared shell + CSS cascade | Khóa desktop header bằng `!important` cho display/size/padding/border; giữ grid row `0 1fr` | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
+| 2026-07-22 | Collapsed line-only active state | Collapsed menu active chỉ giữ vạch xanh và icon; nền trung tính chỉ xuất hiện khi hover hoặc keyboard focus | Owner phát hiện active background cố định nhìn giống item đang bị hover | Shared shell + accessibility | Override wrapper active collapsed về transparent; hover/focus-within dùng shared neutral surface | Sidebar collapsed trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |

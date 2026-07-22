@@ -201,11 +201,11 @@
     display: none !important;
 }
 
-/* Collapsed: active indicator (either the parent is active or parent contains active child) */
+/* Collapsed active state stays line-only; surface appears only on hover/focus. */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-wrapper-active) > .rz-navigation-item-wrapper {
-    background-color: var(--vpp-sidebar-item-active-bg) !important;
+    background-color: transparent !important;
     box-shadow: none !important;
 }
 
@@ -230,8 +230,9 @@
     color: var(--vpp-text-primary) !important;
 }
 
-/* Collapsed: hover effect on icons */
-.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
+/* Collapsed: hover/focus effect on icons */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:focus-within {
     background: var(--vpp-sidebar-item-hover-bg) !important;
     border-radius: var(--vpp-radius-md) !important;
 }
