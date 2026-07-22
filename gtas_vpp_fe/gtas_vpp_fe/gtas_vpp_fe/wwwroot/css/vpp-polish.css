@@ -347,8 +347,9 @@ a:hover {
     position: fixed;
     top: auto;
     right: auto;
-    bottom: var(--vpp-space-2);
-    left: calc(var(--vpp-sidebar-width) + var(--vpp-space-2));
+    bottom: calc(52px + var(--vpp-space-2));
+    left: var(--vpp-space-2);
+    width: calc(var(--vpp-sidebar-width) - 16px);
     transform-origin: bottom left;
 }
 
@@ -488,7 +489,8 @@ a:hover {
 }
 
 .sidebar-collapsed .vpp-sidebar-user-menu .user-dropdown {
-    left: calc(var(--vpp-sidebar-collapsed-width) + var(--vpp-space-2));
+    left: var(--vpp-space-2);
+    width: min(310px, calc(100vw - 16px));
 }
 
 @media (max-width: 767px) {
@@ -504,6 +506,7 @@ a:hover {
         right: auto;
         bottom: calc(60px + var(--vpp-space-2));
         left: var(--vpp-space-2);
+        width: min(310px, calc(100vw - 16px));
     }
 }
 
