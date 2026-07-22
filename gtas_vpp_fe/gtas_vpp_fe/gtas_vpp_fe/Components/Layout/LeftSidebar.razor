@@ -31,21 +31,36 @@
 
 <RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
     <div class="vpp-sidebar-header">
-        <a class="vpp-brand-lockup vpp-sidebar-brand"
-           href="/dashboard?tab=0"
-           title="GTAS VPP"
-           aria-label="GTAS VPP">
-            <VppBrandMark Class="vpp-sidebar-brand-mark" />
-            <span class="vpp-sidebar-product">GTAS VPP</span>
-        </a>
-        <button type="button"
-                class="vpp-sidebar-toggle"
-                title="@Loc["ToggleNavigation"]"
-                aria-label="@Loc["ToggleNavigation"]"
-                aria-expanded="@_sideBarExpanded"
-                @onclick="@(() => _sideBarExpanded = !_sideBarExpanded)">
-            <VppIcon Name="@(_sideBarExpanded ? VppIcons.SidebarCollapse : VppIcons.SidebarExpand)" />
-        </button>
+        @if (_sideBarExpanded)
+        {
+            <a class="vpp-brand-lockup vpp-sidebar-brand"
+               href="/dashboard?tab=0"
+               title="GTAS VPP"
+               aria-label="GTAS VPP">
+                <VppBrandMark Class="vpp-sidebar-brand-mark" />
+                <span class="vpp-sidebar-product">GTAS VPP</span>
+            </a>
+            <button type="button"
+                    class="vpp-sidebar-toggle"
+                    title="@Loc["ToggleNavigation"]"
+                    aria-label="@Loc["ToggleNavigation"]"
+                    aria-expanded="true"
+                    @onclick="@(() => _sideBarExpanded = false)">
+                <VppIcon Name="@VppIcons.SidebarCollapse" />
+            </button>
+        }
+        else
+        {
+            <button type="button"
+                    class="vpp-sidebar-brand vpp-sidebar-collapsed-brand"
+                    title="@Loc["ToggleNavigation"]"
+                    aria-label="@Loc["ToggleNavigation"]"
+                    aria-expanded="false"
+                    @onclick="@(() => _sideBarExpanded = true)">
+                <VppBrandMark Class="vpp-sidebar-brand-mark vpp-sidebar-collapsed-logo" />
+                <VppIcon Name="@VppIcons.SidebarExpand" Class="vpp-sidebar-collapsed-expand-icon" />
+            </button>
+        }
     </div>
     <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
         <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="true" Click="@OnMenuItemClick">

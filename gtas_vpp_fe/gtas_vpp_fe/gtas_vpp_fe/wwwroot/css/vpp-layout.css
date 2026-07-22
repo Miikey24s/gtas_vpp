@@ -133,6 +133,7 @@ leftsidebar {
 }
 
 .vpp-sidebar-brand {
+    appearance: none;
     display: flex;
     align-items: center;
     min-width: 0;
@@ -140,10 +141,12 @@ leftsidebar {
     gap: var(--vpp-space-3);
     height: 44px;
     padding: var(--vpp-space-1) var(--vpp-space-2);
+    border: 0;
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-primary);
     text-decoration: none;
     overflow: hidden;
+    cursor: pointer;
     transition: background-color var(--vpp-transition-fast),
                 color var(--vpp-transition-fast);
 }
@@ -207,17 +210,52 @@ leftsidebar {
 }
 
 .sidebar-collapsed .vpp-sidebar-header {
-    min-height: 104px;
-    flex-direction: column;
-    justify-content: flex-start;
+    min-height: var(--vpp-header-height);
+    flex-direction: row;
+    justify-content: center;
     padding: var(--vpp-space-2) var(--vpp-space-3);
 }
 
 .sidebar-collapsed .vpp-sidebar-brand {
+    position: relative;
     flex: 0 0 44px;
     width: 44px;
     padding: var(--vpp-space-1);
     justify-content: center;
+}
+
+.vpp-sidebar-collapsed-logo,
+.vpp-sidebar-collapsed-expand-icon {
+    transition: opacity var(--vpp-transition-fast),
+                transform var(--vpp-transition-fast);
+}
+
+.vpp-sidebar-collapsed-expand-icon {
+    position: absolute;
+    inset: 0;
+    display: inline-grid;
+    place-items: center;
+    color: var(--vpp-text-primary);
+    font-size: 1.35rem;
+    opacity: 0;
+    transform: scale(0.82);
+}
+
+.vpp-sidebar-collapsed-brand:hover .vpp-sidebar-collapsed-logo,
+.vpp-sidebar-collapsed-brand:focus-visible .vpp-sidebar-collapsed-logo {
+    opacity: 0;
+    transform: scale(0.82);
+}
+
+.vpp-sidebar-collapsed-brand:hover .vpp-sidebar-collapsed-expand-icon,
+.vpp-sidebar-collapsed-brand:focus-visible .vpp-sidebar-collapsed-expand-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.vpp-sidebar-collapsed-brand:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--vpp-primary-400) 55%, transparent);
+    outline-offset: 2px;
 }
 
 .sidebar-collapsed .vpp-sidebar-product {

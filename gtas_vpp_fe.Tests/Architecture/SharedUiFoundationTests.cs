@@ -103,6 +103,10 @@ public sealed class SharedUiFoundationTests
         Assert.True(desktopToggle > sidebarStart, "the desktop expand/collapse control should live inside the sidebar");
         Assert.True(userFooter > sidebarStart && userMenu > userFooter, "the account trigger should live at the bottom of the sidebar");
         Assert.Equal(1, source.Split("<UserMenu", StringSplitOptions.None).Length - 1);
+        Assert.Contains("vpp-sidebar-collapsed-brand", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-sidebar-collapsed-logo", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-sidebar-collapsed-expand-icon", source, StringComparison.Ordinal);
+        Assert.Contains("@if (_sideBarExpanded)", source, StringComparison.Ordinal);
         Assert.Contains("ShowArrow=\"true\"", source, StringComparison.Ordinal);
         Assert.Contains("ShowName=\"true\"", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenPanelMenuItem Text=\"@Loc[\"Logout\"]\"", source, StringComparison.Ordinal);
