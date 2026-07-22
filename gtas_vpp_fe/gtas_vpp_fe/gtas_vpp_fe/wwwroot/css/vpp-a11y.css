@@ -106,7 +106,7 @@ a:focus-visible {
 @media (pointer: coarse) {
     .rz-button,
     .rz-navigation-item-wrapper,
-    .user-avatar {
+    .user-menu-trigger {
         min-height: 44px;
         min-width: 44px;
     }

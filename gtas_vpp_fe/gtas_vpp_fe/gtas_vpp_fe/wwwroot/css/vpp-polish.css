@@ -271,15 +271,15 @@ a:hover {
 .vpp-brand-mark {
     display: inline-grid;
     place-items: center;
-    width: 36px;
-    height: 36px;
-    flex: 0 0 36px;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
 }
 
 .vpp-brand-mark img {
     display: block;
-    width: 36px;
-    height: 36px;
+    width: 24px;
+    height: 24px;
     user-select: none;
 }
 

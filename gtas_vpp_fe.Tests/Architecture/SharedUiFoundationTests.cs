@@ -159,6 +159,8 @@ public sealed class SharedUiFoundationTests
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
+        var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
+        var a11yCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-a11y.css"));
 
         var sidebarStart = source.IndexOf("<RadzenSidebar", StringComparison.Ordinal);
         var brand = source.IndexOf("vpp-sidebar-brand", StringComparison.Ordinal);
@@ -198,6 +200,14 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("flex: 0 0 var(--vpp-sidebar-collapsed-control-width);", layoutCss, StringComparison.Ordinal);
         Assert.Equal(2, source.Split("<VppBrandMark", StringSplitOptions.None).Length - 1);
         Assert.Contains("vpp-sidebar-expanded-logo", source, StringComparison.Ordinal);
+        Assert.Contains("width: 24px;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("flex-basis: 24px;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("width: 24px;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("flex: 0 0 24px;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("width: 24px;", appCss, StringComparison.Ordinal);
+        Assert.Contains("font-size: 10px;", appCss, StringComparison.Ordinal);
+        Assert.Contains(".user-menu-trigger", a11yCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("    .user-avatar {", a11yCss, StringComparison.Ordinal);
         Assert.Contains("images/vpp-app-icon.svg", brandMarkSource, StringComparison.Ordinal);
         Assert.Contains("images/vpp-app-icon.svg", appSource, StringComparison.Ordinal);
         Assert.True(File.Exists(Path.Combine(root, "wwwroot", "images", "vpp-app-icon.svg")));
