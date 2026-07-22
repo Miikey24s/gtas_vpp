@@ -341,6 +341,17 @@
     background-color: var(--vpp-bg-base);
 }
 
+/* Radzen's icon-only PanelMenu can shrink to its glyph content. Keep the
+   navigation rail as wide as the 72px sidebar so every 68px control is
+   centered against the logo and account avatar, not against a narrow menu. */
+.sidebar-collapsed .vpp-sidebar-nav,
+.sidebar-collapsed .rz-panel-menu,
+.sidebar-collapsed .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
     justify-content: center !important;
     align-items: center !important;

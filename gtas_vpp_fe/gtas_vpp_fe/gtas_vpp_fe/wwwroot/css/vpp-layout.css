@@ -371,7 +371,7 @@ leftsidebar {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: var(--vpp-space-3) 0;
+    padding: 0 0 var(--vpp-space-3);
 }
 
 .vpp-sidebar-footer {

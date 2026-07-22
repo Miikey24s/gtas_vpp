@@ -128,10 +128,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-navigation-row-height: 40px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-tabs-bar-height: 44px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-library-primary-tabs-height: var(--vpp-header-height);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-primary-tab-row-height: var(--vpp-sidebar-collapsed-control-height);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-primary-tab-inline-padding: var(--vpp-space-5);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("max-height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("align-items: center;", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("padding-block: calc((var(--vpp-library-primary-tabs-height) - var(--vpp-navigation-row-height)) / 2) !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("padding-block: calc((var(--vpp-library-primary-tabs-height) - var(--vpp-primary-tab-row-height)) / 2) !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("padding: 0 var(--vpp-primary-tab-inline-padding) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("Native Radzen tab item chrome adds a second underline", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav > li.rz-tabview-selected", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin: 0 !important;", tabsCss, StringComparison.Ordinal);
@@ -171,6 +174,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
         Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("getPropertyValue(\"--vpp-primary-tab-row-height\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("tabList.style.setProperty(\"padding-block\", verticalInset, \"important\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var tabListSelector = \".rz-tabview-nav\";", interactionsJs, StringComparison.Ordinal);
@@ -284,6 +288,7 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
+        var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
@@ -322,6 +327,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("margin-block-start: var(--vpp-space-1) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-icon-box-size: 24px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-primary-content-offset: 16px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".sidebar-collapsed .rz-panel-menu", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("width: 100% !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("padding: 0 0 var(--vpp-space-3);", layoutCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline-start: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-rail-content-gap: var(--vpp-space-3);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));", sidebarCss, StringComparison.Ordinal);

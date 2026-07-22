@@ -110,7 +110,9 @@
 
         var rootStyles = window.getComputedStyle(tabRoot);
         var headerHeight = rootStyles.getPropertyValue("--vpp-header-height").trim() || "60px";
-        var rowHeight = rootStyles.getPropertyValue("--vpp-navigation-row-height").trim() || "40px";
+        var rowHeight = rootStyles.getPropertyValue("--vpp-primary-tab-row-height").trim()
+            || rootStyles.getPropertyValue("--vpp-navigation-row-height").trim()
+            || "40px";
         var verticalInset = "calc((" + headerHeight + " - " + rowHeight + ") / 2)";
 
         host.style.setProperty("height", headerHeight, "important");
