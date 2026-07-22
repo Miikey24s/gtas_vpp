@@ -167,6 +167,7 @@ leftsidebar {
     padding: var(--vpp-space-1) var(--vpp-space-2);
     border: 0;
     border-radius: var(--vpp-radius-md);
+    background: transparent;
     color: var(--vpp-text-primary);
     text-decoration: none;
     overflow: hidden;
