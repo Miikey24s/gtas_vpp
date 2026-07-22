@@ -55,9 +55,15 @@ ul[role="tablist"]::-webkit-scrollbar {
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
 .rz-tabs-item.rz-state-active,
 .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
-    background: rgba(14, 165, 233, 0.08) !important;
+    background: transparent !important;
     color: var(--vpp-primary-400) !important;
     font-weight: var(--vpp-font-weight-semibold);
+}
+
+.rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link:hover,
+.rz-tabs-item.rz-state-active:hover,
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active:hover {
+    background: rgba(14, 165, 233, 0.06) !important;
 }
 
 :root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
@@ -66,17 +72,17 @@ ul[role="tablist"]::-webkit-scrollbar {
     color: var(--vpp-primary-700) !important;
 }
 
-/* Active underline — smooth animated bar */
+/* Active underline — same blue, thickness and radius as the sidebar rail */
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
 .rz-tabs-item.rz-state-active::after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: var(--vpp-space-2);
-    right: var(--vpp-space-2);
-    height: 2px;
-    background: var(--vpp-primary-400);
-    border-radius: var(--vpp-radius-full) var(--vpp-radius-full) 0 0;
+    left: 0;
+    right: 0;
+    height: var(--vpp-nav-indicator-thickness);
+    background: var(--vpp-nav-indicator-color);
+    border-radius: var(--vpp-nav-indicator-radius) var(--vpp-nav-indicator-radius) 0 0;
     animation: vpp-tab-underline-in var(--vpp-transition-fast) forwards;
 }
 

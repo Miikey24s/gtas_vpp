@@ -20,23 +20,22 @@
     position: relative;
 }
 
-/* Active Indicator — left border highlight */
+/* Active indicator — blue rail aligned with the shared tab underline */
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 60%;
-    background: var(--vpp-primary-400);
-    border-radius: 0 var(--vpp-radius-full) var(--vpp-radius-full) 0;
+    left: calc(-1 * var(--vpp-space-2));
+    top: var(--vpp-nav-indicator-inset);
+    bottom: var(--vpp-nav-indicator-inset);
+    width: var(--vpp-nav-indicator-thickness);
+    background: var(--vpp-nav-indicator-color);
+    border-radius: var(--vpp-nav-indicator-radius);
     animation: vpp-active-indicator-in var(--vpp-transition-base) forwards;
 }
 
 @keyframes vpp-active-indicator-in {
-    from { transform: translateY(-50%) scaleY(0); opacity: 0; }
-    to   { transform: translateY(-50%) scaleY(1); opacity: 1; }
+    from { transform: scaleY(0); opacity: 0; }
+    to   { transform: scaleY(1); opacity: 1; }
 }
 
 /* Hover — subtle background + micro-slide */
@@ -50,15 +49,15 @@
     background-color: rgba(14, 165, 233, 0.08);
 }
 
-/* Active item background — F-40: primary-500 tinted at 15% alpha (0x26).
-   rgba() form kept (instead of color-mix) for broadest browser support. */
+/* Line-only active state; tint is reserved for hover feedback. */
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper {
-    background-color: rgba(14, 165, 233, 0.15);
-    border-color: rgba(14, 165, 233, 0.18);
+    background-color: transparent;
+    border-color: transparent;
 }
 
 .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper:hover {
-    background-color: rgba(14, 165, 233, 0.22);
+    background-color: rgba(14, 165, 233, 0.06);
+    border-color: rgba(14, 165, 233, 0.12);
     transform: none;
 }
 
@@ -184,8 +183,20 @@
 /* Collapsed: active indicator (either the parent is active or parent contains active child) */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper {
-    background-color: rgba(14, 165, 233, 0.15) !important;
+    background-color: transparent !important;
     box-shadow: none !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper::before,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper::before {
+    content: '' !important;
+    display: block !important;
+    left: calc((var(--vpp-sidebar-collapsed-width) - 44px) / -2);
+    top: var(--vpp-nav-indicator-inset);
+    bottom: var(--vpp-nav-indicator-inset);
+    width: var(--vpp-nav-indicator-thickness);
+    background: var(--vpp-nav-indicator-color);
+    border-radius: var(--vpp-nav-indicator-radius);
 }
 
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,

@@ -232,6 +232,12 @@
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;
 
+    /* Shared navigation indicator: vertical in sidebar, horizontal in tabs */
+    --vpp-nav-indicator-color: var(--vpp-primary-500);
+    --vpp-nav-indicator-thickness: 3px;
+    --vpp-nav-indicator-inset: var(--vpp-space-2);
+    --vpp-nav-indicator-radius: var(--vpp-radius-full);
+
     /* Layout Magic Numbers (legacy migration) */
     --ppj-logo-primary-color: #001836;
     --ppj-logo-secondary-color: #690202;
