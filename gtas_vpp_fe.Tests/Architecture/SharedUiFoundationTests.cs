@@ -204,9 +204,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("window.getComputedStyle(target)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("parseFloat(targetStyles.paddingLeft)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("targetRect.width - startInset - endInset", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("moveTabIndicator(tabList, target, true, true)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("duration: tabIndicatorDuration", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("offset: 0.52", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("offset: 0.52", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("prefersReducedMotion()", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppPageHeader", libraryPage, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppPageHeader", permissionPage, StringComparison.Ordinal);
@@ -403,8 +405,12 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("function resolveCssPixelLength(element, value, fallback)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("trimmed.endsWith(\"rem\")", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("element.appendChild(probe)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("function moveSidebarIndicator(nav, target, shouldAnimate)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("var stretched = movingDown", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function moveSidebarIndicator(nav, target, shouldAnimate, forceTarget)", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("var stretched = movingDown", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function hideSidebarIndicator(indicator)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("indicator.classList.remove(\"is-ready\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("return target && target.getClientRects().length ? target : null;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true, true)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("initializeSidebarIndicators(document);", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain(".ppjsidebarmenu.submenu", appCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);

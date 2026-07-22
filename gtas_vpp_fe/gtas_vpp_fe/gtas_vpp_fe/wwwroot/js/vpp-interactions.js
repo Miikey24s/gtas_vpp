@@ -273,7 +273,7 @@
         return { host: host, indicator: indicator };
     }
 
-    function moveTabIndicator(tabList, target, shouldAnimate) {
+    function moveTabIndicator(tabList, target, shouldAnimate, forceTarget) {
         var elements = ensureTabIndicator(tabList);
         if (!elements || !target || !tabList.contains(target)) {
             return;
@@ -296,11 +296,11 @@
         var isSamePosition = Math.abs(current.left - next.left) < 0.5
             && Math.abs(current.width - next.width) < 0.5;
 
-        if (shouldAnimate && indicator.vppAnimation && indicator.vppTarget === target) {
-            return;
-        }
-
         if (indicator.vppAnimation) {
+            if (indicator.vppTarget === target || !forceTarget) {
+                return;
+            }
+
             indicator.vppAnimation.cancel();
             indicator.vppAnimation = null;
             indicator.vppTarget = null;
@@ -312,42 +312,28 @@
             return;
         }
 
-        var currentRight = current.left + current.width;
-        var nextRight = next.left + next.width;
-        var movingRight = next.left >= current.left;
-        var stretched = movingRight
-            ? { left: current.left, width: Math.max(current.width, nextRight - current.left) }
-            : { left: next.left, width: Math.max(next.width, currentRight - next.left) };
         var easing = "cubic-bezier(0.32, 0.72, 0, 1)";
 
         indicator.vppTarget = target;
         indicator.vppAnimation = indicator.animate([
             {
                 transform: "translate3d(" + current.left + "px, 0, 0)",
-                width: current.width + "px",
-                offset: 0,
-                easing: easing
-            },
-            {
-                transform: "translate3d(" + stretched.left + "px, 0, 0)",
-                width: stretched.width + "px",
-                offset: 0.52,
-                easing: easing
+                width: current.width + "px"
             },
             {
                 transform: "translate3d(" + next.left + "px, 0, 0)",
-                width: next.width + "px",
-                offset: 1
+                width: next.width + "px"
             }
         ], {
             duration: tabIndicatorDuration,
-            easing: "linear",
+            easing: easing,
             fill: "none"
         });
 
         indicator.vppAnimation.addEventListener("finish", function () {
             indicator.vppAnimation = null;
             indicator.vppTarget = null;
+            moveTabIndicator(tabList, findActiveTab(tabList), false, false);
         }, { once: true });
     }
 
@@ -421,9 +407,10 @@
     }
 
     function findActiveSidebarTarget(nav) {
-        var target = sidebarTargetFromLink(nav, findActiveSidebarLink(nav));
-        if (target && target.getClientRects().length) {
-            return target;
+        var activeLink = findActiveSidebarLink(nav);
+        if (activeLink) {
+            var target = sidebarTargetFromLink(nav, activeLink);
+            return target && target.getClientRects().length ? target : null;
         }
 
         var activeWrapper = nav.querySelector(".rz-navigation-item-wrapper-active");
@@ -439,7 +426,7 @@
                 : null;
         }
 
-        return activeWrapper;
+        return activeWrapper.getClientRects().length ? activeWrapper : null;
     }
 
     function sidebarItemDepth(target) {
@@ -501,6 +488,20 @@
         }
     }
 
+    function hideSidebarIndicator(indicator) {
+        if (!indicator) {
+            return;
+        }
+
+        if (indicator.vppAnimation) {
+            indicator.vppAnimation.cancel();
+            indicator.vppAnimation = null;
+        }
+
+        indicator.vppTarget = null;
+        indicator.classList.remove("is-ready");
+    }
+
     function ensureSidebarIndicator(nav) {
         if (!(nav instanceof Element)) {
             return null;
@@ -553,14 +554,20 @@
         return indicator;
     }
 
-    function moveSidebarIndicator(nav, target, shouldAnimate) {
+    function moveSidebarIndicator(nav, target, shouldAnimate, forceTarget) {
         var indicator = ensureSidebarIndicator(nav);
-        if (!indicator || !target || !nav.contains(target)) {
+        if (!indicator) {
+            return;
+        }
+
+        if (!target || !nav.contains(target) || !target.getClientRects().length) {
+            hideSidebarIndicator(indicator);
             return;
         }
 
         var next = readSidebarIndicatorGeometry(nav, target);
         if (!next) {
+            hideSidebarIndicator(indicator);
             return;
         }
 
@@ -576,11 +583,11 @@
             && Math.abs(current.top - next.top) < 0.5
             && Math.abs(current.height - next.height) < 0.5;
 
-        if (shouldAnimate && indicator.vppAnimation && indicator.vppTarget === target) {
-            return;
-        }
-
         if (indicator.vppAnimation) {
+            if (indicator.vppTarget === target || !forceTarget) {
+                return;
+            }
+
             indicator.vppAnimation.cancel();
             indicator.vppAnimation = null;
             indicator.vppTarget = null;
@@ -592,42 +599,28 @@
             return;
         }
 
-        var currentBottom = current.top + current.height;
-        var nextBottom = next.top + next.height;
-        var movingDown = next.top >= current.top;
-        var stretched = movingDown
-            ? { top: current.top, height: Math.max(current.height, nextBottom - current.top) }
-            : { top: next.top, height: Math.max(next.height, currentBottom - next.top) };
         var easing = "cubic-bezier(0.32, 0.72, 0, 1)";
 
         indicator.vppTarget = target;
         indicator.vppAnimation = indicator.animate([
             {
                 transform: "translate3d(" + current.left + "px, " + current.top + "px, 0)",
-                height: current.height + "px",
-                offset: 0,
-                easing: easing
-            },
-            {
-                transform: "translate3d(" + next.left + "px, " + stretched.top + "px, 0)",
-                height: stretched.height + "px",
-                offset: 0.52,
-                easing: easing
+                height: current.height + "px"
             },
             {
                 transform: "translate3d(" + next.left + "px, " + next.top + "px, 0)",
-                height: next.height + "px",
-                offset: 1
+                height: next.height + "px"
             }
         ], {
             duration: sidebarIndicatorDuration,
-            easing: "linear",
+            easing: easing,
             fill: "none"
         });
 
         indicator.vppAnimation.addEventListener("finish", function () {
             indicator.vppAnimation = null;
             indicator.vppTarget = null;
+            moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false, false);
         }, { once: true });
     }
 
@@ -678,7 +671,7 @@
             return;
         }
 
-        moveTabIndicator(tabList, target, true);
+        moveTabIndicator(tabList, target, true, true);
     }, true);
 
     document.addEventListener("click", function (event) {
@@ -692,7 +685,7 @@
             return;
         }
 
-        moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true);
+        moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true, true);
     }, true);
 
     var tabTreeObserver = new MutationObserver(function (mutations) {
