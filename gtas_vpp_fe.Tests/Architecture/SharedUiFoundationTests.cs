@@ -122,6 +122,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("VppIcons.Search", source, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout", layoutCss, StringComparison.Ordinal);
         Assert.Contains("grid-template-rows: 0 1fr;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("display: none !important;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("min-height: 0 !important;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("\"rz-sidebar rz-header\"", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", responsiveCss, StringComparison.Ordinal);
     }
