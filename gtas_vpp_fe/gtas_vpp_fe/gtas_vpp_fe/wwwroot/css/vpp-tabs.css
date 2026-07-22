@@ -22,6 +22,22 @@
     display: none;
 }
 
+/* Radzen focuses the whole tab list after a pointer selection. Its theme-level
+   outline surrounds the scroll container and is clipped into a second,
+   full-width blue baseline. Keep the list itself visually neutral and move
+   keyboard focus feedback to the selected tab's real hitbox. */
+.rz-tabview .rz-tabview-nav:focus,
+.rz-tabview .rz-tabview-nav:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+}
+
+.rz-tabview .rz-tabview-nav:focus-visible .rz-tabview-selected > .rz-tabview-nav-link {
+    outline: 2px solid var(--vpp-primary-500) !important;
+    outline-offset: -2px !important;
+    box-shadow: none !important;
+}
+
 /* ── Tab Item — Base ─────────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-nav-link,
 .rz-tabs-item {
@@ -167,9 +183,9 @@
     margin-inline: calc(-1 * var(--vpp-layout-body-inset));
     background: var(--vpp-navigation-chrome-bg);
     border: 0;
-    border-bottom: 1px solid var(--vpp-border-default);
+    border-bottom: 0;
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: inset 0 -1px 0 var(--vpp-border-default);
     isolation: isolate;
     transform: translateZ(0);
     backface-visibility: hidden;

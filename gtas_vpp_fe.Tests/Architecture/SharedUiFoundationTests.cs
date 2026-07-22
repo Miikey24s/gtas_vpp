@@ -149,6 +149,10 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("transition: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-tabview .rz-tabview-nav:focus-visible", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("outline: none !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-tabview-selected > .rz-tabview-nav-link", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
