@@ -6,7 +6,11 @@
 /* ── Sidebar Container ───────────────────────────────────────── */
 .vpp-sidebar {
     font-family: var(--vpp-font-sidebar);
-    transition: width var(--vpp-transition-base);
+    transition: width var(--vpp-sidebar-transition),
+                background-color 160ms ease,
+                border-color 160ms ease,
+                color 160ms ease,
+                box-shadow 160ms ease !important;
     overflow: visible !important;
 }
 
@@ -80,10 +84,20 @@
 }
 
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {
+    display: inline-block;
+    max-width: 190px;
     font-family: inherit;
     font-size: 14px;
     font-weight: 400;
     line-height: 20px;
+    overflow: hidden;
+    transform: scale(1) translateX(0);
+    transform-origin: left center;
+    white-space: nowrap;
+    transition: max-width var(--vpp-sidebar-transition),
+                opacity 150ms ease-out 45ms,
+                transform var(--vpp-sidebar-transition),
+                visibility 0s linear 0s;
 }
 
 /* Keep labels equally legible in every interaction state. Radzen uses a
@@ -246,6 +260,12 @@
     color: var(--vpp-text-secondary);
     font-size: 16px;
     opacity: 0.82;
+    transform: scale(1);
+    transition: width var(--vpp-sidebar-transition),
+                margin var(--vpp-sidebar-transition),
+                opacity 140ms ease-out 40ms,
+                transform var(--vpp-sidebar-transition),
+                visibility 0s linear 0s;
 }
 
 /* ── Submenu — indent + smaller font ─────────────────────────── */
@@ -349,6 +369,7 @@
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
+    gap: 0 !important;
 }
 
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-icon {
@@ -374,7 +395,12 @@
 }
 
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {
-    display: none !important;
+    visibility: hidden;
+    max-width: 0;
+    opacity: 0 !important;
+    transform: scale(0.95) translateX(-4px);
+    pointer-events: none;
+    transition-delay: 0s, 0s, 0s, 220ms;
 }
 
 .sidebar-collapsed .rz-navigation-item-wrapper {
@@ -478,7 +504,12 @@
 
 /* Hide arrow indicators in collapsed mode */
 .sidebar-collapsed .rz-navigation-item-icon-children {
-    display: none;
+    visibility: hidden;
+    width: 0;
+    margin: 0;
+    opacity: 0;
+    transform: scale(0.9);
+    transition-delay: 0s, 0s, 0s, 0s, 220ms;
 }
 
 /* Ensure panel menu has transparent background to inherit the sidebar's background */
@@ -495,6 +526,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .rz-layout.vpp-layout,
+    .vpp-sidebar,
+    .vpp-sidebar-expanded-chrome,
+    .vpp-sidebar-collapsed-brand,
+    .vpp-sidebar-product,
+    .vpp-sidebar .rz-navigation-item-text {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+
     .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
         animation: none;
         transition: none;

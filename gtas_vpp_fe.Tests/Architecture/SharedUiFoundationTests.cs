@@ -200,6 +200,7 @@ public sealed class SharedUiFoundationTests
         var brandMarkSource = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppBrandMark.razor"));
         var appSource = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
+        var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
         var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
@@ -235,6 +236,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-sidebar-collapsed-logo", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-collapsed-expand-icon", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-expanded-brand", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-sidebar-expanded-chrome", source, StringComparison.Ordinal);
+        Assert.Contains("DisplayStyle=\"MenuItemDisplayStyle.IconAndText\"", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("DisplayStyle=\"@(_sideBarExpanded?", source, StringComparison.Ordinal);
         Assert.Contains("background: transparent;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-footer", polishCss, StringComparison.Ordinal);
         Assert.Contains("border-top: 0;", polishCss, StringComparison.Ordinal);
@@ -256,6 +260,10 @@ public sealed class SharedUiFoundationTests
         Assert.True(File.Exists(Path.Combine(root, "wwwroot", "images", "vpp-app-icon.svg")));
         Assert.DoesNotContain("href=\"/dashboard?tab=0\"", source, StringComparison.Ordinal);
         Assert.Contains("@if (_sideBarExpanded)", source, StringComparison.Ordinal);
+        Assert.Contains("aria-hidden=\"@(!_sideBarExpanded)\"", source, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-transition", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-sidebar-transition)", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("max-width: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("ShowArrow=\"true\"", source, StringComparison.Ordinal);
         Assert.Contains("ShowName=\"true\"", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenPanelMenuItem Text=\"@Loc[\"Logout\"]\"", source, StringComparison.Ordinal);

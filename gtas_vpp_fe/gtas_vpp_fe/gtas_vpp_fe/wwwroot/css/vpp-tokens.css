@@ -301,6 +301,7 @@
 :root {
     --vpp-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --vpp-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --vpp-sidebar-transition: 220ms cubic-bezier(0.32, 0.72, 0, 1);
     --vpp-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 

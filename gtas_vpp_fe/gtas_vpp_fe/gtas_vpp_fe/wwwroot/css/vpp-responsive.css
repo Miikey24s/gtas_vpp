@@ -110,7 +110,7 @@
         width: 280px !important;
         max-width: calc(100vw - 2rem);
         transform: translateX(-100%);
-        transition: transform var(--vpp-transition-base);
+        transition: transform var(--vpp-sidebar-transition);
     }
 
     .rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar.open,

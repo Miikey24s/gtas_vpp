@@ -25,7 +25,7 @@ body:has(.vpp-layout) {
     width: 100%;
     max-width: 100%;
     overflow: hidden;
-    transition: grid-template-columns var(--vpp-transition-base);
+    transition: grid-template-columns var(--vpp-sidebar-transition);
 }
 
 .rz-layout.vpp-layout:has(.sidebar-collapsed) {
@@ -135,20 +135,43 @@ leftsidebar {
     display: flex;
     flex-direction: column;
     height: 100%;
-    transition: width var(--vpp-transition-base);
+    transition: width var(--vpp-sidebar-transition);
 }
 
 .vpp-sidebar-header {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--vpp-space-2);
     min-height: var(--vpp-header-height);
     padding: var(--vpp-space-2);
     flex: 0 0 auto;
+    overflow: hidden;
 }
 
 .vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-header {
     padding-inline-start: 0;
+}
+
+.vpp-sidebar-expanded-chrome {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: calc(var(--vpp-sidebar-width) - var(--vpp-space-2));
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    transform-origin: left center;
+    transition: opacity 160ms ease-out 45ms,
+                transform var(--vpp-sidebar-transition),
+                visibility 0s linear 0s;
+}
+
+.sidebar-collapsed .vpp-sidebar-expanded-chrome {
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.95) translateX(-4px);
+    pointer-events: none;
+    transition-delay: 0s, 0s, 220ms;
 }
 
 .vpp-sidebar-expanded-brand {
@@ -199,6 +222,7 @@ leftsidebar {
 }
 
 .vpp-sidebar-product {
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -206,6 +230,13 @@ leftsidebar {
     font-size: 14px;
     font-weight: var(--vpp-font-weight-semibold);
     letter-spacing: 0;
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    transform-origin: left center;
+    transition: max-width var(--vpp-sidebar-transition),
+                opacity 150ms ease-out 50ms,
+                transform var(--vpp-sidebar-transition),
+                visibility 0s linear 0s;
 }
 
 .vpp-sidebar-toggle,
@@ -263,6 +294,30 @@ leftsidebar {
     justify-content: center;
 }
 
+.vpp-sidebar-collapsed-brand {
+    position: absolute;
+    inset-block-start: 6px;
+    inset-inline-start: 2px;
+    z-index: 1;
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+    transform-origin: center;
+    pointer-events: none;
+    transition: opacity 160ms ease-out,
+                transform var(--vpp-sidebar-transition),
+                visibility 0s linear 220ms;
+}
+
+.sidebar-collapsed .vpp-sidebar-collapsed-brand {
+    position: absolute;
+    visibility: visible;
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+    transition-delay: 45ms, 0s, 0s;
+}
+
 .vpp-sidebar-collapsed-logo,
 .vpp-sidebar-collapsed-expand-icon {
     transition: opacity var(--vpp-transition-fast),
@@ -298,7 +353,11 @@ leftsidebar {
 }
 
 .sidebar-collapsed .vpp-sidebar-product {
-    display: none;
+    visibility: hidden;
+    max-width: 0;
+    opacity: 0;
+    transform: scale(0.95) translateX(-4px);
+    transition-delay: 0s, 0s, 0s, 220ms;
 }
 
 .sidebar-collapsed .vpp-sidebar-brand-mark.vpp-brand-mark,
