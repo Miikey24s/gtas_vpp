@@ -133,13 +133,29 @@
         var targetRect = target.getBoundingClientRect();
         var hostRect = host.getBoundingClientRect();
         var rootStyles = window.getComputedStyle(document.documentElement);
-        var inset = parseFloat(rootStyles.getPropertyValue("--vpp-nav-indicator-inset")) || 8;
+        var targetStyles = window.getComputedStyle(target);
+        var fallbackInset = parseFloat(rootStyles.getPropertyValue("--vpp-nav-indicator-inset")) || 8;
+        var startInset = parseFloat(targetStyles.paddingLeft);
+        var endInset = parseFloat(targetStyles.paddingRight);
+
+        if (!Number.isFinite(startInset)) {
+            startInset = fallbackInset;
+        }
+
+        if (!Number.isFinite(endInset)) {
+            endInset = fallbackInset;
+        }
+
+        if (startInset + endInset >= targetRect.width) {
+            startInset = fallbackInset;
+            endInset = fallbackInset;
+        }
 
         var scrollOffset = host === tabList ? tabList.scrollLeft : 0;
 
         return {
-            left: targetRect.left - hostRect.left + scrollOffset + inset,
-            width: Math.max(0, targetRect.width - (inset * 2))
+            left: targetRect.left - hostRect.left + scrollOffset + startInset,
+            width: Math.max(0, targetRect.width - startInset - endInset)
         };
     }
 

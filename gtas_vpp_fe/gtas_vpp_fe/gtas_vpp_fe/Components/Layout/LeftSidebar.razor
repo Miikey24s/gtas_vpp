@@ -52,7 +52,7 @@
         </button>
     </div>
     <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
-        <RadzenPanelMenu DisplayStyle="MenuItemDisplayStyle.IconAndText" ShowArrow="true" Click="@OnMenuItemClick">
+        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)
         {
             <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]">

@@ -241,7 +241,7 @@
     --vpp-sidebar-collapsed-control-height: 48px;
     --vpp-navigation-row-height: 40px;
     --vpp-tabs-bar-height: 44px;
-    --vpp-header-height: 60px;
+    --vpp-header-height: var(--vpp-sidebar-collapsed-width);
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;
 

@@ -181,6 +181,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("|| tabList.parentElement", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role='tablist']", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("getPropertyValue(\"--vpp-nav-indicator-inset\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("window.getComputedStyle(target)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("parseFloat(targetStyles.paddingLeft)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("targetRect.width - startInset - endInset", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("offset: 0.52", interactionsJs, StringComparison.Ordinal);
@@ -237,8 +240,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-sidebar-collapsed-expand-icon", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-expanded-brand", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-expanded-chrome", source, StringComparison.Ordinal);
-        Assert.Contains("DisplayStyle=\"MenuItemDisplayStyle.IconAndText\"", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("DisplayStyle=\"@(_sideBarExpanded?", source, StringComparison.Ordinal);
+        Assert.Contains("MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon", source, StringComparison.Ordinal);
         Assert.Contains("background: transparent;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-footer", polishCss, StringComparison.Ordinal);
         Assert.Contains("border-top: 0;", polishCss, StringComparison.Ordinal);
@@ -292,6 +294,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-font-sidebar: -apple-system", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-width: 286px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-collapsed-width: 72px;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-header-height: var(--vpp-sidebar-collapsed-width);", tokensCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("line-height: 20px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("equally legible in every interaction state", sidebarCss, StringComparison.Ordinal);
