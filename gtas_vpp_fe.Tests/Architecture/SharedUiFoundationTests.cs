@@ -127,6 +127,11 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
         Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var tabListSelector = \".rz-tabview-nav\";", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("return tabList.closest(\".rz-tabview-nav-container\") || tabList;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var scrollOffset = host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var currentScrollOffset = elements.host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("if (!indicator.classList.contains(\"is-ready\"))", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("|| tabList.parentElement", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role='tablist']", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("getPropertyValue(\"--vpp-nav-indicator-inset\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
@@ -278,6 +283,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("height: 72px;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-email", polishCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-department", polishCss, StringComparison.Ordinal);
+        Assert.Contains("justify-items: center;", polishCss, StringComparison.Ordinal);
+        Assert.DoesNotContain(".user-dropdown-department-code::before", polishCss, StringComparison.Ordinal);
         Assert.Contains("background: transparent;", polishCss, StringComparison.Ordinal);
         Assert.Contains("justify-content: center;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".user-dropdown-action-divider", polishCss, StringComparison.Ordinal);

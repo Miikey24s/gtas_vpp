@@ -95,7 +95,7 @@
     var tabIndicatorDuration = 180;
 
     function findTabHost(tabList) {
-        return tabList.closest(".rz-tabview-nav-container") || tabList.parentElement;
+        return tabList.closest(".rz-tabview-nav-container") || tabList;
     }
 
     function findActiveTab(tabList) {
@@ -112,8 +112,10 @@
         var rootStyles = window.getComputedStyle(document.documentElement);
         var inset = parseFloat(rootStyles.getPropertyValue("--vpp-nav-indicator-inset")) || 8;
 
+        var scrollOffset = host === tabList ? tabList.scrollLeft : 0;
+
         return {
-            left: targetRect.left - hostRect.left + inset,
+            left: targetRect.left - hostRect.left + scrollOffset + inset,
             width: Math.max(0, targetRect.width - (inset * 2))
         };
     }
@@ -121,7 +123,9 @@
     function setTabIndicatorGeometry(indicator, geometry) {
         indicator.style.transform = "translate3d(" + geometry.left + "px, 0, 0)";
         indicator.style.width = geometry.width + "px";
-        indicator.classList.add("is-ready");
+        if (!indicator.classList.contains("is-ready")) {
+            indicator.classList.add("is-ready");
+        }
     }
 
     function ensureTabIndicator(tabList) {
@@ -188,8 +192,9 @@
         var indicator = elements.indicator;
         var hostRect = elements.host.getBoundingClientRect();
         var indicatorRect = indicator.getBoundingClientRect();
+        var currentScrollOffset = elements.host === tabList ? tabList.scrollLeft : 0;
         var current = {
-            left: indicatorRect.left - hostRect.left,
+            left: indicatorRect.left - hostRect.left + currentScrollOffset,
             width: indicatorRect.width
         };
         var isReady = indicator.classList.contains("is-ready");
