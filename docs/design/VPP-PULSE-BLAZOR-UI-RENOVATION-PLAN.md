@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.29` — 2026-07-22
+> **Phiên bản:** `1.30` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -821,6 +821,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-21 | Frontend/Figma authority correction | Blazor/Radzen là frontend chính; React chỉ là POC phụ và Figma React code layer chỉ là design evidence | Tài liệu Figma trước đó hiểu nhầm React là target sau khi owner đã quay lại Blazor vì deadline | Global workflow | Re-route Figma về source Blazor, đóng băng React plan và giữ browser Blazor làm authority | AGENTS, Figma brief/prompt/toolchain, React plan | Recorded |
 | 2026-07-22 | Shared shell line indicator | Giữ RadzenPanelMenu/RadzenTabs; sidebar dùng vạch dọc xanh và tab dùng underline xanh cùng token, bỏ nền active mặc định | Owner chọn motif Aspire nhưng yêu cầu màu xanh VPP và hai navigation primitive phải đồng bộ | Shared shell | Thêm token indicator dùng chung; chỉ thay active visual, không đổi route binding/render mode | Sidebar + primary/secondary tabs trên authenticated routes | CHANGES_REQUESTED — selector chưa khớp DOM Radzen 11 |
 | 2026-07-22 | Shared shell line indicator correction | Bám trực tiếp `rz-navigation-item-wrapper-active`/link `active`, vô hiệu active background qua biến Radzen trên chính panel menu và giữ vạch trong vùng không bị `overflow: hidden` cắt | Screenshot runtime cho thấy fixture cũ mô phỏng sai DOM và CSS theme Radzen được nạp sau custom styles | Shared shell + QA learning | Sửa selector theo package Radzen.Blazor 11.1.4; thêm collapsed parent detection theo active descendant | Sidebar mở/thu gọn + dashboard tabs | Implemented — OWNER_REVIEW |
+| 2026-07-22 | ChatGPT-inspired sidebar shell | Đưa logo/tên GTAS VPP và toggle vào sidebar desktop; collapsed thành rail logo + nút mở, không có search; hover menu dùng cùng tint/radius/transition với tab | Owner yêu cầu đồng bộ hover và header/expand-collapse theo reference ChatGPT nhưng giữ brand VPP | Shared shell + responsive | Sidebar chiếm đủ hai grid row desktop; mobile giữ toggle ở app header để mở off-canvas an toàn | Header/sidebar trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-20 | React POC vertical slice | Login, protected shell, My Orders và logout dùng generated OpenAPI client; isolated fixture chỉ phục vụ QA | Cần so sánh React với Blazor trên cùng API/TEST mà không copy DTO hoặc thay nghiệp vụ | React preview | Owner chạy Aspire + tài khoản TEST để duyệt runtime; chưa cutover và chưa mở route tiếp theo | `/login`, `/app/orders` | Owner review — TEST runtime pending |
 | 2026-07-19 | Account menu | Department chỉ hiện một lần; logout neutral mặc định, danger khi tương tác | Loại bỏ thông tin lặp và mảng cảnh báo quá nặng trong menu | Shared shell | Hoàn tất W0.2 user-menu polish | Mọi authenticated route | Verified |
 | 2026-07-19 | Header controls | Notification bell dùng chung visual primitive với EN/VI và theme control | Trigger cũ dùng legacy tokens nên viền, nền và hover lệch khỏi header system | Shared shell | Đồng bộ CSS token + browser geometry/hover regression | Mọi authenticated route | Verified |

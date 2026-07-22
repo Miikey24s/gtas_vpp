@@ -30,6 +30,7 @@ public static class VppIcons
     public const string Item = "inventory";
     public const string LightMode = "light_mode";
     public const string Logout = "logout";
+    public const string Menu = "menu";
     public const string Notifications = "notifications";
     public const string NotificationsOff = "notifications_off";
     public const string Orders = "receipt_long";
@@ -51,6 +52,8 @@ public static class VppIcons
     public const string Reset = "restart_alt";
     public const string Search = "search";
     public const string Schedule = "schedule";
+    public const string SidebarCollapse = "left_panel_close";
+    public const string SidebarExpand = "left_panel_open";
     public const string Supplement = "playlist_add";
     public const string Visibility = "visibility";
     public const string VisibilityOff = "visibility_off";

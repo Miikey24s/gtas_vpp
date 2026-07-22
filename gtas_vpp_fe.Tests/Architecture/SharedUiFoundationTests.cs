@@ -86,6 +86,38 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void AuthenticatedShell_KeepsBrandAndToggleInsideTheSidebar()
+    {
+        var root = GetFrontendRoot();
+        var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
+        var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
+        var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
+
+        var sidebarStart = source.IndexOf("<RadzenSidebar", StringComparison.Ordinal);
+        var brand = source.IndexOf("vpp-sidebar-brand", StringComparison.Ordinal);
+        var desktopToggle = source.IndexOf("vpp-sidebar-toggle", StringComparison.Ordinal);
+
+        Assert.True(sidebarStart >= 0 && brand > sidebarStart, "the GTAS VPP brand should live inside the sidebar");
+        Assert.True(desktopToggle > sidebarStart, "the desktop expand/collapse control should live inside the sidebar");
+        Assert.Contains("vpp-mobile-sidebar-toggle", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppIcons.Search", source, StringComparison.Ordinal);
+        Assert.Contains(".rz-layout.vpp-layout", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("\"rz-sidebar rz-header\"", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", responsiveCss, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SidebarHover_UsesTheSharedTabInteractionTint()
+    {
+        var root = GetFrontendRoot();
+        var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
+
+        Assert.Contains("same tint, radius and timing as tabs", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("background-color: rgba(14, 165, 233, 0.04);", sidebarCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("transform: translateX(2px);", sidebarCss, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MyOrders_UsesTheRoundSixCommandCenterContract()
     {
         var root = GetFrontendRoot();

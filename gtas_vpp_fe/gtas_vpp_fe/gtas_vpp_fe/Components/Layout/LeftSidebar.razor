@@ -11,19 +11,15 @@
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" class="vpp-global-loader" />
 
 <RadzenHeader class="vpp-header-glass vpp-layout-header">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="vpp-header-row">
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" class="vpp-header-brand">
-            <RadzenSidebarToggle class="customburger vpp-header-menu-button"
-                                 Click="@(() => _sideBarExpanded = !_sideBarExpanded)"
-                                 title="@Loc["ToggleNavigation"]"
-                                 ToggleAriaLabel="@Loc["ToggleNavigation"]" />
-            <div class="vpp-brand-lockup">
-                <VppBrandMark />
-                <div class="vpp-header-title" title="GTAS VPP">
-                    <span class="vpp-header-product">GTAS VPP</span>
-                </div>
-            </div>
-        </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="vpp-header-row">
+        <button type="button"
+                class="vpp-mobile-sidebar-toggle"
+                title="@Loc["ToggleNavigation"]"
+                aria-label="@Loc["ToggleNavigation"]"
+                aria-expanded="@_sideBarExpanded"
+                @onclick="@(() => _sideBarExpanded = !_sideBarExpanded)">
+            <VppIcon Name="@VppIcons.Menu" />
+        </button>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.75rem" class="vpp-header-actions">
             <HeaderControls IsLightTheme="@LightTheme"
                             IsLightThemeChanged="@(isLight => LightTheme = isLight)"
@@ -39,6 +35,23 @@
 </RadzenHeader>
 
 <RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
+    <div class="vpp-sidebar-header">
+        <a class="vpp-brand-lockup vpp-sidebar-brand"
+           href="/dashboard?tab=0"
+           title="GTAS VPP"
+           aria-label="GTAS VPP">
+            <VppBrandMark Class="vpp-sidebar-brand-mark" />
+            <span class="vpp-sidebar-product">GTAS VPP</span>
+        </a>
+        <button type="button"
+                class="vpp-sidebar-toggle"
+                title="@Loc["ToggleNavigation"]"
+                aria-label="@Loc["ToggleNavigation"]"
+                aria-expanded="@_sideBarExpanded"
+                @onclick="@(() => _sideBarExpanded = !_sideBarExpanded)">
+            <VppIcon Name="@(_sideBarExpanded ? VppIcons.SidebarCollapse : VppIcons.SidebarExpand)" />
+        </button>
+    </div>
     <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
         <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)

@@ -11,12 +11,11 @@
 
 /* ── Panel Menu Item — Base ──────────────────────────────────── */
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
-    border: 1px solid transparent;
+    border: none;
     border-radius: var(--vpp-radius-md);
     margin: 2px var(--vpp-space-2);
     transition: background-color var(--vpp-transition-fast),
-                transform var(--vpp-transition-fast),
-                box-shadow var(--vpp-transition-fast);
+                color var(--vpp-transition-fast);
     position: relative;
 }
 
@@ -48,15 +47,13 @@
     to   { transform: scaleY(1); opacity: 1; }
 }
 
-/* Hover — subtle background + micro-slide */
+/* Hover — same tint, radius and timing as tabs */
 .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
-    background-color: rgba(14, 165, 233, 0.06);
-    border-color: rgba(14, 165, 233, 0.12);
-    transform: translateX(2px);
+    background-color: rgba(14, 165, 233, 0.04);
 }
 
 :root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
-    background-color: rgba(14, 165, 233, 0.08);
+    background-color: rgba(14, 165, 233, 0.06);
 }
 
 /* Line-only active state; Radzen 11 applies active state to the wrapper/link. */
@@ -69,9 +66,12 @@
 
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active:hover,
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
+    background-color: rgba(14, 165, 233, 0.04) !important;
+}
+
+:root:not(.rz-theme-dark) .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active:hover,
+:root:not(.rz-theme-dark) .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
     background-color: rgba(14, 165, 233, 0.06) !important;
-    border-color: rgba(14, 165, 233, 0.12) !important;
-    transform: none;
 }
 
 /* Icon color enhancement */
@@ -139,7 +139,7 @@
     padding: 0 !important;
     width: 44px !important;
     height: 44px !important;
-    border-radius: var(--vpp-radius-full) !important;
+    border-radius: var(--vpp-radius-md) !important;
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -237,8 +237,12 @@
 
 /* Collapsed: hover effect on icons */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
-    background: rgba(14, 165, 233, 0.08) !important;
-    border-radius: var(--vpp-radius-full) !important;
+    background: rgba(14, 165, 233, 0.04) !important;
+    border-radius: var(--vpp-radius-md) !important;
+}
+
+:root:not(.rz-theme-dark) .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover {
+    background: rgba(14, 165, 233, 0.06) !important;
 }
 
 
