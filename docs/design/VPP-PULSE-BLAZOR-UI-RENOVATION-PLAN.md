@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.83` — 2026-07-22
+> **Phiên bản:** `1.84` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -798,6 +798,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-22 | Compact account profile avatar | Avatar lớn phía trên tên trong account popover giảm từ `72px` xuống `64px`; avatar footer vẫn giữ `24px` | Owner muốn tỷ lệ profile header gọn hơn, gần account card Apple và giảm cảm giác avatar lấn át tên/email | Shared account popover | Chỉ thay kích thước avatar profile, giữ nguyên typography, căn giữa và action list | User menu trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Vietnamese tooltip completeness | Tooltip/`aria-label` đổi ngôn ngữ phải lấy bản dịch VI hoàn chỉnh; `SwitchToEnglish` hiển thị `Chuyển sang tiếng Anh`, không để English copy trong giao diện VI | Owner phát hiện menu đã là tiếng Việt nhưng tooltip hover vẫn hiện `Switch to English` do resource VI bị bỏ sót | Global localization + accessibility | Sửa resource và thêm regression test đối chiếu VI–EN, chỉ allowlist tên riêng/mã kỹ thuật dùng chung | User menu và mọi localized tooltip/action | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Stable sidebar icon rail | Logo, icon menu cha và avatar dùng chung tâm rail `36px` ở cả expanded/collapsed; expand chỉ hiện thêm label, menu con/cháu vẫn lùi từng cấp | Owner phát hiện expanded đang dùng ba tâm khác nhau (`28px`, khoảng `28px`, `24px`) trong khi collapsed về `36px`, làm icon nhảy ngang và mất hàng | Shared shell + navigation geometry | Thêm primary content offset dùng chung, neo root RadzenPanelMenu/header/user footer vào cùng cột và dẫn xuất lại rail/content offset cấp con | Sidebar expanded/collapsed trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Global interface capitalization | Giữ nguyên casing từ localization thay vì ép `ALL CAPS`: tiếng Anh dùng title style cho navigation/action ngắn, tiếng Việt dùng sentence case tự nhiên; chỉ acronym, mã và dữ liệu nghiệp vụ như `VPP`, `IT`, `UOM` được viết hoa theo ngữ nghĩa | Apple HIG yêu cầu chọn quy tắc phù hợp phong cách/ngôn ngữ rồi áp dụng nhất quán; button và segmented control tiếng Anh dùng title-style capitalization | Global content + typography | Xóa toàn bộ `text-transform: uppercase` trong CSS authored, bỏ tracking rộng đi kèm, nạp casing guard sau Radzen Material theme và thêm architecture regression test | Tabs, sidebar, buttons, DataGrid headers, KPI labels, wizard, account/login và responsive cards | Implemented — OWNER_REVIEW |
