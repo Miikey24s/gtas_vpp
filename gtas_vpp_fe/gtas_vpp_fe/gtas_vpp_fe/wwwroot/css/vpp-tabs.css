@@ -133,6 +133,10 @@
     min-width: 0;
 }
 
+.vpp-admin-tabs {
+    --vpp-library-primary-tabs-height: var(--vpp-header-height);
+}
+
 .librariestab > .rz-tabview-nav-container > .rz-tabview-nav {
     width: 100%;
 }
@@ -155,8 +159,9 @@
     z-index: var(--vpp-z-sticky);
     width: calc(100% + (2 * var(--vpp-layout-body-inset)));
     max-width: none;
-    height: var(--vpp-library-primary-tabs-height);
-    min-height: var(--vpp-library-primary-tabs-height);
+    height: var(--vpp-library-primary-tabs-height) !important;
+    min-height: var(--vpp-library-primary-tabs-height) !important;
+    max-height: var(--vpp-library-primary-tabs-height) !important;
     margin-block-start: calc(-1 * var(--vpp-layout-body-inset));
     margin-block-end: var(--vpp-layout-body-inset);
     margin-inline: calc(-1 * var(--vpp-layout-body-inset));
@@ -180,8 +185,9 @@
 
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
     position: static !important;
-    height: 100%;
-    min-height: 100%;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
 }
 
 /* Native Radzen tab item chrome adds a second underline and a -1px selected

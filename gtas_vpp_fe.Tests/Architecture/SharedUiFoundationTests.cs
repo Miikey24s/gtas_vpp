@@ -101,6 +101,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-navigation-row-height: 40px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-tabs-bar-height: 44px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-library-primary-tabs-height: var(--vpp-header-height);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("max-height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("align-items: center;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("padding-block: calc((var(--vpp-library-primary-tabs-height) - var(--vpp-navigation-row-height)) / 2) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("Native Radzen tab item chrome adds a second underline", tabsCss, StringComparison.Ordinal);
