@@ -361,7 +361,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("width: 100% !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding: 0 0 var(--vpp-space-3);", layoutCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline-start: 0;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-sidebar-rail-content-gap: var(--vpp-space-3);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-rail-content-gap: 12px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap) - var(--vpp-space-1));", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-nested-indent-step: calc(var(--vpp-sidebar-icon-box-size) + var(--vpp-sidebar-rail-content-gap));", sidebarCss, StringComparison.Ordinal);
@@ -373,7 +373,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("padding-inline-start: calc(var(--vpp-sidebar-primary-content-offset) - var(--vpp-space-1));", polishCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-menu", polishCss, StringComparison.Ordinal);
         Assert.Contains("justify-content: center;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("gap: 0;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("inset-inline-start: calc((100% - var(--vpp-sidebar-collapsed-control-width)) / 2);", layoutCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: var(--vpp-sidebar-child-content-offset);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("gap: var(--vpp-sidebar-rail-content-gap);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline-end: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("every child/grandchild icon exactly one shared rhythm", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: 0 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-end: var(--vpp-space-4) !important;", sidebarCss, StringComparison.Ordinal);

@@ -46,6 +46,43 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             "element => element.classList.contains('is-ready') && getComputedStyle(element).opacity === '1'"))
             .Should().BeTrue("the active library child starts visible");
 
+        var hierarchy = await Page.EvaluateAsync<SidebarHierarchyGeometry>(
+            """
+            () => {
+                const item = title => [...document.querySelectorAll('.vpp-sidebar-nav .rz-navigation-item')]
+                    .find(element => element.title === title);
+                const parts = title => {
+                    const wrapper = item(title).querySelector(':scope > .rz-navigation-item-wrapper');
+                    return {
+                        icon: wrapper.querySelector(':scope > .rz-navigation-item-link > .rz-navigation-item-icon').getBoundingClientRect(),
+                        text: wrapper.querySelector(':scope > .rz-navigation-item-link > .rz-navigation-item-text').getBoundingClientRect()
+                    };
+                };
+                const root = parts('Quản trị danh mục');
+                const child = parts('Định nghĩa lớp');
+                const childParent = parts('Bảng giá');
+                const grandchild = parts('Giá');
+                const indicator = document.querySelector('.vpp-sidebar-shared-indicator').getBoundingClientRect();
+                return {
+                    rootTextLeft: root.text.left,
+                    childIconLeft: child.icon.left,
+                    childIconRight: child.icon.right,
+                    childTextLeft: child.text.left,
+                    childParentTextLeft: childParent.text.left,
+                    grandchildIconLeft: grandchild.icon.left,
+                    activeIndicatorLeft: indicator.left
+                };
+            }
+            """);
+        hierarchy.ChildIconLeft.Should().BeApproximately(hierarchy.RootTextLeft, 0.1,
+            "a child icon must start on the same column as its parent label");
+        hierarchy.GrandchildIconLeft.Should().BeApproximately(hierarchy.ChildParentTextLeft, 0.1,
+            "a grandchild icon must start on the same column as its parent label");
+        (hierarchy.ChildTextLeft - hierarchy.ChildIconRight).Should().BeApproximately(12, 0.1,
+            "Apple-style icon and label spacing should use one 12px rhythm");
+        (hierarchy.ChildIconLeft - hierarchy.ActiveIndicatorLeft).Should().BeApproximately(12, 0.1,
+            "the child rail must sit immediately before the child icon");
+
         var dashboardParent = nav.Locator(".rz-panel-menu > li[title='Bảng điều khiển']");
         var dashboardParentToggle = dashboardParent.Locator(":scope > .rz-navigation-item-wrapper");
         var dashboardExpander = dashboardParent.Locator(":scope > .rz-expander");
@@ -174,6 +211,44 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             """);
         headerIndicatorDuration.Should().BeApproximately(200, 0.1,
             "the header line must use the same motion duration as the PanelMenu expansion");
+
+        await Page.WaitForTimeoutAsync(300);
+        var shellSidebar = Page.Locator(".vpp-sidebar");
+        if (!await shellSidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
+        {
+            await Page.EvaluateAsync("() => document.querySelector('.vpp-sidebar-toggle').click()");
+        }
+        await Page.WaitForTimeoutAsync(300);
+        var collapsedRail = await Page.EvaluateAsync<CollapsedRailGeometry>(
+            """
+            () => {
+                const rect = selector => document.querySelector(selector).getBoundingClientRect();
+                const centreX = value => value.left + value.width / 2;
+                const centreY = value => value.top + value.height / 2;
+                const logo = rect('.vpp-sidebar-collapsed-logo');
+                const brand = rect('.vpp-sidebar-collapsed-brand');
+                const icon = rect('.vpp-sidebar-nav .rz-panel-menu > .rz-navigation-item .rz-navigation-item-icon');
+                const iconRow = rect('.vpp-sidebar-nav .rz-panel-menu > .rz-navigation-item > .rz-navigation-item-wrapper');
+                const avatar = rect('.vpp-sidebar-user-menu .user-avatar');
+                const userTrigger = rect('.vpp-sidebar-user-menu .user-menu-trigger');
+                return {
+                    logoCenterX: centreX(logo),
+                    iconCenterX: centreX(icon),
+                    avatarCenterX: centreX(avatar),
+                    logoRowCenterY: centreY(brand),
+                    logoCenterY: centreY(logo),
+                    iconRowCenterY: centreY(iconRow),
+                    iconCenterY: centreY(icon),
+                    userRowCenterY: centreY(userTrigger),
+                    avatarCenterY: centreY(avatar)
+                };
+            }
+            """);
+        collapsedRail.LogoCenterX.Should().BeApproximately(collapsedRail.IconCenterX, 0.1);
+        collapsedRail.AvatarCenterX.Should().BeApproximately(collapsedRail.IconCenterX, 0.1);
+        collapsedRail.LogoCenterY.Should().BeApproximately(collapsedRail.LogoRowCenterY, 0.1);
+        collapsedRail.IconCenterY.Should().BeApproximately(collapsedRail.IconRowCenterY, 0.1);
+        collapsedRail.AvatarCenterY.Should().BeApproximately(collapsedRail.UserRowCenterY, 0.1);
     }
 
     private async Task<double> ReadIndicatorTopAsync(ILocator indicator)
@@ -231,6 +306,30 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         public string Duration { get; set; } = string.Empty;
 
         public string Easing { get; set; } = string.Empty;
+    }
+
+    private sealed class SidebarHierarchyGeometry
+    {
+        public double RootTextLeft { get; set; }
+        public double ChildIconLeft { get; set; }
+        public double ChildIconRight { get; set; }
+        public double ChildTextLeft { get; set; }
+        public double ChildParentTextLeft { get; set; }
+        public double GrandchildIconLeft { get; set; }
+        public double ActiveIndicatorLeft { get; set; }
+    }
+
+    private sealed class CollapsedRailGeometry
+    {
+        public double LogoCenterX { get; set; }
+        public double IconCenterX { get; set; }
+        public double AvatarCenterX { get; set; }
+        public double LogoRowCenterY { get; set; }
+        public double LogoCenterY { get; set; }
+        public double IconRowCenterY { get; set; }
+        public double IconCenterY { get; set; }
+        public double UserRowCenterY { get; set; }
+        public double AvatarCenterY { get; set; }
     }
 
     private sealed class TabTitleGeometry

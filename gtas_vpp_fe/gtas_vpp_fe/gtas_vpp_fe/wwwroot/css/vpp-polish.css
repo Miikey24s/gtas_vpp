@@ -610,6 +610,7 @@ a:hover {
 
 .sidebar-collapsed .vpp-sidebar-user-menu .user-menu-trigger {
     justify-content: center;
+    gap: 0;
     width: var(--vpp-sidebar-collapsed-control-width);
     height: var(--vpp-sidebar-collapsed-control-height);
     padding: 3px;

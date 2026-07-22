@@ -302,7 +302,7 @@ leftsidebar {
 .vpp-sidebar-collapsed-brand {
     position: absolute;
     inset-block-start: calc((var(--vpp-header-height) - var(--vpp-sidebar-collapsed-control-height)) / 2);
-    inset-inline-start: 2px;
+    inset-inline-start: calc((100% - var(--vpp-sidebar-collapsed-control-width)) / 2);
     z-index: 1;
     visibility: hidden;
     opacity: 0;

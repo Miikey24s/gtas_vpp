@@ -20,7 +20,7 @@
     --vpp-sidebar-row-half-gap: 2px;
     --vpp-sidebar-icon-box-size: 24px;
     --vpp-sidebar-primary-content-offset: 16px;
-    --vpp-sidebar-rail-content-gap: var(--vpp-space-3);
+    --vpp-sidebar-rail-content-gap: 12px;
     --vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));
     --vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap) - var(--vpp-space-1));
     --vpp-sidebar-nested-indent-step: calc(var(--vpp-sidebar-icon-box-size) + var(--vpp-sidebar-rail-content-gap));
@@ -75,6 +75,7 @@
 
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
     align-items: center;
+    gap: var(--vpp-sidebar-rail-content-gap);
     height: var(--vpp-navigation-row-height);
     min-height: var(--vpp-navigation-row-height);
     padding-block: 0 !important;
@@ -126,7 +127,7 @@
 
 .vpp-sidebar .vpp-sidebar-nav {
     position: relative;
-    --vpp-sidebar-indicator-icon-gap: 12px;
+    --vpp-sidebar-indicator-icon-gap: var(--vpp-sidebar-rail-content-gap);
 }
 
 .vpp-sidebar-shared-indicator {
@@ -245,7 +246,7 @@
     width: 24px;
     height: 24px;
     margin-inline-start: 0;
-    margin-inline-end: var(--vpp-space-2);
+    margin-inline-end: 0;
     font-size: 20px;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     transition: color var(--vpp-transition-fast);
