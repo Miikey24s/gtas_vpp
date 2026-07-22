@@ -7,6 +7,36 @@ namespace gtas_vpp_fe.Tests.Resources;
 public sealed partial class LocalizationResourceTests
 {
     [Fact]
+    public void VietnameseResources_DoNotLeaveEnglishInterfaceCopy()
+    {
+        var root = FindRepositoryRoot();
+        var resourceDirectory = Path.Combine(
+            root, "gtas_vpp_fe", "gtas_vpp_fe", "gtas_vpp_fe", "Resources");
+        var vietnameseValues = ReadValues(Path.Combine(resourceDirectory, "Components.App.resx"));
+        var englishValues = ReadValues(Path.Combine(resourceDirectory, "Components.App.en.resx"));
+        var allowedSharedValues = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "AppName",
+            "ConfirmEmailAccent",
+            "Email",
+            "IsDeleted",
+            "AiGenerated"
+        };
+
+        var offenders = vietnameseValues
+            .Where(pair => englishValues.TryGetValue(pair.Key, out var englishValue)
+                && pair.Value.Equals(englishValue, StringComparison.Ordinal)
+                && !allowedSharedValues.Contains(pair.Key))
+            .Select(pair => $"{pair.Key}={pair.Value}")
+            .OrderBy(value => value, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.True(
+            offenders.Length == 0,
+            $"Vietnamese resources still contain untranslated English UI copy: {string.Join(", ", offenders)}");
+    }
+
+    [Fact]
     public void ComponentResources_ArePairedUniqueAndCoverLiteralKeys()
     {
         var root = FindRepositoryRoot();
@@ -49,6 +79,17 @@ public sealed partial class LocalizationResourceTests
 
         Assert.Equal(keys.Count, keys.Distinct(StringComparer.Ordinal).Count());
         return new SortedSet<string>(keys, StringComparer.Ordinal);
+    }
+
+    private static Dictionary<string, string> ReadValues(string path)
+    {
+        return XDocument.Load(path)
+            .Root!
+            .Elements("data")
+            .ToDictionary(
+                element => (string)element.Attribute("name")!,
+                element => element.Element("value")?.Value ?? string.Empty,
+                StringComparer.Ordinal);
     }
 
     private static string FindRepositoryRoot()

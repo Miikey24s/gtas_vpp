@@ -125,7 +125,7 @@
   <data name="LightMode" xml:space="preserve"><value>Nền sáng</value></data>
   <data name="SwitchToDarkMode" xml:space="preserve"><value>Chuyển sang nền tối</value></data>
   <data name="SwitchToLightMode" xml:space="preserve"><value>Chuyển sang nền sáng</value></data>
-  <data name="SwitchToEnglish" xml:space="preserve"><value>Switch to English</value></data>
+  <data name="SwitchToEnglish" xml:space="preserve"><value>Chuyển sang tiếng Anh</value></data>
   <data name="SwitchToVietnamese" xml:space="preserve"><value>Chuyển sang tiếng Việt</value></data>
   <data name="Profile" xml:space="preserve"><value>Hồ sơ</value></data>
   <data name="Notifications" xml:space="preserve"><value>Thông báo</value></data>
