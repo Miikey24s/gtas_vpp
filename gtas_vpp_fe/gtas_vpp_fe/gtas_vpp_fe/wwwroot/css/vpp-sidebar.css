@@ -19,7 +19,7 @@
     --vpp-sidebar-item-active-bg: var(--vpp-navigation-item-active-bg);
     --vpp-sidebar-row-half-gap: 2px;
     --vpp-sidebar-icon-box-size: 24px;
-    --vpp-sidebar-primary-content-offset: 24px;
+    --vpp-sidebar-primary-content-offset: 16px;
     --vpp-sidebar-rail-content-gap: var(--vpp-space-3);
     --vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));
     --vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap) - var(--vpp-space-1));
