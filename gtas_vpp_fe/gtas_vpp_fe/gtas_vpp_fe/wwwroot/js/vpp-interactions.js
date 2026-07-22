@@ -406,11 +406,65 @@
             : null;
     }
 
+    function hasVisibleAreaWithin(element, boundary) {
+        if (!element || !boundary || !element.isConnected) {
+            return false;
+        }
+
+        var rect = element.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) {
+            return false;
+        }
+
+        var visibleLeft = rect.left;
+        var visibleRight = rect.right;
+        var visibleTop = rect.top;
+        var visibleBottom = rect.bottom;
+        var ancestor = element.parentElement;
+
+        while (ancestor) {
+            var styles = window.getComputedStyle(ancestor);
+            if (styles.display === "none" || styles.visibility === "hidden"
+                || styles.visibility === "collapse" || ancestor.getAttribute("aria-hidden") === "true") {
+                return false;
+            }
+
+            var clipsContent = ancestor === boundary
+                || ancestor.classList.contains("rz-navigation-menu")
+                || styles.overflowX !== "visible"
+                || styles.overflowY !== "visible";
+            if (clipsContent) {
+                var ancestorRect = ancestor.getBoundingClientRect();
+                visibleLeft = Math.max(visibleLeft, ancestorRect.left);
+                visibleRight = Math.min(visibleRight, ancestorRect.right);
+                visibleTop = Math.max(visibleTop, ancestorRect.top);
+                visibleBottom = Math.min(visibleBottom, ancestorRect.bottom);
+                if (visibleRight - visibleLeft <= 0.5 || visibleBottom - visibleTop <= 0.5) {
+                    return false;
+                }
+            }
+
+            if (ancestor === boundary) {
+                break;
+            }
+            ancestor = ancestor.parentElement;
+        }
+
+        return ancestor === boundary;
+    }
+
     function findActiveSidebarTarget(nav) {
         var activeLink = findActiveSidebarLink(nav);
         if (activeLink) {
+            nav.vppLastActiveLink = activeLink;
             var target = sidebarTargetFromLink(nav, activeLink);
-            return target && target.getClientRects().length ? target : null;
+            return hasVisibleAreaWithin(target, nav) ? target : null;
+        }
+
+        if (nav.vppLastActiveLink
+            && (!nav.contains(nav.vppLastActiveLink)
+                || !hasVisibleAreaWithin(nav.vppLastActiveLink, nav))) {
+            return null;
         }
 
         var activeWrapper = nav.querySelector(".rz-navigation-item-wrapper-active");
@@ -426,7 +480,7 @@
                 : null;
         }
 
-        return activeWrapper.getClientRects().length ? activeWrapper : null;
+        return hasVisibleAreaWithin(activeWrapper, nav) ? activeWrapper : null;
     }
 
     function sidebarItemDepth(target) {
@@ -446,7 +500,7 @@
     }
 
     function readSidebarIndicatorGeometry(nav, target) {
-        if (!target || !target.getClientRects().length) {
+        if (!hasVisibleAreaWithin(target, nav)) {
             return null;
         }
 
@@ -528,13 +582,11 @@
                     return;
                 }
 
-                window.requestAnimationFrame(function () {
-                    moveSidebarIndicator(nav, findActiveSidebarTarget(nav), true);
-                });
+                scheduleSidebarIndicatorSync(nav, true);
             });
             nav.vppSidebarIndicatorObserver.observe(nav, {
                 attributes: true,
-                attributeFilter: ["class", "aria-current"],
+                attributeFilter: ["class", "aria-current", "aria-expanded", "style"],
                 childList: true,
                 subtree: true
             });
@@ -549,9 +601,31 @@
                 });
                 nav.vppSidebarIndicatorResizeObserver.observe(nav);
             }
+
+            nav.vppSidebarTransitionHandler = function (event) {
+                if (event.target instanceof Element
+                    && event.target.closest(".rz-navigation-menu")) {
+                    scheduleSidebarIndicatorSync(nav, false);
+                }
+            };
+            nav.addEventListener("transitionend", nav.vppSidebarTransitionHandler, true);
         }
 
         return indicator;
+    }
+
+    function scheduleSidebarIndicatorSync(nav, shouldAnimate) {
+        window.requestAnimationFrame(function () {
+            moveSidebarIndicator(nav, findActiveSidebarTarget(nav), shouldAnimate, false);
+        });
+
+        if (nav.vppSidebarSettleTimer) {
+            window.clearTimeout(nav.vppSidebarSettleTimer);
+        }
+        nav.vppSidebarSettleTimer = window.setTimeout(function () {
+            nav.vppSidebarSettleTimer = null;
+            moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false, false);
+        }, sidebarIndicatorDuration + 60);
     }
 
     function moveSidebarIndicator(nav, target, shouldAnimate, forceTarget) {
@@ -560,7 +634,7 @@
             return;
         }
 
-        if (!target || !nav.contains(target) || !target.getClientRects().length) {
+        if (!target || !nav.contains(target) || !hasVisibleAreaWithin(target, nav)) {
             hideSidebarIndicator(indicator);
             return;
         }
@@ -645,6 +719,16 @@
         if (nav.vppSidebarIndicatorResizeObserver) {
             nav.vppSidebarIndicatorResizeObserver.disconnect();
             nav.vppSidebarIndicatorResizeObserver = null;
+        }
+
+        if (nav.vppSidebarTransitionHandler) {
+            nav.removeEventListener("transitionend", nav.vppSidebarTransitionHandler, true);
+            nav.vppSidebarTransitionHandler = null;
+        }
+
+        if (nav.vppSidebarSettleTimer) {
+            window.clearTimeout(nav.vppSidebarSettleTimer);
+            nav.vppSidebarSettleTimer = null;
         }
     }
 

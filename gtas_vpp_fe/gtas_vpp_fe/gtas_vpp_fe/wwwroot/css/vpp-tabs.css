@@ -284,6 +284,20 @@
     translate: none;
 }
 
+/* Chrome 133+ and Safari 18.2+ can trim the font's half-leading using its
+   native cap-height/baseline metrics. The parent 72px flex control then
+   centres the visible letterform instead of the larger font line box. */
+@supports (text-box: trim-both cap alphabetic) {
+    .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > .rz-tabview-nav-link > .rz-tabview-title,
+    .vpp-admin-tabs > .rz-tabview-nav > li > .rz-tabview-nav-link > .rz-tabview-title,
+    .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title,
+    .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title {
+        display: inline-block;
+        height: auto;
+        text-box: trim-both cap alphabetic;
+    }
+}
+
 /* Selection is communicated by the shared blue underline only. Keep the
    primary selected surface transparent even while the pointer remains over
    it after a click; unselected tabs retain the shared hover feedback. */

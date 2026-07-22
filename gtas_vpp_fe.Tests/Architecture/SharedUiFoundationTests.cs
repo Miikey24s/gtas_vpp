@@ -137,6 +137,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("padding: 0 var(--vpp-primary-tab-inline-padding) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("line-height: 20px;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("translate: none;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("@supports (text-box: trim-both cap alphabetic)", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("text-box: trim-both cap alphabetic;", tabsCss, StringComparison.Ordinal);
         Assert.DoesNotContain("alignOpticalTextElement", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("actualBoundingBox", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("vppInk", interactionsJs, StringComparison.Ordinal);
@@ -408,8 +410,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("function moveSidebarIndicator(nav, target, shouldAnimate, forceTarget)", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("var stretched = movingDown", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("function hideSidebarIndicator(indicator)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function hasVisibleAreaWithin(element, boundary)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("ancestor.classList.contains(\"rz-navigation-menu\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function scheduleSidebarIndicatorSync(nav, shouldAnimate)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("attributeFilter: [\"class\", \"aria-current\", \"aria-expanded\", \"style\"]", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("sidebarIndicatorDuration + 60", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("indicator.classList.remove(\"is-ready\")", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("return target && target.getClientRects().length ? target : null;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("return hasVisibleAreaWithin(target, nav) ? target : null;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true, true)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("initializeSidebarIndicators(document);", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain(".ppjsidebarmenu.submenu", appCss, StringComparison.Ordinal);
