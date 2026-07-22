@@ -152,8 +152,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1)) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("height: 48px !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Collapsed active state stays line-only", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("Full-width submenu surface", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("margin-inline: 0;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("Parent-child surface edge parity", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: var(--vpp-space-8);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);

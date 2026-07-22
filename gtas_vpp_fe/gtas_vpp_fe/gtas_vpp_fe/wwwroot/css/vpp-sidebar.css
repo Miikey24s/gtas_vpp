@@ -140,12 +140,12 @@
     font-size: 14px;
 }
 
-/* Full-width submenu surface; keep content and active rail at the child indent. */
+/* Parent-child surface edge parity; keep content and active rail at the child indent. */
 .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper {
     box-sizing: border-box;
-    margin-inline: 0;
+    margin-inline: var(--vpp-space-1);
     padding-inline-start: var(--vpp-space-8);
-    border-radius: var(--vpp-radius-sm);
+    border-radius: var(--vpp-radius-md);
 }
 
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu.submenu.rz-navigation-item-active:not(:has(> .rz-navigation-item-wrapper-active))::before,
@@ -324,6 +324,7 @@
 
 /* Ensure panel menu has transparent background to inherit the sidebar's background */
 .vpp-sidebar .rz-panel-menu {
+    --rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);
     --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-2nd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-active-indicator: var(--vpp-nav-indicator-color);
