@@ -733,7 +733,7 @@
 }
 
 .permission-component-tabs {
-    --vpp-library-secondary-tabs-height: 42px;
+    --vpp-library-secondary-tabs-height: var(--vpp-tabs-bar-height);
     width: 100%;
 }
 
@@ -752,7 +752,7 @@
 }
 
 .permission-component-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
-    padding-inline: 0;
+    padding: 2px var(--vpp-space-1) !important;
 }
 
 .permission-component-tabs > .rz-tabview-panels {

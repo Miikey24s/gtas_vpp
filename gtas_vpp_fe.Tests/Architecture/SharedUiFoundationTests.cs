@@ -86,6 +86,33 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void SharedTabs_MirrorSidebarGeometryAndPagesDoNotDuplicateTabHeadings()
+    {
+        var root = GetFrontendRoot();
+        var tabsCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tabs.css"));
+        var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
+        var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+        var libraryPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Page_Library.razor"));
+        var permissionPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Page_Permission.razor"));
+
+        Assert.Contains("--vpp-navigation-row-height: 40px;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-tabs-bar-height: 44px;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-item-hover-bg", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-item-active-bg", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-item-hover-bg", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-navigation-row-height) !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("font-size: 14px !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("font-weight: 400 !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("left: var(--vpp-nav-indicator-inset);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("right: var(--vpp-nav-indicator-inset);", tabsCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("transition: none !important;", tabsCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppPageHeader", libraryPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppPageHeader", permissionPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("LibraryPageDescription", libraryPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("PermissionPageDescription", permissionPage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AuthenticatedShell_KeepsBrandAndToggleInsideTheSidebar()
     {
         var root = GetFrontendRoot();
@@ -145,14 +172,14 @@ public sealed class SharedUiFoundationTests
         var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
 
         Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-sidebar-item-hover-bg: rgba(9, 30, 66, 0.075);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-font-sidebar: -apple-system", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-width: 286px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-collapsed-width: 72px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("line-height: 20px;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("height: 40px;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("min-height: 40px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-navigation-row-height);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("min-height: var(--vpp-navigation-row-height);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-block: 0 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 20px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-collapsed-control-width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1));", tokensCss, StringComparison.Ordinal);
@@ -182,9 +209,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(var(--vpp-sidebar-width) - 16px);", polishCss, StringComparison.Ordinal);
         Assert.Contains("padding: 2px var(--vpp-space-1) var(--vpp-space-1);", polishCss, StringComparison.Ordinal);
-        Assert.Contains("height: 40px;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-navigation-row-height);", polishCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-user-menu .user-menu-trigger[aria-expanded=\"true\"]", polishCss, StringComparison.Ordinal);
-        Assert.Contains("bottom: calc(40px + var(--vpp-space-4));", polishCss, StringComparison.Ordinal);
+        Assert.Contains("bottom: calc(var(--vpp-navigation-row-height) + var(--vpp-space-4));", polishCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transform: translateX(2px);", sidebarCss, StringComparison.Ordinal);
     }
 

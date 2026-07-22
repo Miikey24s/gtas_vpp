@@ -6,13 +6,16 @@
 /* ── Tab List — Horizontal Scroll (no wrap) ──────────────────── */
 .rz-tabview-nav,
 ul[role="tablist"] {
+    align-items: center !important;
     flex-wrap: nowrap !important;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;          /* Firefox */
-    gap: var(--vpp-space-1);
-    padding-bottom: 2px;
+    gap: var(--vpp-space-1) !important;
+    height: var(--vpp-tabs-bar-height);
+    min-height: var(--vpp-tabs-bar-height);
+    padding: 2px var(--vpp-space-1) !important;
 }
 
 /* Hide scrollbar (Webkit) */
@@ -24,11 +27,21 @@ ul[role="tablist"]::-webkit-scrollbar {
 /* ── Tab Item — Base ─────────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-nav-link,
 .rz-tabs-item {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     white-space: nowrap;
     flex-shrink: 0;
-    padding: var(--vpp-space-2) var(--vpp-space-4);
-    font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-medium);
+    height: var(--vpp-navigation-row-height) !important;
+    min-height: var(--vpp-navigation-row-height) !important;
+    padding: 0 var(--vpp-space-4) !important;
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 20px;
+    letter-spacing: normal !important;
+    text-transform: none !important;
     color: var(--vpp-text-secondary);
     border: none !important;
     background: transparent !important;
@@ -41,45 +54,37 @@ ul[role="tablist"]::-webkit-scrollbar {
 
 /* ── Tab Item — Hover ────────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-nav-link:hover,
-.rz-tabs-item:hover {
+.rz-tabs-item:hover,
+.rz-tabview-nav .rz-tabview-nav-link:focus-visible,
+.rz-tabs-item:focus-visible {
     color: var(--vpp-text-primary);
-    background: rgba(14, 165, 233, 0.04) !important;
-}
-
-:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-nav-link:hover,
-:root:not(.rz-theme-dark) .rz-tabs-item:hover {
-    background: rgba(14, 165, 233, 0.06) !important;
+    background: var(--vpp-navigation-item-hover-bg) !important;
 }
 
 /* ── Tab Item — Active ───────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
 .rz-tabs-item.rz-state-active,
 .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
-    background: transparent !important;
-    color: var(--vpp-primary-400) !important;
-    font-weight: var(--vpp-font-weight-semibold);
+    background: var(--vpp-navigation-item-active-bg) !important;
+    color: var(--vpp-text-primary) !important;
+    font-weight: 400 !important;
 }
 
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link:hover,
 .rz-tabs-item.rz-state-active:hover,
 .rz-tabview-nav .rz-tabview-nav-link.rz-state-active:hover {
-    background: rgba(14, 165, 233, 0.06) !important;
-}
-
-:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
-:root:not(.rz-theme-dark) .rz-tabs-item.rz-state-active,
-:root:not(.rz-theme-dark) .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
-    color: var(--vpp-primary-700) !important;
+    background: var(--vpp-navigation-item-active-bg) !important;
 }
 
 /* Active underline — same blue, thickness and radius as the sidebar rail */
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
-.rz-tabs-item.rz-state-active::after {
+.rz-tabs-item.rz-state-active::after,
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active::after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: var(--vpp-nav-indicator-inset);
+    right: var(--vpp-nav-indicator-inset);
     height: var(--vpp-nav-indicator-thickness);
     background: var(--vpp-nav-indicator-color);
     border-radius: var(--vpp-nav-indicator-radius) var(--vpp-nav-indicator-radius) 0 0;
@@ -110,8 +115,8 @@ ul[role="tablist"]::-webkit-scrollbar {
 
 /* ── librariestab (shared class) — ensure full width ─────────── */
 .librariestab {
-    --vpp-library-primary-tabs-height: 48px;
-    --vpp-library-secondary-tabs-height: 44px;
+    --vpp-library-primary-tabs-height: var(--vpp-tabs-bar-height);
+    --vpp-library-secondary-tabs-height: var(--vpp-tabs-bar-height);
     --vpp-tabs-sticky-top: 0px;
     width: 100%;
     min-width: 0;
@@ -180,8 +185,8 @@ ul[role="tablist"]::-webkit-scrollbar {
     height: 100%;
     min-height: 100%;
     align-items: stretch;
-    gap: var(--vpp-space-1);
-    padding: 0 var(--vpp-space-1) 2px;
+    gap: var(--vpp-space-1) !important;
+    padding: 2px var(--vpp-space-1) !important;
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -189,29 +194,33 @@ ul[role="tablist"]::-webkit-scrollbar {
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link,
 .vpp-secondary-tabs .rz-tabs-item {
-    padding: var(--vpp-space-2) var(--vpp-space-4);
-    font-size: var(--vpp-text-sm);
-    border-radius: 0 !important;
-    transition: none !important;
+    height: var(--vpp-navigation-row-height) !important;
+    min-height: var(--vpp-navigation-row-height) !important;
+    padding: 0 var(--vpp-space-4) !important;
+    border-radius: var(--vpp-radius-md) !important;
 }
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:hover,
-.vpp-secondary-tabs .rz-tabs-item:hover {
-    background: transparent !important;
+.vpp-secondary-tabs .rz-tabs-item:hover,
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:focus-visible,
+.vpp-secondary-tabs .rz-tabs-item:focus-visible {
+    background: var(--vpp-navigation-item-hover-bg) !important;
 }
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
 .vpp-secondary-tabs .rz-tabs-item.rz-state-active,
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
-    background: transparent !important;
-    border-radius: 0 !important;
+    background: var(--vpp-navigation-item-active-bg) !important;
+    border-radius: var(--vpp-radius-md) !important;
     box-shadow: none;
 }
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
-.vpp-secondary-tabs .rz-tabs-item.rz-state-active::after {
-    border-radius: 0;
-    animation: none;
+.vpp-secondary-tabs .rz-tabs-item.rz-state-active::after,
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active::after {
+    left: var(--vpp-nav-indicator-inset);
+    right: var(--vpp-nav-indicator-inset);
+    border-radius: var(--vpp-nav-indicator-radius) var(--vpp-nav-indicator-radius) 0 0;
 }
 
 .vpp-secondary-tabs .rz-tabview-panel {

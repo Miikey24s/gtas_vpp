@@ -188,6 +188,10 @@
     --vpp-border-default: rgba(255, 255, 255, 0.08);
     --vpp-border-strong: rgba(255, 255, 255, 0.12);
     --vpp-border-focus: var(--vpp-primary-500);
+
+    /* Shared navigation surfaces: sidebar rows and tab items. */
+    --vpp-navigation-item-hover-bg: rgba(255, 255, 255, 0.10);
+    --vpp-navigation-item-active-bg: rgba(255, 255, 255, 0.13);
 }
 
 /* ── Colors: Light Mode ───────────────────────────────────────── */
@@ -209,6 +213,8 @@
 
     --vpp-border-default: rgba(9, 30, 66, 0.08);
     --vpp-border-strong: rgba(9, 30, 66, 0.14);
+    --vpp-navigation-item-hover-bg: rgba(9, 30, 66, 0.075);
+    --vpp-navigation-item-active-bg: rgba(9, 30, 66, 0.10);
 }
 
 /* ── Spacing Scale (4px base) ─────────────────────────────────── */
@@ -231,6 +237,8 @@
     --vpp-sidebar-collapsed-width: 72px;
     --vpp-sidebar-collapsed-control-width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1));
     --vpp-sidebar-collapsed-control-height: 48px;
+    --vpp-navigation-row-height: 40px;
+    --vpp-tabs-bar-height: 44px;
     --vpp-header-height: 60px;
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;

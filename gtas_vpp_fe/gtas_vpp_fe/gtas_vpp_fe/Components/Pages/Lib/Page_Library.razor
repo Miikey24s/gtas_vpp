@@ -24,9 +24,6 @@
 else if (PagePermissionResDTO.Components.Any(y => y.IsVisible))
 {
     <section class="vpp-admin-page">
-        <VppPageHeader Title="@Loc["Library"]"
-                       Description="@Loc["LibraryPageDescription"]"
-                       HeadingId="library-heading" />
         <Component_Library claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
     </section>
 }
