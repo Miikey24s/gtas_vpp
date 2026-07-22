@@ -209,6 +209,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("margin-block: var(--vpp-sidebar-row-half-gap) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain("margin-block-start: var(--vpp-space-1) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: var(--vpp-space-8);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-nested-indent-step: var(--vpp-space-6);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-navigation-menu .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("padding-inline-start: calc(var(--vpp-space-8) + var(--vpp-sidebar-nested-indent-step));", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("inset-inline-start: calc(var(--vpp-space-8) + var(--vpp-sidebar-nested-indent-step));", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".ppjsidebarmenu.submenu", appCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
