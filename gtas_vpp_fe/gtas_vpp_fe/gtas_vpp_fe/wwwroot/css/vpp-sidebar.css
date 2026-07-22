@@ -15,9 +15,10 @@
     --vpp-sidebar-item-active-bg: var(--vpp-navigation-item-active-bg);
     --vpp-sidebar-row-half-gap: 2px;
     --vpp-sidebar-icon-box-size: 24px;
+    --vpp-sidebar-primary-content-offset: 24px;
     --vpp-sidebar-rail-content-gap: var(--vpp-space-3);
-    --vpp-sidebar-child-rail-offset: calc(var(--vpp-space-1) + var(--vpp-space-4) + var(--vpp-sidebar-icon-box-size));
-    --vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap));
+    --vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));
+    --vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap) - var(--vpp-space-1));
     --vpp-sidebar-nested-indent-step: calc(var(--vpp-sidebar-icon-box-size) + var(--vpp-sidebar-rail-content-gap));
 }
 
@@ -65,6 +66,17 @@
     padding-block: 0 !important;
     font: inherit;
     line-height: 20px;
+}
+
+/* Keep the root icon rail fixed at the collapsed sidebar centre. Expanding the
+   sidebar reveals labels without moving the logo, root menu icons or avatar. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    padding-inline-start: calc(var(--vpp-sidebar-primary-content-offset) - var(--vpp-space-1));
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    padding-inline-start: 0 !important;
+    padding-inline-end: var(--vpp-space-4) !important;
 }
 
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {

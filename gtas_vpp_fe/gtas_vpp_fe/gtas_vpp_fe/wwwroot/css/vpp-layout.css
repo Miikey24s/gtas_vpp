@@ -147,6 +147,10 @@ leftsidebar {
     flex: 0 0 auto;
 }
 
+.vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-header {
+    padding-inline-start: 0;
+}
+
 .vpp-sidebar-expanded-brand {
     display: flex;
     align-items: center;
@@ -154,7 +158,7 @@ leftsidebar {
     min-width: 0;
     flex: 1 1 auto;
     height: 44px;
-    padding: var(--vpp-space-1) var(--vpp-space-2);
+    padding: var(--vpp-space-1) var(--vpp-space-2) var(--vpp-space-1) var(--vpp-sidebar-primary-content-offset, 24px);
     color: var(--vpp-text-primary);
 }
 
