@@ -22,35 +22,36 @@
     @if (_isOpen)
     {
         <section id="user-menu-dropdown" class="user-dropdown" role="dialog" aria-label="@Loc["Profile"]">
-            <div class="user-dropdown-header">
+            <div class="user-dropdown-profile">
+                <button type="button"
+                        class="user-dropdown-theme-button"
+                        title="@ThemeToggleTitle"
+                        aria-label="@ThemeToggleTitle"
+                        aria-pressed="@(!IsLightTheme)"
+                        disabled="@_isThemeSwitching"
+                        @onclick="HandleThemeToggleAsync">
+                    <VppIcon Name="@(IsLightTheme ? VppIcons.DarkMode : VppIcons.LightMode)" />
+                </button>
                 <div class="user-avatar-lg" aria-hidden="true">@GetInitials()</div>
                 <div class="user-dropdown-identity">
                     <div class="user-dropdown-name">@UserFullName</div>
                     @if (!string.IsNullOrWhiteSpace(UserLogin))
                     {
-                        <div class="user-dropdown-login">
-                            <span>@Loc["Username"]</span>
-                            <strong>@UserLogin</strong>
-                        </div>
+                        <div class="user-dropdown-login">@UserLogin</div>
                     }
                 </div>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
-            {
-                <div class="user-dropdown-context">
-                    <span class="user-dropdown-context-icon" aria-hidden="true">
+                @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
+                {
+                    <div class="user-dropdown-organization" title="@DepartmentDisplayName">
                         <VppIcon Name="@VppIcons.Apartment" />
-                    </span>
-                    <span class="user-dropdown-context-copy">
-                        <small>@Loc["Department"]</small>
-                        <strong class="user-dropdown-context-value">@DepartmentDisplayName</strong>
-                    </span>
-                    @if (ShowDepartmentCode)
-                    {
-                        <span class="user-dropdown-code">@DepartmentCode</span>
-                    }
-                </div>
-            }
+                        <span>@DepartmentDisplayName</span>
+                        @if (ShowDepartmentCode)
+                        {
+                            <span class="user-dropdown-organization-code">@DepartmentCode</span>
+                        }
+                    </div>
+                }
+            </div>
             <div class="user-dropdown-actions" aria-label="@Loc["Settings"]">
                 <button type="button"
                         class="user-dropdown-action"
@@ -63,17 +64,8 @@
                     <span class="user-dropdown-action-label">@Loc["Language"]</span>
                     <span class="user-dropdown-action-trailing">@(IsEnglishUi ? "EN" : "VI")</span>
                 </button>
-                <button type="button"
-                        class="user-dropdown-action"
-                        title="@ThemeToggleTitle"
-                        aria-label="@ThemeToggleTitle"
-                        aria-pressed="@(!IsLightTheme)"
-                        disabled="@_isThemeSwitching"
-                        @onclick="HandleThemeToggleAsync">
-                    <VppIcon Name="@(IsLightTheme ? VppIcons.DarkMode : VppIcons.LightMode)" />
-                    <span class="user-dropdown-action-label">@ThemeToggleTitle</span>
-                </button>
                 <NotificationCenter MenuMode="true" />
+                <div class="user-dropdown-action-divider" role="separator"></div>
                 <a href="/logoutprocess" class="user-dropdown-action user-dropdown-logout">
                     <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
                     <span class="user-dropdown-action-label">@Loc["Logout"]</span>
