@@ -23,6 +23,7 @@
 /* ── Panel Menu Item — Base ──────────────────────────────────── */
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
     box-sizing: border-box;
+    height: 40px;
     min-height: 40px;
     border: none;
     border-radius: var(--vpp-radius-md);
@@ -41,7 +42,10 @@
 }
 
 .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    align-items: center;
+    height: 40px;
     min-height: 40px;
+    padding-block: 0 !important;
     font: inherit;
     line-height: 20px;
 }
@@ -324,6 +328,8 @@
 
 /* Ensure panel menu has transparent background to inherit the sidebar's background */
 .vpp-sidebar .rz-panel-menu {
+    --rz-panel-menu-item-padding-block: 0;
+    --rz-panel-menu-item-2nd-level-padding-block: 0;
     --rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);
     --rz-panel-menu-2nd-level-vertical-offset: 0;
     --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);

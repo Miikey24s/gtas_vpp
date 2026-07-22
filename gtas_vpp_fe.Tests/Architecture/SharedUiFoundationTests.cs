@@ -151,7 +151,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-sidebar-collapsed-width: 72px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("line-height: 20px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("height: 40px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("min-height: 40px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("padding-block: 0 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 20px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-collapsed-control-width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1));", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-collapsed-control-height: 48px;", tokensCss, StringComparison.Ordinal);
@@ -161,6 +163,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("Parent-child surface edge parity", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-padding-block: 0;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-2nd-level-padding-block: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-2nd-level-vertical-offset: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: var(--vpp-space-8);", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".ppjsidebarmenu.submenu", appCss, StringComparison.Ordinal);
