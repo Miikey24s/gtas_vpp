@@ -220,6 +220,7 @@ public sealed class SharedUiFoundationTests
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
+        var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
 
         Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);", sidebarCss, StringComparison.Ordinal);
@@ -264,6 +265,16 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--rz-panel-menu-item-active-indicator: transparent;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("suppress that partial", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("opacity: 0 !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("full wrapper instead of the", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("background: radial-gradient(circle, currentColor 1%, transparent 1%) center / 15000%;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("background-size: 0%;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("transition: background-size 320ms ease-out, opacity 360ms ease-out;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("animation: vpp-sidebar-press-expand 360ms ease-out forwards;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("intentionally retained as the full-control press expansion surface", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("@media (prefers-reduced-motion: reduce)", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("function playSidebarPress(target)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("document.addEventListener(\"pointerdown\"", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("wrapper.classList.add(\"vpp-sidebar-pressing\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("Keep the full row as the single state surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".submenu > .rz-navigation-item-wrapper-active:hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("inset-inline-start: var(--vpp-sidebar-child-rail-offset);", sidebarCss, StringComparison.Ordinal);

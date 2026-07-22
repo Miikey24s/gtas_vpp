@@ -98,7 +98,7 @@
     background: var(--vpp-nav-indicator-color);
     border-radius: var(--vpp-nav-indicator-radius);
     pointer-events: none;
-    z-index: 1;
+    z-index: 2;
     transform-origin: center;
     animation: vpp-active-indicator-in var(--vpp-transition-base) forwards;
 }
@@ -133,6 +133,54 @@
     background: transparent !important;
     box-shadow: none !important;
     opacity: 0 !important;
+}
+
+/* Recreate the Material press expansion on the full wrapper instead of the
+   indented link. On pointer release the radial surface grows from the centre
+   to both row edges, including the area on the other side of the blue rail. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    border-radius: inherit;
+    color: var(--vpp-text-primary);
+    background: radial-gradient(circle, currentColor 1%, transparent 1%) center / 15000%;
+    opacity: 0;
+    pointer-events: none;
+    transition: background-size 320ms ease-out, opacity 360ms ease-out;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:active::after {
+    background-size: 0%;
+    opacity: 0.1;
+    transition: background-size 0s, opacity 0s;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper.vpp-sidebar-pressing::after {
+    animation: vpp-sidebar-press-expand 360ms ease-out forwards;
+}
+
+@keyframes vpp-sidebar-press-expand {
+    from {
+        background-size: 0%;
+        opacity: 0.1;
+    }
+    to {
+        background-size: 15000%;
+        opacity: 0;
+    }
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    position: relative;
+    z-index: 1;
 }
 
 /* Radzen 11 applies the route state to the wrapper/link. Keep a neutral row
@@ -304,11 +352,11 @@
     align-items: center !important;
 }
 
-/* Kill ALL pseudo-elements on collapsed parent items (arrow indicators, shadows) */
+/* Kill Radzen's collapsed indicators and link overlays; the wrapper ::after is
+   intentionally retained as the full-control press expansion surface. */
 .sidebar-collapsed .rz-navigation-item-link::before,
 .sidebar-collapsed .rz-navigation-item-link::after,
-.sidebar-collapsed .rz-navigation-item-wrapper::before,
-.sidebar-collapsed .rz-navigation-item-wrapper::after {
+.sidebar-collapsed .rz-navigation-item-wrapper::before {
     display: none !important;
     content: none !important;
 }
@@ -432,4 +480,11 @@
     --rz-panel-menu-item-active-indicator: transparent;
     background: transparent !important;
     background-color: transparent !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
+        animation: none;
+        transition: none;
+    }
 }

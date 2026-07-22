@@ -330,6 +330,36 @@
         startTabIndicators();
     }
 
+    function playSidebarPress(target) {
+        if (prefersReducedMotion() || !(target instanceof Element)) {
+            return;
+        }
+
+        var wrapper = target.closest(".vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper");
+        if (!wrapper) {
+            return;
+        }
+
+        wrapper.classList.remove("vpp-sidebar-pressing");
+        void wrapper.offsetWidth;
+        wrapper.classList.add("vpp-sidebar-pressing");
+
+        window.clearTimeout(wrapper.vppPressTimer);
+        wrapper.vppPressTimer = window.setTimeout(function () {
+            wrapper.classList.remove("vpp-sidebar-pressing");
+        }, 380);
+    }
+
+    document.addEventListener("pointerdown", function (event) {
+        playSidebarPress(event.target);
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+        if (!event.repeat && (event.key === "Enter" || event.key === " ")) {
+            playSidebarPress(event.target);
+        }
+    }, true);
+
     function closeOrderCodePopovers(exceptCell) {
         document.querySelectorAll(".vpp-order-code-cell.is-open").forEach(function (cell) {
             if (cell === exceptCell) {
