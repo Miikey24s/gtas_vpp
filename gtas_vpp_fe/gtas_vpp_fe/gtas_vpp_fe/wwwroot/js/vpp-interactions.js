@@ -86,16 +86,42 @@
         }
     };
 
+    function readCssTimeMilliseconds(value, fallback) {
+        var trimmed = String(value || "").trim();
+        var amount = parseFloat(trimmed);
+        if (!Number.isFinite(amount)) {
+            return fallback;
+        }
+
+        if (trimmed.endsWith("ms")) {
+            return amount;
+        }
+
+        if (trimmed.endsWith("s")) {
+            return amount * 1000;
+        }
+
+        return fallback;
+    }
+
+    var rootMotionStyles = window.getComputedStyle(document.documentElement);
+    var navigationMotionDuration = readCssTimeMilliseconds(
+        rootMotionStyles.getPropertyValue("--vpp-navigation-motion-duration"),
+        200
+    );
+    var navigationMotionEasing = rootMotionStyles
+        .getPropertyValue("--vpp-navigation-motion-easing").trim()
+        || "cubic-bezier(0.32, 0.72, 0, 1)";
     var tabListSelector = ".rz-tabview-nav";
     var tabTargetSelector = ".rz-tabview-nav-link, .rz-tabs-item, [role='tab']";
     var activeTabSelector = ".rz-tabview-selected .rz-tabview-nav-link, "
         + ".rz-tabview-nav-link.rz-state-active, "
         + ".rz-tabs-item.rz-state-active, "
         + "[role='tab'][aria-selected='true']";
-    var tabIndicatorDuration = 180;
+    var tabIndicatorDuration = navigationMotionDuration;
     var sidebarNavSelector = ".vpp-sidebar-nav";
-    var sidebarIndicatorDuration = 180;
-    var sidebarLayoutFollowDuration = 240;
+    var sidebarIndicatorDuration = navigationMotionDuration;
+    var sidebarLayoutFollowDuration = navigationMotionDuration + 40;
 
     function resolveCssPixelLength(element, value, fallback) {
         var trimmed = String(value || "").trim();
@@ -313,8 +339,6 @@
             return;
         }
 
-        var easing = "cubic-bezier(0.32, 0.72, 0, 1)";
-
         indicator.vppTarget = target;
         indicator.vppAnimation = indicator.animate([
             {
@@ -327,7 +351,7 @@
             }
         ], {
             duration: tabIndicatorDuration,
-            easing: easing,
+            easing: navigationMotionEasing,
             fill: "none"
         });
 
@@ -716,8 +740,6 @@
             return;
         }
 
-        var easing = "cubic-bezier(0.32, 0.72, 0, 1)";
-
         indicator.vppTarget = target;
         indicator.vppAnimation = indicator.animate([
             {
@@ -730,7 +752,7 @@
             }
         ], {
             duration: sidebarIndicatorDuration,
-            easing: easing,
+            easing: navigationMotionEasing,
             fill: "none"
         });
 

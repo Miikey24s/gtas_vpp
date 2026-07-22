@@ -109,8 +109,8 @@
     background: var(--vpp-navigation-item-active-bg) !important;
 }
 
-/* A shared indicator is positioned by vpp-interactions.js. It reproduces the
-   Apple Music stretch-then-settle motion instead of redrawing inside each tab. */
+/* A shared indicator is positioned by vpp-interactions.js. It moves directly
+   between labels using the same brief 200ms rhythm as the sidebar navigation. */
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
 .rz-tabs-item.rz-state-active::after,
 .rz-tabview-nav .rz-tabview-nav-link.rz-state-active::after,

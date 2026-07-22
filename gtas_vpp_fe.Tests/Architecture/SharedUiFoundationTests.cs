@@ -192,7 +192,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("display: flow-root;", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-admin-tabs .rz-tabview-nav-container", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-motion-duration: 200ms;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-motion-easing: cubic-bezier(0.32, 0.72, 0, 1);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("var tabIndicatorDuration = navigationMotionDuration;", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("tabList.style.setProperty(\"padding-block\", verticalInset, \"important\")", interactionsJs, StringComparison.Ordinal);
@@ -210,7 +212,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("moveTabIndicator(tabList, target, true, true)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("duration: tabIndicatorDuration", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("easing: navigationMotionEasing", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("offset: 0.52", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("prefersReducedMotion()", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppPageHeader", libraryPage, StringComparison.Ordinal);
@@ -404,8 +406,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-shared-indicator", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("per-item pseudo rails", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-active-indicator-in", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("var sidebarIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("var sidebarLayoutFollowDuration = 240;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function readCssTimeMilliseconds(value, fallback)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("getPropertyValue(\"--vpp-navigation-motion-duration\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("getPropertyValue(\"--vpp-navigation-motion-easing\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var sidebarIndicatorDuration = navigationMotionDuration;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var sidebarLayoutFollowDuration = navigationMotionDuration + 40;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("transition: grid-template-rows var(--vpp-navigation-motion-duration)", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("transition: visibility var(--vpp-navigation-motion-duration)", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("function resolveCssPixelLength(element, value, fallback)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("trimmed.endsWith(\"rem\")", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("element.appendChild(probe)", interactionsJs, StringComparison.Ordinal);

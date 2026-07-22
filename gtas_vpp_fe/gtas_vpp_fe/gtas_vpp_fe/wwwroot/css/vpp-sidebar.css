@@ -509,6 +509,19 @@
     background-color: transparent !important;
 }
 
+/* One Apple-style navigation rhythm: Radzen's expanding rows and both shared
+   indicators use the same 200ms timing and easing. The active rail can then
+   follow a moving child without arriving before or after the menu content. */
+.vpp-sidebar .rz-expander {
+    transition: grid-template-rows var(--vpp-navigation-motion-duration)
+        var(--vpp-navigation-motion-easing) !important;
+}
+
+.vpp-sidebar .rz-expander-content {
+    transition: visibility var(--vpp-navigation-motion-duration)
+        var(--vpp-navigation-motion-easing) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .vpp-sidebar-shared-indicator {
         will-change: auto;
@@ -519,6 +532,12 @@
     .vpp-sidebar-expanded-chrome,
     .vpp-sidebar-collapsed-brand,
     .vpp-sidebar-product {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+
+    .vpp-sidebar .rz-expander,
+    .vpp-sidebar .rz-expander-content {
         transition-duration: 0.01ms !important;
         transition-delay: 0s !important;
     }

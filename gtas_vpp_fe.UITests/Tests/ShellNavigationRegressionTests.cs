@@ -48,6 +48,19 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
 
         var dashboardParent = nav.Locator(".rz-panel-menu > li[title='Bảng điều khiển']");
         var dashboardParentToggle = dashboardParent.Locator(":scope > .rz-navigation-item-wrapper");
+        var dashboardExpander = dashboardParent.Locator(":scope > .rz-expander");
+        var dashboardMotion = await dashboardExpander.EvaluateAsync<NavigationMotionTiming>(
+            """
+            element => {
+                const styles = getComputedStyle(element);
+                return {
+                    duration: styles.transitionDuration,
+                    easing: styles.transitionTimingFunction
+                };
+            }
+            """);
+        dashboardMotion.Duration.Should().Be("0.2s");
+        dashboardMotion.Easing.Should().Be("cubic-bezier(0.32, 0.72, 0, 1)");
         if (string.Equals(await dashboardParent.GetAttributeAsync("aria-expanded"), "true", StringComparison.OrdinalIgnoreCase))
         {
             await dashboardParentToggle.ClickAsync();
@@ -55,14 +68,12 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         }
 
         var collapsedDashboardTop = await ReadIndicatorTopAsync(indicator);
-        await dashboardParentToggle.ClickAsync();
-        var expandingTops = await SampleIndicatorMotionAsync(indicator);
+        var expandingTops = await SampleIndicatorMotionAsync(indicator, dashboardParentToggle);
         AssertSmoothMotion(expandingTops, movingDown: true, "opening the preceding dashboard group");
         expandingTops[^1].Should().BeGreaterThan(collapsedDashboardTop + 40,
             "the active library child should move down when the preceding group opens");
 
-        await dashboardParentToggle.ClickAsync();
-        var collapsingTops = await SampleIndicatorMotionAsync(indicator);
+        var collapsingTops = await SampleIndicatorMotionAsync(indicator, dashboardParentToggle);
         AssertSmoothMotion(collapsingTops, movingDown: false, "closing the preceding dashboard group");
         collapsingTops[^1].Should().BeLessThan(expandingTops[^1] - 40,
             "the active library child should move back up when the preceding group closes");
@@ -150,6 +161,19 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             "GTAS VPP must share the same visual centre as every primary tab label");
         tabGeometry.LogoCenter.Should().BeApproximately(tabGeometry.TitleCenter, 0.1,
             "the brand mark must share the same visual centre as the header labels");
+
+        var headerIndicatorDuration = await Page.EvaluateAsync<double>(
+            """
+            () => {
+                const tabs = document.querySelectorAll('.vpp-admin-tabs [role="tab"]');
+                const indicator = document.querySelector('.vpp-admin-tabs .vpp-tab-shared-indicator');
+                tabs[1].click();
+                const animation = indicator.getAnimations()[0];
+                return animation ? Number(animation.effect.getTiming().duration) : 0;
+            }
+            """);
+        headerIndicatorDuration.Should().BeApproximately(200, 0.1,
+            "the header line must use the same motion duration as the PanelMenu expansion");
     }
 
     private async Task<double> ReadIndicatorTopAsync(ILocator indicator)
@@ -157,16 +181,25 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         return await indicator.EvaluateAsync<double>("element => element.getBoundingClientRect().top");
     }
 
-    private async Task<List<double>> SampleIndicatorMotionAsync(ILocator indicator)
+    private async Task<List<double>> SampleIndicatorMotionAsync(ILocator indicator, ILocator toggle)
     {
-        var samples = new List<double>();
-        for (var frame = 0; frame < 16; frame++)
-        {
-            await Page.WaitForTimeoutAsync(16);
-            samples.Add(await ReadIndicatorTopAsync(indicator));
-        }
-
-        return samples;
+        var samplingTask = indicator.EvaluateAsync<double[]>(
+            """
+            element => new Promise(resolve => {
+                const samples = [];
+                const sampleFrame = () => {
+                    samples.push(element.getBoundingClientRect().top);
+                    if (samples.length < 24) {
+                        requestAnimationFrame(sampleFrame);
+                        return;
+                    }
+                    resolve(samples);
+                };
+                requestAnimationFrame(sampleFrame);
+            })
+            """);
+        await toggle.ClickAsync();
+        return [.. await samplingTask];
     }
 
     private static void AssertSmoothMotion(IReadOnlyList<double> samples, bool movingDown, string because)
@@ -191,6 +224,13 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         public double Opacity { get; set; }
 
         public double Top { get; set; }
+    }
+
+    private sealed class NavigationMotionTiming
+    {
+        public string Duration { get; set; } = string.Empty;
+
+        public string Easing { get; set; } = string.Empty;
     }
 
     private sealed class TabTitleGeometry
