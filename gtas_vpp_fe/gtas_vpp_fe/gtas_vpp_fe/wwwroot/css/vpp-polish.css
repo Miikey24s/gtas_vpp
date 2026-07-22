@@ -662,6 +662,7 @@ a:hover {
 .vpp-sidebar-user-menu .user-menu-trigger,
 .rz-tabview .rz-tabview-nav-link,
 .rz-tabview .rz-tabs-item {
+    position: relative;
     isolation: isolate;
     overflow: hidden;
 }

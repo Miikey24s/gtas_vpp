@@ -294,6 +294,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-user-menu .user-menu-trigger", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav-link", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("Shared full-control press feedback", polishCss, StringComparison.Ordinal);
+        Assert.Contains("position: relative;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav-link.vpp-pressing::before", polishCss, StringComparison.Ordinal);
         Assert.Contains("Keep the full row as the single state surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".submenu > .rz-navigation-item-wrapper-active:hover", sidebarCss, StringComparison.Ordinal);
