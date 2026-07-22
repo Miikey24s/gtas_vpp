@@ -356,7 +356,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 140px;
+    min-height: 0;
     padding: var(--vpp-space-2) var(--vpp-space-3) var(--vpp-space-3);
     text-align: center;
 }
@@ -374,6 +374,7 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-dropdown-identity {
+    display: grid;
     justify-items: center;
     gap: 2px;
     width: 100%;
@@ -399,44 +400,41 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-dropdown-department {
-    display: grid;
-    grid-template-columns: 24px minmax(0, 1fr);
+    display: flex;
     align-items: center;
-    gap: var(--vpp-space-2);
-    min-height: 52px;
-    padding: var(--vpp-space-1) var(--vpp-space-2);
+    justify-content: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 18px;
+    margin-top: var(--vpp-space-1);
+    padding: 0;
     border: 0;
-    border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-secondary);
-    background: var(--vpp-navigation-item-hover-bg);
-}
-
-.vpp-sidebar-user-menu .user-dropdown-department > .vpp-icon {
-    width: 24px;
-    height: 24px;
-    font-size: 20px;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-department-copy {
-    display: grid;
-    gap: 1px;
-    min-width: 0;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-department-copy small {
-    color: var(--vpp-text-tertiary);
-    font-size: 11px;
-    line-height: 14px;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-department-copy strong {
-    overflow: hidden;
-    color: var(--vpp-text-primary);
+    background: transparent;
     font-size: 13px;
-    font-weight: 500;
     line-height: 18px;
+    text-align: center;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-department-name {
+    overflow: hidden;
+    font-weight: 500;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-department-code {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-department-code::before {
+    content: "·";
+    margin-inline-end: 6px;
+    color: var(--vpp-border-strong);
 }
 
 .user-dropdown-actions {

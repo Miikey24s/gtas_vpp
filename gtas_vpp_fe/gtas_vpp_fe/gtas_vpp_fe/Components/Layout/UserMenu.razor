@@ -30,18 +30,18 @@
                     {
                         <div class="user-dropdown-email">@UserContact</div>
                     }
+                    @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
+                    {
+                        <div class="user-dropdown-department" aria-label="@Loc["Department"]">
+                            <span class="user-dropdown-department-name">@DepartmentDisplayName</span>
+                            @if (ShowDepartmentCode)
+                            {
+                                <span class="user-dropdown-department-code">@DepartmentDisplayCode</span>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
-            @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
-            {
-                <div class="user-dropdown-department" aria-label="@Loc["Department"]">
-                    <VppIcon Name="@VppIcons.Apartment" />
-                    <span class="user-dropdown-department-copy">
-                        <small>@Loc["Department"]</small>
-                        <strong>@DepartmentDisplayName</strong>
-                    </span>
-                </div>
-            }
             <div class="user-dropdown-actions" aria-label="@Loc["Settings"]">
                 <button type="button"
                         class="user-dropdown-action"
@@ -62,7 +62,7 @@
                         disabled="@_isThemeSwitching"
                         @onclick="HandleThemeToggleAsync">
                     <VppIcon Name="@(IsLightTheme ? VppIcons.LightMode : VppIcons.DarkMode)" />
-                    <span class="user-dropdown-action-label">@Loc["Appearance"]</span>
+                    <span class="user-dropdown-action-label">@Loc["Theme"]</span>
                     <span class="user-dropdown-action-trailing">@Loc[IsLightTheme ? "LightMode" : "DarkMode"]</span>
                 </button>
                 <NotificationCenter MenuMode="true" />
@@ -110,6 +110,11 @@
     private string DepartmentDisplayName => !string.IsNullOrWhiteSpace(DepartmentName)
         ? DepartmentName.Trim()
         : DepartmentCode?.Trim() ?? string.Empty;
+
+    private string DepartmentDisplayCode => DepartmentCode?.Trim() ?? string.Empty;
+
+    private bool ShowDepartmentCode => !string.IsNullOrWhiteSpace(DepartmentDisplayCode)
+        && !string.Equals(DepartmentDisplayCode, DepartmentDisplayName, StringComparison.OrdinalIgnoreCase);
 
     private string UserContact => !string.IsNullOrWhiteSpace(UserEmail)
         ? UserEmail.Trim()

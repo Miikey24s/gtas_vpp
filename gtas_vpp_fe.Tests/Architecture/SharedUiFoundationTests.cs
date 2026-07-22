@@ -169,7 +169,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("user-dropdown-email", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-department", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-action-divider", userMenuSource, StringComparison.Ordinal);
-        Assert.Contains("@Loc[\"Appearance\"]", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("@Loc[\"Theme\"]", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("user-dropdown-department-name", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("user-dropdown-department-code", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("ShowDepartmentCode", userMenuSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppIcons.Apartment", userMenuSource, StringComparison.Ordinal);
         Assert.DoesNotContain("user-dropdown-theme-button", userMenuSource, StringComparison.Ordinal);
         Assert.DoesNotContain("user-dropdown-context", userMenuSource, StringComparison.Ordinal);
         Assert.Equal(1, source.Split("<UserMenu", StringSplitOptions.None).Length - 1);
@@ -271,6 +275,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("height: 72px;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-email", polishCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-department", polishCss, StringComparison.Ordinal);
+        Assert.Contains("background: transparent;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("justify-content: center;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".user-dropdown-action-divider", polishCss, StringComparison.Ordinal);
         Assert.Contains("color: var(--vpp-danger) !important;", polishCss, StringComparison.Ordinal);
         Assert.Contains("gap: var(--vpp-space-2);", polishCss, StringComparison.Ordinal);
