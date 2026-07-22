@@ -93,6 +93,8 @@
         + ".rz-tabs-item.rz-state-active, "
         + "[role='tab'][aria-selected='true']";
     var tabIndicatorDuration = 180;
+    var sidebarNavSelector = ".vpp-sidebar-nav";
+    var sidebarIndicatorDuration = 180;
     var opticalTextSelector = ".vpp-admin-tabs .rz-tabview-title, .vpp-sidebar-product";
     var opticalTextCanvas;
 
@@ -102,6 +104,28 @@
 
     function clampOpticalOffset(value) {
         return Math.max(-3, Math.min(3, roundToQuarterPixel(value)));
+    }
+
+    function resolveCssPixelLength(element, value, fallback) {
+        var trimmed = String(value || "").trim();
+        if (!trimmed) {
+            return fallback;
+        }
+
+        if (trimmed.endsWith("px")) {
+            var pixels = parseFloat(trimmed);
+            return Number.isFinite(pixels) ? pixels : fallback;
+        }
+
+        var probe = document.createElement("span");
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        probe.style.pointerEvents = "none";
+        probe.style.width = trimmed;
+        element.appendChild(probe);
+        var resolved = parseFloat(window.getComputedStyle(probe).width);
+        probe.remove();
+        return Number.isFinite(resolved) ? resolved : fallback;
     }
 
     function alignOpticalTextElement(element) {
@@ -180,6 +204,28 @@
         }
     }
 
+    function readPrimaryTabIndicatorWidth(tabList) {
+        var primaryTabs = tabList.closest(".vpp-admin-tabs");
+        if (!primaryTabs || tabList.closest(".vpp-secondary-tabs")) {
+            return null;
+        }
+
+        var preferredWidth = parseFloat(window.getComputedStyle(primaryTabs)
+            .getPropertyValue("--vpp-primary-tab-indicator-preferred-width"));
+        var inkWidths = Array.from(tabList.querySelectorAll(".rz-tabview-title"))
+            .map(function (title) { return parseFloat(title.dataset.vppInkWidth); })
+            .filter(function (width) { return Number.isFinite(width) && width > 0; });
+
+        if (!inkWidths.length) {
+            return Number.isFinite(preferredWidth) ? preferredWidth : null;
+        }
+
+        var shortestInkWidth = Math.min.apply(Math, inkWidths);
+        return Number.isFinite(preferredWidth)
+            ? Math.min(preferredWidth, shortestInkWidth)
+            : shortestInkWidth;
+    }
+
     function findTabHost(tabList) {
         return tabList.closest(".rz-tabview-nav-container") || tabList;
     }
@@ -202,9 +248,13 @@
             var titleRect = title.getBoundingClientRect();
             var measuredInkWidth = parseFloat(title.dataset.vppInkWidth);
             var measuredInkCenterX = parseFloat(title.dataset.vppInkCenterX);
-            var indicatorWidth = Number.isFinite(measuredInkWidth) && measuredInkWidth > 0
+            var measuredIndicatorWidth = Number.isFinite(measuredInkWidth) && measuredInkWidth > 0
                 ? measuredInkWidth
                 : titleRect.width;
+            var commonIndicatorWidth = readPrimaryTabIndicatorWidth(tabList);
+            var indicatorWidth = Number.isFinite(commonIndicatorWidth)
+                ? Math.min(commonIndicatorWidth, measuredIndicatorWidth)
+                : measuredIndicatorWidth;
             var indicatorCenterX = Number.isFinite(measuredInkCenterX)
                 ? measuredInkCenterX
                 : titleRect.width / 2;
@@ -218,7 +268,11 @@
 
         var rootStyles = window.getComputedStyle(document.documentElement);
         var targetStyles = window.getComputedStyle(target);
-        var fallbackInset = parseFloat(rootStyles.getPropertyValue("--vpp-nav-indicator-inset")) || 8;
+        var fallbackInset = resolveCssPixelLength(
+            target,
+            rootStyles.getPropertyValue("--vpp-nav-indicator-inset"),
+            8
+        );
         var startInset = parseFloat(targetStyles.paddingLeft);
         var endInset = parseFloat(targetStyles.paddingRight);
 
@@ -417,6 +471,278 @@
         root.querySelectorAll(tabListSelector).forEach(disposeTabList);
     }
 
+    function findTopLevelSidebarItem(item) {
+        var current = item;
+        while (current && current.parentElement
+            && !current.parentElement.classList.contains("rz-panel-menu")) {
+            current = current.parentElement.closest(".rz-navigation-item");
+        }
+        return current;
+    }
+
+    function findActiveSidebarLink(nav) {
+        return nav.querySelector(
+            ".rz-navigation-item-link[aria-current='page'], "
+            + ".rz-navigation-item-link.active, "
+            + ".rz-navigation-item-link-active"
+        );
+    }
+
+    function sidebarTargetFromLink(nav, link) {
+        if (!link) {
+            return null;
+        }
+
+        var sidebar = nav.closest(".vpp-sidebar");
+        var item = link.closest(".rz-navigation-item");
+        if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
+            item = findTopLevelSidebarItem(item);
+        }
+
+        return item
+            ? item.querySelector(":scope > .rz-navigation-item-wrapper")
+            : null;
+    }
+
+    function findActiveSidebarTarget(nav) {
+        var target = sidebarTargetFromLink(nav, findActiveSidebarLink(nav));
+        if (target && target.getClientRects().length) {
+            return target;
+        }
+
+        var activeWrapper = nav.querySelector(".rz-navigation-item-wrapper-active");
+        if (!activeWrapper) {
+            return null;
+        }
+
+        var sidebar = nav.closest(".vpp-sidebar");
+        if (sidebar && sidebar.classList.contains("sidebar-collapsed")) {
+            var rootItem = findTopLevelSidebarItem(activeWrapper.closest(".rz-navigation-item"));
+            return rootItem
+                ? rootItem.querySelector(":scope > .rz-navigation-item-wrapper")
+                : null;
+        }
+
+        return activeWrapper;
+    }
+
+    function sidebarItemDepth(target) {
+        var item = target.closest(".rz-navigation-item");
+        var depth = 0;
+        var parentMenu = item ? item.parentElement : null;
+
+        while (parentMenu && !parentMenu.classList.contains("rz-panel-menu")) {
+            if (parentMenu.classList.contains("rz-navigation-menu")) {
+                depth++;
+            }
+            var parentItem = parentMenu.closest(".rz-navigation-item");
+            parentMenu = parentItem ? parentItem.parentElement : null;
+        }
+
+        return depth;
+    }
+
+    function readSidebarIndicatorGeometry(nav, target) {
+        if (!target || !target.getClientRects().length) {
+            return null;
+        }
+
+        var navRect = nav.getBoundingClientRect();
+        var targetRect = target.getBoundingClientRect();
+        var rootStyles = window.getComputedStyle(document.documentElement);
+        var navStyles = window.getComputedStyle(nav);
+        var inset = resolveCssPixelLength(
+            nav,
+            rootStyles.getPropertyValue("--vpp-nav-indicator-inset"),
+            8
+        );
+        var left = 0;
+
+        if (sidebarItemDepth(target) > 0) {
+            var icon = target.querySelector(":scope > .rz-navigation-item-link > .rz-navigation-item-icon");
+            var iconGap = resolveCssPixelLength(
+                nav,
+                navStyles.getPropertyValue("--vpp-sidebar-indicator-icon-gap"),
+                12
+            );
+            if (icon) {
+                left = icon.getBoundingClientRect().left - navRect.left + nav.scrollLeft - iconGap;
+            }
+        }
+
+        return {
+            left: left,
+            top: targetRect.top - navRect.top + nav.scrollTop + inset,
+            height: Math.max(0, targetRect.height - (inset * 2))
+        };
+    }
+
+    function setSidebarIndicatorGeometry(indicator, geometry) {
+        indicator.style.transform = "translate3d(" + geometry.left + "px, " + geometry.top + "px, 0)";
+        indicator.style.height = geometry.height + "px";
+        if (!indicator.classList.contains("is-ready")) {
+            indicator.classList.add("is-ready");
+        }
+    }
+
+    function ensureSidebarIndicator(nav) {
+        if (!(nav instanceof Element)) {
+            return null;
+        }
+
+        var indicator = Array.from(nav.children).find(function (child) {
+            return child.classList && child.classList.contains("vpp-sidebar-shared-indicator");
+        });
+
+        if (!indicator) {
+            indicator = document.createElement("span");
+            indicator.className = "vpp-sidebar-shared-indicator";
+            indicator.setAttribute("aria-hidden", "true");
+            nav.appendChild(indicator);
+        }
+
+        if (!nav.vppSidebarIndicatorObserver) {
+            nav.vppSidebarIndicatorObserver = new MutationObserver(function () {
+                window.requestAnimationFrame(function () {
+                    moveSidebarIndicator(nav, findActiveSidebarTarget(nav), true);
+                });
+            });
+            nav.vppSidebarIndicatorObserver.observe(nav, {
+                attributes: true,
+                attributeFilter: ["class", "aria-current"],
+                childList: true,
+                subtree: true
+            });
+
+            nav.addEventListener("scroll", function () {
+                moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false);
+            }, { passive: true });
+
+            if (window.ResizeObserver) {
+                nav.vppSidebarIndicatorResizeObserver = new ResizeObserver(function () {
+                    moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false);
+                });
+                nav.vppSidebarIndicatorResizeObserver.observe(nav);
+            }
+        }
+
+        return indicator;
+    }
+
+    function moveSidebarIndicator(nav, target, shouldAnimate) {
+        var indicator = ensureSidebarIndicator(nav);
+        if (!indicator || !target || !nav.contains(target)) {
+            return;
+        }
+
+        var next = readSidebarIndicatorGeometry(nav, target);
+        if (!next) {
+            return;
+        }
+
+        var navRect = nav.getBoundingClientRect();
+        var indicatorRect = indicator.getBoundingClientRect();
+        var current = {
+            left: indicatorRect.left - navRect.left + nav.scrollLeft,
+            top: indicatorRect.top - navRect.top + nav.scrollTop,
+            height: indicatorRect.height
+        };
+        var isReady = indicator.classList.contains("is-ready");
+        var isSamePosition = Math.abs(current.left - next.left) < 0.5
+            && Math.abs(current.top - next.top) < 0.5
+            && Math.abs(current.height - next.height) < 0.5;
+
+        if (shouldAnimate && indicator.vppAnimation && indicator.vppTarget === target) {
+            return;
+        }
+
+        if (indicator.vppAnimation) {
+            indicator.vppAnimation.cancel();
+            indicator.vppAnimation = null;
+            indicator.vppTarget = null;
+        }
+
+        setSidebarIndicatorGeometry(indicator, next);
+
+        if (!shouldAnimate || !isReady || isSamePosition || prefersReducedMotion()) {
+            return;
+        }
+
+        var currentBottom = current.top + current.height;
+        var nextBottom = next.top + next.height;
+        var movingDown = next.top >= current.top;
+        var stretched = movingDown
+            ? { top: current.top, height: Math.max(current.height, nextBottom - current.top) }
+            : { top: next.top, height: Math.max(next.height, currentBottom - next.top) };
+        var easing = "cubic-bezier(0.32, 0.72, 0, 1)";
+
+        indicator.vppTarget = target;
+        indicator.vppAnimation = indicator.animate([
+            {
+                transform: "translate3d(" + current.left + "px, " + current.top + "px, 0)",
+                height: current.height + "px",
+                offset: 0,
+                easing: easing
+            },
+            {
+                transform: "translate3d(" + next.left + "px, " + stretched.top + "px, 0)",
+                height: stretched.height + "px",
+                offset: 0.52,
+                easing: easing
+            },
+            {
+                transform: "translate3d(" + next.left + "px, " + next.top + "px, 0)",
+                height: next.height + "px",
+                offset: 1
+            }
+        ], {
+            duration: sidebarIndicatorDuration,
+            easing: "linear",
+            fill: "none"
+        });
+
+        indicator.vppAnimation.addEventListener("finish", function () {
+            indicator.vppAnimation = null;
+            indicator.vppTarget = null;
+        }, { once: true });
+    }
+
+    function initializeSidebarIndicators(root) {
+        if (root instanceof Element && root.matches(sidebarNavSelector)) {
+            moveSidebarIndicator(root, findActiveSidebarTarget(root), false);
+        }
+
+        if (root.querySelectorAll) {
+            root.querySelectorAll(sidebarNavSelector).forEach(function (nav) {
+                moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false);
+            });
+        }
+    }
+
+    function disposeSidebarNav(nav) {
+        if (nav.vppSidebarIndicatorObserver) {
+            nav.vppSidebarIndicatorObserver.disconnect();
+            nav.vppSidebarIndicatorObserver = null;
+        }
+
+        if (nav.vppSidebarIndicatorResizeObserver) {
+            nav.vppSidebarIndicatorResizeObserver.disconnect();
+            nav.vppSidebarIndicatorResizeObserver = null;
+        }
+    }
+
+    function disposeSidebarIndicators(root) {
+        if (!(root instanceof Element)) {
+            return;
+        }
+
+        if (root.matches(sidebarNavSelector)) {
+            disposeSidebarNav(root);
+        }
+
+        root.querySelectorAll(sidebarNavSelector).forEach(disposeSidebarNav);
+    }
+
     document.addEventListener("click", function (event) {
         var target = event.target instanceof Element
             ? event.target.closest(tabTargetSelector)
@@ -431,6 +757,20 @@
         moveTabIndicator(tabList, target, true);
     }, true);
 
+    document.addEventListener("click", function (event) {
+        var link = event.target instanceof Element
+            ? event.target.closest(".vpp-sidebar .rz-navigation-item-link")
+            : null;
+        var nav = link ? link.closest(sidebarNavSelector) : null;
+
+        if (!link || !nav || link.getAttribute("aria-disabled") === "true"
+            || link.tagName !== "A" || !link.getAttribute("href")) {
+            return;
+        }
+
+        moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true);
+    }, true);
+
     var tabTreeObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             if (mutation.type === "characterData") {
@@ -440,10 +780,12 @@
 
             mutation.removedNodes.forEach(function (node) {
                 disposeTabIndicators(node);
+                disposeSidebarIndicators(node);
             });
             mutation.addedNodes.forEach(function (node) {
                 if (node instanceof Element) {
                     initializeTabIndicators(node);
+                    initializeSidebarIndicators(node);
                 }
             });
         });
@@ -452,6 +794,7 @@
     function startTabIndicators() {
         alignOpticalText(document);
         initializeTabIndicators(document);
+        initializeSidebarIndicators(document);
         tabTreeObserver.observe(document.body, {
             childList: true,
             characterData: true,
@@ -462,6 +805,7 @@
             document.fonts.ready.then(function () {
                 alignOpticalText(document);
                 initializeTabIndicators(document);
+                initializeSidebarIndicators(document);
             });
         }
     }
