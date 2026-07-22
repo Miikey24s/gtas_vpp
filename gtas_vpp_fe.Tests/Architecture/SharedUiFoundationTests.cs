@@ -249,6 +249,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("margin-block: var(--vpp-sidebar-row-half-gap) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain("margin-block-start: var(--vpp-space-1) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-icon-box-size: 24px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline-start: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-rail-content-gap: var(--vpp-space-3);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-child-rail-offset: calc(var(--vpp-space-1) + var(--vpp-space-4) + var(--vpp-sidebar-icon-box-size));", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap));", sidebarCss, StringComparison.Ordinal);
@@ -257,6 +258,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("every child/grandchild icon exactly one shared rhythm", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: 0 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-end: var(--vpp-space-4) !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-active-indicator: transparent;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("suppress that partial", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("opacity: 0 !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("Keep the full row as the single state surface", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".submenu > .rz-navigation-item-wrapper-active:hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("inset-inline-start: var(--vpp-sidebar-child-rail-offset);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".rz-navigation-menu .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: calc(var(--vpp-sidebar-child-content-offset) + var(--vpp-sidebar-nested-indent-step));", sidebarCss, StringComparison.Ordinal);

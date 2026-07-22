@@ -115,6 +115,16 @@
     box-shadow: none !important;
 }
 
+/* Radzen's inner pressed overlay starts at the nested link content edge. The
+   wrapper owns hover/active/focus for the whole row, so suppress that partial
+   overlay instead of letting it stop visually at the VPP rail. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link::after {
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 0 !important;
+}
+
 /* Radzen 11 applies the route state to the wrapper/link. Keep a neutral row
    surface and reserve VPP blue for the active rail. */
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active,
@@ -135,6 +145,7 @@
     flex: 0 0 24px;
     width: 24px;
     height: 24px;
+    margin-inline-start: 0;
     margin-inline-end: var(--vpp-space-2);
     font-size: 20px;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -187,6 +198,23 @@
 .vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
     padding-inline-start: 0 !important;
     padding-inline-end: var(--vpp-space-4) !important;
+}
+
+/* Radzen's nested wrapper rules are loaded after the shared stylesheet in the
+   running app. Keep the full row as the single state surface so hover/active
+   never starts at, or gets visually clipped by, the custom blue rail. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:hover,
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
+    background: var(--vpp-sidebar-item-hover-bg) !important;
+    background-color: var(--vpp-sidebar-item-hover-bg) !important;
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper-active,
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active),
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper-active:hover,
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
+    background: var(--vpp-sidebar-item-active-bg) !important;
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
 }
 
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu.submenu.rz-navigation-item-active:not(:has(> .rz-navigation-item-wrapper-active))::before,
@@ -391,7 +419,7 @@
     --rz-panel-menu-2nd-level-vertical-offset: 0;
     --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-2nd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
-    --rz-panel-menu-item-active-indicator: var(--vpp-nav-indicator-color);
+    --rz-panel-menu-item-active-indicator: transparent;
     background: transparent !important;
     background-color: transparent !important;
 }
