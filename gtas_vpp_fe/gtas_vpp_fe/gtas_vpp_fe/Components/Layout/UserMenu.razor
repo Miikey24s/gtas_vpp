@@ -23,35 +23,25 @@
     {
         <section id="user-menu-dropdown" class="user-dropdown" role="dialog" aria-label="@Loc["Profile"]">
             <div class="user-dropdown-profile">
-                <button type="button"
-                        class="user-dropdown-theme-button"
-                        title="@ThemeToggleTitle"
-                        aria-label="@ThemeToggleTitle"
-                        aria-pressed="@(!IsLightTheme)"
-                        disabled="@_isThemeSwitching"
-                        @onclick="HandleThemeToggleAsync">
-                    <VppIcon Name="@(IsLightTheme ? VppIcons.DarkMode : VppIcons.LightMode)" />
-                </button>
                 <div class="user-avatar-lg" aria-hidden="true">@GetInitials()</div>
                 <div class="user-dropdown-identity">
                     <div class="user-dropdown-name">@UserFullName</div>
-                    @if (!string.IsNullOrWhiteSpace(UserLogin))
+                    @if (!string.IsNullOrWhiteSpace(UserContact))
                     {
-                        <div class="user-dropdown-login">@UserLogin</div>
+                        <div class="user-dropdown-email">@UserContact</div>
                     }
                 </div>
-                @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
-                {
-                    <div class="user-dropdown-organization" title="@DepartmentDisplayName">
-                        <VppIcon Name="@VppIcons.Apartment" />
-                        <span>@DepartmentDisplayName</span>
-                        @if (ShowDepartmentCode)
-                        {
-                            <span class="user-dropdown-organization-code">@DepartmentCode</span>
-                        }
-                    </div>
-                }
             </div>
+            @if (!string.IsNullOrWhiteSpace(DepartmentDisplayName))
+            {
+                <div class="user-dropdown-department" aria-label="@Loc["Department"]">
+                    <VppIcon Name="@VppIcons.Apartment" />
+                    <span class="user-dropdown-department-copy">
+                        <small>@Loc["Department"]</small>
+                        <strong>@DepartmentDisplayName</strong>
+                    </span>
+                </div>
+            }
             <div class="user-dropdown-actions" aria-label="@Loc["Settings"]">
                 <button type="button"
                         class="user-dropdown-action"
@@ -63,6 +53,17 @@
                     <VppIcon Name="@VppIcons.Language" />
                     <span class="user-dropdown-action-label">@Loc["Language"]</span>
                     <span class="user-dropdown-action-trailing">@(IsEnglishUi ? "EN" : "VI")</span>
+                </button>
+                <button type="button"
+                        class="user-dropdown-action"
+                        title="@ThemeToggleTitle"
+                        aria-label="@ThemeToggleTitle"
+                        aria-pressed="@(!IsLightTheme)"
+                        disabled="@_isThemeSwitching"
+                        @onclick="HandleThemeToggleAsync">
+                    <VppIcon Name="@(IsLightTheme ? VppIcons.LightMode : VppIcons.DarkMode)" />
+                    <span class="user-dropdown-action-label">@Loc["Appearance"]</span>
+                    <span class="user-dropdown-action-trailing">@Loc[IsLightTheme ? "LightMode" : "DarkMode"]</span>
                 </button>
                 <NotificationCenter MenuMode="true" />
                 <div class="user-dropdown-action-divider" role="separator"></div>
@@ -82,6 +83,7 @@
 @code {
     [Parameter] public string? UserFullName { get; set; }
     [Parameter] public string? UserLogin { get; set; }
+    [Parameter] public string? UserEmail { get; set; }
     [Parameter] public string? DepartmentName { get; set; }
     [Parameter] public string? DepartmentCode { get; set; }
     [Parameter] public bool IsLightTheme { get; set; } = true;
@@ -109,8 +111,9 @@
         ? DepartmentName.Trim()
         : DepartmentCode?.Trim() ?? string.Empty;
 
-    private bool ShowDepartmentCode => !string.IsNullOrWhiteSpace(DepartmentCode)
-        && !string.Equals(DepartmentCode.Trim(), DepartmentDisplayName, StringComparison.OrdinalIgnoreCase);
+    private string UserContact => !string.IsNullOrWhiteSpace(UserEmail)
+        ? UserEmail.Trim()
+        : UserLogin?.Trim() ?? string.Empty;
 
     private void ToggleMenu() => _isOpen = !_isOpen;
 

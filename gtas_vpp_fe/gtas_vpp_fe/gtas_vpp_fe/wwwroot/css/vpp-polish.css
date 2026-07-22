@@ -353,11 +353,10 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-dropdown-profile {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 160px;
+    min-height: 140px;
     padding: var(--vpp-space-2) var(--vpp-space-3) var(--vpp-space-3);
     text-align: center;
 }
@@ -388,7 +387,7 @@ a:hover {
     line-height: 22px;
 }
 
-.vpp-sidebar-user-menu .user-dropdown-login {
+.vpp-sidebar-user-menu .user-dropdown-email {
     display: block;
     max-width: 100%;
     overflow: hidden;
@@ -399,86 +398,45 @@ a:hover {
     white-space: nowrap;
 }
 
-.vpp-sidebar-user-menu .user-dropdown-theme-button {
-    appearance: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: inline-grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
+.vpp-sidebar-user-menu .user-dropdown-department {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-height: 52px;
+    padding: var(--vpp-space-1) var(--vpp-space-2);
     border: 0;
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-secondary);
-    background: transparent;
-    cursor: pointer;
-    transition: color var(--vpp-transition-fast),
-                background-color var(--vpp-transition-fast);
-}
-
-.vpp-sidebar-user-menu .user-dropdown-theme-button:hover,
-.vpp-sidebar-user-menu .user-dropdown-theme-button:focus-visible {
-    color: var(--vpp-text-primary);
     background: var(--vpp-navigation-item-hover-bg);
 }
 
-.vpp-sidebar-user-menu .user-dropdown-theme-button:focus-visible {
-    outline: 2px solid var(--vpp-primary-500);
-    outline-offset: -2px;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-theme-button:disabled {
-    opacity: 0.65;
-    cursor: wait;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-theme-button > .vpp-icon {
-    width: 20px;
-    height: 20px;
+.vpp-sidebar-user-menu .user-dropdown-department > .vpp-icon {
+    width: 24px;
+    height: 24px;
     font-size: 20px;
 }
 
-.vpp-sidebar-user-menu .user-dropdown-organization {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    max-width: 100%;
-    min-height: 32px;
-    margin-top: var(--vpp-space-2);
-    padding: 0 var(--vpp-space-3);
-    border: 0;
-    border-radius: var(--vpp-radius-md);
-    color: var(--vpp-text-secondary);
-    background: var(--vpp-navigation-item-hover-bg);
-    font-size: 13px;
-    line-height: 18px;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-organization > .vpp-icon {
-    flex: 0 0 18px;
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-organization > span:not(.user-dropdown-organization-code) {
+.vpp-sidebar-user-menu .user-dropdown-department-copy {
+    display: grid;
+    gap: 1px;
     min-width: 0;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-department-copy small {
+    color: var(--vpp-text-tertiary);
+    font-size: 11px;
+    line-height: 14px;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-department-copy strong {
     overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.vpp-sidebar-user-menu .user-dropdown-organization-code {
-    flex: 0 0 auto;
-    padding-inline-start: 6px;
-    border-inline-start: 1px solid var(--vpp-border-strong);
-    color: var(--vpp-text-tertiary);
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 500;
 }
 
 .user-dropdown-actions {
@@ -604,12 +562,13 @@ a:hover {
 .user-dropdown-actions .user-dropdown-logout {
     margin-top: 0;
     padding: 0 var(--vpp-space-2);
+    color: var(--vpp-danger) !important;
 }
 
 .vpp-sidebar-user-menu .user-dropdown-actions .user-dropdown-logout:hover,
 .vpp-sidebar-user-menu .user-dropdown-actions .user-dropdown-logout:focus-visible {
-    color: var(--vpp-text-primary) !important;
-    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-danger) !important;
+    background: color-mix(in srgb, var(--vpp-danger) 11%, transparent);
 }
 
 .user-dropdown-actions .vpp-notification-panel {

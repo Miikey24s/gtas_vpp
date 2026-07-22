@@ -154,9 +154,12 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("<HeaderControls", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("<NotificationCenter MenuMode=\"true\"", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-profile", userMenuSource, StringComparison.Ordinal);
-        Assert.Contains("user-dropdown-theme-button", userMenuSource, StringComparison.Ordinal);
-        Assert.Contains("user-dropdown-organization", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("UserEmail", source, StringComparison.Ordinal);
+        Assert.Contains("user-dropdown-email", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("user-dropdown-department", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-action-divider", userMenuSource, StringComparison.Ordinal);
+        Assert.Contains("@Loc[\"Appearance\"]", userMenuSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("user-dropdown-theme-button", userMenuSource, StringComparison.Ordinal);
         Assert.DoesNotContain("user-dropdown-context", userMenuSource, StringComparison.Ordinal);
         Assert.Equal(1, source.Split("<UserMenu", StringSplitOptions.None).Length - 1);
         Assert.Contains("vpp-sidebar-collapsed-brand", source, StringComparison.Ordinal);
@@ -255,9 +258,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-profile", polishCss, StringComparison.Ordinal);
         Assert.Contains("width: 72px;", polishCss, StringComparison.Ordinal);
         Assert.Contains("height: 72px;", polishCss, StringComparison.Ordinal);
-        Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-theme-button", polishCss, StringComparison.Ordinal);
-        Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-organization", polishCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-email", polishCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar-user-menu .user-dropdown-department", polishCss, StringComparison.Ordinal);
         Assert.Contains(".user-dropdown-action-divider", polishCss, StringComparison.Ordinal);
+        Assert.Contains("color: var(--vpp-danger) !important;", polishCss, StringComparison.Ordinal);
         Assert.Contains("gap: var(--vpp-space-2);", polishCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-navigation-item-hover-bg);", polishCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-navigation-item-active-bg);", polishCss, StringComparison.Ordinal);

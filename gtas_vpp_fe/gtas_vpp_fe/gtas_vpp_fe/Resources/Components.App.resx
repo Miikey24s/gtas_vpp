@@ -120,6 +120,7 @@
   <data name="PleaseWait" xml:space="preserve"><value>Vui lòng đợi...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Lỗi máy chủ</value></data>
   <data name="Language" xml:space="preserve"><value>Ngôn ngữ</value></data>
+  <data name="Appearance" xml:space="preserve"><value>Giao diện</value></data>
   <data name="DarkMode" xml:space="preserve"><value>Nền tối</value></data>
   <data name="LightMode" xml:space="preserve"><value>Nền sáng</value></data>
   <data name="SwitchToDarkMode" xml:space="preserve"><value>Chuyển sang nền tối</value></data>
