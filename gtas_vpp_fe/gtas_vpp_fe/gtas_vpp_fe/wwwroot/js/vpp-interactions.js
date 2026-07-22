@@ -93,6 +93,92 @@
         + ".rz-tabs-item.rz-state-active, "
         + "[role='tab'][aria-selected='true']";
     var tabIndicatorDuration = 180;
+    var opticalTextSelector = ".vpp-admin-tabs .rz-tabview-title, .vpp-sidebar-product";
+    var opticalTextCanvas;
+
+    function roundToQuarterPixel(value) {
+        return Math.round(value * 4) / 4;
+    }
+
+    function clampOpticalOffset(value) {
+        return Math.max(-3, Math.min(3, roundToQuarterPixel(value)));
+    }
+
+    function alignOpticalTextElement(element) {
+        if (!(element instanceof Element)) {
+            return;
+        }
+
+        var text = (element.textContent || "").trim();
+        if (!text) {
+            return;
+        }
+
+        opticalTextCanvas = opticalTextCanvas || document.createElement("canvas");
+        var context = opticalTextCanvas.getContext("2d");
+        if (!context) {
+            return;
+        }
+
+        var styles = window.getComputedStyle(element);
+        context.font = [
+            styles.fontStyle,
+            styles.fontVariant,
+            styles.fontWeight,
+            styles.fontSize,
+            styles.fontFamily
+        ].join(" ");
+        context.textAlign = "left";
+        context.textBaseline = "alphabetic";
+
+        var metrics = context.measureText(text);
+        var requiredMetrics = [
+            metrics.width,
+            metrics.actualBoundingBoxLeft,
+            metrics.actualBoundingBoxRight,
+            metrics.actualBoundingBoxAscent,
+            metrics.actualBoundingBoxDescent
+        ];
+        if (!requiredMetrics.every(Number.isFinite)) {
+            return;
+        }
+
+        var letterSpacing = parseFloat(styles.letterSpacing);
+        var extraAdvance = Number.isFinite(letterSpacing)
+            ? letterSpacing * Math.max(0, text.length - 1)
+            : 0;
+        var advanceWidth = metrics.width + extraAdvance;
+        var inkRight = metrics.actualBoundingBoxRight + extraAdvance;
+        var inkWidth = Math.max(0, metrics.actualBoundingBoxLeft + inkRight);
+        var inkCenterX = (inkRight - metrics.actualBoundingBoxLeft) / 2;
+        var offsetX = clampOpticalOffset((advanceWidth / 2) - inkCenterX);
+        var offsetY = 0;
+
+        if (Number.isFinite(metrics.fontBoundingBoxAscent)
+            && Number.isFinite(metrics.fontBoundingBoxDescent)) {
+            offsetY = clampOpticalOffset((
+                metrics.actualBoundingBoxAscent
+                - metrics.actualBoundingBoxDescent
+                - metrics.fontBoundingBoxAscent
+                + metrics.fontBoundingBoxDescent
+            ) / 2);
+        }
+
+        element.style.setProperty("--vpp-optical-x", offsetX + "px");
+        element.style.setProperty("--vpp-optical-y", offsetY + "px");
+        element.dataset.vppInkWidth = String(inkWidth);
+        element.dataset.vppInkCenterX = String(inkCenterX);
+    }
+
+    function alignOpticalText(root) {
+        if (root instanceof Element && root.matches(opticalTextSelector)) {
+            alignOpticalTextElement(root);
+        }
+
+        if (root.querySelectorAll) {
+            root.querySelectorAll(opticalTextSelector).forEach(alignOpticalTextElement);
+        }
+    }
 
     function findTabHost(tabList) {
         return tabList.closest(".rz-tabview-nav-container") || tabList;
@@ -109,6 +195,27 @@
 
         var targetRect = target.getBoundingClientRect();
         var hostRect = host.getBoundingClientRect();
+        var title = target.querySelector(".rz-tabview-title");
+        var scrollOffset = host === tabList ? tabList.scrollLeft : 0;
+
+        if (title) {
+            var titleRect = title.getBoundingClientRect();
+            var measuredInkWidth = parseFloat(title.dataset.vppInkWidth);
+            var measuredInkCenterX = parseFloat(title.dataset.vppInkCenterX);
+            var indicatorWidth = Number.isFinite(measuredInkWidth) && measuredInkWidth > 0
+                ? measuredInkWidth
+                : titleRect.width;
+            var indicatorCenterX = Number.isFinite(measuredInkCenterX)
+                ? measuredInkCenterX
+                : titleRect.width / 2;
+
+            return {
+                left: titleRect.left - hostRect.left + scrollOffset
+                    + indicatorCenterX - (indicatorWidth / 2),
+                width: indicatorWidth
+            };
+        }
+
         var rootStyles = window.getComputedStyle(document.documentElement);
         var targetStyles = window.getComputedStyle(target);
         var fallbackInset = parseFloat(rootStyles.getPropertyValue("--vpp-nav-indicator-inset")) || 8;
@@ -127,8 +234,6 @@
             startInset = fallbackInset;
             endInset = fallbackInset;
         }
-
-        var scrollOffset = host === tabList ? tabList.scrollLeft : 0;
 
         return {
             left: targetRect.left - hostRect.left + scrollOffset + startInset,
@@ -169,6 +274,7 @@
         if (!tabList.vppIndicatorObserver) {
             tabList.vppIndicatorObserver = new MutationObserver(function () {
                 window.requestAnimationFrame(function () {
+                    alignOpticalText(tabList);
                     moveTabIndicator(tabList, findActiveTab(tabList), true);
                 });
             });
@@ -185,6 +291,7 @@
 
             if (window.ResizeObserver) {
                 tabList.vppIndicatorResizeObserver = new ResizeObserver(function () {
+                    alignOpticalText(tabList);
                     moveTabIndicator(tabList, findActiveTab(tabList), false);
                 });
                 tabList.vppIndicatorResizeObserver.observe(tabList);
@@ -273,6 +380,8 @@
     }
 
     function initializeTabIndicators(root) {
+        alignOpticalText(root);
+
         if (root instanceof Element && root.matches(tabListSelector)) {
             moveTabIndicator(root, findActiveTab(root), false);
         }
@@ -324,6 +433,11 @@
 
     var tabTreeObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
+            if (mutation.type === "characterData") {
+                alignOpticalText(mutation.target.parentElement);
+                return;
+            }
+
             mutation.removedNodes.forEach(function (node) {
                 disposeTabIndicators(node);
             });
@@ -336,8 +450,20 @@
     });
 
     function startTabIndicators() {
+        alignOpticalText(document);
         initializeTabIndicators(document);
-        tabTreeObserver.observe(document.body, { childList: true, subtree: true });
+        tabTreeObserver.observe(document.body, {
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function () {
+                alignOpticalText(document);
+                initializeTabIndicators(document);
+            });
+        }
     }
 
     if (document.readyState === "loading") {

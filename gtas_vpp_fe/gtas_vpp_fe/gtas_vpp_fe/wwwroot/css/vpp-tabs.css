@@ -174,7 +174,6 @@
     --vpp-library-primary-tabs-height: var(--vpp-header-height);
     --vpp-primary-tab-row-height: var(--vpp-header-height);
     --vpp-primary-tab-inline-padding: 20px;
-    --vpp-primary-tab-optical-offset: 2px;
 }
 
 .librariestab > .rz-tabview-nav-container > .rz-tabview-nav {
@@ -269,14 +268,14 @@
     text-align: center;
 }
 
-/* System-font glyphs carry more visual mass above their line-box centre.
-   Shift only the rendered label down slightly for optical centring; the 72px
-   hitbox, keyboard focus geometry and underline baseline remain unchanged. */
+/* Runtime font metrics provide the visual (ink-bound) centre independently
+   for each localized label. Individual translate keeps the 72px hitbox,
+   keyboard focus geometry and underline baseline unchanged. */
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > .rz-tabview-nav-link > .rz-tabview-title,
 .vpp-admin-tabs > .rz-tabview-nav > li > .rz-tabview-nav-link > .rz-tabview-title,
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title,
 .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title {
-    transform: translateY(var(--vpp-primary-tab-optical-offset));
+    translate: var(--vpp-optical-x, 0px) var(--vpp-optical-y, 0px);
 }
 
 /* Selection is communicated by the shared blue underline only. Keep the
