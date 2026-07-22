@@ -400,11 +400,10 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-dropdown-department {
-    display: grid;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    justify-items: center;
-    gap: 1px;
+    gap: var(--vpp-space-1);
     max-width: 100%;
     min-height: 18px;
     margin-top: var(--vpp-space-1);
@@ -425,10 +424,19 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-dropdown-department-code {
-    color: var(--vpp-text-tertiary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    min-height: 18px;
+    padding-inline: 5px;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: 999px;
+    color: var(--vpp-text-secondary);
+    background: var(--vpp-navigation-item-hover-bg);
     font-size: 11px;
     font-weight: 600;
-    line-height: 14px;
+    line-height: 16px;
     letter-spacing: 0.02em;
 }
 
