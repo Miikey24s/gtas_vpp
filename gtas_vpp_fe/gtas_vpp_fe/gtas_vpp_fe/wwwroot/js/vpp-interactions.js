@@ -86,7 +86,7 @@
         }
     };
 
-    var tabListSelector = ".rz-tabview-nav, ul[role='tablist']";
+    var tabListSelector = ".rz-tabview-nav";
     var tabTargetSelector = ".rz-tabview-nav-link, .rz-tabs-item, [role='tab']";
     var activeTabSelector = ".rz-tabview-selected .rz-tabview-nav-link, "
         + ".rz-tabview-nav-link.rz-state-active, "

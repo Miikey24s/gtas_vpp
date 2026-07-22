@@ -110,8 +110,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("font-weight: 400 !important;", tabsCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transition: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-tabview .vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
         Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
         Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var tabListSelector = \".rz-tabview-nav\";", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("ul[role='tablist']", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("getPropertyValue(\"--vpp-nav-indicator-inset\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", interactionsJs, StringComparison.Ordinal);
@@ -233,6 +238,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".rz-navigation-item-link:focus-visible", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".rz-navigation-item-wrapper:focus-within", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("pointer focus look like a hover surface", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("link transparent so hover/active color", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("background-color: transparent !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
         Assert.Contains("box-sizing: border-box;", polishCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(var(--vpp-sidebar-width) - var(--vpp-space-2));", polishCss, StringComparison.Ordinal);

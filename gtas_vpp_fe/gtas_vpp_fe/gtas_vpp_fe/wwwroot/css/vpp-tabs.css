@@ -4,8 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Tab List — Horizontal Scroll (no wrap) ──────────────────── */
-.rz-tabview-nav,
-ul[role="tablist"] {
+.rz-tabview-nav {
     align-items: center !important;
     flex-wrap: nowrap !important;
     overflow-x: auto;
@@ -19,8 +18,7 @@ ul[role="tablist"] {
 }
 
 /* Hide scrollbar (Webkit) */
-.rz-tabview-nav::-webkit-scrollbar,
-ul[role="tablist"]::-webkit-scrollbar {
+.rz-tabview-nav::-webkit-scrollbar {
     display: none;
 }
 
@@ -84,11 +82,11 @@ ul[role="tablist"]::-webkit-scrollbar {
     content: none;
 }
 
-.vpp-tab-indicator-host {
+.rz-tabview .vpp-tab-indicator-host {
     position: relative;
 }
 
-.vpp-tab-shared-indicator {
+.rz-tabview .vpp-tab-shared-indicator {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -104,16 +102,17 @@ ul[role="tablist"]::-webkit-scrollbar {
     will-change: transform, width;
 }
 
-.vpp-tab-shared-indicator.is-ready {
+.rz-tabview .vpp-tab-shared-indicator.is-ready {
     opacity: 1;
 }
 
 /* ── Tab Content Divider — subtle bottom border ──────────────── */
 .rz-tabview > .rz-tabview-nav {
     padding: 0 var(--vpp-space-1);
+    border: 0;
     border-bottom: 1px solid var(--vpp-border-default);
     background: var(--vpp-navigation-chrome-bg);
-    border-radius: var(--vpp-radius-md);
+    border-radius: 0;
 }
 
 /* ── Tab Panel — clean spacing ───────────────────────────────── */
@@ -151,6 +150,8 @@ ul[role="tablist"]::-webkit-scrollbar {
     height: var(--vpp-library-primary-tabs-height);
     min-height: var(--vpp-library-primary-tabs-height);
     background: var(--vpp-navigation-chrome-bg);
+    border: 0;
+    border-bottom: 1px solid var(--vpp-border-default);
     border-radius: 0;
     box-shadow: 0 1px 0 var(--vpp-border-default);
     isolation: isolate;
@@ -182,6 +183,7 @@ ul[role="tablist"]::-webkit-scrollbar {
     z-index: calc(var(--vpp-z-sticky) - 1);
     height: var(--vpp-library-secondary-tabs-height);
     min-height: var(--vpp-library-secondary-tabs-height);
+    border: 0;
     border-bottom: 1px solid var(--vpp-border-default);
     background: var(--vpp-navigation-chrome-bg);
     border-radius: 0;
@@ -255,7 +257,7 @@ ul[role="tablist"]::-webkit-scrollbar {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .vpp-tab-shared-indicator {
+    .rz-tabview .vpp-tab-shared-indicator {
         will-change: auto;
     }
 }

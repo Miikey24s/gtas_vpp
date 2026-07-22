@@ -100,6 +100,17 @@
     background-color: var(--vpp-sidebar-item-hover-bg) !important;
 }
 
+/* The wrapper owns the full-width Apple Music surface. Keep Radzen's inner
+   link transparent so hover/active color cannot stop at the blue rail. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link:hover,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link:active,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link.active {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
 /* Radzen 11 applies the route state to the wrapper/link. Keep a neutral row
    surface and reserve VPP blue for the active rail. */
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active,
