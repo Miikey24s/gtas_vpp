@@ -125,7 +125,7 @@
     font-size: 1.16rem;
     font-weight: 600;
     letter-spacing: 0;
-    text-transform: uppercase;
+    text-transform: none;
     color: var(--vpp-text-tertiary);
 }
 .vpp-login-validation {
@@ -623,8 +623,8 @@
     color: var(--vpp-primary-600);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .vpp-account-description {

@@ -45,7 +45,7 @@
     font-family: var(--vpp-font-body);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-medium);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
     color: var(--vpp-text-secondary);
 }
@@ -174,7 +174,7 @@
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-medium);
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .vpp-orders-eyebrow .vpp-icon {
@@ -368,7 +368,7 @@
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-medium);
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .vpp-orders-section-header h3 {
@@ -893,7 +893,7 @@
     font-size: var(--vpp-text-xs) !important;
     font-weight: var(--vpp-font-weight-medium) !important;
     color: var(--vpp-text-secondary) !important;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
 }
 

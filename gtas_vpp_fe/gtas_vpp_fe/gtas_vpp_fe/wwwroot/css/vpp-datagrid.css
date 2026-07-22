@@ -42,7 +42,7 @@
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
     padding: var(--vpp-space-3) var(--vpp-space-4);
     border-bottom: 2px solid var(--vpp-border-default);

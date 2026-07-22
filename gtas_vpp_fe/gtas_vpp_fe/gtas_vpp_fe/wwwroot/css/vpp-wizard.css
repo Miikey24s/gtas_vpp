@@ -74,7 +74,7 @@
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     letter-spacing: 0;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .vpp-wizard-title {
@@ -108,7 +108,7 @@
     color: var(--vpp-primary-700);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
 }
 
@@ -146,7 +146,7 @@
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     letter-spacing: 0;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .vpp-wizard-summary-card strong {
@@ -484,7 +484,7 @@
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
 }
 

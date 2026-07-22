@@ -5,6 +5,33 @@ namespace gtas_vpp_fe.Tests.Architecture;
 public sealed class SharedUiFoundationTests
 {
     [Fact]
+    public void AuthoredStyles_DoNotForceUppercaseUiText()
+    {
+        var root = GetFrontendRoot();
+        var authoredStyles = Directory.EnumerateFiles(Path.Combine(root, "wwwroot", "css"), "*.css", SearchOption.AllDirectories)
+            .Append(Path.Combine(root, "wwwroot", "app.css"));
+
+        var offenders = authoredStyles
+            .Where(path => File.ReadAllText(path).Contains("text-transform: uppercase", StringComparison.OrdinalIgnoreCase))
+            .Select(path => Path.GetRelativePath(root, path))
+            .ToArray();
+
+        Assert.True(
+            offenders.Length == 0,
+            $"Preserve localized casing instead of forcing uppercase in authored styles: {string.Join(", ", offenders)}");
+
+        var app = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
+        var casingCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-casing.css"));
+        var radzenThemeIndex = app.IndexOf("material-base.css", StringComparison.Ordinal);
+        var casingGuardIndex = app.IndexOf("css/vpp-casing.css", StringComparison.Ordinal);
+
+        Assert.True(radzenThemeIndex >= 0 && casingGuardIndex > radzenThemeIndex, "Load the casing guard after the Radzen Material theme.");
+        Assert.Contains("body *", casingCss, StringComparison.Ordinal);
+        Assert.Contains("text-transform: none !important;", casingCss, StringComparison.Ordinal);
+        Assert.Contains("letter-spacing: normal !important;", casingCss, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MaterialSymbolMarkup_IsCentralizedInVppIcon()
     {
         var root = GetFrontendRoot();

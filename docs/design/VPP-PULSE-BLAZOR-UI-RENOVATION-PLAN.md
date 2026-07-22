@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `1.80` — 2026-07-22
+> **Phiên bản:** `1.81` — 2026-07-22
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -798,6 +798,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-22 | Global interface capitalization | Giữ nguyên casing từ localization thay vì ép `ALL CAPS`: tiếng Anh dùng title style cho navigation/action ngắn, tiếng Việt dùng sentence case tự nhiên; chỉ acronym, mã và dữ liệu nghiệp vụ như `VPP`, `IT`, `UOM` được viết hoa theo ngữ nghĩa | Apple HIG yêu cầu chọn quy tắc phù hợp phong cách/ngôn ngữ rồi áp dụng nhất quán; button và segmented control tiếng Anh dùng title-style capitalization | Global content + typography | Xóa toàn bộ `text-transform: uppercase` trong CSS authored, bỏ tracking rộng đi kèm, nạp casing guard sau Radzen Material theme và thêm architecture regression test | Tabs, sidebar, buttons, DataGrid headers, KPI labels, wizard, account/login và responsive cards | Implemented — OWNER_REVIEW |
 | 2026-07-19 | Workflow | Không dùng UI Lab; code trực tiếp từng route | UI thật đã tồn tại và đẹp hơn Figma prototype | Global | Living plan này | N/A | Recorded |
 | 2026-07-19 | Design authority | Browser runtime thắng Figma | Tránh design/code drift và route coverage thiếu | Global | Figma chuyển thành reference | Toàn bộ route | Recorded |
 | 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Quyết định vòng đầu trước khi owner review runtime | Global | Được thay thế bởi round 2 centered shell | Login/Register/Forgot/Reset/Confirm/Change/Logout | Superseded |

@@ -1022,8 +1022,8 @@ leftsidebar {
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-semibold);
     color: var(--vpp-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: var(--vpp-tracking-wide);
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 .vpp-settle-period-badge {

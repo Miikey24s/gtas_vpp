@@ -67,7 +67,7 @@
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     color: var(--vpp-text-tertiary);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
 }
 
