@@ -140,6 +140,10 @@ public sealed class SharedUiFoundationTests
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
 
         Assert.Contains("Apple Music-inspired hover", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-item-hover-bg: rgba(9, 30, 66, 0.075);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("min-height: 44px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1)) !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("height: 48px !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Collapsed active state stays line-only", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("Full-width submenu surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline: 0;", sidebarCss, StringComparison.Ordinal);

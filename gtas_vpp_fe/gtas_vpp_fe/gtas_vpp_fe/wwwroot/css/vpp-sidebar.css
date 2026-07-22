@@ -10,20 +10,22 @@
 }
 
 .vpp-sidebar {
-    --vpp-sidebar-item-hover-bg: rgba(255, 255, 255, 0.06);
-    --vpp-sidebar-item-active-bg: rgba(255, 255, 255, 0.09);
+    --vpp-sidebar-item-hover-bg: rgba(255, 255, 255, 0.10);
+    --vpp-sidebar-item-active-bg: rgba(255, 255, 255, 0.13);
 }
 
 :root:not(.rz-theme-dark) .vpp-sidebar {
-    --vpp-sidebar-item-hover-bg: rgba(9, 30, 66, 0.055);
-    --vpp-sidebar-item-active-bg: rgba(9, 30, 66, 0.08);
+    --vpp-sidebar-item-hover-bg: rgba(9, 30, 66, 0.075);
+    --vpp-sidebar-item-active-bg: rgba(9, 30, 66, 0.10);
 }
 
 /* ── Panel Menu Item — Base ──────────────────────────────────── */
 .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
+    box-sizing: border-box;
+    min-height: 44px;
     border: none;
     border-radius: var(--vpp-radius-md);
-    margin: 2px var(--vpp-space-2);
+    margin: 2px var(--vpp-space-1);
     transition: background-color var(--vpp-transition-fast),
                 color var(--vpp-transition-fast);
     position: relative;
@@ -57,8 +59,9 @@
     to   { transform: scaleY(1); opacity: 1; }
 }
 
-/* Apple Music-inspired hover: a neutral full-row surface with no movement. */
-.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) .rz-navigation-item-wrapper:hover {
+/* Apple Music-inspired hover: a generous neutral full-row surface with no movement. */
+.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:hover,
+.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:focus-within {
     background-color: var(--vpp-sidebar-item-hover-bg) !important;
 }
 
@@ -146,8 +149,8 @@
     align-items: center !important;
     margin: 2px auto !important;
     padding: 0 !important;
-    width: 44px !important;
-    height: 44px !important;
+    width: calc(var(--vpp-sidebar-collapsed-width) - var(--vpp-space-1)) !important;
+    height: 48px !important;
     border-radius: var(--vpp-radius-md) !important;
     border: none !important;
     background: transparent !important;
