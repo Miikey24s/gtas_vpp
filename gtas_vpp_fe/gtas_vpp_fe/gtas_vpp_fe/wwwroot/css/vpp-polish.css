@@ -683,7 +683,8 @@ a:hover {
 .vpp-sidebar-toggle,
 .vpp-sidebar-user-menu .user-menu-trigger,
 .rz-tabview .rz-tabview-nav-link,
-.rz-tabview .rz-tabs-item {
+.rz-tabview .rz-tabs-item,
+.rz-tabview .rz-tabview-nav > li > button[role="tab"] {
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -693,7 +694,8 @@ a:hover {
 .vpp-sidebar-toggle::before,
 .vpp-sidebar-user-menu .user-menu-trigger::before,
 .rz-tabview .rz-tabview-nav-link::before,
-.rz-tabview .rz-tabs-item::before {
+.rz-tabview .rz-tabs-item::before,
+.rz-tabview .rz-tabview-nav > li > button[role="tab"]::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -709,7 +711,8 @@ a:hover {
 .vpp-sidebar-toggle.vpp-pressing::before,
 .vpp-sidebar-user-menu .user-menu-trigger.vpp-pressing::before,
 .rz-tabview .rz-tabview-nav-link.vpp-pressing::before,
-.rz-tabview .rz-tabs-item.vpp-pressing::before {
+.rz-tabview .rz-tabs-item.vpp-pressing::before,
+.rz-tabview .rz-tabview-nav > li > button[role="tab"].vpp-pressing::before {
     animation: vpp-sidebar-press-expand 360ms ease-out forwards;
 }
 
@@ -718,7 +721,8 @@ a:hover {
     .vpp-sidebar-toggle::before,
     .vpp-sidebar-user-menu .user-menu-trigger::before,
     .rz-tabview .rz-tabview-nav-link::before,
-    .rz-tabview .rz-tabs-item::before {
+    .rz-tabview .rz-tabs-item::before,
+    .rz-tabview .rz-tabview-nav > li > button[role="tab"]::before {
         animation: none;
     }
 }

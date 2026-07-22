@@ -129,7 +129,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-tabs-bar-height: 44px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-library-primary-tabs-height: var(--vpp-header-height);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-primary-tab-row-height: var(--vpp-sidebar-collapsed-control-height);", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-primary-tab-inline-padding: var(--vpp-space-5);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-primary-tab-inline-padding: 20px;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("max-height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("align-items: center;", tabsCss, StringComparison.Ordinal);
@@ -155,6 +155,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".rz-tabview .rz-tabview-nav:focus-visible", tabsCss, StringComparison.Ordinal);
         Assert.Contains("outline: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview-selected > .rz-tabview-nav-link", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("button[role=\"tab\"]", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-tabview-title", tabsCss, StringComparison.Ordinal);
         Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
@@ -173,10 +175,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain(".vpp-admin-tabs .rz-tabview-nav-container", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
         Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("getPropertyValue(\"--vpp-primary-tab-row-height\")", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("tabList.style.setProperty(\"padding-block\", verticalInset, \"important\")", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("tabList.style.setProperty(\"padding-block\", verticalInset, \"important\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var tabListSelector = \".rz-tabview-nav\";", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("return tabList.closest(\".rz-tabview-nav-container\") || tabList;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var scrollOffset = host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
@@ -269,7 +270,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("aria-hidden=\"@(!_sideBarExpanded)\"", source, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-transition", layoutCss, StringComparison.Ordinal);
         Assert.Contains("var(--vpp-sidebar-transition)", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("max-width: 0;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("DisplayStyle.Icon still renders a chevron", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".sidebar-collapsed .rz-navigation-item-icon-children", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("ShowArrow=\"true\"", source, StringComparison.Ordinal);
         Assert.Contains("ShowName=\"true\"", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenPanelMenuItem Text=\"@Loc[\"Logout\"]\"", source, StringComparison.Ordinal);
@@ -364,9 +366,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-brand", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-menu-trigger", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav-link", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("button[role='tab']", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("Shared full-control press feedback", polishCss, StringComparison.Ordinal);
         Assert.Contains("position: relative;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav-link.vpp-pressing::before", polishCss, StringComparison.Ordinal);
+        Assert.Contains("button[role=\"tab\"].vpp-pressing::before", polishCss, StringComparison.Ordinal);
         Assert.Contains("Keep the full row as the single state surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".submenu > .rz-navigation-item-wrapper-active:hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("inset-inline-start: var(--vpp-sidebar-child-rail-offset);", sidebarCss, StringComparison.Ordinal);
@@ -378,6 +382,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-nav-indicator-color);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar .rz-navigation-item-icon-children", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".sidebar-collapsed .rz-navigation-item-icon-children", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("display: none !important;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("parent icons left while leaf icons stay centered", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".rz-navigation-item-link:focus-visible", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".rz-navigation-item-wrapper:focus-within", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("pointer focus look like a hover surface", sidebarCss, StringComparison.Ordinal);

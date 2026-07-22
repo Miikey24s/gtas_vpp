@@ -32,7 +32,8 @@
     outline-offset: 0 !important;
 }
 
-.rz-tabview .rz-tabview-nav:focus-visible .rz-tabview-selected > .rz-tabview-nav-link {
+.rz-tabview .rz-tabview-nav:focus-visible .rz-tabview-selected > .rz-tabview-nav-link,
+.rz-tabview .rz-tabview-nav:focus-visible > li.rz-tabview-selected > button[role="tab"] {
     outline: 2px solid var(--vpp-primary-500) !important;
     outline-offset: -2px !important;
     box-shadow: none !important;
@@ -40,7 +41,9 @@
 
 /* ── Tab Item — Base ─────────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-nav-link,
-.rz-tabs-item {
+.rz-tabs-item,
+.rz-tabview-nav > li > button[role="tab"] {
+    appearance: none;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
@@ -61,16 +64,28 @@
     background: transparent !important;
     border-radius: var(--vpp-radius-md);
     position: relative;
+    margin: 0 !important;
+    text-decoration: none;
     transition: color var(--vpp-transition-fast),
                 background-color var(--vpp-transition-fast);
     cursor: pointer;
 }
 
+.rz-tabview-nav > li > button[role="tab"] > .rz-tabview-title {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    line-height: 20px;
+}
+
 /* ── Tab Item — Hover ────────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-nav-link:hover,
 .rz-tabs-item:hover,
+.rz-tabview-nav > li > button[role="tab"]:hover,
 .rz-tabview-nav .rz-tabview-nav-link:focus-visible,
-.rz-tabs-item:focus-visible {
+.rz-tabs-item:focus-visible,
+.rz-tabview-nav > li > button[role="tab"]:focus-visible {
     color: var(--vpp-text-primary);
     background: var(--vpp-navigation-item-hover-bg) !important;
 }
@@ -78,7 +93,9 @@
 /* ── Tab Item — Active ───────────────────────────────────────── */
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
 .rz-tabs-item.rz-state-active,
-.rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active,
+.rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
+.rz-tabview-nav > li > button[role="tab"][aria-selected="true"] {
     background: var(--vpp-navigation-item-active-bg) !important;
     color: var(--vpp-text-primary) !important;
     font-weight: 400 !important;
@@ -86,7 +103,9 @@
 
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link:hover,
 .rz-tabs-item.rz-state-active:hover,
-.rz-tabview-nav .rz-tabview-nav-link.rz-state-active:hover {
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active:hover,
+.rz-tabview-nav > li.rz-tabview-selected > button[role="tab"]:hover,
+.rz-tabview-nav > li > button[role="tab"][aria-selected="true"]:hover {
     background: var(--vpp-navigation-item-active-bg) !important;
 }
 
@@ -94,7 +113,9 @@
    Apple Music stretch-then-settle motion instead of redrawing inside each tab. */
 .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link::after,
 .rz-tabs-item.rz-state-active::after,
-.rz-tabview-nav .rz-tabview-nav-link.rz-state-active::after {
+.rz-tabview-nav .rz-tabview-nav-link.rz-state-active::after,
+.rz-tabview-nav > li.rz-tabview-selected > button[role="tab"]::after,
+.rz-tabview-nav > li > button[role="tab"][aria-selected="true"]::after {
     content: none;
 }
 
@@ -152,7 +173,7 @@
 .vpp-admin-tabs {
     --vpp-library-primary-tabs-height: var(--vpp-header-height);
     --vpp-primary-tab-row-height: var(--vpp-sidebar-collapsed-control-height);
-    --vpp-primary-tab-inline-padding: var(--vpp-space-5);
+    --vpp-primary-tab-inline-padding: 20px;
 }
 
 .librariestab > .rz-tabview-nav-container > .rz-tabview-nav {
@@ -235,7 +256,9 @@
 }
 
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > .rz-tabview-nav-link,
-.vpp-admin-tabs > .rz-tabview-nav > li > .rz-tabview-nav-link {
+.vpp-admin-tabs > .rz-tabview-nav > li > .rz-tabview-nav-link,
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"],
+.vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"] {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -285,7 +308,8 @@
 }
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link,
-.vpp-secondary-tabs .rz-tabs-item {
+.vpp-secondary-tabs .rz-tabs-item,
+.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"] {
     height: var(--vpp-navigation-row-height) !important;
     min-height: var(--vpp-navigation-row-height) !important;
     padding: 0 var(--vpp-space-4) !important;
@@ -294,14 +318,18 @@
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:hover,
 .vpp-secondary-tabs .rz-tabs-item:hover,
+.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"]:hover,
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:focus-visible,
-.vpp-secondary-tabs .rz-tabs-item:focus-visible {
+.vpp-secondary-tabs .rz-tabs-item:focus-visible,
+.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"]:focus-visible {
     background: var(--vpp-navigation-item-hover-bg) !important;
 }
 
 .vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
 .vpp-secondary-tabs .rz-tabs-item.rz-state-active,
-.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active {
+.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active,
+.vpp-secondary-tabs .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
+.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"][aria-selected="true"] {
     background: var(--vpp-navigation-item-active-bg) !important;
     border-radius: var(--vpp-radius-md) !important;
     box-shadow: none;

@@ -102,31 +102,6 @@
         return tabList.querySelector(activeTabSelector);
     }
 
-    function normalizePrimaryTabChrome(tabList, host) {
-        var tabRoot = tabList.closest(".vpp-admin-tabs");
-        if (!tabRoot || !host) {
-            return;
-        }
-
-        var rootStyles = window.getComputedStyle(tabRoot);
-        var headerHeight = rootStyles.getPropertyValue("--vpp-header-height").trim() || "60px";
-        var rowHeight = rootStyles.getPropertyValue("--vpp-primary-tab-row-height").trim()
-            || rootStyles.getPropertyValue("--vpp-navigation-row-height").trim()
-            || "40px";
-        var verticalInset = "calc((" + headerHeight + " - " + rowHeight + ") / 2)";
-
-        host.style.setProperty("height", headerHeight, "important");
-        host.style.setProperty("min-height", headerHeight, "important");
-        host.style.setProperty("max-height", headerHeight, "important");
-
-        tabList.style.setProperty("box-sizing", "border-box", "important");
-        tabList.style.setProperty("align-items", "center", "important");
-        tabList.style.setProperty("height", host === tabList ? headerHeight : "100%", "important");
-        tabList.style.setProperty("min-height", host === tabList ? headerHeight : "100%", "important");
-        tabList.style.setProperty("max-height", host === tabList ? headerHeight : "100%", "important");
-        tabList.style.setProperty("padding-block", verticalInset, "important");
-    }
-
     function readTabIndicatorGeometry(tabList, target, host) {
         if (!target || !host) {
             return null;
@@ -179,8 +154,6 @@
             return null;
         }
 
-        normalizePrimaryTabChrome(tabList, host);
-
         host.classList.add("vpp-tab-indicator-host");
         var indicator = Array.from(host.children).find(function (child) {
             return child.classList && child.classList.contains("vpp-tab-shared-indicator");
@@ -212,7 +185,6 @@
 
             if (window.ResizeObserver) {
                 tabList.vppIndicatorResizeObserver = new ResizeObserver(function () {
-                    normalizePrimaryTabChrome(tabList, findTabHost(tabList));
                     moveTabIndicator(tabList, findActiveTab(tabList), false);
                 });
                 tabList.vppIndicatorResizeObserver.observe(tabList);
@@ -380,7 +352,8 @@
         ".vpp-sidebar-toggle",
         ".vpp-sidebar-user-menu .user-menu-trigger",
         ".rz-tabview .rz-tabview-nav-link",
-        ".rz-tabview .rz-tabs-item"
+        ".rz-tabview .rz-tabs-item",
+        ".rz-tabview .rz-tabview-nav > li > button[role='tab']"
     ].join(", ");
 
     function playPressSurface(target) {
