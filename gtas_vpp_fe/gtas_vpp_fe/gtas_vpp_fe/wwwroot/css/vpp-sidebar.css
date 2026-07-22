@@ -83,7 +83,7 @@
 
 /* Apple Music-inspired hover: a generous neutral full-row surface with no movement. */
 .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:hover,
-.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:focus-within {
+.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
     background-color: var(--vpp-sidebar-item-hover-bg) !important;
 }
 
@@ -245,7 +245,7 @@
     display: none !important;
 }
 
-/* Collapsed active state stays line-only; surface appears only on hover/focus. */
+/* Collapsed active state stays line-only; surface appears only on true hover/keyboard focus. */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper,
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-wrapper-active) > .rz-navigation-item-wrapper {
@@ -274,9 +274,17 @@
     color: var(--vpp-text-primary) !important;
 }
 
-/* Collapsed: hover/focus effect on icons */
+/* Mouse clicks may leave Radzen's link focused. Do not let that persistent
+   pointer focus look like a hover surface after the pointer leaves. */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:not(:hover):not(:has(> .rz-navigation-item-link:focus-visible)) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Collapsed: surface appears only on pointer hover or keyboard-visible focus. */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover,
-.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:focus-within {
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
     background: var(--vpp-sidebar-item-hover-bg) !important;
     border-radius: var(--vpp-radius-md) !important;
 }

@@ -172,7 +172,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-nav-indicator-color);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar .rz-navigation-item-icon-children", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains(".rz-navigation-item-wrapper:focus-within", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-navigation-item-link:focus-visible", sidebarCss, StringComparison.Ordinal);
+        Assert.DoesNotContain(".rz-navigation-item-wrapper:focus-within", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("pointer focus look like a hover surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(var(--vpp-sidebar-width) - 16px);", polishCss, StringComparison.Ordinal);
         Assert.Contains("bottom: calc(52px + var(--vpp-space-2));", polishCss, StringComparison.Ordinal);
