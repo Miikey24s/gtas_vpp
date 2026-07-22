@@ -20,16 +20,26 @@
     position: relative;
 }
 
+.rz-navigation-item.ppjsidebarmenu {
+    position: relative;
+}
+
 /* Active indicator — blue rail aligned with the shared tab underline */
-.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper::before {
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active:not(:has(> .rz-navigation-item-wrapper-active))::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active)::before {
     content: '';
+    display: block !important;
     position: absolute;
-    left: calc(-1 * var(--vpp-space-2));
+    inset-inline-start: 0;
     top: var(--vpp-nav-indicator-inset);
     bottom: var(--vpp-nav-indicator-inset);
     width: var(--vpp-nav-indicator-thickness);
     background: var(--vpp-nav-indicator-color);
     border-radius: var(--vpp-nav-indicator-radius);
+    pointer-events: none;
+    z-index: 1;
+    transform-origin: center;
     animation: vpp-active-indicator-in var(--vpp-transition-base) forwards;
 }
 
@@ -49,15 +59,18 @@
     background-color: rgba(14, 165, 233, 0.08);
 }
 
-/* Line-only active state; tint is reserved for hover feedback. */
-.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper {
-    background-color: transparent;
-    border-color: transparent;
+/* Line-only active state; Radzen 11 applies active state to the wrapper/link. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) {
+    background-color: transparent !important;
+    border-color: transparent !important;
 }
 
-.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper:hover {
-    background-color: rgba(14, 165, 233, 0.06);
-    border-color: rgba(14, 165, 233, 0.12);
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active:hover,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
+    background-color: rgba(14, 165, 233, 0.06) !important;
+    border-color: rgba(14, 165, 233, 0.12) !important;
     transform: none;
 }
 
@@ -66,12 +79,18 @@
     transition: color var(--vpp-transition-fast);
 }
 
-.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon {
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rzi.rz-navigation-item-icon,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rzi.rz-navigation-item-icon {
     color: var(--vpp-primary-400);
 }
 
 :root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
-:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text {
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text,
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rzi.rz-navigation-item-icon,
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rz-navigation-item-text,
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rzi.rz-navigation-item-icon,
+:root:not(.rz-theme-dark) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rz-navigation-item-text {
     color: var(--vpp-primary-700);
 }
 
@@ -80,7 +99,9 @@
 }
 
 /* Active text color */
-.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text {
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rz-navigation-item-text,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rz-navigation-item-text {
     color: var(--vpp-primary-400);
     font-weight: var(--vpp-font-weight-medium);
 }
@@ -182,21 +203,26 @@
 
 /* Collapsed: active indicator (either the parent is active or parent contains active child) */
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
-.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper {
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-wrapper-active) > .rz-navigation-item-wrapper {
     background-color: transparent !important;
     box-shadow: none !important;
 }
 
-.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper::before,
-.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper::before {
+.sidebar-collapsed .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active::before,
+.sidebar-collapsed .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-wrapper-active)::before,
+.sidebar-collapsed .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-link.active)::before {
     content: '' !important;
     display: block !important;
-    left: calc((var(--vpp-sidebar-collapsed-width) - 44px) / -2);
+    position: absolute;
+    inset-inline-start: 0;
     top: var(--vpp-nav-indicator-inset);
     bottom: var(--vpp-nav-indicator-inset);
     width: var(--vpp-nav-indicator-thickness);
     background: var(--vpp-nav-indicator-color);
     border-radius: var(--vpp-nav-indicator-radius);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
@@ -262,6 +288,9 @@
 
 /* Ensure panel menu has transparent background to inherit the sidebar's background */
 .vpp-sidebar .rz-panel-menu {
+    --rz-panel-menu-item-active-background-color: transparent;
+    --rz-panel-menu-item-2nd-level-active-background-color: transparent;
+    --rz-panel-menu-item-active-indicator: var(--vpp-nav-indicator-color);
     background: transparent !important;
     background-color: transparent !important;
 }
