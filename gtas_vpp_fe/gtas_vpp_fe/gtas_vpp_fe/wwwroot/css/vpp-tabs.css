@@ -126,7 +126,7 @@
 
 /* ── librariestab (shared class) — ensure full width ─────────── */
 .librariestab {
-    --vpp-library-primary-tabs-height: var(--vpp-tabs-bar-height);
+    --vpp-library-primary-tabs-height: var(--vpp-header-height);
     --vpp-library-secondary-tabs-height: var(--vpp-tabs-bar-height);
     --vpp-tabs-sticky-top: 0px;
     width: 100%;
@@ -170,12 +170,18 @@
     backface-visibility: hidden;
 }
 
-.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
-    position: static !important;
-    align-items: stretch;
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav,
+.vpp-admin-tabs > .rz-tabview-nav {
+    box-sizing: border-box;
+    align-items: center;
     height: 100%;
     min-height: 100%;
+    padding-block: calc((var(--vpp-library-primary-tabs-height) - var(--vpp-navigation-row-height)) / 2) !important;
     border-radius: 0;
+}
+
+.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
+    position: static !important;
 }
 
 .vpp-secondary-tabs {
