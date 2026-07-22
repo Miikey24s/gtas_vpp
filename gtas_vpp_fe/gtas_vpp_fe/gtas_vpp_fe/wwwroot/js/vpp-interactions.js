@@ -330,33 +330,42 @@
         startTabIndicators();
     }
 
-    function playSidebarPress(target) {
+    var pressSurfaceSelector = [
+        ".vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper",
+        ".vpp-sidebar-brand",
+        ".vpp-sidebar-toggle",
+        ".vpp-sidebar-user-menu .user-menu-trigger",
+        ".rz-tabview .rz-tabview-nav-link",
+        ".rz-tabview .rz-tabs-item"
+    ].join(", ");
+
+    function playPressSurface(target) {
         if (prefersReducedMotion() || !(target instanceof Element)) {
             return;
         }
 
-        var wrapper = target.closest(".vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper");
-        if (!wrapper) {
+        var surface = target.closest(pressSurfaceSelector);
+        if (!surface) {
             return;
         }
 
-        wrapper.classList.remove("vpp-sidebar-pressing");
-        void wrapper.offsetWidth;
-        wrapper.classList.add("vpp-sidebar-pressing");
+        surface.classList.remove("vpp-pressing");
+        void surface.offsetWidth;
+        surface.classList.add("vpp-pressing");
 
-        window.clearTimeout(wrapper.vppPressTimer);
-        wrapper.vppPressTimer = window.setTimeout(function () {
-            wrapper.classList.remove("vpp-sidebar-pressing");
+        window.clearTimeout(surface.vppPressTimer);
+        surface.vppPressTimer = window.setTimeout(function () {
+            surface.classList.remove("vpp-pressing");
         }, 380);
     }
 
     document.addEventListener("pointerdown", function (event) {
-        playSidebarPress(event.target);
+        playPressSurface(event.target);
     }, true);
 
     document.addEventListener("keydown", function (event) {
         if (!event.repeat && (event.key === "Enter" || event.key === " ")) {
-            playSidebarPress(event.target);
+            playPressSurface(event.target);
         }
     }, true);
 

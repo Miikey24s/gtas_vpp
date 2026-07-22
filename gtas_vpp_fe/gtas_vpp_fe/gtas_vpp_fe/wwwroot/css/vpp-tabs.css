@@ -138,8 +138,13 @@
 }
 
 .vpp-admin-tabs > .rz-tabview-panels,
-.vpp-secondary-tabs > .rz-tabview-panels {
+.vpp-secondary-tabs > .rz-tabview-panels,
+.librariestab > .rz-tabview-panels {
     overflow: visible;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 
 .vpp-admin-tabs > .rz-tabview-nav-container,

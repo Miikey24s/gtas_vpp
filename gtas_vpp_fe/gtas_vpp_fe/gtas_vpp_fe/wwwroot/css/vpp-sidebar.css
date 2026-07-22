@@ -163,7 +163,7 @@
     transition: background-size 0s, opacity 0s;
 }
 
-.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper.vpp-sidebar-pressing::after {
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper.vpp-pressing::after {
     animation: vpp-sidebar-press-expand 360ms ease-out forwards;
 }
 

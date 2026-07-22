@@ -121,6 +121,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("margin-inline: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-block-start: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-block-end: var(--vpp-layout-body-inset);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".librariestab > .rz-tabview-panels", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("border: 0 !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("background: transparent !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("display: flow-root;", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-admin-tabs .rz-tabview-nav-container", adminCss, StringComparison.Ordinal);
@@ -272,9 +276,15 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("animation: vpp-sidebar-press-expand 360ms ease-out forwards;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("intentionally retained as the full-control press expansion surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("@media (prefers-reduced-motion: reduce)", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("function playSidebarPress(target)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var pressSurfaceSelector = [", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function playPressSurface(target)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("document.addEventListener(\"pointerdown\"", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("wrapper.classList.add(\"vpp-sidebar-pressing\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("surface.classList.add(\"vpp-pressing\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar-brand", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar-user-menu .user-menu-trigger", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains(".rz-tabview .rz-tabview-nav-link", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("Shared full-control press feedback", polishCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-tabview .rz-tabview-nav-link.vpp-pressing::before", polishCss, StringComparison.Ordinal);
         Assert.Contains("Keep the full row as the single state surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".submenu > .rz-navigation-item-wrapper-active:hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("inset-inline-start: var(--vpp-sidebar-child-rail-offset);", sidebarCss, StringComparison.Ordinal);

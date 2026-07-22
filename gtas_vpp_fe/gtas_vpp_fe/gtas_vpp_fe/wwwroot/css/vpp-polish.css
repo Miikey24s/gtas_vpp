@@ -653,6 +653,51 @@ a:hover {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-primary-400) 34%, transparent);
 }
 
+/* Shared full-control press feedback for shell controls and tab headers. The
+   radial layer uses ::before so the tab underline can continue to own ::after. */
+.vpp-sidebar-brand,
+.vpp-sidebar-toggle,
+.vpp-sidebar-user-menu .user-menu-trigger,
+.rz-tabview .rz-tabview-nav-link,
+.rz-tabview .rz-tabs-item {
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.vpp-sidebar-brand::before,
+.vpp-sidebar-toggle::before,
+.vpp-sidebar-user-menu .user-menu-trigger::before,
+.rz-tabview .rz-tabview-nav-link::before,
+.rz-tabview .rz-tabs-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    display: block;
+    border-radius: inherit;
+    color: var(--vpp-text-primary);
+    background: radial-gradient(circle, currentColor 1%, transparent 1%) center / 15000%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vpp-sidebar-brand.vpp-pressing::before,
+.vpp-sidebar-toggle.vpp-pressing::before,
+.vpp-sidebar-user-menu .user-menu-trigger.vpp-pressing::before,
+.rz-tabview .rz-tabview-nav-link.vpp-pressing::before,
+.rz-tabview .rz-tabs-item.vpp-pressing::before {
+    animation: vpp-sidebar-press-expand 360ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-sidebar-brand::before,
+    .vpp-sidebar-toggle::before,
+    .vpp-sidebar-user-menu .user-menu-trigger::before,
+    .rz-tabview .rz-tabview-nav-link::before,
+    .rz-tabview .rz-tabs-item::before {
+        animation: none;
+    }
+}
+
 .vpp-page-header {
     display: flex;
     align-items: flex-start;
