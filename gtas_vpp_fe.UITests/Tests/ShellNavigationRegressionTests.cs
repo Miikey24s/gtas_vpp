@@ -8,7 +8,7 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task ActiveChildIndicator_HidesAfterItsParentCollapses_AndTabsUseTrimmedFontMetrics()
+    public async Task ActiveChildIndicator_FollowsSiblingExpansion_HidesWithItsParent_AndAlignsWithBrand()
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
@@ -45,6 +45,27 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         (await indicator.EvaluateAsync<bool>(
             "element => element.classList.contains('is-ready') && getComputedStyle(element).opacity === '1'"))
             .Should().BeTrue("the active library child starts visible");
+
+        var dashboardParent = nav.Locator(".rz-panel-menu > li[title='Bảng điều khiển']");
+        var dashboardParentToggle = dashboardParent.Locator(":scope > .rz-navigation-item-wrapper");
+        if (string.Equals(await dashboardParent.GetAttributeAsync("aria-expanded"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            await dashboardParentToggle.ClickAsync();
+            await Page.WaitForTimeoutAsync(300);
+        }
+
+        var collapsedDashboardTop = await ReadIndicatorTopAsync(indicator);
+        await dashboardParentToggle.ClickAsync();
+        var expandingTops = await SampleIndicatorMotionAsync(indicator);
+        AssertSmoothMotion(expandingTops, movingDown: true, "opening the preceding dashboard group");
+        expandingTops[^1].Should().BeGreaterThan(collapsedDashboardTop + 40,
+            "the active library child should move down when the preceding group opens");
+
+        await dashboardParentToggle.ClickAsync();
+        var collapsingTops = await SampleIndicatorMotionAsync(indicator);
+        AssertSmoothMotion(collapsingTops, movingDown: false, "closing the preceding dashboard group");
+        collapsingTops[^1].Should().BeLessThan(expandingTops[^1] - 40,
+            "the active library child should move back up when the preceding group closes");
 
         for (var attempt = 0; attempt < 3; attempt++)
         {
@@ -105,7 +126,15 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                     centerDelta: (title.top + title.height / 2) - (nav.top + nav.height / 2),
                     navTop: nav.top,
                     navHeight: nav.height,
-                    titleCenter: title.top + title.height / 2
+                    titleCenter: title.top + title.height / 2,
+                    brandCenter: (() => {
+                        const brand = document.querySelector('.vpp-sidebar-product').getBoundingClientRect();
+                        return brand.top + brand.height / 2;
+                    })(),
+                    logoCenter: (() => {
+                        const logo = document.querySelector('.vpp-sidebar-expanded-logo').getBoundingClientRect();
+                        return logo.top + logo.height / 2;
+                    })()
                 };
             }
             """);
@@ -117,6 +146,42 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         tabGeometry.NavTop.Should().BeApproximately(0, 0.1, "the full-bleed header must start at the viewport top");
         tabGeometry.NavHeight.Should().BeApproximately(72, 0.1, "the header must match the collapsed sidebar width");
         tabGeometry.TitleCenter.Should().BeApproximately(36, 0.1, "the visible text must centre against the outer 72px header");
+        tabGeometry.BrandCenter.Should().BeApproximately(tabGeometry.TitleCenter, 0.1,
+            "GTAS VPP must share the same visual centre as every primary tab label");
+        tabGeometry.LogoCenter.Should().BeApproximately(tabGeometry.TitleCenter, 0.1,
+            "the brand mark must share the same visual centre as the header labels");
+    }
+
+    private async Task<double> ReadIndicatorTopAsync(ILocator indicator)
+    {
+        return await indicator.EvaluateAsync<double>("element => element.getBoundingClientRect().top");
+    }
+
+    private async Task<List<double>> SampleIndicatorMotionAsync(ILocator indicator)
+    {
+        var samples = new List<double>();
+        for (var frame = 0; frame < 16; frame++)
+        {
+            await Page.WaitForTimeoutAsync(16);
+            samples.Add(await ReadIndicatorTopAsync(indicator));
+        }
+
+        return samples;
+    }
+
+    private static void AssertSmoothMotion(IReadOnlyList<double> samples, bool movingDown, string because)
+    {
+        var deltas = samples.Zip(samples.Skip(1), (current, next) => next - current).ToArray();
+        var directedMoves = movingDown
+            ? deltas.Count(delta => delta > 0.2)
+            : deltas.Count(delta => delta < -0.2);
+        var totalDistance = Math.Abs(samples[^1] - samples[0]);
+        var largestStep = deltas.Select(Math.Abs).DefaultIfEmpty(0).Max();
+
+        directedMoves.Should().BeGreaterThanOrEqualTo(3, $"{because} must produce multiple visible frames");
+        totalDistance.Should().BeGreaterThan(20, $"{because} must move the line a meaningful distance");
+        largestStep.Should().BeLessThan(totalDistance * 0.75,
+            $"{because} must not teleport the line directly to its final position");
     }
 
     private sealed class IndicatorState
@@ -143,5 +208,9 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         public double NavHeight { get; set; }
 
         public double TitleCenter { get; set; }
+
+        public double BrandCenter { get; set; }
+
+        public double LogoCenter { get; set; }
     }
 }

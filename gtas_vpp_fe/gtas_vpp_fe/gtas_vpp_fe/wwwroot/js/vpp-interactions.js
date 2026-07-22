@@ -95,6 +95,7 @@
     var tabIndicatorDuration = 180;
     var sidebarNavSelector = ".vpp-sidebar-nav";
     var sidebarIndicatorDuration = 180;
+    var sidebarLayoutFollowDuration = 240;
 
     function resolveCssPixelLength(element, value, fallback) {
         var trimmed = String(value || "").trim();
@@ -556,6 +557,39 @@
         indicator.classList.remove("is-ready");
     }
 
+    function followSidebarIndicatorLayout(nav) {
+        var indicator = ensureSidebarIndicator(nav);
+        if (!indicator) {
+            return;
+        }
+
+        if (indicator.vppAnimation) {
+            indicator.vppAnimation.cancel();
+            indicator.vppAnimation = null;
+            indicator.vppTarget = null;
+        }
+
+        nav.vppSidebarLayoutFollowUntil = performance.now() + sidebarLayoutFollowDuration;
+        if (nav.vppSidebarLayoutFollowFrame) {
+            return;
+        }
+
+        function followFrame(timestamp) {
+            nav.vppSidebarLayoutFollowFrame = null;
+            moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false, true);
+
+            if (timestamp < nav.vppSidebarLayoutFollowUntil) {
+                nav.vppSidebarLayoutFollowFrame = window.requestAnimationFrame(followFrame);
+                return;
+            }
+
+            nav.vppSidebarLayoutFollowUntil = 0;
+            moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false, true);
+        }
+
+        nav.vppSidebarLayoutFollowFrame = window.requestAnimationFrame(followFrame);
+    }
+
     function ensureSidebarIndicator(nav) {
         if (!(nav instanceof Element)) {
             return null;
@@ -579,6 +613,15 @@
                         || !mutation.target.classList.contains("vpp-sidebar-shared-indicator");
                 });
                 if (!hasExternalChange) {
+                    return;
+                }
+
+                var hasExpansionChange = mutations.some(function (mutation) {
+                    return mutation.type === "attributes"
+                        && mutation.attributeName === "aria-expanded";
+                });
+                if (hasExpansionChange) {
+                    followSidebarIndicatorLayout(nav);
                     return;
                 }
 
@@ -730,6 +773,12 @@
             window.clearTimeout(nav.vppSidebarSettleTimer);
             nav.vppSidebarSettleTimer = null;
         }
+
+        if (nav.vppSidebarLayoutFollowFrame) {
+            window.cancelAnimationFrame(nav.vppSidebarLayoutFollowFrame);
+            nav.vppSidebarLayoutFollowFrame = null;
+        }
+        nav.vppSidebarLayoutFollowUntil = 0;
     }
 
     function disposeSidebarIndicators(root) {

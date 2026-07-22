@@ -405,6 +405,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("per-item pseudo rails", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-active-indicator-in", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("var sidebarIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var sidebarLayoutFollowDuration = 240;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("function resolveCssPixelLength(element, value, fallback)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("trimmed.endsWith(\"rem\")", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("element.appendChild(probe)", interactionsJs, StringComparison.Ordinal);
@@ -414,6 +415,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("function hasVisibleAreaWithin(element, boundary)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("ancestor.classList.contains(\"rz-navigation-menu\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("function scheduleSidebarIndicatorSync(nav, shouldAnimate)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function followSidebarIndicatorLayout(nav)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("nav.vppSidebarLayoutFollowUntil = performance.now() + sidebarLayoutFollowDuration;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false, true);", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("window.requestAnimationFrame(followFrame)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("mutation.attributeName === \"aria-expanded\"", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("attributeFilter: [\"class\", \"aria-current\", \"aria-expanded\", \"style\"]", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("sidebarIndicatorDuration + 60", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("indicator.classList.remove(\"is-ready\")", interactionsJs, StringComparison.Ordinal);
