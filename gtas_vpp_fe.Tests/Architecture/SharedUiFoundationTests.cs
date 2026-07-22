@@ -133,8 +133,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("max-height: var(--vpp-library-primary-tabs-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("align-items: center;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-primary-tab-row-height: var(--vpp-header-height);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-primary-tab-optical-offset: 2px;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("padding-block: 0 !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("padding: 0 var(--vpp-primary-tab-inline-padding) !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("transform: translateY(var(--vpp-primary-tab-optical-offset));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("Selection is communicated by the shared blue underline only", tabsCss, StringComparison.Ordinal);
         Assert.Contains("selected surface transparent even while the pointer remains over", tabsCss, StringComparison.Ordinal);
         Assert.Contains("background: transparent !important;", tabsCss, StringComparison.Ordinal);
