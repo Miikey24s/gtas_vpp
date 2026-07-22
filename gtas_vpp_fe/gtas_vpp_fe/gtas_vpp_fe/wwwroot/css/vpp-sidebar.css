@@ -13,6 +13,7 @@
 .vpp-sidebar {
     --vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);
     --vpp-sidebar-item-active-bg: var(--vpp-navigation-item-active-bg);
+    --vpp-sidebar-row-half-gap: 2px;
 }
 
 :root:not(.rz-theme-dark) .vpp-sidebar {
@@ -33,16 +34,15 @@
     position: relative;
 }
 
-/* Keep every expanded surface on a deterministic 4px vertical rhythm.
-   Spacing lives on the item, so Radzen wrapper/theme margins cannot collapse
-   parent-child or child-child rows back together. */
-.vpp-sidebar:not(.sidebar-collapsed) .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu + .rz-navigation-item.ppjsidebarmenu,
-.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu {
-    margin-block-start: var(--vpp-space-1) !important;
+/* Keep the 4px rhythm optically centered around every expanded surface.
+   Splitting it into 2px above + 2px below avoids the one-sided visual weight
+   while remaining deterministic when the Radzen theme overrides margins. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu {
+    margin-block: 0 !important;
 }
 
-.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu {
-    margin-block-end: 0 !important;
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    margin-block: var(--vpp-sidebar-row-half-gap) !important;
 }
 
 .rz-navigation-item.ppjsidebarmenu {
@@ -159,7 +159,7 @@
 /* Parent-child surface edge parity; keep content and active rail at the child indent. */
 .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper {
     box-sizing: border-box;
-    margin-block: 0 !important;
+    margin-block: var(--vpp-sidebar-row-half-gap) !important;
     margin-inline: var(--vpp-space-1);
     padding-inline-start: var(--vpp-space-8);
     border-radius: var(--vpp-radius-md);
