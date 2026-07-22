@@ -106,6 +106,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-sidebar-collapsed-brand", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-collapsed-logo", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-collapsed-expand-icon", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-sidebar-expanded-brand", source, StringComparison.Ordinal);
+        Assert.Equal(1, source.Split("<VppBrandMark", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("href=\"/dashboard?tab=0\"", source, StringComparison.Ordinal);
         Assert.Contains("@if (_sideBarExpanded)", source, StringComparison.Ordinal);
         Assert.Contains("ShowArrow=\"true\"", source, StringComparison.Ordinal);
         Assert.Contains("ShowName=\"true\"", source, StringComparison.Ordinal);

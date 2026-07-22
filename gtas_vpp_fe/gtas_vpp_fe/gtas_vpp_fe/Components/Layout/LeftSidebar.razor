@@ -33,13 +33,9 @@
     <div class="vpp-sidebar-header">
         @if (_sideBarExpanded)
         {
-            <a class="vpp-brand-lockup vpp-sidebar-brand"
-               href="/dashboard?tab=0"
-               title="GTAS VPP"
-               aria-label="GTAS VPP">
-                <VppBrandMark Class="vpp-sidebar-brand-mark" />
+            <div class="vpp-sidebar-expanded-brand" aria-label="GTAS VPP">
                 <span class="vpp-sidebar-product">GTAS VPP</span>
-            </a>
+            </div>
             <button type="button"
                     class="vpp-sidebar-toggle"
                     title="@Loc["ToggleNavigation"]"

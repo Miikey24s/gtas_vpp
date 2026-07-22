@@ -132,6 +132,16 @@ leftsidebar {
     flex: 0 0 auto;
 }
 
+.vpp-sidebar-expanded-brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1 1 auto;
+    height: 44px;
+    padding: var(--vpp-space-1) var(--vpp-space-2);
+    color: var(--vpp-text-primary);
+}
+
 .vpp-sidebar-brand {
     appearance: none;
     display: flex;
