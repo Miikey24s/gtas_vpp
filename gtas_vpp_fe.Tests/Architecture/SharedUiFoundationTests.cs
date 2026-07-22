@@ -207,11 +207,17 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain(".rz-navigation-item-wrapper:focus-within", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("pointer focus look like a hover surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
-        Assert.Contains("width: calc(var(--vpp-sidebar-width) - 16px);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("width: calc(var(--vpp-sidebar-width) - var(--vpp-space-2));", polishCss, StringComparison.Ordinal);
         Assert.Contains("padding: 2px var(--vpp-space-1) var(--vpp-space-1);", polishCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-navigation-row-height);", polishCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-user-menu .user-menu-trigger[aria-expanded=\"true\"]", polishCss, StringComparison.Ordinal);
         Assert.Contains("bottom: calc(var(--vpp-navigation-row-height) + var(--vpp-space-4));", polishCss, StringComparison.Ordinal);
+        Assert.Contains("Current account context mirrors a selected sidebar row", polishCss, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: 24px minmax(0, 1fr) auto;", polishCss, StringComparison.Ordinal);
+        Assert.Contains("gap: var(--vpp-space-2);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("background: var(--vpp-navigation-item-hover-bg);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("background: var(--vpp-navigation-item-active-bg);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("font-size: 20px;", polishCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transform: translateX(2px);", sidebarCss, StringComparison.Ordinal);
     }
 

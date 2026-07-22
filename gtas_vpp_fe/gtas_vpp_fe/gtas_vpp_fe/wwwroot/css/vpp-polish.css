@@ -360,44 +360,142 @@ a:hover {
     top: auto;
     right: auto;
     bottom: calc(var(--vpp-navigation-row-height) + var(--vpp-space-4));
-    left: var(--vpp-space-2);
-    width: calc(var(--vpp-sidebar-width) - 16px);
+    left: var(--vpp-space-1);
+    width: calc(var(--vpp-sidebar-width) - var(--vpp-space-2));
+    padding: var(--vpp-space-1);
+    font-family: var(--vpp-font-sidebar);
     transform-origin: bottom left;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-header {
+    min-height: 48px;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-1) var(--vpp-space-2);
+}
+
+.vpp-sidebar-user-menu .user-avatar-lg {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-identity {
+    gap: 0;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-name {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-login {
+    gap: var(--vpp-space-1);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-login strong {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 400;
+}
+
+/* Current account context mirrors a selected sidebar row: neutral surface,
+   compact content, and the same blue rail instead of a blue card border. */
+.vpp-sidebar-user-menu .user-dropdown-context {
+    position: relative;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    min-height: 48px;
+    gap: var(--vpp-space-2);
+    margin-top: var(--vpp-space-1);
+    padding: var(--vpp-space-1) var(--vpp-space-2);
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-navigation-item-active-bg);
+}
+
+.vpp-sidebar-user-menu .user-dropdown-context::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: var(--vpp-nav-indicator-inset);
+    bottom: var(--vpp-nav-indicator-inset);
+    width: var(--vpp-nav-indicator-thickness);
+    border-radius: var(--vpp-nav-indicator-radius);
+    background: var(--vpp-nav-indicator-color);
+}
+
+.vpp-sidebar-user-menu .user-dropdown-context-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 0;
+    color: var(--vpp-text-secondary);
+    background: transparent;
+    font-size: 20px;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-context-copy {
+    gap: 0;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-context-copy small {
+    font-size: 12px;
+    line-height: 14px;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-context-value {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+}
+
+.vpp-sidebar-user-menu .user-dropdown-code {
+    padding: 2px 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .user-dropdown-actions {
     display: grid;
-    gap: 2px;
-    margin-top: var(--vpp-space-2);
-    padding-top: var(--vpp-space-2);
+    gap: var(--vpp-space-1);
+    margin-top: var(--vpp-space-1);
+    padding-top: var(--vpp-space-1);
     border-top: 1px solid var(--vpp-border-default);
 }
 
 .user-dropdown-action {
     appearance: none;
     display: grid;
-    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
     align-items: center;
-    gap: var(--vpp-space-3);
+    gap: var(--vpp-space-2);
     width: 100%;
-    min-height: 40px;
+    height: var(--vpp-navigation-row-height);
+    min-height: var(--vpp-navigation-row-height);
     margin: 0;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
+    padding: 0 var(--vpp-space-2);
     border: 0;
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-secondary);
     background: transparent;
     font: inherit;
-    font-size: var(--vpp-text-sm);
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
     text-align: left;
     text-decoration: none;
     cursor: pointer;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
 }
 
 .user-dropdown-action:hover,
 .user-dropdown-action:focus-visible {
     color: var(--vpp-text-primary);
-    background: var(--vpp-bg-subtle);
+    background: var(--vpp-navigation-item-hover-bg);
     text-decoration: none;
 }
 
@@ -414,10 +512,10 @@ a:hover {
 .user-dropdown-action > .vpp-icon {
     display: inline-grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     color: currentColor;
-    font-size: 1.1rem;
+    font-size: 20px;
 }
 
 .user-dropdown-action-label {
@@ -430,7 +528,7 @@ a:hover {
 .user-dropdown-action-trailing {
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-semibold);
+    font-weight: 500;
 }
 
 .user-dropdown-actions .vpp-header-notifications {
@@ -438,13 +536,13 @@ a:hover {
 }
 
 .user-dropdown-actions .vpp-header-notification-button {
-    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
     justify-content: initial;
     width: 100%;
     min-width: 0;
-    height: auto;
-    min-height: 40px;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
+    height: var(--vpp-navigation-row-height);
+    min-height: var(--vpp-navigation-row-height);
+    padding: 0 var(--vpp-space-2);
     border: 0;
     border-radius: var(--vpp-radius-md);
     background: transparent;
@@ -455,9 +553,13 @@ a:hover {
 .user-dropdown-actions .vpp-header-notification-button:hover,
 .user-dropdown-actions .vpp-header-notification-button:active {
     border-color: transparent;
-    background: var(--vpp-bg-subtle);
+    background: var(--vpp-navigation-item-hover-bg);
     box-shadow: none;
     transform: none;
+}
+
+.user-dropdown-actions .vpp-header-notification-button[aria-expanded="true"] {
+    background: var(--vpp-navigation-item-active-bg);
 }
 
 .user-dropdown-actions .vpp-header-notification-count {
@@ -471,7 +573,13 @@ a:hover {
 
 .user-dropdown-actions .user-dropdown-logout {
     margin-top: 0;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
+    padding: 0 var(--vpp-space-2);
+}
+
+.vpp-sidebar-user-menu .user-dropdown-actions .user-dropdown-logout:hover,
+.vpp-sidebar-user-menu .user-dropdown-actions .user-dropdown-logout:focus-visible {
+    color: var(--vpp-text-primary) !important;
+    background: var(--vpp-navigation-item-hover-bg);
 }
 
 .user-dropdown-actions .vpp-notification-panel {
