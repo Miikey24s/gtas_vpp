@@ -325,6 +325,7 @@
 /* Ensure panel menu has transparent background to inherit the sidebar's background */
 .vpp-sidebar .rz-panel-menu {
     --rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);
+    --rz-panel-menu-2nd-level-vertical-offset: 0;
     --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-2nd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-active-indicator: var(--vpp-nav-indicator-color);
