@@ -92,6 +92,7 @@ public sealed class SharedUiFoundationTests
         var tabsCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tabs.css"));
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+        var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
         var libraryPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Page_Library.razor"));
         var permissionPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Page_Permission.razor"));
 
@@ -107,9 +108,15 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("height: var(--vpp-navigation-row-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("font-weight: 400 !important;", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("left: var(--vpp-nav-indicator-inset);", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("right: var(--vpp-nav-indicator-inset);", tabsCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transition: none !important;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("var tabIndicatorDuration = 180;", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("getPropertyValue(\"--vpp-nav-indicator-inset\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var stretched = movingRight", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("offset: 0.52", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("prefersReducedMotion()", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppPageHeader", libraryPage, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppPageHeader", permissionPage, StringComparison.Ordinal);
         Assert.DoesNotContain("LibraryPageDescription", libraryPage, StringComparison.Ordinal);
