@@ -177,7 +177,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("pointer focus look like a hover surface", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-dropdown", polishCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(var(--vpp-sidebar-width) - 16px);", polishCss, StringComparison.Ordinal);
-        Assert.Contains("bottom: calc(52px + var(--vpp-space-2));", polishCss, StringComparison.Ordinal);
+        Assert.Contains("padding: 2px var(--vpp-space-1) var(--vpp-space-1);", polishCss, StringComparison.Ordinal);
+        Assert.Contains("height: 40px;", polishCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-user-menu .user-menu-trigger[aria-expanded=\"true\"]", polishCss, StringComparison.Ordinal);
+        Assert.Contains("bottom: calc(40px + var(--vpp-space-4));", polishCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transform: translateX(2px);", sidebarCss, StringComparison.Ordinal);
     }
 

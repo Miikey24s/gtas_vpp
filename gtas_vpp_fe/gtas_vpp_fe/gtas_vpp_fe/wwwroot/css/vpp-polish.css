@@ -308,7 +308,7 @@ a:hover {
 .vpp-sidebar-user-footer {
     position: relative;
     flex: 0 0 auto;
-    padding: var(--vpp-space-2);
+    padding: 2px var(--vpp-space-1) var(--vpp-space-1);
     border-top: 1px solid var(--vpp-border-default);
 }
 
@@ -317,17 +317,27 @@ a:hover {
 }
 
 .vpp-sidebar-user-menu .user-menu-trigger {
+    box-sizing: border-box;
     justify-content: flex-start;
-    gap: var(--vpp-space-3);
+    gap: var(--vpp-space-2);
     width: 100%;
-    padding: 3px var(--vpp-space-2);
+    height: 40px;
+    min-height: 40px;
+    padding: 0 var(--vpp-space-2);
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-primary);
     text-align: left;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
 }
 
-.vpp-sidebar-user-menu .user-menu-trigger:hover {
+.vpp-sidebar-user-menu .user-menu-trigger:hover,
+.vpp-sidebar-user-menu .user-menu-trigger:focus-visible {
     background: var(--vpp-sidebar-item-hover-bg, rgba(9, 30, 66, 0.055));
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-user-menu .user-menu-trigger[aria-expanded="true"] {
+    background: var(--vpp-sidebar-item-active-bg, rgba(9, 30, 66, 0.08));
 }
 
 .vpp-sidebar-user-menu .user-menu-trigger:hover .user-avatar {
@@ -339,7 +349,8 @@ a:hover {
     overflow: hidden;
     font-family: var(--vpp-font-sidebar);
     font-size: 14px;
-    font-weight: var(--vpp-font-weight-medium);
+    font-weight: 400;
+    line-height: 20px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -348,7 +359,7 @@ a:hover {
     position: fixed;
     top: auto;
     right: auto;
-    bottom: calc(52px + var(--vpp-space-2));
+    bottom: calc(40px + var(--vpp-space-4));
     left: var(--vpp-space-2);
     width: calc(var(--vpp-sidebar-width) - 16px);
     transform-origin: bottom left;
