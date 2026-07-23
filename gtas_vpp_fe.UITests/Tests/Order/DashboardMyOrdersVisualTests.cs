@@ -86,7 +86,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         document.querySelectorAll('.vpp-orders-empty .vpp-empty-state-actions').length,
                         createActions.length,
                         document.querySelectorAll('[data-testid$="coming-soon"]:disabled').length,
-                        document.querySelectorAll('.vpp-orders-view-tabs [role="tab"]').length,
+                        document.querySelectorAll('.vpp-orders-summary-grid [role="radio"]').length,
                         document.querySelectorAll('.vpp-orders-state').length,
                         document.querySelectorAll('.vpp-order-view-meta .vpp-order-card-kind').length
                     ];
@@ -96,14 +96,14 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             audit[0].Should().Be(0, $"My Orders must not overflow at {viewport.Width}px");
             audit[1].Should().Be(1, "the period takeaway should appear exactly once");
             audit[2].Should().Be(3, "the order workspace should summarize regular, supplement and previous-cycle orders");
-            audit[3].Should().Be(1, "the three order types should share one internal tab workspace");
+            audit[3].Should().Be(0, "the summary cards should be the only order-view selector");
             audit[4].Should().Be(1, "only the selected reusable order panel should render");
             audit[5].Should().Be(0, "My Orders should use VppIcon instead of legacy rzi markup");
             audit[6].Should().Be(0, "the legacy four-card KPI strip should be removed");
             audit[7].Should().Be(0, "empty state must not repeat actions already shown in the story header");
             audit[8].Should().BeLessThanOrEqualTo(1, "the create-order action should have one source of truth");
             audit[9].Should().Be(2, "PDF and Excel roadmap actions should be visible but disabled");
-            audit[10].Should().Be(3, "the internal order selector should expose exactly three tabs");
+            audit[10].Should().Be(3, "the order selector should expose exactly three radio-style summary cards");
             audit[11].Should().Be(0, "the current-cycle page should not repeat an open-period badge");
             audit[12].Should().Be(0, "the selected tab should replace the repeated order-type heading above the grid");
 
@@ -115,7 +115,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const workspaceRect = workspace?.getBoundingClientRect();
                         const contentRect = workspace?.parentElement?.getBoundingClientRect();
                         const storyTitle = document.querySelector('.vpp-orders-story-heading h2');
-                        const internalTab = document.querySelector('.vpp-orders-view-tabs [role="tab"]');
+                        const summaryLabel = document.querySelector('.vpp-orders-summary-label');
                         const summaryCard = document.querySelector('.vpp-orders-summary-grid article');
                         const disabledExport = document.querySelector('.vpp-orders-export-button:disabled');
                         return [
@@ -125,7 +125,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                                 ? Math.abs((workspaceRect.left + workspaceRect.width / 2) - (contentRect.left + contentRect.width / 2))
                                 : Number.MAX_VALUE,
                             storyTitle ? parseFloat(getComputedStyle(storyTitle).fontSize) : 0,
-                            internalTab ? parseFloat(getComputedStyle(internalTab).fontSize) : Number.MAX_VALUE,
+                            summaryLabel ? parseFloat(getComputedStyle(summaryLabel).fontSize) : Number.MAX_VALUE,
                             summaryCard ? parseFloat(getComputedStyle(summaryCard).borderTopWidth) : 0,
                             disabledExport ? parseFloat(getComputedStyle(disabledExport).opacity) : 0,
                             document.documentElement.scrollHeight - window.innerHeight
@@ -135,7 +135,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 desktopGeometry[0].Should().BeLessThanOrEqualTo(viewport.Height + 1, "the short-order workspace should fit inside one desktop viewport");
                 desktopGeometry[1].Should().BeLessThanOrEqualTo(1760.5, "wide layouts should stay bounded without visually detaching from the sidebar");
                 desktopGeometry[2].Should().BeLessThanOrEqualTo(8, "the My Orders workspace should remain centered in its content region");
-                desktopGeometry[3].Should().BeGreaterThan(desktopGeometry[4] + 8, "the period title must clearly outrank internal tabs");
+                desktopGeometry[3].Should().BeGreaterThan(desktopGeometry[4] + 8, "the period title must clearly outrank summary labels");
                 desktopGeometry[5].Should().BeGreaterThanOrEqualTo(1, "summary items should read as bordered cards");
                 desktopGeometry[6].Should().BeGreaterThanOrEqualTo(0.75, "disabled export labels must remain legible");
                 desktopGeometry[7].Should().BeLessThanOrEqualTo(2, "short orders should not create document-level vertical scrolling");
@@ -194,7 +194,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         {
             await Page.WaitForFunctionAsync(
                 """
-                () => [...document.querySelectorAll('.vpp-orders-tab-count')]
+                () => [...document.querySelectorAll('.vpp-orders-summary-count')]
                     .some(element => element.textContent?.trim() === '500')
                 """,
                 null,
@@ -221,7 +221,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         (left, right) => (right.scrollHeight - right.clientHeight) - (left.scrollHeight - left.clientHeight))[0];
                     const rows = grid?.querySelectorAll('tbody tr').length ?? 0;
                     const selectedTabCount = Math.max(
-                        ...[...document.querySelectorAll('.vpp-orders-tab-count')]
+                        ...[...document.querySelectorAll('.vpp-orders-summary-count')]
                             .map(element => Number.parseInt(element.textContent ?? '0', 10)));
                     return [
                         rows,
@@ -266,17 +266,39 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 "a 500-line order must not introduce document-level vertical scrolling");
         }
 
+        if (int.TryParse(Environment.GetEnvironmentVariable("GTAS_E2E_SOAK_SECONDS"), out var soakSeconds)
+            && soakSeconds >= 60)
+        {
+            var soakDeadline = DateTime.UtcNow.AddSeconds(soakSeconds);
+            while (DateTime.UtcNow < soakDeadline)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+                var soakContract = await Page.EvaluateAsync<int[]>("""
+                    () => [
+                        document.documentElement.scrollHeight - window.innerHeight,
+                        document.querySelectorAll('.vpp-order-grid-scrollable tbody tr').length,
+                        document.querySelectorAll('.vpp-tab-shared-indicator').length
+                    ]
+                    """);
+                soakContract[0].Should().BeLessThanOrEqualTo(2, "the document must remain viewport-locked during the soak test");
+                soakContract[1].Should().BeLessThan(100, "virtualized rows must remain bounded during the soak test");
+                soakContract[2].Should().BeLessThanOrEqualTo(1, "only the primary navigation tab indicator should remain mounted");
+            }
+        }
+
         await Page.Locator(".vpp-orders-summary-grid article").Nth(1).Locator("button").ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=supplement(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
         await Page.Locator("[data-testid='supplement-order-panel'] .vpp-order-grid-empty").WaitForAsync();
+        (await Page.Locator("[data-testid='supplement-order-panel-empty-action']").CountAsync())
+            .Should().BeLessThanOrEqualTo(1, "an available supplement flow should expose one empty-state CTA");
 
         await Page.Locator(".vpp-orders-summary-grid article").Nth(2).Locator("button").ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=previous(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.ReloadAsync();
         await Page.Locator("[data-testid='previous-order-panel']:visible").WaitForAsync();
-        (await Page.Locator(".vpp-orders-view-tabs [role='tab'][aria-selected='true']").InnerTextAsync())
-            .Should().Contain("Kỳ trước", "reload should preserve the internal order tab from the URL");
+        (await Page.Locator(".vpp-orders-summary-grid article.is-selected [role='radio']").InnerTextAsync())
+            .Should().Contain("Kỳ trước", "reload should preserve the selected order summary from the URL");
 
         await Page.Locator(".vpp-orders-summary-grid article").Nth(0).Locator("button").ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=current(?:&.*)?$", RegexOptions.IgnoreCase));

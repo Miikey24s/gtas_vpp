@@ -178,6 +178,7 @@
   <data name="OrderItems" xml:space="preserve"><value>Order Items</value></data>
   <data name="Reload" xml:space="preserve"><value>Reload</value></data>
   <data name="NewOrder" xml:space="preserve"><value>Create Order</value></data>
+  <data name="CreateOrderThisCycle" xml:space="preserve"><value>Create order for this cycle</value></data>
   <data name="CopyPreviousOrder" xml:space="preserve"><value>Copy Previous Cycle</value></data>
   <data name="ActiveOrderPeriod" xml:space="preserve"><value>Current Order Cycle</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Submission Deadline</value></data>

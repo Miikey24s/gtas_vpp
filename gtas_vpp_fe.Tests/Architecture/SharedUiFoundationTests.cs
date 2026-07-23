@@ -143,6 +143,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("actualBoundingBox", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("vppInk", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("createElement(\"canvas\")", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function containsInteractionHost(node)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("if (!containsInteractionHost(node))", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("characterData: true", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var title = target.querySelector(\".rz-tabview-title\");", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("--vpp-primary-tab-indicator-preferred-width: 60px;", tabsCss, StringComparison.Ordinal);
@@ -502,9 +504,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("export-pdf-coming-soon", source, StringComparison.Ordinal);
         Assert.Contains("export-excel-coming-soon", source, StringComparison.Ordinal);
         Assert.Equal(3, source.Split("<VppOrderWorkspacePanel", StringSplitOptions.None).Length - 1);
-        Assert.Contains("<RadzenTabs", source, StringComparison.Ordinal);
-        Assert.Contains("RenderMode=\"TabRenderMode.Server\"", source, StringComparison.Ordinal);
-        Assert.Contains("SelectedIndex=\"@OrderViewSelectedIndex\"", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("<RadzenTabs", source, StringComparison.Ordinal);
+        Assert.Contains("role=\"radiogroup\"", source, StringComparison.Ordinal);
+        Assert.Equal(3, source.Split("role=\"radio\"", StringSplitOptions.None).Length - 1);
+        Assert.Contains("aria-checked", source, StringComparison.Ordinal);
         Assert.Contains("orderView", codeBehind, StringComparison.Ordinal);
         Assert.Contains("GetUriWithQueryParameter(\"orderView\"", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
@@ -521,19 +524,25 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("AllowVirtualization=\"true\"", orderPanel, StringComparison.Ordinal);
         Assert.Contains("VirtualizationOverscanCount=\"10\"", orderPanel, StringComparison.Ordinal);
         Assert.Contains("<EmptyTemplate>", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("EmptyActionText", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("EmptyActionClick", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("CreateOrderThisCycle", source, StringComparison.Ordinal);
         Assert.Contains("AvailableOrders.Count > 1", orderPanel, StringComparison.Ordinal);
         Assert.Contains("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
-        Assert.Contains("height: calc(100dvh", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains("height: 100%;", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-orders-summary-grid article", kpiStyles, StringComparison.Ordinal);
-        Assert.Contains(".vpp-orders-view-tabs", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-orders-selected-view", kpiStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-orders-view-tabs", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-view-grid-frame", kpiStyles, StringComparison.Ordinal);
         Assert.Contains("min-height: 44px;", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid-embedded .rz-grid-table tbody > tr:hover", gridStyles, StringComparison.Ordinal);
         Assert.Contains("tbody > tr:nth-child(even)", gridStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid-scrollable .rz-grid-table thead", gridStyles, StringComparison.Ordinal);
         Assert.Contains("position: sticky;", gridStyles, StringComparison.Ordinal);
+        Assert.Contains("scrollbar-gutter: stable both-edges;", gridStyles, StringComparison.Ordinal);
         Assert.Contains("width: 100%;", gridStyles, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-bg-base) !important;", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-admin-tabs.vpp-orders-shell", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-elevated);", tokens, StringComparison.Ordinal);
     }
 

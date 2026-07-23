@@ -118,12 +118,12 @@
 
 /* ── My Orders data story ────────────────────────────────────── */
 .vpp-orders-workspace {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: var(--vpp-space-3);
     width: 100%;
     max-width: 1760px;
-    height: calc(100dvh - var(--vpp-header-height) - (2 * var(--vpp-space-3)));
+    height: 100%;
     min-width: 0;
     min-height: 0;
     margin-inline: auto;
@@ -133,6 +133,7 @@
 .vpp-orders-story {
     position: relative;
     display: block;
+    flex: 0 0 auto;
     padding: var(--vpp-space-4) var(--vpp-space-5);
     overflow: hidden;
     border: 1px solid var(--vpp-border-default);
@@ -325,76 +326,17 @@
     text-overflow: ellipsis;
 }
 
-.vpp-orders-summary-grid strong {
-    overflow: hidden;
-    color: var(--vpp-text-primary);
-    font-family: var(--vpp-font-display);
-    font-size: var(--vpp-text-base);
-    font-weight: var(--vpp-font-weight-semibold);
-    line-height: 1.3;
-    text-overflow: ellipsis;
-}
-
-.vpp-orders-view-tabs {
+.vpp-orders-summary-label {
     display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-.vpp-orders-view-tabs > .rz-tabview-nav-container,
-.vpp-orders-view-tabs > .rz-tabview-nav {
-    flex: 0 0 auto;
-    width: max-content;
-    max-width: 100%;
-    margin-bottom: var(--vpp-space-2);
-    padding: 3px !important;
-    overflow-x: auto;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-bg-surface);
-    box-shadow: none;
-}
-
-.vpp-orders-view-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
-    position: static !important;
-    width: max-content;
-    min-width: 100%;
-    padding: 0 !important;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-}
-
-.vpp-orders-view-tabs .rz-tabview-nav > li > button[role="tab"],
-.vpp-orders-view-tabs .rz-tabview-nav .rz-tabview-nav-link {
-    min-height: 36px !important;
-    height: 36px !important;
-    padding-inline: var(--vpp-space-3) !important;
-    border-radius: var(--vpp-radius-md) !important;
-}
-
-.vpp-orders-view-tabs .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
-.vpp-orders-view-tabs .rz-tabview-nav > li > button[role="tab"][aria-selected="true"],
-.vpp-orders-view-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link {
-    background: var(--vpp-bg-elevated) !important;
-    box-shadow: var(--vpp-shadow-xs) !important;
-}
-
-.vpp-orders-view-tabs .vpp-tab-shared-indicator {
-    display: none;
-}
-
-.vpp-orders-tab-label {
-    display: inline-flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--vpp-space-2);
+    min-width: 0;
 }
 
-.vpp-orders-tab-count {
+.vpp-orders-summary-count {
     display: inline-grid;
+    flex: 0 0 auto;
     min-width: 24px;
     height: 22px;
     padding-inline: 6px;
@@ -406,20 +348,23 @@
     font-variant-numeric: tabular-nums;
 }
 
-.vpp-orders-view-tabs > .rz-tabview-panels {
-    flex: 1 1 auto;
-    min-height: 0;
-    padding: 0 !important;
-    overflow: hidden !important;
-    border: 0 !important;
-    background: transparent !important;
+.vpp-orders-summary-grid strong {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-family: var(--vpp-font-display);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: 1.3;
+    text-overflow: ellipsis;
 }
 
-.vpp-orders-view-tabs > .rz-tabview-panels > .rz-tabview-panel,
-.vpp-orders-view-tabs .rz-tabview-panel {
+.vpp-orders-selected-view {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
     min-height: 0;
     height: 100%;
-    padding: 0;
     overflow: hidden;
 }
 
@@ -502,6 +447,10 @@
     max-width: 34rem;
     margin: var(--vpp-space-1) 0 0;
     font-size: var(--vpp-text-sm);
+}
+
+.vpp-order-grid-empty .rz-button {
+    margin-top: var(--vpp-space-4);
 }
 
 .vpp-orders-section {
@@ -747,12 +696,6 @@
 }
 
 @media (max-width: 991px) {
-    .vpp-orders-workspace {
-        height: auto;
-        min-height: calc(100dvh - var(--vpp-header-height) - (2 * var(--vpp-space-3)));
-        overflow: visible;
-    }
-
     .vpp-orders-story-header {
         grid-template-columns: 1fr;
     }
@@ -804,16 +747,6 @@
     .vpp-orders-summary-grid article > button {
         min-height: 76px;
         padding: var(--vpp-space-3);
-    }
-
-    .vpp-orders-view-tabs {
-        min-height: 520px;
-        height: min(70dvh, 620px);
-    }
-
-    .vpp-orders-view-tabs > .rz-tabview-nav-container,
-    .vpp-orders-view-tabs > .rz-tabview-nav {
-        width: 100%;
     }
 
     .vpp-order-view-meta {

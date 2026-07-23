@@ -724,8 +724,8 @@ Status hợp lệ:
 - implementation tiếp tục ở Blazor/Radzen authority; chữ `React` trong prompt là context sai với project boundary hiện hành và không mở lại `gtas_vpp_fe_react`;
 - query `tab=0` tiếp tục sở hữu primary Dashboard tab. Internal selection dùng query riêng `orderView=current|supplement|previous` để reload/share không phá route cấp trang;
 - regular current/previous order là duy nhất theo `UX_Requests_OneRegularPerUserPeriod`; supplement không tuyệt đối duy nhất vì backend cho phép nhiều attempt rejected/cancelled trước quota approved, nên normal state vẫn một order nhưng UI phải có compact selector fallback nếu API trả nhiều attempt;
-- tách order table/meta/actions/empty state thành component dùng chung; summary cards đổi tab, RadzenTabs giữ accessibility và horizontal scroll, RadzenDataGrid bỏ paging 10 dòng để dùng fixed-height virtualization;
-- desktop khoảng `900px` phải giữ page không cuộn khi dữ liệu ngắn; với tối đa khoảng `500` item chỉ grid body cuộn và header dính; mobile cho summary stack, tab horizontal scroll và table horizontal scroll;
+- tách order table/meta/actions/empty state thành component dùng chung; ba summary card là selector duy nhất với radio-group semantics, RadzenDataGrid bỏ paging 10 dòng để dùng fixed-height virtualization;
+- desktop khoảng `900px` phải giữ page không cuộn khi dữ liệu ngắn; với tối đa khoảng `500` item chỉ grid body cuộn và header dính; mobile cho summary stack và table horizontal scroll;
 - không đổi API/DTO, `CanEdit`/`CanCancel`, archive read-only, cancel semantics, create supplement hoặc export roadmap; route ở `IN_IMPLEMENTATION` đến khi build/tests/browser QA đủ empty, populated, URL reload và long-list fixture.
 
 **W1 My Orders single-viewport tabbed implementation evidence — 2026-07-23:**
@@ -752,6 +752,16 @@ Status hợp lệ:
 - browser bounding-box QA xác nhận quantity right edge và UOM center lệch không quá `1.5px`; fixed widths đúng tolerance, item-name column co giãn trên `600px` tại desktop;
 - frontend unit/architecture `149/149`, shell responsive, My Orders responsive/URL/empty, regular edit-history-cancel và fixture 500-line internal-scroll/virtualization đều pass; Release solution build `0 warning / 0 error`;
 - route trở lại `OWNER_REVIEW`; không commit trước visual approval theo gate hiện hành.
+
+**W1 My Orders viewport/performance follow-up — owner feedback 2026-07-23:**
+
+- bỏ internal `RadzenTabs` vì ba summary card đã cùng thực hiện một nhiệm vụ chọn current/supplement/previous; card dùng `radiogroup`/`radio`, mang line-count badge và tiếp tục đồng bộ `orderView`;
+- khóa height/min-height/overflow theo chuỗi RadzenBody → content → primary tab panel → order workspace; story/summary không co, selected panel nhận phần còn lại và chỉ grid body cuộn;
+- empty current/supplement được phép hiện CTA theo đúng backend capability, previous read-only không có CTA;
+- DataGrid body dùng `scrollbar-gutter: stable both-edges` để header/cell giữ cùng trục khi scrollbar xuất hiện;
+- giới hạn global navigation `MutationObserver` chỉ xử lý subtree chứa tab/sidebar host, không quét lại indicator cho row churn của virtualized DataGrid;
+- frontend unit/architecture `149/149`, Release solution build `0 warning / 0 error`; isolated My Orders QA pass responsive/URL/empty, fixture `500` dòng giữ DOM row bounded và document không cuộn, soak `60s` không tăng row/indicator hoặc phát sinh console error;
+- route trở lại `OWNER_REVIEW`; chưa commit theo visual approval gate hiện hành.
 
 **W1 nested sidebar surface follow-up — owner feedback 2026-07-23:**
 
@@ -904,6 +914,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-23 | My Orders viewport and idle performance | Summary cards là selector duy nhất; page khóa theo viewport; empty CTA theo capability; observer navigation bỏ qua DataGrid row churn | Owner phát hiện page scroll, selector lặp và lag sau 1–2 phút | Employee workspace + shared interaction runtime | Remove internal RadzenTabs, propagate flex min-height, stable both-edge gutter, gate MutationObserver by interaction host | `dashboard?tab=0`, shared tab/sidebar indicator runtime | Implemented — OWNER_REVIEW |
 | 2026-07-23 | My Orders shell and column axes | Navigation chrome dùng elevated token trên base content canvas; fixed numeric/UOM axes; bỏ period badge và panel type label | Owner muốn layer shell/content rõ, số liệu thẳng trục và giảm lặp copy mà không đổi workflow | Shared light shell tokens + employee order workspace | Update navigation/Radzen sidebar semantic tokens, grid header flex alignment and conditional order meta | Authenticated shell, `dashboard?tab=0` | Implemented — OWNER_REVIEW |
 | 2026-07-23 | My Orders single-viewport tabs | Ba loại order dùng một reusable grid panel trong RadzenTabs; `orderView` giữ internal selection, grid body fixed-height + virtualized | Owner muốn cùng format, giảm page scroll và chịu được khoảng 500 item; `tab=0` đã thuộc primary Dashboard route | Employee workspace + routing + shared order panel | Tách RenderFragment thành component, summary-to-tab interaction, internal scroll/sticky header, supplement-attempt fallback selector; max-width 1760px giữ content gần shell ở wide screen | `dashboard?tab=0` | Implemented — OWNER_REVIEW |
 | 2026-07-22 | My Orders hierarchy refinement | Giảm dominance của period title, card hóa ba summary, căn giữa max-width, thêm neutral row hover/right-aligned quantity và tách status khỏi action | Owner chỉ ra hierarchy yếu, khoảng trắng wide-screen, table thiếu affordance và command touch target quá dày | Employee workspace + shared embedded grid | CSS/markup refinement không đổi API/DTO/business flags; action vẫn visible thay vì overflow menu | `dashboard?tab=0`, embedded order detail grid | Implemented — OWNER_REVIEW |

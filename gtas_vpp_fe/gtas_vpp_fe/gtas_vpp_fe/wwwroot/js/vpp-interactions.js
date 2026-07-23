@@ -843,17 +843,34 @@
         moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true, true);
     }, true);
 
+    var interactionHostSelector = tabListSelector + ", " + sidebarNavSelector;
+
+    function containsInteractionHost(node) {
+        if (!(node instanceof Element)) {
+            return false;
+        }
+
+        return node.matches(interactionHostSelector)
+            || node.querySelector(interactionHostSelector) !== null;
+    }
+
     var tabTreeObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             mutation.removedNodes.forEach(function (node) {
+                if (!containsInteractionHost(node)) {
+                    return;
+                }
+
                 disposeTabIndicators(node);
                 disposeSidebarIndicators(node);
             });
             mutation.addedNodes.forEach(function (node) {
-                if (node instanceof Element) {
-                    initializeTabIndicators(node);
-                    initializeSidebarIndicators(node);
+                if (!containsInteractionHost(node)) {
+                    return;
                 }
+
+                initializeTabIndicators(node);
+                initializeSidebarIndicators(node);
             });
         });
     });

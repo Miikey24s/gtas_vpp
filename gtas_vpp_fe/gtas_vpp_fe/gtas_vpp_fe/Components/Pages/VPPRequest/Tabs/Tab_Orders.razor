@@ -94,30 +94,42 @@
                     </div>
                 </header>
 
-                <div class="vpp-orders-summary-grid" role="list" aria-label="@Loc["OrderCycleSummary"]">
-                    <article role="listitem" class="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "is-selected" : string.Empty)">
+                <div class="vpp-orders-summary-grid" role="radiogroup" aria-label="@Loc["OrderCycleSummary"]">
+                    <article class="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "is-selected" : string.Empty)">
                         <button type="button"
+                                role="radio"
                                 @onclick="() => SelectOrderViewAsync(CurrentOrderViewIndex)"
-                                aria-pressed="@(OrderViewSelectedIndex == CurrentOrderViewIndex)">
-                            <span>@Loc["CurrentRegularOrder"]</span>
+                                aria-checked="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "true" : "false")">
+                            <span class="vpp-orders-summary-label">
+                                <span>@Loc["CurrentRegularOrder"]</span>
+                                <span class="vpp-orders-summary-count">@CurrentRegularLineCount</span>
+                            </span>
                             <strong>@OrdersStoryTitle</strong>
                             <small>@CurrentOrderSummaryText</small>
                         </button>
                     </article>
-                    <article role="listitem" class="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "is-selected" : string.Empty)">
+                    <article class="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "is-selected" : string.Empty)">
                         <button type="button"
+                                role="radio"
                                 @onclick="() => SelectOrderViewAsync(SupplementOrderViewIndex)"
-                                aria-pressed="@(OrderViewSelectedIndex == SupplementOrderViewIndex)">
-                            <span>@Loc["AdditionalOrders"]</span>
+                                aria-checked="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "true" : "false")">
+                            <span class="vpp-orders-summary-label">
+                                <span>@Loc["AdditionalOrders"]</span>
+                                <span class="vpp-orders-summary-count">@SelectedSupplementLineCount</span>
+                            </span>
                             <strong>@SupplementSummaryTitle</strong>
                             <small>@SupplementSectionDescription</small>
                         </button>
                     </article>
-                    <article role="listitem" class="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "is-selected" : string.Empty)">
+                    <article class="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "is-selected" : string.Empty)">
                         <button type="button"
+                                role="radio"
                                 @onclick="() => SelectOrderViewAsync(PreviousOrderViewIndex)"
-                                aria-pressed="@(OrderViewSelectedIndex == PreviousOrderViewIndex)">
-                            <span>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</span>
+                                aria-checked="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "true" : "false")">
+                            <span class="vpp-orders-summary-label">
+                                <span>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</span>
+                                <span class="vpp-orders-summary-count">@PreviousOrderLineCount</span>
+                            </span>
                             <strong>@PreviousCycleSummaryTitle</strong>
                             <small>@Loc["PreviousCycleReadOnly"]</small>
                         </button>
@@ -125,90 +137,66 @@
                 </div>
             </section>
 
-            <RadzenTabs RenderMode="TabRenderMode.Server"
-                        SelectedIndex="@OrderViewSelectedIndex"
-                        Change="@OrderViewChangedAsync"
-                        class="vpp-orders-view-tabs">
-                <Tabs>
-                    <RadzenTabsItem>
-                        <Template>
-                            <span class="vpp-orders-tab-label">
-                                @Loc["CurrentRegularOrder"]
-                                <span class="vpp-orders-tab-count">@CurrentRegularLineCount</span>
-                            </span>
-                        </Template>
-                        <ChildContent>
-                            <VppOrderWorkspacePanel @key="@CurrentRegularOrder?.Id"
-                                                    TestId="current-order-panel"
-                                                    PanelLabel="@Loc["CurrentRegularOrder"]"
-                                                    Order="@CurrentRegularOrder"
-                                                    SelectedOrderId="@(CurrentRegularOrder?.Id ?? Guid.Empty)"
-                                                    CanEdit="@(CurrentRegularOrder is not null && CanUpdate(CurrentRegularOrder))"
-                                                    CanReplace="@(CurrentRegularOrder is not null && CanReplace(CurrentRegularOrder))"
-                                                    CanCancel="@(CurrentRegularOrder is not null && CanCancel(CurrentRegularOrder))"
-                                                    IsCancelling="@(CurrentRegularOrder is not null && IsCancelling(CurrentRegularOrder.Id))"
-                                                    EmptyIcon="@VppIcons.Orders"
-                                                    EmptyTitle="@Loc["NoCurrentRegularOrders"]"
-                                                    EmptyDescription="@EmptyCurrentOrdersDescription"
-                                                    EditRequested="@GoToEditPage"
-                                                    HistoryRequested="@OpenHistoryAsync"
-                                                    CancelRequested="@CancelOrderAsync"
-                                                    CopyCodeRequested="@CopyToClipboard" />
-                        </ChildContent>
-                    </RadzenTabsItem>
-
-                    <RadzenTabsItem>
-                        <Template>
-                            <span class="vpp-orders-tab-label">
-                                @Loc["AdditionalOrders"]
-                                <span class="vpp-orders-tab-count">@SelectedSupplementLineCount</span>
-                            </span>
-                        </Template>
-                        <ChildContent>
-                            <VppOrderWorkspacePanel @key="@SelectedSupplementOrder?.Id"
-                                                    TestId="supplement-order-panel"
-                                                    PanelLabel="@Loc["AdditionalOrders"]"
-                                                    Order="@SelectedSupplementOrder"
-                                                    AvailableOrders="@CurrentPeriodAdditionalOrders"
-                                                    SelectedOrderId="@(SelectedSupplementOrder?.Id ?? Guid.Empty)"
-                                                    SelectedOrderIdChanged="@SelectSupplementOrderAsync"
-                                                    CanEdit="@(SelectedSupplementOrder is not null && CanUpdate(SelectedSupplementOrder))"
-                                                    CanReplace="@(SelectedSupplementOrder is not null && CanReplace(SelectedSupplementOrder))"
-                                                    CanCancel="@(SelectedSupplementOrder is not null && CanCancel(SelectedSupplementOrder))"
-                                                    IsCancelling="@(SelectedSupplementOrder is not null && IsCancelling(SelectedSupplementOrder.Id))"
-                                                    EmptyIcon="@VppIcons.Supplement"
-                                                    EmptyTitle="@Loc["NoAdditionalOrdersYet"]"
-                                                    EmptyDescription="@SupplementSectionDescription"
-                                                    EditRequested="@GoToEditPage"
-                                                    HistoryRequested="@OpenHistoryAsync"
-                                                    CancelRequested="@CancelOrderAsync"
-                                                    CopyCodeRequested="@CopyToClipboard" />
-                        </ChildContent>
-                    </RadzenTabsItem>
-
-                    <RadzenTabsItem>
-                        <Template>
-                            <span class="vpp-orders-tab-label">
-                                @Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText
-                                <span class="vpp-orders-tab-count">@PreviousOrderLineCount</span>
-                            </span>
-                        </Template>
-                        <ChildContent>
-                            <VppOrderWorkspacePanel @key="@PreviousRegularOrder?.Id"
-                                                    TestId="previous-order-panel"
-                                                    PanelLabel="@($"{Loc["PreviousOrderPeriod"]} · {PreviousOrderPeriodText}")"
-                                                    Order="@PreviousRegularOrder"
-                                                    SelectedOrderId="@(PreviousRegularOrder?.Id ?? Guid.Empty)"
-                                                    ReadOnly="true"
-                                                    EmptyIcon="@VppIcons.History"
-                                                    EmptyTitle="@Loc["NoPreviousOrderYet"]"
-                                                    EmptyDescription="@Loc["NoRegularOrdersFoundPreviousCycle"]"
-                                                    HistoryRequested="@OpenHistoryAsync"
-                                                    CopyCodeRequested="@CopyToClipboard" />
-                        </ChildContent>
-                    </RadzenTabsItem>
-                </Tabs>
-            </RadzenTabs>
+            <div class="vpp-orders-selected-view">
+                @if (OrderViewSelectedIndex == CurrentOrderViewIndex)
+                {
+                    <VppOrderWorkspacePanel @key="@CurrentRegularOrder?.Id"
+                                            TestId="current-order-panel"
+                                            PanelLabel="@Loc["CurrentRegularOrder"]"
+                                            Order="@CurrentRegularOrder"
+                                            SelectedOrderId="@(CurrentRegularOrder?.Id ?? Guid.Empty)"
+                                            CanEdit="@(CurrentRegularOrder is not null && CanUpdate(CurrentRegularOrder))"
+                                            CanReplace="@(CurrentRegularOrder is not null && CanReplace(CurrentRegularOrder))"
+                                            CanCancel="@(CurrentRegularOrder is not null && CanCancel(CurrentRegularOrder))"
+                                            IsCancelling="@(CurrentRegularOrder is not null && IsCancelling(CurrentRegularOrder.Id))"
+                                            EmptyIcon="@VppIcons.Orders"
+                                            EmptyTitle="@Loc["NoCurrentRegularOrders"]"
+                                            EmptyDescription="@EmptyCurrentOrdersDescription"
+                                            EmptyActionText="@(CanCreateRegular ? Loc["CreateOrderThisCycle"].Value : null)"
+                                            EmptyActionClick="@(async () => await GoToCreatePage(false))"
+                                            EditRequested="@GoToEditPage"
+                                            HistoryRequested="@OpenHistoryAsync"
+                                            CancelRequested="@CancelOrderAsync"
+                                            CopyCodeRequested="@CopyToClipboard" />
+                }
+                else if (OrderViewSelectedIndex == SupplementOrderViewIndex)
+                {
+                    <VppOrderWorkspacePanel @key="@SelectedSupplementOrder?.Id"
+                                            TestId="supplement-order-panel"
+                                            PanelLabel="@Loc["AdditionalOrders"]"
+                                            Order="@SelectedSupplementOrder"
+                                            AvailableOrders="@CurrentPeriodAdditionalOrders"
+                                            SelectedOrderId="@(SelectedSupplementOrder?.Id ?? Guid.Empty)"
+                                            SelectedOrderIdChanged="@SelectSupplementOrderAsync"
+                                            CanEdit="@(SelectedSupplementOrder is not null && CanUpdate(SelectedSupplementOrder))"
+                                            CanReplace="@(SelectedSupplementOrder is not null && CanReplace(SelectedSupplementOrder))"
+                                            CanCancel="@(SelectedSupplementOrder is not null && CanCancel(SelectedSupplementOrder))"
+                                            IsCancelling="@(SelectedSupplementOrder is not null && IsCancelling(SelectedSupplementOrder.Id))"
+                                            EmptyIcon="@VppIcons.Supplement"
+                                            EmptyTitle="@Loc["NoAdditionalOrdersYet"]"
+                                            EmptyDescription="@SupplementSectionDescription"
+                                            EmptyActionText="@(CanCreateSupplement ? Loc["RequestAdditional"].Value : null)"
+                                            EmptyActionClick="@(async () => await GoToCreatePage(true))"
+                                            EditRequested="@GoToEditPage"
+                                            HistoryRequested="@OpenHistoryAsync"
+                                            CancelRequested="@CancelOrderAsync"
+                                            CopyCodeRequested="@CopyToClipboard" />
+                }
+                else
+                {
+                    <VppOrderWorkspacePanel @key="@PreviousRegularOrder?.Id"
+                                            TestId="previous-order-panel"
+                                            PanelLabel="@($"{Loc["PreviousOrderPeriod"]} · {PreviousOrderPeriodText}")"
+                                            Order="@PreviousRegularOrder"
+                                            SelectedOrderId="@(PreviousRegularOrder?.Id ?? Guid.Empty)"
+                                            ReadOnly="true"
+                                            EmptyIcon="@VppIcons.History"
+                                            EmptyTitle="@Loc["NoPreviousOrderYet"]"
+                                            EmptyDescription="@Loc["NoRegularOrdersFoundPreviousCycle"]"
+                                            HistoryRequested="@OpenHistoryAsync"
+                                            CopyCodeRequested="@CopyToClipboard" />
+                }
+            </div>
         }
     </div>
 }

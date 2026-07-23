@@ -166,8 +166,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             };
         }
 
-        protected Task OrderViewChangedAsync(int index) => SelectOrderViewAsync(index);
-
         protected Task SelectOrderViewAsync(int index)
         {
             var normalizedIndex = index switch

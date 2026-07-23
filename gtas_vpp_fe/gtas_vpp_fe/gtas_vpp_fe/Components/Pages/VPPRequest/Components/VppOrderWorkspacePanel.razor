@@ -121,6 +121,14 @@
                     <span class="vpp-orders-empty-icon"><VppIcon Name="@EmptyIcon" /></span>
                     <strong>@EmptyTitle</strong>
                     <p>@EmptyDescription</p>
+                    @if (HasEmptyAction)
+                    {
+                        <RadzenButton Text="@EmptyActionText"
+                                      Icon="@VppIcons.Add"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(async _ => await EmptyActionClick.InvokeAsync())"
+                                      data-testid="@($"{TestId}-empty-action")" />
+                    }
                 </div>
             </EmptyTemplate>
             <Columns>
@@ -170,6 +178,8 @@
     [Parameter, EditorRequired] public string EmptyIcon { get; set; } = VppIcons.Orders;
     [Parameter, EditorRequired] public string EmptyTitle { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string EmptyDescription { get; set; } = string.Empty;
+    [Parameter] public string? EmptyActionText { get; set; }
+    [Parameter] public EventCallback EmptyActionClick { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> EditRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> HistoryRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> CancelRequested { get; set; }
@@ -177,6 +187,7 @@
 
     private List<VppRequestDetailResDTO> Items => Order?.Items ?? [];
     private bool HasBusinessNotes => Items.Any(item => GetBusinessNote(item.Description) is not null);
+    private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
     private string OrderPickerId => $"{TestId}-picker";
 
     private Task OnOrderSelectionChanged(object value)
