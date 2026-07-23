@@ -1,32 +1,70 @@
 <script type="module" src="@Assets["Components/Layout/ReconnectModal.razor.js"]"></script>
 
-<dialog id="components-reconnect-modal" data-nosnippet aria-live="assertive" aria-modal="true">
+<dialog id="components-reconnect-modal"
+        data-nosnippet
+        aria-live="assertive"
+        aria-modal="true"
+        aria-label="@Loc["ConnectionStatus"]">
     <div class="components-reconnect-container">
-        <div class="components-rejoining-animation" aria-hidden="true">
-            <div></div>
-            <div></div>
-            <div></div>
+        <div class="components-reconnect-visual" aria-hidden="true">
+            <div class="components-reconnect-spinner components-reconnect-progress-visible"></div>
+
+            <svg class="components-reconnect-symbol components-reconnect-failed-visible"
+                 viewBox="0 0 24 24"
+                 focusable="false"
+                 aria-hidden="true">
+                <path d="M4.8 9.7a11.2 11.2 0 0 1 14.4 0M7.7 12.7a6.8 6.8 0 0 1 8.6 0M10.6 15.7a2.4 2.4 0 0 1 2.8 0M5 5l14 14" />
+            </svg>
+
+            <svg class="components-reconnect-symbol components-pause-visible components-resume-failed-visible"
+                 viewBox="0 0 24 24"
+                 focusable="false"
+                 aria-hidden="true">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M9.5 9v6M14.5 9v6" />
+            </svg>
         </div>
-        <p class="components-reconnect-first-attempt-visible">
-            @Loc["ReconnectingToServer"]
-        </p>
-        <p class="components-reconnect-repeated-attempt-visible">
-            @Loc["ReconnectStillTrying"] <span id="components-seconds-to-next-attempt"></span>s
-        </p>
-        <p class="components-reconnect-failed-visible">
-            @Loc["ConnectionLostCheckNetwork"]
-        </p>
-        <button id="components-reconnect-button" class="components-reconnect-failed-visible">
-            @Loc["RetryConnection"]
-        </button>
-        <p class="components-pause-visible">
-            @Loc["SessionPausedByServer"]
-        </p>
-        <p class="components-resume-failed-visible">
-            @Loc["SessionResumeFailed"]
-        </p>
-        <button id="components-resume-button" class="components-pause-visible components-resume-failed-visible">
-            @Loc["ResumeSession"]
-        </button>
+
+        <section class="components-reconnect-copy components-reconnect-first-attempt-visible">
+            <h2>@Loc["ReconnectTitle"]</h2>
+            <p>@Loc["ReconnectingToServer"]</p>
+        </section>
+
+        <section class="components-reconnect-copy components-reconnect-repeated-attempt-visible">
+            <h2>@Loc["ReconnectRetryingTitle"]</h2>
+            <p>
+                @Loc["ReconnectStillTrying"]
+                <span class="components-reconnect-countdown">
+                    <span id="components-seconds-to-next-attempt"></span>@Loc["SecondsShort"]
+                </span>
+            </p>
+        </section>
+
+        <section class="components-reconnect-copy components-reconnect-failed-visible">
+            <h2>@Loc["ConnectionLostTitle"]</h2>
+            <p>@Loc["ConnectionLostCheckNetwork"]</p>
+        </section>
+
+        <section class="components-reconnect-copy components-pause-visible">
+            <h2>@Loc["SessionPausedTitle"]</h2>
+            <p>@Loc["SessionPausedByServer"]</p>
+        </section>
+
+        <section class="components-reconnect-copy components-resume-failed-visible">
+            <h2>@Loc["SessionResumeFailedTitle"]</h2>
+            <p>@Loc["SessionResumeFailed"]</p>
+        </section>
+
+        <div class="components-reconnect-actions components-reconnect-failed-visible">
+            <button id="components-reconnect-button" type="button">
+                @Loc["RetryConnection"]
+            </button>
+        </div>
+
+        <div class="components-reconnect-actions components-pause-visible components-resume-failed-visible">
+            <button id="components-resume-button" type="button">
+                @Loc["ResumeSession"]
+            </button>
+        </div>
     </div>
 </dialog>

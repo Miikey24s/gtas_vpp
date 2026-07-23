@@ -166,7 +166,7 @@
 }
 
 :root:not(.rz-theme-dark) {
-    --rz-sidebar-background-color: var(--vpp-bg-base);
+    --rz-sidebar-background-color: var(--vpp-navigation-chrome-bg);
     --rz-sidebar-border: 1px solid var(--vpp-border-default);
     --rz-navigation-item-color: var(--vpp-text-secondary);
     --rz-navigation-item-hover-background-color: rgba(14, 165, 233, 0.06);

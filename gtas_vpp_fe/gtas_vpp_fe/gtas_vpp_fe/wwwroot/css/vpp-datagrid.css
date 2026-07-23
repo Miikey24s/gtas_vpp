@@ -259,8 +259,29 @@
 }
 
 .vpp-order-grid .rz-grid-table thead th .rz-column-title {
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
     padding-inline: 0 !important;
+}
+
+.vpp-order-grid .rz-grid-table thead th.rz-text-align-left > div:not(.rz-cell-filter),
+.vpp-wizard-panel-card .rz-grid-table thead th.rz-text-align-left > div:not(.rz-cell-filter) {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.vpp-order-grid .rz-grid-table thead th.rz-text-align-center > div:not(.rz-cell-filter),
+.vpp-wizard-panel-card .rz-grid-table thead th.rz-text-align-center > div:not(.rz-cell-filter) {
+    justify-content: center;
+    text-align: center;
+}
+
+.vpp-order-grid .rz-grid-table thead th.rz-text-align-right > div:not(.rz-cell-filter),
+.vpp-wizard-panel-card .rz-grid-table thead th.rz-text-align-right > div:not(.rz-cell-filter) {
+    justify-content: flex-end;
+    text-align: right;
 }
 
 .vpp-order-grid .rz-grid-table thead th .rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc) {
@@ -319,6 +340,46 @@
     border-bottom-color: var(--vpp-border-default);
     padding: var(--vpp-grid-cell-padding-y) var(--vpp-grid-cell-padding-x) !important;
     vertical-align: middle;
+}
+
+.vpp-order-grid-embedded .rz-grid-table tbody > tr {
+    background: transparent;
+    cursor: default;
+    transition: background-color var(--vpp-transition-fast);
+}
+
+.vpp-order-grid-embedded .rz-grid-table tbody > tr:nth-child(even) {
+    background: color-mix(in srgb, var(--vpp-text-primary) 1.8%, transparent);
+}
+
+.vpp-order-grid-embedded .rz-grid-table tbody > tr:hover {
+    background: color-mix(in srgb, var(--vpp-primary-500) 6%, var(--vpp-bg-elevated));
+}
+
+.vpp-order-grid-scrollable.rz-datatable,
+.vpp-order-grid-scrollable.rz-data-grid {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100% !important;
+    overflow: hidden;
+}
+
+.vpp-order-grid-scrollable .rz-data-grid-data,
+.vpp-order-grid-scrollable .rz-datatable-scrollable-body,
+.vpp-order-grid-scrollable .rz-datatable-tablewrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.vpp-order-grid-scrollable .rz-grid-table thead,
+.vpp-order-grid-scrollable .rz-grid-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 4;
 }
 
 .vpp-order-grid .rz-grid-table th.rz-col-icon,

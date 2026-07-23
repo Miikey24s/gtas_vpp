@@ -336,7 +336,7 @@
 
 /* ── Collapsed Sidebar ───────────────────────────────────────── */
 :root:not(.rz-theme-dark) .vpp-sidebar.sidebar-collapsed {
-    background-color: var(--vpp-bg-base);
+    background-color: var(--vpp-navigation-chrome-bg);
 }
 
 /* Radzen's icon-only PanelMenu can shrink to its glyph content. Keep the
@@ -503,11 +503,21 @@
     --rz-panel-menu-item-2nd-level-padding-block: 0;
     --rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);
     --rz-panel-menu-2nd-level-vertical-offset: 0;
+    --rz-panel-menu-item-background-color: transparent;
+    --rz-panel-menu-item-2nd-level-background-color: transparent;
+    --rz-panel-menu-item-3rd-level-background-color: transparent;
     --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-2nd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
+    --rz-panel-menu-item-3rd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
     --rz-panel-menu-item-active-indicator: transparent;
     background: transparent !important;
     background-color: transparent !important;
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:not(.rz-navigation-item-wrapper-active):not(:hover):not(:has(> .rz-navigation-item-link.active)):not(:has(> .rz-navigation-item-link:focus-visible)) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
 }
 
 /* One Apple-style navigation rhythm: Radzen's expanding rows and both shared

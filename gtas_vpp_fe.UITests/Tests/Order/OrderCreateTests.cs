@@ -34,6 +34,9 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
             var isExpectedNavigationAssetAbort = uri is not null
                 && (uri.AbsolutePath.Contains("/favicon.", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.StartsWith("/_framework/", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Contains("/images/vpp-app-icon.", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Contains("/Components/Layout/ReconnectModal.", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith("/images/login-bg-optimized.jpeg", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
@@ -47,16 +50,48 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
 
         await LoginAsAsync(TestAccounts.Employee);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
-        var orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        var orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await Page.GetByText("Đơn đã gửi", new() { Exact = true }).WaitForAsync();
         await orderCard.Locator(".vpp-order-grid tbody tr").First.WaitForAsync(
             new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var columnGeometry = await orderCard.Locator(".vpp-order-grid").EvaluateAsync<double[]>("""
+            grid => {
+                const headers = [...grid.querySelectorAll('thead th')];
+                const dataRow = [...grid.querySelectorAll('tbody tr')]
+                    .find(row => row.querySelectorAll('td').length >= 4);
+                const cells = [...dataRow.querySelectorAll('td')];
+                const textRect = element => {
+                    const range = document.createRange();
+                    range.selectNodeContents(element);
+                    return range.getBoundingClientRect();
+                };
+                const quantityHeader = textRect(headers[2].querySelector('.rz-column-title'));
+                const quantityCell = textRect(cells[2].querySelector('.rz-cell-data'));
+                const uomHeader = textRect(headers[3].querySelector('.rz-column-title'));
+                const uomCell = textRect(cells[3].querySelector('.rz-cell-data'));
+                const center = rect => rect.left + rect.width / 2;
+                return [
+                    Math.abs(quantityHeader.right - quantityCell.right),
+                    Math.abs(center(uomHeader) - center(uomCell)),
+                    headers[0].getBoundingClientRect().width,
+                    headers[1].getBoundingClientRect().width,
+                    headers[2].getBoundingClientRect().width,
+                    headers[3].getBoundingClientRect().width
+                ];
+            }
+            """);
+        columnGeometry[0].Should().BeLessThanOrEqualTo(1.5, "quantity header and values should share the same right axis");
+        columnGeometry[1].Should().BeLessThanOrEqualTo(1.5, "UOM header and values should share the same center axis");
+        columnGeometry[2].Should().BeApproximately(56, 1, "the row-number column should stay fixed");
+        columnGeometry[4].Should().BeApproximately(120, 1, "the quantity column should stay fixed");
+        columnGeometry[5].Should().BeApproximately(96, 1, "the UOM column should stay fixed");
+        columnGeometry[3].Should().BeGreaterThan(600, "the item-name column should absorb the remaining width");
         (await Page.Locator(".vpp-orders-story-heading p").CountAsync()).Should().Be(0,
             "a submitted order should not repeat navigation or processing guidance below the takeaway");
-        (await Page.Locator(".vpp-orders-evidence article").CountAsync()).Should().Be(4,
-            "the submitted story should keep one balanced row of non-duplicated evidence");
-        await Page.GetByText("Chi tiết đơn", new() { Exact = true }).WaitForAsync();
+        (await Page.Locator(".vpp-orders-summary-grid article").CountAsync()).Should().Be(3,
+            "the submitted story should keep regular, supplement and previous-cycle context visible");
+        await Page.GetByText("Đơn kỳ hiện tại", new() { Exact = true }).Last.WaitForAsync();
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
@@ -90,7 +125,7 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await WaitForUrlMatchAsync(
             new System.Text.RegularExpressions.Regex(".*/dashboard\\?tab=0.*"),
             TimeSpan.FromSeconds(30));
-        orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.GetByRole(AriaRole.Button, new()
         {
             NameRegex = new Regex("^Xem lịch sử phiên bản của đơn ")
@@ -101,7 +136,7 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await historyDialog.GetByText("Cập nhật đơn", new() { Exact = false }).WaitForAsync();
         await historyDialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
 
-        orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.GetByRole(AriaRole.Button, new()
         {
             NameRegex = new Regex("^Hủy đơn ")
@@ -112,7 +147,7 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await Page.GetByText("Đã hủy đơn.", new() { Exact = false })
             .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
-        orderCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.GetByText("Đã hủy", new() { Exact = false }).WaitForAsync();
         await orderCard.GetByRole(AriaRole.Button, new()
         {

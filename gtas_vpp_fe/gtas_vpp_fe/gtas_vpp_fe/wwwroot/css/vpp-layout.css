@@ -142,6 +142,11 @@ leftsidebar {
     transition: width var(--vpp-sidebar-transition);
 }
 
+:root:not(.rz-theme-dark) .vpp-layout-body,
+:root:not(.rz-theme-dark) .rz-layout.vpp-layout > .rz-body.vpp-layout-body {
+    background-color: var(--vpp-bg-base) !important;
+}
+
 .vpp-sidebar-header {
     position: relative;
     display: flex;

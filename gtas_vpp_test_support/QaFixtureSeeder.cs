@@ -14,6 +14,7 @@ namespace gtas_vpp_test_support;
 
 internal static class QaFixtureSeeder
 {
+    private const string LongOrderLineCountEnvironmentVariable = "GTAS_E2E_LONG_ORDER_LINES";
     private const int SeedUserId = 1_000_001_006;
     private static readonly DateTime SeedTimestamp = new(2026, 7, 15, 8, 0, 0, DateTimeKind.Utc);
 
@@ -422,9 +423,64 @@ internal static class QaFixtureSeeder
             detail.UpdatedByUserId = definition.Owner.UserId;
             detail.UpdatedAtUtc = requestTimestamp;
             detail.IsDeleted = false;
+
+            if (definition.Id == QaTestData.OwnRequestId)
+            {
+                await EnsureLongOrderDetailsAsync(
+                    context,
+                    definition,
+                    product.Id,
+                    price,
+                    requestTimestamp,
+                    cancellationToken);
+            }
         }
 
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task EnsureLongOrderDetailsAsync(
+        VPPMigrationDbContext context,
+        RequestDefinition definition,
+        Guid productId,
+        long price,
+        DateTime requestTimestamp,
+        CancellationToken cancellationToken)
+    {
+        var configuredValue = Environment.GetEnvironmentVariable(LongOrderLineCountEnvironmentVariable);
+        if (!int.TryParse(configuredValue, out var requestedLineCount) || requestedLineCount <= 1)
+        {
+            return;
+        }
+
+        var lineCount = Math.Clamp(requestedLineCount, 2, 500);
+        var extraIds = Enumerable.Range(2, lineCount - 1)
+            .Select(index => Guid.Parse($"51000000-0000-0000-0000-{index:X12}"))
+            .ToArray();
+        var existingDetails = await context.RequestDetails
+            .Where(detail => extraIds.Contains(detail.Id))
+            .ToDictionaryAsync(detail => detail.Id, cancellationToken);
+
+        for (var index = 2; index <= lineCount; index++)
+        {
+            var detailId = extraIds[index - 2];
+            if (!existingDetails.TryGetValue(detailId, out var detail))
+            {
+                detail = new VppRequestDetail { Id = detailId };
+                context.RequestDetails.Add(detail);
+            }
+
+            detail.VppId = productId;
+            detail.Qty = index;
+            detail.CurrentSinglePrice = price;
+            detail.RequestId = definition.Id;
+            detail.Description = $"QA long-order line {index:D3}";
+            detail.CreatedByUserId = definition.Owner.UserId;
+            detail.CreatedAtUtc = requestTimestamp;
+            detail.UpdatedByUserId = definition.Owner.UserId;
+            detail.UpdatedAtUtc = requestTimestamp;
+            detail.IsDeleted = false;
+        }
     }
 
     private sealed record RequestDefinition(

@@ -216,7 +216,7 @@
     --vpp-border-strong: rgba(9, 30, 66, 0.14);
     --vpp-navigation-item-hover-bg: rgba(9, 30, 66, 0.075);
     --vpp-navigation-item-active-bg: rgba(9, 30, 66, 0.10);
-    --vpp-navigation-chrome-bg: var(--vpp-bg-base);
+    --vpp-navigation-chrome-bg: var(--vpp-bg-elevated);
 }
 
 /* ── Spacing Scale (4px base) ─────────────────────────────────── */

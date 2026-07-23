@@ -44,6 +44,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
+        [SupplyParameterFromQuery(Name = "orderView")] public string? OrderViewQuery { get; set; }
+
+        protected const int CurrentOrderViewIndex = 0;
+        protected const int SupplementOrderViewIndex = 1;
+        protected const int PreviousOrderViewIndex = 2;
 
         public List<VppRequestResDTO> ActiveOrders { get; set; } = new();
         public List<VppRequestResDTO> PreviousOrders { get; set; } = new();
@@ -54,6 +59,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public VppRequestResDTO? ViewingOrder { get; set; }
         public VppPeriodInfoResDTO? PeriodInfo { get; set; }
         private readonly HashSet<Guid> _cancellingOrderIds = new();
+        private Guid? _selectedSupplementOrderId;
+        protected int OrderViewSelectedIndex { get; set; }
 
         // P1: Period dates are derived from PeriodInfo (BE truth) — never DateTime.Now.
         // Fallback to "current calendar month" only while PeriodInfo is still loading,
@@ -69,22 +76,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public DateTime CurrentDeadlineDate => PeriodInfo?.DeadlineDate
             ?? new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 1).AddMonths(1).AddDays(4);
 
-        public DateTime CurrentPeriodStartDate => PeriodInfo?.StartDate ?? CurrentOrderPeriodDate;
-        public int OrderPeriodProgressPercent
-        {
-            get
-            {
-                var total = (CurrentDeadlineDate - CurrentPeriodStartDate).TotalSeconds;
-                if (total <= 0)
-                {
-                    return 100;
-                }
-
-                var elapsed = (DateTime.Today - CurrentPeriodStartDate.Date).TotalSeconds;
-                return (int)Math.Clamp(Math.Round(elapsed / total * 100), 0, 100);
-            }
-        }
-
         public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
         public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
         public string PreviousOrderPeriodText => DateFormatter.Format(PreviousOrderPeriodDate, DateFormatter.MonthYear);
@@ -93,38 +84,39 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public IReadOnlyList<VppRequestResDTO> CurrentPeriodAdditionalOrders => AdditionalOrders
             .Where(order => order.Year == CurrentOrderPeriodDate.Year && order.Month == CurrentOrderPeriodDate.Month)
             .ToArray();
+        protected VppRequestResDTO? CurrentRegularOrder => ActiveOrders.FirstOrDefault();
+        protected VppRequestResDTO? PreviousRegularOrder => PreviousOrders.FirstOrDefault();
+        protected VppRequestResDTO? SelectedSupplementOrder => CurrentPeriodAdditionalOrders
+            .FirstOrDefault(order => order.Id == _selectedSupplementOrderId)
+            ?? CurrentPeriodAdditionalOrders.FirstOrDefault();
+        protected int CurrentRegularLineCount => GetLineCount(CurrentRegularOrder);
+        protected int SelectedSupplementLineCount => GetLineCount(SelectedSupplementOrder);
+        protected int PreviousOrderLineCount => GetLineCount(PreviousRegularOrder);
         public IEnumerable<VppRequestResDTO> CurrentPeriodOrders => ActiveOrders.Concat(CurrentPeriodAdditionalOrders);
         public int TotalOrders => CurrentPeriodOrders.Count();
-        public int TotalLines => CurrentPeriodOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
-        public string TotalLinesText => TotalLines.ToString();
-        public int TotalQty => CurrentPeriodOrders.Sum(order => order.Items?.Sum(item => item.Qty) ?? order.TotalQty);
-        public string TotalQtyText => TotalQty.ToString();
+        public int RegularTotalLines => ActiveOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
+        public int RegularTotalQty => ActiveOrders.Sum(order => order.Items?.Sum(item => item.Qty) ?? order.TotalQty);
+        public int SupplementTotalLines => CurrentPeriodAdditionalOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
+        public int SupplementTotalQty => CurrentPeriodAdditionalOrders.Sum(order => order.Items?.Sum(item => item.Qty) ?? order.TotalQty);
         public string OrdersStoryTitle => TotalOrders == 0
             ? Loc["OrdersStoryEmptyTitle"].Value
             : Loc["OrdersStoryActiveTitle"].Value;
-        public string CurrentOrdersSectionTitle => ActiveOrders.Count == 0
-            ? Loc["RegularOrdersCurrentPeriod"].Value
-            : Loc["CurrentOrderDetails"].Value;
-        public DateTime? LatestSubmittedAt => CurrentPeriodOrders
-            .Where(order => order.SubmittedDate.HasValue)
-            .Select(order => order.SubmittedDate)
-            .OrderByDescending(date => date)
-            .FirstOrDefault();
-        public VppRequestDetailResDTO? TopRequestedItem => CurrentPeriodOrders
-            .SelectMany(order => order.Items ?? Enumerable.Empty<VppRequestDetailResDTO>())
-            .OrderByDescending(item => item.Qty)
-            .ThenBy(item => item.VppName)
-            .FirstOrDefault();
-        public string LatestSubmittedTimeText => DateFormatter.Format(LatestSubmittedAt, DateFormatter.TimeOnly);
-        public string LatestSubmittedDateText => LatestSubmittedAt.HasValue
-            ? string.Format(Loc["LatestSubmissionDateFormat"].Value, DateFormatter.Format(LatestSubmittedAt, DateFormatter.ShortDate))
-            : Loc["NoData"].Value;
-        public string TopRequestedQuantityText => TopRequestedItem is null
-            ? "-"
-            : $"{TopRequestedItem.Qty} {TopRequestedItem.UomName}".Trim();
-        public string TopRequestedItemText => TopRequestedItem is null
-            ? Loc["NoData"].Value
-            : string.Format(Loc["MostRequestedItemFormat"].Value, TopRequestedItem.VppName);
+        public string CurrentOrderSummaryText => ActiveOrders.Count == 0
+            ? Loc["NoOrdersSubmittedCurrentPeriod"].Value
+            : string.Format(Loc["OrderItemsSummaryFormat"].Value, RegularTotalLines, RegularTotalQty);
+        public string SupplementSummaryTitle => CurrentPeriodAdditionalOrders.Count == 0
+            ? Loc["NoAdditionalOrdersYet"].Value
+            : string.Format(Loc["PreviousOrderCountFormat"].Value, CurrentPeriodAdditionalOrders.Count);
+        public string SupplementSectionDescription => CurrentPeriodAdditionalOrders.Count > 0
+            ? string.Format(Loc["OrderItemsSummaryFormat"].Value, SupplementTotalLines, SupplementTotalQty)
+            : CanCreateSupplement
+                ? Loc["SupplementAvailableDescription"].Value
+                : Loc["SupplementUnavailable"].Value;
+        public string PreviousCycleSummaryTitle => PreviousOrders.Count == 0
+            ? Loc["NoPreviousOrderYet"].Value
+            : string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count);
+        public string PdfExportText => $"{Loc["Pdf"].Value} · {Loc["ComingSoon"].Value}";
+        public string ExcelExportText => $"{Loc["Excel"].Value} · {Loc["ComingSoon"].Value}";
         public string OrdersStoryDescription
         {
             get
@@ -149,24 +141,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     : string.Format(Loc["OrdersStoryOpenDescriptionFormat"].Value, RemainingDeadlineDays, CurrentDeadlineText);
             }
         }
-        public string SubmissionStateText => PeriodInfo switch
-        {
-            null => Loc["StatusUnknown"].Value,
-            { IsSubmissionOpen: true, IsDeadlinePassed: false } => Loc["OrderPeriodOpen"].Value,
-            _ => Loc["OrderPeriodClosed"].Value
-        };
-        public string SubmissionStateCss => PeriodInfo switch
-        {
-            null => "is-unknown",
-            { IsSubmissionOpen: true, IsDeadlinePassed: false } => "is-open",
-            _ => "is-closed"
-        };
-        public string SubmissionStateIcon => PeriodInfo switch
-        {
-            null => VppIcons.Info,
-            { IsSubmissionOpen: true, IsDeadlinePassed: false } => VppIcons.Approved,
-            _ => VppIcons.Warning
-        };
         public string EmptyCurrentOrdersDescription => CanCreateRegular
             ? Loc["NoCurrentRegularOrdersNextStep"].Value
             : Loc["NoOrdersSubmittedCurrentPeriod"].Value;
@@ -180,7 +154,57 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool HasAvailableStoryAction => CanCreateRegular || CanCopyPrevious || ShowSupplementAction;
         private string SupplementActionHint => CanCreateSupplement
             ? Loc["RequestAdditional"].Value
-            : PeriodInfo?.CanCreateAdditionalReason ?? Loc["SupplementUnavailable"].Value;
+            : Loc["SupplementUnavailable"].Value;
+
+        protected override void OnParametersSet()
+        {
+            OrderViewSelectedIndex = OrderViewQuery?.Trim().ToLowerInvariant() switch
+            {
+                "supplement" => SupplementOrderViewIndex,
+                "previous" => PreviousOrderViewIndex,
+                _ => CurrentOrderViewIndex
+            };
+        }
+
+        protected Task OrderViewChangedAsync(int index) => SelectOrderViewAsync(index);
+
+        protected Task SelectOrderViewAsync(int index)
+        {
+            var normalizedIndex = index switch
+            {
+                SupplementOrderViewIndex => SupplementOrderViewIndex,
+                PreviousOrderViewIndex => PreviousOrderViewIndex,
+                _ => CurrentOrderViewIndex
+            };
+            var queryValue = normalizedIndex switch
+            {
+                SupplementOrderViewIndex => "supplement",
+                PreviousOrderViewIndex => "previous",
+                _ => "current"
+            };
+
+            OrderViewSelectedIndex = normalizedIndex;
+            if (!string.Equals(OrderViewQuery, queryValue, StringComparison.OrdinalIgnoreCase))
+            {
+                var uri = NavigationManager.GetUriWithQueryParameter("orderView", queryValue);
+                NavigationManager.NavigateTo(uri, replace: true);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected Task SelectSupplementOrderAsync(Guid orderId)
+        {
+            if (CurrentPeriodAdditionalOrders.Any(order => order.Id == orderId))
+            {
+                _selectedSupplementOrderId = orderId;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private static int GetLineCount(VppRequestResDTO? order)
+            => order?.Items?.Count ?? order?.TotalLines ?? 0;
 
         private static string? GetBusinessNote(string? description)
         {
@@ -248,6 +272,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == CurrentOrderPeriodDate.Year && x.Month == CurrentOrderPeriodDate.Month).ToList();
                 PreviousOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == PreviousOrderPeriodDate.Year && x.Month == PreviousOrderPeriodDate.Month).ToList();
                 AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdatedAtUtc).ToList();
+
+                if (CurrentPeriodAdditionalOrders.All(order => order.Id != _selectedSupplementOrderId))
+                {
+                    _selectedSupplementOrderId = CurrentPeriodAdditionalOrders.FirstOrDefault()?.Id;
+                }
             }
             catch (Exception ex)
             {

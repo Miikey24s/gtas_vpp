@@ -1,0 +1,216 @@
+@using gtas_vpp_shared.DTOs.Res.VPP
+
+<section class="vpp-order-view-panel" data-testid="@TestId" aria-label="@PanelLabel">
+    @if (Order is not null)
+    {
+    <header class="vpp-order-view-meta">
+        <div class="vpp-order-view-identity">
+            <div class="vpp-data-card-value-row vpp-order-code-cell">
+                    <span class="vpp-data-card-value vpp-link-text vpp-order-code-link vpp-order-code-trigger"
+                          role="button"
+                          tabindex="0"
+                          aria-haspopup="dialog"
+                          aria-expanded="false"
+                          title="@Order.VppCode">
+                        @GetShortCode(Order)
+                    </span>
+                    <div class="vpp-order-code-popover">
+                        <span class="vpp-order-code-popover-text">@Order.VppCode</span>
+                        <RadzenButton Icon="@VppIcons.Copy"
+                                      Size="ButtonSize.ExtraSmall"
+                                      Variant="Variant.Text"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Click="@(async _ => await CopyCodeRequested.InvokeAsync(Order.VppCode))"
+                                      Title="@Loc["Copy"]" />
+                    </div>
+                    @if (Order.IsAdditionalOrder)
+                    {
+                        <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                    }
+            </div>
+            <span class="vpp-order-card-submitted">
+                @string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(Order.SubmittedDate, DateFormatter.LongDate))
+            </span>
+        </div>
+
+        @if (AvailableOrders.Count > 1)
+        {
+            <div class="vpp-order-attempt-picker">
+                <label for="@OrderPickerId">@Loc["AdditionalOrder"]</label>
+                <RadzenDropDown TValue="Guid"
+                                id="@OrderPickerId"
+                                Data="@AvailableOrders"
+                                TextProperty="VppCode"
+                                ValueProperty="Id"
+                                Value="@SelectedOrderId"
+                                Change="@OnOrderSelectionChanged"
+                                aria-label="@Loc["AdditionalOrder"]" />
+            </div>
+        }
+
+        <div class="vpp-order-card-toolbar">
+                <div class="vpp-order-card-statuses">
+                    <span class="vpp-badge @StatusDisplay.GetCssClass(Order.Status)">
+                        @Loc[StatusDisplay.GetResourceKey(Order.Status, Order.IsDeadlinePassed, Order.IsAdditionalOrder)]
+                    </span>
+                    @if (Order.SettledAt.HasValue)
+                    {
+                        <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(Order.SettledAt, DateFormatter.LongDate)} - {Order.SettledByPriceListName}")">
+                            @Loc["Settled"]
+                        </span>
+                    }
+                    @if (ReadOnly)
+                    {
+                        <span class="vpp-order-read-only"><VppIcon Name="@VppIcons.Lock" /> @Loc["ReadOnly"]</span>
+                    }
+                </div>
+
+                <div class="vpp-data-card-actions">
+                    @if (!ReadOnly && (CanEdit || CanReplace))
+                    {
+                        <RadzenButton Icon="@(CanReplace ? "restart_alt" : "edit")"
+                                      Text="@(CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await EditRequested.InvokeAsync(Order))"
+                                      Title="@(CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
+                                      aria-label="@string.Format(CanReplace ? Loc["ReplaceOrderAria"] : Loc["EditOrderAria"], Order.VppCode)" />
+                    }
+                    <RadzenButton Icon="@VppIcons.History"
+                                  Text="@Loc["History"]"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Base"
+                                  Variant="Variant.Text"
+                                  Click="@(async _ => await HistoryRequested.InvokeAsync(Order))"
+                                  Title="@Loc["ViewRequestHistory"]"
+                                  aria-label="@string.Format(Loc["ViewRequestHistoryAria"], Order.VppCode)" />
+                    @if (!ReadOnly && CanCancel)
+                    {
+                        <RadzenButton Icon="@VppIcons.Rejected"
+                                      Text="@Loc["Cancel"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await CancelRequested.InvokeAsync(Order))"
+                                      Title="@Loc["Cancel"]"
+                                      aria-label="@string.Format(Loc["CancelOrderAria"], Order.VppCode)"
+                                      Disabled="@IsCancelling"
+                                      IsBusy="@IsCancelling" />
+                    }
+                </div>
+        </div>
+    </header>
+    }
+
+    <div class="vpp-order-view-grid-frame">
+        <RadzenDataGrid TItem="VppRequestDetailResDTO"
+                        Data="@Items"
+                        AllowPaging="false"
+                        AllowVirtualization="true"
+                        VirtualizationOverscanCount="10"
+                        AllowFiltering="false"
+                        AllowSorting="false"
+                        AllowAlternatingRows="true"
+                        Density="Density.Compact"
+                        GridLines="DataGridGridLines.Horizontal"
+                        Style="height: 100%;"
+                        class="vpp-order-grid vpp-order-grid-embedded vpp-order-grid-scrollable">
+            <EmptyTemplate>
+                <div class="vpp-order-grid-empty">
+                    <span class="vpp-orders-empty-icon"><VppIcon Name="@EmptyIcon" /></span>
+                    <strong>@EmptyTitle</strong>
+                    <p>@EmptyDescription</p>
+                </div>
+            </EmptyTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Title="#" Width="56px" TextAlign="TextAlign.Center">
+                    <Template Context="item">@(Items.IndexOf(item) + 1)</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
+                    <Template Context="item">
+                        <div class="vpp-order-product-cell">
+                            <strong>@item.VppName</strong>
+                            @if (!string.IsNullOrWhiteSpace(item.VppCode))
+                            {
+                                <small>@item.VppCode</small>
+                            }
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="120px" TextAlign="TextAlign.Right" />
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="UomName" Title="@Loc["UOM"]" Width="96px" TextAlign="TextAlign.Center" />
+
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="220px" TextAlign="TextAlign.Left" Visible="@HasBusinessNotes">
+                    <Template Context="item">
+                        <div class="vpp-order-note" title="@GetBusinessNote(item.Description)">
+                            @GetBusinessNote(item.Description)
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string TestId { get; set; } = "order-view-panel";
+    [Parameter, EditorRequired] public string PanelLabel { get; set; } = string.Empty;
+    [Parameter] public VppRequestResDTO? Order { get; set; }
+    [Parameter] public IReadOnlyList<VppRequestResDTO> AvailableOrders { get; set; } = Array.Empty<VppRequestResDTO>();
+    [Parameter] public Guid SelectedOrderId { get; set; }
+    [Parameter] public EventCallback<Guid> SelectedOrderIdChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public bool CanEdit { get; set; }
+    [Parameter] public bool CanReplace { get; set; }
+    [Parameter] public bool CanCancel { get; set; }
+    [Parameter] public bool IsCancelling { get; set; }
+    [Parameter, EditorRequired] public string EmptyIcon { get; set; } = VppIcons.Orders;
+    [Parameter, EditorRequired] public string EmptyTitle { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string EmptyDescription { get; set; } = string.Empty;
+    [Parameter] public EventCallback<VppRequestResDTO> EditRequested { get; set; }
+    [Parameter] public EventCallback<VppRequestResDTO> HistoryRequested { get; set; }
+    [Parameter] public EventCallback<VppRequestResDTO> CancelRequested { get; set; }
+    [Parameter] public EventCallback<string?> CopyCodeRequested { get; set; }
+
+    private List<VppRequestDetailResDTO> Items => Order?.Items ?? [];
+    private bool HasBusinessNotes => Items.Any(item => GetBusinessNote(item.Description) is not null);
+    private string OrderPickerId => $"{TestId}-picker";
+
+    private Task OnOrderSelectionChanged(object value)
+        => value is Guid id ? SelectedOrderIdChanged.InvokeAsync(id) : Task.CompletedTask;
+
+    private static string? GetBusinessNote(string? description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return null;
+        }
+
+        var value = description.Trim();
+        return value.StartsWith("Demo quantity inferred", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("Normalized from", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("QA-", StringComparison.OrdinalIgnoreCase)
+                ? null
+                : value;
+    }
+
+    private static string GetShortCode(VppRequestResDTO order)
+    {
+        var code = order.VppCode;
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return string.Empty;
+        }
+
+        var parts = code.Split('-');
+        if (parts.Length < 2)
+        {
+            return code;
+        }
+
+        return order.IsAdditionalOrder ? $"{parts[0]}-ADD-{parts[1]}" : $"{parts[0]}-{parts[1]}";
+    }
+}

@@ -96,7 +96,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                     const main = document.querySelector('#main-content');
                     const nav = document.querySelector('nav[aria-label]');
                     const menu = document.querySelector('.user-menu-trigger');
-                    const brand = document.querySelector('.vpp-brand-lockup');
+                    const brand = document.querySelector('.vpp-sidebar-expanded-brand');
                     const visibleButtons = [...document.querySelectorAll('button')].filter(visible);
                     const unlabeledButtons = visibleButtons.filter(button =>
                         !button.getAttribute('aria-label')
@@ -115,10 +115,11 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 """);
 
                 audit[0].Should().Be(0, $"{route} must not overflow at {viewport.Width}px");
-                audit[1].Should().Be(0, "the content landmark should be semantic");
-                audit[2].Should().Be(0, "primary navigation should have an accessible name");
-                audit[3].Should().Be(0, "the account summary trigger should expose its dialog popup semantics");
-                audit[4].Should().Be(0, "the shell should display the independent GTAS VPP brand");
+                audit[1].Should().Be(0, $"the content landmark should be semantic on {route} at {viewport.Width}px");
+                audit[2].Should().Be(0, $"primary navigation should have an accessible name on {route} at {viewport.Width}px");
+                audit[3].Should().Be(0, $"the account summary trigger should expose its dialog popup semantics on {route} at {viewport.Width}px");
+                audit[4].Should().Be(0,
+                    $"the shell should display the independent GTAS VPP brand on {route} at {viewport.Width}px");
                 audit[5].Should().Be(0, "the legacy PPJ logo must not be visible in the shell");
                 audit[6].Should().Be(0, $"icon-only buttons on {route} need accessible names");
 

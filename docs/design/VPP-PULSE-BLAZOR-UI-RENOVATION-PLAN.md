@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `2.03` — 2026-07-22
+> **Phiên bản:** `2.07` — 2026-07-23
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -456,7 +456,7 @@ Status hợp lệ:
 | `/logoutprocess` | APPROVED | Safe clear + redirect login; branded progress shell |
 | `/Error` | PENDING | Safe message + correlation + retry |
 | `/not-found` | PENDING | Return to valid workspace |
-| Shell/notification/reconnect | PENDING | Context preservation, action inbox |
+| Shell/notification/reconnect | OWNER_REVIEW | Reconnect giữ circuit behavior chuẩn Blazor; Apple-inspired status/alert đã qua isolated responsive QA |
 
 **W0.2 round-2 evidence — 2026-07-19:**
 
@@ -504,7 +504,7 @@ Status hợp lệ:
 
 | Logical route | Status | Notes |
 |---|---|---|
-| `dashboard.my-orders` | OWNER_REVIEW | Round 6 restored: Radzen shell/tab, compact command center, four evidence points and one previous-period archive |
+| `dashboard.my-orders` | OWNER_REVIEW | Nested PanelMenu surfaces now inherit semantic navigation chrome; My Orders shell/grid refinement remains verified |
 | `dashboard.history` | PENDING | Timeline/revision/detail |
 | `dashboard.catalog` | PENDING | Browse/search/read-only detail |
 | `dashboard.order-create.new` | PENDING | Select → review → submit |
@@ -678,6 +678,112 @@ Status hợp lệ:
 - Release solution build pass `0 warning / 0 error`; frontend tests `144/144`, backend tests `410/410`; isolated My Orders + header/user-menu browser QA pass `2/2` và không overflow trên bốn viewport;
 - route trở lại `OWNER_REVIEW`; evidence local mới nằm ngoài repository tại `%TEMP%\\gtas-vpp-w1-round8`.
 
+**W1 My Orders Apple order-workspace direction — 2026-07-22:**
+
+- owner yêu cầu thử lại My Orders với Apple Store Order Status/Order Details làm nguồn tham khảo chính, nhưng nghiệp vụ/API hiện hành vẫn thắng visual reference;
+- data story phải làm rõ theo thứ tự: kỳ đặt hiện tại → đơn chính đã đặt → đơn bổ sung → đơn kỳ trước → action theo từng order;
+- `xóa` trong ngôn ngữ người dùng được triển khai bằng nghiệp vụ **hủy đơn** hiện có, không hard-delete; edit/cancel tiếp tục bị khóa bởi `CanEdit`/`CanCancel` từ backend theo status, deadline, current revision và settlement;
+- đơn kỳ trước là read-only ở UI và chỉ còn action xem lịch sử, kể cả khi dữ liệu response bất thường; không tạo edit/cancel cho archive;
+- My Orders chưa có endpoint/module export PDF hoặc Excel riêng. Lượt này chỉ hiển thị hai action disabled có nhãn `Sắp có` / `Coming soon`, không tạo nút giả hoặc thay đổi backend ngoài scope;
+- visual chuyển từ command-center nhiều KPI sang order workspace nhẹ: current-cycle header, ba summary cells có ý nghĩa, section order chính/bổ sung/kỳ trước và detail table dùng RadzenDataGrid hiện có;
+- route ở `IN_IMPLEMENTATION`; sau thay đổi phải chạy frontend tests, Release build và browser QA responsive trước khi trả lại `OWNER_REVIEW`.
+
+**W1 My Orders Apple order-workspace implementation evidence — 2026-07-22:**
+
+- current cycle trở thành time anchor duy nhất; status/deadline nằm cùng context và ba summary cell tách rõ đơn chính, đơn bổ sung và archive kỳ trước;
+- section đơn chính và bổ sung luôn hiện, kể cả empty; action sửa/lịch sử/hủy có text label, còn archive cưỡng chế `isArchive` để không render edit/cancel;
+- PDF và Excel hiển thị bằng native disabled button + `VppIcon`, có `Sắp có`/`Coming soon`; chưa gọi API hoặc tạo export giả;
+- bỏ progress rail và bốn KPI template; detail table tiếp tục dùng RadzenDataGrid compact/horizontal separators theo pattern đã tra Radzen MCP;
+- `dotnet build gtas_vpp.sln -c Release --no-restore` pass `0 warning / 0 error`; frontend unit/architecture tests `148/148` pass;
+- isolated responsive My Orders visual test pass ở `390×844`, `768×1024`, `1366×768`, `1920×1080`; isolated regular lifecycle create/edit/history/cancel test pass và screenshot submitted nằm ngoài repository tại `%TEMP%\\gtas-vpp-myorders-apple-final`;
+- route chuyển về `OWNER_REVIEW`; chưa tạo golden baseline hoặc commit cho đến khi owner duyệt runtime.
+
+**W1 My Orders hierarchy and interaction refinement — owner feedback 2026-07-22:**
+
+- hierarchy hiện tại chưa phân bậc đủ rõ giữa kỳ hiện tại, section title, order identity và metadata; chuẩn hóa lại title scale thay vì chỉ tăng độ đậm;
+- workspace trên màn hình rộng phải có `max-width` và căn giữa; ba summary item chuyển thành card riêng có border/surface nhẹ để không rời rạc;
+- embedded item grid giữ row không-clickable theo nghiệp vụ, nhưng phải có separator, zebra/hover trung tính và cột số lượng căn phải để quét số nhanh;
+- status và order commands tách thành hai nhóm; action tăng spacing/min-height thay vì đưa vào overflow menu vì mỗi order chỉ có tối đa ba lệnh quan trọng;
+- current/supplement/previous empty state giữ icon nhẹ với surface rõ hơn; text phụ và export disabled tăng tương phản nhưng vẫn truyền đạt đúng trạng thái unavailable;
+- không thay đổi `CanEdit`/`CanCancel`, archive read-only, cancel semantics hoặc export roadmap; route trở lại `IN_IMPLEMENTATION` cho đến khi Release build, tests và isolated responsive QA pass.
+
+**W1 My Orders hierarchy and interaction implementation evidence — 2026-07-22:**
+
+- workspace giới hạn `1440px` và căn giữa content region; period title giảm dominance, section title/order kind/metadata dùng scale riêng;
+- ba summary item trở thành card có border/surface nhẹ và responsive stack; secondary copy cùng disabled export tăng contrast nhưng vẫn phân biệt unavailable;
+- item-name column nhận phần rộng còn lại, quantity chuyển `TextAlign.Right`; embedded grid có separator, subtle zebra và neutral hover với cursor mặc định để không giả vờ row-click;
+- order status/read-only tách khỏi command group; edit/history/cancel giữ visible, tăng gap và min-height `38px`, riêng coarse pointer đạt `44px`;
+- current/supplement/previous empty presentation đều giữ icon context; supplement icon có colored surface thay cho glyph rời;
+- `dotnet build gtas_vpp.sln -c Release --no-restore` pass `0 warning / 0 error`; frontend unit/architecture tests `149/149` pass;
+- isolated responsive My Orders test pass ở `390×844`, `768×1024`, `1366×768`, `1920×1080`; isolated regular lifecycle có data create/edit/history/cancel pass; evidence nằm ngoài repository tại `%TEMP%\\gtas-vpp-myorders-hierarchy`;
+- route trở lại `OWNER_REVIEW`; chưa commit cho đến khi owner duyệt visual runtime.
+
+**W1 My Orders single-viewport tabbed workspace — owner direction 2026-07-23:**
+
+- owner chốt thay ba section dọc bằng một vùng nội dung dùng chung: compressed period header + three summary cards + internal order tabs + one internally scrollable table panel;
+- implementation tiếp tục ở Blazor/Radzen authority; chữ `React` trong prompt là context sai với project boundary hiện hành và không mở lại `gtas_vpp_fe_react`;
+- query `tab=0` tiếp tục sở hữu primary Dashboard tab. Internal selection dùng query riêng `orderView=current|supplement|previous` để reload/share không phá route cấp trang;
+- regular current/previous order là duy nhất theo `UX_Requests_OneRegularPerUserPeriod`; supplement không tuyệt đối duy nhất vì backend cho phép nhiều attempt rejected/cancelled trước quota approved, nên normal state vẫn một order nhưng UI phải có compact selector fallback nếu API trả nhiều attempt;
+- tách order table/meta/actions/empty state thành component dùng chung; summary cards đổi tab, RadzenTabs giữ accessibility và horizontal scroll, RadzenDataGrid bỏ paging 10 dòng để dùng fixed-height virtualization;
+- desktop khoảng `900px` phải giữ page không cuộn khi dữ liệu ngắn; với tối đa khoảng `500` item chỉ grid body cuộn và header dính; mobile cho summary stack, tab horizontal scroll và table horizontal scroll;
+- không đổi API/DTO, `CanEdit`/`CanCancel`, archive read-only, cancel semantics, create supplement hoặc export roadmap; route ở `IN_IMPLEMENTATION` đến khi build/tests/browser QA đủ empty, populated, URL reload và long-list fixture.
+
+**W1 My Orders single-viewport tabbed implementation evidence — 2026-07-23:**
+
+- ba loại order render qua `VppOrderWorkspacePanel`; summary card và `RadzenTabs` đồng bộ `orderView=current|supplement|previous`, reload giữ đúng view và supplement có selector fallback khi nhiều attempt;
+- `RadzenDataGrid` dùng fixed-height body, sticky column header, `AllowVirtualization=true`, overscan `10`; empty state giữ cùng table frame và archive cưỡng chế read-only;
+- workspace nới giới hạn từ `1440px` lên `1760px`: vẫn centered/bounded nhưng không tạo gutter lớn làm content trông tách khỏi sidebar ở màn 1920px; shell geometry test xác nhận logo, icon và avatar không lệch ở expanded/collapsed;
+- fixture opt-in `GTAS_E2E_LONG_ORDER_LINES=500` chứng minh đủ 500 dòng, DOM row count vẫn bounded, chỉ grid body cuộn và document không phát sinh vertical scroll;
+- frontend unit/architecture `149/149` pass; isolated browser QA pass cho responsive/URL/empty, shell responsive + navigation geometry, regular edit-history-cancel và supplement create-approve-reject;
+- route chuyển `OWNER_REVIEW`; PDF/Excel tiếp tục disabled `Sắp có` vì chưa có module export thật và chưa commit cho đến khi owner duyệt runtime.
+
+**W1 My Orders shell/column refinement — owner feedback 2026-07-23:**
+
+- số thứ tự, số lượng và ĐVT phải có fixed width; `Số lượng` dùng right axis, `ĐVT` dùng center axis nhất quán cho cả header/cell, còn `Tên mặt hàng` nhận phần rộng còn lại;
+- light-mode shell giữ sidebar/top header trên semantic elevated surface, content canvas dùng semantic base surface, card và table tiếp tục elevated để tạo layer rõ thay vì trắng-trên-trắng;
+- bỏ trạng thái `Kỳ đang mở`, chỉ giữ deadline; bỏ order-type heading lặp trong grid meta vì summary card và tab đã định danh view;
+- giữ nguyên URL-synced tabs, internal scroll + sticky header + virtualization 500 dòng, action edit/history/cancel, create supplement và primary `?tab=0` route; route trở lại `IN_IMPLEMENTATION` đến khi browser geometry/long-list regression pass.
+
+**W1 My Orders shell/column refinement implementation evidence — 2026-07-23:**
+
+- DataGrid khóa `#=56px`, `Số lượng=120px/right`, `ĐVT=96px/center`; item-name column không đặt width và hấp thụ phần còn lại; header title nhận full-width flex contract để cùng trục text với cell;
+- light navigation chrome dùng `--vpp-bg-elevated` qua shared/Radzen sidebar token; `.vpp-layout-body` dùng `--vpp-bg-base`, story/summary/order-grid tiếp tục dùng elevated surface;
+- period-open badge và order-type label trong panel meta đã bỏ; empty view không render meta header, chỉ còn một empty state trong table frame;
+- browser bounding-box QA xác nhận quantity right edge và UOM center lệch không quá `1.5px`; fixed widths đúng tolerance, item-name column co giãn trên `600px` tại desktop;
+- frontend unit/architecture `149/149`, shell responsive, My Orders responsive/URL/empty, regular edit-history-cancel và fixture 500-line internal-scroll/virtualization đều pass; Release solution build `0 warning / 0 error`;
+- route trở lại `OWNER_REVIEW`; không commit trước visual approval theo gate hiện hành.
+
+**W1 nested sidebar surface follow-up — owner feedback 2026-07-23:**
+
+- owner phát hiện sidebar container đã trắng nhưng child/grandchild rows vẫn dùng nền xám cũ;
+- nguyên nhân là Radzen PanelMenu dùng token nền riêng cho level 1/2/3, trong khi lượt trước chỉ đổi navigation chrome và active tokens;
+- override cả ba idle background token về transparent, thêm third-level active token và reset explicit idle wrapper; giữ nguyên hover/active tint, hierarchy indent, shared indicator và motion;
+- route tạm trở lại `IN_IMPLEMENTATION` đến khi architecture + expanded nested-menu browser QA pass.
+
+**W1 nested sidebar surface implementation evidence — 2026-07-23:**
+
+- `.vpp-sidebar .rz-panel-menu` đặt default background token của level 1/2/3 về `transparent`; wrapper idle explicit reset transparent, third-level active vẫn dùng shared active tint;
+- shell palette không hard-code literal: content dùng `--vpp-bg-base`, navigation chrome/card dùng `--vpp-bg-elevated` thông qua `--vpp-navigation-chrome-bg` và Radzen sidebar token;
+- architecture `149/149` pass; isolated expanded-sidebar regression xác nhận toàn bộ inactive child/grandchild wrapper có computed background `rgba(0, 0, 0, 0)` và geometry/indicator/motion vẫn pass;
+- route trở lại `OWNER_REVIEW`; giữ gate chưa commit trước visual approval.
+
+**W1 shared reconnect direction — 2026-07-22:**
+
+- owner yêu cầu thiết kế lại reconnect theo Apple HIG nhưng không thay đổi global `InteractiveServer` hoặc cơ chế circuit reconnect hiện hành;
+- trạng thái tự khôi phục dùng spinner nhỏ, copy ngắn và không có action; chỉ khi `failed`, `paused` hoặc `resume-failed` mới hiển thị nút hành động;
+- bỏ ripple trang trí và backdrop blur nặng; alert giữ title cụ thể, informative text ngắn, một primary action và touch target tối thiểu `44px`;
+- giữ đầy đủ state contract chính thức của Blazor: `show`, `retrying`, `failed`, `rejected`, `paused`, `resume-failed`, `hide`; `rejected` tiếp tục reload vì circuit cũ không còn khả dụng;
+- bổ sung VI/EN, dark mode, focus-visible, forced-colors và reduced-motion; route/state ở `IN_IMPLEMENTATION` cho đến khi build, frontend tests và isolated browser QA hoàn tất.
+
+**W1 shared reconnect implementation evidence — 2026-07-22:**
+
+- markup tách rõ automatic reconnect, retry countdown, connection failed, paused và resume-failed; failed/paused có đúng một primary action, rejected vẫn reload theo contract Blazor;
+- alert dùng compact surface, neutral scrim, spinner/icon theo state, copy VI/EN ngắn và không còn ripple; dialog focus ring mặc định được bỏ nhưng button giữ `focus-visible` rõ;
+- accessibility gồm `aria-live`, `aria-busy`, action focus khi cần, touch target `44px`, reduced-motion, forced-colors và responsive width;
+- `dotnet build gtas_vpp.sln -c Release --no-restore` pass `0 warning / 0 error`; frontend unit/architecture tests `149/149` pass;
+- isolated `ReconnectModalVisualTests` pass đủ năm state ở `390×844` và `1366×768`, không overflow và không render action ở automatic retry; evidence nằm ngoài repository tại `%TEMP%\\gtas-vpp-reconnect-apple`;
+- shared state chuyển về `OWNER_REVIEW`; chưa commit cho đến khi owner duyệt runtime cùng W1 My Orders.
+
 ### W3 — Management
 
 | Logical route/state | Status | Notes |
@@ -798,10 +904,15 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-23 | My Orders shell and column axes | Navigation chrome dùng elevated token trên base content canvas; fixed numeric/UOM axes; bỏ period badge và panel type label | Owner muốn layer shell/content rõ, số liệu thẳng trục và giảm lặp copy mà không đổi workflow | Shared light shell tokens + employee order workspace | Update navigation/Radzen sidebar semantic tokens, grid header flex alignment and conditional order meta | Authenticated shell, `dashboard?tab=0` | Implemented — OWNER_REVIEW |
+| 2026-07-23 | My Orders single-viewport tabs | Ba loại order dùng một reusable grid panel trong RadzenTabs; `orderView` giữ internal selection, grid body fixed-height + virtualized | Owner muốn cùng format, giảm page scroll và chịu được khoảng 500 item; `tab=0` đã thuộc primary Dashboard route | Employee workspace + routing + shared order panel | Tách RenderFragment thành component, summary-to-tab interaction, internal scroll/sticky header, supplement-attempt fallback selector; max-width 1760px giữ content gần shell ở wide screen | `dashboard?tab=0` | Implemented — OWNER_REVIEW |
+| 2026-07-22 | My Orders hierarchy refinement | Giảm dominance của period title, card hóa ba summary, căn giữa max-width, thêm neutral row hover/right-aligned quantity và tách status khỏi action | Owner chỉ ra hierarchy yếu, khoảng trắng wide-screen, table thiếu affordance và command touch target quá dày | Employee workspace + shared embedded grid | CSS/markup refinement không đổi API/DTO/business flags; action vẫn visible thay vì overflow menu | `dashboard?tab=0`, embedded order detail grid | Implemented — OWNER_REVIEW |
+| 2026-07-22 | Blazor reconnect alert | Auto-retry dùng status spinner thụ động; failed/paused mới chuyển thành compact actionable alert, giữ nguyên circuit behavior chính thức | Apple HIG yêu cầu feedback tương xứng mức gián đoạn, progress indicator phải cho biết app vẫn hoạt động và alert chỉ chứa thông tin thiết yếu/action hữu ích | Shared system UI | Thay ripple/blur nặng bằng state-specific icon, title/copy ngắn, one-action footer và accessibility states | Mọi route dùng global `InteractiveServer` | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Compact account profile avatar | Avatar lớn phía trên tên trong account popover giảm từ `72px` xuống `64px`; avatar footer vẫn giữ `24px` | Owner muốn tỷ lệ profile header gọn hơn, gần account card Apple và giảm cảm giác avatar lấn át tên/email | Shared account popover | Chỉ thay kích thước avatar profile, giữ nguyên typography, căn giữa và action list | User menu trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Vietnamese tooltip completeness | Tooltip/`aria-label` đổi ngôn ngữ phải lấy bản dịch VI hoàn chỉnh; `SwitchToEnglish` hiển thị `Chuyển sang tiếng Anh`, không để English copy trong giao diện VI | Owner phát hiện menu đã là tiếng Việt nhưng tooltip hover vẫn hiện `Switch to English` do resource VI bị bỏ sót | Global localization + accessibility | Sửa resource và thêm regression test đối chiếu VI–EN, chỉ allowlist tên riêng/mã kỹ thuật dùng chung | User menu và mọi localized tooltip/action | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Stable sidebar icon rail | Logo, icon menu cha và avatar dùng chung tâm rail `36px` ở cả expanded/collapsed; expand chỉ hiện thêm label, menu con/cháu vẫn lùi từng cấp | Owner phát hiện expanded đang dùng ba tâm khác nhau (`28px`, khoảng `28px`, `24px`) trong khi collapsed về `36px`, làm icon nhảy ngang và mất hàng | Shared shell + navigation geometry | Thêm primary content offset dùng chung, neo root RadzenPanelMenu/header/user footer vào cùng cột và dẫn xuất lại rail/content offset cấp con | Sidebar expanded/collapsed trên mọi authenticated route | Implemented — OWNER_REVIEW |
 | 2026-07-22 | Global interface capitalization | Giữ nguyên casing từ localization thay vì ép `ALL CAPS`: tiếng Anh dùng title style cho navigation/action ngắn, tiếng Việt dùng sentence case tự nhiên; chỉ acronym, mã và dữ liệu nghiệp vụ như `VPP`, `IT`, `UOM` được viết hoa theo ngữ nghĩa | Apple HIG yêu cầu chọn quy tắc phù hợp phong cách/ngôn ngữ rồi áp dụng nhất quán; button và segmented control tiếng Anh dùng title-style capitalization | Global content + typography | Xóa toàn bộ `text-transform: uppercase` trong CSS authored, bỏ tracking rộng đi kèm, nạp casing guard sau Radzen Material theme và thêm architecture regression test | Tabs, sidebar, buttons, DataGrid headers, KPI labels, wizard, account/login và responsive cards | Implemented — OWNER_REVIEW |
+| 2026-07-22 | My Orders Apple order workspace | Kỳ hiện tại, đơn chính, bổ sung và kỳ trước trở thành bốn lớp thông tin rõ; action bám backend flags, archive read-only và export chỉ hiện disabled roadmap | Owner yêu cầu thử data story gần Apple Store Order Details nhưng không làm sai nghiệp vụ hiện tại | Employee workspace | Thay command-center bằng current-cycle header + three-part summary; luôn render supplement context; previous-cycle card chỉ xem; thêm PDF/Excel coming-soon controls | `dashboard?tab=0` | Implemented — OWNER_REVIEW |
 | 2026-07-19 | Workflow | Không dùng UI Lab; code trực tiếp từng route | UI thật đã tồn tại và đẹp hơn Figma prototype | Global | Living plan này | N/A | Recorded |
 | 2026-07-19 | Design authority | Browser runtime thắng Figma | Tránh design/code drift và route coverage thiếu | Global | Figma chuyển thành reference | Toàn bộ route | Recorded |
 | 2026-07-19 | Account/feedback | Đồng bộ account shell nhưng không thêm hero ảnh vào mọi trang | Quyết định vòng đầu trước khi owner review runtime | Global | Được thay thế bởi round 2 centered shell | Login/Register/Forgot/Reset/Confirm/Change/Logout | Superseded |
@@ -1000,7 +1111,7 @@ Các quyết định nền đã được owner duyệt và đang áp dụng:
 - [x] Desktop-first theo từng route nhưng mọi route phải không vỡ tablet/mobile.
 - [x] W0.2 đã duyệt; W1 Dashboard đang triển khai trước các wave sau.
 
-Gate đang chờ: owner review W1 My Orders round-6 baseline trên Blazor/Radzen. Sau khi owner xác nhận browser TEST, khóa visual baseline và commit vertical slice. React không phải gate hiện tại.
+Gate đang chờ: owner review W1 My Orders Apple order-workspace và shared reconnect alert trên Blazor/Radzen. Sau khi owner xác nhận browser TEST, khóa visual baseline và commit vertical slice. React không phải gate hiện tại.
 
 ---
 

@@ -159,10 +159,14 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-navigation-item-hover-bg", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-active-bg", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-surface);", tokensCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-base);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-elevated);", tokensCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-navigation-chrome-bg);", tabsCss, StringComparison.Ordinal);
         Assert.DoesNotContain("background: var(--vpp-bg-elevated);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-hover-bg", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-background-color: transparent;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-2nd-level-background-color: transparent;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-3rd-level-background-color: transparent;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-panel-menu-item-3rd-level-active-background-color", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-navigation-row-height) !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("font-size: 14px !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("font-weight: 400 !important;", tabsCss, StringComparison.Ordinal);
@@ -482,17 +486,55 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
-    public void MyOrders_UsesTheRoundSixCommandCenterContract()
+    public void MyOrders_UsesTheAppleOrderWorkspaceContract()
     {
         var root = GetFrontendRoot();
         var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
         var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
+        var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var kpiStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-kpi.css"));
+        var gridStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-datagrid.css"));
+        var layoutStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
+        var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
 
-        Assert.Contains("vpp-orders-evidence", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-orders-summary-grid", source, StringComparison.Ordinal);
         Assert.Contains("vpp-orders-story-commands", source, StringComparison.Ordinal);
-        Assert.Contains("vpp-orders-deadline-track", source, StringComparison.Ordinal);
-        Assert.Contains("CurrentOrderDetails", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("export-pdf-coming-soon", source, StringComparison.Ordinal);
+        Assert.Contains("export-excel-coming-soon", source, StringComparison.Ordinal);
+        Assert.Equal(3, source.Split("<VppOrderWorkspacePanel", StringSplitOptions.None).Length - 1);
+        Assert.Contains("<RadzenTabs", source, StringComparison.Ordinal);
+        Assert.Contains("RenderMode=\"TabRenderMode.Server\"", source, StringComparison.Ordinal);
+        Assert.Contains("SelectedIndex=\"@OrderViewSelectedIndex\"", source, StringComparison.Ordinal);
+        Assert.Contains("orderView", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("GetUriWithQueryParameter(\"orderView\"", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
+        Assert.Contains("PreviousCycleSummaryTitle", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-native-tab-list", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("vpp-data-card-actions", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("Title=\"#\" Width=\"56px\" TextAlign=\"TextAlign.Center\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("Property=\"Qty\" Title=\"@Loc[\"Quantity\"]\" Width=\"120px\" TextAlign=\"TextAlign.Right\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("Property=\"UomName\" Title=\"@Loc[\"UOM\"]\" Width=\"96px\" TextAlign=\"TextAlign.Center\"", orderPanel, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-card-kind", orderPanel, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-orders-state", source, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"false\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("VirtualizationOverscanCount=\"10\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("<EmptyTemplate>", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("AvailableOrders.Count > 1", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains("height: calc(100dvh", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-orders-summary-grid article", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-orders-view-tabs", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-order-view-grid-frame", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains("min-height: 44px;", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-order-grid-embedded .rz-grid-table tbody > tr:hover", gridStyles, StringComparison.Ordinal);
+        Assert.Contains("tbody > tr:nth-child(even)", gridStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-order-grid-scrollable .rz-grid-table thead", gridStyles, StringComparison.Ordinal);
+        Assert.Contains("position: sticky;", gridStyles, StringComparison.Ordinal);
+        Assert.Contains("width: 100%;", gridStyles, StringComparison.Ordinal);
+        Assert.Contains("background-color: var(--vpp-bg-base) !important;", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-elevated);", tokens, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -505,6 +547,32 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-radius-md: 6px;", tokens, StringComparison.Ordinal);
         Assert.Contains("--vpp-radius-lg: 8px;", tokens, StringComparison.Ordinal);
         Assert.Contains("--vpp-radius-badge: var(--vpp-radius-full);", tokens, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReconnectModal_UsesTheAccessibleActionableStateContract()
+    {
+        var root = GetFrontendRoot();
+        var componentRoot = Path.Combine(root, "Components", "Layout");
+        var source = File.ReadAllText(Path.Combine(componentRoot, "ReconnectModal.razor"));
+        var styles = File.ReadAllText(Path.Combine(componentRoot, "ReconnectModal.razor.css"));
+        var script = File.ReadAllText(Path.Combine(componentRoot, "ReconnectModal.razor.js"));
+
+        Assert.Contains("aria-label=\"@Loc[\"ConnectionStatus\"]\"", source, StringComparison.Ordinal);
+        Assert.Contains("components-seconds-to-next-attempt", source, StringComparison.Ordinal);
+        Assert.Contains("components-reconnect-button", source, StringComparison.Ordinal);
+        Assert.Contains("components-resume-button", source, StringComparison.Ordinal);
+        Assert.Contains("components-reconnect-spinner", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("components-rejoining-animation", source, StringComparison.Ordinal);
+        Assert.Contains("min-height: 44px;", styles, StringComparison.Ordinal);
+        Assert.Contains("outline: none !important;", styles, StringComparison.Ordinal);
+        Assert.Contains(":focus-visible", styles, StringComparison.Ordinal);
+        Assert.Contains("prefers-reduced-motion: reduce", styles, StringComparison.Ordinal);
+        Assert.Contains("forced-colors: active", styles, StringComparison.Ordinal);
+        Assert.Contains("state === \"show\" || state === \"retrying\"", script, StringComparison.Ordinal);
+        Assert.Contains("state === \"failed\"", script, StringComparison.Ordinal);
+        Assert.Contains("state === \"paused\" || state === \"resume-failed\"", script, StringComparison.Ordinal);
+        Assert.Contains("location.reload();", script, StringComparison.Ordinal);
     }
 
     private static string GetFrontendRoot()

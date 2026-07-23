@@ -90,6 +90,19 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         (hierarchy.ChildIconLeft - hierarchy.ActiveIndicatorLeft).Should().BeApproximately(12, 0.1,
             "the child rail must sit immediately before the child icon");
 
+        var idleNestedBackgrounds = await Page.EvaluateAsync<string[]>(
+            """
+            () => [...document.querySelectorAll(
+                    '.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper')]
+                .filter(wrapper => !wrapper.classList.contains('rz-navigation-item-wrapper-active')
+                    && !wrapper.querySelector(':scope > .rz-navigation-item-link.active'))
+                .map(wrapper => getComputedStyle(wrapper).backgroundColor)
+            """);
+        idleNestedBackgrounds.Should().NotBeEmpty("the expanded menu should expose inactive child or grandchild rows");
+        idleNestedBackgrounds.Should().OnlyContain(
+            color => color == "rgba(0, 0, 0, 0)",
+            "idle child and grandchild wrappers should reveal the white sidebar instead of the old gray surface");
+
         var dashboardParent = nav.Locator(".rz-panel-menu > li[title='Bảng điều khiển']");
         var dashboardParentToggle = dashboardParent.Locator(":scope > .rz-navigation-item-wrapper");
         var dashboardExpander = dashboardParent.Locator(":scope > .rz-expander");

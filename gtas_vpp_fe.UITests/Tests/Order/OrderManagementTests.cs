@@ -38,6 +38,9 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
             var isExpectedNavigationAssetAbort = uri is not null
                 && (uri.AbsolutePath.Contains("/favicon.", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.StartsWith("/_framework/", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Contains("/images/vpp-app-icon.", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Contains("/Components/Layout/ReconnectModal.", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith("/images/login-bg-optimized.jpeg", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
@@ -152,7 +155,8 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         await WaitForUrlMatchAsync(
             new Regex(".*/dashboard\\?tab=0.*", RegexOptions.IgnoreCase),
             TimeSpan.FromSeconds(30));
-        var supplementCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0&orderView=supplement");
+        var supplementCard = Page.Locator("[data-testid='supplement-order-panel']:visible").Last;
         await supplementCard.GetByText("Bổ sung", new() { Exact = true }).WaitForAsync();
         await supplementCard.GetByText("Chờ duyệt", new() { Exact = true }).WaitForAsync();
     }
@@ -184,9 +188,9 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         string expectedDecisionAction)
     {
         await SwitchUserAsync(account);
-        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0&orderView=supplement");
         await Page.Locator(".order-page").WaitForAsync();
-        var supplementCard = Page.Locator(".vpp-data-card-grid-shell:visible").Last;
+        var supplementCard = Page.Locator("[data-testid='supplement-order-panel']:visible").Last;
         await supplementCard.GetByText("Bổ sung", new() { Exact = true }).WaitForAsync();
         await supplementCard.GetByText(expectedStatus, new() { Exact = true }).WaitForAsync();
 

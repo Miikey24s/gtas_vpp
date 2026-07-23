@@ -1,10 +1,10 @@
+@using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_fe.Helpers
 @inject DialogService DialogService
 @inject GlobalClass glb
 @inject IToastService Toast
-
 
 @if (CanView)
 {
@@ -15,263 +15,200 @@
         }
         else
         {
-            <section class="vpp-orders-story" aria-labelledby="orders-story-title">
-                <div class="vpp-orders-story-main">
-                    <header class="vpp-orders-story-header">
-                        <div class="vpp-orders-story-intro">
-                            <div class="vpp-orders-eyebrow">
-                                <VppIcon Name="@VppIcons.Calendar" />
-                                <span class="vpp-orders-period-label">@Loc["ActiveOrderPeriod"]</span>
-                                <strong class="vpp-orders-period-value">@CurrentOrderPeriodText</strong>
-                            </div>
-
-                            <div class="vpp-orders-story-heading">
-                                <h2 id="orders-story-title">@OrdersStoryTitle</h2>
-                                @if (!string.IsNullOrWhiteSpace(OrdersStoryDescription))
-                                {
-                                    <p>@OrdersStoryDescription</p>
-                                }
-                            </div>
+            <section class="vpp-orders-story vpp-orders-overview" aria-labelledby="orders-story-title">
+                <header class="vpp-orders-story-header">
+                    <div class="vpp-orders-story-intro">
+                        <div class="vpp-orders-eyebrow">
+                            <VppIcon Name="@VppIcons.Calendar" />
+                            <span class="vpp-orders-period-label">@Loc["ActiveOrderPeriod"]</span>
                         </div>
 
-                        <div class="vpp-orders-story-commands">
-                            <span class="vpp-orders-state @SubmissionStateCss">
-                                <VppIcon Name="@SubmissionStateIcon" />
-                                @SubmissionStateText
-                            </span>
-
-                            @if (CanCreate && HasAvailableStoryAction)
+                        <div class="vpp-orders-story-heading">
+                            <h2 id="orders-story-title">@CurrentOrderPeriodText</h2>
+                            <div class="vpp-orders-overview-meta">
+                                @if (PeriodInfo is not null)
+                                {
+                                    <span class="vpp-orders-deadline-inline">
+                                        <VppIcon Name="@VppIcons.Schedule" />
+                                        @RemainingDeadlineText · @Loc["SubmissionDeadline"] @CurrentDeadlineText
+                                    </span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(OrdersStoryDescription))
                             {
-                                <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
-                                    @if (CanCreateRegular)
-                                    {
-                                        <RadzenButton Icon="@VppIcons.Add"
-                                                      Text="@Loc["NewOrder"]"
-                                                      ButtonStyle="ButtonStyle.Primary"
-                                                      Click="@(async _ => await GoToCreatePage(false))" />
-                                    }
-                                    @if (CanCopyPrevious)
-                                    {
-                                        <RadzenButton Icon="@VppIcons.Copy"
-                                                      Text="@Loc["CopyPreviousOrder"]"
-                                                      ButtonStyle="ButtonStyle.Light"
-                                                      Variant="Variant.Outlined"
-                                                      Click="@(async _ => await CopyPreviousAsync())" />
-                                    }
-                                    @if (ShowSupplementAction)
-                                    {
-                                        <RadzenButton Icon="@VppIcons.Supplement"
-                                                      Text="@Loc["RequestAdditional"]"
-                                                      ButtonStyle="ButtonStyle.Primary"
-                                                      Variant="Variant.Outlined"
-                                                      Click="@(async _ => await GoToCreatePage(true))"
-                                                      Disabled="@(!CanCreateSupplement)"
-                                                      Title="@SupplementActionHint"
-                                                      data-testid="create-supplement" />
-                                    }
-                                </div>
+                                <p>@OrdersStoryDescription</p>
                             }
                         </div>
-                    </header>
-
-                    @if (PeriodInfo is not null)
-                    {
-                        <div class="vpp-orders-deadline">
-                            <div class="vpp-orders-deadline-copy">
-                                <strong><VppIcon Name="@VppIcons.Schedule" /> @RemainingDeadlineText</strong>
-                                <span>@Loc["SubmissionDeadline"] @CurrentDeadlineText</span>
-                            </div>
-                            <div class="vpp-orders-deadline-track"
-                                 role="progressbar"
-                                 aria-label="@Loc["SubmissionDeadline"]"
-                                 aria-valuemin="0"
-                                 aria-valuemax="100"
-                                 aria-valuenow="@OrderPeriodProgressPercent">
-                                <span style="width: @OrderPeriodProgressPercent%"></span>
-                            </div>
-                        </div>
-                    }
-
-                    <div class="vpp-orders-evidence" role="group" aria-label="@Loc["CurrentOrderMetrics"]">
-                        <article>
-                            <strong>@TotalLinesText</strong>
-                            <span>@Loc["TotalLineItems"]</span>
-                        </article>
-                        <article>
-                            <strong>@TotalQtyText</strong>
-                            <span>@Loc["TotalQuantity"]</span>
-                        </article>
-                        <article>
-                            <strong>@LatestSubmittedTimeText</strong>
-                            <span>@LatestSubmittedDateText</span>
-                        </article>
-                        <article>
-                            <strong>@TopRequestedQuantityText</strong>
-                            <span>@TopRequestedItemText</span>
-                        </article>
                     </div>
-                </div>
-            </section>
 
-            <section class="vpp-orders-section" aria-labelledby="current-orders-title">
-                <header class="vpp-orders-section-header">
-                    <h3 id="current-orders-title">@CurrentOrdersSectionTitle</h3>
-                    <span class="vpp-orders-count">@ActiveOrders.Count</span>
-                </header>
-
-            @if (ActiveOrders == null || !ActiveOrders.Any())
-            {
-                    <VppEmptyState Icon="@VppIcons.Orders"
-                                   Title="@Loc["NoCurrentRegularOrders"]"
-                                   Description="@EmptyCurrentOrdersDescription"
-                                   Class="vpp-orders-empty" />
-            }
-            else
-            {
-                    <RadzenStack Gap="1rem" class="vpp-orders-card-list">
-                    @foreach (var order in ActiveOrders)
-                    {
-                        @RenderOrderCard(order)
-                    }
-                </RadzenStack>
-            }
-            </section>
-
-            @if (CurrentPeriodAdditionalOrders.Count > 0)
-            {
-                <section class="vpp-orders-section" aria-labelledby="additional-orders-title">
-                    <header class="vpp-orders-section-header">
-                        <h3 id="additional-orders-title">@Loc["AdditionalOrders"]</h3>
-                        <span class="vpp-orders-count">@CurrentPeriodAdditionalOrders.Count</span>
-                    </header>
-                    <RadzenStack Gap="1rem" class="vpp-orders-card-list">
-                    @foreach (var order in CurrentPeriodAdditionalOrders)
-                    {
-                        @RenderOrderCard(order)
-                    }
-                </RadzenStack>
-                </section>
-            }
-
-            @if (PreviousOrders.Count > 0)
-            {
-                <details class="vpp-orders-archive">
-                    <summary>
-                        <span class="vpp-orders-archive-icon"><VppIcon Name="@VppIcons.History" /></span>
-                        <span>
-                            <strong>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</strong>
-                            <small>@string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count)</small>
-                        </span>
-                        <VppIcon Name="@VppIcons.ExpandMore" Class="vpp-orders-archive-chevron" />
-                    </summary>
-                    <RadzenStack Gap="1rem" class="vpp-orders-archive-content">
-                        @foreach (var order in PreviousOrders)
-                        {
-                            @RenderOrderCard(order)
-                        }
-                    </RadzenStack>
-                </details>
-            }
-            else
-            {
-                <div class="vpp-orders-archive vpp-orders-archive-empty">
-                    <span class="vpp-orders-archive-icon"><VppIcon Name="@VppIcons.History" /></span>
-                    <span>
-                        <strong>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</strong>
-                        <small>@Loc["NoRegularOrdersFoundPreviousCycle"]</small>
-                    </span>
-                </div>
-            }
-        }
-    </div>
-}
-
-@code {
-    private RenderFragment<VppRequestResDTO> RenderOrderCard => order => __builder =>
-    {
-        <div class="vpp-data-card vpp-data-card-grid-shell">
-            <div class="vpp-data-card-header">
-                <div class="vpp-order-card-identity">
-                    <div class="vpp-data-card-value-row vpp-order-code-cell">
-                        <span class="vpp-data-card-value vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@order.VppCode" style="cursor: pointer; user-select: all;">
-                            @GetShortCode(order)
-                        </span>
-                        <div class="vpp-order-code-popover">
-                            <span class="vpp-order-code-popover-text">@order.VppCode</span>
-                            <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(order.VppCode))" Title="@Loc["Copy"]" />
+                    <div class="vpp-orders-story-commands">
+                        <div class="vpp-orders-export-actions" aria-label="@Loc["ExportOrders"]">
+                            <button type="button"
+                                    class="vpp-orders-export-button"
+                                    disabled
+                                    title="@Loc["ExportComingSoonHint"]"
+                                    data-testid="export-pdf-coming-soon">
+                                <VppIcon Name="@VppIcons.Pdf" />
+                                <span>@PdfExportText</span>
+                            </button>
+                            <button type="button"
+                                    class="vpp-orders-export-button"
+                                    disabled
+                                    title="@Loc["ExportComingSoonHint"]"
+                                    data-testid="export-excel-coming-soon">
+                                <VppIcon Name="@VppIcons.Spreadsheet" />
+                                <span>@ExcelExportText</span>
+                            </button>
                         </div>
-                        @if (order.IsAdditionalOrder)
+
+                        @if (CanCreate && HasAvailableStoryAction)
                         {
-                            <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
-                        }
-                    </div>
-                    <span class="vpp-order-card-submitted">@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(order.SubmittedDate, DateFormatter.LongDate))</span>
-                </div>
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem" class="vpp-data-card-actions">
-                    <span class="vpp-badge @StatusDisplay.GetCssClass(order.Status)">@Loc[StatusDisplay.GetResourceKey(order.Status, order.IsDeadlinePassed, order.IsAdditionalOrder)]</span>
-                    @if (order.SettledAt.HasValue)
-                    {
-                        <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(order.SettledAt, DateFormatter.LongDate)} - {order.SettledByPriceListName}")">
-                            @Loc["Settled"]
-                        </span>
-                    }
-                    @if (CanUpdate(order) || CanReplace(order))
-                    {
-                        @* F-28: icon-only buttons need a visible tooltip + screen-reader label. The aria-label
-                           includes the order code so screen-reader users hear context (e.g. "Edit order VPP-202604-..."). *@
-                        <RadzenButton Icon="@(order.CanReplace ? "restart_alt" : "edit")"
-                                      Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
-                                      Click="@(async _ => await GoToEditPage(order))"
-                                      Title="@(order.CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
-                                      aria-label="@string.Format(order.CanReplace ? Loc["ReplaceOrderAria"] : Loc["EditOrderAria"], order.VppCode)" />
-                    }
-                    <RadzenButton Icon="history" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Click="@(async _ => await OpenHistoryAsync(order))" Title="@Loc["ViewRequestHistory"]" aria-label="@string.Format(Loc["ViewRequestHistoryAria"], order.VppCode)" />
-                    @if (CanCancel(order))
-                    {
-                        <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(async _ => await CancelOrderAsync(order))" Title="@Loc["Cancel"]" aria-label="@string.Format(Loc["CancelOrderAria"], order.VppCode)" Disabled="@IsCancelling(order.Id)" IsBusy="@IsCancelling(order.Id)" />
-                    }
-                </RadzenStack>
-            </div>
-
-            <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO"
-                            Data="@(order.Items ?? new())"
-                            AllowPaging="true" PageSize="10"
-                            AllowVirtualization="true"
-                            AllowFiltering="false"
-                            AllowSorting="false"
-                            Density="Density.Compact"
-                            GridLines="DataGridGridLines.Horizontal"
-                            class="vpp-order-grid vpp-order-grid-embedded">
-                <Columns>
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center">
-                        <Template Context="item">@((order.Items?.IndexOf(item) ?? -1) + 1)</Template>
-                    </RadzenDataGridColumn>
-
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="VppName" Title="@Loc["ItemName"]" Width="360px" TextAlign="TextAlign.Left">
-                        <Template Context="item">
-                            <div class="vpp-order-product-cell">
-                                <strong>@item.VppName</strong>
-                                @if (!string.IsNullOrWhiteSpace(item.VppCode))
+                            <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
+                                @if (CanCreateRegular)
                                 {
-                                    <small>@item.VppCode</small>
+                                    <RadzenButton Icon="@VppIcons.Add"
+                                                  Text="@Loc["NewOrder"]"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Click="@(async _ => await GoToCreatePage(false))" />
+                                }
+                                @if (CanCopyPrevious)
+                                {
+                                    <RadzenButton Icon="@VppIcons.Copy"
+                                                  Text="@Loc["CopyPreviousOrder"]"
+                                                  ButtonStyle="ButtonStyle.Light"
+                                                  Variant="Variant.Outlined"
+                                                  Click="@(async _ => await CopyPreviousAsync())" />
+                                }
+                                @if (ShowSupplementAction)
+                                {
+                                    <RadzenButton Icon="@VppIcons.Supplement"
+                                                  Text="@Loc["RequestAdditional"]"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Click="@(async _ => await GoToCreatePage(true))"
+                                                  Disabled="@(!CanCreateSupplement)"
+                                                  Title="@SupplementActionHint"
+                                                  data-testid="create-supplement" />
                                 }
                             </div>
+                        }
+                    </div>
+                </header>
+
+                <div class="vpp-orders-summary-grid" role="list" aria-label="@Loc["OrderCycleSummary"]">
+                    <article role="listitem" class="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "is-selected" : string.Empty)">
+                        <button type="button"
+                                @onclick="() => SelectOrderViewAsync(CurrentOrderViewIndex)"
+                                aria-pressed="@(OrderViewSelectedIndex == CurrentOrderViewIndex)">
+                            <span>@Loc["CurrentRegularOrder"]</span>
+                            <strong>@OrdersStoryTitle</strong>
+                            <small>@CurrentOrderSummaryText</small>
+                        </button>
+                    </article>
+                    <article role="listitem" class="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "is-selected" : string.Empty)">
+                        <button type="button"
+                                @onclick="() => SelectOrderViewAsync(SupplementOrderViewIndex)"
+                                aria-pressed="@(OrderViewSelectedIndex == SupplementOrderViewIndex)">
+                            <span>@Loc["AdditionalOrders"]</span>
+                            <strong>@SupplementSummaryTitle</strong>
+                            <small>@SupplementSectionDescription</small>
+                        </button>
+                    </article>
+                    <article role="listitem" class="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "is-selected" : string.Empty)">
+                        <button type="button"
+                                @onclick="() => SelectOrderViewAsync(PreviousOrderViewIndex)"
+                                aria-pressed="@(OrderViewSelectedIndex == PreviousOrderViewIndex)">
+                            <span>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</span>
+                            <strong>@PreviousCycleSummaryTitle</strong>
+                            <small>@Loc["PreviousCycleReadOnly"]</small>
+                        </button>
+                    </article>
+                </div>
+            </section>
+
+            <RadzenTabs RenderMode="TabRenderMode.Server"
+                        SelectedIndex="@OrderViewSelectedIndex"
+                        Change="@OrderViewChangedAsync"
+                        class="vpp-orders-view-tabs">
+                <Tabs>
+                    <RadzenTabsItem>
+                        <Template>
+                            <span class="vpp-orders-tab-label">
+                                @Loc["CurrentRegularOrder"]
+                                <span class="vpp-orders-tab-count">@CurrentRegularLineCount</span>
+                            </span>
                         </Template>
-                    </RadzenDataGridColumn>
+                        <ChildContent>
+                            <VppOrderWorkspacePanel @key="@CurrentRegularOrder?.Id"
+                                                    TestId="current-order-panel"
+                                                    PanelLabel="@Loc["CurrentRegularOrder"]"
+                                                    Order="@CurrentRegularOrder"
+                                                    SelectedOrderId="@(CurrentRegularOrder?.Id ?? Guid.Empty)"
+                                                    CanEdit="@(CurrentRegularOrder is not null && CanUpdate(CurrentRegularOrder))"
+                                                    CanReplace="@(CurrentRegularOrder is not null && CanReplace(CurrentRegularOrder))"
+                                                    CanCancel="@(CurrentRegularOrder is not null && CanCancel(CurrentRegularOrder))"
+                                                    IsCancelling="@(CurrentRegularOrder is not null && IsCancelling(CurrentRegularOrder.Id))"
+                                                    EmptyIcon="@VppIcons.Orders"
+                                                    EmptyTitle="@Loc["NoCurrentRegularOrders"]"
+                                                    EmptyDescription="@EmptyCurrentOrdersDescription"
+                                                    EditRequested="@GoToEditPage"
+                                                    HistoryRequested="@OpenHistoryAsync"
+                                                    CancelRequested="@CancelOrderAsync"
+                                                    CopyCodeRequested="@CopyToClipboard" />
+                        </ChildContent>
+                    </RadzenTabsItem>
 
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
-
-<RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="UomName" Title="@Loc["UOM"]" Width="90px" TextAlign="TextAlign.Center" />
-
-                    <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.VPP.VppRequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="220px" TextAlign="TextAlign.Left" Visible="@HasBusinessNotes(order)">
-                        <Template Context="item">
-                            <div class="vpp-order-note" title="@GetBusinessNote(item.Description)">
-                                @GetBusinessNote(item.Description)
-                            </div>
+                    <RadzenTabsItem>
+                        <Template>
+                            <span class="vpp-orders-tab-label">
+                                @Loc["AdditionalOrders"]
+                                <span class="vpp-orders-tab-count">@SelectedSupplementLineCount</span>
+                            </span>
                         </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
-        </div>
-    };
+                        <ChildContent>
+                            <VppOrderWorkspacePanel @key="@SelectedSupplementOrder?.Id"
+                                                    TestId="supplement-order-panel"
+                                                    PanelLabel="@Loc["AdditionalOrders"]"
+                                                    Order="@SelectedSupplementOrder"
+                                                    AvailableOrders="@CurrentPeriodAdditionalOrders"
+                                                    SelectedOrderId="@(SelectedSupplementOrder?.Id ?? Guid.Empty)"
+                                                    SelectedOrderIdChanged="@SelectSupplementOrderAsync"
+                                                    CanEdit="@(SelectedSupplementOrder is not null && CanUpdate(SelectedSupplementOrder))"
+                                                    CanReplace="@(SelectedSupplementOrder is not null && CanReplace(SelectedSupplementOrder))"
+                                                    CanCancel="@(SelectedSupplementOrder is not null && CanCancel(SelectedSupplementOrder))"
+                                                    IsCancelling="@(SelectedSupplementOrder is not null && IsCancelling(SelectedSupplementOrder.Id))"
+                                                    EmptyIcon="@VppIcons.Supplement"
+                                                    EmptyTitle="@Loc["NoAdditionalOrdersYet"]"
+                                                    EmptyDescription="@SupplementSectionDescription"
+                                                    EditRequested="@GoToEditPage"
+                                                    HistoryRequested="@OpenHistoryAsync"
+                                                    CancelRequested="@CancelOrderAsync"
+                                                    CopyCodeRequested="@CopyToClipboard" />
+                        </ChildContent>
+                    </RadzenTabsItem>
+
+                    <RadzenTabsItem>
+                        <Template>
+                            <span class="vpp-orders-tab-label">
+                                @Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText
+                                <span class="vpp-orders-tab-count">@PreviousOrderLineCount</span>
+                            </span>
+                        </Template>
+                        <ChildContent>
+                            <VppOrderWorkspacePanel @key="@PreviousRegularOrder?.Id"
+                                                    TestId="previous-order-panel"
+                                                    PanelLabel="@($"{Loc["PreviousOrderPeriod"]} · {PreviousOrderPeriodText}")"
+                                                    Order="@PreviousRegularOrder"
+                                                    SelectedOrderId="@(PreviousRegularOrder?.Id ?? Guid.Empty)"
+                                                    ReadOnly="true"
+                                                    EmptyIcon="@VppIcons.History"
+                                                    EmptyTitle="@Loc["NoPreviousOrderYet"]"
+                                                    EmptyDescription="@Loc["NoRegularOrdersFoundPreviousCycle"]"
+                                                    HistoryRequested="@OpenHistoryAsync"
+                                                    CopyCodeRequested="@CopyToClipboard" />
+                        </ChildContent>
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+        }
+    </div>
 }
