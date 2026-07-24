@@ -11,7 +11,7 @@ AUDIT = ROOT / "LVTN" / "tooling" / "audit_99_final.py"
 
 
 completed = subprocess.run(
-    [sys.executable, str(AUDIT)],
+    [sys.executable, str(AUDIT), *sys.argv[1:]],
     cwd=ROOT,
     check=True,
     capture_output=True,

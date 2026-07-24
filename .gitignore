@@ -397,6 +397,7 @@ scripts/export_db_full.sql
 /LVTN/diagrams/**/*.png
 /LVTN/checkpoints/*
 !/LVTN/checkpoints/99_final.docx
+/LVTN/render/
 !/LVTN/checkpoints/99_final_changelog.md
 # Raw operational workbook contains personal notes; commit only its normalized demo projection.
 /LVTN/data/DANG KY VPP - CAC DON VI.xlsx

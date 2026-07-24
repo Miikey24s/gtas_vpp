@@ -1,33 +1,37 @@
-import sys
+from __future__ import annotations
+
+import argparse
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
 
-if len(sys.argv) != 2:
-    raise SystemExit("Usage: python make_contact_sheets.py <rendered-pages-directory>")
+from PIL import Image, ImageDraw
 
-SOURCE = Path(sys.argv[1])
-OUTPUT = SOURCE / "contacts"
-OUTPUT.mkdir(parents=True, exist_ok=True)
 
-pages = sorted(SOURCE.glob("page-*.png"), key=lambda p: int(p.stem.split("-")[-1]))
-cols, rows = 3, 4
-thumb_w, thumb_h = 360, 510
-label_h = 28
-margin = 18
-font = ImageFont.load_default()
+def build(render_dir: Path, batch_size: int = 20) -> list[Path]:
+    pages = sorted(render_dir.glob("page-*.png"))
+    outputs: list[Path] = []
+    for start in range(0, len(pages), batch_size):
+        batch = pages[start : start + batch_size]
+        sheet = Image.new("RGB", (1400, 1600), (220, 220, 220))
+        for offset, page in enumerate(batch):
+            image = Image.open(page).convert("RGB")
+            image.thumbnail((260, 368))
+            cell = Image.new("RGB", (280, 400), "white")
+            cell.paste(image, ((280 - image.width) // 2, 10))
+            ImageDraw.Draw(cell).text((8, 380), f"Trang {start + offset + 1}", fill="black")
+            sheet.paste(cell, ((offset % 5) * 280, (offset // 5) * 400))
+        output = render_dir / f"contact-{start + 1:03d}-{start + len(batch):03d}.jpg"
+        sheet.save(output, quality=88)
+        outputs.append(output)
+    return outputs
 
-for sheet_index in range(0, len(pages), cols * rows):
-    subset = pages[sheet_index:sheet_index + cols * rows]
-    canvas = Image.new("RGB", (margin + cols * (thumb_w + margin), margin + rows * (thumb_h + label_h + margin)), "#d0d0d0")
-    draw = ImageDraw.Draw(canvas)
-    for pos, path in enumerate(subset):
-        img = Image.open(path).convert("RGB")
-        img.thumbnail((thumb_w, thumb_h), Image.Resampling.LANCZOS)
-        x = margin + (pos % cols) * (thumb_w + margin) + (thumb_w - img.width) // 2
-        y = margin + (pos // cols) * (thumb_h + label_h + margin)
-        canvas.paste(img, (x, y))
-        page_num = int(path.stem.split("-")[-1])
-        draw.text((x, y + thumb_h + 5), f"Trang {page_num}", fill="black", font=font)
-    out = OUTPUT / f"contact-{sheet_index // (cols * rows) + 1:02d}.jpg"
-    canvas.save(out, quality=90)
-    print(out)
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("render_dir", type=Path)
+    args = parser.parse_args()
+    for output in build(args.render_dir):
+        print(output.resolve())
+
+
+if __name__ == "__main__":
+    main()

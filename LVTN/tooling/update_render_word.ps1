@@ -33,6 +33,9 @@ try {
         $doc.Save()
     }
 
+    if (Test-Path -LiteralPath $PdfPath) {
+        Remove-Item -LiteralPath $PdfPath -Force
+    }
     $doc.ExportAsFixedFormat($PdfPath, 17)
     Write-Output ("PDF=" + $PdfPath)
 }

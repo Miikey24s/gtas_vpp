@@ -14,8 +14,8 @@ from xml.etree import ElementTree as ET
 sys.stdout.reconfigure(encoding="utf-8")
 
 LVTN_ROOT = Path(__file__).resolve().parents[1]
-FINAL = LVTN_ROOT / "checkpoints" / "99_final.docx"
-WORKING = LVTN_ROOT / "NguyenAnNam_DH52201078_working.docx"
+FINAL = Path(sys.argv[1]) if len(sys.argv) > 1 else LVTN_ROOT / "checkpoints" / "99_final.docx"
+WORKING = Path(sys.argv[2]) if len(sys.argv) > 2 else LVTN_ROOT / "NguyenAnNam_DH52201078_working.docx"
 
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
@@ -226,7 +226,7 @@ with zipfile.ZipFile(FINAL) as archive:
 
     figure_occurrences = re.findall(r"Hình\s+(\d+-\d+):", all_text)
     figure_counts = Counter(figure_occurrences)
-    expected_figure_ids = ["2-1", "2-2", "2-3"] + [f"3-{index}" for index in range(1, 35)]
+    expected_figure_ids = ["2-1", "2-2", "2-3"] + [f"3-{index}" for index in range(1, 37)]
 
     result = {
         "zip_bad_member": bad_member,
@@ -303,7 +303,7 @@ with zipfile.ZipFile(FINAL) as archive:
         "corrected_figure_names_present": {
             value: value in all_text
             for value in (
-                "Hình 2-2: Sơ đồ phân rã chức năng hệ thống",
+                "Hình 2-2: Sơ đồ chức năng",
                 "Hình 2-3: Sơ đồ use case tổng quát hệ thống",
             )
         },

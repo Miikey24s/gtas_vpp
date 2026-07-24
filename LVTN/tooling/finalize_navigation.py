@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import re
 import shutil
 import sys
@@ -189,12 +190,19 @@ def patch_document(document_xml: bytes) -> tuple[bytes, dict[str, object]]:
         seen_ids.add(figure_id)
         real_captions.append((figure_id, paragraph, text))
 
-    if len(list_paragraphs) != len(real_captions):
-        raise ValueError(
-            f"Số mục hình hiện có ({len(list_paragraphs)}) khác số caption thật ({len(real_captions)})"
-        )
-    if len(real_captions) != 37:
-        raise ValueError(f"Kỳ vọng 37 caption hình, nhận {len(real_captions)}")
+    if not list_paragraphs:
+        raise ValueError("Không tìm thấy mục hình mẫu để giữ định dạng hiện hành")
+    if len(list_paragraphs) < len(real_captions):
+        insertion_point = list_paragraphs[-1]
+        for _ in range(len(real_captions) - len(list_paragraphs)):
+            clone = copy.deepcopy(list_paragraphs[-1])
+            insertion_point.addnext(clone)
+            insertion_point = clone
+            list_paragraphs.append(clone)
+    elif len(list_paragraphs) > len(real_captions):
+        for paragraph in list_paragraphs[len(real_captions):]:
+            paragraph.getparent().remove(paragraph)
+        list_paragraphs = list_paragraphs[:len(real_captions)]
 
     remove_old_figure_bookmarks(root)
     existing_ids = [
