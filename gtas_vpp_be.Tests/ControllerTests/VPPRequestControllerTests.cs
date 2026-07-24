@@ -82,6 +82,61 @@ public class VPPRequestControllerTests
     }
 
     [Fact]
+    public async Task GetMyOrderHistorySummary_ValidRange_ReturnsTypedSummary()
+    {
+        var expected = new VppOrderHistorySummaryResDTO
+        {
+            PeriodCount = 2,
+            TotalOrders = 3,
+            TotalLines = 12,
+            TotalQuantity = 30
+        };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetMyOrderHistorySummaryAsync(5615, 202601, 202612))
+            .ReturnsAsync(expected);
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+
+        var result = await controller.GetMyOrderHistorySummary(202601, 202612);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+    }
+
+    [Fact]
+    public async Task GetMyOrderHistory_InvalidPeriod_ReturnsBadRequest()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+
+        var result = await controller.GetMyOrderHistory(
+            202613, null, null, null, null, null, 0, 6);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        service.Verify(x => x.GetMyOrderHistoryPageAsync(
+            It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<int?>(),
+            It.IsAny<string?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetMyOrderHistory_SetsTotalCountHeader()
+    {
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetMyOrderHistoryPageAsync(
+                5615, null, null, null, null, null, null, 0, 4))
+            .ReturnsAsync((new List<VppRequestResDTO>
+            {
+                new() { Id = Guid.NewGuid(), Year = 2026, Month = 7 }
+            }, 9));
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+
+        var result = await controller.GetMyOrderHistory(null, null, null, null, null, null, 0, 4);
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("9", controller.Response.Headers["X-Total-Count"].ToString());
+    }
+
+    [Fact]
     public async Task CreateOrder_ValidRequest_ReturnsOk()
     {
         var expected = new VppRequestResDTO { Id = Guid.NewGuid(), Year = 2026, Month = 4, Status = 1 };

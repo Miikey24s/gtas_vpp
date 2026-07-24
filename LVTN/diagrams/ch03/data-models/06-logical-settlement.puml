@@ -1,0 +1,96 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 58
+skinparam ranksep 66
+skinparam classAttributeIconSize 0
+hide methods
+
+entity "VppPeriod" as Period {
+  * Id <<PK>>
+  --
+  MemberCompanyCode
+  Year
+  Month
+  State
+}
+
+entity "Settlement" as Settlement {
+  * Id <<PK>>
+  --
+  PeriodId <<FK>>
+  SupersedesSettlementId <<FK>>
+  RevisionNumber
+  IsCurrentRevision
+  PrimarySupplierId
+  PriceListId
+  Subtotal
+  VatAmount
+  GrandTotal
+  RowVersion
+}
+
+entity "SettlementItem" as Item {
+  * Id <<PK>>
+  --
+  SettlementId <<FK>>
+  VppId
+  SupplierId
+  PriceListId
+  PriceBookItemId
+  Quantity
+  NetUnitPrice
+  VatRate
+  GrossAmount
+}
+
+entity "SettlementCharge" as Charge {
+  * Id <<PK>>
+  --
+  SettlementId <<FK>>
+  ChargeType
+  AllocationBasis
+  Amount
+}
+
+entity "SettlementAllocation" as Allocation {
+  * Id <<PK>>
+  --
+  SettlementId <<FK>>
+  SettlementItemId <<FK>>
+  RequestHeaderId
+  RequestDetailId
+  DepartmentCode
+  RequesterUserId
+  Quantity
+  GrossAmount
+}
+
+note right of Settlement
+  PriceListId và PrimarySupplierId là dữ liệu snapshot;
+  schema không cấu hình FK tới bảng giá hoặc nhà cung cấp.
+end note
+
+note right of Allocation
+  RequestHeaderId và RequestDetailId phục vụ truy vết phân bổ;
+  schema không cấu hình FK tới đơn yêu cầu.
+end note
+
+Period ||--o{ Settlement
+Settlement |o--o{ Settlement
+Settlement ||--o{ Item
+Settlement ||--o{ Charge
+Settlement ||--o{ Allocation
+Item ||--o{ Allocation
+
+Period -[hidden]down- Settlement
+Item -[hidden]right- Charge
+Charge -[hidden]right- Allocation
+Settlement -[hidden]down- Charge
+@enduml

@@ -9,16 +9,15 @@ public sealed class CanonicalRbacTests
     public void Personas_HaveStableIdsAndExplicitCodes()
     {
         Assert.Equal(Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596"), CanonicalRbac.Employee.GroupId);
-        Assert.Equal(Guid.Parse("E170FF76-F46E-460B-BC20-1D525E585DF8"), CanonicalRbac.DepartmentApprover.GroupId);
-        Assert.Equal(Guid.Parse("2F048784-AFC2-4322-906F-D645B982BE49"), CanonicalRbac.ProcurementAdmin.GroupId);
-        Assert.Equal(Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"), CanonicalRbac.SystemAdmin.GroupId);
+        Assert.Equal(Guid.Parse("E170FF76-F46E-460B-BC20-1D525E585DF8"), CanonicalRbac.Manager.GroupId);
+        Assert.Equal(Guid.Parse("2F048784-AFC2-4322-906F-D645B982BE49"), CanonicalRbac.LegacyProcurementAdminGroupId);
+        Assert.Equal(Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"), CanonicalRbac.Dev.GroupId);
 
         Assert.Equal("EMPLOYEE", CanonicalRbac.Employee.GroupCode);
-        Assert.Equal("DEPARTMENT_APPROVER", CanonicalRbac.DepartmentApprover.GroupCode);
-        Assert.Equal("PROCUREMENT_ADMIN", CanonicalRbac.ProcurementAdmin.GroupCode);
-        Assert.Equal("SYSTEM_ADMIN", CanonicalRbac.SystemAdmin.GroupCode);
-        Assert.Equal(4, CanonicalRbac.Personas.Select(x => x.GroupId).Distinct().Count());
-        Assert.Equal(4, CanonicalRbac.Personas.Select(x => x.GroupCode).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal("MANAGER", CanonicalRbac.Manager.GroupCode);
+        Assert.Equal("DEV", CanonicalRbac.Dev.GroupCode);
+        Assert.Equal(3, CanonicalRbac.Personas.Select(x => x.GroupId).Distinct().Count());
+        Assert.Equal(3, CanonicalRbac.Personas.Select(x => x.GroupCode).Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]
@@ -48,32 +47,10 @@ public sealed class CanonicalRbacTests
     }
 
     [Fact]
-    public void DepartmentApprover_HasDepartmentScopeAndApprovalWithoutCompanyAuthority()
+    public void Manager_CombinesDepartmentApprovalAndCompanyProcurement()
     {
         AssertActions(
-            CanonicalRbac.DepartmentApprover.GroupId,
-            Permissions.RequestViewOwn,
-            Permissions.RequestCreate,
-            Permissions.RequestUpdateOwn,
-            Permissions.RequestCancelOwn,
-            Permissions.RequestCatalogView,
-            Permissions.LibraryView,
-            Permissions.ReportViewOwn,
-            Permissions.RequestViewDepartment,
-            Permissions.RequestApprove,
-            Permissions.RequestReject,
-            Permissions.ReportViewDepartment);
-
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.DepartmentApprover.GroupId, Permissions.RequestViewAll));
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.DepartmentApprover.GroupId, Permissions.ReportExport));
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.DepartmentApprover.GroupId, Permissions.PeriodSettle));
-    }
-
-    [Fact]
-    public void ProcurementAdmin_HasCompanyProcurementWithoutPermissionAdministration()
-    {
-        AssertActions(
-            CanonicalRbac.ProcurementAdmin.GroupId,
+            CanonicalRbac.Manager.GroupId,
             Permissions.RequestViewOwn,
             Permissions.RequestCreate,
             Permissions.RequestUpdateOwn,
@@ -83,35 +60,22 @@ public sealed class CanonicalRbacTests
             Permissions.ReportViewOwn,
             Permissions.RequestViewDepartment,
             Permissions.RequestViewAll,
+            Permissions.RequestApprove,
+            Permissions.RequestReject,
             Permissions.LibraryManage,
             Permissions.ReportViewDepartment,
             Permissions.ReportViewAll,
             Permissions.ReportExport,
             Permissions.PeriodSettle);
 
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.ProcurementAdmin.GroupId, Permissions.PermissionView));
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.ProcurementAdmin.GroupId, Permissions.PermissionManage));
+        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.Manager.GroupId, Permissions.PermissionView));
+        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.Manager.GroupId, Permissions.PermissionManage));
     }
 
     [Fact]
-    public void SystemAdmin_HasPermissionAdministrationWithoutProcurementAuthority()
+    public void Dev_HasEveryCanonicalAction()
     {
-        AssertActions(
-            CanonicalRbac.SystemAdmin.GroupId,
-            Permissions.RequestViewOwn,
-            Permissions.RequestCreate,
-            Permissions.RequestUpdateOwn,
-            Permissions.RequestCancelOwn,
-            Permissions.RequestCatalogView,
-            Permissions.LibraryView,
-            Permissions.ReportViewOwn,
-            Permissions.PermissionView,
-            Permissions.PermissionManage);
-
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.SystemAdmin.GroupId, Permissions.LibraryManage));
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.SystemAdmin.GroupId, Permissions.ReportViewAll));
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.SystemAdmin.GroupId, Permissions.ReportExport));
-        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.SystemAdmin.GroupId, Permissions.PeriodSettle));
+        AssertActions(CanonicalRbac.Dev.GroupId, Permissions.ActionCodes.ToArray());
     }
 
     [Fact]
@@ -122,23 +86,20 @@ public sealed class CanonicalRbacTests
         Assert.DoesNotContain(Permissions.RequestAdminApproval, employee);
         Assert.DoesNotContain(Permissions.MenuPermission, employee);
 
-        var approver = CanonicalRbac.GetUiComponents(CanonicalRbac.DepartmentApprover.GroupId);
-        Assert.Contains(Permissions.RequestDepartmentSummary, approver);
-        Assert.Contains(Permissions.RequestAdminApproval, approver);
-        Assert.DoesNotContain(Permissions.RequestAllOrdersSummary, approver);
-        Assert.DoesNotContain(Permissions.MenuPermission, approver);
+        var manager = CanonicalRbac.GetUiComponents(CanonicalRbac.Manager.GroupId);
+        Assert.Contains(Permissions.RequestDepartmentSummary, manager);
+        Assert.Contains(Permissions.RequestAllOrdersSummary, manager);
+        Assert.Contains(Permissions.RequestAdminApproval, manager);
+        Assert.Contains(Permissions.PeriodSettle, manager);
+        Assert.DoesNotContain(Permissions.MenuPermission, manager);
 
-        var procurement = CanonicalRbac.GetUiComponents(CanonicalRbac.ProcurementAdmin.GroupId);
-        Assert.Contains(Permissions.RequestAllOrdersSummary, procurement);
-        Assert.Contains(Permissions.PeriodSettle, procurement);
-        Assert.DoesNotContain(Permissions.MenuPermission, procurement);
-
-        var system = CanonicalRbac.GetUiComponents(CanonicalRbac.SystemAdmin.GroupId);
-        Assert.Contains(Permissions.MenuPermission, system);
-        Assert.Contains(Permissions.PermissionUser, system);
-        Assert.Contains(Permissions.PermissionComponent, system);
-        Assert.DoesNotContain(Permissions.RequestAllOrdersSummary, system);
-        Assert.DoesNotContain(Permissions.PeriodSettle, system);
+        var dev = CanonicalRbac.GetUiComponents(CanonicalRbac.Dev.GroupId);
+        Assert.Contains(Permissions.MenuPermission, dev);
+        Assert.Contains(Permissions.PermissionUser, dev);
+        Assert.Contains(Permissions.PermissionComponent, dev);
+        Assert.Contains(Permissions.RequestAllOrdersSummary, dev);
+        Assert.Contains(Permissions.RequestAdminApproval, dev);
+        Assert.Contains(Permissions.PeriodSettle, dev);
     }
 
     [Fact]

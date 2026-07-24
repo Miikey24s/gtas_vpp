@@ -2,7 +2,7 @@
 !include ../common/usecase-style.puml
 title QUẢN LÝ DANH MỤC MẶT HÀNG
 
-actor "Quản trị viên" as Admin
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Quản lý danh mục\nmặt hàng" as Manage #E6E6E6
@@ -28,5 +28,5 @@ rectangle "Hệ thống GTAS VPP" {
   Save -[hidden]down- Validate
 }
 
-Admin --> Manage
+Procurement --> Manage
 @enduml

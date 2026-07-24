@@ -1,0 +1,79 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 58
+skinparam ranksep 62
+skinparam classAttributeIconSize 0
+hide methods
+
+legend top
+  Các bảng dịch dùng chiến lược TPC và kế thừa các trường chung:
+  Id, LanguageCode, Name, Description, Status, Source, IsDeleted.
+  BusinessDataTranslationBase không tạo bảng vật lý riêng.
+endlegend
+
+entity "Department" as Department {
+  * Id <<PK>>
+  --
+  Code
+  Name
+}
+
+entity "Supplier" as Supplier {
+  * Id <<PK>>
+  --
+  SupplierName
+  SupplierShortName
+}
+
+entity "PriceList" as PriceList {
+  * Id <<PK>>
+  --
+  SupplierId <<FK>>
+  PriceListCode
+  PriceListName
+  Version
+}
+
+entity "DepartmentTranslation" as DepartmentTranslation {
+  * Id <<PK>>
+  --
+  DepartmentId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+entity "SupplierTranslation" as SupplierTranslation {
+  * Id <<PK>>
+  --
+  SupplierId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+entity "PriceListTranslation" as PriceListTranslation {
+  * Id <<PK>>
+  --
+  PriceListId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+Department ||-right-o{ DepartmentTranslation
+Supplier ||-right-o{ SupplierTranslation
+PriceList ||-right-o{ PriceListTranslation
+
+Department -[hidden]down- Supplier
+Supplier -[hidden]down- PriceList
+DepartmentTranslation -[hidden]down- SupplierTranslation
+SupplierTranslation -[hidden]down- PriceListTranslation
+@enduml

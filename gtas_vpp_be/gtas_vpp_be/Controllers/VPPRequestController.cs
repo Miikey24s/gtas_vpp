@@ -123,6 +123,58 @@ namespace gtas_vpp_be.Controllers
             return Ok(data);
         }
 
+        [HttpGet("my-order-history-summary")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
+        [ProducesResponseType<VppOrderHistorySummaryResDTO>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetMyOrderHistorySummary(
+            [FromQuery] int? fromPeriod,
+            [FromQuery] int? toPeriod)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (!HasValidPeriodRange(fromPeriod, toPeriod))
+                return BadRequest(new { Message = "The selected period range is invalid." });
+
+            var result = await _vppService.GetMyOrderHistorySummaryAsync(
+                CurrentUserId.Value,
+                fromPeriod,
+                toPeriod);
+            return Ok(result);
+        }
+
+        [HttpGet("my-order-history")]
+        [Authorize(Policy = Permissions.RequestViewOwn)]
+        [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetMyOrderHistory(
+            [FromQuery] int? fromPeriod,
+            [FromQuery] int? toPeriod,
+            [FromQuery] int? exactPeriod,
+            [FromQuery] string? search,
+            [FromQuery] int? status,
+            [FromQuery] bool? isAdditionalOrder,
+            [FromQuery] int? skip,
+            [FromQuery] int? top)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (!HasValidPeriodRange(fromPeriod, toPeriod)
+                || (exactPeriod.HasValue && !IsValidPeriod(exactPeriod.Value)))
+            {
+                return BadRequest(new { Message = "The selected period is invalid." });
+            }
+
+            var (data, totalCount) = await _vppService.GetMyOrderHistoryPageAsync(
+                CurrentUserId.Value,
+                fromPeriod,
+                toPeriod,
+                exactPeriod,
+                search,
+                status,
+                isAdditionalOrder,
+                skip,
+                top);
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+            return Ok(data);
+        }
+
         [HttpGet("orders/{id:guid}")]
         [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -948,6 +1000,18 @@ namespace gtas_vpp_be.Controllers
         private bool IsInCurrentCompany(VppRequestResDTO order) =>
             !string.IsNullOrWhiteSpace(CurrentMemberCompanyCode)
             && string.Equals(order.MemberCompanyCode, CurrentMemberCompanyCode, StringComparison.OrdinalIgnoreCase);
+
+        private static bool HasValidPeriodRange(int? fromPeriod, int? toPeriod) =>
+            (!fromPeriod.HasValue || IsValidPeriod(fromPeriod.Value))
+            && (!toPeriod.HasValue || IsValidPeriod(toPeriod.Value))
+            && (!fromPeriod.HasValue || !toPeriod.HasValue || fromPeriod.Value <= toPeriod.Value);
+
+        private static bool IsValidPeriod(int period)
+        {
+            var year = period / 100;
+            var month = period % 100;
+            return year is >= 2000 and <= 9999 && month is >= 1 and <= 12;
+        }
 
         private static IEnumerable<int>? MergeIntFilters(int? singleValue, IEnumerable<int>? listValues)
         {

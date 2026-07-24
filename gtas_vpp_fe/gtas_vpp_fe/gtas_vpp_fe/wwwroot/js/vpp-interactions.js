@@ -10,6 +10,28 @@
             && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     }
 
+    function settlePageEntry() {
+        if (!document.documentElement.classList.contains("vpp-page-entering")) {
+            return;
+        }
+
+        window.setTimeout(function () {
+            document.documentElement.classList.remove("vpp-page-entering");
+        }, 680);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", settlePageEntry, { once: true });
+    } else {
+        settlePageEntry();
+    }
+
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+            document.documentElement.classList.remove("vpp-page-entering");
+        }
+    });
+
     window.vppTheme = {
         current: function () {
             var match = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);

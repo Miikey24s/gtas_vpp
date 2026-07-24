@@ -205,6 +205,68 @@ html.vpp-culture-changing .vpp-content {
     }
 }
 
+/* Apple-style document entry: chrome is painted immediately, then its content
+   settles with one shared easing. Internal Blazor navigation does not re-add
+   the root marker, so this remains a refresh/direct-load effect. */
+html.vpp-page-entering .vpp-sidebar-header,
+html.vpp-page-entering .vpp-sidebar-nav,
+html.vpp-page-entering .vpp-sidebar-user-footer {
+    animation: vpp-shell-enter-inline 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+html.vpp-page-entering .vpp-sidebar-nav {
+    animation-delay: 35ms;
+}
+
+html.vpp-page-entering .vpp-sidebar-user-footer {
+    animation-delay: 70ms;
+}
+
+html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-nav-container,
+html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-nav {
+    animation: vpp-shell-enter-block 420ms cubic-bezier(0.32, 0.72, 0, 1) 35ms both;
+}
+
+html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-panels {
+    animation: vpp-content-enter 460ms cubic-bezier(0.32, 0.72, 0, 1) 85ms both;
+}
+
+@keyframes vpp-shell-enter-inline {
+    from {
+        opacity: 0;
+        transform: translate3d(-6px, 0, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes vpp-shell-enter-block {
+    from {
+        opacity: 0;
+        transform: translate3d(0, -6px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes vpp-content-enter {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 8px, 0) scale(0.997);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
@@ -246,6 +308,15 @@ html.vpp-culture-changing .vpp-content {
     .vpp-settle-status-card {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+    }
+
+    html.vpp-page-entering .vpp-sidebar-header,
+    html.vpp-page-entering .vpp-sidebar-nav,
+    html.vpp-page-entering .vpp-sidebar-user-footer,
+    html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-nav-container,
+    html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-nav,
+    html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-panels {
+        animation: none !important;
     }
 }
 

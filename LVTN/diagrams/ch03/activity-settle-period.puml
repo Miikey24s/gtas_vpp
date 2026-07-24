@@ -2,7 +2,7 @@
 !include ../common/activity-style.puml
 title QUY TRÌNH ĐÓNG KỲ
 
-|Quản trị viên|
+|Chuyên viên quản lý văn phòng phẩm|
 start
 :Chọn kỳ và bảng giá;
 :Xác nhận đóng kỳ;
@@ -25,10 +25,9 @@ else (Không)
     :Ghi log PERIOD_SETTLED cho từng đơn;
     :Commit transaction;
     :Tính lại trạng thái kỳ;
-    |Quản trị viên|
+    |Chuyên viên quản lý văn phòng phẩm|
     :Xem kết quả đóng kỳ;
     stop
   endif
 endif
 @enduml
-

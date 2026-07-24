@@ -1,0 +1,119 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 48
+skinparam ranksep 58
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+hide methods
+
+package "Bảng định danh ASPNET Core" as IdentityTables {
+  entity "AppUser / AspNetUsers" as AppUser {
+    * Id <<PK>>
+    --
+    UserName
+    Email
+    AccountStatus
+  }
+
+  entity "AspNetUserClaims" as Claims {
+    * Id <<PK>>
+    --
+    UserId <<FK>>
+    ClaimType
+    ClaimValue
+  }
+
+  entity "AspNetUserLogins" as Logins {
+    * LoginProvider <<PK>>
+    * ProviderKey <<PK>>
+    --
+    UserId <<FK>>
+    ProviderDisplayName
+  }
+
+  entity "AspNetUserTokens" as Tokens {
+    * UserId <<PK, FK>>
+    * LoginProvider <<PK>>
+    * Name <<PK>>
+    --
+    Value
+  }
+
+  AppUser ||--o{ Claims
+  AppUser ||--o{ Logins
+  AppUser ||--o{ Tokens
+  Claims -[hidden]right- Logins
+  Logins -[hidden]right- Tokens
+  AppUser -[hidden]down- Logins
+}
+
+package "View keyless chỉ đọc - không khai báo PK hoặc FK" as KeylessViews {
+  entity "v_Users" as UsersView <<view, keyless>> {
+    UserID
+    UserLogin
+    FullName
+    DepartmentCode
+    MemberCompanyName
+  }
+
+  entity "v_WFXCompany" as CompanyView <<view, keyless>> {
+    MemberCompanyCode
+    CompanyName
+    CompanyShortName
+  }
+
+  UsersView -[hidden]right- CompanyView
+}
+
+package "Bảng kỹ thuật độc lập - không cấu hình FK" as TechnicalTables {
+  entity "SecurityAudit" as SecurityAudit {
+    * Id <<PK>>
+    --
+    ActorUserId
+    TargetUserId
+    Action
+    ResourceType
+    Outcome
+    OccurredAtUtc
+  }
+
+  entity "Notification" as Notification {
+    * Id <<PK>>
+    --
+    UserId
+    MemberCompanyCode
+    Type
+    CorrelationId
+    ReadAt
+    CreatedAt
+  }
+
+  entity "EmailOutboxMessage" as EmailOutbox {
+    * Id <<PK>>
+    --
+    MemberCompanyCode
+    Recipient
+    DeduplicationKey
+    Status
+    AttemptCount
+    NextAttemptAtUtc
+  }
+
+  SecurityAudit -[hidden]right- Notification
+  Notification -[hidden]right- EmailOutbox
+}
+
+AppUser -[hidden]down- UsersView
+UsersView -[hidden]down- Notification
+
+legend bottom
+  Các mã người dùng, công ty và correlation trong nhóm bảng kỹ thuật chỉ là tham chiếu logic.
+endlegend
+@enduml

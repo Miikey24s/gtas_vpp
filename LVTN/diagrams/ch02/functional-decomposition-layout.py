@@ -19,65 +19,65 @@ GROUPS = [
         ("Xác thực và", "phân quyền"),
         [
             ("Đăng nhập",),
-            ("Tải quyền trang/", "component"),
-            ("Cập nhật quyền", "tức thời"),
+            ("Tải quyền truy cập", "hệ thống"),
+            ("Đồng bộ quyền", "tức thời"),
             ("Quản lý", "nhóm quyền"),
             ("Quản lý", "người dùng"),
         ],
     ),
     (
-        ("Đơn yêu cầu", "thường"),
+        ("Xử lý", "đơn thường"),
         [
-            ("Xác định kỳ và", "hạn chốt"),
-            ("Tạo/sao chép", "đơn thường"),
-            ("Sửa hoặc hủy", "đơn yêu cầu"),
-            ("Xem lịch sử và", "trạng thái đơn"),
+            ("Xác định kỳ và", "hạn gửi"),
+            ("Tạo hoặc", "sao chép đơn"),
+            ("Chỉnh sửa hoặc", "hủy đơn"),
+            ("Tra cứu", "lịch sử đơn"),
         ],
     ),
     (
-        ("Đơn bổ sung",),
+        ("Xử lý", "đơn bổ sung"),
         [
-            ("Kiểm tra điều kiện", "đơn bổ sung"),
+            ("Kiểm tra", "điều kiện tạo"),
             ("Tạo đơn bổ sung",),
-            ("Duyệt hoặc từ chối", "đơn bổ sung"),
-            ("Theo dõi", "trạng thái đơn"),
+            ("Phê duyệt hoặc", "từ chối đơn bổ sung"),
+            ("Theo dõi", "trạng thái"),
         ],
     ),
     (
-        ("Danh mục và", "bảng giá"),
+        ("Quản lý danh mục", "văn phòng phẩm", "và bảng giá"),
         [
-            ("Quản lý danh mục", "và vật tư"),
+            ("Quản lý danh mục", "văn phòng phẩm"),
             ("Quản lý", "đơn vị tính"),
             ("Quản lý", "nhà cung cấp"),
             ("Quản lý bảng giá",),
-            ("Ánh xạ giá theo", "nhà cung cấp"),
+            ("Thiết lập bảng giá",),
         ],
     ),
     (
-        ("Tổng hợp và", "cuối kỳ"),
+        ("Tổng hợp và", "chốt kỳ"),
         [
-            ("Tổng hợp cá nhân",),
-            ("Tổng hợp", "phòng ban"),
-            ("Tổng hợp", "toàn hệ thống"),
-            ("Đóng kỳ và", "chụp đơn giá"),
-            ("Ghi log thao tác",),
+            ("Theo dõi tiến độ",),
+            ("Tổng hợp", "đơn yêu cầu"),
+            ("Chọn", "nhà cung cấp"),
+            ("Chốt kỳ và", "lưu đơn giá"),
+            ("Ghi nhật ký", "thao tác"),
         ],
     ),
     (
-        ("Báo cáo và", "thông báo"),
+        ("Theo dõi và", "báo cáo"),
         [
-            ("Báo cáo theo", "phạm vi quyền"),
-            ("Lọc, KPI", "và biểu đồ"),
-            ("Xuất dữ liệu CSV",),
+            ("Lọc theo", "phạm vi"),
+            ("Xem KPI", "và biểu đồ"),
+            ("Xuất báo cáo",),
             ("Nhận thông báo", "tức thời"),
-            ("Quản lý hộp thư", "thông báo"),
+            ("Theo dõi", "hộp thư"),
         ],
     ),
 ]
 
 ROOT_X, ROOT_Y, ROOT_W, ROOT_H = (WIDTH - 320) // 2, 20, 320, 100
 BUS_Y = 160
-GROUP_Y, GROUP_W, GROUP_H = 190, 235, 70
+GROUP_Y, GROUP_W, GROUP_H = 190, 235, 86
 LEAF_Y, LEAF_STEP, LEAF_W, LEAF_H = 300, 90, 195, 70
 COL_STEP = 255
 
@@ -122,8 +122,7 @@ def make_svg():
     parts.append(
         f'<rect x="{ROOT_X}" y="{ROOT_Y}" width="{ROOT_W}" height="{ROOT_H}" fill="#FFF" stroke="#000" stroke-width="1.6"/>'
     )
-    parts.append(svg_text(("HỆ THỐNG GTAS VPP",), root_cx, ROOT_Y + 34, 25, True))
-    parts.append(svg_text(("Quản lý yêu cầu", "văn phòng phẩm"), root_cx, ROOT_Y + 70, 22, False))
+    parts.append(svg_text(("GTAS VPP",), root_cx, ROOT_Y + ROOT_H / 2, 25, True))
 
     for index, (group_lines, leaves) in enumerate(GROUPS):
         base = 10 + index * COL_STEP
@@ -140,7 +139,8 @@ def make_svg():
             f'<rect x="{group_x}" y="{GROUP_Y}" width="{GROUP_W}" height="{GROUP_H}" '
             'fill="#FFF" stroke="#000" stroke-width="1.6"/>'
         )
-        parts.append(svg_text(group_lines, group_cx, GROUP_Y + GROUP_H / 2, 22, True))
+        group_size = 18 if len(group_lines) == 3 else 22
+        parts.append(svg_text(group_lines, group_cx, GROUP_Y + GROUP_H / 2, group_size, True))
 
         last_center = LEAF_Y + (len(leaves) - 1) * LEAF_STEP + LEAF_H / 2
         parts.append(
@@ -193,8 +193,8 @@ def make_png():
     draw = ImageDraw.Draw(image)
     regular = font(Path(r"C:\Windows\Fonts\arial.ttf"), 20)
     group_font = font(Path(r"C:\Windows\Fonts\arialbd.ttf"), 22)
+    group_small_font = font(Path(r"C:\Windows\Fonts\arialbd.ttf"), 18)
     root_font = font(Path(r"C:\Windows\Fonts\arialbd.ttf"), 25)
-    root_sub_font = font(Path(r"C:\Windows\Fonts\arial.ttf"), 22)
 
     def line(points, width=2):
         draw.line(tuple(int(v * SCALE) for point in points for v in point), fill="black", width=width * SCALE)
@@ -204,8 +204,7 @@ def make_png():
     line(((root_cx, ROOT_Y + ROOT_H), (root_cx, BUS_Y)))
     line(((centers[0], BUS_Y), (centers[-1], BUS_Y)))
     draw.rectangle(tuple(int(v * SCALE) for v in (ROOT_X, ROOT_Y, ROOT_X + ROOT_W, ROOT_Y + ROOT_H)), outline="black", width=2 * SCALE)
-    draw_centered(draw, ("HỆ THỐNG GTAS VPP",), root_cx, ROOT_Y + 30, root_font)
-    draw_centered(draw, ("Quản lý yêu cầu", "văn phòng phẩm"), root_cx, ROOT_Y + 70, root_sub_font)
+    draw_centered(draw, ("GTAS VPP",), root_cx, ROOT_Y + ROOT_H / 2, root_font)
 
     for index, (group_lines, leaves) in enumerate(GROUPS):
         base = 10 + index * COL_STEP
@@ -215,7 +214,13 @@ def make_png():
         leaf_x = base + 45
         arrow(draw, (group_cx, BUS_Y), (group_cx, GROUP_Y))
         draw.rectangle(tuple(int(v * SCALE) for v in (group_x, GROUP_Y, group_x + GROUP_W, GROUP_Y + GROUP_H)), outline="black", width=2 * SCALE)
-        draw_centered(draw, group_lines, group_cx, GROUP_Y + GROUP_H / 2, group_font)
+        draw_centered(
+            draw,
+            group_lines,
+            group_cx,
+            GROUP_Y + GROUP_H / 2,
+            group_small_font if len(group_lines) == 3 else group_font,
+        )
         last_center = LEAF_Y + (len(leaves) - 1) * LEAF_STEP + LEAF_H / 2
         line(((trunk_x, GROUP_Y + GROUP_H), (trunk_x, last_center)))
         for row, lines in enumerate(leaves):

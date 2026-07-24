@@ -16,40 +16,40 @@ wbsDiagram {
 }
 </style>
 
-* HỆ THỐNG GTAS VPP
+* GTAS VPP
 ** Xác thực và phân quyền
 *** Đăng nhập
-*** Tải quyền trang/component
-*** Cập nhật quyền tức thời
+*** Tải quyền truy cập hệ thống
+*** Đồng bộ quyền tức thời
 *** Quản lý nhóm quyền
 *** Quản lý người dùng
-** Đơn yêu cầu thường
-*** Xác định kỳ và hạn chốt
-*** Tạo hoặc sao chép đơn thường
-*** Sửa hoặc hủy đơn yêu cầu
-*** Xem lịch sử và trạng thái đơn
-** Đơn bổ sung
-*** Kiểm tra điều kiện đơn bổ sung
+** Xử lý đơn thường
+*** Xác định kỳ và hạn gửi
+*** Tạo hoặc sao chép đơn
+*** Chỉnh sửa hoặc hủy đơn
+*** Tra cứu lịch sử đơn
+** Xử lý đơn bổ sung
+*** Kiểm tra điều kiện tạo
 *** Tạo đơn bổ sung
-*** Duyệt hoặc từ chối đơn bổ sung
-*** Theo dõi trạng thái đơn
-** Danh mục và bảng giá
-*** Quản lý danh mục và vật tư
+*** Phê duyệt hoặc từ chối đơn bổ sung
+*** Theo dõi trạng thái
+** Quản lý danh mục văn phòng phẩm và bảng giá
+*** Quản lý danh mục văn phòng phẩm
 *** Quản lý đơn vị tính
 *** Quản lý nhà cung cấp
 *** Quản lý bảng giá
-*** Ánh xạ giá theo nhà cung cấp
-** Tổng hợp và cuối kỳ
-*** Tổng hợp cá nhân
-*** Tổng hợp phòng ban
-*** Tổng hợp toàn hệ thống
-*** Đóng kỳ và chụp đơn giá
-*** Ghi log thao tác
-** Báo cáo và thông báo
-*** Báo cáo theo phạm vi quyền
-*** Lọc, KPI và biểu đồ
-*** Xuất dữ liệu CSV
+*** Thiết lập bảng giá
+** Tổng hợp và chốt kỳ
+*** Theo dõi tiến độ
+*** Tổng hợp đơn yêu cầu
+*** Chọn nhà cung cấp
+*** Chốt kỳ và lưu đơn giá
+*** Ghi nhật ký thao tác
+** Theo dõi và báo cáo
+*** Lọc theo phạm vi
+*** Xem KPI và biểu đồ
+*** Xuất báo cáo
 *** Nhận thông báo tức thời
-*** Quản lý hộp thư thông báo
+*** Theo dõi hộp thư
 
 @endwbs

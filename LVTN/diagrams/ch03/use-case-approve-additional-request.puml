@@ -2,7 +2,7 @@
 !include ../common/usecase-style.puml
 title DUYỆT HOẶC TỪ CHỐI ĐƠN BỔ SUNG
 
-actor "Quản trị viên" as Admin
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Xử lý đơn\nbổ sung" as Process #E6E6E6
@@ -28,5 +28,5 @@ rectangle "Hệ thống GTAS VPP" {
   Reject -[hidden]down- Reason
 }
 
-Admin --> Process
+Procurement --> Process
 @enduml

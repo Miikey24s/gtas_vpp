@@ -295,7 +295,7 @@
   <data name="SubmittedPeriodClosed" xml:space="preserve"><value>Submitted (Period Closed)</value></data>
   <data name="TotalOrders" xml:space="preserve"><value>Total Orders</value></data>
   <data name="TotalProducts" xml:space="preserve"><value>Total items</value></data>
-  <data name="UOM" xml:space="preserve"><value>UOM</value></data>
+  <data name="UOM" xml:space="preserve"><value>Unit</value></data>
   <data name="Year" xml:space="preserve"><value>Year</value></data>
   <data name="Yes" xml:space="preserve"><value>Yes</value></data>
   <data name="AddAtLeastOneItemBeforeSubmitting" xml:space="preserve"><value>Add at least one item before submitting the order.</value></data>
@@ -575,6 +575,9 @@
   <data name="ViewRequestHistoryAria" xml:space="preserve"><value>View revision history for request {0}</value></data>
   <data name="RequestLifecycle" xml:space="preserve"><value>Request lifecycle</value></data>
   <data name="HistoryLoadFailed" xml:space="preserve"><value>Could not load request history</value></data>
+  <data name="HistoryLoadErrorDescription" xml:space="preserve"><value>Check your connection and try again. Existing content remains visible when available.</value></data>
+  <data name="HistoryDetailsLoadFailed" xml:space="preserve"><value>Could not load order details</value></data>
+  <data name="HistoryDetailsErrorDescription" xml:space="preserve"><value>The order context is preserved. Try loading the detail section again.</value></data>
   <data name="NoRequestHistory" xml:space="preserve"><value>This request has no revision history.</value></data>
   <data name="Retry" xml:space="preserve"><value>Retry</value></data>
   <data name="RevisionCount" xml:space="preserve"><value>{0} revisions</value></data>
@@ -598,4 +601,65 @@
   <data name="RequestAction_CANCEL" xml:space="preserve"><value>Request cancelled</value></data>
   <data name="RequestAction_APPROVE" xml:space="preserve"><value>Request approved</value></data>
   <data name="RequestAction_REJECT" xml:space="preserve"><value>Request rejected</value></data>
+  <data name="HistoryTimeRange" xml:space="preserve"><value>Time range</value></data>
+  <data name="HistoryAllPeriods" xml:space="preserve"><value>All periods</value></data>
+  <data name="HistoryCurrentPeriod" xml:space="preserve"><value>Current period</value></data>
+  <data name="HistoryLast12Periods" xml:space="preserve"><value>12 months</value></data>
+  <data name="HistoryLast1Period" xml:space="preserve"><value>1 month</value></data>
+  <data name="HistoryLast3Periods" xml:space="preserve"><value>3 months</value></data>
+  <data name="HistoryLast6Periods" xml:space="preserve"><value>6 months</value></data>
+  <data name="HistoryCustom" xml:space="preserve"><value>Custom</value></data>
+  <data name="HistoryCustomRange" xml:space="preserve"><value>Select period range</value></data>
+  <data name="HistoryFromPeriod" xml:space="preserve"><value>From period</value></data>
+  <data name="HistoryToPeriod" xml:space="preserve"><value>To period</value></data>
+  <data name="HistoryInvalidRange" xml:space="preserve"><value>The period range is invalid. Select a start period that is not after the end period.</value></data>
+  <data name="HistoryNoOrdersDescription" xml:space="preserve"><value>Requests you submit will appear here.</value></data>
+  <data name="HistorySummary" xml:space="preserve"><value>Order summary</value></data>
+  <data name="HistoryPeriodsWithOrders" xml:space="preserve"><value>Periods with orders</value></data>
+  <data name="HistoryKpiDetailTitle" xml:space="preserve"><value>Metric details</value></data>
+  <data name="HistoryKpiScope" xml:space="preserve"><value>Viewing range</value></data>
+  <data name="HistoryKpiPeriodsHint" xml:space="preserve"><value>Number of periods with at least one order.</value></data>
+  <data name="HistoryKpiOrdersHint" xml:space="preserve"><value>Total orders submitted in the selected range.</value></data>
+  <data name="HistoryKpiLinesHint" xml:space="preserve"><value>Total line items across all orders.</value></data>
+  <data name="HistoryKpiQuantityHint" xml:space="preserve"><value>Total quantity of items ordered.</value></data>
+  <data name="HistoryKpiOrdersPerPeriod" xml:space="preserve"><value>Average orders per period</value></data>
+  <data name="HistoryKpiAveragePerOrder" xml:space="preserve"><value>Average per order</value></data>
+  <data name="HistoryKpiLinesPerOrder" xml:space="preserve"><value>Line items per order</value></data>
+  <data name="HistoryKpiAveragePerLine" xml:space="preserve"><value>Quantity per line item</value></data>
+  <data name="HistoryQuantityByPeriod" xml:space="preserve"><value>Quantity by period</value></data>
+  <data name="HistoryChartAccessibleSummary" xml:space="preserve"><value>Quantity chart for {0} periods with orders, total quantity {1}.</value></data>
+  <data name="HistoryChartSeries" xml:space="preserve"><value>Order types shown in chart</value></data>
+  <data name="HistoryChartNoSeriesSelected" xml:space="preserve"><value>No order type selected</value></data>
+  <data name="HistoryChartNoData" xml:space="preserve"><value>No data in this range</value></data>
+  <data name="HistoryOrderList" xml:space="preserve"><value>Order list</value></data>
+  <data name="HistorySearchOrderOrNote" xml:space="preserve"><value>Search order code or note</value></data>
+  <data name="HistoryAllStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="HistoryOrderType" xml:space="preserve"><value>Order type</value></data>
+  <data name="HistoryAllOrderTypes" xml:space="preserve"><value>All order types</value></data>
+  <data name="HistoryClearFilters" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="HistoryAdjustFilters" xml:space="preserve"><value>Change or clear some filters.</value></data>
+  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Page {0}/{1} · {2} orders</value></data>
+  <data name="HistorySearchItem" xml:space="preserve"><value>Search item code or name</value></data>
+  <data name="HistoryAllCategories" xml:space="preserve"><value>All categories</value></data>
+  <data name="HistoryItem" xml:space="preserve"><value>Item</value></data>
+  <data name="HistoryNoItems" xml:space="preserve"><value>No matching items</value></data>
+  <data name="HistoryNoItemsDescription" xml:space="preserve"><value>Change the search term or selected category.</value></data>
+  <data name="HistorySelectOrder" xml:space="preserve"><value>No order selected</value></data>
+  <data name="HistorySelectOrderDescription" xml:space="preserve"><value>Select an order from the list to view its details.</value></data>
+  <data name="HistoryDetailCount" xml:space="preserve"><value>Showing {0} of {1} items</value></data>
+  <data name="CatalogFilters" xml:space="preserve"><value>Item catalog filters</value></data>
+  <data name="SearchCatalogItems" xml:space="preserve"><value>Search by item code or name</value></data>
+  <data name="AllCategories" xml:space="preserve"><value>All categories</value></data>
+  <data name="AllUnits" xml:space="preserve"><value>All units</value></data>
+  <data name="ClearFilters" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="DownloadCatalog" xml:space="preserve"><value>Download catalog</value></data>
+  <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} available items</value></data>
+  <data name="CatalogReferenceDescription" xml:space="preserve"><value>Use this list to look up items available for the current ordering cycle.</value></data>
+  <data name="CatalogLoadFailed" xml:space="preserve"><value>Could not load the item catalog</value></data>
+  <data name="CatalogLoadFailedDescription" xml:space="preserve"><value>The catalog is temporarily unavailable. Please try again.</value></data>
+  <data name="AdjustCatalogFilters" xml:space="preserve"><value>Try changing the keyword, category, or unit.</value></data>
+  <data name="CatalogPagingSummary" xml:space="preserve"><value>Showing {0}–{1} of {2} items</value></data>
+  <data name="InUse" xml:space="preserve"><value>In use</value></data>
+  <data name="FeatureInDevelopment" xml:space="preserve"><value>Feature in development</value></data>
+  <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Catalog download will be available in a future release.</value></data>
 </root>

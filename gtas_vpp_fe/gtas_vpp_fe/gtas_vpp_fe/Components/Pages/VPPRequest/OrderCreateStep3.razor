@@ -1,105 +1,88 @@
 <div class="wizard-step wizard-step-review">
-
-    <div class="vpp-data-card vpp-wizard-review-card rz-mb-3">
-        <div class="vpp-wizard-panel-head">
+    <section class="vpp-order-review-panel" aria-labelledby="order-review-title">
+        <header class="vpp-order-review-header">
             <div>
-                <div class="vpp-wizard-panel-title-row">
-                    <RadzenIcon Icon="fact_check" Style="color: var(--vpp-primary-500); font-size: 1.3rem;" aria-hidden="true" />
-                    <span class="vpp-wizard-panel-title">@Loc["WizardOrderReviewTitle"]</span>
-                </div>
-                <p class="vpp-wizard-panel-copy">@Loc["WizardOrderReviewCopy"]</p>
+                <h2 id="order-review-title">@Loc["ReviewOrderBeforeSubmit"]</h2>
+                <p>@Loc["ReviewOrderBeforeSubmitDescription"]</p>
             </div>
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenBadge Text="@Loc["WizardItemsBadgeFormat", Context.SelectedItems.Count]" BadgeStyle="BadgeStyle.Primary" IsPill="true" />
-                <RadzenBadge Text="@Loc["WizardTotalQtyBadgeFormat", Context.TotalQty]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
+            <div class="vpp-order-draft-badges">
+                <span class="vpp-badge status-info">@Loc["ItemsCount", Context.SelectedItems.Count]</span>
                 @if (Context.IsAdditional)
                 {
-                    <RadzenBadge Text="@Loc["WizardApprovalRequired"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                    <span class="vpp-badge status-warning">@Loc["AdditionalOrder"]</span>
                 }
-            </RadzenStack>
-        </div>
+            </div>
+        </header>
 
-        <div class="vpp-wizard-review-metrics">
-            <div class="vpp-wizard-review-metric">
-                <span>@Loc["Lines"]</span>
-                <strong>@Context.SelectedItems.Count</strong>
-            </div>
-            <div class="vpp-wizard-review-metric">
-                <span>@Loc["TotalQuantity"]</span>
-                <strong>@Context.TotalQty</strong>
-            </div>
-            <div class="vpp-wizard-review-metric">
-                <span>@Loc["Mode"]</span>
-                <strong>@(Context.IsAdditional ? Loc["Additional"] : (Context.IsEdit ? Loc["Edit"] : Loc["Regular"]))</strong>
-            </div>
-        </div>
+        <dl class="vpp-order-review-summary">
+            <div><dt>@Loc["TotalLineItems"]</dt><dd>@Context.SelectedItems.Count</dd></div>
+            <div><dt>@Loc["TotalQuantity"]</dt><dd>@Context.TotalQty</dd></div>
+            <div><dt>@(Context.IsAdditional ? Loc["SupplementReason"] : Loc["OrderNote"])</dt><dd>@OrderNote</dd></div>
+        </dl>
 
-        @if (!string.IsNullOrEmpty(Context.Description))
+        @if (Context.SelectedItems.Count == 0)
         {
-            <div class="wizard-review-notes">
-                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">@Loc["Notes"]</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">@Context.Description</RadzenText>
-            </div>
+            <VppStatePanel State="empty"
+                           Icon="remove_shopping_cart"
+                           Title="@Loc["WizardNoItemsToSubmit"]"
+                           Description="@Loc["WizardNoItemsToSubmitDesc"]" />
         }
-        @if (Context.IsAdditional && !string.IsNullOrWhiteSpace(Context.SupplementReason))
+        else
         {
-            <div class="wizard-review-notes">
-                <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--vpp-text-secondary); margin-bottom: 4px;">@Loc["SupplementReason"]</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">@Context.SupplementReason</RadzenText>
+            <div class="vpp-order-review-grid-frame">
+                <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
+                                Data="@Context.SelectedItems"
+                                AllowVirtualization="true"
+                                VirtualizationOverscanCount="4"
+                                AllowPaging="false"
+                                AllowSorting="false"
+                                AllowFiltering="false"
+                                AllowAlternatingRows="false"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                class="vpp-order-review-grid">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="56px" TextAlign="TextAlign.Center">
+                            <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppName" Title="@Loc["ItemName"]">
+                            <Template Context="item">
+                                <div class="vpp-order-builder-item-cell">
+                                    <strong>@item.VppName</strong>
+                                    <small>@item.VppCode</small>
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Qty" Title="@Loc["Quantity"]" Width="130px" TextAlign="TextAlign.Right" />
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UomName" Title="@Loc["UOM"]" Width="120px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="@Loc["ItemNote"]" Width="320px">
+                            <Template Context="item">@(string.IsNullOrWhiteSpace(item.Description) ? "–" : item.Description)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="56px" TextAlign="TextAlign.Center">
+                            <Template Context="item">
+                                <button type="button"
+                                        class="vpp-order-draft-remove"
+                                        title="@Loc["RemoveItemFromOrder"]"
+                                        aria-label="@Loc["RemoveItemFromOrder"]"
+                                        @onclick="() => RemoveItem(item)">
+                                    <VppIcon Name="close" />
+                                </button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
             </div>
+            <footer class="vpp-order-builder-data-footer">@Loc["SelectedItemsSummary", Context.SelectedItems.Count, Context.TotalQty]</footer>
         }
-    </div>
-
-    @* Items Grid *@
-    @if (Context.SelectedItems.Count == 0)
-    {
-        <div class="vpp-empty-state" style="padding: var(--vpp-space-8);">
-            <span class="vpp-empty-state-icon rzi rzi-remove-shopping-cart"></span>
-            <div class="vpp-empty-state-title">@Loc["WizardNoItemsToSubmit"]</div>
-            <div class="vpp-empty-state-desc">@Loc["WizardNoItemsToSubmitDesc"]</div>
-        </div>
-    }
-    else
-    {
-        <div class="vpp-data-card vpp-wizard-panel-card">
-            <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
-                            Data="@Context.SelectedItems"
-                            AllowPaging="false"
-                            Density="Density.Compact"
-                            GridLines="DataGridGridLines.Horizontal"
-                            Style="border: none;">
-                <Columns>
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="35px" TextAlign="TextAlign.Center" Sortable="false">
-                        <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppCode" Title="@Loc["ProductCode"]" MinWidth="90px" />
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppName" Title="@Loc["ProductName"]" MinWidth="140px" />
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="@Loc["Quantity"]" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
-                        <Template Context="item">
-                            <RadzenNumeric TValue="int" @bind-Value="item.Qty" Min="1" Max="9999"
-                                           Style="width: 65px;" ShowUpDown="true"
-                                           Change="@(_ => Context.NotifyStateChanged())" />
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="@Loc["Notes"]" MinWidth="120px" />
-                    <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="40px" TextAlign="TextAlign.Center" Sortable="false">
-                        <Template Context="item">
-                            @* F-28: icon-only buttons need an explicit aria-label for screen readers. *@
-                            <RadzenButton Icon="close" Size="ButtonSize.Small"
-                                          ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                                          Click="@(_ => RemoveItem(item))" Title="@Loc["Remove"]" aria-label="@Loc["RemoveItemFromOrder"]" />
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
-
-
-        </div>
-    }
+    </section>
 </div>
 
 @code {
     [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+
+    private string OrderNote => Context.IsAdditional
+        ? Context.SupplementReason ?? "–"
+        : Context.Description ?? "–";
 
     private void RemoveItem(OrderCreateContext.SelectedItem item)
     {

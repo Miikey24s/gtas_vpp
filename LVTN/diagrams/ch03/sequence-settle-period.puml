@@ -2,7 +2,7 @@
 !include ../common/sequence-style.puml
 title SET-002 — Preview, immutable settlement close and correction
 
-actor "Procurement admin" as Admin
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Admin
 boundary "PeriodSettlementPanel\n(Blazor/Radzen)" as FE
 control "PeriodSettlementController" as API
 control "PeriodSettlementService" as Service

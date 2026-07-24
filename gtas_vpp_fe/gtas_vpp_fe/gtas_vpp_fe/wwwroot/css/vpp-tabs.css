@@ -161,6 +161,13 @@
     padding-bottom: 0;
 }
 
+/* Primary route content owns its own compact inset. Removing the generic
+   panel offset keeps the first content control centered with the first
+   sidebar navigation row across collapsed and expanded shells. */
+.vpp-admin-tabs > .rz-tabview-panels > .rz-tabview-panel {
+    padding-top: 0;
+}
+
 /* ── librariestab (shared class) — ensure full width ─────────── */
 .librariestab {
     --vpp-library-primary-tabs-height: var(--vpp-header-height);
@@ -298,9 +305,9 @@
     }
 }
 
-/* Selection is communicated by the shared blue underline only. Keep the
-   primary selected surface transparent even while the pointer remains over
-   it after a click; unselected tabs retain the shared hover feedback. */
+/* Selection is communicated by the shared blue underline. The selected tab
+   still receives the same hover surface as its siblings so the pointer state
+   remains visible after a click. */
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected > .rz-tabview-nav-link,
 .vpp-admin-tabs > .rz-tabview-nav > li.rz-tabview-selected > .rz-tabview-nav-link,
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
@@ -316,7 +323,8 @@
 .vpp-admin-tabs > .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"]:hover,
 .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"]:hover,
 .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"]:hover {
-    background: transparent !important;
+    background: var(--vpp-navigation-item-hover-bg) !important;
+    color: var(--vpp-text-primary) !important;
 }
 
 .vpp-secondary-tabs {

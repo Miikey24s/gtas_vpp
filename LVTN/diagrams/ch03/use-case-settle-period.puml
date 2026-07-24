@@ -2,13 +2,12 @@
 !include ../common/usecase-style.puml
 title ĐÓNG KỲ VÀ CHỤP GIÁ
 
-actor "Quản trị viên" as Admin
-actor "Xử lý tự động\ncủa hệ thống" as Automation
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Đóng kỳ và\nchụp giá" as Settle #E6E6E6
   usecase "Chọn kỳ và\nbảng giá áp dụng" as Select
-  usecase "Kiểm tra không còn Pending\nvà đủ giá cho vật tư" as Validate
+  usecase "Kiểm tra không còn Pending\nvà đủ giá cho mặt hàng" as Validate
   usecase "Chụp đơn giá vào\nchi tiết đơn" as Snapshot
   usecase "Ghi SettledAt và\nSettledByPriceListId" as Mark
   usecase "Ghi nhật ký\nthao tác" as Log
@@ -28,6 +27,5 @@ rectangle "Hệ thống GTAS VPP" {
   Mark -[hidden]down- Log
 }
 
-Admin --> Settle
-Automation --> Settle
+Procurement --> Settle
 @enduml

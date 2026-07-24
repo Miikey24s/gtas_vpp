@@ -151,8 +151,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("function readPrimaryTabIndicatorWidth(tabList)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("Math.min(preferredWidth, shortestLabelWidth)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("Math.min(commonIndicatorWidth, titleRect.width)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("Selection is communicated by the shared blue underline only", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("selected surface transparent even while the pointer remains over", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("Selection is communicated by the shared blue underline", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("still receives the same hover surface", tabsCss, StringComparison.Ordinal);
         Assert.Contains("background: transparent !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("Native Radzen tab item chrome adds a second underline", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav > li.rz-tabview-selected", tabsCss, StringComparison.Ordinal);
@@ -355,9 +355,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--rz-panel-menu-2nd-level-vertical-offset: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-row-half-gap: 2px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("4px rhythm optically centered", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-sidebar-header-to-nav-overlap: 10px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-header-to-nav-overlap: 0px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("border-block-end: 0 !important;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("matches the 24px space between the logo and icon one", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("line-to-first-hover gap matches the 4px gap between rows", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("margin-block: var(--vpp-sidebar-row-half-gap) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.DoesNotContain("margin-block-start: var(--vpp-space-1) !important;", sidebarCss, StringComparison.Ordinal);
@@ -543,7 +543,98 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("width: 100%;", gridStyles, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-bg-base) !important;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-tabs.vpp-orders-shell", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("overflow: visible;", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("border-right: 0;", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-border-default) var(--vpp-header-height) 100%", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none !important;", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-elevated);", tokens, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AuthenticatedShell_UsesOneReducedMotionSafeRefreshReveal()
+    {
+        var root = GetFrontendRoot();
+        var app = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
+        var polishStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
+        var interactions = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
+
+        Assert.Contains("vpp-page-entering", app, StringComparison.Ordinal);
+        Assert.Contains("navigation.type === 'reload'", app, StringComparison.Ordinal);
+        Assert.Contains("prefers-reduced-motion: reduce", app, StringComparison.Ordinal);
+        Assert.Contains("vpp-shell-enter-inline", polishStyles, StringComparison.Ordinal);
+        Assert.Contains("vpp-shell-enter-block", polishStyles, StringComparison.Ordinal);
+        Assert.Contains("vpp-content-enter", polishStyles, StringComparison.Ordinal);
+        Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", polishStyles, StringComparison.Ordinal);
+        Assert.Contains("animation: none !important;", polishStyles, StringComparison.Ordinal);
+        Assert.Contains("function settlePageEntry()", interactions, StringComparison.Ordinal);
+        Assert.Contains("event.persisted", interactions, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HistoryRoute_UsesAlignedPagedSummaryAndBoundedDetailDrawer()
+    {
+        var root = GetFrontendRoot();
+        var history = File.ReadAllText(Path.Combine(
+            root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor"));
+        var historyCode = File.ReadAllText(Path.Combine(
+            root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.cs"));
+        var historyStyles = File.ReadAllText(Path.Combine(
+            root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.css"));
+        var historyScript = File.ReadAllText(Path.Combine(
+            root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.js"));
+
+        Assert.Contains("vpp-history-kpis", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-loading-state", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-region-loading", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-grid-loading", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-chart-refresh", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-refresh", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-no-selection", history, StringComparison.Ordinal);
+        Assert.Contains("HistoryChartNoData", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-clear", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-chart-legend-label", history, StringComparison.Ordinal);
+        Assert.Contains("<VppIcon Name=\"filter_none\" />", history, StringComparison.Ordinal);
+        Assert.Contains("Property=\"Item.Description\" Title=\"@Loc[\"Note\"]\"", history, StringComparison.Ordinal);
+        Assert.Contains("ToggleDetailNote", history, StringComparison.Ordinal);
+        Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", history, StringComparison.Ordinal);
+        Assert.Contains("VppStatePanel State=\"error\"", history, StringComparison.Ordinal);
+        Assert.Contains("RadzenStackedColumnSeries", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-drawer", history, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", history, StringComparison.Ordinal);
+        Assert.Contains("VirtualizationOverscanCount=\"4\"", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-grid-header", history, StringComparison.Ordinal);
+        Assert.DoesNotContain("ExpandMode=", history, StringComparison.Ordinal);
+        Assert.Contains("PageSize = 6;", historyCode, StringComparison.Ordinal);
+        Assert.Contains("Math.Clamp(pageSize, 3, 20)", historyCode, StringComparison.Ordinal);
+        Assert.Contains("SetHistoryViewport", historyCode, StringComparison.Ordinal);
+        Assert.Contains("HasGridLoadError", history, StringComparison.Ordinal);
+        Assert.Contains("_detailError", historyCode, StringComparison.Ordinal);
+        Assert.Contains("ClearDetailFiltersAsync", historyCode, StringComparison.Ordinal);
+        Assert.Contains("--vpp-history-inline-pill-height: 22px;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-note-column", historyStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-history-popover-copy ::deep .vpp-icon", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("font-size: 14px;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("grid-template-rows: auto auto auto minmax(0, 1fr);", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-skeleton", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("prefers-reduced-motion", historyStyles, StringComparison.Ordinal);
+        Assert.Contains(".rz-data-grid-data.has-vertical-overflow", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("--vpp-history-detail-scrollbar-width", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("position: absolute !important;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("@media (min-width: 1600px)", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("grid-row: 1 / 5;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("overflow-x: hidden !important;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("text-overflow: ellipsis;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("new ResizeObserver(() => {", historyScript, StringComparison.Ordinal);
+        Assert.Contains("updateHistoryScrollGutters", historyScript, StringComparison.Ordinal);
+        Assert.Contains("surface.offsetWidth - surface.clientWidth", historyScript, StringComparison.Ordinal);
+        Assert.Contains("renderHistoryChartLabels", historyScript, StringComparison.Ordinal);
+        Assert.Contains("surface.style.removeProperty('min-width')", historyScript, StringComparison.Ordinal);
+        Assert.Contains("notation: 'compact'", historyScript, StringComparison.Ordinal);
+        Assert.Contains("if (height >= 1100) return 8;", historyScript, StringComparison.Ordinal);
+        Assert.Contains("if (height >= 680) return 4;", historyScript, StringComparison.Ordinal);
+        Assert.Contains("return 3;", historyScript, StringComparison.Ordinal);
     }
 
     [Fact]

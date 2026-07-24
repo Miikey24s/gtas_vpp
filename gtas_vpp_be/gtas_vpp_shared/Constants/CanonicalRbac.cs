@@ -16,7 +16,7 @@ public sealed record RbacActionDefinition(
     string Description);
 
 /// <summary>
-/// Stable, flat v1 personas. GroupCode is the security identity; GroupName is
+/// Stable, flat personas. GroupCode is the security identity; GroupName is
 /// only the user-facing display name.
 /// </summary>
 public static class CanonicalRbac
@@ -26,34 +26,36 @@ public static class CanonicalRbac
     public static RbacPersonaDefinition Employee { get; } = new(
         Guid.Parse("388C6C3A-2801-42DC-BFC0-8A7741264596"),
         "EMPLOYEE",
-        "User",
-        "Employee with own-request and read-only catalog access.");
+        "Nhân viên",
+        "Nhân viên tạo và theo dõi đơn của chính mình, đồng thời tra cứu danh mục mặt hàng.");
 
-    public static RbacPersonaDefinition DepartmentApprover { get; } = new(
+    public static RbacPersonaDefinition Manager { get; } = new(
         Guid.Parse("E170FF76-F46E-460B-BC20-1D525E585DF8"),
-        "DEPARTMENT_APPROVER",
-        "Department Approver",
-        "Department-scoped approver for requests and reports.");
+        "MANAGER",
+        "Quản lý",
+        "Quản lý đơn phòng ban và toàn công ty, duyệt đơn bổ sung, thư viện, báo cáo và vận hành kỳ.");
 
-    public static RbacPersonaDefinition ProcurementAdmin { get; } = new(
-        Guid.Parse("2F048784-AFC2-4322-906F-D645B982BE49"),
-        "PROCUREMENT_ADMIN",
-        "Procurement Admin",
-        "Company procurement, catalog pricing, reporting and period settlement.");
+    public static Guid LegacyProcurementAdminGroupId { get; } =
+        Guid.Parse("2F048784-AFC2-4322-906F-D645B982BE49");
 
-    public static RbacPersonaDefinition SystemAdmin { get; } = new(
+    public static RbacPersonaDefinition Dev { get; } = new(
         Guid.Parse("5823B49B-5925-4A89-846A-09063A36040C"),
-        "SYSTEM_ADMIN",
-        "Admin",
-        "System account, membership and permission administrator without procurement authority.");
+        "DEV",
+        "DEV",
+        "Tài khoản kỹ thuật có toàn quyền phục vụ phát triển và kiểm thử.");
+
+    // Compatibility aliases keep existing application code and serialized IDs
+    // readable while the seed reconciles the two legacy management personas.
+    public static RbacPersonaDefinition DepartmentApprover => Manager;
+    public static RbacPersonaDefinition ProcurementAdmin => Manager;
+    public static RbacPersonaDefinition SystemAdmin => Dev;
 
     public static IReadOnlyList<RbacPersonaDefinition> Personas { get; } = Array.AsReadOnly(
         new RbacPersonaDefinition[]
         {
             Employee,
-            DepartmentApprover,
-            ProcurementAdmin,
-            SystemAdmin
+            Manager,
+            Dev
         });
 
     public static IReadOnlyList<RbacActionDefinition> Actions { get; } = Array.AsReadOnly(
@@ -90,19 +92,7 @@ public static class CanonicalRbac
                 Permissions.RequestCatalogView,
                 Permissions.LibraryView,
                 Permissions.ReportViewOwn),
-            [DepartmentApprover.GroupId] = Explicit(
-                Permissions.RequestViewOwn,
-                Permissions.RequestCreate,
-                Permissions.RequestUpdateOwn,
-                Permissions.RequestCancelOwn,
-                Permissions.RequestCatalogView,
-                Permissions.LibraryView,
-                Permissions.ReportViewOwn,
-                Permissions.RequestViewDepartment,
-                Permissions.RequestApprove,
-                Permissions.RequestReject,
-                Permissions.ReportViewDepartment),
-            [ProcurementAdmin.GroupId] = Explicit(
+            [Manager.GroupId] = Explicit(
                 Permissions.RequestViewOwn,
                 Permissions.RequestCreate,
                 Permissions.RequestUpdateOwn,
@@ -112,21 +102,18 @@ public static class CanonicalRbac
                 Permissions.ReportViewOwn,
                 Permissions.RequestViewDepartment,
                 Permissions.RequestViewAll,
+                Permissions.RequestApprove,
+                Permissions.RequestReject,
                 Permissions.LibraryManage,
                 Permissions.ReportViewDepartment,
                 Permissions.ReportViewAll,
                 Permissions.ReportExport,
                 Permissions.PeriodSettle),
-            [SystemAdmin.GroupId] = Explicit(
-                Permissions.RequestViewOwn,
-                Permissions.RequestCreate,
-                Permissions.RequestUpdateOwn,
-                Permissions.RequestCancelOwn,
-                Permissions.RequestCatalogView,
-                Permissions.LibraryView,
-                Permissions.ReportViewOwn,
-                Permissions.PermissionView,
-                Permissions.PermissionManage)
+            [Dev.GroupId] = Actions
+                .Select(action => action.PermissionCode)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToArray()
         };
 
     private static readonly IReadOnlyDictionary<Guid, IReadOnlyList<string>> UiMatrix =
@@ -147,24 +134,7 @@ public static class CanonicalRbac
                 Permissions.LibraryPriceList,
                 Permissions.LibraryDepartment,
                 Permissions.ReportView),
-            [DepartmentApprover.GroupId] = Explicit(
-                Permissions.MenuDashboard,
-                Permissions.MenuLibrary,
-                Permissions.MenuReport,
-                Permissions.RequestOrder,
-                Permissions.RequestHistory,
-                Permissions.RequestProductCatalog,
-                Permissions.RequestDepartmentSummary,
-                Permissions.RequestAdminApproval,
-                Permissions.LibraryClass,
-                Permissions.LibraryCategory,
-                Permissions.LibraryItem,
-                Permissions.LibrarySupplier,
-                Permissions.LibraryPrice,
-                Permissions.LibraryPriceList,
-                Permissions.LibraryDepartment,
-                Permissions.ReportView),
-            [ProcurementAdmin.GroupId] = Explicit(
+            [Manager.GroupId] = Explicit(
                 Permissions.MenuDashboard,
                 Permissions.MenuLibrary,
                 Permissions.MenuReport,
@@ -173,6 +143,7 @@ public static class CanonicalRbac
                 Permissions.RequestProductCatalog,
                 Permissions.RequestDepartmentSummary,
                 Permissions.RequestAllOrdersSummary,
+                Permissions.RequestAdminApproval,
                 Permissions.LibraryClass,
                 Permissions.LibraryCategory,
                 Permissions.LibraryItem,
@@ -182,7 +153,7 @@ public static class CanonicalRbac
                 Permissions.LibraryDepartment,
                 Permissions.ReportView,
                 Permissions.PeriodSettle),
-            [SystemAdmin.GroupId] = Explicit(
+            [Dev.GroupId] = Explicit(
                 Permissions.MenuDashboard,
                 Permissions.MenuLibrary,
                 Permissions.MenuReport,
@@ -190,6 +161,9 @@ public static class CanonicalRbac
                 Permissions.RequestOrder,
                 Permissions.RequestHistory,
                 Permissions.RequestProductCatalog,
+                Permissions.RequestDepartmentSummary,
+                Permissions.RequestAllOrdersSummary,
+                Permissions.RequestAdminApproval,
                 Permissions.LibraryClass,
                 Permissions.LibraryCategory,
                 Permissions.LibraryItem,
@@ -198,6 +172,7 @@ public static class CanonicalRbac
                 Permissions.LibraryPriceList,
                 Permissions.LibraryDepartment,
                 Permissions.ReportView,
+                Permissions.PeriodSettle,
                 Permissions.PermissionUser,
                 Permissions.PermissionComponent)
         };

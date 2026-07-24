@@ -2,23 +2,23 @@
 !include ../common/activity-style.puml
 title QUY TRÌNH QUẢN LÝ BẢNG GIÁ
 
-|Quản trị viên|
+|Chuyên viên quản lý văn phòng phẩm|
 start
 :Chọn bảng giá và nhà cung cấp;
-:Chọn vật tư cần thêm hoặc sửa giá;
+:Chọn mặt hàng cần thêm hoặc sửa giá;
 :Nhập giá, mô tả và cờ mặc định;
 |Hệ thống|
 :Kiểm tra giá không âm;
-:Kiểm tra vật tư, nhà cung cấp và bảng giá tồn tại;
+:Kiểm tra mặt hàng, nhà cung cấp và bảng giá tồn tại;
 if (Dữ liệu hợp lệ?) then (Không)
   :Trả lỗi và giữ dữ liệu nhập;
-  |Quản trị viên|
+  |Chuyên viên quản lý văn phòng phẩm|
   :Điều chỉnh thông tin;
   stop
 else (Có)
   :Bắt đầu transaction;
   if (Đặt làm giá mặc định?) then (Có)
-    :Hạ cờ mặc định của giá cũ cùng vật tư/bảng giá;
+    :Hạ cờ mặc định của giá cũ cùng mặt hàng/bảng giá;
   endif
   :Thêm hoặc cập nhật ánh xạ giá;
   if (Vi phạm ràng buộc duy nhất?) then (Có)
@@ -27,10 +27,9 @@ else (Có)
   else (Không)
     :Commit;
     :Đọc lại dữ liệu hiển thị;
-    |Quản trị viên|
+    |Chuyên viên quản lý văn phòng phẩm|
     :Xem lưới giá đã cập nhật;
     stop
   endif
 endif
 @enduml
-

@@ -1,0 +1,214 @@
+.vpp-catalog-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vpp-space-3);
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vpp-catalog-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-catalog-filter-group,
+.vpp-catalog-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-width: 0;
+}
+
+.vpp-catalog-filter-group {
+    flex: 1 1 auto;
+}
+
+.vpp-catalog-search {
+    display: flex;
+    flex: 1 1 320px;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-width: 220px;
+    max-width: 520px;
+    min-height: 40px;
+    padding: 0 var(--vpp-space-3);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-surface);
+}
+
+.vpp-catalog-search:focus-within {
+    border-color: var(--vpp-primary-500);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-primary-500) 12%, transparent);
+}
+
+.vpp-catalog-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: var(--vpp-text-primary);
+    background: transparent;
+    font: inherit;
+}
+
+.vpp-catalog-search .vpp-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-catalog-select {
+    width: min(220px, 24vw);
+    min-width: 160px;
+}
+
+.vpp-catalog-toolbar-actions {
+    flex: 0 0 auto;
+}
+
+.vpp-flat-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
+    min-height: 40px;
+    padding: 0 var(--vpp-space-3);
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-text-primary);
+    background: transparent;
+    font: inherit;
+    font-weight: var(--vpp-font-weight-medium);
+    cursor: pointer;
+}
+
+.vpp-flat-action:hover {
+    background: var(--vpp-bg-surface);
+}
+
+.vpp-flat-action:focus-visible {
+    outline: 2px solid var(--vpp-primary-500);
+    outline-offset: 2px;
+}
+
+.vpp-catalog-card {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-catalog-card-header {
+    flex: 0 0 auto;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-catalog-card-header h2,
+.vpp-catalog-card-header p {
+    margin: 0;
+}
+
+.vpp-catalog-card-header h2 {
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-catalog-card-header p {
+    margin-top: 2px;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-catalog-grid-frame {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vpp-catalog-grid {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.vpp-catalog-item-cell {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vpp-catalog-item-cell strong,
+.vpp-catalog-item-cell small,
+.vpp-catalog-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-catalog-item-cell strong {
+    color: var(--vpp-text-primary);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-catalog-item-cell small {
+    color: var(--vpp-text-tertiary);
+    font-family: var(--vpp-font-mono);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-catalog-state {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+@media (max-width: 1199px) {
+    .vpp-catalog-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .vpp-catalog-toolbar-actions {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 767px) {
+    .vpp-catalog-workspace {
+        overflow: visible;
+    }
+
+    .vpp-catalog-filter-group,
+    .vpp-catalog-toolbar-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .vpp-catalog-search,
+    .vpp-catalog-select,
+    .vpp-flat-action {
+        width: 100%;
+        max-width: none;
+    }
+
+    .vpp-catalog-card {
+        min-height: 620px;
+    }
+}

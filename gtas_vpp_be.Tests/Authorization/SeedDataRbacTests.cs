@@ -22,7 +22,7 @@ public sealed class SeedDataRbacTests
         var personaIds = CanonicalRbac.Personas.Select(x => x.GroupId).ToArray();
 
         Assert.Equal(firstCounts, secondCounts);
-        Assert.Equal(4, await context.PermissionGroups.CountAsync(x => personaIds.Contains(x.Id)));
+        Assert.Equal(CanonicalRbac.Personas.Count, await context.PermissionGroups.CountAsync(x => personaIds.Contains(x.Id)));
         foreach (var persona in CanonicalRbac.Personas)
         {
             var group = await context.PermissionGroups.SingleAsync(x => x.Id == persona.GroupId);

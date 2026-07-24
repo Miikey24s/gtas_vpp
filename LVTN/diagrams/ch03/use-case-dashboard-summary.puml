@@ -4,7 +4,7 @@ title XEM DASHBOARD VÀ DỮ LIỆU TỔNG HỢP
 
 actor "Nhân viên" as Employee
 actor "Quản lý\nphòng ban" as Manager
-actor "Quản trị viên" as Admin
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Xem dashboard và\ndữ liệu tổng hợp" as Summary #E6E6E6
@@ -32,5 +32,5 @@ rectangle "Hệ thống GTAS VPP" {
 
 Employee --> Summary : cá nhân
 Manager --> Summary : phòng ban
-Admin --> Summary : toàn doanh nghiệp
+Procurement --> Summary : toàn doanh nghiệp
 @enduml

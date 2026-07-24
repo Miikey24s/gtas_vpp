@@ -51,6 +51,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int TotalQty { get; set; }
         public int PageSize { get; set; } = 20;
         public int CurrentSkip { get; set; }
+        protected bool HasGridLoadError { get; private set; }
         protected string? CurrentFilterExpression { get; private set; }
         protected string? CurrentOrderByExpression { get; private set; }
         protected IReadOnlyList<FilterDescriptor> CurrentFilters { get; private set; } = Array.Empty<FilterDescriptor>();
@@ -196,6 +197,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 IsGridLoading = true;
             }
 
+            HasGridLoadError = false;
+
+            // Render the busy state before awaiting the network call so filter changes
+            // keep the existing content visible and show local progress immediately.
+            await InvokeAsync(StateHasChanged);
+
             try
             {
                 var endpoint = BuildEndpoint();
@@ -212,6 +219,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             catch (Exception ex)
             {
+                HasGridLoadError = true;
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,

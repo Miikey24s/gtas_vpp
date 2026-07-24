@@ -102,6 +102,7 @@ namespace gtas_vpp_be.Service.Services
 
             await SeedPermissionPage(context);
             await SeedPermissionGroup(context);
+            await ReconcileLegacyManagementRoles(context);
             await SeedPermissionComponent(context);
             await SeedPageComponentMapping(context);
             await SeedGroupPageComponentMapping(context);
@@ -591,6 +592,77 @@ namespace gtas_vpp_be.Service.Services
             if (added == 0 && updated == 0) return;
             await context.SaveChangesAsync();
             Log.Information("[SeedData] PermissionGroup reconciled: {Added} added, {Updated} updated", added, updated);
+        }
+
+        private static async Task ReconcileLegacyManagementRoles(VPPMigrationDbContext context)
+        {
+            var legacyGroupId = CanonicalRbac.LegacyProcurementAdminGroupId;
+            var managerGroupId = CanonicalRbac.Manager.GroupId;
+            if (legacyGroupId == managerGroupId)
+            {
+                return;
+            }
+
+            var now = DateTime.Now;
+            var managerAccounts = await context.UserGroupMemberships
+                .Where(membership => !membership.IsDeleted
+                    && membership.PermissionGroupId == managerGroupId)
+                .Select(membership => membership.AccountId)
+                .ToHashSetAsync();
+            var legacyMemberships = await context.UserGroupMemberships
+                .Where(membership => !membership.IsDeleted
+                    && membership.PermissionGroupId == legacyGroupId)
+                .ToListAsync();
+
+            foreach (var membership in legacyMemberships)
+            {
+                if (managerAccounts.Contains(membership.AccountId))
+                {
+                    membership.IsDeleted = true;
+                }
+                else
+                {
+                    membership.PermissionGroupId = managerGroupId;
+                    managerAccounts.Add(membership.AccountId);
+                }
+
+                membership.UpdatedByUserId = DefaultUserId;
+                membership.UpdatedAtUtc = now;
+            }
+
+            var legacyMappings = await context.GroupPageComponentMappings
+                .Where(mapping => mapping.PermissionGroupId == legacyGroupId
+                    && (mapping.IsEnable || mapping.IsVisible))
+                .ToListAsync();
+            foreach (var mapping in legacyMappings)
+            {
+                mapping.IsEnable = false;
+                mapping.IsVisible = false;
+                mapping.UpdatedByUserId = DefaultUserId;
+                mapping.UpdatedAtUtc = now;
+            }
+
+            var legacyGroup = await context.PermissionGroups
+                .SingleOrDefaultAsync(group => group.Id == legacyGroupId);
+            if (legacyGroup is not null && !legacyGroup.IsDeleted)
+            {
+                legacyGroup.IsDeleted = true;
+                legacyGroup.UpdatedByUserId = DefaultUserId;
+                legacyGroup.UpdatedAtUtc = now;
+            }
+
+            if (legacyMemberships.Count == 0
+                && legacyMappings.Count == 0
+                && (legacyGroup is null || legacyGroup.IsDeleted))
+            {
+                return;
+            }
+
+            await context.SaveChangesAsync();
+            Log.Information(
+                "[SeedData] Legacy procurement role reconciled into MANAGER: {MembershipCount} memberships, {MappingCount} mappings.",
+                legacyMemberships.Count,
+                legacyMappings.Count);
         }
 
         // ════════════════════════════════════════════════════════════

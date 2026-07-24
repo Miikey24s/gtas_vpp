@@ -2,102 +2,135 @@
 @using gtas_vpp_shared.DTOs.Share
 @inject IToastService Toast
 
-
 @if (CanView)
 {
-    <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-2">
-
-        @* ── KPI Summary ────────────────────────────────────── *@
+    <div class="vpp-catalog-workspace">
         @if (IsFirstLoading)
         {
-            <SkeletonPage Cards="3" Rows="6" Cols="5" />
+            <SkeletonPage Cards="0" Rows="10" Cols="5" />
         }
         else
         {
-            <div class="kpi-grid" style="--kpi-cols: 2;">
-                <div class="kpi-card kpi-blue">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["TotalProducts"]</span>
-                            <span class="kpi-card-icon rzi rzi-inventory-2"></span>
-                        </div>
-                        <div class="kpi-card-value">@ProductCount</div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-purple">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["Categories"]</span>
-                            <span class="kpi-card-icon rzi rzi-category"></span>
-                        </div>
-                        <div class="kpi-card-value">@(CategoryOptions.Count > 1 ? CategoryOptions.Count - 1 : 0)</div>
-                    </div>
-                </div>
-            </div>
-        }
+            <section class="vpp-catalog-toolbar" aria-label="@Loc["CatalogFilters"]">
+                <div class="vpp-catalog-filter-group">
+                    <label class="vpp-catalog-search">
+                        <VppIcon Name="search" />
+                        <input value="@SearchText"
+                               @oninput="OnSearchInput"
+                               placeholder="@Loc["SearchCatalogItems"]"
+                               aria-label="@Loc["SearchCatalogItems"]" />
+                    </label>
 
-        @* ── DataGrid Section ── *@
-        @if (!IsFirstLoading && ProductCount == 0 && !IsGridLoading)
-        {
-            <VppEmptyState Icon="inventory_2"
-                           Title="@Loc["NoData"]"
-                           Description="@Loc["NoCatalogProductsMatchQuery"]"
-                           PrimaryText="@Loc["Reload"]"
-                           PrimaryAction="@(async _ => await ReloadAsync())" />
+                    <RadzenDropDown TValue="Guid?"
+                                    Data="@CategoryOptions"
+                                    TextProperty="Text"
+                                    ValueProperty="Value"
+                                    Value="@CategoryFilter"
+                                    Change="@OnCategoryChanged"
+                                    Placeholder="@Loc["AllCategories"]"
+                                    aria-label="@Loc["AllCategories"]"
+                                    class="vpp-catalog-select" />
+
+                    <RadzenDropDown TValue="string"
+                                    Data="@UnitOptions"
+                                    TextProperty="Text"
+                                    ValueProperty="Value"
+                                    Value="@UnitFilter"
+                                    Change="@OnUnitChanged"
+                                    Placeholder="@Loc["AllUnits"]"
+                                    aria-label="@Loc["AllUnits"]"
+                                    class="vpp-catalog-select" />
+                </div>
+
+                <div class="vpp-catalog-toolbar-actions">
+                    <button type="button" class="vpp-flat-action" @onclick="ClearFiltersAsync">
+                        <VppIcon Name="filter_alt_off" />
+                        <span>@Loc["ClearFilters"]</span>
+                    </button>
+                    <button type="button" class="vpp-flat-action" @onclick="ShowCatalogDownloadNotice">
+                        <VppIcon Name="download" />
+                        <span>@Loc["DownloadCatalog"]</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="vpp-catalog-card" aria-labelledby="catalog-result-title">
+                <header class="vpp-catalog-card-header">
+                    <div>
+                        <h2 id="catalog-result-title">@Loc["AvailableCatalogItems", ProductCount]</h2>
+                        <p>@Loc["CatalogReferenceDescription"]</p>
+                    </div>
+                </header>
+
+                @if (HasLoadError)
+                {
+                    <VppStatePanel State="error"
+                                   Icon="error_outline"
+                                   Title="@Loc["CatalogLoadFailed"]"
+                                   Description="@Loc["CatalogLoadFailedDescription"]"
+                                   RetryText="@Loc["Retry"]"
+                                   RetryAction="@(_ => ReloadAsync())"
+                                   Class="vpp-catalog-state" />
+                }
+                else if (ProductCount == 0 && !IsGridLoading)
+                {
+                    <VppStatePanel State="empty"
+                                   Icon="search_off"
+                                   Title="@Loc["NoCatalogProductsMatchQuery"]"
+                                   Description="@Loc["AdjustCatalogFilters"]"
+                                   Class="vpp-catalog-state" />
+                }
+                else
+                {
+                    <div class="vpp-catalog-grid-frame">
+                        <RadzenDataGrid @ref="productGrid"
+                                        TItem="ProductItem"
+                                        Data="@Products"
+                                        Count="@ProductCount"
+                                        LoadData="@LoadProductsAsync"
+                                        AllowPaging="true"
+                                        PageSize="20"
+                                        PagerAlwaysVisible="false"
+                                        ShowPagingSummary="true"
+                                        PagingSummaryFormat="@Loc["CatalogPagingSummary"]"
+                                        PagerHorizontalAlign="HorizontalAlign.Right"
+                                        AllowSorting="true"
+                                        AllowFiltering="false"
+                                        AllowAlternatingRows="false"
+                                        AllowColumnResize="true"
+                                        IsLoading="@IsGridLoading"
+                                        Density="Density.Compact"
+                                        GridLines="DataGridGridLines.Horizontal"
+                                        class="vpp-catalog-grid">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="ProductItem" Title="#" Width="56px" TextAlign="TextAlign.Center" Sortable="false">
+                                    <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProductItem" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
+                                    <Template Context="row">
+                                        <div class="vpp-catalog-item-cell">
+                                            <strong>@row.VppName</strong>
+                                            <small>@row.VppCode</small>
+                                        </div>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProductItem" Property="VppCategoryName" Title="@Loc["Category"]" Width="260px" TextAlign="TextAlign.Left" />
+                                <RadzenDataGridColumn TItem="ProductItem" Property="UomName" Title="@Loc["UOM"]" Width="130px" TextAlign="TextAlign.Center" />
+                                <RadzenDataGridColumn TItem="ProductItem" Property="Description" Title="@Loc["Description"]" Width="340px" TextAlign="TextAlign.Left">
+                                    <Template Context="row">
+                                        <span class="vpp-catalog-description" title="@row.Description">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProductItem" Title="@Loc["Status"]" Width="150px" TextAlign="TextAlign.Center" Sortable="false">
+                                    <Template Context="row"><span class="vpp-badge status-success">@Loc["InUse"]</span></Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                }
+            </section>
         }
-        else
-        {
-            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden; @(IsFirstLoading ? "display: none;" : string.Empty)">
-                <RadzenDataGrid @ref="productGrid" TItem="Tab_ProductCatalog.ProductItem" Data="@Products"
-                                Count="@ProductCount"
-                                LoadData="@LoadProductsAsync"
-                                AllowPaging="true" PageSize="20"
-                                PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
-                                PageSizeText="@Loc["ItemsPerPage"]"
-                                AllowSorting="true" AllowAlternatingRows="true"
-                                AllowColumnResize="true" IsLoading="@IsGridLoading"
-                                AllowFiltering="true"
-                                AllowMultiColumnSorting="true"
-                                ShowMultiColumnSortingIndex="true"
-                                AllowColumnReorder="false"
-                                FilterMode="FilterMode.CheckBoxList"
-                                LoadColumnFilterData="@LoadColumnFilterDataProducts"
-                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                                ShowPagingSummary="true"
-                                PagerHorizontalAlign="HorizontalAlign.Left"
-                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-order-grid"
-                                Style="border: none; --vpp-grid-min-width: 1320px;">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                            <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VppCode" Title="@Loc["ProductCode"]" Width="140px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <span class="vpp-link-text">@row.VppCode</span>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VppName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.VppName</span>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="VppCategoryName" Title="@Loc["Category"]" Width="220px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.VppCategoryName" IsPill="true" />
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="UomName" Title="@Loc["UOM"]" Width="80px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultSupplierName" Title="@Loc["Supplier"]" Width="145px" TextAlign="TextAlign.Left" />
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="DefaultPrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right" FormatString="{0:N0}" />
-                        <RadzenDataGridColumn TItem="Tab_ProductCatalog.ProductItem" Property="Description" Title="@Loc["Description"]" Width="270px" TextAlign="TextAlign.Left" />
-                    </Columns>
-                </RadzenDataGrid>
-            </div>
-        }
-    </RadzenStack>
+    </div>
 }
 else
 {

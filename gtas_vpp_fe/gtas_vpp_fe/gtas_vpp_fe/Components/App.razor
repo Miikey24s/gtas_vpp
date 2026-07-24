@@ -29,11 +29,21 @@
     <ImportMap />
     <link rel="icon" type="image/svg+xml" href="@Assets["images/vpp-app-icon.svg"]" />
     <script>
-        // Apply the stored theme before the first paint.
+        // Apply theme and mark a document-level entry before first paint.
+        // Internal Blazor navigation does not rerun this script.
         (function(){
             var m = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
             var t = m ? m[1] : 'material3';
             if (t.indexOf('dark') !== -1) document.documentElement.classList.add('rz-theme-dark');
+
+            var reduceMotion = window.matchMedia
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var navigation = performance.getEntriesByType
+                ? performance.getEntriesByType('navigation')[0]
+                : null;
+            if (!reduceMotion && (!navigation || navigation.type === 'navigate' || navigation.type === 'reload')) {
+                document.documentElement.classList.add('vpp-page-entering');
+            }
         })();
     </script>
     <HeadOutlet @rendermode="InteractiveServer" />

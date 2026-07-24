@@ -88,7 +88,9 @@ leftsidebar {
     grid-area: rz-body;
     overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-gutter: stable;
+    /* Page-level stable gutter leaves a permanent strip beside full-bleed
+       chrome. Dense data views own stable gutters inside their scroll region. */
+    scrollbar-gutter: auto;
     min-height: 0;
     min-width: 0;
     padding: var(--vpp-layout-body-inset);
@@ -135,11 +137,29 @@ leftsidebar {
 /* ── Sidebar ──────────────────────────────────────────────────── */
 .vpp-sidebar {
     background-color: var(--vpp-navigation-chrome-bg);
-    border-right: 1px solid var(--vpp-border-default);
+    /* Keep logo and primary tabs on one uninterrupted chrome surface. The
+       divider begins only below the shared 72px header. */
+    border-right: 0;
+    background-image: linear-gradient(
+        to bottom,
+        transparent 0 var(--vpp-header-height),
+        var(--vpp-border-default) var(--vpp-header-height) 100%
+    );
+    background-position: right top;
+    background-repeat: no-repeat;
+    background-size: 1px 100%;
+    box-shadow: none !important;
     display: flex;
     flex-direction: column;
     height: 100%;
     transition: width var(--vpp-sidebar-transition);
+}
+
+/* Radzen's theme stylesheet is loaded after the authored shell styles. Match
+   the runtime element and lock the seam reset so the theme cannot restore it. */
+.rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar {
+    border-right: 0 !important;
+    box-shadow: none !important;
 }
 
 :root:not(.rz-theme-dark) .vpp-layout-body,
@@ -156,6 +176,9 @@ leftsidebar {
     padding: var(--vpp-space-2);
     flex: 0 0 auto;
     overflow: hidden;
+    /* Continue the primary toolbar baseline beneath the logo. This creates a
+       clean macOS-style T junction without restoring the vertical header seam. */
+    box-shadow: inset 0 -1px 0 var(--vpp-border-default);
 }
 
 .vpp-sidebar:not(.sidebar-collapsed) .vpp-sidebar-header {
@@ -793,12 +816,17 @@ leftsidebar {
     flex-direction: column;
     height: 100%;
     min-height: 0;
-    overflow: hidden;
+    /* The primary nav intentionally bleeds across RadzenBody's content inset.
+       Clipping here turns that nav into an inset card with four visible edges. */
+    overflow: visible;
 }
 
 .vpp-admin-tabs.vpp-orders-shell > .rz-tabview-nav-container,
 .vpp-admin-tabs.vpp-orders-shell > .rz-tabview-nav {
     flex: 0 0 auto;
+    width: calc(100% + (2 * var(--vpp-layout-body-inset))) !important;
+    min-width: calc(100% + (2 * var(--vpp-layout-body-inset))) !important;
+    max-width: none !important;
 }
 
 .vpp-admin-tabs.vpp-orders-shell > .rz-tabview-panels {
@@ -808,6 +836,30 @@ leftsidebar {
 }
 
 .vpp-admin-tabs.vpp-orders-shell > .rz-tabview-panels > .rz-tabview-panel {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* History is a dense master-detail workspace too: lock the outer route to the
+   available viewport and let only the detail item region scroll. */
+.vpp-admin-tabs.vpp-history-shell {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: visible;
+}
+
+.vpp-admin-tabs.vpp-history-shell > .rz-tabview-panels {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vpp-admin-tabs.vpp-history-shell > .rz-tabview-panels > .rz-tabview-panel {
     height: 100%;
     min-height: 0;
     overflow: hidden;

@@ -2,13 +2,13 @@
 !include ../common/sequence-style.puml
 title QUẢN LÝ BẢNG GIÁ
 
-actor "Quản trị viên" as Admin
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 boundary "Dialog_PriceEditor\n(Blazor)" as FE
 control "VPPPriceController" as API
 control "VPPPriceService" as Service
 database "VPPContext /\nSQL Server" as DB
 
-Admin -> FE : Chọn bảng giá, vật tư, nhà cung cấp và giá
+Procurement -> FE : Chọn bảng giá, mặt hàng, nhà cung cấp và giá
 FE -> FE : Kiểm tra dữ liệu bắt buộc
 
 alt Thêm ánh xạ giá
@@ -31,13 +31,12 @@ alt Trùng ràng buộc hoặc tham chiếu không hợp lệ
   Service -> DB : Rollback
   Service --> API : Business/Conflict exception
   API --> FE : 400/409 + lý do
-  FE --> Admin : Hiển thị lỗi
+  FE --> Procurement : Hiển thị lỗi
 else Lưu thành công
   Service -> DB : Commit
   Service -> DB : Đọc lại DTO kèm tên liên quan
   Service --> API : L06_VPPSupplierMappingResDTO
   API --> FE : 200 OK
-  FE --> Admin : Tải lại lưới giá và thông báo thành công
+  FE --> Procurement : Tải lại lưới giá và thông báo thành công
 end
 @enduml
-

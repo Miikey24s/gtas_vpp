@@ -217,6 +217,63 @@ public class VPPRequestServiceTests
         Assert.False(result.IsDeadlinePassed);
     }
 
+    [Fact]
+    public async Task GetMyOrderHistorySummary_UsesCurrentRevisionsAndBuildsTwelveMonthSeries()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 7, 23, 9, 0, 0);
+        var regular = CreateHistoryHeader(5615, 2026, 6, false, true, "June order", now.AddMonths(-1));
+        var additional = CreateHistoryHeader(5615, 2026, 7, true, true, "July supplement", now);
+        var superseded = CreateHistoryHeader(5615, 2026, 7, false, false, "Old revision", now.AddDays(-2));
+        var anotherUser = CreateHistoryHeader(9001, 2026, 7, false, true, "Other user", now);
+        context.Set<VppRequest>().AddRange(regular, additional, superseded, anotherUser);
+        context.Set<VppRequestDetail>().AddRange(
+            CreateDetailWithQuantity(regular.Id, now, 10),
+            CreateDetailWithQuantity(additional.Id, now, 4),
+            CreateDetailWithQuantity(superseded.Id, now, 99),
+            CreateDetailWithQuantity(anotherUser.Id, now, 77));
+        await context.SaveChangesAsync();
+        var service = CreateService(context, now);
+
+        var result = await service.GetMyOrderHistorySummaryAsync(5615, null, null);
+
+        Assert.Equal(2, result.PeriodCount);
+        Assert.Equal(2, result.TotalOrders);
+        Assert.Equal(2, result.TotalLines);
+        Assert.Equal(14, result.TotalQuantity);
+        Assert.Equal(202607, result.LatestPeriod);
+        Assert.Equal(12, result.Periods.Count);
+        Assert.Equal(202508, result.Periods[0].PeriodKey);
+        Assert.Equal(10, result.Periods.Single(point => point.PeriodKey == 202606).RegularQuantity);
+        Assert.Equal(4, result.Periods.Single(point => point.PeriodKey == 202607).AdditionalQuantity);
+        Assert.Equal(0, result.Periods.Single(point => point.PeriodKey == 202605).TotalQuantity);
+    }
+
+    [Fact]
+    public async Task GetMyOrderHistoryPage_FiltersAndReturnsSummaryRowsWithoutItems()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 7, 23, 9, 0, 0);
+        var matching = CreateHistoryHeader(5615, 2026, 7, false, true, "Quarterly stationery", now);
+        var other = CreateHistoryHeader(5615, 2026, 6, true, true, "Supplement", now.AddMonths(-1));
+        context.Set<VppRequest>().AddRange(matching, other);
+        context.Set<VppRequestDetail>().AddRange(
+            CreateDetailWithQuantity(matching.Id, now, 12),
+            CreateDetailWithQuantity(other.Id, now, 8));
+        await context.SaveChangesAsync();
+        var service = CreateService(context, now);
+
+        var (data, totalCount) = await service.GetMyOrderHistoryPageAsync(
+            5615, 202601, 202612, 202607, "stationery", null, false, 0, 6);
+
+        var order = Assert.Single(data);
+        Assert.Equal(1, totalCount);
+        Assert.Equal(matching.Id, order.Id);
+        Assert.Equal(1, order.TotalLines);
+        Assert.Equal(12, order.TotalQty);
+        Assert.Empty(order.Items);
+    }
+
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
@@ -281,6 +338,35 @@ public class VPPRequestServiceTests
             SubmittedDate = now.AddDays(-1)
         };
 
+    private static VppRequest CreateHistoryHeader(
+        int userId,
+        int year,
+        int month,
+        bool isAdditional,
+        bool isCurrentRevision,
+        string description,
+        DateTime submittedAt)
+        => new()
+        {
+            Id = Guid.NewGuid(),
+            VppCode = $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}",
+            Year = year,
+            Month = month,
+            RequestSeriesId = Guid.NewGuid(),
+            RevisionNumber = isCurrentRevision ? 2 : 1,
+            IsCurrentRevision = isCurrentRevision,
+            Status = (int)VPPStatus.Submitted,
+            IsAdditionalOrder = isAdditional,
+            Description = description,
+            DepartmentCode = "IT",
+            MemberCompanyCode = "77500",
+            SubmittedDate = submittedAt,
+            CreatedByUserId = userId,
+            CreatedAtUtc = submittedAt,
+            UpdatedByUserId = userId,
+            UpdatedAtUtc = submittedAt
+        };
+
     private static VppRequestDetail CreateDetail(Guid headerId, DateTime now)
         => new()
         {
@@ -295,6 +381,13 @@ public class VPPRequestServiceTests
             UpdatedByUserId = 5615,
             UpdatedAtUtc = now.AddDays(-1)
         };
+
+    private static VppRequestDetail CreateDetailWithQuantity(Guid headerId, DateTime now, int quantity)
+    {
+        var detail = CreateDetail(headerId, now);
+        detail.Qty = quantity;
+        return detail;
+    }
 
     private static void InvokeValidateItems(List<VppRequestDetailItemReqDTO>? items)
     {

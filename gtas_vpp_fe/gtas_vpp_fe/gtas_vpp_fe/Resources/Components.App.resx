@@ -295,7 +295,7 @@
   <data name="SubmittedPeriodClosed" xml:space="preserve"><value>Đã gửi (đã khóa kỳ)</value></data>
   <data name="TotalOrders" xml:space="preserve"><value>Tổng đơn</value></data>
   <data name="TotalProducts" xml:space="preserve"><value>Tổng mặt hàng</value></data>
-  <data name="UOM" xml:space="preserve"><value>ĐVT</value></data>
+  <data name="UOM" xml:space="preserve"><value>Đơn vị</value></data>
   <data name="Year" xml:space="preserve"><value>Năm</value></data>
   <data name="Yes" xml:space="preserve"><value>Có</value></data>
   <data name="AddAtLeastOneItemBeforeSubmitting" xml:space="preserve"><value>Hãy thêm ít nhất một mặt hàng trước khi gửi đơn.</value></data>
@@ -575,6 +575,9 @@
   <data name="ViewRequestHistoryAria" xml:space="preserve"><value>Xem lịch sử phiên bản của đơn {0}</value></data>
   <data name="RequestLifecycle" xml:space="preserve"><value>Vòng đời đơn yêu cầu</value></data>
   <data name="HistoryLoadFailed" xml:space="preserve"><value>Không tải được lịch sử đơn</value></data>
+  <data name="HistoryLoadErrorDescription" xml:space="preserve"><value>Kiểm tra kết nối rồi thử tải lại. Dữ liệu đang hiển thị sẽ được giữ nguyên nếu có.</value></data>
+  <data name="HistoryDetailsLoadFailed" xml:space="preserve"><value>Không tải được chi tiết đơn</value></data>
+  <data name="HistoryDetailsErrorDescription" xml:space="preserve"><value>Thông tin đơn vẫn được giữ lại. Hãy thử tải lại phần chi tiết.</value></data>
   <data name="NoRequestHistory" xml:space="preserve"><value>Đơn chưa có lịch sử phiên bản.</value></data>
   <data name="Retry" xml:space="preserve"><value>Thử lại</value></data>
   <data name="RevisionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
@@ -598,4 +601,65 @@
   <data name="RequestAction_CANCEL" xml:space="preserve"><value>Hủy đơn</value></data>
   <data name="RequestAction_APPROVE" xml:space="preserve"><value>Duyệt đơn</value></data>
   <data name="RequestAction_REJECT" xml:space="preserve"><value>Từ chối đơn</value></data>
+  <data name="HistoryTimeRange" xml:space="preserve"><value>Khoảng thời gian</value></data>
+  <data name="HistoryAllPeriods" xml:space="preserve"><value>Tất cả kỳ</value></data>
+  <data name="HistoryCurrentPeriod" xml:space="preserve"><value>Kỳ này</value></data>
+  <data name="HistoryLast12Periods" xml:space="preserve"><value>12 tháng</value></data>
+  <data name="HistoryLast1Period" xml:space="preserve"><value>1 tháng</value></data>
+  <data name="HistoryLast3Periods" xml:space="preserve"><value>3 tháng</value></data>
+  <data name="HistoryLast6Periods" xml:space="preserve"><value>6 tháng</value></data>
+  <data name="HistoryCustom" xml:space="preserve"><value>Tùy chọn</value></data>
+  <data name="HistoryCustomRange" xml:space="preserve"><value>Chọn khoảng kỳ</value></data>
+  <data name="HistoryFromPeriod" xml:space="preserve"><value>Từ kỳ</value></data>
+  <data name="HistoryToPeriod" xml:space="preserve"><value>Đến kỳ</value></data>
+  <data name="HistoryInvalidRange" xml:space="preserve"><value>Khoảng kỳ chưa hợp lệ. Hãy chọn kỳ bắt đầu không sau kỳ kết thúc.</value></data>
+  <data name="HistoryNoOrdersDescription" xml:space="preserve"><value>Các đơn bạn đã gửi sẽ xuất hiện tại đây.</value></data>
+  <data name="HistorySummary" xml:space="preserve"><value>Tổng quan đơn hàng</value></data>
+  <data name="HistoryPeriodsWithOrders" xml:space="preserve"><value>Kỳ có đơn</value></data>
+  <data name="HistoryKpiDetailTitle" xml:space="preserve"><value>Chi tiết chỉ số</value></data>
+  <data name="HistoryKpiScope" xml:space="preserve"><value>Khoảng đang xem</value></data>
+  <data name="HistoryKpiPeriodsHint" xml:space="preserve"><value>Số kỳ có phát sinh ít nhất một đơn.</value></data>
+  <data name="HistoryKpiOrdersHint" xml:space="preserve"><value>Tổng số đơn đã gửi trong khoảng đang xem.</value></data>
+  <data name="HistoryKpiLinesHint" xml:space="preserve"><value>Tổng số mặt hàng trong tất cả đơn hàng.</value></data>
+  <data name="HistoryKpiQuantityHint" xml:space="preserve"><value>Tổng số lượng mặt hàng đã đặt.</value></data>
+  <data name="HistoryKpiOrdersPerPeriod" xml:space="preserve"><value>Trung bình đơn mỗi kỳ</value></data>
+  <data name="HistoryKpiAveragePerOrder" xml:space="preserve"><value>Trung bình mỗi đơn</value></data>
+  <data name="HistoryKpiLinesPerOrder" xml:space="preserve"><value>Mặt hàng mỗi đơn</value></data>
+  <data name="HistoryKpiAveragePerLine" xml:space="preserve"><value>Số lượng mỗi mặt hàng</value></data>
+  <data name="HistoryQuantityByPeriod" xml:space="preserve"><value>Số lượng theo kỳ</value></data>
+  <data name="HistoryChartAccessibleSummary" xml:space="preserve"><value>Biểu đồ số lượng của {0} kỳ có đơn, tổng số lượng {1}.</value></data>
+  <data name="HistoryChartSeries" xml:space="preserve"><value>Loại đơn trên biểu đồ</value></data>
+  <data name="HistoryChartNoSeriesSelected" xml:space="preserve"><value>Chưa chọn loại đơn để hiển thị</value></data>
+  <data name="HistoryChartNoData" xml:space="preserve"><value>Không có dữ liệu trong phạm vi này</value></data>
+  <data name="HistoryOrderList" xml:space="preserve"><value>Danh sách đơn</value></data>
+  <data name="HistorySearchOrderOrNote" xml:space="preserve"><value>Tìm mã đơn hoặc ghi chú</value></data>
+  <data name="HistoryAllStatuses" xml:space="preserve"><value>Tất cả trạng thái</value></data>
+  <data name="HistoryOrderType" xml:space="preserve"><value>Loại đơn</value></data>
+  <data name="HistoryAllOrderTypes" xml:space="preserve"><value>Tất cả loại đơn</value></data>
+  <data name="HistoryClearFilters" xml:space="preserve"><value>Xóa bộ lọc</value></data>
+  <data name="HistoryAdjustFilters" xml:space="preserve"><value>Hãy thay đổi hoặc xóa bớt điều kiện lọc.</value></data>
+  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Trang {0}/{1} · {2} đơn</value></data>
+  <data name="HistorySearchItem" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
+  <data name="HistoryAllCategories" xml:space="preserve"><value>Tất cả nhóm hàng</value></data>
+  <data name="HistoryItem" xml:space="preserve"><value>Mặt hàng</value></data>
+  <data name="HistoryNoItems" xml:space="preserve"><value>Không có mặt hàng phù hợp</value></data>
+  <data name="HistoryNoItemsDescription" xml:space="preserve"><value>Hãy thay đổi từ khóa hoặc nhóm hàng đang lọc.</value></data>
+  <data name="HistorySelectOrder" xml:space="preserve"><value>Chưa chọn đơn hàng</value></data>
+  <data name="HistorySelectOrderDescription" xml:space="preserve"><value>Chọn một đơn trong danh sách để xem chi tiết.</value></data>
+  <data name="HistoryDetailCount" xml:space="preserve"><value>Hiển thị {0} trên tổng số {1} mặt hàng</value></data>
+  <data name="CatalogFilters" xml:space="preserve"><value>Bộ lọc danh mục mặt hàng</value></data>
+  <data name="SearchCatalogItems" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
+  <data name="AllCategories" xml:space="preserve"><value>Tất cả danh mục</value></data>
+  <data name="AllUnits" xml:space="preserve"><value>Tất cả đơn vị</value></data>
+  <data name="ClearFilters" xml:space="preserve"><value>Xóa bộ lọc</value></data>
+  <data name="DownloadCatalog" xml:space="preserve"><value>Tải danh mục</value></data>
+  <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} mặt hàng khả dụng</value></data>
+  <data name="CatalogReferenceDescription" xml:space="preserve"><value>Dùng để tra cứu các mặt hàng hiện có trong kỳ đặt hàng.</value></data>
+  <data name="CatalogLoadFailed" xml:space="preserve"><value>Chưa tải được danh mục mặt hàng</value></data>
+  <data name="CatalogLoadFailedDescription" xml:space="preserve"><value>Hệ thống chưa thể tải dữ liệu. Vui lòng thử lại.</value></data>
+  <data name="AdjustCatalogFilters" xml:space="preserve"><value>Thử đổi từ khóa, danh mục hoặc đơn vị để xem kết quả khác.</value></data>
+  <data name="CatalogPagingSummary" xml:space="preserve"><value>Hiển thị {0}–{1} trên {2} mặt hàng</value></data>
+  <data name="InUse" xml:space="preserve"><value>Đang áp dụng</value></data>
+  <data name="FeatureInDevelopment" xml:space="preserve"><value>Tính năng đang được hoàn thiện</value></data>
+  <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Tải danh mục sẽ được bổ sung trong phiên bản sau.</value></data>
 </root>

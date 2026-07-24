@@ -1,0 +1,118 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 42
+skinparam ranksep 52
+skinparam classAttributeIconSize 0
+hide methods
+
+package "Tổ chức và thành viên" as Organization {
+entity "Department" as Department {
+  * Id <<PK>>
+  --
+  ParentDepartmentId <<FK>>
+  Code
+  Name
+  IsDeleted
+}
+
+entity "UserGroupMembership" as Membership {
+  * Id <<PK>>
+  --
+  AccountId <<FK>>
+  DepartmentId <<FK>>
+  PermissionGroupId <<FK>>
+  IsDeleted
+  RowVersion
+}
+
+entity "AppUser" as AppUser {
+  * Id <<PK>>
+  --
+  UserName
+  Email
+  EmployeeCode
+  AccountStatus
+  SessionVersion
+  RowVersion
+}
+
+entity "AuthBootstrapOperation" as Bootstrap {
+  * OperationKey <<PK>>
+  --
+  AccountId <<FK>>
+  InputFingerprint
+  Status
+  CompletedAtUtc
+}
+
+entity "PermissionGroup" as PermissionGroup {
+  * Id <<PK>>
+  --
+  GroupCode
+  GroupName
+  ParentGroupId
+  IsDeleted
+}
+}
+
+package "Phân quyền giao diện" as AccessControl {
+entity "GroupPageComponentMapping" as GroupMapping {
+  * PermissionGroupId <<PK, FK>>
+  * PageComponentMappingId <<PK, FK>>
+  * MemberCompanyCode <<PK>>
+  --
+  IsVisible
+  IsEnable
+}
+
+entity "PageComponentMapping" as PageComponent {
+  * Id <<PK>>
+  --
+  PermissionPageId <<FK>>
+  PermissionComponentId <<FK>>
+}
+
+entity "PermissionPage" as Page {
+  * Id <<PK>>
+  --
+  PageCode
+  PageName
+  Type
+}
+
+entity "PermissionComponent" as Component {
+  * Id <<PK>>
+  --
+  ComponentCode
+  ComponentName
+}
+}
+
+Department |o--o{ Department
+AppUser |o--o{ Membership
+Department ||--o{ Membership
+PermissionGroup ||--o{ Membership
+AppUser ||--o{ Bootstrap
+PermissionGroup ||-down-o{ GroupMapping
+PageComponent ||--o{ GroupMapping
+Page ||--o{ PageComponent
+Component ||--o{ PageComponent
+
+Department -[hidden]right- AppUser
+AppUser -[hidden]right- Bootstrap
+PermissionGroup -[hidden]right- Membership
+Department -[hidden]down- PermissionGroup
+AppUser -[hidden]down- Membership
+Page -[hidden]right- Component
+Page -[hidden]down- PageComponent
+Component -[hidden]down- PageComponent
+PageComponent -[hidden]down- GroupMapping
+Membership -[hidden]down- PageComponent
+@enduml

@@ -1,0 +1,59 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 58
+skinparam ranksep 66
+skinparam packageStyle rectangle
+skinparam rectangle {
+  BackgroundColor white
+  BorderColor black
+  FontColor black
+  RoundCorner 0
+}
+
+package "Tổ chức và truy cập" as Organization {
+  rectangle "Phòng ban" as Department
+  rectangle "Người dùng" as User
+  rectangle "Nhóm quyền" as PermissionGroup
+
+  Department -- User
+  User -- PermissionGroup
+  Department -[hidden]right- User
+  User -[hidden]right- PermissionGroup
+}
+
+package "Nhu cầu theo kỳ" as Demand {
+  rectangle "Kỳ đặt hàng" as Period
+  rectangle "Đơn yêu cầu" as Request
+  rectangle "Kết quả chốt kỳ" as Settlement
+
+  Period -- Request
+  Request -- Settlement
+  Period -[hidden]right- Request
+  Request -[hidden]right- Settlement
+}
+
+package "Cung ứng và định giá" as Supply {
+  rectangle "Nhà cung cấp" as Supplier
+  rectangle "Bảng giá" as PriceList
+  rectangle "Văn phòng phẩm" as Item
+
+  Supplier -- PriceList
+  PriceList -- Item
+  Supplier -[hidden]right- PriceList
+  PriceList -[hidden]right- Item
+}
+
+User -- Request
+Department -- Request
+PriceList -- Settlement
+
+Organization -[hidden]down- Demand
+Demand -[hidden]down- Supply
+@enduml

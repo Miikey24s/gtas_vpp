@@ -26,6 +26,17 @@ namespace gtas_vpp_be.Service.Services
         Task<List<VppRequestResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses);
         Task<List<VppRequestResDTO>> GetMyOrdersSummaryAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses);
         Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetMyOrdersSummaryPagedAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses, int? skip, int? top);
+        Task<VppOrderHistorySummaryResDTO> GetMyOrderHistorySummaryAsync(int userId, int? fromPeriod, int? toPeriod);
+        Task<(List<VppRequestResDTO> Data, int TotalCount)> GetMyOrderHistoryPageAsync(
+            int userId,
+            int? fromPeriod,
+            int? toPeriod,
+            int? exactPeriod,
+            string? search,
+            int? status,
+            bool? isAdditionalOrder,
+            int? skip,
+            int? top);
         Task<VppRequestResDTO?> GetOrderByIdAsync(Guid id);
         Task<VppRequestResDTO> CreateOrderAsync(VppRequestCreateReqDTO req, int createdByUserId, string departmentCode, string memberCompanyCode);
         Task<VppRequestResDTO> UpdateOrderAsync(VppRequestUpdateReqDTO req);
@@ -96,6 +107,197 @@ namespace gtas_vpp_be.Service.Services
         public async Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetMyOrdersSummaryPagedAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses, int? skip, int? top)
         {
             return await GetFilteredOrdersPagedAsync(userId, years, months, statuses, skip, top);
+        }
+
+        public async Task<VppOrderHistorySummaryResDTO> GetMyOrderHistorySummaryAsync(
+            int userId,
+            int? fromPeriod,
+            int? toPeriod)
+        {
+            var query = BuildMyOrderHistoryQuery(userId, fromPeriod, toPeriod);
+            var stats = await query
+                .Select(order => new
+                {
+                    Lines = order.RequestDetails.Count(detail => !detail.IsDeleted),
+                    Quantity = order.RequestDetails
+                        .Where(detail => !detail.IsDeleted)
+                        .Sum(detail => (int?)detail.Qty) ?? 0
+                })
+                .GroupBy(_ => 1)
+                .Select(group => new
+                {
+                    TotalOrders = group.Count(),
+                    TotalLines = group.Sum(item => item.Lines),
+                    TotalQuantity = group.Sum(item => item.Quantity)
+                })
+                .FirstOrDefaultAsync();
+
+            var periodCount = await query
+                .Select(order => (order.Year * 100) + order.Month)
+                .Distinct()
+                .CountAsync();
+            var latestPeriod = await query
+                .OrderByDescending(order => order.Year)
+                .ThenByDescending(order => order.Month)
+                .Select(order => (int?)((order.Year * 100) + order.Month))
+                .FirstOrDefaultAsync();
+
+            var periods = new List<VppOrderHistoryPeriodResDTO>();
+            if (latestPeriod.HasValue)
+            {
+                var chartStart = AddMonthsToPeriod(latestPeriod.Value, -11);
+                if (fromPeriod.HasValue && fromPeriod.Value > chartStart)
+                {
+                    chartStart = fromPeriod.Value;
+                }
+
+                var rawPeriods = await query
+                    .Where(order => ((order.Year * 100) + order.Month) >= chartStart
+                        && ((order.Year * 100) + order.Month) <= latestPeriod.Value)
+                    .Select(order => new
+                    {
+                        order.Year,
+                        order.Month,
+                        order.IsAdditionalOrder,
+                        Quantity = order.RequestDetails
+                            .Where(detail => !detail.IsDeleted)
+                            .Sum(detail => (int?)detail.Qty) ?? 0
+                    })
+                    .GroupBy(item => new { item.Year, item.Month })
+                    .Select(group => new
+                    {
+                        group.Key.Year,
+                        group.Key.Month,
+                        OrderCount = group.Count(),
+                        RegularQuantity = group.Sum(item => item.IsAdditionalOrder ? 0 : item.Quantity),
+                        AdditionalQuantity = group.Sum(item => item.IsAdditionalOrder ? item.Quantity : 0)
+                    })
+                    .ToListAsync();
+
+                var lookup = rawPeriods.ToDictionary(item => (item.Year * 100) + item.Month);
+                for (var period = chartStart;
+                     period <= latestPeriod.Value;
+                     period = AddMonthsToPeriod(period, 1))
+                {
+                    lookup.TryGetValue(period, out var item);
+                    periods.Add(new VppOrderHistoryPeriodResDTO
+                    {
+                        Year = period / 100,
+                        Month = period % 100,
+                        OrderCount = item?.OrderCount ?? 0,
+                        RegularQuantity = item?.RegularQuantity ?? 0,
+                        AdditionalQuantity = item?.AdditionalQuantity ?? 0
+                    });
+                }
+            }
+
+            return new VppOrderHistorySummaryResDTO
+            {
+                PeriodCount = periodCount,
+                TotalOrders = stats?.TotalOrders ?? 0,
+                TotalLines = stats?.TotalLines ?? 0,
+                TotalQuantity = stats?.TotalQuantity ?? 0,
+                LatestPeriod = latestPeriod,
+                Periods = periods
+            };
+        }
+
+        public async Task<(List<VppRequestResDTO> Data, int TotalCount)> GetMyOrderHistoryPageAsync(
+            int userId,
+            int? fromPeriod,
+            int? toPeriod,
+            int? exactPeriod,
+            string? search,
+            int? status,
+            bool? isAdditionalOrder,
+            int? skip,
+            int? top)
+        {
+            var query = BuildMyOrderHistoryQuery(userId, fromPeriod, toPeriod);
+            if (exactPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
+            }
+
+            var normalizedSearch = search?.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                query = query.Where(order =>
+                    (order.VppCode != null && order.VppCode.Contains(normalizedSearch))
+                    || (order.Description != null && order.Description.Contains(normalizedSearch)));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(order => order.Status == status.Value);
+            }
+
+            if (isAdditionalOrder.HasValue)
+            {
+                query = query.Where(order => order.IsAdditionalOrder == isAdditionalOrder.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageSkip = Math.Max(skip ?? 0, 0);
+            var pageSize = Math.Clamp(top ?? 6, 1, 100);
+            var result = await query
+                .OrderByDescending(order => order.Year)
+                .ThenByDescending(order => order.Month)
+                .ThenByDescending(order => order.SubmittedDate ?? order.UpdatedAtUtc)
+                .Skip(pageSkip)
+                .Take(pageSize)
+                .Select(order => new VppRequestResDTO
+                {
+                    Id = order.Id,
+                    Description = order.Description,
+                    CreatedByUserId = order.CreatedByUserId,
+                    CreatedAtUtc = order.CreatedAtUtc,
+                    UpdatedByUserId = order.UpdatedByUserId,
+                    UpdatedAtUtc = order.UpdatedAtUtc,
+                    VppCode = order.VppCode,
+                    Year = order.Year,
+                    Month = order.Month,
+                    PeriodId = order.PeriodId,
+                    RequestSeriesId = order.RequestSeriesId,
+                    RevisionNumber = order.RevisionNumber,
+                    IsCurrentRevision = order.IsCurrentRevision,
+                    Status = order.Status,
+                    SubmittedDate = order.SubmittedDate,
+                    IsAdditionalOrder = order.IsAdditionalOrder,
+                    SettledAt = order.SettledAt,
+                    TotalLines = order.RequestDetails.Count(detail => !detail.IsDeleted),
+                    TotalQty = order.RequestDetails
+                        .Where(detail => !detail.IsDeleted)
+                        .Sum(detail => (int?)detail.Qty) ?? 0
+                })
+                .ToListAsync();
+
+            ApplyPeriodFlags(result);
+            return (result, totalCount);
+        }
+
+        private IQueryable<VppRequest> BuildMyOrderHistoryQuery(
+            int userId,
+            int? fromPeriod,
+            int? toPeriod)
+        {
+            var query = _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(order => order.CreatedByUserId == userId
+                    && !order.IsDeleted
+                    && order.IsCurrentRevision);
+
+            if (fromPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) >= fromPeriod.Value);
+            }
+
+            if (toPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) <= toPeriod.Value);
+            }
+
+            return query;
         }
 
         private async Task<List<VppRequestResDTO>> GetFilteredOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
@@ -1735,6 +1937,14 @@ namespace gtas_vpp_be.Service.Services
                     && !regularDeadlinePassed
                     && order.SettledAt is null;
             }
+        }
+
+        private static int AddMonthsToPeriod(int period, int months)
+        {
+            var year = period / 100;
+            var month = period % 100;
+            var value = new DateTime(year, month, 1).AddMonths(months);
+            return (value.Year * 100) + value.Month;
         }
 
         private static DateTime ToBusinessLocal(DateTime utc)

@@ -1,0 +1,105 @@
+@startuml
+left to right direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 46
+skinparam ranksep 56
+skinparam classAttributeIconSize 0
+hide methods
+
+package "Phân loại và văn phòng phẩm" {
+  entity "LookupCategory" as LookupCategory {
+    * Id <<PK>>
+    --
+    Code
+    Name
+    ModuleName
+    IsDeleted
+  }
+
+  entity "LookupValue" as LookupValue {
+    * Id <<PK>>
+    --
+    LookupCategoryId <<FK>>
+    Code
+    Value
+    Sort
+    IsDeleted
+  }
+
+  entity "VppCategory" as VppCategory {
+    * Id <<PK>>
+    --
+    VppCategoryCode
+    VppCategoryName
+    IsDeleted
+  }
+
+  entity "VppItem" as VppItem {
+    * Id <<PK>>
+    --
+    VppCategoryId <<FK>>
+    UomId <<FK>>
+    VppCode
+    VppName
+    IsDeleted
+  }
+}
+
+package "Nhà cung cấp và bảng giá" {
+  entity "Supplier" as Supplier {
+    * Id <<PK>>
+    --
+    SupplierName
+    SupplierShortName
+    City
+    IsDeleted
+  }
+
+  entity "PriceList" as PriceList {
+    * Id <<PK>>
+    --
+    SupplierId <<FK>>
+    PriceListCode
+    Version
+    EffectiveFromUtc
+    EffectiveToUtc
+    Status
+    IsDefault
+    RowVersion
+  }
+
+  entity "SupplierProductMapping" as PriceItem {
+    * Id <<PK>>
+    --
+    SupplierId <<FK>>
+    PriceListId <<FK>>
+    VppItemId <<FK>>
+    NetPrice
+    VatRate
+    MinimumOrderQuantity
+    LeadTimeDays
+    IsDefault
+    RowVersion
+  }
+}
+
+LookupCategory |o--o{ LookupValue
+LookupValue ||--o{ VppItem
+VppCategory ||--o{ VppItem
+Supplier |o--o{ PriceList
+Supplier ||--o{ PriceItem
+PriceList ||--o{ PriceItem
+VppItem ||--o{ PriceItem
+
+LookupCategory -[hidden]down- LookupValue
+LookupValue -[hidden]down- VppItem
+VppCategory -[hidden]down- VppItem
+Supplier -[hidden]down- PriceList
+PriceList -[hidden]down- PriceItem
+@enduml

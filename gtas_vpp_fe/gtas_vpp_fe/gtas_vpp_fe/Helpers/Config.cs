@@ -25,6 +25,8 @@ namespace gtas_vpp_fe.Helpers
             public const string Products = $"{ApiVppBase}/products";
             public const string MyOrders = $"{ApiVppBase}/my-orders";
             public const string MyOrdersSummary = $"{ApiVppBase}/my-orders-summary";
+            public const string MyOrderHistory = $"{ApiVppBase}/my-order-history";
+            public const string MyOrderHistorySummary = $"{ApiVppBase}/my-order-history-summary";
             public const string DepartmentOrders = $"{ApiVppBase}/department-orders";
             public const string AllOrders = $"{ApiVppBase}/all-orders";
             public const string Orders = $"{ApiVppBase}/orders";

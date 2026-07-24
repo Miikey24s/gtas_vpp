@@ -1,0 +1,99 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor white
+skinparam dpi 192
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam monochrome true
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 48
+skinparam ranksep 58
+skinparam classAttributeIconSize 0
+hide methods
+
+legend top
+  Các bảng dịch dùng chiến lược TPC và kế thừa các trường chung:
+  Id, LanguageCode, Name, Description, Status, Source, IsDeleted.
+  BusinessDataTranslationBase không tạo bảng vật lý riêng.
+endlegend
+
+entity "LookupCategory" as LookupCategory {
+  * Id <<PK>>
+  --
+  Code
+  Name
+}
+
+entity "LookupValue" as LookupValue {
+  * Id <<PK>>
+  --
+  LookupCategoryId <<FK>>
+  Code
+  Value
+}
+
+entity "VppCategory" as VppCategory {
+  * Id <<PK>>
+  --
+  VppCategoryCode
+  VppCategoryName
+}
+
+entity "VppItem" as VppItem {
+  * Id <<PK>>
+  --
+  VppCategoryId <<FK>>
+  UomId <<FK>>
+  VppCode
+  VppName
+}
+
+entity "LookupCategoryTranslation" as LookupCategoryTranslation {
+  * Id <<PK>>
+  --
+  LookupCategoryId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+entity "LookupValueTranslation" as LookupValueTranslation {
+  * Id <<PK>>
+  --
+  LookupValueId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+entity "VppCategoryTranslation" as VppCategoryTranslation {
+  * Id <<PK>>
+  --
+  VppCategoryId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+entity "VppItemTranslation" as VppItemTranslation {
+  * Id <<PK>>
+  --
+  VppItemId <<FK>>
+  LanguageCode
+  Name
+  Description
+}
+
+LookupCategory ||-right-o{ LookupCategoryTranslation
+LookupValue ||-right-o{ LookupValueTranslation
+VppCategory ||-right-o{ VppCategoryTranslation
+VppItem ||-right-o{ VppItemTranslation
+
+LookupCategory -[hidden]down- LookupValue
+LookupValue -[hidden]down- VppCategory
+VppCategory -[hidden]down- VppItem
+LookupCategoryTranslation -[hidden]down- LookupValueTranslation
+LookupValueTranslation -[hidden]down- VppCategoryTranslation
+VppCategoryTranslation -[hidden]down- VppItemTranslation
+@enduml

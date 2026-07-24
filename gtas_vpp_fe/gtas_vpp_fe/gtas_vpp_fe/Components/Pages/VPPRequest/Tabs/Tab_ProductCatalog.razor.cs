@@ -2,206 +2,233 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Radzen;
 using Radzen.Blazor;
-using System.Globalization;
 using System.Security.Claims;
 
-namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
+namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
+
+public partial class Tab_ProductCatalog : IDisposable
 {
-    public partial class Tab_ProductCatalog
+    public sealed class FilterOption<TValue>
     {
-        public sealed class CategoryOption
+        public TValue? Value { get; set; }
+        public string Text { get; set; } = string.Empty;
+    }
+
+    public sealed class ProductItem
+    {
+        public Guid Id { get; set; }
+        public string? VppCode { get; set; }
+        public string? VppName { get; set; }
+        public string? Description { get; set; }
+        public string? VppCategoryCode { get; set; }
+        public string? VppCategoryName { get; set; }
+        public string? UomCode { get; set; }
+        public string? UomName { get; set; }
+    }
+
+    [Inject] public IAPIServices ApiServices { get; set; } = default!;
+    [Inject] public PermissionState PermissionState { get; set; } = default!;
+
+    [Parameter] public IEnumerable<Claim>? claims { get; set; }
+
+    public List<ProductItem> Products { get; set; } = [];
+    public List<FilterOption<Guid?>> CategoryOptions { get; set; } = [];
+    public List<FilterOption<string>> UnitOptions { get; set; } = [];
+    public int ProductCount { get; set; }
+    public bool IsFirstLoading { get; set; } = true;
+    public bool IsGridLoading { get; set; }
+    public bool HasLoadError { get; set; }
+    public Guid? CategoryFilter { get; set; }
+    public string? UnitFilter { get; set; }
+    public string? SearchText { get; set; }
+    public RadzenDataGrid<ProductItem>? productGrid { get; set; }
+
+    private int _currentSkip;
+    private bool _isFirstLoad = true;
+    private CancellationTokenSource? _searchDebounceCts;
+
+    private bool CanView => PermissionState.HasVisibleComponent(
+        Config.Page_ComponentCode.PageCode.Dashboard,
+        Permissions.RequestProductCatalog);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadCategoriesAsync(), LoadUnitsAsync());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && CanView && productGrid is not null)
         {
-            public Guid? Value { get; set; }
-            public string Text { get; set; } = string.Empty;
+            await productGrid.Reload();
+        }
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        try
+        {
+            var data = await ApiServices.GetFromApiAsync<List<CategoryItem>>(Config.VppApi.Categories) ?? [];
+            CategoryOptions = [new() { Value = null, Text = Loc["AllCategories"] }];
+            CategoryOptions.AddRange(data.Select(category => new FilterOption<Guid?>
+            {
+                Value = category.Id,
+                Text = category.VppCategoryName ?? category.VppCategoryCode ?? string.Empty
+            }));
+        }
+        catch
+        {
+            CategoryOptions = [new() { Value = null, Text = Loc["AllCategories"] }];
+        }
+    }
+
+    private async Task LoadUnitsAsync()
+    {
+        try
+        {
+            var data = await ApiServices.GetFromApiAsync<List<ProductItem>>(
+                "/api/VPPRequest/products?distinct=UomName&top=1000") ?? [];
+            UnitOptions = [new() { Value = null, Text = Loc["AllUnits"] }];
+            UnitOptions.AddRange(data
+                .Where(item => !string.IsNullOrWhiteSpace(item.UomName))
+                .Select(item => item.UomName!.Trim())
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
+                .Select(name => new FilterOption<string> { Value = name, Text = name }));
+        }
+        catch
+        {
+            UnitOptions = [new() { Value = null, Text = Loc["AllUnits"] }];
+        }
+    }
+
+    protected async Task LoadProductsAsync(LoadDataArgs args)
+    {
+        if (!CanView)
+        {
+            return;
         }
 
-        public sealed class ProductItem
+        IsFirstLoading = _isFirstLoad;
+        IsGridLoading = true;
+        HasLoadError = false;
+        _currentSkip = args.Skip ?? 0;
+
+        try
         {
-            public Guid Id { get; set; }
-            public string? VppCode { get; set; }
-            public string? VppName { get; set; }
-            public string? Description { get; set; }
-            public string? VppCategoryCode { get; set; }
-            public string? VppCategoryName { get; set; }
-            public string? UomCode { get; set; }
-            public string? UomName { get; set; }
-            public int SupplierCount { get; set; }
-            public string? DefaultSupplierName { get; set; }
-            public decimal? DefaultPrice { get; set; }
-            public decimal DefaultVatRate { get; set; }
+            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(BuildProductsEndpoint(args));
+            Products = result.Data ?? [];
+            ProductCount = result.TotalCount;
         }
-
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public PermissionState PermissionState { get; set; } = default!;
-
-        [Parameter] public IEnumerable<Claim>? claims { get; set; }
-
-        public List<ProductItem> Products { get; set; } = new();
-        public List<CategoryOption> CategoryOptions { get; set; } = new();
-        public int ProductCount { get; set; }
-
-        public bool IsFirstLoading { get; set; } = true;
-        public bool IsGridLoading { get; set; }
-        public Guid? CategoryFilter { get; set; }
-        public string? SearchText { get; set; }
-        public RadzenDataGrid<ProductItem>? productGrid { get; set; }
-        private int _currentSkip;
-        private string? _currentFilterExpression;
-        private bool _isFirstLoad = true;
-
-        private bool CanView => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, Permissions.RequestProductCatalog);
-
-        protected override async Task OnInitializedAsync()
+        catch (Exception ex)
         {
-            await LoadCategoriesAsync();
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender && CanView && productGrid != null)
+            Products = [];
+            ProductCount = 0;
+            HasLoadError = true;
+            Toast.Notify(new NotificationMessage
             {
-                await productGrid.Reload();
-            }
-        }
-
-        private async Task LoadCategoriesAsync()
-        {
-            try
-            {
-                var data = await _apiServices.GetFromApiAsync<List<CategoryItem>>(Config.VppApi.Categories) ?? new();
-                CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = Loc["All"] } };
-                CategoryOptions.AddRange(data.Select(c => new CategoryOption
-                {
-                    Value = c.Id,
-                    Text = $"{c.VppCategoryCode} - {c.VppCategoryName}"
-                }));
-            }
-            catch
-            {
-                CategoryOptions = new List<CategoryOption> { new() { Value = null, Text = Loc["All"] } };
-            }
-        }
-
-        protected async Task LoadProductsAsync(LoadDataArgs args)
-        {
-            if (!CanView) return;
-
-            if (_isFirstLoad)
-            {
-                IsFirstLoading = true;
-            }
-            IsGridLoading = true;
-            _currentSkip = args.Skip ?? 0;
-            _currentFilterExpression = args.Filter;
-            try
-            {
-                var endpoint = BuildProductsEndpoint(args);
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(endpoint);
-                Products = result.Data ?? new();
-                ProductCount = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                Products = new();
-                ProductCount = 0;
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = Loc["ProductCatalog"],
+                Severity = NotificationSeverity.Error,
+                Summary = Loc["ProductCatalog"],
                 Detail = UiErrorMapper.GetMessage(ex, Loc),
-                    Duration = 6000
-                });
-            }
-            finally
-            {
-                if (_isFirstLoad)
-                {
-                    _isFirstLoad = false;
-                    IsFirstLoading = false;
-                }
-                IsGridLoading = false;
-                StateHasChanged();
-            }
+                Duration = 6000
+            });
         }
-
-        protected async Task ReloadAsync()
+        finally
         {
-            if (productGrid != null)
-            {
-                await productGrid.Reload();
-            }
+            _isFirstLoad = false;
+            IsFirstLoading = false;
+            IsGridLoading = false;
+            StateHasChanged();
         }
+    }
 
-        protected async Task LoadColumnFilterDataProducts(DataGridLoadColumnFilterDataEventArgs<ProductItem> args)
+    private async Task OnSearchInput(ChangeEventArgs args)
+    {
+        SearchText = args.Value?.ToString();
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts?.Dispose();
+        _searchDebounceCts = new CancellationTokenSource();
+
+        try
         {
-            try
-            {
-                if (args.Column == null) return;
-
-                var property = args.Column.GetFilterProperty();
-                if (string.IsNullOrWhiteSpace(property)) return;
-
-                var query = new List<string> { $"distinct={Uri.EscapeDataString(property)}" };
-                if (CategoryFilter.HasValue) query.Add($"categoryId={CategoryFilter.Value}");
-                if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText)}");
-                if (!string.IsNullOrWhiteSpace(_currentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(_currentFilterExpression)}");
-                if (!string.IsNullOrWhiteSpace(args.Filter)) query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-
-                var apiUrl = $"/api/VPPRequest/products?{string.Join("&", query)}";
-                var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
-
-                if (response != null && response.Count > 0)
-                {
-                    var distinctDtos = response
-                        .Select(dict =>
-                        {
-                            var dto = new ProductItem();
-                            var propInfo = typeof(ProductItem).GetProperty(property);
-                            if (propInfo != null && dict.TryGetValue(property, out var val) && val != null)
-                            {
-                                try
-                                {
-                                    var targetType = Nullable.GetUnderlyingType(propInfo.PropertyType) ?? propInfo.PropertyType;
-                                    var converted = Convert.ChangeType(val.ToString(), targetType, CultureInfo.InvariantCulture);
-                                    propInfo.SetValue(dto, converted);
-                                }
-                                catch { }
-                            }
-                            return dto;
-                        })
-                        .ToList();
-
-                    args.Data = distinctDtos;
-                    args.Count = distinctDtos.Count;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Tab_ProductCatalog] LoadColumnFilterData failed: {ex.Message}");
-            }
+            await Task.Delay(300, _searchDebounceCts.Token);
+            await ReloadFromFirstPageAsync();
         }
-
-        private string BuildProductsEndpoint(LoadDataArgs args)
+        catch (OperationCanceledException)
         {
-            var query = new List<string>();
-            if (CategoryFilter.HasValue) query.Add($"categoryId={CategoryFilter.Value}");
-            if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText)}");
-            if (!string.IsNullOrWhiteSpace(args.Filter)) query.Add($"filter={Uri.EscapeDataString(args.Filter)}");
-            if (args.Skip.HasValue) query.Add($"skip={args.Skip.Value}");
-            if (args.Top.HasValue) query.Add($"top={args.Top.Value}");
-            if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
-
-            if (query.Count == 0) return "/api/VPPRequest/products";
-            return $"/api/VPPRequest/products?{string.Join("&", query)}";
         }
+    }
 
-        private sealed class CategoryItem
+    private async Task OnCategoryChanged(object? value)
+    {
+        CategoryFilter = value is Guid id ? id : null;
+        await ReloadFromFirstPageAsync();
+    }
+
+    private async Task OnUnitChanged(object? value)
+    {
+        UnitFilter = value?.ToString();
+        await ReloadFromFirstPageAsync();
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        SearchText = null;
+        CategoryFilter = null;
+        UnitFilter = null;
+        await ReloadFromFirstPageAsync();
+    }
+
+    protected async Task ReloadAsync() => await ReloadFromFirstPageAsync();
+
+    private async Task ReloadFromFirstPageAsync()
+    {
+        if (productGrid is not null)
         {
-            public Guid Id { get; set; }
-            public string? VppCategoryCode { get; set; }
-            public string? VppCategoryName { get; set; }
+            await productGrid.FirstPage(true);
         }
+    }
+
+    private string BuildProductsEndpoint(LoadDataArgs args)
+    {
+        var query = new List<string>();
+        if (CategoryFilter.HasValue) query.Add($"categoryId={CategoryFilter.Value}");
+        if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
+        if (!string.IsNullOrWhiteSpace(UnitFilter)) query.Add($"filter={Uri.EscapeDataString(BuildUnitFilter(UnitFilter))}");
+        query.Add($"skip={args.Skip ?? 0}");
+        query.Add($"top={args.Top ?? 20}");
+        if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
+        return $"/api/VPPRequest/products?{string.Join("&", query)}";
+    }
+
+    private static string BuildUnitFilter(string value)
+        => $"UomName == \"{value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
+
+    private void ShowCatalogDownloadNotice()
+    {
+        Toast.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Info,
+            Summary = Loc["FeatureInDevelopment"],
+            Detail = Loc["CatalogDownloadComingSoon"],
+            Duration = 4000,
+            ShowProgress = true
+        });
+    }
+
+    public void Dispose()
+    {
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts?.Dispose();
+    }
+
+    private sealed class CategoryItem
+    {
+        public Guid Id { get; set; }
+        public string? VppCategoryCode { get; set; }
+        public string? VppCategoryName { get; set; }
     }
 }

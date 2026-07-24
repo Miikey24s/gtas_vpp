@@ -36,6 +36,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 && (uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.Equals("/_blazor/initializers", StringComparison.OrdinalIgnoreCase))
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
             if (!isExpectedCircuitDisconnect && !isExpectedNavigationAssetAbort)
@@ -46,6 +47,23 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
 
         await LoginAsAsync(TestAccounts.Employee);
         await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2Fdashboard%3Ftab%3D0");
+
+        await Page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+        var refreshMotion = await Page.EvaluateAsync<string[]>("""
+            () => {
+                const sidebarHeader = document.querySelector('.vpp-sidebar-header');
+                return [
+                    document.documentElement.classList.contains('vpp-page-entering') ? 'true' : 'false',
+                    sidebarHeader ? getComputedStyle(sidebarHeader).animationName : ''
+                ];
+            }
+            """);
+        refreshMotion[0].Should().Be("true", "a document refresh should start the coordinated shell reveal");
+        refreshMotion[1].Should().Contain("vpp-shell-enter-inline", "the sidebar should use the shared refresh motion");
+        await Page.WaitForFunctionAsync(
+            "() => !document.documentElement.classList.contains('vpp-page-entering')",
+            null,
+            new PageWaitForFunctionOptions { Timeout = 2_000 });
 
         foreach (var viewport in new[]
                  {
@@ -81,7 +99,10 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         document.querySelectorAll('.vpp-orders-summary-grid article').length,
                         document.querySelectorAll('.vpp-orders-view-tabs').length,
                         [...document.querySelectorAll('.vpp-order-view-panel')].filter(visible).length,
-                        orderPage?.querySelectorAll('.rzi').length ?? -1,
+                        orderPage
+                            ? [...orderPage.querySelectorAll('.rzi')]
+                                .filter(icon => !icon.closest('.rz-button, .rz-dropdown')).length
+                            : -1,
                         document.querySelectorAll('.order-page .kpi-grid').length,
                         document.querySelectorAll('.vpp-orders-empty .vpp-empty-state-actions').length,
                         createActions.length,
@@ -166,6 +187,55 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 shellColors[2].Should().Be(shellColors[6], "the primary top header should use the semantic elevated-background token");
                 shellColors[3].Should().Be(shellColors[6], "the period card should remain elevated above the content canvas");
                 shellColors[4].Should().Be(shellColors[6], "the order grid should remain elevated above the content canvas");
+
+                var headerGeometry = await Page.EvaluateAsync<double[]>("""
+                    () => {
+                        const sidebar = document.querySelector('.vpp-sidebar');
+                        const nav = document.querySelector('.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav');
+                        const sidebarRect = sidebar?.getBoundingClientRect();
+                        const navRect = nav?.getBoundingClientRect();
+                        return [
+                            sidebarRect?.right ?? Number.MAX_VALUE,
+                            navRect?.left ?? Number.MAX_VALUE,
+                            navRect?.right ?? 0,
+                            window.innerWidth
+                        ];
+                    }
+                    """);
+                headerGeometry[1].Should().BeApproximately(headerGeometry[0], 1,
+                    "the primary header should connect directly to the sidebar without an inset gap");
+                headerGeometry[2].Should().BeApproximately(headerGeometry[3], 1,
+                    "the primary header should bleed through the content inset to the viewport edge");
+
+                var sidebarSeam = await Page.EvaluateAsync<string[]>("""
+                    () => {
+                        const sidebar = document.querySelector('.rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar');
+                        const style = sidebar ? getComputedStyle(sidebar) : null;
+                        return [style?.borderRightWidth ?? '', style?.boxShadow ?? ''];
+                    }
+                    """);
+                sidebarSeam[0].Should().Be("0px", "the logo/header row must not have a sidebar border seam");
+                sidebarSeam[1].Should().Be("none", "the logo/header row must not have a Radzen edge shadow");
+
+                var sidebarRhythm = await Page.EvaluateAsync<double[]>("""
+                    () => {
+                        const header = document.querySelector('.vpp-sidebar-header');
+                        const rootRows = [...document.querySelectorAll(
+                            '.vpp-sidebar-nav .rz-panel-menu > .rz-navigation-item > .rz-navigation-item-wrapper')];
+                        const firstRect = rootRows[0]?.getBoundingClientRect();
+                        const secondRect = rootRows[1]?.getBoundingClientRect();
+                        return [
+                            header?.getBoundingClientRect().bottom ?? Number.MAX_VALUE,
+                            firstRect?.top ?? 0,
+                            firstRect?.bottom ?? Number.MAX_VALUE,
+                            secondRect?.top ?? 0
+                        ];
+                    }
+                    """);
+                var lineToFirstHoverGap = sidebarRhythm[1] - sidebarRhythm[0];
+                var firstToSecondHoverGap = sidebarRhythm[3] - sidebarRhythm[2];
+                lineToFirstHoverGap.Should().BeApproximately(firstToSecondHoverGap, 1.5,
+                    "the toolbar-to-first-row gap should match the visual gap between hover surfaces");
             }
         }
 

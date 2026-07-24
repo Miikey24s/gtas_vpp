@@ -3,99 +3,80 @@
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Share
 
-
 <PageTitle>GTAS VPP - @OrderModeTitle</PageTitle>
 
 <CascadingValue Value="Context">
-@if (IsPageLoading)
-{
-    <div class="vpp-wizard">
-        <SkeletonPage Cards="0" Rows="8" Cols="4" />
-    </div>
-}
-else
-{
-    <div class="vpp-wizard">
-        <div class="vpp-wizard-toolbar">
-            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: var(--vpp-space-3);">
-                <RadzenButton Icon="arrow_back" Text="@Loc["BackToOrders"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
-                
-                <div class="vpp-custom-steps">
-                    <button type="button" class="vpp-custom-step @(currentStep == 0 ? "active" : "inactive")" style="border: 0; background: transparent;" @onclick="@(() => GoToStep(0))" aria-current="@(currentStep == 0 ? "step" : null)">
-                        <span class="step-num">1</span>
-                        <span class="step-text">@Loc["SelectProducts"]</span>
-                    </button>
-                    <div class="vpp-custom-step-divider">➔</div>
-                    <button type="button" class="vpp-custom-step @(currentStep == 1 ? "active" : "inactive")" style="border: 0; background: transparent;" @onclick="@(() => GoToStep(1))" aria-current="@(currentStep == 1 ? "step" : null)">
-                        <span class="step-num">2</span>
-                        <span class="step-text">@Loc["ReviewSubmit"]</span>
-                    </button>
-                </div>
-            </div>
+    @if (IsPageLoading)
+    {
+        <div class="vpp-wizard">
+            <SkeletonPage Cards="0" Rows="10" Cols="5" />
         </div>
+    }
+    else
+    {
+        <div class="vpp-wizard vpp-order-create-page">
+            <header class="vpp-order-flow-header" aria-label="@Loc["OrderCreationSteps"]">
+                <button type="button" class="vpp-order-flow-back" @onclick="GoBack">
+                    <VppIcon Name="arrow_back" />
+                    <span>@Loc["BackToOrders"]</span>
+                </button>
 
-        @if (PeriodInfo is not null)
-        {
-            <div class="vpp-data-card rz-p-3 rz-mb-3" aria-live="polite">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem" Wrap="FlexWrap.Wrap">
-                    <RadzenBadge Text="@($"{Loc["Period"]}: {TargetPeriodText}")" BadgeStyle="BadgeStyle.Info" IsPill="true" />
-                    <RadzenBadge Text="@($"{Loc["PeriodStatus"]}: {PeriodInfo.PeriodState}")" BadgeStyle="@(PeriodInfo.IsSubmissionOpen ? BadgeStyle.Success : BadgeStyle.Warning)" IsPill="true" />
-                    <span>@Loc["SubmissionDeadline"] <strong>@DateFormatter.Format(PeriodInfo.DeadlineDate, DateFormatter.LongDate)</strong></span>
-                    @if (Context.IsAdditional)
-                    {
-                        <span>@Loc["BaseRequest"] <strong>@(PeriodInfo.BaseRequestCode ?? "-")</strong></span>
-                        <span>@Loc["SupplementQuotaSummary", PeriodInfo.RemainingApprovedSupplementQuota, PeriodInfo.MaxAdditionalOrders]</span>
-                        <span>@Loc["SupplementAttemptSummary", PeriodInfo.RemainingSupplementAttempts, PeriodInfo.MaxSupplementAttempts]</span>
-                    }
-                </RadzenStack>
-            </div>
-        }
+                <ol class="vpp-order-flow-steps">
+                    <li class="@(currentStep == 0 ? "is-active" : "is-complete")">
+                        <button type="button" @onclick="() => GoToStep(0)" aria-current="@(currentStep == 0 ? "step" : null)">
+                            <span>1</span>
+                            <strong>@Loc["SelectProducts"]</strong>
+                        </button>
+                    </li>
+                    <li class="@(currentStep == 1 ? "is-active" : string.Empty)">
+                        <button type="button" @onclick="() => GoToStep(1)" aria-current="@(currentStep == 1 ? "step" : null)">
+                            <span>2</span>
+                            <strong>@Loc["ReviewSubmit"]</strong>
+                        </button>
+                    </li>
+                </ol>
 
-        @if (!CanSubmitForPeriod)
-        {
-            <VppStatePanel State="warning"
-                           Icon="event_busy"
-                           Title="@Loc["RequestActionUnavailable"]"
-                           Description="@PeriodActionReason"
-                           Class="rz-mb-3" />
-        }
+                @if (!IsEdit)
+                {
+                    <button type="button" class="vpp-order-save-draft" @onclick="async () => await SaveDraftAsync(true)">
+                        <VppIcon Name="save" />
+                        <span>@Loc["SaveDraft"]</span>
+                    </button>
+                }
+            </header>
 
-        <section class="vpp-wizard-stage">
-            @if (currentStep == 0)
+            @if (!CanSubmitForPeriod)
             {
-                <OrderCreateStep2 />
-            }
-            else if (currentStep == 1)
-            {
-                <OrderCreateStep3 />
+                <VppStatePanel State="warning"
+                               Icon="event_busy"
+                               Title="@Loc["RequestActionUnavailable"]"
+                               Description="@PeriodActionReason" />
             }
 
-            <div class="vpp-wizard-nav">
-                <div class="vpp-wizard-nav-left">
-                    <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoBack" />
-                </div>
-                <div class="vpp-wizard-nav-right">
-                    @if (currentStep > 0)
-                    {
-                        <RadzenButton Icon="arrow_back" Text="@Loc["Previous"]" ButtonStyle="ButtonStyle.Base" Variant="Variant.Flat" Click="@GoPreviousStep" />
-                    }
-                    @if (currentStep < StepCount - 1)
-                    {
-                        <RadzenButton Icon="arrow_forward" Text="@Loc["Next"]" ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
-                                      Click="@GoNextStepAsync" />
-                    }
-                    else
-                    {
-                        <RadzenButton Icon="save" Text="@PrimaryActionText"
-                                      ButtonStyle="ButtonStyle.Primary" class="vpp-wizard-btn-next"
+            <section class="vpp-wizard-stage">
+                @if (currentStep == 0)
+                {
+                    <OrderCreateStep2 TargetPeriodLabel="@TargetPeriodText"
+                                      NextRequested="@GoNextStepAsync" />
+                }
+                else
+                {
+                    <OrderCreateStep3 />
+                    <div class="vpp-wizard-nav vpp-order-review-actions">
+                        <button type="button" class="vpp-order-review-back" @onclick="GoPreviousStep">
+                            <VppIcon Name="arrow_back" />
+                            <span>@Loc["Previous"]</span>
+                        </button>
+                        <RadzenButton Icon="send"
+                                      Text="@PrimaryActionText"
+                                      ButtonStyle="ButtonStyle.Primary"
                                       Disabled="@(IsSaving || SelectedItemCount == 0 || !CanSubmitForPeriod)"
                                       IsBusy="@IsSaving"
                                       BusyText="@Loc["Saving"]"
                                       Click="@SubmitAsync" />
-                    }
-                </div>
-            </div>
-        </section>
-    </div>
-}
+                    </div>
+                }
+            </section>
+        </div>
+    }
 </CascadingValue>

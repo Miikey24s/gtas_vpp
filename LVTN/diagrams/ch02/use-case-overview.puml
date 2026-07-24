@@ -11,51 +11,61 @@ skinparam packageStyle rectangle
 
 title Sơ đồ use case tổng quát hệ thống GTAS VPP
 
-actor "Quản trị viên" as Admin
-actor "Quản lý\nphòng ban" as Manager
 actor "Nhân viên" as Employee
-actor "Xử lý tự động" as Automation
+actor "Quản lý\nphòng ban" as Manager
+actor "Chuyên viên\nquản lý\nvăn phòng phẩm" as Procurement
+actor "Quản trị\nhệ thống" as Admin
 
 rectangle "Hệ thống GTAS VPP" {
-  usecase "Đăng nhập và\ntải quyền" as UC_Login
-  usecase "Xem báo cáo cá nhân\nvà hộp thư thông báo" as UC_OwnReport
-
-  usecase "Quản lý danh mục,\nvật tư và nhà cung cấp" as UC_Master
-  usecase "Quản lý bảng giá" as UC_Price
-  usecase "Duyệt hoặc từ chối\nđơn bổ sung" as UC_Approve
-  usecase "Đóng kỳ và\nchụp đơn giá" as UC_Settle
-  usecase "Quản lý người dùng\nvà phân quyền" as UC_Permission
-  usecase "Báo cáo toàn hệ thống\nvà xuất CSV" as UC_Enterprise
-
-  usecase "Báo cáo phòng ban\nđược cấp quyền" as UC_Department
-
+  usecase "Đăng nhập" as UC_Login
   usecase "Xem danh mục\nvăn phòng phẩm" as UC_Catalog
-  usecase "Tạo, sao chép, sửa\nhoặc hủy đơn" as UC_Request
-  usecase "Tạo đơn bổ sung" as UC_Additional
-  usecase "Xem lịch sử và\ntrạng thái đơn" as UC_History
+  usecase "Tạo hoặc sao chép\nđơn thường" as UC_RequestCreate
+  usecase "Chỉnh sửa hoặc hủy\nđơn của mình" as UC_RequestUpdate
+  usecase "Tạo và theo dõi\nđơn bổ sung" as UC_Additional
+  usecase "Tra cứu đơn, báo cáo cá nhân\nvà nhận thông báo" as UC_EmployeeTracking
 
-  usecase "Tính kỳ, kiểm tra ràng buộc,\nchụp giá, ghi log và phát thông báo" as UC_Automation
+  usecase "Xem toàn bộ đơn\ntrong phòng ban" as UC_DepartmentOrders
+  usecase "Xem báo cáo\nphòng ban" as UC_DepartmentReport
+
+  usecase "Xem toàn bộ đơn\ncông ty" as UC_CompanyOrders
+  usecase "Tổng hợp\nđơn yêu cầu" as UC_Consolidate
+  usecase "Phê duyệt hoặc từ chối\nđơn bổ sung" as UC_AdditionalApproval
+  usecase "Quản lý danh mục văn phòng phẩm\nvà đơn vị tính" as UC_CatalogManage
+  usecase "Quản lý nhà cung cấp\nvà bảng giá" as UC_SourcingManage
+  usecase "Chọn nhà cung cấp\nvà bảng giá" as UC_SelectSource
+  usecase "Rà soát và\nchốt kỳ" as UC_Settle
+  usecase "Xem và xuất báo cáo\ntoàn công ty" as UC_CompanyReport
+
+  usecase "Thực hiện toàn bộ\nchức năng nghiệp vụ" as UC_AllBusiness
+  usecase "Quản lý người dùng" as UC_UserManage
+  usecase "Quản lý nhóm quyền và\nquyền truy cập hệ thống" as UC_Permission
+  usecase "Kiểm tra nhật ký\nhệ thống" as UC_Audit
 }
 
-Admin -- UC_Login
-Manager -- UC_Login
 Employee -- UC_Login
-Employee -- UC_OwnReport
-
-Admin -- UC_Master
-Admin -- UC_Price
-Admin -- UC_Approve
-Admin -- UC_Settle
-Admin -- UC_Permission
-Admin -- UC_Enterprise
-
-Manager -- UC_Department
-
 Employee -- UC_Catalog
-Employee -- UC_Request
+Employee -- UC_RequestCreate
+Employee -- UC_RequestUpdate
 Employee -- UC_Additional
-Employee -- UC_History
+Employee -- UC_EmployeeTracking
 
-Automation -- UC_Automation
+Manager --|> Employee
+Manager -- UC_DepartmentOrders
+Manager -- UC_DepartmentReport
+
+Procurement --|> Employee
+Procurement -- UC_CompanyOrders
+Procurement -- UC_Consolidate
+Procurement -- UC_AdditionalApproval
+Procurement -- UC_CatalogManage
+Procurement -- UC_SourcingManage
+Procurement -- UC_SelectSource
+Procurement -- UC_Settle
+Procurement -- UC_CompanyReport
+
+Admin -- UC_AllBusiness
+Admin -- UC_UserManage
+Admin -- UC_Permission
+Admin -- UC_Audit
 
 @enduml
