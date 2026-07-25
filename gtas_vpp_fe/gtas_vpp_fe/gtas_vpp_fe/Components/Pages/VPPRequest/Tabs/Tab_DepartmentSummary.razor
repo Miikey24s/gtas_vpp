@@ -60,6 +60,8 @@
         }
         else
         {
+            <div class="vpp-atlas-order-workspace">
+            <div class="vpp-atlas-order-collection">
             <div class="vpp-mobile-cards">
                 <VppMobileCard Items="@Orders" />
             </div>
@@ -75,6 +77,8 @@
                                 AllowSorting="true" AllowAlternatingRows="true"
                                 AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single"
                                 IsLoading="@IsGridLoading" RowExpand="OnRowExpandAsync"
+                                RowSelect="SelectDepartmentOrderAsync"
+                                SelectionMode="DataGridSelectionMode.Single"
                                 AllowFiltering="true"
                                 AllowMultiColumnSorting="true"
                                 ShowMultiColumnSortingIndex="true"
@@ -169,6 +173,53 @@
                         </div>
                     </Template>
                 </RadzenDataGrid>
+            </div>
+            </div>
+            <aside class="vpp-atlas-order-detail" aria-live="polite">
+                @if (SelectedOrder is null)
+                {
+                    <div class="vpp-atlas-order-detail-empty">
+                        <span class="rzi rzi-receipt_long" aria-hidden="true"></span>
+                        <strong>Chọn một đơn để xem chi tiết</strong>
+                        <span>Dữ liệu chỉ gồm các đơn thuộc phòng ban được cấp quyền.</span>
+                    </div>
+                }
+                else
+                {
+                    <header class="vpp-atlas-order-detail-header">
+                        <span class="vpp-record-inspector-badge">@SelectedOrder.DepartmentCode</span>
+                        <h2>@SelectedOrder.RequesterName</h2>
+                        <p>@SelectedOrder.VppCode</p>
+                    </header>
+                    <dl class="vpp-atlas-order-facts">
+                        <div><dt>@Loc["Period"]</dt><dd>@SelectedOrder.Period</dd></div>
+                        <div><dt>@Loc["Status"]</dt><dd>@SelectedOrder.StatusText</dd></div>
+                        <div><dt>@Loc["TotalLineItems"]</dt><dd>@SelectedOrder.TotalLines</dd></div>
+                        <div><dt>@Loc["TotalQuantity"]</dt><dd>@SelectedOrder.TotalQty</dd></div>
+                    </dl>
+                    <div class="vpp-atlas-order-items">
+                        <h3>@Loc["OrderDetails"]</h3>
+                        @if (IsRowDetailLoading(SelectedOrder.Id))
+                        {
+                            <SkeletonPage Cards="0" Rows="5" Cols="3" />
+                        }
+                        else if (SelectedOrder.Items.Count == 0)
+                        {
+                            <VppEmptyState Icon="inventory_2" Title="Đơn chưa có mặt hàng" />
+                        }
+                        else
+                        {
+                            @foreach (var item in SelectedOrder.Items)
+                            {
+                                <div class="vpp-atlas-order-item">
+                                    <span><strong>@item.VppName</strong><small>@item.VppCode · @item.UomName</small></span>
+                                    <b>@item.Qty</b>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </aside>
             </div>
         }
     </RadzenStack>

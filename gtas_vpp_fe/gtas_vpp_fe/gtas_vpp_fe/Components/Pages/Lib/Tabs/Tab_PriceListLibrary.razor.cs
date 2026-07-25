@@ -21,12 +21,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         private List<PriceListResDTO> priceLists = [];
+        private IList<PriceListResDTO> selectedPriceLists = [];
         private List<SupplierResDTO> suppliers = [];
         private RadzenDataGrid<PriceListResDTO> grid = default!;
         private bool isLoading;
         private int count;
         private int currentSkip;
         private string? currentFilterExpression;
+
+        private PriceListResDTO? SelectedPriceList => selectedPriceLists.FirstOrDefault();
 
         protected override async Task OnInitializedAsync()
         {
@@ -70,6 +73,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
                 priceLists = result.Data ?? [];
                 count = result.TotalCount;
+                if (priceLists.Count > 0 && (SelectedPriceList is null || priceLists.All(row => row.Id != SelectedPriceList.Id)))
+                {
+                    selectedPriceLists = [priceLists[0]];
+                }
+                else if (priceLists.Count == 0)
+                {
+                    selectedPriceLists = [];
+                }
             }
             catch (Exception ex)
             {
@@ -259,6 +270,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        private void OnPriceListSelected(PriceListResDTO row)
+        {
+            if (row is not null)
+            {
+                selectedPriceLists = [row];
+            }
+        }
+
         private async Task PublishAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
@@ -379,6 +398,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             _toastService.Show(severity, summary, detail, 5000, false);
         }
+
+        private static string GetStatusLabel(string? status) => status switch
+        {
+            "Draft" => "Bản nháp",
+            "Published" => "Đã công bố",
+            "Expired" => "Hết hiệu lực",
+            _ => status ?? "Chưa xác định"
+        };
+
+        private static BadgeStyle GetStatusBadgeStyle(string? status) => status switch
+        {
+            "Published" => BadgeStyle.Success,
+            "Draft" => BadgeStyle.Info,
+            _ => BadgeStyle.Light
+        };
 
         private static string BuildPriceListEndpoint(
             string? filter = null,

@@ -33,6 +33,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private string? alertMessage;
         private AlertStyle alertStyle = AlertStyle.Info;
 
+        private string ShortInputHash => string.IsNullOrWhiteSpace(preview?.InputHash)
+            ? "—"
+            : preview.InputHash[..Math.Min(12, preview.InputHash.Length)];
+
         private string SettlePeriodTitle
         {
             get
@@ -187,7 +191,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 return;
             }
 
-            SetAlert(AlertStyle.Info, "Run a settlement preview to verify supplier coverage and totals.");
+            SetAlert(AlertStyle.Info, "Hãy chạy xem trước để kiểm tra độ phủ nguồn cung và tổng giá trị.");
         }
 
         private Task OnPriceListChangedAsync(Guid? value)
@@ -218,7 +222,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 if (preview is null)
                 {
                     canSettle = false;
-                    SetAlert(AlertStyle.Warning, "Settlement preview returned no data.");
+                    SetAlert(AlertStyle.Warning, "Bước xem trước không trả về dữ liệu.");
                     return;
                 }
 
@@ -235,7 +239,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 settlementIdempotencyKey ??= $"{selectedYear:D4}{selectedMonth:D2}-{Guid.NewGuid():N}";
                 SetAlert(
                     AlertStyle.Success,
-                    $"{quote.SupplierName ?? "Supplier"}: {quote.CoveredItemCount}/{quote.RequestedItemCount} items, total {quote.GrandTotal:N0} VND. Hash {preview.InputHash[..12]}.");
+                    $"{quote.SupplierName ?? "Nhà cung cấp"}: phủ {quote.CoveredItemCount}/{quote.RequestedItemCount} mặt hàng, tổng {quote.GrandTotal:N0} VND.");
             }
             catch (Exception ex)
             {
@@ -299,18 +303,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             var reason = correctionReason.Trim();
             if (reason.Length is < 5 or > 500)
             {
-                SetAlert(AlertStyle.Warning, "Correction reason must contain between 5 and 500 characters.");
+                SetAlert(AlertStyle.Warning, "Lý do hiệu chỉnh phải có từ 5 đến 500 ký tự.");
                 return;
             }
             if (preview is null || !canSettlePreview || string.IsNullOrWhiteSpace(settlementIdempotencyKey))
             {
-                SetAlert(AlertStyle.Warning, "Run a fresh preview before correcting the settlement.");
+                SetAlert(AlertStyle.Warning, "Hãy chạy lại bước xem trước trước khi hiệu chỉnh kết quả chốt kỳ.");
                 return;
             }
 
             var confirmed = await DialogService.Confirm(
                 $"Tạo revision hiệu chỉnh cho kỳ {selectedMonth:D2}/{selectedYear}?",
-                "Settlement correction",
+                "Hiệu chỉnh kết quả chốt kỳ",
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
             if (confirmed != true)
             {
@@ -324,7 +328,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
                 if (current?.SettlementId is null)
                 {
-                    SetAlert(AlertStyle.Warning, "Current settlement revision was not found.");
+                    SetAlert(AlertStyle.Warning, "Không tìm thấy phiên bản kết quả chốt kỳ hiện hành.");
                     return;
                 }
 
@@ -341,7 +345,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                         IdempotencyKey = settlementIdempotencyKey,
                         Reason = reason
                     });
-                Toast.Notify(NotificationSeverity.Success, Loc["Success"], "Settlement correction");
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], "Đã tạo phiên bản hiệu chỉnh");
                 correctionReason = string.Empty;
                 settlementIdempotencyKey = null;
                 await LoadStatusAsync();
@@ -362,5 +366,32 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             alertStyle = style;
             alertMessage = message;
         }
+
+        private static string DescribeBlocker(string blocker)
+        {
+            if (blocker.StartsWith("PENDING_SUPPLEMENTS:", StringComparison.Ordinal))
+            {
+                return $"Còn {blocker.Split(':').LastOrDefault()} đơn bổ sung chờ duyệt.";
+            }
+
+            if (blocker.Equals("NO_SUBMITTED_ITEMS", StringComparison.Ordinal))
+            {
+                return "Chưa có mặt hàng hợp lệ để chốt kỳ.";
+            }
+
+            if (blocker.StartsWith("SUPPLEMENT_WITHOUT_BASE:", StringComparison.Ordinal))
+            {
+                return "Có đơn bổ sung chưa liên kết được với đơn gốc.";
+            }
+
+            if (blocker.StartsWith("INVALID_SUPPLIER_EXCEPTION:", StringComparison.Ordinal))
+            {
+                return "Có lựa chọn nhà cung cấp ngoại lệ chưa hợp lệ hoặc thiếu lý do.";
+            }
+
+            return blocker;
+        }
+
+        private static string FormatMoney(decimal value) => $"{value:N0} VND";
     }
 }

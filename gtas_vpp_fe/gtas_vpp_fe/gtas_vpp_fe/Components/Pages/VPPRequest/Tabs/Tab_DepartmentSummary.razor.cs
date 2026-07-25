@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Res.VPP;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
@@ -14,6 +15,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int? YearFilter { get; set; } = DateTime.Now.Year;
         public int? MonthFilter { get; set; }
         public int? StatusFilter { get; set; }
+
+        private VppRequestResDTO? SelectedOrder { get; set; }
 
         private string CurrentDepartmentCode =>
             claims?.FirstOrDefault(c => c.Type == ClaimKeys.DepartmentCode)?.Value ?? string.Empty;
@@ -82,6 +85,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (MonthFilter.HasValue) query.Add($"month={MonthFilter.Value}");
             if (StatusFilter.HasValue) query.Add($"status={StatusFilter.Value}");
             if (!string.IsNullOrWhiteSpace(CurrentDepartmentCode)) query.Add($"departmentCode={Uri.EscapeDataString(CurrentDepartmentCode)}");
+        }
+
+        private async Task SelectDepartmentOrderAsync(VppRequestResDTO order)
+        {
+            SelectedOrder = order;
+            await OnRowExpandAsync(order);
         }
     }
 }

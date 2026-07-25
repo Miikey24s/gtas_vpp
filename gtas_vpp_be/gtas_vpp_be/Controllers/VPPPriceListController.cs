@@ -4,6 +4,7 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -22,6 +23,7 @@ namespace gtas_vpp_be.Controllers
         {
         }
 
+        [ActivatorUtilitiesConstructor]
         public VPPPriceListController(IPriceListService priceListService, IPriceBookWorkflowService? workflowService)
         {
             _priceListService = priceListService;

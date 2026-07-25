@@ -194,6 +194,11 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected static string FormatAmount(long value) =>
         value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ₫";
 
+    protected static string FormatDecimalAmount(decimal? value) =>
+        value.HasValue
+            ? value.Value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " ₫"
+            : "—";
+
     protected static string FormatGeneratedAt(DateTime value) =>
         value.ToLocalTime().ToString("HH:mm dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"));
 

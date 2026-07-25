@@ -17,7 +17,7 @@ namespace gtas_vpp_be.Tests.Authorization;
 public sealed class CanonicalPermissionControllerTests
 {
     [Fact]
-    public async Task GetGroups_ReturnsOnlyFourActiveCanonicalPersonas()
+    public async Task GetGroups_ReturnsOnlyActiveCanonicalPersonas()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         foreach (var persona in CanonicalRbac.Personas)
@@ -40,7 +40,7 @@ public sealed class CanonicalPermissionControllerTests
 
         var response = Assert.IsType<OkObjectResult>(action);
         var groups = Assert.IsType<List<PermissionGroupResDTO>>(response.Value);
-        Assert.Equal(4, groups.Count);
+        Assert.Equal(CanonicalRbac.Personas.Count, groups.Count);
         Assert.Equal(
             CanonicalRbac.Personas.Select(persona => persona.GroupId).Order(),
             groups.Select(group => group.Id).Order());
@@ -102,7 +102,7 @@ public sealed class CanonicalPermissionControllerTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var fixture = await CreateMappingAsync(
             context,
-            CanonicalRbac.SystemAdmin.GroupId,
+            CanonicalRbac.Employee.GroupId,
             Permissions.RequestAllOrdersSummary);
         var mappings = MappingRepository(fixture.Mapping);
         var controller = CreateController(context, mappingRepository: mappings);

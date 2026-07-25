@@ -32,17 +32,25 @@ frontend.WithUrlForEndpoint("https", url =>
     url.Url = "/Account/Login";
 });
 
-var reactFrontend = builder.AddViteApp("frontend-react", "../gtas_vpp_fe_react")
-    .WithReference(api)
-    .WaitFor(api)
-    .WithEnvironment("GTAS_API_PROXY_TARGET", api.GetEndpoint("https"))
-    .WithEnvironment("VITE_AUTH_MODE", "cookie")
-    .WithEnvironment("VITE_NOTIFICATIONS_REALTIME", "true")
-    .WithExternalHttpEndpoints();
+var reactPreviewEnabled = bool.TryParse(
+        builder.Configuration["Frontend:EnableReactPreview"],
+        out var configuredReactPreview)
+    && configuredReactPreview;
 
-reactFrontend.WithUrlForEndpoint("http", url =>
+if (reactPreviewEnabled)
 {
-    url.DisplayText = "GTAS React Preview";
-});
+    var reactFrontend = builder.AddViteApp("frontend-react", "../gtas_vpp_fe_react")
+        .WithReference(api)
+        .WaitFor(api)
+        .WithEnvironment("GTAS_API_PROXY_TARGET", api.GetEndpoint("https"))
+        .WithEnvironment("VITE_AUTH_MODE", "cookie")
+        .WithEnvironment("VITE_NOTIFICATIONS_REALTIME", "true")
+        .WithExternalHttpEndpoints();
+
+    reactFrontend.WithUrlForEndpoint("http", url =>
+    {
+        url.DisplayText = "GTAS React Preview";
+    });
+}
 
 builder.Build().Run();

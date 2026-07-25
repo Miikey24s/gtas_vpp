@@ -1,111 +1,112 @@
 @using System.Reflection
-@using Radzen
-@using Radzen.Blazor
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_shared.DTOs.Share
 @typeparam TItem
 
-<div style="height: 100%; display: flex; flex-direction: column; background: var(--rz-background-color);">
-    <RadzenTabs RenderMode="TabRenderMode.Client" class="w-100 h-100" Style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+<section class="vpp-record-inspector" aria-label="Chi tiết bản ghi">
+    <header class="vpp-record-inspector-header">
+        <span class="vpp-record-inspector-badge">@Loc["Selected"]</span>
+        <h2>@RecordTitle</h2>
+        @if (!string.IsNullOrWhiteSpace(RecordCode))
+        {
+            <p>@RecordCode</p>
+        }
+    </header>
+
+    <RadzenTabs RenderMode="TabRenderMode.Client" class="vpp-record-inspector-tabs">
         <Tabs>
-            <RadzenTabsItem Text="Core Data" Icon="info">
-                <div style="max-height: calc(100vh - 120px); overflow-y: auto;" class="rz-p-3">
-                    <RadzenStack Gap="0.75rem">
-                        @if (CoreProperties.Count == 0)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-align-center rz-text-muted rz-my-4">No core properties</RadzenText>
-                        }
-                        else
-                        {
+            <RadzenTabsItem Text="Thông tin chung">
+                <div class="vpp-record-inspector-body">
+                    @if (CoreProperties.Count == 0)
+                    {
+                        <VppEmptyState Icon="info" Title="Chưa có thông tin mô tả" />
+                    }
+                    else
+                    {
+                        <dl class="vpp-record-property-list">
                             @foreach (var prop in CoreProperties)
                             {
-                                @RenderPropertyCard(prop)
+                                @RenderProperty(prop)
                             }
-                        }
-                    </RadzenStack>
+                        </dl>
+                    }
                 </div>
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Audit Trail" Icon="history">
-                <div style="max-height: calc(100vh - 120px); overflow-y: auto;" class="rz-p-3">
-                    <RadzenStack Gap="0.75rem">
-                        @if (AuditProperties.Count == 0)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-align-center rz-text-muted rz-my-4">No audit properties</RadzenText>
-                        }
-                        else
-                        {
+            <RadzenTabsItem Text="Nhật ký">
+                <div class="vpp-record-inspector-body">
+                    @if (AuditProperties.Count == 0)
+                    {
+                        <VppEmptyState Icon="history" Title="Chưa có dữ liệu nhật ký" />
+                    }
+                    else
+                    {
+                        <dl class="vpp-record-property-list">
                             @foreach (var prop in AuditProperties)
                             {
-                                @RenderPropertyCard(prop)
+                                @RenderProperty(prop)
                             }
-                        }
-                    </RadzenStack>
+                        </dl>
+                    }
                 </div>
             </RadzenTabsItem>
-            <RadzenTabsItem Text="System Keys" Icon="key">
-                <div style="max-height: calc(100vh - 120px); overflow-y: auto;" class="rz-p-3">
-                    <RadzenStack Gap="0.75rem">
-                        @if (SystemProperties.Count == 0)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-text-align-center rz-text-muted rz-my-4">No system properties</RadzenText>
-                        }
-                        else
-                        {
+            <RadzenTabsItem Text="Kỹ thuật">
+                <div class="vpp-record-inspector-body">
+                    @if (SystemProperties.Count == 0)
+                    {
+                        <VppEmptyState Icon="key" Title="Không có định danh kỹ thuật" />
+                    }
+                    else
+                    {
+                        <dl class="vpp-record-property-list is-technical">
                             @foreach (var prop in SystemProperties)
                             {
-                                @RenderPropertyCard(prop)
+                                @RenderProperty(prop)
                             }
-                        }
-                    </RadzenStack>
+                        </dl>
+                    }
                 </div>
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
-</div>
+</section>
 
 @code {
-    [Parameter] public TItem Record { get; set; } = default!;
+    [Parameter, EditorRequired] public TItem Record { get; set; } = default!;
 
-    private List<PropertyInfo> CoreProperties { get; set; } = new();
-    private List<PropertyInfo> AuditProperties { get; set; } = new();
-    private List<PropertyInfo> SystemProperties { get; set; } = new();
+    private readonly List<PropertyInfo> CoreProperties = [];
+    private readonly List<PropertyInfo> AuditProperties = [];
+    private readonly List<PropertyInfo> SystemProperties = [];
 
-    protected override void OnInitialized()
+    private string RecordTitle => GetFirstValue(
+        "VppName", "PriceListName", "SupplierName", "DepartmentName", "FullName", "GroupName", "Name")
+        ?? "Chi tiết bản ghi";
+
+    private string? RecordCode => GetFirstValue(
+        "VppCode", "PriceListCode", "SupplierCode", "DepartmentCode", "UserLogin", "GroupCode", "Code");
+
+    protected override void OnParametersSet()
     {
-        if (Record == null) return;
+        CoreProperties.Clear();
+        AuditProperties.Clear();
+        SystemProperties.Clear();
 
-        var props = typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        foreach (var prop in props)
+        if (Record is null)
         {
-            // Skip collections and complex navigation classes (except string)
-            if ((prop.PropertyType.IsClass && prop.PropertyType != typeof(string)) ||
-                (typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string)))
+            return;
+        }
+
+        foreach (var prop in typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (!CanDisplay(prop))
             {
                 continue;
             }
 
-            var name = prop.Name;
-            
-            // Check if it's an audit property
-            var isAudit = name == "CreatedByUserId" ||
-                          name == "CreatedAtUtc" ||
-                          name == "CreatedByUserName" ||
-                          name == "UpdatedByUserId" ||
-                          name == "UpdatedAtUtc" ||
-                          name == "UpdatedByUserName" ||
-                          name == "IsDeleted";
-                          
-            // Check if it's a system ID (either Id or ends with Id/GUID)
-            var isSystem = name == "Id" || 
-                           name.EndsWith("Id") || 
-                           name.EndsWith("MappingId") ||
-                           name.Contains("Code");
-
-            if (isAudit)
+            if (IsAuditProperty(prop.Name))
             {
                 AuditProperties.Add(prop);
             }
-            else if (isSystem)
+            else if (IsTechnicalProperty(prop.Name))
             {
                 SystemProperties.Add(prop);
             }
@@ -116,85 +117,157 @@
         }
     }
 
-    private RenderFragment RenderPropertyCard(PropertyInfo prop) => builder =>
+    private RenderFragment RenderProperty(PropertyInfo prop) => builder =>
     {
         var metadata = GridColumnMetadataRegistry.Get(typeof(TItem), prop.Name);
-        var displayName = metadata?.DisplayName ?? prop.Name;
-        var val = Record!.GetPropertyValue(prop.Name, prop.PropertyType);
-        var effectiveType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
-        var typeCode = Type.GetTypeCode(effectiveType);
-        var formattedVal = FormatValue(val, typeCode);
-        
+        var label = GetDisplayLabel(prop.Name, metadata?.DisplayName);
+        var value = prop.GetValue(Record);
+
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", "rz-p-3 rz-border-radius-1");
-        builder.AddAttribute(2, "style", "background: var(--rz-base-50); border: 1px solid var(--rz-base-200); display: flex; flex-direction: column; gap: 0.25rem;");
-
-        // Label
-        builder.OpenElement(3, "div");
-        builder.AddAttribute(4, "style", "font-size: 0.75rem; font-weight: 600; color: var(--rz-text-secondary-color);");
-        builder.AddContent(5, displayName);
-        if (displayName != prop.Name)
+        builder.AddAttribute(1, "class", "vpp-record-property");
+        builder.OpenElement(2, "dt");
+        builder.AddContent(3, label);
+        builder.CloseElement();
+        builder.OpenElement(4, "dd");
+        if (value is bool boolean)
         {
-            builder.OpenElement(6, "span");
-            builder.AddAttribute(7, "style", "font-size: 0.65rem; font-weight: normal; color: var(--rz-text-muted); margin-left: 0.5rem; font-family: monospace;");
-            builder.AddContent(8, $"({prop.Name})");
-            builder.CloseElement(); // span
-        }
-        builder.CloseElement(); // label div
-
-        // Value
-        builder.OpenElement(9, "div");
-        builder.AddAttribute(10, "style", "font-size: 0.85rem; font-weight: 500; word-break: break-all; min-height: 1.2rem;");
-        
-        if (val == null)
-        {
-            builder.OpenElement(11, "span");
-            builder.AddAttribute(12, "class", "rz-text-muted");
-            builder.AddAttribute(13, "style", "font-style: italic;");
-            builder.AddContent(14, "null");
-            builder.CloseElement(); // span
-        }
-        else if (typeCode == TypeCode.Boolean)
-        {
-            var isTrue = (bool)val;
-            builder.OpenElement(15, "span");
-            builder.AddAttribute(16, "style", $"font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; color: #fff; background-color: {(isTrue ? "var(--rz-success)" : "var(--rz-secondary-color)")};");
-            builder.AddContent(17, isTrue ? "True" : "False");
-            builder.CloseElement(); // span
+            builder.OpenElement(5, "span");
+            builder.AddAttribute(6, "class", $"vpp-admin-status-badge {(boolean ? "is-active" : "is-inactive")}");
+            builder.AddContent(7, boolean ? "Có" : "Không");
+            builder.CloseElement();
         }
         else
         {
-            var name = prop.Name;
-            var isSystemKey = name == "Id" || name.EndsWith("Id") || name.EndsWith("MappingId") || name.Contains("Code");
-            builder.OpenElement(18, "span");
-            if (isSystemKey)
-            {
-                builder.AddAttribute(19, "style", "font-family: monospace; font-size: 0.8rem; background: var(--rz-base-200); padding: 2px 6px; border-radius: 4px; color: var(--rz-text-primary-color); border: 1px solid var(--rz-base-300);");
-            }
-            builder.AddContent(20, formattedVal);
-            builder.CloseElement(); // span
+            builder.AddContent(8, FormatValue(prop.Name, value));
         }
-
-        builder.CloseElement(); // value div
-        builder.CloseElement(); // outer div
+        builder.CloseElement();
+        builder.CloseElement();
     };
 
-    private string FormatValue(object? value, TypeCode typeCode)
+    private string? GetFirstValue(params string[] names)
     {
-        if (value == null) return string.Empty;
-
-        if (typeCode == TypeCode.DateTime && value is DateTime dt)
+        foreach (var name in names)
         {
-            return dt.ToString("dd/MM/yyyy HH:mm:ss.fff");
+            var value = typeof(TItem).GetProperty(name)?.GetValue(Record)?.ToString();
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
         }
 
-        if (typeCode == TypeCode.Decimal || 
-            typeCode == TypeCode.Double || 
-            typeCode == TypeCode.Single)
-        {
-            return string.Format("{0:N0}", value);
-        }
-
-        return value.ToString() ?? string.Empty;
+        return null;
     }
+
+    private static bool CanDisplay(PropertyInfo prop)
+    {
+        var type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+        return type.IsEnum
+               || type.IsPrimitive
+               || type == typeof(string)
+               || type == typeof(decimal)
+               || type == typeof(DateTime)
+               || type == typeof(DateTimeOffset)
+               || type == typeof(Guid)
+               || type == typeof(byte[]);
+    }
+
+    private static bool IsAuditProperty(string name) =>
+        name is "CreatedByUserId" or "CreatedAtUtc" or "CreatedByUserName"
+            or "UpdatedByUserId" or "UpdatedAtUtc" or "UpdatedByUserName"
+            or "PublishedAtUtc" or "PublishedByUserId" or "ExpiredAtUtc" or "ExpiredByUserId";
+
+    private static bool IsTechnicalProperty(string name) =>
+        name is "Id" or "RowVersion" or "SessionVersion"
+        or "OriginalLanguageCode" or "ResolvedLanguageCode" or "IsTranslationFallback"
+        or "DisplayName" or "DisplayDescription"
+        or "LegacyBackfillStatus"
+        || name.EndsWith("Id", StringComparison.Ordinal)
+        || name.EndsWith("Ids", StringComparison.Ordinal)
+        || name.Contains("Hash", StringComparison.OrdinalIgnoreCase);
+
+    private static string GetDisplayLabel(string propertyName, string? configured) => propertyName switch
+    {
+        "VppCode" => "Mã mặt hàng",
+        "VppName" => "Tên mặt hàng",
+        "VppCategoryCode" => "Mã danh mục",
+        "VppCategoryName" => "Danh mục",
+        "UomCode" => "Mã đơn vị",
+        "UomName" => "Đơn vị",
+        "DefaultSupplierName" => "Nhà cung cấp mặc định",
+        "DefaultPrice" => "Giá mặc định",
+        "DefaultVatRate" => "Thuế suất VAT",
+        "SupplierCount" => "Số nhà cung cấp",
+        "PriceListCode" => "Mã bảng giá",
+        "PriceListName" => "Tên bảng giá",
+        "SupplierName" => "Nhà cung cấp",
+        "Version" => "Phiên bản",
+        "Status" => "Trạng thái",
+        "EffectiveFromUtc" => "Hiệu lực từ",
+        "EffectiveToUtc" => "Hiệu lực đến",
+        "ItemCount" => "Số mặt hàng",
+        "IsDefault" => "Bảng giá mặc định",
+        "CurrencyCode" => "Tiền tệ",
+        "VatPolicy" => "Chính sách thuế VAT",
+        "ContractCode" => "Mã hợp đồng",
+        "DiscountRate" => "Tỷ lệ chiết khấu",
+        "RebateAmount" => "Khoản hoàn lại",
+        "FeeAmount" => "Phí bổ sung",
+        "ShippingAmount" => "Phí vận chuyển",
+        "StatusReason" => "Lý do trạng thái",
+        "UserLogin" => "Tài khoản",
+        "FullName" => "Họ tên",
+        "Email" => "Email",
+        "GroupName" => "Nhóm quyền",
+        "GroupCode" => "Mã nhóm quyền",
+        "DepartmentName" => "Phòng ban",
+        "AccountStatus" => "Trạng thái tài khoản",
+        "IsAdmin" => "Quản trị viên",
+        "IsActive" => "Đang hoạt động",
+        "UserType" => "Loại người dùng",
+        "Description" => "Mô tả",
+        "IsDeleted" => "Đã vô hiệu hóa",
+        "OriginalLanguageCode" => "Ngôn ngữ gốc",
+        "ResolvedLanguageCode" => "Ngôn ngữ hiển thị",
+        "DisplayName" => "Tên hiển thị",
+        "DisplayDescription" => "Mô tả hiển thị",
+        "IsTranslationFallback" => "Dùng bản dịch dự phòng",
+        _ => configured ?? Humanize(propertyName)
+    };
+
+    private static string FormatValue(string propertyName, object? value)
+    {
+        if (value is string text)
+        {
+            if (propertyName == "GroupName" && text.Equals("DEV", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Quản trị hệ thống (DEV)";
+            }
+
+            return text switch
+            {
+                "Draft" => "Bản nháp",
+                "Published" => "Đã công bố",
+                "Expired" => "Hết hiệu lực",
+                "Active" => "Đang hoạt động",
+                "PendingApproval" => "Chờ duyệt",
+                "Inactive" => "Ngừng hoạt động",
+                "Active application account" => "Tài khoản ứng dụng đang hoạt động",
+                "item-rate" => "Theo thuế suất từng mặt hàng",
+                _ => text
+            };
+        }
+
+        return value switch
+        {
+            null => "—",
+            DateTime dateTime => dateTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
+            DateTimeOffset dateTimeOffset => dateTimeOffset.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
+            byte[] bytes => Convert.ToBase64String(bytes),
+            decimal number => number.ToString("N0"),
+            _ => value.ToString() ?? "—"
+        };
+    }
+
+    private static string Humanize(string name) =>
+        System.Text.RegularExpressions.Regex.Replace(name, "([a-z0-9])([A-Z])", "$1 $2");
 }

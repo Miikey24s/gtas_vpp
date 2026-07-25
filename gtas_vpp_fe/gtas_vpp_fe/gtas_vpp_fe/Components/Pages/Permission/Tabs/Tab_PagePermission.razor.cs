@@ -13,6 +13,19 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
 public partial class Tab_PagePermission
 {
+    private static string GetGroupDisplayName(PermissionGroupResDTO group) =>
+        string.Equals(group.GroupName, "DEV", StringComparison.OrdinalIgnoreCase)
+            ? "Quản trị hệ thống (DEV)"
+            : group.GroupName ?? "—";
+
+    private static string GetGroupCode(PermissionGroupResDTO group) => group.GroupName switch
+    {
+        "DEV" => "DEV",
+        "Nhân viên" => "EMPLOYEE",
+        "Quản lý" => "MANAGER",
+        _ => group.GroupName ?? "—"
+    };
+
     [Inject] public IToastService _toastService { get; set; } = default!;
     [Inject] public IAPIServices _apiServices { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;

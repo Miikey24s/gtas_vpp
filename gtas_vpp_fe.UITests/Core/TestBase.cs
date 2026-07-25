@@ -139,9 +139,25 @@ public abstract class TestBase : IAsyncLifetime
             Timeout = 120_000,
             WaitUntil = WaitUntilState.DOMContentLoaded
         });
-        await Page.WaitForURLAsync(
-            new System.Text.RegularExpressions.Regex(".*/Account/Login.*", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
-            new PageWaitForURLOptions { Timeout = 30_000 });
+        var loginUrl = new System.Text.RegularExpressions.Regex(
+            ".*/Account/Login.*",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        var timeoutAt = DateTime.UtcNow.AddSeconds(30);
+        while (DateTime.UtcNow < timeoutAt && !loginUrl.IsMatch(Page.Url))
+        {
+            await Task.Delay(200);
+        }
+
+        if (!loginUrl.IsMatch(Page.Url))
+        {
+            throw new TimeoutException($"Timed out waiting for logout redirect. Last URL: {Page.Url}");
+        }
+
+        await Page.Locator(".vpp-login-form").WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 30_000
+        });
         await LoginAsAsync(account);
     }
 

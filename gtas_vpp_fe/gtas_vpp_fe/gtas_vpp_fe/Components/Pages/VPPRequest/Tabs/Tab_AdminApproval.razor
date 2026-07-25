@@ -9,8 +9,36 @@
 {
     @if (ShowSettlementContent)
     {
-        <div class="vpp-section rz-p-0 rz-p-md-2">
-            <PeriodReviewPanel OnSettled="@OnSettledRefresh" />
+        <div class="vpp-period-workspace rz-p-0 rz-p-md-2">
+            <header class="vpp-period-workspace-header">
+                <div>
+                    <span class="vpp-period-eyebrow">Vận hành kỳ</span>
+                    <h1>Rà soát và chốt kỳ</h1>
+                    <p>Kiểm tra đơn hợp lệ, xem độ phủ nguồn cung và chỉ xác nhận khi không còn điều kiện ngăn chốt.</p>
+                </div>
+                <div class="vpp-period-flow" aria-label="Quy trình vận hành kỳ">
+                    <span class="is-active"><b>1</b> Rà soát kỳ</span>
+                    <span><b>2</b> Gom nhu cầu</span>
+                    <span><b>3</b> Chọn nguồn cung</span>
+                    <span><b>4</b> Chốt kỳ</span>
+                </div>
+            </header>
+
+            <section class="vpp-period-stage" aria-labelledby="period-review-title">
+                <div class="vpp-period-stage-heading">
+                    <div><span>Bước 1–2</span><h2 id="period-review-title">Rà soát dữ liệu kỳ</h2></div>
+                    <p>Danh sách current revision hợp lệ là nguồn đầu vào cho bước xem trước.</p>
+                </div>
+                <PeriodReviewPanel OnSettled="@OnSettledRefresh" />
+            </section>
+
+            <section class="vpp-period-stage" aria-labelledby="period-settlement-title">
+                <div class="vpp-period-stage-heading">
+                    <div><span>Bước 3–4</span><h2 id="period-settlement-title">Chọn nguồn cung và xác nhận chốt kỳ</h2></div>
+                    <p>Hệ thống xếp hạng bảng giá, kiểm tra độ phủ và lưu dữ liệu bất biến khi xác nhận.</p>
+                </div>
+                <PeriodSettlementPanel OnSettled="@OnSettledRefresh" />
+            </section>
         </div>
     }
     else if (ShowApprovalsContent)
@@ -71,6 +99,8 @@
                 }
                 else
                 {
+                    <div class="vpp-atlas-order-workspace vpp-atlas-approval-workspace">
+                    <div class="vpp-atlas-order-collection">
                     <div class="vpp-mobile-cards">
                         <VppMobileCard Items="@PendingOrders" Actions="@RenderMobileActions" />
                     </div>
@@ -86,6 +116,8 @@
                                 AllowSorting="true" AllowAlternatingRows="true"
                                 AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single"
                                 RowExpand="OnRowExpandAsync"
+                                RowSelect="SelectPendingOrderAsync"
+                                SelectionMode="DataGridSelectionMode.Single"
                                 IsLoading="@IsGridLoading"
                                 AllowFiltering="true"
                                 AllowMultiColumnSorting="true"
@@ -214,6 +246,67 @@
                         </div>
                             </Template>
                         </RadzenDataGrid>
+                    </div>
+                    </div>
+                    <aside class="vpp-atlas-order-detail" aria-live="polite">
+                        @if (SelectedPendingOrder is null)
+                        {
+                            <div class="vpp-atlas-order-detail-empty">
+                                <span class="rzi rzi-approval" aria-hidden="true"></span>
+                                <strong>Chọn đơn bổ sung cần xử lý</strong>
+                                <span>Chi tiết, lý do và mặt hàng sẽ hiển thị tại đây trước khi quyết định.</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <header class="vpp-atlas-order-detail-header">
+                                <span class="vpp-record-inspector-badge">Chờ duyệt</span>
+                                <h2>@SelectedPendingOrder.RequesterName</h2>
+                                <p>@SelectedPendingOrder.VppCode</p>
+                            </header>
+                            <dl class="vpp-atlas-order-facts">
+                                <div><dt>@Loc["Department"]</dt><dd>@SelectedPendingOrder.DepartmentCode</dd></div>
+                                <div><dt>@Loc["Period"]</dt><dd>@SelectedPendingOrder.Period</dd></div>
+                                <div><dt>@Loc["TotalLineItems"]</dt><dd>@SelectedPendingOrder.TotalLines</dd></div>
+                                <div><dt>@Loc["TotalQuantity"]</dt><dd>@SelectedPendingOrder.TotalQty</dd></div>
+                            </dl>
+                            <div class="vpp-atlas-approval-reason">
+                                <span>Lý do bổ sung</span>
+                                <p>@(string.IsNullOrWhiteSpace(SelectedPendingOrder.SupplementReason) ? "Chưa có lý do" : SelectedPendingOrder.SupplementReason)</p>
+                            </div>
+                            <div class="vpp-atlas-order-items">
+                                <h3>@Loc["OrderDetails"]</h3>
+                                @if (IsRowDetailLoading(SelectedPendingOrder.Id))
+                                {
+                                    <SkeletonPage Cards="0" Rows="5" Cols="3" />
+                                }
+                                else
+                                {
+                                    @foreach (var item in SelectedPendingOrder.Items)
+                                    {
+                                        <div class="vpp-atlas-order-item">
+                                            <span><strong>@item.VppName</strong><small>@item.VppCode · @item.UomName</small></span>
+                                            <b>@item.Qty</b>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <footer class="vpp-atlas-approval-actions">
+                                @if (CanReject)
+                                {
+                                    <RadzenButton Icon="cancel" Text="Từ chối" ButtonStyle="ButtonStyle.Danger"
+                                                  Disabled="@IsProcessing(SelectedPendingOrder.Id)"
+                                                  Click="@(_ => HandleRejectClick(SelectedPendingOrder))" />
+                                }
+                                @if (CanApprove)
+                                {
+                                    <RadzenButton Icon="check_circle" Text="Phê duyệt" ButtonStyle="ButtonStyle.Primary"
+                                                  Disabled="@IsProcessing(SelectedPendingOrder.Id)"
+                                                  Click="@(_ => HandleApproveClick(SelectedPendingOrder))" />
+                                }
+                            </footer>
+                        }
+                    </aside>
                     </div>
                 }
                         </RadzenStack>

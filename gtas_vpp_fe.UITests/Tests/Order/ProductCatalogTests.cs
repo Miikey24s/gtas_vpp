@@ -11,9 +11,18 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
     public async Task Employee_CanBrowseRequestProductCatalog()
     {
         await LoginAsAsync(TestAccounts.Employee);
-        await Page.GotoAsync($"{BaseUrl}dashboard?tab=2");
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=2", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
 
-        var grid = Page.Locator(".vpp-data-card.vpp-datagrid:visible").Last;
+        await Page.Locator(".vpp-catalog-workspace").WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 60_000
+        });
+
+        var grid = Page.Locator(".vpp-catalog-grid:visible").Last;
         await grid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         (await grid.Locator("tbody tr").CountAsync()).Should().BeGreaterThan(0);
     }

@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.UITests.Tests.Permission
 {
     public class PermissionToggleTests : TestBase, IMutatingUiTest
     {
-        private const string AdminGroupName = "Admin";
+        private const string AdminGroupName = "Quản trị hệ thống (DEV)";
         private const string ReportPageTab = "Report (REPORT)";
         private const string ReportViewComponentCode = "REPORT_VIEW";
 

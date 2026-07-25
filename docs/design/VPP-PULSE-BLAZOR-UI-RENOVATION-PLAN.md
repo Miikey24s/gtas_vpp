@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
 >
-> **Phiên bản:** `2.57` — 2026-07-24
+> **Phiên bản:** `2.58` — 2026-07-26
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
 >
@@ -100,7 +100,9 @@ Khi có xung đột:
 - `gtas_vpp_fe_react` đã được scaffold bằng React 19 + TypeScript 6 + Vite 8; không sửa hoặc ghi đè frontend Blazor.
 - Foundation đã có React Router lazy routes, TanStack Query provider, i18next VI/EN, Light/Dark/Print tokens, shadcn/ui source components, responsive shell và error/not-found boundary.
 - OpenAPI client dùng `@hey-api/openapi-ts`; URL Swagger lấy từ `GTAS_OPENAPI_URL`, còn runtime `/api` dùng Aspire service discovery/proxy hoặc `.env.local` khi chạy Vite độc lập.
-- `MyAspire.AppHost` đã tích hợp resource `frontend-react` bằng `AddViteApp`, reference/wait backend và external HTTP endpoint; owner vẫn tự quản lý tiến trình AppHost/dotnet-watch.
+- `MyAspire.AppHost` giữ resource `frontend-react` ở chế độ preview **opt-in** bằng
+  `Frontend__EnableReactPreview=true`; mặc định local, QA và E2E chỉ khởi động Blazor/Radzen để đúng execution authority
+  và tránh tiêu tốn tài nguyên cho dự án React đang `PAUSED/DEFERRED`.
 - shadcn MCP đã được cài vào Codex user profile; cần restart Codex hoặc mở task mới để tool xuất hiện trong phiên.
 - Vertical slice `Login → App shell → My Orders → Logout` đã dùng generated client từ Swagger, auth/permission bootstrap thật, API query thật và không tạo DTO nghiệp vụ song song.
 - QA tự động đã pass: Prettier, Oxlint, TypeScript, Vitest, Vite production build, Playwright Chromium ở `390`, `768`, `1366` px, axe không có violation critical/serious, không horizontal overflow, `npm audit` không có vulnerability, AppHost Release build `0 warning / 0 error` và backend `397/397` test pass.
@@ -562,6 +564,41 @@ Full scope không bị cắt; thứ tự chỉ bảo vệ các route có giá tr
 ---
 
 ## 9. Route ledger
+
+### Atlas Blazor wave 1 — 2026-07-26
+
+Owner cho phép triển khai liên tục trên branch `codex/atlas-blazor-wave1`, không merge/deploy. Bộ 16 ảnh trong
+`LVTN/screenshots/ch03/atlas/` là định hướng bố cục; backend/API/schema/test hiện hành vẫn quyết định nghiệp vụ,
+quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơn hoặc chính xác hơn ảnh Atlas.
+
+| Atlas | Route/state thật | Trạng thái | Phạm vi wave 1 |
+|---|---|---|---|
+| 01 Login | `/Account/Login` | OWNER_REVIEW | Giữ account shell đã duyệt; chỉ chạy regression |
+| 02 Đơn hàng của tôi | `dashboard.my-orders` | OWNER_REVIEW | Giữ period story, KPI và order workspace hiện hành |
+| 03 Tạo/sửa đơn | `dashboard.order-create.*` | OWNER_REVIEW | Giữ quy trình hai bước và capability từ backend |
+| 04 Lịch sử | `dashboard.history` | OWNER_REVIEW | Giữ summary, chart, list và detail hiện hành |
+| 05 Danh mục mặt hàng | `dashboard.catalog` | OWNER_REVIEW | Chuẩn hóa toolbar/state theo Atlas, không thêm giá cho nhân viên |
+| 06 Tổng hợp phòng ban | `dashboard.management.department` | OWNER_REVIEW | Story header, KPI và master/detail theo phạm vi phòng ban |
+| 07 Duyệt đơn bổ sung | `dashboard.period-operations?periodTab=pending` | OWNER_REVIEW | Queue + detail + approve/reject theo quyền API |
+| 08 Rà soát kỳ | `dashboard.period-operations?periodTab=review` | OWNER_REVIEW | Trạng thái, điều kiện ngăn chốt và bằng chứng nguồn |
+| 09 Chọn nguồn cung | settlement preview | OWNER_REVIEW | Bảng xếp hạng nhà cung cấp/bảng giá từ preview API |
+| 10 Chốt kỳ | settlement confirm/correct | OWNER_REVIEW | KPI, xác nhận snapshot bất biến và hiệu chỉnh có lý do |
+| 11 Mặt hàng quản trị | `library.items` | OWNER_REVIEW | Collection + inspector; giữ CRUD/status thật |
+| 12 Danh sách bảng giá | `library.pricing.price-lists` | OWNER_REVIEW | Lifecycle + inspector; không giả lập publish/expire |
+| 13 Người dùng | `permission.user` | OWNER_REVIEW | Collection + inspector + activation/reset/deactivate thật |
+| 14 Nhóm và quyền | `permission.component` | OWNER_REVIEW | Giữ ma trận quyền động; cải thiện hierarchy/readability |
+| 15 Báo cáo | `report` | OWNER_REVIEW | Giữ dữ liệu/report API thật, bổ sung bằng chứng chốt kỳ |
+| 16 Trạng thái hệ thống | shared state primitives | OWNER_REVIEW | Reuse inbox/reconnect/access-denied/error/empty/skeleton trong route thật |
+
+Wave 1 không tạo endpoint, role, trường dữ liệu hoặc hành động giả để khớp ảnh Atlas. Ba persona hiện hành là
+`EMPLOYEE`, `MANAGER`, `DEV`; trên giao diện `DEV` được diễn giải là **Quản trị hệ thống (DEV)**.
+
+Evidence trước owner review: Release build sạch; backend `416/416`, frontend architecture/unit `159/159`, integration
+`14 pass + 6 LocalDB opt-in skip`. Isolated `AtlasWave1Tests`, `LibraryGridScrollTests`, `ShellResponsiveTests`, account
+shell/accessibility, permission toggle, vòng đời đơn và product catalog targeted đều pass. Capture 14 route/state thật
+được giữ ngoài repository tại `.tmp/atlas-wave1-final/`. QA phát hiện và sửa thêm: constructor ambiguity của
+`VPPPriceListController`/`VPPPriceController`; catalog first-load circular wait; test contract cũ của stepper/brand/persona;
+và AppHost khởi động React preview dù dự án này đang paused. Màn hình bảng giá sau sửa tải dữ liệu bình thường, không còn toast 400.
 
 Status hợp lệ:
 

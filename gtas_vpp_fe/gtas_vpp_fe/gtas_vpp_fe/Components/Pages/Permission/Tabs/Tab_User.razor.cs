@@ -40,6 +40,8 @@ public partial class Tab_User
     private bool isUserLookupLoading;
     private bool hasRequestedInitialUserGridLoad;
 
+    private UserAdministrationResDTO? SelectedUser => selectedUsers.FirstOrDefault();
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -144,6 +146,14 @@ public partial class Tab_User
                 user.UserGroup = permissionGroups.FirstOrDefault(group => group.Id == user.GroupId);
             }
             userCount = result.TotalCount;
+            if (users.Count > 0 && (SelectedUser is null || users.All(user => user.UserId != SelectedUser.UserId)))
+            {
+                selectedUsers = [users[0]];
+            }
+            else if (users.Count == 0)
+            {
+                selectedUsers = [];
+            }
         }
         catch (Exception ex)
         {
@@ -217,6 +227,14 @@ public partial class Tab_User
             $"User: {args.Data.UserLogin}",
             new Dictionary<string, object?> { { "Record", args.Data } },
             options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
+    }
+
+    private void OnUserSelected(UserAdministrationResDTO user)
+    {
+        if (user is not null)
+        {
+            selectedUsers = [user];
+        }
     }
 
     protected Task TextBoxOnChange(string value)
@@ -488,11 +506,11 @@ public partial class Tab_User
     private static string GetAccountStatusLabel(UserAdministrationResDTO user) =>
         user.AccountStatus switch
         {
-            "Active" when user.IsActive => "Active",
-            "Active" => "No membership",
-            "PendingApproval" => "Pending approval",
-            "Disabled" => "Disabled",
-            _ => user.AccountStatus ?? "Unknown"
+            "Active" when user.IsActive => "Đang hoạt động",
+            "Active" => "Chưa được phân quyền",
+            "PendingApproval" => "Chờ duyệt",
+            "Disabled" => "Đã vô hiệu hóa",
+            _ => user.AccountStatus ?? "Chưa xác định"
         };
 
     private void NotifyError(string detail) => Toast.Notify(new NotificationMessage

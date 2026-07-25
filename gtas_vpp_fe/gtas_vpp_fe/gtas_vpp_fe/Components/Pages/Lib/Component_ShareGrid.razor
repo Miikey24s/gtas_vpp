@@ -4,6 +4,8 @@
 @inject GlobalClass glb
 @typeparam TType
 
+<div class="vpp-atlas-admin-workspace">
+<div class="vpp-atlas-admin-collection">
 <RadzenDataGrid @ref="DataGrid"
                 AllowFiltering="true"
                 AllowColumnResize="true"
@@ -29,6 +31,8 @@
                 TItem="TType"
                 IsLoading="@glb.isBusyPage"
                 @bind-Value="selected_item"
+                SelectionMode="DataGridSelectionMode.Single"
+                RowSelect="OnRowSelect"
                 Data="@data"
                 Count="@totalCount"
                 LoadData="@LoadDataAsync"
@@ -274,6 +278,23 @@
         }
     </Columns>
 </RadzenDataGrid>
+</div>
+
+<aside class="vpp-atlas-admin-inspector" aria-live="polite">
+    @if (SelectedRecord is not null)
+    {
+        <Component_RecordInspector TItem="TType" Record="SelectedRecord" />
+    }
+    else
+    {
+        <div class="vpp-atlas-admin-inspector-empty">
+            <span class="rzi rzi-touch_app" aria-hidden="true"></span>
+            <strong>Chọn một bản ghi để xem chi tiết</strong>
+            <span>Bảng vẫn hỗ trợ lọc, sắp xếp, phân trang và chỉnh sửa theo quyền hiện có.</span>
+        </div>
+    }
+</aside>
+</div>
 
 @code {
     public IList<TType> selected_item = new List<TType>();

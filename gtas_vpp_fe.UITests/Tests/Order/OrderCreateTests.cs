@@ -117,10 +117,25 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
             TimeSpan.FromSeconds(30));
         await Page.Locator(".vpp-wizard").WaitForAsync();
 
-        var quantity = Page.Locator(".vpp-wizard-split-right input[role='spinbutton']").First;
-        await quantity.FillAsync("4");
-        await quantity.PressAsync("Tab");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp theo" }).ClickAsync();
+        var quantityStepper = Page.Locator(".vpp-order-draft-item .vpp-order-quantity-stepper").First;
+        await quantityStepper.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 60_000
+        });
+        var quantityValue = quantityStepper.Locator("span");
+        var currentQuantity = int.Parse(await quantityValue.InnerTextAsync());
+        while (currentQuantity < 4)
+        {
+            await quantityStepper.GetByRole(AriaRole.Button, new() { Name = "Tăng số lượng" }).ClickAsync();
+            currentQuantity++;
+        }
+        while (currentQuantity > 4)
+        {
+            await quantityStepper.GetByRole(AriaRole.Button, new() { Name = "Giảm số lượng" }).ClickAsync();
+            currentQuantity--;
+        }
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục kiểm tra" }).ClickAsync();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Cập nhật đơn" }).ClickAsync();
         await WaitForUrlMatchAsync(
             new System.Text.RegularExpressions.Regex(".*/dashboard\\?tab=0.*"),

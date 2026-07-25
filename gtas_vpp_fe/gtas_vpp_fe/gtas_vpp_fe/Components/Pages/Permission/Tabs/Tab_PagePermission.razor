@@ -14,7 +14,7 @@
     <RadzenStack Gap="0.75rem">
         <RadzenAlert AlertStyle="AlertStyle.Info"
                      Variant="Variant.Flat"
-                     Text="Bốn vai trò chuẩn là dữ liệu tham chiếu chỉ đọc. Quyền API được cố định theo ma trận đã kiểm duyệt; quản trị viên chỉ có thể điều chỉnh hiển thị giao diện trong phạm vi của từng vai trò." />
+                     Text="Ba vai trò chuẩn là dữ liệu tham chiếu chỉ đọc. Quyền API được cố định theo ma trận đã kiểm duyệt; quản trị viên chỉ có thể điều chỉnh hiển thị giao diện trong phạm vi của từng vai trò." />
 
         <RadzenDataGrid @ref="grid"
                         TItem="PermissionGroupResDTO"
@@ -227,7 +227,10 @@
                                       Title="@Loc["GroupName"]"
                                       Width="220px">
                     <Template Context="group">
-                        <RadzenText Text="@group.GroupName" class="rz-mb-0" Style="font-weight: 600;" />
+                        <div class="permission-group-identity">
+                            <strong>@GetGroupDisplayName(group)</strong>
+                            <small>@GetGroupCode(group)</small>
+                        </div>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="PermissionGroupResDTO"

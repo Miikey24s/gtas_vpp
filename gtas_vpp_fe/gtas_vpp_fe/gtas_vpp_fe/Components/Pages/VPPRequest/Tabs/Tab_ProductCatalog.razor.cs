@@ -57,14 +57,7 @@ public partial class Tab_ProductCatalog : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await Task.WhenAll(LoadCategoriesAsync(), LoadUnitsAsync());
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && CanView && productGrid is not null)
-        {
-            await productGrid.Reload();
-        }
+        await LoadProductsAsync(new LoadDataArgs { Skip = 0, Top = 20 });
     }
 
     private async Task LoadCategoriesAsync()

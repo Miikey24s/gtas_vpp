@@ -80,7 +80,13 @@ public sealed class AccountShellSmokeTests : TestBase
                 (await Page.Locator(".vpp-login-art").CountAsync()).Should().Be(0, $"{route} should use the centered account shell without hero artwork");
                 (await Page.Locator(".vpp-account-page-compact").CountAsync()).Should()
                     .Be(1, $"{route} should use the centered compact shell");
-                (await Page.Locator(".vpp-brand-mark svg").CountAsync()).Should().Be(1, $"{route} should use the shared vector brand mark");
+                var brandMark = Page.Locator(".vpp-brand-mark img[src$='vpp-app-icon.svg']");
+                await brandMark.WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 30_000
+                });
+                (await brandMark.CountAsync()).Should().Be(1, $"{route} should use the shared SVG brand asset");
                 (await Page.Locator(".vpp-account-language-switch").CountAsync()).Should().Be(1, $"{route} should expose VI/EN switching");
 
                 if (!string.IsNullOrWhiteSpace(evidenceDirectory) && viewport.Width == 1366)
@@ -109,7 +115,7 @@ public sealed class AccountShellSmokeTests : TestBase
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=en&returnUrl=%2FAccount%2FForgotPassword");
         await Page.GetByRole(AriaRole.Heading, new() { Name = "Recover password" }).WaitForAsync();
-        (await Page.Locator(".vpp-account-back-link").InnerTextAsync()).Should().Contain("Back to sign in");
+        (await Page.Locator(".vpp-account-back-link").InnerTextAsync()).Should().Contain("Back to Sign In");
 
         browserErrors.Should().BeEmpty("account routes should not emit browser errors");
         requestFailures.Should().BeEmpty("account routes should not issue failed requests");

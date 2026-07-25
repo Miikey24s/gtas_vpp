@@ -111,6 +111,22 @@ else
                 @Kpi("groups", Loc["Requesters"], Summary.TotalRequesters.ToString("N0"))
             </section>
 
+            @if (Summary.SettlementId.HasValue)
+            {
+                <section class="vpp-report-settlement-evidence" aria-label="Bằng chứng chốt kỳ">
+                    <div>
+                        <span class="rzi rzi-verified_user" aria-hidden="true"></span>
+                        <p><strong>Dữ liệu kỳ đã được đối chiếu</strong><small>Báo cáo sử dụng dữ liệu được lưu tại thời điểm chốt kỳ.</small></p>
+                    </div>
+                    <dl>
+                        <div><dt>Phiên bản</dt><dd>@(Summary.SettlementRevisionNumber?.ToString() ?? "—")</dd></div>
+                        <div><dt>Nhà cung cấp chính</dt><dd>@(Summary.SettlementPrimarySupplierName ?? "—")</dd></div>
+                        <div><dt>Tổng chốt kỳ</dt><dd>@FormatDecimalAmount(Summary.SettlementGrandTotal)</dd></div>
+                        <div><dt>Chênh lệch phân bổ</dt><dd>@FormatDecimalAmount(Summary.SettlementVariance)</dd></div>
+                    </dl>
+                </section>
+            }
+
             @if (Insight is not null)
             {
                 <section class="vpp-report-insight" aria-live="polite" aria-label="@Loc["ReportInsights"]">

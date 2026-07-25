@@ -25,6 +25,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private string ActivePeriodTab { get; set; } = PeriodReviewTab;
         private bool _pendingOrdersLoaded;
         private bool _initialized;
+        private VppRequestResDTO? SelectedPendingOrder { get; set; }
 
         // Convenience alias so the razor template keeps its existing PendingOrders name.
         public List<VppRequestResDTO> PendingOrders => Orders;
@@ -203,6 +204,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 _processingOrderIds.Remove(order.Id);
                 StateHasChanged();
             }
+        }
+
+        private async Task SelectPendingOrderAsync(VppRequestResDTO order)
+        {
+            SelectedPendingOrder = order;
+            await OnRowExpandAsync(order);
         }
 
         private bool IsProcessing(Guid orderId) => _processingOrderIds.Contains(orderId);

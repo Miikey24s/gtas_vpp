@@ -12,7 +12,13 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
 
-        (await Page.Locator(".vpp-brand-mark svg").CountAsync()).Should().Be(1, "the authenticated shell should use the shared vector brand mark");
+        var brandMark = Page.Locator(".vpp-brand-mark img[src$='vpp-app-icon.svg']");
+        await brandMark.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 30_000
+        });
+        (await brandMark.CountAsync()).Should().Be(1, "the authenticated shell should use the shared SVG brand asset");
 
         var notificationButton = Page.Locator(".vpp-header-notification-button");
         var themeButton = Page.Locator(".vpp-theme-switch");

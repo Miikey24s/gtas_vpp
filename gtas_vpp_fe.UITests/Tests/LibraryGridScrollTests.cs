@@ -31,17 +31,28 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var edgeOffsets = await grid.EvaluateAsync<double[]>("""
             element => {
                 const panel = element.closest('.rz-tabview-panel');
-                if (!panel) {
-                    throw new Error('Category grid tab panel was not rendered.');
+                const workspace = element.closest('.vpp-atlas-admin-workspace');
+                const collection = element.closest('.vpp-atlas-admin-collection');
+                if (!panel || !workspace || !collection) {
+                    throw new Error('Category Atlas workspace was not rendered.');
                 }
 
                 const gridRect = element.getBoundingClientRect();
                 const panelRect = panel.getBoundingClientRect();
-                return [gridRect.left - panelRect.left, panelRect.right - gridRect.right];
+                const workspaceRect = workspace.getBoundingClientRect();
+                const collectionRect = collection.getBoundingClientRect();
+                return [
+                    workspaceRect.left - panelRect.left,
+                    panelRect.right - workspaceRect.right,
+                    gridRect.left - collectionRect.left,
+                    collectionRect.right - gridRect.right
+                ];
             }
             """);
         edgeOffsets[0].Should().BeApproximately(0, 0.5);
         edgeOffsets[1].Should().BeApproximately(0, 0.5);
+        edgeOffsets[2].Should().BeApproximately(0, 0.5);
+        edgeOffsets[3].Should().BeApproximately(0, 0.5);
 
         var toolbarAlignment = await grid.EvaluateAsync<double[]>("""
             element => {
@@ -111,10 +122,18 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 }
 
                 const ownerStyle = getComputedStyle(owner);
+                const stickyTop = Number.parseFloat(ownerStyle.getPropertyValue('--vpp-tabs-sticky-top')) || 0;
+                const lengthProbe = document.createElement('div');
+                lengthProbe.style.position = 'absolute';
+                lengthProbe.style.visibility = 'hidden';
+                lengthProbe.style.width = 'var(--vpp-layout-body-inset)';
+                owner.appendChild(lengthProbe);
+                const bodyInset = Number.parseFloat(getComputedStyle(lengthProbe).width) || 0;
+                lengthProbe.remove();
                 return [
                     getComputedStyle(element).position,
                     getComputedStyle(element).top,
-                    ownerStyle.getPropertyValue('--vpp-tabs-sticky-top').trim()
+                    `${stickyTop - bodyInset}px`
                 ];
             }
             """);
@@ -276,14 +295,19 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                     primary.getBoundingClientRect().top - scrollerTop,
                     secondary.getBoundingClientRect().top - scrollerTop,
                     scroller.scrollTop,
-                    scroller.scrollHeight - scroller.clientHeight
+                    scroller.scrollHeight - scroller.clientHeight,
+                    primary.getBoundingClientRect().height,
+                    Number.parseFloat(getComputedStyle(primary).top),
+                    Number.parseFloat(getComputedStyle(secondary).top)
                 ];
             }
             """);
         stickyTabGaps[3].Should().BeGreaterThan(0);
         stickyTabGaps[2].Should().BeApproximately(stickyTabGaps[3], 1);
         stickyTabGaps[0].Should().BeInRange(-1, 8);
-        (stickyTabGaps[1] - stickyTabGaps[0]).Should().BeApproximately(48, 1);
+        (stickyTabGaps[1] - stickyTabGaps[0]).Should()
+            .BeApproximately(stickyTabGaps[6] - stickyTabGaps[5], 1,
+                "the two tab bars must preserve the stack defined by their sticky top tokens");
     }
 
     [Fact]

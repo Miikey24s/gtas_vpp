@@ -662,4 +662,21 @@
   <data name="InUse" xml:space="preserve"><value>In use</value></data>
   <data name="FeatureInDevelopment" xml:space="preserve"><value>Feature in development</value></data>
   <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Catalog download will be available in a future release.</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="ContinueReview" xml:space="preserve"><value>Continue to review</value></data>
+  <data name="DecreaseQuantity" xml:space="preserve"><value>Decrease quantity</value></data>
+  <data name="Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="IncreaseQuantity" xml:space="preserve"><value>Increase quantity</value></data>
+  <data name="ItemNote" xml:space="preserve"><value>Item note</value></data>
+  <data name="ItemNotePlaceholder" xml:space="preserve"><value>Enter an item note (optional)</value></data>
+  <data name="OrderBeingCreated" xml:space="preserve"><value>Order being created</value></data>
+  <data name="OrderCreationSteps" xml:space="preserve"><value>Order creation steps</value></data>
+  <data name="OrderNote" xml:space="preserve"><value>Order note</value></data>
+  <data name="OrderNotePlaceholder" xml:space="preserve"><value>Enter an order note (optional)</value></data>
+  <data name="OrderableCatalog" xml:space="preserve"><value>Orderable catalog</value></data>
+  <data name="QuantityShort" xml:space="preserve"><value>Qty</value></data>
+  <data name="ReviewOrderBeforeSubmit" xml:space="preserve"><value>Review order before submitting</value></data>
+  <data name="ReviewOrderBeforeSubmitDescription" xml:space="preserve"><value>Review items, quantities, and notes before submitting the order.</value></data>
+  <data name="SaveDraft" xml:space="preserve"><value>Save draft</value></data>
+  <data name="SupplementReasonPlaceholder" xml:space="preserve"><value>Enter the reason for the supplemental order</value></data>
 </root>

@@ -1,4 +1,5 @@
 @using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_fe.Components.Pages.Lib
 
 
 <RadzenStack Gap="0.75rem" class="vpp-admin-workspace vpp-price-list-workspace">
@@ -22,6 +23,8 @@
         <VppColumnPicker TItem="PriceListResDTO" GridAccessor="@(() => grid)" />
     </RadzenStack>
 
+    <div class="vpp-atlas-admin-workspace">
+    <div class="vpp-atlas-admin-collection">
     <RadzenDataGrid @ref="grid"
                     TItem="PriceListResDTO"
                     Data="@priceLists"
@@ -45,6 +48,9 @@
                     AllowPickAllColumns="true"
                     ColumnsPickerAllowFiltering="true"
                     RowRender="@OnRowRenderPriceList"
+                    @bind-Value="selectedPriceLists"
+                    SelectionMode="DataGridSelectionMode.Single"
+                    RowSelect="OnPriceListSelected"
                     class="@($"vpp-admin-grid vpp-admin-page-grid {(count <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                     ColumnWidth="150px"
                     Style="--vpp-admin-grid-min-width: 1160px;">
@@ -54,7 +60,7 @@
                     @(currentSkip + priceLists.IndexOf(row) + 1)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDeleted" Title="Vô hiệu hóa" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
                 <Template Context="row">
                     <div class="vpp-admin-is-deleted-cell">
                         <RadzenSwitch TValue="bool"
@@ -68,15 +74,19 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" Width="130px" />
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" />
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="SupplierName" Title="Supplier" Width="170px" />
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Version" Title="Version" Width="82px" TextAlign="TextAlign.Center" />
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="Status" Width="105px" TextAlign="TextAlign.Center" />
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDefault" Title="@Loc["IsDefault"]" Width="104px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="SupplierName" Title="Nhà cung cấp" Width="170px" />
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Version" Title="Phiên bản" Width="92px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="Trạng thái" Width="115px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    <RadzenBadge Text="@GetStatusLabel(row.Status)" BadgeStyle="@GetStatusBadgeStyle(row.Status)" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDefault" Title="Mặc định" Width="104px" TextAlign="TextAlign.Center">
                 <Template Context="row">
                     <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="104px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="ItemCount" Title="Số mặt hàng" Width="104px" TextAlign="TextAlign.Center">
                 <Template Context="row">
                     <RadzenButton Text="@row.ItemCount.ToString()"
                                   ButtonStyle="ButtonStyle.Light"
@@ -84,14 +94,14 @@
                                   Click="@(() => OpenPricesAsync(row))" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" />
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" />
             <RadzenDataGridColumn TItem="PriceListResDTO" Title="@Loc["Actions"]" Width="190px" MinWidth="190px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-wide" HeaderCssClass="rz-col-actions rz-col-actions-wide">
                 <Template Context="row">
                     <div class="vpp-admin-actions">
                         <RadzenButton Icon="payments" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="@Loc["EditPrice"]" Disabled="@row.IsDeleted" Click="@(() => OpenPricesAsync(row))" />
                         <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@(row.IsDeleted || row.Status != "Draft")" Click="@(() => EditAsync(row))" />
-                        <RadzenButton Icon="publish" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Publish" Disabled="@(row.IsDeleted || row.Status != "Draft")" Click="@(() => PublishAsync(row))" />
-                        <RadzenButton Icon="timer_off" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="Expire" Disabled="@(row.IsDeleted || row.Status != "Published")" Click="@(() => ExpireAsync(row))" />
+                        <RadzenButton Icon="publish" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Công bố" Disabled="@(row.IsDeleted || row.Status != "Draft")" Click="@(() => PublishAsync(row))" />
+                        <RadzenButton Icon="timer_off" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="Đánh dấu hết hiệu lực" Disabled="@(row.IsDeleted || row.Status != "Published")" Click="@(() => ExpireAsync(row))" />
                         <RadzenButton Icon="star" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" title="@Loc["SetAsDefault"]" Disabled="@(row.IsDefault || row.IsDeleted)" Click="@(() => SetDefaultAsync(row))" />
                         <RadzenButton Icon="content_copy" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" title="@Loc["Clone"]" Click="@(() => CloneAsync(row))" />
                         <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" title="@Loc["HardDelete"]" Disabled="@(row.Status == "Published")" Click="@(() => HardDeleteAsync(row))" />
@@ -100,4 +110,20 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+    </div>
+    <aside class="vpp-atlas-admin-inspector" aria-live="polite">
+        @if (SelectedPriceList is not null)
+        {
+            <Component_RecordInspector TItem="PriceListResDTO" Record="SelectedPriceList" />
+        }
+        else
+        {
+            <div class="vpp-atlas-admin-inspector-empty">
+                <span class="rzi rzi-price_change" aria-hidden="true"></span>
+                <strong>Chọn bảng giá để xem vòng đời</strong>
+                <span>Chỉ bản nháp được chỉnh sửa; bản đã công bố được bảo toàn theo nghiệp vụ hiện hành.</span>
+            </div>
+        }
+    </aside>
+    </div>
 </RadzenStack>

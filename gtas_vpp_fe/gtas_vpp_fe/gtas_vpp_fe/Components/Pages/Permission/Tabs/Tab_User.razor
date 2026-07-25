@@ -5,6 +5,7 @@
 @using gtas_vpp_shared.DTOs.Req.Account
 @using gtas_vpp_shared.DTOs.Res.Account
 @using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Components.Pages.Lib
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
 @inject GlobalClass glb
@@ -14,6 +15,8 @@
 
 @if (PermissionState.HasPermission(Permissions.PermissionView))
 {
+    <div class="vpp-atlas-admin-workspace vpp-atlas-user-workspace">
+    <div class="vpp-atlas-admin-collection">
     <RadzenDataGrid @ref="userGrid"
                     TItem="UserAdministrationResDTO"
                     Data="@users"
@@ -45,6 +48,7 @@
                     Density="Density.Compact"
                     GridLines="DataGridGridLines.Horizontal"
                     SelectionMode="DataGridSelectionMode.Single"
+                    RowSelect="OnUserSelected"
                     RowDoubleClick="@OnRowDoubleClick"
                     class="permission-user-grid vpp-admin-page-grid vpp-admin-grid"
                     Style="--vpp-admin-grid-min-width: 1420px;">
@@ -245,6 +249,22 @@
                                   Pickable="true" />
         </Columns>
     </RadzenDataGrid>
+    </div>
+    <aside class="vpp-atlas-admin-inspector" aria-live="polite">
+        @if (SelectedUser is not null)
+        {
+            <Component_RecordInspector TItem="UserAdministrationResDTO" Record="SelectedUser" />
+        }
+        else
+        {
+            <div class="vpp-atlas-admin-inspector-empty">
+                <span class="rzi rzi-person_search" aria-hidden="true"></span>
+                <strong>Chọn người dùng để xem chi tiết</strong>
+                <span>Quyền kích hoạt, đặt lại mật khẩu và ngừng phân công vẫn được kiểm tra từ backend.</span>
+            </div>
+        }
+    </aside>
+    </div>
 }
 else
 {

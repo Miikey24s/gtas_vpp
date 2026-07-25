@@ -26,34 +26,11 @@
                                 Style="width:100%" />
             </RadzenFormField>
 
-            <RadzenFormField Text="@Loc["PriceList"]" Style="min-width: 260px">
-                <RadzenDropDown TValue="Guid?"
-                                Data="@priceLists"
-                                TextProperty="PriceListName"
-                                ValueProperty="Id"
-                                Value="@selectedPriceListId"
-                                ValueChanged="@OnPriceListChangedAsync"
-                                AllowClear="true"
-                                AllowFiltering="true"
-                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                Placeholder="@Loc["PriceList_UseDefault"]"
-                                Disabled="@(isLoading || isSettling)"
-                                Style="width:100%" />
-            </RadzenFormField>
-
             <RadzenButton Icon="refresh"
                           Text="@Loc["Reload"]"
                           ButtonStyle="ButtonStyle.Light"
                           Disabled="@(isLoading || isSettling)"
                           Click="@ReloadPeriodAsync" />
-
-            <span class="vpp-disabled-action-help" title="@SettlePeriodTitle">
-                <RadzenButton Icon="lock"
-                              Text="@Loc["SettlePeriod"]"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Disabled="@(!canSettle || isLoading || isSettling)"
-                              Click="@SettleAsync" />
-            </span>
         </RadzenStack>
     </div>
 

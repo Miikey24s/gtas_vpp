@@ -159,10 +159,14 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
     {
         await Page.SetViewportSizeAsync(1920, 1080);
 
+        await CaptureRouteAsync(directory, "ui-users.png", "permission?tab=0");
         await CaptureRouteAsync(directory, "ui-permission-groups.png", "permission?tab=1");
+        await CaptureRouteAsync(directory, "ui-report.png", "report");
 
         await SwitchUserAsync(TestAccounts.Procurement);
         await CaptureRouteAsync(directory, "ui-period-operations.png", "dashboard?tab=5&periodTab=review");
+        await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending");
+        await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department");
         await CaptureRouteAsync(directory, "ui-all-orders-summary.png", "dashboard?tab=3&managementTab=all");
         await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2");
         await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists");
@@ -171,6 +175,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         await CaptureRouteAsync(directory, "ui-dashboard-my-orders.png", "dashboard?tab=0");
         await CaptureRouteAsync(directory, "ui-order-create.png", "dashboard/order-create");
         await CaptureRouteAsync(directory, "ui-order-history.png", "dashboard?tab=1");
+        await CaptureRouteAsync(directory, "ui-product-catalog.png", "dashboard?tab=2");
     }
 
     private async Task CaptureRouteAsync(string directory, string fileName, string route)

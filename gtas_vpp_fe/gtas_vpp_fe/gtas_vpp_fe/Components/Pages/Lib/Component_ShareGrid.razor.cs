@@ -65,6 +65,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private bool CanModifyGrid =>
             PagePermissionResDTO.Components.Any(y => y.IsVisible && y.IsEnable);
 
+        private TType? SelectedRecord => selected_item.FirstOrDefault();
+
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
@@ -253,6 +255,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             );
         }
 
+        private void OnRowSelect(TType record)
+        {
+            if (record is null || onEdit)
+            {
+                return;
+            }
+
+            selected_item = [record];
+        }
+
         protected void OnRowRender(RowRenderEventArgs<TType> args)
         {
             if (IsDeletedRow(args.Data))
@@ -312,6 +324,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 var result = await ApiServices.GetFromApiWithTotalCountAsync<List<TType>>(endpoint);
                 data = result.Data ?? [];
                 totalCount = result.TotalCount;
+                if (data.Count > 0 && (SelectedRecord is null || data.All(row => row.Id != SelectedRecord.Id)))
+                {
+                    selected_item = [data[0]];
+                }
+                else if (data.Count == 0)
+                {
+                    selected_item = [];
+                }
                 await DataChanged.InvokeAsync(data);
             }
             catch (Exception ex)
@@ -414,7 +434,28 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 return false;
             }
 
+            if (IsInspectorFirstProperty(prop))
+            {
+                return false;
+            }
+
             return true;
+        }
+
+        private static bool IsInspectorFirstProperty(PropertyInfo prop)
+        {
+            if (prop.Name is "OriginalLanguageCode" or "ResolvedLanguageCode"
+                or "DisplayName" or "DisplayDescription" or "IsTranslationFallback")
+            {
+                return true;
+            }
+
+            return typeof(TType) == typeof(VppItemResDTO)
+                   && prop.Name is nameof(VppItemResDTO.DefaultSupplierName)
+                       or nameof(VppItemResDTO.DefaultPrice)
+                       or nameof(VppItemResDTO.DefaultVatRate)
+                       or nameof(VppItemResDTO.SupplierCount)
+                       or nameof(VppItemResDTO.Description);
         }
 
         protected static bool IsDeletedProperty(PropertyInfo prop)

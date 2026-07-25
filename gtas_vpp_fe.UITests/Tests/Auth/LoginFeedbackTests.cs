@@ -15,6 +15,15 @@ public sealed class LoginFeedbackTests : TestBase
         {
             if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
             {
+                var expectedNavigationAbort = message.Text.Contains(
+                        "Failed to complete negotiation with the server",
+                        StringComparison.OrdinalIgnoreCase)
+                    && message.Text.Contains("Failed to fetch", StringComparison.OrdinalIgnoreCase);
+                if (expectedNavigationAbort)
+                {
+                    return;
+                }
+
                 browserErrors.Add(message.Text);
             }
         };

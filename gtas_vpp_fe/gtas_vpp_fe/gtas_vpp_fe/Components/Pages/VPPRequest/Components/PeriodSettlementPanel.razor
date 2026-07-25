@@ -29,7 +29,7 @@
 
             @if (canCorrect)
             {
-                <RadzenFormField Text="Correction reason" Style="width: 100%">
+                <RadzenFormField Text="Lý do hiệu chỉnh" Style="width: 100%">
                     <RadzenTextArea @bind-Value="correctionReason"
                                     Name="CorrectionReason"
                                     Rows="3"
@@ -37,7 +37,7 @@
                                     Placeholder="Nhập lý do hiệu chỉnh (5–500 ký tự)"
                                     Disabled="@isLoading"
                                     Style="width:100%" />
-                    <div class="vpp-settle-hint">Reason là bắt buộc và người xác nhận phải khác revision trước.</div>
+                    <div class="vpp-settle-hint">Lý do là bắt buộc; người xác nhận phải khác người đã xác nhận phiên bản trước.</div>
                 </RadzenFormField>
             }
 
@@ -86,7 +86,7 @@
         
         <div class="vpp-settle-actions">
             <RadzenButton Icon="fact_check"
-                          Text="Preview"
+                          Text="Xem trước"
                           ButtonStyle="ButtonStyle.Light"
                           Disabled="@(!canPreview || isLoading || isPreviewing || isSettling)"
                           Click="@PreviewAsync"
@@ -102,7 +102,7 @@
             @if (canCorrect)
             {
                 <RadzenButton Icon="edit_note"
-                              Text="Correct revision"
+                              Text="Tạo phiên bản hiệu chỉnh"
                               ButtonStyle="ButtonStyle.Warning"
                               Disabled="@(!canCorrect || !canSettlePreview || isLoading || isCorrecting)"
                               Click="@CorrectAsync"
@@ -111,3 +111,65 @@
         </div>
     </div>
 </div>
+
+@if (preview is not null)
+{
+    <section class="vpp-settlement-preview" aria-label="Kết quả xem trước chốt kỳ">
+        <div class="vpp-settlement-preview-heading">
+            <div>
+                <span>Kết quả xem trước</span>
+                <h3>Độ phủ nguồn cung và tổng giá trị</h3>
+            </div>
+            <code title="Mã kiểm tra dữ liệu đầu vào">@ShortInputHash</code>
+        </div>
+
+        <div class="vpp-settlement-preview-kpis">
+            <article><span>Mặt hàng yêu cầu</span><strong>@preview.RequestedItemCount</strong></article>
+            <article><span>Dòng nhu cầu</span><strong>@preview.RequestedLineCount</strong></article>
+            <article><span>Đơn bổ sung chờ duyệt</span><strong>@preview.PendingAdditionalCount</strong></article>
+            <article><span>Điều kiện ngăn chốt</span><strong>@preview.Blockers.Count</strong></article>
+        </div>
+
+        @if (preview.Blockers.Count > 0)
+        {
+            <div class="vpp-settlement-blockers">
+                <h4><span class="rzi rzi-warning" aria-hidden="true"></span> Cần xử lý trước khi chốt</h4>
+                <ul>
+                    @foreach (var blocker in preview.Blockers)
+                    {
+                        <li>@DescribeBlocker(blocker)</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (preview.Quotes.Count > 0)
+        {
+            <div class="vpp-settlement-quotes">
+                <div class="vpp-settlement-quotes-header">
+                    <h4>Xếp hạng nguồn cung</h4>
+                    <span>Ưu tiên độ phủ đầy đủ, sau đó so sánh tổng giá trị và thời gian giao.</span>
+                </div>
+                <div class="vpp-settlement-quote-table" role="table" aria-label="Xếp hạng nguồn cung">
+                    <div class="vpp-settlement-quote-row is-header" role="row">
+                        <span role="columnheader">Hạng</span>
+                        <span role="columnheader">Nhà cung cấp / bảng giá</span>
+                        <span role="columnheader">Độ phủ</span>
+                        <span role="columnheader">Tổng giá trị</span>
+                        <span role="columnheader">Giao hàng</span>
+                    </div>
+                    @foreach (var quote in preview.Quotes.OrderBy(item => item.Rank))
+                    {
+                        <div class="vpp-settlement-quote-row @(quote.PriceListId == preview.PrimaryPriceListId ? "is-primary" : null)" role="row">
+                            <span role="cell">#@quote.Rank</span>
+                            <span role="cell"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></span>
+                            <span role="cell">@quote.CoveredItemCount/@quote.RequestedItemCount (@quote.CoveragePercent.ToString("N0")%)</span>
+                            <span role="cell">@FormatMoney(quote.GrandTotal)</span>
+                            <span role="cell">@quote.MaximumLeadTimeDays ngày</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+}

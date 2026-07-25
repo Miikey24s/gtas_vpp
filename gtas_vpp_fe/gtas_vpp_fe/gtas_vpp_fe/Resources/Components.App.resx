@@ -662,4 +662,21 @@
   <data name="InUse" xml:space="preserve"><value>Đang áp dụng</value></data>
   <data name="FeatureInDevelopment" xml:space="preserve"><value>Tính năng đang được hoàn thiện</value></data>
   <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Tải danh mục sẽ được bổ sung trong phiên bản sau.</value></data>
+  <data name="Add" xml:space="preserve"><value>Thêm</value></data>
+  <data name="ContinueReview" xml:space="preserve"><value>Tiếp tục kiểm tra</value></data>
+  <data name="DecreaseQuantity" xml:space="preserve"><value>Giảm số lượng</value></data>
+  <data name="Draft" xml:space="preserve"><value>Bản nháp</value></data>
+  <data name="IncreaseQuantity" xml:space="preserve"><value>Tăng số lượng</value></data>
+  <data name="ItemNote" xml:space="preserve"><value>Ghi chú mặt hàng</value></data>
+  <data name="ItemNotePlaceholder" xml:space="preserve"><value>Nhập ghi chú cho mặt hàng (nếu có)</value></data>
+  <data name="OrderBeingCreated" xml:space="preserve"><value>Đơn đang tạo</value></data>
+  <data name="OrderCreationSteps" xml:space="preserve"><value>Các bước tạo đơn</value></data>
+  <data name="OrderNote" xml:space="preserve"><value>Ghi chú đơn hàng</value></data>
+  <data name="OrderNotePlaceholder" xml:space="preserve"><value>Nhập ghi chú chung cho đơn hàng (nếu có)</value></data>
+  <data name="OrderableCatalog" xml:space="preserve"><value>Danh mục có thể đặt</value></data>
+  <data name="QuantityShort" xml:space="preserve"><value>SL</value></data>
+  <data name="ReviewOrderBeforeSubmit" xml:space="preserve"><value>Kiểm tra đơn trước khi gửi</value></data>
+  <data name="ReviewOrderBeforeSubmitDescription" xml:space="preserve"><value>Kiểm tra mặt hàng, số lượng và ghi chú trước khi gửi đơn.</value></data>
+  <data name="SaveDraft" xml:space="preserve"><value>Lưu bản nháp</value></data>
+  <data name="SupplementReasonPlaceholder" xml:space="preserve"><value>Nhập lý do tạo đơn bổ sung</value></data>
 </root>
