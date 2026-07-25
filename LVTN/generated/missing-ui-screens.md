@@ -20,3 +20,5 @@ Mốc đối chiếu: commit `5f24fda286799d4b9869c0d381b8042fbc2c2120`, ngày 2
 ## Kết luận
 
 Chín hình hiện có được giữ với caption “Thiết kế giao diện” để tránh khẳng định quá mức về trạng thái hiện thực. Ba màn hình chưa có ảnh đạt yêu cầu chỉ được mô tả bằng văn bản và không được đánh số hình giả.
+
+Thứ tự ưu tiên chụp lại là: tạo đơn; vận hành, preview và chốt kỳ; phân quyền; báo cáo; hiệu chỉnh kết quả chốt kỳ; hộp thư thông báo. Các ảnh mới chỉ được thay vào luận văn sau khi route thật hoạt động ổn định và nội dung hiển thị khớp backend/API.

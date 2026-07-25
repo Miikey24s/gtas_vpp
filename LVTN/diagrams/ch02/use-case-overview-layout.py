@@ -44,15 +44,26 @@ def svg_text(lines, cx, cy, size, bold=False):
     return "".join(parts)
 
 
-def svg_actor(parts, x, top, label, note=None):
+def svg_actor(parts, x, top, label):
     parts.append(f'<circle cx="{x}" cy="{top + 14}" r="13" fill="{WHITE}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(f'<line x1="{x}" y1="{top + 27}" x2="{x}" y2="{top + 72}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(f'<line x1="{x - 25}" y1="{top + 45}" x2="{x + 25}" y2="{top + 45}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(f'<line x1="{x}" y1="{top + 72}" x2="{x - 22}" y2="{top + 97}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(f'<line x1="{x}" y1="{top + 72}" x2="{x + 22}" y2="{top + 97}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(svg_text(label, x, top + 121, 17, True))
-    if note:
-        parts.append(svg_text((note,), x, top + 151, 13))
+
+
+def svg_generalization(parts, child_x, child_y, parent_x, parent_y):
+    route_y = 20
+    base_y = parent_y - 22
+    parts.append(
+        f'<path d="M {child_x} {child_y} V {route_y} H {parent_x} V {base_y}" '
+        f'fill="none" stroke="{BLACK}" stroke-width="2"/>'
+    )
+    parts.append(
+        f'<polygon points="{parent_x},{parent_y} {parent_x - 13},{base_y} {parent_x + 13},{base_y}" '
+        f'fill="{WHITE}" stroke="{BLACK}" stroke-width="2"/>'
+    )
 
 
 def svg_ellipse(parts, cx, cy, lines, w=380, h=62):
@@ -63,8 +74,9 @@ def svg_ellipse(parts, cx, cy, lines, w=380, h=62):
 def make_svg():
     parts = ['<?xml version="1.0" encoding="UTF-8" standalone="no"?>', f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}">', f'<rect width="100%" height="100%" fill="{WHITE}"/>']
     svg_actor(parts, 70, 270, ("Nhân viên",))
-    svg_actor(parts, 1210, 270, ("Quản lý",), "Kế thừa Nhân viên")
+    svg_actor(parts, 1210, 270, ("Quản lý",))
     svg_actor(parts, 1210, 690, ("DEV",))
+    svg_generalization(parts, 1210, 257, 70, 257)
     parts.append(f'<rect x="155" y="45" width="970" height="820" fill="{WHITE}" stroke="{BLACK}" stroke-width="2.2"/>')
     parts.append(f'<rect x="155" y="45" width="970" height="52" fill="{LIGHT}"/>')
     parts.append(svg_text(("HỆ THỐNG GTAS VPP",), 640, 78, 22, True))
@@ -99,7 +111,7 @@ def draw_centered(draw, lines, cx, cy, size, bold=False):
         y += height + spacing
 
 
-def draw_actor(draw, x, top, label, note=None):
+def draw_actor(draw, x, top, label):
     s = SCALE
     draw.ellipse(((x - 13) * s, (top + 1) * s, (x + 13) * s, (top + 27) * s), fill="white", outline="black", width=2 * s)
     draw.line((x * s, (top + 27) * s, x * s, (top + 72) * s), fill="black", width=2 * s)
@@ -107,8 +119,28 @@ def draw_actor(draw, x, top, label, note=None):
     draw.line((x * s, (top + 72) * s, (x - 22) * s, (top + 97) * s), fill="black", width=2 * s)
     draw.line((x * s, (top + 72) * s, (x + 22) * s, (top + 97) * s), fill="black", width=2 * s)
     draw_centered(draw, label, x, top + 117, 17, True)
-    if note:
-        draw_centered(draw, (note,), x, top + 147, 13)
+
+
+def draw_generalization(draw, child_x, child_y, parent_x, parent_y):
+    s = SCALE
+    route_y = 20
+    base_y = parent_y - 22
+    draw.line(
+        (child_x * s, child_y * s, child_x * s, route_y * s, parent_x * s, route_y * s, parent_x * s, base_y * s),
+        fill="black",
+        width=2 * s,
+        joint="curve",
+    )
+    draw.polygon(
+        ((parent_x * s, parent_y * s), ((parent_x - 13) * s, base_y * s), ((parent_x + 13) * s, base_y * s)),
+        fill="white",
+        outline="black",
+    )
+    draw.line(
+        ((parent_x - 13) * s, base_y * s, parent_x * s, parent_y * s, (parent_x + 13) * s, base_y * s),
+        fill="black",
+        width=2 * s,
+    )
 
 
 def draw_ellipse(draw, cx, cy, lines, w=380, h=62):
@@ -122,8 +154,9 @@ def make_png():
     draw = ImageDraw.Draw(image)
     s = SCALE
     draw_actor(draw, 70, 270, ("Nhân viên",))
-    draw_actor(draw, 1210, 270, ("Quản lý",), "Kế thừa Nhân viên")
+    draw_actor(draw, 1210, 270, ("Quản lý",))
     draw_actor(draw, 1210, 690, ("DEV",))
+    draw_generalization(draw, 1210, 257, 70, 257)
     draw.rectangle((155 * s, 45 * s, 1125 * s, 865 * s), fill="white", outline="black", width=2 * s)
     draw.rectangle((155 * s, 45 * s, 1125 * s, 97 * s), fill=(230, 230, 230))
     draw_centered(draw, ("HỆ THỐNG GTAS VPP",), 640, 78, 22, True)

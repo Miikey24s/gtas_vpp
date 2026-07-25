@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import copy
 import re
 import shutil
 import tempfile
@@ -29,15 +28,6 @@ def qn(local: str) -> str:
 
 def text_of(paragraph) -> str:
     return "".join(paragraph.xpath(".//w:t/text()", namespaces=NS)).strip()
-
-
-def replace_paragraph_text(paragraph, value: str) -> None:
-    for child in list(paragraph):
-        if child.tag != qn("pPr"):
-            paragraph.remove(child)
-    run = etree.SubElement(paragraph, qn("r"))
-    text = etree.SubElement(run, qn("t"))
-    text.text = value
 
 
 def add_bookmark(paragraph, name: str, bookmark_id: int) -> None:
@@ -73,17 +63,12 @@ def patch_document(data: bytes) -> bytes:
         p for p in body_paragraphs[body_paragraphs.index(reference_heading) + 1:]
         if re.match(r"^\[\d+\]", text_of(p))
     ]
-    if len(references) == 14:
-        extra = copy.deepcopy(references[-1])
-        replace_paragraph_text(
-            extra,
-            '[15] Zoho Creator, “Approval workflows,” Zoho. [Trực tuyến]. '
-            'Địa chỉ: https://www.zoho.com/creator/approval-workflow/. [Truy cập: 25/07/2026].',
+    reference_numbers = [int(re.match(r"^\[(\d+)\]", text_of(p)).group(1)) for p in references]
+    expected_numbers = list(range(1, len(references) + 1))
+    if not references or reference_numbers != expected_numbers:
+        raise RuntimeError(
+            f"References must be contiguous from 1; found {reference_numbers}"
         )
-        references[-1].addnext(extra)
-        references.append(extra)
-    if len(references) != 15:
-        raise RuntimeError(f"Expected 15 references, found {len(references)}")
 
     existing_ids = [
         int(value) for value in root.xpath(".//w:bookmarkStart/@w:id", namespaces=NS)
