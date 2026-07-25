@@ -9,7 +9,7 @@ rectangle "Hệ thống GTAS VPP" {
   usecase "Xác định kỳ\nhiện tại" as Period
   usecase "Chọn vật tư và\nnhập số lượng" as Items
   usecase "Kiểm tra hạn ngày 5,\nđơn trùng và chi tiết" as Validate
-  usecase "Lưu đơn trạng thái\nSubmitted" as Persist
+  usecase "Lưu đơn ở trạng thái\nđã gửi" as Persist
   usecase "Ghi nhật ký\nthao tác" as Log
 
   Create -[hidden]right- Period

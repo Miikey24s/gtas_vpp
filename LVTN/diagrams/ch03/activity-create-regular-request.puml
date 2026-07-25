@@ -6,28 +6,28 @@ title QUY TRÌNH TẠO ĐƠN YÊU CẦU THÔNG THƯỜNG
 start
 :Mở chức năng tạo đơn;
 |Hệ thống|
-:Tải kỳ hiện tại từ backend;
+:Tải kỳ hiện tại từ dịch vụ phía máy chủ;
 if (Còn trước hạn ngày 5?) then (Có)
   |Nhân viên|
-  :Chọn vật tư và nhập số lượng;
+  :Chọn văn phòng phẩm và nhập số lượng;
   :Gửi đơn;
   |Hệ thống|
-  :Kiểm tra dữ liệu, vật tư và số lượng;
+  :Kiểm tra dữ liệu, văn phòng phẩm và số lượng;
   if (Đã có đơn thường trong kỳ?) then (Có)
     :Từ chối và thông báo đơn trùng;
     stop
   else (Không)
-    :Kiểm tra kỳ chưa đóng;
+    :Kiểm tra kỳ đang nhận đơn;
     if (Hợp lệ?) then (Có)
-      :Bắt đầu transaction;
-      :Lưu header trạng thái Submitted;
-      :Lưu details, giá hiện tại và log CREATE;
-      :Commit;
+      :Bắt đầu giao dịch dữ liệu;
+      :Lưu đơn ở trạng thái đã gửi;
+      :Lưu chi tiết, giá tham chiếu và nhật ký tạo đơn;
+      :Hoàn tất giao dịch dữ liệu;
       |Nhân viên|
       :Nhận thông báo thành công;
       stop
     else (Không)
-      :Rollback và trả lý do;
+      :Hủy giao dịch dữ liệu và trả lý do;
       stop
     endif
   endif
@@ -36,4 +36,3 @@ else (Không)
   stop
 endif
 @enduml
-

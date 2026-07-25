@@ -17,21 +17,20 @@ FE -> API : POST /orders (IsAdditionalOrder=true)
 API -> Service : CreateOrderAsync(req, UserID, Department)
 Service -> Service : Kiểm tra đúng kỳ trước
 Service -> DB : Đếm đơn bổ sung của người dùng trong kỳ
-Service -> DB : Kiểm tra không có đơn Pending khác
+Service -> DB : Kiểm tra không có đơn chờ duyệt khác
 Service -> DB : Kiểm tra kỳ chưa đóng, vật tư còn hiệu lực
 
-alt Đã đủ 3 đơn, còn Pending hoặc kỳ đã đóng
+alt Đã đủ 3 đơn, còn đơn chờ duyệt hoặc kỳ đã đóng nhận đơn
   Service --> API : Business/Conflict exception
   API --> FE : 400/409 + lý do
   FE --> User : Hiển thị lỗi, chưa tạo đơn
 else Hợp lệ
-  Service -> DB : Begin transaction
-  Service -> DB : Thêm header Pending, details và log CREATE
-  Service -> DB : Commit
+  Service -> DB : Bắt đầu giao dịch dữ liệu
+  Service -> DB : Thêm đơn chờ duyệt, chi tiết và nhật ký CREATE
+  Service -> DB : Hoàn tất giao dịch
   DB --> Service : Đơn bổ sung đã lưu
-  Service --> API : Dữ liệu đơn Pending
+  Service --> API : Dữ liệu đơn chờ duyệt
   API --> FE : 200 OK
   FE --> User : Báo đã gửi chờ phê duyệt
 end
 @enduml
-

@@ -1,53 +1,44 @@
 @startuml
 !include ../common/sequence-style.puml
-title SET-002 — Preview, immutable settlement close and correction
+title XEM TRƯỚC, XÁC NHẬN VÀ HIỆU CHỈNH KẾT QUẢ CHỐT KỲ
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Admin
-boundary "PeriodSettlementPanel\n(Blazor/Radzen)" as FE
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Manager
+boundary "Màn hình vận hành kỳ\n(Blazor/Radzen)" as FE
 control "PeriodSettlementController" as API
 control "PeriodSettlementService" as Service
-database "VPPContext /\nSQL Server" as DB
+database "SQL Server" as DB
 
-Admin -> FE : Select period and price book
+Manager -> FE : Chọn kỳ, nhà cung cấp và bảng giá
 FE -> API : POST /api/PeriodSettlement/preview
-API -> Service : PreviewAsync(Y, M, PriceAsOfUtc, selection)
-Service -> DB : Aggregate current regular + approved supplement rows
-Service -> DB : Compare effective supplier price books
-DB --> Service : Coverage, net/VAT, commercial terms, blockers
-Service --> API : Preview + stable InputHash
-API --> FE : 200 OK
-FE --> Admin : Show supplier, coverage, VND total and hash
+API -> Service : PreviewAsync(...)
+Service -> DB : Tổng hợp đơn thường hiện hành và đơn bổ sung đã duyệt
+Service -> DB : Đối chiếu bảng giá đã công bố còn hiệu lực
+DB --> Service : Độ phủ giá, thuế, điều kiện thương mại và ngoại lệ
+Service --> FE : Bản xem trước + mã kiểm tra dữ liệu
 
-alt Blocker or stale basket
-  Admin -> FE : Change inputs / run preview again
-else Confirm current Pricing period
-  Admin -> FE : Confirm after preview
+alt Còn điều kiện ngăn chốt kỳ
+  FE --> Manager : Hiển thị danh sách cần xử lý
+  Manager -> FE : Điều chỉnh dữ liệu và tải lại bản xem trước
+else Xác nhận chốt kỳ
+  Manager -> FE : Xác nhận kết quả
   FE -> API : POST /api/PeriodSettlement/confirm
   API -> Service : ConfirmAsync(InputHash, IdempotencyKey)
-  Service -> DB : Verify hash, current revision and period Pricing
-  Service -> DB : Begin short transaction
-  Service -> DB : Snapshot VPP04 header revision
-  loop Each aggregated VPP item
-    Service -> DB : Snapshot VPP05 net/VAT/MOQ/lead/SKU
-    Service -> DB : Snapshot VPP07 request-detail allocation
-  end
-  Service -> DB : Snapshot VPP06 charges and reconcile totals
-  Service -> DB : Pricing -> Settled
-  Service -> DB : Commit
-  Service --> API : Revision summary + GrandTotal
-  API --> FE : 200 OK
-  FE --> Admin : Show settled revision and reconciliation
-else Correct current Settled revision
-  Admin -> FE : Fresh preview + reason
+  Service -> DB : Kiểm tra mã dữ liệu, phiên bản hiện hành và trạng thái Pricing
+  Service -> DB : Bắt đầu giao dịch ngắn
+  Service -> DB : Lưu Settlements và SettlementItems
+  Service -> DB : Lưu SettlementCharges và SettlementAllocations
+  Service -> DB : Đối chiếu tổng tiền, chuyển kỳ sang Settled
+  Service -> DB : Hoàn tất giao dịch
+  Service --> FE : Phiên bản kết quả chốt kỳ hiện hành
+  FE --> Manager : Hiển thị tổng tiền và dữ liệu phân bổ
+else Hiệu chỉnh kết quả đã chốt
+  Manager -> FE : Nhập lý do và tải bản xem trước mới
   FE -> API : POST /api/PeriodSettlement/{id}/correct
   API -> Service : CorrectAsync(id, reason, InputHash)
-  Service -> DB : Require current revision and four-eyes actor
-  Service -> DB : Begin short transaction
-  Service -> DB : Mark prior revision not current (snapshots unchanged)
-  Service -> DB : Insert new VPP04/VPP05/VPP06/VPP07 revision
-  Service -> DB : Keep period Settled and commit
-  Service --> API : New revision summary
-  API --> FE : 200 OK
-  FE --> Admin : Show correction revision lineage
+  Service -> DB : Kiểm tra phiên bản hiện hành và nguyên tắc bốn mắt
+  Service -> DB : Giữ nguyên phiên bản cũ, tạo phiên bản hiệu chỉnh mới
+  Service -> DB : Giữ kỳ ở trạng thái Settled và hoàn tất giao dịch
+  Service --> FE : Phiên bản hiệu chỉnh và quan hệ lịch sử
+  FE --> Manager : Hiển thị kết quả mới
 end
 @enduml

@@ -25,14 +25,13 @@ alt Vi phạm điều kiện nghiệp vụ
   API --> FE : 400/409 + lý do
   FE --> User : Giữ dữ liệu và hiển thị lỗi
 else Hợp lệ
-  Service -> DB : Begin transaction
+  Service -> DB : Bắt đầu giao dịch dữ liệu
   Service -> DB : Đọc giá hiện tại từ bảng giá mặc định
-  Service -> DB : Thêm header Submitted, details và log CREATE
-  Service -> DB : Commit
+  Service -> DB : Thêm đơn Submitted, chi tiết và nhật ký CREATE
+  Service -> DB : Hoàn tất giao dịch
   DB --> Service : Đơn đã lưu
-  Service --> API : VPP01_RequestHeaderResDTO
+  Service --> API : VppRequestResDTO
   API --> FE : 200 OK
   FE --> User : Báo thành công và mở lịch sử đơn
 end
 @enduml
-

@@ -11,32 +11,32 @@ database "VPPContext /\nSQL Server" as DB
 Procurement -> FE : Mở danh sách đơn bổ sung chờ duyệt
 FE -> API : GET /additional-orders/pending
 API -> Service : GetPendingAdditionalOrdersAsync()
-Service -> DB : Đọc các đơn IsAdditional và Pending
+Service -> DB : Đọc các đơn bổ sung đang chờ duyệt
 DB --> FE : Danh sách chờ duyệt
 Procurement -> FE : Chọn duyệt hoặc từ chối và xác nhận
 
 alt Duyệt đơn
   FE -> API : POST /additional-orders/{id}/approve
   API -> Service : ApproveAdditionalOrderAsync(id, ApproverID)
-  Service -> DB : Begin transaction và tải header + details
-  Service -> Service : State machine: Pending -> Approved
-  Service -> DB : Cập nhật ApprovedBy/ApprovedAt + log APPROVE
+  Service -> DB : Bắt đầu giao dịch và tải đơn cùng chi tiết
+  Service -> Service : Chuyển chờ duyệt -> đã duyệt
+  Service -> DB : Lưu người, thời điểm duyệt và nhật ký APPROVE
 else Từ chối đơn
   FE -> API : POST /additional-orders/{id}/reject
   API -> Service : RejectAdditionalOrderAsync(id, ApproverID, reason)
-  Service -> DB : Begin transaction và tải header + details
-  Service -> Service : State machine: Pending -> Rejected
-  Service -> DB : Cập nhật RejectedBy/RejectedAt + log REJECT
+  Service -> DB : Bắt đầu giao dịch và tải đơn cùng chi tiết
+  Service -> Service : Chuyển chờ duyệt -> từ chối
+  Service -> DB : Lưu người, lý do từ chối và nhật ký REJECT
 end
 
-alt Đơn không tồn tại hoặc không còn Pending
-  Service -> DB : Rollback
+alt Đơn không tồn tại hoặc không còn chờ duyệt
+  Service -> DB : Hủy giao dịch
   API --> FE : 400/404/409 + lý do
   FE --> Procurement : Hiển thị lỗi
 else Cập nhật thành công
-  Service -> DB : Commit
+  Service -> DB : Hoàn tất giao dịch
   API --> FE : 200 OK
-  FE -> API : Tải lại danh sách Pending
+  FE -> API : Tải lại danh sách chờ duyệt
   FE --> Procurement : Thông báo kết quả
 end
 @enduml

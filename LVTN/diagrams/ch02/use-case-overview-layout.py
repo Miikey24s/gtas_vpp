@@ -26,7 +26,7 @@ MANAGER_CASES = [
     (("Rà soát và chốt kỳ",), 445),
     (("Xem và xuất báo cáo", "theo phạm vi được cấp"), 530),
 ]
-DEV_CASES = [
+ADMIN_CASES = [
     (("Quản lý người dùng", "và nhóm quyền"), 660),
     (("Quản lý quyền truy cập", "hệ thống"), 740),
     (("Kiểm tra nhật ký", "bảo mật"), 820),
@@ -50,7 +50,7 @@ def svg_actor(parts, x, top, label):
     parts.append(f'<line x1="{x - 25}" y1="{top + 45}" x2="{x + 25}" y2="{top + 45}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(f'<line x1="{x}" y1="{top + 72}" x2="{x - 22}" y2="{top + 97}" stroke="{BLACK}" stroke-width="2"/>')
     parts.append(f'<line x1="{x}" y1="{top + 72}" x2="{x + 22}" y2="{top + 97}" stroke="{BLACK}" stroke-width="2"/>')
-    parts.append(svg_text(label, x, top + 121, 17, True))
+    parts.append(svg_text(label, x, top + 148, 17, True))
 
 
 def svg_generalization(parts, child_x, child_y, parent_x, parent_y):
@@ -66,6 +66,19 @@ def svg_generalization(parts, child_x, child_y, parent_x, parent_y):
     )
 
 
+def svg_generalization_bottom(parts, child_x, child_y, parent_x, parent_y):
+    route_y = 880
+    base_x = parent_x + 22
+    parts.append(
+        f'<path d="M {child_x} {child_y} V {route_y} H {base_x} V {parent_y}" '
+        f'fill="none" stroke="{BLACK}" stroke-width="2"/>'
+    )
+    parts.append(
+        f'<polygon points="{parent_x},{parent_y} {base_x},{parent_y - 13} {base_x},{parent_y + 13}" '
+        f'fill="{WHITE}" stroke="{BLACK}" stroke-width="2"/>'
+    )
+
+
 def svg_ellipse(parts, cx, cy, lines, w=380, h=62):
     parts.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{w / 2}" ry="{h / 2}" fill="{WHITE}" stroke="{BLACK}" stroke-width="1.8"/>')
     parts.append(svg_text(lines, cx, cy + 1, 16))
@@ -75,21 +88,22 @@ def make_svg():
     parts = ['<?xml version="1.0" encoding="UTF-8" standalone="no"?>', f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}">', f'<rect width="100%" height="100%" fill="{WHITE}"/>']
     svg_actor(parts, 70, 270, ("Nhân viên",))
     svg_actor(parts, 1210, 270, ("Quản lý",))
-    svg_actor(parts, 1210, 690, ("DEV",))
+    svg_actor(parts, 1210, 690, ("Quản trị", "hệ thống"))
     svg_generalization(parts, 1210, 257, 70, 257)
+    svg_generalization_bottom(parts, 1245, 735, 70, 390)
     parts.append(f'<rect x="155" y="45" width="970" height="820" fill="{WHITE}" stroke="{BLACK}" stroke-width="2.2"/>')
     parts.append(f'<rect x="155" y="45" width="970" height="52" fill="{LIGHT}"/>')
     parts.append(svg_text(("HỆ THỐNG GTAS VPP",), 640, 78, 22, True))
     parts.append(svg_text(("NGHIỆP VỤ CÁ NHÂN",), 390, 125, 15, True))
     parts.append(svg_text(("NGHIỆP VỤ QUẢN LÝ",), 875, 125, 15, True))
-    parts.append(svg_text(("QUẢN TRỊ KỸ THUẬT",), 875, 610, 15, True))
+    parts.append(svg_text(("QUẢN TRỊ HỆ THỐNG",), 875, 610, 15, True))
     for lines, cy in LEFT_CASES:
         parts.append(f'<line x1="95" y1="315" x2="200" y2="{cy}" stroke="{BLACK}" stroke-width="1.5"/>')
         svg_ellipse(parts, 390, cy, lines)
     for lines, cy in MANAGER_CASES:
         parts.append(f'<line x1="1185" y1="315" x2="1065" y2="{cy}" stroke="{BLACK}" stroke-width="1.5"/>')
         svg_ellipse(parts, 875, cy, lines)
-    for lines, cy in DEV_CASES:
+    for lines, cy in ADMIN_CASES:
         parts.append(f'<line x1="1185" y1="735" x2="1065" y2="{cy}" stroke="{BLACK}" stroke-width="1.5"/>')
         svg_ellipse(parts, 875, cy, lines)
     parts.append("</svg>")
@@ -118,7 +132,7 @@ def draw_actor(draw, x, top, label):
     draw.line(((x - 25) * s, (top + 45) * s, (x + 25) * s, (top + 45) * s), fill="black", width=2 * s)
     draw.line((x * s, (top + 72) * s, (x - 22) * s, (top + 97) * s), fill="black", width=2 * s)
     draw.line((x * s, (top + 72) * s, (x + 22) * s, (top + 97) * s), fill="black", width=2 * s)
-    draw_centered(draw, label, x, top + 117, 17, True)
+    draw_centered(draw, label, x, top + 146, 17, True)
 
 
 def draw_generalization(draw, child_x, child_y, parent_x, parent_y):
@@ -143,6 +157,28 @@ def draw_generalization(draw, child_x, child_y, parent_x, parent_y):
     )
 
 
+def draw_generalization_bottom(draw, child_x, child_y, parent_x, parent_y):
+    s = SCALE
+    route_y = 880
+    base_x = parent_x + 22
+    draw.line(
+        (child_x * s, child_y * s, child_x * s, route_y * s, base_x * s, route_y * s, base_x * s, parent_y * s),
+        fill="black",
+        width=2 * s,
+        joint="curve",
+    )
+    draw.polygon(
+        ((parent_x * s, parent_y * s), (base_x * s, (parent_y - 13) * s), (base_x * s, (parent_y + 13) * s)),
+        fill="white",
+        outline="black",
+    )
+    draw.line(
+        (base_x * s, (parent_y - 13) * s, parent_x * s, parent_y * s, base_x * s, (parent_y + 13) * s),
+        fill="black",
+        width=2 * s,
+    )
+
+
 def draw_ellipse(draw, cx, cy, lines, w=380, h=62):
     s = SCALE
     draw.ellipse(((cx - w / 2) * s, (cy - h / 2) * s, (cx + w / 2) * s, (cy + h / 2) * s), fill="white", outline="black", width=2 * s)
@@ -155,21 +191,22 @@ def make_png():
     s = SCALE
     draw_actor(draw, 70, 270, ("Nhân viên",))
     draw_actor(draw, 1210, 270, ("Quản lý",))
-    draw_actor(draw, 1210, 690, ("DEV",))
+    draw_actor(draw, 1210, 690, ("Quản trị", "hệ thống"))
     draw_generalization(draw, 1210, 257, 70, 257)
+    draw_generalization_bottom(draw, 1245, 735, 70, 390)
     draw.rectangle((155 * s, 45 * s, 1125 * s, 865 * s), fill="white", outline="black", width=2 * s)
     draw.rectangle((155 * s, 45 * s, 1125 * s, 97 * s), fill=(230, 230, 230))
     draw_centered(draw, ("HỆ THỐNG GTAS VPP",), 640, 78, 22, True)
     draw_centered(draw, ("NGHIỆP VỤ CÁ NHÂN",), 390, 125, 15, True)
     draw_centered(draw, ("NGHIỆP VỤ QUẢN LÝ",), 875, 125, 15, True)
-    draw_centered(draw, ("QUẢN TRỊ KỸ THUẬT",), 875, 610, 15, True)
+    draw_centered(draw, ("QUẢN TRỊ HỆ THỐNG",), 875, 610, 15, True)
     for lines, cy in LEFT_CASES:
         draw.line((95 * s, 315 * s, 200 * s, cy * s), fill="black", width=2 * s)
         draw_ellipse(draw, 390, cy, lines)
     for lines, cy in MANAGER_CASES:
         draw.line((1185 * s, 315 * s, 1065 * s, cy * s), fill="black", width=2 * s)
         draw_ellipse(draw, 875, cy, lines)
-    for lines, cy in DEV_CASES:
+    for lines, cy in ADMIN_CASES:
         draw.line((1185 * s, 735 * s, 1065 * s, cy * s), fill="black", width=2 * s)
         draw_ellipse(draw, 875, cy, lines)
     image.save(PNG_PATH, dpi=(180, 180))

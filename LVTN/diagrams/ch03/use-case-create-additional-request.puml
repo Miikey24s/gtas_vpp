@@ -7,9 +7,9 @@ actor "Nhân viên" as Employee
 rectangle "Hệ thống GTAS VPP" {
   usecase "Tạo đơn\nbổ sung" as Create #E6E6E6
   usecase "Xác định kỳ\nliền trước" as PreviousPeriod
-  usecase "Kiểm tra kỳ chưa đóng,\ntối đa 3 đơn và không Pending" as Validate
+  usecase "Kiểm tra kỳ còn hợp lệ,\ntối đa 3 đơn và không có đơn chờ duyệt" as Validate
   usecase "Chọn vật tư và kiểm tra\nchi tiết đơn" as Items
-  usecase "Lưu đơn trạng thái\nPending" as Persist
+  usecase "Lưu đơn trạng thái\nchờ duyệt" as Persist
   usecase "Ghi nhật ký\nthao tác" as Log
 
   Create -[hidden]right- PreviousPeriod

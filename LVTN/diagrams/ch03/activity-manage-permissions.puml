@@ -2,7 +2,7 @@
 !include ../common/activity-style.puml
 title QUY TRÌNH PHÂN QUYỀN
 
-|Quản trị viên|
+|Quản trị hệ thống|
 start
 :Mở trang phân quyền;
 :Chọn người dùng/nhóm quyền;
@@ -24,22 +24,22 @@ if (Cập nhật quan hệ nhóm cha?) then (Có)
   endif
 else (Không)
 endif
-|Quản trị viên|
-:Chọn trang và component;
-:Thiết lập IsVisible và IsEnable;
+|Quản trị hệ thống|
+:Chọn trang và thành phần;
+:Thiết lập quyền hiển thị và thao tác;
 |Hệ thống|
-:Tìm P06_GroupPageComponentMapping;
-if (Mapping tồn tại?) then (Không)
+:Tìm ánh xạ trang, chức năng và nhóm quyền;
+if (Ánh xạ tồn tại?) then (Không)
   :Trả lỗi không tìm thấy;
   stop
 else (Có)
-  :Cập nhật mapping quyền;
+  :Cập nhật ánh xạ quyền;
   :Lưu người và thời điểm cập nhật;
-  :Phát PermissionsChanged qua SignalR;
-  :Frontend người dùng bị tác động tải lại snapshot;
+  :Phát tín hiệu cập nhật quyền\ntheo thời gian thực (SignalR);
+  :Giao diện người dùng tải lại dữ liệu quyền;
   :Ẩn/khóa chức năng vừa bị thu hồi;
-  :API tiếp tục kiểm tra policy ở từng action;
-  |Quản trị viên|
+  :Dịch vụ tiếp tục kiểm tra chính sách ở từng thao tác;
+  |Quản trị hệ thống|
   :Kiểm tra giao diện theo quyền mới;
   stop
 endif

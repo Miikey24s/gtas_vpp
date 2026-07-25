@@ -9,7 +9,7 @@ rectangle "Hệ thống GTAS VPP" {
   usecase "Chỉnh sửa\nđơn yêu cầu" as Edit
   usecase "Hủy\nđơn yêu cầu" as Cancel
   usecase "Kiểm tra chủ sở hữu,\nkỳ và trạng thái" as Check
-  usecase "Cập nhật dữ liệu hoặc\nchuyển trạng thái Cancelled" as Persist
+  usecase "Tạo phiên bản mới hoặc\nchuyển sang đã hủy" as Persist
   usecase "Ghi nhật ký\nthao tác" as Log
 
   Manage -[hidden]right- Check

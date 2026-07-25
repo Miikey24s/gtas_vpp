@@ -6,28 +6,28 @@ actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Quản lý\nbảng giá" as PriceList #E6E6E6
-  usecase "Tạo, cập nhật hoặc\nvô hiệu hóa bảng giá" as SaveList
-  usecase "Sao chép\nbảng giá" as Clone
-  usecase "Đặt bảng giá\nmặc định" as DefaultList
-  usecase "Quản lý giá\nvật tư - nhà cung cấp" as Price
-  usecase "Đặt nhà cung cấp\nmặc định cho vật tư" as DefaultSupplier
-  usecase "Kiểm tra giá và\nràng buộc duy nhất" as Validate
+  usecase "Tạo hoặc cập nhật\nphiên bản nháp" as SaveList
+  usecase "Khai báo nhà cung cấp,\nhiệu lực và thuế" as Commercial
+  usecase "Quản lý giá theo\nvăn phòng phẩm" as Price
+  usecase "Công bố\nbảng giá" as Publish
+  usecase "Đánh dấu\nhết hiệu lực" as Expire
+  usecase "Kiểm tra giá, thời gian\nvà khoảng hiệu lực chồng lấn" as Validate
 
   PriceList -[hidden]right- SaveList
   PriceList .> SaveList : <<include>>
-  PriceList .> Clone : <<include>>
-  PriceList .> DefaultList : <<include>>
+  PriceList .> Commercial : <<include>>
   PriceList .> Price : <<include>>
-  Price .> DefaultSupplier : <<include>>
+  Publish .> PriceList : <<extend>>
+  Expire .> PriceList : <<extend>>
   SaveList .> Validate : <<include>>
-  DefaultList .> Validate : <<include>>
-  DefaultSupplier .> Validate : <<include>>
+  Commercial .> Validate : <<include>>
+  Publish .> Validate : <<include>>
 
-  SaveList -[hidden]down- Clone
-  Clone -[hidden]down- DefaultList
-  DefaultList -[hidden]down- Price
-  Price -[hidden]down- DefaultSupplier
-  DefaultSupplier -[hidden]down- Validate
+  SaveList -[hidden]down- Commercial
+  Commercial -[hidden]down- Price
+  Price -[hidden]down- Publish
+  Publish -[hidden]down- Expire
+  Expire -[hidden]down- Validate
 }
 
 Procurement --> PriceList

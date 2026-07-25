@@ -3,40 +3,39 @@
 title ĐĂNG NHẬP VÀ TẢI QUYỀN
 
 actor "Người dùng" as User
-boundary "LoginPage\n(Blazor)" as FE
+boundary "Trang đăng nhập\n(Blazor)" as FE
 control "AuthController" as API
-control "StoredProcedure\nExecutor" as SP
-database "SQL Server" as DB
+control "AppAuthenticationService\nASP.NET Core Identity" as Auth
+database "AspNetUsers và\nphân công người dùng" as DB
 control "LoginTicketCache /\nLoginEndpoints" as Session
 control "PermissionState /\nRealtimeService" as Perm
 
-User -> FE : Nhập tài khoản, mật khẩu, môi trường
+User -> FE : Nhập tên đăng nhập và mật khẩu
 FE -> FE : Kiểm tra dữ liệu bắt buộc
 FE -> API : POST /api/Auth/login
-API -> API : Mã hóa mật khẩu TripleDES
-API -> SP : ExecuteSPAsync(sp_Authen_Login)
-SP -> DB : Xác thực người dùng
-DB --> SP : Kết quả đăng nhập
-SP --> API : sp_Authentication_Login
+API -> Auth : AuthenticateAsync(username, password)
+Auth -> DB : Tìm tài khoản, kiểm tra trạng thái và khóa
+Auth -> DB : Kiểm tra PasswordHash bằng Identity
+Auth -> DB : Đọc nhóm quyền và phòng ban đang hoạt động
 
-alt Không hợp lệ hoặc lỗi kết nối
-  API --> FE : 400/401/500 + thông báo
+alt Không hợp lệ hoặc không có phân công hoạt động
+  Auth --> API : Từ chối xác thực
+  API --> FE : 401 + thông báo an toàn
   FE --> User : Hiển thị lỗi, không tạo phiên
 else Đăng nhập thành công
-  API -> DB : Bổ sung phòng ban nếu còn thiếu
-  API -> API : Tạo JWT và claims
-  API --> FE : 200 + loginData + AccessToken
-  FE -> Session : Lưu ticket dùng một lần
-  Session -> Session : SignInAsync và tạo cookie
-  Session --> FE : Chuyển hướng về trang chủ
-  FE -> Perm : EnsureLoadedAsync()
+  Auth -> DB : Cập nhật lần đăng nhập gần nhất
+  Auth -> Auth : Tạo JWT theo thời hạn cấu hình
+  Auth --> API : AuthenticationResultDTO
+  API --> FE : 200 + thông tin tài khoản và token
+  FE -> Session : Lưu vé dùng một lần
+  FE -> Session : GET /perform-login?id=...
+  Session -> Session : Tạo cookie xác thực và xóa vé
+  Session --> FE : Chuyển đến màn hình được phép
+  FE -> Perm : Tải quyền trang và quyền thao tác
   Perm -> API : GET /api/Auth/me/permissions
-  API -> DB : Đọc nhóm và mapping IsVisible/IsEnable
-  DB --> API : Snapshot trang, component, action và version
-  API --> Perm : PermissionSnapshot
-  FE -> Perm : StartAsync()
+  API -> DB : Đọc ánh xạ quyền theo nhóm
+  DB --> Perm : Dữ liệu quyền hiện hành
   Perm -> API : Kết nối /hubs/permissions bằng JWT
-  Perm --> FE : Tuyến truy cập đầu tiên
   FE --> User : Mở chức năng được cấp quyền
 end
 @enduml

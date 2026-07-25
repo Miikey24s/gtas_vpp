@@ -2,41 +2,44 @@
 !include ../common/sequence-style.puml
 title QUẢN LÝ BẢNG GIÁ
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
-boundary "Dialog_PriceEditor\n(Blazor)" as FE
-control "VPPPriceController" as API
-control "VPPPriceService" as Service
-database "VPPContext /\nSQL Server" as DB
+actor "Chuyên viên quản lý\nvăn phòng phẩm" as Manager
+boundary "Màn hình bảng giá\n(Blazor/Radzen)" as FE
+control "VPPPriceListController /\nVPPPriceController" as API
+control "PriceListService /\nVPPPriceService" as Service
+control "PriceBookWorkflowService" as Workflow
+database "SQL Server" as DB
 
-Procurement -> FE : Chọn bảng giá, mặt hàng, nhà cung cấp và giá
-FE -> FE : Kiểm tra dữ liệu bắt buộc
+Manager -> FE : Tạo hoặc mở bảng giá nháp
+FE -> API : POST/PUT /api/VPPPriceList
+API -> Service : Tạo hoặc cập nhật bảng giá
+Service -> DB : Kiểm tra mã, nhà cung cấp, phiên bản và thời gian hiệu lực
+Service --> FE : PriceListResDTO
 
-alt Thêm ánh xạ giá
-  FE -> API : POST /api/VPPPrice
-  API -> Service : CreateAsync(req, UserID)
-else Sửa ánh xạ giá
-  FE -> API : PUT /api/VPPPrice/{id}
-  API -> Service : UpdateAsync(req, UserID)
+Manager -> FE : Thêm hoặc sửa giá cho văn phòng phẩm
+FE -> API : POST/PUT /api/VPPPrice
+API -> Service : CreateAsync / UpdateAsync
+Service -> DB : Kiểm tra giá, thuế suất và tham chiếu
+Service -> DB : Thêm hoặc cập nhật SupplierProductMappings
+Service --> FE : SupplierProductMappingResDTO
+
+alt Công bố bảng giá
+  Manager -> FE : Chọn công bố
+  FE -> API : POST /api/VPPPriceList/{id}/publish
+  API -> Workflow : PublishAsync
+  Workflow -> DB : Kiểm tra đủ dòng giá và không chồng lấn hiệu lực
+  Workflow -> DB : Chuyển trạng thái sang Published
+else Đánh dấu hết hiệu lực
+  Manager -> FE : Chọn hết hiệu lực
+  FE -> API : POST /api/VPPPriceList/{id}/expire
+  API -> Workflow : ExpireAsync
+  Workflow -> DB : Chuyển trạng thái sang Expired
 end
 
-Service -> Service : Kiểm tra giá không âm
-Service -> DB : Begin transaction
-Service -> DB : Kiểm tra vật tư, nhà cung cấp, bảng giá tồn tại
-opt Đặt giá mặc định cho vật tư
-  Service -> DB : Hạ cờ mặc định của các giá cùng vật tư/bảng giá
-end
-Service -> DB : Thêm hoặc cập nhật L06_VPPSupplierMapping
-
-alt Trùng ràng buộc hoặc tham chiếu không hợp lệ
-  Service -> DB : Rollback
-  Service --> API : Business/Conflict exception
+alt Vi phạm ràng buộc hoặc dữ liệu đã cũ
   API --> FE : 400/409 + lý do
-  FE --> Procurement : Hiển thị lỗi
-else Lưu thành công
-  Service -> DB : Commit
-  Service -> DB : Đọc lại DTO kèm tên liên quan
-  Service --> API : L06_VPPSupplierMappingResDTO
-  API --> FE : 200 OK
-  FE --> Procurement : Tải lại lưới giá và thông báo thành công
+  FE --> Manager : Giữ dữ liệu và hiển thị lỗi
+else Thành công
+  API --> FE : 200 + dữ liệu cập nhật
+  FE --> Manager : Tải lại danh sách và thông báo kết quả
 end
 @enduml

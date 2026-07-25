@@ -234,7 +234,7 @@ def build_31(anchor, body, caption, table_sample):
         "01-conceptual-overview.svg": ("3-1", "Mô hình dữ liệu ý niệm của GTAS VPP"),
         "02-logical-organization-access.svg": ("3-2", "Mô hình dữ liệu luận lý về tổ chức và phân quyền"),
         "03-logical-catalog-pricing.svg": ("3-3", "Mô hình dữ liệu luận lý về danh mục, nhà cung cấp và bảng giá"),
-        "05-logical-period-requests.svg": ("3-4", "Mô hình dữ liệu luận lý về kỳ, đơn yêu cầu, revision và nhật ký"),
+        "05-logical-period-requests.svg": ("3-4", "Mô hình dữ liệu luận lý về kỳ, đơn yêu cầu, phiên bản và nhật ký"),
         "06-logical-settlement.svg": ("3-5", "Mô hình dữ liệu luận lý về kết quả chốt kỳ, chi phí và phân bổ"),
         "07-logical-identity-views-technical.svg": ("3-6", "Mô hình dữ liệu luận lý về Identity, view keyless và bảng kỹ thuật"),
     }

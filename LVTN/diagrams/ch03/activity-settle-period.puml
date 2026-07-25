@@ -1,33 +1,25 @@
 @startuml
 !include ../common/activity-style.puml
-title QUY TRÌNH ĐÓNG KỲ
+title QUY TRÌNH CHỐT KỲ
 
 |Chuyên viên quản lý văn phòng phẩm|
 start
 :Chọn kỳ và bảng giá;
-:Xác nhận đóng kỳ;
+:Tải bản xem trước kết quả chốt kỳ;
 |Hệ thống|
-:Kiểm tra Y/M và bảng giá tồn tại;
-if (Còn đơn bổ sung Pending?) then (Có)
-  :Từ chối đóng kỳ;
-  :Thông báo số đơn còn chờ duyệt;
+:Kiểm tra trạng thái kỳ, bảng giá và mã dữ liệu;
+if (Còn điều kiện ngăn chốt kỳ?) then (Có)
+  :Từ chối xác nhận;
+  :Thông báo danh sách cần xử lý;
   stop
 else (Không)
-  :Tải các đơn Submitted/Approved;
-  :Tổng hợp vật tư cần chụp giá;
-  if (Bảng giá thiếu vật tư?) then (Có)
-    :Rollback;
-    :Thông báo danh sách vật tư thiếu giá;
-    stop
-  else (Không)
-    :Gán CurrentSinglePrice cho từng chi tiết;
-    :Ghi SettledAt, người đóng và bảng giá;
-    :Ghi log PERIOD_SETTLED cho từng đơn;
-    :Commit transaction;
-    :Tính lại trạng thái kỳ;
-    |Chuyên viên quản lý văn phòng phẩm|
-    :Xem kết quả đóng kỳ;
-    stop
-  endif
+  :Tổng hợp đơn thường hiện hành và đơn bổ sung đã duyệt;
+  :Lưu phiên bản kết quả chốt kỳ;
+  :Lưu dòng giá, khoản phí và dữ liệu phân bổ;
+  :Đối chiếu tổng tiền và chuyển kỳ sang đã chốt;
+  :Hoàn tất giao dịch dữ liệu;
+  |Chuyên viên quản lý văn phòng phẩm|
+  :Xem kết quả chốt kỳ;
+  stop
 endif
 @enduml

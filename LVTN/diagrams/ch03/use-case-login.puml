@@ -9,7 +9,7 @@ rectangle "Hệ thống GTAS VPP" {
   usecase "Kiểm tra dữ liệu\nđầu vào" as Validate
   usecase "Xác thực\ntài khoản" as Authenticate
   usecase "Tạo JWT và\nphiên đăng nhập" as Session
-  usecase "Tải quyền theo\ntrang/component" as Permissions
+  usecase "Tải quyền theo\ntrang và chức năng" as Permissions
   usecase "Điều hướng đến\nchức năng được phép" as Redirect
   usecase "Thông báo lỗi\nđăng nhập" as Error
 

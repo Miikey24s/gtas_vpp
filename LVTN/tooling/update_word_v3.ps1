@@ -106,7 +106,6 @@ try {
         $chapter2Range = Find-HeadingRange -Text $chapter2Title
         $chapter2Section = Find-SectionForRange -Range $chapter2Range
     }
-
     Set-HeaderText -Section $chapter2Section -Text $chapter2Title
 
     $chapterHeaders = @{

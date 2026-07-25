@@ -1,15 +1,15 @@
 @startuml
 !include ../common/usecase-style.puml
-title ĐÓNG KỲ VÀ CHỤP GIÁ
+title XEM TRƯỚC VÀ CHỐT KỲ
 
 actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
-  usecase "Đóng kỳ và\nchụp giá" as Settle #E6E6E6
+  usecase "Xem trước và\nchốt kỳ" as Settle #E6E6E6
   usecase "Chọn kỳ và\nbảng giá áp dụng" as Select
-  usecase "Kiểm tra không còn Pending\nvà đủ giá cho mặt hàng" as Validate
-  usecase "Chụp đơn giá vào\nchi tiết đơn" as Snapshot
-  usecase "Ghi SettledAt và\nSettledByPriceListId" as Mark
+  usecase "Kiểm tra không còn đơn chờ duyệt\nvà đủ giá cho mặt hàng" as Validate
+  usecase "Lưu dữ liệu giá tại\nthời điểm chốt kỳ" as Snapshot
+  usecase "Tạo kết quả chốt kỳ\nvà dữ liệu phân bổ" as Mark
   usecase "Ghi nhật ký\nthao tác" as Log
   usecase "Hủy giao dịch khi\nkhông đủ điều kiện" as Rollback
 

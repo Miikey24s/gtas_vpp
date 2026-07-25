@@ -5,31 +5,31 @@ title QUY TRÌNH XỬ LÝ ĐƠN BỔ SUNG
 |Nhân viên|
 start
 :Chọn tạo đơn bổ sung cho kỳ trước;
-:Nhập mặt hàng và lý do bổ sung;
+:Nhập văn phòng phẩm và lý do bổ sung;
 |Hệ thống|
-:Kiểm tra đúng kỳ trước và kỳ chưa đóng;
-if (Đã đủ 3 đơn hoặc còn đơn Pending?) then (Có)
+:Kiểm tra đúng kỳ trước và thời hạn bổ sung;
+if (Đã đủ 3 đơn hoặc còn đơn chờ duyệt?) then (Có)
   :Từ chối tạo và nêu lý do;
   stop
 else (Không)
-  :Kiểm tra mặt hàng và số lượng;
-  :Lưu đơn trạng thái Pending và log CREATE;
+  :Kiểm tra văn phòng phẩm và số lượng;
+  :Lưu đơn ở trạng thái chờ duyệt và nhật ký tạo đơn;
 endif
 |Chuyên viên quản lý văn phòng phẩm|
 :Mở danh sách chờ duyệt;
 :Xem chi tiết và chọn xử lý;
 if (Phê duyệt?) then (Có)
   |Hệ thống|
-  :Kiểm tra trạng thái còn Pending;
-  :Chuyển sang Approved;
-  :Ghi người duyệt, thời điểm và log APPROVE;
+  :Kiểm tra trạng thái còn chờ duyệt;
+  :Chuyển sang đã duyệt;
+  :Ghi người duyệt, thời điểm và nhật ký duyệt;
 else (Từ chối)
   |Chuyên viên quản lý văn phòng phẩm|
   :Nhập lý do nếu cần;
   |Hệ thống|
-  :Kiểm tra trạng thái còn Pending;
-  :Chuyển sang Rejected;
-  :Ghi người từ chối, lý do và log REJECT;
+  :Kiểm tra trạng thái còn chờ duyệt;
+  :Chuyển sang từ chối;
+  :Ghi người từ chối, lý do và nhật ký từ chối;
 endif
 |Nhân viên|
 :Xem trạng thái xử lý trong lịch sử đơn;

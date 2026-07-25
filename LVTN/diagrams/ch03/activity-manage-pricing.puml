@@ -4,32 +4,40 @@ title QUY TRÌNH QUẢN LÝ BẢNG GIÁ
 
 |Chuyên viên quản lý văn phòng phẩm|
 start
-:Chọn bảng giá và nhà cung cấp;
-:Chọn mặt hàng cần thêm hoặc sửa giá;
-:Nhập giá, mô tả và cờ mặc định;
+:Chọn nhà cung cấp và bảng giá;
+:Tạo hoặc mở phiên bản nháp;
+:Khai báo thời gian hiệu lực,\nthuế và giá văn phòng phẩm;
 |Hệ thống|
-:Kiểm tra giá không âm;
-:Kiểm tra mặt hàng, nhà cung cấp và bảng giá tồn tại;
+:Kiểm tra dữ liệu bắt buộc,\ngiá không âm và thời gian hiệu lực;
+:Kiểm tra nhà cung cấp, văn phòng phẩm\nvà ràng buộc duy nhất;
 if (Dữ liệu hợp lệ?) then (Không)
   :Trả lỗi và giữ dữ liệu nhập;
   |Chuyên viên quản lý văn phòng phẩm|
   :Điều chỉnh thông tin;
   stop
 else (Có)
-  :Bắt đầu transaction;
-  if (Đặt làm giá mặc định?) then (Có)
-    :Hạ cờ mặc định của giá cũ cùng mặt hàng/bảng giá;
-  endif
-  :Thêm hoặc cập nhật ánh xạ giá;
-  if (Vi phạm ràng buộc duy nhất?) then (Có)
-    :Rollback và trả lỗi xung đột;
-    stop
+  :Lưu phiên bản nháp và chi tiết giá;
+  |Chuyên viên quản lý văn phòng phẩm|
+  if (Công bố bảng giá?) then (Có)
+    |Hệ thống|
+    :Kiểm tra đủ dữ liệu và không chồng lấn\nvới bảng giá đã công bố;
+    if (Đủ điều kiện công bố?) then (Không)
+      :Trả điều kiện chưa đáp ứng;
+      stop
+    else (Có)
+      :Công bố bảng giá;
+    endif
   else (Không)
-    :Commit;
-    :Đọc lại dữ liệu hiển thị;
-    |Chuyên viên quản lý văn phòng phẩm|
-    :Xem lưới giá đã cập nhật;
-    stop
+    if (Đánh dấu hết hiệu lực?) then (Có)
+      |Hệ thống|
+      :Kiểm tra trạng thái hiện hành;
+      :Chuyển bảng giá sang hết hiệu lực;
+    endif
   endif
+  |Hệ thống|
+  :Ghi lịch sử thay đổi và đọc lại dữ liệu;
+  |Chuyên viên quản lý văn phòng phẩm|
+  :Xem trạng thái và lưới giá đã cập nhật;
+  stop
 endif
 @enduml
