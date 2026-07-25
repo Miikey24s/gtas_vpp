@@ -1,118 +1,84 @@
 @startuml
 top to bottom direction
 skinparam backgroundColor white
-skinparam dpi 192
+skinparam dpi 160
 skinparam defaultFontName Arial
-skinparam defaultFontSize 17
+skinparam defaultFontSize 16
 skinparam monochrome true
 skinparam shadowing false
 skinparam linetype ortho
-skinparam nodesep 42
-skinparam ranksep 52
+skinparam nodesep 30
+skinparam ranksep 36
 skinparam classAttributeIconSize 0
 hide methods
 
-package "Tổ chức và thành viên" as Organization {
-entity "Department" as Department {
+entity "Tài khoản\nAspNetUsers" as User {
+  * Id <<PK>>
+  --
+  UserName
+  AccountStatus
+}
+
+entity "Phòng ban\nDepartments" as Department {
   * Id <<PK>>
   --
   ParentDepartmentId <<FK>>
   Code
-  Name
-  IsDeleted
 }
 
-entity "UserGroupMembership" as Membership {
+entity "Phân công người dùng\nUserGroupMemberships" as Membership {
   * Id <<PK>>
   --
   AccountId <<FK>>
   DepartmentId <<FK>>
   PermissionGroupId <<FK>>
-  IsDeleted
-  RowVersion
 }
 
-entity "AppUser" as AppUser {
-  * Id <<PK>>
-  --
-  UserName
-  Email
-  EmployeeCode
-  AccountStatus
-  SessionVersion
-  RowVersion
-}
-
-entity "AuthBootstrapOperation" as Bootstrap {
-  * OperationKey <<PK>>
-  --
-  AccountId <<FK>>
-  InputFingerprint
-  Status
-  CompletedAtUtc
-}
-
-entity "PermissionGroup" as PermissionGroup {
+entity "Nhóm quyền\nPermissionGroups" as Group {
   * Id <<PK>>
   --
   GroupCode
-  GroupName
   ParentGroupId
-  IsDeleted
-}
 }
 
-package "Phân quyền giao diện" as AccessControl {
-entity "GroupPageComponentMapping" as GroupMapping {
-  * PermissionGroupId <<PK, FK>>
-  * PageComponentMappingId <<PK, FK>>
-  * MemberCompanyCode <<PK>>
+entity "Trang chức năng\nPermissionPages" as Page {
+  * Id <<PK>>
   --
-  IsVisible
-  IsEnable
+  PageCode
 }
 
-entity "PageComponentMapping" as PageComponent {
+entity "Thành phần thao tác\nPermissionComponents" as Component {
+  * Id <<PK>>
+  --
+  ComponentCode
+}
+
+entity "Ánh xạ trang - thao tác\nPageComponentMappings" as PageMap {
   * Id <<PK>>
   --
   PermissionPageId <<FK>>
   PermissionComponentId <<FK>>
 }
 
-entity "PermissionPage" as Page {
-  * Id <<PK>>
+entity "Quyền của nhóm\nGroupPageComponentMappings" as GroupMap {
+  * PermissionGroupId <<PK, FK>>
+  * PageComponentMappingId <<PK, FK>>
   --
-  PageCode
-  PageName
-  Type
+  IsVisible
+  IsEnable
 }
 
-entity "PermissionComponent" as Component {
-  * Id <<PK>>
-  --
-  ComponentCode
-  ComponentName
-}
-}
-
-Department |o--o{ Department
-AppUser |o--o{ Membership
+User ||--o{ Membership
 Department ||--o{ Membership
-PermissionGroup ||--o{ Membership
-AppUser ||--o{ Bootstrap
-PermissionGroup ||-down-o{ GroupMapping
-PageComponent ||--o{ GroupMapping
-Page ||--o{ PageComponent
-Component ||--o{ PageComponent
+Group ||--o{ Membership
+Page ||--o{ PageMap
+Component ||--o{ PageMap
+PageMap ||--o{ GroupMap
+Group ||--o{ GroupMap
+Department |o--o{ Department
 
-Department -[hidden]right- AppUser
-AppUser -[hidden]right- Bootstrap
-PermissionGroup -[hidden]right- Membership
-Department -[hidden]down- PermissionGroup
-AppUser -[hidden]down- Membership
+User -[hidden]right- Department
+Department -[hidden]right- Group
 Page -[hidden]right- Component
-Page -[hidden]down- PageComponent
-Component -[hidden]down- PageComponent
-PageComponent -[hidden]down- GroupMapping
-Membership -[hidden]down- PageComponent
+Membership -[hidden]down- PageMap
 @enduml

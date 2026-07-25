@@ -2,37 +2,21 @@
 !include ../common/activity-style.puml
 title QUY TRÌNH TẠO ĐƠN YÊU CẦU THÔNG THƯỜNG
 
-|Nhân viên|
 start
-:Mở chức năng tạo đơn;
-|Hệ thống|
-:Tải kỳ hiện tại từ dịch vụ phía máy chủ;
-if (Còn trước hạn ngày 5?) then (Có)
-  |Nhân viên|
-  :Chọn văn phòng phẩm và nhập số lượng;
-  :Gửi đơn;
-  |Hệ thống|
-  :Kiểm tra dữ liệu, văn phòng phẩm và số lượng;
+:Nhân viên mở chức năng tạo đơn;
+:Hệ thống xác định kỳ hiện tại;
+if (Kỳ đang nhận đơn?) then (Có)
+  :Nhân viên chọn vật tư và nhập số lượng;
+  :Nhân viên xác nhận gửi đơn;
+  :Hệ thống kiểm tra dữ liệu và vật tư;
   if (Đã có đơn thường trong kỳ?) then (Có)
-    :Từ chối và thông báo đơn trùng;
-    stop
+    :Thông báo đơn đã tồn tại;
   else (Không)
-    :Kiểm tra kỳ đang nhận đơn;
-    if (Hợp lệ?) then (Có)
-      :Bắt đầu giao dịch dữ liệu;
-      :Lưu đơn ở trạng thái đã gửi;
-      :Lưu chi tiết, giá tham chiếu và nhật ký tạo đơn;
-      :Hoàn tất giao dịch dữ liệu;
-      |Nhân viên|
-      :Nhận thông báo thành công;
-      stop
-    else (Không)
-      :Hủy giao dịch dữ liệu và trả lý do;
-      stop
-    endif
+    :Lưu đơn, chi tiết và nhật ký tạo đơn;
+    :Thông báo tạo đơn thành công;
   endif
 else (Không)
-  :Khóa tạo đơn thường và thông báo quá hạn;
-  stop
+  :Thông báo đã hết thời hạn nhận đơn;
 endif
+stop
 @enduml

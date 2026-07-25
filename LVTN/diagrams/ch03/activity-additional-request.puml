@@ -2,36 +2,26 @@
 !include ../common/activity-style.puml
 title QUY TRÌNH XỬ LÝ ĐƠN BỔ SUNG
 
-|Nhân viên|
 start
-:Chọn tạo đơn bổ sung cho kỳ trước;
-:Nhập văn phòng phẩm và lý do bổ sung;
-|Hệ thống|
-:Kiểm tra đúng kỳ trước và thời hạn bổ sung;
-if (Đã đủ 3 đơn hoặc còn đơn chờ duyệt?) then (Có)
-  :Từ chối tạo và nêu lý do;
+:Nhân viên chọn kỳ, vật tư và nhập lý do;
+:Hệ thống kiểm tra thời hạn bổ sung;
+if (Đủ điều kiện tạo đơn?) then (Không)
+  :Thông báo lý do không thể tạo đơn;
   stop
-else (Không)
-  :Kiểm tra văn phòng phẩm và số lượng;
-  :Lưu đơn ở trạng thái chờ duyệt và nhật ký tạo đơn;
+else (Có)
+  :Lưu đơn ở trạng thái chờ duyệt;
+  :Thông báo đã gửi đơn bổ sung;
 endif
-|Chuyên viên quản lý văn phòng phẩm|
-:Mở danh sách chờ duyệt;
-:Xem chi tiết và chọn xử lý;
-if (Phê duyệt?) then (Có)
-  |Hệ thống|
-  :Kiểm tra trạng thái còn chờ duyệt;
-  :Chuyển sang đã duyệt;
-  :Ghi người duyệt, thời điểm và nhật ký duyệt;
+:Quản lý mở danh sách chờ duyệt;
+:Quản lý xem chi tiết và chọn xử lý;
+if (Duyệt đơn?) then (Có)
+  :Hệ thống chuyển trạng thái sang đã duyệt;
+  :Ghi người duyệt, thời điểm và nhật ký;
 else (Từ chối)
-  |Chuyên viên quản lý văn phòng phẩm|
-  :Nhập lý do nếu cần;
-  |Hệ thống|
-  :Kiểm tra trạng thái còn chờ duyệt;
-  :Chuyển sang từ chối;
-  :Ghi người từ chối, lý do và nhật ký từ chối;
+  :Quản lý nhập lý do từ chối;
+  :Hệ thống chuyển trạng thái sang từ chối;
+  :Ghi người xử lý, lý do và nhật ký;
 endif
-|Nhân viên|
-:Xem trạng thái xử lý trong lịch sử đơn;
+:Nhân viên xem kết quả trong lịch sử đơn;
 stop
 @enduml

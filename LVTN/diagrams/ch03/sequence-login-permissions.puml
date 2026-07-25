@@ -3,39 +3,20 @@
 title ĐĂNG NHẬP VÀ TẢI QUYỀN
 
 actor "Người dùng" as User
-boundary "Trang đăng nhập\n(Blazor)" as FE
-control "AuthController" as API
-control "AppAuthenticationService\nASP.NET Core Identity" as Auth
-database "AspNetUsers và\nphân công người dùng" as DB
-control "LoginTicketCache /\nLoginEndpoints" as Session
-control "PermissionState /\nRealtimeService" as Perm
+boundary "Giao diện" as UI
+control "Hệ thống" as System
+database "Cơ sở dữ liệu" as DB
 
-User -> FE : Nhập tên đăng nhập và mật khẩu
-FE -> FE : Kiểm tra dữ liệu bắt buộc
-FE -> API : POST /api/Auth/login
-API -> Auth : AuthenticateAsync(username, password)
-Auth -> DB : Tìm tài khoản, kiểm tra trạng thái và khóa
-Auth -> DB : Kiểm tra PasswordHash bằng Identity
-Auth -> DB : Đọc nhóm quyền và phòng ban đang hoạt động
+User -> UI : Nhập thông tin đăng nhập
+UI -> System : Gửi yêu cầu xác thực
+System -> DB : Kiểm tra tài khoản, mật khẩu và quyền
 
-alt Không hợp lệ hoặc không có phân công hoạt động
-  Auth --> API : Từ chối xác thực
-  API --> FE : 401 + thông báo an toàn
-  FE --> User : Hiển thị lỗi, không tạo phiên
+alt Thông tin không hợp lệ
+  System --> UI : Từ chối và trả thông báo an toàn
+  UI --> User : Hiển thị lỗi
 else Đăng nhập thành công
-  Auth -> DB : Cập nhật lần đăng nhập gần nhất
-  Auth -> Auth : Tạo JWT theo thời hạn cấu hình
-  Auth --> API : AuthenticationResultDTO
-  API --> FE : 200 + thông tin tài khoản và token
-  FE -> Session : Lưu vé dùng một lần
-  FE -> Session : GET /perform-login?id=...
-  Session -> Session : Tạo cookie xác thực và xóa vé
-  Session --> FE : Chuyển đến màn hình được phép
-  FE -> Perm : Tải quyền trang và quyền thao tác
-  Perm -> API : GET /api/Auth/me/permissions
-  API -> DB : Đọc ánh xạ quyền theo nhóm
-  DB --> Perm : Dữ liệu quyền hiện hành
-  Perm -> API : Kết nối /hubs/permissions bằng JWT
-  FE --> User : Mở chức năng được cấp quyền
+  System -> DB : Ghi nhận đăng nhập và tải quyền hiện hành
+  System --> UI : Tạo phiên và trả quyền sử dụng
+  UI --> User : Mở màn hình được phép sử dụng
 end
 @enduml

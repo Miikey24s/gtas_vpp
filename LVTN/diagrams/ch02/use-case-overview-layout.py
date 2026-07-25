@@ -1,4 +1,4 @@
-"""Render Hình 2-3 as a compact black-and-white three-persona use-case diagram."""
+"""Render Hình 2-3 with a fixed, crossing-free actor/use-case layout."""
 
 from html import escape
 from pathlib import Path
@@ -9,206 +9,170 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 SVG_PATH = HERE / "use-case-overview.svg"
 PNG_PATH = HERE / "use-case-overview.png"
-WIDTH, HEIGHT, SCALE = 1280, 900, 2
-BLACK, WHITE, LIGHT = "#000000", "#FFFFFF", "#E6E6E6"
 
-LEFT_CASES = [
-    (("Đăng nhập và tải quyền",), 180),
-    (("Xem danh mục", "văn phòng phẩm"), 260),
-    (("Tạo, sao chép, chỉnh sửa", "hoặc hủy đơn của mình"), 340),
-    (("Tạo và theo dõi", "đơn bổ sung"), 420),
-    (("Tra cứu lịch sử, báo cáo cá nhân", "và nhận thông báo"), 500),
-]
-MANAGER_CASES = [
-    (("Xem đơn phòng ban", "và toàn công ty"), 190),
-    (("Phê duyệt hoặc từ chối", "đơn bổ sung"), 275),
-    (("Quản lý danh mục, nhà cung cấp", "và bảng giá"), 360),
-    (("Rà soát và chốt kỳ",), 445),
-    (("Xem và xuất báo cáo", "theo phạm vi được cấp"), 530),
-]
-ADMIN_CASES = [
-    (("Quản lý người dùng", "và nhóm quyền"), 660),
-    (("Quản lý quyền truy cập", "hệ thống"), 740),
-    (("Kiểm tra nhật ký", "bảo mật"), 820),
+WIDTH = 1400
+HEIGHT = 1100
+SCALE = 2
+
+BOUNDARY = (280, 45, 1080, 1015)
+ELLIPSE_CX = 850
+ELLIPSE_W = 840
+ELLIPSE_H = 54
+
+SECTIONS = [
+    (
+        "NGHIỆP VỤ CÁ NHÂN",
+        300,
+        [
+            ("Đăng nhập và tải quyền",),
+            ("Xem danh mục văn phòng phẩm",),
+            ("Tạo, sao chép, chỉnh sửa hoặc hủy đơn của mình",),
+            ("Tạo và theo dõi đơn bổ sung",),
+            ("Tra cứu lịch sử, báo cáo cá nhân và nhận thông báo",),
+        ],
+        [180, 240, 300, 360, 420],
+    ),
+    (
+        "NGHIỆP VỤ QUẢN LÝ",
+        620,
+        [
+            ("Xem đơn phòng ban và toàn công ty",),
+            ("Phê duyệt hoặc từ chối đơn bổ sung",),
+            ("Quản lý danh mục, nhà cung cấp và bảng giá",),
+            ("Rà soát và chốt kỳ",),
+            ("Xem và xuất báo cáo theo phạm vi được cấp",),
+        ],
+        [500, 560, 620, 680, 740],
+    ),
+    (
+        "QUẢN TRỊ HỆ THỐNG",
+        920,
+        [
+            ("Quản lý người dùng và nhóm quyền",),
+            ("Quản lý quyền truy cập hệ thống",),
+            ("Kiểm tra nhật ký bảo mật",),
+        ],
+        [850, 920, 990],
+    ),
 ]
 
 
 def svg_text(lines, cx, cy, size, bold=False):
-    line_height = size * 1.16
+    line_height = size * 1.15
     start = cy - line_height * (len(lines) - 1) / 2
     weight = "700" if bold else "400"
-    parts = [f'<text x="{cx}" y="{start}" text-anchor="middle" font-family="Arial" font-size="{size}" font-weight="{weight}" fill="{BLACK}">']
+    parts = [f'<text x="{cx}" y="{start}" text-anchor="middle" font-family="Arial" font-size="{size}" font-weight="{weight}" fill="#000">']
     for index, line in enumerate(lines):
         parts.append(f'<tspan x="{cx}" dy="{0 if index == 0 else line_height}">{escape(line)}</tspan>')
     parts.append("</text>")
     return "".join(parts)
 
 
-def svg_actor(parts, x, top, label):
-    parts.append(f'<circle cx="{x}" cy="{top + 14}" r="13" fill="{WHITE}" stroke="{BLACK}" stroke-width="2"/>')
-    parts.append(f'<line x1="{x}" y1="{top + 27}" x2="{x}" y2="{top + 72}" stroke="{BLACK}" stroke-width="2"/>')
-    parts.append(f'<line x1="{x - 25}" y1="{top + 45}" x2="{x + 25}" y2="{top + 45}" stroke="{BLACK}" stroke-width="2"/>')
-    parts.append(f'<line x1="{x}" y1="{top + 72}" x2="{x - 22}" y2="{top + 97}" stroke="{BLACK}" stroke-width="2"/>')
-    parts.append(f'<line x1="{x}" y1="{top + 72}" x2="{x + 22}" y2="{top + 97}" stroke="{BLACK}" stroke-width="2"/>')
-    parts.append(svg_text(label, x, top + 148, 17, True))
-
-
-def svg_generalization(parts, child_x, child_y, parent_x, parent_y):
-    route_y = 20
-    base_y = parent_y - 22
-    parts.append(
-        f'<path d="M {child_x} {child_y} V {route_y} H {parent_x} V {base_y}" '
-        f'fill="none" stroke="{BLACK}" stroke-width="2"/>'
-    )
-    parts.append(
-        f'<polygon points="{parent_x},{parent_y} {parent_x - 13},{base_y} {parent_x + 13},{base_y}" '
-        f'fill="{WHITE}" stroke="{BLACK}" stroke-width="2"/>'
+def actor_svg(x, y, label):
+    return "".join(
+        [
+            f'<circle cx="{x}" cy="{y - 40}" r="14" fill="white" stroke="#000" stroke-width="2"/>',
+            f'<line x1="{x}" y1="{y - 26}" x2="{x}" y2="{y + 24}" stroke="#000" stroke-width="2"/>',
+            f'<line x1="{x - 25}" y1="{y - 7}" x2="{x + 25}" y2="{y - 7}" stroke="#000" stroke-width="2"/>',
+            f'<line x1="{x}" y1="{y + 24}" x2="{x - 24}" y2="{y + 58}" stroke="#000" stroke-width="2"/>',
+            f'<line x1="{x}" y1="{y + 24}" x2="{x + 24}" y2="{y + 58}" stroke="#000" stroke-width="2"/>',
+            svg_text(label, x, y + 92, 25, True),
+        ]
     )
 
 
-def svg_generalization_bottom(parts, child_x, child_y, parent_x, parent_y):
-    route_y = 880
-    base_x = parent_x + 22
-    parts.append(
-        f'<path d="M {child_x} {child_y} V {route_y} H {base_x} V {parent_y}" '
-        f'fill="none" stroke="{BLACK}" stroke-width="2"/>'
+def generalization_svg(child_y, route_x):
+    parent_y = SECTIONS[0][1] - 40
+    return "".join(
+        [
+            f'<polyline points="80,{child_y - 40} {route_x},{child_y - 40} {route_x},{parent_y} 60,{parent_y}" fill="none" stroke="#000" stroke-width="2"/>',
+            f'<polygon points="80,{parent_y} 60,{parent_y - 12} 60,{parent_y + 12}" fill="white" stroke="#000" stroke-width="2"/>',
+        ]
     )
-    parts.append(
-        f'<polygon points="{parent_x},{parent_y} {base_x},{parent_y - 13} {base_x},{parent_y + 13}" '
-        f'fill="{WHITE}" stroke="{BLACK}" stroke-width="2"/>'
-    )
-
-
-def svg_ellipse(parts, cx, cy, lines, w=380, h=62):
-    parts.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{w / 2}" ry="{h / 2}" fill="{WHITE}" stroke="{BLACK}" stroke-width="1.8"/>')
-    parts.append(svg_text(lines, cx, cy + 1, 16))
 
 
 def make_svg():
-    parts = ['<?xml version="1.0" encoding="UTF-8" standalone="no"?>', f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}">', f'<rect width="100%" height="100%" fill="{WHITE}"/>']
-    svg_actor(parts, 70, 270, ("Nhân viên",))
-    svg_actor(parts, 1210, 270, ("Quản lý",))
-    svg_actor(parts, 1210, 690, ("Quản trị", "hệ thống"))
-    svg_generalization(parts, 1210, 257, 70, 257)
-    svg_generalization_bottom(parts, 1245, 735, 70, 390)
-    parts.append(f'<rect x="155" y="45" width="970" height="820" fill="{WHITE}" stroke="{BLACK}" stroke-width="2.2"/>')
-    parts.append(f'<rect x="155" y="45" width="970" height="52" fill="{LIGHT}"/>')
-    parts.append(svg_text(("HỆ THỐNG GTAS VPP",), 640, 78, 22, True))
-    parts.append(svg_text(("NGHIỆP VỤ CÁ NHÂN",), 390, 125, 15, True))
-    parts.append(svg_text(("NGHIỆP VỤ QUẢN LÝ",), 875, 125, 15, True))
-    parts.append(svg_text(("QUẢN TRỊ HỆ THỐNG",), 875, 610, 15, True))
-    for lines, cy in LEFT_CASES:
-        parts.append(f'<line x1="95" y1="315" x2="200" y2="{cy}" stroke="{BLACK}" stroke-width="1.5"/>')
-        svg_ellipse(parts, 390, cy, lines)
-    for lines, cy in MANAGER_CASES:
-        parts.append(f'<line x1="1185" y1="315" x2="1065" y2="{cy}" stroke="{BLACK}" stroke-width="1.5"/>')
-        svg_ellipse(parts, 875, cy, lines)
-    for lines, cy in ADMIN_CASES:
-        parts.append(f'<line x1="1185" y1="735" x2="1065" y2="{cy}" stroke="{BLACK}" stroke-width="1.5"/>')
-        svg_ellipse(parts, 875, cy, lines)
+    bx, by, bw, bh = BOUNDARY
+    parts = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}">',
+        '<rect width="100%" height="100%" fill="white"/>',
+        f'<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" fill="white" stroke="#000" stroke-width="2"/>',
+        f'<rect x="{bx}" y="{by}" width="{bw}" height="60" fill="#E6E6E6"/>',
+        svg_text(("HỆ THỐNG GTAS VPP",), bx + bw / 2, by + 39, 31, True),
+    ]
+    actor_labels = [("Nhân viên",), ("Quản lý",), ("Quản trị", "hệ thống")]
+    for (_, actor_y, cases, case_ys), label in zip(SECTIONS, actor_labels):
+        parts.append(actor_svg(95, actor_y, label))
+        for lines, cy in zip(cases, case_ys):
+            left = ELLIPSE_CX - ELLIPSE_W / 2
+            parts.append(f'<line x1="125" y1="{actor_y - 7}" x2="{left}" y2="{cy}" stroke="#000" stroke-width="1.8"/>')
+            parts.append(f'<ellipse cx="{ELLIPSE_CX}" cy="{cy}" rx="{ELLIPSE_W / 2}" ry="{ELLIPSE_H / 2}" fill="white" stroke="#000" stroke-width="1.8"/>')
+            parts.append(svg_text(lines, ELLIPSE_CX, cy, 25))
+    parts.append(generalization_svg(SECTIONS[1][1], 45))
+    parts.append(generalization_svg(SECTIONS[2][1], 20))
+    parts.append(svg_text((SECTIONS[0][0],), 850, 135, 25, True))
+    parts.append(svg_text((SECTIONS[1][0],), 850, 460, 25, True))
+    parts.append(svg_text((SECTIONS[2][0],), 850, 810, 25, True))
     parts.append("</svg>")
     SVG_PATH.write_text("".join(parts), encoding="utf-8")
 
 
-def load_font(size, bold=False):
-    return ImageFont.truetype(str(Path(r"C:\Windows\Fonts") / ("arialbd.ttf" if bold else "arial.ttf")), size * SCALE)
+def font(size, bold=False):
+    filename = "arialbd.ttf" if bold else "arial.ttf"
+    return ImageFont.truetype(str(Path(r"C:\Windows\Fonts") / filename), size * SCALE)
 
 
 def draw_centered(draw, lines, cx, cy, size, bold=False):
-    font = load_font(size, bold)
+    f = font(size, bold)
     spacing = 3 * SCALE
-    boxes = [draw.textbbox((0, 0), line, font=font) for line in lines]
-    heights = [box[3] - box[1] for box in boxes]
-    y = cy * SCALE - (sum(heights) + spacing * (len(lines) - 1)) / 2
+    boxes = [draw.textbbox((0, 0), line, font=f) for line in lines]
+    heights = [b[3] - b[1] for b in boxes]
+    total = sum(heights) + spacing * (len(lines) - 1)
+    y = cy * SCALE - total / 2
     for line, box, height in zip(lines, boxes, heights):
-        draw.text((cx * SCALE - (box[2] - box[0]) / 2, y), line, font=font, fill="black")
+        width = box[2] - box[0]
+        draw.text((cx * SCALE - width / 2, y), line, font=f, fill="black")
         y += height + spacing
 
 
-def draw_actor(draw, x, top, label):
+def draw_actor(draw, x, y, label):
     s = SCALE
-    draw.ellipse(((x - 13) * s, (top + 1) * s, (x + 13) * s, (top + 27) * s), fill="white", outline="black", width=2 * s)
-    draw.line((x * s, (top + 27) * s, x * s, (top + 72) * s), fill="black", width=2 * s)
-    draw.line(((x - 25) * s, (top + 45) * s, (x + 25) * s, (top + 45) * s), fill="black", width=2 * s)
-    draw.line((x * s, (top + 72) * s, (x - 22) * s, (top + 97) * s), fill="black", width=2 * s)
-    draw.line((x * s, (top + 72) * s, (x + 22) * s, (top + 97) * s), fill="black", width=2 * s)
-    draw_centered(draw, label, x, top + 146, 17, True)
+    draw.ellipse(((x - 14) * s, (y - 54) * s, (x + 14) * s, (y - 26) * s), fill="white", outline="black", width=2 * s)
+    draw.line((x * s, (y - 26) * s, x * s, (y + 24) * s), fill="black", width=2 * s)
+    draw.line(((x - 25) * s, (y - 7) * s, (x + 25) * s, (y - 7) * s), fill="black", width=2 * s)
+    draw.line((x * s, (y + 24) * s, (x - 24) * s, (y + 58) * s), fill="black", width=2 * s)
+    draw.line((x * s, (y + 24) * s, (x + 24) * s, (y + 58) * s), fill="black", width=2 * s)
+    draw_centered(draw, label, x, y + 92, 25, True)
 
 
-def draw_generalization(draw, child_x, child_y, parent_x, parent_y):
+def draw_generalization(draw, child_y, route_x):
     s = SCALE
-    route_y = 20
-    base_y = parent_y - 22
-    draw.line(
-        (child_x * s, child_y * s, child_x * s, route_y * s, parent_x * s, route_y * s, parent_x * s, base_y * s),
-        fill="black",
-        width=2 * s,
-        joint="curve",
-    )
-    draw.polygon(
-        ((parent_x * s, parent_y * s), ((parent_x - 13) * s, base_y * s), ((parent_x + 13) * s, base_y * s)),
-        fill="white",
-        outline="black",
-    )
-    draw.line(
-        ((parent_x - 13) * s, base_y * s, parent_x * s, parent_y * s, (parent_x + 13) * s, base_y * s),
-        fill="black",
-        width=2 * s,
-    )
-
-
-def draw_generalization_bottom(draw, child_x, child_y, parent_x, parent_y):
-    s = SCALE
-    route_y = 880
-    base_x = parent_x + 22
-    draw.line(
-        (child_x * s, child_y * s, child_x * s, route_y * s, base_x * s, route_y * s, base_x * s, parent_y * s),
-        fill="black",
-        width=2 * s,
-        joint="curve",
-    )
-    draw.polygon(
-        ((parent_x * s, parent_y * s), (base_x * s, (parent_y - 13) * s), (base_x * s, (parent_y + 13) * s)),
-        fill="white",
-        outline="black",
-    )
-    draw.line(
-        (base_x * s, (parent_y - 13) * s, parent_x * s, parent_y * s, base_x * s, (parent_y + 13) * s),
-        fill="black",
-        width=2 * s,
-    )
-
-
-def draw_ellipse(draw, cx, cy, lines, w=380, h=62):
-    s = SCALE
-    draw.ellipse(((cx - w / 2) * s, (cy - h / 2) * s, (cx + w / 2) * s, (cy + h / 2) * s), fill="white", outline="black", width=2 * s)
-    draw_centered(draw, lines, cx, cy, 16)
+    parent_y = SECTIONS[0][1] - 40
+    draw.line((80 * s, (child_y - 40) * s, route_x * s, (child_y - 40) * s, route_x * s, parent_y * s, 60 * s, parent_y * s), fill="black", width=2 * s, joint="curve")
+    draw.polygon(((80 * s, parent_y * s), (60 * s, (parent_y - 12) * s), (60 * s, (parent_y + 12) * s)), fill="white", outline="black")
 
 
 def make_png():
     image = Image.new("RGB", (WIDTH * SCALE, HEIGHT * SCALE), "white")
     draw = ImageDraw.Draw(image)
-    s = SCALE
-    draw_actor(draw, 70, 270, ("Nhân viên",))
-    draw_actor(draw, 1210, 270, ("Quản lý",))
-    draw_actor(draw, 1210, 690, ("Quản trị", "hệ thống"))
-    draw_generalization(draw, 1210, 257, 70, 257)
-    draw_generalization_bottom(draw, 1245, 735, 70, 390)
-    draw.rectangle((155 * s, 45 * s, 1125 * s, 865 * s), fill="white", outline="black", width=2 * s)
-    draw.rectangle((155 * s, 45 * s, 1125 * s, 97 * s), fill=(230, 230, 230))
-    draw_centered(draw, ("HỆ THỐNG GTAS VPP",), 640, 78, 22, True)
-    draw_centered(draw, ("NGHIỆP VỤ CÁ NHÂN",), 390, 125, 15, True)
-    draw_centered(draw, ("NGHIỆP VỤ QUẢN LÝ",), 875, 125, 15, True)
-    draw_centered(draw, ("QUẢN TRỊ HỆ THỐNG",), 875, 610, 15, True)
-    for lines, cy in LEFT_CASES:
-        draw.line((95 * s, 315 * s, 200 * s, cy * s), fill="black", width=2 * s)
-        draw_ellipse(draw, 390, cy, lines)
-    for lines, cy in MANAGER_CASES:
-        draw.line((1185 * s, 315 * s, 1065 * s, cy * s), fill="black", width=2 * s)
-        draw_ellipse(draw, 875, cy, lines)
-    for lines, cy in ADMIN_CASES:
-        draw.line((1185 * s, 735 * s, 1065 * s, cy * s), fill="black", width=2 * s)
-        draw_ellipse(draw, 875, cy, lines)
+    bx, by, bw, bh = BOUNDARY
+    draw.rectangle((bx * SCALE, by * SCALE, (bx + bw) * SCALE, (by + bh) * SCALE), fill="white", outline="black", width=2 * SCALE)
+    draw.rectangle((bx * SCALE, by * SCALE, (bx + bw) * SCALE, (by + 60) * SCALE), fill=(230, 230, 230))
+    draw_centered(draw, ("HỆ THỐNG GTAS VPP",), bx + bw / 2, by + 39, 31, True)
+    actor_labels = [("Nhân viên",), ("Quản lý",), ("Quản trị", "hệ thống")]
+    for (_, actor_y, cases, case_ys), label in zip(SECTIONS, actor_labels):
+        draw_actor(draw, 95, actor_y, label)
+        for lines, cy in zip(cases, case_ys):
+            left = ELLIPSE_CX - ELLIPSE_W / 2
+            draw.line((125 * SCALE, (actor_y - 7) * SCALE, left * SCALE, cy * SCALE), fill="black", width=2 * SCALE)
+            draw.ellipse(((ELLIPSE_CX - ELLIPSE_W / 2) * SCALE, (cy - ELLIPSE_H / 2) * SCALE, (ELLIPSE_CX + ELLIPSE_W / 2) * SCALE, (cy + ELLIPSE_H / 2) * SCALE), fill="white", outline="black", width=2 * SCALE)
+            draw_centered(draw, lines, ELLIPSE_CX, cy, 25)
+    draw_generalization(draw, SECTIONS[1][1], 45)
+    draw_generalization(draw, SECTIONS[2][1], 20)
+    draw_centered(draw, (SECTIONS[0][0],), 850, 135, 25, True)
+    draw_centered(draw, (SECTIONS[1][0],), 850, 460, 25, True)
+    draw_centered(draw, (SECTIONS[2][0],), 850, 810, 25, True)
     image.save(PNG_PATH, dpi=(180, 180))
 
 

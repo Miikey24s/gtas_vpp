@@ -1,46 +1,21 @@
 @startuml
 !include ../common/activity-style.puml
-title QUY TRÌNH PHÂN QUYỀN
+title QUY TRÌNH QUẢN LÝ PHÂN QUYỀN
 
-|Quản trị hệ thống|
 start
-:Mở trang phân quyền;
-:Chọn người dùng/nhóm quyền;
-if (Cập nhật quan hệ nhóm cha?) then (Có)
-  :Chọn nhóm cha mới;
-  |Hệ thống|
-  :Kiểm tra tham chiếu vòng;
-  if (Tạo vòng lặp?) then (Có)
-    :Từ chối cập nhật;
-    stop
-  else (Không)
-    :Tính độ sâu cây nhóm;
-    if (Độ sâu từ 10 cấp?) then (Có)
-      :Từ chối do cây quyền quá sâu;
-      stop
-    else (Không)
-      :Cập nhật nhóm cha;
-    endif
-  endif
-else (Không)
-endif
-|Quản trị hệ thống|
-:Chọn trang và thành phần;
-:Thiết lập quyền hiển thị và thao tác;
-|Hệ thống|
-:Tìm ánh xạ trang, chức năng và nhóm quyền;
-if (Ánh xạ tồn tại?) then (Không)
-  :Trả lỗi không tìm thấy;
-  stop
+:Quản trị hệ thống chọn người dùng hoặc nhóm quyền;
+:Chọn trang và chức năng cần phân quyền;
+:Thiết lập quyền xem và quyền thao tác;
+:Hệ thống kiểm tra nhóm quyền và ánh xạ hiện hành;
+if (Dữ liệu hợp lệ?) then (Không)
+  :Thông báo lỗi và giữ dữ liệu;
 else (Có)
-  :Cập nhật ánh xạ quyền;
-  :Lưu người và thời điểm cập nhật;
-  :Phát tín hiệu cập nhật quyền\ntheo thời gian thực (SignalR);
-  :Giao diện người dùng tải lại dữ liệu quyền;
-  :Ẩn/khóa chức năng vừa bị thu hồi;
-  :Dịch vụ tiếp tục kiểm tra chính sách ở từng thao tác;
-  |Quản trị hệ thống|
-  :Kiểm tra giao diện theo quyền mới;
-  stop
+  :Cập nhật phân công người dùng và ánh xạ quyền;
+  :Lưu người thực hiện và thời điểm cập nhật;
+  :Phát thông báo thay đổi quyền theo thời gian thực;
+  :Giao diện tải lại quyền hiện hành;
+  :Ẩn hoặc khóa chức năng đã bị thu hồi;
+  :Quản trị hệ thống kiểm tra kết quả;
 endif
+stop
 @enduml

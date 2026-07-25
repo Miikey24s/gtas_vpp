@@ -1,98 +1,70 @@
 @startuml
 top to bottom direction
 skinparam backgroundColor white
-skinparam dpi 192
+skinparam dpi 160
 skinparam defaultFontName Arial
-skinparam defaultFontSize 17
+skinparam defaultFontSize 16
 skinparam monochrome true
 skinparam shadowing false
 skinparam linetype ortho
-skinparam nodesep 54
-skinparam ranksep 64
+skinparam nodesep 34
+skinparam ranksep 42
 skinparam classAttributeIconSize 0
 hide methods
 
-entity "VppPeriod" as Period {
+entity "Kỳ yêu cầu\nPeriods" as Period {
   * Id <<PK>>
   --
-  MemberCompanyCode
   Year
   Month
   State
-  SubmissionDeadlineUtc
-  SupplementApprovalDeadlineUtc
-  RowVersion
 }
 
-entity "PriceList" as PriceList {
-  * Id <<PK>>
-  --
-  PriceListCode
-  Version
-  Status
-}
-
-entity "VppRequest" as Request {
+entity "Đơn yêu cầu\nRequests" as Request {
   * Id <<PK>>
   --
   PeriodId <<FK>>
-  SettledByPriceListId <<FK>>
   RequestSeriesId
   RevisionNumber
   IsCurrentRevision
   IsAdditionalOrder
-  BaseRequestSeriesId
-  SupplementAttemptNumber
   Status
-  RowVersion
 }
 
-entity "VppItem" as Item {
-  * Id <<PK>>
-  --
-  VppCode
-  VppName
-  UomId <<FK>>
-}
-
-entity "VppRequestDetail" as Detail {
+entity "Chi tiết đơn\nRequestDetails" as Detail {
   * Id <<PK>>
   --
   RequestId <<FK>>
   VppId <<FK>>
   Qty
-  CurrentSinglePrice
 }
 
-entity "RequestLog" as Log {
+entity "Nhật ký đơn\nRequestLogs" as Log {
   * Id <<PK>>
   --
   RequestId <<FK>>
   RevisionNumber
   Action
-  ActorUserId
   LogDate
-  CorrelationId
 }
 
-note right of Request
-  Revision được nhận diện bởi RequestSeriesId,
-  RevisionNumber và IsCurrentRevision.
-  Đơn bổ sung được nhận diện bởi IsAdditionalOrder,
-  BaseRequestSeriesId và SupplementAttemptNumber.
-  Các trường truy vết này không tạo FK tự tham chiếu.
-end note
+entity "Văn phòng phẩm\nVppItems" as Item {
+  * Id <<PK>>
+  --
+  VppCode
+}
 
-Period |o--o{ Request
-PriceList |o--o{ Request
+Period ||--o{ Request
 Request ||--o{ Detail
 Request ||--o{ Log
 Item ||--o{ Detail
 
-Period -[hidden]right- PriceList
 Period -[hidden]down- Request
-PriceList -[hidden]down- Request
-Item -[hidden]right- Detail
 Detail -[hidden]right- Log
-Request -[hidden]down- Detail
+
+note right of Request
+  RequestSeriesId và RevisionNumber
+  liên kết các phiên bản của cùng một đơn.
+  IsAdditionalOrder phân biệt đơn bổ sung.
+end note
 @enduml

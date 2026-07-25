@@ -2,24 +2,21 @@
 !include ../common/activity-style.puml
 title QUY TRÌNH CHỐT KỲ
 
-|Chuyên viên quản lý văn phòng phẩm|
 start
-:Chọn kỳ và bảng giá;
-:Tải bản xem trước kết quả chốt kỳ;
-|Hệ thống|
-:Kiểm tra trạng thái kỳ, bảng giá và mã dữ liệu;
+:Quản lý chọn kỳ và bảng giá;
+:Yêu cầu xem trước kết quả chốt kỳ;
+:Hệ thống tổng hợp đơn hợp lệ;
+:Hệ thống đối chiếu giá và điều kiện chốt;
 if (Còn điều kiện ngăn chốt kỳ?) then (Có)
-  :Từ chối xác nhận;
-  :Thông báo danh sách cần xử lý;
-  stop
+  :Hiển thị danh sách cần xử lý;
+  :Quản lý điều chỉnh dữ liệu;
 else (Không)
-  :Tổng hợp đơn thường hiện hành và đơn bổ sung đã duyệt;
-  :Lưu phiên bản kết quả chốt kỳ;
-  :Lưu dòng giá, khoản phí và dữ liệu phân bổ;
-  :Đối chiếu tổng tiền và chuyển kỳ sang đã chốt;
-  :Hoàn tất giao dịch dữ liệu;
-  |Chuyên viên quản lý văn phòng phẩm|
-  :Xem kết quả chốt kỳ;
-  stop
+  :Quản lý xác nhận kết quả;
+  :Hệ thống kiểm tra lại dữ liệu;
+  :Lưu kết quả, chi phí và dữ liệu phân bổ;
+  :Đối chiếu tổng tiền;
+  :Chuyển kỳ sang trạng thái đã chốt;
+  :Hiển thị kết quả chốt kỳ;
 endif
+stop
 @enduml

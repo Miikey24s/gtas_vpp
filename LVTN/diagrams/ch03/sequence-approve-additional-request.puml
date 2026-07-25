@@ -2,41 +2,20 @@
 !include ../common/sequence-style.puml
 title DUYỆT HOẶC TỪ CHỐI ĐƠN BỔ SUNG
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
-boundary "Tab_SupplementApproval\n(Blazor)" as FE
-control "VPPRequestController" as API
-control "VPPRequestService" as Service
-database "VPPContext /\nSQL Server" as DB
+actor "Quản lý" as Manager
+boundary "Giao diện" as UI
+control "Hệ thống" as System
+database "Cơ sở dữ liệu" as DB
 
-Procurement -> FE : Mở danh sách đơn bổ sung chờ duyệt
-FE -> API : GET /additional-orders/pending
-API -> Service : GetPendingAdditionalOrdersAsync()
-Service -> DB : Đọc các đơn bổ sung đang chờ duyệt
-DB --> FE : Danh sách chờ duyệt
-Procurement -> FE : Chọn duyệt hoặc từ chối và xác nhận
+Manager -> UI : Mở danh sách và chọn đơn cần xử lý
+UI -> System : Gửi quyết định và lý do nếu có
+System -> DB : Kiểm tra đơn còn chờ duyệt
 
 alt Duyệt đơn
-  FE -> API : POST /additional-orders/{id}/approve
-  API -> Service : ApproveAdditionalOrderAsync(id, ApproverID)
-  Service -> DB : Bắt đầu giao dịch và tải đơn cùng chi tiết
-  Service -> Service : Chuyển chờ duyệt -> đã duyệt
-  Service -> DB : Lưu người, thời điểm duyệt và nhật ký APPROVE
+  System -> DB : Lưu trạng thái đã duyệt và nhật ký
 else Từ chối đơn
-  FE -> API : POST /additional-orders/{id}/reject
-  API -> Service : RejectAdditionalOrderAsync(id, ApproverID, reason)
-  Service -> DB : Bắt đầu giao dịch và tải đơn cùng chi tiết
-  Service -> Service : Chuyển chờ duyệt -> từ chối
-  Service -> DB : Lưu người, lý do từ chối và nhật ký REJECT
+  System -> DB : Lưu trạng thái từ chối, lý do và nhật ký
 end
-
-alt Đơn không tồn tại hoặc không còn chờ duyệt
-  Service -> DB : Hủy giao dịch
-  API --> FE : 400/404/409 + lý do
-  FE --> Procurement : Hiển thị lỗi
-else Cập nhật thành công
-  Service -> DB : Hoàn tất giao dịch
-  API --> FE : 200 OK
-  FE -> API : Tải lại danh sách chờ duyệt
-  FE --> Procurement : Thông báo kết quả
-end
+System --> UI : Trả kết quả xử lý
+UI --> Manager : Cập nhật danh sách và thông báo kết quả
 @enduml

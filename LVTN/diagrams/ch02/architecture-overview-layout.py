@@ -116,7 +116,7 @@ def draw_box(draw, x, y, w, h, title, body):
     draw.rectangle((x*s, y*s, (x+w)*s, (y+42)*s), fill=(230, 230, 230))
     draw.line((x*s, (y+42)*s, (x+w)*s, (y+42)*s), fill="black", width=2*s)
     draw_centered(draw, (title,), x+w/2, y+25, 20, True)
-    draw_centered(draw, body, x+w/2, y+91, 17)
+    draw_centered(draw, body, x+w/2, y+91, 20)
 
 
 def draw_dashed_segment(draw, start, end, width=2, dash=10, gap=7):
@@ -160,14 +160,14 @@ def make_png():
     for y in range(35, 660, 20):
         draw.line((185*SCALE, y*SCALE, 185*SCALE, min(y+12, 660)*SCALE), fill="black", width=2*SCALE)
         draw.line((1250*SCALE, y*SCALE, 1250*SCALE, min(y+12, 660)*SCALE), fill="black", width=2*SCALE)
-    draw_centered(draw, ("MÁY CHỦ TRIỂN KHAI / DOCKER COMPOSE",), 215, 62, 20, True, "start")
+    draw_centered(draw, ("MÁY CHỦ TRIỂN KHAI / DOCKER COMPOSE",), 215, 62, 25, True, "start")
 
     draw_box(draw, 5, 270, 165, 115, "NGƯỜI DÙNG", ("Trình duyệt", "nội bộ"))
     draw_box(draw, 235, 255, 210, 145, "NGINX", ("Reverse proxy", "HTTPS / WSS"))
-    draw_box(draw, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Cookie authentication", "Realtime quyền và thông báo"))
-    draw_box(draw, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core (.NET 10)", "JWT + action policy", "Report API + SignalR hubs"))
+    draw_box(draw, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Xác thực bằng cookie", "Quyền và thông báo", "tức thời"))
+    draw_box(draw, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core Web API", ".NET 10 + JWT", "Báo cáo và SignalR"))
     draw_box(draw, 890, 100, 280, 175, "MIGRATOR", ("EF Core migration", "Seed dữ liệu nền"))
-    draw_box(draw, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu, thông báo và log"))
+    draw_box(draw, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu nghiệp vụ và log"))
 
     for points, dashed in [
         ([(170,340),(235,340)], False),
@@ -178,16 +178,15 @@ def make_png():
         ([(1030,275),(1030,405)], True),
     ]:
         draw_polyline(draw, points, dashed)
-    draw_centered(draw, ("/ và /_blazor",), 476, 162, 15, anchor="end")
-    draw_centered(draw, ("/api",), 474, 470, 15, anchor="end")
-    draw_centered(draw, ("HTTP API + JWT / WSS",), 677, 336, 15, anchor="start")
-    draw_centered(draw, ("EF Core / SQL",), 845, 470, 15)
-    draw_centered(draw, ("migrate + seed",), 1047, 336, 15, anchor="start")
+    draw_centered(draw, ("/ và /_blazor",), 476, 162, 20, anchor="end")
+    draw_centered(draw, ("/api",), 474, 470, 20, anchor="end")
+    draw_centered(draw, ("HTTP API + JWT / WSS",), 677, 336, 18, anchor="start")
+    draw_centered(draw, ("migrate + seed",), 1047, 336, 20, anchor="start")
 
     draw_polyline(draw, [(340,628),(405,628)])
-    draw_centered(draw, ("Luồng vận hành",), 420, 628, 15, anchor="start")
+    draw_centered(draw, ("Luồng vận hành",), 420, 628, 20, anchor="start")
     draw_polyline(draw, [(685,628),(750,628)], True)
-    draw_centered(draw, ("Luồng khởi tạo dữ liệu",), 765, 628, 15, anchor="start")
+    draw_centered(draw, ("Luồng khởi tạo dữ liệu",), 765, 628, 20, anchor="start")
     image.save(PNG_PATH, dpi=(180, 180))
 
 

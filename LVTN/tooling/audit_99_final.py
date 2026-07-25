@@ -226,7 +226,7 @@ with zipfile.ZipFile(FINAL) as archive:
 
     figure_occurrences = re.findall(r"Hình\s+(\d+-\d+):", all_text)
     figure_counts = Counter(figure_occurrences)
-    expected_figure_ids = ["2-1", "2-2", "2-3"] + [f"3-{index}" for index in range(1, 37)]
+    expected_figure_ids = ["2-1", "2-2", "2-3"] + [f"3-{index}" for index in range(1, 44)]
 
     result = {
         "zip_bad_member": bad_member,

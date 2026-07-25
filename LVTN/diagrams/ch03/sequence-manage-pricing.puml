@@ -2,44 +2,22 @@
 !include ../common/sequence-style.puml
 title QUẢN LÝ BẢNG GIÁ
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Manager
-boundary "Màn hình bảng giá\n(Blazor/Radzen)" as FE
-control "VPPPriceListController /\nVPPPriceController" as API
-control "PriceListService /\nVPPPriceService" as Service
-control "PriceBookWorkflowService" as Workflow
-database "SQL Server" as DB
+actor "Quản trị hệ thống" as Manager
+boundary "Giao diện" as UI
+control "Hệ thống" as System
+database "Cơ sở dữ liệu" as DB
 
-Manager -> FE : Tạo hoặc mở bảng giá nháp
-FE -> API : POST/PUT /api/VPPPriceList
-API -> Service : Tạo hoặc cập nhật bảng giá
-Service -> DB : Kiểm tra mã, nhà cung cấp, phiên bản và thời gian hiệu lực
-Service --> FE : PriceListResDTO
+Manager -> UI : Nhập bảng giá và các dòng đơn giá
+UI -> System : Gửi yêu cầu lưu hoặc đổi trạng thái
+System -> DB : Kiểm tra nhà cung cấp, giá và thời gian hiệu lực
 
-Manager -> FE : Thêm hoặc sửa giá cho văn phòng phẩm
-FE -> API : POST/PUT /api/VPPPrice
-API -> Service : CreateAsync / UpdateAsync
-Service -> DB : Kiểm tra giá, thuế suất và tham chiếu
-Service -> DB : Thêm hoặc cập nhật SupplierProductMappings
-Service --> FE : SupplierProductMappingResDTO
-
-alt Công bố bảng giá
-  Manager -> FE : Chọn công bố
-  FE -> API : POST /api/VPPPriceList/{id}/publish
-  API -> Workflow : PublishAsync
-  Workflow -> DB : Kiểm tra đủ dòng giá và không chồng lấn hiệu lực
-  Workflow -> DB : Chuyển trạng thái sang Published
+alt Lưu bản nháp
+  System -> DB : Lưu bảng giá và đơn giá
+else Công bố bảng giá
+  System -> DB : Kiểm tra đủ dữ liệu và công bố
 else Đánh dấu hết hiệu lực
-  Manager -> FE : Chọn hết hiệu lực
-  FE -> API : POST /api/VPPPriceList/{id}/expire
-  API -> Workflow : ExpireAsync
-  Workflow -> DB : Chuyển trạng thái sang Expired
+  System -> DB : Cập nhật trạng thái hết hiệu lực
 end
-
-alt Vi phạm ràng buộc hoặc dữ liệu đã cũ
-  API --> FE : 400/409 + lý do
-  FE --> Manager : Giữ dữ liệu và hiển thị lỗi
-else Thành công
-  API --> FE : 200 + dữ liệu cập nhật
-  FE --> Manager : Tải lại danh sách và thông báo kết quả
-end
+System --> UI : Trả danh sách và trạng thái mới
+UI --> Manager : Hiển thị kết quả cập nhật
 @enduml

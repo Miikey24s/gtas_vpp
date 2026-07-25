@@ -2,7 +2,7 @@
 !include style.puml
 
 top to bottom direction
-skinparam dpi 180
+skinparam dpi 160
 skinparam defaultFontSize 15
 skinparam linetype polyline
 skinparam nodesep 38

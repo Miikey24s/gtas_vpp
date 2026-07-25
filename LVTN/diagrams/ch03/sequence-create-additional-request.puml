@@ -3,34 +3,20 @@
 title TẠO ĐƠN BỔ SUNG
 
 actor "Nhân viên" as User
-boundary "Page_OrderCreate\n(Blazor)" as FE
-control "VPPRequestController" as API
-control "VPPRequestService" as Service
-database "VPPContext /\nSQL Server" as DB
+boundary "Giao diện" as UI
+control "Hệ thống" as System
+database "Cơ sở dữ liệu" as DB
 
-User -> FE : Chọn tạo đơn bổ sung và nhập lý do
-FE -> FE : Kiểm tra vật tư và mô tả bắt buộc
-FE -> API : GET /period-info
-API -> Service : GetCurrentPeriodInfoAsync(UserID)
-Service --> FE : Kỳ trước do backend xác định
-FE -> API : POST /orders (IsAdditionalOrder=true)
-API -> Service : CreateOrderAsync(req, UserID, Department)
-Service -> Service : Kiểm tra đúng kỳ trước
-Service -> DB : Đếm đơn bổ sung của người dùng trong kỳ
-Service -> DB : Kiểm tra không có đơn chờ duyệt khác
-Service -> DB : Kiểm tra kỳ chưa đóng, vật tư còn hiệu lực
+User -> UI : Chọn vật tư, số lượng và nhập lý do
+UI -> System : Gửi đơn bổ sung
+System -> DB : Kiểm tra kỳ, số lần bổ sung và đơn đang chờ duyệt
 
-alt Đã đủ 3 đơn, còn đơn chờ duyệt hoặc kỳ đã đóng nhận đơn
-  Service --> API : Business/Conflict exception
-  API --> FE : 400/409 + lý do
-  FE --> User : Hiển thị lỗi, chưa tạo đơn
+alt Không đáp ứng điều kiện
+  System --> UI : Trả lý do không thể tạo đơn
+  UI --> User : Hiển thị lỗi
 else Hợp lệ
-  Service -> DB : Bắt đầu giao dịch dữ liệu
-  Service -> DB : Thêm đơn chờ duyệt, chi tiết và nhật ký CREATE
-  Service -> DB : Hoàn tất giao dịch
-  DB --> Service : Đơn bổ sung đã lưu
-  Service --> API : Dữ liệu đơn chờ duyệt
-  API --> FE : 200 OK
-  FE --> User : Báo đã gửi chờ phê duyệt
+  System -> DB : Lưu đơn chờ duyệt, chi tiết và nhật ký
+  System --> UI : Trả đơn bổ sung đã gửi
+  UI --> User : Thông báo đang chờ phê duyệt
 end
 @enduml

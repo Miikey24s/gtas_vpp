@@ -1,8 +1,9 @@
 ' Common black-and-white style for GTAS VPP sequence diagrams.
 !include style.puml
 
-skinparam dpi 180
-skinparam defaultFontSize 11
+skinparam dpi 160
+skinparam defaultFontSize 14
+skinparam maxMessageSize 110
 skinparam sequence {
   ArrowColor #000000
   ArrowThickness 1.1
@@ -26,9 +27,8 @@ skinparam sequence {
   BoxBorderColor #000000
   BoxBackgroundColor #FFFFFF
   MessageAlign center
-  ParticipantPadding 12
-  BoxPadding 8
+  MessageSpacing 0
+  ParticipantPadding 28
+  BoxPadding 10
 }
 hide footbox
-autonumber
-
