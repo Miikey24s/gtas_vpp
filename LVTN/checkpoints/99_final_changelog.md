@@ -1,8 +1,8 @@
 # Changelog checkpoint 99 – Luận văn GTAS VPP ngày 25/07/2026
 
 - `99_final.docx` và `NguyenAnNam_DH52201078_final_v3.docx` đồng nhất byte-for-byte.
-- SHA-256: `869E19EE672F96CF431F1130013DF717FFE6A8B08F75D9A0CF327D91A08FC930`.
-- Tài liệu gồm 87 trang vật lý, 14 section và một section ngang dành cho hệ thống màn hình.
+- SHA-256: `60E88F5428FF786A399397DA843CECB623932A472AC988E34DBA9A4D2AF931E5`.
+- Tài liệu gồm 87 trang vật lý, 14 section; toàn bộ nội dung sử dụng khổ A4 dọc.
 - Trang bìa không có page border; các phần đã khóa được giữ nguyên về nội dung.
 
 ## Nội dung cập nhật
@@ -11,6 +11,7 @@
 - Tổ chức lại mô hình dữ liệu vật lý để dễ tra cứu; chi tiết ràng buộc kỹ thuật được giữ tại Phụ lục D.
 - Bổ sung đặc tả use case trọng tâm và chuẩn hóa thuật ngữ nghiệp vụ trong phần thuyết minh.
 - Cập nhật mục 3.3 với 16 hình thiết kế giao diện, bao phủ nghiệp vụ nhân viên, quản lý kỳ, quản trị dữ liệu, phân quyền, báo cáo và thông báo.
+- Trình bày toàn bộ hệ thống màn hình trên trang A4 dọc và co ảnh theo vùng nội dung; không thay đổi định dạng Heading 4.
 - Cập nhật Chương 4, Chương 5 và các phụ lục theo cùng một bộ nội dung hiện hành.
 
 ## Định dạng và điều hướng

@@ -2,8 +2,8 @@
 
 The current DOCX remains the business-content authority. Backend code is used
 only to validate permissions, states and invariants; the legacy frontend is not
-used as the visual authority. The section is placed on landscape A4 pages so
-screen text remains readable when printed.
+used as the visual authority. The section follows the document's standard A4
+portrait layout; screenshots are scaled to the usable page width.
 """
 
 from __future__ import annotations
@@ -26,8 +26,8 @@ from PIL import Image
 
 DEFAULT_DOCX = Path("LVTN/checkpoints/NguyenAnNam_DH52201078_final_v3.docx")
 SCREEN_ROOT = Path("LVTN/screenshots/ch03/atlas")
-MAX_IMAGE_WIDTH_CM = 20.5
-MAX_IMAGE_HEIGHT_CM = 12.4
+MAX_IMAGE_WIDTH_CM = 15.8
+MAX_IMAGE_HEIGHT_CM = 9.0
 
 
 GROUPS = [
@@ -301,9 +301,9 @@ def update_document(input_path: Path, output_path: Path) -> None:
     )
 
     portrait_properties = effective_section_properties(start)
-    landscape_properties = copy.deepcopy(portrait_properties)
+    screen_properties = copy.deepcopy(portrait_properties)
     prepare_section_properties(portrait_properties, landscape=False, preserve_first_page=True)
-    prepare_section_properties(landscape_properties, landscape=True, preserve_first_page=False)
+    prepare_section_properties(screen_properties, landscape=False, preserve_first_page=False)
 
     for paragraph in section_paragraphs:
         paragraph._p.getparent().remove(paragraph._p)
@@ -323,7 +323,7 @@ def update_document(input_path: Path, output_path: Path) -> None:
         replace_ppr(group_paragraph, heading3_template)
         group_paragraph.add_run(group_heading)
         # Keep the introduction as a short orientation page, then start every
-        # screen group on a clean landscape page. This prevents a heading or
+        # screen group on a clean portrait page. This prevents a heading or
         # caption from being stranded on a nearly blank page.
         set_page_break_before(group_paragraph, True)
         set_keep_with_next(group_paragraph, True)
@@ -367,9 +367,9 @@ def update_document(input_path: Path, output_path: Path) -> None:
     if figure_number != 44:
         raise RuntimeError(f"Expected figures 3-28 through 3-43, ended at {figure_number - 1}")
 
-    # End the landscape section immediately before 3.4 so all following
+    # End the dedicated screen section immediately before 3.4 so all following
     # content reuses the document's existing portrait section settings.
-    insert_section_break_before(end, landscape_properties)
+    insert_section_break_before(end, screen_properties)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     document.save(output_path)
