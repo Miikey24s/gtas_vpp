@@ -1354,6 +1354,177 @@ leftsidebar {
     text-align: center;
 }
 
+/* Atlas supply-allocation: khóa bảng giá dẫn xuất, khối độ phủ, panel ngoại lệ. */
+.vpp-supply-pricelist-lock {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-supply-pricelist-lock .rzi {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
+}
+
+.vpp-supply-order-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    margin-top: var(--vpp-space-3);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-supply-coverage-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-4);
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-supply-coverage-card.is-full { border-color: color-mix(in srgb, var(--vpp-success) 45%, var(--vpp-border-default)); }
+.vpp-supply-coverage-card.is-partial { border-color: color-mix(in srgb, var(--vpp-warning) 55%, var(--vpp-border-default)); }
+.vpp-supply-coverage-card.is-blocked { border-color: color-mix(in srgb, var(--vpp-danger) 45%, var(--vpp-border-default)); }
+
+.vpp-supply-coverage-main {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.vpp-supply-coverage-label {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-supply-coverage-main strong {
+    font-size: var(--vpp-text-2xl);
+    line-height: 1.1;
+}
+
+.vpp-supply-coverage-meta {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-supply-coverage-side {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-4);
+}
+
+.vpp-supply-coverage-side div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.vpp-supply-coverage-side span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-supply-exceptions {
+    display: grid;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border: 1px solid color-mix(in srgb, var(--vpp-warning) 45%, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-warning) 4%, var(--vpp-bg-elevated));
+}
+
+.vpp-supply-exceptions-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-supply-exceptions-heading h4 {
+    margin: 0;
+}
+
+.vpp-supply-exceptions-heading p {
+    margin: 0.25rem 0 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-supply-exception-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-3);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-supply-exception-row.is-valid {
+    border-color: color-mix(in srgb, var(--vpp-success) 45%, var(--vpp-border-default));
+}
+
+.vpp-supply-exception-item {
+    display: grid;
+    flex: 1 1 200px;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.vpp-supply-exception-item strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-supply-exception-item small {
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-supply-exception-item small.is-error {
+    color: var(--vpp-danger);
+}
+
+.vpp-supply-exception-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-supply-exception-audit {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-supply-continue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border: 1px solid color-mix(in srgb, var(--vpp-success) 45%, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-success) 5%, var(--vpp-bg-elevated));
+}
+
+.vpp-supply-continue .rzi {
+    color: var(--vpp-success);
+}
+
+.vpp-supply-continue span:not(.rzi) {
+    flex: 1 1 auto;
+}
+
 /* Atlas settlement-flow: checklist điều kiện + cam kết bất biến trước nút chốt. */
 .vpp-settle-readiness {
     display: grid;

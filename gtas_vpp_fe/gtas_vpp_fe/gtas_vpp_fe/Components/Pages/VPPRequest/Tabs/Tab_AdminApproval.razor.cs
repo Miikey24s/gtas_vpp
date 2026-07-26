@@ -15,6 +15,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private const string PeriodTabQueryName = "periodTab";
         private const string PeriodReviewTab = "review";
         private const string PeriodDemandTab = "demand";
+        private const string PeriodSupplyTab = "supply";
         private const string PendingApprovalsTab = "pending";
 
         // Dialog service is tab-specific (base doesn't need it).
@@ -44,6 +45,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool ShowSettlementContent => CanShowSettlement && ActivePeriodTab == PeriodReviewTab;
 
         private bool ShowDemandContent => CanShowSettlement && ActivePeriodTab == PeriodDemandTab;
+
+        private bool ShowSupplyContent => CanShowSettlement && ActivePeriodTab == PeriodSupplyTab;
 
         private bool ShowApprovalsContent => CanShowApprovals && ActivePeriodTab == PendingApprovalsTab;
 
@@ -106,6 +109,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (string.Equals(requested, PeriodDemandTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
             {
                 ActivePeriodTab = PeriodDemandTab;
+                return;
+            }
+
+            if (string.Equals(requested, PeriodSupplyTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
+            {
+                ActivePeriodTab = PeriodSupplyTab;
                 return;
             }
 

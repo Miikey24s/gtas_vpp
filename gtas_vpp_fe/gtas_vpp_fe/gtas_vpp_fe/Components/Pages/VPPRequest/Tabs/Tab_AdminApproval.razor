@@ -7,7 +7,7 @@
 
 @if (CanView)
 {
-    @if (ShowSettlementContent || ShowDemandContent)
+    @if (ShowSettlementContent || ShowDemandContent || ShowSupplyContent)
     {
         <div class="vpp-period-workspace rz-p-0 rz-p-md-2">
             <header class="vpp-period-workspace-header">
@@ -18,20 +18,26 @@
                         <h1>@Loc["PeriodDemandTitle"]</h1>
                         <p>@Loc["PeriodDemandDescription"]</p>
                     }
+                    else if (ShowSupplyContent)
+                    {
+                        <h1>@Loc["PeriodSupplyTitle"]</h1>
+                        <p>@Loc["PeriodSupplyDescription"]</p>
+                    }
                     else
                     {
                         <h1>@Loc["PeriodReviewSettleTitle"]</h1>
                         <p>@Loc["PeriodReviewSettleDescription"]</p>
                     }
                 </div>
-                @* Atlas periodFlowNav: 4 bước bấm được (D4). Bước 3–4 hiện vẫn render chung
-                   trong màn Rà soát vì supply-allocation/settlement-flow chưa tách (W-D.5/6). *@
+                @* Atlas periodFlowNav (D4): 4 bước bấm được. Bước 4 (Chốt kỳ) vẫn render
+                   trong màn Rà soát cho tới khi settlement-flow tách hẳn (W-D.6b). *@
                 <nav class="vpp-period-flow" aria-label="@Loc["PeriodFlowAria"]">
                     <button type="button" class="@(ShowSettlementContent ? "is-active" : null)"
                             @onclick="@(() => NavigateToPeriodTab("review"))"><b>1</b> @Loc["PeriodReview"]</button>
                     <button type="button" class="@(ShowDemandContent ? "is-active" : null)"
                             @onclick="@(() => NavigateToPeriodTab("demand"))"><b>2</b> @Loc["PeriodDemandStep"]</button>
-                    <button type="button" @onclick="@(() => NavigateToPeriodTab("review"))"><b>3</b> @Loc["PeriodSupplyStep"]</button>
+                    <button type="button" class="@(ShowSupplyContent ? "is-active" : null)"
+                            @onclick="@(() => NavigateToPeriodTab("supply"))"><b>3</b> @Loc["PeriodSupplyStep"]</button>
                     <button type="button" @onclick="@(() => NavigateToPeriodTab("review"))"><b>4</b> @Loc["PeriodSettleStep"]</button>
                 </nav>
             </header>
@@ -39,6 +45,10 @@
             @if (ShowDemandContent)
             {
                 <PeriodDemandPanel Claims="@claims" />
+            }
+            else if (ShowSupplyContent)
+            {
+                <PeriodSupplyAllocationPanel OnContinueToSettle="@(() => NavigateToPeriodTab("review"))" />
             }
             else
             {

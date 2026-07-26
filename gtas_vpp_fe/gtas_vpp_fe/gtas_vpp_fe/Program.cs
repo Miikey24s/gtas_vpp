@@ -69,6 +69,7 @@ builder.Services.AddScoped<PermissionRefreshSignal>();
 builder.Services.AddScoped<PermissionState>();
 builder.Services.AddScoped<PermissionRealtimeService>();
 builder.Services.AddScoped<NotificationInboxState>();
+builder.Services.AddScoped<gtas_vpp_fe.Components.Pages.VPPRequest.Components.PeriodSettlementState>();
 builder.Services.AddScoped<IToastService, ToastService>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie

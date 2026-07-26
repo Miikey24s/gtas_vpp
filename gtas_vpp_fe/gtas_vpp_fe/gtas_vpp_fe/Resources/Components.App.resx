@@ -787,4 +787,27 @@
   <data name="CorrectionDialogTitle" xml:space="preserve"><value>Hiệu chỉnh kết quả chốt kỳ</value></data>
   <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>Không tìm thấy phiên bản kết quả chốt kỳ hiện hành.</value></data>
   <data name="CorrectionCreated" xml:space="preserve"><value>Đã tạo phiên bản hiệu chỉnh</value></data>
+  <data name="SupplyPrimarySupplier" xml:space="preserve"><value>Nhà cung cấp chính</value></data>
+  <data name="SupplyAutoRank" xml:space="preserve"><value>(Tự xếp hạng theo độ phủ)</value></data>
+  <data name="SupplyEffectivePriceList" xml:space="preserve"><value>Bảng giá còn hiệu lực</value></data>
+  <data name="SupplyPriceListPending" xml:space="preserve"><value>Chưa xác định — chạy xem trước</value></data>
+  <data name="SupplyPriceListDerivedHint" xml:space="preserve"><value>Bảng giá được hệ thống chọn từ nhà cung cấp chính; không chọn tay.</value></data>
+  <data name="SupplyRunPreview" xml:space="preserve"><value>Chạy xem trước</value></data>
+  <data name="SupplySelectionOrderHint" xml:space="preserve"><value>Chọn nhà cung cấp trước; bảng giá chỉ hiển thị phiên bản còn hiệu lực của nhà cung cấp đó.</value></data>
+  <data name="SupplyCoverageLabel" xml:space="preserve"><value>Độ phủ bảng giá</value></data>
+  <data name="SupplyCoverageNoPrimary" xml:space="preserve"><value>Chưa có nguồn cung chính hợp lệ.</value></data>
+  <data name="SupplyCoverageMissingFormat" xml:space="preserve"><value>{0} mặt hàng cần ngoại lệ</value></data>
+  <data name="SupplyCoverageFull" xml:space="preserve"><value>Phủ đủ toàn bộ nhu cầu</value></data>
+  <data name="SupplyExceptionsTitle" xml:space="preserve"><value>Ngoại lệ nguồn cung</value></data>
+  <data name="SupplyExceptionsHint" xml:space="preserve"><value>Mỗi mặt hàng thiếu giá phải chọn nhà cung cấp thay thế và lý do bắt buộc.</value></data>
+  <data name="SupplyExceptionsCountFormat" xml:space="preserve"><value>{0}/{1} ngoại lệ đã khai</value></data>
+  <data name="SupplyExceptionSupplierPlaceholder" xml:space="preserve"><value>Nhà cung cấp thay thế</value></data>
+  <data name="SupplyExceptionReasonPlaceholder" xml:space="preserve"><value>Lý do ngoại lệ (bắt buộc)</value></data>
+  <data name="SupplyExceptionResolvedFormat" xml:space="preserve"><value>Đã có giá thay thế · {0} VND</value></data>
+  <data name="SupplyExceptionAuditHint" xml:space="preserve"><value>Ngoại lệ được lưu vào nhật ký bất biến khi xác nhận chốt kỳ.</value></data>
+  <data name="SupplyReRunWithExceptions" xml:space="preserve"><value>Chạy lại với ngoại lệ</value></data>
+  <data name="SupplyReadyMessage" xml:space="preserve"><value>Nguồn cung đã phủ đủ nhu cầu và không còn điều kiện ngăn chốt.</value></data>
+  <data name="SupplyContinueToSettle" xml:space="preserve"><value>Tiếp tục chốt kỳ</value></data>
+  <data name="PeriodSupplyTitle" xml:space="preserve"><value>Chọn nguồn cung</value></data>
+  <data name="PeriodSupplyDescription" xml:space="preserve"><value>Chọn nhà cung cấp chính, kiểm tra độ phủ bảng giá còn hiệu lực và khai báo ngoại lệ có lý do cho phần thiếu.</value></data>
 </root>

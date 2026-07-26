@@ -787,4 +787,27 @@
   <data name="CorrectionDialogTitle" xml:space="preserve"><value>Correct settlement result</value></data>
   <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>The current settlement revision could not be found.</value></data>
   <data name="CorrectionCreated" xml:space="preserve"><value>Correction revision created</value></data>
+  <data name="SupplyPrimarySupplier" xml:space="preserve"><value>Primary supplier</value></data>
+  <data name="SupplyAutoRank" xml:space="preserve"><value>(Auto-rank by coverage)</value></data>
+  <data name="SupplyEffectivePriceList" xml:space="preserve"><value>Effective price list</value></data>
+  <data name="SupplyPriceListPending" xml:space="preserve"><value>Not determined — run the preview</value></data>
+  <data name="SupplyPriceListDerivedHint" xml:space="preserve"><value>The price list is derived from the primary supplier; it cannot be picked manually.</value></data>
+  <data name="SupplyRunPreview" xml:space="preserve"><value>Run preview</value></data>
+  <data name="SupplySelectionOrderHint" xml:space="preserve"><value>Pick the supplier first; only that supplier's effective price list version is shown.</value></data>
+  <data name="SupplyCoverageLabel" xml:space="preserve"><value>Price coverage</value></data>
+  <data name="SupplyCoverageNoPrimary" xml:space="preserve"><value>No valid primary supply source yet.</value></data>
+  <data name="SupplyCoverageMissingFormat" xml:space="preserve"><value>{0} items need exceptions</value></data>
+  <data name="SupplyCoverageFull" xml:space="preserve"><value>Full demand coverage</value></data>
+  <data name="SupplyExceptionsTitle" xml:space="preserve"><value>Supply exceptions</value></data>
+  <data name="SupplyExceptionsHint" xml:space="preserve"><value>Each uncovered item requires an alternative supplier and a mandatory reason.</value></data>
+  <data name="SupplyExceptionsCountFormat" xml:space="preserve"><value>{0}/{1} exceptions declared</value></data>
+  <data name="SupplyExceptionSupplierPlaceholder" xml:space="preserve"><value>Alternative supplier</value></data>
+  <data name="SupplyExceptionReasonPlaceholder" xml:space="preserve"><value>Exception reason (required)</value></data>
+  <data name="SupplyExceptionResolvedFormat" xml:space="preserve"><value>Alternative price found · {0} VND</value></data>
+  <data name="SupplyExceptionAuditHint" xml:space="preserve"><value>Exceptions are stored in the immutable log when the period is settled.</value></data>
+  <data name="SupplyReRunWithExceptions" xml:space="preserve"><value>Re-run with exceptions</value></data>
+  <data name="SupplyReadyMessage" xml:space="preserve"><value>Supply covers all demand and no blockers remain.</value></data>
+  <data name="SupplyContinueToSettle" xml:space="preserve"><value>Continue to settlement</value></data>
+  <data name="PeriodSupplyTitle" xml:space="preserve"><value>Supply selection</value></data>
+  <data name="PeriodSupplyDescription" xml:space="preserve"><value>Pick the primary supplier, check effective price-list coverage and declare reasoned exceptions for the gap.</value></data>
 </root>
