@@ -408,15 +408,16 @@ Không mở rộng redesign production sang route mới trước khi owner duy�
 
 | Board | Logical page/state được cover |
 |---|---|
-| M0 — Design system + shell | tokens, type scale, surface, sidebar expanded/collapsed, đầy đủ cấp cha–con–cháu, header tabs, user popup, hover/press/focus, Light/Dark |
-| M1 — Account | Login, Forgot Password, Reset Password, Change Password, Logout, Register; Login/Logout bám thiết kế Blazor hiện tại và chỉ polish nhẹ khi cần |
-| M2 — Employee | My Orders, Order Create/Edit, History, Product Catalog |
-| M3 — Management | Department Summary, All Orders Summary, Supplement Approval |
-| M4 — Period/Procurement | Period Review, Pending Approvals, Settlement preview/confirm/result |
-| M5 — Library | Class Definitions, Categories, Items, Suppliers, Price Lists, Prices, Departments; dùng chung list/detail/CRUD archetype nhưng mỗi logical tab có một mockup dữ liệu thật |
-| M6 — Access Control | Users/Membership, Groups & Permissions matrix, last-admin/guarded change states |
-| M7 — Reports | Own/department/company scope, filter, exact table, export/print states |
-| M8 — System states | reconnect, unauthorized, error, not-found, initial loading, empty/filter-empty, notification/account surfaces |
+| M0 — Nền tảng giao diện | tokens, type scale, surface, shell, trạng thái tương tác và quy tắc loading/empty/error dùng chung |
+| M1 — Tài khoản và phiên | Login, Forgot Password, Reset Password, Change Password, Logout, Register; Login/Logout bám thiết kế Blazor hiện tại và chỉ polish nhẹ khi cần |
+| M2 — Vòng đời đơn cá nhân | My Orders, Order Create/Edit, History, Product Catalog |
+| M3 — Tổng hợp quản lý | Department Summary và các biến thể tổng hợp theo phạm vi được cấp |
+| M4 — Phê duyệt và chốt kỳ | Supplement/Pending Approval là một màn hình canonical theo nhiều trạng thái; Period Review, Demand Aggregation, Supply Allocation và Settlement preview/confirm/result |
+| M5A — Danh mục và tổ chức | Class Definitions, Categories, Items, Departments; dùng chung list/detail/CRUD archetype nhưng mỗi logical tab có một mockup dữ liệu thật |
+| M5B — Nhà cung cấp và giá | Suppliers, Price Lists, Prices; tách riêng để review đúng vòng đời công bố/hết hiệu lực và quan hệ nguồn cung |
+| M6 — Người dùng và phân quyền | Users/Membership, Groups & Permissions matrix, last-admin/guarded change states |
+| M7 — Báo cáo | Own/department/company scope, filter, exact table, export/print states |
+| M8 — Trạng thái vận hành đại diện | notification inbox, reconnect, unauthorized, error, not-found, initial loading và empty/filter-empty; đây là bảng QA tập trung, không phải module nghiệp vụ độc lập |
 
 Vòng duyệt đầu tạo đúng **28 canonical desktop screens ở `1920×1080`** cho artifact chụp ảnh, ưu tiên Light mode và trạng thái populated/primary. Chế độ owner review không được khóa vào canvas này: screen phải dùng đúng viewport trình duyệt, giữ shell trong `100dvh`, không sinh body scrollbar và chỉ cho vùng content/table có chủ đích cuộn nội bộ. Loading, empty, filter-empty và error không nhân thành một ảnh riêng cho từng route; chúng kế thừa shared state templates do agent tự thiết kế trong M0/M8, sau đó chỉ render representative state ở các archetype quan trọng. My Orders/History/Library vẫn có long-data representative; permission-dependent controls có role annotation. Sau khi motif desktop được duyệt, route quan trọng mới mở rộng `768×1024`, `390×844`, Dark mode và EN spot-check để tránh sửa cùng một lỗi trên quá nhiều biến thể sớm.
 
@@ -464,7 +465,7 @@ Quy tắc triển khai Atlas và Blazor: screen chỉ compose archetype + fixtur
 - automated integration/UI test phải có fixture trong đó kết quả tìm kiếm nằm ngoài page 1, xác nhận filter tìm thấy record, `TotalCount` đúng, grid reset offset và clear filter phục hồi dữ liệu;
 - implementation authority là `RadzenDataGrid` 11.1.4 trên Blazor `InteractiveServer`. Design Atlas chỉ khóa visual hierarchy, data-navigation mode và state contract; không mô phỏng hay cam kết DOM/API giống Radzen. Sau approval, mỗi archetype được map sang shared Blazor component rồi QA bằng authenticated route thật, console/network và DOM geometry.
 
-**Approval sequence:** `Atlas overview 28 screens → M0 shell/motif → M2 employee → M3/M4 operations → M5 library → M6 access → M7 reports → M1/M8 hardening`. Owner có thể sửa một global token/primitive, một board hoặc một page exception. Chỉ board `APPROVED` mới được chuyển thành implementation vertical slice và visual baseline.
+**Approval sequence:** `Atlas overview 28 screens → M0 nền tảng → M2 vòng đời đơn → M3/M4 quản lý và chốt kỳ → M5A/M5B dữ liệu nền và giá → M6 phân quyền → M7 báo cáo → M1/M8 hardening`. Owner có thể sửa một global token/primitive, một board hoặc một page exception. Chỉ board `APPROVED` mới được chuyển thành implementation vertical slice và visual baseline.
 
 **Design Atlas draft evidence — generated 2026-07-23:**
 
@@ -1486,7 +1487,7 @@ Gate thiết kế mới:
 - [x] Vòng đầu gồm 28 canonical desktop screens; loading/empty/filter-empty/error kế thừa shared templates và agent tự quyết định bản nháp đầu.
 - [x] Duyệt cơ chế Design Atlas: overview/contact sheet + full-resolution screens + global token controls để sửa đồng loạt.
 - [x] Chốt typography hybrid system-font/Poppins và phạm vi Dark-mode vòng đầu theo Section 6.7.
-- [x] Sinh Design Atlas draft: 28 Light screens, 9 board sheets, overview và 4 Dark representatives; automated geometry/overflow/console gate pass.
+- [x] Sinh Design Atlas draft: 28 Light screens, 10 board sheets theo taxonomy M0–M8 có M5A/M5B, overview và 4 Dark representatives; automated geometry/overflow/console gate pass.
 - [x] Tách chế độ duyệt fluid khỏi capture cố định; 84/84 kiểm tra responsive desktop pass ở zoom trình duyệt 100%.
 - [x] M0 hiển thị đầy đủ hierarchy cha–con–cháu; M1 Login/Logout bám thiết kế account hiện tại; copy VI dùng ngữ cảnh nghiệp vụ thay vì dịch thô.
 - [ ] Chỉ sau M0 và board route tương ứng `APPROVED` mới refactor shared primitives rồi code route; chưa duyệt thì không mở rộng mutation UI production.
