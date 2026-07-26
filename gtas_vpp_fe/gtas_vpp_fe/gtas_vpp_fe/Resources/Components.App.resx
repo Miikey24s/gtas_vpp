@@ -663,7 +663,7 @@
   <data name="FeatureInDevelopment" xml:space="preserve"><value>Tính năng đang được hoàn thiện</value></data>
   <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Tải danh mục sẽ được bổ sung trong phiên bản sau.</value></data>
   <data name="Add" xml:space="preserve"><value>Thêm</value></data>
-  <data name="ContinueReview" xml:space="preserve"><value>Tiếp tục kiểm tra</value></data>
+  <data name="ContinueReview" xml:space="preserve"><value>Tiếp tục</value></data>
   <data name="DecreaseQuantity" xml:space="preserve"><value>Giảm số lượng</value></data>
   <data name="Draft" xml:space="preserve"><value>Bản nháp</value></data>
   <data name="IncreaseQuantity" xml:space="preserve"><value>Tăng số lượng</value></data>

@@ -42,25 +42,6 @@
                     </div>
 
                     <div class="vpp-orders-story-commands">
-                        <div class="vpp-orders-export-actions" aria-label="@Loc["ExportOrders"]">
-                            <button type="button"
-                                    class="vpp-orders-export-button"
-                                    disabled
-                                    title="@Loc["ExportComingSoonHint"]"
-                                    data-testid="export-pdf-coming-soon">
-                                <VppIcon Name="@VppIcons.Pdf" />
-                                <span>@PdfExportText</span>
-                            </button>
-                            <button type="button"
-                                    class="vpp-orders-export-button"
-                                    disabled
-                                    title="@Loc["ExportComingSoonHint"]"
-                                    data-testid="export-excel-coming-soon">
-                                <VppIcon Name="@VppIcons.Spreadsheet" />
-                                <span>@ExcelExportText</span>
-                            </button>
-                        </div>
-
                         @if (CanCreate && HasAvailableStoryAction)
                         {
                             <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">

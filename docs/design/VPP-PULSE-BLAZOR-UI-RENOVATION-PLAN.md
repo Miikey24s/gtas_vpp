@@ -1492,7 +1492,7 @@ Quyết định RBAC đã được owner chốt:
 
 Gate thiết kế mới:
 
-- [ ] Duyệt M0 — shell/design-system board bao gồm header, sidebar expanded/collapsed, user popup và interaction states.
+- [x] Duyệt M0 — shell/design-system board bao gồm header, sidebar expanded/collapsed, user popup và interaction states.
 - [x] Vòng đầu gồm 28 canonical desktop screens; loading/empty/filter-empty/error kế thừa shared templates và agent tự quyết định bản nháp đầu.
 - [x] Duyệt cơ chế Design Atlas: overview/contact sheet + full-resolution screens + global token controls để sửa đồng loạt.
 - [x] Chốt typography hybrid system-font/Poppins và phạm vi Dark-mode vòng đầu theo Section 6.7.
@@ -1501,7 +1501,20 @@ Gate thiết kế mới:
 - [x] M0 hiển thị đầy đủ hierarchy cha–con–cháu; M1 Login/Logout bám thiết kế account hiện tại; copy VI dùng ngữ cảnh nghiệp vụ thay vì dịch thô.
 - [ ] Chỉ sau M0 và board route tương ứng `APPROVED` mới refactor shared primitives rồi code route; chưa duyệt thì không mở rộng mutation UI production.
 
-Gate đang chờ hiện tại: tạo và owner review Design Atlas 28 màn hình cùng change-set My Orders/History/shared shell đang có trong working tree. RBAC non-production, Design Atlas workflow, typography và phạm vi mockup vòng đầu đã được chốt. Không stage/commit/hoàn tác các thay đổi hiện có chỉ vì plan mới. React không phải gate hiện tại.
+### 14.1 Checkpoint triển khai Atlas M0–M2
+
+Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
+
+- [x] M0: giữ một cây `InteractiveServer`, shell/navigation/provider hiện hành và token VPP Pulse; không thêm render boundary cục bộ.
+- [x] M1: Login, Register, Forgot/Reset/Change Password và Logout dùng chung `VppAccountShell`, form Radzen, validation và responsive state.
+- [x] M2 Catalog: bộ lọc nằm cùng card header; server paging dùng `Count + LoadData + Skip/Take`; bỏ cột trạng thái nhân viên và nút tải giả chưa có endpoint.
+- [x] M2 Order Create: header hai bước căn giữa; footer theo hierarchy `Quay lại | Lưu nháp → Ghi chú → Tiếp tục`; ghi chú đơn/mặt hàng dùng popover; catalog chọn mặt hàng dùng virtualization và không dùng pager.
+- [x] M2 My Orders/History: giữ selector current/supplement/previous, detail virtualization và history server paging; bỏ PDF/Excel disabled giả ở My Orders vì backend chưa có endpoint tương ứng.
+- [ ] Browser QA M0–M2 trên TEST/isolated fixture tại desktop, tablet và mobile. Lượt 2026-07-26 bị chặn trước khi mở route bởi Aspire Testing (`Service frontend-http should have valid address at this point`); không ghi nhận là UI pass/fail.
+
+Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
+
+Gate đang chờ hiện tại: hoàn tất browser QA M0–M2 trên Blazor thật, sau đó mới mở M3. RBAC non-production, Design Atlas workflow, typography và phạm vi mockup vòng đầu đã được chốt. Không stage/commit/hoàn tác các thay đổi Word hiện có. React không phải gate hiện tại.
 
 ---
 

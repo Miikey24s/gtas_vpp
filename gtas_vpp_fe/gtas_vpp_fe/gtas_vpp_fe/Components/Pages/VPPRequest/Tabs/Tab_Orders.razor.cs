@@ -115,8 +115,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string PreviousCycleSummaryTitle => PreviousOrders.Count == 0
             ? Loc["NoPreviousOrderYet"].Value
             : string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count);
-        public string PdfExportText => $"{Loc["Pdf"].Value} · {Loc["ComingSoon"].Value}";
-        public string ExcelExportText => $"{Loc["Excel"].Value} · {Loc["ComingSoon"].Value}";
         public string OrdersStoryDescription
         {
             get

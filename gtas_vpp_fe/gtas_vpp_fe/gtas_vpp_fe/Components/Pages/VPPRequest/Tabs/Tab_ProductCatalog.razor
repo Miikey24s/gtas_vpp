@@ -11,54 +11,45 @@
         }
         else
         {
-            <section class="vpp-catalog-toolbar" aria-label="@Loc["CatalogFilters"]">
-                <div class="vpp-catalog-filter-group">
-                    <label class="vpp-catalog-search">
-                        <VppIcon Name="search" />
-                        <input value="@SearchText"
-                               @oninput="OnSearchInput"
-                               placeholder="@Loc["SearchCatalogItems"]"
-                               aria-label="@Loc["SearchCatalogItems"]" />
-                    </label>
-
-                    <RadzenDropDown TValue="Guid?"
-                                    Data="@CategoryOptions"
-                                    TextProperty="Text"
-                                    ValueProperty="Value"
-                                    Value="@CategoryFilter"
-                                    Change="@OnCategoryChanged"
-                                    Placeholder="@Loc["AllCategories"]"
-                                    aria-label="@Loc["AllCategories"]"
-                                    class="vpp-catalog-select" />
-
-                    <RadzenDropDown TValue="string"
-                                    Data="@UnitOptions"
-                                    TextProperty="Text"
-                                    ValueProperty="Value"
-                                    Value="@UnitFilter"
-                                    Change="@OnUnitChanged"
-                                    Placeholder="@Loc["AllUnits"]"
-                                    aria-label="@Loc["AllUnits"]"
-                                    class="vpp-catalog-select" />
-                </div>
-
-                <div class="vpp-catalog-toolbar-actions">
-                    <button type="button" class="vpp-flat-action" @onclick="ClearFiltersAsync">
-                        <VppIcon Name="filter_alt_off" />
-                        <span>@Loc["ClearFilters"]</span>
-                    </button>
-                    <button type="button" class="vpp-flat-action" @onclick="ShowCatalogDownloadNotice">
-                        <VppIcon Name="download" />
-                        <span>@Loc["DownloadCatalog"]</span>
-                    </button>
-                </div>
-            </section>
-
             <section class="vpp-catalog-card" aria-labelledby="catalog-result-title">
                 <header class="vpp-catalog-card-header">
-                    <div>
+                    <div class="vpp-catalog-heading">
                         <h2 id="catalog-result-title">@Loc["AvailableCatalogItems", ProductCount]</h2>
                         <p>@Loc["CatalogReferenceDescription"]</p>
+                    </div>
+                    <div class="vpp-catalog-filter-group" aria-label="@Loc["CatalogFilters"]">
+                        <label class="vpp-catalog-search">
+                            <VppIcon Name="search" />
+                            <input value="@SearchText"
+                                   @oninput="OnSearchInput"
+                                   placeholder="@Loc["SearchCatalogItems"]"
+                                   aria-label="@Loc["SearchCatalogItems"]" />
+                        </label>
+
+                        <RadzenDropDown TValue="Guid?"
+                                        Data="@CategoryOptions"
+                                        TextProperty="Text"
+                                        ValueProperty="Value"
+                                        Value="@CategoryFilter"
+                                        Change="@OnCategoryChanged"
+                                        Placeholder="@Loc["AllCategories"]"
+                                        aria-label="@Loc["AllCategories"]"
+                                        class="vpp-catalog-select" />
+
+                        <RadzenDropDown TValue="string"
+                                        Data="@UnitOptions"
+                                        TextProperty="Text"
+                                        ValueProperty="Value"
+                                        Value="@UnitFilter"
+                                        Change="@OnUnitChanged"
+                                        Placeholder="@Loc["AllUnits"]"
+                                        aria-label="@Loc["AllUnits"]"
+                                        class="vpp-catalog-select" />
+
+                        <button type="button" class="vpp-flat-action" @onclick="ClearFiltersAsync">
+                            <VppIcon Name="filter_alt_off" />
+                            <span>@Loc["ClearFilters"]</span>
+                        </button>
                     </div>
                 </header>
 
@@ -120,9 +111,6 @@
                                     <Template Context="row">
                                         <span class="vpp-catalog-description" title="@row.Description">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
                                     </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="ProductItem" Title="@Loc["Status"]" Width="150px" TextAlign="TextAlign.Center" Sortable="false">
-                                    <Template Context="row"><span class="vpp-badge status-success">@Loc["InUse"]</span></Template>
                                 </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>

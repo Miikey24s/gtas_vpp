@@ -59,6 +59,85 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
+    public void M0_UsesOneGlobalInteractiveServerTree()
+    {
+        var app = ReadFrontendSource("Components/App.razor");
+
+        Assert.Contains("<HeadOutlet @rendermode=\"InteractiveServer\"", app, StringComparison.Ordinal);
+        Assert.Contains("<Routes @rendermode=\"InteractiveServer\"", app, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("Components/Pages/Authen/LoginPage.razor")]
+    [InlineData("Components/Pages/Authen/Register.razor")]
+    [InlineData("Components/Pages/Authen/ForgotPassword.razor")]
+    [InlineData("Components/Pages/Authen/ResetPassword.razor")]
+    [InlineData("Components/Pages/Authen/ChangePassword.razor")]
+    [InlineData("Components/Pages/Authen/Logout.razor")]
+    public void M1_AccountRoutesShareTheCanonicalAccountShell(string relativePath)
+    {
+        var source = ReadFrontendSource(relativePath);
+
+        Assert.Contains("<VppAccountShell", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("@rendermode", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void M2_CatalogKeepsFiltersInTheHeaderAndUsesServerPaging()
+    {
+        var catalog = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor");
+        var catalogCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor.cs");
+
+        var headerStart = catalog.IndexOf("<header class=\"vpp-catalog-card-header\">", StringComparison.Ordinal);
+        var headerEnd = catalog.IndexOf("</header>", headerStart, StringComparison.Ordinal);
+        var filterStart = catalog.IndexOf("vpp-catalog-filter-group", StringComparison.Ordinal);
+
+        Assert.True(headerStart >= 0 && headerEnd > headerStart && filterStart > headerStart && filterStart < headerEnd);
+        Assert.Contains("AllowPaging=\"true\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("Count=\"@ProductCount\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("LoadData=\"@LoadProductsAsync\"", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("DownloadCatalog", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("ShowCatalogDownloadNotice", catalogCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Title=\"@Loc[\"Status\"]\"", catalog, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void M2_OrderCreateUsesCenteredTwoStepHeaderAndAtlasFooterActions()
+    {
+        var page = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor");
+        var selection = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep2.razor");
+
+        Assert.Contains("vpp-order-flow-steps", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-flow-back", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-save-draft", page, StringComparison.Ordinal);
+        Assert.Contains("BackRequested=\"@GoBack\"", page, StringComparison.Ordinal);
+        Assert.Contains("SaveDraftRequested", page, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-action-back", selection, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-action-save", selection, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-action-note", selection, StringComparison.Ordinal);
+        Assert.Contains("popovertarget=\"@GetItemNotePopoverId(item)\"", selection, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", selection, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"false\"", selection, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void M2_OrderAndHistoryCollectionsKeepTheirDistinctDataContracts()
+    {
+        var orders = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_Orders.razor");
+        var history = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_History.razor");
+        var detail = ReadFrontendSource("Components/Pages/VPPRequest/Components/VppOrderWorkspacePanel.razor");
+
+        Assert.Contains("CurrentOrderViewIndex", orders, StringComparison.Ordinal);
+        Assert.Contains("SupplementOrderViewIndex", orders, StringComparison.Ordinal);
+        Assert.Contains("PreviousOrderViewIndex", orders, StringComparison.Ordinal);
+        Assert.DoesNotContain("export-pdf-coming-soon", orders, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"true\"", history, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", history, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"false\"", detail, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Aspire_KeepsThePausedReactPreviewOptIn()
     {
         var appHost = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "MyAspire.AppHost", "AppHost.cs"));

@@ -200,18 +200,6 @@ public partial class Tab_ProductCatalog : IDisposable
     private static string BuildUnitFilter(string value)
         => $"UomName == \"{value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
 
-    private void ShowCatalogDownloadNotice()
-    {
-        Toast.Notify(new NotificationMessage
-        {
-            Severity = NotificationSeverity.Info,
-            Summary = Loc["FeatureInDevelopment"],
-            Detail = Loc["CatalogDownloadComingSoon"],
-            Duration = 4000,
-            ShowProgress = true
-        });
-    }
-
     public void Dispose()
     {
         _searchDebounceCts?.Cancel();

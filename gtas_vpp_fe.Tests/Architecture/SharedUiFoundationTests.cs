@@ -501,8 +501,10 @@ public sealed class SharedUiFoundationTests
 
         Assert.Contains("vpp-orders-summary-grid", source, StringComparison.Ordinal);
         Assert.Contains("vpp-orders-story-commands", source, StringComparison.Ordinal);
-        Assert.Contains("export-pdf-coming-soon", source, StringComparison.Ordinal);
-        Assert.Contains("export-excel-coming-soon", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("export-pdf-coming-soon", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("export-excel-coming-soon", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("PdfExportText", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("ExcelExportText", codeBehind, StringComparison.Ordinal);
         Assert.Equal(3, source.Split("<VppOrderWorkspacePanel", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("<RadzenTabs", source, StringComparison.Ordinal);
         Assert.Contains("role=\"radiogroup\"", source, StringComparison.Ordinal);

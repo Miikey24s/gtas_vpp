@@ -663,7 +663,7 @@
   <data name="FeatureInDevelopment" xml:space="preserve"><value>Feature in development</value></data>
   <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Catalog download will be available in a future release.</value></data>
   <data name="Add" xml:space="preserve"><value>Add</value></data>
-  <data name="ContinueReview" xml:space="preserve"><value>Continue to review</value></data>
+  <data name="ContinueReview" xml:space="preserve"><value>Continue</value></data>
   <data name="DecreaseQuantity" xml:space="preserve"><value>Decrease quantity</value></data>
   <data name="Draft" xml:space="preserve"><value>Draft</value></data>
   <data name="IncreaseQuantity" xml:space="preserve"><value>Increase quantity</value></data>

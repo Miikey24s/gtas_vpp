@@ -16,11 +16,6 @@
     {
         <div class="vpp-wizard vpp-order-create-page">
             <header class="vpp-order-flow-header" aria-label="@Loc["OrderCreationSteps"]">
-                <button type="button" class="vpp-order-flow-back" @onclick="GoBack">
-                    <VppIcon Name="arrow_back" />
-                    <span>@Loc["BackToOrders"]</span>
-                </button>
-
                 <ol class="vpp-order-flow-steps">
                     <li class="@(currentStep == 0 ? "is-active" : "is-complete")">
                         <button type="button" @onclick="() => GoToStep(0)" aria-current="@(currentStep == 0 ? "step" : null)">
@@ -35,14 +30,6 @@
                         </button>
                     </li>
                 </ol>
-
-                @if (!IsEdit)
-                {
-                    <button type="button" class="vpp-order-save-draft" @onclick="async () => await SaveDraftAsync(true)">
-                        <VppIcon Name="save" />
-                        <span>@Loc["SaveDraft"]</span>
-                    </button>
-                }
             </header>
 
             @if (!CanSubmitForPeriod)
@@ -57,6 +44,9 @@
                 @if (currentStep == 0)
                 {
                     <OrderCreateStep2 TargetPeriodLabel="@TargetPeriodText"
+                                      BackRequested="@GoBack"
+                                      SaveDraftRequested="@(async () => await SaveDraftAsync(true))"
+                                      CanSaveDraft="@(!IsEdit)"
                                       NextRequested="@GoNextStepAsync" />
                 }
                 else

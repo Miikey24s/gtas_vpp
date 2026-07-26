@@ -121,7 +121,7 @@
                 <span>@Loc["ItemName"]</span>
                 <span>@Loc["QuantityShort"]</span>
                 <span>@Loc["UOM"]</span>
-                <span></span>
+                <span>@Loc["Actions"]</span>
             </div>
 
             @if (Context.SelectedItems.Count == 0)
@@ -149,33 +149,47 @@
                                     <button type="button" @onclick="() => ChangeQuantity(item, 1)" aria-label="@Loc["IncreaseQuantity"]">+</button>
                                 </div>
                                 <span class="vpp-order-draft-unit">@item.UomName</span>
-                                <button type="button"
-                                        class="vpp-order-draft-remove"
-                                        title="@Loc["RemoveItemFromOrder"]"
-                                        aria-label="@Loc["RemoveItemFromOrder"]"
-                                        @onclick="() => RemoveItemAsync(item)">
-                                    <VppIcon Name="close" />
-                                </button>
+                                <div class="vpp-order-draft-item-actions">
+                                    <button type="button"
+                                            class="vpp-order-draft-note"
+                                            popovertarget="@GetItemNotePopoverId(item)"
+                                            title="@Loc["ItemNote"]"
+                                            aria-label="@($"{Loc["ItemNote"]}: {GetItemLabel(item)}")">
+                                        <VppIcon Name="edit_note" />
+                                    </button>
+                                    <button type="button"
+                                            class="vpp-order-draft-remove"
+                                            title="@Loc["RemoveItemFromOrder"]"
+                                            aria-label="@Loc["RemoveItemFromOrder"]"
+                                            @onclick="() => RemoveItemAsync(item)">
+                                        <VppIcon Name="close" />
+                                    </button>
+                                </div>
                             </div>
-                            <label class="vpp-order-item-note">
-                                <span>@Loc["ItemNote"]</span>
-                                <input value="@item.Description"
-                                       @oninput="args => UpdateItemNote(item, args.Value?.ToString())"
-                                       maxlength="500"
-                                       placeholder="@Loc["ItemNotePlaceholder"]" />
-                            </label>
+                            <div id="@GetItemNotePopoverId(item)"
+                                 class="vpp-order-note-popover"
+                                 popover="auto">
+                                <header>
+                                    <div>
+                                        <strong>@Loc["ItemNote"]</strong>
+                                        <span>@GetItemLabel(item)</span>
+                                    </div>
+                                    <button type="button"
+                                            popovertarget="@GetItemNotePopoverId(item)"
+                                            popovertargetaction="hide"
+                                            aria-label="@Loc["Close"]">
+                                        <VppIcon Name="close" />
+                                    </button>
+                                </header>
+                                <textarea value="@item.Description"
+                                          @oninput="args => UpdateItemNote(item, args.Value?.ToString())"
+                                          maxlength="500"
+                                          placeholder="@Loc["ItemNotePlaceholder"]"></textarea>
+                            </div>
                         </article>
                     }
                 </div>
             }
-
-            <label class="vpp-order-note-field">
-                <span>@OrderNoteLabel</span>
-                <textarea value="@OrderNote"
-                          @oninput="args => UpdateOrderNote(args.Value?.ToString())"
-                          maxlength="500"
-                          placeholder="@OrderNotePlaceholder"></textarea>
-            </label>
 
             <div class="vpp-order-draft-summary">
                 <span>@Loc["ItemsCount", Context.SelectedItems.Count]</span>
@@ -183,12 +197,50 @@
             </div>
 
             <footer class="vpp-order-draft-actions">
-                <RadzenButton Icon="arrow_forward"
-                              Text="@Loc["ContinueReview"]"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Disabled="@(!CanContinue)"
-                              Click="@(async _ => await NextRequested.InvokeAsync())" />
+                <button type="button" class="vpp-order-action-back" @onclick="async () => await BackRequested.InvokeAsync()">
+                    <VppIcon Name="arrow_back" />
+                    <span>@Loc["Previous"]</span>
+                </button>
+                <div class="vpp-order-draft-actions-right">
+                    @if (CanSaveDraft)
+                    {
+                        <button type="button" class="vpp-order-action-save" @onclick="async () => await SaveDraftRequested.InvokeAsync()">
+                            <VppIcon Name="save" />
+                            <span>@Loc["SaveDraft"]</span>
+                        </button>
+                    }
+                    <button type="button"
+                            class="vpp-order-action-note"
+                            popovertarget="@OrderNotePopoverId">
+                        <VppIcon Name="edit_note" />
+                        <span>@Loc["Note"]</span>
+                    </button>
+                    <RadzenButton Icon="arrow_forward"
+                                  Text="@Loc["ContinueReview"]"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Disabled="@(!CanContinue)"
+                                  Click="@(async _ => await NextRequested.InvokeAsync())" />
+                </div>
             </footer>
+
+            <div id="@OrderNotePopoverId" class="vpp-order-note-popover vpp-order-note-popover--order" popover="auto">
+                <header>
+                    <div>
+                        <strong>@OrderNoteLabel</strong>
+                        <span>@Loc["OrderBeingCreated"]</span>
+                    </div>
+                    <button type="button"
+                            popovertarget="@OrderNotePopoverId"
+                            popovertargetaction="hide"
+                            aria-label="@Loc["Close"]">
+                        <VppIcon Name="close" />
+                    </button>
+                </header>
+                <textarea value="@OrderNote"
+                          @oninput="args => UpdateOrderNote(args.Value?.ToString())"
+                          maxlength="500"
+                          placeholder="@OrderNotePlaceholder"></textarea>
+            </div>
         </aside>
     </div>
 </div>
@@ -196,6 +248,9 @@
 @code {
     [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
     [Parameter] public EventCallback NextRequested { get; set; }
+    [Parameter] public EventCallback BackRequested { get; set; }
+    [Parameter] public EventCallback SaveDraftRequested { get; set; }
+    [Parameter] public bool CanSaveDraft { get; set; }
     [Parameter] public string TargetPeriodLabel { get; set; } = string.Empty;
     [Inject] public IAPIServices ApiServices { get; set; } = default!;
 
@@ -227,6 +282,9 @@
 
     private int _currentSkip;
     private CancellationTokenSource? _searchDebounceCts;
+    private readonly string _instanceId = Guid.NewGuid().ToString("N");
+
+    private string OrderNotePopoverId => $"vpp-order-note-{_instanceId}";
 
     private bool CanContinue => Context.SelectedItems.Count > 0
         && (!Context.IsAdditional || (!string.IsNullOrWhiteSpace(Context.SupplementReason) && Context.SupplementReason.Trim().Length >= 5));
@@ -435,6 +493,9 @@
 
     private static string GetItemLabel(OrderCreateContext.SelectedItem item)
         => !string.IsNullOrWhiteSpace(item.VppName) ? item.VppName : item.VppCode ?? string.Empty;
+
+    private string GetItemNotePopoverId(OrderCreateContext.SelectedItem item)
+        => $"vpp-item-note-{_instanceId}-{item.VppId:N}";
 
     public void Dispose()
     {
