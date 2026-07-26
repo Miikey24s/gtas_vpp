@@ -13,7 +13,7 @@
                                Min="2024"
                                Max="2030"
                                InputAttributes="@(new Dictionary<string, object> { ["aria-label"] = Loc["Year"].Value })"
-                               Disabled="@(isLoading || isSettling)"
+                               Disabled="@isLoading"
                                Style="width:100%" />
             </RadzenFormField>
 
@@ -22,19 +22,60 @@
                                 Data="@months"
                                 Value="@selectedMonth"
                                 ValueChanged="@OnMonthChangedAsync"
-                                Disabled="@(isLoading || isSettling)"
+                                Disabled="@isLoading"
                                 Style="width:100%" />
             </RadzenFormField>
 
             <RadzenButton Icon="refresh"
                           Text="@Loc["Reload"]"
                           ButtonStyle="ButtonStyle.Light"
-                          Disabled="@(isLoading || isSettling)"
+                          Disabled="@isLoading"
                           Click="@ReloadPeriodAsync" />
         </RadzenStack>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(alertMessage))
+    @* Atlas period-review: hero tóm tắt trạng thái chốt + readiness list nêu đích danh
+       từng điều kiện thay vì một alert gộp. *@
+    @if (periodStatus is not null)
+    {
+        <section class="vpp-period-hero @HeroStateClass" aria-labelledby="period-hero-title">
+            <div class="vpp-period-hero-main">
+                <span class="vpp-period-hero-eyebrow">@string.Format(Loc["DepartmentPeriodMetaFormat"].Value, $"{selectedMonth:00}/{selectedYear}")</span>
+                <h3 id="period-hero-title">@HeroTitle</h3>
+                <p>@HeroMeta</p>
+            </div>
+            <ul class="vpp-period-readiness" aria-label="@Loc["SettleReadinessAria"]">
+                <li class="@(periodStatus.PendingAdditionalCount == 0 ? "is-pass" : "is-fail")">
+                    <span class="rzi @(periodStatus.PendingAdditionalCount == 0 ? "rzi-check-circle" : "rzi-error")" aria-hidden="true"></span>
+                    @(periodStatus.PendingAdditionalCount == 0
+                        ? Loc["ReviewNoPendingSupplements"]
+                        : string.Format(Loc["ReviewPendingSupplementsFormat"].Value, periodStatus.PendingAdditionalCount))
+                </li>
+                <li class="@(totalCount > 0 ? "is-pass" : "is-fail")">
+                    <span class="rzi @(totalCount > 0 ? "rzi-check-circle" : "rzi-error")" aria-hidden="true"></span>
+                    @(totalCount > 0
+                        ? string.Format(Loc["ReviewValidOrdersFormat"].Value, totalCount)
+                        : Loc["ReviewNoValidOrders"])
+                </li>
+                @if (periodStatus.IsSettled)
+                {
+                    <li class="is-info">
+                        <span class="rzi rzi-lock" aria-hidden="true"></span>
+                        @string.Format(Loc["Info_AlreadySettled"], DateFormatter.Format(periodStatus.SettledAt, DateFormatter.LongDate), periodStatus.SettledByUserName ?? "-", periodStatus.PriceListName ?? "-")
+                    </li>
+                }
+            </ul>
+            @if (periodStatus.PendingAdditionalCount > 0)
+            {
+                <RadzenButton Icon="approval"
+                              Text="@Loc["ReviewOpenApprovals"]"
+                              ButtonStyle="ButtonStyle.Warning"
+                              Click="@OpenApprovalsAsync"
+                              class="vpp-period-hero-action" />
+            }
+        </section>
+    }
+    else if (!string.IsNullOrWhiteSpace(alertMessage))
     {
         <div class="vpp-settle-alert vpp-alert-@alertStyle.ToString().ToLower()">
             <span class="vpp-settle-alert-icon rzi @(alertStyle == AlertStyle.Danger ? "rzi-error" : alertStyle == AlertStyle.Warning ? "rzi-warning" : "rzi-info")"></span>

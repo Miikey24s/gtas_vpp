@@ -810,4 +810,15 @@
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Continue to settlement</value></data>
   <data name="PeriodSupplyTitle" xml:space="preserve"><value>Supply selection</value></data>
   <data name="PeriodSupplyDescription" xml:space="preserve"><value>Pick the primary supplier, check effective price-list coverage and declare reasoned exceptions for the gap.</value></data>
+  <data name="ReviewHeroReady" xml:space="preserve"><value>Ready to settle</value></data>
+  <data name="ReviewHeroReadyMeta" xml:space="preserve"><value>All conditions pass — continue to demand pooling and supply selection.</value></data>
+  <data name="ReviewHeroBlocked" xml:space="preserve"><value>Cannot settle yet</value></data>
+  <data name="ReviewHeroBlockedMeta" xml:space="preserve"><value>Blocking conditions remain before you can continue.</value></data>
+  <data name="ReviewHeroSettled" xml:space="preserve"><value>Period settled</value></data>
+  <data name="ReviewHeroSettledMeta" xml:space="preserve"><value>Period data is stored immutably; changes require a correction revision.</value></data>
+  <data name="ReviewNoPendingSupplements" xml:space="preserve"><value>No supplement orders awaiting approval.</value></data>
+  <data name="ReviewPendingSupplementsFormat" xml:space="preserve"><value>{0} supplement orders awaiting approval are blocking settlement.</value></data>
+  <data name="ReviewValidOrdersFormat" xml:space="preserve"><value>{0} current valid orders in the period.</value></data>
+  <data name="ReviewNoValidOrders" xml:space="preserve"><value>The period has no valid orders to aggregate yet.</value></data>
+  <data name="ReviewOpenApprovals" xml:space="preserve"><value>Open supplement approvals</value></data>
 </root>

@@ -810,4 +810,15 @@
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Tiếp tục chốt kỳ</value></data>
   <data name="PeriodSupplyTitle" xml:space="preserve"><value>Chọn nguồn cung</value></data>
   <data name="PeriodSupplyDescription" xml:space="preserve"><value>Chọn nhà cung cấp chính, kiểm tra độ phủ bảng giá còn hiệu lực và khai báo ngoại lệ có lý do cho phần thiếu.</value></data>
+  <data name="ReviewHeroReady" xml:space="preserve"><value>Sẵn sàng chốt kỳ</value></data>
+  <data name="ReviewHeroReadyMeta" xml:space="preserve"><value>Mọi điều kiện đã đạt — tiếp tục sang bước Gom nhu cầu và Chọn nguồn cung.</value></data>
+  <data name="ReviewHeroBlocked" xml:space="preserve"><value>Chưa thể chốt kỳ</value></data>
+  <data name="ReviewHeroBlockedMeta" xml:space="preserve"><value>Còn điều kiện ngăn chốt cần xử lý trước khi tiếp tục.</value></data>
+  <data name="ReviewHeroSettled" xml:space="preserve"><value>Kỳ đã chốt</value></data>
+  <data name="ReviewHeroSettledMeta" xml:space="preserve"><value>Dữ liệu kỳ đã được lưu bất biến; thay đổi phải qua phiên bản hiệu chỉnh.</value></data>
+  <data name="ReviewNoPendingSupplements" xml:space="preserve"><value>Không còn đơn bổ sung chờ duyệt.</value></data>
+  <data name="ReviewPendingSupplementsFormat" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt đang chặn chốt kỳ.</value></data>
+  <data name="ReviewValidOrdersFormat" xml:space="preserve"><value>{0} đơn hợp lệ hiện hành trong kỳ.</value></data>
+  <data name="ReviewNoValidOrders" xml:space="preserve"><value>Kỳ chưa có đơn hợp lệ để tổng hợp.</value></data>
+  <data name="ReviewOpenApprovals" xml:space="preserve"><value>Mở màn duyệt đơn bổ sung</value></data>
 </root>

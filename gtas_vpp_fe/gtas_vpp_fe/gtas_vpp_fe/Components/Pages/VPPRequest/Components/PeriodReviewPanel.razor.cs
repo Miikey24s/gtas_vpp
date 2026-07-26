@@ -22,17 +22,46 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private readonly List<int> months = Enumerable.Range(1, 12).ToList();
         private readonly HashSet<Guid> loadedDetailOrderIds = new();
         private readonly HashSet<Guid> loadingDetailOrderIds = new();
-        private List<PriceListResDTO> priceLists = [];
         private List<VppRequestResDTO> orders = [];
-        private Guid? selectedPriceListId;
+        private PeriodSettlementResDTO? periodStatus;
         private int selectedYear = 2024;
         private int selectedMonth = 1;
-        private bool canSettle;
         private bool isLoading = true;
         private bool isGridLoading;
-        private bool isSettling;
         private string? alertMessage;
         private AlertStyle alertStyle = AlertStyle.Info;
+
+        [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+        private string HeroStateClass => periodStatus switch
+        {
+            null => string.Empty,
+            { IsSettled: true } => "is-settled",
+            { PendingAdditionalCount: > 0 } => "is-blocked",
+            _ => "is-ready"
+        };
+
+        private string HeroTitle => periodStatus switch
+        {
+            null => string.Empty,
+            { IsSettled: true } => Loc["ReviewHeroSettled"].Value,
+            { PendingAdditionalCount: > 0 } => Loc["ReviewHeroBlocked"].Value,
+            _ => Loc["ReviewHeroReady"].Value
+        };
+
+        private string HeroMeta => periodStatus switch
+        {
+            null => string.Empty,
+            { IsSettled: true } => Loc["ReviewHeroSettledMeta"].Value,
+            { PendingAdditionalCount: > 0 } => Loc["ReviewHeroBlockedMeta"].Value,
+            _ => Loc["ReviewHeroReadyMeta"].Value
+        };
+
+        private Task OpenApprovalsAsync()
+        {
+            NavigationManager.NavigateTo("/dashboard?tab=5&periodTab=pending");
+            return Task.CompletedTask;
+        }
         private int totalCount;
         private int totalLines;
         private int totalQty;
@@ -43,46 +72,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         private string? currentOrderByExpression;
         private IReadOnlyList<FilterDescriptor> currentFilters = [];
 
-        private string SettlePeriodTitle
-        {
-            get
-            {
-                if (isLoading)
-                {
-                    return Loc["CheckingPeriodStatus"].Value;
-                }
-
-                if (isSettling)
-                {
-                    return Loc["Loading"].Value;
-                }
-
-                if (!canSettle && !string.IsNullOrWhiteSpace(alertMessage))
-                {
-                    return alertMessage;
-                }
-
-                return Loc["SettlePeriod"].Value;
-            }
-        }
-
         protected override async Task OnInitializedAsync()
         {
-            await LoadPriceListsAsync();
             await LoadDefaultPeriodAsync();
             await ReloadPeriodAsync();
-        }
-
-        private async Task LoadPriceListsAsync()
-        {
-            try
-            {
-                priceLists = await ApiServices.GetFromApiAsync<List<PriceListResDTO>>(Config.LibraryApi.PriceList) ?? [];
-            }
-            catch (Exception ex)
-            {
-                SetAlert(AlertStyle.Warning, UiErrorMapper.GetMessage(ex, Loc));
-            }
         }
 
         private async Task LoadDefaultPeriodAsync()
@@ -116,38 +109,16 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             }
             catch (Exception ex)
             {
-                canSettle = false;
                 SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
             }
         }
 
         private void ApplyStatus(PeriodSettlementResDTO? status)
         {
+            periodStatus = status;
             if (status is null)
             {
-                canSettle = false;
                 SetAlert(AlertStyle.Warning, Loc["Error"].Value);
-                return;
-            }
-
-            if (status.PendingAdditionalCount > 0)
-            {
-                canSettle = false;
-                SetAlert(AlertStyle.Warning, string.Format(Loc["Warning_PendingAdditional"], status.PendingAdditionalCount));
-                return;
-            }
-
-            canSettle = true;
-            if (status.IsSettled)
-            {
-                canSettle = false;
-                SetAlert(
-                    AlertStyle.Info,
-                    string.Format(
-                        Loc["Info_AlreadySettled"],
-                        DateFormatter.Format(status.SettledAt, DateFormatter.LongDate),
-                        status.SettledByUserName ?? "-",
-                        status.PriceListName ?? "-"));
                 return;
             }
 
@@ -280,54 +251,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             await ReloadPeriodAsync();
         }
 
-        private Task OnPriceListChangedAsync(Guid? value)
-        {
-            selectedPriceListId = value;
-            return Task.CompletedTask;
-        }
-
-        private async Task SettleAsync()
-        {
-            var priceListName = selectedPriceListId.HasValue
-                ? priceLists.FirstOrDefault(x => x.Id == selectedPriceListId.Value)?.PriceListName ?? selectedPriceListId.Value.ToString()
-                : Loc["PriceList_UseDefault"].Value;
-
-            var confirmed = await DialogService.Confirm(
-                string.Format(Loc["Confirm_Settle"], selectedMonth, selectedYear, priceListName),
-                Loc["PeriodSettlement"],
-                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
-
-            if (confirmed != true)
-            {
-                return;
-            }
-
-            isSettling = true;
-            try
-            {
-                await ApiServices.PostFromApiAsync<PeriodSettlementResDTO>(
-                    Config.RequestApi.PeriodSettlement.Settle,
-                    new PeriodSettlementReqDTO
-                    {
-                        Year = selectedYear,
-                        Month = selectedMonth,
-                        PriceListId = selectedPriceListId
-                    });
-
-                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
-                await LoadSettlementStatusAsync();
-                await LoadOrdersAsync(firstLoad: true);
-                await OnSettled.InvokeAsync();
-            }
-            catch (Exception ex)
-            {
-                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
-            }
-            finally
-            {
-                isSettling = false;
-            }
-        }
+        // D23: đường chốt kỳ cũ POST /settle (không snapshot, không InputHash/idempotency)
+        // đã gỡ khỏi màn rà soát — chốt kỳ chỉ đi qua PeriodSettlementPanel (bước 4, D4).
 
         private async Task OnRowExpandAsync(VppRequestResDTO row)
         {

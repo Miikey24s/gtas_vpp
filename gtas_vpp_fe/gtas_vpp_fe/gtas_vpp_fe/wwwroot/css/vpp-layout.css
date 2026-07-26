@@ -1354,6 +1354,76 @@ leftsidebar {
     text-align: center;
 }
 
+/* Atlas period-review: hero trạng thái chốt + readiness list nêu đích danh nguyên nhân. */
+.vpp-period-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-4);
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-period-hero.is-ready { border-color: color-mix(in srgb, var(--vpp-success) 45%, var(--vpp-border-default)); }
+.vpp-period-hero.is-blocked { border-color: color-mix(in srgb, var(--vpp-warning) 55%, var(--vpp-border-default)); }
+.vpp-period-hero.is-settled { border-color: color-mix(in srgb, var(--vpp-info) 45%, var(--vpp-border-default)); }
+
+.vpp-period-hero-main {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.vpp-period-hero-eyebrow {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-period-hero-main h3 {
+    margin: 0;
+    font-size: var(--vpp-text-xl);
+}
+
+.vpp-period-hero-main p {
+    margin: 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-period-readiness {
+    display: grid;
+    flex: 1 1 320px;
+    gap: var(--vpp-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vpp-period-readiness li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--vpp-space-2);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-period-readiness .rzi {
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+    font-size: 1rem;
+}
+
+.vpp-period-readiness li.is-pass .rzi { color: var(--vpp-success); }
+.vpp-period-readiness li.is-fail .rzi { color: var(--vpp-danger); }
+.vpp-period-readiness li.is-info .rzi { color: var(--vpp-info); }
+
+.vpp-period-hero-action {
+    flex: 0 0 auto;
+}
+
 /* Atlas supply-allocation: khóa bảng giá dẫn xuất, khối độ phủ, panel ngoại lệ. */
 .vpp-supply-pricelist-lock {
     display: flex;
