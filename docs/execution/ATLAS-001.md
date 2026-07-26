@@ -213,6 +213,78 @@ Wave nặng nhất, làm theo đúng thứ tự bước nghiệp vụ:
 
 Sau wave này, thanh điều hướng kỳ hiển thị đủ 4 bước như Atlas `periodFlowNav`.
 
+**Tiến độ 2026-07-27 — W-D.1 phân tích xong** (workflow 35 agent: 6 reader + 29 verifier,
+30 MUST_FIX đều CONFIRMED kèm dẫn chứng file:dòng hai phía; log đầy đủ trong scratchpad phiên).
+Điểm nặng nhất theo màn: `department-summary` (toolbar lọc kiểu Atlas chưa có — bộ lọc năm đang
+chạy ngầm không render control; sai nhãn/thiếu cột; aside chưa đạt orderDetailSheet + thiếu nút
+xuất D10); `supplement-approval` (Tab_AdminApproval gộp 2 màn không liên quan — phải chẻ theo
+pattern C-7, sort mặc định phải là chờ-lâu-nhất-trước, copy hardcode); `period-review` (thiếu
+readiness list nêu đích danh nguyên nhân + period-hero, periodFlowNav mới là bản tĩnh, còn đường
+settle cũ chết trong PeriodReviewPanel); `period-demand` (màn mới: endpoint D7 phải dùng predicate
+"đơn hợp lệ hiện hành" của PreviewAsync, KHÔNG dùng GetAllOrdersAsync; gỡ tab nav cũ ở 6 vị trí
+code + ledger + 3 chỗ E2E); `supply-allocation` (đảo thứ tự chọn nguồn: NCC trước → bảng giá
+read-only — hiện preview không bao giờ gửi PrimarySupplierId; panel ngoại lệ chưa có dù backend đủ
+hai chiều; DescribeBlocker thiếu 8 mã); `settlement-flow` (sau tách chỉ còn 4 vùng Atlas; đồng bộ
+copy "Đóng kỳ"→"Chốt kỳ"; thêm alert bất biến snapshot + readiness checklist).
+
+Quyết định trong phạm vi ủy quyền design (AI tự quyết theo tiền lệ D11–D15, owner có thể phủ
+quyết từng mục):
+
+| # | Quyết định | Lý do |
+|---|---|---|
+| D17 | `period-demand` v1 **không render giá** (UnitPrice/TotalPrice/TotalAmount của `AggregatedVppResDTO` để 0) | Giá thuộc bước Chọn nguồn cung theo D4; endpoint D7 giữ đúng "chỉ đọc, gom số lượng" |
+| D18 | Chế độ "Theo đơn" của `period-demand` theo **D8** (tái dùng grid Tab_AllOrdersSummary theo từng đơn), không theo bảng trái gom-theo-phòng-ban của Atlas | D8 là quyết định owner, thắng Atlas theo thứ tự thẩm quyền; ghi retrofit Atlas |
+| D19 | `period-review` v1 **bỏ hàng readiness "Còn phòng ban chưa hoàn tất"** | Backend không có gate lẫn endpoint; render số giả sẽ đánh lừa người chốt kỳ. Ghi retrofit Atlas |
+| D20 | Grid "đơn toàn kỳ" trong màn rà soát **thu gọn thành bảng blocker đích danh** | Vai trò duyệt-toàn-kỳ đã thuộc chế độ "Theo đơn" của `period-demand` (D2/D8) |
+| D21 | `department-summary` giữ 3 KPI hiện có (bỏ thẻ "Nhân sự" của Atlas), kỳ chọn bằng select năm/tháng render trong toolbar | Endpoint không trả roster; historyScope chip đòi range mà backend chỉ nhận year+month đơn lẻ. Ghi retrofit Atlas |
+| D22 | `supplement-approval` **giữ hàng KPI 3 thẻ** như ALLOWED_DIFF | Dữ liệu thật, có ích cho người duyệt; E2E đang bám. Atlas không vẽ nhưng không mâu thuẫn nghiệp vụ |
+| D23 | Gỡ đường settle cũ (POST `/settle` không snapshot/InputHash) khỏi `PeriodReviewPanel` — chỉ gỡ code FE chết, backend giữ nguyên | Trái D4 (chốt kỳ là bước 4); trùng lặp PeriodSettlementPanel; đã kiểm chứng là không còn lối vào UI hợp lệ |
+
+[OWNER-GATE còn treo] (không chặn W-D, chỉ chặn phần hiển thị tương ứng): (a) hiển thị "còn x/3"
+quota bổ sung cho người duyệt cần mở rộng DTO hàng chờ — ngoài phạm vi D7; (b) cột Đơn giá per-item
+ở bảng "Đối chiếu giá theo nhu cầu" — phương án join `GET /api/vppprice/item-prices` (policy
+LibraryView) hay chỉ hiện giá cho dòng Ngoại lệ, sẽ chọn theo quyền persona lúc triển khai và ghi lại.
+
+**Tiến độ 2026-07-27 (tối) — W-D triển khai xong phần chính** (commit `332370f`…`6af4ca7`):
+
+1. Sửa regression C-7: script `::deep` chèn nhầm vào comment CSS làm compiler bỏ rule
+   `display:grid` của bảng history — bảng tràn ngang 1366×768 (commit `332370f`, kèm gia cố
+   2 flake E2E theo R-0.5).
+2. `department-summary` (W-D.1, `8b569b5`): toolbar lọc kiểu Atlas (search Dynamic LINQ +
+   loại đơn + trạng thái + kỳ render được), cột theo Atlas (Họ tên, Loại đơn badge, bỏ cột
+   Phòng ban), aside đạt orderDetailSheet (kicker + xuất PDF/Excel D10 + totals + note +
+   items có lọc), gỡ expand-row trùng.
+3. `supplement-approval` (W-D.2a, `f15e95e`): aside orderDetailSheet + badge trạng thái động,
+   copy hardcode → resx, nhãn "Người đặt", sort mặc định chờ-lâu-nhất-trước.
+4. Backend D7 (W-D.4a, `6ab0d41`): `GET /api/VPPRequest/period-demand` — predicate đúng của
+   PreviewAsync, scope company, giá = 0 (D17); 2 unit test mới (422 BE pass).
+5. `period-demand` (W-D.4b, `a419f6c`): màn mới `tab=5&periodTab=demand`, 4 KPI + bảng gom
+   + expand truy vết nguồn; 2 chế độ xem theo D8 (Theo mặt hàng / Theo đơn tái dùng
+   Tab_AllOrdersSummary); gỡ nav + tab "Tổng hợp toàn công ty" (D2), redirect URL cũ;
+   periodFlowNav thành nút điều hướng thật (D4).
+6. `supply-allocation` (W-D.5, `c7e5fb4`): màn mới `periodTab=supply` — NCC trước → bảng giá
+   read-only (preview gửi PrimarySupplierId, trước đây không bao giờ gửi), khối độ phủ bind
+   field thật, panel ngoại lệ NCC thay thế + lý do bắt buộc (backend đã đủ 2 chiều),
+   PeriodSettlementState giữ snapshot cho bước 4.
+7. `settlement-flow` (W-D.6a/b, `e5e8803`+`6af4ca7`): copy "Đóng kỳ"→"Chốt kỳ" toàn resx,
+   readiness checklist + cam kết bất biến trước nút chốt, DescribeBlocker phủ đủ 13 mã.
+8. `period-review` (W-D.3 + D23, `274761f`): period-hero 3 trạng thái + readiness list nêu
+   đích danh nguyên nhân + nút mở màn duyệt; gỡ đường settle cũ POST /settle khỏi FE.
+
+Còn treo trong W-D: chẻ Tab_AdminApproval theo pattern C-7 (hoãn thành lát R-2 sau khi màn
+ổn định — markup aside đã theo chuẩn sheet); bảng "Đối chiếu giá theo nhu cầu" per-item
+(OWNER-GATE phương án join item-prices). Route ledger: period-demand + supply-allocation đổi
+từ **D — chưa có** sang **đã có route thật**.
+
+**Retrofit queue W-D (sửa ngược Atlas, chờ owner duyệt):** cột "Kiểm tra" (Đủ dữ liệu/Cần kiểm tra)
+của period-demand không có field backend; fixture department-summary dùng trạng thái "Nháp"/"Chưa tạo"
+không tồn tại trong VppStatusContract (hàng "Chưa tạo" còn có mã đơn — mâu thuẫn nội tại); aside vẽ
+tên phòng ban đầy đủ nhưng DTO chỉ có mã (trùng mục W-C); copy approval "Hạn mức còn lại: 38 sản
+phẩm" + trạng thái "Cần làm rõ" không tồn tại nghiệp vụ; Atlas settlement thiếu biến thể đã-chốt/
+hiệu-chỉnh (không vẽ lịch sử phiên bản, form bốn mắt); Atlas vẽ "Ghi chú chốt kỳ" nhưng
+SettlementConfirmReqDTO không có trường note; bảng trái period-demand gom theo phòng ban (thay bằng
+chế độ Theo đơn theo D8/D18).
+
 ### W-E — M5A + M5B thư viện dữ liệu (7 màn, gap B)
 
 7 tab `/library` dùng chung một workspace: bảng chính + inspector + drawer thêm/sửa. Trạng thái quản trị
