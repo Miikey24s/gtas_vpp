@@ -5,6 +5,15 @@ file đó, không tạo bộ quy tắc song song.
 
 @AGENTS.md
 
+## Khi compact/tóm tắt hội thoại
+
+Luôn giữ lại trong bản tóm tắt: (1) mục tiêu task đang làm và task id trong task list;
+(2) danh sách file đã sửa chưa commit; (3) các quyết định owner đã chốt trong phiên
+(kèm số D/R-D nếu đã ghi vào decision log); (4) lệnh build/test đang dùng và kết quả
+gate gần nhất; (5) các background task/agent đang chạy kèm task id. Trạng thái dài hạn
+đọc lại từ: `docs/execution/ATLAS-001.md`, `docs/execution/REFACTOR-001.md`, task list,
+và auto-memory — không cần chép lại nội dung các file đó vào tóm tắt.
+
 ## Tài liệu bắt buộc đọc trước khi sửa
 
 - UI Blazor/Radzen (`gtas_vpp_fe/`): `.codexrules`, `.github/copilot-instructions.md`,
