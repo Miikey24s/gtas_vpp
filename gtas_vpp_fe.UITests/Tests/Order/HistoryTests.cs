@@ -112,19 +112,64 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
     public async Task Employee_CanOpenSeededRequestHistoryFromHistoryTab()
     {
         await LoginAsAsync(TestAccounts.Employee);
+
+        // Cửa sổ skeleton co giãn theo độ ấm của backend — giữa suite có thể sống dưới
+        // một frame nên poll visibility không bắt được. Gài MutationObserver TRƯỚC điều
+        // hướng để ghi nhận skeleton từng tồn tại trong DOM (kể cả trạng thái dưới frame)
+        // rồi assert trên bằng chứng ghi lại; phạm vi kiểm loading-line phủ TOÀN BỘ cửa
+        // sổ tải thay vì một thời điểm — không yếu hơn assertion cũ.
+        await Page.AddInitScriptAsync(
+            """
+            window.__historyLoadingProbe = { skeletonKpiMax: 0, wrapperSeen: false, loadingLineSeen: false };
+            const recordHistoryLoading = () => {
+                const probe = window.__historyLoadingProbe;
+                const wrapper = document.querySelector('.vpp-history-loading-state');
+                if (wrapper) {
+                    probe.wrapperSeen = true;
+                    probe.skeletonKpiMax = Math.max(
+                        probe.skeletonKpiMax,
+                        wrapper.querySelectorAll('.vpp-history-loading-kpi').length);
+                }
+                if (document.querySelector('.vpp-history-loading-line')) {
+                    probe.loadingLineSeen = true;
+                }
+            };
+            new MutationObserver(recordHistoryLoading).observe(document, { childList: true, subtree: true });
+            """);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=1", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.Commit
         });
 
-        var loadingState = Page.Locator(".vpp-history-loading-state");
-        await loadingState.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        // HTML prerender stream theo chunk: wrapper skeleton có thể được parse trước
-        // các phần tử con. Chờ đủ 4 KPI skeleton thay vì đếm tức thời ngay sau Visible.
-        await Page.WaitForFunctionAsync(
-            "() => document.querySelectorAll('.vpp-history-loading-state .vpp-history-loading-kpi').length === 4");
-        (await loadingState.Locator(".vpp-history-loading-kpi").CountAsync()).Should().Be(4);
-        (await Page.Locator(".vpp-history-loading-line").CountAsync()).Should().Be(0, "initial loading must use geometry-matched skeletons instead of a global progress line");
+        // Chờ đủ TRÌNH TỰ: observer đã ghi nhận skeleton (pha interactive) RỒI content
+        // thật hiện ra. Không thể chỉ chờ KPI visible — HTML prerender đã chứa KPI
+        // "đã tải" trước khi circuit interactive chạy pha skeleton.
+        try
+        {
+            await Page.WaitForFunctionAsync(
+                """
+                () => {
+                    const probe = window.__historyLoadingProbe;
+                    if (!probe || !probe.wrapperSeen) {
+                        return false;
+                    }
+                    const settled = document.querySelector('.vpp-history-kpis, .vpp-history-state-panel');
+                    return !!settled && settled.getClientRects().length > 0;
+                }
+                """);
+        }
+        catch (TimeoutException inner)
+        {
+            var probeState = await Page.EvaluateAsync<string>(
+                "() => JSON.stringify(window.__historyLoadingProbe ?? null) + '|settled=' + !!document.querySelector('.vpp-history-kpis, .vpp-history-state-panel') + '|url=' + location.pathname + location.search");
+            throw new TimeoutException($"History loading sequence not observed. Probe: {probeState}", inner);
+        }
+        var skeletonWrapperSeen = await Page.EvaluateAsync<bool>("() => window.__historyLoadingProbe.wrapperSeen");
+        var skeletonKpiMax = await Page.EvaluateAsync<int>("() => window.__historyLoadingProbe.skeletonKpiMax");
+        var loadingLineSeen = await Page.EvaluateAsync<bool>("() => window.__historyLoadingProbe.loadingLineSeen");
+        skeletonWrapperSeen.Should().BeTrue("the initial load must render the geometry-matched skeleton state");
+        skeletonKpiMax.Should().Be(4);
+        loadingLineSeen.Should().BeFalse("initial loading must use geometry-matched skeletons instead of a global progress line");
         var loadingScreenshotDirectory = Path.Combine(Path.GetTempPath(), "gtas-vpp-history-visual");
         Directory.CreateDirectory(loadingScreenshotDirectory);
         await Page.ScreenshotAsync(new PageScreenshotOptions
@@ -378,6 +423,13 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         });
         await drawer.GetByText("Phiếu chi tiết đơn", new() { Exact = true }).WaitForAsync();
         await drawer.Locator(".vpp-history-detail-grid-header-cell.vpp-history-detail-item").WaitForAsync();
+        // OpenOrderAsync giữ detail cũ hiển thị trong lúc gọi API; khi API xong nó reset
+        // bộ lọc rồi focus drawer (focusHistoryDrawer trong finally). Drawer Visible chỉ là
+        // trạng thái giữa chừng — mọi tương tác toolbar phía sau phải chờ đúng tín hiệu
+        // kết thúc tải đó (focus nằm trên drawer), nếu không lần re-render kết thúc sẽ
+        // xóa trắng giá trị vừa gõ vào ô tìm kiếm (tái hiện khi backend lạnh).
+        await Page.WaitForFunctionAsync(
+            "() => document.activeElement?.classList.contains('vpp-history-drawer')");
         var selectedOrderCode = (await drawer.Locator(".vpp-history-drawer-code strong").InnerTextAsync()).Trim();
         var drawerHeadingAlignment = await drawer.Locator(".vpp-history-drawer-code").EvaluateAsync<string>("""
             row => {

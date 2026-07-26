@@ -318,34 +318,31 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         {
             await Page.EvaluateAsync("() => document.querySelector('.vpp-sidebar-toggle').click()");
         }
-        // Chờ transition thu gọn CHẠM TRẠNG THÁI CUỐI: chỉ kiểm "2 khung rAF bằng nhau"
-        // là chưa đủ vì hai mẫu có thể cùng rơi vào thời điểm transition chưa khởi động
-        // (đo ra hình học sidebar còn mở rộng). Gate thêm bề rộng rail đã về ~72px.
+        // Chờ rail thu gọn ĐẠT ĐÚNG BẤT BIẾN sẽ được assert bên dưới (logo/icon/avatar
+        // thẳng hàng trục X): bề rộng về 72px xong, brand định vị tuyệt đối vẫn còn một
+        // nhịp recalc containing-block — chỉ chính phép đo cuối mới là tín hiệu đáng tin.
+        // Nếu rail thật sự lệch, wait này timeout và test fail chính đáng.
         await Page.WaitForFunctionAsync(
             """
-            () => new Promise(resolve => {
+            () => {
                 const sidebarNode = document.querySelector('.vpp-sidebar');
                 if (!sidebarNode || !sidebarNode.classList.contains('sidebar-collapsed')) {
-                    resolve(false);
-                    return;
+                    return false;
                 }
-                const measure = () => {
-                    const width = sidebarNode.getBoundingClientRect().width;
-                    const logo = document.querySelector('.vpp-sidebar-collapsed-logo');
-                    if (!logo || logo.getClientRects().length === 0) {
-                        return null;
-                    }
-                    return { width, left: logo.getBoundingClientRect().left };
+                const centreX = element => {
+                    const rect = element.getBoundingClientRect();
+                    return rect.left + rect.width / 2;
                 };
-                const first = measure();
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    const second = measure();
-                    resolve(!!first && !!second
-                        && second.width <= 80
-                        && second.width === first.width
-                        && second.left === first.left);
-                }));
-            })
+                const logo = document.querySelector('.vpp-sidebar-collapsed-logo');
+                const icon = document.querySelector('.vpp-sidebar-nav .rz-panel-menu > .rz-navigation-item .rz-navigation-item-icon');
+                const avatar = document.querySelector('.vpp-sidebar-user-menu .user-avatar');
+                if (!logo || !icon || !avatar || logo.getClientRects().length === 0) {
+                    return false;
+                }
+                return sidebarNode.getBoundingClientRect().width <= 80
+                    && Math.abs(centreX(logo) - centreX(icon)) <= 0.1
+                    && Math.abs(centreX(avatar) - centreX(icon)) <= 0.1;
+            }
             """);
         var collapsedRail = await Page.EvaluateAsync<CollapsedRailGeometry>(
             """

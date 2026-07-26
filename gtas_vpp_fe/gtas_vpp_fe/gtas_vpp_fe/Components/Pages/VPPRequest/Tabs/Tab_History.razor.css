@@ -371,11 +371,9 @@
     transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
-::deep /* KPI cards communicate clickability through hover,
-::deep focus,
-::deep and the contextual
+/* KPI cards communicate clickability through hover, focus, and the contextual
    popover; suppress any theme-level disclosure chevron from the button. */
-.vpp-history-kpi-trigger::before,
+::deep .vpp-history-kpi-trigger::before,
 ::deep .vpp-history-kpi-trigger::after {
     display: none !important;
     content: none !important;
@@ -1045,8 +1043,8 @@
     font-size: var(--vpp-text-xs);
 }
 
-::deep /* Bảng desktop dùng lưới co giãn theo nội dung: mã đơn được ưu tiên không gian,
-::deep còn các cột định lượng giữ tối thiểu vừa đủ và nhận phần trống còn lại. */
+/* Bảng desktop dùng lưới co giãn theo nội dung: mã đơn được ưu tiên không gian,
+   còn các cột định lượng giữ tối thiểu vừa đủ và nhận phần trống còn lại. */
 @media (min-width: 900px) {
     ::deep .vpp-history-grid table thead > tr,
     ::deep .vpp-history-grid table tbody > tr {
@@ -1069,8 +1067,9 @@
         min-width: 0;
     }
 
-    ::deep /* Radzen gives headers and cells different inner wrappers. Make both
-       wrappers own the same full track before applying text alignment. */ .vpp-history-grid .rz-column-title,
+    /* Radzen gives headers and cells different inner wrappers. Make both
+       wrappers own the same full track before applying text alignment. */
+    ::deep .vpp-history-grid .rz-column-title,
     ::deep .vpp-history-grid .rz-column-title-content,
     ::deep .vpp-history-grid .rz-cell-data {
         display: flex;
@@ -1164,13 +1163,12 @@
         padding-inline: var(--vpp-space-1) !important;
     }
 
-    ::deep /* Sidebar desktop mặc định mở rộng khiến cột đơn hẹp lại quanh 1280–1400px.
+    /* Sidebar desktop mặc định mở rộng khiến cột đơn hẹp lại quanh 1280–1400px.
        Grid lọc có min-content 464px (140 + 100 + 100 + 112 nút xóa lọc + 3 khe 4px);
-       vì justify-content của cụm lọc là end,
-    ::deep phần tràn sẽ đè ngược lên tiêu đề
+       vì justify-content của cụm lọc là end, phần tràn sẽ đè ngược lên tiêu đề
        "Danh sách đơn". Cho toolbar wrap và đặt flex-basis đúng bằng min-content đó
        để cụm lọc rơi xuống hàng riêng ngay khi một hàng không còn đủ chỗ. */
-    .vpp-history-orders-toolbar {
+    ::deep .vpp-history-orders-toolbar {
         flex-wrap: wrap;
         gap: var(--vpp-space-2);
     }
@@ -1187,8 +1185,9 @@
         width: auto;
     }
 
-    ::deep /* The split desktop layout can leave the order grid quite narrow. Keep
-       complete Vietnamese headers readable with at most two compact lines. */ .vpp-history-grid th :is(.rz-column-title, .rz-column-title-content) {
+    /* The split desktop layout can leave the order grid quite narrow. Keep
+       complete Vietnamese headers readable with at most two compact lines. */
+    ::deep .vpp-history-grid th :is(.rz-column-title, .rz-column-title-content) {
         overflow: visible;
         line-height: 1.15;
         text-overflow: clip;
@@ -1365,10 +1364,10 @@
     inset-inline: auto 0;
 }
 
-::deep /* Menus escape the grid/card stacking contexts so a long menu never gets
+/* Menus escape the grid/card stacking contexts so a long menu never gets
    painted underneath the chart or a neighboring table surface. JavaScript
    pins the menu to the trigger's viewport coordinates after each render. */
-.vpp-history-select-menu.is-viewport-surface {
+::deep .vpp-history-select-menu.is-viewport-surface {
     position: fixed;
     z-index: 1000;
     inset: auto;
@@ -1554,8 +1553,8 @@
     align-self: center;
 }
 
-::deep /* Meta "Gửi lúc ..." + cặp nút xuất trong header phiếu (Atlas orderDetailSheet + D10). */
-.vpp-history-drawer-submitted {
+/* Meta "Gửi lúc ..." + cặp nút xuất trong header phiếu (Atlas orderDetailSheet + D10). */
+::deep .vpp-history-drawer-submitted {
     display: block;
     margin-top: 2px;
     color: var(--vpp-text-secondary);
@@ -1900,11 +1899,11 @@
     table-layout: fixed;
 }
 
-::deep /* Radzen virtualizes tbody rows inside the same table paint layer. Keep its
-   native header available to assistive technology,
-::deep but render the visible
+/* Radzen virtualizes tbody rows inside the same table paint layer. Keep its
+   native header available to assistive technology, but render the visible
    column header as a fixed sibling above the scroll viewport so translated
-   rows can never paint or receive hit-testing over it. */ .vpp-history-detail-grid thead {
+   rows can never paint or receive hit-testing over it. */
+::deep .vpp-history-detail-grid thead {
     position: absolute !important;
     width: 1px !important;
     height: 1px !important;
@@ -1925,8 +1924,9 @@
     align-items: center;
 }
 
-::deep /* Radzen virtualization requires native table-row sizing. Proportional column
-   tracks stay responsive to the drawer width without introducing horizontal scroll. */ .vpp-history-detail-grid :is(col, th):nth-child(1) { width: 5%; }
+/* Radzen virtualization requires native table-row sizing. Proportional column
+   tracks stay responsive to the drawer width without introducing horizontal scroll. */
+::deep .vpp-history-detail-grid :is(col, th):nth-child(1) { width: 5%; }
 ::deep .vpp-history-detail-grid :is(col, th):nth-child(2) { width: 31%; }
 ::deep .vpp-history-detail-grid :is(col, th):nth-child(3) { width: 18%; }
 ::deep .vpp-history-detail-grid :is(col, th):nth-child(4) { width: 12%; }
