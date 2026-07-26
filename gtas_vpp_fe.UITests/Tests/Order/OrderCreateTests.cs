@@ -55,19 +55,20 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await Page.GetByText("Đơn đã gửi", new() { Exact = true }).WaitForAsync();
         await orderCard.Locator(".vpp-order-grid tbody tr").First.WaitForAsync(
             new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        // Atlas orderItemsRegion column order: # · Mặt hàng · Danh mục · Đơn vị · Số lượng (· Ghi chú).
         var columnGeometry = await orderCard.Locator(".vpp-order-grid").EvaluateAsync<double[]>("""
             grid => {
                 const headers = [...grid.querySelectorAll('thead th')];
                 const dataRow = [...grid.querySelectorAll('tbody tr')]
-                    .find(row => row.querySelectorAll('td').length >= 4);
+                    .find(row => row.querySelectorAll('td').length >= 5);
                 const cells = [...dataRow.querySelectorAll('td')];
                 const textRect = element => {
                     const range = document.createRange();
                     range.selectNodeContents(element);
                     return range.getBoundingClientRect();
                 };
-                const quantityHeader = textRect(headers[2].querySelector('.rz-column-title'));
-                const quantityCell = textRect(cells[2].querySelector('.rz-cell-data'));
+                const quantityHeader = textRect(headers[4].querySelector('.rz-column-title'));
+                const quantityCell = textRect(cells[4].querySelector('.rz-cell-data'));
                 const uomHeader = textRect(headers[3].querySelector('.rz-column-title'));
                 const uomCell = textRect(cells[3].querySelector('.rz-cell-data'));
                 const center = rect => rect.left + rect.width / 2;
@@ -77,16 +78,20 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
                     headers[0].getBoundingClientRect().width,
                     headers[1].getBoundingClientRect().width,
                     headers[2].getBoundingClientRect().width,
-                    headers[3].getBoundingClientRect().width
+                    headers[3].getBoundingClientRect().width,
+                    headers[4].getBoundingClientRect().width
                 ];
             }
             """);
         columnGeometry[0].Should().BeLessThanOrEqualTo(1.5, "quantity header and values should share the same right axis");
         columnGeometry[1].Should().BeLessThanOrEqualTo(1.5, "UOM header and values should share the same center axis");
         columnGeometry[2].Should().BeApproximately(56, 1, "the row-number column should stay fixed");
-        columnGeometry[4].Should().BeApproximately(120, 1, "the quantity column should stay fixed");
+        columnGeometry[4].Should().BeApproximately(160, 1, "the category column should stay fixed");
         columnGeometry[5].Should().BeApproximately(96, 1, "the UOM column should stay fixed");
-        columnGeometry[3].Should().BeGreaterThan(600, "the item-name column should absorb the remaining width");
+        columnGeometry[6].Should().BeApproximately(120, 1, "the quantity column should stay fixed");
+        // 1366px viewport − expanded 286px sidebar − fixed columns (56+160+96+120) leaves ~580-630px
+        // for the flexible item-name column; 500 asserts it still dominates without scrollbar flake.
+        columnGeometry[3].Should().BeGreaterThan(500, "the item-name column should absorb the remaining width");
         (await Page.Locator(".vpp-orders-story-heading p").CountAsync()).Should().Be(0,
             "a submitted order should not repeat navigation or processing guidance below the takeaway");
         (await Page.Locator(".vpp-orders-summary-grid article").CountAsync()).Should().Be(3,
@@ -135,7 +140,7 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
             await quantityStepper.GetByRole(AriaRole.Button, new() { Name = "Giảm số lượng" }).ClickAsync();
             currentQuantity--;
         }
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục kiểm tra" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục" }).ClickAsync();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Cập nhật đơn" }).ClickAsync();
         await WaitForUrlMatchAsync(
             new System.Text.RegularExpressions.Regex(".*/dashboard\\?tab=0.*"),

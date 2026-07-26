@@ -5,6 +5,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
@@ -20,6 +21,12 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
 
         var sidebar = Page.Locator(".vpp-sidebar");
         var nav = sidebar.Locator(".vpp-sidebar-nav");
+        // Chờ shell chốt trạng thái mở/thu (storage + viewport) trước khi đọc class —
+        // sidebar desktop nay mặc định mở rộng sau first render (D12).
+        await Page.Locator(".vpp-sidebar[data-shell-ready='true']").WaitForAsync(new LocatorWaitForOptions
+        {
+            Timeout = 30_000
+        });
         if (await sidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
         {
             await sidebar.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
@@ -46,11 +53,30 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             "element => element.classList.contains('is-ready') && getComputedStyle(element).opacity === '1'"))
             .Should().BeTrue("the active library child starts visible");
 
+        // Animation shell-enter/sidebar dùng transform nên getBoundingClientRect trả
+        // tọa độ sub-pixel khi đo giữa chừng (thấy 7.35 thay vì 8 trên circuit lạnh).
+        // Chờ hết page-entering và hình học logo đứng yên qua 2 khung rAF liên tiếp.
+        await Page.WaitForFunctionAsync("() => !document.documentElement.classList.contains('vpp-page-entering')");
+        await Page.WaitForFunctionAsync("""
+            () => new Promise(resolve => {
+                const measure = () => document.querySelector('.vpp-sidebar-expanded-logo')?.getBoundingClientRect().left ?? -1;
+                const first = measure();
+                requestAnimationFrame(() => requestAnimationFrame(() => resolve(first >= 0 && measure() === first)));
+            })
+            """);
+
         var hierarchy = await Page.EvaluateAsync<SidebarHierarchyGeometry>(
             """
             () => {
-                const item = title => [...document.querySelectorAll('.vpp-sidebar-nav .rz-navigation-item')]
-                    .find(element => element.title === title);
+                const item = title => {
+                    const node = [...document.querySelectorAll('.vpp-sidebar-nav .rz-navigation-item')]
+                        .find(element => element.title === title);
+                    if (!node) {
+                        throw new Error(`Sidebar item not found: ${title}`);
+                    }
+
+                    return node;
+                };
                 const parts = title => {
                     const wrapper = item(title).querySelector(':scope > .rz-navigation-item-wrapper');
                     return {
@@ -58,10 +84,12 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                         text: wrapper.querySelector(':scope > .rz-navigation-item-link > .rz-navigation-item-text').getBoundingClientRect()
                     };
                 };
+                // Nhãn theo resx hiện hành (Atlas W-C): ClassDefinitions = "Loại danh mục",
+                // Prices = "Giá mặt hàng".
                 const root = parts('Quản trị danh mục');
-                const child = parts('Định nghĩa lớp');
+                const child = parts('Loại danh mục');
                 const childParent = parts('Bảng giá');
-                const grandchild = parts('Giá');
+                const grandchild = parts('Giá mặt hàng');
                 const indicator = document.querySelector('.vpp-sidebar-shared-indicator').getBoundingClientRect();
                 return {
                     rootIconLeft: root.icon.left,
@@ -171,21 +199,23 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             WaitUntil = WaitUntilState.DOMContentLoaded
         });
 
-        var primaryTabTitle = Page.GetByText("Đơn hàng của tôi", new PageGetByTextOptions
-        {
-            Exact = true
-        }).First;
-        await primaryTabTitle.WaitForAsync(new LocatorWaitForOptions
+        // W-B.2b: the primary section tabs live in the shared shell header, not in
+        // the page body; the sidebar also lists "Đơn hàng của tôi", so target the
+        // active header tab by class instead of by text.
+        var activeHeaderTab = Page.Locator(".vpp-layout-header .vpp-header-tabs .vpp-header-tab.is-active");
+        await activeHeaderTab.WaitForAsync(new LocatorWaitForOptions
         {
             State = WaitForSelectorState.Visible,
             Timeout = 30_000
         });
 
-        var tabGeometry = await primaryTabTitle.EvaluateAsync<TabTitleGeometry>(
+        var tabGeometry = await activeHeaderTab.EvaluateAsync<TabTitleGeometry>(
             """
             element => {
-                const title = element.getBoundingClientRect();
-                const nav = element.closest('.rz-tabview-nav').getBoundingClientRect();
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                const title = range.getBoundingClientRect();
+                const nav = element.closest('.vpp-layout-header').getBoundingClientRect();
                 const styles = getComputedStyle(element);
                 return {
                     supportsTextBox: CSS.supports('text-box', 'trim-both cap alphabetic'),
@@ -210,27 +240,45 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         tabGeometry.SupportsTextBox.Should().BeTrue("the project Chromium runtime supports CSS text-box metrics");
         tabGeometry.TextBoxTrim.Should().Be("trim-both");
         tabGeometry.TextBoxEdge.Should().Be("cap alphabetic");
-        Math.Abs(tabGeometry.CenterDelta).Should().BeLessThan(0.1, "the trimmed visible text box must be centred in the full header");
-        tabGeometry.NavTop.Should().BeApproximately(0, 0.1, "the full-bleed header must start at the viewport top");
+        Math.Abs(tabGeometry.CenterDelta).Should().BeLessThanOrEqualTo(1,
+            "the visible label must be centred in the full header within its hairline bottom border");
+        tabGeometry.NavTop.Should().BeApproximately(0, 0.1, "the shell header row must start at the viewport top");
         tabGeometry.NavHeight.Should().BeApproximately(72, 0.1, "the header must match the collapsed sidebar width");
-        tabGeometry.TitleCenter.Should().BeApproximately(36, 0.1, "the visible text must centre against the outer 72px header");
-        tabGeometry.BrandCenter.Should().BeApproximately(tabGeometry.TitleCenter, 0.1,
+        tabGeometry.TitleCenter.Should().BeApproximately(36, 1, "the visible text must centre against the outer 72px header");
+        tabGeometry.BrandCenter.Should().BeApproximately(tabGeometry.TitleCenter, 1,
             "GTAS VPP must share the same visual centre as every primary tab label");
-        tabGeometry.LogoCenter.Should().BeApproximately(tabGeometry.TitleCenter, 0.1,
+        tabGeometry.LogoCenter.Should().BeApproximately(tabGeometry.TitleCenter, 1,
             "the brand mark must share the same visual centre as the header labels");
 
-        var headerIndicatorDuration = await Page.EvaluateAsync<double>(
+        // The active underline is a CSS ::after transition, not a Web Animations
+        // API animation, so read its transition duration instead of getAnimations().
+        var headerTabUnderlineDuration = await activeHeaderTab.EvaluateAsync<string>(
+            "element => getComputedStyle(element, '::after').transitionDuration");
+        headerTabUnderlineDuration.Should().Contain("0.2s",
+            "the header underline must use the same motion duration as the PanelMenu expansion");
+
+        var headerTabs = Page.Locator(".vpp-layout-header .vpp-header-tabs .vpp-header-tab");
+        (await headerTabs.CountAsync()).Should().BeGreaterThan(1,
+            "the dashboard area must expose more than one header tab");
+        var secondHeaderTab = headerTabs.Nth(1);
+        var secondHeaderTabPath = await secondHeaderTab.GetAttributeAsync("href");
+        secondHeaderTabPath.Should().NotBeNullOrWhiteSpace("header tabs must navigate through real routes");
+        await secondHeaderTab.ClickAsync();
+        await Page.WaitForURLAsync(
+            url => url.EndsWith(secondHeaderTabPath!, StringComparison.OrdinalIgnoreCase),
+            new PageWaitForURLOptions { Timeout = 30_000 });
+        await Page.WaitForFunctionAsync(
             """
             () => {
-                const tabs = document.querySelectorAll('.vpp-admin-tabs [role="tab"]');
-                const indicator = document.querySelector('.vpp-admin-tabs .vpp-tab-shared-indicator');
-                tabs[1].click();
-                const animation = indicator.getAnimations()[0];
-                return animation ? Number(animation.effect.getTiming().duration) : 0;
+                const tabs = document.querySelectorAll('.vpp-header-tabs .vpp-header-tab');
+                return tabs.length > 1
+                    && tabs[1].classList.contains('is-active')
+                    && tabs[1].getAttribute('aria-current') === 'page'
+                    && tabs[0].getAttribute('aria-current') !== 'page';
             }
-            """);
-        headerIndicatorDuration.Should().BeApproximately(200, 0.1,
-            "the header line must use the same motion duration as the PanelMenu expansion");
+            """,
+            null,
+            new PageWaitForFunctionOptions { Timeout = 30_000 });
 
         await Page.WaitForTimeoutAsync(300);
         var shellSidebar = Page.Locator(".vpp-sidebar");

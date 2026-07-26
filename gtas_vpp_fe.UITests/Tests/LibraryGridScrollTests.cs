@@ -6,6 +6,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Library;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
@@ -97,8 +98,9 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 ];
             }
             """);
-        actionSizes[0].Should().BeApproximately(34, 1);
-        actionSizes[1].Should().BeApproximately(34, 1);
+        // 30px = bậc compact của button ladder Atlas (--vpp-control-height-compact, W-B.2).
+        actionSizes[0].Should().BeApproximately(30, 1);
+        actionSizes[1].Should().BeApproximately(30, 1);
         actionSizes[2].Should().BeGreaterThan(70);
 
         var actionAppearance = await reloadButton.EvaluateAsync<string[]>("""
@@ -112,33 +114,28 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         actionAppearance[0].Should().Be("1");
         actionAppearance[2].Should().Be("1");
 
-        var primaryTabs = Page.Locator(
-            ".vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav");
-        var primaryTabPosition = await primaryTabs.EvaluateAsync<string[]>("""
-            element => {
-                const owner = element.closest('.librariestab');
-                if (!owner) {
-                    throw new Error('Library tab owner was not rendered.');
+        // W-B.2b: on desktop the primary tab strip moved into the shell header;
+        // the in-body RadzenTabs nav only serves mobile and must stay hidden here.
+        var primaryNavState = await Page.EvaluateAsync<string[]>("""
+            () => {
+                const bodyNav = document.querySelector(
+                    '.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav');
+                const header = document.querySelector('.vpp-layout-header');
+                const headerTabs = header?.querySelector('.vpp-header-tabs');
+                if (!bodyNav || !header || !headerTabs) {
+                    throw new Error('Primary tab strip or shell header was not rendered.');
                 }
 
-                const ownerStyle = getComputedStyle(owner);
-                const stickyTop = Number.parseFloat(ownerStyle.getPropertyValue('--vpp-tabs-sticky-top')) || 0;
-                const lengthProbe = document.createElement('div');
-                lengthProbe.style.position = 'absolute';
-                lengthProbe.style.visibility = 'hidden';
-                lengthProbe.style.width = 'var(--vpp-layout-body-inset)';
-                owner.appendChild(lengthProbe);
-                const bodyInset = Number.parseFloat(getComputedStyle(lengthProbe).width) || 0;
-                lengthProbe.remove();
                 return [
-                    getComputedStyle(element).position,
-                    getComputedStyle(element).top,
-                    `${stickyTop - bodyInset}px`
+                    getComputedStyle(bodyNav).display,
+                    getComputedStyle(header).display,
+                    getComputedStyle(headerTabs).display
                 ];
             }
             """);
-        primaryTabPosition[0].Should().Be("sticky");
-        primaryTabPosition[1].Should().Be(primaryTabPosition[2]);
+        primaryNavState[0].Should().Be("none", "desktop replaces the in-body primary tab strip with the shell header tabs");
+        primaryNavState[1].Should().NotBe("none", "the shell header row must be visible on desktop");
+        primaryNavState[2].Should().NotBe("none", "the shell header must expose the section tab strip on desktop");
 
         var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
         await deletedCells.First.WaitForAsync(new LocatorWaitForOptions
@@ -153,28 +150,58 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             "element => element.scrollHeight > element.clientHeight + 1");
         hasInternalVerticalScroll.Should().BeFalse();
 
+        // W-B.2b: thanh tab 72px rời khỏi body ở desktop nên fixture QA ngắn có thể
+        // vừa khít 1366x420 mà không cần cuộn. Thu viewport theo nội dung thật để
+        // hợp đồng "body cuộn + header ghim" vẫn kiểm chứng được.
+        var categoryContentBottom = await Page.EvaluateAsync<double>("""
+            () => {
+                const scroller = document.querySelector('.vpp-layout-body');
+                const grid = [...document.querySelectorAll('.library-share-grid')]
+                    .find(candidate => candidate.getBoundingClientRect().height > 0);
+                if (!scroller || !grid) {
+                    throw new Error('Library scroll container or visible grid was not rendered.');
+                }
+
+                const paddingBottom = Number.parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
+                return grid.getBoundingClientRect().bottom + scroller.scrollTop + paddingBottom;
+            }
+            """);
+        // Sàn clamp phải nhỏ hơn content bottom của fixture QA ngắn nhất, nếu không
+        // viewport thu vẫn cao hơn nội dung và body không có gì để cuộn (metric = 0).
+        // 120 = header 72px + tối thiểu ~48px body; content thật luôn vượt mốc này
+        // (header + toolbar + thead + ≥1 hàng) nên luôn bảo đảm viewport < content bottom.
+        var categoryProbeHeight = Math.Clamp((int)Math.Round(categoryContentBottom) - 60, 120, 420);
+        await Page.SetViewportSizeAsync(1366, categoryProbeHeight);
+        await Page.WaitForTimeoutAsync(200);
+
+        var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
+            "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
+
         var contentScroller = Page.Locator(".vpp-layout-body");
         await contentScroller.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
         await Page.WaitForTimeoutAsync(100);
 
-        var stickyPrimaryMetrics = await Page.EvaluateAsync<double[]>("""
+        var pinnedHeaderMetrics = await Page.EvaluateAsync<double[]>("""
             () => {
                 const scroller = document.querySelector('.vpp-layout-body');
-                const tabs = document.querySelector('.vpp-admin-tabs > .rz-tabview-nav');
-                if (!scroller || !tabs) {
-                    throw new Error('Library scroll container or primary tabs were not rendered.');
+                const header = document.querySelector('.vpp-layout-header');
+                if (!scroller || !header) {
+                    throw new Error('Library scroll container or shell header was not rendered.');
                 }
 
                 return [
-                    tabs.getBoundingClientRect().top - scroller.getBoundingClientRect().top,
+                    header.getBoundingClientRect().top,
                     scroller.scrollTop,
                     scroller.scrollHeight - scroller.clientHeight
                 ];
             }
             """);
-        stickyPrimaryMetrics[2].Should().BeGreaterThan(0);
-        stickyPrimaryMetrics[1].Should().BeApproximately(stickyPrimaryMetrics[2], 1);
-        stickyPrimaryMetrics[0].Should().BeInRange(-1, 8);
+        pinnedHeaderMetrics[2].Should().BeGreaterThan(0);
+        pinnedHeaderMetrics[1].Should().BeApproximately(pinnedHeaderMetrics[2], 1);
+        pinnedHeaderMetrics[0].Should().BeApproximately(headerTopBeforeScroll, 0.5,
+            "the shell header is a fixed grid row and must not move while the body scrolls");
+        pinnedHeaderMetrics[0].Should().BeApproximately(0, 0.5,
+            "the shell header row must stay pinned to the viewport top");
 
         var headerRowGap = await Page.EvaluateAsync<double>("""
             () => {
@@ -279,35 +306,59 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             """);
         nestedVerticalScrollers.Should().Be(0);
 
-        await Page.Locator(".vpp-layout-body").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        await Page.WaitForTimeoutAsync(100);
-        var stickyTabGaps = await Page.EvaluateAsync<double[]>("""
+        // W-B.2b: the primary tab bar left the body on desktop, so the old
+        // primary+secondary sticky stack no longer exists; the shell header row
+        // must instead stay put while the body scrolls to the bottom.
+        // Thu viewport theo nội dung thật (fixture giá QA ngắn) để body chắc chắn
+        // có phần tràn cần cuộn — cùng lý do với probe của tab Danh mục ở trên.
+        var pricingContentBottom = await Page.EvaluateAsync<double>("""
             () => {
                 const scroller = document.querySelector('.vpp-layout-body');
-                const primary = document.querySelector('.vpp-admin-tabs > .rz-tabview-nav');
-                const secondary = document.querySelector('.vpp-secondary-tabs > .rz-tabview-nav');
-                if (!scroller || !primary || !secondary) {
-                    throw new Error('Pricing sticky tab stack was not rendered.');
+                const grid = document.querySelector('.vpp-price-grid');
+                if (!scroller || !grid) {
+                    throw new Error('Pricing scroll container or price grid was not rendered.');
                 }
 
-                const scrollerTop = scroller.getBoundingClientRect().top;
+                const paddingBottom = Number.parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
+                return grid.getBoundingClientRect().bottom + scroller.scrollTop + paddingBottom;
+            }
+            """);
+        var pricingProbeHeight = Math.Clamp((int)Math.Round(pricingContentBottom) - 60, 180, 300);
+        await Page.SetViewportSizeAsync(1366, pricingProbeHeight);
+        await Page.WaitForTimeoutAsync(200);
+
+        var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
+            "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
+        await Page.Locator(".vpp-layout-body").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
+        await Page.WaitForTimeoutAsync(100);
+        var pinnedShellMetrics = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const scroller = document.querySelector('.vpp-layout-body');
+                const primary = document.querySelector(
+                    '.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav');
+                const header = document.querySelector('.vpp-layout-header');
+                const headerTabs = header?.querySelector('.vpp-header-tabs');
+                if (!scroller || !primary || !header || !headerTabs) {
+                    throw new Error('Pricing shell navigation was not rendered.');
+                }
+
                 return [
-                    primary.getBoundingClientRect().top - scrollerTop,
-                    secondary.getBoundingClientRect().top - scrollerTop,
                     scroller.scrollTop,
                     scroller.scrollHeight - scroller.clientHeight,
-                    primary.getBoundingClientRect().height,
-                    Number.parseFloat(getComputedStyle(primary).top),
-                    Number.parseFloat(getComputedStyle(secondary).top)
+                    getComputedStyle(primary).display === 'none' ? 1 : 0,
+                    getComputedStyle(headerTabs).display === 'none' ? 0 : 1,
+                    header.getBoundingClientRect().top
                 ];
             }
             """);
-        stickyTabGaps[3].Should().BeGreaterThan(0);
-        stickyTabGaps[2].Should().BeApproximately(stickyTabGaps[3], 1);
-        stickyTabGaps[0].Should().BeInRange(-1, 8);
-        (stickyTabGaps[1] - stickyTabGaps[0]).Should()
-            .BeApproximately(stickyTabGaps[6] - stickyTabGaps[5], 1,
-                "the two tab bars must preserve the stack defined by their sticky top tokens");
+        pinnedShellMetrics[1].Should().BeGreaterThan(0);
+        pinnedShellMetrics[0].Should().BeApproximately(pinnedShellMetrics[1], 1);
+        pinnedShellMetrics[2].Should().Be(1, "desktop hides the in-body primary tab strip in favour of the shell header tabs");
+        pinnedShellMetrics[3].Should().Be(1, "the shell header must keep the section tab strip visible on desktop");
+        pinnedShellMetrics[4].Should().BeApproximately(headerTopBeforeScroll, 0.5,
+            "the shell header is a fixed grid row and must not move while the body scrolls");
+        pinnedShellMetrics[4].Should().BeApproximately(0, 0.5,
+            "the shell header row must stay pinned to the viewport top");
     }
 
     [Fact]

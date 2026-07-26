@@ -5,6 +5,7 @@ using Microsoft.Playwright;
 
 namespace gtas_vpp_fe.UITests.Tests.Auth;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class LoginFeedbackTests : TestBase
 {
     [Fact]

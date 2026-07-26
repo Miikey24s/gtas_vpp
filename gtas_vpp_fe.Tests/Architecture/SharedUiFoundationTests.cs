@@ -306,9 +306,18 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-mobile-sidebar-toggle", source, StringComparison.Ordinal);
         Assert.DoesNotContain("VppIcons.Search", source, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("grid-template-rows: 0 1fr;", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("display: none !important;", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("min-height: 0 !important;", layoutCss, StringComparison.Ordinal);
+        // W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip
+        // khu vực + role badge; nav RadzenTabs cấp cao nhất trong body chỉ còn
+        // phục vụ mobile; breadcrumb vị trí chỉ hiện ở mobile.
+        Assert.DoesNotContain("grid-template-rows: 0 1fr;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("grid-template-rows: var(--vpp-header-height) 1fr;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-admin-tabs > .rz-tabview-nav-container,\n    .vpp-admin-tabs > .rz-tabview-nav {\n        display: none !important;\n    }", layoutCss.Replace("\r\n", "\n"), StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-tabs", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-breadcrumb", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-role-badge", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("vpp-header-tabs", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-header-breadcrumb", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-header-role-badge", source, StringComparison.Ordinal);
         Assert.Contains("\"rz-sidebar rz-header\"", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", responsiveCss, StringComparison.Ordinal);
     }

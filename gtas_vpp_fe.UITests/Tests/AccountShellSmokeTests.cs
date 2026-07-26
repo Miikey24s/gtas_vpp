@@ -5,6 +5,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class AccountShellSmokeTests : TestBase
 {
     [Fact]
@@ -15,7 +16,14 @@ public sealed class AccountShellSmokeTests : TestBase
         var requestFailures = new List<string>();
         Page.Console += (_, message) =>
         {
-            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
+            // Điều hướng giữa các trang account hủy negotiation SignalR đang dở —
+            // nhiễu vô hại đã được allowlist ở các test dashboard.
+            var isExpectedCircuitTransitionError = message.Text.Contains(
+                    "Failed to complete negotiation with the server",
+                    StringComparison.OrdinalIgnoreCase)
+                && message.Text.Contains("Failed to fetch", StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase)
+                && !isExpectedCircuitTransitionError)
             {
                 browserErrors.Add(message.Text);
             }
@@ -26,7 +34,19 @@ public sealed class AccountShellSmokeTests : TestBase
             var isExpectedCircuitDisconnect = Uri.TryCreate(request.Url, UriKind.Absolute, out var uri)
                 && uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
-            if (!isExpectedCircuitDisconnect)
+            // Điều hướng nhanh giữa các trang account hủy static asset đang tải dở —
+            // chỉ allowlist ERR_ABORTED, mọi failure khác vẫn đánh rớt test (đồng bộ
+            // với allowlist của DashboardMyOrdersVisualTests).
+            var isExpectedNavigationAssetAbort = uri is not null
+                && (uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".js", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".css", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.Equals("/_blazor/initializers", StringComparison.OrdinalIgnoreCase))
+                && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
+            if (!isExpectedCircuitDisconnect && !isExpectedNavigationAssetAbort)
             {
                 requestFailures.Add($"{request.Method} {request.Url}: {request.Failure}");
             }
@@ -126,14 +146,14 @@ public sealed class AccountShellSmokeTests : TestBase
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FRegister");
-        await Page.GetByRole(AriaRole.Heading, new() { Name = "Đăng ký" }).WaitForAsync();
+        await Page.GetByRole(AriaRole.Heading, new() { Name = "Tạo tài khoản" }).WaitForAsync();
 
         (await Page.Locator("input[name=EmployeeCode]").CountAsync()).Should().Be(0);
         (await Page.GetByText("Email công ty", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
-        (await Page.GetByText("Nhập lại mật khẩu", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
-        (await Page.Locator(".vpp-account-description").CountAsync()).Should().Be(0);
+        (await Page.GetByText("Xác nhận mật khẩu", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.Locator(".vpp-account-description").CountAsync()).Should().Be(1, "the account card shows the Atlas context description under the title");
 
-        var registerButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng ký");
+        var registerButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Tạo tài khoản");
         var before = await registerButton.BoundingBoxAsync();
         await registerButton.ClickAsync();
         await Page.GetByText("Vui lòng nhập tên đăng nhập.", new() { Exact = true }).WaitForAsync();
@@ -167,8 +187,8 @@ public sealed class AccountShellSmokeTests : TestBase
             $"the desktop registration route should fit without page scrolling (page={viewportMetrics[0]}, viewport={viewportMetrics[1]}, card={viewportMetrics[2]})");
 
         await Page.Locator(".vpp-account-language-switch").ClickAsync();
-        await Page.GetByRole(AriaRole.Heading, new() { Name = "Register" }).WaitForAsync();
-        var englishButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Register");
+        await Page.GetByRole(AriaRole.Heading, new() { Name = "Create account" }).WaitForAsync();
+        var englishButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Create account");
         await englishButton.ClickAsync();
         await Page.GetByText("Please enter your username.", new() { Exact = true }).WaitForAsync();
         (await Page.GetByText("Company email", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
@@ -313,19 +333,28 @@ public sealed class AccountShellSmokeTests : TestBase
                         const brand = document.querySelector('.vpp-account-brand')?.getBoundingClientRect();
                         const language = document.querySelector('.vpp-account-language-switch')?.getBoundingClientRect();
                         const header = document.querySelector('.vpp-login-header')?.getBoundingClientRect();
+                        const form = document.querySelector('.vpp-login-form');
                         const fields = [...document.querySelectorAll('.vpp-login-form > .vpp-login-field')]
                             .map(element => element.getBoundingClientRect());
                         const button = document.querySelector('.vpp-login-btn')?.getBoundingClientRect();
                         const links = document.querySelector('.vpp-login-links')?.getBoundingClientRect();
 
-                        if (!topbar || !brand || !language || !header || fields.length === 0 || !button || !links) {
+                        // The intro block is the last visible element before the form: the description-bearing
+                        // header, or an Atlas static inline alert (e.g. the forgot-password safety note).
+                        let intro = form?.previousElementSibling;
+                        while (intro && intro.getBoundingClientRect().height === 0) {
+                            intro = intro.previousElementSibling;
+                        }
+                        const introRect = intro?.getBoundingClientRect();
+
+                        if (!topbar || !brand || !language || !header || !introRect || fields.length === 0 || !button || !links) {
                             throw new Error('Unable to measure the shared account rhythm.');
                         }
 
                         return [
                             Math.abs((brand.top + brand.height / 2) - (language.top + language.height / 2)),
                             header.top - topbar.bottom,
-                            fields[0].top - header.bottom,
+                            fields[0].top - introRect.bottom,
                             button.top - fields.at(-1).bottom,
                             links.top - button.bottom,
                             brand.height,
@@ -348,7 +377,7 @@ public sealed class AccountShellSmokeTests : TestBase
             {
                 var rhythm = measurements[route];
                 rhythm[1].Should().BeApproximately(reference[1], 1, $"topbar-to-title spacing must match on {route} at {viewport.Width}px");
-                rhythm[2].Should().BeApproximately(reference[2], 1, $"title-to-first-field spacing must match on {route} at {viewport.Width}px");
+                rhythm[2].Should().BeApproximately(reference[2], 1, $"intro-block-to-first-field spacing must match on {route} at {viewport.Width}px");
                 rhythm[3].Should().BeApproximately(reference[3], 1, $"last-field-to-button spacing must match on {route} at {viewport.Width}px");
                 rhythm[4].Should().BeApproximately(reference[4], 1, $"button-to-secondary-action spacing must match on {route} at {viewport.Width}px");
             }

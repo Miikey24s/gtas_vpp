@@ -6,6 +6,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Order;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
@@ -92,7 +93,10 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                     const orderPage = document.querySelector('.order-page');
                     const createActions = [...document.querySelectorAll('.order-page button')]
                         .filter(visible)
-                        .filter(button => /Tạo đơn mới|Create Order/i.test(button.textContent ?? ''));
+                        .filter(button => /Tạo đơn kỳ này|Tạo đơn mới|Create Order/i.test(button.textContent ?? ''));
+                    const exportActions = [...document.querySelectorAll('.order-page button')]
+                        .filter(visible)
+                        .filter(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));
                     return [
                         document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
                         document.querySelectorAll('.vpp-orders-story').length,
@@ -109,7 +113,8 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         document.querySelectorAll('[data-testid$="coming-soon"]:disabled').length,
                         document.querySelectorAll('.vpp-orders-summary-grid [role="radio"]').length,
                         document.querySelectorAll('.vpp-orders-state').length,
-                        document.querySelectorAll('.vpp-order-view-meta .vpp-order-card-kind').length
+                        document.querySelectorAll('.vpp-order-view-meta .vpp-order-card-kind').length,
+                        exportActions.filter(button => !button.disabled).length
                     ];
                 }
                 """);
@@ -123,10 +128,14 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             audit[6].Should().Be(0, "the legacy four-card KPI strip should be removed");
             audit[7].Should().Be(0, "empty state must not repeat actions already shown in the story header");
             audit[8].Should().BeLessThanOrEqualTo(1, "the create-order action should have one source of truth");
-            audit[9].Should().Be(2, "PDF and Excel roadmap actions should be visible but disabled");
+            audit[9].Should().Be(0, "roadmap coming-soon placeholders were replaced by real export actions (W-C.0)");
             audit[10].Should().Be(3, "the order selector should expose exactly three radio-style summary cards");
             audit[11].Should().Be(0, "the current-cycle page should not repeat an open-period badge");
             audit[12].Should().Be(0, "the selected tab should replace the repeated order-type heading above the grid");
+            if (viewport.Width >= 1366)
+            {
+                audit[13].Should().Be(2, "PDF and Excel export actions should be real enabled buttons on the seeded order");
+            }
 
             if (viewport.Width >= 1366)
             {
@@ -138,7 +147,8 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const storyTitle = document.querySelector('.vpp-orders-story-heading h2');
                         const summaryLabel = document.querySelector('.vpp-orders-summary-label');
                         const summaryCard = document.querySelector('.vpp-orders-summary-grid article');
-                        const disabledExport = document.querySelector('.vpp-orders-export-button:disabled');
+                        const exportAction = [...document.querySelectorAll('.order-page button')]
+                            .find(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));
                         return [
                             workspaceRect?.bottom ?? Number.MAX_VALUE,
                             workspaceRect?.width ?? Number.MAX_VALUE,
@@ -148,7 +158,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                             storyTitle ? parseFloat(getComputedStyle(storyTitle).fontSize) : 0,
                             summaryLabel ? parseFloat(getComputedStyle(summaryLabel).fontSize) : Number.MAX_VALUE,
                             summaryCard ? parseFloat(getComputedStyle(summaryCard).borderTopWidth) : 0,
-                            disabledExport ? parseFloat(getComputedStyle(disabledExport).opacity) : 0,
+                            exportAction ? parseFloat(getComputedStyle(exportAction).opacity) : 0,
                             document.documentElement.scrollHeight - window.innerHeight
                         ];
                     }
@@ -158,7 +168,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 desktopGeometry[2].Should().BeLessThanOrEqualTo(8, "the My Orders workspace should remain centered in its content region");
                 desktopGeometry[3].Should().BeGreaterThan(desktopGeometry[4] + 8, "the period title must clearly outrank summary labels");
                 desktopGeometry[5].Should().BeGreaterThanOrEqualTo(1, "summary items should read as bordered cards");
-                desktopGeometry[6].Should().BeGreaterThanOrEqualTo(0.75, "disabled export labels must remain legible");
+                desktopGeometry[6].Should().BeGreaterThanOrEqualTo(0.75, "export action labels must remain legible");
                 desktopGeometry[7].Should().BeLessThanOrEqualTo(2, "short orders should not create document-level vertical scrolling");
 
                 var shellColors = await Page.EvaluateAsync<string[]>("""
@@ -174,7 +184,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         return [
                             getComputedStyle(document.querySelector('.vpp-layout-body')).backgroundColor,
                             getComputedStyle(document.querySelector('.vpp-sidebar')).backgroundColor,
-                            getComputedStyle(document.querySelector('.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav')).backgroundColor,
+                            getComputedStyle(document.querySelector('.vpp-layout-header')).backgroundColor,
                             getComputedStyle(document.querySelector('.vpp-orders-story')).backgroundColor,
                             getComputedStyle(document.querySelector('.vpp-order-view-panel')).backgroundColor,
                             resolveToken('--vpp-bg-base'),
@@ -191,7 +201,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 var headerGeometry = await Page.EvaluateAsync<double[]>("""
                     () => {
                         const sidebar = document.querySelector('.vpp-sidebar');
-                        const nav = document.querySelector('.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav');
+                        const nav = document.querySelector('.vpp-layout-header');
                         const sidebarRect = sidebar?.getBoundingClientRect();
                         const navRect = nav?.getBoundingClientRect();
                         return [
@@ -217,18 +227,50 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 sidebarSeam[0].Should().Be("0px", "the logo/header row must not have a sidebar border seam");
                 sidebarSeam[1].Should().Be("none", "the logo/header row must not have a Radzen edge shadow");
 
-                var sidebarRhythm = await Page.EvaluateAsync<double[]>("""
+                // The active /dashboard route auto-expands its PanelMenu group, so the row
+                // below the first root item can be a child row. Wait until the shell has
+                // published its restored state and the expand animation has settled, then
+                // measure the first two *adjacent visible* hover surfaces (any menu level):
+                // the 4px rhythm contract applies between every pair of adjacent surfaces.
+                await Page.Locator(".vpp-sidebar[data-shell-ready='true']").WaitForAsync();
+                const string visibleNavRowRectsProbe = """
+                    () => {
+                        const rows = [...document.querySelectorAll(
+                            '.vpp-sidebar-nav .rz-navigation-item > .rz-navigation-item-wrapper')]
+                            .filter(wrapper => {
+                                const style = getComputedStyle(wrapper);
+                                return style.display !== 'none'
+                                    && style.visibility !== 'hidden'
+                                    && wrapper.getBoundingClientRect().height > 0;
+                            })
+                            .map(wrapper => wrapper.getBoundingClientRect())
+                            .sort((left, right) => left.top - right.top);
+                        return rows.map(rect => `${rect.top.toFixed(1)}:${rect.bottom.toFixed(1)}`).join('|');
+                    }
+                    """;
+                await Page.WaitForFunctionAsync($$"""
+                    () => {
+                        const measure = {{visibleNavRowRectsProbe}};
+                        const current = measure();
+                        const isStable = current !== ''
+                            && current.split('|').length >= 2
+                            && window.__vppSidebarRhythmSnapshot === current;
+                        window.__vppSidebarRhythmSnapshot = current;
+                        return isStable;
+                    }
+                    """);
+                var sidebarRhythm = await Page.EvaluateAsync<double[]>($$"""
                     () => {
                         const header = document.querySelector('.vpp-sidebar-header');
-                        const rootRows = [...document.querySelectorAll(
-                            '.vpp-sidebar-nav .rz-panel-menu > .rz-navigation-item > .rz-navigation-item-wrapper')];
-                        const firstRect = rootRows[0]?.getBoundingClientRect();
-                        const secondRect = rootRows[1]?.getBoundingClientRect();
+                        const measure = {{visibleNavRowRectsProbe}};
+                        const rows = measure().split('|')
+                            .filter(entry => entry.length > 0)
+                            .map(entry => entry.split(':').map(Number));
                         return [
                             header?.getBoundingClientRect().bottom ?? Number.MAX_VALUE,
-                            firstRect?.top ?? 0,
-                            firstRect?.bottom ?? Number.MAX_VALUE,
-                            secondRect?.top ?? 0
+                            rows[0]?.[0] ?? 0,
+                            rows[0]?.[1] ?? Number.MAX_VALUE,
+                            rows[1]?.[0] ?? 0
                         ];
                     }
                     """);

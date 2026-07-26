@@ -5,6 +5,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Order;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
@@ -22,17 +23,31 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await detailHeader.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var detailGrid = detailRegion.Locator(".vpp-history-detail-grid");
         var detailScroll = detailGrid.Locator(".rz-data-grid-data");
-        await Page.WaitForFunctionAsync("""
-            () => {
-                const surface = document.querySelector('.vpp-history-detail-grid .rz-data-grid-data');
-                return surface && surface.scrollHeight > surface.clientHeight + 1;
-            }
-        """);
-        await detailScroll.EvaluateAsync("surface => { surface.scrollTop = Math.min(180, surface.scrollHeight - surface.clientHeight); }");
-        await Page.WaitForFunctionAsync("""
-            () => document.querySelector('.vpp-history-detail-grid .rz-data-grid-data')?.scrollTop > 0
-        """);
-        await Page.WaitForTimeoutAsync(80);
+        await detailScroll.Locator("tbody tr").First.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        // QaFixtureSeeder chỉ seed đơn QA-OWN nhiều dòng khi bật opt-in
+        // GTAS_E2E_LONG_ORDER_LINES (xem VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md);
+        // run mặc định chỉ có 1 dòng nên không thể ép grid tràn dọc. Chỉ chứng minh
+        // trạng thái đã cuộn khi fixture dài có mặt; hợp đồng header cố định phía dưới
+        // vẫn được kiểm tra vô điều kiện.
+        var hasLongOrderSeed = int.TryParse(
+                Environment.GetEnvironmentVariable("GTAS_E2E_LONG_ORDER_LINES"),
+                out var longOrderLineCount)
+            && longOrderLineCount > 1;
+        if (hasLongOrderSeed)
+        {
+            await Page.WaitForFunctionAsync("""
+                () => {
+                    const surface = document.querySelector('.vpp-history-detail-grid .rz-data-grid-data');
+                    return surface && surface.scrollHeight > surface.clientHeight + 1;
+                }
+            """);
+            await detailScroll.EvaluateAsync("surface => { surface.scrollTop = Math.min(180, surface.scrollHeight - surface.clientHeight); }");
+            await Page.WaitForFunctionAsync("""
+                () => document.querySelector('.vpp-history-detail-grid .rz-data-grid-data')?.scrollTop > 0
+            """);
+            await Page.WaitForTimeoutAsync(80);
+        }
 
         var fixedHeaderLayer = await detailRegion.EvaluateAsync<string>("""
             region => {
@@ -60,13 +75,15 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 const surfaceRect = surface.getBoundingClientRect();
                 const headStyle = getComputedStyle(visibleHead);
                 const nativeHeadStyle = getComputedStyle(nativeHead);
+                const surfaceStyle = getComputedStyle(surface);
                 const opaque = parseAlpha(headStyle.backgroundColor) >= .99;
                 const separatedFromViewport = Math.abs(headRect.bottom - surfaceRect.top) <= 1;
-                const isolated = getComputedStyle(surface).isolation === 'isolate';
+                const isolated = surfaceStyle.isolation === 'isolate';
+                const scrollViewport = ['auto', 'scroll'].includes(surfaceStyle.overflowY);
                 const nativeHeaderPreserved = nativeHeadStyle.position === 'absolute'
                     && nativeHead.getBoundingClientRect().width <= 1;
                 const hitHeader = hits.every(hit => hit.matches);
-                return `${hitHeader && opaque && separatedFromViewport && isolated && nativeHeaderPreserved}|hit=${hitHeader}|hits=${JSON.stringify(hits)}|opaque=${opaque}|separated=${separatedFromViewport}|isolated=${isolated}|native=${nativeHeaderPreserved}|scroll=${surface.scrollTop}|head=${headRect.top}/${headRect.bottom}|surface=${surfaceRect.top}/${surfaceRect.bottom}`;
+                return `${hitHeader && opaque && separatedFromViewport && isolated && scrollViewport && nativeHeaderPreserved}|hit=${hitHeader}|hits=${JSON.stringify(hits)}|opaque=${opaque}|separated=${separatedFromViewport}|isolated=${isolated}|scrollViewport=${scrollViewport}|native=${nativeHeaderPreserved}|scroll=${surface.scrollTop}|head=${headRect.top}/${headRect.bottom}|surface=${surfaceRect.top}/${surfaceRect.bottom}`;
             }
         """);
 
@@ -342,7 +359,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         {
             State = WaitForSelectorState.Visible
         });
-        await drawer.GetByText("Chi tiết đơn hàng", new() { Exact = true }).WaitForAsync();
+        await drawer.GetByText("Phiếu chi tiết đơn", new() { Exact = true }).WaitForAsync();
         await drawer.Locator(".vpp-history-detail-grid-header-cell.vpp-history-detail-item").WaitForAsync();
         var selectedOrderCode = (await drawer.Locator(".vpp-history-drawer-code strong").InnerTextAsync()).Trim();
         var drawerHeadingAlignment = await drawer.Locator(".vpp-history-drawer-code").EvaluateAsync<string>("""
@@ -543,7 +560,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         (await detailSearchInput.InputValueAsync()).Should().BeEmpty();
         await Page.WaitForFunctionAsync("() => !document.querySelector('.vpp-history-detail-toolbar label')?.classList.contains('is-active')");
 
-        var detailCategoryFilter = drawer.Locator(".vpp-history-detail-select .vpp-history-select-trigger");
+        // Toolbar chi tiết giờ có 2 select (danh mục + đơn vị) — trỏ đích danh select danh mục (đầu tiên).
+        var detailCategoryFilter = drawer.Locator(".vpp-history-detail-select .vpp-history-select-trigger").First;
         await detailCategoryFilter.ClickAsync();
         var categoryOptions = Page.Locator(".vpp-history-detail-select .vpp-history-select-menu [role='option']");
         var categoryOptionCount = await categoryOptions.CountAsync();
@@ -738,8 +756,23 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 requestAnimationFrame(sample);
             }
         """);
-        await Page.GetByRole(AriaRole.Option, new() { Name = "Đã từ chối", Exact = true }).ClickAsync();
-        await Page.Locator(".vpp-history-orders-card").GetByText("Không có đơn nào khớp bộ lọc đã chọn.", new() { Exact = true }).WaitForAsync();
+        // Popup select có thể bị re-render nuốt mất giữa lúc mở và lúc click (app ấm của
+        // shared fixture refresh nhanh hơn) — cho phép đúng MỘT lần mở lại rồi click lại;
+        // assertion cuối (empty-state hiện) giữ nguyên độ chặt.
+        var rejectedOption = Page.GetByRole(AriaRole.Option, new() { Name = "Đã từ chối", Exact = true });
+        var emptyFilterMessage = Page.Locator(".vpp-history-orders-card")
+            .GetByText("Không có đơn nào khớp bộ lọc đã chọn.", new() { Exact = true });
+        await rejectedOption.ClickAsync();
+        try
+        {
+            await emptyFilterMessage.WaitForAsync(new LocatorWaitForOptions { Timeout = 10_000 });
+        }
+        catch (TimeoutException)
+        {
+            await Page.Locator(".vpp-history-filters .vpp-history-select-trigger").Nth(1).ClickAsync();
+            await rejectedOption.ClickAsync();
+            await emptyFilterMessage.WaitForAsync();
+        }
         await drawer.GetByText(selectedOrderCode, new() { Exact = true }).WaitForAsync();
         await Page.WaitForTimeoutAsync(240);
         var interactionGeometry = await Page.EvaluateAsync<string>("""

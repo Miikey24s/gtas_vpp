@@ -7,6 +7,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Auth
 {
+    [Collection(ReadOnlyE2ECollection.Name)]
     public class LoginTests : TestBase, IAuthenticatedUiTest
     {
         [Fact]

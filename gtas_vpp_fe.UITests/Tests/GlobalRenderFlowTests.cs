@@ -4,6 +4,7 @@ using Microsoft.Playwright;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class GlobalRenderFlowTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
@@ -21,6 +22,11 @@ public sealed class GlobalRenderFlowTests : TestBase, IAuthenticatedUiTest
         };
         Page.PageError += (_, error) => browserErrors.Add(error);
 
+        // Hàng Thông báo nằm trong popup tài khoản (Atlas "Menu tài khoản") —
+        // phải mở menu từ footer sidebar trước khi bấm chuông.
+        var userMenuTrigger = Page.Locator(".user-menu-trigger");
+        await userMenuTrigger.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await userMenuTrigger.ClickAsync();
         var notificationButton = Page.Locator(".vpp-header-notification-button");
         await notificationButton.ClickAsync();
         await Page.Locator("#vpp-notification-panel").WaitForAsync(new LocatorWaitForOptions
@@ -28,6 +34,7 @@ public sealed class GlobalRenderFlowTests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Visible
         });
         await notificationButton.ClickAsync();
+        await userMenuTrigger.PressAsync("Escape");
 
         await Page.GotoAsync(
             $"{BaseUrl}not-found",

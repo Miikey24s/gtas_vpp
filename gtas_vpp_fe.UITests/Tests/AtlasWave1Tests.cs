@@ -4,6 +4,7 @@ using Microsoft.Playwright;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
@@ -29,7 +30,11 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
         await Page.Locator(".vpp-record-inspector").WaitForAsync();
 
         await GotoMainRouteAsync("permission?tab=1");
-        (await Page.GetByText("Ba vai trò chuẩn", new() { Exact = false }).CountAsync()).Should().BeGreaterThan(0);
+        await Page.GetByText("Ba vai trò chuẩn", new() { Exact = false }).First.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 30_000
+        });
 
         await GotoMainRouteAsync("dashboard?tab=5&periodTab=review");
         await Page.Locator(".vpp-period-workspace").WaitForAsync();

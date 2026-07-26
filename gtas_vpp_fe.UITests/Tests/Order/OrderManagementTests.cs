@@ -44,7 +44,13 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
                     || uri.AbsolutePath.EndsWith("/images/login-bg-optimized.jpeg", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
-                    || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
+                    || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
+                    // Blazor enhanced navigation legitimately cancels in-flight static
+                    // asset requests (e.g. fingerprinted /js/vpp-interactions.<hash>.js)
+                    // when a new navigation starts. Only ERR_ABORTED is expected here;
+                    // any other failure kind for these assets still fails the test.
+                    || uri.AbsolutePath.EndsWith(".js", StringComparison.OrdinalIgnoreCase)
+                    || uri.AbsolutePath.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true;
             if (!isExpectedCircuitTransition && !isExpectedNavigationAssetAbort)
             {
@@ -135,21 +141,31 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         await wizard.WaitForAsync();
 
         await (await GetInteractiveButtonAsync(wizard, "Thêm mặt hàng vào đơn")).ClickAsync();
-        await (await GetInteractiveButtonAsync(wizard, "Tiếp theo")).ClickAsync();
 
+        // Atlas M2: lý do đơn bổ sung nhập qua popover "Ghi chú" ngay ở bước chọn mặt hàng;
+        // nút "Tiếp tục" bị khóa tới khi lý do hợp lệ (>= 5 ký tự) thay cho toast lúc gửi duyệt.
+        var continueButton = wizard.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục", Exact = true });
         if (verifyRequiredReason)
         {
-            await (await GetInteractiveButtonAsync(wizard, "Gửi duyệt")).ClickAsync();
-            await Page.GetByText(
-                    "Vui lòng nhập lý do cho đơn bổ sung trước khi tiếp tục.",
-                    new() { Exact = false })
-                .WaitForAsync();
+            (await continueButton.IsDisabledAsync()).Should().BeTrue(
+                "a supplement draft must not reach the review step before its reason is provided");
         }
 
-        await (await GetInteractiveButtonAsync(wizard, "Quay lại")).ClickAsync();
-        await wizard.GetByLabel("Trường này bắt buộc với đơn bổ sung.", new() { Exact = true })
-            .Last.FillAsync(reason);
-        await (await GetInteractiveButtonAsync(wizard, "Tiếp theo")).ClickAsync();
+        await wizard.GetByRole(AriaRole.Button, new() { Name = "Ghi chú", Exact = true }).ClickAsync();
+        var reasonPopover = wizard.Locator(".vpp-order-note-popover--order");
+        await reasonPopover.Locator("textarea").FillAsync(reason);
+        await reasonPopover.GetByRole(AriaRole.Button, new() { Name = "Lưu ghi chú", Exact = true }).ClickAsync();
+
+        await (await GetInteractiveButtonAsync(wizard, "Tiếp tục")).ClickAsync();
+        if (verifyRequiredReason)
+        {
+            // Chờ bước xem lại render xong ("Gửi duyệt" chỉ có ở bước 2) rồi mới bấm
+            // "Quay lại" — tránh trúng nút "Quay lại" của bước chọn mặt hàng còn trên DOM.
+            await wizard.GetByRole(AriaRole.Button, new() { Name = "Gửi duyệt", Exact = true }).WaitForAsync();
+            // Giữ coverage điều hướng lui/tới giữa hai bước như flow cũ.
+            await wizard.GetByRole(AriaRole.Button, new() { Name = "Quay lại", Exact = true }).ClickAsync();
+            await (await GetInteractiveButtonAsync(wizard, "Tiếp tục")).ClickAsync();
+        }
         await (await GetInteractiveButtonAsync(wizard, "Gửi duyệt")).ClickAsync();
 
         await WaitForUrlMatchAsync(

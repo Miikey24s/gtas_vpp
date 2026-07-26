@@ -1,11 +1,5 @@
-using Aspire.Hosting;
-using Aspire.Hosting.Testing;
-using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_test_support;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
-using System.Net.Http.Json;
 using Xunit;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
@@ -16,22 +10,19 @@ public abstract class TestBase : IAsyncLifetime
 {
     private const string DefaultDockerBaseUrl = "http://127.0.0.1:5000/";
 
-    private DistributedApplication? _app;
-    private LocalDbQaFixture? _fixture;
-    private IPlaywright? _playwright;
-    private IBrowser? _browser;
+    private IsolatedE2EStack? _ownedStack;
+    private IBrowserContext? _browserContext;
+    private QaTestAccounts? _accounts;
 
     protected IPage Page { get; private set; } = null!;
 
     protected string BaseUrl { get; private set; } = null!;
 
-    protected string TestUsername => _fixture?.Accounts.SystemAdmin.Username
-        ?? throw new InvalidOperationException("Authenticated UI tests require a harness-owned QA account.");
+    protected string TestUsername => TestAccounts.SystemAdmin.Username;
 
-    protected string TestPassword => _fixture?.Accounts.SystemAdmin.Password
-        ?? throw new InvalidOperationException("Authenticated UI tests require a harness-owned QA account.");
+    protected string TestPassword => TestAccounts.SystemAdmin.Password;
 
-    protected QaTestAccounts TestAccounts => _fixture?.Accounts
+    protected QaTestAccounts TestAccounts => _accounts
         ?? throw new InvalidOperationException("Authenticated UI tests require a harness-owned QA fixture.");
 
     public async ValueTask InitializeAsync()
@@ -45,29 +36,54 @@ public abstract class TestBase : IAsyncLifetime
             var mutationOptIn = Environment.GetEnvironmentVariable(
                 QaUiSafetyContract.MutationOptInEnvironmentVariable);
 
+            // Deliberately kept per-test (defense-in-depth): the env contract must hold
+            // for every test even though the app fixtures are shared.
             QaUiSafetyContract.EnsureRunAllowed(
                 requiresAuthenticatedFixture,
                 mutatesServerState,
                 isolatedOptIn,
                 mutationOptIn);
 
-            BaseUrl = requiresAuthenticatedFixture
-                      || string.Equals(isolatedOptIn, "1", StringComparison.Ordinal)
-                ? await StartIsolatedApplicationAsync(TestContext.Current.CancellationToken)
-                : await ResolveAnonymousLocalBaseUrlAsync(TestContext.Current.CancellationToken);
-
-            _playwright = await Playwright.CreateAsync();
-            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            var cancellationToken = TestContext.Current.CancellationToken;
+            if (mutatesServerState)
             {
-                Headless = GetHeadlessMode(),
-                SlowMo = GetSlowMo(),
-                ExecutablePath = GetBrowserExecutablePath()
-            });
-            Page = await _browser.NewPageAsync(new BrowserNewPageOptions
+                // REFACTOR-001-R0 Phase A: mutating tests keep the proven per-test stack.
+                // A rerun against an already-mutated database does not reproduce the first
+                // run (cancelled seed orders, pre-existing usernames), so each mutating
+                // test still gets its own fresh LocalDB + app.
+                _ownedStack = await IsolatedE2EStack.StartAsync(cancellationToken);
+                BaseUrl = _ownedStack.BaseUrl;
+                _accounts = _ownedStack.Fixture.Accounts;
+            }
+            else if (requiresAuthenticatedFixture
+                     || string.Equals(isolatedOptIn, "1", StringComparison.Ordinal))
+            {
+                var sharedApp = await TestContext.Current.GetFixture<SharedE2EAppFixture>()
+                    ?? throw new InvalidOperationException(
+                        $"{GetType().Name} needs the shared E2E app: annotate the test class " +
+                        "with [Collection(ReadOnlyE2ECollection.Name)] (audit it as read-only " +
+                        "first) or mark it as IMutatingUiTest.");
+                BaseUrl = await sharedApp.GetOrStartAsync(cancellationToken);
+                _accounts = sharedApp.Accounts;
+            }
+            else
+            {
+                BaseUrl = await ResolveAnonymousLocalBaseUrlAsync(cancellationToken);
+            }
+
+            var browserFixture = await TestContext.Current.GetFixture<PlaywrightBrowserFixture>()
+                ?? throw new InvalidOperationException(
+                    "PlaywrightBrowserFixture is not registered as an assembly fixture.");
+            var browser = await browserFixture.GetBrowserAsync();
+
+            // One fresh BrowserContext per test: cookies, localStorage and the Blazor
+            // circuit stay exactly as isolated as the old one-browser-per-test model.
+            _browserContext = await browser.NewContextAsync(new BrowserNewContextOptions
             {
                 Locale = "vi-VN",
                 TimezoneId = "Asia/Ho_Chi_Minh"
             });
+            Page = await _browserContext.NewPageAsync();
             Page.SetDefaultTimeout(60_000);
             Page.SetDefaultNavigationTimeout(120_000);
         }
@@ -87,29 +103,18 @@ public abstract class TestBase : IAsyncLifetime
                 await Page.CloseAsync();
             }
 
-            if (_browser is not null)
+            if (_browserContext is not null)
             {
-                await _browser.CloseAsync();
-                await _browser.DisposeAsync();
+                await _browserContext.DisposeAsync();
             }
-
-            _playwright?.Dispose();
         }
         finally
         {
-            try
+            // Shared fixtures (browser, read-only app) are owned by xUnit; only the
+            // per-test mutating stack belongs to this instance.
+            if (_ownedStack is not null)
             {
-                if (_app is not null)
-                {
-                    await _app.DisposeAsync();
-                }
-            }
-            finally
-            {
-                if (_fixture is not null)
-                {
-                    await _fixture.DisposeAsync();
-                }
+                await _ownedStack.DisposeAsync();
             }
         }
     }
@@ -200,8 +205,22 @@ public abstract class TestBase : IAsyncLifetime
                     continue;
                 }
 
+                // Blazor only stamps "_bl_" ElementReference attributes on elements captured
+                // via @ref (e.g. Radzen component roots). Atlas quiet row actions are plain
+                // HTML buttons with @onclick, so accept a marker on the element OR any
+                // ancestor: both only appear after the live interactive circuit has rendered
+                // the subtree, which is the prerender race this heuristic guards against.
                 var hasBlazorBinding = await candidate.EvaluateAsync<bool>(
-                    "element => Array.from(element.attributes).some(attribute => attribute.name.startsWith('_bl_'))");
+                    """
+                    element => {
+                        for (let node = element; node; node = node.parentElement) {
+                            if (Array.from(node.attributes).some(attribute => attribute.name.startsWith('_bl_'))) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    """);
                 if (hasBlazorBinding)
                 {
                     return candidate;
@@ -215,96 +234,21 @@ public abstract class TestBase : IAsyncLifetime
             $"No visible Blazor-interactive button matched '{description}' within 30 seconds. Candidate count: {lastCount}.");
     }
 
-    private async Task<string> StartIsolatedApplicationAsync(CancellationToken cancellationToken)
-    {
-        await LocalDbQaFixture.RecoverStaleAsync(cancellationToken: cancellationToken);
-        _fixture = await LocalDbQaFixture.CreateAsync(cancellationToken: cancellationToken);
-        var args = new[]
-        {
-            $"--Parameters:test-database-connection-string={_fixture.ConnectionString}",
-            $"--Parameters:jwt-key={_fixture.Secrets.JwtKey}",
-            $"--Parameters:qa-fixture-run-id={_fixture.Options.RunId}"
-        };
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.MyAspire_AppHost>(args, cancellationToken);
-        appHost.Services.AddLogging(logging =>
-        {
-            // The Windows EventLog provider can require administrator rights.
-            logging.ClearProviders();
-            logging.AddConsole();
-        });
-
-        _app = await appHost.BuildAsync(cancellationToken);
-        await _app.StartAsync(cancellationToken);
-
-        using var backendClient = _app.CreateHttpClient("backend");
-        QaUiSafetyContract.EnsureLoopbackUrl(
-            backendClient.BaseAddress
-            ?? throw new InvalidOperationException("Aspire backend endpoint has no address."),
-            "Aspire backend endpoint");
-        await WaitForConfirmedIdentityAsync(backendClient, _fixture, cancellationToken);
-
-        using var frontendClient = _app.CreateHttpClient("frontend");
-        var frontendBaseUrl = NormalizeBaseUrl(frontendClient.BaseAddress?.ToString())
-            ?? throw new InvalidOperationException("Aspire frontend endpoint has no address.");
-        QaUiSafetyContract.EnsureLoopbackUrl(new Uri(frontendBaseUrl), "Aspire frontend endpoint");
-        await WaitForBaseUrlReadyAsync(frontendBaseUrl, cancellationToken);
-        return frontendBaseUrl;
-    }
-
-    private static async Task WaitForConfirmedIdentityAsync(
-        HttpClient backendClient,
-        LocalDbQaFixture fixture,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < 24; attempt++)
-        {
-            try
-            {
-                using var response = await backendClient.GetAsync(
-                    "/internal/qa/database-identity",
-                    cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    var identity = await response.Content.ReadFromJsonAsync<QaFixtureIdentityResponse>(
-                        cancellationToken: cancellationToken);
-                    if (identity is not null
-                        && string.Equals(identity.Purpose, QaFixtureIdentityContract.Purpose, StringComparison.Ordinal)
-                        && string.Equals(identity.RunId, fixture.Options.RunId, StringComparison.Ordinal)
-                        && string.Equals(identity.FixtureVersion, QaFixtureIdentityContract.FixtureVersion, StringComparison.Ordinal)
-                        && string.Equals(identity.Environment, QaFixtureIdentityContract.HostEnvironment, StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(identity.DatabaseName, fixture.Options.DatabaseName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return;
-                    }
-                }
-            }
-            catch (HttpRequestException) when (attempt < 23)
-            {
-                // The backend can still be starting its reference-data check.
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        }
-
-        throw new InvalidOperationException(
-            "Backend did not confirm the harness-owned TEST database identity; browser launch is blocked.");
-    }
-
     private static async Task<string> ResolveAnonymousLocalBaseUrlAsync(
         CancellationToken cancellationToken)
     {
-        var configuredBaseUrl = NormalizeBaseUrl(Environment.GetEnvironmentVariable("UITEST_BASE_URL"));
+        var configuredBaseUrl = IsolatedE2EStack.NormalizeBaseUrl(
+            Environment.GetEnvironmentVariable("UITEST_BASE_URL"));
         if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
         {
             QaUiSafetyContract.EnsureLoopbackUrl(new Uri(configuredBaseUrl), "UITEST_BASE_URL");
-            if (await IsBaseUrlReadyAsync(configuredBaseUrl, cancellationToken))
+            if (await IsolatedE2EStack.IsBaseUrlReadyAsync(configuredBaseUrl, cancellationToken))
             {
                 return configuredBaseUrl;
             }
         }
 
-        if (await IsBaseUrlReadyAsync(DefaultDockerBaseUrl, cancellationToken))
+        if (await IsolatedE2EStack.IsBaseUrlReadyAsync(DefaultDockerBaseUrl, cancellationToken))
         {
             return DefaultDockerBaseUrl;
         }
@@ -312,82 +256,5 @@ public abstract class TestBase : IAsyncLifetime
         throw new InvalidOperationException(
             $"No loopback frontend is ready. Set {QaUiSafetyContract.IsolatedRunEnvironmentVariable}=1 " +
             "to start a disposable Aspire/LocalDB stack.");
-    }
-
-    private static string? GetBrowserExecutablePath()
-    {
-        var configuredPath = Environment.GetEnvironmentVariable("UITEST_BROWSER_EXECUTABLE");
-        if (string.IsNullOrWhiteSpace(configuredPath))
-        {
-            return null;
-        }
-
-        var fullPath = Path.GetFullPath(configuredPath);
-        if (!File.Exists(fullPath))
-        {
-            throw new InvalidOperationException(
-                $"UITEST_BROWSER_EXECUTABLE does not exist: '{fullPath}'.");
-        }
-
-        return fullPath;
-    }
-
-    private static bool GetHeadlessMode()
-    {
-        var value = Environment.GetEnvironmentVariable("PLAYWRIGHT_HEADLESS");
-        return !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static float? GetSlowMo()
-    {
-        var value = Environment.GetEnvironmentVariable("PLAYWRIGHT_SLOWMO_MS");
-        return float.TryParse(value, out var slowMo) ? slowMo : 0;
-    }
-
-    private static string? NormalizeBaseUrl(string? baseUrl)
-    {
-        if (string.IsNullOrWhiteSpace(baseUrl))
-        {
-            return null;
-        }
-
-        return baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/";
-    }
-
-    private static async Task<bool> IsBaseUrlReadyAsync(
-        string baseUrl,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            using var response = await httpClient.GetAsync(baseUrl, cancellationToken);
-            return response.IsSuccessStatusCode;
-        }
-        catch (HttpRequestException)
-        {
-            return false;
-        }
-        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return false;
-        }
-    }
-
-    private static async Task WaitForBaseUrlReadyAsync(
-        string baseUrl,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < 24; attempt++)
-        {
-            if (await IsBaseUrlReadyAsync(baseUrl, cancellationToken))
-            {
-                return;
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        }
-
-        throw new InvalidOperationException($"Frontend host '{baseUrl}' did not become ready in time.");
     }
 }

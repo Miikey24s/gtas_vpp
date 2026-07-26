@@ -5,6 +5,7 @@ using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class LogoutFlowTests : TestBase
 {
     [Fact]

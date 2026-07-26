@@ -23,7 +23,7 @@ public sealed class AccountLifecycleTests : TestBase, IMutatingUiTest
             await Page.GotoAsync(
                 $"{BaseUrl}Account/Register",
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
-            await Page.GetByRole(AriaRole.Button, new() { Name = "Gửi yêu cầu đăng ký" })
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Tạo tài khoản" })
                 .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
             var accessibility = await Page.EvaluateAsync<int[]>("""
                 () => {
@@ -50,17 +50,17 @@ public sealed class AccountLifecycleTests : TestBase, IMutatingUiTest
             accessibility.Should().Equal(0, 0);
         }
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Gửi yêu cầu đăng ký" })
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Tạo tài khoản" })
             .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await Page.WaitForTimeoutAsync(1000);
         await Page.Locator("input[name='Username']").FillAsync(username);
         await Page.Locator("input[name='FullName']").FillAsync("E2E Pending User");
         await Page.Locator("input[name='Email']").FillAsync("e2e.pending@example.test");
-        await Page.Locator("input[name='EmployeeCode']").FillAsync("E2E-PENDING");
+        // Atlas account-register có đúng 5 field: không còn EmployeeCode (optional trong DTO, backend tự bỏ qua).
         await Page.Locator("input[name='Password']").FillAsync(password);
         await Page.Locator("input[name='ConfirmPassword']").FillAsync(password);
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Gửi yêu cầu đăng ký" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Tạo tài khoản" }).ClickAsync();
 
         try
         {

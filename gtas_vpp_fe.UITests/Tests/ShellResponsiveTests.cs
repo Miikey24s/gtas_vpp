@@ -4,6 +4,7 @@ using Microsoft.Playwright;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
+[Collection(ReadOnlyE2ECollection.Name)]
 public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
 {
     private const string ScreenshotDirectoryEnvironmentVariable = "GTAS_THESIS_SCREENSHOT_DIR";
@@ -80,6 +81,13 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 await Page.GotoAsync($"{BaseUrl}{route}", new PageGotoOptions
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded
+                });
+                // Chờ shell interactive chốt trạng thái (data-shell-ready bật sau first
+                // render + router guard). Audit chạy giữa lúc circuit thay DOM prerender
+                // từng bắt nhầm trang trung gian không có #main-content/role=main.
+                await Page.Locator(".vpp-sidebar[data-shell-ready='true']").WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Attached
                 });
                 await Page.Locator("#main-content").WaitForAsync(new LocatorWaitForOptions
                 {
