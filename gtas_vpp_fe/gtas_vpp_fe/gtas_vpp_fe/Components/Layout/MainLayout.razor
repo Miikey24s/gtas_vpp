@@ -20,7 +20,8 @@
                     <VppStatePanel State="error"
                                    Icon="error_outline"
                                    Title="@Loc["ErrorPageTitle"]"
-                                   Description="@Loc["ErrorPageDescription"]" />
+                                   Description="@Loc["ErrorPageDescription"]"
+                                   RetryAction="@RecoverFromError" />
                     <div class="vpp-system-page-actions">
                         <a class="vpp-empty-state-link" href="/" data-enhance-nav="false">
                             @Loc["BackToDashboard"]
@@ -38,6 +39,12 @@
     protected override void OnParametersSet()
     {
         _errorBoundary?.Recover();
+    }
+
+    private void RecoverFromError()
+    {
+        _errorBoundary?.Recover();
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

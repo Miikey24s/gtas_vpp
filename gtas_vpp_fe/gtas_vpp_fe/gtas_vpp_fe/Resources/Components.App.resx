@@ -33,6 +33,11 @@
   <data name="Library" xml:space="preserve"><value>Quản trị danh mục</value></data>
   <data name="Reports" xml:space="preserve"><value>Báo cáo</value></data>
   <data name="ExportReport" xml:space="preserve"><value>Xuất báo cáo</value></data>
+  <data name="ExportPdf" xml:space="preserve"><value>Xuất PDF</value></data>
+  <data name="ExportExcel" xml:space="preserve"><value>Xuất Excel</value></data>
+  <data name="ExportOrderPdfAria" xml:space="preserve"><value>Xuất đơn {0} ra tệp PDF</value></data>
+  <data name="ExportOrderExcelAria" xml:space="preserve"><value>Xuất đơn {0} ra tệp Excel</value></data>
+  <data name="OrderExported" xml:space="preserve"><value>Đã xuất tệp chi tiết đơn</value></data>
   <data name="ReportContentNotConfigured" xml:space="preserve"><value>Nội dung báo cáo chưa được cấu hình. Chức năng xuất báo cáo sẽ được bổ sung sau.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Phân quyền</value></data>
   <data name="Settings" xml:space="preserve"><value>Cài đặt</value></data>
@@ -67,20 +72,20 @@
   <data name="ForgotPasswordTitle" xml:space="preserve"><value>Khôi phục mật khẩu</value></data>
   <data name="ForgotPasswordLink" xml:space="preserve"><value>Quên mật khẩu?</value></data>
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
-  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi</value></data>
+  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi liên kết</value></data>
   <data name="BackToLogin" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
   <data name="RecoveryRequestAccepted" xml:space="preserve"><value>Nếu tài khoản tồn tại, hướng dẫn khôi phục đã được gửi tới email đã đăng ký.</value></data>
   <data name="RecoveryConnectionFailed" xml:space="preserve"><value>Chưa thể kết nối máy chủ. Vui lòng thử lại sau.</value></data>
   <data name="ResetPasswordTitle" xml:space="preserve"><value>Đặt lại</value></data>
   <data name="ResetPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
   <data name="NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
-  <data name="ConfirmNewPassword" xml:space="preserve"><value>Nhập lại mật khẩu</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Xác nhận mật khẩu mới</value></data>
   <data name="ResetPasswordAction" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
   <data name="ResetPasswordSuccess" xml:space="preserve"><value>Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>Liên kết đặt lại không hợp lệ hoặc đã hết hạn.</value></data>
-  <data name="RegisterTitle" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="RegisterTitle" xml:space="preserve"><value>Tạo tài khoản</value></data>
   <data name="CompanyEmail" xml:space="preserve"><value>Email công ty</value></data>
-  <data name="RegisterAction" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="RegisterAction" xml:space="preserve"><value>Tạo tài khoản</value></data>
   <data name="CompanyEmailRequired" xml:space="preserve"><value>Vui lòng nhập email công ty.</value></data>
   <data name="CompanyEmailInvalid" xml:space="preserve"><value>Email công ty chưa đúng định dạng.</value></data>
   <data name="UsernameLengthValidation" xml:space="preserve"><value>Tên đăng nhập phải có từ 3 đến 100 ký tự.</value></data>
@@ -101,7 +106,7 @@
   <data name="ChangePasswordTitle" xml:space="preserve"><value>Đổi mật khẩu</value></data>
   <data name="ChangePasswordRequired" xml:space="preserve"><value>Bạn cần đổi mật khẩu tạm thời trước khi tiếp tục sử dụng hệ thống.</value></data>
   <data name="CurrentPassword" xml:space="preserve"><value>Mật khẩu hiện tại</value></data>
-  <data name="SaveNewPassword" xml:space="preserve"><value>Lưu mật khẩu mới</value></data>
+  <data name="SaveNewPassword" xml:space="preserve"><value>Đổi mật khẩu</value></data>
   <data name="ChangePasswordSuccess" xml:space="preserve"><value>Đã đổi mật khẩu. Hệ thống sẽ yêu cầu bạn đăng nhập lại.</value></data>
   <data name="PasswordConfirmationMismatch" xml:space="preserve"><value>Mật khẩu nhập lại chưa khớp.</value></data>
   <data name="PasswordChangeInvalid" xml:space="preserve"><value>Mật khẩu hiện tại chưa đúng hoặc mật khẩu mới chưa đáp ứng chính sách.</value></data>
@@ -161,14 +166,14 @@
   <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
   <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Danh mục mặt hàng</value></data>
-  <data name="DepartmentSummary" xml:space="preserve"><value>Đơn theo phòng ban</value></data>
+  <data name="DepartmentSummary" xml:space="preserve"><value>Tổng hợp phòng ban</value></data>
   <data name="AllOrdersSummary" xml:space="preserve"><value>Toàn bộ đơn</value></data>
   <data name="AdminApproval" xml:space="preserve"><value>Duyệt đơn bổ sung</value></data>
-  <data name="ClassDefinitions" xml:space="preserve"><value>Định nghĩa lớp</value></data>
-  <data name="OperationCategories" xml:space="preserve"><value>Nhóm hàng</value></data>
+  <data name="ClassDefinitions" xml:space="preserve"><value>Loại danh mục</value></data>
+  <data name="OperationCategories" xml:space="preserve"><value>Danh mục</value></data>
   <data name="Operations" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Nhà cung cấp</value></data>
-  <data name="Prices" xml:space="preserve"><value>Giá</value></data>
+  <data name="Prices" xml:space="preserve"><value>Giá mặt hàng</value></data>
   <data name="Departments" xml:space="preserve"><value>Phòng ban</value></data>
   <data name="User" xml:space="preserve"><value>Người dùng</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Trở về đơn hàng</value></data>
@@ -177,19 +182,18 @@
   <data name="OrderDetails" xml:space="preserve"><value>Chi tiết đơn hàng</value></data>
   <data name="OrderItems" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="Reload" xml:space="preserve"><value>Tải lại</value></data>
-  <data name="NewOrder" xml:space="preserve"><value>Tạo đơn mới</value></data>
-  <data name="CreateOrderThisCycle" xml:space="preserve"><value>Tạo đơn kỳ này</value></data>
+    <data name="CreateOrderThisCycle" xml:space="preserve"><value>Tạo đơn kỳ này</value></data>
   <data name="CopyPreviousOrder" xml:space="preserve"><value>Sao chép kỳ trước</value></data>
   <data name="ActiveOrderPeriod" xml:space="preserve"><value>Kỳ đặt hàng hiện tại</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Hạn gửi đơn</value></data>
   <data name="TotalLineItems" xml:space="preserve"><value>Tổng mặt hàng</value></data>
   <data name="TotalQuantity" xml:space="preserve"><value>Tổng số lượng</value></data>
   <data name="RequestAdditional" xml:space="preserve"><value>Tạo đơn bổ sung</value></data>
-  <data name="NoPermission" xml:space="preserve"><value>Bạn không có quyền xem trang này.</value></data>
+  <data name="NoPermission" xml:space="preserve"><value>Tài khoản hiện tại chưa được cấp quyền chức năng cần thiết.</value></data>
   <data name="UserGroup" xml:space="preserve"><value>Nhóm người dùng</value></data>
   <data name="GroupPagePermission" xml:space="preserve"><value>Phân quyền nhóm/trang</value></data>
   <data name="Users" xml:space="preserve"><value>Người dùng</value></data>
-  <data name="GroupsAndPermissions" xml:space="preserve"><value>Nhóm &amp; phân quyền</value></data>
+  <data name="GroupsAndPermissions" xml:space="preserve"><value>Nhóm &amp; quyền</value></data>
   <data name="GroupName" xml:space="preserve"><value>Tên nhóm</value></data>
   <data name="ParentGroup" xml:space="preserve"><value>Nhóm cha</value></data>
   <data name="UserLogin" xml:space="preserve"><value>Tài khoản</value></data>
@@ -216,7 +220,7 @@
   <data name="ExtraField3" xml:space="preserve"><value>Trường bổ sung 3</value></data>
   <data name="SortOrder" xml:space="preserve"><value>Thứ tự sắp xếp</value></data>
   <data name="Additional" xml:space="preserve"><value>Bổ sung</value></data>
-  <data name="AccessDenied" xml:space="preserve"><value>Truy cập bị từ chối</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Bạn không có quyền xem nội dung này</value></data>
   <data name="SelectVPPItem" xml:space="preserve"><value>Chọn mặt hàng VPP</value></data>
   <data name="AddNewPrice" xml:space="preserve"><value>Thêm giá mới</value></data>
   <data name="EditPrice" xml:space="preserve"><value>Sửa giá</value></data>
@@ -256,7 +260,7 @@
   <data name="CancelOrderAria" xml:space="preserve"><value>Hủy đơn {0}</value></data>
   <data name="Categories" xml:space="preserve"><value>Nhóm hàng</value></data>
   <data name="ItemCode" xml:space="preserve"><value>Mã mặt hàng</value></data>
-  <data name="ItemName" xml:space="preserve"><value>Tên mặt hàng</value></data>
+  <data name="ItemName" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="ItemsPerPage" xml:space="preserve"><value>mục/trang</value></data>
   <data name="Month" xml:space="preserve"><value>Tháng</value></data>
   <data name="No" xml:space="preserve"><value>Không</value></data>
@@ -407,7 +411,7 @@
   <data name="WizardTotalQuantityFormat" xml:space="preserve"><value>Tổng số lượng {0}</value></data>
   <data name="CreateOrder" xml:space="preserve"><value>Tạo đơn</value></data>
   <data name="AdditionalOrder" xml:space="preserve"><value>Đơn bổ sung</value></data>
-  <data name="PriceLists" xml:space="preserve"><value>Bảng giá</value></data>
+  <data name="PriceLists" xml:space="preserve"><value>Danh sách bảng giá</value></data>
   <data name="SelectPriceList" xml:space="preserve"><value>Chọn bảng giá</value></data>
   <data name="NoPriceListAvailable" xml:space="preserve"><value>Chưa có bảng giá khả dụng.</value></data>
   <data name="PriceListCode" xml:space="preserve"><value>Mã bảng giá</value></data>
@@ -421,7 +425,7 @@
   <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Đã xóa bảng giá</value></data>
   <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
-  <data name="PeriodOperations" xml:space="preserve"><value>Tổng kết kỳ</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Vận hành kỳ</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Đóng kỳ</value></data>
   <data name="PriceList" xml:space="preserve"><value>Bảng giá</value></data>
@@ -435,7 +439,7 @@
   <data name="PeriodStatus" xml:space="preserve"><value>Trạng thái kỳ</value></data>
   <data name="CheckingPeriodStatus" xml:space="preserve"><value>Đang kiểm tra trạng thái kỳ...</value></data>
   <data name="PeriodReadyToSettle" xml:space="preserve"><value>Kỳ sẵn sàng đóng</value></data>
-  <data name="PeriodReview" xml:space="preserve"><value>Tổng kết kỳ &amp; đóng kỳ</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Rà soát kỳ</value></data>
   <data name="TargetPeriod" xml:space="preserve"><value>Kỳ cần đóng</value></data>
   <data name="Hint_AutoTargetsClosedPeriod" xml:space="preserve"><value>Hệ thống tự chọn kỳ vừa hết hạn (kỳ ngay trước kỳ đang mở). Bảng giá sẽ áp cho toàn bộ đơn của kỳ này.</value></data>
   <data name="Columns" xml:space="preserve"><value>Cột</value></data>
@@ -544,7 +548,7 @@
   <data name="CurrentRegularOrder" xml:space="preserve"><value>Đơn kỳ hiện tại</value></data>
   <data name="RegularOrder" xml:space="preserve"><value>Đơn chính</value></data>
   <data name="PreviousCycleOrder" xml:space="preserve"><value>Đơn kỳ trước</value></data>
-  <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} mặt hàng · {1} tổng số lượng</value></data>
+  <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} mặt hàng · tổng số lượng {1}</value></data>
   <data name="NoAdditionalOrdersYet" xml:space="preserve"><value>Chưa có đơn bổ sung</value></data>
   <data name="SupplementAvailableDescription" xml:space="preserve"><value>Có thể tạo khi cần bổ sung mặt hàng trong kỳ đang mở.</value></data>
   <data name="NoPreviousOrderYet" xml:space="preserve"><value>Chưa có đơn kỳ trước</value></data>
@@ -579,7 +583,7 @@
   <data name="HistoryDetailsLoadFailed" xml:space="preserve"><value>Không tải được chi tiết đơn</value></data>
   <data name="HistoryDetailsErrorDescription" xml:space="preserve"><value>Thông tin đơn vẫn được giữ lại. Hãy thử tải lại phần chi tiết.</value></data>
   <data name="NoRequestHistory" xml:space="preserve"><value>Đơn chưa có lịch sử phiên bản.</value></data>
-  <data name="Retry" xml:space="preserve"><value>Thử lại</value></data>
+  <data name="Retry" xml:space="preserve"><value>Thử tải lại</value></data>
   <data name="RevisionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
   <data name="TimelineEventCount" xml:space="preserve"><value>{0} sự kiện</value></data>
   <data name="RequestTimeline" xml:space="preserve"><value>Dòng thời gian</value></data>
@@ -615,7 +619,7 @@
   <data name="HistoryInvalidRange" xml:space="preserve"><value>Khoảng kỳ chưa hợp lệ. Hãy chọn kỳ bắt đầu không sau kỳ kết thúc.</value></data>
   <data name="HistoryNoOrdersDescription" xml:space="preserve"><value>Các đơn bạn đã gửi sẽ xuất hiện tại đây.</value></data>
   <data name="HistorySummary" xml:space="preserve"><value>Tổng quan đơn hàng</value></data>
-  <data name="HistoryPeriodsWithOrders" xml:space="preserve"><value>Kỳ có đơn</value></data>
+  <data name="HistoryPeriodsWithOrders" xml:space="preserve"><value>Số kỳ có dữ liệu</value></data>
   <data name="HistoryKpiDetailTitle" xml:space="preserve"><value>Chi tiết chỉ số</value></data>
   <data name="HistoryKpiScope" xml:space="preserve"><value>Khoảng đang xem</value></data>
   <data name="HistoryKpiPeriodsHint" xml:space="preserve"><value>Số kỳ có phát sinh ít nhất một đơn.</value></data>
@@ -640,10 +644,10 @@
   <data name="HistoryAdjustFilters" xml:space="preserve"><value>Hãy thay đổi hoặc xóa bớt điều kiện lọc.</value></data>
   <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Trang {0}/{1} · {2} đơn</value></data>
   <data name="HistorySearchItem" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
-  <data name="HistoryAllCategories" xml:space="preserve"><value>Tất cả nhóm hàng</value></data>
+  <data name="HistoryAllCategories" xml:space="preserve"><value>Tất cả danh mục</value></data>
   <data name="HistoryItem" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="HistoryNoItems" xml:space="preserve"><value>Không có mặt hàng phù hợp</value></data>
-  <data name="HistoryNoItemsDescription" xml:space="preserve"><value>Hãy thay đổi từ khóa hoặc nhóm hàng đang lọc.</value></data>
+  <data name="HistoryNoItemsDescription" xml:space="preserve"><value>Hãy thay đổi từ khóa hoặc danh mục đang lọc.</value></data>
   <data name="HistorySelectOrder" xml:space="preserve"><value>Chưa chọn đơn hàng</value></data>
   <data name="HistorySelectOrderDescription" xml:space="preserve"><value>Chọn một đơn trong danh sách để xem chi tiết.</value></data>
   <data name="HistoryDetailCount" xml:space="preserve"><value>Hiển thị {0} trên tổng số {1} mặt hàng</value></data>
@@ -653,8 +657,8 @@
   <data name="AllUnits" xml:space="preserve"><value>Tất cả đơn vị</value></data>
   <data name="ClearFilters" xml:space="preserve"><value>Xóa bộ lọc</value></data>
   <data name="DownloadCatalog" xml:space="preserve"><value>Tải danh mục</value></data>
-  <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} mặt hàng khả dụng</value></data>
-  <data name="CatalogReferenceDescription" xml:space="preserve"><value>Dùng để tra cứu các mặt hàng hiện có trong kỳ đặt hàng.</value></data>
+  <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} mặt hàng có thể đặt</value></data>
+  <data name="CatalogReferenceDescription" xml:space="preserve"><value>Danh mục chỉ đọc; tìm kiếm, lọc và sắp xếp trên toàn bộ dữ liệu được cấp quyền.</value></data>
   <data name="CatalogLoadFailed" xml:space="preserve"><value>Chưa tải được danh mục mặt hàng</value></data>
   <data name="CatalogLoadFailedDescription" xml:space="preserve"><value>Hệ thống chưa thể tải dữ liệu. Vui lòng thử lại.</value></data>
   <data name="AdjustCatalogFilters" xml:space="preserve"><value>Thử đổi từ khóa, danh mục hoặc đơn vị để xem kết quả khác.</value></data>
@@ -665,18 +669,52 @@
   <data name="Add" xml:space="preserve"><value>Thêm</value></data>
   <data name="ContinueReview" xml:space="preserve"><value>Tiếp tục</value></data>
   <data name="DecreaseQuantity" xml:space="preserve"><value>Giảm số lượng</value></data>
-  <data name="Draft" xml:space="preserve"><value>Bản nháp</value></data>
+  <data name="Draft" xml:space="preserve"><value>Nháp</value></data>
   <data name="IncreaseQuantity" xml:space="preserve"><value>Tăng số lượng</value></data>
   <data name="ItemNote" xml:space="preserve"><value>Ghi chú mặt hàng</value></data>
   <data name="ItemNotePlaceholder" xml:space="preserve"><value>Nhập ghi chú cho mặt hàng (nếu có)</value></data>
   <data name="OrderBeingCreated" xml:space="preserve"><value>Đơn đang tạo</value></data>
   <data name="OrderCreationSteps" xml:space="preserve"><value>Các bước tạo đơn</value></data>
-  <data name="OrderNote" xml:space="preserve"><value>Ghi chú đơn hàng</value></data>
+  <data name="OrderNote" xml:space="preserve"><value>Ghi chú chung</value></data>
   <data name="OrderNotePlaceholder" xml:space="preserve"><value>Nhập ghi chú chung cho đơn hàng (nếu có)</value></data>
-  <data name="OrderableCatalog" xml:space="preserve"><value>Danh mục có thể đặt</value></data>
+  <data name="OrderableCatalog" xml:space="preserve"><value>Danh mục được phép đặt</value></data>
   <data name="QuantityShort" xml:space="preserve"><value>SL</value></data>
   <data name="ReviewOrderBeforeSubmit" xml:space="preserve"><value>Kiểm tra đơn trước khi gửi</value></data>
   <data name="ReviewOrderBeforeSubmitDescription" xml:space="preserve"><value>Kiểm tra mặt hàng, số lượng và ghi chú trước khi gửi đơn.</value></data>
-  <data name="SaveDraft" xml:space="preserve"><value>Lưu bản nháp</value></data>
+  <data name="SaveDraft" xml:space="preserve"><value>Lưu nháp</value></data>
   <data name="SupplementReasonPlaceholder" xml:space="preserve"><value>Nhập lý do tạo đơn bổ sung</value></data>
+  <data name="NotificationInbox" xml:space="preserve"><value>Hộp thư thông báo</value></data>
+  <data name="NotificationNew" xml:space="preserve"><value>Mới</value></data>
+  <data name="LanguageVietnamese" xml:space="preserve"><value>Tiếng Việt</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>Tiếng Anh</value></data>
+  <data name="RoleEmployee" xml:space="preserve"><value>Nhân viên</value></data>
+  <data name="RoleManager" xml:space="preserve"><value>Quản lý</value></data>
+  <data name="RoleDev" xml:space="preserve"><value>Quản trị hệ thống</value></data>
+  <data name="BackToAllowedPage" xml:space="preserve"><value>Về trang phù hợp</value></data>
+  <data name="CurrentLocation" xml:space="preserve"><value>Vị trí hiện tại</value></data>
+  <data name="SectionNavigation" xml:space="preserve"><value>Điều hướng khu vực</value></data>
+  <data name="ItemsCount" xml:space="preserve"><value>{0} mặt hàng</value></data>
+  <data name="OrderableCatalogCount" xml:space="preserve"><value>{0} mặt hàng đã chọn · {1} mặt hàng khả dụng</value></data>
+  <data name="VirtualizedCatalogSummary" xml:space="preserve"><value>Tổng cộng {0} mặt hàng</value></data>
+  <data name="SelectedItemsSummary" xml:space="preserve"><value>{0} mặt hàng · tổng số lượng {1}</value></data>
+  <data name="SearchOrderItems" xml:space="preserve"><value>Tìm mặt hàng</value></data>
+  <data name="ItemNoteScopeHint" xml:space="preserve"><value>Ghi chú này chỉ áp dụng cho mặt hàng đang chọn.</value></data>
+  <data name="OrderNoteScopeHint" xml:space="preserve"><value>Ghi chú này áp dụng cho toàn bộ đơn.</value></data>
+  <data name="SaveNote" xml:space="preserve"><value>Lưu ghi chú</value></data>
+  <data name="OrderNotePeriodFormat" xml:space="preserve"><value>Đơn kỳ {0}</value></data>
+  <data name="HistoryDetailSheetTitle" xml:space="preserve"><value>Phiếu chi tiết đơn</value></data>
+  <data name="HistoryItemsHeading" xml:space="preserve"><value>Danh sách mặt hàng</value></data>
+  <data name="HistoryItemsHeadingHint" xml:space="preserve"><value>Nội dung đầy đủ dùng khi xem và xuất phiếu</value></data>
+  <data name="HistoryAllUnits" xml:space="preserve"><value>Tất cả đơn vị</value></data>
+  <data name="HistoryKpiTotalOrders" xml:space="preserve"><value>Tổng số đơn</value></data>
+  <data name="HistoryKpiTotalLines" xml:space="preserve"><value>Mặt hàng đã đặt</value></data>
+  <data name="FullNameLong" xml:space="preserve"><value>Họ và tên</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Xác nhận mật khẩu</value></data>
+  <data name="LoginDescription" xml:space="preserve"><value>Nhập thông tin tài khoản GTAS để tiếp tục</value></data>
+  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Nhập email đã đăng ký. Hệ thống sẽ gửi liên kết để bạn đặt lại mật khẩu.</value></data>
+  <data name="ResetPasswordDescription" xml:space="preserve"><value>Tạo mật khẩu mới cho tài khoản của bạn.</value></data>
+  <data name="ChangePasswordDescription" xml:space="preserve"><value>Xác nhận mật khẩu hiện tại trước khi tạo mật khẩu mới.</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Tạo tài khoản để sử dụng trong môi trường phát triển và kiểm thử.</value></data>
+  <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>Vì lý do bảo mật, hệ thống luôn trả về cùng một thông báo dù email có tồn tại hay không.</value></data>
+  <data name="HistoryRequester" xml:space="preserve"><value>Người đặt</value></data>
 </root>

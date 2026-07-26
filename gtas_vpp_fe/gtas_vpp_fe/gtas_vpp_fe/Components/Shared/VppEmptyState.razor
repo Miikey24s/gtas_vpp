@@ -5,7 +5,7 @@
     <div class="vpp-empty-state-title">@Title</div>
     <div class="vpp-empty-state-desc">@Description</div>
 
-    @if (PrimaryAction.HasDelegate || SecondaryAction.HasDelegate)
+    @if (HasActions)
     {
         <div class="vpp-empty-state-actions">
             @if (!string.IsNullOrWhiteSpace(PrimaryText) && PrimaryAction.HasDelegate)
@@ -20,6 +20,13 @@
             {
                 <RadzenLink Click="@SecondaryAction" class="vpp-empty-state-link">@SecondaryText</RadzenLink>
             }
+            else if (!string.IsNullOrWhiteSpace(SecondaryText) && !string.IsNullOrWhiteSpace(SecondaryHref))
+            {
+                <a class="vpp-empty-state-link" href="@SecondaryHref">
+                    <VppIcon Name="@VppIcons.ArrowBack" />
+                    @SecondaryText
+                </a>
+            }
         </div>
     }
 </div>
@@ -33,5 +40,10 @@
     [Parameter] public ButtonStyle PrimaryButtonStyle { get; set; } = ButtonStyle.Primary;
     [Parameter] public string SecondaryText { get; set; } = string.Empty;
     [Parameter] public EventCallback<MouseEventArgs> SecondaryAction { get; set; }
+    [Parameter] public string? SecondaryHref { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;
+
+    private bool HasActions => PrimaryAction.HasDelegate
+        || SecondaryAction.HasDelegate
+        || (!string.IsNullOrWhiteSpace(SecondaryText) && !string.IsNullOrWhiteSpace(SecondaryHref));
 }

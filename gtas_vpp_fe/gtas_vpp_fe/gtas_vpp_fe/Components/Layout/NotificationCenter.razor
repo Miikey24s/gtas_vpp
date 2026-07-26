@@ -34,7 +34,7 @@
                  aria-label="@Loc["Notifications"]">
             <header class="vpp-notification-panel-header">
                 <div>
-                    <strong>@Loc["Notifications"]</strong>
+                    <strong>@Loc["NotificationInbox"]</strong>
                     <span>@string.Format(Loc["UnreadNotificationCount"], Inbox.UnreadCount)</span>
                 </div>
                 @if (Inbox.UnreadCount > 0)
@@ -96,7 +96,7 @@
                             </span>
                             @if (!item.IsRead)
                             {
-                                <span class="vpp-notification-unread-dot" aria-label="@Loc["Unread"]"></span>
+                                <span class="vpp-notification-unread-badge">@Loc["NotificationNew"]</span>
                             }
                         </button>
                     }

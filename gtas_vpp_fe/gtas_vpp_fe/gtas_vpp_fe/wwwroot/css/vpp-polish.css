@@ -328,13 +328,13 @@ img {
 
 /* ── Link Defaults ─────────────────────────────────────────────── */
 a {
-    color: var(--vpp-primary-400);
+    color: var(--vpp-text-link);
     text-decoration: none;
     transition: color var(--vpp-transition-fast);
 }
 
 a:hover {
-    color: var(--vpp-primary-300);
+    color: var(--vpp-text-link-hover);
     text-decoration: underline;
 }
 
@@ -401,6 +401,28 @@ a:hover {
 
 .vpp-sidebar-user-menu .user-menu-trigger:hover .user-avatar {
     box-shadow: none;
+}
+
+.user-menu-trigger-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+/* Dòng phụ (phòng ban/vai trò) dưới tên ở footer sidebar theo Atlas .sidebar-user. */
+.user-menu-trigger-subline {
+    max-width: 190px;
+    overflow: hidden;
+    color: var(--vpp-text-tertiary);
+    font-family: var(--vpp-font-sidebar);
+    font-size: var(--vpp-text-xs);
+    line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 1;
+    transition: max-width var(--vpp-sidebar-transition),
+                opacity 150ms ease-out 45ms;
 }
 
 .user-menu-trigger-name {
@@ -696,6 +718,13 @@ a:hover {
     transition-delay: 0s, 0s, 0s, 220ms;
 }
 
+.sidebar-collapsed .vpp-sidebar-user-menu .user-menu-trigger-subline {
+    visibility: hidden;
+    max-width: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .sidebar-collapsed .vpp-sidebar-user-menu .user-dropdown {
     left: var(--vpp-space-2);
     width: min(calc(var(--vpp-sidebar-width) - var(--vpp-space-2)), calc(100vw - 16px));
@@ -813,7 +842,7 @@ a:hover {
 
 .vpp-page-header-eyebrow {
     margin: 0 0 var(--vpp-space-1);
-    color: var(--vpp-primary-500);
+    color: var(--vpp-text-link);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     letter-spacing: normal;

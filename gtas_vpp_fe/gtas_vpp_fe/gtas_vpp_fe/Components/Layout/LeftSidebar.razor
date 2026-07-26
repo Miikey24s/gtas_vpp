@@ -16,13 +16,65 @@
                 title="@Loc["ToggleNavigation"]"
                 aria-label="@Loc["ToggleNavigation"]"
                 aria-expanded="@_sideBarExpanded"
-                @onclick="@(() => _sideBarExpanded = !_sideBarExpanded)">
+                @onclick="@(() => SetSidebarExpandedAsync(!_sideBarExpanded))">
             <VppIcon Name="@VppIcons.Menu" />
         </button>
+        @if (HeaderTabs.Count > 0)
+        {
+            <nav class="vpp-header-tabs" aria-label="@Loc["SectionNavigation"]">
+                @foreach (var headerTab in HeaderTabs)
+                {
+                    <a class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
+                       href="@headerTab.Path"
+                       aria-current="@(headerTab.IsActive ? "page" : null)">
+                        @if (headerTab.IsActive && headerTab.Breadcrumb is { Count: > 1 })
+                        {
+                            @for (var i = 0; i < headerTab.Breadcrumb.Count; i++)
+                            {
+                                @if (i > 0)
+                                {
+                                    <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-breadcrumb-sep" />
+                                }
+                                <span class="@(i == headerTab.Breadcrumb.Count - 1 ? "vpp-header-breadcrumb-leaf" : "vpp-header-breadcrumb-ancestor")">@headerTab.Breadcrumb[i]</span>
+                            }
+                        }
+                        else
+                        {
+                            @headerTab.Label
+                        }
+                    </a>
+                }
+            </nav>
+        }
+        @if (HeaderPathSegments.Count > 0)
+        {
+            <nav class="vpp-header-breadcrumb" aria-label="@Loc["CurrentLocation"]">
+                @for (var i = 0; i < HeaderPathSegments.Count; i++)
+                {
+                    @if (i > 0)
+                    {
+                        <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-breadcrumb-sep" />
+                    }
+                    <span class="@(i == HeaderPathSegments.Count - 1 ? "vpp-header-breadcrumb-leaf" : "vpp-header-breadcrumb-ancestor")">@HeaderPathSegments[i]</span>
+                }
+            </nav>
+        }
+        @if (!string.IsNullOrWhiteSpace(RoleBadgeLabel))
+        {
+            <span class="vpp-header-role-badge" title="@RoleBadgeLabel">
+                <VppIcon Name="@VppIcons.VerifiedUser" />
+                @RoleBadgeLabel
+            </span>
+        }
     </RadzenStack>
 </RadzenHeader>
 
-<RadzenSidebar Responsive="true" class="@GetSidebarClass()" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
+@* FullHeight bắt buộc cho trục Atlas "brand + tab cùng hàng 72px": Radzen 11 áp
+   grid-template-areas bằng selector :has() có specificity cao hơn vpp-layout.css,
+   nên thiếu FullHeight thì theme sẽ đặt header tràn hết bề ngang phía trên sidebar
+   (header left = 0, brand rơi xuống y = 72 + 36). Với FullHeight="true" theme sinh
+   "rz-sidebar rz-header" / "rz-sidebar rz-body" — đúng template mà vpp-layout.css mô tả. *@
+<RadzenSidebar Responsive="true" FullHeight="true" class="@GetSidebarClass()" data-shell-ready="@(_shellStateReady ? "true" : "false")" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
     <div class="vpp-sidebar-header">
         <div class="vpp-sidebar-expanded-chrome" aria-hidden="@(!_sideBarExpanded)">
             <div class="vpp-sidebar-expanded-brand" aria-label="GTAS VPP">
@@ -35,7 +87,7 @@
                     aria-label="@Loc["ToggleNavigation"]"
                     aria-expanded="true"
                     tabindex="@(_sideBarExpanded ? "0" : "-1")"
-                    @onclick="@(() => _sideBarExpanded = false)">
+                    @onclick="@(() => SetSidebarExpandedAsync(false))">
                 <VppIcon Name="@VppIcons.SidebarCollapse" />
             </button>
         </div>
@@ -46,7 +98,7 @@
                 aria-expanded="false"
                 aria-hidden="@_sideBarExpanded"
                 tabindex="@(_sideBarExpanded ? "-1" : "0")"
-                @onclick="@(() => _sideBarExpanded = true)">
+                @onclick="@(() => SetSidebarExpandedAsync(true))">
             <VppBrandMark Class="vpp-sidebar-brand-mark vpp-sidebar-collapsed-logo" />
             <VppIcon Name="@VppIcons.SidebarExpand" Class="vpp-sidebar-collapsed-expand-icon" />
         </button>
@@ -58,7 +110,7 @@
             <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]">
                 @if (CanViewDashboardItem(Permissions.RequestOrder))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.Orders" title="@Loc["MyOrders"]" />
+                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavMyOrders" title="@Loc["MyOrders"]" />
                 }
                 @if (CanViewDashboardItem(Permissions.RequestHistory))
                 {
@@ -72,7 +124,7 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc["Management"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.TeamManagement" title="@Loc["Management"]">
                         <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Department" title="@Loc["DepartmentSummary"]" />
-                        <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Table" title="@Loc["AllOrdersSummary"]" />
+                        <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavAllOrders" title="@Loc["AllOrdersSummary"]" />
                     </RadzenPanelMenuItem>
                 }
                 else if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
@@ -81,7 +133,7 @@
                 }
                 else if (CanViewDashboardItem(Permissions.RequestAllOrdersSummary))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Table" title="@Loc["AllOrdersSummary"]" />
+                    <RadzenPanelMenuItem Text="@Loc["AllOrdersSummary"]" Path="@("/dashboard?tab=3&managementTab=all")" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavAllOrders" title="@Loc["AllOrdersSummary"]" />
                 }
                 @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
                 {
@@ -89,7 +141,7 @@
                     {
                         <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]">
                             <RadzenPanelMenuItem Text="@Loc["PeriodReview"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.Review" title="@Loc["PeriodReview"]" />
-                            <RadzenPanelMenuItem Text="@Loc["PendingApprovals"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.Pending" title="@Loc["PendingApprovals"]" />
+                            <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavApproval" title="@Loc["AdminApproval"]" />
                         </RadzenPanelMenuItem>
                     }
                     else if (CanViewDashboardItem(Permissions.PeriodSettle))
@@ -180,5 +232,5 @@
             class="vpp-sidebar-backdrop"
             title="@Loc["CloseNavigation"]"
             aria-label="@Loc["CloseNavigation"]"
-            @onclick="@(() => _sideBarExpanded = false)"></button>
+            @onclick="@(() => SetSidebarExpandedAsync(false))"></button>
 }

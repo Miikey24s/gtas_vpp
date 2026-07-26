@@ -1163,13 +1163,19 @@
         padding-inline: var(--vpp-space-1) !important;
     }
 
+    /* Sidebar desktop mặc định mở rộng khiến cột đơn hẹp lại quanh 1280–1400px.
+       Grid lọc có min-content 464px (140 + 100 + 100 + 112 nút xóa lọc + 3 khe 4px);
+       vì justify-content của cụm lọc là end, phần tràn sẽ đè ngược lên tiêu đề
+       "Danh sách đơn". Cho toolbar wrap và đặt flex-basis đúng bằng min-content đó
+       để cụm lọc rơi xuống hàng riêng ngay khi một hàng không còn đủ chỗ. */
     .vpp-history-orders-toolbar {
+        flex-wrap: wrap;
         gap: var(--vpp-space-2);
     }
 
     .vpp-history-filters {
         display: grid;
-        flex: 1 1 auto;
+        flex: 1 1 464px;
         grid-template-columns: minmax(140px, 1fr) minmax(100px, .55fr) minmax(100px, .55fr) auto;
         gap: var(--vpp-space-1);
     }
@@ -1547,6 +1553,48 @@
     align-self: center;
 }
 
+/* Meta "Gửi lúc ..." + cặp nút xuất trong header phiếu (Atlas orderDetailSheet + D10). */
+.vpp-history-drawer-submitted {
+    display: block;
+    margin-top: 2px;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-history-drawer-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-history-items-heading {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-3) var(--vpp-space-4) var(--vpp-space-2);
+}
+
+.vpp-history-items-heading h3 {
+    margin: 0;
+    font-family: var(--vpp-font-sidebar);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: 1.25;
+}
+
+.vpp-history-items-heading p {
+    margin: 2px 0 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-history-items-heading .vpp-badge {
+    flex: 0 0 auto;
+}
+
 @supports (text-box: trim-both cap alphabetic) {
     .vpp-history-chart-legend-label,
     .vpp-history-order-type,
@@ -1645,7 +1693,8 @@
 .vpp-history-order-meta,
 .vpp-history-order-totals {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--vpp-space-3);
     margin: 0;
     padding: var(--vpp-space-3) var(--vpp-space-4);
 }
@@ -1726,8 +1775,9 @@
 }
 
 .vpp-history-detail-toolbar {
+    /* 4 cột: tìm kiếm · danh mục · đơn vị · xóa bộ lọc (Atlas order-detail-toolbar). */
     display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(140px, .9fr) auto;
+    grid-template-columns: minmax(0, 1.45fr) minmax(120px, .85fr) minmax(104px, .7fr) auto;
     flex: 0 0 auto;
     min-width: 0;
     gap: var(--vpp-space-2);
@@ -2185,10 +2235,6 @@
     .vpp-history-order-meta {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         row-gap: var(--vpp-space-3);
-    }
-
-    .vpp-history-order-meta div:last-child {
-        grid-column: 1 / -1;
     }
 
     .vpp-history-order-note button {

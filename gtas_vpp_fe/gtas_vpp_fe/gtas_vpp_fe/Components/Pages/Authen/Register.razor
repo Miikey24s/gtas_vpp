@@ -6,6 +6,7 @@
 
 <VppAccountShell Title="@Loc["RegisterTitle"]"
                  TitleId="register-title"
+                 Description="@Loc["RegisterDescription"]"
                  Compact="true">
     <VppInlineAlert Message="@ErrorMessage" Tone="VppAlertTone.Error" />
     <VppInlineAlert Message="@SuccessMessage" Tone="VppAlertTone.Success" />
@@ -21,7 +22,8 @@
         </div>
 
         <div class="vpp-login-field">
-            <RadzenLabel Text="@Loc["FullName"]" Component="FullName" class="vpp-login-label" />
+            @* Atlas account-register: nhãn form "Họ và tên" (key FullName giữ "Họ tên" cho cột bảng users M6). *@
+            <RadzenLabel Text="@Loc["FullNameLong"]" Component="FullName" class="vpp-login-label" />
             <RadzenTextBox Name="FullName" @bind-Value="Model.FullName" Disabled="@IsLoading" autocomplete="name" class="vpp-login-control" />
             <div class="vpp-validation-slot">
                 <RadzenRequiredValidator Component="FullName" Text="@Loc["FullNameRequired"]" class="vpp-field-validator" Style="position: absolute" />
@@ -49,8 +51,9 @@
             </ValidationContent>
         </VppPasswordField>
 
+        @* Atlas phân biệt: register dùng "Xác nhận mật khẩu", reset/change dùng "Xác nhận mật khẩu mới". *@
         <VppPasswordField Name="ConfirmPassword"
-                          Label="@Loc["ConfirmNewPassword"]"
+                          Label="@Loc["ConfirmPassword"]"
                           @bind-Value="Model.ConfirmPassword"
                           Disabled="@IsLoading">
             <ValidationContent>

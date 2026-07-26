@@ -54,7 +54,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<VppRequestResDTO> PreviousOrders { get; set; } = new();
         public List<VppRequestResDTO> AdditionalOrders { get; set; } = new();
 
-        public bool IsLoading { get; set; }
+        // Bật sẵn để lần render interactive đầu tiên hiển thị skeleton trong lúc
+        // period-info + orders đang tải; nếu để false, story hiện thoáng qua ở
+        // trạng thái rỗng (không đơn, không nút xuất) trước khi dữ liệu về.
+        public bool IsLoading { get; set; } = true;
         public bool ViewerVisible { get; set; }
         public VppRequestResDTO? ViewingOrder { get; set; }
         public VppPeriodInfoResDTO? PeriodInfo { get; set; }
@@ -253,7 +256,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
         protected async Task LoadOrdersAsync()
         {
-            if (!CanView) return;
+            if (!CanView)
+            {
+                // Không giữ skeleton khi tab không được phép xem dữ liệu.
+                IsLoading = false;
+                return;
+            }
 
             IsLoading = true;
 
@@ -323,6 +331,48 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}");
             await Task.CompletedTask;
+        }
+
+        protected bool IsExportingOrder { get; private set; }
+
+        protected Task ExportOrderPdfAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.pdf");
+
+        protected Task ExportOrderExcelAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.xlsx");
+
+        private async Task ExportOrderAsync(VppRequestResDTO row, string format)
+        {
+            if (IsExportingOrder) return;
+
+            IsExportingOrder = true;
+            try
+            {
+                var file = await _apiServices.GetFileFromApiAsync(
+                    $"{Config.VppApi.Orders}/{row.Id}/{format}");
+                await using var stream = new MemoryStream(file.Content, writable: false);
+                using var streamReference = new DotNetStreamReference(stream);
+                await JSRuntime.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = Loc["Order"],
+                    Detail = Loc["OrderExported"],
+                    Duration = 3000
+                });
+            }
+            catch (Exception ex)
+            {
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = Loc["Order"],
+                    Detail = UiErrorMapper.GetMessage(ex, Loc),
+                    Duration = 6000
+                });
+            }
+            finally
+            {
+                IsExportingOrder = false;
+            }
         }
 
         protected async Task CancelOrderAsync(VppRequestResDTO row)

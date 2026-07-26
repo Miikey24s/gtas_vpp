@@ -55,6 +55,12 @@
         }
     };
 
+    window.vppViewport = {
+        isDesktop: function () {
+            return window.matchMedia("(min-width: 768px)").matches;
+        }
+    };
+
     window.vppLanguage = {
         prepareSwitch: function () {
             if (prefersReducedMotion()) {

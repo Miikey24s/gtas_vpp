@@ -220,11 +220,15 @@
 }
 
 /* ── Buttons ──────────────────────────────────────────────────── */
+/* Bậc chiều cao 36px chuẩn / 30px compact theo Atlas (html 14px nên
+   không dùng rem mặc định của Radzen vốn render 31.5px/24.5px). */
 .rz-theme-dark {
     --rz-button-primary-background-color: var(--vpp-primary-500);
     --rz-button-primary-hover-background-color: var(--vpp-primary-600);
     --rz-button-primary-active-background-color: var(--vpp-primary-700);
     --rz-button-border-radius: var(--vpp-radius-button);
+    --rz-button-size-md: var(--vpp-control-height);
+    --rz-button-size-sm: var(--vpp-control-height-compact);
 }
 
 :root:not(.rz-theme-dark) {
@@ -232,6 +236,8 @@
     --rz-button-primary-hover-background-color: var(--vpp-primary-700);
     --rz-button-primary-active-background-color: var(--vpp-primary-800);
     --rz-button-border-radius: var(--vpp-radius-button);
+    --rz-button-size-md: var(--vpp-control-height);
+    --rz-button-size-sm: var(--vpp-control-height-compact);
 }
 
 /* ── Dialog ───────────────────────────────────────────────────── */

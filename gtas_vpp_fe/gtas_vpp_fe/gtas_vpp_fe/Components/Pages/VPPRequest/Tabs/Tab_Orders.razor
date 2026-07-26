@@ -48,7 +48,7 @@
                                 @if (CanCreateRegular)
                                 {
                                     <RadzenButton Icon="@VppIcons.Add"
-                                                  Text="@Loc["NewOrder"]"
+                                                  Text="@Loc["CreateOrderThisCycle"]"
                                                   ButtonStyle="ButtonStyle.Primary"
                                                   Click="@(async _ => await GoToCreatePage(false))" />
                                 }
@@ -138,6 +138,9 @@
                                             EditRequested="@GoToEditPage"
                                             HistoryRequested="@OpenHistoryAsync"
                                             CancelRequested="@CancelOrderAsync"
+                                            ExportPdfRequested="@ExportOrderPdfAsync"
+                                            ExportExcelRequested="@ExportOrderExcelAsync"
+                                            IsExporting="@IsExportingOrder"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }
                 else if (OrderViewSelectedIndex == SupplementOrderViewIndex)
@@ -161,6 +164,9 @@
                                             EditRequested="@GoToEditPage"
                                             HistoryRequested="@OpenHistoryAsync"
                                             CancelRequested="@CancelOrderAsync"
+                                            ExportPdfRequested="@ExportOrderPdfAsync"
+                                            ExportExcelRequested="@ExportOrderExcelAsync"
+                                            IsExporting="@IsExportingOrder"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }
                 else
@@ -175,6 +181,9 @@
                                             EmptyTitle="@Loc["NoPreviousOrderYet"]"
                                             EmptyDescription="@Loc["NoRegularOrdersFoundPreviousCycle"]"
                                             HistoryRequested="@OpenHistoryAsync"
+                                            ExportPdfRequested="@ExportOrderPdfAsync"
+                                            ExportExcelRequested="@ExportOrderExcelAsync"
+                                            IsExporting="@IsExportingOrder"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }
             </div>

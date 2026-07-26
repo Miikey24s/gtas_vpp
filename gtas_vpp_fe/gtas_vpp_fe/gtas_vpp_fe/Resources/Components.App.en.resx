@@ -33,6 +33,11 @@
   <data name="Library" xml:space="preserve"><value>Master Data</value></data>
   <data name="Reports" xml:space="preserve"><value>Reports</value></data>
   <data name="ExportReport" xml:space="preserve"><value>Export Report</value></data>
+  <data name="ExportPdf" xml:space="preserve"><value>Export PDF</value></data>
+  <data name="ExportExcel" xml:space="preserve"><value>Export Excel</value></data>
+  <data name="ExportOrderPdfAria" xml:space="preserve"><value>Export order {0} as a PDF file</value></data>
+  <data name="ExportOrderExcelAria" xml:space="preserve"><value>Export order {0} as an Excel file</value></data>
+  <data name="OrderExported" xml:space="preserve"><value>Order sheet exported</value></data>
   <data name="ReportContentNotConfigured" xml:space="preserve"><value>Report content has not been configured yet. Export functionality is coming soon.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>
@@ -67,20 +72,20 @@
   <data name="ForgotPasswordTitle" xml:space="preserve"><value>Recover password</value></data>
   <data name="ForgotPasswordLink" xml:space="preserve"><value>Forgot password?</value></data>
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>password</value></data>
-  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send</value></data>
+  <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send link</value></data>
   <data name="BackToLogin" xml:space="preserve"><value>Back to Sign In</value></data>
   <data name="RecoveryRequestAccepted" xml:space="preserve"><value>If the account exists, recovery instructions were sent to the registered email.</value></data>
   <data name="RecoveryConnectionFailed" xml:space="preserve"><value>The server is currently unavailable. Please try again later.</value></data>
   <data name="ResetPasswordTitle" xml:space="preserve"><value>Reset</value></data>
   <data name="ResetPasswordAccent" xml:space="preserve"><value>password</value></data>
   <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
-  <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm password</value></data>
+  <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm new password</value></data>
   <data name="ResetPasswordAction" xml:space="preserve"><value>Reset Password</value></data>
   <data name="ResetPasswordSuccess" xml:space="preserve"><value>Password reset. You can now sign in with the new password.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>The reset link is invalid or expired.</value></data>
-  <data name="RegisterTitle" xml:space="preserve"><value>Register</value></data>
+  <data name="RegisterTitle" xml:space="preserve"><value>Create account</value></data>
   <data name="CompanyEmail" xml:space="preserve"><value>Company email</value></data>
-  <data name="RegisterAction" xml:space="preserve"><value>Register</value></data>
+  <data name="RegisterAction" xml:space="preserve"><value>Create account</value></data>
   <data name="CompanyEmailRequired" xml:space="preserve"><value>Please enter your company email.</value></data>
   <data name="CompanyEmailInvalid" xml:space="preserve"><value>Enter a valid company email address.</value></data>
   <data name="UsernameLengthValidation" xml:space="preserve"><value>Username must be between 3 and 100 characters.</value></data>
@@ -101,7 +106,7 @@
   <data name="ChangePasswordTitle" xml:space="preserve"><value>Change password</value></data>
   <data name="ChangePasswordRequired" xml:space="preserve"><value>You must change the temporary password before continuing.</value></data>
   <data name="CurrentPassword" xml:space="preserve"><value>Current password</value></data>
-  <data name="SaveNewPassword" xml:space="preserve"><value>Save New Password</value></data>
+  <data name="SaveNewPassword" xml:space="preserve"><value>Change password</value></data>
   <data name="ChangePasswordSuccess" xml:space="preserve"><value>Password changed. The system will ask you to sign in again.</value></data>
   <data name="PasswordConfirmationMismatch" xml:space="preserve"><value>The password confirmation does not match.</value></data>
   <data name="PasswordChangeInvalid" xml:space="preserve"><value>The current password is incorrect or the new password does not meet policy.</value></data>
@@ -161,14 +166,14 @@
   <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
   <data name="MyOrders" xml:space="preserve"><value>My Orders</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Item catalog</value></data>
-  <data name="DepartmentSummary" xml:space="preserve"><value>Department Orders</value></data>
+  <data name="DepartmentSummary" xml:space="preserve"><value>Department summary</value></data>
   <data name="AllOrdersSummary" xml:space="preserve"><value>All Orders</value></data>
   <data name="AdminApproval" xml:space="preserve"><value>Additional Approval</value></data>
-  <data name="ClassDefinitions" xml:space="preserve"><value>Class Definitions</value></data>
+  <data name="ClassDefinitions" xml:space="preserve"><value>Catalog types</value></data>
   <data name="OperationCategories" xml:space="preserve"><value>Categories</value></data>
   <data name="Operations" xml:space="preserve"><value>Items</value></data>
   <data name="Suppliers" xml:space="preserve"><value>Suppliers</value></data>
-  <data name="Prices" xml:space="preserve"><value>Prices</value></data>
+  <data name="Prices" xml:space="preserve"><value>Item prices</value></data>
   <data name="Departments" xml:space="preserve"><value>Departments</value></data>
   <data name="User" xml:space="preserve"><value>User</value></data>
   <data name="BackToOrders" xml:space="preserve"><value>Back to Orders</value></data>
@@ -177,15 +182,14 @@
   <data name="OrderDetails" xml:space="preserve"><value>Order Details</value></data>
   <data name="OrderItems" xml:space="preserve"><value>Order Items</value></data>
   <data name="Reload" xml:space="preserve"><value>Reload</value></data>
-  <data name="NewOrder" xml:space="preserve"><value>Create Order</value></data>
-  <data name="CreateOrderThisCycle" xml:space="preserve"><value>Create order for this cycle</value></data>
+    <data name="CreateOrderThisCycle" xml:space="preserve"><value>Create order for this cycle</value></data>
   <data name="CopyPreviousOrder" xml:space="preserve"><value>Copy Previous Cycle</value></data>
   <data name="ActiveOrderPeriod" xml:space="preserve"><value>Current Order Cycle</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Submission Deadline</value></data>
   <data name="TotalLineItems" xml:space="preserve"><value>Total items</value></data>
   <data name="TotalQuantity" xml:space="preserve"><value>Total Quantity</value></data>
   <data name="RequestAdditional" xml:space="preserve"><value>Create Additional Order</value></data>
-  <data name="NoPermission" xml:space="preserve"><value>You do not have permission to view this page.</value></data>
+  <data name="NoPermission" xml:space="preserve"><value>This account has not been granted the required permission.</value></data>
   <data name="UserGroup" xml:space="preserve"><value>User Group</value></data>
   <data name="GroupPagePermission" xml:space="preserve"><value>Group/Page Permission</value></data>
   <data name="Users" xml:space="preserve"><value>Users</value></data>
@@ -216,7 +220,7 @@
   <data name="ExtraField3" xml:space="preserve"><value>Extra Field 3</value></data>
   <data name="SortOrder" xml:space="preserve"><value>Sort Order</value></data>
   <data name="Additional" xml:space="preserve"><value>Additional</value></data>
-  <data name="AccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>You do not have permission to view this content</value></data>
   <data name="SelectVPPItem" xml:space="preserve"><value>Select VPP item</value></data>
   <data name="AddNewPrice" xml:space="preserve"><value>Add new price</value></data>
   <data name="EditPrice" xml:space="preserve"><value>Edit price</value></data>
@@ -256,7 +260,7 @@
   <data name="CancelOrderAria" xml:space="preserve"><value>Cancel order {0}</value></data>
   <data name="Categories" xml:space="preserve"><value>Categories</value></data>
   <data name="ItemCode" xml:space="preserve"><value>Item Code</value></data>
-  <data name="ItemName" xml:space="preserve"><value>Item Name</value></data>
+  <data name="ItemName" xml:space="preserve"><value>Item</value></data>
   <data name="ItemsPerPage" xml:space="preserve"><value>items per page</value></data>
   <data name="Month" xml:space="preserve"><value>Month</value></data>
   <data name="No" xml:space="preserve"><value>No</value></data>
@@ -435,7 +439,7 @@
   <data name="PeriodStatus" xml:space="preserve"><value>Period Status</value></data>
   <data name="CheckingPeriodStatus" xml:space="preserve"><value>Checking period status...</value></data>
   <data name="PeriodReadyToSettle" xml:space="preserve"><value>Period ready to settle</value></data>
-  <data name="PeriodReview" xml:space="preserve"><value>Period Review &amp; Settlement</value></data>
+  <data name="PeriodReview" xml:space="preserve"><value>Period review</value></data>
   <data name="TargetPeriod" xml:space="preserve"><value>Period to settle</value></data>
   <data name="Hint_AutoTargetsClosedPeriod" xml:space="preserve"><value>Auto-targets the just-closed period (the one right before the currently open period). The selected price list will apply to all orders of that period.</value></data>
   <data name="Columns" xml:space="preserve"><value>Columns</value></data>
@@ -544,7 +548,7 @@
   <data name="CurrentRegularOrder" xml:space="preserve"><value>Current cycle order</value></data>
   <data name="RegularOrder" xml:space="preserve"><value>Regular order</value></data>
   <data name="PreviousCycleOrder" xml:space="preserve"><value>Previous cycle order</value></data>
-  <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} item(s) · {1} total quantity</value></data>
+  <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} items · total quantity {1}</value></data>
   <data name="NoAdditionalOrdersYet" xml:space="preserve"><value>No additional orders yet</value></data>
   <data name="SupplementAvailableDescription" xml:space="preserve"><value>Create one when you need to add items during the open cycle.</value></data>
   <data name="NoPreviousOrderYet" xml:space="preserve"><value>No previous cycle order</value></data>
@@ -579,7 +583,7 @@
   <data name="HistoryDetailsLoadFailed" xml:space="preserve"><value>Could not load order details</value></data>
   <data name="HistoryDetailsErrorDescription" xml:space="preserve"><value>The order context is preserved. Try loading the detail section again.</value></data>
   <data name="NoRequestHistory" xml:space="preserve"><value>This request has no revision history.</value></data>
-  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="Retry" xml:space="preserve"><value>Try again</value></data>
   <data name="RevisionCount" xml:space="preserve"><value>{0} revisions</value></data>
   <data name="TimelineEventCount" xml:space="preserve"><value>{0} events</value></data>
   <data name="RequestTimeline" xml:space="preserve"><value>Timeline</value></data>
@@ -615,7 +619,7 @@
   <data name="HistoryInvalidRange" xml:space="preserve"><value>The period range is invalid. Select a start period that is not after the end period.</value></data>
   <data name="HistoryNoOrdersDescription" xml:space="preserve"><value>Requests you submit will appear here.</value></data>
   <data name="HistorySummary" xml:space="preserve"><value>Order summary</value></data>
-  <data name="HistoryPeriodsWithOrders" xml:space="preserve"><value>Periods with orders</value></data>
+  <data name="HistoryPeriodsWithOrders" xml:space="preserve"><value>Periods with data</value></data>
   <data name="HistoryKpiDetailTitle" xml:space="preserve"><value>Metric details</value></data>
   <data name="HistoryKpiScope" xml:space="preserve"><value>Viewing range</value></data>
   <data name="HistoryKpiPeriodsHint" xml:space="preserve"><value>Number of periods with at least one order.</value></data>
@@ -653,8 +657,8 @@
   <data name="AllUnits" xml:space="preserve"><value>All units</value></data>
   <data name="ClearFilters" xml:space="preserve"><value>Clear filters</value></data>
   <data name="DownloadCatalog" xml:space="preserve"><value>Download catalog</value></data>
-  <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} available items</value></data>
-  <data name="CatalogReferenceDescription" xml:space="preserve"><value>Use this list to look up items available for the current ordering cycle.</value></data>
+  <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} items available to order</value></data>
+  <data name="CatalogReferenceDescription" xml:space="preserve"><value>Read-only catalog; search, filter and sort across all data you can access.</value></data>
   <data name="CatalogLoadFailed" xml:space="preserve"><value>Could not load the item catalog</value></data>
   <data name="CatalogLoadFailedDescription" xml:space="preserve"><value>The catalog is temporarily unavailable. Please try again.</value></data>
   <data name="AdjustCatalogFilters" xml:space="preserve"><value>Try changing the keyword, category, or unit.</value></data>
@@ -671,12 +675,46 @@
   <data name="ItemNotePlaceholder" xml:space="preserve"><value>Enter an item note (optional)</value></data>
   <data name="OrderBeingCreated" xml:space="preserve"><value>Order being created</value></data>
   <data name="OrderCreationSteps" xml:space="preserve"><value>Order creation steps</value></data>
-  <data name="OrderNote" xml:space="preserve"><value>Order note</value></data>
+  <data name="OrderNote" xml:space="preserve"><value>General note</value></data>
   <data name="OrderNotePlaceholder" xml:space="preserve"><value>Enter an order note (optional)</value></data>
-  <data name="OrderableCatalog" xml:space="preserve"><value>Orderable catalog</value></data>
+  <data name="OrderableCatalog" xml:space="preserve"><value>Catalog allowed for ordering</value></data>
   <data name="QuantityShort" xml:space="preserve"><value>Qty</value></data>
   <data name="ReviewOrderBeforeSubmit" xml:space="preserve"><value>Review order before submitting</value></data>
   <data name="ReviewOrderBeforeSubmitDescription" xml:space="preserve"><value>Review items, quantities, and notes before submitting the order.</value></data>
   <data name="SaveDraft" xml:space="preserve"><value>Save draft</value></data>
   <data name="SupplementReasonPlaceholder" xml:space="preserve"><value>Enter the reason for the supplemental order</value></data>
+  <data name="NotificationInbox" xml:space="preserve"><value>Notification inbox</value></data>
+  <data name="NotificationNew" xml:space="preserve"><value>New</value></data>
+  <data name="LanguageVietnamese" xml:space="preserve"><value>Vietnamese</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="RoleEmployee" xml:space="preserve"><value>Employee</value></data>
+  <data name="RoleManager" xml:space="preserve"><value>Manager</value></data>
+  <data name="RoleDev" xml:space="preserve"><value>System administrator</value></data>
+  <data name="BackToAllowedPage" xml:space="preserve"><value>Back to your workspace</value></data>
+  <data name="CurrentLocation" xml:space="preserve"><value>Current location</value></data>
+  <data name="SectionNavigation" xml:space="preserve"><value>Section navigation</value></data>
+  <data name="ItemsCount" xml:space="preserve"><value>{0} item(s)</value></data>
+  <data name="OrderableCatalogCount" xml:space="preserve"><value>{0} selected · {1} available items</value></data>
+  <data name="VirtualizedCatalogSummary" xml:space="preserve"><value>Total {0} items</value></data>
+  <data name="SelectedItemsSummary" xml:space="preserve"><value>{0} items · total quantity {1}</value></data>
+  <data name="SearchOrderItems" xml:space="preserve"><value>Search items</value></data>
+  <data name="ItemNoteScopeHint" xml:space="preserve"><value>This note applies only to the selected item.</value></data>
+  <data name="OrderNoteScopeHint" xml:space="preserve"><value>This note applies to the whole order.</value></data>
+  <data name="SaveNote" xml:space="preserve"><value>Save note</value></data>
+  <data name="OrderNotePeriodFormat" xml:space="preserve"><value>Order for period {0}</value></data>
+  <data name="HistoryDetailSheetTitle" xml:space="preserve"><value>Order detail sheet</value></data>
+  <data name="HistoryItemsHeading" xml:space="preserve"><value>Item list</value></data>
+  <data name="HistoryItemsHeadingHint" xml:space="preserve"><value>Full contents used for viewing and exporting the sheet</value></data>
+  <data name="HistoryAllUnits" xml:space="preserve"><value>All units</value></data>
+  <data name="HistoryKpiTotalOrders" xml:space="preserve"><value>Total orders</value></data>
+  <data name="HistoryKpiTotalLines" xml:space="preserve"><value>Items ordered</value></data>
+  <data name="FullNameLong" xml:space="preserve"><value>Full name</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
+  <data name="LoginDescription" xml:space="preserve"><value>Enter your GTAS account details to continue</value></data>
+  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Enter your registered email. The system will send a link to reset your password.</value></data>
+  <data name="ResetPasswordDescription" xml:space="preserve"><value>Create a new password for your account.</value></data>
+  <data name="ChangePasswordDescription" xml:space="preserve"><value>Confirm your current password before creating a new one.</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Create an account for use in the development and testing environment.</value></data>
+  <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>For security reasons the system always returns the same message whether the email exists or not.</value></data>
+  <data name="HistoryRequester" xml:space="preserve"><value>Requested by</value></data>
 </root>

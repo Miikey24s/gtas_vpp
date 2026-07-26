@@ -280,6 +280,50 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
 
+        // ─── Xuất phiếu theo đơn (D10): GET /orders/{id}/export.pdf|xlsx ──────
+        protected bool IsExportingOrder { get; private set; }
+
+        protected Task ExportOrderPdfAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.pdf");
+
+        protected Task ExportOrderExcelAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.xlsx");
+
+        protected async Task ExportOrderAsync(VppRequestResDTO row, string format)
+        {
+            if (IsExportingOrder) return;
+
+            IsExportingOrder = true;
+            try
+            {
+                var file = await _apiServices.GetFileFromApiAsync(
+                    $"{Config.VppApi.Orders}/{row.Id}/{format}");
+                await using var stream = new MemoryStream(file.Content, writable: false);
+                using var streamReference = new DotNetStreamReference(stream);
+                await JSRuntime.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = BaseLoc["Order"],
+                    Detail = BaseLoc["OrderExported"],
+                    Duration = 3000
+                });
+            }
+            catch (Exception ex)
+            {
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = BaseLoc["Order"],
+                    Detail = UiErrorMapper.GetMessage(ex, BaseLoc),
+                    Duration = 6000
+                });
+            }
+            finally
+            {
+                IsExportingOrder = false;
+                StateHasChanged();
+            }
+        }
+
         protected bool HasDashboardPermission(string permission)
         {
             return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);

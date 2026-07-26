@@ -9,10 +9,12 @@
                     }
                     else
                     {
-                        <VppStatePanel State="error"
+                        <VppStatePanel State="denied"
                                        Icon="lock"
                                        Title="@Loc["AccessDenied"]"
-                                       Description="@Loc["NoPermission"]" />
+                                       Description="@Loc["NoPermission"]"
+                                       SecondaryActionText="@Loc["BackToAllowedPage"]"
+                                       SecondaryActionHref="/" />
                     }
                 </NotAuthorized>
             </AuthorizeRouteView>

@@ -68,10 +68,11 @@
                 <div class="vpp-data-card-actions">
                     @if (!ReadOnly && (CanEdit || CanReplace))
                     {
+                        @* Atlas my-orders: action bar toàn quiet, chỉ "Hủy" là danger — không tô primary cho "Sửa". *@
                         <RadzenButton Icon="@(CanReplace ? "restart_alt" : "edit")"
                                       Text="@(CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
                                       Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Primary"
+                                      ButtonStyle="ButtonStyle.Base"
                                       Variant="Variant.Text"
                                       Click="@(async _ => await EditRequested.InvokeAsync(Order))"
                                       Title="@(CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
@@ -85,6 +86,30 @@
                                   Click="@(async _ => await HistoryRequested.InvokeAsync(Order))"
                                   Title="@Loc["ViewRequestHistory"]"
                                   aria-label="@string.Format(Loc["ViewRequestHistoryAria"], Order.VppCode)" />
+                    @if (ExportPdfRequested.HasDelegate)
+                    {
+                        <RadzenButton Icon="picture_as_pdf"
+                                      Text="@Loc["ExportPdf"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await ExportPdfRequested.InvokeAsync(Order))"
+                                      Title="@Loc["ExportPdf"]"
+                                      aria-label="@string.Format(Loc["ExportOrderPdfAria"], Order.VppCode)"
+                                      Disabled="@IsExporting" />
+                    }
+                    @if (ExportExcelRequested.HasDelegate)
+                    {
+                        <RadzenButton Icon="table_view"
+                                      Text="@Loc["ExportExcel"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await ExportExcelRequested.InvokeAsync(Order))"
+                                      Title="@Loc["ExportExcel"]"
+                                      aria-label="@string.Format(Loc["ExportOrderExcelAria"], Order.VppCode)"
+                                      Disabled="@IsExporting" />
+                    }
                     @if (!ReadOnly && CanCancel)
                     {
                         <RadzenButton Icon="@VppIcons.Rejected"
@@ -103,9 +128,44 @@
     </header>
     }
 
+    @if (Items.Count > 0)
+    {
+        @* Atlas orderItemsRegion: toolbar lọc (tìm kiếm · danh mục · đơn vị · xóa bộ lọc) ngay trên bảng mặt hàng. *@
+        <div class="vpp-order-view-filters" aria-label="@Loc["CatalogFilters"]">
+            <label class="vpp-order-view-search">
+                <VppIcon Name="search" />
+                <input value="@ItemSearch"
+                       @oninput="OnItemSearchInput"
+                       placeholder="@Loc["SearchOrderItems"]"
+                       aria-label="@Loc["SearchOrderItems"]" />
+            </label>
+            <RadzenDropDown TValue="string"
+                            Data="@CategoryFilterOptions"
+                            Value="@CategoryFilter"
+                            Change="@OnCategoryFilterChanged"
+                            AllowClear="true"
+                            Placeholder="@Loc["AllCategories"]"
+                            aria-label="@Loc["AllCategories"]"
+                            class="vpp-order-view-select" />
+            <RadzenDropDown TValue="string"
+                            Data="@UnitFilterOptions"
+                            Value="@UnitFilter"
+                            Change="@OnUnitFilterChanged"
+                            AllowClear="true"
+                            Placeholder="@Loc["AllUnits"]"
+                            aria-label="@Loc["AllUnits"]"
+                            class="vpp-order-view-select" />
+            <button type="button" class="vpp-order-view-clear" @onclick="ClearItemFiltersAsync">
+                <VppIcon Name="filter_alt_off" />
+                <span>@Loc["ClearFilters"]</span>
+            </button>
+        </div>
+    }
+
     <div class="vpp-order-view-grid-frame">
         <RadzenDataGrid TItem="VppRequestDetailResDTO"
-                        Data="@Items"
+                        @ref="_itemsGrid"
+                        Data="@FilteredItems"
                         AllowPaging="false"
                         AllowVirtualization="true"
                         VirtualizationOverscanCount="10"
@@ -117,23 +177,36 @@
                         Style="height: 100%;"
                         class="vpp-order-grid vpp-order-grid-embedded vpp-order-grid-scrollable">
             <EmptyTemplate>
-                <div class="vpp-order-grid-empty">
-                    <span class="vpp-orders-empty-icon"><VppIcon Name="@EmptyIcon" /></span>
-                    <strong>@EmptyTitle</strong>
-                    <p>@EmptyDescription</p>
-                    @if (HasEmptyAction)
-                    {
-                        <RadzenButton Text="@EmptyActionText"
-                                      Icon="@VppIcons.Add"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@(async _ => await EmptyActionClick.InvokeAsync())"
-                                      data-testid="@($"{TestId}-empty-action")" />
-                    }
-                </div>
+                @if (Items.Count > 0)
+                {
+                    @* Đơn có dòng nhưng bộ lọc client-side không khớp dòng nào. *@
+                    <div class="vpp-order-grid-empty">
+                        <span class="vpp-orders-empty-icon"><VppIcon Name="search_off" /></span>
+                        <strong>@Loc["HistoryNoItems"]</strong>
+                        <p>@Loc["HistoryNoItemsDescription"]</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="vpp-order-grid-empty">
+                        <span class="vpp-orders-empty-icon"><VppIcon Name="@EmptyIcon" /></span>
+                        <strong>@EmptyTitle</strong>
+                        <p>@EmptyDescription</p>
+                        @if (HasEmptyAction)
+                        {
+                            <RadzenButton Text="@EmptyActionText"
+                                          Icon="@VppIcons.Add"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Click="@(async _ => await EmptyActionClick.InvokeAsync())"
+                                          data-testid="@($"{TestId}-empty-action")" />
+                        }
+                    </div>
+                }
             </EmptyTemplate>
             <Columns>
+                @* Thứ tự cột theo Atlas orderItemsRegion: # · Mặt hàng · Danh mục · Đơn vị · Số lượng · Ghi chú (không cột giá — luận văn §3.3.2.3). *@
                 <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Title="#" Width="56px" TextAlign="TextAlign.Center">
-                    <Template Context="item">@(Items.IndexOf(item) + 1)</Template>
+                    <Template Context="item">@(FilteredItems.IndexOf(item) + 1)</Template>
                 </RadzenDataGridColumn>
 
                 <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
@@ -148,8 +221,9 @@
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="120px" TextAlign="TextAlign.Right" />
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="CategoryName" Title="@Loc["Category"]" Width="160px" TextAlign="TextAlign.Left" />
                 <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="UomName" Title="@Loc["UOM"]" Width="96px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="120px" TextAlign="TextAlign.Right" />
 
                 <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="220px" TextAlign="TextAlign.Left" Visible="@HasBusinessNotes">
                     <Template Context="item">
@@ -161,6 +235,11 @@
             </Columns>
         </RadzenDataGrid>
     </div>
+
+    @if (Items.Count > 0)
+    {
+        <footer class="vpp-order-view-data-footer">@Loc["VirtualizedCatalogSummary", FilteredItems.Count]</footer>
+    }
 </section>
 
 @code {
@@ -183,12 +262,83 @@
     [Parameter] public EventCallback<VppRequestResDTO> EditRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> HistoryRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> CancelRequested { get; set; }
+    [Parameter] public EventCallback<VppRequestResDTO> ExportPdfRequested { get; set; }
+    [Parameter] public EventCallback<VppRequestResDTO> ExportExcelRequested { get; set; }
+    [Parameter] public bool IsExporting { get; set; }
     [Parameter] public EventCallback<string?> CopyCodeRequested { get; set; }
 
+    private RadzenDataGrid<VppRequestDetailResDTO>? _itemsGrid;
+    private readonly List<VppRequestDetailResDTO> _filteredItems = [];
+    private string? ItemSearch { get; set; }
+    private string? CategoryFilter { get; set; }
+    private string? UnitFilter { get; set; }
+
     private List<VppRequestDetailResDTO> Items => Order?.Items ?? [];
+    private List<VppRequestDetailResDTO> FilteredItems => _filteredItems;
     private bool HasBusinessNotes => Items.Any(item => GetBusinessNote(item.Description) is not null);
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
     private string OrderPickerId => $"{TestId}-picker";
+
+    private IEnumerable<string> CategoryFilterOptions => GetDistinctValues(item => item.CategoryName);
+    private IEnumerable<string> UnitFilterOptions => GetDistinctValues(item => item.UomName);
+
+    protected override void OnParametersSet() => RebuildFilteredItems();
+
+    private IEnumerable<string> GetDistinctValues(Func<VppRequestDetailResDTO, string?> selector) => Items
+        .Select(selector)
+        .Where(value => !string.IsNullOrWhiteSpace(value))
+        .Select(value => value!.Trim())
+        .Distinct(StringComparer.CurrentCultureIgnoreCase)
+        .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase);
+
+    private void RebuildFilteredItems()
+    {
+        var search = ItemSearch?.Trim();
+        _filteredItems.Clear();
+        _filteredItems.AddRange(Items.Where(item =>
+            (string.IsNullOrEmpty(search)
+                || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
+                || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+            && (string.IsNullOrEmpty(CategoryFilter)
+                || string.Equals(item.CategoryName?.Trim(), CategoryFilter, StringComparison.CurrentCultureIgnoreCase))
+            && (string.IsNullOrEmpty(UnitFilter)
+                || string.Equals(item.UomName?.Trim(), UnitFilter, StringComparison.CurrentCultureIgnoreCase))));
+    }
+
+    private async Task OnItemSearchInput(ChangeEventArgs args)
+    {
+        ItemSearch = args.Value?.ToString();
+        await ApplyItemFiltersAsync();
+    }
+
+    private async Task OnCategoryFilterChanged(object? value)
+    {
+        CategoryFilter = value?.ToString();
+        await ApplyItemFiltersAsync();
+    }
+
+    private async Task OnUnitFilterChanged(object? value)
+    {
+        UnitFilter = value?.ToString();
+        await ApplyItemFiltersAsync();
+    }
+
+    private async Task ClearItemFiltersAsync()
+    {
+        ItemSearch = null;
+        CategoryFilter = null;
+        UnitFilter = null;
+        await ApplyItemFiltersAsync();
+    }
+
+    private async Task ApplyItemFiltersAsync()
+    {
+        RebuildFilteredItems();
+        if (_itemsGrid is not null)
+        {
+            await _itemsGrid.Reload();
+        }
+    }
 
     private Task OnOrderSelectionChanged(object value)
         => value is Guid id ? SelectedOrderIdChanged.InvokeAsync(id) : Task.CompletedTask;

@@ -40,8 +40,8 @@
 
 .vpp-library-primary-action.rz-button,
 .vpp-library-refresh-action.rz-button {
-    height: 34px;
-    min-height: 34px;
+    height: var(--vpp-control-height-compact);
+    min-height: var(--vpp-control-height-compact);
     padding-inline: 0.8rem;
     border-radius: var(--vpp-radius-md);
     box-shadow: none;
@@ -1455,6 +1455,20 @@
 
 .vpp-admin-class-split .rz-splitter-pane:first-child {
     border-right: 1px solid var(--vpp-border-default);
+}
+
+/* D12: sidebar desktop mặc định mở rộng (286px) nên pane trái 31% ở 1366px chỉ
+   còn ~319px — dưới min-width thật của master grid (# 48 + Tên 260 + Thao tác
+   72) → bảng tràn ngang bị cắt. Kìm pane theo min-width grid + chrome thật của
+   vùng dữ liệu: 384px (bảng + border pane) chỉ hết tràn phần bảng; đo E2E ở
+   1366×768 vẫn dư 7px vì scrollbar/gutter dọc của .rz-data-grid-data chiếm chỗ
+   trong clientWidth → cột cuối bị cắt đúng 7px. 392 = 384 + 7 (scrollbar đo
+   thực) + 1 dự phòng làm tròn; chỉ áp ở layout hai cột (>1280px). E2E:
+   LibraryGridScrollTests.Class_Definitions_Use_Compact_Master_Detail_Layout. */
+@media (min-width: 1281px) {
+    .vpp-admin-class-split .rz-splitter-pane:first-child {
+        min-width: 392px;
+    }
 }
 
 .vpp-class-master-grid .rz-grid-table tbody > tr > td {

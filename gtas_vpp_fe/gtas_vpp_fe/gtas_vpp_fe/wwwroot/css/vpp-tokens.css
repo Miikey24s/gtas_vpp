@@ -100,7 +100,7 @@
 /* ── Typography ──────────────────────────────────────────────── */
 :root {
     --vpp-font-display: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
-    --vpp-font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --vpp-font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI Variable Text', 'Segoe UI', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     --vpp-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     --vpp-font-sidebar: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI Variable Text', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
@@ -124,7 +124,7 @@
     --vpp-leading-normal: 1.5;
     --vpp-leading-relaxed: 1.625;
 
-    --vpp-tracking-tight: 0;
+    --vpp-tracking-tight: -0.025em;
     --vpp-tracking-normal: 0;
     --vpp-tracking-wide: 0;
 }
@@ -183,6 +183,7 @@
     --vpp-text-inverse: #0A0A0A;
     --vpp-text-on-surface: #FFFFFF;
     --vpp-text-link: var(--vpp-primary-400);
+    --vpp-text-link-hover: var(--vpp-primary-300);
 
     /* Borders */
     --vpp-border-default: rgba(255, 255, 255, 0.08);
@@ -211,6 +212,22 @@
     --vpp-text-inverse: #FAFAFA;
     --vpp-text-on-surface: #FFFFFF;
     --vpp-text-link: var(--vpp-primary-600);
+    --vpp-text-link-hover: var(--vpp-primary-700);
+
+    /* Semantic light mode: tông sâu theo Atlas để chữ badge đạt AA trên nền sáng
+       (dark mode giữ tông Tailwind sáng ở khối mặc định phía trên). */
+    --vpp-info: #0284C7;
+    --vpp-info-rgb: 2, 132, 199;
+    --vpp-info-muted: #0284C71A;
+    --vpp-success: #16835F;
+    --vpp-success-rgb: 22, 131, 95;
+    --vpp-success-muted: #16835F1A;
+    --vpp-warning: #B56A12;
+    --vpp-warning-rgb: 181, 106, 18;
+    --vpp-warning-muted: #B56A121A;
+    --vpp-danger: #C63F45;
+    --vpp-danger-rgb: 198, 63, 69;
+    --vpp-danger-muted: #C63F451A;
 
     --vpp-border-default: rgba(9, 30, 66, 0.08);
     --vpp-border-strong: rgba(9, 30, 66, 0.14);
@@ -241,6 +258,8 @@
     --vpp-sidebar-collapsed-control-height: 48px;
     --vpp-navigation-row-height: 40px;
     --vpp-tabs-bar-height: 44px;
+    --vpp-control-height: 36px;
+    --vpp-control-height-compact: 30px;
     --vpp-header-height: var(--vpp-sidebar-collapsed-width);
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;

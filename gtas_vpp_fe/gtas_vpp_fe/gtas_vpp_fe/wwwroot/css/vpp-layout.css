@@ -13,6 +13,11 @@ body:has(.vpp-layout) {
     overflow: hidden;
 }
 
+/* Lưu ý cascade: material-base.css của Radzen 11 tự đặt grid-template-areas bằng
+   `.rz-layout:has(>.rz-sidebar-start)…` (specificity 0-3-0/0-4-0, load SAU file này)
+   nên các dòng template dưới đây KHÔNG thắng theme. Template "sidebar full-height,
+   header 72px nối mép phải sidebar" chỉ có hiệu lực nhờ FullHeight="true" trên
+   RadzenSidebar (LeftSidebar.razor) — không được bỏ thuộc tính đó. */
 .rz-layout.vpp-layout {
     display: grid;
     gap: 0 !important;
@@ -33,17 +38,26 @@ body:has(.vpp-layout) {
     grid-template-columns: var(--vpp-sidebar-collapsed-width) 1fr;
 }
 
+/* W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip khu vực
+   + role badge (thanh tab RadzenTabs trong body bị ẩn ở desktop, xem khối
+   media phía dưới); mobile giữ hamburger + breadcrumb vị trí. */
 @media (min-width: 768px) {
-    .rz-layout.vpp-layout {
-        grid-template-rows: 0 1fr;
+    .vpp-header-breadcrumb {
+        display: none !important;
     }
 
-    .vpp-layout .rz-header.vpp-layout-header {
+    /* Tab strip đã chuyển lên header — nav RadzenTabs cấp cao nhất trong body
+       chỉ còn phục vụ mobile. Chỉ ẩn nav trực tiếp (>) để không đụng tab con
+       (management/pricing) nằm sâu trong panel. */
+    .vpp-admin-tabs > .rz-tabview-nav-container,
+    .vpp-admin-tabs > .rz-tabview-nav {
         display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .vpp-header-tabs {
+        display: none !important;
     }
 }
 
@@ -69,6 +83,135 @@ leftsidebar {
     min-width: 0;
     padding: 0 var(--vpp-space-5);
     border-radius: 0;
+}
+
+/* Tab strip khu vực trong primary header (Atlas headerTabs): label căn giữa
+   trục 72px cùng brand sidebar, tab active gạch chân 3px màu primary với
+   chuyển động dùng chung của hệ điều hướng. */
+.vpp-header-tabs {
+    display: flex;
+    align-items: stretch;
+    align-self: stretch;
+    gap: var(--vpp-space-2);
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.vpp-header-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vpp-space-1);
+    position: relative;
+    padding-inline: var(--vpp-space-3);
+    color: var(--vpp-text-secondary);
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px;
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: 20px;
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.vpp-header-tab:hover {
+    color: var(--vpp-text-primary);
+    text-decoration: none;
+    background: var(--vpp-navigation-item-hover-bg);
+}
+
+.vpp-header-tab::after {
+    content: "";
+    position: absolute;
+    inset: auto var(--vpp-space-2) 0;
+    height: var(--vpp-nav-indicator-thickness);
+    border-radius: var(--vpp-nav-indicator-radius);
+    background: var(--vpp-nav-indicator-color);
+    opacity: 0;
+    transform: scaleX(0.6);
+    transition: opacity var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                transform var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
+}
+
+.vpp-header-tab.is-active {
+    color: var(--vpp-text-primary);
+}
+
+.vpp-header-tab.is-active::after {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.vpp-header-tab .vpp-header-breadcrumb-sep {
+    color: var(--vpp-text-tertiary);
+    font-size: 1rem;
+}
+
+.vpp-header-tab .vpp-header-breadcrumb-ancestor {
+    color: var(--vpp-text-tertiary);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-header-tab .vpp-header-breadcrumb-leaf {
+    color: var(--vpp-text-primary);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+/* Breadcrumb cha › con trong header (nestedHeaderPaths của Atlas). */
+.vpp-header-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-1);
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: var(--vpp-font-sidebar);
+}
+
+.vpp-header-breadcrumb-ancestor {
+    overflow: hidden;
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-sm);
+    text-overflow: ellipsis;
+}
+
+.vpp-header-breadcrumb-leaf {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-semibold);
+    text-overflow: ellipsis;
+}
+
+.vpp-header-breadcrumb-sep {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
+    font-size: 1rem;
+}
+
+/* Role badge của phiên đăng nhập, mép phải header theo Atlas .review-role. */
+.vpp-header-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vpp-space-1);
+    flex: 0 0 auto;
+    margin-left: auto;
+    height: 24px;
+    padding: 0 10px;
+    border: 1px solid color-mix(in srgb, var(--vpp-info) 35%, transparent);
+    border-radius: var(--vpp-radius-full);
+    background: var(--vpp-info-muted);
+    color: var(--vpp-info);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    white-space: nowrap;
+}
+
+.vpp-header-role-badge .vpp-icon {
+    font-size: 0.95rem;
 }
 
 .vpp-global-loader {
@@ -758,12 +901,16 @@ leftsidebar {
     font-size: var(--vpp-text-xs);
 }
 
-.vpp-notification-unread-dot {
+/* Badge chữ "Mới" trên item chưa đọc theo Atlas (thay chấm tròn không nhãn). */
+.vpp-notification-unread-badge {
     align-self: center;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--vpp-primary);
+    flex: 0 0 auto;
+    padding: 1px 8px;
+    border-radius: var(--vpp-radius-full);
+    background: var(--vpp-info-muted);
+    color: var(--vpp-info);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-notification-empty {

@@ -11,21 +11,40 @@
     </div>
     @if (RetryAction.HasDelegate)
     {
-        <RadzenButton Text="@RetryText"
+        <RadzenButton Text="@EffectiveRetryText"
                       Icon="@VppIcons.Refresh"
-                      ButtonStyle="ButtonStyle.Light"
+                      ButtonStyle="@EffectiveRetryButtonStyle"
                       Click="@RetryAction"
                       class="vpp-state-panel-action" />
+    }
+    @if (!string.IsNullOrWhiteSpace(SecondaryActionText) && !string.IsNullOrWhiteSpace(SecondaryActionHref))
+    {
+        <a class="vpp-empty-state-link vpp-state-panel-secondary" href="@SecondaryActionHref">
+            <VppIcon Name="@VppIcons.ArrowBack" />
+            @SecondaryActionText
+        </a>
     }
 </section>
 
 @code {
+    // "empty" | "loading" | "error" | "denied" — theo archetype trạng thái Atlas M8:
+    // "denied" là trạng thái trung tính (icon primary, aria polite), không phải sự cố hệ thống.
     [Parameter] public string State { get; set; } = "empty";
     [Parameter] public string Icon { get; set; } = VppIcons.Inbox;
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
     [Parameter] public string? Description { get; set; }
-    [Parameter] public string RetryText { get; set; } = "Thử lại";
+    [Parameter] public string? RetryText { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> RetryAction { get; set; }
+    [Parameter] public ButtonStyle? RetryButtonStyle { get; set; }
+    [Parameter] public string? SecondaryActionText { get; set; }
+    [Parameter] public string? SecondaryActionHref { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;
     [Parameter] public string TitleId { get; set; } = $"state-{Guid.NewGuid():N}";
+
+    private string EffectiveRetryText => string.IsNullOrWhiteSpace(RetryText) ? Loc["Retry"] : RetryText;
+
+    // Trạng thái lỗi: thử tải lại là hành động khôi phục duy nhất nên ở cấp primary (Atlas M8);
+    // các trạng thái nhẹ hơn giữ Light để không tranh trọng tâm với nội dung trang.
+    private ButtonStyle EffectiveRetryButtonStyle => RetryButtonStyle
+        ?? (State.Equals("error", StringComparison.OrdinalIgnoreCase) ? ButtonStyle.Primary : ButtonStyle.Light);
 }

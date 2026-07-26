@@ -403,7 +403,7 @@
     display: block;
     width: calc(100% - 32px);
     min-height: 132px;
-    margin: 16px;
+    margin: 16px 16px var(--vpp-space-2);
     padding: var(--vpp-space-3);
     resize: vertical;
     border: 1px solid var(--vpp-border-default);
@@ -411,6 +411,61 @@
     color: var(--vpp-text-primary);
     background: var(--vpp-bg-surface);
     font: inherit;
+}
+
+/* Atlas note popover: chú thích phạm vi + hàng hành động Hủy (quiet) / Lưu ghi chú (primary). */
+.vpp-order-note-scope {
+    display: block;
+    margin: 0 16px;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-order-note-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-3) 16px;
+}
+
+.vpp-order-note-cancel,
+.vpp-order-note-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-1);
+    min-height: 36px;
+    padding: 0 var(--vpp-space-3);
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    font: inherit;
+    font-weight: var(--vpp-font-weight-medium);
+    cursor: pointer;
+}
+
+.vpp-order-note-cancel {
+    color: var(--vpp-text-primary);
+    background: transparent;
+}
+
+.vpp-order-note-cancel:hover {
+    background: var(--vpp-bg-surface);
+}
+
+.vpp-order-note-save {
+    color: var(--vpp-text-inverse);
+    background: var(--vpp-primary-600);
+}
+
+.vpp-order-note-save:hover {
+    background: var(--vpp-primary-700);
+}
+
+.vpp-order-note-cancel:focus-visible,
+.vpp-order-note-save:focus-visible {
+    outline: 2px solid var(--vpp-primary-500);
+    outline-offset: 2px;
 }
 
 @media (max-width: 1199px) {

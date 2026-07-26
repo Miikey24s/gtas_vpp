@@ -8,7 +8,9 @@
     {
         <VppEmptyState Icon="lock"
                        Title="@Loc["AccessDenied"]"
-                       Description="@Loc["NoPermission"]" />
+                       Description="@Loc["NoPermission"]"
+                       SecondaryText="@Loc["BackToAllowedPage"]"
+                       SecondaryHref="/" />
     }
     else if (_isInitialLoading)
     {
@@ -83,8 +85,9 @@
                     }
                 </article>
                 <article class="vpp-history-kpi-card @(_activeKpi == KpiOrders ? "is-open" : string.Empty)">
-                    <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["TotalOrders"]" aria-expanded="@(_activeKpi == KpiOrders)" aria-controls="history-kpi-orders" @onclick="@(() => ToggleKpi(KpiOrders))">
-                        <span>@Loc["TotalOrders"]</span><strong>@FormatNumber(_summary.TotalOrders)</strong>
+                    @* Nhãn KPI riêng của màn lịch sử (Atlas history): không đổi key dùng chung TotalOrders/TotalLineItems của các màn khác. *@
+                    <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["HistoryKpiTotalOrders"]" aria-expanded="@(_activeKpi == KpiOrders)" aria-controls="history-kpi-orders" @onclick="@(() => ToggleKpi(KpiOrders))">
+                        <span>@Loc["HistoryKpiTotalOrders"]</span><strong>@FormatNumber(_summary.TotalOrders)</strong>
                     </button>
                     @if (_activeKpi == KpiOrders)
                     {
@@ -96,8 +99,8 @@
                     }
                 </article>
                 <article class="vpp-history-kpi-card @(_activeKpi == KpiLines ? "is-open" : string.Empty)">
-                    <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["TotalLineItems"]" aria-expanded="@(_activeKpi == KpiLines)" aria-controls="history-kpi-lines" @onclick="@(() => ToggleKpi(KpiLines))">
-                        <span>@Loc["TotalLineItems"]</span><strong>@FormatNumber(_summary.TotalLines)</strong>
+                    <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["HistoryKpiTotalLines"]" aria-expanded="@(_activeKpi == KpiLines)" aria-controls="history-kpi-lines" @onclick="@(() => ToggleKpi(KpiLines))">
+                        <span>@Loc["HistoryKpiTotalLines"]</span><strong>@FormatNumber(_summary.TotalLines)</strong>
                     </button>
                     @if (_activeKpi == KpiLines)
                     {
@@ -305,12 +308,13 @@
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
-                                    <Template Context="row"><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span></Template>
+                                    @* Render trạng thái qua resx để badge và bộ lọc dùng chung một copy ("Đã từ chối"...). *@
+                                    <Template Context="row"><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalLines" Title="@Loc["TotalLineItems"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
+                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalLines" Title="@Loc["HistoryItem"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
                                     <Template Context="row"><span class="vpp-history-number">@FormatNumber(row.TotalLines)</span></Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalQty" Title="@Loc["TotalQuantity"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
+                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalQty" Title="@Loc["Quantity"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
                                     <Template Context="row"><span class="vpp-history-number">@FormatNumber(row.TotalQty)</span></Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="VppRequestResDTO" Property="SubmittedDate" Title="@Loc["SubmittedDate"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-date vpp-history-col-center" HeaderCssClass="vpp-history-col-date vpp-history-col-center">
@@ -353,10 +357,10 @@
                             <button type="button" @onclick="() => OpenOrderAsync(row)">
                                 <span class="vpp-history-mobile-topline">
                                     <strong>@row.VppCode</strong>
-                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
+                                    <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span>
                                 </span>
                                 <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@row.Period · @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span>
-                                <span>@Loc["TotalLineItems"]: @FormatNumber(row.TotalLines) · @Loc["TotalQuantity"]: @FormatNumber(row.TotalQty)</span>
+                                <span>@Loc["HistoryItem"]: @FormatNumber(row.TotalLines) · @Loc["Quantity"]: @FormatNumber(row.TotalQty)</span>
                                 <span class="vpp-history-note">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
                             </button>
                         }
@@ -378,15 +382,46 @@
                aria-labelledby="history-drawer-title">
             <header class="vpp-history-drawer-header">
                 <div>
-                    <h2 id="history-drawer-title">@Loc["OrderDetails"]</h2>
+                    @* Atlas orderDetailSheet: kicker "Phiếu chi tiết đơn" + mã + badge + meta "Gửi lúc ...". *@
+                    <h2 id="history-drawer-title">@Loc["HistoryDetailSheetTitle"]</h2>
                     @if (_selectedOrder is not null)
                     {
                         <div class="vpp-history-drawer-code">
                             <strong>@_selectedOrder.VppCode</strong>
-                            <span class="vpp-badge @StatusDisplay.GetCssClass(_selectedOrder.Status)">@_selectedOrder.StatusText</span>
+                            <span class="vpp-badge @StatusDisplay.GetCssClass(_selectedOrder.Status)">@Loc[StatusDisplay.GetResourceKey(_selectedOrder.Status, _selectedOrder.IsDeadlinePassed, _selectedOrder.IsAdditionalOrder)]</span>
                         </div>
+                        @if (_selectedOrder.SubmittedDate.HasValue)
+                        {
+                            <span class="vpp-history-drawer-submitted">
+                                @string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(_selectedOrder.SubmittedDate, DateFormatter.LongDate))
+                            </span>
+                        }
                     }
                 </div>
+                @if (_selectedOrder is not null && !_detailError)
+                {
+                    @* D10: xuất phiếu ngay từ màn lịch sử, tái dùng ExportOrderAsync của BaseOrderTab. *@
+                    <div class="vpp-history-drawer-actions">
+                        <RadzenButton Icon="picture_as_pdf"
+                                      Text="@Loc["ExportPdf"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await ExportSelectedOrderAsync("export.pdf"))"
+                                      Title="@Loc["ExportPdf"]"
+                                      aria-label="@string.Format(Loc["ExportOrderPdfAria"], _selectedOrder.VppCode)"
+                                      Disabled="@(_isDetailLoading || IsExportingOrder)" />
+                        <RadzenButton Icon="table_view"
+                                      Text="@Loc["ExportExcel"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await ExportSelectedOrderAsync("export.xlsx"))"
+                                      Title="@Loc["ExportExcel"]"
+                                      aria-label="@string.Format(Loc["ExportOrderExcelAria"], _selectedOrder.VppCode)"
+                                      Disabled="@(_isDetailLoading || IsExportingOrder)" />
+                    </div>
+                }
             </header>
 
             @if (_isDetailLoading && _selectedOrder is null)
@@ -420,13 +455,15 @@
             else
             {
                 <section class="vpp-history-drawer-summary">
+                    @* Atlas: 4 ô Kỳ · Loại đơn · Người đặt · Phòng ban (Ngày gửi đã chuyển lên header; DTO chỉ có mã phòng ban — xem retrofit #11). *@
                     <dl class="vpp-history-order-meta">
                         <div><dt>@Loc["Period"]</dt><dd>@_selectedOrder.Period</dd></div>
-                    <div><dt>@Loc["HistoryOrderType"]</dt><dd><span class="vpp-history-order-type @(_selectedOrder.IsAdditionalOrder ? "is-additional" : "is-regular")">@(_selectedOrder.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></dd></div>
-                        <div><dt>@Loc["SubmittedDate"]</dt><dd>@DateFormatter.Format(_selectedOrder.SubmittedDate, DateFormatter.LongDate)</dd></div>
+                        <div><dt>@Loc["HistoryOrderType"]</dt><dd><span class="vpp-history-order-type @(_selectedOrder.IsAdditionalOrder ? "is-additional" : "is-regular")">@(_selectedOrder.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></dd></div>
+                        <div><dt>@Loc["HistoryRequester"]</dt><dd title="@_selectedOrder.RequesterName">@(string.IsNullOrWhiteSpace(_selectedOrder.RequesterName) ? "–" : _selectedOrder.RequesterName)</dd></div>
+                        <div><dt>@Loc["Department"]</dt><dd title="@_selectedOrder.DepartmentCode">@(string.IsNullOrWhiteSpace(_selectedOrder.DepartmentCode) ? "–" : _selectedOrder.DepartmentCode)</dd></div>
                     </dl>
                     <dl class="vpp-history-order-totals">
-                        <div><dd>@FormatNumber(_selectedOrder.TotalLines)</dd><dt>@Loc["TotalLineItems"]</dt></div>
+                        <div><dd>@FormatNumber(_selectedOrder.TotalLines)</dd><dt>@Loc["HistoryItem"]</dt></div>
                         <div><dd>@FormatNumber(_selectedOrder.TotalQty)</dd><dt>@Loc["TotalQuantity"]</dt></div>
                     </dl>
                     <div class="vpp-history-order-note">
@@ -440,6 +477,15 @@
                         </button>
                     </div>
                 </section>
+
+                @* Atlas approval-items-heading: mỏ neo thị giác giữa phần tóm tắt và vùng lọc. *@
+                <div class="vpp-history-items-heading">
+                    <div>
+                        <h3>@Loc["HistoryItemsHeading"]</h3>
+                        <p>@Loc["HistoryItemsHeadingHint"]</p>
+                    </div>
+                    <span class="vpp-badge status-info">@Loc["ItemsCount", _selectedOrder.Items?.Count ?? 0]</span>
+                </div>
 
                 <div class="vpp-history-detail-toolbar">
                     <label class="vpp-history-search vpp-history-detail-search @(!string.IsNullOrWhiteSpace(_detailSearch) ? "is-active" : string.Empty)">
@@ -462,6 +508,24 @@
                                 @foreach (var category in _detailCategories)
                                 {
                                     <button type="button" role="option" aria-selected="@(_detailCategory == category)" title="@category" @onclick="@(() => SelectDetailCategoryAsync(category))">@category</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                    @* Atlas order-detail-toolbar: bộ lọc thứ ba "Tất cả đơn vị" (lọc client-side theo UomName). *@
+                    <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
+                        <button type="button" class="vpp-history-select-trigger @(!string.IsNullOrEmpty(_detailUom) ? "is-active" : string.Empty)"
+                                aria-haspopup="listbox" aria-expanded="@(_openFilterMenu == UomMenu)"
+                                aria-label="@UnitHeaderLabel" title="@DetailUomLabel" @onclick="@(() => ToggleFilterMenu(UomMenu))" @onclick:stopPropagation>
+                            <span class="vpp-history-select-label">@DetailUomLabel</span><VppIcon Name="expand_more" />
+                        </button>
+                        @if (_openFilterMenu == UomMenu)
+                        {
+                            <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                                <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(_detailUom)" @onclick="@(() => SelectDetailUomAsync(string.Empty))">@Loc["HistoryAllUnits"]</button>
+                                @foreach (var uom in _detailUoms)
+                                {
+                                    <button type="button" role="option" aria-selected="@(_detailUom == uom)" title="@uom" @onclick="@(() => SelectDetailUomAsync(uom))">@uom</button>
                                 }
                             </div>
                         }
@@ -566,7 +630,7 @@
                     }
                 </div>
                 <footer class="vpp-history-detail-footer">
-                    @Loc["HistoryDetailCount", _detailRows.Count, _selectedOrder.Items.Count]
+                    @Loc["HistoryDetailCount", _detailRows.Count, _selectedOrder?.Items?.Count ?? 0]
                 </footer>
                 @if (_isDetailLoading)
                 {

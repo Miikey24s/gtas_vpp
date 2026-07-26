@@ -94,9 +94,7 @@
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-catalog-grid">
                             <Columns>
-                                <RadzenDataGridColumn TItem="ProductItem" Title="#" Width="56px" TextAlign="TextAlign.Center" Sortable="false">
-                                    <Template Context="row">@(_currentSkip + Products.IndexOf(row) + 1)</Template>
-                                </RadzenDataGridColumn>
+                                @* Atlas catalog: bảng tra cứu 4 cột, không có cột thứ tự "#" (mã VPP ở ô mặt hàng đã tự định danh dòng). *@
                                 <RadzenDataGridColumn TItem="ProductItem" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
                                     <Template Context="row">
                                         <div class="vpp-catalog-item-cell">
@@ -124,5 +122,7 @@ else
 {
     <VppEmptyState Icon="lock"
                    Title="@Loc["AccessDenied"]"
-                   Description="@Loc["NoPermission"]" />
+                   Description="@Loc["NoPermission"]"
+                   SecondaryText="@Loc["BackToAllowedPage"]"
+                   SecondaryHref="/" />
 }

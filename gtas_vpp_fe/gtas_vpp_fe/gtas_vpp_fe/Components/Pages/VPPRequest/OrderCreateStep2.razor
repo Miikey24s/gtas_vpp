@@ -7,7 +7,7 @@
             <header class="vpp-order-builder-section-header">
                 <div>
                     <h2 id="order-catalog-title">@Loc["OrderableCatalog"]</h2>
-                    <p>@Loc["OrderableCatalogCount", ProductCount]</p>
+                    <p>@Loc["OrderableCatalogCount", Context.SelectedItems.Count, ProductCount]</p>
                 </div>
             </header>
 
@@ -154,7 +154,8 @@
                                             class="vpp-order-draft-note"
                                             popovertarget="@GetItemNotePopoverId(item)"
                                             title="@Loc["ItemNote"]"
-                                            aria-label="@($"{Loc["ItemNote"]}: {GetItemLabel(item)}")">
+                                            aria-label="@($"{Loc["ItemNote"]}: {GetItemLabel(item)}")"
+                                            @onclick="() => SnapshotItemNote(item)">
                                         <VppIcon Name="edit_note" />
                                     </button>
                                     <button type="button"
@@ -185,6 +186,21 @@
                                           @oninput="args => UpdateItemNote(item, args.Value?.ToString())"
                                           maxlength="500"
                                           placeholder="@Loc["ItemNotePlaceholder"]"></textarea>
+                                <small class="vpp-order-note-scope">@Loc["ItemNoteScopeHint"]</small>
+                                <footer class="vpp-order-note-footer">
+                                    <button type="button"
+                                            class="vpp-order-note-cancel"
+                                            popovertarget="@GetItemNotePopoverId(item)"
+                                            popovertargetaction="hide"
+                                            @onclick="() => RevertItemNote(item)">@Loc["Cancel"]</button>
+                                    <button type="button"
+                                            class="vpp-order-note-save"
+                                            popovertarget="@GetItemNotePopoverId(item)"
+                                            popovertargetaction="hide">
+                                        <VppIcon Name="check" />
+                                        <span>@Loc["SaveNote"]</span>
+                                    </button>
+                                </footer>
                             </div>
                         </article>
                     }
@@ -211,7 +227,8 @@
                     }
                     <button type="button"
                             class="vpp-order-action-note"
-                            popovertarget="@OrderNotePopoverId">
+                            popovertarget="@OrderNotePopoverId"
+                            @onclick="SnapshotOrderNote">
                         <VppIcon Name="edit_note" />
                         <span>@Loc["Note"]</span>
                     </button>
@@ -227,7 +244,7 @@
                 <header>
                     <div>
                         <strong>@OrderNoteLabel</strong>
-                        <span>@Loc["OrderBeingCreated"]</span>
+                        <span>@OrderNoteContextLabel</span>
                     </div>
                     <button type="button"
                             popovertarget="@OrderNotePopoverId"
@@ -240,6 +257,21 @@
                           @oninput="args => UpdateOrderNote(args.Value?.ToString())"
                           maxlength="500"
                           placeholder="@OrderNotePlaceholder"></textarea>
+                <small class="vpp-order-note-scope">@Loc["OrderNoteScopeHint"]</small>
+                <footer class="vpp-order-note-footer">
+                    <button type="button"
+                            class="vpp-order-note-cancel"
+                            popovertarget="@OrderNotePopoverId"
+                            popovertargetaction="hide"
+                            @onclick="RevertOrderNote">@Loc["Cancel"]</button>
+                    <button type="button"
+                            class="vpp-order-note-save"
+                            popovertarget="@OrderNotePopoverId"
+                            popovertargetaction="hide">
+                        <VppIcon Name="check" />
+                        <span>@Loc["SaveNote"]</span>
+                    </button>
+                </footer>
             </div>
         </aside>
     </div>
@@ -291,6 +323,33 @@
     private string OrderNoteLabel => Context.IsAdditional ? Loc["SupplementReason"].Value : Loc["OrderNote"].Value;
     private string OrderNotePlaceholder => Context.IsAdditional ? Loc["SupplementReasonPlaceholder"].Value : Loc["OrderNotePlaceholder"].Value;
     private string? OrderNote => Context.IsAdditional ? Context.SupplementReason : Context.Description;
+    // Atlas order-note-popover: dòng phụ "Đơn kỳ MM/yyyy"; nhánh đơn bổ sung giữ ngữ cảnh "Đơn đang tạo".
+    private string OrderNoteContextLabel => Context.IsAdditional
+        ? Loc["OrderBeingCreated"].Value
+        : string.Format(Loc["OrderNotePeriodFormat"].Value, TargetPeriodLabel);
+
+    // Nút "Hủy" của popover ghi chú hoàn nguyên giá trị chụp lúc mở (textarea vẫn auto-bind khi gõ).
+    private Guid _itemNoteSnapshotId;
+    private string? _itemNoteSnapshot;
+    private string? _orderNoteSnapshot;
+
+    private void SnapshotItemNote(OrderCreateContext.SelectedItem item)
+    {
+        _itemNoteSnapshotId = item.VppId;
+        _itemNoteSnapshot = item.Description;
+    }
+
+    private void RevertItemNote(OrderCreateContext.SelectedItem item)
+    {
+        if (item.VppId == _itemNoteSnapshotId)
+        {
+            UpdateItemNote(item, _itemNoteSnapshot);
+        }
+    }
+
+    private void SnapshotOrderNote() => _orderNoteSnapshot = OrderNote;
+
+    private void RevertOrderNote() => UpdateOrderNote(_orderNoteSnapshot);
 
     protected override async Task OnInitializedAsync()
     {

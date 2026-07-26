@@ -14,12 +14,13 @@ public static class VppIcons
     public const string Catalog = "inventory_2";
     public const string Category = "category";
     public const string Check = "check";
+    public const string ChevronRight = "chevron_right";
     public const string Close = "close";
     public const string Columns = "view_column";
     public const string Copy = "content_copy";
     public const string DarkMode = "dark_mode";
-    public const string Dashboard = "dashboard";
-    public const string Department = "corporate_fare";
+    public const string Dashboard = "space_dashboard";
+    public const string Department = "table_view";
     public const string Error = "error";
     public const string ExpandMore = "expand_more";
     public const string Folder = "folder_open";
@@ -33,6 +34,9 @@ public static class VppIcons
     public const string Lock = "lock";
     public const string Logout = "logout";
     public const string Menu = "menu";
+    public const string NavAllOrders = "list_alt";
+    public const string NavApproval = "approval";
+    public const string NavMyOrders = "shopping_bag";
     public const string Notifications = "notifications";
     public const string NotificationsOff = "notifications_off";
     public const string Orders = "receipt_long";
@@ -40,9 +44,9 @@ public static class VppIcons
     public const string Pending = "pending_actions";
     public const string PeriodOperations = "event_repeat";
     public const string Price = "payments";
-    public const string PriceList = "list_alt";
+    public const string PriceList = "price_change";
     public const string Pricing = "sell";
-    public const string Permissions = "shield_lock";
+    public const string Permissions = "admin_panel_settings";
     public const string Reports = "analytics";
     public const string Rejected = "cancel";
     public const string Review = "fact_check";
@@ -50,7 +54,7 @@ public static class VppIcons
     public const string Schema = "schema";
     public const string Supplier = "local_shipping";
     public const string Table = "table_view";
-    public const string TeamManagement = "manage_accounts";
+    public const string TeamManagement = "groups";
     public const string Refresh = "refresh";
     public const string Reset = "restart_alt";
     public const string Search = "search";
@@ -59,6 +63,7 @@ public static class VppIcons
     public const string SidebarExpand = "left_panel_open";
     public const string Spreadsheet = "table_view";
     public const string Supplement = "playlist_add";
+    public const string VerifiedUser = "verified_user";
     public const string Visibility = "visibility";
     public const string VisibilityOff = "visibility_off";
     public const string Warning = "warning";

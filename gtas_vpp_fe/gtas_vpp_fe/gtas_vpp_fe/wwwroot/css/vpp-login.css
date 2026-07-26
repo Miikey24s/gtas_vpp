@@ -500,7 +500,8 @@
 .vpp-account-page-compact .vpp-login-shell {
     align-items: center;
     justify-content: center;
-    padding: clamp(16px, 2.5vw, 24px) clamp(20px, 4vw, 48px);
+    /* Padding dọc nén để form Register 5 field + description + alert lọt viewport 1366x768 (screenshot luận văn). */
+    padding: 12px clamp(20px, 4vw, 48px);
     overflow-y: auto;
     background: transparent;
 }
@@ -519,7 +520,7 @@
     max-height: none;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 24px clamp(28px, 4vw, 40px);
+    padding: 20px clamp(28px, 4vw, 40px);
     overflow: visible;
     border: 1px solid var(--vpp-border-strong);
     border-radius: var(--vpp-radius-lg);
@@ -542,13 +543,21 @@
     gap: var(--vpp-account-field-gap);
 }
 
+/* Khối intro cuối cùng trước form (vd. safety note của ForgotPassword) phải dùng
+   đúng token nhịp intro→field như header của Login/Register, thay vì margin
+   rem-bậc thang (--vpp-space-5) lệch theo root font-size. E2E:
+   AccountShellSmokeTests.LoginRegisterAndRecovery_ShareOneVerticalRhythm. */
+.vpp-account-page-compact .vpp-inline-alert:has(+ .vpp-login-form) {
+    margin-bottom: var(--vpp-account-title-form-gap);
+}
+
 .vpp-account-page-compact .vpp-login-field {
     gap: var(--vpp-account-field-inner-gap);
 }
 
 .vpp-account-page-compact,
 .vpp-account-page-scrollable {
-    --vpp-login-field-min-height: 2.75rem;
+    --vpp-login-field-min-height: 2.5rem;
     --vpp-login-field-label-size: 0.9375rem;
     --vpp-login-field-value-size: 1rem;
     --vpp-login-field-text-padding: 0.625rem;
@@ -629,7 +638,7 @@
 
 .vpp-account-description {
     max-width: 52ch;
-    margin: 14px 0 0;
+    margin: 10px 0 0;
     color: var(--vpp-text-secondary);
     font-size: 0.9375rem;
     line-height: 1.55;

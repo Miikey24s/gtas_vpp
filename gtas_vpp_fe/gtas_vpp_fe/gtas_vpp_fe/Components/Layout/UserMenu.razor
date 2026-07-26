@@ -15,7 +15,13 @@
         </span>
         @if (ShowName)
         {
-            <span class="user-menu-trigger-name">@UserFullName</span>
+            <span class="user-menu-trigger-copy">
+                <span class="user-menu-trigger-name">@UserFullName</span>
+                @if (SidebarMode && !string.IsNullOrWhiteSpace(DepartmentDisplayName))
+                {
+                    <small class="user-menu-trigger-subline">@DepartmentDisplayName</small>
+                }
+            </span>
         }
     </button>
 
@@ -52,7 +58,7 @@
                         @onclick="HandleLanguageToggleAsync">
                     <VppIcon Name="@VppIcons.Language" />
                     <span class="user-dropdown-action-label">@Loc["Language"]</span>
-                    <span class="user-dropdown-action-trailing">@(IsEnglishUi ? "EN" : "VI")</span>
+                    <span class="user-dropdown-action-trailing">@Loc[IsEnglishUi ? "LanguageEnglish" : "LanguageVietnamese"]</span>
                 </button>
                 <button type="button"
                         class="user-dropdown-action"

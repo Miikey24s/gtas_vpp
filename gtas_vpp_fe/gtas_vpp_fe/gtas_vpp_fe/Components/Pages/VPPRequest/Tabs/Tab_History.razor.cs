@@ -21,6 +21,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private const string StatusMenu = "status";
     private const string OrderTypeMenu = "order-type";
     private const string CategoryMenu = "category";
+    private const string UomMenu = "uom";
     private const string KpiPeriods = "periods";
     private const string KpiOrders = "orders";
     private const string KpiLines = "lines";
@@ -40,6 +41,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private VppRequestResDTO? _selectedOrder;
     private readonly List<HistoryDetailRow> _detailRows = [];
     private readonly List<string> _detailCategories = [];
+    private readonly List<string> _detailUoms = [];
     private string _scope = Last1Scope;
     private string _customFrom = string.Empty;
     private string _customTo = string.Empty;
@@ -52,6 +54,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private string _selectedOrderType = string.Empty;
     private string _detailSearch = string.Empty;
     private string _detailCategory = string.Empty;
+    private string _detailUom = string.Empty;
     private string _openFilterMenu = string.Empty;
     private bool _showCustomRange;
     private bool _showScopeMenu;
@@ -559,8 +562,10 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
             _selectedOrder = order;
             _detailSearch = string.Empty;
             _detailCategory = string.Empty;
+            _detailUom = string.Empty;
             _detailRows.Clear();
             _detailCategories.Clear();
+            _detailUoms.Clear();
         }
         await InvokeAsync(StateHasChanged);
 
@@ -571,14 +576,22 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
             _selectedOrder = detail ?? order;
             _detailSearch = string.Empty;
             _detailCategory = string.Empty;
+            _detailUom = string.Empty;
             _detailRows.Clear();
             _detailCategories.Clear();
+            _detailUoms.Clear();
             _detailCategories.AddRange((_selectedOrder.Items ?? [])
                 .Select(item => item.CategoryName)
                 .Where(category => !string.IsNullOrWhiteSpace(category))
                 .Select(category => category!)
                 .Distinct(StringComparer.CurrentCultureIgnoreCase)
                 .OrderBy(category => category, StringComparer.CurrentCultureIgnoreCase));
+            _detailUoms.AddRange((_selectedOrder.Items ?? [])
+                .Select(item => item.UomName)
+                .Where(uom => !string.IsNullOrWhiteSpace(uom))
+                .Select(uom => uom!)
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(uom => uom, StringComparer.CurrentCultureIgnoreCase));
             RebuildDetailRows();
         }
         catch (Exception ex)
@@ -587,6 +600,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
             _detailError = true;
             _detailRows.Clear();
             _detailCategories.Clear();
+            _detailUoms.Clear();
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
@@ -629,8 +643,19 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task SelectDetailUomAsync(string uom)
+    {
+        _detailUom = uom;
+        _openFilterMenu = string.Empty;
+        RebuildDetailRows();
+        if (_detailGrid is not null) await _detailGrid.Reload();
+        await InvokeAsync(StateHasChanged);
+    }
+
     private bool HasDetailFilters =>
-        !string.IsNullOrWhiteSpace(_detailSearch) || !string.IsNullOrEmpty(_detailCategory);
+        !string.IsNullOrWhiteSpace(_detailSearch)
+        || !string.IsNullOrEmpty(_detailCategory)
+        || !string.IsNullOrEmpty(_detailUom);
 
     private async Task ClearDetailFiltersAsync()
     {
@@ -642,6 +667,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
 
         _detailSearch = string.Empty;
         _detailCategory = string.Empty;
+        _detailUom = string.Empty;
         RebuildDetailRows();
         if (_detailGrid is not null) await _detailGrid.Reload();
         await InvokeAsync(StateHasChanged);
@@ -656,12 +682,17 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
                 || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
                 || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
             && (string.IsNullOrEmpty(_detailCategory)
-                || string.Equals(item.CategoryName, _detailCategory, StringComparison.CurrentCultureIgnoreCase)))
+                || string.Equals(item.CategoryName, _detailCategory, StringComparison.CurrentCultureIgnoreCase))
+            && (string.IsNullOrEmpty(_detailUom)
+                || string.Equals(item.UomName, _detailUom, StringComparison.CurrentCultureIgnoreCase)))
             .ToList();
 
         _detailRows.Clear();
         _detailRows.AddRange(filtered.Select((item, index) => new HistoryDetailRow(index + 1, item)));
     }
+
+    private Task ExportSelectedOrderAsync(string format)
+        => _selectedOrder is null ? Task.CompletedTask : ExportOrderAsync(_selectedOrder, format);
 
     private void CloseDrawer()
     {
@@ -676,6 +707,8 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _selectedOrder = null;
         _detailRows.Clear();
         _detailCategories.Clear();
+        _detailUoms.Clear();
+        _detailUom = string.Empty;
     }
 
     private async Task OpenHistoryAsync()
@@ -722,6 +755,9 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private string DetailCategoryLabel => string.IsNullOrEmpty(_detailCategory)
         ? Loc["HistoryAllCategories"].Value
         : _detailCategory;
+    private string DetailUomLabel => string.IsNullOrEmpty(_detailUom)
+        ? Loc["HistoryAllUnits"].Value
+        : _detailUom;
     private string UnitHeaderLabel => Loc["UOM"].Value.Trim() switch
     {
         "ĐVT" or "DVT" => "Đơn vị",

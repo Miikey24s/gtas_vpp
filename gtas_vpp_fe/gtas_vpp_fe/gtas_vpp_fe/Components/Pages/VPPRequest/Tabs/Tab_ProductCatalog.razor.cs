@@ -46,7 +46,6 @@ public partial class Tab_ProductCatalog : IDisposable
     public string? SearchText { get; set; }
     public RadzenDataGrid<ProductItem>? productGrid { get; set; }
 
-    private int _currentSkip;
     private bool _isFirstLoad = true;
     private CancellationTokenSource? _searchDebounceCts;
 
@@ -108,7 +107,6 @@ public partial class Tab_ProductCatalog : IDisposable
         IsFirstLoading = _isFirstLoad;
         IsGridLoading = true;
         HasLoadError = false;
-        _currentSkip = args.Skip ?? 0;
 
         try
         {
