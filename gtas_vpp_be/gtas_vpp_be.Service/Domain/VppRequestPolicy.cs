@@ -12,7 +12,12 @@ public sealed class VppRequestPolicy
 {
     public const int DefaultDeadlineDay = 5;
     public const int DefaultSupplementApprovalGraceDays = 2;
-    public const int DefaultMaxApprovedSupplements = 1;
+
+    // Luận văn §1.2.3: "Tối đa ba đơn bổ sung" được duyệt trong một kỳ.
+    public const int DefaultMaxApprovedSupplements = 3;
+
+    // Chặn spam nội bộ: tối đa 6 lần gửi đơn bổ sung (kể cả bị từ chối/hủy);
+    // luận văn không quy định con số này.
     public const int DefaultMaxSupplementAttempts = 6;
 
     public VppRequestPolicy(

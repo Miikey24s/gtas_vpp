@@ -917,7 +917,7 @@ Status hợp lệ:
 
 - command center đã khôi phục surface xanh nhẹ, left accent, status, deadline progress, năm evidence và contextual action column; không khôi phục copy submitted bị owner đánh giá là lặp;
 - `Kỳ đặt hàng hiện tại 07/2026` nằm cùng một centerline trên desktop; responsive tự wrap ở viewport hẹp;
-- CTA supplement dùng copy `Tạo đơn bổ sung` / `Create supplement`, không còn quota fraction; backend default/config/legacy fallback đều enforcement `MaxApprovedSupplements=1`, test và tài liệu quyết định đã đồng bộ;
+- CTA supplement dùng copy `Tạo đơn bổ sung` / `Create supplement`, không còn quota fraction; backend default/config/legacy fallback đều enforcement `MaxApprovedSupplements=1` (2026-07-26 đã nâng lên `3` theo luận văn §1.2.3 — xem quyết định trong `docs/execution/ATLAS-001.md`), test và tài liệu quyết định đã đồng bộ;
 - shared radius tokens, Radzen/Bootstrap compatibility variables và shell controls chuyển sang góc vuông; avatar, status dot và icon có semantics hình tròn được giữ lại;
 - Release solution build pass `0 warning / 0 error`; frontend tests `144/144`, backend tests `410/410`; isolated My Orders + header/user-menu browser QA pass `2/2` và không overflow trên bốn viewport;
 - route trở lại `OWNER_REVIEW`; evidence local mới nằm ngoài repository tại `%TEMP%\\gtas-vpp-w1-round8`.
