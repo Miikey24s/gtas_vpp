@@ -388,6 +388,9 @@ scripts/export_db_full.sql
 /tools/
 /audit/
 /library-items-audit.png
+
+# Design Atlas render output (ảnh PNG + báo cáo audit, tái tạo bằng render-atlas.cjs)
+/docs/design/atlas/output/
 /vpp-myorders-grid-align.png
 
 # Thesis build/render artifacts; keep only canonical editable/final assets

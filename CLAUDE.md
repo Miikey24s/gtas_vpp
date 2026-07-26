@@ -1,0 +1,41 @@
+# CLAUDE.md — GTAS VPP
+
+Quy tắc làm việc chính của repository nằm trong `AGENTS.md`. Claude Code phải tuân thủ đúng
+file đó, không tạo bộ quy tắc song song.
+
+@AGENTS.md
+
+## Tài liệu bắt buộc đọc trước khi sửa
+
+- UI Blazor/Radzen (`gtas_vpp_fe/`): `.codexrules`, `.github/copilot-instructions.md`,
+  `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
+- Chọn MCP / browser tool / QA layer: `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md`.
+- React phụ (`gtas_vpp_fe_react/`): đang `PAUSED/DEFERRED`, chỉ sửa khi owner mở lại phạm vi.
+
+## MCP đã cấu hình cho Claude Code
+
+| Server | Scope | Dùng khi |
+|---|---|---|
+| `microsoft-learn` | user | .NET, Blazor, ASP.NET Core, Aspire, tài liệu Microsoft — tra trước tiên |
+| `radzen-blazor` | local (`.claude.json`) | Radzen component/property/event — bắt buộc tra trước khi sửa Radzen. Quota 50 request/15 ngày; hết quota thì dừng và xin key mới |
+| `context7` | user | Tài liệu package bên thứ ba, chỉ dùng sau nguồn chính chủ |
+| `playwright` | user | Browser mặc định: DOM/ARIA snapshot, interaction, screenshot, console, network |
+| `chrome-devtools` | user | Performance trace, network/console sâu. Chỉ dùng profile Chrome TEST |
+| `sosumi` | user | Apple HIG / developer docs làm tham khảo visual hierarchy và accessibility |
+
+Radzen key nằm ở local scope trong `~/.claude.json`; `.mcp.json` của repo đã bị `.gitignore`.
+Không commit key vào bất kỳ file nào được Git theo dõi.
+
+Figma và GitHub dùng plugin connector sẵn có của Claude Code (cần authorize OAuth trong phiên
+interactive), không thêm MCP trùng chức năng.
+
+Không cài thêm MCP trùng vai trò (browser MCP khác, doc aggregator khác) chỉ để tăng số lượng
+công cụ — xem mục "Vì sao không cài thêm browser MCP khác" trong toolchain doc.
+
+## Lệnh build/test tối thiểu
+
+```powershell
+dotnet build gtas_vpp.sln -c Release
+dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release
+dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
+```

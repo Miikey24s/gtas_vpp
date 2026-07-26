@@ -18,6 +18,8 @@
 - Blazor chạy thật trong browser là nguồn quyết định visual cuối. Figma là nơi nghiên cứu/prototype để owner duyệt; React phụ chỉ là evidence tham khảo, không phải pixel/route authority.
 - Figma có thể import toàn repository để đọc source. Nếu môi trường Figma cần React để dựng code layer, output đó chỉ là design prototype cô lập; không được coi `gtas_vpp_fe_react/` là frontend chính hoặc tự ghi đè production Blazor.
 - Không tạo thêm UI Lab trong repository. Phần đã duyệt phải được triển khai trực tiếp trong `gtas_vpp_fe/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- `docs/design/atlas/` là bản Design Atlas 28 màn được đưa vào repository ngày 2026-07-26 (quyết định D5 trong `docs/execution/ATLAS-001.md`). Đây là **design reference đóng băng và read-only**, giữ để bảo toàn nguồn của 16 hình giao diện trong luận văn; không phải UI Lab và không được dùng để phát triển tính năng mới. Chỉ sửa khi owner duyệt một thay đổi thiết kế, và phải sửa kèm route Blazor tương ứng cùng route ledger.
+- Kế hoạch triển khai toàn bộ Atlas sang frontend nằm trong `docs/execution/ATLAS-001.md`; đọc mục 1 của file đó để biết thứ tự thẩm quyền khi luận văn, Atlas, backend và frontend mâu thuẫn nhau.
 - Sau mỗi vòng người dùng duyệt hoặc từ chối một route, cập nhật route ledger, decision/learning log và retrofit queue trong living plan trước khi tiếp tục.
 - Giữ một kiến trúc global `InteractiveServer`; không thêm `@rendermode` cục bộ nếu chưa có quyết định kiến trúc mới.
 

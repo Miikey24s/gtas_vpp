@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GTAS VPP — Design Atlas</title>
+  <link rel="stylesheet" href="atlas.css" />
+</head>
+<body>
+  <header class="atlas-toolbar" id="atlasToolbar">
+    <div>
+      <p class="atlas-eyebrow">GTAS VPP · bản thiết kế dùng ngoài production</p>
+      <h1>Design Atlas <span>28 màn hình</span></h1>
+    </div>
+    <div class="atlas-controls" aria-label="Điều khiển chung của bản thiết kế">
+      <label>Nhóm <select id="boardFilter"><option value="all">Tất cả</option></select></label>
+      <button type="button" id="sidebarToggle"><span class="ms">left_panel_close</span> Thanh bên</button>
+      <button type="button" id="themeToggle"><span class="ms">dark_mode</span> Giao diện</button>
+      <button type="button" id="densityToggle"><span class="ms">density_medium</span> Mật độ</button>
+    </div>
+  </header>
+  <main id="atlas" class="atlas-grid" aria-live="polite"></main>
+  <script src="atlas.js"></script>
+</body>
+</html>
