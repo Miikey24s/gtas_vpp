@@ -178,8 +178,13 @@ action bar quiet×4+danger, hero "Tạo đơn kỳ này"), popover ghi chú orde
 footer Hủy/Lưu ghi chú), catalog bỏ cột "#", history (drawer "Phiếu chi tiết đơn" + Người đặt/
 Phòng ban + nút xuất PDF/Excel + lọc đơn vị + KPI nhãn riêng + badge trạng thái qua
 VppStatusContract), account M1 (description theo Atlas, alert chống dò tài khoản, "Tạo tài khoản").
-Còn lại: **C-7** chẻ Tab_History (đợt riêng); **[OWNER-GATE]** nhãn "Email công ty" vs "Email"
-(Forgot/Register) — giữ nhãn cũ chờ owner chốt.
+**C-7 đã xong 2026-07-27** (commit `3bb6f18`): Tab_History 641 dòng → coordinator 144 dòng giữ toàn bộ
+state/handler; 5 vùng Atlas render trong component con thuần trình bày (`HistoryScopeBar` ·
+`HistoryKpiCards` · `HistoryTrendChart` · `HistoryOrderList` · `HistoryOrderDetailSheet`) theo đúng
+convention `VppOrderWorkspacePanel`; khóa chuỗi/format/record chia sẻ ở `HistorySupport.cs`; CSS scoped
+chuyển toàn bộ sang `::deep` neo `.vpp-history-page` (script deterministic, specificity không đổi);
+markup giữ nguyên byte class/id/aria nên E2E selector sống; architecture test repoint theo file mới.
+[OWNER-GATE] nhãn "Email công ty" đã chốt ở D15.
 
 **Retrofit queue W-C (sửa ngược Atlas, chờ owner duyệt):** hero my-orders biến thể chưa có đơn
 ("Tạo đơn kỳ này" + "Sao chép kỳ trước"); 3 thẻ tóm tắt là radiogroup điều hướng; empty state
