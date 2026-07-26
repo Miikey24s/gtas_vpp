@@ -717,4 +717,10 @@
   <data name="RegisterDescription" xml:space="preserve"><value>Create an account for use in the development and testing environment.</value></data>
   <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>For security reasons the system always returns the same message whether the email exists or not.</value></data>
   <data name="HistoryRequester" xml:space="preserve"><value>Requested by</value></data>
+  <data name="DepartmentSearchPlaceholder" xml:space="preserve"><value>Search order code or full name</value></data>
+  <data name="DepartmentPeriodMetaFormat" xml:space="preserve"><value>Period {0}</value></data>
+  <data name="DepartmentYearMetaFormat" xml:space="preserve"><value>Year {0}</value></data>
+  <data name="DepartmentAllPeriodsMeta" xml:space="preserve"><value>All periods</value></data>
+  <data name="DepartmentDetailScopeHint" xml:space="preserve"><value>Data only includes orders from your authorized department.</value></data>
+  <data name="OrderHasNoItems" xml:space="preserve"><value>This order has no items yet</value></data>
 </root>

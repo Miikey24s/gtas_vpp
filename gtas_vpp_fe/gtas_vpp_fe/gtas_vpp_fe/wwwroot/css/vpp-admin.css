@@ -1262,6 +1262,195 @@
     border-top: 1px solid var(--vpp-border-default);
 }
 
+/* Atlas department-summary: toolbar tìm kiếm/lọc trên đầu card danh sách đơn. */
+.vpp-atlas-orders-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-atlas-orders-toolbar h3 {
+    margin: 0;
+    font-size: var(--vpp-text-base);
+}
+
+.vpp-atlas-orders-filters {
+    display: flex;
+    flex: 1 1 480px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-atlas-orders-filters .vpp-order-view-search {
+    flex: 1 1 200px;
+}
+
+.vpp-atlas-orders-filters .vpp-order-view-select {
+    flex: 0 1 150px;
+    min-width: 120px;
+    min-height: 36px;
+}
+
+.vpp-atlas-orders-filters .vpp-order-view-select-compact {
+    flex: 0 1 96px;
+    min-width: 84px;
+}
+
+.vpp-order-view-clear:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.vpp-order-view-clear:disabled:hover {
+    background: transparent;
+}
+
+.kpi-card-meta {
+    display: block;
+    margin-top: var(--vpp-space-1);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+/* Atlas orderDetailSheet: header kicker + mã/badge + meta + cặp nút xuất (D10). */
+.vpp-atlas-sheet-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-5);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-atlas-sheet-kicker {
+    display: block;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    letter-spacing: 0.04em;
+}
+
+.vpp-atlas-sheet-code {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    margin-top: 0.35rem;
+    min-width: 0;
+}
+
+.vpp-atlas-sheet-code strong {
+    overflow: hidden;
+    font-size: var(--vpp-text-base);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-atlas-sheet-meta {
+    margin: 0.3rem 0 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-atlas-sheet-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-atlas-sheet-totals {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-atlas-sheet-totals div {
+    display: grid;
+    justify-items: center;
+    gap: 0.2rem;
+    padding: var(--vpp-space-3);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-surface);
+}
+
+.vpp-atlas-sheet-totals strong {
+    font-size: var(--vpp-text-xl);
+    line-height: 1.1;
+}
+
+.vpp-atlas-sheet-totals span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-atlas-sheet-note {
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-atlas-sheet-note span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-atlas-sheet-note p {
+    margin: 0.35rem 0 0;
+    color: var(--vpp-text-primary);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.vpp-atlas-sheet-items-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-2);
+    margin-bottom: var(--vpp-space-3);
+}
+
+.vpp-atlas-sheet-items-heading h3 {
+    margin: 0;
+}
+
+.vpp-atlas-sheet-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    margin-bottom: var(--vpp-space-3);
+}
+
+.vpp-atlas-sheet-filters .vpp-order-view-search {
+    flex: 1 1 160px;
+}
+
+.vpp-atlas-sheet-filters .vpp-order-view-select {
+    flex: 0 1 140px;
+    min-width: 120px;
+    min-height: 36px;
+}
+
+.vpp-atlas-sheet-no-match {
+    margin: 0;
+    padding: var(--vpp-space-4) 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+    text-align: center;
+}
+
+.vpp-atlas-item-note {
+    color: var(--vpp-text-tertiary);
+    font-style: italic;
+}
+
 @media (max-width: 1180px) {
     .vpp-atlas-order-workspace {
         grid-template-columns: 1fr;

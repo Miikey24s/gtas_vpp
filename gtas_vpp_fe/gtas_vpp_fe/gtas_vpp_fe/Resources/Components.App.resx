@@ -717,4 +717,10 @@
   <data name="RegisterDescription" xml:space="preserve"><value>Tạo tài khoản để sử dụng trong môi trường phát triển và kiểm thử.</value></data>
   <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>Vì lý do bảo mật, hệ thống luôn trả về cùng một thông báo dù email có tồn tại hay không.</value></data>
   <data name="HistoryRequester" xml:space="preserve"><value>Người đặt</value></data>
+  <data name="DepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm mã đơn hoặc họ tên</value></data>
+  <data name="DepartmentPeriodMetaFormat" xml:space="preserve"><value>Kỳ {0}</value></data>
+  <data name="DepartmentYearMetaFormat" xml:space="preserve"><value>Năm {0}</value></data>
+  <data name="DepartmentAllPeriodsMeta" xml:space="preserve"><value>Tất cả kỳ</value></data>
+  <data name="DepartmentDetailScopeHint" xml:space="preserve"><value>Dữ liệu chỉ gồm các đơn thuộc phòng ban được cấp quyền.</value></data>
+  <data name="OrderHasNoItems" xml:space="preserve"><value>Đơn chưa có mặt hàng</value></data>
 </root>
