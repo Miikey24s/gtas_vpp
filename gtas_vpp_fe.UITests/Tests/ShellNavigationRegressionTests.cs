@@ -318,8 +318,9 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         {
             await Page.EvaluateAsync("() => document.querySelector('.vpp-sidebar-toggle').click()");
         }
-        // Chờ sidebar mang class sidebar-collapsed và logo thu gọn hiện ra,
-        // đứng yên qua 2 khung rAF trước khi đo hình học rail.
+        // Chờ transition thu gọn CHẠM TRẠNG THÁI CUỐI: chỉ kiểm "2 khung rAF bằng nhau"
+        // là chưa đủ vì hai mẫu có thể cùng rơi vào thời điểm transition chưa khởi động
+        // (đo ra hình học sidebar còn mở rộng). Gate thêm bề rộng rail đã về ~72px.
         await Page.WaitForFunctionAsync(
             """
             () => new Promise(resolve => {
@@ -329,11 +330,21 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                     return;
                 }
                 const measure = () => {
+                    const width = sidebarNode.getBoundingClientRect().width;
                     const logo = document.querySelector('.vpp-sidebar-collapsed-logo');
-                    return logo && logo.getClientRects().length > 0 ? logo.getBoundingClientRect().left : -1;
+                    if (!logo || logo.getClientRects().length === 0) {
+                        return null;
+                    }
+                    return { width, left: logo.getBoundingClientRect().left };
                 };
                 const first = measure();
-                requestAnimationFrame(() => requestAnimationFrame(() => resolve(first >= 0 && measure() === first)));
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    const second = measure();
+                    resolve(!!first && !!second
+                        && second.width <= 80
+                        && second.width === first.width
+                        && second.left === first.left);
+                }));
             })
             """);
         var collapsedRail = await Page.EvaluateAsync<CollapsedRailGeometry>(

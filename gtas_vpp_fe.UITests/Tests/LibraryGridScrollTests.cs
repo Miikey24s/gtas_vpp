@@ -369,13 +369,22 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
             "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
         await Page.Locator(".vpp-layout-body").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        // Chờ scrollTop thực sự chạm đáy đúng như phép gán ở trên.
+        // Chờ chạm đáy VÀ chiều cao nội dung đứng yên qua 2 khung rAF: grid có thể còn
+        // nở thêm sau resize làm đáy trôi đi giữa lúc chờ và lúc đo; nếu nội dung nở,
+        // ghim lại scrollTop rồi thử tiếp trong cùng vòng chờ.
         await Page.WaitForFunctionAsync("""
-            () => {
+            () => new Promise(resolve => {
                 const scroller = document.querySelector('.vpp-layout-body');
-                return !!scroller
-                    && scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
-            }
+                if (!scroller) { resolve(false); return; }
+                const atBottom = () =>
+                    scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
+                if (!atBottom()) {
+                    scroller.scrollTop = scroller.scrollHeight;
+                }
+                const firstHeight = scroller.scrollHeight;
+                requestAnimationFrame(() => requestAnimationFrame(() =>
+                    resolve(atBottom() && scroller.scrollHeight === firstHeight)));
+            })
             """);
         var pinnedShellMetrics = await Page.EvaluateAsync<double[]>("""
             () => {

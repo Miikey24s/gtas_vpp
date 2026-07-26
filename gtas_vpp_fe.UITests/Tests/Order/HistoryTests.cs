@@ -119,6 +119,10 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 
         var loadingState = Page.Locator(".vpp-history-loading-state");
         await loadingState.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        // HTML prerender stream theo chunk: wrapper skeleton có thể được parse trước
+        // các phần tử con. Chờ đủ 4 KPI skeleton thay vì đếm tức thời ngay sau Visible.
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelectorAll('.vpp-history-loading-state .vpp-history-loading-kpi').length === 4");
         (await loadingState.Locator(".vpp-history-loading-kpi").CountAsync()).Should().Be(4);
         (await Page.Locator(".vpp-history-loading-line").CountAsync()).Should().Be(0, "initial loading must use geometry-matched skeletons instead of a global progress line");
         var loadingScreenshotDirectory = Path.Combine(Path.GetTempPath(), "gtas-vpp-history-visual");
@@ -960,6 +964,20 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                     }
                 """);
 
+                // Grid có thể bị tạo lại (@key theo PageSize từ viewport observer) và được
+                // quan sát giữa chừng layout — chờ hàng lấp đầy bề ngang surface trước khi
+                // chốt mẫu hình học; điều kiện chính là đúng phép đo được assert bên dưới.
+                await Page.WaitForFunctionAsync("""
+                    () => {
+                        const surface = document.querySelector('.vpp-history-grid .rz-data-grid-data');
+                        const row = surface?.querySelector('tbody tr');
+                        if (!surface || !row) return false;
+                        const hasOverflow = surface.scrollHeight > surface.clientHeight + 1;
+                        const classMatches = surface.classList.contains('has-vertical-overflow') === hasOverflow;
+                        const rightGap = Math.abs(surface.getBoundingClientRect().right - row.getBoundingClientRect().right);
+                        return classMatches && (hasOverflow || rightGap <= 2);
+                    }
+                """);
                 var scrollbarGutterGeometry = await Page.EvaluateAsync<string>("""
                     () => {
                         const surface = document.querySelector('.vpp-history-grid .rz-data-grid-data');
