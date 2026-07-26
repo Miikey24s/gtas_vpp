@@ -484,6 +484,24 @@ namespace gtas_vpp_be.Controllers
             return Ok(data);
         }
 
+        // Gom nhu cầu kỳ (bước 2 vận hành kỳ, §3.3.3.4 — quyết định D7 trong ATLAS-001):
+        // chỉ đọc, cùng policy với chốt kỳ, tổng hợp từ phiên bản đơn hợp lệ hiện hành.
+        [HttpGet("period-demand")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        [ProducesResponseType<AggregatedVppResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetPeriodDemand([FromQuery] int year, [FromQuery] int month)
+        {
+            if (!IsValidPeriod(year * 100 + month))
+            {
+                return BadRequest("Invalid period.");
+            }
+
+            var result = await _vppService.GetPeriodDemandAsync(year, month, CurrentMemberCompanyCode);
+            return Ok(result);
+        }
+
         [HttpGet("additional-orders/pending")]
         [Authorize]
         [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]

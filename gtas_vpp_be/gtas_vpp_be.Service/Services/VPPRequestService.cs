@@ -58,6 +58,7 @@ namespace gtas_vpp_be.Service.Services
             string? memberCompanyCode = null,
             string? departmentCode = null,
             bool canViewAllDepartments = false);
+        Task<AggregatedVppResDTO> GetPeriodDemandAsync(int year, int month, string? memberCompanyCode = null);
         Task ApproveAdditionalOrderAsync(Guid id, int adminId, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
     }
@@ -1135,6 +1136,103 @@ namespace gtas_vpp_be.Service.Services
             await ApplyRequesterNamesAsync(result);
             ApplyPeriodFlags(result);
             return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0, stats?.TotalQty ?? 0);
+        }
+
+        // Gom nhu cầu kỳ (bước 2 luồng vận hành kỳ, §3.3.3.4): tổng hợp theo mặt hàng từ
+        // đúng tập "đơn hợp lệ hiện hành" mà bước chốt kỳ dùng (predicate của PreviewAsync
+        // trong PeriodSettlementService) — đơn thường Submitted/Approved, đơn bổ sung chỉ
+        // Approved. Chỉ đọc, không đụng giá: UnitPrice giữ 0 vì giá thuộc bước Chọn nguồn
+        // cung (quyết định D4/D17 trong ATLAS-001).
+        public async Task<AggregatedVppResDTO> GetPeriodDemandAsync(int year, int month, string? memberCompanyCode = null)
+        {
+            var headers = await _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(x => x.Year == year && x.Month == month && !x.IsDeleted
+                         && x.IsCurrentRevision
+                         && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode)
+                         && (x.IsAdditionalOrder
+                             ? x.Status == (int)VPPStatus.Approved
+                             : (x.Status == (int)VPPStatus.Submitted || x.Status == (int)VPPStatus.Approved)))
+                .Select(x => new { x.Id, x.VppCode, x.CreatedByUserId })
+                .ToListAsync();
+
+            var headerById = headers.ToDictionary(x => x.Id);
+            var headerIds = headers.Select(x => x.Id).ToArray();
+
+            var details = headerIds.Length == 0
+                ? new()
+                : await _scopedUow.VPPContext.Set<VppRequestDetail>()
+                    .AsNoTracking()
+                    .Where(d => headerIds.Contains(d.RequestId) && !d.IsDeleted)
+                    .Select(d => new
+                    {
+                        d.RequestId,
+                        d.VppId,
+                        ItemCode = d.VppItem.VppCode,
+                        ItemName = d.VppItem.VppName,
+                        UomName = d.VppItem.Uom != null ? d.VppItem.Uom.Value : null,
+                        CategoryName = d.VppItem.VppCategory != null ? d.VppItem.VppCategory.VppCategoryName : null,
+                        d.Qty,
+                        Note = d.Description
+                    })
+                    .ToListAsync();
+
+            var requesterNames = await ResolveRequesterNamesAsync(
+                headers.Select(x => x.CreatedByUserId).Distinct().ToArray());
+
+            var items = details
+                .Select(detail => new { header = headerById[detail.RequestId], detail })
+                .GroupBy(x => x.detail.VppId)
+                .Select(group =>
+                {
+                    var first = group.First().detail;
+                    return new AggregatedVppItemResDTO
+                    {
+                        VppId = group.Key,
+                        VppCode = first.ItemCode,
+                        VppName = first.ItemName,
+                        UomName = first.UomName,
+                        CategoryName = first.CategoryName,
+                        TotalQty = group.Sum(x => x.detail.Qty),
+                        Breakdown = group
+                            .Select(x => new AggregatedVppItemBreakdownResDTO
+                            {
+                                UserId = x.header.CreatedByUserId,
+                                RequesterName = requesterNames.GetValueOrDefault(x.header.CreatedByUserId),
+                                Code = x.header.VppCode,
+                                Qty = x.detail.Qty,
+                                Note = x.detail.Note
+                            })
+                            .OrderByDescending(x => x.Qty)
+                            .ToList()
+                    };
+                })
+                .OrderByDescending(x => x.TotalQty)
+                .ThenBy(x => x.VppName, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            return new AggregatedVppResDTO
+            {
+                Year = year,
+                Month = month,
+                TotalOrders = headers.Count,
+                TotalQty = items.Sum(x => x.TotalQty),
+                Items = items
+            };
+        }
+
+        private async Task<Dictionary<int, string?>> ResolveRequesterNamesAsync(int[] userIds)
+        {
+            if (userIds.Length == 0)
+            {
+                return new Dictionary<int, string?>();
+            }
+
+            return await _scopedUow.VPPContext.Set<v_Users>()
+                .AsNoTracking()
+                .Where(x => userIds.Contains(x.UserID))
+                .Select(x => new { x.UserID, x.FullName })
+                .ToDictionaryAsync(x => x.UserID, x => x.FullName);
         }
 
         public async Task ApproveAdditionalOrderAsync(
