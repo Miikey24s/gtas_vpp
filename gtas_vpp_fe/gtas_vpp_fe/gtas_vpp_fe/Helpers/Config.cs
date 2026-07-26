@@ -31,6 +31,7 @@ namespace gtas_vpp_fe.Helpers
             public const string AllOrders = $"{ApiVppBase}/all-orders";
             public const string Orders = $"{ApiVppBase}/orders";
             public const string PeriodInfo = $"{ApiVppBase}/period-info";
+            public const string PeriodDemand = $"{ApiVppBase}/period-demand";
             public const string PreviousItems = $"{ApiVppBase}/orders/previous-items";
             public const string PendingAdditional = $"{ApiVppBase}/additional-orders/pending";
         }

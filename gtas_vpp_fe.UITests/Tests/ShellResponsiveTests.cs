@@ -176,7 +176,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         await CaptureRouteAsync(directory, "ui-period-operations.png", "dashboard?tab=5&periodTab=review");
         await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending");
         await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department");
-        await CaptureRouteAsync(directory, "ui-all-orders-summary.png", "dashboard?tab=3&managementTab=all");
+        await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand");
         await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2");
         await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists");
 

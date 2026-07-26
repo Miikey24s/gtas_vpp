@@ -727,4 +727,28 @@
   <data name="ApprovalSelectOrderDescription" xml:space="preserve"><value>Chi tiết, lý do và mặt hàng sẽ hiển thị tại đây trước khi quyết định.</value></data>
   <data name="ApprovalNoReason" xml:space="preserve"><value>Chưa có lý do</value></data>
   <data name="ApprovalItemsHeading" xml:space="preserve"><value>Mặt hàng cần duyệt</value></data>
+  <data name="PeriodFlowAria" xml:space="preserve"><value>Quy trình vận hành kỳ</value></data>
+  <data name="PeriodDemandStep" xml:space="preserve"><value>Gom nhu cầu</value></data>
+  <data name="PeriodSupplyStep" xml:space="preserve"><value>Chọn nguồn cung</value></data>
+  <data name="PeriodSettleStep" xml:space="preserve"><value>Chốt kỳ</value></data>
+  <data name="PeriodDemandTitle" xml:space="preserve"><value>Gom nhu cầu kỳ</value></data>
+  <data name="PeriodDemandDescription" xml:space="preserve"><value>Tổng hợp số lượng theo mặt hàng từ phiên bản đơn hợp lệ hiện hành, làm dữ liệu đầu vào cho bước chọn nguồn cung.</value></data>
+  <data name="PeriodReviewSettleTitle" xml:space="preserve"><value>Rà soát và chốt kỳ</value></data>
+  <data name="PeriodReviewSettleDescription" xml:space="preserve"><value>Kiểm tra đơn hợp lệ, xem độ phủ nguồn cung và chỉ xác nhận khi không còn điều kiện ngăn chốt.</value></data>
+  <data name="DemandScopeNote" xml:space="preserve"><value>Chỉ phiên bản đơn hợp lệ hiện hành được đưa vào bản gom.</value></data>
+  <data name="DemandViewMode" xml:space="preserve"><value>Chế độ xem gom nhu cầu</value></data>
+  <data name="DemandByItem" xml:space="preserve"><value>Theo mặt hàng</value></data>
+  <data name="DemandByOrder" xml:space="preserve"><value>Theo đơn</value></data>
+  <data name="DemandValidOrders" xml:space="preserve"><value>Đơn hợp lệ</value></data>
+  <data name="DemandValidOrdersMeta" xml:space="preserve"><value>Đơn thường + bổ sung đã duyệt</value></data>
+  <data name="DemandUniqueItems" xml:space="preserve"><value>Mặt hàng duy nhất</value></data>
+  <data name="DemandUniqueItemsMeta" xml:space="preserve"><value>Đã gộp không trùng</value></data>
+  <data name="DemandBlockers" xml:space="preserve"><value>Điều kiện ngăn chốt</value></data>
+  <data name="DemandBlockersPendingMeta" xml:space="preserve"><value>{0} đơn bổ sung chờ duyệt</value></data>
+  <data name="DemandBlockersClearMeta" xml:space="preserve"><value>Không còn đơn chờ xử lý</value></data>
+  <data name="DemandEmptyDescription" xml:space="preserve"><value>Kỳ này chưa có đơn hợp lệ để gom nhu cầu.</value></data>
+  <data name="DemandTableTitle" xml:space="preserve"><value>Tổng nhu cầu tạm tính</value></data>
+  <data name="DemandTableSubtitle" xml:space="preserve"><value>Gom từ phiên bản hợp lệ mới nhất</value></data>
+  <data name="DemandBreakdown" xml:space="preserve"><value>Nguồn gom</value></data>
+  <data name="DemandOrdersCount" xml:space="preserve"><value>{0} đơn</value></data>
 </root>

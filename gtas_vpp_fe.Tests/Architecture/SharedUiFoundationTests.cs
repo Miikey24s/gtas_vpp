@@ -109,7 +109,11 @@ public sealed class SharedUiFoundationTests
 
         Assert.Contains("<RadzenTabs", source, StringComparison.Ordinal);
         Assert.Contains("vpp-admin-tabs", source, StringComparison.Ordinal);
-        Assert.Contains("vpp-secondary-tabs", source, StringComparison.Ordinal);
+
+        // D2/D8: dashboard không còn nested Management tabs (vpp-secondary-tabs);
+        // baseline secondary tabs giờ được khóa qua Component_Library.
+        var librarySource = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_Library.razor"));
+        Assert.Contains("vpp-secondary-tabs", librarySource, StringComparison.Ordinal);
     }
 
     [Fact]

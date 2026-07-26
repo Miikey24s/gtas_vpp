@@ -39,47 +39,14 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary, Permissions.RequestAllOrdersSummary))
+            @* D2/D8: tab "Tổng hợp toàn công ty" đã gỡ — grid Theo đơn sống trong bước
+               Gom nhu cầu (tab=5&periodTab=demand); URL cũ managementTab=all được redirect. *@
+            @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary))
             {
-                <RadzenTabsItem Text="@ManagementTabText">
+                <RadzenTabsItem Text="@Loc["DepartmentSummary"]">
                     @if (IsActiveTab(3))
                     {
-                        @if (CanShowManagementTabs)
-                        {
-                            <RadzenTabs Change="@ManagementTabOnChange"
-                                        RenderMode="TabRenderMode.Client"
-                                        class="vpp-secondary-tabs"
-                                        @bind-SelectedIndex="@ManagementSelectedIndex">
-                                <Tabs>
-                                    @if (CanShowDepartmentOrders)
-                                    {
-                                        <RadzenTabsItem Text="@Loc["DepartmentSummary"]">
-                                            @if (IsActiveManagementTab(3))
-                                            {
-                                                <Tab_DepartmentSummary claims="@claims" />
-                                            }
-                                        </RadzenTabsItem>
-                                    }
-                                    @if (CanShowAllOrders)
-                                    {
-                                        <RadzenTabsItem Text="@Loc["AllOrdersSummary"]">
-                                            @if (IsActiveManagementTab(4))
-                                            {
-                                                <Tab_AllOrdersSummary claims="@claims" />
-                                            }
-                                        </RadzenTabsItem>
-                                    }
-                                </Tabs>
-                            </RadzenTabs>
-                        }
-                        else if (CanShowDepartmentOrders)
-                        {
-                            <Tab_DepartmentSummary claims="@claims" />
-                        }
-                        else if (CanShowAllOrders)
-                        {
-                            <Tab_AllOrdersSummary claims="@claims" />
-                        }
+                        <Tab_DepartmentSummary claims="@claims" />
                     }
                 </RadzenTabsItem>
             }

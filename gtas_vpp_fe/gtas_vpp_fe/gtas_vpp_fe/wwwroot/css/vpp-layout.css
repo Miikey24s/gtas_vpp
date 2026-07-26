@@ -1508,20 +1508,41 @@ leftsidebar {
     background: var(--vpp-bg-surface);
 }
 
-.vpp-period-flow span {
+.vpp-period-flow span,
+.vpp-period-flow button {
     display: flex;
     align-items: center;
     gap: 0.55rem;
     min-width: 0;
     padding: 0.7rem 0.9rem;
+    border: 0;
     border-inline-end: 1px solid var(--vpp-border-default);
+    background: transparent;
     color: var(--vpp-text-secondary);
+    font: inherit;
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-medium);
+    text-align: left;
 }
 
-.vpp-period-flow span:last-child {
+.vpp-period-flow span:last-child,
+.vpp-period-flow button:last-child {
     border-inline-end: 0;
+}
+
+/* Atlas periodFlowNav (D4): 4 bước là nút điều hướng thật giữa các màn vận hành kỳ. */
+.vpp-period-flow button {
+    cursor: pointer;
+}
+
+.vpp-period-flow button:hover:not(.is-active) {
+    background: color-mix(in srgb, var(--vpp-primary-500) 4%, transparent);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-period-flow button:focus-visible {
+    outline: 2px solid var(--vpp-primary-500);
+    outline-offset: -2px;
 }
 
 .vpp-period-flow b {
@@ -1549,6 +1570,93 @@ leftsidebar {
 .vpp-period-stage {
     display: grid;
     gap: var(--vpp-space-4);
+}
+
+/* Atlas period-demand: toolbar gom nhu cầu — ghi chú phạm vi + toggle 2 chế độ xem (D8). */
+.vpp-demand-scope-note {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-demand-view-toggle {
+    display: inline-flex;
+    margin-inline-start: auto;
+    overflow: hidden;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+}
+
+.vpp-demand-view-toggle button {
+    min-height: 36px;
+    padding: 0 var(--vpp-space-3);
+    border: 0;
+    background: transparent;
+    color: var(--vpp-text-secondary);
+    font: inherit;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    cursor: pointer;
+}
+
+.vpp-demand-view-toggle button + button {
+    border-inline-start: 1px solid var(--vpp-border-default);
+}
+
+.vpp-demand-view-toggle button.is-active {
+    background: color-mix(in srgb, var(--vpp-primary-500) 10%, transparent);
+    color: var(--vpp-primary-700);
+}
+
+.vpp-demand-view-toggle button:focus-visible {
+    outline: 2px solid var(--vpp-primary-500);
+    outline-offset: -2px;
+}
+
+.vpp-demand-table-subtitle {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-demand-item-cell {
+    display: grid;
+    min-width: 0;
+}
+
+.vpp-demand-item-cell strong,
+.vpp-demand-item-cell small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-demand-item-cell small {
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-demand-breakdown table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.vpp-demand-breakdown th,
+.vpp-demand-breakdown td {
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
+    font-size: var(--vpp-text-sm);
+    text-align: left;
+}
+
+.vpp-demand-breakdown th {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-demand-breakdown .is-number {
+    text-align: right;
 }
 
 .vpp-period-stage-heading,

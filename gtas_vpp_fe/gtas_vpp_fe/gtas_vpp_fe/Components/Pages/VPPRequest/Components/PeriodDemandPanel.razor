@@ -1,0 +1,190 @@
+@* Atlas period-demand: bước 2 "Gom nhu cầu" của luồng vận hành kỳ. Hai chế độ xem theo
+   quyết định D8/D18: "Theo mặt hàng" (endpoint period-demand mới, D7) và "Theo đơn"
+   (tái dùng nguyên khối Tab_AllOrdersSummary). Không hiển thị giá (D17). *@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
+
+<RadzenStack Gap="1rem">
+    <div class="vpp-data-card vpp-demand-toolbar">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
+            <RadzenFormField Text="@Loc["Year"]" Style="width: 140px">
+                <RadzenNumeric TValue="int"
+                               Value="@selectedYear"
+                               ValueChanged="@OnYearChangedAsync"
+                               Min="2024"
+                               Max="2030"
+                               InputAttributes="@(new Dictionary<string, object> { ["aria-label"] = Loc["Year"].Value })"
+                               Disabled="@isLoading"
+                               Style="width:100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="@Loc["Month"]" Style="width: 140px">
+                <RadzenDropDown TValue="int"
+                                Data="@months"
+                                Value="@selectedMonth"
+                                ValueChanged="@OnMonthChangedAsync"
+                                Disabled="@isLoading"
+                                Style="width:100%" />
+            </RadzenFormField>
+            <RadzenButton Icon="refresh"
+                          Text="@Loc["Reload"]"
+                          ButtonStyle="ButtonStyle.Light"
+                          Disabled="@isLoading"
+                          Click="@ReloadAsync" />
+            <div class="vpp-demand-scope-note">
+                <span class="rzi rzi-info"></span>
+                <span>@Loc["DemandScopeNote"]</span>
+            </div>
+            <div class="vpp-demand-view-toggle" role="tablist" aria-label="@Loc["DemandViewMode"]">
+                <button type="button" role="tab" aria-selected="@(viewMode == DemandViewMode.ByItem)"
+                        class="@(viewMode == DemandViewMode.ByItem ? "is-active" : null)"
+                        @onclick="() => SetViewMode(DemandViewMode.ByItem)">@Loc["DemandByItem"]</button>
+                <button type="button" role="tab" aria-selected="@(viewMode == DemandViewMode.ByOrder)"
+                        class="@(viewMode == DemandViewMode.ByOrder ? "is-active" : null)"
+                        @onclick="() => SetViewMode(DemandViewMode.ByOrder)">@Loc["DemandByOrder"]</button>
+            </div>
+        </RadzenStack>
+    </div>
+
+    @if (viewMode == DemandViewMode.ByOrder)
+    {
+        @* D8: chế độ "Theo đơn" tái dùng nguyên khối grid Tổng hợp toàn công ty. *@
+        <Tab_AllOrdersSummary claims="@Claims" />
+    }
+    else if (isLoading)
+    {
+        <SkeletonPage Cards="4" Rows="8" Cols="5" />
+    }
+    else
+    {
+        <div class="kpi-grid" style="--kpi-cols: 4;">
+            <div class="kpi-card kpi-blue">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["DemandValidOrders"]</span>
+                        <span class="kpi-card-icon rzi rzi-receipt-long"></span>
+                    </div>
+                    <div class="kpi-card-value">@(demand?.TotalOrders ?? 0)</div>
+                    <span class="kpi-card-meta">@Loc["DemandValidOrdersMeta"]</span>
+                </div>
+            </div>
+            <div class="kpi-card kpi-emerald">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["DemandUniqueItems"]</span>
+                        <span class="kpi-card-icon rzi rzi-inventory-2"></span>
+                    </div>
+                    <div class="kpi-card-value">@(demand?.Items.Count ?? 0)</div>
+                    <span class="kpi-card-meta">@Loc["DemandUniqueItemsMeta"]</span>
+                </div>
+            </div>
+            <div class="kpi-card kpi-amber">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
+                        <span class="kpi-card-icon rzi rzi-bar-chart"></span>
+                    </div>
+                    <div class="kpi-card-value">@(demand?.TotalQty ?? 0)</div>
+                    <span class="kpi-card-meta">@string.Format(Loc["DepartmentPeriodMetaFormat"].Value, $"{selectedMonth:00}/{selectedYear}")</span>
+                </div>
+            </div>
+            <div class="kpi-card @(pendingAdditionalCount > 0 ? "kpi-rose" : "kpi-purple")">
+                <div class="kpi-card-shine"></div>
+                <div class="kpi-card-content">
+                    <div class="kpi-card-header">
+                        <span class="kpi-card-label">@Loc["DemandBlockers"]</span>
+                        <span class="kpi-card-icon rzi @(pendingAdditionalCount > 0 ? "rzi-warning" : "rzi-task-alt")"></span>
+                    </div>
+                    <div class="kpi-card-value">@pendingAdditionalCount</div>
+                    <span class="kpi-card-meta">@(pendingAdditionalCount > 0 ? string.Format(Loc["DemandBlockersPendingMeta"].Value, pendingAdditionalCount) : Loc["DemandBlockersClearMeta"])</span>
+                </div>
+            </div>
+        </div>
+
+        @if (demand is null || demand.Items.Count == 0)
+        {
+            <VppEmptyState Icon="inventory_2"
+                           Title="@Loc["NoData"]"
+                           Description="@Loc["DemandEmptyDescription"]"
+                           PrimaryText="@Loc["Reload"]"
+                           PrimaryAction="@(async _ => await ReloadAsync())" />
+        }
+        else
+        {
+            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
+                <div class="vpp-atlas-orders-toolbar">
+                    <h3 id="period-demand-title">@Loc["DemandTableTitle"]</h3>
+                    <span class="vpp-demand-table-subtitle">@Loc["DemandTableSubtitle"]</span>
+                </div>
+                <RadzenDataGrid TItem="AggregatedVppItemResDTO"
+                                Data="@demand.Items"
+                                AllowPaging="true"
+                                PageSize="20"
+                                PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
+                                PageSizeText="@Loc["ItemsPerPage"]"
+                                ShowPagingSummary="true"
+                                PagerHorizontalAlign="HorizontalAlign.Left"
+                                AllowSorting="true"
+                                AllowFiltering="false"
+                                AllowColumnResize="true"
+                                AllowAlternatingRows="true"
+                                ExpandMode="DataGridExpandMode.Single"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                class="vpp-order-grid vpp-demand-grid"
+                                Style="border: none;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false">
+                            <Template Context="row">@(demand.Items.IndexOf(row) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.VppName)" Title="@Loc["HistoryItem"]" TextAlign="TextAlign.Left">
+                            <Template Context="row">
+                                <div class="vpp-demand-item-cell">
+                                    <strong title="@row.VppName">@row.VppName</strong>
+                                    <small>@row.VppCode</small>
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.CategoryName)" Title="@Loc["Category"]" Width="180px" TextAlign="TextAlign.Left" />
+                        <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.UomName)" Title="@Loc["UOM"]" Width="110px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.TotalQty)" Title="@Loc["Quantity"]" Width="120px" TextAlign="TextAlign.Right">
+                            <Template Context="row"><strong>@row.TotalQty</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["DemandBreakdown"]" Width="120px" TextAlign="TextAlign.Center" Sortable="false">
+                            <Template Context="row"><span class="vpp-badge vpp-badge-info">@Loc["DemandOrdersCount", row.Breakdown.Count]</span></Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                    <Template Context="row">
+                        @* Truy vết nguồn nhu cầu: từng đơn góp số lượng vào mặt hàng này. *@
+                        <div class="vpp-expand-detail vpp-demand-breakdown">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>@Loc["OrderCode"]</th>
+                                        <th>@Loc["HistoryRequester"]</th>
+                                        <th class="is-number">@Loc["Quantity"]</th>
+                                        <th>@Loc["Note"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var line in row.Breakdown)
+                                    {
+                                        <tr>
+                                            <td>@line.Code</td>
+                                            <td>@(string.IsNullOrWhiteSpace(line.RequesterName) ? "–" : line.RequesterName)</td>
+                                            <td class="is-number">@line.Qty</td>
+                                            <td>@(string.IsNullOrWhiteSpace(line.Note) ? "–" : line.Note)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </Template>
+                </RadzenDataGrid>
+            </div>
+        }
+    }
+</RadzenStack>

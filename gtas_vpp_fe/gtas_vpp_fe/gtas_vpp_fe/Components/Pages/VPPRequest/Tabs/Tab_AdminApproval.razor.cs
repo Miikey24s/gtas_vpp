@@ -14,6 +14,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     {
         private const string PeriodTabQueryName = "periodTab";
         private const string PeriodReviewTab = "review";
+        private const string PeriodDemandTab = "demand";
         private const string PendingApprovalsTab = "pending";
 
         // Dialog service is tab-specific (base doesn't need it).
@@ -41,6 +42,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanReject => PermissionState.HasPermission(Permissions.RequestReject);
 
         private bool ShowSettlementContent => CanShowSettlement && ActivePeriodTab == PeriodReviewTab;
+
+        private bool ShowDemandContent => CanShowSettlement && ActivePeriodTab == PeriodDemandTab;
 
         private bool ShowApprovalsContent => CanShowApprovals && ActivePeriodTab == PendingApprovalsTab;
 
@@ -100,6 +103,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 return;
             }
 
+            if (string.Equals(requested, PeriodDemandTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
+            {
+                ActivePeriodTab = PeriodDemandTab;
+                return;
+            }
+
             if (CanShowSettlement)
             {
                 ActivePeriodTab = PeriodReviewTab;
@@ -131,6 +140,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected override void AppendFilterScopeQuery(List<string> query)
         {
             query.Add("scope=pending");
+        }
+
+        private void NavigateToPeriodTab(string periodTab)
+        {
+            NavigationManager.NavigateTo($"/dashboard?tab=5&periodTab={periodTab}");
         }
 
         private async Task OnSettledRefresh()

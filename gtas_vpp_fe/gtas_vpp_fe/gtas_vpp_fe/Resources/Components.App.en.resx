@@ -727,4 +727,28 @@
   <data name="ApprovalSelectOrderDescription" xml:space="preserve"><value>Details, reason and items will appear here before you decide.</value></data>
   <data name="ApprovalNoReason" xml:space="preserve"><value>No reason provided</value></data>
   <data name="ApprovalItemsHeading" xml:space="preserve"><value>Items awaiting approval</value></data>
+  <data name="PeriodFlowAria" xml:space="preserve"><value>Period operations flow</value></data>
+  <data name="PeriodDemandStep" xml:space="preserve"><value>Demand pooling</value></data>
+  <data name="PeriodSupplyStep" xml:space="preserve"><value>Supply selection</value></data>
+  <data name="PeriodSettleStep" xml:space="preserve"><value>Settle period</value></data>
+  <data name="PeriodDemandTitle" xml:space="preserve"><value>Period demand pooling</value></data>
+  <data name="PeriodDemandDescription" xml:space="preserve"><value>Aggregates quantities by item from the current valid order revisions, feeding the supply selection step.</value></data>
+  <data name="PeriodReviewSettleTitle" xml:space="preserve"><value>Review and settle period</value></data>
+  <data name="PeriodReviewSettleDescription" xml:space="preserve"><value>Check valid orders, review supply coverage and only confirm when no blockers remain.</value></data>
+  <data name="DemandScopeNote" xml:space="preserve"><value>Only current valid order revisions are included in the pool.</value></data>
+  <data name="DemandViewMode" xml:space="preserve"><value>Demand view mode</value></data>
+  <data name="DemandByItem" xml:space="preserve"><value>By item</value></data>
+  <data name="DemandByOrder" xml:space="preserve"><value>By order</value></data>
+  <data name="DemandValidOrders" xml:space="preserve"><value>Valid orders</value></data>
+  <data name="DemandValidOrdersMeta" xml:space="preserve"><value>Regular + approved supplements</value></data>
+  <data name="DemandUniqueItems" xml:space="preserve"><value>Unique items</value></data>
+  <data name="DemandUniqueItemsMeta" xml:space="preserve"><value>Merged without duplicates</value></data>
+  <data name="DemandBlockers" xml:space="preserve"><value>Settlement blockers</value></data>
+  <data name="DemandBlockersPendingMeta" xml:space="preserve"><value>{0} supplement orders awaiting approval</value></data>
+  <data name="DemandBlockersClearMeta" xml:space="preserve"><value>No pending orders remain</value></data>
+  <data name="DemandEmptyDescription" xml:space="preserve"><value>This period has no valid orders to pool yet.</value></data>
+  <data name="DemandTableTitle" xml:space="preserve"><value>Provisional total demand</value></data>
+  <data name="DemandTableSubtitle" xml:space="preserve"><value>Pooled from the latest valid revisions</value></data>
+  <data name="DemandBreakdown" xml:space="preserve"><value>Sources</value></data>
+  <data name="DemandOrdersCount" xml:space="preserve"><value>{0} orders</value></data>
 </root>
