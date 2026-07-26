@@ -26,6 +26,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="QuestPDF" Version="2026.7.1" />
     <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.3" />
   </ItemGroup>
@@ -39,6 +40,10 @@
     <Content Include="Helpers\SQL\*.sql" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Helpers\Data\prices.txt" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Helpers\Data\Demo\*.*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Poppins (OFL) nhúng vào assembly để PDF render đúng tiếng Việt cả trong
+         container Linux không có font hệ thống. Bản gốc: gtas_vpp_fe/wwwroot/fonts. -->
+    <EmbeddedResource Include="Fonts\Poppins-SemiBold.ttf" />
+    <EmbeddedResource Include="Fonts\Poppins-Bold.ttf" />
   </ItemGroup>
 
 </Project>

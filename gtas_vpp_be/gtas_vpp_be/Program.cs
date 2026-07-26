@@ -213,7 +213,11 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                // Chỉ nới khi chạy QA isolated (qaFixtureIdentity != null: QaFixture:Enabled
+                // + môi trường Testing + LocalDB QA, fail-closed). Suite E2E dùng chung một
+                // app nên mọi lần đăng nhập đến từ cùng một IP loopback; giữ 5/phút sẽ trả
+                // 429 cho các test hợp lệ. Môi trường thật vẫn giữ nguyên 5/phút.
+                PermitLimit = qaFixtureIdentity is not null ? 1000 : 5,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
                 AutoReplenishment = true

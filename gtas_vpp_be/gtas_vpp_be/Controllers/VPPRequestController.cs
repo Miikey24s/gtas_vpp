@@ -188,6 +188,41 @@ namespace gtas_vpp_be.Controllers
             return Ok(data);
         }
 
+        [HttpGet("orders/{id:guid}/export.xlsx")]
+        [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+        [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ExportOrderWorkbook(Guid id)
+        {
+            var data = await _vppService.GetOrderByIdAsync(id);
+            if (data == null) return NotFound();
+            // Cùng quy tắc phạm vi với xem chi tiết đơn: chủ đơn hoặc quyền xem
+            // theo phòng ban/toàn công ty. File xuất không chứa giá.
+            if (!await CanViewOrderAsync(data)) return Forbid();
+
+            var content = OrderWorkbookBuilder.Build(data);
+            return File(
+                content,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"{data.VppCode ?? "order"}.xlsx");
+        }
+
+        [HttpGet("orders/{id:guid}/export.pdf")]
+        [Produces("application/pdf")]
+        [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ExportOrderPdf(Guid id)
+        {
+            var data = await _vppService.GetOrderByIdAsync(id);
+            if (data == null) return NotFound();
+            if (!await CanViewOrderAsync(data)) return Forbid();
+
+            var content = OrderPdfBuilder.Build(data);
+            return File(content, "application/pdf", $"{data.VppCode ?? "order"}.pdf");
+        }
+
         [HttpGet("orders/{id:guid}/history")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
         [ProducesResponseType<VppRequestHistoryResDTO>(StatusCodes.Status200OK)]
