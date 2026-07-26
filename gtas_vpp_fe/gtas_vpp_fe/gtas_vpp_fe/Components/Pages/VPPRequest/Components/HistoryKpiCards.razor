@@ -1,0 +1,67 @@
+@* Atlas history KPI row: 4 thẻ KPI tổng hợp + popover chi tiết — dữ liệu Summary do Tab_History cấp. *@
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
+@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryFormat
+
+<section class="vpp-history-kpis" aria-label="@Loc["HistorySummary"]">
+    <article class="vpp-history-kpi-card @(ActiveKpi == KpiPeriods ? "is-open" : string.Empty)">
+        <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["HistoryPeriodsWithOrders"]" aria-expanded="@(ActiveKpi == KpiPeriods)" aria-controls="history-kpi-periods" @onclick="@(() => KpiToggled.InvokeAsync(KpiPeriods))">
+            <span>@Loc["HistoryPeriodsWithOrders"]</span><strong>@FormatNumber(Summary.PeriodCount)</strong>
+        </button>
+        @if (ActiveKpi == KpiPeriods)
+        {
+            <div id="history-kpi-periods" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+                <strong>@Loc["HistoryKpiDetailTitle"]</strong>
+                <p>@Loc["HistoryKpiPeriodsHint"]</p>
+                <dl><div><dt>@Loc["HistoryKpiScope"]</dt><dd>@ChartRangeLabel</dd></div><div><dt>@Loc["HistoryKpiOrdersPerPeriod"]</dt><dd>@FormatRatio(Summary.TotalOrders, Summary.PeriodCount)</dd></div></dl>
+            </div>
+        }
+    </article>
+    <article class="vpp-history-kpi-card @(ActiveKpi == KpiOrders ? "is-open" : string.Empty)">
+        @* Nhãn KPI riêng của màn lịch sử (Atlas history): không đổi key dùng chung TotalOrders/TotalLineItems của các màn khác. *@
+        <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["HistoryKpiTotalOrders"]" aria-expanded="@(ActiveKpi == KpiOrders)" aria-controls="history-kpi-orders" @onclick="@(() => KpiToggled.InvokeAsync(KpiOrders))">
+            <span>@Loc["HistoryKpiTotalOrders"]</span><strong>@FormatNumber(Summary.TotalOrders)</strong>
+        </button>
+        @if (ActiveKpi == KpiOrders)
+        {
+            <div id="history-kpi-orders" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+                <strong>@Loc["HistoryKpiDetailTitle"]</strong>
+                <p>@Loc["HistoryKpiOrdersHint"]</p>
+                <dl><div><dt>@Loc["HistoryKpiAveragePerOrder"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalOrders) @Loc["TotalQuantity"]</dd></div><div><dt>@Loc["HistoryKpiLinesPerOrder"]</dt><dd>@FormatRatio(Summary.TotalLines, Summary.TotalOrders) @Loc["TotalLineItems"]</dd></div></dl>
+            </div>
+        }
+    </article>
+    <article class="vpp-history-kpi-card @(ActiveKpi == KpiLines ? "is-open" : string.Empty)">
+        <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["HistoryKpiTotalLines"]" aria-expanded="@(ActiveKpi == KpiLines)" aria-controls="history-kpi-lines" @onclick="@(() => KpiToggled.InvokeAsync(KpiLines))">
+            <span>@Loc["HistoryKpiTotalLines"]</span><strong>@FormatNumber(Summary.TotalLines)</strong>
+        </button>
+        @if (ActiveKpi == KpiLines)
+        {
+            <div id="history-kpi-lines" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+                <strong>@Loc["HistoryKpiDetailTitle"]</strong>
+                <p>@Loc["HistoryKpiLinesHint"]</p>
+                <dl><div><dt>@Loc["HistoryKpiAveragePerLine"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalLines) @Loc["TotalQuantity"]</dd></div><div><dt>@Loc["HistoryKpiAveragePerOrder"]</dt><dd>@FormatRatio(Summary.TotalLines, Summary.TotalOrders) @Loc["TotalLineItems"]</dd></div></dl>
+            </div>
+        }
+    </article>
+    <article class="vpp-history-kpi-card @(ActiveKpi == KpiQuantity ? "is-open" : string.Empty)">
+        <button type="button" class="vpp-history-kpi-trigger" aria-label="@Loc["TotalQuantity"]" aria-expanded="@(ActiveKpi == KpiQuantity)" aria-controls="history-kpi-quantity" @onclick="@(() => KpiToggled.InvokeAsync(KpiQuantity))">
+            <span>@Loc["TotalQuantity"]</span><strong>@FormatNumber(Summary.TotalQuantity)</strong>
+        </button>
+        @if (ActiveKpi == KpiQuantity)
+        {
+            <div id="history-kpi-quantity" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+                <strong>@Loc["HistoryKpiDetailTitle"]</strong>
+                <p>@Loc["HistoryKpiQuantityHint"]</p>
+                <dl><div><dt>@Loc["HistoryKpiAveragePerOrder"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalOrders)</dd></div><div><dt>@Loc["HistoryKpiAveragePerLine"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalLines)</dd></div></dl>
+            </div>
+        }
+    </article>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public VppOrderHistorySummaryResDTO Summary { get; set; } = default!;
+    [Parameter] public string ActiveKpi { get; set; } = string.Empty;
+    [Parameter] public string ChartRangeLabel { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> KpiToggled { get; set; }
+}

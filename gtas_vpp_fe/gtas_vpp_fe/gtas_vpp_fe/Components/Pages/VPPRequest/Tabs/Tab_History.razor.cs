@@ -6,37 +6,21 @@ using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Radzen;
-using Radzen.Blazor;
+using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 
+// Các hằng khóa UI (scope/menu/KPI/series) và record HistoryDetailRow đã chuyển sang
+// Components/HistorySupport.cs để 5 component con của màn Lịch sử dùng chung.
 public partial class Tab_History : BaseOrderTab, IAsyncDisposable
 {
-    private const string AllScope = "all";
-    private const string Last1Scope = "last1";
-    private const string Last3Scope = "last3";
-    private const string Last6Scope = "last6";
-    private const string Last12Scope = "last12";
-    private const string CustomScope = "custom";
-    private const string StatusMenu = "status";
-    private const string OrderTypeMenu = "order-type";
-    private const string CategoryMenu = "category";
-    private const string UomMenu = "uom";
-    private const string KpiPeriods = "periods";
-    private const string KpiOrders = "orders";
-    private const string KpiLines = "lines";
-    private const string KpiQuantity = "quantity";
-    private const string RegularSeries = "regular";
-    private const string AdditionalSeries = "additional";
-
     [Inject] public DialogService DialogService { get; set; } = default!;
 
     private ElementReference _historyRoot;
-    private ElementReference _drawerElement;
     private IJSObjectReference? _module;
     private DotNetObjectReference<Tab_History>? _dotNetReference;
     private CancellationTokenSource? _searchDebounce;
-    private RadzenDataGrid<HistoryDetailRow>? _detailGrid;
+    private HistoryOrderDetailSheet? _detailSheet;
     private VppOrderHistorySummaryResDTO? _summary;
     private VppRequestResDTO? _selectedOrder;
     private readonly List<HistoryDetailRow> _detailRows = [];
@@ -470,10 +454,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _activeDetailNoteNumber = null;
     }
 
-    private string FormatRatio(int numerator, int denominator) => denominator == 0
-        ? "–"
-        : (numerator / (decimal)denominator).ToString("N1", CultureInfo.CurrentCulture);
-
     private void ToggleChartSeries(string series)
     {
         if (series == RegularSeries)
@@ -484,9 +464,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
 
         _showAdditionalSeries = !_showAdditionalSeries;
     }
-
-    private static string ChartLegendClass(bool isActive) =>
-        $"vpp-history-chart-legend-item{(isActive ? " is-active" : string.Empty)}";
 
     private async Task SelectStatusAsync(int? status)
     {
@@ -613,9 +590,9 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         {
             _isDetailLoading = false;
             await InvokeAsync(StateHasChanged);
-            if (focusPanel && _isDrawerOpen && _module is not null)
+            if (focusPanel && _isDrawerOpen && _module is not null && _detailSheet is not null)
             {
-                await _module.InvokeVoidAsync("focusHistoryDrawer", _drawerElement);
+                await _module.InvokeVoidAsync("focusHistoryDrawer", _detailSheet.DrawerElement);
             }
         }
     }
@@ -624,14 +601,14 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     {
         _detailSearch = args.Value?.ToString() ?? string.Empty;
         RebuildDetailRows();
-        if (_detailGrid is not null) await _detailGrid.Reload();
+        if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
     }
 
     private async Task OnDetailCategoryChanged(ChangeEventArgs args)
     {
         _detailCategory = args.Value?.ToString() ?? string.Empty;
         RebuildDetailRows();
-        if (_detailGrid is not null) await _detailGrid.Reload();
+        if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
     }
 
     private async Task SelectDetailCategoryAsync(string category)
@@ -639,7 +616,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _detailCategory = category;
         _openFilterMenu = string.Empty;
         RebuildDetailRows();
-        if (_detailGrid is not null) await _detailGrid.Reload();
+        if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -648,7 +625,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _detailUom = uom;
         _openFilterMenu = string.Empty;
         RebuildDetailRows();
-        if (_detailGrid is not null) await _detailGrid.Reload();
+        if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -669,7 +646,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _detailCategory = string.Empty;
         _detailUom = string.Empty;
         RebuildDetailRows();
-        if (_detailGrid is not null) await _detailGrid.Reload();
+        if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -736,7 +713,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         CustomScope => Loc["HistoryCustom"].Value,
         _ => Loc["HistoryAllPeriods"].Value
     };
-    private string ScopeButtonClass(string scope) => _scope == scope ? "is-active" : string.Empty;
     private string StatusFilterLabel => _selectedStatus switch
     {
         1 => Loc["Submitted"].Value,
@@ -777,8 +753,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         || _selectedStatus.HasValue
         || !string.IsNullOrEmpty(_selectedOrderType)
         || _selectedPeriod.HasValue;
-
-    private string FormatNumber(int value) => value.ToString("N0", CultureInfo.CurrentCulture);
 
     private static int AddMonths(int period, int months)
     {
@@ -833,6 +807,4 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _dotNetReference?.Dispose();
         Dispose();
     }
-
-    private sealed record HistoryDetailRow(int Number, VppRequestDetailResDTO Item);
 }

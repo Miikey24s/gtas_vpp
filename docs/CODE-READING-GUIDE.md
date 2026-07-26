@@ -82,7 +82,7 @@ Toàn bộ sáu màn dùng chung khung `Shared/VppAccountShell.razor`.
 |---|---|---|---|---|---|
 | 3-29 | `my-orders` | `/dashboard` | `Pages/VPPRequest/Tabs/Tab_Orders.razor`, `Components/VppOrderWorkspacePanel.razor` | `GET /api/VPPRequest/my-orders`, `my-orders-summary`, `period-info`; `GET orders/{id}/export.pdf`, `orders/{id}/export.xlsx` (tải phiếu đơn, không chứa giá) | §2.3.1.2, §3.3.1.2 |
 | 3-30 | `order-create` | `/dashboard/order-create` | `Pages/VPPRequest/Page_OrderCreate.razor`, `OrderCreateStep2.razor`, `OrderCreateStep3.razor` | `GET products`, `products/lookup`, `orders/previous-items`; `POST orders` | §2.3.1.2, §2.3.1.3, §3.3.2.1 |
-| 3-31 | `history` | `/dashboard` tab Lịch sử | `Pages/VPPRequest/Tabs/Tab_History.razor` | `GET my-order-history`, `my-order-history-summary`, `orders/{id}`, `orders/{id}/history` | §3.3.2.2 |
+| 3-31 | `history` | `/dashboard` tab Lịch sử | `Pages/VPPRequest/Tabs/Tab_History.razor` (coordinator giữ state) + 5 component con presentational trong `Components/`: `HistoryScopeBar`, `HistoryKpiCards`, `HistoryTrendChart`, `HistoryOrderList`, `HistoryOrderDetailSheet` | `GET my-order-history`, `my-order-history-summary`, `orders/{id}`, `orders/{id}/history` | §3.3.2.2 |
 | 3-32 | `catalog` | `/dashboard` tab Danh mục | `Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | `GET /api/VPPRequest/products`, `categories` | §3.3.2.3 |
 
 **Ràng buộc quyền quan trọng:** màn nhân viên không hiển thị đơn giá, thành tiền hay tạm tính. Đây là

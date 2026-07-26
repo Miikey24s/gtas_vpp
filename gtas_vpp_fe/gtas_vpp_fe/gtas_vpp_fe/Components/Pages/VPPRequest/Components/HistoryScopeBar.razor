@@ -1,0 +1,37 @@
+@* Atlas history scope bar: thanh chọn phạm vi kỳ (preset + popover khoảng tùy chọn) — state do Tab_History giữ. *@
+@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
+
+<div class="vpp-history-toolbar">
+    <div class="vpp-history-scope" role="group" aria-label="@Loc["HistoryTimeRange"]" @onclick:stopPropagation>
+        <span class="vpp-history-scope-indicator" aria-hidden="true"></span>
+        <button type="button" class="@ScopeButtonClass(AllScope)" aria-pressed="@(Scope == AllScope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(AllScope))">@Loc["HistoryAllPeriods"]</button>
+        <button type="button" class="@ScopeButtonClass(Last1Scope)" aria-pressed="@(Scope == Last1Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last1Scope))">@Loc["HistoryCurrentPeriod"]</button>
+        <button type="button" class="@ScopeButtonClass(Last3Scope)" aria-pressed="@(Scope == Last3Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last3Scope))">@Loc["HistoryLast3Periods"]</button>
+        <button type="button" class="@ScopeButtonClass(Last6Scope)" aria-pressed="@(Scope == Last6Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last6Scope))">@Loc["HistoryLast6Periods"]</button>
+        <button type="button" class="@ScopeButtonClass(Last12Scope)" aria-pressed="@(Scope == Last12Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last12Scope))">@Loc["HistoryLast12Periods"]</button>
+        <button type="button" class="@ScopeButtonClass(CustomScope)" aria-pressed="@(Scope == CustomScope)" aria-expanded="@ShowCustomRange" @onclick="@(() => CustomScopeRequested.InvokeAsync())">@Loc["HistoryCustom"] <VppIcon Name="calendar_month" /></button>
+        @if (ShowCustomRange)
+        {
+            <div class="vpp-history-range-popover" role="dialog" aria-label="@Loc["HistoryCustomRange"]" @onclick:stopPropagation>
+                <label><span>@Loc["HistoryFromPeriod"]</span><input type="month" value="@CustomFrom" @onchange="CustomFromChanged" /></label>
+                <label><span>@Loc["HistoryToPeriod"]</span><input type="month" value="@CustomTo" @onchange="CustomToChanged" /></label>
+                <button type="button" class="vpp-history-range-apply" @onclick="CustomRangeApplied">@Loc["ApplyFilters"]</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Scope { get; set; } = string.Empty;
+    [Parameter] public bool ShowCustomRange { get; set; }
+    [Parameter] public string CustomFrom { get; set; } = string.Empty;
+    [Parameter] public string CustomTo { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> PresetScopeSelected { get; set; }
+    [Parameter] public EventCallback CustomScopeRequested { get; set; }
+    [Parameter] public EventCallback<ChangeEventArgs> CustomFromChanged { get; set; }
+    [Parameter] public EventCallback<ChangeEventArgs> CustomToChanged { get; set; }
+    [Parameter] public EventCallback CustomRangeApplied { get; set; }
+
+    // Trạng thái active của nút phạm vi suy ra từ tham số Scope.
+    private string ScopeButtonClass(string scope) => Scope == scope ? "is-active" : string.Empty;
+}

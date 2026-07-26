@@ -1,0 +1,80 @@
+@* Atlas history trend chart: biểu đồ cột chồng theo kỳ + legend bật/tắt series + chip lọc kỳ đang chọn. *@
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using System.Globalization
+@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
+
+<section class="vpp-history-chart-card" aria-labelledby="history-chart-title">
+    <header>
+        <div>
+            <h2 id="history-chart-title">@Loc["HistoryQuantityByPeriod"]</h2>
+            <p>@Loc["TotalQuantity"] · @ChartRangeLabel</p>
+        </div>
+        @if (HasSelectedPeriod)
+        {
+            <button type="button" class="vpp-history-period-filter" @onclick="SelectedPeriodCleared">
+                @SelectedPeriodLabel
+                <VppIcon Name="close" />
+            </button>
+        }
+    </header>
+    <div class="vpp-history-chart" role="img" aria-label="@ChartAccessibleLabel">
+        <RadzenChart SeriesClick="@SeriesClicked"
+                     Animate="true"
+                     AnimationDuration="220"
+                     Style="height: 100%; width: 100%;">
+            <RadzenStackedColumnSeries Data="@Summary.Periods"
+                                      CategoryProperty="Period"
+                                      ValueProperty="RegularQuantity"
+                                      Title="@Loc["Regular"]"
+                                      Visible="@ShowRegularSeries"
+                                      Fill="var(--vpp-primary-500)" />
+            <RadzenStackedColumnSeries Data="@Summary.Periods"
+                                      CategoryProperty="Period"
+                                      ValueProperty="AdditionalQuantity"
+                                      Title="@Loc["AdditionalOrder"]"
+                                      Visible="@ShowAdditionalSeries"
+                                      Fill="var(--vpp-warning)" />
+            <RadzenCategoryAxis />
+            <RadzenValueAxis Formatter="@(value => ((double)value).ToString("N0", CultureInfo.CurrentCulture))" />
+            <RadzenLegend Visible="false" />
+            <RadzenChartTooltipOptions Visible="true" />
+        </RadzenChart>
+        @if (Summary.Periods.Count == 0)
+        {
+            <div class="vpp-history-chart-empty" aria-hidden="true">@Loc["HistoryChartNoData"]</div>
+        }
+        else if (!ShowRegularSeries && !ShowAdditionalSeries)
+        {
+            <div class="vpp-history-chart-empty" aria-hidden="true">@Loc["HistoryChartNoSeriesSelected"]</div>
+        }
+    </div>
+    @if (IsSummaryLoading)
+    {
+        <div class="vpp-history-region-loading vpp-history-chart-refresh" role="status" aria-live="polite"><span class="vpp-history-state-spinner" aria-hidden="true"></span>@Loc["Loading"]</div>
+    }
+    <div class="vpp-history-chart-legend" role="group" aria-label="@Loc["HistoryChartSeries"]">
+        <button type="button" class="@ChartLegendClass(ShowRegularSeries)" aria-pressed="@(ShowRegularSeries ? "true" : "false")" @onclick="@(() => SeriesToggled.InvokeAsync(RegularSeries))">
+            <span class="vpp-history-chart-swatch is-regular" aria-hidden="true"></span><span class="vpp-history-chart-legend-label">@Loc["Regular"]</span>
+        </button>
+        <button type="button" class="@ChartLegendClass(ShowAdditionalSeries)" aria-pressed="@(ShowAdditionalSeries ? "true" : "false")" @onclick="@(() => SeriesToggled.InvokeAsync(AdditionalSeries))">
+            <span class="vpp-history-chart-swatch is-additional" aria-hidden="true"></span><span class="vpp-history-chart-legend-label">@Loc["AdditionalOrder"]</span>
+        </button>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public VppOrderHistorySummaryResDTO Summary { get; set; } = default!;
+    [Parameter] public bool ShowRegularSeries { get; set; }
+    [Parameter] public bool ShowAdditionalSeries { get; set; }
+    [Parameter] public bool IsSummaryLoading { get; set; }
+    [Parameter] public bool HasSelectedPeriod { get; set; }
+    [Parameter] public string SelectedPeriodLabel { get; set; } = string.Empty;
+    [Parameter] public string ChartRangeLabel { get; set; } = string.Empty;
+    [Parameter] public string ChartAccessibleLabel { get; set; } = string.Empty;
+    [Parameter] public EventCallback<SeriesClickEventArgs> SeriesClicked { get; set; }
+    [Parameter] public EventCallback SelectedPeriodCleared { get; set; }
+    [Parameter] public EventCallback<string> SeriesToggled { get; set; }
+
+    private static string ChartLegendClass(bool isActive) =>
+        $"vpp-history-chart-legend-item{(isActive ? " is-active" : string.Empty)}";
+}
