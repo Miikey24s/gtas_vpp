@@ -54,16 +54,16 @@
             {
                 <section class="vpp-period-stage" aria-labelledby="period-review-title">
                     <div class="vpp-period-stage-heading">
-                        <div><span>Bước 1–2</span><h2 id="period-review-title">Rà soát dữ liệu kỳ</h2></div>
-                        <p>Danh sách current revision hợp lệ là nguồn đầu vào cho bước xem trước.</p>
+                        <div><span>@Loc["PeriodStageStep1"]</span><h2 id="period-review-title">@Loc["PeriodStageReviewTitle"]</h2></div>
+                        <p>@Loc["PeriodStageReviewHint"]</p>
                     </div>
                     <PeriodReviewPanel OnSettled="@OnSettledRefresh" />
                 </section>
 
                 <section class="vpp-period-stage" aria-labelledby="period-settlement-title">
                     <div class="vpp-period-stage-heading">
-                        <div><span>Bước 3–4</span><h2 id="period-settlement-title">Chọn nguồn cung và xác nhận chốt kỳ</h2></div>
-                        <p>Hệ thống xếp hạng bảng giá, kiểm tra độ phủ và lưu dữ liệu bất biến khi xác nhận.</p>
+                        <div><span>@Loc["PeriodStageStep4"]</span><h2 id="period-settlement-title">@Loc["PeriodStageSettleTitle"]</h2></div>
+                        <p>@Loc["PeriodStageSettleHint"]</p>
                     </div>
                     <PeriodSettlementPanel OnSettled="@OnSettledRefresh" />
                 </section>
@@ -341,7 +341,7 @@
                                 }
                                 else
                                 {
-                                    @foreach (var item in SelectedPendingOrder.Items)
+                                    @foreach (var item in SelectedPendingOrder.Items ?? new())
                                     {
                                         <div class="vpp-atlas-order-item">
                                             <span>

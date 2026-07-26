@@ -821,4 +821,10 @@
   <data name="ReviewValidOrdersFormat" xml:space="preserve"><value>{0} current valid orders in the period.</value></data>
   <data name="ReviewNoValidOrders" xml:space="preserve"><value>The period has no valid orders to aggregate yet.</value></data>
   <data name="ReviewOpenApprovals" xml:space="preserve"><value>Open supplement approvals</value></data>
+  <data name="PeriodStageStep1" xml:space="preserve"><value>Step 1</value></data>
+  <data name="PeriodStageStep4" xml:space="preserve"><value>Step 4</value></data>
+  <data name="PeriodStageReviewTitle" xml:space="preserve"><value>Review period data</value></data>
+  <data name="PeriodStageReviewHint" xml:space="preserve"><value>The current valid order revisions feed the following steps.</value></data>
+  <data name="PeriodStageSettleTitle" xml:space="preserve"><value>Confirm settlement</value></data>
+  <data name="PeriodStageSettleHint" xml:space="preserve"><value>Final preview and immutable storage on confirmation; supply is chosen in step 3.</value></data>
 </root>

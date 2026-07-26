@@ -821,4 +821,10 @@
   <data name="ReviewValidOrdersFormat" xml:space="preserve"><value>{0} đơn hợp lệ hiện hành trong kỳ.</value></data>
   <data name="ReviewNoValidOrders" xml:space="preserve"><value>Kỳ chưa có đơn hợp lệ để tổng hợp.</value></data>
   <data name="ReviewOpenApprovals" xml:space="preserve"><value>Mở màn duyệt đơn bổ sung</value></data>
+  <data name="PeriodStageStep1" xml:space="preserve"><value>Bước 1</value></data>
+  <data name="PeriodStageStep4" xml:space="preserve"><value>Bước 4</value></data>
+  <data name="PeriodStageReviewTitle" xml:space="preserve"><value>Rà soát dữ liệu kỳ</value></data>
+  <data name="PeriodStageReviewHint" xml:space="preserve"><value>Danh sách phiên bản đơn hợp lệ hiện hành là nguồn đầu vào cho các bước sau.</value></data>
+  <data name="PeriodStageSettleTitle" xml:space="preserve"><value>Xác nhận chốt kỳ</value></data>
+  <data name="PeriodStageSettleHint" xml:space="preserve"><value>Xem trước lần cuối và lưu dữ liệu bất biến khi xác nhận; nguồn cung chọn ở bước 3.</value></data>
 </root>
