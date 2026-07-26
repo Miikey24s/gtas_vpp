@@ -397,6 +397,11 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                     throw new Error('Pricing shell navigation was not rendered.');
                 }
 
+                // Grid có thể nở thêm giữa lúc wait chạm đáy resolve và lúc đo — ghim đáy
+                // và đọc trong cùng một khối đồng bộ để scrollTop và max scroll nhất quán
+                // trong cùng một frame; assertion vẫn kiểm đúng "body scroller chạm được đáy".
+                scroller.scrollTop = scroller.scrollHeight;
+
                 return [
                     scroller.scrollTop,
                     scroller.scrollHeight - scroller.clientHeight,

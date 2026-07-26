@@ -83,6 +83,20 @@ public abstract class TestBase : IAsyncLifetime
                 Locale = "vi-VN",
                 TimezoneId = "Asia/Ho_Chi_Minh"
             });
+            // Ghim culture bằng cookie của chính sản phẩm (format /set-language ghi):
+            // Locale ở trên chỉ giả lập Accept-Language cho request HTTP thường, còn
+            // WebSocket handshake của circuit gửi locale thật của Chrome headless (en-US)
+            // — thiếu cookie này, prerender ra tiếng Việt rồi circuit render lại bằng
+            // tiếng Anh và mọi selector theo nhãn VI chết giữa chừng.
+            await _browserContext.AddCookiesAsync(
+            [
+                new Microsoft.Playwright.Cookie
+                {
+                    Name = ".AspNetCore.Culture",
+                    Value = "c=vi|uic=vi",
+                    Url = BaseUrl
+                }
+            ]);
             Page = await _browserContext.NewPageAsync();
             Page.SetDefaultTimeout(60_000);
             Page.SetDefaultNavigationTimeout(120_000);

@@ -155,6 +155,15 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         var reasonPopover = wizard.Locator(".vpp-order-note-popover--order");
         await reasonPopover.Locator("textarea").FillAsync(reason);
         await reasonPopover.GetByRole(AriaRole.Button, new() { Name = "Lưu ghi chú", Exact = true }).ClickAsync();
+        // Popover ghi chú là native HTML popover — không bao giờ detach, chỉ tắt trạng thái
+        // :popover-open. Chờ nó đóng hẳn trước khi bấm "Tiếp tục": lưu ghi chú re-render
+        // footer wizard và click giữa transition sẽ trượt hit-target.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const popover = document.querySelector('.vpp-order-note-popover--order');
+                return !popover || !popover.matches(':popover-open');
+            }
+            """);
 
         await (await GetInteractiveButtonAsync(wizard, "Tiếp tục")).ClickAsync();
         if (verifyRequiredReason)
