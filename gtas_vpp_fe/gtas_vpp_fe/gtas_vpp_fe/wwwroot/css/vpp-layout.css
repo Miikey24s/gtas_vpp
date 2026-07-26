@@ -1354,6 +1354,49 @@ leftsidebar {
     text-align: center;
 }
 
+/* Atlas settlement-flow: checklist điều kiện + cam kết bất biến trước nút chốt. */
+.vpp-settle-readiness {
+    display: grid;
+    gap: var(--vpp-space-2);
+    margin: 0 0 var(--vpp-space-3);
+    padding: 0;
+    list-style: none;
+}
+
+.vpp-settle-readiness li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--vpp-space-2);
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-settle-readiness .rzi {
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+    color: var(--vpp-success);
+    font-size: 1rem;
+}
+
+.vpp-settle-immutable-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--vpp-space-2);
+    margin-bottom: var(--vpp-space-3);
+    padding: var(--vpp-space-3);
+    border-radius: var(--vpp-radius-md);
+    background: color-mix(in srgb, var(--vpp-warning) 8%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    line-height: 1.5;
+}
+
+.vpp-settle-immutable-note .rzi {
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+    color: var(--vpp-warning);
+}
+
 .vpp-settle-alert {
     display: flex;
     gap: var(--vpp-space-3);

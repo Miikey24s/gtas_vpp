@@ -29,15 +29,16 @@
 
             @if (canCorrect)
             {
-                <RadzenFormField Text="Lý do hiệu chỉnh" Style="width: 100%">
+                @* Hiệu chỉnh theo nguyên tắc bốn mắt — luận văn §2.3.1.9. *@
+                <RadzenFormField Text="@Loc["CorrectionReasonLabel"]" Style="width: 100%">
                     <RadzenTextArea @bind-Value="correctionReason"
                                     Name="CorrectionReason"
                                     Rows="3"
                                     MaxLength="500"
-                                    Placeholder="Nhập lý do hiệu chỉnh (5–500 ký tự)"
+                                    Placeholder="@Loc["CorrectionReasonPlaceholder"]"
                                     Disabled="@isLoading"
                                     Style="width:100%" />
-                    <div class="vpp-settle-hint">Lý do là bắt buộc; người xác nhận phải khác người đã xác nhận phiên bản trước.</div>
+                    <div class="vpp-settle-hint">@Loc["CorrectionFourEyesHint"]</div>
                 </RadzenFormField>
             }
 
@@ -84,9 +85,22 @@
             }
         </div>
         
+        @* Atlas settlement-flow: checklist điều kiện + cam kết bất biến snapshot trước nút chốt. *@
+        @if (preview is not null && canSettlePreview)
+        {
+            <ul class="vpp-settle-readiness" aria-label="@Loc["SettleReadinessAria"]">
+                <li><span class="rzi rzi-check-circle" aria-hidden="true"></span>@string.Format(Loc["SettleReadinessOrders"].Value, preview.RequestedItemCount, preview.RequestedLineCount)</li>
+                <li><span class="rzi rzi-check-circle" aria-hidden="true"></span>@Loc["SettleReadinessCoverage"]</li>
+                <li><span class="rzi rzi-check-circle" aria-hidden="true"></span>@Loc["SettleReadinessNoBlockers"]</li>
+            </ul>
+            <div class="vpp-settle-immutable-note">
+                <span class="rzi rzi-lock" aria-hidden="true"></span>
+                <span>@Loc["SettleImmutableNote"]</span>
+            </div>
+        }
         <div class="vpp-settle-actions">
             <RadzenButton Icon="fact_check"
-                          Text="Xem trước"
+                          Text="@Loc["SettlePreviewAction"]"
                           ButtonStyle="ButtonStyle.Light"
                           Disabled="@(!canPreview || isLoading || isPreviewing || isSettling)"
                           Click="@PreviewAsync"
@@ -102,7 +116,7 @@
             @if (canCorrect)
             {
                 <RadzenButton Icon="edit_note"
-                              Text="Tạo phiên bản hiệu chỉnh"
+                              Text="@Loc["CreateCorrectionRevision"]"
                               ButtonStyle="ButtonStyle.Warning"
                               Disabled="@(!canCorrect || !canSettlePreview || isLoading || isCorrecting)"
                               Click="@CorrectAsync"
@@ -114,26 +128,26 @@
 
 @if (preview is not null)
 {
-    <section class="vpp-settlement-preview" aria-label="Kết quả xem trước chốt kỳ">
+    <section class="vpp-settlement-preview" aria-label="@Loc["SettlePreviewResultAria"]">
         <div class="vpp-settlement-preview-heading">
             <div>
-                <span>Kết quả xem trước</span>
-                <h3>Độ phủ nguồn cung và tổng giá trị</h3>
+                <span>@Loc["SettlePreviewResultKicker"]</span>
+                <h3>@Loc["SettlePreviewResultTitle"]</h3>
             </div>
-            <code title="Mã kiểm tra dữ liệu đầu vào">@ShortInputHash</code>
+            <code title="@Loc["SettleInputHashTitle"]">@ShortInputHash</code>
         </div>
 
         <div class="vpp-settlement-preview-kpis">
-            <article><span>Mặt hàng yêu cầu</span><strong>@preview.RequestedItemCount</strong></article>
-            <article><span>Dòng nhu cầu</span><strong>@preview.RequestedLineCount</strong></article>
-            <article><span>Đơn bổ sung chờ duyệt</span><strong>@preview.PendingAdditionalCount</strong></article>
-            <article><span>Điều kiện ngăn chốt</span><strong>@preview.Blockers.Count</strong></article>
+            <article><span>@Loc["SettleRequestedItems"]</span><strong>@preview.RequestedItemCount</strong></article>
+            <article><span>@Loc["SettleRequestedLines"]</span><strong>@preview.RequestedLineCount</strong></article>
+            <article><span>@Loc["SettlePendingAdditional"]</span><strong>@preview.PendingAdditionalCount</strong></article>
+            <article><span>@Loc["DemandBlockers"]</span><strong>@preview.Blockers.Count</strong></article>
         </div>
 
         @if (preview.Blockers.Count > 0)
         {
             <div class="vpp-settlement-blockers">
-                <h4><span class="rzi rzi-warning" aria-hidden="true"></span> Cần xử lý trước khi chốt</h4>
+                <h4><span class="rzi rzi-warning" aria-hidden="true"></span> @Loc["SettleBlockersHeading"]</h4>
                 <ul>
                     @foreach (var blocker in preview.Blockers)
                     {
@@ -147,16 +161,16 @@
         {
             <div class="vpp-settlement-quotes">
                 <div class="vpp-settlement-quotes-header">
-                    <h4>Xếp hạng nguồn cung</h4>
-                    <span>Ưu tiên độ phủ đầy đủ, sau đó so sánh tổng giá trị và thời gian giao.</span>
+                    <h4>@Loc["SettleQuotesHeading"]</h4>
+                    <span>@Loc["SettleQuotesSubtitle"]</span>
                 </div>
-                <div class="vpp-settlement-quote-table" role="table" aria-label="Xếp hạng nguồn cung">
+                <div class="vpp-settlement-quote-table" role="table" aria-label="@Loc["SettleQuotesHeading"]">
                     <div class="vpp-settlement-quote-row is-header" role="row">
-                        <span role="columnheader">Hạng</span>
-                        <span role="columnheader">Nhà cung cấp / bảng giá</span>
-                        <span role="columnheader">Độ phủ</span>
-                        <span role="columnheader">Tổng giá trị</span>
-                        <span role="columnheader">Giao hàng</span>
+                        <span role="columnheader">@Loc["SettleQuoteRank"]</span>
+                        <span role="columnheader">@Loc["SettleQuoteSupplier"]</span>
+                        <span role="columnheader">@Loc["SettleQuoteCoverage"]</span>
+                        <span role="columnheader">@Loc["SettleQuoteTotal"]</span>
+                        <span role="columnheader">@Loc["SettleQuoteLeadTime"]</span>
                     </div>
                     @foreach (var quote in preview.Quotes.OrderBy(item => item.Rank))
                     {
@@ -165,7 +179,7 @@
                             <span role="cell"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></span>
                             <span role="cell">@quote.CoveredItemCount/@quote.RequestedItemCount (@quote.CoveragePercent.ToString("N0")%)</span>
                             <span role="cell">@FormatMoney(quote.GrandTotal)</span>
-                            <span role="cell">@quote.MaximumLeadTimeDays ngày</span>
+                            <span role="cell">@string.Format(Loc["SettleQuoteLeadTimeDays"].Value, quote.MaximumLeadTimeDays)</span>
                         </div>
                     }
                 </div>

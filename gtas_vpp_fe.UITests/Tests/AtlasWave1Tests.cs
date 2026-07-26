@@ -49,7 +49,8 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
 
         await GotoMainRouteAsync("dashboard?tab=5&periodTab=review");
         await Page.Locator(".vpp-period-workspace").WaitForAsync();
-        (await Page.Locator(".vpp-period-flow > span").CountAsync()).Should().Be(4);
+        // D4: periodFlowNav là 4 nút điều hướng thật giữa các bước vận hành kỳ.
+        (await Page.Locator(".vpp-period-flow > button").CountAsync()).Should().Be(4);
         await Page.Locator(".vpp-settle-container").WaitForAsync();
 
         await GotoMainRouteAsync("report");

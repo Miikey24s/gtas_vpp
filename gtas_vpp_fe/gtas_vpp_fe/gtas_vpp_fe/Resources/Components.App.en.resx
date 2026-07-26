@@ -751,4 +751,40 @@
   <data name="DemandTableSubtitle" xml:space="preserve"><value>Pooled from the latest valid revisions</value></data>
   <data name="DemandBreakdown" xml:space="preserve"><value>Sources</value></data>
   <data name="DemandOrdersCount" xml:space="preserve"><value>{0} orders</value></data>
+  <data name="SettlePreviewAction" xml:space="preserve"><value>Preview</value></data>
+  <data name="SettleReadinessAria" xml:space="preserve"><value>Settlement readiness conditions</value></data>
+  <data name="SettleReadinessOrders" xml:space="preserve"><value>Pooled {0} items from {1} valid demand lines.</value></data>
+  <data name="SettleReadinessCoverage" xml:space="preserve"><value>The primary supply source covers all demand (including declared exceptions).</value></data>
+  <data name="SettleReadinessNoBlockers" xml:space="preserve"><value>No settlement blockers remain.</value></data>
+  <data name="SettleImmutableNote" xml:space="preserve"><value>Once confirmed, settlement data is stored immutably; any later change requires a correction revision under the four-eyes rule.</value></data>
+  <data name="CorrectionReasonLabel" xml:space="preserve"><value>Correction reason</value></data>
+  <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Enter the correction reason (5–500 characters)</value></data>
+  <data name="CorrectionFourEyesHint" xml:space="preserve"><value>A reason is required; the confirmer must differ from whoever confirmed the previous revision.</value></data>
+  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Create correction revision</value></data>
+  <data name="SettlePreviewResultAria" xml:space="preserve"><value>Settlement preview result</value></data>
+  <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Preview result</value></data>
+  <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Supply coverage and total value</value></data>
+  <data name="SettleInputHashTitle" xml:space="preserve"><value>Input data verification hash</value></data>
+  <data name="SettleRequestedItems" xml:space="preserve"><value>Requested items</value></data>
+  <data name="SettleRequestedLines" xml:space="preserve"><value>Demand lines</value></data>
+  <data name="SettlePendingAdditional" xml:space="preserve"><value>Supplements awaiting approval</value></data>
+  <data name="SettleBlockersHeading" xml:space="preserve"><value>Resolve before settling</value></data>
+  <data name="SettleQuotesHeading" xml:space="preserve"><value>Supply source ranking</value></data>
+  <data name="SettleQuotesSubtitle" xml:space="preserve"><value>Full coverage first, then compare total value and delivery time.</value></data>
+  <data name="SettleQuoteRank" xml:space="preserve"><value>Rank</value></data>
+  <data name="SettleQuoteSupplier" xml:space="preserve"><value>Supplier / price list</value></data>
+  <data name="SettleQuoteCoverage" xml:space="preserve"><value>Coverage</value></data>
+  <data name="SettleQuoteTotal" xml:space="preserve"><value>Total value</value></data>
+  <data name="SettleQuoteLeadTime" xml:space="preserve"><value>Delivery</value></data>
+  <data name="SettleQuoteLeadTimeDays" xml:space="preserve"><value>{0} days</value></data>
+  <data name="SettleRunPreviewHint" xml:space="preserve"><value>Run the preview to check supply coverage and total value.</value></data>
+  <data name="SettlePreviewNoData" xml:space="preserve"><value>The preview step returned no data.</value></data>
+  <data name="SettlePreviewCoverageSummary" xml:space="preserve"><value>{0}: covers {1}/{2} items, total {3} VND.</value></data>
+  <data name="SettleSupplierFallback" xml:space="preserve"><value>Supplier</value></data>
+  <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>The correction reason must be 5 to 500 characters.</value></data>
+  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>Re-run the preview before correcting the settlement result.</value></data>
+  <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Create a correction revision for period {0:D2}/{1}?</value></data>
+  <data name="CorrectionDialogTitle" xml:space="preserve"><value>Correct settlement result</value></data>
+  <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>The current settlement revision could not be found.</value></data>
+  <data name="CorrectionCreated" xml:space="preserve"><value>Correction revision created</value></data>
 </root>

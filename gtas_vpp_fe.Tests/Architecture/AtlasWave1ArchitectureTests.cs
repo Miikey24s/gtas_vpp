@@ -35,7 +35,8 @@ public sealed class AtlasWave1ArchitectureTests
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
 
         Assert.Contains("<PeriodSettlementPanel", host, StringComparison.Ordinal);
-        Assert.Contains("Xếp hạng nguồn cung", settlement, StringComparison.Ordinal);
+        // Copy đã chuyển sang resx (W-D): khóa qua key SettleQuotesHeading thay vì chuỗi cứng.
+        Assert.Contains("Loc[\"SettleQuotesHeading\"]", settlement, StringComparison.Ordinal);
         Assert.Contains("preview.Blockers", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("Click=\"@SettleAsync\"", review, StringComparison.Ordinal);
     }

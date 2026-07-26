@@ -191,7 +191,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 return;
             }
 
-            SetAlert(AlertStyle.Info, "Hãy chạy xem trước để kiểm tra độ phủ nguồn cung và tổng giá trị.");
+            SetAlert(AlertStyle.Info, Loc["SettleRunPreviewHint"].Value);
         }
 
         private Task OnPriceListChangedAsync(Guid? value)
@@ -222,7 +222,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 if (preview is null)
                 {
                     canSettle = false;
-                    SetAlert(AlertStyle.Warning, "Bước xem trước không trả về dữ liệu.");
+                    SetAlert(AlertStyle.Warning, Loc["SettlePreviewNoData"].Value);
                     return;
                 }
 
@@ -239,7 +239,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 settlementIdempotencyKey ??= $"{selectedYear:D4}{selectedMonth:D2}-{Guid.NewGuid():N}";
                 SetAlert(
                     AlertStyle.Success,
-                    $"{quote.SupplierName ?? "Nhà cung cấp"}: phủ {quote.CoveredItemCount}/{quote.RequestedItemCount} mặt hàng, tổng {quote.GrandTotal:N0} VND.");
+                    string.Format(
+                        Loc["SettlePreviewCoverageSummary"].Value,
+                        quote.SupplierName ?? Loc["SettleSupplierFallback"].Value,
+                        quote.CoveredItemCount,
+                        quote.RequestedItemCount,
+                        $"{quote.GrandTotal:N0}"));
             }
             catch (Exception ex)
             {
@@ -303,18 +308,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             var reason = correctionReason.Trim();
             if (reason.Length is < 5 or > 500)
             {
-                SetAlert(AlertStyle.Warning, "Lý do hiệu chỉnh phải có từ 5 đến 500 ký tự.");
+                SetAlert(AlertStyle.Warning, Loc["CorrectionReasonLengthWarning"].Value);
                 return;
             }
             if (preview is null || !canSettlePreview || string.IsNullOrWhiteSpace(settlementIdempotencyKey))
             {
-                SetAlert(AlertStyle.Warning, "Hãy chạy lại bước xem trước trước khi hiệu chỉnh kết quả chốt kỳ.");
+                SetAlert(AlertStyle.Warning, Loc["CorrectionRerunPreviewWarning"].Value);
                 return;
             }
 
             var confirmed = await DialogService.Confirm(
-                $"Tạo revision hiệu chỉnh cho kỳ {selectedMonth:D2}/{selectedYear}?",
-                "Hiệu chỉnh kết quả chốt kỳ",
+                string.Format(Loc["CorrectionConfirmFormat"].Value, selectedMonth, selectedYear),
+                Loc["CorrectionDialogTitle"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
             if (confirmed != true)
             {
@@ -328,7 +333,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
                 if (current?.SettlementId is null)
                 {
-                    SetAlert(AlertStyle.Warning, "Không tìm thấy phiên bản kết quả chốt kỳ hiện hành.");
+                    SetAlert(AlertStyle.Warning, Loc["CorrectionCurrentRevisionMissing"].Value);
                     return;
                 }
 
@@ -345,7 +350,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                         IdempotencyKey = settlementIdempotencyKey,
                         Reason = reason
                     });
-                Toast.Notify(NotificationSeverity.Success, Loc["Success"], "Đã tạo phiên bản hiệu chỉnh");
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
                 correctionReason = string.Empty;
                 settlementIdempotencyKey = null;
                 await LoadStatusAsync();
@@ -367,30 +372,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             alertMessage = message;
         }
 
-        private static string DescribeBlocker(string blocker)
-        {
-            if (blocker.StartsWith("PENDING_SUPPLEMENTS:", StringComparison.Ordinal))
-            {
-                return $"Còn {blocker.Split(':').LastOrDefault()} đơn bổ sung chờ duyệt.";
-            }
-
-            if (blocker.Equals("NO_SUBMITTED_ITEMS", StringComparison.Ordinal))
-            {
-                return "Chưa có mặt hàng hợp lệ để chốt kỳ.";
-            }
-
-            if (blocker.StartsWith("SUPPLEMENT_WITHOUT_BASE:", StringComparison.Ordinal))
-            {
-                return "Có đơn bổ sung chưa liên kết được với đơn gốc.";
-            }
-
-            if (blocker.StartsWith("INVALID_SUPPLIER_EXCEPTION:", StringComparison.Ordinal))
-            {
-                return "Có lựa chọn nhà cung cấp ngoại lệ chưa hợp lệ hoặc thiếu lý do.";
-            }
-
-            return blocker;
-        }
+        private static string DescribeBlocker(string blocker) => PeriodSettlementSupport.DescribeBlocker(blocker);
 
         private static string FormatMoney(decimal value) => $"{value:N0} VND";
     }

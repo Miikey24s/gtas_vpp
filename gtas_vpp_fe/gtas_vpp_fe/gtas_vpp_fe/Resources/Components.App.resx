@@ -427,20 +427,20 @@
   <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
   <data name="PeriodOperations" xml:space="preserve"><value>Vận hành kỳ</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
-  <data name="PeriodSettlement" xml:space="preserve"><value>Đóng kỳ</value></data>
+  <data name="PeriodSettlement" xml:space="preserve"><value>Chốt kỳ</value></data>
   <data name="PriceList" xml:space="preserve"><value>Bảng giá</value></data>
   <data name="PriceList_UseDefault" xml:space="preserve"><value>(Mặc định)</value></data>
-  <data name="SettlePeriod" xml:space="preserve"><value>Đóng kỳ</value></data>
-  <data name="Settled" xml:space="preserve"><value>Đã đóng kỳ</value></data>
-  <data name="Warning_PendingAdditional" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt. Vui lòng duyệt trước khi đóng kỳ.</value></data>
-  <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã đóng lúc {0} bởi {1} với bảng giá {2}.</value></data>
-  <data name="Confirm_Settle" xml:space="preserve"><value>Đóng kỳ {0}/{1} với bảng giá {2}?</value></data>
+  <data name="SettlePeriod" xml:space="preserve"><value>Chốt kỳ</value></data>
+  <data name="Settled" xml:space="preserve"><value>Đã chốt kỳ</value></data>
+  <data name="Warning_PendingAdditional" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt. Vui lòng duyệt trước khi chốt kỳ.</value></data>
+  <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã chốt lúc {0} bởi {1} với bảng giá {2}.</value></data>
+  <data name="Confirm_Settle" xml:space="preserve"><value>Chốt kỳ {0}/{1} với bảng giá {2}?</value></data>
   <data name="Parameters" xml:space="preserve"><value>Tham số cấu hình</value></data>
   <data name="PeriodStatus" xml:space="preserve"><value>Trạng thái kỳ</value></data>
   <data name="CheckingPeriodStatus" xml:space="preserve"><value>Đang kiểm tra trạng thái kỳ...</value></data>
-  <data name="PeriodReadyToSettle" xml:space="preserve"><value>Kỳ sẵn sàng đóng</value></data>
+  <data name="PeriodReadyToSettle" xml:space="preserve"><value>Kỳ sẵn sàng chốt</value></data>
   <data name="PeriodReview" xml:space="preserve"><value>Rà soát kỳ</value></data>
-  <data name="TargetPeriod" xml:space="preserve"><value>Kỳ cần đóng</value></data>
+  <data name="TargetPeriod" xml:space="preserve"><value>Kỳ cần chốt</value></data>
   <data name="Hint_AutoTargetsClosedPeriod" xml:space="preserve"><value>Hệ thống tự chọn kỳ vừa hết hạn (kỳ ngay trước kỳ đang mở). Bảng giá sẽ áp cho toàn bộ đơn của kỳ này.</value></data>
   <data name="Columns" xml:space="preserve"><value>Cột</value></data>
   <data name="VisibleColumns" xml:space="preserve"><value>Cột hiển thị</value></data>
@@ -751,4 +751,40 @@
   <data name="DemandTableSubtitle" xml:space="preserve"><value>Gom từ phiên bản hợp lệ mới nhất</value></data>
   <data name="DemandBreakdown" xml:space="preserve"><value>Nguồn gom</value></data>
   <data name="DemandOrdersCount" xml:space="preserve"><value>{0} đơn</value></data>
+  <data name="SettlePreviewAction" xml:space="preserve"><value>Xem trước</value></data>
+  <data name="SettleReadinessAria" xml:space="preserve"><value>Điều kiện sẵn sàng chốt kỳ</value></data>
+  <data name="SettleReadinessOrders" xml:space="preserve"><value>Đã gom {0} mặt hàng từ {1} dòng nhu cầu hợp lệ.</value></data>
+  <data name="SettleReadinessCoverage" xml:space="preserve"><value>Nguồn cung chính phủ đủ nhu cầu (kể cả ngoại lệ đã khai).</value></data>
+  <data name="SettleReadinessNoBlockers" xml:space="preserve"><value>Không còn điều kiện ngăn chốt.</value></data>
+  <data name="SettleImmutableNote" xml:space="preserve"><value>Sau khi xác nhận, dữ liệu chốt kỳ được lưu bất biến; mọi thay đổi sau này phải tạo phiên bản hiệu chỉnh theo nguyên tắc bốn mắt.</value></data>
+  <data name="CorrectionReasonLabel" xml:space="preserve"><value>Lý do hiệu chỉnh</value></data>
+  <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Nhập lý do hiệu chỉnh (5–500 ký tự)</value></data>
+  <data name="CorrectionFourEyesHint" xml:space="preserve"><value>Lý do là bắt buộc; người xác nhận phải khác người đã xác nhận phiên bản trước.</value></data>
+  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Tạo phiên bản hiệu chỉnh</value></data>
+  <data name="SettlePreviewResultAria" xml:space="preserve"><value>Kết quả xem trước chốt kỳ</value></data>
+  <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Kết quả xem trước</value></data>
+  <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Độ phủ nguồn cung và tổng giá trị</value></data>
+  <data name="SettleInputHashTitle" xml:space="preserve"><value>Mã kiểm tra dữ liệu đầu vào</value></data>
+  <data name="SettleRequestedItems" xml:space="preserve"><value>Mặt hàng yêu cầu</value></data>
+  <data name="SettleRequestedLines" xml:space="preserve"><value>Dòng nhu cầu</value></data>
+  <data name="SettlePendingAdditional" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
+  <data name="SettleBlockersHeading" xml:space="preserve"><value>Cần xử lý trước khi chốt</value></data>
+  <data name="SettleQuotesHeading" xml:space="preserve"><value>Xếp hạng nguồn cung</value></data>
+  <data name="SettleQuotesSubtitle" xml:space="preserve"><value>Ưu tiên độ phủ đầy đủ, sau đó so sánh tổng giá trị và thời gian giao.</value></data>
+  <data name="SettleQuoteRank" xml:space="preserve"><value>Hạng</value></data>
+  <data name="SettleQuoteSupplier" xml:space="preserve"><value>Nhà cung cấp / bảng giá</value></data>
+  <data name="SettleQuoteCoverage" xml:space="preserve"><value>Độ phủ</value></data>
+  <data name="SettleQuoteTotal" xml:space="preserve"><value>Tổng giá trị</value></data>
+  <data name="SettleQuoteLeadTime" xml:space="preserve"><value>Giao hàng</value></data>
+  <data name="SettleQuoteLeadTimeDays" xml:space="preserve"><value>{0} ngày</value></data>
+  <data name="SettleRunPreviewHint" xml:space="preserve"><value>Hãy chạy xem trước để kiểm tra độ phủ nguồn cung và tổng giá trị.</value></data>
+  <data name="SettlePreviewNoData" xml:space="preserve"><value>Bước xem trước không trả về dữ liệu.</value></data>
+  <data name="SettlePreviewCoverageSummary" xml:space="preserve"><value>{0}: phủ {1}/{2} mặt hàng, tổng {3} VND.</value></data>
+  <data name="SettleSupplierFallback" xml:space="preserve"><value>Nhà cung cấp</value></data>
+  <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>Lý do hiệu chỉnh phải có từ 5 đến 500 ký tự.</value></data>
+  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>Hãy chạy lại bước xem trước trước khi hiệu chỉnh kết quả chốt kỳ.</value></data>
+  <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Tạo phiên bản hiệu chỉnh cho kỳ {0:D2}/{1}?</value></data>
+  <data name="CorrectionDialogTitle" xml:space="preserve"><value>Hiệu chỉnh kết quả chốt kỳ</value></data>
+  <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>Không tìm thấy phiên bản kết quả chốt kỳ hiện hành.</value></data>
+  <data name="CorrectionCreated" xml:space="preserve"><value>Đã tạo phiên bản hiệu chỉnh</value></data>
 </root>
