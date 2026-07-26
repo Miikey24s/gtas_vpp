@@ -118,7 +118,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             };
 
             if (!string.IsNullOrWhiteSpace(CurrentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
-            if (!string.IsNullOrWhiteSpace(CurrentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(CurrentOrderByExpression)}");
+            // Hàng chờ duyệt xếp đơn chờ lâu nhất lên đầu (Atlas supplement-approval);
+            // người duyệt vẫn đổi được thứ tự bằng sort trên cột.
+            var orderBy = string.IsNullOrWhiteSpace(CurrentOrderByExpression)
+                ? "SubmittedDate asc"
+                : CurrentOrderByExpression;
+            query.Add($"orderby={Uri.EscapeDataString(orderBy)}");
 
             return $"/api/VPPRequest/additional-orders/pending?{string.Join("&", query)}";
         }

@@ -723,4 +723,8 @@
   <data name="DepartmentAllPeriodsMeta" xml:space="preserve"><value>Tất cả kỳ</value></data>
   <data name="DepartmentDetailScopeHint" xml:space="preserve"><value>Dữ liệu chỉ gồm các đơn thuộc phòng ban được cấp quyền.</value></data>
   <data name="OrderHasNoItems" xml:space="preserve"><value>Đơn chưa có mặt hàng</value></data>
+  <data name="ApprovalSelectOrder" xml:space="preserve"><value>Chọn đơn bổ sung cần xử lý</value></data>
+  <data name="ApprovalSelectOrderDescription" xml:space="preserve"><value>Chi tiết, lý do và mặt hàng sẽ hiển thị tại đây trước khi quyết định.</value></data>
+  <data name="ApprovalNoReason" xml:space="preserve"><value>Chưa có lý do</value></data>
+  <data name="ApprovalItemsHeading" xml:space="preserve"><value>Mặt hàng cần duyệt</value></data>
 </root>

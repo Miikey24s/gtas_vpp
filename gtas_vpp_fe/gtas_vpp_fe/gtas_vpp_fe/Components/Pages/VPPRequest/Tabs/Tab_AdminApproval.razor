@@ -167,7 +167,7 @@
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.DepartmentCode)" Title="@Loc["Department"]" Width="105px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.RequesterName)" Title="@Loc["Username"]" Width="150px" TextAlign="TextAlign.Left">
+                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.RequesterName)" Title="@Loc["HistoryRequester"]" Width="150px" TextAlign="TextAlign.Left">
                             <Template Context="row">
                                 <span style="font-weight: var(--vpp-font-weight-medium);">@row.RequesterName</span>
                             </Template>
@@ -253,29 +253,59 @@
                         {
                             <div class="vpp-atlas-order-detail-empty">
                                 <span class="rzi rzi-approval" aria-hidden="true"></span>
-                                <strong>Chọn đơn bổ sung cần xử lý</strong>
-                                <span>Chi tiết, lý do và mặt hàng sẽ hiển thị tại đây trước khi quyết định.</span>
+                                <strong>@Loc["ApprovalSelectOrder"]</strong>
+                                <span>@Loc["ApprovalSelectOrderDescription"]</span>
                             </div>
                         }
                         else
                         {
-                            <header class="vpp-atlas-order-detail-header">
-                                <span class="vpp-record-inspector-badge">Chờ duyệt</span>
-                                <h2>@SelectedPendingOrder.RequesterName</h2>
-                                <p>@SelectedPendingOrder.VppCode</p>
+                            @* Atlas orderDetailSheet (placement approval): kicker + mã/badge trạng thái động + meta + nút xuất (D10). *@
+                            <header class="vpp-atlas-sheet-header">
+                                <div>
+                                    <span class="vpp-atlas-sheet-kicker">@Loc["HistoryDetailSheetTitle"]</span>
+                                    <div class="vpp-atlas-sheet-code">
+                                        <strong>@SelectedPendingOrder.VppCode</strong>
+                                        <span class="vpp-badge @StatusDisplay.GetCssClass(SelectedPendingOrder.Status)">@SelectedPendingOrder.StatusText</span>
+                                    </div>
+                                    @if (SelectedPendingOrder.SubmittedDate.HasValue)
+                                    {
+                                        <p class="vpp-atlas-sheet-meta">@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(SelectedPendingOrder.SubmittedDate, DateFormatter.LongDate))</p>
+                                    }
+                                </div>
+                                <div class="vpp-atlas-sheet-actions">
+                                    <RadzenButton Icon="picture_as_pdf"
+                                                  Size="ButtonSize.Small"
+                                                  ButtonStyle="ButtonStyle.Base"
+                                                  Variant="Variant.Text"
+                                                  Click="@(async _ => await ExportOrderPdfAsync(SelectedPendingOrder))"
+                                                  Title="@Loc["ExportPdf"]"
+                                                  aria-label="@string.Format(Loc["ExportOrderPdfAria"], SelectedPendingOrder.VppCode)"
+                                                  Disabled="@IsExportingOrder" />
+                                    <RadzenButton Icon="table_view"
+                                                  Size="ButtonSize.Small"
+                                                  ButtonStyle="ButtonStyle.Base"
+                                                  Variant="Variant.Text"
+                                                  Click="@(async _ => await ExportOrderExcelAsync(SelectedPendingOrder))"
+                                                  Title="@Loc["ExportExcel"]"
+                                                  aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedPendingOrder.VppCode)"
+                                                  Disabled="@IsExportingOrder" />
+                                </div>
                             </header>
                             <dl class="vpp-atlas-order-facts">
+                                <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedPendingOrder.RequesterName">@SelectedPendingOrder.RequesterName</dd></div>
                                 <div><dt>@Loc["Department"]</dt><dd>@SelectedPendingOrder.DepartmentCode</dd></div>
                                 <div><dt>@Loc["Period"]</dt><dd>@SelectedPendingOrder.Period</dd></div>
-                                <div><dt>@Loc["TotalLineItems"]</dt><dd>@SelectedPendingOrder.TotalLines</dd></div>
                                 <div><dt>@Loc["TotalQuantity"]</dt><dd>@SelectedPendingOrder.TotalQty</dd></div>
                             </dl>
                             <div class="vpp-atlas-approval-reason">
-                                <span>Lý do bổ sung</span>
-                                <p>@(string.IsNullOrWhiteSpace(SelectedPendingOrder.SupplementReason) ? "Chưa có lý do" : SelectedPendingOrder.SupplementReason)</p>
+                                <span>@Loc["SupplementReason"]</span>
+                                <p>@(string.IsNullOrWhiteSpace(SelectedPendingOrder.SupplementReason) ? Loc["ApprovalNoReason"] : SelectedPendingOrder.SupplementReason)</p>
                             </div>
                             <div class="vpp-atlas-order-items">
-                                <h3>@Loc["OrderDetails"]</h3>
+                                <div class="vpp-atlas-sheet-items-heading">
+                                    <h3>@Loc["ApprovalItemsHeading"]</h3>
+                                    <span class="vpp-badge vpp-badge-info">@Loc["ItemsCount", SelectedPendingOrder.Items?.Count ?? 0]</span>
+                                </div>
                                 @if (IsRowDetailLoading(SelectedPendingOrder.Id))
                                 {
                                     <SkeletonPage Cards="0" Rows="5" Cols="3" />
@@ -285,7 +315,14 @@
                                     @foreach (var item in SelectedPendingOrder.Items)
                                     {
                                         <div class="vpp-atlas-order-item">
-                                            <span><strong>@item.VppName</strong><small>@item.VppCode · @item.UomName</small></span>
+                                            <span>
+                                                <strong title="@item.VppName">@item.VppName</strong>
+                                                <small>@item.VppCode · @item.CategoryName · @item.UomName</small>
+                                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                                {
+                                                    <small class="vpp-atlas-item-note" title="@item.Description">@item.Description</small>
+                                                }
+                                            </span>
                                             <b>@item.Qty</b>
                                         </div>
                                     }
@@ -294,13 +331,13 @@
                             <footer class="vpp-atlas-approval-actions">
                                 @if (CanReject)
                                 {
-                                    <RadzenButton Icon="cancel" Text="Từ chối" ButtonStyle="ButtonStyle.Danger"
+                                    <RadzenButton Icon="cancel" Text="@Loc["Reject"]" ButtonStyle="ButtonStyle.Danger"
                                                   Disabled="@IsProcessing(SelectedPendingOrder.Id)"
                                                   Click="@(_ => HandleRejectClick(SelectedPendingOrder))" />
                                 }
                                 @if (CanApprove)
                                 {
-                                    <RadzenButton Icon="check_circle" Text="Phê duyệt" ButtonStyle="ButtonStyle.Primary"
+                                    <RadzenButton Icon="check_circle" Text="@Loc["Approval"]" ButtonStyle="ButtonStyle.Primary"
                                                   Disabled="@IsProcessing(SelectedPendingOrder.Id)"
                                                   Click="@(_ => HandleApproveClick(SelectedPendingOrder))" />
                                 }
