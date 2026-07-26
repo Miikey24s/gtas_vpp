@@ -81,7 +81,8 @@ public sealed class AccountShellSmokeTests : TestBase
                 {
                     State = WaitForSelectorState.Visible
                 });
-                await Page.WaitForTimeoutAsync(250);
+                // Card đã visible ở trên; chờ double-rAF cho render churn flush xong trước khi đo audit.
+                await WaitForRenderSettleAsync();
 
                 var audit = await Page.EvaluateAsync<int[]>("""
                     () => [

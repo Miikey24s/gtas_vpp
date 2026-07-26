@@ -15,7 +15,13 @@ public sealed class GlobalRenderFlowTests : TestBase, IAuthenticatedUiTest
         var browserErrors = new List<string>();
         Page.Console += (_, message) =>
         {
-            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase))
+            // Full-page navigations in this flow (login redirect, /not-found) abort
+            // in-flight resource loads and Chromium logs them as console errors even
+            // though the circuit is healthy. Only ERR_ABORTED noise is expected —
+            // every other console error still fails the test (same policy as the
+            // RequestFailed allowlists in AccountShellSmokeTests).
+            if (string.Equals(message.Type, "error", StringComparison.OrdinalIgnoreCase)
+                && !message.Text.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase))
             {
                 browserErrors.Add(message.Text);
             }
@@ -39,11 +45,14 @@ public sealed class GlobalRenderFlowTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync(
             $"{BaseUrl}not-found",
             new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
-        await Page.GetByRole(AriaRole.Button, new()
-        {
-            Name = "Về bảng điều khiển",
-            Exact = true
-        }).ClickAsync();
+
+        // /not-found is a full page load: the prerendered button is visible before
+        // the fresh circuit becomes interactive, so a raw click can land on dead
+        // HTML. GetInteractiveButtonAsync waits for the Blazor binding marker.
+        var dashboardButton = await GetInteractiveButtonAsync(
+            Page.Locator("body"),
+            "Về bảng điều khiển");
+        await dashboardButton.ClickAsync();
 
         await Page.WaitForURLAsync(
             new System.Text.RegularExpressions.Regex(".*/dashboard.*", System.Text.RegularExpressions.RegexOptions.IgnoreCase),

@@ -52,7 +52,8 @@ public sealed class AccountLifecycleTests : TestBase, IMutatingUiTest
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Tạo tài khoản" })
             .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await Page.WaitForTimeoutAsync(1000);
+        // Chờ circuit interactive render xong nút submit (không click) trước khi điền form, tránh race prerender.
+        await GetInteractiveButtonAsync(Page.Locator("body"), "Tạo tài khoản");
         await Page.Locator("input[name='Username']").FillAsync(username);
         await Page.Locator("input[name='FullName']").FillAsync("E2E Pending User");
         await Page.Locator("input[name='Email']").FillAsync("e2e.pending@example.test");
@@ -82,7 +83,14 @@ public sealed class AccountLifecycleTests : TestBase, IMutatingUiTest
         var loginPage = new LoginPage(Page);
         await loginPage.GotoAsync(BaseUrl);
         await loginPage.LoginAsync(username, password);
-        await Page.WaitForTimeoutAsync(1500);
+        // Tài khoản pending bị từ chối đăng nhập: chờ thông báo lỗi hiện trong validation slot
+        // ([role=alert], cùng pattern LoginFeedbackTests) rồi mới assert URL không đổi.
+        await Page.Locator(".vpp-login-password-wrapper + .vpp-validation-slot [role=alert]")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 15_000
+            });
 
         Page.Url.Should().Contain("/Account/Login");
     }

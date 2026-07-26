@@ -93,7 +93,8 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 {
                     State = WaitForSelectorState.Visible
                 });
-                await Page.WaitForTimeoutAsync(350);
+                // Double-rAF: chờ layout flush xong trước khi audit đọc geometry/DOM.
+                await WaitForRenderSettleAsync();
 
                 var audit = await Page.EvaluateAsync<int[]>("""
                 () => {
@@ -199,8 +200,12 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         if (string.Equals(fileName, "ui-price-lists.png", StringComparison.Ordinal))
         {
             // The empty QA price-book state can briefly show a transient toast
-            // while the LocalDB fixture finishes its read-only refresh.
-            await Page.WaitForTimeoutAsync(5_500);
+            // while the LocalDB fixture finishes its read-only refresh; return as
+            // soon as every Radzen notification has dismissed instead of a fixed sleep.
+            await Page.WaitForFunctionAsync(
+                "() => [...document.querySelectorAll('.rz-notification-item, .rz-notification')].every(el => el.getClientRects().length === 0)",
+                null,
+                new PageWaitForFunctionOptions { Timeout = 20_000 });
         }
         await CaptureScreenshotAsync(directory, fileName);
     }
@@ -224,7 +229,9 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
             }
         }
 
-        await Page.WaitForTimeoutAsync(800);
+        // Let the post-loader render flush and web fonts finish before capturing pixels.
+        await WaitForRenderSettleAsync();
+        await Page.EvaluateAsync("() => document.fonts.ready");
         await Page.AddStyleTagAsync(new PageAddStyleTagOptions
         {
             Content = "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}"

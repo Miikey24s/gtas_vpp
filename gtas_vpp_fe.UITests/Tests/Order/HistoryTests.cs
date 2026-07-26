@@ -46,7 +46,18 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             await Page.WaitForFunctionAsync("""
                 () => document.querySelector('.vpp-history-detail-grid .rz-data-grid-data')?.scrollTop > 0
             """);
-            await Page.WaitForTimeoutAsync(80);
+            // Chờ scrollTop ổn định qua hai frame liên tiếp trước khi đo hình học header.
+            await Page.WaitForFunctionAsync("""
+                () => new Promise(resolve => {
+                    const surface = document.querySelector('.vpp-history-detail-grid .rz-data-grid-data');
+                    if (!surface) return resolve(false);
+                    let first;
+                    requestAnimationFrame(() => {
+                        first = surface.scrollTop;
+                        requestAnimationFrame(() => resolve(surface.scrollTop > 0 && surface.scrollTop === first));
+                    });
+                })
+            """);
         }
 
         var fixedHeaderLayer = await detailRegion.EvaluateAsync<string>("""
@@ -162,6 +173,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator(".vpp-history-scope > button").First.GetAttributeAsync("class")).Should().NotContain("is-active");
         (await Page.Locator(".vpp-history-drawer-close").CountAsync()).Should().Be(0);
         await Page.Locator(".vpp-history-scope > button").Nth(1).ClickAsync();
+        // Cửa sổ im lặng có chủ đích: chờ cố định để chứng minh loading-line KHÔNG xuất hiện ở assertion ngay dưới.
         await Page.WaitForTimeoutAsync(60);
         (await Page.Locator(".vpp-history-loading-line").CountAsync()).Should().Be(0, "period changes must preserve content without rendering a global progress line");
 
@@ -268,7 +280,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await notePopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await notePopover.Locator(".vpp-history-popover-value").InnerTextAsync()).Should().Be(await noteTrigger.GetAttributeAsync("title"));
         await notePopover.Locator(".vpp-history-popover-copy").WaitForAsync();
-        await Page.WaitForTimeoutAsync(50);
+        // Double-rAF: chờ render lắng xuống trước khi đo hình học popover.
+        await WaitForRenderSettleAsync();
         var notePopoverGeometry = await notePopover.EvaluateAsync<string>("""
             popover => {
                 const anchor = popover.parentElement;
@@ -417,7 +430,18 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                     return surface && surface.scrollTop > 0;
                 }
             """);
-            await Page.WaitForTimeoutAsync(50);
+            // Chờ scrollTop ổn định qua hai frame liên tiếp trước khi đo hình học header.
+            await Page.WaitForFunctionAsync("""
+                () => new Promise(resolve => {
+                    const surface = document.querySelector('.vpp-history-detail-grid .rz-data-grid-data');
+                    if (!surface) return resolve(false);
+                    let first;
+                    requestAnimationFrame(() => {
+                        first = surface.scrollTop;
+                        requestAnimationFrame(() => resolve(surface.scrollTop > 0 && surface.scrollTop === first));
+                    });
+                })
+            """);
 
             var fixedHeaderLayer = await detailRegion.EvaluateAsync<string>("""
                 region => {
@@ -587,9 +611,17 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         longestOptionGeometry.Should().StartWith("true", "the category menu must stay content-sized, anchored to its trigger and viewport-safe");
         var selectedCategoryLabel = (await categoryOptions.Nth(longestCategoryIndex).InnerTextAsync()).Trim();
         await categoryOptions.Nth(longestCategoryIndex).ClickAsync();
-        await Page.WaitForTimeoutAsync(200);
+        // Chờ menu danh mục đóng hẳn sau khi chọn thay vì ngủ cứng.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const menu = document.querySelector('.vpp-history-detail-select .vpp-history-select-menu');
+                return !menu || menu.getClientRects().length === 0;
+            }
+        """);
         if (categoryOptionCount > 1)
         {
+            // Trigger phải phản ánh lựa chọn mới trước khi đọc trạng thái is-active.
+            await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-select .vpp-history-select-trigger')?.classList.contains('is-active')");
             var categorySelectionState = await detailCategoryFilter.EvaluateAsync<string>("""
                 trigger => `${trigger.classList.contains('is-active')}|title=${trigger.getAttribute('title')}|text=${trigger.textContent.trim()}`
             """);
@@ -774,7 +806,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             await emptyFilterMessage.WaitForAsync();
         }
         await drawer.GetByText(selectedOrderCode, new() { Exact = true }).WaitForAsync();
-        await Page.WaitForTimeoutAsync(240);
+        // Double-rAF: empty-state đã hiện ở trên, chỉ cần render lắng xuống trước khi chốt mẫu hình học.
+        await WaitForRenderSettleAsync();
         var interactionGeometry = await Page.EvaluateAsync<string>("""
             () => {
                 window.__historyGeometrySampling = false;

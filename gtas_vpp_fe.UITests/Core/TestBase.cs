@@ -166,6 +166,16 @@ public abstract class TestBase : IAsyncLifetime
         await LoginAsAsync(account);
     }
 
+    /// <summary>
+    /// Waits two animation frames so layout/render churn from the previous action
+    /// has flushed before the test reads geometry or DOM state (R-0.5). Prefer a
+    /// WaitForFunctionAsync with an explicit condition whenever the awaited signal
+    /// is known; this is the generic replacement for short fixed sleeps only.
+    /// </summary>
+    protected Task WaitForRenderSettleAsync()
+        => Page.EvaluateAsync(
+            "() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))");
+
     protected Task<ILocator> GetInteractiveButtonAsync(
         ILocator scope,
         string accessibleName,

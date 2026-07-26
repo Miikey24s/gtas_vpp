@@ -19,7 +19,20 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var grid = Page.Locator(".library-share-grid:visible");
         var gridData = grid.Locator(".rz-data-grid-data");
         await grid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await Page.WaitForTimeoutAsync(500);
+        // Chờ body của grid có ít nhất 1 hàng hoặc hiện empty-state thay cho sleep cố định.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const grid = [...document.querySelectorAll('.library-share-grid')]
+                    .find(candidate => candidate.getClientRects().length > 0);
+                const body = grid?.querySelector('.rz-data-grid-data');
+                if (!body) {
+                    return false;
+                }
+
+                return body.querySelectorAll('tbody > tr').length > 0
+                    || !!grid.querySelector('.rz-datatable-emptymessage');
+            }
+            """);
 
         var gridChrome = await grid.EvaluateAsync<string[]>("""
             element => {
@@ -172,14 +185,22 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         // (header + toolbar + thead + ≥1 hàng) nên luôn bảo đảm viewport < content bottom.
         var categoryProbeHeight = Math.Clamp((int)Math.Round(categoryContentBottom) - 60, 120, 420);
         await Page.SetViewportSizeAsync(1366, categoryProbeHeight);
-        await Page.WaitForTimeoutAsync(200);
+        // Chờ viewport mới thực sự áp dụng trước khi đo vị trí header.
+        await Page.WaitForFunctionAsync("expected => window.innerHeight === expected", categoryProbeHeight);
 
         var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
             "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
 
         var contentScroller = Page.Locator(".vpp-layout-body");
         await contentScroller.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        await Page.WaitForTimeoutAsync(100);
+        // Chờ scrollTop thực sự chạm đáy đúng như phép gán ở trên.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const scroller = document.querySelector('.vpp-layout-body');
+                return !!scroller
+                    && scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
+            }
+            """);
 
         var pinnedHeaderMetrics = await Page.EvaluateAsync<double[]>("""
             () => {
@@ -228,7 +249,23 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         var priceListGrid = Page.Locator(".vpp-price-list-workspace .vpp-admin-page-grid");
         await priceListGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await Page.WaitForTimeoutAsync(500);
+        // Chờ body của grid có ít nhất 1 hàng hoặc hiện empty-state thay cho sleep cố định.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const grid = document.querySelector('.vpp-price-list-workspace .vpp-admin-page-grid');
+                if (!grid || grid.getClientRects().length === 0) {
+                    return false;
+                }
+
+                const body = grid.querySelector('.rz-data-grid-data');
+                if (!body) {
+                    return false;
+                }
+
+                return body.querySelectorAll('tbody > tr').length > 0
+                    || !!grid.querySelector('.rz-datatable-emptymessage');
+            }
+            """);
 
         (await Page.Locator(".vpp-price-list-workspace .vpp-admin-section-title").CountAsync()).Should().Be(0);
 
@@ -295,7 +332,8 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var priceGrid = Page.Locator(".vpp-price-grid");
         await priceGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await Page.SetViewportSizeAsync(1366, 300);
-        await Page.WaitForTimeoutAsync(500);
+        // Chờ viewport mới thực sự áp dụng trước khi đo scroller lồng nhau.
+        await Page.WaitForFunctionAsync("expected => window.innerHeight === expected", 300);
 
         var nestedVerticalScrollers = await priceGrid.EvaluateAsync<int>("""
             element => [...element.querySelectorAll('*')].filter(child => {
@@ -325,12 +363,20 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             """);
         var pricingProbeHeight = Math.Clamp((int)Math.Round(pricingContentBottom) - 60, 180, 300);
         await Page.SetViewportSizeAsync(1366, pricingProbeHeight);
-        await Page.WaitForTimeoutAsync(200);
+        // Chờ viewport mới thực sự áp dụng trước khi đo vị trí header.
+        await Page.WaitForFunctionAsync("expected => window.innerHeight === expected", pricingProbeHeight);
 
         var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
             "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
         await Page.Locator(".vpp-layout-body").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        await Page.WaitForTimeoutAsync(100);
+        // Chờ scrollTop thực sự chạm đáy đúng như phép gán ở trên.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const scroller = document.querySelector('.vpp-layout-body');
+                return !!scroller
+                    && scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
+            }
+            """);
         var pinnedShellMetrics = await Page.EvaluateAsync<double[]>("""
             () => {
                 const scroller = document.querySelector('.vpp-layout-body');
@@ -568,7 +614,13 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await targetHeader.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 
         await Page.SetViewportSizeAsync(1200, 768);
-        await Page.WaitForTimeoutAsync(200);
+        // Chờ layout compact áp dụng: flexDirection chuyển sang 'column' đúng như assertion bên dưới.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const split = document.querySelector('.vpp-admin-class-split');
+                return !!split && getComputedStyle(split).flexDirection === 'column';
+            }
+            """);
         var compactDirection = await split.EvaluateAsync<string>("element => getComputedStyle(element).flexDirection");
         compactDirection.Should().Be("column");
     }

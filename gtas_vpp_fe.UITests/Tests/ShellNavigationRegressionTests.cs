@@ -30,7 +30,9 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         if (await sidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
         {
             await sidebar.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
+            // Chờ sidebar thực sự bỏ class sidebar-collapsed thay vì ngủ cứng.
+            await Page.WaitForFunctionAsync(
+                "() => { const el = document.querySelector('.vpp-sidebar'); return !!el && !el.classList.contains('sidebar-collapsed'); }");
         }
 
         var activeChild = nav.Locator("a[href='/library?tab=0']").First;
@@ -149,7 +151,20 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         if (string.Equals(await dashboardParent.GetAttributeAsync("aria-expanded"), "true", StringComparison.OrdinalIgnoreCase))
         {
             await dashboardParentToggle.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
+            // Chờ nhóm dashboard báo aria-expanded=false, rồi indicator đứng yên
+            // qua 2 khung rAF trước khi đọc top làm mốc.
+            await Page.WaitForFunctionAsync(
+                """
+                () => document.querySelector(".vpp-sidebar-nav .rz-panel-menu > li[title='Bảng điều khiển']")?.getAttribute('aria-expanded') === 'false'
+                """);
+            await Page.WaitForFunctionAsync(
+                """
+                () => new Promise(resolve => {
+                    const measure = () => document.querySelector('.vpp-sidebar-nav > .vpp-sidebar-shared-indicator')?.getBoundingClientRect().top ?? -1;
+                    const first = measure();
+                    requestAnimationFrame(() => requestAnimationFrame(() => resolve(first >= 0 && measure() === first)));
+                })
+                """);
         }
 
         var collapsedDashboardTop = await ReadIndicatorTopAsync(indicator);
@@ -166,7 +181,15 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         for (var attempt = 0; attempt < 3; attempt++)
         {
             await libraryParentToggle.ClickAsync();
-            await Page.WaitForTimeoutAsync(500);
+            // Chờ đúng điều kiện được đọc bên dưới: indicator bỏ is-ready và opacity về 0.
+            await Page.WaitForFunctionAsync(
+                """
+                () => {
+                    const el = document.querySelector('.vpp-sidebar-nav > .vpp-sidebar-shared-indicator');
+                    return !!el && !el.classList.contains('is-ready')
+                        && Number.parseFloat(getComputedStyle(el).opacity) === 0;
+                }
+                """);
 
             var collapsedState = await indicator.EvaluateAsync<IndicatorState>(
                 """
@@ -180,7 +203,15 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             collapsedState.Opacity.Should().BeApproximately(0, 0.001, $"collapsed attempt {attempt + 1} must hide the line");
 
             await libraryParentToggle.ClickAsync();
-            await Page.WaitForTimeoutAsync(500);
+            // Đối xứng: chờ indicator có lại is-ready và opacity về 1.
+            await Page.WaitForFunctionAsync(
+                """
+                () => {
+                    const el = document.querySelector('.vpp-sidebar-nav > .vpp-sidebar-shared-indicator');
+                    return !!el && el.classList.contains('is-ready')
+                        && Number.parseFloat(getComputedStyle(el).opacity) === 1;
+                }
+                """);
 
             var expandedState = await indicator.EvaluateAsync<IndicatorState>(
                 """
@@ -280,13 +311,31 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             null,
             new PageWaitForFunctionOptions { Timeout = 30_000 });
 
-        await Page.WaitForTimeoutAsync(300);
+        // Điều kiện tab active đã được chờ ở trên; chỉ cần xả render qua double-rAF.
+        await WaitForRenderSettleAsync();
         var shellSidebar = Page.Locator(".vpp-sidebar");
         if (!await shellSidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
         {
             await Page.EvaluateAsync("() => document.querySelector('.vpp-sidebar-toggle').click()");
         }
-        await Page.WaitForTimeoutAsync(300);
+        // Chờ sidebar mang class sidebar-collapsed và logo thu gọn hiện ra,
+        // đứng yên qua 2 khung rAF trước khi đo hình học rail.
+        await Page.WaitForFunctionAsync(
+            """
+            () => new Promise(resolve => {
+                const sidebarNode = document.querySelector('.vpp-sidebar');
+                if (!sidebarNode || !sidebarNode.classList.contains('sidebar-collapsed')) {
+                    resolve(false);
+                    return;
+                }
+                const measure = () => {
+                    const logo = document.querySelector('.vpp-sidebar-collapsed-logo');
+                    return logo && logo.getClientRects().length > 0 ? logo.getBoundingClientRect().left : -1;
+                };
+                const first = measure();
+                requestAnimationFrame(() => requestAnimationFrame(() => resolve(first >= 0 && measure() === first)));
+            })
+            """);
         var collapsedRail = await Page.EvaluateAsync<CollapsedRailGeometry>(
             """
             () => {

@@ -21,6 +21,17 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
 
         await GotoMainRouteAsync("library?tab=6&pricingTab=price-lists");
         await Page.Locator(".vpp-atlas-admin-workspace").WaitForAsync();
+        // Positive signal first: the price-list grid finished loading with rows or the empty state.
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const grid = document.querySelector('.vpp-price-list-workspace .vpp-admin-grid');
+                return !!grid
+                    && !grid.classList.contains('rz-datatable-loading')
+                    && !grid.querySelector('.rz-datatable-loading-content')
+                    && !!grid.querySelector('.rz-data-row, .rz-datatable-emptymessage');
+            }
+            """);
+        // Deliberate quiet window for the negative assertion below: prove no error toast appears.
         await Page.WaitForTimeoutAsync(500);
         (await Page.Locator(".rz-notification:visible").CountAsync()).Should().Be(0,
             "the price-list controller must activate successfully and return a normal empty or populated grid");
@@ -65,6 +76,6 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Visible,
             Timeout = 30_000
         });
-        await Page.WaitForTimeoutAsync(350);
+        await WaitForRenderSettleAsync();
     }
 }
