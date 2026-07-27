@@ -98,4 +98,4 @@ jobs:
           }
 
       - name: Verify final thesis DOCX structure
-        run: python LVTN/tooling/check_99_final.py
+        run: python LVTN/tooling/check_thesis.py
