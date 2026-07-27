@@ -1,4 +1,5 @@
 param(
+    [switch]$Apply,
     [switch]$IncludeThesisIntermediates,
     [switch]$IncludeSupersededThesisDeliverables
 )
@@ -7,8 +8,8 @@ $ErrorActionPreference = "Stop"
 
 $workspace = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path.TrimEnd("\")
 $git = (Get-Command git -ErrorAction Stop).Source
-$deletedBytes = [int64]0
-$deletedTargets = 0
+$candidateBytes = [int64]0
+$candidateTargets = 0
 $failures = [System.Collections.Generic.List[string]]::new()
 
 function Remove-WorkspaceTarget {
@@ -33,10 +34,16 @@ function Remove-WorkspaceTarget {
         [int64]$item.Length
     }
 
+    $script:candidateBytes += $bytes
+    $script:candidateTargets++
+
+    if (-not $Apply) {
+        Write-Output ("WOULD_REMOVE`t{0:N2} MB`t{1}" -f ($bytes / 1MB), $resolved)
+        return
+    }
+
     try {
         Remove-Item -LiteralPath $resolved -Recurse -Force -ErrorAction Stop
-        $script:deletedBytes += $bytes
-        $script:deletedTargets++
         Write-Output ("REMOVED`t{0:N2} MB`t{1}" -f ($bytes / 1MB), $resolved)
     }
     catch {
@@ -51,8 +58,13 @@ $fixedTargets = @(
     "gtas_vpp_fe_react\dist",
     "gtas_vpp_fe_react\test-results",
     "LVTN\render",
+    ".tmp",
     "gtas_vpp_be\gtas_vpp_be\logs"
 )
+
+if ($IncludeThesisIntermediates) {
+    $fixedTargets += "LVTN\_render_tmp"
+}
 
 foreach ($relativePath in $fixedTargets) {
     Remove-WorkspaceTarget -Target (Join-Path $workspace $relativePath)
@@ -60,7 +72,7 @@ foreach ($relativePath in $fixedTargets) {
 
 $generatedDirectories = Get-ChildItem -LiteralPath $workspace -Recurse -Directory -Force -ErrorAction SilentlyContinue |
     Where-Object {
-        $_.Name -in @("bin", "obj", "__pycache__") -and
+        $_.Name -in @("bin", "obj", "__pycache__", "TestResults", "test-results") -and
         $_.FullName -notlike "*\.git\*" -and
         $_.FullName -notlike "*\node_modules\*"
     } |
@@ -72,35 +84,15 @@ foreach ($directory in $generatedDirectories) {
 
 if ($IncludeThesisIntermediates) {
     $checkpointDirectory = Join-Path $workspace "LVTN\checkpoints"
-    $patterns = @(
-        "*before_fields*.docx",
-        "*_nav.docx",
-        "*_linked.docx",
-        "*_repaired.docx",
-        "*followup*.docx",
-        "*followup*.pdf",
-        "*pre-*.docx",
-        "*pre-*.pdf",
-        "content_review_ch4_ch5.docx",
-        "*final_candidate_v2.pdf",
-        "*final_candidate_v3.pdf"
-    )
+    $checkpointFiles = Get-ChildItem -LiteralPath $checkpointDirectory -File -Force -ErrorAction SilentlyContinue
 
-    $checkpointFiles = foreach ($pattern in $patterns) {
-        Get-ChildItem -LiteralPath $checkpointDirectory -File -Force -Filter $pattern -ErrorAction SilentlyContinue
-    }
-
-    foreach ($file in ($checkpointFiles | Sort-Object FullName -Unique)) {
+    foreach ($file in $checkpointFiles) {
         & $git check-ignore -q -- $file.FullName
         if ($LASTEXITCODE -eq 0) {
             Remove-WorkspaceTarget -Target $file.FullName
         }
     }
 
-    if (-not (Get-Process WINWORD -ErrorAction SilentlyContinue)) {
-        Get-ChildItem -LiteralPath $checkpointDirectory -File -Force -Filter "~`$*.docx" -ErrorAction SilentlyContinue |
-            ForEach-Object { Remove-WorkspaceTarget -Target $_.FullName }
-    }
 }
 
 if ($IncludeSupersededThesisDeliverables) {
@@ -119,8 +111,9 @@ if ($IncludeSupersededThesisDeliverables) {
     }
 }
 
-Write-Output ("SUMMARY`t{0:N2} MB`t{1} targets removed`t{2} failures" -f
-    ($deletedBytes / 1MB), $deletedTargets, $failures.Count)
+$mode = if ($Apply) { "APPLIED" } else { "PREVIEW" }
+Write-Output ("SUMMARY`t{0}`t{1:N2} MB`t{2} targets`t{3} failures" -f
+    $mode, ($candidateBytes / 1MB), $candidateTargets, $failures.Count)
 $failures | ForEach-Object { Write-Output ("FAILED`t{0}" -f $_) }
 
 if ($failures.Count -gt 0) {

@@ -16,7 +16,7 @@ rectangle "Hệ thống GTAS VPP" {
   Manage .> Check : <<include>>
   Manage .> Log : <<include>>
   Edit .> Manage : <<extend>>
-  Cancel .> Manage : <<extend>>
+  Cancel .right.> Manage : \n<<extend>>
   Edit .> Persist : <<include>>
   Cancel .> Persist : <<include>>
 

@@ -3,7 +3,7 @@
 title QUẢN LÝ DANH MỤC VĂN PHÒNG PHẨM
 
 left to right direction
-actor "Quản trị hệ thống" as Admin
+actor "Quản lý" as Admin
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Quản lý danh mục" as Catalog

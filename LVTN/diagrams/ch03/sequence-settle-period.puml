@@ -2,7 +2,7 @@
 !include ../common/sequence-style.puml
 title XEM TRƯỚC VÀ XÁC NHẬN CHỐT KỲ
 
-actor "Quản trị hệ thống" as Manager
+actor "Quản lý" as Manager
 boundary "Giao diện" as UI
 control "Hệ thống" as System
 database "Cơ sở dữ liệu" as DB

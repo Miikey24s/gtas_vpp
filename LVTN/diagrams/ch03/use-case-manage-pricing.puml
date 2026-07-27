@@ -2,7 +2,7 @@
 !include ../common/usecase-style.puml
 title QUẢN LÝ BẢNG GIÁ
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
+actor "Quản lý" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Quản lý\nbảng giá" as PriceList #E6E6E6

@@ -4,11 +4,15 @@ const path = require("path");
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const { chromium } = require(path.join(repositoryRoot, "gtas_vpp_fe_react/node_modules/playwright"));
-const atlasArgument = process.argv[2] || process.env.GTAS_ATLAS_ROOT;
-if (!atlasArgument) {
-  throw new Error("Pass the Atlas source directory as the first argument or set GTAS_ATLAS_ROOT.");
-}
+// Atlas đã được đưa vào repository tại docs/design/atlas nên script tự tìm được
+// nguồn. Vẫn cho phép trỏ sang bản khác qua tham số hoặc GTAS_ATLAS_ROOT khi cần
+// đối chiếu với một bản Atlas cũ nằm ngoài repository.
+const defaultAtlasRoot = path.join(repositoryRoot, "docs/design/atlas");
+const atlasArgument = process.argv[2] || process.env.GTAS_ATLAS_ROOT || defaultAtlasRoot;
 const atlasRoot = path.resolve(atlasArgument);
+if (!fs.existsSync(path.join(atlasRoot, "manifest.json"))) {
+  throw new Error(`Không tìm thấy manifest.json trong thư mục Atlas: ${atlasRoot}`);
+}
 const outputRoot = path.join(repositoryRoot, "LVTN/screenshots/ch03/atlas");
 // Khung desktop chuẩn của Atlas. Mục 3.3 được đặt trên trang ngang A4 để
 // giữ cỡ chữ giao diện đủ đọc khi in, thay vì thu nhỏ ảnh 1920 px vào trang dọc.

@@ -3,8 +3,8 @@
 title XEM BẢNG ĐIỀU KHIỂN VÀ DỮ LIỆU TỔNG HỢP
 
 actor "Nhân viên" as Employee
-actor "Quản lý\nphòng ban" as Manager
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
+actor "Quản lý" as Manager
+actor "Quản trị\nhệ thống" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Xem bảng điều khiển và\ndữ liệu tổng hợp" as Summary #E6E6E6

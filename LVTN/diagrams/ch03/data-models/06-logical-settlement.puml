@@ -52,7 +52,7 @@ entity "Dữ liệu phân bổ\nSettlementAllocations" as Allocation {
   --
   SettlementId <<FK>>
   SettlementItemId <<FK>>
-  RequestDetailId
+  RequestDetailId <<FK>>
   DepartmentCode
   GrossAmount
 }

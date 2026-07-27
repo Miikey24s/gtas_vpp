@@ -54,7 +54,7 @@ Mốc gần nhất được ghi trong W1 change-set là 397 backend test và 143
 - Không ghi đè bản gốc `LVTN/NguyenAnNam_DH52201078.docx`.
 - Bản làm việc là `LVTN/NguyenAnNam_DH52201078_working.docx`; bản bàn giao là `LVTN/checkpoints/99_final.docx`.
 - Giữ `MAU_LVTN_2026.pdf` và `Luận văn tốt nghiệp (1).docx` làm tài liệu đối chiếu định dạng.
-- Không thêm page border cho bìa theo quyết định hiện tại của người dùng.
+- Trang bìa có khung page border (chỉ trang 1, `w:display="firstPage"`, nét đôi tím `8064A2` theo mẫu `v_mau_lvtn_2026.pdf`, dịch phải chừa ~2,6 cm mép trái để đóng gáy) — owner duyệt ngày 2026-07-27, thay quyết định "không khung bìa" trước đó.
 - Mục lục, danh mục hình, tài liệu tham khảo và các tham chiếu nội bộ phải là liên kết có thể bấm; trước khi bàn giao phải cập nhật field và kiểm tra số trang.
 - Sơ đồ kỹ thuật giữ cả `.puml` và `.svg`, phù hợp in đen trắng. Đọc `LVTN/diagrams/README.md` trước khi sửa.
 - Dùng script trong `LVTN/tooling/`; lưu render và contact sheet vào thư mục tạm đã bị Git ignore.

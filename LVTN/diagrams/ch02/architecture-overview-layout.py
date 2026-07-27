@@ -74,7 +74,7 @@ def make_svg():
     svg_polyline(parts, [(660, 275), (660, 405)])
     parts.append(svg_text(("HTTP API + JWT / WSS",), 677, 341, 15, anchor="start"))
     svg_polyline(parts, [(800, 495), (890, 495)])
-    parts.append(svg_text(("EF Core / SQL",), 845, 475, 15))
+    parts.append(svg_text(("EF Core /", "SQL"), 845, 464, 15))
     svg_polyline(parts, [(1030, 275), (1030, 405)], dashed=True)
     parts.append(svg_text(("migrate + seed",), 1047, 341, 15, anchor="start"))
 
@@ -181,6 +181,7 @@ def make_png():
     draw_centered(draw, ("/ và /_blazor",), 476, 162, 20, anchor="end")
     draw_centered(draw, ("/api",), 474, 470, 20, anchor="end")
     draw_centered(draw, ("HTTP API + JWT / WSS",), 677, 336, 18, anchor="start")
+    draw_centered(draw, ("EF Core /", "SQL"), 845, 462, 18)
     draw_centered(draw, ("migrate + seed",), 1047, 336, 20, anchor="start")
 
     draw_polyline(draw, [(340,628),(405,628)])

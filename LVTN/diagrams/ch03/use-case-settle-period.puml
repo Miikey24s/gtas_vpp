@@ -2,7 +2,7 @@
 !include ../common/usecase-style.puml
 title XEM TRƯỚC VÀ CHỐT KỲ
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
+actor "Quản lý" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Xem trước và\nchốt kỳ" as Settle #E6E6E6
@@ -13,9 +13,8 @@ rectangle "Hệ thống GTAS VPP" {
   usecase "Ghi nhật ký\nthao tác" as Log
   usecase "Hủy giao dịch khi\nkhông đủ điều kiện" as Rollback
 
-  Settle -[hidden]right- Select
   Settle .> Select : <<include>>
-  Settle .> Validate : <<include>>
+  Settle .[norank].> Validate : <<include>>
   Settle .> Snapshot : <<include>>
   Settle .> Mark : <<include>>
   Settle .> Log : <<include>>
@@ -27,5 +26,6 @@ rectangle "Hệ thống GTAS VPP" {
   Mark -[hidden]down- Log
 }
 
+Procurement -[hidden]down- Select
 Procurement --> Settle
 @enduml

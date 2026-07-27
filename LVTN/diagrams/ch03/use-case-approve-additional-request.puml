@@ -2,7 +2,7 @@
 !include ../common/usecase-style.puml
 title DUYỆT HOẶC TỪ CHỐI ĐƠN BỔ SUNG
 
-actor "Chuyên viên quản lý\nvăn phòng phẩm" as Procurement
+actor "Quản lý" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Xử lý đơn\nbổ sung" as Process #E6E6E6
