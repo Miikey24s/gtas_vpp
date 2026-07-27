@@ -51,6 +51,25 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
+    public void M6_UserAdministration_UsesAtlasCopyAndNeverRendersSessionVersion()
+    {
+        var users = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
+        var userCode = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
+        var inspector = ReadFrontendSource("Components/Pages/Lib/Component_RecordInspector.razor");
+
+        Assert.Contains("Loc[\"UserSearchPlaceholder\"]", users, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"AllAccountStatuses\"]", users, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"PermissionGroup\"]", users, StringComparison.Ordinal);
+        Assert.Contains("accountStatus=", userCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Reset mật khẩu", users, StringComparison.Ordinal);
+        Assert.DoesNotContain("Membership updated", userCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Deactivate membership", userCode, StringComparison.Ordinal);
+        Assert.Contains("IsSensitiveProperty(prop.Name)", inspector, StringComparison.Ordinal);
+        Assert.Contains("name is \"SessionVersion\"", inspector, StringComparison.Ordinal);
+        Assert.DoesNotContain("name is \"Id\" or \"RowVersion\" or \"SessionVersion\"", inspector, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ProductCatalog_LoadsItsFirstPageBeforeTheGridDependsOnItsOwnCount()
     {
         var catalog = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor.cs");

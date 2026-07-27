@@ -97,7 +97,7 @@
 
         foreach (var prop in typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            if (!CanDisplay(prop))
+            if (IsSensitiveProperty(prop.Name) || !CanDisplay(prop))
             {
                 continue;
             }
@@ -183,8 +183,13 @@
             or "UpdatedByUserId" or "UpdatedAtUtc" or "UpdatedByUserName"
             or "PublishedAtUtc" or "PublishedByUserId" or "ExpiredAtUtc" or "ExpiredByUserId";
 
+    private static bool IsSensitiveProperty(string name) =>
+        name is "SessionVersion" or "PasswordHash" or "SecurityStamp" or "ConcurrencyStamp"
+        || name.EndsWith("Token", StringComparison.OrdinalIgnoreCase)
+        || name.EndsWith("TokenHash", StringComparison.OrdinalIgnoreCase);
+
     private static bool IsTechnicalProperty(string name) =>
-        name is "Id" or "RowVersion" or "SessionVersion"
+        name is "Id" or "RowVersion"
         or "OriginalLanguageCode" or "ResolvedLanguageCode" or "IsTranslationFallback"
         or "DisplayName" or "DisplayDescription"
         or "LegacyBackfillStatus"
@@ -235,7 +240,7 @@
         "DepartmentName" => "Phòng ban",
         "AccountStatus" => "Trạng thái tài khoản",
         "IsAdmin" => "Quản trị viên",
-        "IsActive" => "Đang hoạt động",
+        "IsActive" => "Hoạt động",
         "UserType" => "Loại người dùng",
         "Description" => "Mô tả",
         "IsDeleted" => "Trạng thái",
@@ -247,7 +252,7 @@
         _ => configured ?? Humanize(propertyName)
     };
 
-    private static string FormatValue(string propertyName, object? value)
+    private string FormatValue(string propertyName, object? value)
     {
         if (value is string text)
         {
@@ -261,7 +266,7 @@
                 "Draft" => "Bản nháp",
                 "Published" => "Đã công bố",
                 "Expired" => "Hết hiệu lực",
-                "Active" => "Đang hoạt động",
+                "Active" => Loc["LibraryStatusActive"].Value,
                 "PendingApproval" => "Chờ duyệt",
                 "Inactive" => "Ngừng hoạt động",
                 "Active application account" => "Tài khoản ứng dụng đang hoạt động",

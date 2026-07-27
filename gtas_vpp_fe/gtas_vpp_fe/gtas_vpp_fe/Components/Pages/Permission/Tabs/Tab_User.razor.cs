@@ -26,6 +26,7 @@ public partial class Tab_User
     [Inject] public PermissionState PermissionState { get; set; } = default!;
 
     private string SearchText { get; set; } = string.Empty;
+    private string? SelectedAccountStatus { get; set; }
     public List<UserAdministrationResDTO> users { get; set; } = [];
     public IList<UserAdministrationResDTO> selectedUsers { get; set; } = [];
     public RadzenDataGrid<UserAdministrationResDTO>? userGrid { get; set; }
@@ -41,6 +42,12 @@ public partial class Tab_User
     private bool hasRequestedInitialUserGridLoad;
 
     private UserAdministrationResDTO? SelectedUser => selectedUsers.FirstOrDefault();
+    private IReadOnlyList<AccountStatusOption> AccountStatusOptions =>
+    [
+        new("Active", Loc["AccountStatusActive"].Value),
+        new("PendingApproval", Loc["AccountStatusPendingApproval"].Value),
+        new("Disabled", Loc["AccountStatusDisabled"].Value)
+    ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,6 +128,7 @@ public partial class Tab_User
     protected async Task ButtonOnClick_Clear()
     {
         SearchText = string.Empty;
+        SelectedAccountStatus = null;
         if (userGrid is not null)
         {
             await userGrid.FirstPage(true);
@@ -128,6 +136,14 @@ public partial class Tab_User
     }
 
     protected Task ButtonOnClick_Reload() => LoadBaseData();
+
+    protected async Task OnAccountStatusChangedAsync(object? _)
+    {
+        if (userGrid is not null)
+        {
+            await userGrid.FirstPage(true);
+        }
+    }
 
     protected async Task LoadUsersAsync(LoadDataArgs args)
     {
@@ -224,7 +240,7 @@ public partial class Tab_User
         }
 
         await DialogService.OpenSideAsync<Component_RecordInspector<UserAdministrationResDTO>>(
-            $"User: {args.Data.UserLogin}",
+            Loc["UserInspectorTitle", args.Data.UserLogin ?? string.Empty].Value,
             new Dictionary<string, object?> { { "Record", args.Data } },
             options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
     }
@@ -237,10 +253,9 @@ public partial class Tab_User
         }
     }
 
-    protected Task TextBoxOnChange(string value)
+    protected void SearchTextOnInput(ChangeEventArgs args)
     {
-        SearchText = value;
-        return string.IsNullOrWhiteSpace(SearchText) ? ButtonOnClick_Clear() : Task.CompletedTask;
+        SearchText = args.Value?.ToString() ?? string.Empty;
     }
 
     protected async Task SearchTextOnKeyUp(KeyboardEventArgs args)
@@ -269,14 +284,14 @@ public partial class Tab_User
             || user.DepartmentId is not Guid departmentId
             || departmentId == Guid.Empty)
         {
-            NotifyError("Hãy chọn nhóm quyền và phòng ban trước khi kích hoạt tài khoản.");
+            NotifyError(Loc["ActivateAccountRequiresAssignment"].Value);
             return;
         }
 
         var confirmed = await DialogService.Confirm(
-            $"Kích hoạt tài khoản {user.FullName ?? user.UserLogin}?",
-            "Kích hoạt tài khoản",
-            new ConfirmOptions { OkButtonText = "Kích hoạt", CancelButtonText = Loc["Cancel"].Value });
+            Loc["ActivateAccountConfirm", user.FullName ?? user.UserLogin ?? string.Empty].Value,
+            Loc["ActivateAccount"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Activate"].Value, CancelButtonText = Loc["Cancel"].Value });
         if (confirmed != true)
         {
             return;
@@ -298,7 +313,7 @@ public partial class Tab_User
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Tài khoản đã được kích hoạt",
+                Summary = Loc["AccountActivated"].Value,
                 Duration = 4000
             });
             await ReloadUsersAsync();
@@ -324,9 +339,9 @@ public partial class Tab_User
         }
 
         var confirmed = await DialogService.Confirm(
-            $"Tạo mật khẩu tạm thời cho {user.FullName ?? user.UserLogin}? Mật khẩu sẽ chỉ hiển thị một lần cho quản trị viên.",
-            "Reset mật khẩu",
-            new ConfirmOptions { OkButtonText = "Reset", CancelButtonText = Loc["Cancel"].Value });
+            Loc["AdminResetPasswordConfirm", user.FullName ?? user.UserLogin ?? string.Empty].Value,
+            Loc["ResetPasswordAction"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Reset"].Value, CancelButtonText = Loc["Cancel"].Value });
         if (confirmed != true)
         {
             return;
@@ -349,8 +364,8 @@ public partial class Tab_User
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Mật khẩu tạm thời",
-                Detail = $"Gửi mật khẩu này qua kênh nội bộ an toàn: {temporaryPassword}",
+                Summary = Loc["TemporaryPassword"].Value,
+                Detail = Loc["TemporaryPasswordDelivery", temporaryPassword].Value,
                 Duration = 30000
             });
         }
@@ -375,9 +390,9 @@ public partial class Tab_User
         }
 
         var confirmed = await DialogService.Confirm(
-            $"Deactivate the active membership for {user.FullName ?? user.UserLogin}?",
-            "Deactivate membership",
-            new ConfirmOptions { OkButtonText = "Deactivate", CancelButtonText = Loc["Cancel"].Value });
+            Loc["DeactivateMembershipConfirm", user.FullName ?? user.UserLogin ?? string.Empty].Value,
+            Loc["DeactivateMembership"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Deactivate"].Value, CancelButtonText = Loc["Cancel"].Value });
         if (confirmed != true)
         {
             await ReloadUsersAsync();
@@ -400,7 +415,7 @@ public partial class Tab_User
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Membership deactivated",
+                Summary = Loc["MembershipDeactivated"].Value,
                 Duration = 3000
             });
             await ReloadUsersAsync();
@@ -472,7 +487,7 @@ public partial class Tab_User
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Membership updated",
+                Summary = Loc["MembershipUpdated"].Value,
                 Duration = 3000
             });
             await ReloadUsersAsync();
@@ -503,20 +518,20 @@ public partial class Tab_User
             ? Convert.ToBase64String(user.RowVersion)
             : string.Empty;
 
-    private static string GetAccountStatusLabel(UserAdministrationResDTO user) =>
+    private string GetAccountStatusLabel(UserAdministrationResDTO user) =>
         user.AccountStatus switch
         {
-            "Active" when user.IsActive => "Đang hoạt động",
-            "Active" => "Chưa được phân quyền",
-            "PendingApproval" => "Chờ duyệt",
-            "Disabled" => "Đã vô hiệu hóa",
-            _ => user.AccountStatus ?? "Chưa xác định"
+            "Active" when user.IsActive => Loc["AccountStatusActive"].Value,
+            "Active" => Loc["AccountStatusUnassigned"].Value,
+            "PendingApproval" => Loc["AccountStatusPendingApproval"].Value,
+            "Disabled" => Loc["AccountStatusDisabled"].Value,
+            _ => user.AccountStatus ?? Loc["StatusUnknown"].Value
         };
 
     private void NotifyError(string detail) => Toast.Notify(new NotificationMessage
     {
         Severity = NotificationSeverity.Error,
-        Summary = "Error",
+        Summary = Loc["Error"].Value,
         Detail = detail,
         Duration = 10000
     });
@@ -534,6 +549,11 @@ public partial class Tab_User
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(SelectedAccountStatus))
+        {
+            queryParams.Add($"accountStatus={Uri.EscapeDataString(SelectedAccountStatus)}");
         }
 
         if (!string.IsNullOrWhiteSpace(filter))
@@ -559,4 +579,6 @@ public partial class Tab_User
         var queryString = queryParams.Count == 0 ? string.Empty : $"?{string.Join("&", queryParams)}";
         return $"/api/Permission/users{queryString}";
     }
+
+    private sealed record AccountStatusOption(string Value, string Label);
 }

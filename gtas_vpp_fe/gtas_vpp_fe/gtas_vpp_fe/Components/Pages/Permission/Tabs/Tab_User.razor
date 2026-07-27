@@ -64,33 +64,38 @@
                              Gap="0.5rem"
                              Wrap="FlexWrap.Wrap"
                              class="vpp-admin-toolbar-main">
-                    <RadzenFormField AllowFloatingLabel="true" Text="@Loc["Search"]" Variant="Variant.Text" class="permission-search-field">
-                        <ChildContent>
-                            <RadzenTextBox Value="@SearchText"
-                                           aria-label="@Loc["Search"]"
-                                           Change="@(arg => TextBoxOnChange(arg))"
-                                           ValueChanged="@((string value) => SearchText = value)"
-                                           ValueExpression="@(() => SearchText)"
-                                           @onkeypress="@(arg => SearchTextOnKeyUp(arg))" />
-                        </ChildContent>
-                        <End>
-                            <RadzenStack Orientation="Orientation.Horizontal" class="rz-mb-0 rz-pb-0">
-                                <RadzenButton Size="ButtonSize.ExtraSmall"
-                                              Disabled="@(isUserLoading || isUserLookupLoading)"
-                                              ButtonStyle="ButtonStyle.Secondary"
-                                              Icon="filter_alt_off"
-                                              title="@Loc["Reset"]"
-                                              aria-label="@Loc["Reset"]"
-                                              Click="@ButtonOnClick_Clear" />
-                                <RadzenButton Size="ButtonSize.ExtraSmall"
-                                              Disabled="@(isUserLoading || isUserLookupLoading)"
-                                              Icon="search"
-                                              title="@Loc["Search"]"
-                                              aria-label="@Loc["Search"]"
-                                              Click="@ButtonOnClick_SearchUser" />
-                            </RadzenStack>
-                        </End>
-                    </RadzenFormField>
+                    <label class="vpp-order-view-search vpp-library-search permission-search-field">
+                        <VppIcon Name="search" />
+                        <input value="@SearchText"
+                               @oninput="SearchTextOnInput"
+                               @onkeypress="SearchTextOnKeyUp"
+                               placeholder="@Loc["UserSearchPlaceholder"]"
+                               aria-label="@Loc["UserSearchPlaceholder"]" />
+                    </label>
+                    <RadzenDropDown TValue="string"
+                                    Data="@AccountStatusOptions"
+                                    TextProperty="@nameof(AccountStatusOption.Label)"
+                                    ValueProperty="@nameof(AccountStatusOption.Value)"
+                                    @bind-Value="SelectedAccountStatus"
+                                    AllowClear="true"
+                                    Placeholder="@Loc["AllAccountStatuses"]"
+                                    aria-label="@Loc["AllAccountStatuses"]"
+                                    Change="@OnAccountStatusChangedAsync"
+                                    Disabled="@(isUserLoading || isUserLookupLoading)"
+                                    class="permission-status-filter" />
+                    <RadzenButton Size="ButtonSize.ExtraSmall"
+                                  Disabled="@(isUserLoading || isUserLookupLoading)"
+                                  ButtonStyle="ButtonStyle.Secondary"
+                                  Icon="filter_alt_off"
+                                  title="@Loc["Reset"]"
+                                  aria-label="@Loc["Reset"]"
+                                  Click="@ButtonOnClick_Clear" />
+                    <RadzenButton Size="ButtonSize.ExtraSmall"
+                                  Disabled="@(isUserLoading || isUserLookupLoading)"
+                                  Icon="search"
+                                  title="@Loc["Search"]"
+                                  aria-label="@Loc["Search"]"
+                                  Click="@ButtonOnClick_SearchUser" />
                     <RadzenButton Icon="refresh"
                                   Text="@Loc["Reload"]"
                                   Size="ButtonSize.Small"
@@ -118,7 +123,7 @@
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="Trạng thái"
+                                  Title="@Loc["AccountStatus"]"
                                   Width="150px"
                                   Property="@nameof(UserAdministrationResDTO.AccountStatus)"
                                   Filterable="false">
@@ -140,7 +145,7 @@
                                   Property="@nameof(UserAdministrationResDTO.Email)"
                                   Width="220px" />
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["Group"]"
+                                  Title="@Loc["PermissionGroup"]"
                                   Property="@nameof(UserAdministrationResDTO.GroupName)"
                                   Width="190px">
                 <Template Context="user">
@@ -188,7 +193,7 @@
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="Kích hoạt"
+                                  Title="@Loc["ActivateAccount"]"
                                   Width="120px"
                                   Filterable="false"
                                   Sortable="false"
@@ -197,11 +202,11 @@
                     <RadzenSwitch Value="@user.IsActive"
                                   Change="@(_ => DeactivateMembershipAsync(user))"
                                   Disabled="@(!CanDeactivateMembership(user) || isUserLoading)"
-                                  title="@(CanDeactivateMembership(user) ? "Deactivate membership" : "Protected or inactive")" />
+                                  title="@(CanDeactivateMembership(user) ? Loc["DeactivateMembership"].Value : Loc["ProtectedOrInactiveMembership"].Value)" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="Quản trị tài khoản"
+                                  Title="@Loc["AccountAdministration"]"
                                   Width="190px"
                                   Filterable="false"
                                   Sortable="false"
@@ -212,20 +217,20 @@
                         <RadzenButton Icon="person_add"
                                       ButtonStyle="ButtonStyle.Primary"
                                       Size="ButtonSize.Small"
-                                      Text="Kích hoạt"
+                                      Text="@Loc["Activate"]"
                                       Click="@(_ => ActivateAccountAsync(user))"
                                       Disabled="@isUserLoading"
-                                      title="Kích hoạt tài khoản sau khi chọn nhóm quyền và phòng ban" />
+                                      title="@Loc["ActivateAccountHint"]" />
                     }
                     else if (CanResetPassword(user))
                     {
                         <RadzenButton Icon="lock_reset"
                                       ButtonStyle="ButtonStyle.Light"
                                       Size="ButtonSize.Small"
-                                      Text="Reset mật khẩu"
+                                      Text="@Loc["ResetPasswordAction"]"
                                       Click="@(_ => ResetPasswordAsync(user))"
                                       Disabled="@isUserLoading"
-                                      title="Đặt mật khẩu tạm thời và buộc đổi ở lần đăng nhập tiếp theo" />
+                                      title="@Loc["AdminResetPasswordHint"]" />
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -259,8 +264,8 @@
         {
             <div class="vpp-atlas-admin-inspector-empty">
                 <span class="rzi rzi-person_search" aria-hidden="true"></span>
-                <strong>Chọn người dùng để xem chi tiết</strong>
-                <span>Quyền kích hoạt, đặt lại mật khẩu và ngừng phân công vẫn được kiểm tra từ backend.</span>
+                <strong>@Loc["SelectUserForDetails"]</strong>
+                <span>@Loc["UserAdministrationBackendHint"]</span>
             </div>
         }
     </aside>

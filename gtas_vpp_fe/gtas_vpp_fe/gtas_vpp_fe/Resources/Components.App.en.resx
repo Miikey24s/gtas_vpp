@@ -875,4 +875,32 @@
   <data name="LookupValueHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the lookup value.</value></data>
   <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Select a catalog type in the left panel.</value></data>
   <data name="LookupNoValues" xml:space="preserve"><value>No values found.</value></data>
+  <data name="UserSearchPlaceholder" xml:space="preserve"><value>Search account, full name, or email</value></data>
+  <data name="AllAccountStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="PermissionGroup" xml:space="preserve"><value>Permission group</value></data>
+  <data name="AccountStatus" xml:space="preserve"><value>Account status</value></data>
+  <data name="AccountStatusActive" xml:space="preserve"><value>Active</value></data>
+  <data name="AccountStatusPendingApproval" xml:space="preserve"><value>Pending approval</value></data>
+  <data name="AccountStatusDisabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="AccountStatusUnassigned" xml:space="preserve"><value>Permission not assigned</value></data>
+  <data name="ActivateAccount" xml:space="preserve"><value>Activate account</value></data>
+  <data name="Activate" xml:space="preserve"><value>Activate</value></data>
+  <data name="ActivateAccountHint" xml:space="preserve"><value>Activate the account after selecting a permission group and department</value></data>
+  <data name="ActivateAccountRequiresAssignment" xml:space="preserve"><value>Select a permission group and department before activating the account.</value></data>
+  <data name="ActivateAccountConfirm" xml:space="preserve"><value>Activate the account for {0}?</value></data>
+  <data name="AccountActivated" xml:space="preserve"><value>Account activated</value></data>
+  <data name="AccountAdministration" xml:space="preserve"><value>Account administration</value></data>
+  <data name="AdminResetPasswordHint" xml:space="preserve"><value>Set a temporary password and require a change at the next sign-in</value></data>
+  <data name="AdminResetPasswordConfirm" xml:space="preserve"><value>Create a temporary password for {0}? It will be shown to the administrator only once.</value></data>
+  <data name="TemporaryPassword" xml:space="preserve"><value>Temporary password</value></data>
+  <data name="TemporaryPasswordDelivery" xml:space="preserve"><value>Send this password through a secure internal channel: {0}</value></data>
+  <data name="DeactivateMembership" xml:space="preserve"><value>Deactivate assignment</value></data>
+  <data name="ProtectedOrInactiveMembership" xml:space="preserve"><value>The assignment is protected or inactive</value></data>
+  <data name="DeactivateMembershipConfirm" xml:space="preserve"><value>Deactivate the assignment for {0}?</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>Deactivate</value></data>
+  <data name="MembershipDeactivated" xml:space="preserve"><value>Assignment deactivated</value></data>
+  <data name="MembershipUpdated" xml:space="preserve"><value>Assignment updated</value></data>
+  <data name="SelectUserForDetails" xml:space="preserve"><value>Select a user to view details</value></data>
+  <data name="UserAdministrationBackendHint" xml:space="preserve"><value>Activation, password reset, and assignment deactivation are always enforced by the backend.</value></data>
+  <data name="UserInspectorTitle" xml:space="preserve"><value>User: {0}</value></data>
 </root>

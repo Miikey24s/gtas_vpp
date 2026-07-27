@@ -1268,6 +1268,11 @@
     max-width: 340px;
 }
 
+.permission-status-filter {
+    flex: 0 1 190px;
+    min-width: 170px;
+}
+
 /* Atlas department-summary: toolbar tìm kiếm/lọc trên đầu card danh sách đơn. */
 .vpp-atlas-orders-toolbar {
     display: flex;
@@ -1794,6 +1799,11 @@
     .permission-search-field {
         flex: 1 1 100%;
         max-width: none;
+    }
+
+    .permission-status-filter {
+        flex: 1 1 100%;
+        width: 100%;
     }
 
     .vpp-admin-grid-toolbar {

@@ -131,8 +131,12 @@ Tất cả nằm ở `/library?tab=N`, dùng chung `Pages/Lib/Component_ShareGri
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-40 | `users` | `/permission` | `Pages/Permission/Tabs/Tab_User.razor` | `GET users`, `user-groups`; `PUT memberships`; `POST memberships/deactivate` | §3.3.4.3 |
+| 3-40 | `users` | `/permission` | `Pages/Permission/Tabs/Tab_User.razor` | `GET users` (search + `accountStatus`), `groups`; `POST admin/activate`, `admin/reset-password`; `PUT memberships`; `POST memberships/deactivate` | §3.3.4.3 |
 | 3-41 | `permissions` | `/permission` | `Pages/Permission/Tabs/Tab_PagePermission.razor` | `GET groups`, `groups/{id}/page-components`; `PUT groups/{id}` | §3.3.4.4 |
+
+`Tab_User` không tạo/sửa danh tính tài khoản: vòng đời thật là người dùng tự đăng ký → quản trị chọn
+nhóm quyền/phòng ban → kích hoạt. `Component_RecordInspector` chỉ hiển thị dữ liệu nghiệp vụ và audit;
+`SessionVersion`, password hash, security stamp và token bị loại trước khi reflection phân nhóm tab.
 
 ### M7 — Báo cáo
 

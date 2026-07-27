@@ -326,6 +326,21 @@ backend không có vòng đời phê duyệt; classes Atlas vẽ 1 bảng phẳn
 Ma trận quyền đúng 3 vai trò (D1). Mỗi tài khoản một phân công quyền đang hiệu lực; đặt lại mật khẩu,
 đổi nhóm quyền, vô hiệu hóa đều ghi nhật ký bảo mật (§3.3.4.3).
 
+**Tiến độ 2026-07-27 — W-F.1 `users` hoàn tất phần source** (frontend `170/170` test pass):
+
+1. Toolbar dùng search ngữ cảnh `Tìm tài khoản, họ tên hoặc email` và dropdown trạng thái VI;
+   filter gọi thẳng `accountStatus=Active|PendingApproval|Disabled` mà backend đã hỗ trợ, không
+   thêm API/DTO.
+2. Chuẩn hóa copy/resx VI+EN: `Nhóm quyền`, `Hoạt động`, `Đặt lại mật khẩu`, kích hoạt và vô hiệu
+   hóa phân công; bỏ toàn bộ toast/dialog tiếng Anh hardcode trong lát này.
+3. `Component_RecordInspector` loại `SessionVersion` cùng các property secret/stamp/token khỏi
+   display pipeline; vẫn giữ `RowVersion` ở tab Kỹ thuật vì đây là concurrency evidence, không phải secret.
+4. Build Release frontend pass (còn 2 warning nullability có sẵn ở `Tab_LookupLibrary`); browser
+   route thật vẫn chờ phiên TEST đã đăng nhập để kiểm tra 3 viewport, VI/EN, console và network.
+
+**Còn lại W-F.2:** dựng ma trận quyền read-only 18 action × 3 vai trò từ `CanonicalRbac`, giữ vùng
+quản trị component động hiện có, sửa `GroupCode` suy diễn bằng tên hiển thị và đưa copy còn lại vào resx.
+
 ### W-G — M7 báo cáo (1 màn, gap C)
 
 Bỏ mọi dấu vết PDF ở cả code lẫn Atlas (D3). Giữ CSV UTF-8 + XLSX với 5 sheet
