@@ -51,6 +51,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Parameter] public Func<TType, bool, Task<TType>>? SetStatus { get; set; }
         [Parameter] public string? DataEndpoint { get; set; }
         [Parameter] public bool AllowHardDelete { get; set; } = true;
+
+        // Atlas filterBar (W-E): nút thêm mang danh từ riêng của màn ("Thêm phòng ban"…)
+        // và ô tìm kiếm với placeholder ngữ cảnh; SearchFields là các property string
+        // được OR trong biểu thức Dynamic LINQ gửi qua tham số filter sẵn có.
+        [Parameter] public string? CreateLabel { get; set; }
+        [Parameter] public string? SearchPlaceholder { get; set; }
+        [Parameter] public string[] SearchFields { get; set; } = [];
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = default!;
 
         private RadzenDataGrid<TType> DataGrid { get; set; } = default!;
@@ -289,6 +296,39 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return DataGrid.Reload();
         }
 
+        private string searchText = string.Empty;
+        private CancellationTokenSource? searchDebounce;
+
+        private string? CombineWithSearchFilter(string? gridFilter)
+        {
+            var search = searchText.Trim();
+            if (SearchFields.Length == 0 || string.IsNullOrEmpty(search))
+            {
+                return gridFilter;
+            }
+
+            var escaped = search.Replace("\\", "\\\\").Replace("\"", "\\\"").ToLowerInvariant();
+            var clause = "(" + string.Join(" || ", SearchFields.Select(
+                field => $"({field} ?? \"\").ToLower().Contains(\"{escaped}\")")) + ")";
+            return string.IsNullOrWhiteSpace(gridFilter) ? clause : $"({gridFilter}) && {clause}";
+        }
+
+        protected async Task OnSearchInputAsync(ChangeEventArgs args)
+        {
+            searchText = args.Value?.ToString() ?? string.Empty;
+            searchDebounce?.Cancel();
+            searchDebounce?.Dispose();
+            searchDebounce = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(280, searchDebounce.Token);
+                await DataGrid.Reload();
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }
+
         protected string GetColumnDisplayName(PropertyInfo prop, GridColumnMetadata? metadata)
         {
             var key = GetColumnResourceKey(prop.Name);
@@ -309,14 +349,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             glb.isBusyPage = true;
             currentSkip = args.Skip ?? 0;
-            currentFilterExpression = args.Filter;
+            currentFilterExpression = CombineWithSearchFilter(args.Filter);
             StateHasChanged();
 
             string? endpoint = null;
             try
             {
                 endpoint = BuildGridEndpoint(
-                    filter: args.Filter,
+                    filter: currentFilterExpression,
                     skip: args.Skip ?? 0,
                     top: args.Top ?? 20,
                     orderby: args.OrderBy);
@@ -596,7 +636,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 "UomId" => "UOM",
                 "UomName" => "UOM",
                 "Supplier" => "Supplier",
-                "SupplierShortName" => "SupplierCode",
+                "SupplierShortName" => "SupplierShortName",
                 "SupplierName" => "SupplierName",
                 "Address1" => "Address1",
                 "Address2" => "Address2",

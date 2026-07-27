@@ -53,7 +53,7 @@
                      class="vpp-admin-grid-toolbar">
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.375rem" class="vpp-library-actions">
                 <RadzenButton Icon="add"
-                              Text="@Loc["Create"]"
+                              Text="@(CreateLabel ?? Loc["Create"].Value)"
                               ButtonStyle="ButtonStyle.Primary"
                               Size="ButtonSize.Small"
                               class="consumptionaddbutton vpp-library-primary-action"
@@ -69,6 +69,17 @@
                               aria-label="@Loc["Reload"]"
                               Click="@ReloadGridAsync"
                               Disabled="@onEdit" />
+                @if (SearchFields.Length > 0)
+                {
+                    @* Atlas filterBar: tìm kiếm ngữ cảnh trên các trường định danh của màn. *@
+                    <label class="vpp-order-view-search vpp-library-search">
+                        <VppIcon Name="search" />
+                        <input value="@searchText"
+                               @oninput="OnSearchInputAsync"
+                               placeholder="@SearchPlaceholder"
+                               aria-label="@SearchPlaceholder" />
+                    </label>
+                }
             </RadzenStack>
             <VppColumnPicker TItem="TType" GridAccessor="@(() => DataGrid)" />
         </RadzenStack>

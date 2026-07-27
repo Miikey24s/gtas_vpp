@@ -78,11 +78,11 @@
     private readonly List<PropertyInfo> SystemProperties = [];
 
     private string RecordTitle => GetFirstValue(
-        "VppName", "PriceListName", "SupplierName", "DepartmentName", "FullName", "GroupName", "Name")
+        "VppName", "VppCategoryName", "PriceListName", "SupplierName", "DepartmentName", "FullName", "GroupName", "Name")
         ?? "Chi tiết bản ghi";
 
     private string? RecordCode => GetFirstValue(
-        "VppCode", "PriceListCode", "SupplierCode", "DepartmentCode", "UserLogin", "GroupCode", "Code");
+        "VppCode", "VppCategoryCode", "PriceListCode", "SupplierShortName", "SupplierCode", "DepartmentCode", "UserLogin", "GroupCode", "Code");
 
     protected override void OnParametersSet()
     {
@@ -131,9 +131,16 @@
         builder.OpenElement(4, "dd");
         if (value is bool boolean)
         {
+            // IsDeleted mang semantics đảo: true = đã vô hiệu (badge cảnh báo "Ngừng áp dụng"),
+            // false = "Hoạt động" — khớp copy trạng thái soft-delete của Atlas (W-E).
+            var isDeletedFlag = string.Equals(prop.Name, "IsDeleted", StringComparison.Ordinal);
+            var positive = isDeletedFlag ? !boolean : boolean;
+            var text = isDeletedFlag
+                ? (boolean ? Loc["LibraryStatusInactive"].Value : Loc["LibraryStatusActive"].Value)
+                : (boolean ? "Có" : "Không");
             builder.OpenElement(5, "span");
-            builder.AddAttribute(6, "class", $"vpp-admin-status-badge {(boolean ? "is-active" : "is-inactive")}");
-            builder.AddContent(7, boolean ? "Có" : "Không");
+            builder.AddAttribute(6, "class", $"vpp-admin-status-badge {(positive ? "is-active" : "is-inactive")}");
+            builder.AddContent(7, text);
             builder.CloseElement();
         }
         else
@@ -200,6 +207,12 @@
         "PriceListCode" => "Mã bảng giá",
         "PriceListName" => "Tên bảng giá",
         "SupplierName" => "Nhà cung cấp",
+        "SupplierShortName" => "Tên viết tắt",
+        "Address1" => "Địa chỉ 1",
+        "Address2" => "Địa chỉ 2",
+        "Address3" => "Địa chỉ 3",
+        "Ward" => "Phường/Xã",
+        "City" => "Tỉnh/Thành phố",
         "Version" => "Phiên bản",
         "Status" => "Trạng thái",
         "EffectiveFromUtc" => "Hiệu lực từ",
@@ -225,7 +238,7 @@
         "IsActive" => "Đang hoạt động",
         "UserType" => "Loại người dùng",
         "Description" => "Mô tả",
-        "IsDeleted" => "Đã vô hiệu hóa",
+        "IsDeleted" => "Trạng thái",
         "OriginalLanguageCode" => "Ngôn ngữ gốc",
         "ResolvedLanguageCode" => "Ngôn ngữ hiển thị",
         "DisplayName" => "Tên hiển thị",

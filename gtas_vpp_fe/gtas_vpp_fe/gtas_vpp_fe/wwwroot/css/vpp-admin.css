@@ -1262,6 +1262,12 @@
     border-top: 1px solid var(--vpp-border-default);
 }
 
+/* Atlas library filterBar (W-E): ô tìm kiếm ngữ cảnh trong toolbar ShareGrid. */
+.vpp-library-search {
+    flex: 1 1 220px;
+    max-width: 340px;
+}
+
 /* Atlas department-summary: toolbar tìm kiếm/lọc trên đầu card danh sách đơn. */
 .vpp-atlas-orders-toolbar {
     display: flex;

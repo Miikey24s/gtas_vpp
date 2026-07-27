@@ -163,7 +163,7 @@
   <data name="Name" xml:space="preserve"><value>Tên</value></data>
   <data name="Code" xml:space="preserve"><value>Mã</value></data>
   <data name="Value" xml:space="preserve"><value>Giá trị</value></data>
-  <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
+  <data name="IsDeleted" xml:space="preserve"><value>Vô hiệu hóa</value></data>
   <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Danh mục mặt hàng</value></data>
   <data name="DepartmentSummary" xml:space="preserve"><value>Tổng hợp phòng ban</value></data>
@@ -224,7 +224,7 @@
   <data name="SelectVPPItem" xml:space="preserve"><value>Chọn mặt hàng VPP</value></data>
   <data name="AddNewPrice" xml:space="preserve"><value>Thêm giá mới</value></data>
   <data name="EditPrice" xml:space="preserve"><value>Sửa giá</value></data>
-  <data name="Price" xml:space="preserve"><value>Giá</value></data>
+  <data name="Price" xml:space="preserve"><value>Đơn giá</value></data>
   <data name="DefaultPrice" xml:space="preserve"><value>Giá mặc định</value></data>
   <data name="CategoryCode" xml:space="preserve"><value>Mã nhóm hàng</value></data>
   <data name="CategoryName" xml:space="preserve"><value>Tên nhóm hàng</value></data>
@@ -242,7 +242,7 @@
   <data name="PriceSaved" xml:space="preserve"><value>Đã lưu giá</value></data>
   <data name="DefaultUpdated" xml:space="preserve"><value>Đã cập nhật mặc định</value></data>
   <data name="PriceDeleted" xml:space="preserve"><value>Đã xóa giá</value></data>
-  <data name="LoadPricesPrompt" xml:space="preserve"><value>Chọn một mặt hàng VPP để tải giá.</value></data>
+  <data name="LoadPricesPrompt" xml:space="preserve"><value>Chọn bảng giá và nhà cung cấp để tải giá mặt hàng.</value></data>
   <data name="NoPricesFound" xml:space="preserve"><value>Không có giá.</value></data>
   <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Chỉ được có một giá mặc định cho mỗi VPP.</value></data>
   <data name="DeleteFailed" xml:space="preserve"><value>Xóa thất bại</value></data>
@@ -357,7 +357,7 @@
   <data name="RemoveItemFromOrder" xml:space="preserve"><value>Xóa mặt hàng khỏi đơn</value></data>
   <data name="RestoredDraft" xml:space="preserve"><value>Đã khôi phục nháp</value></data>
   <data name="Saving" xml:space="preserve"><value>Đang lưu...</value></data>
-  <data name="Selected" xml:space="preserve"><value>Đã chọn</value></data>
+  <data name="Selected" xml:space="preserve"><value>Đang chọn</value></data>
   <data name="SelectedItemsTotalQuantityFormat" xml:space="preserve"><value>Đã chọn {0} mục với tổng số lượng {1}.</value></data>
   <data name="SetRequestContext" xml:space="preserve"><value>Thiết lập bối cảnh yêu cầu</value></data>
   <data name="SubmitForApproval" xml:space="preserve"><value>Gửi duyệt</value></data>
@@ -827,4 +827,22 @@
   <data name="PeriodStageReviewHint" xml:space="preserve"><value>Danh sách phiên bản đơn hợp lệ hiện hành là nguồn đầu vào cho các bước sau.</value></data>
   <data name="PeriodStageSettleTitle" xml:space="preserve"><value>Xác nhận chốt kỳ</value></data>
   <data name="PeriodStageSettleHint" xml:space="preserve"><value>Xem trước lần cuối và lưu dữ liệu bất biến khi xác nhận; nguồn cung chọn ở bước 3.</value></data>
+  <data name="SupplierShortName" xml:space="preserve"><value>Tên viết tắt</value></data>
+  <data name="VatRate" xml:space="preserve"><value>Thuế</value></data>
+  <data name="EffectiveRange" xml:space="preserve"><value>Hiệu lực</value></data>
+  <data name="LibrarySearchClasses" xml:space="preserve"><value>Tìm mã hoặc tên loại</value></data>
+  <data name="LibrarySearchCategories" xml:space="preserve"><value>Tìm mã hoặc tên danh mục</value></data>
+  <data name="LibrarySearchItems" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
+  <data name="LibrarySearchDepartments" xml:space="preserve"><value>Tìm mã hoặc tên phòng ban</value></data>
+  <data name="LibrarySearchSuppliers" xml:space="preserve"><value>Tìm tên viết tắt hoặc nhà cung cấp</value></data>
+  <data name="LibrarySearchPriceLists" xml:space="preserve"><value>Tìm mã bảng giá</value></data>
+  <data name="LibrarySearchPrices" xml:space="preserve"><value>Tìm mặt hàng trong bảng giá</value></data>
+  <data name="AddClass" xml:space="preserve"><value>Thêm loại danh mục</value></data>
+  <data name="AddCategory" xml:space="preserve"><value>Thêm danh mục</value></data>
+  <data name="AddItem" xml:space="preserve"><value>Thêm mặt hàng</value></data>
+  <data name="AddDepartment" xml:space="preserve"><value>Thêm phòng ban</value></data>
+  <data name="AddSupplier" xml:space="preserve"><value>Thêm nhà cung cấp</value></data>
+  <data name="LibraryStatusActive" xml:space="preserve"><value>Hoạt động</value></data>
+  <data name="LibraryStatusInactive" xml:space="preserve"><value>Ngừng áp dụng</value></data>
+  <data name="RecordStatus" xml:space="preserve"><value>Trạng thái</value></data>
 </root>

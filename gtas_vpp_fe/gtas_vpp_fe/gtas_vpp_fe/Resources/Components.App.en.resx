@@ -163,7 +163,7 @@
   <data name="Name" xml:space="preserve"><value>Name</value></data>
   <data name="Code" xml:space="preserve"><value>Code</value></data>
   <data name="Value" xml:space="preserve"><value>Value</value></data>
-  <data name="IsDeleted" xml:space="preserve"><value>IsDeleted</value></data>
+  <data name="IsDeleted" xml:space="preserve"><value>Deactivated</value></data>
   <data name="MyOrders" xml:space="preserve"><value>My Orders</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Item catalog</value></data>
   <data name="DepartmentSummary" xml:space="preserve"><value>Department summary</value></data>
@@ -224,7 +224,7 @@
   <data name="SelectVPPItem" xml:space="preserve"><value>Select VPP item</value></data>
   <data name="AddNewPrice" xml:space="preserve"><value>Add new price</value></data>
   <data name="EditPrice" xml:space="preserve"><value>Edit price</value></data>
-  <data name="Price" xml:space="preserve"><value>Price</value></data>
+  <data name="Price" xml:space="preserve"><value>Unit price</value></data>
   <data name="DefaultPrice" xml:space="preserve"><value>Default Price</value></data>
   <data name="CategoryCode" xml:space="preserve"><value>Category Code</value></data>
   <data name="CategoryName" xml:space="preserve"><value>Category Name</value></data>
@@ -242,7 +242,7 @@
   <data name="PriceSaved" xml:space="preserve"><value>Price saved</value></data>
   <data name="DefaultUpdated" xml:space="preserve"><value>Default updated</value></data>
   <data name="PriceDeleted" xml:space="preserve"><value>Price deleted</value></data>
-  <data name="LoadPricesPrompt" xml:space="preserve"><value>Select a VPP item to load prices.</value></data>
+  <data name="LoadPricesPrompt" xml:space="preserve"><value>Select a price list and supplier to load item prices.</value></data>
   <data name="NoPricesFound" xml:space="preserve"><value>No prices found.</value></data>
   <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Only one default per VPP is allowed.</value></data>
   <data name="DeleteFailed" xml:space="preserve"><value>Delete failed</value></data>
@@ -827,4 +827,22 @@
   <data name="PeriodStageReviewHint" xml:space="preserve"><value>The current valid order revisions feed the following steps.</value></data>
   <data name="PeriodStageSettleTitle" xml:space="preserve"><value>Confirm settlement</value></data>
   <data name="PeriodStageSettleHint" xml:space="preserve"><value>Final preview and immutable storage on confirmation; supply is chosen in step 3.</value></data>
+  <data name="SupplierShortName" xml:space="preserve"><value>Short name</value></data>
+  <data name="VatRate" xml:space="preserve"><value>VAT</value></data>
+  <data name="EffectiveRange" xml:space="preserve"><value>Effective</value></data>
+  <data name="LibrarySearchClasses" xml:space="preserve"><value>Search type code or name</value></data>
+  <data name="LibrarySearchCategories" xml:space="preserve"><value>Search category code or name</value></data>
+  <data name="LibrarySearchItems" xml:space="preserve"><value>Search item code or name</value></data>
+  <data name="LibrarySearchDepartments" xml:space="preserve"><value>Search department code or name</value></data>
+  <data name="LibrarySearchSuppliers" xml:space="preserve"><value>Search short name or supplier</value></data>
+  <data name="LibrarySearchPriceLists" xml:space="preserve"><value>Search price list code</value></data>
+  <data name="LibrarySearchPrices" xml:space="preserve"><value>Search items in the price list</value></data>
+  <data name="AddClass" xml:space="preserve"><value>Add catalog type</value></data>
+  <data name="AddCategory" xml:space="preserve"><value>Add category</value></data>
+  <data name="AddItem" xml:space="preserve"><value>Add item</value></data>
+  <data name="AddDepartment" xml:space="preserve"><value>Add department</value></data>
+  <data name="AddSupplier" xml:space="preserve"><value>Add supplier</value></data>
+  <data name="LibraryStatusActive" xml:space="preserve"><value>Active</value></data>
+  <data name="LibraryStatusInactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="RecordStatus" xml:space="preserve"><value>Status</value></data>
 </root>
