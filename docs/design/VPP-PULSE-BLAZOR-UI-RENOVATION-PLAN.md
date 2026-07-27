@@ -2,13 +2,31 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.67` — 2026-07-28
+> **Phiên bản:** `2.68` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
 > **Implementation authority:** Blazor/Radzen là implementation authority hiện tại. Chỉ khôi phục hoặc tạo lại React khi owner có quyết định mới.
 >
 > **Research/reference:** Personal Design DNA, VPP Pulse/Figma, PPJ-inspired operating values, Apple HIG và các nguồn UI/data/accessibility chính thức phù hợp từng vấn đề.
+
+---
+
+## 0. Bản một ánh nhìn — UI system scalable
+
+> **Trạng thái:** `PLANNED — OWNER REVIEW`. Đây là plan, chưa cho phép sửa UI production.
+
+| Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
+|---|---|---|
+| Muốn đạt gì? | Một UI Blazor/Radzen dễ đọc, dễ tùy biến và đủ ổn định để AI agent mở rộng mà không tạo thêm component “vạn năng”. | [Mục tiêu và phạm vi](../execution/UI-SYSTEM-001.md#1-mục-tiêu-và-phạm-vi) |
+| Xây theo kiểu nào? | Hybrid: Razor/HTML sở hữu layout; Radzen sở hữu widget phức tạp; tái sử dụng theo `token → primitive → composite → pattern → route`. | [Kiến trúc đích](../execution/UI-SYSTEM-001.md#3-kiến-trúc-đích) |
+| Làm theo thứ tự nào? | F0 khóa baseline → F1 token/bridge → F2 primitive/state → F3 composite → F4 pattern → F5 M0–M2 → F6 M3–M8 → F7 hardening. | [Các wave F0–F7](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
+| Bước code đầu tiên? | Sửa thứ tự CSS để Radzen base tải trước project overrides, thêm guard chống hồi quy và QA các route đại diện; không đổi visual có chủ đích. | [Vertical slice đầu tiên](../execution/UI-SYSTEM-001.md#7-vertical-slice-đầu-tiên-sau-khi-owner-duyệt) |
+| Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
+| Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
+| Cần owner duyệt gì? | Duyệt kiến trúc, thứ tự F0–F7 và phạm vi slice F0.1–F0.3 trước khi sửa code UI. | [Approval gate](../execution/UI-SYSTEM-001.md#9-owner-approval-gate) |
+
+Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
 ---
 
@@ -33,6 +51,7 @@ File này phải được cập nhật trong cùng change-set khi một quyết 
 - `docs/design/VPP-PULSE-DESIGN-BRIEF.md` giữ nghiên cứu art direction và Personal Design DNA.
 - `docs/design/VPP-PULSE-PRODUCT-BLUEPRINT.md` giữ IA, data storytelling và screen inventory mở rộng.
 - `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` định nghĩa MCP, browser QA, accessibility, visual regression và performance workflow cho AI agent.
+- `docs/execution/UI-SYSTEM-001.md` là execution record chi tiết cho đợt chuẩn hóa UI system scalable sau Atlas.
 - Figma `GTAS VPP — VPP Pulse` là tài liệu tham khảo flow/visual/state, không thay thế route/source audit.
 - `src/Frontend/Blazor/AGENTS.md`, UI repo skill và `.github/instructions/frontend.instructions.md` giữ convention Blazor/Radzen hiện hành.
 - `src/Frontend/Blazor/Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
@@ -53,8 +72,8 @@ Khi có xung đột:
 - Owner tạm ngưng React vì sắp tới đợt deadline và tiếp tục hoàn thiện frontend Blazor/Radzen hiện hành.
 - Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
 - Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; dependency Playwright dùng chung đã chuyển vào `scripts/browser/`.
-- Mọi UI work tiếp theo phải sửa trực tiếp `gtas_vpp_fe`, dùng API/DTO và database TEST hoặc isolated fixture thật.
-- Thứ tự hiện tại: khóa lại W1 `dashboard.my-orders` theo baseline round 6 → QA/owner review/commit vertical slice → W2 employee/order flows → W3 management → W4 procurement/period.
+- Mọi UI work tiếp theo phải sửa trực tiếp `src/Frontend/Blazor`, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- Thứ tự hiện tại: Atlas `ATLAS-001` đã hoàn tất → owner duyệt `UI-SYSTEM-001` → thực thi F0 theo vertical slice nhỏ → chỉ mở F1–F7 khi gate liền trước pass.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
 
 **Bằng chứng kích hoạt lại Blazor/Radzen — 2026-07-21:**
@@ -78,7 +97,7 @@ Khi có xung đột:
 - Browser review là approval gate cuối về visual và interaction.
 - Figma chỉ dùng khi cần so sánh phương án, minh họa flow hoặc lưu research.
 - Khi Figma có Import GitHub/Code on Canvas, import toàn repository để đọc đúng Blazor, shared DTO, route catalog và living plan; không chọn `scripts/browser` làm frontend target.
-- Figma không chạy/ship Blazor thay Codex. Nếu cần React code layer để dựng preview, output đó chỉ là prototype thiết kế cô lập; sau owner review, implementation thật vẫn được viết và QA trong `gtas_vpp_fe`.
+- Figma không chạy/ship Blazor thay Codex. Nếu cần React code layer để dựng preview, output đó chỉ là prototype thiết kế cô lập; sau owner review, implementation thật vẫn được viết và QA trong `src/Frontend/Blazor`.
 - Toolchain phải đi theo vai trò: Sosumi/Apple HIG cho hierarchy/clarity/spacing/feedback, Microsoft Learn/Radzen cho framework/component, Playwright cho route/DOM/ARIA, Chrome DevTools cho debug/performance, axe cho accessibility và Figma cho design context.
 - Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
@@ -188,28 +207,11 @@ $env:GTAS_E2E_MUTATION_OPT_IN = 'I_UNDERSTAND_THIS_MUTATES_QA_DATA'
 - PPJ chỉ là nguồn cảm hứng về vận hành/chất liệu; không dùng logo, tên, dữ liệu hoặc ảnh công ty khi chưa có quyền.
 - Screenshot, seed, report và luận văn dùng dữ liệu ẩn danh hoặc deterministic QA data.
 
-### 3.5 RBAC authority và bốn nhóm quyền mục tiêu — OWNER-APPROVED 2026-07-24
+### 3.5 RBAC authority hiện tại — ba vai trò canonical
 
-> **Production freeze:** production tạm dừng hoàn toàn và nằm ngoài phạm vi thiết kế/triển khai hiện tại. Không seed, assign, deploy hoặc thiết kế `BREAK_GLASS_OWNER` cho production trong wave này. Toàn bộ full-access work chỉ phục vụ local Development, TEST và isolated QA.
+> Quyết định bốn vai trò ngày 2026-07-24 là lịch sử và đã bị `D1` trong `docs/execution/ATLAS-001.md` thay thế trước khi code. Authority hiện tại là source `src/Shared/Constants/CanonicalRbac.cs` và luận văn đã được đồng bộ.
 
-**Mô hình mục tiêu có bốn nhóm quyền phẳng, phân biệt rõ trách nhiệm nghiệp vụ:**
-
-1. `EMPLOYEE / Nhân viên`: xem danh mục văn phòng phẩm, tạo và theo dõi đơn của chính mình, xem báo cáo cá nhân và nhận thông báo.
-2. `DEPARTMENT_APPROVER / Quản lý phòng ban`: kế thừa chức năng Nhân viên, xem toàn bộ đơn trong phòng ban và xem báo cáo phòng ban; không phê duyệt/từ chối đơn bổ sung.
-3. `PROCUREMENT_ADMIN / Chuyên viên quản lý văn phòng phẩm`: kế thừa chức năng Nhân viên; xem toàn bộ đơn công ty, phê duyệt/từ chối đơn bổ sung, tổng hợp đơn yêu cầu, quản lý danh mục văn phòng phẩm/đơn vị tính/nhà cung cấp/bảng giá, chọn nguồn cung, rà soát/chốt kỳ và xuất báo cáo toàn công ty.
-4. `SYSTEM_ADMIN / Quản trị hệ thống`: quản lý người dùng, nhóm quyền, quyền truy cập và nhật ký hệ thống; trong local Development, TEST và isolated QA được cấp union toàn bộ action/UI để hỗ trợ phát triển. `DEV` chỉ là tên gọi nội bộ của owner, không phải nhãn vai trò hiển thị cho người dùng và không tạo persona thứ năm.
-
-**Kế thừa vai trò trong Use Case:** dùng actor generalization UML chuẩn: `DEPARTMENT_APPROVER --|> EMPLOYEE` và `PROCUREMENT_ADMIN --|> EMPLOYEE`. `SYSTEM_ADMIN` không kế thừa actor nghiệp vụ trong mô hình luận văn vì full access là union quyền có guard theo môi trường non-production, không phải quan hệ “là một loại” của Quản lý phòng ban hoặc Chuyên viên; sơ đồ biểu diễn riêng use case “Thực hiện toàn bộ chức năng nghiệp vụ”.
-
-**Guardrail:**
-
-- production tiếp tục freeze; full access của Quản trị hệ thống phải fail-closed ngoài allowlist non-production;
-- không hard-code username và không bypass authorization trong controller/service;
-- invariant nghiệp vụ, deadline/status/revision/settlement guard, idempotency và audit vẫn áp dụng;
-- mỗi account giữ một active `UserGroupMembership`; zero hoặc multiple active groups vẫn fail-closed;
-- Atlas, luận văn, seed/test và UI copy phải dùng đúng bốn tên vai trò trên; `Xử lý tự động` là hành vi nội bộ của hệ thống, không phải actor/nhóm quyền trong use case tổng quát.
-
-**Mockup/QA theo role:** Quản trị hệ thống là persona duyệt toàn bộ 28 screen trong non-production. Các board phải annotation đúng `EMPLOYEE`, `DEPARTMENT_APPROVER`, `PROCUREMENT_ADMIN`, `SYSTEM_ADMIN`; control không có quyền phải ẩn hoặc disabled đúng nghiệp vụ, không chỉ đổi visual.
+Ba persona canonical là `EMPLOYEE / Nhân viên`, `MANAGER / Quản lý` và `DEV / Phát triển`. UI chỉ hiển thị action theo permission/API hiện hành; refactor UI không đổi role, seed, authorization, domain guard hoặc production boundary. Khi tài liệu lịch sử phía dưới còn nhắc `DEPARTMENT_APPROVER`, `PROCUREMENT_ADMIN` hoặc `SYSTEM_ADMIN`, coi đó là snapshot đã superseded, không phải lệnh triển khai hiện tại.
 
 ---
 
@@ -1538,12 +1540,12 @@ Các quyết định nền đã được owner duyệt và đang áp dụng:
 - [x] Account flow dùng centered grid shell và không còn PPJ illustration.
 - [x] Controlled wow: mạnh ở heading/data story, tiết chế ở table/form/permission.
 - [x] Desktop-first theo từng route nhưng mọi route phải không vỡ tablet/mobile.
-- [x] W0.2 đã duyệt; W1 Dashboard đang triển khai trước các wave sau.
+- [x] Atlas M0–M8 và refactor R-2 đã hoàn tất theo `ATLAS-001`; kế hoạch tiếp theo là `UI-SYSTEM-001`.
 
 Quyết định RBAC đã được owner chốt:
 
-- [x] Full access chỉ cho `SYSTEM_ADMIN / Quản trị hệ thống` trong local Development/TEST/isolated QA; `DEV` chỉ là tên gọi nội bộ.
-- [x] Production freeze hoàn toàn; không thiết kế hoặc triển khai `BREAK_GLASS_OWNER` trong scope hiện tại.
+- [x] Authority hiện tại có ba role canonical `EMPLOYEE / MANAGER / DEV` theo `CanonicalRbac.cs`; UI refactor không thay đổi RBAC.
+- [x] Mọi production mutation, role redesign hoặc `BREAK_GLASS_OWNER` đều ngoài scope UI và cần approval riêng.
 
 Gate thiết kế mới:
 
@@ -1565,11 +1567,13 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 - [x] M2 Catalog: bộ lọc nằm cùng card header; server paging dùng `Count + LoadData + Skip/Take`; bỏ cột trạng thái nhân viên và nút tải giả chưa có endpoint.
 - [x] M2 Order Create: header hai bước căn giữa; footer theo hierarchy `Quay lại | Lưu nháp → Ghi chú → Tiếp tục`; ghi chú đơn/mặt hàng dùng popover; catalog chọn mặt hàng dùng virtualization và không dùng pager.
 - [x] M2 My Orders/History: giữ selector current/supplement/previous, detail virtualization và history server paging; bỏ PDF/Excel disabled giả ở My Orders vì backend chưa có endpoint tương ứng.
-- [ ] Browser QA M0–M2 trên TEST/isolated fixture tại desktop, tablet và mobile. Lượt 2026-07-26 bị chặn trước khi mở route bởi Aspire Testing (`Service frontend-http should have valid address at this point`); không ghi nhận là UI pass/fail.
+- [x] Browser QA Atlas đã được đóng trong `ATLAS-001`: đủ 28 logical screen tại `390×844`, `768×1024`, `1366×768`, `1920×1080` (112 tổ hợp), không page overflow, console error hoặc network failure ngoài allow-list đã ghi nhận.
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Gate đang chờ hiện tại: hoàn tất browser QA M0–M2 trên Blazor thật, sau đó mới mở M3. RBAC non-production, Design Atlas workflow, typography và phạm vi mockup vòng đầu đã được chốt. Không stage/commit/hoàn tác các thay đổi Word hiện có. React không phải gate hiện tại.
+Gate đang chờ hiện tại: owner duyệt `UI-SYSTEM-001`, sau đó mới thực thi F0.1–F0.3. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
+
+> **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 
 ---
 
