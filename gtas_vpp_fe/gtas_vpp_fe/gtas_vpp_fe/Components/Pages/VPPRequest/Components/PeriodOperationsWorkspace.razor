@@ -1,0 +1,69 @@
+@using System.Security.Claims
+
+<div class="vpp-period-workspace rz-p-0 rz-p-md-2">
+    <header class="vpp-period-workspace-header">
+        <div>
+            <span class="vpp-period-eyebrow">@Loc["PeriodOperations"]</span>
+            @if (ShowDemand)
+            {
+                <h1>@Loc["PeriodDemandTitle"]</h1>
+                <p>@Loc["PeriodDemandDescription"]</p>
+            }
+            else if (ShowSupply)
+            {
+                <h1>@Loc["PeriodSupplyTitle"]</h1>
+                <p>@Loc["PeriodSupplyDescription"]</p>
+            }
+            else
+            {
+                <h1>@Loc["PeriodReviewSettleTitle"]</h1>
+                <p>@Loc["PeriodReviewSettleDescription"]</p>
+            }
+        </div>
+        <nav class="vpp-period-flow" aria-label="@Loc["PeriodFlowAria"]">
+            <button type="button" class="@(ShowReview ? "is-active" : null)"
+                    @onclick="@(() => NavigateRequested.InvokeAsync("review"))"><b>1</b> @Loc["PeriodReview"]</button>
+            <button type="button" class="@(ShowDemand ? "is-active" : null)"
+                    @onclick="@(() => NavigateRequested.InvokeAsync("demand"))"><b>2</b> @Loc["PeriodDemandStep"]</button>
+            <button type="button" class="@(ShowSupply ? "is-active" : null)"
+                    @onclick="@(() => NavigateRequested.InvokeAsync("supply"))"><b>3</b> @Loc["PeriodSupplyStep"]</button>
+            <button type="button" @onclick="@(() => NavigateRequested.InvokeAsync("review"))"><b>4</b> @Loc["PeriodSettleStep"]</button>
+        </nav>
+    </header>
+
+    @if (ShowDemand)
+    {
+        <PeriodDemandPanel Claims="@Claims" />
+    }
+    else if (ShowSupply)
+    {
+        <PeriodSupplyAllocationPanel OnContinueToSettle="@(() => NavigateRequested.InvokeAsync("review"))" />
+    }
+    else
+    {
+        <section class="vpp-period-stage" aria-labelledby="period-review-title">
+            <div class="vpp-period-stage-heading">
+                <div><span>@Loc["PeriodStageStep1"]</span><h2 id="period-review-title">@Loc["PeriodStageReviewTitle"]</h2></div>
+                <p>@Loc["PeriodStageReviewHint"]</p>
+            </div>
+            <PeriodReviewPanel OnSettled="@Settled" />
+        </section>
+
+        <section class="vpp-period-stage" aria-labelledby="period-settlement-title">
+            <div class="vpp-period-stage-heading">
+                <div><span>@Loc["PeriodStageStep4"]</span><h2 id="period-settlement-title">@Loc["PeriodStageSettleTitle"]</h2></div>
+                <p>@Loc["PeriodStageSettleHint"]</p>
+            </div>
+            <PeriodSettlementPanel OnSettled="@Settled" />
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<Claim>? Claims { get; set; }
+    [Parameter] public bool ShowReview { get; set; }
+    [Parameter] public bool ShowDemand { get; set; }
+    [Parameter] public bool ShowSupply { get; set; }
+    [Parameter] public EventCallback<string> NavigateRequested { get; set; }
+    [Parameter] public EventCallback Settled { get; set; }
+}

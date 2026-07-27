@@ -1092,19 +1092,19 @@ Status hợp lệ:
 |---|---|---|
 | `dashboard.management.department` | PENDING | Department scope + queue |
 | `dashboard.management.all` | PENDING | Company scope + drill-down |
-| Supplement approval | PENDING | Base/diff/reason/quota/evidence |
-| Reject dialog | PENDING | Required reason + consequence |
+| Supplement approval | SOURCE_COMPLETE_RUNTIME_PENDING | Queue/detail/action đã theo Atlas; quota x/3 cần DTO riêng |
+| Reject dialog | SOURCE_COMPLETE_RUNTIME_PENDING | Lý do bắt buộc và consequence giữ nguyên qua component split |
 
 ### W4 — Procurement/Period
 
 | Logical route/state | Status | Notes |
 |---|---|---|
-| `dashboard.period-operations` | PENDING | Permission-dependent sub-tabs |
-| Period review | PENDING | KPI + server table + blockers |
-| Additional approval queue | PENDING | Age/SLA/action priority |
-| Supplier/price comparison | PENDING | Exact ranked comparison |
-| Settlement preview | PENDING | Exceptions/evidence/hash |
-| Confirm settlement | PENDING | Immutable snapshot warning |
+| `dashboard.period-operations` | SOURCE_COMPLETE_RUNTIME_PENDING | Permission-dependent sub-tabs; host đã chẻ R-2 |
+| Period review | SOURCE_COMPLETE_RUNTIME_PENDING | Hero + readiness blockers từ preview thật |
+| Additional approval queue | SOURCE_COMPLETE_RUNTIME_PENDING | Sort chờ lâu nhất, detail/action tách component |
+| Supplier/price comparison | IN_IMPLEMENTATION | Supplier-first + exception; còn quyết định đơn giá per-item |
+| Settlement preview | SOURCE_COMPLETE_RUNTIME_PENDING | Exceptions/evidence/hash |
+| Confirm settlement | SOURCE_COMPLETE_RUNTIME_PENDING | Immutable snapshot warning |
 | Settled/revision view | PENDING | Reconciliation + audit timeline |
 
 ### W5 — Library

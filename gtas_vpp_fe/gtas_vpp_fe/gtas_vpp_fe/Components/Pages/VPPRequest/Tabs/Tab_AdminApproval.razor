@@ -1,383 +1,44 @@
 @inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.BaseOrderTab
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Components
-@using gtas_vpp_shared.DTOs.Res.VPP
-@using gtas_vpp_shared.DTOs.Share
-@using gtas_vpp_fe.Helpers
-
 
 @if (CanView)
 {
     @if (ShowSettlementContent || ShowDemandContent || ShowSupplyContent)
     {
-        <div class="vpp-period-workspace rz-p-0 rz-p-md-2">
-            <header class="vpp-period-workspace-header">
-                <div>
-                    <span class="vpp-period-eyebrow">@Loc["PeriodOperations"]</span>
-                    @if (ShowDemandContent)
-                    {
-                        <h1>@Loc["PeriodDemandTitle"]</h1>
-                        <p>@Loc["PeriodDemandDescription"]</p>
-                    }
-                    else if (ShowSupplyContent)
-                    {
-                        <h1>@Loc["PeriodSupplyTitle"]</h1>
-                        <p>@Loc["PeriodSupplyDescription"]</p>
-                    }
-                    else
-                    {
-                        <h1>@Loc["PeriodReviewSettleTitle"]</h1>
-                        <p>@Loc["PeriodReviewSettleDescription"]</p>
-                    }
-                </div>
-                @* Atlas periodFlowNav (D4): 4 bước bấm được. Bước 4 (Chốt kỳ) vẫn render
-                   trong màn Rà soát cho tới khi settlement-flow tách hẳn (W-D.6b). *@
-                <nav class="vpp-period-flow" aria-label="@Loc["PeriodFlowAria"]">
-                    <button type="button" class="@(ShowSettlementContent ? "is-active" : null)"
-                            @onclick="@(() => NavigateToPeriodTab("review"))"><b>1</b> @Loc["PeriodReview"]</button>
-                    <button type="button" class="@(ShowDemandContent ? "is-active" : null)"
-                            @onclick="@(() => NavigateToPeriodTab("demand"))"><b>2</b> @Loc["PeriodDemandStep"]</button>
-                    <button type="button" class="@(ShowSupplyContent ? "is-active" : null)"
-                            @onclick="@(() => NavigateToPeriodTab("supply"))"><b>3</b> @Loc["PeriodSupplyStep"]</button>
-                    <button type="button" @onclick="@(() => NavigateToPeriodTab("review"))"><b>4</b> @Loc["PeriodSettleStep"]</button>
-                </nav>
-            </header>
-
-            @if (ShowDemandContent)
-            {
-                <PeriodDemandPanel Claims="@claims" />
-            }
-            else if (ShowSupplyContent)
-            {
-                <PeriodSupplyAllocationPanel OnContinueToSettle="@(() => NavigateToPeriodTab("review"))" />
-            }
-            else
-            {
-                <section class="vpp-period-stage" aria-labelledby="period-review-title">
-                    <div class="vpp-period-stage-heading">
-                        <div><span>@Loc["PeriodStageStep1"]</span><h2 id="period-review-title">@Loc["PeriodStageReviewTitle"]</h2></div>
-                        <p>@Loc["PeriodStageReviewHint"]</p>
-                    </div>
-                    <PeriodReviewPanel OnSettled="@OnSettledRefresh" />
-                </section>
-
-                <section class="vpp-period-stage" aria-labelledby="period-settlement-title">
-                    <div class="vpp-period-stage-heading">
-                        <div><span>@Loc["PeriodStageStep4"]</span><h2 id="period-settlement-title">@Loc["PeriodStageSettleTitle"]</h2></div>
-                        <p>@Loc["PeriodStageSettleHint"]</p>
-                    </div>
-                    <PeriodSettlementPanel OnSettled="@OnSettledRefresh" />
-                </section>
-            }
-        </div>
+        <PeriodOperationsWorkspace Claims="@claims"
+                                   ShowReview="@ShowSettlementContent"
+                                   ShowDemand="@ShowDemandContent"
+                                   ShowSupply="@ShowSupplyContent"
+                                   NavigateRequested="@NavigateToPeriodTab"
+                                   Settled="@OnSettledRefresh" />
     }
     else if (ShowApprovalsContent)
     {
-        <RadzenStack Gap="2rem" class="rz-p-0 rz-p-md-2">
-                    <div class="vpp-section">
-                        <RadzenStack Gap="1rem">
-
-                @* ── KPI Summary ────────────────────────────────────── *@
-                @if (IsLoading)
-                {
-                    <SkeletonPage Cards="3" Rows="6" Cols="8" />
-                }
-                else
-                {
-                    <div class="kpi-grid" style="--kpi-cols: 3;">
-                        <div class="kpi-card kpi-amber">
-                            <div class="kpi-card-shine"></div>
-                            <div class="kpi-card-content">
-                                <div class="kpi-card-header">
-                                    <span class="kpi-card-label">@Loc["PendingOrders"]</span>
-                                    <span class="kpi-card-icon rzi rzi-pending-actions"></span>
-                                </div>
-                                <div class="kpi-card-value">@TotalCount</div>
-                            </div>
-                        </div>
-                        <div class="kpi-card kpi-blue">
-                            <div class="kpi-card-shine"></div>
-                            <div class="kpi-card-content">
-                                <div class="kpi-card-header">
-                                    <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
-                                    <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
-                                </div>
-                                <div class="kpi-card-value">@TotalLines</div>
-                            </div>
-                        </div>
-                        <div class="kpi-card kpi-emerald">
-                            <div class="kpi-card-shine"></div>
-                            <div class="kpi-card-content">
-                                <div class="kpi-card-header">
-                                    <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
-                                    <span class="kpi-card-icon rzi rzi-inventory-2"></span>
-                                </div>
-                                <div class="kpi-card-value">@TotalQty</div>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                @* ── DataGrid ───────────────────────────────────────── *@
-                @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
-                {
-                    <VppEmptyState Icon="check_circle"
-                                   Title="@Loc["AllClear"]"
-                                   Description="@Loc["NoPendingAdditionalOrders"]"
-                                   PrimaryText="@Loc["RefreshQueue"]"
-                                   PrimaryAction="@(async _ => await ReloadAsync())" />
-                }
-                else
-                {
-                    <div class="vpp-atlas-order-workspace vpp-atlas-approval-workspace">
-                    <div class="vpp-atlas-order-collection">
-                    <div class="vpp-mobile-cards">
-                        <VppMobileCard Items="@PendingOrders" Actions="@RenderMobileActions" />
-                    </div>
-
-                    <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
-                        <RadzenDataGrid TItem="VppRequestResDTO" Data="@PendingOrders"
-                                Count="@TotalCount" LoadData="@OnLoadData"
-                                AllowPaging="true" PageSize="@PageSize"
-                                PageSizeOptions="@(new int[] { 10, 20, 50 })"
-                                PageSizeText="@Loc["ItemsPerPage"]"
-                                ShowPagingSummary="true"
-                                PagerHorizontalAlign="HorizontalAlign.Left"
-                                AllowSorting="true" AllowAlternatingRows="true"
-                                AllowColumnResize="true" ExpandMode="DataGridExpandMode.Single"
-                                RowExpand="OnRowExpandAsync"
-                                RowSelect="SelectPendingOrderAsync"
-                                SelectionMode="DataGridSelectionMode.Single"
-                                IsLoading="@IsGridLoading"
-                                AllowFiltering="true"
-                                AllowMultiColumnSorting="true"
-                                ShowMultiColumnSortingIndex="true"
-                                AllowColumnReorder="false"
-                                FilterMode="FilterMode.CheckBoxList"
-                                LoadColumnFilterData="@OnLoadColumnFilterData"
-                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-order-grid"
-                                Style="border: none; --vpp-grid-min-width: 1460px;">
-                            <Columns>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                            <Template Context="row">@(CurrentSkip + PendingOrders.IndexOf(row) + 1)</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.VppCode)" Title="@Loc["OrderCode"]" Width="220px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <div class="vpp-order-code-cell">
-                                    <span class="vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@row.VppCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
-                                        @GetShortCode(row)
-                                    </span>
-                                    <div class="vpp-order-code-popover">
-                                        <span class="vpp-order-code-popover-text">@row.VppCode</span>
-                                        <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(row.VppCode))" Title="@Loc["Copy"]" />
-                                    </div>
-                                    @if (row.IsAdditionalOrder)
-                                    {
-                                        <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" Style="font-size: 0.65rem;" />
-                                    }
-                                </div>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.Period)" Title="@Loc["Period"]" Width="105px" TextAlign="TextAlign.Center">
-                            <Template Context="row">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.Period" />
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" Width="130px" TextAlign="TextAlign.Center" Sortable="true">
-                            <Template Context="row">
-                                <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
-                                @if (row.SettledAt.HasValue)
-                                {
-                                    <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(row.SettledAt, DateFormatter.LongDate)} - {row.SettledByPriceListName}")">
-                                        @Loc["Settled"]
-                                    </span>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.DepartmentCode)" Title="@Loc["Department"]" Width="105px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.RequesterName)" Title="@Loc["HistoryRequester"]" Width="150px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.RequesterName</span>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalLines)" Title="@Loc["TotalLineItems"]" Width="125px" TextAlign="TextAlign.Center">
-                            <Template Context="row"><strong>@row.TotalLines</strong></Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="125px" TextAlign="TextAlign.Center">
-                            <Template Context="row"><strong>@row.TotalQty</strong></Template>
-                        </RadzenDataGridColumn>
-                        @* F-29: route through DateFormatter so the culture (vi-VN) is enforced consistently with the rest of the order tabs. *@
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.SubmittedDate)" FilterProperty="@nameof(VppRequestResDTO.SubmittedDateText)" Title="@Loc["SubmittedDate"]" Width="160px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
-                            <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.Description)" Title="@Loc["Description"]" Width="190px" TextAlign="TextAlign.Left" />
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Title="@Loc["Actions"]" Width="110px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                            <Template Context="order">
-                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.25rem">
-                                    @* F-28: icon-only buttons must expose an accessible name to screen readers (aria-label)
-                                       in addition to the visible Title tooltip. Include the order code so screen-reader
-                                       users hear which row they are about to approve/reject. *@
-                                    @if (CanApprove)
-                                    {
-                                        <RadzenButton Icon="check_circle"
-                                                      Size="ButtonSize.Small"
-                                                      ButtonStyle="ButtonStyle.Success"
-                                                      Variant="Variant.Flat"
-                                                      Click="@(async () => await HandleApproveClick(order))"
-                                                      Title="@Loc["Approve"]"
-                                                      aria-label="@string.Format(Loc["ApproveOrderAria"], order.VppCode)"
-                                                      Disabled="@IsProcessing(order.Id)"
-                                                      IsBusy="@IsProcessing(order.Id)" />
-                                    }
-                                    @if (CanReject)
-                                    {
-                                        <RadzenButton Icon="cancel"
-                                                      Size="ButtonSize.Small"
-                                                      ButtonStyle="ButtonStyle.Danger"
-                                                      Variant="Variant.Flat"
-                                                      Click="@(async () => await HandleRejectClick(order))"
-                                                      Title="@Loc["Reject"]"
-                                                      aria-label="@string.Format(Loc["RejectOrderAria"], order.VppCode)"
-                                                      Disabled="@IsProcessing(order.Id)"
-                                                      IsBusy="@IsProcessing(order.Id)" />
-                                    }
-                                </RadzenStack>
-                            </Template>
-                        </RadzenDataGridColumn>
-                            </Columns>
-                            <Template Context="row">
-                        <div class="vpp-expand-detail">
-                            <div class="vpp-expand-detail-header">
-                                <span class="rzi rzi-list-alt"></span>
-                                @Loc["OrderDetails"]
-                            </div>
-                            @if (IsRowDetailLoading(row.Id))
-                            {
-                                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 3px;" />
-                            }
-                            <RadzenDataGrid TItem="VppRequestDetailResDTO" Data="@(row.Items ?? new())"
-                                            AllowPaging="false" AllowFiltering="false" AllowSorting="false"
-                                            Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                                            class="vpp-order-grid"
-                                            Style="border: none;">
-                                <Columns>
-                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                                        <Template Context="item">@((row.Items?.IndexOf(item) ?? -1) + 1)</Template>
-                                    </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="130px" TextAlign="TextAlign.Left" />
-                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="VppName" Title="@Loc["ProductName"]" Width="280px" TextAlign="TextAlign.Left" />
-                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Qty" Title="@Loc["Quantity"]" Width="90px" TextAlign="TextAlign.Center" />
-<RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="UomName" Title="@Loc["UOM"]" Width="100px" TextAlign="TextAlign.Center" />
-                                    <RadzenDataGridColumn TItem="VppRequestDetailResDTO" Property="Description" Title="@Loc["Note"]" Width="180px" TextAlign="TextAlign.Left" />
-                                </Columns>
-                            </RadzenDataGrid>
-                        </div>
-                            </Template>
-                        </RadzenDataGrid>
-                    </div>
-                    </div>
-                    <aside class="vpp-atlas-order-detail" aria-live="polite">
-                        @if (SelectedPendingOrder is null)
-                        {
-                            <div class="vpp-atlas-order-detail-empty">
-                                <span class="rzi rzi-approval" aria-hidden="true"></span>
-                                <strong>@Loc["ApprovalSelectOrder"]</strong>
-                                <span>@Loc["ApprovalSelectOrderDescription"]</span>
-                            </div>
-                        }
-                        else
-                        {
-                            @* Atlas orderDetailSheet (placement approval): kicker + mã/badge trạng thái động + meta + nút xuất (D10). *@
-                            <header class="vpp-atlas-sheet-header">
-                                <div>
-                                    <span class="vpp-atlas-sheet-kicker">@Loc["HistoryDetailSheetTitle"]</span>
-                                    <div class="vpp-atlas-sheet-code">
-                                        <strong>@SelectedPendingOrder.VppCode</strong>
-                                        <span class="vpp-badge @StatusDisplay.GetCssClass(SelectedPendingOrder.Status)">@SelectedPendingOrder.StatusText</span>
-                                    </div>
-                                    @if (SelectedPendingOrder.SubmittedDate.HasValue)
-                                    {
-                                        <p class="vpp-atlas-sheet-meta">@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(SelectedPendingOrder.SubmittedDate, DateFormatter.LongDate))</p>
-                                    }
-                                </div>
-                                <div class="vpp-atlas-sheet-actions">
-                                    <RadzenButton Icon="picture_as_pdf"
-                                                  Size="ButtonSize.Small"
-                                                  ButtonStyle="ButtonStyle.Base"
-                                                  Variant="Variant.Text"
-                                                  Click="@(async _ => await ExportOrderPdfAsync(SelectedPendingOrder))"
-                                                  Title="@Loc["ExportPdf"]"
-                                                  aria-label="@string.Format(Loc["ExportOrderPdfAria"], SelectedPendingOrder.VppCode)"
-                                                  Disabled="@IsExportingOrder" />
-                                    <RadzenButton Icon="table_view"
-                                                  Size="ButtonSize.Small"
-                                                  ButtonStyle="ButtonStyle.Base"
-                                                  Variant="Variant.Text"
-                                                  Click="@(async _ => await ExportOrderExcelAsync(SelectedPendingOrder))"
-                                                  Title="@Loc["ExportExcel"]"
-                                                  aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedPendingOrder.VppCode)"
-                                                  Disabled="@IsExportingOrder" />
-                                </div>
-                            </header>
-                            <dl class="vpp-atlas-order-facts">
-                                <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedPendingOrder.RequesterName">@SelectedPendingOrder.RequesterName</dd></div>
-                                <div><dt>@Loc["Department"]</dt><dd>@SelectedPendingOrder.DepartmentCode</dd></div>
-                                <div><dt>@Loc["Period"]</dt><dd>@SelectedPendingOrder.Period</dd></div>
-                                <div><dt>@Loc["TotalQuantity"]</dt><dd>@SelectedPendingOrder.TotalQty</dd></div>
-                            </dl>
-                            <div class="vpp-atlas-approval-reason">
-                                <span>@Loc["SupplementReason"]</span>
-                                <p>@(string.IsNullOrWhiteSpace(SelectedPendingOrder.SupplementReason) ? Loc["ApprovalNoReason"] : SelectedPendingOrder.SupplementReason)</p>
-                            </div>
-                            <div class="vpp-atlas-order-items">
-                                <div class="vpp-atlas-sheet-items-heading">
-                                    <h3>@Loc["ApprovalItemsHeading"]</h3>
-                                    <span class="vpp-badge vpp-badge-info">@Loc["ItemsCount", SelectedPendingOrder.Items?.Count ?? 0]</span>
-                                </div>
-                                @if (IsRowDetailLoading(SelectedPendingOrder.Id))
-                                {
-                                    <SkeletonPage Cards="0" Rows="5" Cols="3" />
-                                }
-                                else
-                                {
-                                    @foreach (var item in SelectedPendingOrder.Items ?? new())
-                                    {
-                                        <div class="vpp-atlas-order-item">
-                                            <span>
-                                                <strong title="@item.VppName">@item.VppName</strong>
-                                                <small>@item.VppCode · @item.CategoryName · @item.UomName</small>
-                                                @if (!string.IsNullOrWhiteSpace(item.Description))
-                                                {
-                                                    <small class="vpp-atlas-item-note" title="@item.Description">@item.Description</small>
-                                                }
-                                            </span>
-                                            <b>@item.Qty</b>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                            <footer class="vpp-atlas-approval-actions">
-                                @if (CanReject)
-                                {
-                                    <RadzenButton Icon="cancel" Text="@Loc["Reject"]" ButtonStyle="ButtonStyle.Danger"
-                                                  Disabled="@IsProcessing(SelectedPendingOrder.Id)"
-                                                  Click="@(_ => HandleRejectClick(SelectedPendingOrder))" />
-                                }
-                                @if (CanApprove)
-                                {
-                                    <RadzenButton Icon="check_circle" Text="@Loc["Approval"]" ButtonStyle="ButtonStyle.Primary"
-                                                  Disabled="@IsProcessing(SelectedPendingOrder.Id)"
-                                                  Click="@(_ => HandleApproveClick(SelectedPendingOrder))" />
-                                }
-                            </footer>
-                        }
-                    </aside>
-                    </div>
-                }
-                        </RadzenStack>
-                    </div>
-        </RadzenStack>
+        <PendingApprovalWorkspace Orders="@PendingOrders"
+                                  TotalCount="@TotalCount"
+                                  TotalLines="@TotalLines"
+                                  TotalQuantity="@TotalQty"
+                                  PageSize="@PageSize"
+                                  CurrentSkip="@CurrentSkip"
+                                  IsLoading="@IsLoading"
+                                  IsGridLoading="@IsGridLoading"
+                                  CanApprove="@CanApprove"
+                                  CanReject="@CanReject"
+                                  IsExporting="@IsExportingOrder"
+                                  SelectedOrder="@SelectedPendingOrder"
+                                  Processing="@IsProcessing"
+                                  DetailLoading="@IsRowDetailLoading"
+                                  ShortCode="@GetShortCode"
+                                  ReloadRequested="@ReloadAsync"
+                                  LoadDataRequested="@OnLoadData"
+                                  ColumnFilterDataRequested="@OnLoadColumnFilterData"
+                                  RowExpandRequested="@OnRowExpandAsync"
+                                  OrderSelected="@SelectPendingOrderAsync"
+                                  ApproveRequested="@HandleApproveClick"
+                                  RejectRequested="@HandleRejectClick"
+                                  CopyRequested="@CopyToClipboard"
+                                  ExportPdfRequested="@ExportOrderPdfAsync"
+                                  ExportExcelRequested="@ExportOrderExcelAsync" />
     }
     else
     {
@@ -395,33 +56,4 @@ else
                    Description="@Loc["NoPermission"]"
                    SecondaryText="@Loc["BackToAllowedPage"]"
                    SecondaryHref="/" />
-}
-
-@code {
-    private RenderFragment<VppRequestResDTO> RenderMobileActions => order => @<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        @if (CanApprove)
-        {
-            <RadzenButton Icon="check_circle"
-                          Size="ButtonSize.Small"
-                          ButtonStyle="ButtonStyle.Success"
-                          Variant="Variant.Flat"
-                          Click="@(async () => await HandleApproveClick(order))"
-                          Title="@Loc["Approve"]"
-                          aria-label="@string.Format(Loc["ApproveOrderAria"], order.VppCode)"
-                          Disabled="@IsProcessing(order.Id)"
-                          IsBusy="@IsProcessing(order.Id)" />
-        }
-        @if (CanReject)
-        {
-            <RadzenButton Icon="cancel"
-                          Size="ButtonSize.Small"
-                          ButtonStyle="ButtonStyle.Danger"
-                          Variant="Variant.Flat"
-                          Click="@(async () => await HandleRejectClick(order))"
-                          Title="@Loc["Reject"]"
-                          aria-label="@string.Format(Loc["RejectOrderAria"], order.VppCode)"
-                          Disabled="@IsProcessing(order.Id)"
-                          IsBusy="@IsProcessing(order.Id)" />
-        }
-    </RadzenStack>;
 }

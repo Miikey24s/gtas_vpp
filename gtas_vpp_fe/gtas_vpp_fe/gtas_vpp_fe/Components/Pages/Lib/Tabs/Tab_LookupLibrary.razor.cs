@@ -200,7 +200,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupCategory>(
                 Loc["AddClass"].Value,
-                new Dictionary<string, object> { ["IsCreate"] = true },
+                new Dictionary<string, object?> { ["IsCreate"] = true },
                 new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
 
             if (result is LookupCategoryResDTO)
@@ -220,7 +220,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             var model = new LookupValueResDTO { Code = "", Value = "", LookupCategoryId = selectedLookupCategory.Id };
             var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupValue>(
                 Loc["AddLookupValue"].Value,
-                new Dictionary<string, object> { ["IsCreate"] = true, ["Model"] = model },
+                new Dictionary<string, object?> { ["IsCreate"] = true, ["Model"] = model },
                 new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
 
             if (result is LookupValueResDTO)

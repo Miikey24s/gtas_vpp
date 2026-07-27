@@ -32,14 +32,29 @@ public sealed class AtlasWave1ArchitectureTests
     public void PeriodOperations_UsePreviewBeforeConfirmation()
     {
         var host = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor");
+        var workspace = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodOperationsWorkspace.razor");
         var review = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor");
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
 
-        Assert.Contains("<PeriodSettlementPanel", host, StringComparison.Ordinal);
+        Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
+        Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
         // Copy đã chuyển sang resx (W-D): khóa qua key SettleQuotesHeading thay vì chuỗi cứng.
         Assert.Contains("Loc[\"SettleQuotesHeading\"]", settlement, StringComparison.Ordinal);
         Assert.Contains("preview.Blockers", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("Click=\"@SettleAsync\"", review, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PeriodOperations_HostDelegatesLargeWorkspacesToFocusedComponents()
+    {
+        var host = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor");
+        var approvals = ReadFrontendSource("Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor");
+
+        Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
+        Assert.Contains("<PendingApprovalWorkspace", host, StringComparison.Ordinal);
+        Assert.Contains("RadzenDataGrid TItem=\"VppRequestResDTO\"", approvals, StringComparison.Ordinal);
+        Assert.DoesNotContain("RadzenDataGrid", host, StringComparison.Ordinal);
+        Assert.True(host.Split('\n').Length < 100);
     }
 
     [Fact]
