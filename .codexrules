@@ -1,5 +1,0 @@
-# Legacy UI instruction adapter
-
-Nguồn chính thức nằm tại `src/Frontend/Blazor/AGENTS.md`, repo skill
-`.agents/skills/gtas-vpp-ui-system/` và Blazor living plan. Không thêm quy tắc
-UI độc lập vào file compatibility này.

@@ -7,14 +7,13 @@ const atlasRoot = __dirname;
 // Trước đây hai đường dẫn dưới đây được ghi cứng thành D:/WORK/gtas_vpp,
 // khiến script chỉ chạy được trên đúng một máy.
 const repoRoot = path.resolve(atlasRoot, "..", "..", "..");
-// Playwright của Node chỉ được cài trong gtas_vpp_fe_react (dự án phụ đang tạm dừng).
-// Render Atlas là việc thỉnh thoảng mới chạy nên chấp nhận phụ thuộc này, nhưng
-// phải báo lỗi rõ ràng thay vì ném ra một MODULE_NOT_FOUND khó hiểu.
-const playwrightPath = path.join(repoRoot, "gtas_vpp_fe_react", "node_modules", "playwright");
+// Playwright của Node được cài tại dependency host dùng chung cho tooling browser.
+// Phải báo lỗi rõ ràng thay vì ném ra một MODULE_NOT_FOUND khó hiểu.
+const playwrightPath = path.join(repoRoot, "scripts", "browser", "node_modules", "playwright");
 if (!fs.existsSync(playwrightPath)) {
   throw new Error(
     `Không tìm thấy Playwright tại ${playwrightPath}. ` +
-    "Chạy `npm install` trong gtas_vpp_fe_react trước khi render Atlas."
+    "Chạy `npm ci` trong scripts/browser trước khi render Atlas."
   );
 }
 const { chromium } = require(playwrightPath);

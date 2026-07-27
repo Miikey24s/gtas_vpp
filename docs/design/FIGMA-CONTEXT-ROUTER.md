@@ -8,7 +8,7 @@ React.
 Trước khi thiết kế, đọc:
 
 1. `AGENTS.md`
-2. `.codexrules` và `.github/copilot-instructions.md`
+2. `.github/copilot-instructions.md` và `src/Frontend/Blazor/AGENTS.md`
 3. `docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md`
 4. `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`
 5. `src/Frontend/Blazor/Helpers/RouteCatalog.cs`
@@ -16,7 +16,7 @@ Trước khi thiết kế, đọc:
 Sau đó khảo sát Razor/CSS/resource/test thật trong
 `src/Frontend/Blazor/` và contract dùng chung trong
 `src/Shared/`. Khi thật sự cần đối chiếu React POC cũ, đọc tag
-`archive/react-poc-2026-07-27`; `gtas_vpp_fe_react/` hiện chỉ chứa Playwright cho tooling LVTN.
+`archive/react-poc-2026-07-27`; dependency Playwright dùng chung nằm ở `scripts/browser/`.
 
 Figma agent được toàn quyền tự chọn art direction, bố cục, typography,
 component, motion và cách kể chuyện dữ liệu. UI hiện tại, Personal Design DNA

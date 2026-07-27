@@ -14,7 +14,7 @@
 ## Phạm vi chuẩn
 
 - Backend: `src/Backend/`; frontend chính: `src/Frontend/Blazor/`; shared DTO duy nhất: `src/Shared/`.
-- `gtas_vpp_fe_react/` chỉ giữ dependency Playwright cho tooling LVTN; React POC nằm ở tag `archive/react-poc-2026-07-27`.
+- Dependency Playwright dùng chung cho Atlas/LVTN nằm ở `scripts/browser/`; React POC chỉ còn trong tag `archive/react-poc-2026-07-27`.
 - Khi sửa backend, frontend, tests hoặc LVTN, đọc scoped `AGENTS.md` tương ứng.
 - Không sao chép DTO shared vào frontend và không sửa API/database/nghiệp vụ chỉ để khớp Atlas hoặc luận văn.
 - Identifier giữ tiếng Anh theo convention. Comment source mới hoặc được chạm trong scope viết tiếng Việt ngắn gọn, chỉ giải thích nghiệp vụ khó đoán.

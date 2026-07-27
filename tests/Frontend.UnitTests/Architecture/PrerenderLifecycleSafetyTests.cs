@@ -65,7 +65,7 @@ public sealed class PrerenderLifecycleSafetyTests
              directory is not null;
              directory = directory.Parent)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.slnx")))
             {
                 return directory.FullName;
             }

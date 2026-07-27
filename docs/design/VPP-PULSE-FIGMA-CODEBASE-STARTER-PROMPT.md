@@ -3,7 +3,7 @@
 ## Trước khi gửi prompt
 
 1. Import toàn repository `Miikey24s/gtas_vpp` từ GitHub, branch nguồn `Nam`.
-2. Không chọn `gtas_vpp_fe_react` làm frontend target; đây chỉ là Playwright tooling. Nếu Figma hỏi working
+2. Không chọn `scripts/browser` làm frontend target; đây chỉ là Playwright tooling. Nếu Figma hỏi working
    directory có thể chạy bằng Node, dùng code layer/workspace cô lập của Figma;
    repository vẫn chỉ là nguồn context.
 3. Không cho Figma sửa trực tiếp production code trong vòng thiết kế. Nếu công cụ
@@ -22,7 +22,7 @@ PRE-FLIGHT VÀ NGUỒN AUTHORITY
    React POC phụ đã lưu tại tag archive/react-poc-2026-07-27. Không lấy React
    phụ làm target, không đề xuất cutover framework và không sửa nó.
 3. Đọc đầy đủ theo thứ tự:
-   - Guidelines.md
+   - docs/design/FIGMA-CONTEXT-ROUTER.md
    - AGENTS.md
    - src/Frontend/Blazor/AGENTS.md
    - .agents/skills/gtas-vpp-ui-system/SKILL.md

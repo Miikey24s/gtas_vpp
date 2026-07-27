@@ -54,7 +54,6 @@ $adapterLimits = @{
     'CLAUDE.md' = 20
     'GEMINI.md' = 15
     '.github/copilot-instructions.md' = 30
-    '.codexrules' = 10
 }
 foreach ($entry in $adapterLimits.GetEnumerator()) {
     $path = Get-RepoPath $entry.Key
@@ -89,9 +88,6 @@ foreach ($skill in $skills) {
 
 $rootContent = Get-Content -LiteralPath (Get-RepoPath 'AGENTS.md') -Raw
 Add-Check 'no-snapshot-test-count' ($rootContent -notmatch '\b\d+\s*/\s*\d+\b') 'Root guidance contains no stale test-count snapshot.'
-
-$legacyRules = Get-Content -LiteralPath (Get-RepoPath '.codexrules') -Raw
-Add-Check 'legacy-codexrules-adapter' ($legacyRules -match 'Legacy UI instruction adapter' -and $legacyRules -match 'Không thêm quy tắc') 'Legacy file only redirects to canonical UI authority.'
 
 $hookConfigPath = Get-RepoPath '.codex/hooks.json'
 $hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'

@@ -34,7 +34,7 @@ Blazor Server frontend dùng Radzen Blazor và shared DTO tại
 ## Kiểm tra trước commit
 
 ```powershell
-dotnet build ../../gtas_vpp.sln -c Release
+dotnet build ../../gtas_vpp.slnx -c Release
 dotnet test ../../tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 

@@ -6,7 +6,7 @@
 >
 > **Frontend chính:** `src/Frontend/Blazor/` — Blazor Interactive Server + Radzen
 >
-> **React POC cũ:** lưu tại tag `archive/react-poc-2026-07-27`; `gtas_vpp_fe_react/` chỉ còn Playwright tooling
+> **React POC cũ:** lưu tại tag `archive/react-poc-2026-07-27`; Playwright tooling nằm tại `scripts/browser/`
 >
 > **Mục tiêu:** thiết kế prototype đầy đủ để owner review trước khi Codex triển
 > khai vào Blazor/Radzen
@@ -20,7 +20,7 @@ phụ làm project target chỉ vì môi trường code layer của Figma dùng 
 Figma được tự quyết visual direction, layout, component, interaction, motion và
 cách trình bày dữ liệu. Nếu cần code React để dựng preview, output đó là design
 evidence cô lập. Nó không được merge nguyên vẹn, không thay thế Blazor và không
-biến dependency host `gtas_vpp_fe_react/` thành frontend mục tiêu.
+biến dependency host `scripts/browser/` thành frontend mục tiêu.
 
 Prompt duy nhất cho vòng import codebase nằm trong
 `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`. Chỉ dùng context attachment/fallback

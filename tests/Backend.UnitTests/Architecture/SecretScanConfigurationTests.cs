@@ -66,13 +66,13 @@ public sealed class SecretScanConfigurationTests
              current is not null;
              current = current.Parent)
         {
-            if (File.Exists(Path.Combine(current.FullName, "gtas_vpp.sln")))
+            if (File.Exists(Path.Combine(current.FullName, "gtas_vpp.slnx")))
             {
                 return current.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Cannot find gtas_vpp.sln above {AppContext.BaseDirectory}.");
+            $"Cannot find gtas_vpp.slnx above {AppContext.BaseDirectory}.");
     }
 }

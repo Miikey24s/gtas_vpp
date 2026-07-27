@@ -4,7 +4,7 @@ set -Eeuo pipefail
 APP_ROOT="${APP_ROOT:-/app/gtas-vpp}"
 NGINX_TARGET="${NGINX_TARGET:-/etc/nginx/sites-available/gtas-vpp}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-https://gtas-vpp.annam.id.vn}"
-source_config="nginx/gtas-vpp.conf"
+source_config="deploy/nginx/gtas-vpp.conf"
 
 if [[ ! -f "$source_config" ]]; then
   echo "Missing Nginx frontend config: $source_config" >&2

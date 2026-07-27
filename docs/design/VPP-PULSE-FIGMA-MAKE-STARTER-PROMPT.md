@@ -16,7 +16,7 @@ VPP; nó không phải visual style guide.
 
 Frontend production chính của GTAS VPP là Blazor Interactive Server + Radzen.
 Đây chỉ là Figma Make workspace React/Tailwind + shadcn/ui trống dùng để render
-prototype thiết kế cho Blazor. Không tìm source GTAS VPP, Guidelines.md,
+prototype thiết kế cho Blazor. Không tìm source GTAS VPP, `FIGMA-CONTEXT-ROUTER.md`,
 AGENTS.md, router hay OpenAPI khác; dùng mock rõ ràng và không tuyên bố đã tích
 hợp API thật hoặc đang xây frontend React production.
 

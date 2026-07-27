@@ -26,7 +26,7 @@ public sealed class ComposeConfigurationSyntaxTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.slnx")))
             {
                 return directory.FullName;
             }

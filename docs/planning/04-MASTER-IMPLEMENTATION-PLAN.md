@@ -34,7 +34,7 @@ Không dùng phần trăm hoàn thành. Không đánh dấu `DONE` nếu mới b
 6. Mỗi code task phải chạy targeted tests và các lệnh tối thiểu phù hợp:
 
 ```powershell
-dotnet build gtas_vpp.sln -c Release
+dotnet build gtas_vpp.slnx -c Release
 dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
 dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 git diff --check

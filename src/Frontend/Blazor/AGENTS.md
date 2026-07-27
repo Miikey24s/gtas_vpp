@@ -4,7 +4,7 @@
 
 ## Context bắt buộc
 
-- Đọc root `AGENTS.md` và `.github/copilot-instructions.md`; `.codexrules` chỉ là legacy adapter.
+- Đọc root `AGENTS.md`, `.github/copilot-instructions.md` và living plan UI.
 - Đọc `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` và cập nhật cùng change-set khi thay đổi design contract, route status hoặc owner feedback.
 - Đọc `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` trước khi chọn MCP hoặc QA layer.
 - Dùng repo skill `.agents/skills/gtas-vpp-ui-system/` cho thay đổi UI, Atlas, token, responsive hoặc visual QA.
@@ -42,7 +42,7 @@
 
 ```powershell
 ./scripts/gtas.cmd test-frontend
-dotnet build gtas_vpp.sln -c Release
+dotnet build gtas_vpp.slnx -c Release
 ```
 
 UI test authenticated cần `GTAS_E2E_ISOLATED=1`; test mutation còn cần `GTAS_E2E_MUTATION_OPT_IN=I_UNDERSTAND_THIS_MUTATES_QA_DATA`.

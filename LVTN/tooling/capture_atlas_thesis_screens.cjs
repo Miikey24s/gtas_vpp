@@ -3,7 +3,7 @@ const http = require("http");
 const path = require("path");
 
 const repositoryRoot = path.resolve(__dirname, "../..");
-const { chromium } = require(path.join(repositoryRoot, "gtas_vpp_fe_react/node_modules/playwright"));
+const { chromium } = require(path.join(repositoryRoot, "scripts/browser/node_modules/playwright"));
 // Atlas đã được đưa vào repository tại docs/design/atlas nên script tự tìm được
 // nguồn. Vẫn cho phép trỏ sang bản khác qua tham số hoặc GTAS_ATLAS_ROOT khi cần
 // đối chiếu với một bản Atlas cũ nằm ngoài repository.

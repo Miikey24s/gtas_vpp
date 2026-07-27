@@ -8,7 +8,7 @@
 >
 > **Execution authority hiện tại:** `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` + frontend Blazor/Radzen `src/Frontend/Blazor/` + browser runtime.
 >
-> **Phạm vi file này:** tài liệu lịch sử. `gtas_vpp_fe_react/` hiện chỉ là dependency host Playwright; muốn khôi phục React phải bắt đầu từ archive tag trên branch riêng.
+> **Phạm vi file này:** tài liệu lịch sử. Dependency Playwright hiện nằm ở `scripts/browser/`; muốn khôi phục React phải bắt đầu từ archive tag trên branch riêng.
 
 ---
 
@@ -65,9 +65,9 @@ Không thay API/database chỉ để che một implementation frontend yếu. Đ
 ### 3.1 Figma collaboration boundary
 
 - Figma Make/Opus 4.8 được toàn quyền tự chọn visual direction, IA, layout, component và motion để dựng trực tiếp prototype cho owner review; không phải nguồn thay thế business rule, API, permission hoặc living plan.
-- Root `Guidelines.md` định tuyến Figma về frontend Blazor chính và living plan Blazor. `gtas_vpp_fe_react/Guidelines.md` chỉ có hiệu lực khi owner mở lại dự án React phụ.
+- `FIGMA-CONTEXT-ROUTER.md` định tuyến Figma về frontend Blazor chính và living plan Blazor. Hướng dẫn React trong archive chỉ có hiệu lực khi owner mở lại dự án React phụ.
 - Agent thiết kế ngay để owner xem, không bị chặn bởi vòng `plan.md` hoặc yêu cầu chọn style trước; ứng dụng lớn được chia phase để tránh one-shot thiếu màn hình hoặc mất nhất quán.
-- Vòng Figma hiện tại tạo design evidence cho Blazor; không chỉnh production code. Nếu công cụ bắt buộc dùng React code layer để render, giữ output cô lập và không ghi vào `gtas_vpp_fe_react/` như target mới.
+- Vòng Figma hiện tại tạo design evidence cho Blazor; không chỉnh production code. Nếu công cụ bắt buộc dùng React code layer để render, giữ output cô lập ngoài source hoạt động và không ghi vào `scripts/browser/` như target mới.
 - Figma Make dạng prototype/GitHub push một chiều chỉ tạo design evidence hoặc repository trung gian; không được ghi đè GTAS source of truth. Integration vào repo này phải qua diff/QA/PR hoặc Codex review.
 - Không gửi secret, cookie, token, connection string hoặc dữ liệu production vào attachment/context của Figma.
 

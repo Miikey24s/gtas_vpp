@@ -53,9 +53,12 @@ function Remove-WorkspaceTarget {
 $fixedTargets = @(
     ".vs",
     ".playwright-mcp",
-    "gtas_vpp_fe_react\node_modules",
-    "gtas_vpp_fe_react\dist",
-    "gtas_vpp_fe_react\test-results",
+    "tmp",
+    "tools",
+    "scripts\browser\node_modules",
+    "scripts\browser\dist",
+    "scripts\browser\test-results",
+    "docs\design\atlas\output",
     "LVTN\render",
     ".tmp",
     "src\Backend\Api\logs"

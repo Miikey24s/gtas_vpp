@@ -21,8 +21,10 @@ src/Shared/              DTO và contract dùng chung giữa backend/frontend
 src/Hosting/             Aspire AppHost và service defaults
 tests/                   Unit, integration, UI test và test support
 deploy/                  Dockerfile, runbook và script vận hành production
+deploy/nginx/            Cấu hình Nginx được kiểm tra và đóng gói cùng deployment
 docs/                    Kiến trúc, thiết kế, execution plan và tài liệu lưu trữ
 LVTN/                    Luận văn, sơ đồ, ảnh giao diện và công cụ Word
+scripts/browser/         Playwright Node dùng chung cho render Atlas và ảnh luận văn
 ```
 
 Shared DTO chính thức nằm tại `src/Shared`; frontend tham chiếu trực tiếp project này.
@@ -91,8 +93,8 @@ dữ liệu Development. Tất cả port local chỉ bind `127.0.0.1`, không m�
 Yêu cầu .NET 10 SDK. Cấu hình connection string và khóa cục bộ bằng biến môi trường hoặc user secrets; không ghi bí mật vào source.
 
 ```powershell
-dotnet restore gtas_vpp.sln
-dotnet build gtas_vpp.sln -c Release
+dotnet restore gtas_vpp.slnx
+dotnet build gtas_vpp.slnx -c Release
 dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
 dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```

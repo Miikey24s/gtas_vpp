@@ -190,7 +190,7 @@ function Show-Doctor([string]$SelectedScope, [string]$Format) {
 }
 
 function Test-NuGetVulnerabilities {
-    $auditJson = & dotnet list gtas_vpp.sln package --vulnerable --include-transitive --format json
+    $auditJson = & dotnet list gtas_vpp.slnx package --vulnerable --include-transitive --format json
     if ($LASTEXITCODE -ne 0) {
         throw "NuGet vulnerability audit failed with exit code $LASTEXITCODE."
     }
@@ -507,7 +507,7 @@ try {
         }
         'test' {
             Invoke-CheckedCommand 'Build failed.' {
-                & dotnet build gtas_vpp.sln -c Release
+                & dotnet build gtas_vpp.slnx -c Release
             }
             Invoke-CheckedCommand 'Backend tests failed.' {
                 & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
@@ -532,10 +532,10 @@ try {
 
             if ($Scope -ne 'thesis') {
                 Invoke-CheckedCommand 'Solution restore failed.' {
-                    & dotnet restore gtas_vpp.sln
+                    & dotnet restore gtas_vpp.slnx
                 }
                 Invoke-CheckedCommand 'Release build failed.' {
-                    & dotnet build gtas_vpp.sln -c Release --no-restore
+                    & dotnet build gtas_vpp.slnx -c Release --no-restore
                 }
             }
 
@@ -573,7 +573,7 @@ try {
             if ($Scope -ne 'thesis') {
                 Test-NuGetVulnerabilities
                 Invoke-CheckedCommand 'Formatting verification failed.' {
-                    & dotnet format gtas_vpp.sln --verify-no-changes --no-restore
+                    & dotnet format gtas_vpp.slnx --verify-no-changes --no-restore
                 }
             }
             if ($Scope -in @('all', 'thesis')) {

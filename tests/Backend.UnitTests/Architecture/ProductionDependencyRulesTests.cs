@@ -64,18 +64,34 @@ public sealed class ProductionDependencyRulesTests
             .Select(NormalizeRepositoryPath)
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        var actualProjects = File.ReadLines(Path.Combine(RepositoryRoot, "gtas_vpp.sln"))
-            .Where(line => line.StartsWith("Project(", StringComparison.Ordinal))
-            .Select(line => line.Split(','))
-            .Where(parts => parts.Length >= 2)
-            .Select(parts => parts[1].Trim().Trim('"'))
-            .Where(path => path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-            .Select(NormalizeRepositoryPath)
+        var solution = XDocument.Load(Path.Combine(RepositoryRoot, "gtas_vpp.slnx"));
+        var actualProjects = solution
+            .Descendants("Project")
+            .Select(project => project.Attribute("Path")?.Value)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Where(path => path?.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) == true)
+            .Select(path => NormalizeRepositoryPath(path!))
             .Where(IsProductionProject)
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         Assert.Equal(expectedProjects, actualProjects, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("gtas_vpp_be")]
+    [InlineData("gtas_vpp_fe")]
+    [InlineData("gtas_vpp_fe_react")]
+    public void LegacyRootDirectories_AreNotReintroduced(string relativePath)
+    {
+        Assert.False(Directory.Exists(Path.Combine(RepositoryRoot, relativePath)));
+    }
+
+    [Fact]
+    public void SharedBrowserTooling_IsNestedUnderScripts()
+    {
+        Assert.True(File.Exists(Path.Combine(RepositoryRoot, "scripts", "browser", "package.json")));
+        Assert.True(File.Exists(Path.Combine(RepositoryRoot, "scripts", "browser", "package-lock.json")));
     }
 
     [Fact]
@@ -227,14 +243,14 @@ public sealed class ProductionDependencyRulesTests
              current is not null;
              current = current.Parent)
         {
-            if (File.Exists(Path.Combine(current.FullName, "gtas_vpp.sln")))
+            if (File.Exists(Path.Combine(current.FullName, "gtas_vpp.slnx")))
             {
                 return current.FullName;
             }
         }
 
         throw new DirectoryNotFoundException(
-            $"Cannot find gtas_vpp.sln above {AppContext.BaseDirectory}.");
+            $"Cannot find gtas_vpp.slnx above {AppContext.BaseDirectory}.");
     }
 
     private static string ToPlatformPath(string path) =>

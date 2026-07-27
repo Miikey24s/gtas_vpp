@@ -34,7 +34,7 @@ File này phải được cập nhật trong cùng change-set khi một quyết 
 - `docs/design/VPP-PULSE-PRODUCT-BLUEPRINT.md` giữ IA, data storytelling và screen inventory mở rộng.
 - `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` định nghĩa MCP, browser QA, accessibility, visual regression và performance workflow cho AI agent.
 - Figma `GTAS VPP — VPP Pulse` là tài liệu tham khảo flow/visual/state, không thay thế route/source audit.
-- `src/Frontend/Blazor/AGENTS.md`, UI repo skill và `.github/instructions/frontend.instructions.md` giữ convention Blazor/Radzen hiện hành; `.codexrules` chỉ là legacy adapter.
+- `src/Frontend/Blazor/AGENTS.md`, UI repo skill và `.github/instructions/frontend.instructions.md` giữ convention Blazor/Radzen hiện hành.
 - `src/Frontend/Blazor/Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
 
 Khi có xung đột:
@@ -52,7 +52,7 @@ Khi có xung đột:
 
 - Owner tạm ngưng React vì sắp tới đợt deadline và tiếp tục hoàn thiện frontend Blazor/Radzen hiện hành.
 - Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
-- Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; thư mục `gtas_vpp_fe_react/` chỉ còn dependency Playwright để không phải sửa tooling LVTN.
+- Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; dependency Playwright dùng chung đã chuyển vào `scripts/browser/`.
 - Mọi UI work tiếp theo phải sửa trực tiếp `gtas_vpp_fe`, dùng API/DTO và database TEST hoặc isolated fixture thật.
 - Thứ tự hiện tại: khóa lại W1 `dashboard.my-orders` theo baseline round 6 → QA/owner review/commit vertical slice → W2 employee/order flows → W3 management → W4 procurement/period.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
@@ -77,7 +77,7 @@ Khi có xung đột:
 - Release build/test chỉ là gate trước review cuối, commit route và deploy; không thay thế browser review trong vòng lặp phát triển.
 - Browser review là approval gate cuối về visual và interaction.
 - Figma chỉ dùng khi cần so sánh phương án, minh họa flow hoặc lưu research.
-- Khi Figma có Import GitHub/Code on Canvas, import toàn repository để đọc đúng Blazor, shared DTO, route catalog và living plan; không chọn `gtas_vpp_fe_react` làm frontend target.
+- Khi Figma có Import GitHub/Code on Canvas, import toàn repository để đọc đúng Blazor, shared DTO, route catalog và living plan; không chọn `scripts/browser` làm frontend target.
 - Figma không chạy/ship Blazor thay Codex. Nếu cần React code layer để dựng preview, output đó chỉ là prototype thiết kế cô lập; sau owner review, implementation thật vẫn được viết và QA trong `gtas_vpp_fe`.
 - Toolchain phải đi theo vai trò: Sosumi/Apple HIG cho hierarchy/clarity/spacing/feedback, Microsoft Learn/Radzen cho framework/component, Playwright cho route/DOM/ARIA, Chrome DevTools cho debug/performance, axe cho accessibility và Figma cho design context.
 - Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
@@ -1002,7 +1002,7 @@ Status hợp lệ:
 **W1 My Orders single-viewport tabbed workspace — owner direction 2026-07-23:**
 
 - owner chốt thay ba section dọc bằng một vùng nội dung dùng chung: compressed period header + three summary cards + internal order tabs + one internally scrollable table panel;
-- implementation tiếp tục ở Blazor/Radzen authority; chữ `React` trong prompt là context sai với project boundary hiện hành và không biến dependency host `gtas_vpp_fe_react` thành application;
+- implementation tiếp tục ở Blazor/Radzen authority; chữ `React` trong prompt là context sai với project boundary hiện hành và không biến `scripts/browser` thành application;
 - query `tab=0` tiếp tục sở hữu primary Dashboard tab. Internal selection dùng query riêng `orderView=current|supplement|previous` để reload/share không phá route cấp trang;
 - regular current/previous order là duy nhất theo `UX_Requests_OneRegularPerUserPeriod`; supplement không tuyệt đối duy nhất vì backend cho phép nhiều attempt rejected/cancelled trước quota approved, nên normal state vẫn một order nhưng UI phải có compact selector fallback nếu API trả nhiều attempt;
 - tách order table/meta/actions/empty state thành component dùng chung; ba summary card là selector duy nhất với radio-group semantics, RadzenDataGrid bỏ paging 10 dòng để dùng fixed-height virtualization;
@@ -1504,7 +1504,7 @@ Retrofit không mặc định làm ngay giữa route hiện tại nếu không �
 ### Commands tối thiểu theo scope
 
 ```powershell
-dotnet build gtas_vpp.sln -c Release
+dotnet build gtas_vpp.slnx -c Release
 dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 

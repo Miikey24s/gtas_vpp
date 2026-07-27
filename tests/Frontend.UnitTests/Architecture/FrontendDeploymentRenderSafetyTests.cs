@@ -9,7 +9,7 @@ public sealed class FrontendDeploymentRenderSafetyTests
     [Fact]
     public void ProductionNginx_PreservesBlazorWebSocketUpgrade()
     {
-        var nginx = ReadRepositoryFile("nginx", "gtas-vpp.conf");
+        var nginx = ReadRepositoryFile("deploy", "nginx", "gtas-vpp.conf");
 
         Assert.Contains("location /_blazor", nginx, StringComparison.Ordinal);
         Assert.Contains("proxy_http_version 1.1", nginx, StringComparison.Ordinal);
@@ -48,7 +48,7 @@ public sealed class FrontendDeploymentRenderSafetyTests
              directory is not null;
              directory = directory.Parent)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.sln")))
+            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.slnx")))
             {
                 return directory.FullName;
             }

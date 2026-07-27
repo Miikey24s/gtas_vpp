@@ -39,8 +39,8 @@ Architecture tests enforce this allowlist. A new edge requires an explicit updat
 this document and a review explaining why the existing direction cannot support the
 use case.
 
-`gtas_vpp.sln` và `gtas_vpp.slnx` là hai biểu diễn của cùng solution đầy đủ. Cả hai
-phải chứa đúng catalog project hiện hành và mọi đường dẫn project phải tồn tại.
+`gtas_vpp.slnx` là solution canonical duy nhất. Format XML ngắn gọn là mặc định của
+.NET 10, giảm duplicate và merge conflict; mọi đường dẫn project phải tồn tại.
 
 ## Logical modules
 

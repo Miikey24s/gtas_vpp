@@ -8,11 +8,10 @@ on:
       - .github/workflows/deploy.yml
       - .dockerignore
       - Directory.Build.props
-      - gtas_vpp.sln
+      - gtas_vpp.slnx
       - src/**
       - docker-compose.prod.yml
       - deploy/**
-      - nginx/**
   workflow_dispatch:
 
 permissions:
@@ -36,10 +35,10 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore solution
-        run: dotnet restore gtas_vpp.sln
+        run: dotnet restore gtas_vpp.slnx
 
       - name: Build solution
-        run: dotnet build gtas_vpp.sln -c Release --no-restore
+        run: dotnet build gtas_vpp.slnx -c Release --no-restore
 
       - name: Run backend tests
         run: dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
@@ -59,12 +58,12 @@ jobs:
             -subj '/CN=gtas-vpp.annam.id.vn' -days 1 >/dev/null 2>&1
 
           docker run --rm \
-            -v "$GITHUB_WORKSPACE/nginx/gtas-vpp.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "$GITHUB_WORKSPACE/deploy/nginx/gtas-vpp.conf:/etc/nginx/conf.d/default.conf:ro" \
             -v "$cert_dir:/etc/letsencrypt/live/gtas-vpp.annam.id.vn:ro" \
             nginx:1.30-alpine nginx -t
 
           docker run --rm \
-            -v "$GITHUB_WORKSPACE/nginx/gtas-vpp-http.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "$GITHUB_WORKSPACE/deploy/nginx/gtas-vpp-http.conf:/etc/nginx/conf.d/default.conf:ro" \
             nginx:1.30-alpine nginx -t
   build-and-push:
     needs: verify
@@ -191,7 +190,7 @@ jobs:
           ssh_options=(-i "$HOME/.ssh/id_deploy" -o BatchMode=yes -o IdentitiesOnly=yes)
           bundle="$RUNNER_TEMP/gtas-vpp-deploy.tar.gz"
 
-          tar -czf "$bundle" docker-compose.prod.yml nginx deploy
+          tar -czf "$bundle" docker-compose.prod.yml deploy
           ssh "${ssh_options[@]}" "$ssh_target" \
             "install -d -m 0750 '$app_root' '$app_root/releases' '$app_root/shared' '$release_dir'"
           scp "${ssh_options[@]}" "$bundle" \

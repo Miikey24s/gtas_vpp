@@ -205,7 +205,7 @@ Không coi `Down()` là rollback đủ cho migration destructive hoặc settleme
 
 | Command | Result | Count/time | Evidence |
 |---|---|---|---|
-| `dotnet build gtas_vpp.sln -c Release` | | | |
+| `dotnet build gtas_vpp.slnx -c Release` | | | |
 | `dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release` | | | |
 | `dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release` | | | |
 | SQL/API integration | | | |
