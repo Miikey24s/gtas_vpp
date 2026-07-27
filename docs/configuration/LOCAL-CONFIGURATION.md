@@ -56,7 +56,7 @@ Không đặt connection string, JWT key, SMTP password, mật khẩu admin ho�
 Tính năng vẫn tắt mặc định. Đặt secret cho backend project (không phải AppHost và không commit):
 
 ```powershell
-$backend = 'gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj'
+$backend = 'src/Backend/Api/gtas_vpp_be.csproj'
 dotnet user-secrets set 'ReportInsights:Enabled' 'true' --project $backend
 dotnet user-secrets set 'GROQ_API_KEY' '<groq-key>' --project $backend
 dotnet user-secrets set 'ReportInsights:ProviderPriority:0' 'groq' --project $backend

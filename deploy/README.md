@@ -3,8 +3,7 @@
 Tài liệu này là nguồn hướng dẫn chính cho môi trường production học tập tại
 `https://gtas-vpp.annam.id.vn`. Kiến trúc production là một DigitalOcean Droplet
 Ubuntu 24.04, Docker Compose, SQL Server 2022 Developer, backend ASP.NET Core,
-frontend React SPA làm public target, frontend Blazor Server chạy song song làm
-fallback, và Nginx kết thúc TLS.
+frontend Blazor Server/Radzen làm public target duy nhất, và Nginx kết thúc TLS.
 
 SQL Server Developer chỉ phù hợp mục đích phát triển, kiểm thử, demo và học tập.
 Không dùng cấu hình này cho hoạt động thương mại.
@@ -37,7 +36,7 @@ DigitalOcean Cloud Firewall nên chỉ có inbound:
 | TCP 80 | mọi nơi | chuyển hướng HTTP và ACME |
 | TCP 443 | mọi nơi | HTTPS |
 
-Không mở `1433`, `5000`, `5100` hoặc `8080`. Compose chỉ bind các port nội bộ này vào
+Không mở `1433`, `5000` hoặc `8080`. Compose chỉ bind các port nội bộ này vào
 `127.0.0.1`; SQL Server chỉ nên truy cập từ máy quản trị qua SSH tunnel khi cần.
 SSH nên đặt `PasswordAuthentication no` và `PermitRootLogin no` hoặc
 `prohibit-password`, sau khi đã xác minh user deploy/sudo hoạt động.
@@ -79,8 +78,8 @@ nên ưu tiên một provider cloud (Groq/Gemini/OpenAI), còn Ollama chỉ phù
 Mỗi push vào `Nam` có thay đổi source backend/frontend hoặc hạ tầng Production, hay lần
 chạy `workflow_dispatch`, thực hiện:
 
-1. restore, build Release, chạy backend/frontend tests và React E2E;
-2. build ba image (backend, Blazor target, React auxiliary), push tag bất biến `sha-<commit>` lên GHCR;
+1. restore, build Release và chạy backend/frontend tests;
+2. build hai image (backend và Blazor), push tag bất biến `sha-<commit>` lên GHCR;
 3. tạo release `/app/gtas-vpp/releases/<commit>` và chuyển `.env` bằng SCP;
 4. đăng nhập GHCR bằng Docker config tạm, tự xóa khi phiên SSH kết thúc;
 5. kiểm tra/khắc phục mapping SQL public và pin image SHA cùng named volume từ
@@ -90,7 +89,7 @@ chạy `workflow_dispatch`, thực hiện:
    `ALTER LOGIN sa`, rồi recreate container với credential mới và nguyên volume;
 7. tạo `BACKUP ... WITH COPY_ONLY, CHECKSUM` và `RESTORE VERIFYONLY ... WITH CHECKSUM`
    cho cả `GTAS_VPP_LIVE` lẫn `GTAS_MENU`, rồi mới migration;
-8. thay backend, chờ healthy; thay Blazor target, chờ healthy; thay React auxiliary, chờ healthy;
+8. thay backend rồi frontend Blazor, chờ từng container healthy;
 9. giữ Nginx trên Blazor, kiểm tra render, SignalR và `/healthz`; tắt SSH password, chỉ cho root đăng nhập bằng key, xóa các
    rule UFW public cũ của `1433`/`5000`/`8080`, rồi audit host;
 10. kết nối SSH lại bằng public-key-only, kiểm tra public `/healthz`, HTML trang
@@ -103,14 +102,14 @@ volume sau backup đã kiểm chứng; error handler không được gọi Compo
 volume chưa được pin. Nếu xuất hiện container service `db` không đúng tên chuẩn, deploy
 dừng để điều tra thay vì tự xóa hoặc đổi tên.
 
-Nếu backend hoặc một frontend mới lỗi, script tự khôi phục routing Nginx trước đó và
-quay về image ứng dụng trước nếu image đó tồn tại. Nếu một thử nghiệm từng chuyển
-public route sang React, khôi phục frontend chính Blazor mà không rollback database bằng:
+Nếu backend hoặc frontend mới lỗi, script tự khôi phục cấu hình Nginx trước đó và
+quay về cặp image ứng dụng trước nếu chúng còn tồn tại. Có thể cài lại cấu hình
+Blazor chuẩn mà không rollback database bằng:
 
 ```bash
 cd /app/gtas-vpp/current
-FRONTEND_MODE=blazor PUBLIC_BASE_URL=https://gtas-vpp.annam.id.vn \
-  bash deploy/switch-frontend.sh blazor
+PUBLIC_BASE_URL=https://gtas-vpp.annam.id.vn \
+  bash deploy/install-nginx-config.sh
 ```
 
 Migration database
@@ -240,11 +239,10 @@ Droplet/database tạm thay vì đợi đến lúc có sự cố.
 cd /app/gtas-vpp/current
 BE_IMAGE=$(grep '^BE_IMAGE=' deploy-state.env | cut -d= -f2-)
 FE_IMAGE=$(grep '^FE_IMAGE=' deploy-state.env | cut -d= -f2-)
-REACT_FE_IMAGE=$(grep '^REACT_FE_IMAGE=' deploy-state.env | cut -d= -f2-)
-export BE_IMAGE FE_IMAGE REACT_FE_IMAGE
+export BE_IMAGE FE_IMAGE
 docker compose -f docker-compose.prod.yml ps
 bash deploy/audit-host.sh
-FRONTEND_MODE=react bash deploy/smoke-frontend.sh
+bash deploy/smoke-frontend.sh
 sudo nginx -t
 sudo certbot renew --dry-run
 ```
@@ -254,12 +252,10 @@ Kiểm tra dung lượng Docker/backup hằng tuần. Không chạy `docker comp
 
 ## Rollback ứng dụng thủ công
 
-Mỗi release lưu `deploy-state.env` chứa đúng tag của ba image, không chứa secret. Để quay
-về một release cũ, vào thư mục release đó, export `BE_IMAGE`/`FE_IMAGE`/`REACT_FE_IMAGE`,
-chạy `docker compose up -d --force-recreate backend frontend react-frontend`, đợi
-health rồi kiểm tra `FRONTEND_MODE=react bash deploy/smoke-frontend.sh`. Nếu React
-không thể phục vụ, chạy `bash deploy/switch-frontend.sh blazor`; Blazor vẫn giữ nguyên
-database và backend hiện tại. Chỉ đổi symlink `current` sau khi kiểm tra thành công.
+Mỗi release lưu `deploy-state.env` chứa đúng tag của hai image, không chứa secret. Để quay
+về một release cũ, vào thư mục release đó, export `BE_IMAGE`/`FE_IMAGE`, chạy
+`docker compose up -d --force-recreate backend frontend`, đợi health rồi chạy
+`bash deploy/smoke-frontend.sh`. Chỉ đổi symlink `current` sau khi kiểm tra thành công.
 
 Nếu migration mới không tương thích ngược, dừng ứng dụng và restore backup
 `pre-deploy` theo quy trình trên; không cố chạy source cũ trên schema chưa được

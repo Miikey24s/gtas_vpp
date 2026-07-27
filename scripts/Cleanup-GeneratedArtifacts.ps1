@@ -59,7 +59,7 @@ $fixedTargets = @(
     "gtas_vpp_fe_react\test-results",
     "LVTN\render",
     ".tmp",
-    "gtas_vpp_be\gtas_vpp_be\logs"
+    "src\Backend\Api\logs"
 )
 
 if ($IncludeThesisIntermediates) {

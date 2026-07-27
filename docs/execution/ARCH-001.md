@@ -59,9 +59,9 @@ in the wrong layer and silently alter API contracts.
 
 ```text
  M LVTN/NguyenAnNam_DH52201078_working.docx
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/App.razor
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-login.css
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-responsive.css
+ M src/Frontend/Blazor/Components/App.razor
+ M src/Frontend/Blazor/wwwroot/css/vpp-login.css
+ M src/Frontend/Blazor/wwwroot/css/vpp-responsive.css
 ```
 
 These files remained unstaged and byte-for-byte unchanged by ARCH-001:

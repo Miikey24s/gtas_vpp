@@ -104,7 +104,7 @@ Tôi đã đối chiếu từng màn với controller/DTO hiện có.
 **Cần bổ sung đúng một endpoint đọc** cho `period-demand`:
 
 - DTO `AggregatedVppResDTO` / `AggregatedVppItemResDTO` **đã tồn tại** trong
-  `gtas_vpp_be/gtas_vpp_shared/DTOs/Res/VPP/` nhưng **không controller hay service nào trả về** — là
+  `src/Shared/DTOs/Res/VPP/` nhưng **không controller hay service nào trả về** — là
   DTO mồ côi.
 - Đề xuất: `GET /api/VPPRequest/period-demand?year=&month=` trả `AggregatedVppResDTO`, gom theo mặt
   hàng từ phiên bản đơn hợp lệ hiện hành của kỳ, phạm vi theo quyền phiên đăng nhập.
@@ -530,7 +530,7 @@ Chẩn đoán (kiểm chứng bằng decompile `Aspire.Hosting` 13.4.6 và đố
 Khắc phục đã áp dụng:
 
 - Dọn một lần: xóa `~/.dcp` và toàn bộ `%TEMP%\aspire-dcp*` (Aspire tự tạo lại).
-- `gtas_vpp_fe.UITests/Core/TestBase.cs`: thêm `--DcpPublisher:RandomizePorts=false` để giữ cổng
+- `tests/Frontend.UiTests/Core/TestBase.cs`: thêm `--DcpPublisher:RandomizePorts=false` để giữ cổng
   cố định — địa chỉ đầy đủ ngay khi tạo Service, không còn phụ thuộc sự kiện cấp cổng của DCP.
   An toàn vì test đã `DisableTestParallelization`; đổi lại **không được** chạy test song song với
   `dotnet run` AppHost.

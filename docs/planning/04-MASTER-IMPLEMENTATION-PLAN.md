@@ -35,8 +35,8 @@ Không dùng phần trăm hoàn thành. Không đánh dấu `DONE` nếu mới b
 
 ```powershell
 dotnet build gtas_vpp.sln -c Release
-dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release
-dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
+dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 git diff --check
 git status --short
 ```

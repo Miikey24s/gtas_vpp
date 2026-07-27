@@ -4,20 +4,20 @@
 
 ## Phạm vi và cấu trúc chuẩn
 
-- Backend nằm trong `gtas_vpp_be/`; frontend chính hiện hành là Blazor/Radzen trong `gtas_vpp_fe/`; frontend React trong `gtas_vpp_fe_react/` chỉ là dự án phụ/proof-of-concept đang tạm dừng.
-- Shared DTO duy nhất là `gtas_vpp_be/gtas_vpp_shared`. Không tạo lại `gtas_vpp_fe/gtas_vpp_shared`.
+- Backend nằm trong `src/Backend/`; frontend chính hiện hành là Blazor/Radzen trong `src/Frontend/Blazor/`; frontend React trong `gtas_vpp_fe_react/` chỉ là bản proof-of-concept đóng băng để đối chiếu và phục vụ tooling LVTN cũ.
+- Shared DTO duy nhất là `src/Shared/`. Không tạo bản sao shared DTO trong frontend.
 - Không sửa API, database hoặc nghiệp vụ chỉ để làm cho nội dung luận văn khớp; luận văn phải mô tả đúng source thực tế.
 - Khi sửa UI, đọc và tuân thủ `.codexrules` cùng `.github/copilot-instructions.md`.
 - Khi sửa stored procedure, ưu tiên kiểm tra câu lệnh trong SQL Server Management Studio trước hoặc song song với debug trong code.
 
 ## UI renovation plan
 
-- Blazor/Radzen là frontend chính và execution authority hiện tại. Trước mọi thay đổi trong `gtas_vpp_fe/`, phải đọc và cập nhật `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
+- Blazor/Radzen là frontend chính và execution authority hiện tại. Trước mọi thay đổi trong `src/Frontend/Blazor/`, phải đọc và cập nhật `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
 - `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md` là hồ sơ của dự án phụ/proof-of-concept đang `PAUSED/DEFERRED`; chỉ sửa `gtas_vpp_fe_react/` khi owner mở lại phạm vi React rõ ràng.
 - Đọc `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` để chọn đúng nguồn tài liệu, browser tool và QA layer; không cài hoặc gọi nhiều MCP trùng chức năng chỉ để tăng số lượng công cụ.
 - Blazor chạy thật trong browser là nguồn quyết định visual cuối. Figma là nơi nghiên cứu/prototype để owner duyệt; React phụ chỉ là evidence tham khảo, không phải pixel/route authority.
-- Figma có thể import toàn repository để đọc source. Nếu môi trường Figma cần React để dựng code layer, output đó chỉ là design prototype cô lập; không được coi `gtas_vpp_fe_react/` là frontend chính hoặc tự ghi đè production Blazor.
-- Không tạo thêm UI Lab trong repository. Phần đã duyệt phải được triển khai trực tiếp trong `gtas_vpp_fe/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
+- Figma có thể import toàn repository để đọc source. Nếu môi trường Figma cần React để dựng code layer, output đó chỉ là design prototype cô lập; không được coi `gtas_vpp_fe_react/` là frontend chính hoặc tự ghi đè `src/Frontend/Blazor/`.
+- Không tạo thêm UI Lab trong repository. Phần đã duyệt phải được triển khai trực tiếp trong `src/Frontend/Blazor/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
 - `docs/design/atlas/` là bản Design Atlas 28 màn được đưa vào repository ngày 2026-07-26 (quyết định D5 trong `docs/execution/ATLAS-001.md`). Đây là **design reference đóng băng và read-only**, giữ để bảo toàn nguồn của 16 hình giao diện trong luận văn; không phải UI Lab và không được dùng để phát triển tính năng mới. Chỉ sửa khi owner duyệt một thay đổi thiết kế, và phải sửa kèm route Blazor tương ứng cùng route ledger.
 - Kế hoạch triển khai toàn bộ Atlas sang frontend nằm trong `docs/execution/ATLAS-001.md`; đọc mục 1 của file đó để biết thứ tự thẩm quyền khi luận văn, Atlas, backend và frontend mâu thuẫn nhau.
 - Sau mỗi vòng người dùng duyệt hoặc từ chối một route, cập nhật route ledger, decision/learning log và retrofit queue trong living plan trước khi tiếp tục.
@@ -43,8 +43,8 @@ Chạy tối thiểu các lệnh phù hợp với phạm vi thay đổi:
 
 ```powershell
 dotnet build gtas_vpp.sln -c Release
-dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release
-dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
+dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 
 Mốc gần nhất được ghi trong W1 change-set là 397 backend test và 143 frontend test đều pass. Đây chỉ là evidence theo thời điểm; luôn chạy lại test phù hợp sau khi sửa code.

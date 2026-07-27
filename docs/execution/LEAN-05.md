@@ -117,9 +117,9 @@ fixture creation.
   they remain open and are not described as revoked.
 - Four user-owned files were preserved and must not be staged:
   - `LVTN/NguyenAnNam_DH52201078_working.docx` — `E9E91C5A9A67F736E9CEAEC0DA1282DC68AF44E3D36039A465E214F0756AE17D`
-  - `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/App.razor` — `E7FAD87A1CF792468E5378FA8ED3CFF0DFA5CB459F62DF72A9CFE3977F0F6B36`
-  - `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-login.css` — `622C4C976ABE287A7CB6ED78DC984D58AF04CE67B03FCAD9C351AF80BB248319`
-  - `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-responsive.css` — `81E49BD90CF3C823076CA3F8B0A3B5192038719E3D4605C4EC0EA176CDF28ACB`
+  - `src/Frontend/Blazor/Components/App.razor` — `E7FAD87A1CF792468E5378FA8ED3CFF0DFA5CB459F62DF72A9CFE3977F0F6B36`
+  - `src/Frontend/Blazor/wwwroot/css/vpp-login.css` — `622C4C976ABE287A7CB6ED78DC984D58AF04CE67B03FCAD9C351AF80BB248319`
+  - `src/Frontend/Blazor/wwwroot/css/vpp-responsive.css` — `81E49BD90CF3C823076CA3F8B0A3B5192038719E3D4605C4EC0EA176CDF28ACB`
 
 ## Handoff
 

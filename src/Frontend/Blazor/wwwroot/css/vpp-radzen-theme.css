@@ -1,0 +1,305 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VPP RADZEN THEME OVERRIDE — Phase 2
+   Sync Radzen Material3 tokens with VPP Design Tokens
+   Dark mode default | Bright Blue/Teal palette
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Màu chính và màu ngữ nghĩa ──────────────────────────────── */
+.rz-theme-dark {
+    --rz-primary: var(--vpp-primary-500);
+    --rz-primary-dark: var(--vpp-primary-700);
+    --rz-primary-light: var(--vpp-primary-200);
+    --rz-primary-lighter: rgba(14, 165, 233, 0.12);
+    --rz-primary-lighter-rgb: 14, 165, 233;
+
+    --rz-secondary: var(--vpp-accent-500);
+    --rz-secondary-dark: var(--vpp-accent-600);
+    --rz-secondary-light: var(--vpp-accent-400);
+
+    --rz-success: var(--vpp-success);
+    --rz-warning: var(--vpp-warning);
+    --rz-danger: var(--vpp-danger);
+    --rz-info: var(--vpp-info);
+}
+
+/* Ghi đè cho chế độ sáng. */
+:root:not(.rz-theme-dark) {
+    --rz-primary: var(--vpp-primary-600);
+    --rz-primary-dark: var(--vpp-primary-800);
+    --rz-primary-light: var(--vpp-primary-100);
+    --rz-primary-lighter: rgba(14, 165, 233, 0.08);
+}
+
+/* ── Các lớp nền và bề mặt ───────────────────────────────────── */
+.rz-theme-dark {
+    --rz-base-background-color: var(--vpp-bg-base);
+    --rz-base-50: #0D0D0D;
+    --rz-base-100: var(--vpp-bg-base);
+    --rz-base-200: var(--vpp-bg-elevated);
+    --rz-base-300: #1E1E1E;
+    --rz-base-400: var(--vpp-bg-surface);
+    --rz-base-500: #2A2A2A;
+    --rz-base-600: #3A3A3A;
+    --rz-base-700: #52525B;
+    --rz-base-800: var(--vpp-text-secondary);
+    --rz-base-900: var(--vpp-text-primary);
+
+    --rz-body-background-color: var(--vpp-bg-base);
+    --rz-panel-background-color: var(--vpp-bg-elevated);
+    --rz-card-background-color: var(--vpp-bg-elevated);
+    --rz-input-background-color: var(--vpp-bg-surface);
+    --rz-menu-background-color: var(--vpp-bg-elevated);
+    --rz-dialog-background-color: var(--vpp-bg-elevated);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-base-background-color: var(--vpp-bg-base);
+    --rz-base-50: #FAFAFA;
+    --rz-base-100: var(--vpp-bg-base);
+    --rz-base-200: #F4F4F5;
+    --rz-base-300: #E4E4E7;
+    --rz-base-400: #D4D4D8;
+    --rz-base-500: #A1A1AA;
+    --rz-base-600: #71717A;
+    --rz-base-700: var(--vpp-text-secondary);
+    --rz-base-800: #3F3F46;
+    --rz-base-900: var(--vpp-text-primary);
+
+    --rz-body-background-color: var(--vpp-bg-base);
+    --rz-panel-background-color: var(--vpp-bg-elevated);
+    --rz-card-background-color: var(--vpp-bg-elevated);
+    --rz-input-background-color: #FFFFFF;
+    --rz-menu-background-color: #FFFFFF;
+    --rz-dialog-background-color: #FFFFFF;
+}
+
+/* ── Màu văn bản ─────────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-text-color: var(--vpp-text-primary);
+    --rz-text-title-color: var(--vpp-text-primary);
+    --rz-text-body1-color: var(--vpp-text-primary);
+    --rz-text-body2-color: var(--vpp-text-secondary);
+    --rz-text-secondary-color: var(--vpp-text-secondary);
+    --rz-text-tertiary-color: var(--vpp-text-tertiary);
+    --rz-text-disabled-color: var(--vpp-text-tertiary);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-text-color: var(--vpp-text-primary);
+    --rz-text-title-color: var(--vpp-text-primary);
+    --rz-text-body1-color: var(--vpp-text-primary);
+    --rz-text-body2-color: var(--vpp-text-secondary);
+    --rz-text-secondary-color: var(--vpp-text-secondary);
+    --rz-text-tertiary-color: var(--vpp-text-tertiary);
+    --rz-text-disabled-color: var(--vpp-text-tertiary);
+}
+
+/* ── Đường viền ──────────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-border-color: var(--vpp-border-default);
+    --rz-input-border-color: var(--vpp-border-strong);
+    --rz-panel-border: 1px solid var(--vpp-border-default);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-border-color: var(--vpp-border-default);
+    --rz-input-border-color: var(--vpp-border-strong);
+}
+
+/* ── Bán kính bo góc ─────────────────────────────────────────── */
+.rz-theme-dark,
+:root:not(.rz-theme-dark) {
+    --rz-border-radius: var(--vpp-radius-md);
+    --rz-border-radius-lg: var(--vpp-radius-lg);
+    --rz-border-radius-sm: var(--vpp-radius-sm);
+    --rz-input-border-radius: var(--vpp-radius-input);
+    --rz-dialog-border-radius: var(--vpp-radius-modal);
+    --rz-card-border-radius: var(--vpp-radius-card);
+    --rz-panel-border-radius: var(--vpp-radius-card);
+    --rz-grid-border-radius: var(--vpp-radius-card);
+    --rz-button-border-radius: var(--vpp-radius-button);
+    --rz-notification-border-radius: var(--vpp-radius-md);
+}
+
+/* ── Bóng đổ ─────────────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-shadow: var(--vpp-shadow-sm);
+    --rz-panel-shadow: var(--vpp-shadow-md);
+    --rz-card-shadow: var(--vpp-shadow-sm);
+    --rz-dialog-shadow: var(--vpp-shadow-xl);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-shadow: var(--vpp-shadow-xs);
+    --rz-panel-shadow: var(--vpp-shadow-sm);
+    --rz-card-shadow: var(--vpp-shadow-xs);
+    --rz-dialog-shadow: var(--vpp-shadow-lg);
+}
+
+/* ── Kiểu chữ ────────────────────────────────────────────────── */
+.rz-theme-dark,
+:root:not(.rz-theme-dark) {
+    --rz-font-family: var(--vpp-font-body);
+    --rz-body-font-size: var(--vpp-text-base);
+}
+
+/* ── Trường biểu mẫu ─────────────────────────────────────────── */
+.rz-theme-dark,
+:root:not(.rz-theme-dark) {
+    --rz-input-height: 2.25rem;
+    --rz-input-padding: 0 var(--vpp-space-3);
+    --rz-form-field-label-color: var(--vpp-text-secondary);
+    --rz-form-field-label-font-size: var(--vpp-text-xs);
+}
+
+.rz-theme-dark .rz-form-field.rz-variant-outlined .rz-form-field-label {
+    color: var(--vpp-text-primary) !important;
+    background-color: var(--vpp-bg-surface) !important;
+}
+
+.rz-theme-dark .rz-dropdown-label.rz-placeholder,
+.rz-theme-dark input::placeholder,
+.rz-theme-dark textarea::placeholder {
+    color: var(--vpp-text-secondary) !important;
+    opacity: 1;
+}
+
+/* ── Thanh bên / Điều hướng ──────────────────────────────────── */
+.rz-theme-dark {
+    --rz-sidebar-background-color: var(--vpp-bg-surface);
+    --rz-sidebar-border: 1px solid var(--vpp-border-default);
+    --rz-navigation-item-color: var(--vpp-text-secondary);
+    --rz-navigation-item-hover-background-color: var(--vpp-bg-surface);
+    --rz-navigation-item-hover-color: var(--vpp-text-primary);
+    --rz-navigation-item-active-background-color: rgba(14, 165, 233, 0.1);
+    --rz-navigation-item-active-color: var(--vpp-primary-400);
+    --rz-navigation-item-icon-color: var(--vpp-text-tertiary);
+    --rz-navigation-item-icon-active-color: var(--vpp-primary-400);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-sidebar-background-color: var(--vpp-navigation-chrome-bg);
+    --rz-sidebar-border: 1px solid var(--vpp-border-default);
+    --rz-navigation-item-color: var(--vpp-text-secondary);
+    --rz-navigation-item-hover-background-color: rgba(14, 165, 233, 0.06);
+    --rz-navigation-item-hover-color: var(--vpp-text-primary);
+    --rz-navigation-item-active-background-color: rgba(14, 165, 233, 0.08);
+    --rz-navigation-item-active-color: var(--vpp-primary-700);
+    --rz-navigation-item-icon-color: var(--vpp-text-tertiary);
+    --rz-navigation-item-icon-active-color: var(--vpp-primary-700);
+}
+
+/* ── Thanh đầu trang ─────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-header-background-color: transparent;
+    --rz-header-color: var(--vpp-text-primary);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-header-background-color: transparent;
+    --rz-header-color: var(--vpp-text-primary);
+}
+
+/* ── Lưới/DataGrid ───────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-grid-header-background-color: var(--vpp-bg-surface);
+    --rz-grid-header-color: var(--vpp-text-secondary);
+    --rz-grid-background-color: var(--vpp-bg-elevated);
+    --rz-grid-cell-color: var(--vpp-text-primary);
+    --rz-grid-stripe-background-color: rgba(255, 255, 255, 0.02);
+    --rz-grid-hover-background-color: rgba(14, 165, 233, 0.05);
+    --rz-grid-selected-background-color: rgba(14, 165, 233, 0.08);
+    --rz-grid-hover-color: var(--vpp-text-primary);
+    --rz-grid-selected-color: var(--vpp-text-primary);
+    --rz-grid-border-color: var(--vpp-border-default);
+    --rz-grid-cell-font-size: var(--vpp-text-sm);
+    --rz-grid-header-font-size: var(--vpp-text-xs);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-grid-header-background-color: #F7FAFC;
+    --rz-grid-header-color: var(--vpp-text-secondary);
+    --rz-grid-background-color: var(--vpp-bg-elevated);
+    --rz-grid-cell-color: var(--vpp-text-primary);
+    --rz-grid-stripe-background-color: rgba(14, 165, 233, 0.025);
+    --rz-grid-hover-background-color: rgba(14, 165, 233, 0.05);
+    --rz-grid-selected-background-color: rgba(14, 165, 233, 0.08);
+    --rz-grid-hover-color: var(--vpp-text-primary);
+    --rz-grid-selected-color: var(--vpp-text-primary);
+    --rz-grid-border-color: var(--vpp-border-default);
+    --rz-grid-cell-font-size: var(--vpp-text-sm);
+    --rz-grid-header-font-size: var(--vpp-text-xs);
+}
+
+/* ── Nút bấm ─────────────────────────────────────────────────── */
+/* Bậc chiều cao 36px chuẩn / 30px compact theo Atlas (html 14px nên
+   không dùng rem mặc định của Radzen vốn render 31.5px/24.5px). */
+.rz-theme-dark {
+    --rz-button-primary-background-color: var(--vpp-primary-500);
+    --rz-button-primary-hover-background-color: var(--vpp-primary-600);
+    --rz-button-primary-active-background-color: var(--vpp-primary-700);
+    --rz-button-border-radius: var(--vpp-radius-button);
+    --rz-button-size-md: var(--vpp-control-height);
+    --rz-button-size-sm: var(--vpp-control-height-compact);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-button-primary-background-color: var(--vpp-primary-600);
+    --rz-button-primary-hover-background-color: var(--vpp-primary-700);
+    --rz-button-primary-active-background-color: var(--vpp-primary-800);
+    --rz-button-border-radius: var(--vpp-radius-button);
+    --rz-button-size-md: var(--vpp-control-height);
+    --rz-button-size-sm: var(--vpp-control-height-compact);
+}
+
+/* ── Hộp thoại ───────────────────────────────────────────────── */
+.rz-theme-dark,
+:root:not(.rz-theme-dark) {
+    --rz-dialog-border-radius: var(--vpp-radius-modal);
+    --rz-dialog-title-background-color: var(--rz-dialog-background-color);
+    --rz-dialog-title-border: 1px solid var(--vpp-border-default);
+    --rz-dialog-title-padding-block: 1rem 0.875rem;
+    --rz-dialog-title-padding-inline: 1.25rem;
+    --rz-dialog-content-padding: 1.25rem;
+}
+
+/* ── Nhãn trạng thái ─────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-badge-background-color: var(--vpp-primary-500);
+    --rz-badge-font-size: var(--vpp-text-xs);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-badge-background-color: var(--vpp-primary-600);
+    --rz-badge-font-size: var(--vpp-text-xs);
+}
+
+/* ── Công tắc / Bật tắt ──────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-switch-checked-background-color: var(--vpp-primary-500);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-switch-checked-background-color: var(--vpp-primary-600);
+}
+
+/* ── Chú giải nhanh ──────────────────────────────────────────── */
+.rz-theme-dark {
+    --rz-tooltip-background-color: var(--vpp-bg-surface);
+    --rz-tooltip-color: var(--vpp-text-primary);
+}
+
+:root:not(.rz-theme-dark) {
+    --rz-tooltip-background-color: var(--vpp-bg-tooltip);
+    --rz-tooltip-color: var(--vpp-text-inverse);
+}
+
+.rz-dialog,
+.rz-dialog-side {
+    border: 1px solid var(--vpp-border-default);
+}
+
+.rz-dialog-confirm,
+.rz-dialog-alert {
+    margin: 0;
+}

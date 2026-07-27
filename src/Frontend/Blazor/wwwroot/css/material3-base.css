@@ -1,0 +1,6 @@
+/*
+ * Radzen 11 không còn cung cấp tên theme material3 cũ. Ứng dụng vẫn giữ giá trị
+ * cookie đã lưu để tương thích ngược, còn theme base thật được tải từ
+ * _content/Radzen.Blazor/css/material-base.css. Asset no-op có chủ ý này ngăn
+ * RadzenTheme tạo lỗi 404.
+ */

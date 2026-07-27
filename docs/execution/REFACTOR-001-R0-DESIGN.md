@@ -14,7 +14,7 @@ phải chạy trước để hiệu chỉnh trước khi chốt từng bước.
 ### 1.1. Phát hiện quan trọng nhất: overhead là **per-test-method**, không phải per-class
 
 `TestBase` implement `IAsyncLifetime` trực tiếp trên test class
-(`gtas_vpp_fe.UITests/Core/TestBase.cs:15`, `:37`). xUnit (v2 lẫn v3) tạo **một instance test
+(`tests/Frontend.UiTests/Core/TestBase.cs:15`, `:37`). xUnit (v2 lẫn v3) tạo **một instance test
 class mới cho mỗi `[Fact]`**, nên `InitializeAsync()` — tức toàn bộ chuỗi LocalDB + Aspire +
 Chromium — chạy lại cho **từng test method**, không phải từng class. Plan mục 3 ghi
 "mỗi test class dựng lại hệ thống"; thực tế còn tệ hơn ở các class nhiều fact:
@@ -35,9 +35,9 @@ Chuỗi trong `TestBase.InitializeAsync` (`TestBase.cs:37-79`) khi `GTAS_E2E_ISO
 |---|---|---|---|
 | 1 | `QaUiSafetyContract.EnsureRunAllowed` (kiểm env contract) | `TestBase.cs:48-52` | ~0 |
 | 2 | `LocalDbQaFixture.RecoverStaleAsync` — quét manifest `%TEMP%\gtas-vpp-qa` | `TestBase.cs:234` | 1-3s (gọi `SqlLocalDB` cho từng manifest) |
-| 3 | `LocalDbQaFixture.CreateAsync` — tạo instance LocalDB mới `GTASVPP_QA_<hex>` + start | `TestBase.cs:235`, `gtas_vpp_test_support/LocalDbQaFixture.cs:39-90` | 8-15s |
+| 3 | `LocalDbQaFixture.CreateAsync` — tạo instance LocalDB mới `GTASVPP_QA_<hex>` + start | `TestBase.cs:235`, `tests/TestSupport/LocalDbQaFixture.cs:39-90` | 8-15s |
 | 4 | `CREATE DATABASE` ×2 (chính + companion `GTAS_MENU`) + marker + **EF migrate + seed** | `LocalDbQaFixture.cs:203-232`, `QaFixtureSeeder.MigrateAndSeedAsync` (`QaFixtureSeeder.cs:50-73`) | 10-20s |
-| 5 | `DistributedApplicationTestingBuilder.CreateAsync<MyAspire_AppHost>` + `BuildAsync` + `StartAsync` — khởi động **backend + frontend** (2 process dotnet); backend tự chạy `DatabaseInitialization Mode=MigrateAndReference` (migrate lần 2 + nạp reference SQL/SP) | `TestBase.cs:242-252`, `MyAspire.AppHost/AppHost.cs:6-27` | 20-35s |
+| 5 | `DistributedApplicationTestingBuilder.CreateAsync<MyAspire_AppHost>` + `BuildAsync` + `StartAsync` — khởi động **backend + frontend** (2 process dotnet); backend tự chạy `DatabaseInitialization Mode=MigrateAndReference` (migrate lần 2 + nạp reference SQL/SP) | `TestBase.cs:242-252`, `src/Hosting/AppHost/AppHost.cs:6-27` | 20-35s |
 | 6 | Identity handshake: poll `/internal/qa/database-identity`, bước nhảy **2s/attempt** | `TestBase.cs:269-306` | 2-8s (granularity thô) |
 | 7 | Poll frontend ready, bước nhảy 2s | `TestBase.cs:391-406` | 0-4s |
 | 8 | `Playwright.CreateAsync` + **launch Chromium mới** + `NewPageAsync` | `TestBase.cs:59-70` | 2-4s |

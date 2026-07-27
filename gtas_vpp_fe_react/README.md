@@ -1,7 +1,7 @@
 # GTAS VPP React Auxiliary Frontend
 
 Frontend React là proof-of-concept phụ đang tạm dừng; frontend chính và public
-target hiện tại là Blazor/Radzen trong `../gtas_vpp_fe/`.
+target hiện tại là Blazor/Radzen trong `../src/Frontend/Blazor/`.
 Trạng thái từng route, quality gate và owner review được quản lý tại
 `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
 

@@ -1,0 +1,227 @@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Radzen.Blazor.Rendering
+@using gtas_vpp_shared.Constants
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject GlobalClass glb
+@inject NavigationManager NavigationManager
+@inject ProtectedLocalStorage ProtectedLocalStore
+
+<RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" class="vpp-global-loader" />
+
+<RadzenHeader class="vpp-header-glass vpp-layout-header">
+    <RadzenStack Orientation="Orientation.Horizontal" class="vpp-header-row">
+        <button type="button"
+                class="vpp-mobile-sidebar-toggle"
+                title="@Loc["ToggleNavigation"]"
+                aria-label="@Loc["ToggleNavigation"]"
+                aria-expanded="@_sideBarExpanded"
+                @onclick="@(() => SetSidebarExpandedAsync(!_sideBarExpanded))">
+            <VppIcon Name="@VppIcons.Menu" />
+        </button>
+        @if (HeaderTabs.Count > 0)
+        {
+            <nav class="vpp-header-tabs" aria-label="@Loc["SectionNavigation"]">
+                @foreach (var headerTab in HeaderTabs)
+                {
+                    <a class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
+                       href="@headerTab.Path"
+                       aria-current="@(headerTab.IsActive ? "page" : null)">
+                        @if (headerTab.IsActive && headerTab.Breadcrumb is { Count: > 1 })
+                        {
+                            @for (var i = 0; i < headerTab.Breadcrumb.Count; i++)
+                            {
+                                @if (i > 0)
+                                {
+                                    <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-breadcrumb-sep" />
+                                }
+                                <span class="@(i == headerTab.Breadcrumb.Count - 1 ? "vpp-header-breadcrumb-leaf" : "vpp-header-breadcrumb-ancestor")">@headerTab.Breadcrumb[i]</span>
+                            }
+                        }
+                        else
+                        {
+                            @headerTab.Label
+                        }
+                    </a>
+                }
+            </nav>
+        }
+        @if (HeaderPathSegments.Count > 0)
+        {
+            <nav class="vpp-header-breadcrumb" aria-label="@Loc["CurrentLocation"]">
+                @for (var i = 0; i < HeaderPathSegments.Count; i++)
+                {
+                    @if (i > 0)
+                    {
+                        <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-breadcrumb-sep" />
+                    }
+                    <span class="@(i == HeaderPathSegments.Count - 1 ? "vpp-header-breadcrumb-leaf" : "vpp-header-breadcrumb-ancestor")">@HeaderPathSegments[i]</span>
+                }
+            </nav>
+        }
+        @if (!string.IsNullOrWhiteSpace(RoleBadgeLabel))
+        {
+            <span class="vpp-header-role-badge" title="@RoleBadgeLabel">
+                <VppIcon Name="@VppIcons.VerifiedUser" />
+                @RoleBadgeLabel
+            </span>
+        }
+    </RadzenStack>
+</RadzenHeader>
+
+@* FullHeight bắt buộc cho trục Atlas "brand + tab cùng hàng 72px": Radzen 11 áp
+   grid-template-areas bằng selector :has() có specificity cao hơn vpp-layout.css,
+   nên thiếu FullHeight thì theme sẽ đặt header tràn hết bề ngang phía trên sidebar
+   (header left = 0, brand rơi xuống y = 72 + 36). Với FullHeight="true" theme sinh
+   "rz-sidebar rz-header" / "rz-sidebar rz-body" — đúng template mà vpp-layout.css mô tả. *@
+<RadzenSidebar Responsive="true" FullHeight="true" class="@GetSidebarClass()" data-shell-ready="@(_shellStateReady ? "true" : "false")" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
+    <div class="vpp-sidebar-header">
+        <div class="vpp-sidebar-expanded-chrome" aria-hidden="@(!_sideBarExpanded)">
+            <div class="vpp-sidebar-expanded-brand" aria-label="GTAS VPP">
+                <VppBrandMark Class="vpp-sidebar-brand-mark vpp-sidebar-expanded-logo" />
+                <span class="vpp-sidebar-product">GTAS VPP</span>
+            </div>
+            <button type="button"
+                    class="vpp-sidebar-toggle"
+                    title="@Loc["ToggleNavigation"]"
+                    aria-label="@Loc["ToggleNavigation"]"
+                    aria-expanded="true"
+                    tabindex="@(_sideBarExpanded ? "0" : "-1")"
+                    @onclick="@(() => SetSidebarExpandedAsync(false))">
+                <VppIcon Name="@VppIcons.SidebarCollapse" />
+            </button>
+        </div>
+        <button type="button"
+                class="vpp-sidebar-brand vpp-sidebar-collapsed-brand"
+                title="@Loc["ToggleNavigation"]"
+                aria-label="@Loc["ToggleNavigation"]"
+                aria-expanded="false"
+                aria-hidden="@_sideBarExpanded"
+                tabindex="@(_sideBarExpanded ? "-1" : "0")"
+                @onclick="@(() => SetSidebarExpandedAsync(true))">
+            <VppBrandMark Class="vpp-sidebar-brand-mark vpp-sidebar-collapsed-logo" />
+            <VppIcon Name="@VppIcons.SidebarExpand" Class="vpp-sidebar-collapsed-expand-icon" />
+        </button>
+    </div>
+    <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
+        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Click="@OnMenuItemClick">
+        @if (CanViewDashboardMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]">
+                @if (CanViewDashboardItem(Permissions.RequestOrder))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavMyOrders" title="@Loc["MyOrders"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestHistory))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="@VppIcons.History" title="@Loc["History"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Catalog" title="@Loc["Catalog"]" />
+                }
+                @* D2/D8: mục "Tổng hợp toàn công ty" đã gỡ — nội dung trở thành chế độ
+                   "Theo đơn" của bước Gom nhu cầu trong Vận hành kỳ. *@
+                @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Department" title="@Loc["DepartmentSummary"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
+                {
+                    @if (CanViewDashboardItem(Permissions.RequestAdminApproval) && CanViewDashboardItem(Permissions.PeriodSettle))
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]">
+                            <RadzenPanelMenuItem Text="@Loc["PeriodReview"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.Review" title="@Loc["PeriodReview"]" />
+                            <RadzenPanelMenuItem Text="@Loc["PeriodDemandStep"]" Path="/dashboard?tab=5&periodTab=demand" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavAllOrders" title="@Loc["PeriodDemandStep"]" />
+                            <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavApproval" title="@Loc["AdminApproval"]" />
+                        </RadzenPanelMenuItem>
+                    }
+                    else if (CanViewDashboardItem(Permissions.PeriodSettle))
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]" />
+                    }
+                    else
+                    {
+                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]" />
+                    }
+                }
+            </RadzenPanelMenuItem>
+        }
+        @if (CanViewLibraryMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="@VppIcons.Folder" class="ppjsidebarmenu" title="@Loc["Library"]">
+                @if (CanViewLibraryItem(Permissions.LibraryClass))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.Schema" title="@Loc["ClassDefinitions"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryCategory))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["OperationCategories"]" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="@VppIcons.Category" title="@Loc["OperationCategories"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryItem))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Operations"]" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Item" title="@Loc["Operations"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibrarySupplier))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="@VppIcons.Supplier" title="@Loc["Suppliers"]" />
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Pricing"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.Pricing" title="@Loc["Pricing"]">
+                        @if (CanViewLibraryItem(Permissions.LibraryPriceList))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="@("/library?tab=6&pricingTab=price-lists")" class="ppjsidebarmenu submenu" Icon="@VppIcons.PriceList" title="@Loc["PriceLists"]" />
+                        }
+                        @if (CanViewLibraryItem(Permissions.LibraryPrice))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["Prices"]" Path="@("/library?tab=6&pricingTab=prices")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Price" title="@Loc["Prices"]" />
+                        }
+                    </RadzenPanelMenuItem>
+                }
+                @if (CanViewLibraryItem(Permissions.LibraryDepartment))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=5" class="ppjsidebarmenu submenu" Icon="@VppIcons.Apartment" title="@Loc["Departments"]" />
+                }
+            </RadzenPanelMenuItem>
+        }
+        @if (CanViewReportMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Reports"]" Icon="@VppIcons.Reports" class="ppjsidebarmenu" Path="/report" title="@Loc["Reports"]" />
+        }
+        @if (CanViewPermissionMenu)
+        {
+            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="@VppIcons.Permissions" class="ppjsidebarmenu" title="@Loc["Permissions"]">
+                @if (CanViewPermissionItem(Permissions.PermissionUser))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Users"]" Icon="@VppIcons.Group" class="ppjsidebarmenu submenu" Path="/permission?tab=0" title="@Loc["Users"]" />
+                }
+                @if (CanViewPermissionItem(Permissions.PermissionComponent))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["GroupsAndPermissions"]" Icon="@VppIcons.Rule" class="ppjsidebarmenu submenu" Path="/permission?tab=1" title="@Loc["GroupsAndPermissions"]" />
+                }
+            </RadzenPanelMenuItem>
+        }
+        </RadzenPanelMenu>
+    </nav>
+    <footer class="vpp-sidebar-user-footer">
+        <UserMenu UserFullName="@glb.UserInfo.FullName"
+                  UserLogin="@glb.UserInfo.UserLogin"
+                  UserEmail="@glb.UserInfo.Email"
+                  DepartmentName="@glb.UserInfo.DepartmentName"
+                  DepartmentCode="@glb.UserInfo.DepartmentCode"
+                  IsLightTheme="@LightTheme"
+                  IsLightThemeChanged="@(isLight => LightTheme = isLight)"
+                  OnThemeToggle="ThemeOnChange"
+                  OnLanguageToggle="ToggleLanguage"
+                  ShowName="true"
+                  SidebarMode="true" />
+    </footer>
+</RadzenSidebar>
+@if (_sideBarExpanded)
+{
+    <button type="button"
+            class="vpp-sidebar-backdrop"
+            title="@Loc["CloseNavigation"]"
+            aria-label="@Loc["CloseNavigation"]"
+            @onclick="@(() => SetSidebarExpandedAsync(false))"></button>
+}

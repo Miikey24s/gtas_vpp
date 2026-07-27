@@ -76,9 +76,9 @@ Các finding dưới đây giữ nguyên như bằng chứng audit ngày 14/07; 
 Trước khi tạo planning docs đã có thay đổi người dùng tại:
 
 - `LVTN/NguyenAnNam_DH52201078_working.docx`;
-- `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/App.razor`;
-- `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-login.css`;
-- `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-responsive.css`.
+- `src/Frontend/Blazor/Components/App.razor`;
+- `src/Frontend/Blazor/wwwroot/css/vpp-login.css`;
+- `src/Frontend/Blazor/wwwroot/css/vpp-responsive.css`.
 
 Không file nào trong danh sách trên bị audit chỉnh sửa. Mọi đánh giá UI là đánh giá trạng thái hiện tại, gồm cả thay đổi chưa commit đó.
 
@@ -141,7 +141,7 @@ Không file nào trong danh sách trên bị audit chỉnh sửa. Mọi đánh g
 
 ### ARCH-05 — Generic CRUD là đường bypass invariant
 
-**Bằng chứng.** `gtas_vpp_be/gtas_vpp_be/Controllers/LibraryController.cs:634-807` map entity/DTO generic và PATCH writable property; delete đi qua `BaseGenericController.cs:123-127` và `GenericRepository.cs:104-126` để hard delete. Typed price service tồn tại song song.
+**Bằng chứng.** `src/Backend/Api/Controllers/LibraryController.cs:634-807` map entity/DTO generic và PATCH writable property; delete đi qua `BaseGenericController.cs:123-127` và `GenericRepository.cs:104-126` để hard delete. Typed price service tồn tại song song.
 
 **Tác động.** Rule default price, effective date, FK, soft delete và audit có thể bị bỏ qua.
 
@@ -151,7 +151,7 @@ Không file nào trong danh sách trên bị audit chỉnh sửa. Mọi đánh g
 
 ### SEC-01 — Production migrator có thể tạo account demo
 
-**Bằng chứng.** `docker-compose.prod.yml:46-57` dùng `MigrateAndSeed`; `deploy/deploy.sh:309-312` chạy migrator mỗi deploy; `gtas_vpp_be/gtas_vpp_be.Service/Helpers/SQL/00_Init_GTAS_MENU.sql:39-56` tạo nhiều account cùng credential compatibility; README/test chứa thông tin giải mã legacy.
+**Bằng chứng.** `docker-compose.prod.yml:46-57` dùng `MigrateAndSeed`; `deploy/deploy.sh:309-312` chạy migrator mỗi deploy; `src/Backend/Application/Helpers/SQL/00_Init_GTAS_MENU.sql:39-56` tạo nhiều account cùng credential compatibility; README/test chứa thông tin giải mã legacy.
 
 **Tác động.** Database production mới hoặc chưa có ID trùng có thể nhận account có credential công khai.
 
@@ -430,7 +430,7 @@ Các mục trên có dữ liệu/privacy implications. Luật Bảo vệ dữ li
 Coverage line tại thời điểm audit là **11,99% tổng thể**, `gtas_vpp_be.Service` **49,71%** và API `gtas_vpp_be` **18,70%**. Số liệu được tái lập ngày 14/07/2026 bằng:
 
 ```powershell
-dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-restore `
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-restore `
   --collect:"XPlat Code Coverage" `
   --results-directory tmp/planning-audit/coverage-20260714
 ```

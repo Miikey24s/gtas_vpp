@@ -4,7 +4,7 @@
 >
 > **Repository:** `Miikey24s/gtas_vpp`
 >
-> **Frontend chính:** `gtas_vpp_fe/` — Blazor Interactive Server + Radzen
+> **Frontend chính:** `src/Frontend/Blazor/` — Blazor Interactive Server + Radzen
 >
 > **Frontend phụ:** `gtas_vpp_fe_react/` — proof-of-concept đang tạm dừng
 >

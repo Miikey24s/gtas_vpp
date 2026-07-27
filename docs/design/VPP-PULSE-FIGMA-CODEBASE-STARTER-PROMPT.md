@@ -18,7 +18,7 @@ PRE-FLIGHT VÀ NGUỒN AUTHORITY
 
 1. Xác nhận repository là Miikey24s/gtas_vpp và source branch là Nam.
 2. Frontend production chính là Blazor Interactive Server + Radzen tại:
-   gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/.
+   src/Frontend/Blazor/.
    gtas_vpp_fe_react/ chỉ là proof-of-concept phụ đang tạm dừng. Không lấy React
    phụ làm target, không đề xuất cutover framework và không sửa nó.
 3. Đọc đầy đủ theo thứ tự:
@@ -29,7 +29,7 @@ PRE-FLIGHT VÀ NGUỒN AUTHORITY
    - docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md
    - docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md
    - docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md
-   - gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Helpers/RouteCatalog.cs
+   - src/Frontend/Blazor/Helpers/RouteCatalog.cs
    - App.razor, Routes, MainLayout, LeftSidebar, HeaderControls, account shell,
      auth routes, Dashboard/My Orders, Create Order, History và CSS/resource/test
      liên quan trong frontend Blazor;

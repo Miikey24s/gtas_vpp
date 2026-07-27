@@ -46,8 +46,8 @@ services:
   # ── Backend (.NET 10 Web API) ────────────────────────────
   backend:
     build:
-      context: ./gtas_vpp_be
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: deploy/docker/backend.Dockerfile
     container_name: gtas-vpp-backend
     restart: unless-stopped
     init: true
@@ -108,7 +108,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: gtas_vpp_fe/Dockerfile
+      dockerfile: deploy/docker/frontend.Dockerfile
     container_name: gtas-vpp-frontend
     restart: unless-stopped
     init: true

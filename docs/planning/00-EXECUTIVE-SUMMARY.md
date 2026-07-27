@@ -75,7 +75,7 @@ Audit không thay đổi source, database hay cấu hình. Các file đang dirty
 
 - **Modular monolith**, một backend và một Blazor app.
 - Module logic: Identity & Access, Organization, Catalog, Pricing & Supplier, Period & Request, Settlement, Reporting, Notification & Insight.
-- Shared DTO duy nhất tiếp tục ở `gtas_vpp_be/gtas_vpp_shared`, nhưng bỏ dependency EF/UI concern khỏi shared project.
+- Shared DTO duy nhất tiếp tục ở `src/Shared`, nhưng bỏ dependency EF/UI concern khỏi shared project.
 - Backend policy/resource authorization là security boundary; frontend chỉ điều chỉnh trải nghiệm.
 - SQL Server là source of truth; SP legacy được giữ có giới hạn cho compatibility/read, command mới dùng typed service/parameterized SQL/EF Core.
 - Migration production qua reviewed idempotent SQL script hoặc bundle, không runtime auto-seed. Microsoft khuyến nghị review/test migration và ưu tiên script cho production ([EF Core applying migrations](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying)).

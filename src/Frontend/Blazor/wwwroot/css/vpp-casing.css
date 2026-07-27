@@ -1,0 +1,12 @@
+/* Giữ nguyên kiểu chữ do resource localization quy định trên UI native và Radzen.
+   Từ viết tắt và mã nghiệp vụ vẫn viết hoa vì text nguồn đã viết hoa. */
+body,
+body * {
+    text-transform: none !important;
+}
+
+/* Radzen Material ghép nút viết hoa với letter-spacing rộng. */
+.rz-button,
+.rz-button .rz-button-text {
+    letter-spacing: normal !important;
+}

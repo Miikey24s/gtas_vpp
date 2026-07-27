@@ -35,7 +35,7 @@ File này phải được cập nhật trong cùng change-set khi một quyết 
 - `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` định nghĩa MCP, browser QA, accessibility, visual regression và performance workflow cho AI agent.
 - Figma `GTAS VPP — VPP Pulse` là tài liệu tham khảo flow/visual/state, không thay thế route/source audit.
 - `.github/copilot-instructions.md` và `.codexrules` giữ convention Blazor/Radzen hiện hành.
-- `gtas_vpp_fe/.../Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
+- `src/Frontend/Blazor/Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
 
 Khi có xung đột:
 
@@ -91,7 +91,7 @@ Khi có xung đột:
 - Stack nền: React + TypeScript + Vite, shadcn/ui + Tailwind CSS, React Router, TanStack Query/Table, React Hook Form + Zod, i18next, Lucide và Recharts.
 - Không dùng Next.js cho giai đoạn này: GTAS là application nội bộ, backend ASP.NET Core/JWT đã tách riêng và không cần SEO/React Server Components hoặc thêm một Node production server.
 - TypeScript contract phải sinh từ Swagger/OpenAPI của backend; không tự chép DTO C# bằng tay và không tạo contract nghiệp vụ song song.
-- Local orchestration dùng Aspire `AddViteApp`; production serving model chỉ được chốt sau proof-of-concept, vì Vite dev server không phải production web server.
+- React POC không còn được AppHost hoặc production runtime khởi động; source chỉ được giữ đóng băng để đối chiếu và phục vụ tooling LVTN cũ.
 - Proof-of-concept đầu tiên là `Login → App shell → My Orders` với API/TEST thật, đủ VI/EN, Light/Dark/Print, responsive, loading/empty/error/success, permissions và accessibility.
 - Chỉ bắt đầu migrate route tiếp theo khi proof-of-concept được chứng minh tốt hơn Blazor bằng runtime review và test, không dựa vào mock screenshot.
 
@@ -100,9 +100,7 @@ Khi có xung đột:
 - `gtas_vpp_fe_react` đã được scaffold bằng React 19 + TypeScript 6 + Vite 8; không sửa hoặc ghi đè frontend Blazor.
 - Foundation đã có React Router lazy routes, TanStack Query provider, i18next VI/EN, Light/Dark/Print tokens, shadcn/ui source components, responsive shell và error/not-found boundary.
 - OpenAPI client dùng `@hey-api/openapi-ts`; URL Swagger lấy từ `GTAS_OPENAPI_URL`, còn runtime `/api` dùng Aspire service discovery/proxy hoặc `.env.local` khi chạy Vite độc lập.
-- `MyAspire.AppHost` giữ resource `frontend-react` ở chế độ preview **opt-in** bằng
-  `Frontend__EnableReactPreview=true`; mặc định local, QA và E2E chỉ khởi động Blazor/Radzen để đúng execution authority
-  và tránh tiêu tốn tài nguyên cho dự án React đang `PAUSED/DEFERRED`.
+- `src/Hosting/AppHost` chỉ điều phối backend và Blazor/Radzen. React POC đã được gỡ khỏi AppHost, Docker Compose production và CI/CD ngày 2026-07-27.
 - shadcn MCP đã được cài vào Codex user profile; cần restart Codex hoặc mở task mới để tool xuất hiện trong phiên.
 - Vertical slice `Login → App shell → My Orders → Logout` đã dùng generated client từ Swagger, auth/permission bootstrap thật, API query thật và không tạo DTO nghiệp vụ song song.
 - QA tự động đã pass: Prettier, Oxlint, TypeScript, Vitest, Vite production build, Playwright Chromium ở `390`, `768`, `1366` px, axe không có violation critical/serious, không horizontal overflow, `npm audit` không có vulnerability, AppHost Release build `0 warning / 0 error` và backend `397/397` test pass.
@@ -1215,7 +1213,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-27 | W-F.2 `permission.component` | Ma trận 18 action × 3 vai trò render trực tiếp từ `CanonicalRbac` và chỉ đọc; UI mapping động hiện có nằm ở lớp thứ hai. Grid nhóm dùng DTO permission có `GroupCode`, không suy diễn security identity từ tên hiển thị. Không có nút lưu matrix | Action permissions là canonical backend authority; chỉ page/component visibility có endpoint mutation. Tên hiển thị có thể dịch, `GroupCode` mới là identity ổn định | Local M6 | W-F source hoàn tất; isolated matrix/render/overflow pass. Ghi retrofit Atlas bỏ `Lưu ma trận quyền` | M6 Permissions; Atlas permissions card | VERIFIED — frontend 180/180, mutation hide/show permission pass |
 | 2026-07-27 | W-F.1 `permission.user` | Đồng bộ màn Người dùng theo Atlas ở lớp copy/filter nhưng giữ vòng đời tài khoản thật của backend: search `UserName/FullName/Email`, filter `accountStatus`, ba trạng thái canonical, activation/reset/deactivate có audit. `SessionVersion` được coi là security-stamp equivalent nên bị loại khỏi inspector; `RowVersion` vẫn hiển thị ở tab Kỹ thuật | Backend đã có contract lọc và action thật; Atlas không được mở admin-create/edit khi API không tồn tại, và secret/session invalidation evidence không được lộ qua reflection inspector | Local + shared inspector safety | W-F.1 hoàn tất source; isolated route render/overflow pass. Thêm resx VI/EN và architecture regression | M6 Users; mọi DTO tương lai đi qua `Component_RecordInspector` | ISOLATED_QA_PASS — frontend 171/171, UI 1/1; mutation/owner review pending |
 | 2026-07-26 | ATLAS-001 — kế hoạch triển khai toàn bộ Atlas | Mở kế hoạch `docs/execution/ATLAS-001.md`: đối chiếu đủ 28 màn Atlas với route Blazor, phân loại gap A/B/C/D và chia 8 wave W-A…W-H. Thứ tự thẩm quyền chốt là luận văn → Atlas → backend/API → frontend hiện tại. Atlas mới hơn frontend nên Blazor phải kéo lên theo Atlas, nhưng Atlas không được vẽ trường/hành động không có thật trong DTO | Owner yêu cầu một kế hoạch đầy đủ trước khi thực thi, và cần Atlas với frontend đồng bộ mà không phải khớp từng pixel | Global | Thêm execution doc; route ledger cập nhật sau mỗi wave | Toàn bộ 28 màn | PLANNED |
-| 2026-07-26 | Canonical RBAC | **D1** — giữ ba vai trò `EMPLOYEE / MANAGER / DEV`. Quyết định bốn vai trò ngày 2026-07-24 chuyển sang Superseded | Luận văn §3.3.4.4 và `gtas_vpp_shared/Constants/CanonicalRbac.cs` đều là ba vai trò; bản bốn vai trò chưa từng được code | Global | Không đụng backend authorization | Permission page, Atlas, sidebar/header role badge | OWNER_CONFIRMED |
+| 2026-07-26 | Canonical RBAC | **D1** — giữ ba vai trò `EMPLOYEE / MANAGER / DEV`. Quyết định bốn vai trò ngày 2026-07-24 chuyển sang Superseded | Luận văn §3.3.4.4 và `src/Shared/Constants/CanonicalRbac.cs` đều là ba vai trò; bản bốn vai trò chưa từng được code | Global | Không đụng backend authorization | Permission page, Atlas, sidebar/header role badge | OWNER_CONFIRMED |
 | 2026-07-26 | `Tab_AllOrdersSummary` → `period-demand` | **D2 + D8** — gỡ tab `Tổng hợp toàn công ty` khỏi thanh điều hướng và đưa nội dung vào màn `Gom nhu cầu` dưới dạng **chế độ xem**, không xóa file. `period-demand` có hai chế độ: `Theo đơn` (nội dung tab cũ) và `Theo mặt hàng` (tổng nhu cầu gom) | Atlas đã gộp màn này vào luồng vận hành kỳ; owner muốn giữ lại nội dung cũ thay vì bỏ hẳn | Global | W-D | Period operations, Atlas M4 | OWNER_CONFIRMED |
 | 2026-07-26 | `/report` export | **D3** — báo cáo chỉ CSV + XLSX. Không viết endpoint PDF. Atlas màn `reports` đổi nút `Xuất PDF` thành `Xuất CSV` | `ReportsController` chỉ có `export` (CSV) và `export.xlsx`. Luận văn §3.4 cũng ghi CSV + XLSX; riêng §3.3.5.1 viết "PDF hoặc Excel" là sai lệch nội bộ của luận văn | Global | W-G | Report page, Atlas M7 | Atlas đã sửa — code chờ W-G |
 | 2026-07-26 | Luồng vận hành kỳ | **D4** — tách thành bốn bước rõ `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung → Chốt kỳ`. `supply-allocation` tách khỏi `PeriodSettlementPanel` | Atlas đã vẽ bốn bước; `supply-allocation` đã là Hình 3-36 trong luận văn nhưng chưa có màn thật | Global | W-D — phần code mới nhiều nhất của kế hoạch | Period operations M4 | OWNER_CONFIRMED |
@@ -1470,7 +1468,7 @@ Retrofit không mặc định làm ngay giữa route hiện tại nếu không �
 
 ```powershell
 dotnet build gtas_vpp.sln -c Release
-dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
+dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 
 Thay đổi shared/backend contract phải chạy thêm test liên quan và full solution gate theo `AGENTS.md`.

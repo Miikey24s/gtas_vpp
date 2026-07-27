@@ -61,23 +61,23 @@ jobs:
         run: dotnet build gtas_vpp.sln -c Release --no-restore
 
       - name: Run backend tests
-        run: dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-build
+        run: dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
 
       - name: Run frontend tests
-        run: dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+        run: dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
 
       - name: Run QA fixture safety contracts
-        run: dotnet test gtas_vpp_be.IntegrationTests/gtas_vpp_be.IntegrationTests.csproj -c Release --no-build
+        run: dotnet test tests/Backend.IntegrationTests/gtas_vpp_be.IntegrationTests.csproj -c Release --no-build
 
       - name: Run UI configuration syntax smoke
-        run: dotnet test gtas_vpp_fe.UITests/gtas_vpp_fe.UITests.csproj -c Release --no-build --filter "FullyQualifiedName~ComposeConfigurationSyntaxTests"
+        run: dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-build --filter "FullyQualifiedName~ComposeConfigurationSyntaxTests"
 
       - name: Check EF migration model
         run: |
           dotnet tool restore
           dotnet tool run dotnet-ef migrations has-pending-model-changes \
-            --project gtas_vpp_be/gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj \
-            --startup-project gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj \
+            --project src/Backend/Migrations/gtas_vpp_be.Migrations.csproj \
+            --startup-project src/Backend/Api/gtas_vpp_be.csproj \
             --context VPPMigrationDbContext \
             --configuration Release \
             --no-build

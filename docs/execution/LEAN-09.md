@@ -31,7 +31,7 @@ health gate below).
   QA state after transient UI settlement; it is not presented as production
   data evidence.
 - Replaced the inherited login background with the GTAS-specific
-  `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/images/login-bg-gtas.png`,
+  `src/Frontend/Blazor/wwwroot/images/login-bg-gtas.png`,
   removing the PPJ Group mark while preserving the scene. The image edit was
   performed through the approved image-generation skill and then reviewed in
   the rendered login screenshot.

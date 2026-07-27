@@ -1,0 +1,92 @@
+@using gtas_vpp_fe.Services
+
+<!DOCTYPE html>
+<html lang="@_htmlLang" class="@HtmlThemeClass">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GTAS VPP</title>
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-tokens.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-radzen-theme.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-layout.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-sidebar.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-tabs.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-kpi.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-login.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-wizard.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-loading.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-datagrid.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-admin.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-status-badge.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-responsive.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-a11y.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-polish.css"]" />
+    <link rel="stylesheet" href="@Assets["gtas_vpp_fe.styles.css"]" />
+    <ImportMap />
+    <link rel="icon" type="image/svg+xml" href="@Assets["images/vpp-app-icon.svg"]" />
+    <script>
+        // Áp dụng theme và đánh dấu entry cấp document trước lần paint đầu tiên.
+        // Điều hướng nội bộ Blazor không chạy lại script này.
+        (function(){
+            var m = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
+            var t = m ? m[1] : 'material3';
+            if (t.indexOf('dark') !== -1) document.documentElement.classList.add('rz-theme-dark');
+
+            var reduceMotion = window.matchMedia
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var navigation = performance.getEntriesByType
+                ? performance.getEntriesByType('navigation')[0]
+                : null;
+            if (!reduceMotion && (!navigation || navigation.type === 'navigate' || navigation.type === 'reload')) {
+                document.documentElement.classList.add('vpp-page-entering');
+            }
+        })();
+    </script>
+    <HeadOutlet @rendermode="InteractiveServer" />
+    <RadzenTheme Theme="@ThemeState.CurrentTheme"/>
+    <link rel="stylesheet" href="@(ThemeState.IsDark ? "_content/Radzen.Blazor/css/material-dark-base.css" : "_content/Radzen.Blazor/css/material-base.css")" />
+    <link rel="stylesheet" href="@Assets["css/vpp-casing.css"]" />
+    <link rel="stylesheet" href="@Assets["css/vpp-toast.css"]" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+    <script src="@Assets["js/vpp-interactions.js"]"></script>
+
+</body>
+
+</html>
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [Inject]
+    private ThemeState ThemeState { get; set; } = default!;
+
+    private string _htmlLang = "vi";
+
+    private string HtmlThemeClass => ThemeState.IsDark ? "rz-theme-dark" : string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var cultureFeature = HttpContext?.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
+        if (cultureFeature != null)
+        {
+            _htmlLang = cultureFeature.RequestCulture.UICulture.TwoLetterISOLanguageName;
+        }
+        
+        // Đọc theme từ cookie
+        if (HttpContext?.Request?.Cookies != null && HttpContext.Request.Cookies.TryGetValue("VPPTheme", out var themeCookie))
+        {
+            ThemeState.SetTheme(themeCookie);
+        }
+    }
+}

@@ -9,12 +9,10 @@ on:
       - .dockerignore
       - Directory.Build.props
       - gtas_vpp.sln
-      - gtas_vpp_be/**
-      - gtas_vpp_fe/**
+      - src/**
       - docker-compose.prod.yml
       - deploy/**
       - nginx/**
-      - gtas_vpp_fe_react/**
   workflow_dispatch:
 
 permissions:
@@ -24,7 +22,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_BE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-backend
   IMAGE_NAME_FE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-frontend
-  IMAGE_NAME_REACT_FE: ghcr.io/${{ github.repository_owner }}/gtas-vpp-react-frontend
 
 jobs:
   verify:
@@ -45,25 +42,10 @@ jobs:
         run: dotnet build gtas_vpp.sln -c Release --no-restore
 
       - name: Run backend tests
-        run: dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-build
+        run: dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
 
       - name: Run frontend tests
-        run: dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-build
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: gtas_vpp_fe_react/package-lock.json
-
-      - name: Verify React frontend
-        working-directory: gtas_vpp_fe_react
-        run: |
-          npm ci
-          npm run check
-          npx playwright install --with-deps chromium
-          npm run test:e2e
+        run: dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
 
       - name: Validate Nginx production configs
         shell: bash
@@ -76,20 +58,14 @@ jobs:
             -out "$cert_dir/fullchain.pem" \
             -subj '/CN=gtas-vpp.annam.id.vn' -days 1 >/dev/null 2>&1
 
-          for config in nginx/gtas-vpp.conf nginx/gtas-vpp-blazor.conf; do
-            docker run --rm \
-              -v "$GITHUB_WORKSPACE/$config:/etc/nginx/conf.d/default.conf:ro" \
-              -v "$cert_dir:/etc/letsencrypt/live/gtas-vpp.annam.id.vn:ro" \
-              nginx:1.30-alpine nginx -t
-          done
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/nginx/gtas-vpp.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "$cert_dir:/etc/letsencrypt/live/gtas-vpp.annam.id.vn:ro" \
+            nginx:1.30-alpine nginx -t
 
           docker run --rm \
             -v "$GITHUB_WORKSPACE/nginx/gtas-vpp-http.conf:/etc/nginx/conf.d/default.conf:ro" \
             nginx:1.30-alpine nginx -t
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE/gtas_vpp_fe_react/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
-            nginxinc/nginx-unprivileged:1.30-alpine nginx -t
-
   build-and-push:
     needs: verify
     runs-on: ubuntu-latest
@@ -102,7 +78,6 @@ jobs:
     outputs:
       be_image: ${{ steps.image_meta.outputs.be_image }}
       fe_image: ${{ steps.image_meta.outputs.fe_image }}
-      react_fe_image: ${{ steps.image_meta.outputs.react_fe_image }}
       image_version: ${{ steps.image_meta.outputs.image_version }}
 
     steps:
@@ -116,12 +91,10 @@ jobs:
           set -euo pipefail
           be_image="$(printf '%s' '${{ env.IMAGE_NAME_BE }}' | tr '[:upper:]' '[:lower:]')"
           fe_image="$(printf '%s' '${{ env.IMAGE_NAME_FE }}' | tr '[:upper:]' '[:lower:]')"
-          react_fe_image="$(printf '%s' '${{ env.IMAGE_NAME_REACT_FE }}' | tr '[:upper:]' '[:lower:]')"
           image_version="sha-${GITHUB_SHA}"
           {
             echo "be_image=$be_image"
             echo "fe_image=$fe_image"
-            echo "react_fe_image=$react_fe_image"
             echo "image_version=$image_version"
           } >> "$GITHUB_OUTPUT"
 
@@ -138,7 +111,8 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          context: ./gtas_vpp_be
+          context: .
+          file: ./deploy/docker/backend.Dockerfile
           push: true
           tags: |
             ${{ steps.image_meta.outputs.be_image }}:${{ steps.image_meta.outputs.image_version }}
@@ -150,25 +124,13 @@ jobs:
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
-          file: ./gtas_vpp_fe/Dockerfile
+          file: ./deploy/docker/frontend.Dockerfile
           push: true
           tags: |
             ${{ steps.image_meta.outputs.fe_image }}:${{ steps.image_meta.outputs.image_version }}
             ${{ steps.image_meta.outputs.fe_image }}:latest
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
-
-      - name: Build and push React frontend image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
-        with:
-          context: ./gtas_vpp_fe_react
-          file: ./gtas_vpp_fe_react/Dockerfile
-          push: true
-          tags: |
-            ${{ steps.image_meta.outputs.react_fe_image }}:${{ steps.image_meta.outputs.image_version }}
-            ${{ steps.image_meta.outputs.react_fe_image }}:latest
-          cache-from: type=gha,scope=react-frontend
-          cache-to: type=gha,mode=max,scope=react-frontend
 
   deploy:
     needs: build-and-push
@@ -244,7 +206,6 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BE_IMAGE: ${{ needs.build-and-push.outputs.be_image }}:${{ needs.build-and-push.outputs.image_version }}
           FE_IMAGE: ${{ needs.build-and-push.outputs.fe_image }}:${{ needs.build-and-push.outputs.image_version }}
-          REACT_FE_IMAGE: ${{ needs.build-and-push.outputs.react_fe_image }}:${{ needs.build-and-push.outputs.image_version }}
         run: |
           set -euo pipefail
           app_root="/app/gtas-vpp"
@@ -256,7 +217,7 @@ jobs:
             "set -e; cd '$release_dir'; tar -xzf gtas-vpp-deploy.tar.gz; rm gtas-vpp-deploy.tar.gz; install -m 0600 gtas-vpp.production.env '$app_root/shared/.env'; rm gtas-vpp.production.env; ln -sfn '$app_root/shared/.env' .env; bash deploy/validate-env.sh .env"
 
           printf '%s\n' "$GHCR_TOKEN" | ssh "${ssh_options[@]}" "$ssh_target" \
-            "set -euo pipefail; export DOCKER_CONFIG='/tmp/gtas-vpp-docker-$GITHUB_SHA'; cleanup() { docker logout ghcr.io >/dev/null 2>&1 || true; rm -rf \"\$DOCKER_CONFIG\"; }; trap cleanup EXIT; install -d -m 0700 \"\$DOCKER_CONFIG\"; docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin; cd '$release_dir'; BE_IMAGE='$BE_IMAGE' FE_IMAGE='$FE_IMAGE' REACT_FE_IMAGE='$REACT_FE_IMAGE' DEPLOY_SHA='$GITHUB_SHA' APP_ROOT='$app_root' bash deploy/deploy.sh; ln -sfn 'releases/$GITHUB_SHA' '$app_root/current'"
+            "set -euo pipefail; export DOCKER_CONFIG='/tmp/gtas-vpp-docker-$GITHUB_SHA'; cleanup() { docker logout ghcr.io >/dev/null 2>&1 || true; rm -rf \"\$DOCKER_CONFIG\"; }; trap cleanup EXIT; install -d -m 0700 \"\$DOCKER_CONFIG\"; docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin; cd '$release_dir'; BE_IMAGE='$BE_IMAGE' FE_IMAGE='$FE_IMAGE' DEPLOY_SHA='$GITHUB_SHA' APP_ROOT='$app_root' bash deploy/deploy.sh; ln -sfn 'releases/$GITHUB_SHA' '$app_root/current'"
 
       - name: Verify key-only SSH access after hardening
         shell: bash
@@ -290,7 +251,7 @@ jobs:
           set -euo pipefail
           PUBLIC_BASE_URL=https://gtas-vpp.annam.id.vn \
             bash deploy/smoke-frontend.sh
-          for internal_port in 1433 5000 5100 8080; do
+          for internal_port in 1433 5000 8080; do
             if timeout 5 bash -c "</dev/tcp/$SSH_HOST/$internal_port" 2>/dev/null; then
               echo "Internal port $internal_port is still reachable from the public internet." >&2
               exit 1

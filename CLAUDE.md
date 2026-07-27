@@ -16,10 +16,10 @@ và auto-memory — không cần chép lại nội dung các file đó vào tóm
 
 ## Tài liệu bắt buộc đọc trước khi sửa
 
-- UI Blazor/Radzen (`gtas_vpp_fe/`): `.codexrules`, `.github/copilot-instructions.md`,
+- UI Blazor/Radzen (`src/Frontend/Blazor/`): `.codexrules`, `.github/copilot-instructions.md`,
   `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
 - Chọn MCP / browser tool / QA layer: `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md`.
-- React phụ (`gtas_vpp_fe_react/`): đang `PAUSED/DEFERRED`, chỉ sửa khi owner mở lại phạm vi.
+- React POC (`gtas_vpp_fe_react/`): đã gỡ khỏi runtime và CI/CD; chỉ giữ đóng băng để đối chiếu/tooling LVTN.
 
 ## MCP đã cấu hình cho Claude Code
 
@@ -45,6 +45,6 @@ công cụ — xem mục "Vì sao không cài thêm browser MCP khác" trong too
 
 ```powershell
 dotnet build gtas_vpp.sln -c Release
-dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release
-dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
+dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```

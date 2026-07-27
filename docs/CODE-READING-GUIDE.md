@@ -36,7 +36,7 @@ văn §2.3.1.1, câu cuối.
 ## 2. Bảng tra chính
 
 `Hình` là số hình trong luận văn. `Board` là nhóm màn trong Atlas. Đường dẫn component tính từ
-`gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/`.
+`src/Frontend/Blazor/Components/`.
 
 ### M0 — Nền tảng giao diện
 
@@ -204,7 +204,7 @@ Nhân viên tạo đơn bổ sung (bắt buộc nêu lý do, gắn đơn gốc)
 ```
 
 Quyền cần: `REQUEST_APPROVE` / `REQUEST_REJECT` (định nghĩa ở
-`gtas_vpp_be/gtas_vpp_shared/Constants/Permissions.cs`, gán vai trò ở `CanonicalRbac.cs`). Người dùng
+`src/Shared/Constants/Permissions.cs`, gán vai trò ở `CanonicalRbac.cs`). Người dùng
 **không tự duyệt đơn của chính mình**.
 
 ### 3.3 Chốt kỳ — §2.3.1.8
@@ -235,7 +235,7 @@ Không bao giờ ghi đè hay xóa bản chốt cũ.
 
 ### 3.5 Phân quyền — §3.3.4.4
 
-Đúng **ba vai trò** (quyết định D1, xem `gtas_vpp_shared/Constants/CanonicalRbac.cs`):
+Đúng **ba vai trò** (quyết định D1, xem `src/Shared/Constants/CanonicalRbac.cs`):
 
 | Mã | Hiển thị | Phạm vi |
 |---|---|---|
@@ -253,7 +253,7 @@ Code viết tiếng Anh, luận văn viết tiếng Việt. Bảng này nối ha
 
 | Trong code | Trong luận văn | Ghi chú |
 |---|---|---|
-| `Period` | Kỳ đặt hàng | Bốn trạng thái: `Open`, `SubmissionClosed`, `Pricing`, `Settled` — xem `gtas_vpp_be/gtas_vpp_be.Model/VPP/VppPeriodState.cs` |
+| `Period` | Kỳ đặt hàng | Bốn trạng thái: `Open`, `SubmissionClosed`, `Pricing`, `Settled` — xem `src/Backend/Domain/VPP/VppPeriodState.cs` |
 | `Request` / `Order` | Đơn yêu cầu | `VppRequest` là tên thực thể |
 | `Additional` / `Supplement` | Đơn bổ sung | Cần lý do và được duyệt riêng |
 | `Revision` | Phiên bản | Sửa đơn tạo phiên bản mới, không ghi đè |
@@ -289,7 +289,7 @@ Hai quy tắc kèm theo:
    `Skip/Take`. Lọc phải tìm được bản ghi nằm ngoài trang 1 — đây là lỗi phân trang phổ biến mà hệ
    thống này cố tình tránh.
 
-Các quy tắc trên được khóa bằng architecture test trong `gtas_vpp_fe.Tests/Architecture/`.
+Các quy tắc trên được khóa bằng architecture test trong `tests/Frontend.UnitTests/Architecture/`.
 
 ---
 

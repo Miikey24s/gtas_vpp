@@ -16,18 +16,18 @@ Initial `git status --short --branch` before the task branch was created:
 ```text
 ## Nam...origin/Nam
  M LVTN/NguyenAnNam_DH52201078_working.docx
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/App.razor
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-login.css
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-responsive.css
+ M src/Frontend/Blazor/Components/App.razor
+ M src/Frontend/Blazor/wwwroot/css/vpp-login.css
+ M src/Frontend/Blazor/wwwroot/css/vpp-responsive.css
 ?? docs/
 ```
 
 | Path | Owner/source | BASE-001 handling |
 |---|---|---|
 | `LVTN/NguyenAnNam_DH52201078_working.docx` | User-owned pre-existing thesis work | Preserve byte-for-byte; never stage, revert or render in BASE-001. |
-| `gtas_vpp_fe/.../Components/App.razor` | User-owned pre-existing frontend work | Preserve; exclude from stage/commit and from baseline claims about clean source. |
-| `gtas_vpp_fe/.../wwwroot/css/vpp-login.css` | User-owned pre-existing frontend work | Preserve; exclude from stage/commit. |
-| `gtas_vpp_fe/.../wwwroot/css/vpp-responsive.css` | User-owned pre-existing frontend work | Preserve; exclude from stage/commit. |
+| `src/Frontend/Blazor/Components/App.razor` | User-owned pre-existing frontend work | Preserve; exclude from stage/commit and from baseline claims about clean source. |
+| `src/Frontend/Blazor/wwwroot/css/vpp-login.css` | User-owned pre-existing frontend work | Preserve; exclude from stage/commit. |
+| `src/Frontend/Blazor/wwwroot/css/vpp-responsive.css` | User-owned pre-existing frontend work | Preserve; exclude from stage/commit. |
 | `docs/planning/*` | Codex-generated audit/master-plan artifacts approved before BASE-001 | In-scope baseline dependency; version together with decisions/evidence. |
 | `docs/decisions/*`, `docs/baseline/*`, `docs/execution/*` | BASE-001 outputs | In scope; contain no secret values. The existing thesis filename necessarily exposes the owner name/student-code pattern inside this private baseline and remains assigned to D-009 anonymization before public/final evidence. |
 
@@ -47,8 +47,8 @@ Rollback for this task is deletion/revert of the docs-only task commit/branch. I
 | Area | Projects |
 |---|---|
 | Backend host/domain/data | `gtas_vpp_be`, `gtas_vpp_be.Service`, `gtas_vpp_be.Model`, `gtas_vpp_be.Migrations` |
-| Shared contract | `gtas_vpp_be/gtas_vpp_shared` — the only shared DTO project |
-| Frontend | `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe` |
+| Shared contract | `src/Shared` — the only shared DTO project |
+| Frontend | `src/Frontend/Blazor` |
 | Orchestration | `MyAspire.AppHost`, `MyAspire.ServiceDefaults` |
 | Automated tests | `gtas_vpp_be.Tests`, `gtas_vpp_fe.Tests`, `gtas_vpp_fe.UITests` |
 
@@ -87,7 +87,7 @@ These are inventory facts, not proof that authorization is correct. Required fol
 
 ## 4. Permission inventory
 
-`gtas_vpp_shared/Constants/Permissions.cs` defines 38 codes: menu/page components, request/library/settlement/permission/report capabilities and backend action permissions. The host registers dynamic policies; `PermissionAuthorizationHandler` delegates to `PermissionService`, which expects exactly one active user-group mapping and filters page/component mapping by the company claim.
+`src/Shared/Constants/Permissions.cs` defines 38 codes: menu/page components, request/library/settlement/permission/report capabilities and backend action permissions. The host registers dynamic policies; `PermissionAuthorizationHandler` delegates to `PermissionService`, which expects exactly one active user-group mapping and filters page/component mapping by the company claim.
 
 Known baseline gaps routed to AUTH/QA tasks:
 
@@ -163,9 +163,9 @@ Commands were run on the task branch without connecting to a configured SQL Serv
 | Command | Result | Current evidence |
 |---|---|---|
 | `dotnet build gtas_vpp.sln -c Release` | PASS | 0 warnings, 0 errors; elapsed 21.40 s |
-| `dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-restore` | PASS | 147 passed, 0 failed, 0 skipped; test duration 6 s |
-| `dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-restore` | PASS | 29 passed, 0 failed, 0 skipped; test duration 1 s |
-| `dotnet test gtas_vpp_fe.UITests/gtas_vpp_fe.UITests.csproj -c Release --no-restore --list-tests` | DISCOVERY PASS | 12 Playwright tests listed; no browser/test-data mutation performed |
+| `dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-restore` | PASS | 147 passed, 0 failed, 0 skipped; test duration 6 s |
+| `dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-restore` | PASS | 29 passed, 0 failed, 0 skipped; test duration 1 s |
+| `dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-restore --list-tests` | DISCOVERY PASS | 12 Playwright tests listed; no browser/test-data mutation performed |
 
 Test boundary:
 
@@ -254,9 +254,9 @@ git rev-parse HEAD
 git status --short --branch
 dotnet --version
 dotnet build gtas_vpp.sln -c Release
-dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-restore
-dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-restore
-dotnet test gtas_vpp_fe.UITests/gtas_vpp_fe.UITests.csproj -c Release --no-restore --list-tests
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-restore
+dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-restore
+dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-restore --list-tests
 git diff --check
 git status --short
 ```

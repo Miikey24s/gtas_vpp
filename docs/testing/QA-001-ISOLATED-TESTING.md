@@ -50,7 +50,7 @@ Test-Path 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 Neu muon Playwright tai browser dung version cua package sau khi build:
 
 ```powershell
-pwsh .\gtas_vpp_fe.UITests\bin\Release\net10.0\playwright.ps1 install chromium
+pwsh .\tests\Frontend.UiTests\bin\Release\net10.0\playwright.ps1 install chromium
 ```
 
 ## Ba tang test
@@ -61,7 +61,7 @@ Lenh nay portable va duoc CI chay. Ba test can LocalDB se `SKIP` neu khong co
 opt-in; cac test fail-closed van phai pass.
 
 ```powershell
-dotnet test .\gtas_vpp_be.IntegrationTests\gtas_vpp_be.IntegrationTests.csproj `
+dotnet test .\tests\Backend.IntegrationTests\gtas_vpp_be.IntegrationTests.csproj `
   -c Release
 ```
 
@@ -74,7 +74,7 @@ phong crash recovery va cleanup.
 ```powershell
 $env:GTAS_QA_SQL_INTEGRATION = '1'
 try {
-  dotnet test .\gtas_vpp_be.IntegrationTests\gtas_vpp_be.IntegrationTests.csproj `
+  dotnet test .\tests\Backend.IntegrationTests\gtas_vpp_be.IntegrationTests.csproj `
     -c Release
 }
 finally {
@@ -98,7 +98,7 @@ $env:GTAS_E2E_ISOLATED = '1'
 $env:UITEST_BROWSER_EXECUTABLE = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 $env:PLAYWRIGHT_HEADLESS = 'true'
 try {
-  dotnet test .\gtas_vpp_fe.UITests\gtas_vpp_fe.UITests.csproj `
+  dotnet test .\tests\Frontend.UiTests\gtas_vpp_fe.UITests.csproj `
     -c Release --filter 'FullyQualifiedName~LoginTests'
 }
 finally {
@@ -115,7 +115,7 @@ $env:GTAS_E2E_ISOLATED = '1'
 $env:GTAS_E2E_MUTATION_OPT_IN = 'I_UNDERSTAND_THIS_MUTATES_QA_DATA'
 $env:UITEST_BROWSER_EXECUTABLE = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 try {
-  dotnet test .\gtas_vpp_fe.UITests\gtas_vpp_fe.UITests.csproj `
+  dotnet test .\tests\Frontend.UiTests\gtas_vpp_fe.UITests.csproj `
     -c Release --filter 'FullyQualifiedName~OrderCreateTests'
 }
 finally {

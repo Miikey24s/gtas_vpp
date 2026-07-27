@@ -426,8 +426,8 @@ npm run test:e2e
 npm audit --audit-level=high
 
 cd ..
-dotnet build MyAspire.AppHost\MyAspire.AppHost.csproj -c Release
-dotnet test gtas_vpp_be.Tests\gtas_vpp_be.Tests.csproj -c Release
+dotnet build src\Hosting\AppHost\MyAspire.AppHost.csproj -c Release
+dotnet test tests\Backend.UnitTests\gtas_vpp_be.Tests.csproj -c Release
 ```
 
 ### Browser matrix

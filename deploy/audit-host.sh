@@ -25,7 +25,7 @@ docker version --format 'Docker Engine {{.Server.Version}}' 2>/dev/null || true
 docker compose version 2>/dev/null || true
 nginx -v 2>&1 || true
 
-for container in gtas-vpp-db gtas-vpp-backend gtas-vpp-frontend gtas-vpp-react-frontend; do
+for container in gtas-vpp-db gtas-vpp-backend gtas-vpp-frontend; do
   status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else if .State.Running}}running{{else}}stopped{{end}}' "$container" 2>/dev/null || true)"
   if [[ "$container" == "gtas-vpp-db" ]]; then
     [[ "$status" == "running" || "$status" == "healthy" ]] \
@@ -45,8 +45,7 @@ fi
 for mapping in \
   "gtas-vpp-db:1433/tcp" \
   "gtas-vpp-backend:8080/tcp" \
-  "gtas-vpp-frontend:5000/tcp" \
-  "gtas-vpp-react-frontend:8080/tcp"; do
+  "gtas-vpp-frontend:5000/tcp"; do
   container="${mapping%%:*}"
   container_port="${mapping#*:}"
   while IFS= read -r binding; do
@@ -71,7 +70,7 @@ while IFS= read -r listener; do
       fail "internal service is publicly bound: $address"
       ;;
   esac
-done < <(ss -lntH | awk '$4 ~ /:(1433|5000|5100|8080)$/')
+done < <(ss -lntH | awk '$4 ~ /:(1433|5000|8080)$/')
 
 systemctl is-enabled --quiet gtas-vpp-backup.timer \
   || fail "gtas-vpp-backup.timer is not enabled"
@@ -89,7 +88,7 @@ if command -v ufw >/dev/null 2>&1; then
   ufw_status="$(sudo ufw status verbose)"
   sed -n '1,24p' <<<"$ufw_status"
   grep -q '^Status: active$' <<<"$ufw_status" || fail "UFW is not active"
-  if grep -Eq '^(1433|5000|5100|8080)(/tcp)?[[:space:]]+ALLOW' <<<"$ufw_status"; then
+  if grep -Eq '^(1433|5000|8080)(/tcp)?[[:space:]]+ALLOW' <<<"$ufw_status"; then
     fail "UFW allows an internal application port"
   fi
 else

@@ -1,8 +1,8 @@
 # GTAS VPP — Figma Context Router
 
-Repository này chứa backend, frontend Blazor/Radzen chính, frontend React phụ,
+Repository này chứa backend, frontend Blazor/Radzen chính, bản React POC đóng băng,
 deployment, luận văn và tài liệu thiết kế. Phạm vi Figma hiện tại là nghiên cứu
-và dựng prototype cho frontend chính `gtas_vpp_fe/`; không phải tiếp tục migration
+và dựng prototype cho frontend chính `src/Frontend/Blazor/`; không phải tiếp tục migration
 React.
 
 Trước khi thiết kế, đọc:
@@ -11,11 +11,11 @@ Trước khi thiết kế, đọc:
 2. `.codexrules` và `.github/copilot-instructions.md`
 3. `docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md`
 4. `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`
-5. `gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Helpers/RouteCatalog.cs`
+5. `src/Frontend/Blazor/Helpers/RouteCatalog.cs`
 
 Sau đó khảo sát Razor/CSS/resource/test thật trong
-`gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/` và contract dùng chung trong
-`gtas_vpp_be/gtas_vpp_shared/`. Chỉ đọc `gtas_vpp_fe_react/` như một thử nghiệm
+`src/Frontend/Blazor/` và contract dùng chung trong
+`src/Shared/`. Chỉ đọc `gtas_vpp_fe_react/` như một thử nghiệm
 phụ khi cần đối chiếu ý tưởng đã từng làm; không dùng nó làm source authority.
 
 Figma agent được toàn quyền tự chọn art direction, bố cục, typography,

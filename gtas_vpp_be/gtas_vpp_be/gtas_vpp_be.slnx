@@ -1,8 +1,0 @@
-<Solution>
-  <Project Path="../gtas_vpp_be.Migrations/gtas_vpp_be.Migrations.csproj">
-    <BuildDependency Project="../gtas_vpp_be.Model/gtas_vpp_be.Model.csproj" />
-  </Project>
-  <Project Path="../gtas_vpp_be.Model/gtas_vpp_be.Model.csproj" />
-  <Project Path="../gtas_vpp_be.Service/gtas_vpp_be.Service.csproj" />
-  <Project Path="gtas_vpp_be.csproj" />
-</Solution>

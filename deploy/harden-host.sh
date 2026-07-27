@@ -89,14 +89,14 @@ if command -v ufw >/dev/null 2>&1; then
   run_as_root ufw default allow outgoing >/dev/null
 
   # These services are loopback-only. Remove legacy public firewall exceptions.
-  for rule in 1433/tcp 5000/tcp 5100/tcp 8080/tcp 22/tcp; do
+  for rule in 1433/tcp 5000/tcp 8080/tcp 22/tcp; do
     run_as_root ufw --force delete allow "$rule" >/dev/null 2>&1 || true
   done
   run_as_root ufw --force enable >/dev/null
 
   ufw_status="$(run_as_root ufw status verbose)"
   grep -q '^Status: active$' <<<"$ufw_status"
-  if grep -Eq '^(1433|5000|5100|8080)(/tcp)?[[:space:]]+ALLOW' <<<"$ufw_status"; then
+  if grep -Eq '^(1433|5000|8080)(/tcp)?[[:space:]]+ALLOW' <<<"$ufw_status"; then
     echo "UFW still allows an internal application port." >&2
     exit 1
   fi

@@ -49,12 +49,11 @@ fi
 
 BE_IMAGE="$(grep '^BE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
 FE_IMAGE="$(grep '^FE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
-REACT_FE_IMAGE="$(grep '^REACT_FE_IMAGE=' deploy-state.env | tail -n 1 | cut -d= -f2-)"
-if [[ -z "$BE_IMAGE" || -z "$FE_IMAGE" || -z "$REACT_FE_IMAGE" ]]; then
+if [[ -z "$BE_IMAGE" || -z "$FE_IMAGE" ]]; then
   echo "Current application image metadata is incomplete." >&2
   exit 2
 fi
-export BE_IMAGE FE_IMAGE REACT_FE_IMAGE
+export BE_IMAGE FE_IMAGE
 
 compose() {
   docker compose -f "$COMPOSE_FILE" "$@"
@@ -102,7 +101,7 @@ ensure_multi_user() {
 }
 
 start_apps() {
-  compose up -d --wait --wait-timeout 180 backend frontend react-frontend
+  compose up -d --wait --wait-timeout 180 backend frontend
 }
 
 verify_backup "$PRIMARY_DB_NAME" "$primary_source"
@@ -141,7 +140,7 @@ recover_on_exit() {
 trap recover_on_exit EXIT
 
 apps_stopped=true
-compose stop react-frontend frontend backend
+compose stop frontend backend
 
 BACKUP_TIMESTAMP="$recovery_timestamp" \
 DB_CONTAINER="$DB_CONTAINER" \

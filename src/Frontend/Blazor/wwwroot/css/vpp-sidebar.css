@@ -1,0 +1,531 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   CẢI TIẾN THANH BÊN VPP — Giai đoạn 2 (v2)
+   Thu gọn mượt, trạng thái dòng lấy cảm hứng Apple Music, chú giải khi chỉ hiện biểu tượng
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Khung thanh bên ─────────────────────────────────────────── */
+.vpp-sidebar {
+    font-family: var(--vpp-font-sidebar);
+    transition: width var(--vpp-sidebar-transition),
+                background-color 160ms ease,
+                border-color 160ms ease,
+                color 160ms ease,
+                box-shadow 160ms ease !important;
+    overflow: visible !important;
+}
+
+.vpp-sidebar {
+    --vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);
+    --vpp-sidebar-item-active-bg: var(--vpp-navigation-item-active-bg);
+    --vpp-sidebar-row-half-gap: 2px;
+    --vpp-sidebar-icon-box-size: 24px;
+    --vpp-sidebar-primary-content-offset: 8px;
+    --vpp-sidebar-rail-content-gap: 12px;
+    --vpp-sidebar-child-rail-offset: calc(var(--vpp-sidebar-primary-content-offset) + var(--vpp-sidebar-icon-box-size));
+    --vpp-sidebar-child-content-offset: calc(var(--vpp-sidebar-child-rail-offset) + var(--vpp-sidebar-rail-content-gap) - var(--vpp-space-1));
+    --vpp-sidebar-nested-indent-step: calc(var(--vpp-sidebar-icon-box-size) + var(--vpp-sidebar-rail-content-gap));
+    --vpp-sidebar-header-to-nav-overlap: 0px;
+}
+
+:root:not(.rz-theme-dark) .vpp-sidebar {
+    --vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);
+    --vpp-sidebar-item-active-bg: var(--vpp-navigation-item-active-bg);
+}
+
+/* ── Mục trình đơn bảng — Cơ sở ─────────────────────────────── */
+.rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
+    box-sizing: border-box;
+    height: var(--vpp-navigation-row-height);
+    min-height: var(--vpp-navigation-row-height);
+    border: none;
+    border-radius: var(--vpp-radius-md);
+    margin: 0 var(--vpp-space-1);
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
+    position: relative;
+}
+
+/* Giữ nhịp 4px cân quang học quanh mọi bề mặt mở rộng: 2px trên và 2px dưới. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu {
+    margin-block: 0 !important;
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    margin-block: var(--vpp-sidebar-row-half-gap) !important;
+}
+
+.rz-navigation-item.ppjsidebarmenu {
+    position: relative;
+    font-family: var(--vpp-font-sidebar);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    border-block-end: 0 !important;
+}
+
+/* Gỡ divider 1px của Radzen để mỗi dòng gốc dùng bề mặt 40px và khoảng cách 2px + 2px cân bằng. */
+.vpp-sidebar .vpp-sidebar-nav {
+    margin-block-start: calc(var(--vpp-sidebar-row-half-gap) - var(--vpp-sidebar-header-to-nav-overlap));
+}
+
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    align-items: center;
+    gap: var(--vpp-sidebar-rail-content-gap);
+    height: var(--vpp-navigation-row-height);
+    min-height: var(--vpp-navigation-row-height);
+    padding-block: 0 !important;
+    font: inherit;
+    line-height: 20px;
+}
+
+/* Giữ rail icon gốc cố định ở tâm sidebar thu gọn; khi mở rộng chỉ hiện thêm nhãn. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    padding-inline-start: calc(var(--vpp-sidebar-primary-content-offset) - var(--vpp-space-1));
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    padding-inline-start: 0 !important;
+    padding-inline-end: var(--vpp-space-4) !important;
+}
+
+.rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {
+    display: inline-block;
+    max-width: 190px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Giữ nhãn dễ đọc như nhau ở mọi trạng thái tương tác; không để submenu rảnh trông như bị disabled. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu:hover .rz-navigation-item-text,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu:focus-within .rz-navigation-item-text {
+    color: var(--vpp-text-primary) !important;
+    opacity: 1 !important;
+}
+
+/* Dùng một rail chung di chuyển giữa item active; tắt pseudo rail riêng của Radzen và legacy. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::before {
+    content: none !important;
+    display: none !important;
+    animation: none !important;
+}
+
+.vpp-sidebar .vpp-sidebar-nav {
+    position: relative;
+    --vpp-sidebar-indicator-icon-gap: var(--vpp-sidebar-rail-content-gap);
+}
+
+.vpp-sidebar-shared-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--vpp-nav-indicator-thickness);
+    height: 0;
+    background: var(--vpp-nav-indicator-color);
+    border-radius: var(--vpp-nav-indicator-radius);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 3;
+    transform: translate3d(0, 0, 0);
+    transform-origin: center top;
+    will-change: transform, height;
+}
+
+.vpp-sidebar-shared-indicator.is-ready {
+    opacity: 1;
+}
+
+/* Hover lấy cảm hứng Apple Music: bề mặt trung tính toàn dòng, rộng và không dịch chuyển. */
+.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:hover,
+.rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
+    background-color: var(--vpp-sidebar-item-hover-bg) !important;
+}
+
+/* Wrapper sở hữu bề mặt toàn chiều rộng; link Radzen bên trong giữ trong suốt để màu không dừng ở rail xanh. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link:hover,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link:active,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link.active {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Tắt overlay nhấn cục bộ của Radzen vì wrapper sở hữu trạng thái cho toàn dòng. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link::before,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link::after {
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 0 !important;
+}
+
+/* Tạo lại hiệu ứng nhấn Material trên toàn wrapper để radial mở rộng đến cả hai mép dòng. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    border-radius: inherit;
+    color: var(--vpp-text-primary);
+    background: radial-gradient(circle, currentColor 1%, transparent 1%) center / 15000%;
+    opacity: 0;
+    pointer-events: none;
+    transition: background-size 320ms ease-out, opacity 360ms ease-out;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:active::after {
+    background-size: 0%;
+    opacity: 0.1;
+    transition: background-size 0s, opacity 0s;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper.vpp-pressing::after {
+    animation: vpp-sidebar-press-expand 360ms ease-out forwards;
+}
+
+@keyframes vpp-sidebar-press-expand {
+    from {
+        background-size: 0%;
+        opacity: 0.1;
+    }
+    to {
+        background-size: 15000%;
+        opacity: 0;
+    }
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    position: relative;
+    z-index: 1;
+}
+
+/* Radzen 11 gán trạng thái route lên wrapper/link; giữ nền dòng trung tính và chỉ dùng xanh VPP cho rail active. */
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) {
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
+    border-color: transparent !important;
+}
+
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active:hover,
+.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
+}
+
+/* Tăng cường màu icon. */
+.rz-navigation-item.ppjsidebarmenu .rzi.rz-navigation-item-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    font-size: 20px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    transition: color var(--vpp-transition-fast);
+}
+
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rzi.rz-navigation-item-icon,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rzi.rz-navigation-item-icon {
+    color: var(--vpp-text-primary);
+}
+
+.rz-navigation-item.ppjsidebarmenu:hover .rzi.rz-navigation-item-icon {
+    color: var(--vpp-text-primary);
+}
+
+/* Màu text active. */
+.rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rz-navigation-item-text,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper-active .rz-navigation-item-text,
+.rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active) .rz-navigation-item-text {
+    color: var(--vpp-text-primary);
+    font-weight: 400;
+}
+
+/* Chevron gọn cho group mở rộng; Radzen sở hữu state mở/thu. */
+.vpp-sidebar .rz-navigation-item-icon-children {
+    margin-inline-start: auto;
+    color: var(--vpp-text-secondary);
+    font-size: 16px;
+    opacity: 0.82;
+}
+
+/* ── Trình đơn con — thụt lề + chữ nhỏ hơn ──────────────────── */
+.rz-navigation-item.ppjsidebarmenu.submenu {
+    font-size: 14px;
+}
+
+/* Giữ cạnh bề mặt cha-con đồng nhất; content và rail active theo indent của con. */
+.rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper {
+    box-sizing: border-box;
+    margin-block: var(--vpp-sidebar-row-half-gap) !important;
+    margin-inline: var(--vpp-space-1);
+    padding-inline-start: var(--vpp-sidebar-child-content-offset);
+    border-radius: var(--vpp-radius-md);
+}
+
+/* Gỡ padding đầu dòng lặp của link lồng nhau vì wrapper đã sở hữu indent phân cấp. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
+    padding-inline-start: 0 !important;
+    padding-inline-end: var(--vpp-space-4) !important;
+}
+
+/* Giữ toàn dòng là bề mặt trạng thái duy nhất để hover/active không bị clip bởi rail xanh. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:hover,
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
+    background: var(--vpp-sidebar-item-hover-bg) !important;
+    background-color: var(--vpp-sidebar-item-hover-bg) !important;
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper-active,
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active),
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper-active:hover,
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu.submenu > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link.active):hover {
+    background: var(--vpp-sidebar-item-active-bg) !important;
+    background-color: var(--vpp-sidebar-item-active-bg) !important;
+}
+
+/* Phân cấp kiểu Apple Music: bề mặt hover toàn chiều rộng, content cấp ba và rail lùi thêm một nhịp. */
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-menu .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
+    padding-inline-start: calc(var(--vpp-sidebar-child-content-offset) + var(--vpp-sidebar-nested-indent-step));
+}
+
+.rz-navigation-item.ppjsidebarmenu.submenu .rzi.rz-navigation-item-icon {
+    font-size: 20px;
+}
+
+/* ── Đường phân cách ─────────────────────────────────────────── */
+.rz-navigation-item.ppjsidebarmenu.lastchild {
+    margin-top: var(--vpp-space-3);
+    padding-top: var(--vpp-space-3);
+    border-top: 1px solid var(--vpp-border-default);
+}
+
+/* ── Thanh bên thu gọn ───────────────────────────────────────── */
+:root:not(.rz-theme-dark) .vpp-sidebar.sidebar-collapsed {
+    background-color: var(--vpp-navigation-chrome-bg);
+}
+
+/* Giữ navigation rail rộng bằng sidebar 72px để control 68px căn theo logo và avatar, không theo menu hẹp. */
+.sidebar-collapsed .vpp-sidebar-nav,
+.sidebar-collapsed .rz-panel-menu,
+.sidebar-collapsed .rz-panel-menu > .rz-navigation-item.ppjsidebarmenu {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper {
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 2px auto !important;
+    padding: 0 !important;
+    width: var(--vpp-sidebar-collapsed-control-width) !important;
+    height: var(--vpp-navigation-row-height) !important;
+    border-radius: var(--vpp-radius-md) !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Căn giữa link trong wrapper, đồng thời reset background/border trên div link. */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-link,
+.sidebar-collapsed .rz-navigation-item .rz-navigation-item-link {
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    gap: 0 !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-icon {
+    margin: 0 !important;
+    margin-right: 0 !important;
+    margin-inline-end: 0 !important;
+    padding: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 20px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Tắt indicator thu gọn và overlay link của Radzen; giữ wrapper ::after làm bề mặt hiệu ứng nhấn toàn control. */
+.sidebar-collapsed .rz-navigation-item-link::before,
+.sidebar-collapsed .rz-navigation-item-link::after,
+.sidebar-collapsed .rz-navigation-item-wrapper::before {
+    display: none !important;
+    content: none !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-text {
+    display: none !important;
+}
+
+.sidebar-collapsed .rz-navigation-item-wrapper {
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ẩn submenu khi sidebar thu gọn. */
+.sidebar-collapsed .rz-navigation-item .rz-navigation-menu {
+    display: none !important;
+}
+
+/* Ẩn item có class submenu khi sidebar thu gọn. */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.submenu {
+    display: none !important;
+}
+
+/* Khi thu gọn, state active chỉ giữ đường rail; bề mặt chỉ hiện khi hover thật hoặc keyboard focus. */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active > .rz-navigation-item-wrapper,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) > .rz-navigation-item-wrapper,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-wrapper-active) > .rz-navigation-item-wrapper {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu.rz-navigation-item-active .rzi.rz-navigation-item-icon,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu:has(.rz-navigation-item-active) .rzi.rz-navigation-item-icon {
+    color: var(--vpp-text-primary) !important;
+}
+
+/* Click chuột có thể giữ focus trên link Radzen; không để pointer focus tồn tại trông như hover sau khi chuột rời đi. */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:not(:hover):not(:has(> .rz-navigation-item-link:focus-visible)) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Khi thu gọn, bề mặt chỉ hiện lúc pointer hover hoặc focus bàn phím nhìn thấy. */
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:hover,
+.sidebar-collapsed .rz-navigation-item.ppjsidebarmenu .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
+    background: var(--vpp-sidebar-item-hover-bg) !important;
+    border-radius: var(--vpp-radius-md) !important;
+}
+
+
+/* ── Cuối thanh bên — Đồng hồ ───────────────────────────────── */
+.vpp-sidebar-clock {
+    font-family: var(--vpp-font-mono);
+    font-size: var(--vpp-text-sm);
+    color: var(--vpp-text-tertiary);
+    text-align: center;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+}
+
+.vpp-sidebar-clock .time {
+    font-size: var(--vpp-text-lg);
+    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-text-secondary);
+}
+
+/* ── Đường phân cách thanh bên (hr) ─────────────────────────── */
+.vpp-sidebar hr,
+.rz-panel-menu hr {
+    border: none;
+    border-top: 1px solid var(--vpp-border-default);
+    margin: var(--vpp-space-2) var(--vpp-space-3);
+}
+
+/* ── Khi thu gọn: ẩn đồng hồ, hr và logo ────────────────────── */
+.sidebar-collapsed .rz-header .rz-stack img {
+    display: none;
+}
+
+.sidebar-collapsed hr {
+    display: none;
+}
+
+/* Ẩn text đồng hồ bằng cách nhắm vào phần tử h6 trong panel menu sidebar. */
+.sidebar-collapsed .rz-stack.rz-mt-3,
+.sidebar-collapsed .rz-panel-menu > .rz-stack,
+.sidebar-collapsed h6.text-center {
+    display: none !important;
+}
+
+/* DisplayStyle.Icon vẫn render chevron và đẩy icon cha lệch trái; loại chevron khỏi layout. */
+.sidebar-collapsed .rz-navigation-item-icon-children {
+    display: none !important;
+}
+
+/* Giữ nền panel menu trong suốt để kế thừa nền sidebar. */
+.vpp-sidebar .rz-panel-menu {
+    --rz-panel-menu-item-padding-block: 0;
+    --rz-panel-menu-item-2nd-level-padding-block: 0;
+    --rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);
+    --rz-panel-menu-2nd-level-vertical-offset: 0;
+    --rz-panel-menu-item-background-color: transparent;
+    --rz-panel-menu-item-2nd-level-background-color: transparent;
+    --rz-panel-menu-item-3rd-level-background-color: transparent;
+    --rz-panel-menu-item-active-background-color: var(--vpp-sidebar-item-active-bg);
+    --rz-panel-menu-item-2nd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
+    --rz-panel-menu-item-3rd-level-active-background-color: var(--vpp-sidebar-item-active-bg);
+    --rz-panel-menu-item-active-indicator: transparent;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:not(.rz-navigation-item-wrapper-active):not(:hover):not(:has(> .rz-navigation-item-link.active)):not(:has(> .rz-navigation-item-link:focus-visible)) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Dùng một nhịp điều hướng 200ms kiểu Apple cho dòng mở rộng và indicator để rail active đi cùng content. */
+.vpp-sidebar .rz-expander {
+    transition: grid-template-rows var(--vpp-navigation-motion-duration)
+        var(--vpp-navigation-motion-easing) !important;
+}
+
+.vpp-sidebar .rz-expander-content {
+    transition: visibility var(--vpp-navigation-motion-duration)
+        var(--vpp-navigation-motion-easing) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-sidebar-shared-indicator {
+        will-change: auto;
+    }
+
+    .rz-layout.vpp-layout,
+    .vpp-sidebar,
+    .vpp-sidebar-expanded-chrome,
+    .vpp-sidebar-collapsed-brand,
+    .vpp-sidebar-product {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+
+    .vpp-sidebar .rz-expander,
+    .vpp-sidebar .rz-expander-content {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+
+    .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
+        animation: none;
+        transition: none;
+    }
+}

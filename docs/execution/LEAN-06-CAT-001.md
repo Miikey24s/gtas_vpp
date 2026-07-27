@@ -14,8 +14,8 @@ Status: DONE for the L04 VPP catalog slice. LEAN-06 remains in progress for PRIC
 
 ## Evidence
 
-- `dotnet build gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj -c Release --no-restore`: 0 warnings, 0 errors.
-- `dotnet build gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe.csproj -c Release --no-restore`: 0 warnings, 0 errors.
+- `dotnet build src/Backend/Api/gtas_vpp_be.csproj -c Release --no-restore`: 0 warnings, 0 errors.
+- `dotnet build src/Frontend/Blazor/gtas_vpp_fe.csproj -c Release --no-restore`: 0 warnings, 0 errors.
 - Catalog/controller/request targeted backend tests: 25 passed (including 10,000 synthetic rows, Radzen filter shapes, typed endpoint and legacy-mutation rejection).
 - Frontend catalog paging contract tests: 2 passed.
 - Opt-in LocalDB SQL search test: 1 passed; verified accent-insensitive `but bi` search and literal `100%` search.

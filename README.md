@@ -15,19 +15,19 @@ Website quản lý văn phòng phẩm cho doanh nghiệp, gồm luồng lập v�
 ## Cấu trúc repository
 
 ```text
-gtas_vpp_be/             Backend, migration, model, service và shared DTO
-gtas_vpp_fe/             Frontend Blazor Server
-gtas_vpp_be.Tests/       Kiểm thử backend
-gtas_vpp_fe.Tests/       Kiểm thử frontend
-gtas_vpp_fe.UITests/     Kiểm thử giao diện với Playwright/Aspire
-MyAspire.AppHost/        Điều phối môi trường phát triển
-deploy/                  Runbook và script triển khai/backup/restore production
+src/Backend/             API, application service, domain model và migration
+src/Frontend/Blazor/     Frontend Blazor Server/Radzen đang chạy chính thức
+src/Shared/              DTO và contract dùng chung giữa backend/frontend
+src/Hosting/             Aspire AppHost và service defaults
+tests/                   Unit, integration, UI test và test support
+deploy/                  Dockerfile, runbook và script vận hành production
+docs/                    Kiến trúc, thiết kế, execution plan và tài liệu lưu trữ
 LVTN/                    Luận văn, sơ đồ, ảnh giao diện và công cụ Word
 ```
 
-Shared DTO chính thức nằm tại `gtas_vpp_be/gtas_vpp_shared`; frontend tham chiếu trực tiếp project này.
+Shared DTO chính thức nằm tại `src/Shared`; frontend tham chiếu trực tiếp project này.
 Quy ước UI, localization và accessibility dành cho người và AI nằm tại
-[`gtas_vpp_fe/README.md`](gtas_vpp_fe/README.md).
+[`src/Frontend/README.md`](src/Frontend/README.md).
 
 ## Development với .NET Aspire (khuyến nghị)
 
@@ -43,12 +43,12 @@ function New-GtasSecret {
     [Convert]::ToBase64String($bytes)
 }
 
-$appHost = 'MyAspire.AppHost/MyAspire.AppHost.csproj'
+$appHost = 'src/Hosting/AppHost/MyAspire.AppHost.csproj'
 $testDatabase = 'Server=(localdb)\MSSQLLocalDB;Database=GTAS_VPP_TEST;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True'
 
 dotnet user-secrets set "Parameters:test-database-connection-string" $testDatabase --project $appHost
 dotnet user-secrets set "Parameters:jwt-key" (New-GtasSecret) --project $appHost
-dotnet run --project MyAspire.AppHost/MyAspire.AppHost.csproj
+dotnet run --project src/Hosting/AppHost/MyAspire.AppHost.csproj
 ```
 
 Reference bootstrap không tạo tài khoản hoặc credential mẫu. Tài khoản ứng dụng dùng
@@ -84,18 +84,20 @@ Yêu cầu .NET 10 SDK. Cấu hình connection string và khóa cục bộ bằn
 ```powershell
 dotnet restore gtas_vpp.sln
 dotnet build gtas_vpp.sln -c Release
-dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release
-dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
+dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 
-UI test cần một môi trường ứng dụng đang chạy và tài khoản test truyền qua biến môi trường; không lưu tài khoản này trong Git:
+UI test mặc định tự dựng stack TEST cô lập. Không trỏ test vào ứng dụng hoặc database đang dùng thủ công:
 
 ```powershell
-$env:GTAS_TEST_USERNAME = '<test-user>'
-$env:GTAS_TEST_PASSWORD = '<test-password>'
-$env:UITEST_BASE_URL = 'http://127.0.0.1:5000/'
-dotnet test gtas_vpp_fe.UITests/gtas_vpp_fe.UITests.csproj -c Release
+$env:GTAS_E2E_ISOLATED = '1'
+dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release
 ```
+
+Test có thay đổi dữ liệu còn yêu cầu
+`GTAS_E2E_MUTATION_OPT_IN=I_UNDERSTAND_THIS_MUTATES_QA_DATA`; xem
+[`docs/testing/QA-001-ISOLATED-TESTING.md`](docs/testing/QA-001-ISOLATED-TESTING.md).
 
 ## Production trên DigitalOcean
 

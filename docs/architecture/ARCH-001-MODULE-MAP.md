@@ -39,15 +39,14 @@ Architecture tests enforce this allowlist. A new edge requires an explicit updat
 this document and a review explaining why the existing direction cannot support the
 use case.
 
-`gtas_vpp.sln` is the canonical full solution. The `.slnx` files are intentional
-developer/runtime slices and do not need project-count parity with the canonical
-solution. The architecture gate requires its production-project catalog to match the
-allowlist and requires every project path in a `.slnx` slice to resolve.
+`gtas_vpp.sln` và `gtas_vpp.slnx` là hai biểu diễn của cùng solution đầy đủ. Cả hai
+phải chứa đúng catalog project hiện hành và mọi đường dẫn project phải tồn tại.
 
 ## Logical modules
 
-Physical folders are retained to avoid a high-risk mass move. New code and touched
-code should follow the logical ownership below.
+Source đã được tổ chức theo `src/Backend`, `src/Frontend`, `src/Hosting`, `src/Shared`
+và `tests` ngày 2026-07-27. Assembly/namespace cũ được giữ để tránh thay đổi wire
+contract và giảm rủi ro; code mới phải tuân theo ownership logic bên dưới.
 
 | Module | Backend/model ownership | Shared contracts | Frontend ownership |
 |---|---|---|---|

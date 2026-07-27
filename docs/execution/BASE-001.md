@@ -48,9 +48,9 @@ The repository contains user work in progress and AI-generated source with archi
 ```text
 ## Nam...origin/Nam
  M LVTN/NguyenAnNam_DH52201078_working.docx
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/Components/App.razor
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-login.css
- M gtas_vpp_fe/gtas_vpp_fe/gtas_vpp_fe/wwwroot/css/vpp-responsive.css
+ M src/Frontend/Blazor/Components/App.razor
+ M src/Frontend/Blazor/wwwroot/css/vpp-login.css
+ M src/Frontend/Blazor/wwwroot/css/vpp-responsive.css
 ?? docs/
 ```
 
@@ -156,8 +156,8 @@ No product tests were changed. BASE-001 records current evidence and routes miss
 | Command | Result | Count/time | Evidence |
 |---|---|---|---|
 | `dotnet build gtas_vpp.sln -c Release` | PASS | 0 warning, 0 error; 21.40 s | console output + inventory §7 |
-| `dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-restore` | PASS | 147 passed; test duration 6 s | console output + inventory §7 |
-| `dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-restore` | PASS | 29 passed; test duration 1 s | console output + inventory §7 |
+| `dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-restore` | PASS | 147 passed; test duration 6 s | console output + inventory §7 |
+| `dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-restore` | PASS | 29 passed; test duration 1 s | console output + inventory §7 |
 | UI E2E discovery | PASS | 12 listed | `--list-tests`; no browser/data mutation |
 | SQL/API integration | MISSING BASELINE | No SQL Server/Testcontainers suite | Routed to QA-001/002 |
 | Vulnerability/secret scan | PASS | 0 likely secret/token/private-key/credential/connection-string value hits in staged docs | value-oriented docs scan |

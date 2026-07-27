@@ -18,8 +18,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$BackendProject = Join-Path $RepoRoot 'gtas_vpp_be/gtas_vpp_be/gtas_vpp_be.csproj'
-$AppHostProject = Join-Path $RepoRoot 'MyAspire.AppHost/MyAspire.AppHost.csproj'
+$BackendProject = Join-Path $RepoRoot 'src/Backend/Api/gtas_vpp_be.csproj'
+$AppHostProject = Join-Path $RepoRoot 'src/Hosting/AppHost/MyAspire.AppHost.csproj'
 
 function New-RandomSecret {
     $bytes = New-Object byte[] 48
@@ -296,9 +296,9 @@ try {
         'test' {
             & dotnet build gtas_vpp.sln -c Release
             if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
-            & dotnet test gtas_vpp_be.Tests/gtas_vpp_be.Tests.csproj -c Release --no-build
+            & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
             if ($LASTEXITCODE -ne 0) { throw 'Backend tests failed.' }
-            & dotnet test gtas_vpp_fe.Tests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+            & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
             if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed.' }
         }
     }

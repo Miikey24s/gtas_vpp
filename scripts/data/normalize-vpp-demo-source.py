@@ -25,7 +25,7 @@ from openpyxl import load_workbook
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SOURCE = REPO_ROOT / "LVTN/data/DANG KY VPP - CAC DON VI.xlsx"
-OUTPUT_DIR = REPO_ROOT / "gtas_vpp_be/gtas_vpp_be.Service/Helpers/Data/Demo"
+OUTPUT_DIR = REPO_ROOT / "src/Backend/Application/Helpers/Data/Demo"
 
 NON_ORDER_SHEETS = {"Danh mục", "List"}
 LATEST_SOURCE_MONTH = 3
