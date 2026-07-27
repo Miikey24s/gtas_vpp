@@ -32,8 +32,8 @@ Vì vậy thứ tự đúng là **containment bảo mật → sửa tính đúng
 | EF Core | 14 migration; không có pending model change | Chưa xác nhận trạng thái pending trên database thật vì audit không kết nối DB |
 | Formatting | `dotnet format --verify-no-changes` báo 204 lỗi whitespace trong 34 file | Chưa có quality gate nhất quán |
 | UI public login | Kiểm tra 390×844, 768×1024, 1920×1080; không overflow/console error | Hướng hình ảnh hiện tại có personality tốt; còn English và branding cần xác nhận |
-| Luận văn stable checkpoint | `LVTN/checkpoints/99_final.docx`, 77 trang, render và xem toàn bộ | Bố cục tốt; nội dung sẽ phải cập nhật sau khi source ổn định |
-| Working thesis | Đang có thay đổi và bị process khác khóa khi audit | Không ghi đè; audit trực quan dùng checkpoint ổn định |
+| Luận văn chuẩn hiện hành | `LVTN/NguyenAnNam_DH52201078.docx`, 88 trang, bìa v5 được owner duyệt ngày 27/07/2026 | Không còn nhiều bản chuẩn hoặc checkpoint Word trong Git |
+| Review thesis | Tạo bản local trong `LVTN/checkpoints/` khi cần sửa | Không ghi đè nguồn chuẩn trước khi owner duyệt |
 
 Audit không thay đổi source, database hay cấu hình. Các file đang dirty trước phiên được giữ nguyên. Ba ảnh audit tạm đã được xóa khỏi working tree sau khi kiểm tra.
 

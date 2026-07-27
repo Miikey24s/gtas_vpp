@@ -1,7 +1,6 @@
 param(
     [switch]$Apply,
-    [switch]$IncludeThesisIntermediates,
-    [switch]$IncludeSupersededThesisDeliverables
+    [switch]$IncludeThesisIntermediates
 )
 
 $ErrorActionPreference = "Stop"
@@ -93,22 +92,6 @@ if ($IncludeThesisIntermediates) {
         }
     }
 
-}
-
-if ($IncludeSupersededThesisDeliverables) {
-    $supersededDeliverables = @(
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_candidate.docx",
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_candidate.pdf",
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_candidate_final.pdf",
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_v2.docx",
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_v2.pdf",
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_v2_navigation.docx",
-        "LVTN\checkpoints\NguyenAnNam_DH52201078_final_v3.pdf"
-    )
-
-    foreach ($relativePath in $supersededDeliverables) {
-        Remove-WorkspaceTarget -Target (Join-Path $workspace $relativePath)
-    }
 }
 
 $mode = if ($Apply) { "APPLIED" } else { "PREVIEW" }

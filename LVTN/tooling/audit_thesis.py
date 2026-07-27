@@ -14,8 +14,7 @@ from xml.etree import ElementTree as ET
 sys.stdout.reconfigure(encoding="utf-8")
 
 LVTN_ROOT = Path(__file__).resolve().parents[1]
-FINAL = Path(sys.argv[1]) if len(sys.argv) > 1 else LVTN_ROOT / "checkpoints" / "99_final.docx"
-WORKING = Path(sys.argv[2]) if len(sys.argv) > 2 else LVTN_ROOT / "NguyenAnNam_DH52201078_working.docx"
+THESIS = Path(sys.argv[1]) if len(sys.argv) > 1 else LVTN_ROOT / "NguyenAnNam_DH52201078.docx"
 
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
@@ -45,6 +44,19 @@ def paragraph_style(node: ET.Element) -> str:
     return style.attrib.get(W + "val", "") if style is not None else ""
 
 
+def paragraph_lines(node: ET.Element) -> list[str]:
+    lines: list[str] = []
+    current: list[str] = []
+    for child in node.iter():
+        if child.tag == W + "t":
+            current.append(child.text or "")
+        elif child.tag == W + "br":
+            lines.append("".join(current).strip())
+            current = []
+    lines.append("".join(current).strip())
+    return [line for line in lines if line]
+
+
 def resolve_word_target(target: str) -> str:
     target = target.replace("\\", "/")
     if target.startswith("/"):
@@ -59,7 +71,7 @@ def int_attr(node: ET.Element | None, name: str) -> int | None:
     return int(value) if value is not None else None
 
 
-with zipfile.ZipFile(FINAL) as archive:
+with zipfile.ZipFile(THESIS) as archive:
     bad_member = archive.testzip()
     names = set(archive.namelist())
     root = ET.fromstring(archive.read("word/document.xml"))
@@ -68,6 +80,10 @@ with zipfile.ZipFile(FINAL) as archive:
 
     body_paragraphs = root.findall("./w:body/w:p", NS)
     all_text = "".join(paragraph_text(paragraph) for paragraph in body_paragraphs)
+    cover_title = next(
+        paragraph for paragraph in body_paragraphs
+        if paragraph_text(paragraph).startswith("XÂY DỰNG WEBSITE QUẢN LÝ")
+    )
 
     bookmark_starts = root.findall(".//w:bookmarkStart", NS)
     bookmark_ends = root.findall(".//w:bookmarkEnd", NS)
@@ -203,6 +219,7 @@ with zipfile.ZipFile(FINAL) as archive:
     for section in sections:
         page_size = section.find("w:pgSz", NS)
         margins = section.find("w:pgMar", NS)
+        page_borders = section.find("w:pgBorders", NS)
         section_geometry.append({
             "width": int_attr(page_size, "w"),
             "height": int_attr(page_size, "h"),
@@ -212,6 +229,7 @@ with zipfile.ZipFile(FINAL) as archive:
             "bottom": int_attr(margins, "bottom"),
             "left": int_attr(margins, "left"),
             "page_borders": len(section.findall("w:pgBorders", NS)),
+            "page_border_display": page_borders.attrib.get(W + "display") if page_borders is not None else None,
             "title_page": section.find("w:titlePg", NS) is not None,
             "header_refs": len(section.findall("w:headerReference", NS)),
             "footer_refs": len(section.findall("w:footerReference", NS)),
@@ -230,13 +248,16 @@ with zipfile.ZipFile(FINAL) as archive:
 
     result = {
         "zip_bad_member": bad_member,
-        "bytes": FINAL.stat().st_size,
-        "sha256_final": sha256(FINAL),
-        "sha256_working": sha256(WORKING) if WORKING.exists() else None,
-        "final_matches_working": WORKING.exists() and sha256(FINAL) == sha256(WORKING),
+        "document": str(THESIS),
+        "bytes": THESIS.stat().st_size,
+        "sha256": sha256(THESIS),
+        "cover_title_lines": paragraph_lines(cover_title),
         "section_count": len(sections),
         "section_geometry": section_geometry,
         "page_border_count": sum(item["page_borders"] for item in section_geometry),
+        "page_border_displays": [
+            item["page_border_display"] for item in section_geometry if item["page_border_display"]
+        ],
         "table_count": len(root.findall(".//w:body/w:tbl", NS)),
         "toc_field_instructions": toc_field_instructions,
         "toc_entry_count": len(toc_paragraphs),

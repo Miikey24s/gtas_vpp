@@ -7,7 +7,7 @@ tắc nghiệp vụ nào.
 - Quy tắc làm việc: `AGENTS.md`
 - Kế hoạch triển khai: `docs/execution/ATLAS-001.md`
 - Thiết kế 28 màn: `docs/design/atlas/` (read-only)
-- Nguồn nghiệp vụ: `LVTN/checkpoints/NguyenAnNam_DH52201078_final_v4_standard.docx`
+- Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
 
 > Trạng thái: đã đồng bộ với implementation ATLAS-001 hoàn tất ngày 2026-07-27. Các mục không có số
 > hình vẫn là route/state thật nhưng chưa được luận văn gán hình riêng.

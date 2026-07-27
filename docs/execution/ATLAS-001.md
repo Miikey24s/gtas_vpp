@@ -4,7 +4,7 @@
 - Priority: P1
 - Branch: `codex/atlas-blazor-wave1` (tiếp tục, không merge/deploy)
 - Lập kế hoạch: 2026-07-26 (Asia/Ho_Chi_Minh)
-- Nguồn nghiệp vụ: `LVTN/checkpoints/NguyenAnNam_DH52201078_final_v4_standard.docx`
+- Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
 - Nguồn bố cục: Design Atlas 28 màn hình
 - Liên quan: `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` (living plan, route ledger)
 
@@ -385,7 +385,7 @@ tải file và chưa có cả fixture kỳ live lẫn kỳ đã chốt; owner re
 1. Rà soát 6 trạng thái dùng chung: hộp thư, mất kết nối, thiếu quyền, lỗi, rỗng, đang tải.
 2. QA chéo Dark/Print/mobile.
 3. **Chụp lại 16 hình runtime** cho luận văn từ hệ thống chạy thật, thay ảnh thiết kế Atlas. Đây chính
-   là việc mà `LVTN/generated/missing-ui-screens.md` đang treo: hiện luận văn ghi rõ các hình là *thiết
+   là việc mà `LVTN/evidence/ui-runtime-status.md` đang treo: hiện luận văn ghi rõ các hình là *thiết
    kế giao diện*, chưa phải bằng chứng kiểm thử.
 4. Sửa câu chữ §3.3.5.1 theo D3.
 
@@ -488,7 +488,7 @@ Chỉ chụp ảnh không phải visual regression — chỉ gọi là regressio
 |---|---|---|
 | D7 | **Bổ sung endpoint `GET /api/VPPRequest/period-demand`** | Hiện thực hóa `AggregatedVppResDTO` đang mồ côi. Chỉ đọc, policy `Permissions.PeriodSettle`, phạm vi theo quyền phiên đăng nhập. Làm trong W-D |
 | D8 | **Giữ `Tổng hợp toàn công ty` làm chế độ xem trong `Gom nhu cầu`** | Không xóa `Tab_AllOrdersSummary`. Màn `period-demand` có hai chế độ: `Theo đơn` (nội dung tab cũ) và `Theo mặt hàng` (tổng nhu cầu gom). Tab riêng ở thanh điều hướng bị gỡ, code được tái dùng |
-| D9 | **Chưa đụng luận văn trong phạm vi ATLAS-001** | Không sửa bất kỳ file `.docx` nào. Bản mới nhất là `checkpoints/NguyenAnNam_DH52201078_final_v4_standard.docx`; `_working.docx` đã cũ, không dùng làm nguồn. Sai lệch §3.3.5.1 chỉ được ghi vào mục 11 để owner xử lý sau |
+| D9 | **Chưa đụng luận văn trong phạm vi ATLAS-001** | Không sửa bất kỳ file `.docx` nào trong wave Atlas. Từ 27/07/2026, nguồn hiện hành là `LVTN/NguyenAnNam_DH52201078.docx`; bản `working` và checkpoint cũ đã được loại bỏ. Sai lệch §3.3.5.1 chỉ được ghi vào mục 11 để owner xử lý sau |
 
 Điều chỉnh kéo theo: **W-H bỏ mục 4** (sửa câu chữ §3.3.5.1). Việc chụp lại 16 hình runtime vẫn giữ,
 nhưng chỉ xuất ảnh ra thư mục, không chèn vào file Word.

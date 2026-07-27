@@ -20,7 +20,7 @@ Các giới hạn cần hiểu đúng:
 - Không kết nối hoặc thay đổi database thật. Kết luận về schema dựa trên model, migration và SQL trong Git; trạng thái migration trên server chưa được xác nhận.
 - Không chạy Aspire AppHost vì cấu hình hiện tại có đường `MigrateAndSeed`, có khả năng làm thay đổi local DB.
 - Không chạy authenticated/state-mutating UI E2E trên database dùng chung. Playwright browser cục bộ còn thiếu và suite hiện có test thay đổi permission/order.
-- `LVTN/NguyenAnNam_DH52201078_working.docx` đang dirty và bị Word/process khác khóa. Visual audit dùng `LVTN/checkpoints/99_final.docx`; không khẳng định working document hiện tại giống checkpoint.
+- Từ 27/07/2026, nguồn chuẩn là `LVTN/NguyenAnNam_DH52201078.docx`; bản `working` và checkpoint Word cũ đã được loại. Mọi sửa đổi sau này phải thực hiện trên review copy bị Git ignore.
 - Không kiểm tra credential/secret value và không đưa secret value vào báo cáo.
 
 ### 1.1 Decision overlay ngày 15/07/2026
@@ -481,17 +481,17 @@ Pipeline deploy có nhiều kiểm soát tốt, nhưng release gate hiện chưa
 
 ## 13. Thesis documentation
 
-### DOC-01 — Stable checkpoint có chất lượng layout tốt
+### DOC-01 — Nguồn luận văn chuẩn đã được owner duyệt
 
-`LVTN/checkpoints/99_final.docx`:
+`LVTN/NguyenAnNam_DH52201078.docx`:
 
-- 77 trang;
-- 37 hình, 9 bảng/caption table, 23 Word table;
-- 149 hyperlink, gồm 132 internal và 17 external;
+- 88 trang;
+- 46 hình, 23 Word table;
+- 117 hyperlink, gồm 99 internal và 18 external;
 - không missing anchor/broken target;
 - không tracked changes;
-- không page border theo quyết định người dùng;
-- render toàn bộ 77 trang cho thấy không có blank page ngoài ý muốn, clipping, overlap hoặc table overflow rõ ràng.
+- page border chỉ áp dụng cho trang bìa; tên đề tài ngắt đúng hai dòng theo bản v5 owner duyệt;
+- render Word toàn bộ cho thấy không có blank page ngoài ý muốn; khi thay bìa, trang 2–88 khớp pixel với v5 nguồn.
 
 ### DOC-02 — Tooling audit có một false positive
 
@@ -509,7 +509,7 @@ Build/test count trong final checkpoint hiện đã đúng 147/29/12 discovery, 
 4. Sau UI freeze: screenshot/caption/cross-reference.
 5. Cuối cùng: update Word fields trong Microsoft Word, render toàn bộ, visual QA, link/page check và defense script rehearsal.
 
-Phải giữ nguyên `LVTN/NguyenAnNam_DH52201078.docx`; chỉ làm trên working và bàn giao `LVTN/checkpoints/99_final.docx` theo `AGENTS.md`.
+Phải giữ nguyên `LVTN/NguyenAnNam_DH52201078.docx`; chỉ làm trên review copy trong `LVTN/checkpoints/` hoặc thư mục tạm, rồi thay nguồn chuẩn sau khi owner duyệt theo `AGENTS.md`.
 
 ## 14. Kết luận audit
 

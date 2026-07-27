@@ -2,7 +2,7 @@
 
 ## Nguồn đối chiếu
 
-- PDF mẫu: `../MAU_LVTN_2026.pdf` (tính từ thư mục `LVTN/tooling`).
+- PDF mẫu: `../references/formatting/MAU_LVTN_2026.pdf` (tính từ thư mục `LVTN/tooling`).
 - Số trang: 17; khổ A4.
 - Quy định định dạng chính được ghi rõ tại trang 2–9; ví dụ hiển thị tại trang 10–17.
 

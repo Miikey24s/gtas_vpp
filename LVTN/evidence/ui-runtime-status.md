@@ -1,4 +1,4 @@
-# Đối chiếu hình giao diện GTAS VPP
+# Trạng thái bằng chứng runtime giao diện GTAS VPP
 
 Mốc đối chiếu: ngày 25/07/2026. Nội dung nghiệp vụ trong luận văn và backend hiện tại là nguồn xác định chức năng; Atlas được dùng để chuẩn hóa bố cục và hình minh họa thiết kế. Frontend cũ chỉ được tham khảo để xác định đường dẫn hoặc khả năng đã có, không được xem là bằng chứng nghiệp vụ mới nhất.
 

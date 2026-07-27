@@ -39,10 +39,10 @@ execution evidence that was actually run in the local release candidate.
   `ShellResponsiveTests`: 1 passed in 49.0 seconds.
 - Solution Release build: 0 warnings, 0 errors.
 - Current-tree gitleaks: clean.
-- Final checkpoint `LVTN/checkpoints/99_final.docx` is a valid 126-part DOCX
-  with 121 bookmarks, 132 internal links (0 broken), 99 `PAGEREF` fields, no
-  missing media and no missing image alt text; it rendered as a visually
-  inspected 79-page PDF through the `soffice.com` fallback.
+- Canonical thesis `LVTN/NguyenAnNam_DH52201078.docx` is a valid 98-part DOCX
+  with 53 linked TOC entries, 46 linked figure entries, 99 internal links and
+  18 external links; no bookmark, relationship or media target is broken. The
+  owner-approved Word render contains 88 pages.
 - Nine current anonymized UI screenshots were captured from the isolated
   authenticated fixture with persona-correct routes and embedded into the
   corresponding thesis figure slots. The login background is the GTAS-specific

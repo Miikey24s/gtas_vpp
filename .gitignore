@@ -393,10 +393,10 @@ scripts/export_db_full.sql
 /LVTN/_render_*/
 /LVTN/__pycache__/
 /LVTN/diagrams/**/*.png
-/LVTN/checkpoints/*
-!/LVTN/checkpoints/99_final.docx
+/LVTN/checkpoints/
 /LVTN/render/
-!/LVTN/checkpoints/99_final_changelog.md
+/LVTN/generated/
+/LVTN/private-local/
 # Bản đã ký chứa thông tin cá nhân; chỉ lưu local hoặc kho riêng, không đưa lên public Git.
 /LVTN/*-signed.pdf
 # Raw operational workbook contains personal notes; commit only its normalized demo projection.

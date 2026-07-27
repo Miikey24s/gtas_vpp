@@ -1193,7 +1193,7 @@ original scope so reduced/folded alternatives remain auditable.
 | Mục tiêu | Đồng bộ requirement/use case/activity/sequence/class/architecture/ERD/UI/security/test/deploy/results với release candidate. |
 | Lý do | Stable checkpoint đẹp nhưng source/schema/UI/KPI sẽ thay đổi; Word không được dẫn dắt implementation. |
 | Dependency | CP6 core, DOC-001, D-009/012 đã chốt, source/schema/API freeze; chỉ mô tả optional task thực sự DONE, không chờ task bị defer. |
-| Phạm vi / file dự kiến | Chỉ `LVTN/NguyenAnNam_DH52201078_working.docx`, diagrams/screenshots/references/tooling; không overwrite original. |
+| Phạm vi / file dự kiến | Tạo review copy từ `LVTN/NguyenAnNam_DH52201078.docx`; chỉ thay nguồn chuẩn sau khi owner duyệt. Diagrams/screenshots/references/tooling giữ tách biệt. |
 | Frontend | Final screenshots/data anonymized, captions/cross-reference, UX rationale/accessibility. |
 | Backend | Architecture/security/AI governance/API/test/deploy facts from evidence. |
 | Database | ERD/migration/constraint/period/price/settlement snapshot; no production secret/data. |
@@ -1210,7 +1210,7 @@ original scope so reduced/folded alternatives remain auditable.
 | Field | Nội dung |
 |---|---|
 | Status / Priority / Difficulty | `NOT_STARTED` / P1 / L |
-| Mục tiêu | Tạo `LVTN/checkpoints/99_final.docx` hoàn chỉnh từ working, update fields và visual QA toàn bộ. |
+| Mục tiêu | Cập nhật nguồn chuẩn `LVTN/NguyenAnNam_DH52201078.docx` từ review copy đã được duyệt, sau khi update fields và visual QA toàn bộ. |
 | Lý do | Word có thể đúng nội dung nhưng sai pagination/link/field sau update; skill/repo bắt buộc render verify. |
 | Dependency | CP7, DOC-002; release candidate/test evidence đã freeze. |
 | Phạm vi / file dự kiến | Working/final docx, final changelog, tooling fixes (canonical figure-list rule), ignored render/contact sheets. |

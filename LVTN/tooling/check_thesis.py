@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-AUDIT = ROOT / "LVTN" / "tooling" / "audit_99_final.py"
+AUDIT = ROOT / "LVTN" / "tooling" / "audit_thesis.py"
 
 
 completed = subprocess.run(
@@ -29,7 +29,15 @@ def require(condition: bool, message: str) -> None:
 
 
 require(result["zip_bad_member"] is None, "DOCX ZIP contains a corrupt member")
-require(result["page_border_count"] == 0, "Unexpected page border found")
+require(result["page_border_count"] == 1, "Expected exactly one cover page border")
+require(result["page_border_displays"] == ["firstPage"], "Cover border must apply to the first page only")
+require(
+    result["cover_title_lines"] == [
+        "XÂY DỰNG WEBSITE QUẢN LÝ",
+        "VĂN PHÒNG PHẨM PHONG PHÚ",
+    ],
+    "Cover title line break differs from the owner-approved layout",
+)
 require(result["toc_entry_count"] == result["toc_link_count"], "TOC entries are not fully linked")
 require(not result["toc_unresolved_anchors"], "TOC contains unresolved anchors")
 require(result["figure_list_entry_count"] == result["figure_bookmark_count"], "Figure list/bookmark counts differ")
@@ -60,7 +68,7 @@ if failures:
     raise SystemExit(1)
 
 print(
-    "Final DOCX verification passed: "
+    "Canonical thesis verification passed: "
     f"{result['toc_link_count']} TOC links, "
     f"{result['figure_list_link_count']} figure links, "
     f"{result['internal_hyperlinks']} internal hyperlinks."

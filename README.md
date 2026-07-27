@@ -126,8 +126,8 @@ secret manager/GitHub Secret.
 
 ## Luận văn và sơ đồ
 
-- Bản đang chỉnh sửa: `LVTN/NguyenAnNam_DH52201078_working.docx`
-- Bản bàn giao gần nhất: `LVTN/checkpoints/99_final.docx`
+- Nguồn luận văn chuẩn: `LVTN/NguyenAnNam_DH52201078.docx`
+- Hướng dẫn cấu trúc và quy trình review: `LVTN/README.md`
 - Source sơ đồ và SVG: `LVTN/diagrams/`
 - Script định dạng, render và kiểm tra Word: `LVTN/tooling/`
 

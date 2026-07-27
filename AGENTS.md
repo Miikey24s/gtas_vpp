@@ -51,13 +51,13 @@ Mốc gần nhất được ghi trong W1 change-set là 397 backend test và 143
 
 ## Luận văn
 
-- Không ghi đè bản gốc `LVTN/NguyenAnNam_DH52201078.docx`.
-- Bản làm việc là `LVTN/NguyenAnNam_DH52201078_working.docx`; bản bàn giao là `LVTN/checkpoints/99_final.docx`.
-- Giữ `MAU_LVTN_2026.pdf` và `Luận văn tốt nghiệp (1).docx` làm tài liệu đối chiếu định dạng.
-- Trang bìa có khung page border (chỉ trang 1, `w:display="firstPage"`, nét đôi tím `8064A2` theo mẫu `v_mau_lvtn_2026.pdf`, dịch phải chừa ~2,6 cm mép trái để đóng gáy) — owner duyệt ngày 2026-07-27, thay quyết định "không khung bìa" trước đó.
+- Nguồn luận văn chuẩn duy nhất là `LVTN/NguyenAnNam_DH52201078.docx`, SHA-256 `103C4AB3054F518A9C5A065B4ECC5802724205F9FDD14D7E1CC7A0E6AAA6B5A0`; file này được nhập byte-for-byte từ bản v5 có bìa đã được owner duyệt ngày 27/07/2026.
+- Không duy trì bản `working` hoặc checkpoint Word trong Git. Trước khi sửa, sao chép nguồn chuẩn sang `LVTN/checkpoints/local_review.docx` hoặc thư mục tạm; chỉ thay nguồn chuẩn sau khi owner duyệt.
+- Tài liệu định dạng nằm tại `LVTN/references/formatting/MAU_LVTN_2026.pdf` và `LVTN/references/formatting/Luận văn tốt nghiệp (1).docx`.
+- Trang bìa dùng đúng bố cục từ file `NguyenAnNam_DH52201078_cover_only.docx`: page border chỉ trang 1 (`w:display="firstPage"`), màu đen, và tên đề tài bắt buộc ngắt dòng sau `XÂY DỰNG WEBSITE QUẢN LÝ`.
 - Mục lục, danh mục hình, tài liệu tham khảo và các tham chiếu nội bộ phải là liên kết có thể bấm; trước khi bàn giao phải cập nhật field và kiểm tra số trang.
 - Sơ đồ kỹ thuật giữ cả `.puml` và `.svg`, phù hợp in đen trắng. Đọc `LVTN/diagrams/README.md` trước khi sửa.
-- Dùng script trong `LVTN/tooling/`; lưu render và contact sheet vào thư mục tạm đã bị Git ignore.
+- Đọc `LVTN/README.md` và dùng script trong `LVTN/tooling/`; lưu checkpoint review, render và contact sheet vào thư mục bị Git ignore.
 - Mỗi lần sửa Word phải render và kiểm tra trực quan các trang bị tác động trước khi thay bản final.
 
 ## Bảo mật và vệ sinh Git
