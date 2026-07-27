@@ -9,8 +9,8 @@ tắc nghiệp vụ nào.
 - Thiết kế 28 màn: `docs/design/atlas/` (read-only)
 - Nguồn nghiệp vụ: `LVTN/checkpoints/NguyenAnNam_DH52201078_final_v4_standard.docx`
 
-> Trạng thái: đang xây dựng cùng với các wave W-A…W-H. Cột nào còn trống nghĩa là wave tương ứng
-> chưa chạy. Cập nhật file này **cùng lần** với mỗi wave, không để dồn.
+> Trạng thái: đã đồng bộ với implementation ATLAS-001 hoàn tất ngày 2026-07-27. Các mục không có số
+> hình vẫn là route/state thật nhưng chưa được luận văn gán hình riêng.
 
 ---
 
@@ -53,10 +53,11 @@ Các điểm cần biết sau đợt đồng bộ W-B.2 (2026-07-26):
 - **Role badge + breadcrumb trong header**: `LeftSidebar.razor.cs` → `RoleBadgeLabel` map
   `glb.UserInfo.GroupId` sang 3 persona của `CanonicalRbac` rồi qua `Loc["RoleEmployee|RoleManager|RoleDev"]`
   (không in raw GroupName `"DEV"`); `HeaderPathSegments` dựng đường dẫn `cha › con` từ URL.
-  Desktop tạm ẩn header tới W-B.2b (xem quyết định D14 trong ATLAS-001).
-- **Trạng thái dùng chung**: `Shared/VppStatePanel.razor` có 4 state `empty | loading | error | denied`.
-  `denied` là trạng thái trung tính (icon primary, không viền đỏ) — thiếu quyền KHÔNG phải sự cố hệ thống.
-  Nút thử lại của `error` tự động là primary; mọi màn thiếu quyền có lối thoát `Loc["BackToAllowedPage"]`.
+  W-B.2b đã hoàn tất: desktop dùng cùng hàng header 72px cho breadcrumb/tab chrome.
+- **Trạng thái dùng chung**: `Shared/VppStatePanel.razor` có 4 state `empty | loading | error | denied`;
+  `Shared/VppEmptyState.razor` là primitive rỗng compact. Loading dùng `role=status`, error dùng
+  `role=alert`, cả hai có `aria-live`/`aria-busy`; `denied` là trạng thái trung tính vì thiếu quyền không
+  phải sự cố hệ thống. `NotificationCenter.razor` đưa focus vào panel và trả focus về trigger khi đóng.
 - **Icon điều hướng** đặt tên ngữ nghĩa trong `Shared/VppIcons.cs`; sibling tĩnh phải khác glyph
   (quyết định D13 — Atlas render động nên được phép trùng, Blazor thì không).
 - **Token quan trọng** trong `wwwroot/css/vpp-tokens.css`: nút chuẩn `--vpp-control-height: 36px`,
@@ -100,11 +101,11 @@ Luồng bốn bước: `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-34 | `supplement-approval` | `/dashboard` tab Vận hành kỳ | `Pages/VPPRequest/Tabs/Tab_AdminApproval.razor`, `Components/Dialog_RejectSupplement.razor` | `GET additional-orders/pending`; `POST additional-orders/{id}/approve`, `/reject` | §2.3.1.4, §3.3.3.2 |
-| 3-35 | `period-review` | `/dashboard` tab Vận hành kỳ | `Pages/VPPRequest/Components/PeriodReviewPanel.razor` | `GET /api/PeriodSettlement/{y}/{m}` | §2.3.1.5, §3.3.3.3 |
-| — | `period-demand` | *(W-D)* | *(W-D)* — hấp thụ `Tab_AllOrdersSummary.razor` làm chế độ `Theo đơn` | `GET all-orders`; `GET period-demand` *(D7, W-D)* | §3.3.3.4 |
-| 3-36 | `supply-allocation` | *(W-D)* | *(W-D)* — tách khỏi `PeriodSettlementPanel.razor` | `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
-| 3-37 | `settlement-flow` | `/dashboard` tab Vận hành kỳ | `Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
+| 3-34 | `supplement-approval` | `/dashboard?tab=5&periodTab=pending` | `Tabs/Tab_AdminApproval.razor` (coordinator), `Components/PendingApprovalWorkspace.razor`, `Dialog_RejectSupplement.razor` | `GET additional-orders/pending`; `POST additional-orders/{id}/approve`, `/reject` | §2.3.1.4, §3.3.3.2 |
+| 3-35 | `period-review` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodOperationsWorkspace.razor`, `PeriodReviewPanel.razor` | `GET /api/PeriodSettlement/{y}/{m}` | §2.3.1.5, §3.3.3.3 |
+| — | `period-demand` | `/dashboard?tab=5&periodTab=demand` | `Components/PeriodDemandPanel.razor`; hấp thụ `Tab_AllOrdersSummary.razor` làm chế độ `Theo đơn` | `GET all-orders`; `GET period-demand` | §3.3.3.4 |
+| 3-36 | `supply-allocation` | `/dashboard?tab=5&periodTab=supply` | `Components/PeriodSupplyAllocationPanel.razor` | `GET item-prices`; `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
+| 3-37 | `settlement-flow` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
 
 ### M5A + M5B — Thư viện dữ liệu
 
@@ -154,13 +155,25 @@ nhóm quyền/phòng ban → kích hoạt. `Component_RecordInspector` chỉ hi�
 
 `Report.razor` dùng cùng `scope/year/month` cho summary và hai export. Search phòng ban chỉ lọc
 client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
-`SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại.
+`SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại. Trend
+chỉ render khi có ít nhất 2 điểm (smooth từ 3 điểm); donut bỏ giá trị 0. Thiếu dữ liệu dùng empty state,
+không cố render SVG suy biến.
 
 ### M8 — Trạng thái hệ thống
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
 | 3-43 | `system-states` | mọi route | `Layout/NotificationCenter.razor`, `Layout/ReconnectModal.razor`, `Shared/VppStatePanel.razor`, `Shared/VppEmptyState.razor`, `Shared/SkeletonGrid.razor` | `NotificationsController` | §3.3.5.2 |
+
+`Helpers/RouteCatalog.cs` là danh sách route/state dùng cho shell và test contract; bốn state vận hành kỳ
+`pending/review/demand/supply` cùng các route account anonymous đều được khai báo rõ. Với DataGrid đã
+audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
+wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
+
+**Evidence W-H:** Release build sạch; backend `422/422`, frontend `180/180`; 28 screen × 4 viewport
+runtime pass, representative Dark/Print/axe pass, 17 ảnh runtime ở `TestResults/atlas-w-h-final3/`.
+E2E tải thật report CSV/XLSX và order PDF/XLSX; mutation cô lập pass permission toggle, vòng đời đơn
+thường và duyệt/từ chối đơn bổ sung.
 
 ---
 

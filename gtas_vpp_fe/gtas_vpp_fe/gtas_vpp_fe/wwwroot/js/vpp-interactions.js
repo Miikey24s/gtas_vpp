@@ -5,6 +5,62 @@
 
     window.vppInteractionsInitialized = true;
 
+    // RadzenDataGrid 11.x đặt role="grid" trên div wrapper trong khi rowgroup thật
+    // nằm sâu dưới một div cuộn không có role. Axe xem cấu trúc đó là
+    // aria-required-children. Các grid opt-in giữ semantics bảng native bên trong,
+    // còn wrapper trở thành region có tên để screen reader điều hướng ổn định.
+    function normalizeGridRegions(root) {
+        var selector = "[data-vpp-grid-region='true']";
+        var grids = [];
+        if (root instanceof Element && root.matches(selector)) {
+            grids.push(root);
+        }
+        if (root.querySelectorAll) {
+            grids.push.apply(grids, root.querySelectorAll(selector));
+        }
+
+        grids.forEach(function (grid) {
+            grid.setAttribute("role", "region");
+            grid.removeAttribute("aria-rowcount");
+            grid.querySelectorAll("table[role='presentation']").forEach(function (table) {
+                table.setAttribute("role", "table");
+            });
+            grid.querySelectorAll(".rz-data-grid-data").forEach(function (scrollRegion) {
+                scrollRegion.setAttribute("tabindex", "0");
+            });
+        });
+    }
+
+    function normalizeRadzenAriaValues(root) {
+        var selector = "[aria-disabled*='ToString']";
+        var elements = [];
+        if (root instanceof Element && root.matches(selector)) {
+            elements.push(root);
+        }
+        if (root.querySelectorAll) {
+            elements.push.apply(elements, root.querySelectorAll(selector));
+        }
+
+        elements.forEach(function (element) {
+            var disabled = element.matches(":disabled, .rz-state-disabled")
+                || element.closest("[disabled], .rz-state-disabled") !== null;
+            element.setAttribute("aria-disabled", disabled ? "true" : "false");
+        });
+    }
+
+    normalizeGridRegions(document);
+    normalizeRadzenAriaValues(document);
+    new MutationObserver(function (records) {
+        records.forEach(function (record) {
+            record.addedNodes.forEach(function (node) {
+                if (node instanceof Element) {
+                    normalizeGridRegions(node);
+                    normalizeRadzenAriaValues(node);
+                }
+            });
+        });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+
     function prefersReducedMotion() {
         return window.matchMedia
             && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -99,6 +99,34 @@ public static class RouteCatalog
             AnyOfPermissions: [Permissions.RequestAdminApproval, Permissions.PeriodSettle],
             Notes: "Internal sub-tabs: PeriodReviewPanel (PeriodSettle), additional-approval queue (RequestAdminApproval). Render depends on which permissions the user has."),
 
+        new(
+            Key: "dashboard.period.pending-approval",
+            Path: "/dashboard?tab=5&periodTab=pending",
+            Title: "PendingApproval",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestAdminApproval]),
+
+        new(
+            Key: "dashboard.period.review",
+            Path: "/dashboard?tab=5&periodTab=review",
+            Title: "PeriodReview",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.PeriodSettle]),
+
+        new(
+            Key: "dashboard.period.demand",
+            Path: "/dashboard?tab=5&periodTab=demand",
+            Title: "PeriodDemandTitle",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.PeriodSettle]),
+
+        new(
+            Key: "dashboard.period.supply",
+            Path: "/dashboard?tab=5&periodTab=supply",
+            Title: "PeriodSupplyTitle",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.PeriodSettle]),
+
         // ── Order Create / Edit (dynamic) ──────────────────────────
         new(
             Key: "dashboard.order-create.new",
@@ -211,6 +239,30 @@ public static class RouteCatalog
             Key: "login",
             Path: Config.LoginPagePath,
             Title: "Login",
+            PageCode: "",
+            AnyOfPermissions: [],
+            IsAuthenticated: false),
+
+        new(
+            Key: "account.forgot-password",
+            Path: "/Account/ForgotPassword",
+            Title: "ForgotPasswordTitle",
+            PageCode: "",
+            AnyOfPermissions: [],
+            IsAuthenticated: false),
+
+        new(
+            Key: "account.reset-password",
+            Path: "/Account/ResetPassword",
+            Title: "ResetPasswordTitle",
+            PageCode: "",
+            AnyOfPermissions: [],
+            IsAuthenticated: false),
+
+        new(
+            Key: "account.register",
+            Path: "/Account/Register",
+            Title: "RegisterTitle",
             PageCode: "",
             AnyOfPermissions: [],
             IsAuthenticated: false),

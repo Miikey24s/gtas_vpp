@@ -21,12 +21,12 @@ namespace gtas_vpp_fe.UITests.Pages
         }
 
         public async Task SetComponentVisibilityAsync(
-            string groupName,
+            string groupCode,
             string pageTabName,
             string componentCode,
             bool isVisible)
         {
-            await ExpandGroupAsync(groupName, pageTabName);
+            await ExpandGroupAsync(groupCode, pageTabName);
             await SelectGroupPageTabAsync(pageTabName);
 
             var componentRow = await GetComponentRowAsync(componentCode);
@@ -68,7 +68,7 @@ namespace gtas_vpp_fe.UITests.Pages
             });
         }
 
-        private async Task ExpandGroupAsync(string groupName, string pageTabName)
+        private async Task ExpandGroupAsync(string groupCode, string pageTabName)
         {
             var pageTab = _page.GetByRole(AriaRole.Tab, new() { Name = pageTabName, Exact = true });
             if (await pageTab.CountAsync() > 0 && await pageTab.First.IsVisibleAsync())
@@ -76,7 +76,7 @@ namespace gtas_vpp_fe.UITests.Pages
                 return;
             }
 
-            var groupRow = await GetGroupRowAsync(groupName);
+            var groupRow = await GetGroupRowAsync(groupCode);
             var toggler = groupRow.Locator(".rz-row-toggler").First;
 
             await toggler.WaitForAsync();
@@ -91,11 +91,11 @@ namespace gtas_vpp_fe.UITests.Pages
             await pageTab.ClickAsync();
         }
 
-        private async Task<ILocator> GetGroupRowAsync(string groupName)
+        private async Task<ILocator> GetGroupRowAsync(string groupCode)
         {
             var groupCell = _page
-                .Locator(".permission-group-grid")
-                .GetByText(groupName, new LocatorGetByTextOptions { Exact = true })
+                .Locator(".permission-group-grid .permission-group-identity small")
+                .GetByText(groupCode, new LocatorGetByTextOptions { Exact = true })
                 .First;
 
             try
@@ -107,7 +107,7 @@ namespace gtas_vpp_fe.UITests.Pages
                 var pageText = await _page.Locator("body").InnerTextAsync();
                 var compactPageText = pageText.Length > 1500 ? pageText[..1500] + "..." : pageText;
                 throw new InvalidOperationException(
-                    $"Group '{groupName}' was not rendered. Page text: {compactPageText}",
+                    $"Group code '{groupCode}' was not rendered. Page text: {compactPageText}",
                     exception);
             }
             return groupCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;

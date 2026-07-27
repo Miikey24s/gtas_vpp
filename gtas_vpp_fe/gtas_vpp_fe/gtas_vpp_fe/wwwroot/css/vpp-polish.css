@@ -38,8 +38,29 @@
 @media print {
     .vpp-sidebar,
     .vpp-header-glass,
-    .rz-notification-message {
+    .rz-notification-message,
+    .vpp-notification-panel,
+    .vpp-notification-backdrop,
+    .user-dropdown,
+    .user-dropdown-backdrop,
+    #components-reconnect-modal,
+    .vpp-page-header-actions,
+    .vpp-report-actions,
+    .vpp-filter-actions,
+    .rz-paginator {
         display: none !important;
+    }
+
+    html,
+    body,
+    .vpp-layout,
+    .vpp-layout-body,
+    .vpp-content {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        color: #111 !important;
+        background: #fff !important;
     }
 
     .vpp-layout-body {
@@ -53,6 +74,21 @@
 
     .rz-datatable-row {
         break-inside: avoid;
+    }
+
+    .vpp-card,
+    .card,
+    .rz-card,
+    .vpp-state-panel {
+        color: #111 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    a {
+        color: #111 !important;
+        text-decoration: underline;
     }
 }
 

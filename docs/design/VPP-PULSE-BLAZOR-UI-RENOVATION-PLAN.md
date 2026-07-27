@@ -581,33 +581,34 @@ quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơ
 
 | Atlas | Route/state thật | Trạng thái | Phạm vi wave 1 |
 |---|---|---|---|
-| 01 Login | `/Account/Login` | OWNER_REVIEW | Giữ account shell đã duyệt; chỉ chạy regression |
-| 02 Đơn hàng của tôi | `dashboard.my-orders` | OWNER_REVIEW | Giữ period story, KPI và order workspace hiện hành |
-| 03 Tạo/sửa đơn | `dashboard.order-create.*` | OWNER_REVIEW | Giữ quy trình hai bước và capability từ backend |
-| 04 Lịch sử | `dashboard.history` | OWNER_REVIEW | Giữ summary, chart, list và detail hiện hành |
-| 05 Danh mục mặt hàng | `dashboard.catalog` | OWNER_REVIEW | Chuẩn hóa toolbar/state theo Atlas, không thêm giá cho nhân viên |
-| 06 Tổng hợp phòng ban | `dashboard.management.department` | OWNER_REVIEW | Story header, KPI và master/detail theo phạm vi phòng ban |
-| 07 Duyệt đơn bổ sung | `dashboard.period-operations?periodTab=pending` | OWNER_REVIEW | Queue + detail + approve/reject theo quyền API |
-| 08 Rà soát kỳ | `dashboard.period-operations?periodTab=review` | OWNER_REVIEW | Trạng thái, điều kiện ngăn chốt và bằng chứng nguồn |
-| 09 Chọn nguồn cung | settlement preview | OWNER_REVIEW | Bảng xếp hạng nhà cung cấp/bảng giá từ preview API |
-| 10 Chốt kỳ | settlement confirm/correct | OWNER_REVIEW | KPI, xác nhận snapshot bất biến và hiệu chỉnh có lý do |
-| 11 Mặt hàng quản trị | `library.items` | OWNER_REVIEW | Collection + inspector; giữ CRUD/status thật |
-| 12 Danh sách bảng giá | `library.pricing.price-lists` | OWNER_REVIEW | Lifecycle + inspector; không giả lập publish/expire |
-| 13 Người dùng | `permission.user` | ISOLATED_QA_PASS — OWNER_REVIEW | Search ngữ cảnh + filter trạng thái backend; collection/inspector và activation/reset/deactivate thật; không render `SessionVersion`/secret |
-| 14 Nhóm và quyền | `permission.component` | ISOLATED_QA_PASS — OWNER_REVIEW | Ma trận action 18×3 canonical chỉ đọc + quản trị UI mapping động; `GroupCode` lấy trực tiếp từ backend |
-| 15 Báo cáo | `report` | ISOLATED_QA_PASS — OWNER_REVIEW | CSV + XLSX thật; trend chi phí; bảng chi phí phòng ban từ DTO; bằng chứng settlement VI/EN |
-| 16 Trạng thái hệ thống | shared state primitives | OWNER_REVIEW | Reuse inbox/reconnect/access-denied/error/empty/skeleton trong route thật |
+| 01 Login | `/Account/Login` | ISOLATED_QA_PASS — OWNER_REVIEW | Account shell + validation + capture runtime sạch |
+| 02 Đơn hàng của tôi | `/dashboard?tab=0` | ISOLATED_QA_PASS — OWNER_REVIEW | Period story, KPI, order workspace và PDF/XLSX tải thật |
+| 03 Tạo/sửa đơn | `/dashboard/order-create` | ISOLATED_QA_PASS — OWNER_REVIEW | Quy trình hai bước; mutation edit/history/cancel pass |
+| 04 Lịch sử | `/dashboard?tab=1` | ISOLATED_QA_PASS — OWNER_REVIEW | Summary/chart/list/detail; chart suy biến dùng empty state thay SVG `NaN` |
+| 05 Danh mục mặt hàng | `/dashboard?tab=2` | ISOLATED_QA_PASS — OWNER_REVIEW | Toolbar/state theo Atlas, không lộ giá cho nhân viên |
+| 06 Tổng hợp phòng ban | `/dashboard?tab=3&managementTab=department` | ISOLATED_QA_PASS — OWNER_REVIEW | Story header, KPI và master/detail theo phạm vi phòng ban |
+| 07 Duyệt đơn bổ sung | `/dashboard?tab=5&periodTab=pending` | ISOLATED_QA_PASS — OWNER_REVIEW | `Tab_AdminApproval` coordinator + workspace con; mutation approve/reject pass |
+| 08 Rà soát kỳ | `/dashboard?tab=5&periodTab=review` | ISOLATED_QA_PASS — OWNER_REVIEW | Trạng thái, blocker chốt kỳ và bằng chứng nguồn |
+| 09 Gom nhu cầu | `/dashboard?tab=5&periodTab=demand` | ISOLATED_QA_PASS — OWNER_REVIEW | Hai chế độ Theo đơn/Theo mặt hàng, dữ liệu thật từ period-demand |
+| 10 Chọn nguồn cung | `/dashboard?tab=5&periodTab=supply` | ISOLATED_QA_PASS — OWNER_REVIEW | Nhà cung cấp trước bảng giá; preview và đối chiếu giá thật |
+| 11 Chốt kỳ | `/dashboard?tab=5&periodTab=review#period-settlement-title` | ISOLATED_QA_PASS — OWNER_REVIEW | Snapshot bất biến, confirm/correct theo capability |
+| 12 Mặt hàng quản trị | `/library?tab=2` | ISOLATED_QA_PASS — OWNER_REVIEW | Collection + inspector; CRUD/status thật, DataGrid a11y opt-in |
+| 13 Danh sách bảng giá | `/library?tab=6&pricingTab=price-lists` | ISOLATED_QA_PASS — OWNER_REVIEW | Lifecycle + inspector; publish/expire/clone/compare thật |
+| 14 Người dùng | `/permission?tab=0` | ISOLATED_QA_PASS — OWNER_REVIEW | Search/filter backend; activation/reset/deactivate thật; inspector không lộ secret |
+| 15 Nhóm và quyền | `/permission?tab=1` | VERIFIED — OWNER_REVIEW | Ma trận 18×3 read-only + UI mapping; mutation toggle pass theo `GroupCode=DEV` |
+| 16 Báo cáo | `/report` | VERIFIED — OWNER_REVIEW | CSV/XLSX tải thật; trend chi phí, settlement evidence và print state |
+| 17 Trạng thái hệ thống | shared state primitives | ISOLATED_QA_PASS — OWNER_REVIEW | Inbox/reconnect/denied/error/empty/loading có semantics/focus thống nhất |
 | Đổi mật khẩu tự nguyện | `/Account/ChangePassword` | SOURCE_COMPLETE_RUNTIME_PENDING | Entry point trong `UserMenu`; account shell bảo vệ bằng `[Authorize]` |
 
 Wave 1 không tạo endpoint, role, trường dữ liệu hoặc hành động giả để khớp ảnh Atlas. Ba persona hiện hành là
 `EMPLOYEE`, `MANAGER`, `DEV`; trên giao diện `DEV` được diễn giải là **Quản trị hệ thống (DEV)**.
 
-Evidence trước owner review: Release build sạch; backend `416/416`, frontend architecture/unit `159/159`, integration
-`14 pass + 6 LocalDB opt-in skip`. Isolated `AtlasWave1Tests`, `LibraryGridScrollTests`, `ShellResponsiveTests`, account
-shell/accessibility, permission toggle, vòng đời đơn và product catalog targeted đều pass. Capture 14 route/state thật
-được giữ ngoài repository tại `.tmp/atlas-wave1-final/`. QA phát hiện và sửa thêm: constructor ambiguity của
-`VPPPriceListController`/`VPPPriceController`; catalog first-load circular wait; test contract cũ của stepper/brand/persona;
-và AppHost khởi động React preview dù dự án này đang paused. Màn hình bảng giá sau sửa tải dữ liệu bình thường, không còn toast 400.
+Evidence đóng ATLAS-001 ngày 2026-07-27: Release solution build sạch; backend `422/422`, frontend
+architecture/unit `180/180`. `AtlasFullRuntimeTests` pass 28 screen × 4 viewport; representative
+Dark/Print/axe, shell responsive và 17 capture runtime pass. Export UI tải thật report CSV/XLSX và order
+PDF/XLSX. Mutation opt-in pass permission toggle, vòng đời đơn thường và duyệt/từ chối đơn bổ sung.
+Capture giữ ngoài repository tại `TestResults/atlas-w-h-final3/`; đây là evidence, chưa phải visual golden
+baseline vì owner chưa duyệt từng route.
 
 Status hợp lệ:
 
@@ -1124,33 +1125,33 @@ Status hợp lệ:
 
 | Logical route/state | Status | Notes |
 |---|---|---|
-| `permission.user` | PENDING | Activation/mapping/session |
-| `permission.component` | PENDING | Flat groups + page/component matrix |
-| User inspector | PENDING | Identity/membership/audit |
-| Reset/revoke actions | PENDING | Confirm + durable feedback |
+| `permission.user` | ISOLATED_QA_PASS | Activation/mapping/session theo backend contract |
+| `permission.component` | VERIFIED | Matrix canonical + UI mapping; mutation toggle pass |
+| User inspector | VERIFIED | Identity/membership/audit; loại secret/session stamp |
+| Reset/revoke actions | SOURCE_COMPLETE | Confirm + durable feedback; owner review còn mở |
 
 ### W7 — Reports/AI states
 
 | Logical route/state | Status | Notes |
 |---|---|---|
-| `report` overview | PENDING | Takeaway + KPI + exact table |
-| Trend/status story | PENDING | One question per visual |
-| Department/product story | PENDING | Ranked bars + drill-down |
-| Settlement reconciliation | PENDING | Variance/evidence |
-| Export/Print | PENDING | Loading/complete/limit/error/A4 |
-| AI insight states | PENDING | Disabled by default; evidence/fallback/governance |
+| `report` overview | VERIFIED | KPI + exact table theo DTO thật |
+| Trend/status story | VERIFIED | Trend `TotalAmount`; chart suy biến dùng empty state |
+| Department/product story | VERIFIED | DataGrid breakdown + top item từ response thật |
+| Settlement reconciliation | VERIFIED | Snapshot/evidence khi `SettlementId` tồn tại |
+| Export/Print | VERIFIED | CSV/XLSX download E2E + A4 print hardening |
+| AI insight states | OWNER_REVIEW | Evidence/fallback/governance giữ theo capability hiện hành |
 
 ### W8 — Global hardening
 
 | Target | Status | Notes |
 |---|---|---|
-| Light/Dark consistency | PENDING | Semantic tokens, no route override drift |
-| Print mode | PENDING | Monochrome, page-break, hide nav/actions |
-| VI/EN | PENDING | Resource strings; user data remains original |
-| Mobile/tablet | PENDING | 390/768 without desktop shrink-only pattern |
-| Accessibility | PENDING | Keyboard/focus/labels/axe |
-| Performance | PENDING | Paging/LoadData/render count |
-| Final visual regression | PENDING | Approved baselines + browser inspection |
+| Light/Dark consistency | ISOLATED_QA_PASS | Representative route gate + semantic contrast fixes |
+| Print mode | VERIFIED | Hide shell/action/toast/reconnect; flatten shadow/overflow |
+| VI/EN | SOURCE_VERIFIED | Resource contract + account language regression; user data giữ nguyên |
+| Mobile/tablet | VERIFIED | 28 screen tại 390/768, không page overflow |
+| Accessibility | VERIFIED | Focus/labels/live regions + representative axe pass |
+| Performance | REGRESSION_PASS | 112 route/viewport render không console/network failure; paging/virtualization giữ nguyên |
+| Final visual regression | EVIDENCE_CAPTURED | 17 PNG runtime sạch; chưa gọi golden baseline trước owner approval |
 
 ---
 
@@ -1207,8 +1208,11 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
-| 2026-07-27 | W-G `/report` | Báo cáo có hai export thật CSV/XLSX, toolbar filter/action thống nhất, trend theo `TotalAmount`, bảng phòng ban chỉ dùng `Code/OrderCount/TotalQuantity/TotalAmount`, và settlement evidence qua resx VI/EN. Không dựng series/cột/KPI không có trong DTO | Backend đã có CSV UTF-8 và workbook 5 sheet; DTO không trả breakdown thường/bổ sung, tên phòng ban, số mặt hàng theo phòng hay so kỳ trước. Dữ liệu kỳ đã chốt phải đọc snapshot, không tính lại để làm đẹp UI | Local M7 | W-G source hoàn tất; isolated render/overflow 3 viewport pass. Ghi retrofit Atlas cho toàn bộ field giả | M7 Reports; Atlas reports | ISOLATED_QA_PASS — frontend 171/171, backend report 7/7, UI 1/1; file-download TEST pending |
-| 2026-07-27 | W-F.2 `permission.component` | Ma trận 18 action × 3 vai trò render trực tiếp từ `CanonicalRbac` và chỉ đọc; UI mapping động hiện có nằm ở lớp thứ hai. Grid nhóm dùng DTO permission có `GroupCode`, không suy diễn security identity từ tên hiển thị. Không có nút lưu matrix | Action permissions là canonical backend authority; chỉ page/component visibility có endpoint mutation. Tên hiển thị có thể dịch, `GroupCode` mới là identity ổn định | Local M6 | W-F source hoàn tất; isolated matrix/render/overflow pass. Ghi retrofit Atlas bỏ `Lưu ma trận quyền` | M6 Permissions; Atlas permissions card | ISOLATED_QA_PASS — frontend 171/171, UI 1/1; mutation opt-in pending |
+| 2026-07-27 | W-H global hardening | Shared states có live-region/focus semantics; Radzen 11.1.4 DataGrid chỉ normalize accessibility trên vùng opt-in; chart thiếu chuỗi hợp lệ chuyển sang empty state thay vì render SVG `NaN`; print ẩn toàn bộ chrome/action/transient UI | Route-real axe phát hiện nested grid/rowgroup, chart `NaN` và focus notification chưa bền; sửa tại shared boundary giảm drift giữa route | Global M8 | Đóng W-H; thêm 28×4 runtime matrix, representative Dark/Print/axe và capture gate | State primitives, report/history chart, opted-in grids, notification center, print stylesheet | VERIFIED — 112 runtime combinations + axe/print/dark pass |
+| 2026-07-27 | Report + order export | E2E phải tải file thật và kiểm tra extension/payload, không dừng ở việc nút xuất hiện | W-G và D10 trước đó mới có render gate; browser download mới chứng minh đủ FE → authenticated API → byte stream → file | Cross-route | Thêm `ExportDownloadTests`; report CSV/XLSX và order PDF/XLSX | Report, My Orders, History/order detail export consumers | VERIFIED — 4 downloads pass on isolated fixture |
+| 2026-07-27 | Permission UI mapping | E2E/page object định danh nhóm bằng `GroupCode=DEV`, không bằng tên hiển thị đã dịch | W-F tách identity bảo mật khỏi display name; selector cũ `Quản trị hệ thống (DEV)` lỗi sau refactor đúng | Local M6 + test contract | Cập nhật page object và chạy mutation opt-in | Permission group grid, future localized security selectors | VERIFIED — hide/show report permission updates current session |
+| 2026-07-27 | W-G `/report` | Báo cáo có hai export thật CSV/XLSX, toolbar filter/action thống nhất, trend theo `TotalAmount`, bảng phòng ban chỉ dùng `Code/OrderCount/TotalQuantity/TotalAmount`, và settlement evidence qua resx VI/EN. Không dựng series/cột/KPI không có trong DTO | Backend đã có CSV UTF-8 và workbook 5 sheet; DTO không trả breakdown thường/bổ sung, tên phòng ban, số mặt hàng theo phòng hay so kỳ trước. Dữ liệu kỳ đã chốt phải đọc snapshot, không tính lại để làm đẹp UI | Local M7 | W-G source hoàn tất; isolated render/overflow 3 viewport pass. Ghi retrofit Atlas cho toàn bộ field giả | M7 Reports; Atlas reports | VERIFIED — frontend 180/180, report CSV/XLSX download E2E pass |
+| 2026-07-27 | W-F.2 `permission.component` | Ma trận 18 action × 3 vai trò render trực tiếp từ `CanonicalRbac` và chỉ đọc; UI mapping động hiện có nằm ở lớp thứ hai. Grid nhóm dùng DTO permission có `GroupCode`, không suy diễn security identity từ tên hiển thị. Không có nút lưu matrix | Action permissions là canonical backend authority; chỉ page/component visibility có endpoint mutation. Tên hiển thị có thể dịch, `GroupCode` mới là identity ổn định | Local M6 | W-F source hoàn tất; isolated matrix/render/overflow pass. Ghi retrofit Atlas bỏ `Lưu ma trận quyền` | M6 Permissions; Atlas permissions card | VERIFIED — frontend 180/180, mutation hide/show permission pass |
 | 2026-07-27 | W-F.1 `permission.user` | Đồng bộ màn Người dùng theo Atlas ở lớp copy/filter nhưng giữ vòng đời tài khoản thật của backend: search `UserName/FullName/Email`, filter `accountStatus`, ba trạng thái canonical, activation/reset/deactivate có audit. `SessionVersion` được coi là security-stamp equivalent nên bị loại khỏi inspector; `RowVersion` vẫn hiển thị ở tab Kỹ thuật | Backend đã có contract lọc và action thật; Atlas không được mở admin-create/edit khi API không tồn tại, và secret/session invalidation evidence không được lộ qua reflection inspector | Local + shared inspector safety | W-F.1 hoàn tất source; isolated route render/overflow pass. Thêm resx VI/EN và architecture regression | M6 Users; mọi DTO tương lai đi qua `Component_RecordInspector` | ISOLATED_QA_PASS — frontend 171/171, UI 1/1; mutation/owner review pending |
 | 2026-07-26 | ATLAS-001 — kế hoạch triển khai toàn bộ Atlas | Mở kế hoạch `docs/execution/ATLAS-001.md`: đối chiếu đủ 28 màn Atlas với route Blazor, phân loại gap A/B/C/D và chia 8 wave W-A…W-H. Thứ tự thẩm quyền chốt là luận văn → Atlas → backend/API → frontend hiện tại. Atlas mới hơn frontend nên Blazor phải kéo lên theo Atlas, nhưng Atlas không được vẽ trường/hành động không có thật trong DTO | Owner yêu cầu một kế hoạch đầy đủ trước khi thực thi, và cần Atlas với frontend đồng bộ mà không phải khớp từng pixel | Global | Thêm execution doc; route ledger cập nhật sau mỗi wave | Toàn bộ 28 màn | PLANNED |
 | 2026-07-26 | Canonical RBAC | **D1** — giữ ba vai trò `EMPLOYEE / MANAGER / DEV`. Quyết định bốn vai trò ngày 2026-07-24 chuyển sang Superseded | Luận văn §3.3.4.4 và `gtas_vpp_shared/Constants/CanonicalRbac.cs` đều là ba vai trò; bản bốn vai trò chưa từng được code | Global | Không đụng backend authorization | Permission page, Atlas, sidebar/header role badge | OWNER_CONFIRMED |
@@ -1218,7 +1222,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-26 | Design Atlas source | **D5** — đưa Atlas vào repository tại `docs/design/atlas/` dưới dạng design reference đóng băng, read-only. Không commit `output/` | Bản gốc nằm trong cache Codex và có thể bị dọn bất cứ lúc nào, kéo theo mất nguồn của 16 hình luận văn | Global | W-A | `AGENTS.md`, `.gitignore`, `LVTN/tooling/capture_atlas_thesis_screens.cjs` | Implemented |
 | 2026-07-26 | Quy ước đọc-hiểu code | **D6** — code/tên biến/tên hàm tiếng Anh 100%; thêm `docs/CODE-READING-GUIDE.md` tiếng Việt và comment tiếng Việt ngắn tại điểm luật nghiệp vụ khó đoán, kèm số mục luận văn | Owner vibe-coding nhưng phải đọc hiểu và trình bày code khi bảo vệ | Global | Cập nhật cùng lần với mỗi wave | Toàn bộ source mới | IN_IMPLEMENTATION |
 | 2026-07-26 | `GET /api/VPPRequest/period-demand` | **D7** — bổ sung một endpoint chỉ đọc trả `AggregatedVppResDTO`, gom theo mặt hàng từ phiên bản đơn hợp lệ hiện hành của kỳ, policy `Permissions.PeriodSettle` | DTO `AggregatedVppResDTO` đã tồn tại nhưng mồ côi, không service nào trả về. Luận văn §3.3.3.4 đã mô tả bước gom nhu cầu nên đây là hiện thực hóa, không phải nghiệp vụ mới | Global | W-D | `VPPRequestController`, period operations | OWNER_CONFIRMED — chờ W-D |
-| 2026-07-26 | Xuất theo đơn (My Orders / order detail) | **D10** — owner duyệt làm thật tính năng xuất PDF + Excel theo đơn, thay cho phương án gỡ nút của W-A.7. Backend thêm endpoint export cấp đơn; XLSX theo pattern `ReportWorkbookBuilder` (ZipArchive + SpreadsheetML, không thêm dependency); PDF cần quyết định riêng về thư viện vì tiếng Việt đòi font embedding. Atlas khôi phục nút export và gỡ guard ngược trong `render-atlas.cjs` sau khi backend có endpoint | Owner trả lời "Xuất PDF + Xuất Excel làm luôn đi nha" sau khi được báo nút không có backend | Global | Task W-C.0 trong ATLAS-001 | `VPPRequestController`, My Orders, order detail sheet, Atlas M2 | OWNER_CONFIRMED — IN_IMPLEMENTATION |
+| 2026-07-26 | Xuất theo đơn (My Orders / order detail) | **D10** — owner duyệt làm thật tính năng xuất PDF + Excel theo đơn, thay cho phương án gỡ nút của W-A.7. Backend thêm endpoint export cấp đơn; XLSX theo pattern `ReportWorkbookBuilder` (ZipArchive + SpreadsheetML, không thêm dependency); PDF dùng QuestPDF + Poppins embedded để giữ tiếng Việt trên Linux. Atlas khôi phục nút export | Owner trả lời "Xuất PDF + Xuất Excel làm luôn đi nha" sau khi được báo nút không có backend | Global | Task W-C.0 trong ATLAS-001 | `VPPRequestController`, My Orders, order detail sheet, Atlas M2 | VERIFIED — PDF/XLSX download E2E pass |
 | 2026-07-26 | Luận văn | **D9** — ATLAS-001 không sửa bất kỳ file `.docx` nào. Bản mới nhất là `checkpoints/NguyenAnNam_DH52201078_final_v4_standard.docx`; `_working.docx` đã cũ, không dùng làm nguồn | Owner tạm hoãn phạm vi luận văn | Global | W-H bỏ mục sửa câu chữ; chỉ xuất ảnh runtime ra thư mục | Sai lệch §3.3.5.1 ghi ở mục 11 của ATLAS-001 | OWNER_CONFIRMED |
 | 2026-07-24 | Four-role permission model | Giữ bốn persona: `EMPLOYEE / Nhân viên`, `DEPARTMENT_APPROVER / Quản lý phòng ban`, `PROCUREMENT_ADMIN / Chuyên viên quản lý văn phòng phẩm`, `SYSTEM_ADMIN / Quản trị hệ thống`. Không gộp hai vai trò quản lý nghiệp vụ: phòng ban chỉ xem toàn bộ đơn và báo cáo trong phạm vi phòng; chuyên viên văn phòng phẩm xem toàn công ty, phê duyệt/từ chối đơn bổ sung, tổng hợp yêu cầu, quản lý catalog/đơn vị/nhà cung cấp/bảng giá, chọn nguồn cung và chốt kỳ. Quản trị hệ thống có full action/UI chỉ trong Development/TEST/isolated QA; `DEV` là tên gọi nội bộ, không phải role thứ năm hoặc copy hiển thị | Owner xem lại separation of duties và chốt thuật ngữ thân thiện theo nghiệp vụ thực tế | Canonical RBAC, seed/environment guard, permission UI, Atlas, thesis use cases and all role annotations | Giữ một active membership/user; backend authorization kiểm tra từng action, không username bypass. Reconcile change-set ba-role đang làm dở trước khi tiếp tục code để không mất membership hoặc mở quyền ngoài ý muốn | Backend auth/seed/tests, Permission page, sidebar/header role badge, Atlas 28 screens, thesis | **Superseded 2026-07-26 bởi D1 trong `docs/execution/ATLAS-001.md`** — chưa từng được code; luận văn §3.3.4.4 và `CanonicalRbac.cs` đều dùng ba vai trò `EMPLOYEE / MANAGER / DEV` |
 | 2026-07-24 | M2 employee vertical slice implementation | Bắt đầu triển khai bốn màn Blazor/Radzen đã có mockup Atlas: `Đơn hàng của tôi`, `Tạo/sửa đơn`, `Lịch sử đơn`, `Danh mục mặt hàng`. Copy tiếng Việt phải theo ngữ cảnh của nhân viên thường, không hiển thị persona/debug text. My Orders và chi tiết History dùng chung order-detail motif; danh mục chỉ để tra cứu nên không có giá/nhà cung cấp hoặc action thêm vào đơn; tạo đơn là focused workflow hai bước, có ghi chú đơn và ghi chú từng mặt hàng, không hiển thị đơn giá cho nhân viên. Chức năng roadmap chưa có backend vẫn là control bấm được nhưng chỉ phát notification trung thực bằng hệ thống toast hiện có | Owner cho phép code trước dù Atlas còn có thể tiếp tục chỉnh và muốn một vertical slice thật để duyệt trên route Blazor | M2 employee pages + shared order/table/filter/notification primitives | Giữ backend capability `CanEdit/CanCancel` làm authority; data lookup dài dùng server filter + scroll/virtualization, danh sách lịch sử/danh mục xem dữ liệu dùng server paging; mọi placeholder action phải thông báo “chưa khả dụng”, không giả lập kết quả | My Orders, Order Create/Edit, History, Product Catalog; later reports/export consumers | IN_IMPLEMENTATION |
@@ -1414,8 +1418,10 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | P0 | Raw `OperationInvalid` toast | Error/notification pipeline và caller | Bắt buộc mapper + localized safe message; raw code chỉ log | Verified |
 | P1 | Account shell drift | Login/Register/Forgot/Reset/Confirm/Change/Logout | Dùng chung brand, typography, link/button/menu tokens; giữ recovery compact | Verified |
 | P1 | Notification payload localization | Notification producer + DTO/persistence + presentation mapper | Lưu translation key/arguments hoặc bilingual payload; không dịch chuỗi English đã ghép cứng ở UI | Proposed |
-| P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Dashboard implemented; History/Period pending |
-| P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Proposed |
+| P1 | Repeated/oversized empty panels | Dashboard/History/Period | Contextual state component, one primary CTA, compact previous-period behavior | Verified — shared state + route retrofit complete |
+| P1 | Overloaded management grid | `Component_ShareGrid` + Library tabs | Route-specific column profiles, picker/filter drawer, server paging, detail on demand | Verified in ATLAS-001 scope — inspector/action split complete |
+| P0 | Radzen DataGrid nested accessibility roles | Opted-in order/library/report grids + `vpp-interactions.js` | Normalize wrapper/table roles, focusable scroll region and invalid generated aria values without changing unaudited grids | Verified |
+| P0 | Degenerate chart data | Report + History charts | Không render series/donut khi thiếu điểm hoặc mọi giá trị bằng 0; dùng localized empty state | Verified |
 
 Retrofit không mặc định làm ngay giữa route hiện tại nếu không ảnh hưởng correctness/accessibility. Agent phải ghi queue và đề xuất thời điểm xử lý để tránh scope explosion.
 

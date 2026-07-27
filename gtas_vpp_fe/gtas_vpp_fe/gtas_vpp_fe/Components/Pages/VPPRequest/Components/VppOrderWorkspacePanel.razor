@@ -163,8 +163,10 @@
     }
 
     <div class="vpp-order-view-grid-frame">
-        <RadzenDataGrid TItem="VppRequestDetailResDTO"
-                        @ref="_itemsGrid"
+                <RadzenDataGrid TItem="VppRequestDetailResDTO"
+                                data-vpp-grid-region="true"
+                                aria-label="@PanelLabel"
+                                @ref="_itemsGrid"
                         Data="@FilteredItems"
                         AllowPaging="false"
                         AllowVirtualization="true"

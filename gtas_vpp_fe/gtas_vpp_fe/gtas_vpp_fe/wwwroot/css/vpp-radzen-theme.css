@@ -152,6 +152,18 @@
     --rz-form-field-label-font-size: var(--vpp-text-xs);
 }
 
+.rz-theme-dark .rz-form-field.rz-variant-outlined .rz-form-field-label {
+    color: var(--vpp-text-primary) !important;
+    background-color: var(--vpp-bg-surface) !important;
+}
+
+.rz-theme-dark .rz-dropdown-label.rz-placeholder,
+.rz-theme-dark input::placeholder,
+.rz-theme-dark textarea::placeholder {
+    color: var(--vpp-text-secondary) !important;
+    opacity: 1;
+}
+
 /* ── Sidebar / Navigation ─────────────────────────────────────── */
 .rz-theme-dark {
     --rz-sidebar-background-color: var(--vpp-bg-surface);

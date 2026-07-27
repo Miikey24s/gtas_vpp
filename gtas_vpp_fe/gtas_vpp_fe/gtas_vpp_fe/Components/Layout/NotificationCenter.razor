@@ -6,6 +6,7 @@
 
 <div class="vpp-header-notifications" @onkeydown="HandleKeyDown">
     <button type="button"
+            @ref="_trigger"
             class="@(MenuMode ? "vpp-header-notification-button user-dropdown-action" : "vpp-header-notification-button")"
             title="@Loc["Notifications"]"
             aria-label="@GetBellAriaLabel()"
@@ -28,10 +29,12 @@
     {
         <div class="vpp-notification-backdrop" aria-hidden="true" @onclick="Close"></div>
         <section id="vpp-notification-panel"
+                 @ref="_panel"
                  class="vpp-notification-panel"
                  role="dialog"
                  aria-modal="false"
-                 aria-label="@Loc["Notifications"]">
+                 aria-label="@Loc["Notifications"]"
+                 tabindex="-1">
             <header class="vpp-notification-panel-header">
                 <div>
                     <strong>@Loc["NotificationInbox"]</strong>
@@ -56,7 +59,13 @@
                 }
                 else if (Inbox.IsLoading && Inbox.Items.Count == 0)
                 {
-                    <div class="vpp-notification-empty">@Loc["Loading"]</div>
+                    <div class="vpp-notification-empty vpp-notification-empty--loading"
+                         role="status"
+                         aria-live="polite"
+                         aria-busy="true">
+                        <span class="vpp-notification-spinner" aria-hidden="true"></span>
+                        <strong>@Loc["Loading"]</strong>
+                    </div>
                 }
                 else if (Inbox.Items.Count == 0)
                 {
@@ -118,6 +127,8 @@
 
     private bool _isOpen;
     private bool _actionFailed;
+    private ElementReference _trigger;
+    private ElementReference _panel;
 
     protected override void OnInitialized()
     {
@@ -130,17 +141,24 @@
         if (_isOpen)
         {
             _actionFailed = false;
+            await InvokeAsync(StateHasChanged);
+            await _panel.FocusAsync();
             await Inbox.RefreshAsync();
         }
     }
 
-    private void Close() => _isOpen = false;
+    private async Task Close()
+    {
+        _isOpen = false;
+        await InvokeAsync(StateHasChanged);
+        await _trigger.FocusAsync();
+    }
 
     private void HandleKeyDown(KeyboardEventArgs args)
     {
         if (_isOpen && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
         {
-            Close();
+            _ = Close();
         }
     }
 
@@ -181,7 +199,7 @@
         {
             Logger.LogWarning(ex, "Could not mark notification {NotificationId} as read.", item.Id);
         }
-        _isOpen = false;
+        await Close();
 
         if (!string.IsNullOrWhiteSpace(item.Route) && item.Route.StartsWith('/'))
         {

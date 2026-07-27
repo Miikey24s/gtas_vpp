@@ -1,6 +1,6 @@
 # ATLAS-001 — Triển khai toàn bộ Design Atlas sang frontend Blazor
 
-- Status: IN_PROGRESS — owner đã yêu cầu triển khai toàn bộ, gồm cả refactor liên quan (2026-07-27)
+- Status: COMPLETE — toàn bộ W-A…W-H và refactor R-2 trong phạm vi đã triển khai, kiểm thử và đóng evidence (2026-07-27)
 - Priority: P1
 - Branch: `codex/atlas-blazor-wave1` (tiếp tục, không merge/deploy)
 - Lập kế hoạch: 2026-07-26 (Asia/Ho_Chi_Minh)
@@ -239,6 +239,8 @@ quyết từng mục):
 | D24 | Owner duyệt thực thi toàn bộ ATLAS-001, gồm refactor liên quan; chẻ `Tab_AdminApproval` theo cùng pattern coordinator/presentation của C-7 | Giảm host 419 dòng xuống dưới 100 dòng; hai workspace con nhận dữ liệu/callback rõ ràng, không đổi API/DTO/nghiệp vụ |
 | D25 | Bảng "Đối chiếu giá theo nhu cầu" join `GET /api/vppprice/item-prices` theo `PrimarySupplierId` + `PrimaryPriceListId`; ngoại lệ hợp lệ dùng `SettlementExceptionResDTO.NetUnitPrice` | Persona MANAGER đã có `LibraryView`; hiển thị được đơn giá thật cho mọi dòng mà không mở rộng DTO/schema hoặc suy diễn số liệu |
 | D26 | Owner duyệt full plan nên retrofit ngược Atlas được thực thi; state nội bộ không tăng manifest quá 28 màn | Atlas bỏ dữ liệu/hành động giả theo DTO/backend thật; order-create/my-orders/history variants nằm trong archetype hiện có; renderer cập nhật từ drawer CRUD giả sang inline/inspector contract |
+| D27 | Compatibility accessibility cho Radzen 11.1.4 chỉ áp dụng trên DataGrid opt-in bằng `data-vpp-grid-region` | Sửa role/rowgroup/keyboard semantics ở DOM thật mà không thay đổi mọi DataGrid ngoài phạm vi đã audit; MutationObserver chỉ chuẩn hóa node Radzen sinh động |
+| D28 | Chart không render khi dữ liệu suy biến: trend cần ít nhất 2 điểm, smooth cần 3 điểm, donut chỉ nhận giá trị dương | Tránh SVG `NaN`, giữ empty state có nghĩa và không bịa thêm dữ liệu chỉ để biểu đồ xuất hiện |
 
 [OWNER-GATE còn treo] (không chặn W-D, chỉ chặn phần hiển thị tương ứng): hiển thị "còn x/3"
 quota bổ sung cho người duyệt cần mở rộng DTO hàng chờ — ngoài phạm vi D7. Đơn giá per-item đã chốt
@@ -386,6 +388,24 @@ tải file và chưa có cả fixture kỳ live lẫn kỳ đã chốt; owner re
    là việc mà `LVTN/generated/missing-ui-screens.md` đang treo: hiện luận văn ghi rõ các hình là *thiết
    kế giao diện*, chưa phải bằng chứng kiểm thử.
 4. Sửa câu chữ §3.3.5.1 theo D3.
+
+**W-H hoàn thành 2026-07-27:**
+
+1. Sáu trạng thái dùng chung đã được rà soát trên route thật: notification inbox, reconnect, denied,
+   error, empty và loading. `VppStatePanel`/`VppEmptyState` có landmark, `aria-live`, `aria-busy` và
+   accessible name đúng ngữ cảnh; `NotificationCenter` quản lý focus khi mở/đóng và trả focus về trigger.
+2. Dark/Print/mobile được harden ở shared CSS. Print ẩn shell/action/toast/reconnect, bỏ shadow/overflow;
+   dark mode sửa contrast form/placeholder và period flow. `AtlasFullRuntimeTests` pass đủ 28 logical
+   screen tại `390×844`, `768×1024`, `1366×768`, `1920×1080` (112 tổ hợp), không console error,
+   network failure ngoài SignalR navigation abort đã allow-list, hoặc page overflow.
+3. Axe + Dark + Print representative gate pass; chart history/report không còn sinh SVG path `NaN` khi
+   fixture thiếu chuỗi thời gian. Shell responsive/capture gate pass bốn viewport.
+4. Đã chụp đủ 16 hình runtime theo ledger và thêm `period-demand` làm evidence thứ 17 tại
+   `TestResults/atlas-w-h-final3/`. Ảnh được lấy từ Aspire/LocalDB cô lập, không còn trang trắng,
+   skeleton hoặc toast che nội dung; không chèn vào Word theo D9.
+5. Regression cuối: Release solution build sạch; backend `422/422`, frontend `180/180`; export UI tải
+   thật report CSV/XLSX và order PDF/XLSX; mutation opt-in pass cho permission toggle, vòng đời đơn
+   thường và duyệt/từ chối đơn bổ sung.
 
 ---
 

@@ -18,28 +18,31 @@
         }
     </header>
     <div class="vpp-history-chart" role="img" aria-label="@ChartAccessibleLabel">
-        <RadzenChart SeriesClick="@SeriesClicked"
-                     Animate="true"
-                     AnimationDuration="220"
-                     Style="height: 100%; width: 100%;">
-            <RadzenStackedColumnSeries Data="@Summary.Periods"
-                                      CategoryProperty="Period"
-                                      ValueProperty="RegularQuantity"
-                                      Title="@Loc["Regular"]"
-                                      Visible="@ShowRegularSeries"
-                                      Fill="var(--vpp-primary-500)" />
-            <RadzenStackedColumnSeries Data="@Summary.Periods"
-                                      CategoryProperty="Period"
-                                      ValueProperty="AdditionalQuantity"
-                                      Title="@Loc["AdditionalOrder"]"
-                                      Visible="@ShowAdditionalSeries"
-                                      Fill="var(--vpp-warning)" />
-            <RadzenCategoryAxis />
-            <RadzenValueAxis Formatter="@(value => ((double)value).ToString("N0", CultureInfo.CurrentCulture))" />
-            <RadzenLegend Visible="false" />
-            <RadzenChartTooltipOptions Visible="true" />
-        </RadzenChart>
-        @if (Summary.Periods.Count == 0)
+        @if (Summary.Periods.Count > 0 && (ShowRegularSeries || ShowAdditionalSeries))
+        {
+            <RadzenChart SeriesClick="@SeriesClicked"
+                         Animate="true"
+                         AnimationDuration="220"
+                         Style="height: 100%; width: 100%;">
+                <RadzenStackedColumnSeries Data="@Summary.Periods"
+                                          CategoryProperty="Period"
+                                          ValueProperty="RegularQuantity"
+                                          Title="@Loc["Regular"]"
+                                          Visible="@ShowRegularSeries"
+                                          Fill="var(--vpp-primary-500)" />
+                <RadzenStackedColumnSeries Data="@Summary.Periods"
+                                          CategoryProperty="Period"
+                                          ValueProperty="AdditionalQuantity"
+                                          Title="@Loc["AdditionalOrder"]"
+                                          Visible="@ShowAdditionalSeries"
+                                          Fill="var(--vpp-warning)" />
+                <RadzenCategoryAxis />
+                <RadzenValueAxis Formatter="@(value => ((double)value).ToString("N0", CultureInfo.CurrentCulture))" />
+                <RadzenLegend Visible="false" />
+                <RadzenChartTooltipOptions Visible="true" />
+            </RadzenChart>
+        }
+        else if (Summary.Periods.Count == 0)
         {
             <div class="vpp-history-chart-empty" aria-hidden="true">@Loc["HistoryChartNoData"]</div>
         }

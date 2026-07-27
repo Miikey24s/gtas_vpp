@@ -10,7 +10,10 @@
     <div class="vpp-data-card">
         <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
             <RadzenFormField Text="@Loc["TargetPeriod"]" Style="width: 150px">
-                <RadzenTextBox Value="@($"{selectedMonth:D2}/{selectedYear}")" ReadOnly="true" Style="width:100%" />
+                <RadzenTextBox Value="@($"{selectedMonth:D2}/{selectedYear}")"
+                               ReadOnly="true"
+                               aria-label="@Loc["TargetPeriod"]"
+                               Style="width:100%" />
             </RadzenFormField>
             <RadzenFormField Text="@Loc["SupplyPrimarySupplier"]" Style="width: 260px">
                 <RadzenDropDown TValue="Guid?"

@@ -54,6 +54,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         // và ô tìm kiếm với placeholder ngữ cảnh; SearchFields là các property string
         // được OR trong biểu thức Dynamic LINQ gửi qua tham số filter sẵn có.
         [Parameter] public string? CreateLabel { get; set; }
+        [Parameter] public string GridAriaLabel { get; set; } = string.Empty;
         [Parameter] public string? SearchPlaceholder { get; set; }
         [Parameter] public string[] SearchFields { get; set; } = [];
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = default!;

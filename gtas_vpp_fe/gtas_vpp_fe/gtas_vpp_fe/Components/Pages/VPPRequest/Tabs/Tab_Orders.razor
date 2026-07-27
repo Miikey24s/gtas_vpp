@@ -75,12 +75,11 @@
                     </div>
                 </header>
 
-                <div class="vpp-orders-summary-grid" role="radiogroup" aria-label="@Loc["OrderCycleSummary"]">
+                <div class="vpp-orders-summary-grid" role="group" aria-label="@Loc["OrderCycleSummary"]">
                     <article class="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "is-selected" : string.Empty)">
                         <button type="button"
-                                role="radio"
                                 @onclick="() => SelectOrderViewAsync(CurrentOrderViewIndex)"
-                                aria-checked="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "true" : "false")">
+                                aria-pressed="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "true" : "false")">
                             <span class="vpp-orders-summary-label">
                                 <span>@Loc["CurrentRegularOrder"]</span>
                                 <span class="vpp-orders-summary-count">@CurrentRegularLineCount</span>
@@ -91,9 +90,8 @@
                     </article>
                     <article class="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "is-selected" : string.Empty)">
                         <button type="button"
-                                role="radio"
                                 @onclick="() => SelectOrderViewAsync(SupplementOrderViewIndex)"
-                                aria-checked="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "true" : "false")">
+                                aria-pressed="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "true" : "false")">
                             <span class="vpp-orders-summary-label">
                                 <span>@Loc["AdditionalOrders"]</span>
                                 <span class="vpp-orders-summary-count">@SelectedSupplementLineCount</span>
@@ -104,9 +102,8 @@
                     </article>
                     <article class="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "is-selected" : string.Empty)">
                         <button type="button"
-                                role="radio"
                                 @onclick="() => SelectOrderViewAsync(PreviousOrderViewIndex)"
-                                aria-checked="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "true" : "false")">
+                                aria-pressed="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "true" : "false")">
                             <span class="vpp-orders-summary-label">
                                 <span>@Loc["PreviousOrderPeriod"] · @PreviousOrderPeriodText</span>
                                 <span class="vpp-orders-summary-count">@PreviousOrderLineCount</span>

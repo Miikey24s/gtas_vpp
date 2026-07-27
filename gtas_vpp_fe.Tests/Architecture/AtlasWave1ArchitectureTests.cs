@@ -116,6 +116,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("ExportXlsxAsync", report, StringComparison.Ordinal);
         Assert.Contains("ClearReportFiltersAsync", report, StringComparison.Ordinal);
         Assert.Contains("ValueProperty=\"TotalAmount\"", report, StringComparison.Ordinal);
+        Assert.Contains("Smooth=\"@CanSmoothPeriodTrend\"", report, StringComparison.Ordinal);
+        Assert.Contains("HasPeriodTrend", reportCode, StringComparison.Ordinal);
+        Assert.Contains("HasStatusChartData", reportCode, StringComparison.Ordinal);
+        Assert.Contains(".Where(item => item.OrderCount > 0)", reportCode, StringComparison.Ordinal);
         Assert.Contains("RadzenDataGrid TItem=\"ReportDepartmentPointResDTO\"", report, StringComparison.Ordinal);
         Assert.Contains("FilteredDepartmentBreakdown", reportCode, StringComparison.Ordinal);
         Assert.Contains("ExportAsync(\"export\", \"ReportExportedCsv\")", reportCode, StringComparison.Ordinal);

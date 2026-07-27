@@ -72,6 +72,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                  {
                      new ViewportSize { Width = 390, Height = 844 },
                      new ViewportSize { Width = 768, Height = 1024 },
+                     new ViewportSize { Width = 1366, Height = 768 },
                      new ViewportSize { Width = 1920, Height = 1080 }
                  })
         {
@@ -168,26 +169,31 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
     {
         await Page.SetViewportSizeAsync(1920, 1080);
 
-        await CaptureRouteAsync(directory, "ui-users.png", "permission?tab=0");
-        await CaptureRouteAsync(directory, "ui-permission-groups.png", "permission?tab=1");
-        await CaptureRouteAsync(directory, "ui-report.png", "report");
+        await CaptureRouteAsync(directory, "ui-users.png", "permission?tab=0", ".vpp-atlas-user-workspace");
+        await CaptureRouteAsync(directory, "ui-permission-groups.png", "permission?tab=1", ".vpp-permission-matrix");
+        await CaptureRouteAsync(directory, "ui-report.png", "report", ".vpp-report-page");
 
         await SwitchUserAsync(TestAccounts.Procurement);
-        await CaptureRouteAsync(directory, "ui-period-operations.png", "dashboard?tab=5&periodTab=review");
-        await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending");
-        await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department");
-        await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand");
-        await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2");
-        await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists");
+        await CaptureRouteAsync(directory, "ui-period-review.png", "dashboard?tab=5&periodTab=review", "#period-review-title");
+        await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending", ".vpp-section");
+        await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department", ".vpp-atlas-order-workspace");
+        await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand", ".vpp-demand-view-toggle");
+        await CaptureRouteAsync(directory, "ui-supply-allocation.png", "dashboard?tab=5&periodTab=supply", ".vpp-supply-pricelist-lock");
+        await CaptureRouteAsync(directory, "ui-settlement-flow.png", "dashboard?tab=5&periodTab=review", "#period-settlement-title");
+        await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2", ".vpp-atlas-admin-workspace");
+        await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists", ".vpp-price-list-workspace");
 
         await SwitchUserAsync(TestAccounts.Employee);
-        await CaptureRouteAsync(directory, "ui-dashboard-my-orders.png", "dashboard?tab=0");
-        await CaptureRouteAsync(directory, "ui-order-create.png", "dashboard/order-create");
-        await CaptureRouteAsync(directory, "ui-order-history.png", "dashboard?tab=1");
-        await CaptureRouteAsync(directory, "ui-product-catalog.png", "dashboard?tab=2");
+        await CaptureRouteAsync(directory, "ui-dashboard-my-orders.png", "dashboard?tab=0", ".vpp-orders-workspace");
+        await CaptureRouteAsync(directory, "ui-order-create.png", "dashboard/order-create", ".vpp-order-create-page");
+        await CaptureRouteAsync(directory, "ui-order-history.png", "dashboard?tab=1", ".vpp-history-page");
+        await CaptureRouteAsync(directory, "ui-product-catalog.png", "dashboard?tab=2", ".vpp-catalog-workspace");
+
+        await SwitchUserAsync(TestAccounts.SystemAdmin);
+        await CaptureSystemStatesAsync(directory);
     }
 
-    private async Task CaptureRouteAsync(string directory, string fileName, string route)
+    private async Task CaptureRouteAsync(string directory, string fileName, string route, string? focusSelector = null)
     {
         await Page.GotoAsync($"{BaseUrl}{route}", new PageGotoOptions
         {
@@ -197,17 +203,44 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         {
             State = WaitForSelectorState.Visible
         });
+        await Page.Locator(".vpp-sidebar[data-shell-ready='true']").WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Attached
+        });
+        if (!string.IsNullOrWhiteSpace(focusSelector))
+        {
+            var focusTarget = Page.Locator(focusSelector).First;
+            await focusTarget.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+            await focusTarget.ScrollIntoViewIfNeededAsync();
+        }
         if (string.Equals(fileName, "ui-price-lists.png", StringComparison.Ordinal))
         {
             // The empty QA price-book state can briefly show a transient toast
             // while the LocalDB fixture finishes its read-only refresh; return as
             // soon as every Radzen notification has dismissed instead of a fixed sleep.
             await Page.WaitForFunctionAsync(
-                "() => [...document.querySelectorAll('.rz-notification-item, .rz-notification')].every(el => el.getClientRects().length === 0)",
+                "() => [...document.querySelectorAll('.rz-notification-item')].every(el => el.getClientRects().length === 0)",
                 null,
                 new PageWaitForFunctionOptions { Timeout = 20_000 });
         }
         await CaptureScreenshotAsync(directory, fileName);
+    }
+
+    private async Task CaptureSystemStatesAsync(string directory)
+    {
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.Locator("#main-content").WaitForAsync();
+        await Page.Locator(".user-menu-trigger").First.ClickAsync();
+        var notificationButton = Page.Locator("#user-menu-dropdown .vpp-header-notification-button");
+        await notificationButton.ClickAsync();
+        await Page.Locator("#vpp-notification-panel").WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible
+        });
+        await CaptureScreenshotAsync(directory, "ui-system-states.png");
     }
 
     private async Task CaptureScreenshotAsync(string directory, string fileName)
@@ -215,19 +248,19 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         var loader = Page.Locator(".vpp-global-loader");
         if (await loader.CountAsync() > 0)
         {
-            try
+            await loader.WaitForAsync(new LocatorWaitForOptions
             {
-                await loader.WaitForAsync(new LocatorWaitForOptions
-                {
-                    State = WaitForSelectorState.Hidden,
-                    Timeout = 30_000
-                });
-            }
-            catch (TimeoutException)
-            {
-                // The screenshot remains useful even if a background refresh keeps the shared loader alive.
-            }
+                State = WaitForSelectorState.Hidden,
+                Timeout = 60_000
+            });
         }
+
+        await Page.WaitForFunctionAsync(
+            "() => [...document.querySelectorAll('.vpp-skeleton-page')].every(element => element.getClientRects().length === 0)",
+            null,
+            new PageWaitForFunctionOptions { Timeout = 60_000 });
+        await Page.WaitForFunctionAsync(
+            "() => !document.documentElement.classList.contains('vpp-page-entering')");
 
         // Let the post-loader render flush and web fonts finish before capturing pixels.
         await WaitForRenderSettleAsync();

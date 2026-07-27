@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.UITests.Tests.Permission
 {
     public class PermissionToggleTests : TestBase, IMutatingUiTest
     {
-        private const string AdminGroupName = "Quản trị hệ thống (DEV)";
+        private const string AdminGroupCode = "DEV";
         private const string ReportPageTab = "Report (REPORT)";
         private const string ReportViewComponentCode = "REPORT_VIEW";
 
@@ -23,7 +23,7 @@ namespace gtas_vpp_fe.UITests.Tests.Permission
             await permissionPage.GotoAsync(BaseUrl);
 
             await permissionPage.SetComponentVisibilityAsync(
-                AdminGroupName,
+                AdminGroupCode,
                 ReportPageTab,
                 ReportViewComponentCode,
                 true);
@@ -32,7 +32,7 @@ namespace gtas_vpp_fe.UITests.Tests.Permission
             try
             {
                 await permissionPage.SetComponentVisibilityAsync(
-                    AdminGroupName,
+                    AdminGroupCode,
                     ReportPageTab,
                     ReportViewComponentCode,
                     false);
@@ -49,7 +49,7 @@ namespace gtas_vpp_fe.UITests.Tests.Permission
             {
                 await permissionPage.GotoAsync(BaseUrl);
                 await permissionPage.SetComponentVisibilityAsync(
-                    AdminGroupName,
+                    AdminGroupCode,
                     ReportPageTab,
                     ReportViewComponentCode,
                     true);

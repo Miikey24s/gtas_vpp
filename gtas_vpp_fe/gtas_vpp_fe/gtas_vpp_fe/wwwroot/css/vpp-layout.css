@@ -931,6 +931,25 @@ leftsidebar {
     color: var(--vpp-warning);
 }
 
+.vpp-notification-spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid color-mix(in srgb, var(--vpp-primary) 24%, transparent);
+    border-top-color: var(--vpp-primary);
+    border-radius: 50%;
+    animation: vpp-notification-spin 800ms linear infinite;
+}
+
+@keyframes vpp-notification-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-notification-spinner {
+        animation-duration: 1.6s;
+    }
+}
+
 .vpp-notification-inline-status {
     display: flex;
     align-items: center;
@@ -1801,8 +1820,8 @@ leftsidebar {
     padding: 0.7rem 0.9rem;
     border: 0;
     border-inline-end: 1px solid var(--vpp-border-default);
-    background: transparent;
-    color: var(--vpp-text-secondary);
+    background: var(--vpp-bg-surface);
+    color: var(--vpp-text-primary);
     font: inherit;
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-medium);
@@ -1842,12 +1861,17 @@ leftsidebar {
 }
 
 .vpp-period-flow .is-active {
-    background: color-mix(in srgb, var(--vpp-primary-500) 8%, transparent);
+    background: var(--vpp-primary-900);
+    color: var(--vpp-primary-200);
+}
+
+:root:not(.rz-theme-dark) .vpp-period-flow .is-active {
+    background: color-mix(in srgb, var(--vpp-primary-500) 8%, var(--vpp-bg-surface));
     color: var(--vpp-primary-700);
 }
 
 .vpp-period-flow .is-active b {
-    background: var(--vpp-primary-600);
+    background: var(--vpp-primary-700);
     color: #fff;
 }
 

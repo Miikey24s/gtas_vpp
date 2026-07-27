@@ -1329,6 +1329,11 @@
     font-weight: var(--vpp-font-weight-semibold);
 }
 
+.rz-theme-dark .vpp-record-inspector-badge {
+    background: color-mix(in srgb, var(--vpp-primary-400) 18%, transparent);
+    color: var(--vpp-primary-100);
+}
+
 .vpp-permission-matrix-scroll {
     max-height: 32rem;
     overflow: auto;

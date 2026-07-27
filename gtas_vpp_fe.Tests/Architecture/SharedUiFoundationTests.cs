@@ -520,9 +520,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ExcelExportText", codeBehind, StringComparison.Ordinal);
         Assert.Equal(3, source.Split("<VppOrderWorkspacePanel", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("<RadzenTabs", source, StringComparison.Ordinal);
-        Assert.Contains("role=\"radiogroup\"", source, StringComparison.Ordinal);
-        Assert.Equal(3, source.Split("role=\"radio\"", StringSplitOptions.None).Length - 1);
-        Assert.Contains("aria-checked", source, StringComparison.Ordinal);
+        Assert.Contains("role=\"group\"", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("role=\"radio\"", source, StringComparison.Ordinal);
+        Assert.Equal(3, source.Split("aria-pressed", StringSplitOptions.None).Length - 1);
         Assert.Contains("orderView", codeBehind, StringComparison.Ordinal);
         Assert.Contains("GetUriWithQueryParameter(\"orderView\"", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
@@ -614,6 +614,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-history-detail-refresh", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("vpp-history-detail-no-selection", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("HistoryChartNoData", historyChart, StringComparison.Ordinal);
+        Assert.Contains("Summary.Periods.Count > 0 && (ShowRegularSeries || ShowAdditionalSeries)", historyChart, StringComparison.Ordinal);
         Assert.Contains("vpp-history-detail-clear", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
         Assert.Contains("<VppIcon Name=\"filter_none\" />", historyOrders, StringComparison.Ordinal);
@@ -672,6 +673,60 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("--vpp-radius-md: 6px;", tokens, StringComparison.Ordinal);
         Assert.Contains("--vpp-radius-lg: 8px;", tokens, StringComparison.Ordinal);
         Assert.Contains("--vpp-radius-badge: var(--vpp-radius-full);", tokens, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SharedStates_ExposeLiveRegionAndFocusContracts()
+    {
+        var root = GetFrontendRoot();
+        var statePanel = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppStatePanel.razor"));
+        var emptyState = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppEmptyState.razor"));
+        var notifications = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
+
+        Assert.Contains("role=\"@SemanticRole\"", statePanel, StringComparison.Ordinal);
+        Assert.Contains("aria-busy=\"@IsLoading\"", statePanel, StringComparison.Ordinal);
+        Assert.Contains("role=\"status\"", emptyState, StringComparison.Ordinal);
+        Assert.Contains("aria-labelledby=\"@TitleId\"", emptyState, StringComparison.Ordinal);
+        Assert.Contains("tabindex=\"-1\"", notifications, StringComparison.Ordinal);
+        Assert.Contains("await _panel.FocusAsync();", notifications, StringComparison.Ordinal);
+        Assert.Contains("await _trigger.FocusAsync();", notifications, StringComparison.Ordinal);
+        Assert.Contains("vpp-notification-empty--loading", notifications, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PrintStyles_RemoveInteractiveChromeAndFlattenScrollableContent()
+    {
+        var root = GetFrontendRoot();
+        var styles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
+
+        Assert.Contains("@media print", styles, StringComparison.Ordinal);
+        Assert.Contains("#components-reconnect-modal", styles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-notification-panel", styles, StringComparison.Ordinal);
+        Assert.Contains("overflow: visible !important;", styles, StringComparison.Ordinal);
+        Assert.Contains("background: #fff !important;", styles, StringComparison.Ordinal);
+        Assert.Contains("break-inside: avoid;", styles, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RadzenGridRegions_UseTheAccessibilityCompatibilityLayer()
+    {
+        var root = GetFrontendRoot();
+        var script = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
+        var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var libraryGrid = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_ShareGrid.razor"));
+        var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
+
+        Assert.Contains("data-vpp-grid-region=\"true\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-grid-region=\"true\"", libraryGrid, StringComparison.Ordinal);
+        Assert.Equal(2, report.Split("data-vpp-grid-region=\"true\"", StringSplitOptions.None).Length - 1);
+        Assert.Contains("normalizeGridRegions", script, StringComparison.Ordinal);
+        Assert.Contains("grid.setAttribute(\"role\", \"region\")", script, StringComparison.Ordinal);
+        Assert.Contains("grid.removeAttribute(\"aria-rowcount\")", script, StringComparison.Ordinal);
+        Assert.Contains("table.setAttribute(\"role\", \"table\")", script, StringComparison.Ordinal);
+        Assert.Contains("scrollRegion.setAttribute(\"tabindex\", \"0\")", script, StringComparison.Ordinal);
+        Assert.Contains("normalizeRadzenAriaValues", script, StringComparison.Ordinal);
+        Assert.Contains("element.setAttribute(\"aria-disabled\", disabled ? \"true\" : \"false\")", script, StringComparison.Ordinal);
+        Assert.Contains("new MutationObserver", script, StringComparison.Ordinal);
     }
 
     [Fact]

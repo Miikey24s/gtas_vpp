@@ -40,8 +40,12 @@ public abstract class ReportBase : ComponentBase, IDisposable
             || item.Code.Contains(DepartmentSearchText.Trim(), StringComparison.OrdinalIgnoreCase))
         .ToList() ?? [];
     protected IReadOnlyList<StatusChartPoint> StatusChartData => Summary?.StatusBreakdown
+        .Where(item => item.OrderCount > 0)
         .Select(item => new StatusChartPoint(Localizer[item.ResourceKey], item.OrderCount))
         .ToList() ?? [];
+    protected bool HasPeriodTrend => Summary?.PeriodTrend.Count >= 2;
+    protected bool CanSmoothPeriodTrend => Summary?.PeriodTrend.Count >= 3;
+    protected bool HasStatusChartData => StatusChartData.Count > 0;
 
     protected IReadOnlyList<ReportScopeOption> ScopeOptions
     {

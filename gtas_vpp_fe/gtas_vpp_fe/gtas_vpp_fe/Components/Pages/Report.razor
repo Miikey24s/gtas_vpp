@@ -173,29 +173,47 @@ else
                 <article class="vpp-report-card">
                     <h2>@Loc["ReportTrend"]</h2>
                     <p>@Loc["ReportTrendDescription"]</p>
-                    <RadzenChart Style="height: 320px;">
-                        <RadzenChartTooltipOptions Shared="true" />
-                        <RadzenLineSeries Data="@Summary.PeriodTrend"
-                                          CategoryProperty="Period"
-                                          ValueProperty="TotalAmount"
-                                          Title="@Loc["ReportCost"]"
-                                          Smooth="true"
-                                          StrokeWidth="3" />
-                        <RadzenCategoryAxis />
-                        <RadzenValueAxis Formatter="@FormatChartAmount" />
-                        <RadzenLegend Position="LegendPosition.Bottom" />
-                    </RadzenChart>
+                    @if (HasPeriodTrend)
+                    {
+                        <RadzenChart Style="height: 320px;">
+                            <RadzenChartTooltipOptions Shared="true" />
+                            <RadzenLineSeries Data="@Summary.PeriodTrend"
+                                              CategoryProperty="Period"
+                                              ValueProperty="TotalAmount"
+                                              Title="@Loc["ReportCost"]"
+                                              Smooth="@CanSmoothPeriodTrend"
+                                              StrokeWidth="3" />
+                            <RadzenCategoryAxis />
+                            <RadzenValueAxis Formatter="@FormatChartAmount" />
+                            <RadzenLegend Position="LegendPosition.Bottom" />
+                        </RadzenChart>
+                    }
+                    else
+                    {
+                        <VppEmptyState Icon="show_chart"
+                                       Title="@Loc["NoReportData"]"
+                                       Description="@Loc["NoReportDataDescription"]" />
+                    }
                 </article>
 
                 <article class="vpp-report-card">
                     <h2>@Loc["ReportStatus"]</h2>
                     <p>@Loc["ReportStatusDescription"]</p>
-                    <RadzenChart Style="height: 320px;">
-                        <RadzenDonutSeries Data="@StatusChartData"
-                                           CategoryProperty="Label"
-                                           ValueProperty="OrderCount" />
-                        <RadzenLegend Position="LegendPosition.Bottom" />
-                    </RadzenChart>
+                    @if (HasStatusChartData)
+                    {
+                        <RadzenChart Style="height: 320px;">
+                            <RadzenDonutSeries Data="@StatusChartData"
+                                               CategoryProperty="Label"
+                                               ValueProperty="OrderCount" />
+                            <RadzenLegend Position="LegendPosition.Bottom" />
+                        </RadzenChart>
+                    }
+                    else
+                    {
+                        <VppEmptyState Icon="donut_large"
+                                       Title="@Loc["NoReportData"]"
+                                       Description="@Loc["NoReportDataDescription"]" />
+                    }
                 </article>
 
                 @if (Summary.DepartmentBreakdown.Count > 0)
@@ -212,6 +230,8 @@ else
                         else
                         {
                             <RadzenDataGrid TItem="ReportDepartmentPointResDTO"
+                                            data-vpp-grid-region="true"
+                                            aria-label="@Loc["ReportDepartments"]"
                                             Data="@FilteredDepartmentBreakdown"
                                             AllowPaging="false"
                                             AllowSorting="true"
@@ -239,6 +259,8 @@ else
                     <h2>@Loc["TopProducts"]</h2>
                     <p>@Loc["TopProductsDescription"]</p>
                     <RadzenDataGrid TItem="ReportProductPointResDTO"
+                                    data-vpp-grid-region="true"
+                                    aria-label="@Loc["TopProducts"]"
                                     Data="@Summary.TopProducts"
                                     AllowPaging="false"
                                     AllowSorting="true"

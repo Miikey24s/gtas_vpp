@@ -25,5 +25,24 @@ public sealed class RouteCatalogConsistencyTests
         Assert.Contains(
             RouteCatalog.Authenticated,
             route => route.Key == "account.change-password" && route.Path == "/Account/ChangePassword");
+        Assert.Equal(
+            ["pending", "review", "demand", "supply"],
+            RouteCatalog.Authenticated
+                .Where(route => route.Key.StartsWith("dashboard.period.", StringComparison.Ordinal))
+                .Select(route => route.Path.Split("periodTab=").Last())
+                .OrderBy(value => Array.IndexOf(["pending", "review", "demand", "supply"], value))
+                .ToArray());
+    }
+
+    [Fact]
+    public void AnonymousRoutes_IncludeTheAtlasAccountLifecycle()
+    {
+        var paths = RouteCatalog.Anonymous.Select(route => route.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        Assert.Contains("/Account/Login", paths);
+        Assert.Contains("/Account/ForgotPassword", paths);
+        Assert.Contains("/Account/ResetPassword", paths);
+        Assert.Contains("/Account/Register", paths);
+        Assert.Contains("/logoutprocess", paths);
     }
 }

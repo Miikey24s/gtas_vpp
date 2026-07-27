@@ -1,9 +1,15 @@
 @using Microsoft.AspNetCore.Components.Web
 
-<div class="vpp-empty-state vpp-empty-state-shell @Class">
+<div class="vpp-empty-state vpp-empty-state-shell @Class"
+     role="status"
+     aria-live="polite"
+     aria-labelledby="@TitleId">
     <VppIcon Name="@Icon" Class="vpp-empty-state-icon" />
-    <div class="vpp-empty-state-title">@Title</div>
-    <div class="vpp-empty-state-desc">@Description</div>
+    <div id="@TitleId" class="vpp-empty-state-title">@Title</div>
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <div class="vpp-empty-state-desc">@Description</div>
+    }
 
     @if (HasActions)
     {
@@ -42,6 +48,7 @@
     [Parameter] public EventCallback<MouseEventArgs> SecondaryAction { get; set; }
     [Parameter] public string? SecondaryHref { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string TitleId { get; set; } = $"empty-state-{Guid.NewGuid():N}";
 
     private bool HasActions => PrimaryAction.HasDelegate
         || SecondaryAction.HasDelegate
