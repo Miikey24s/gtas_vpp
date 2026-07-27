@@ -62,7 +62,7 @@
     {
         if (string.IsNullOrWhiteSpace(Model.Name))
         {
-            _toastService.Show(NotificationSeverity.Warning, "Validation", "Class Name is required", 5000, false);
+            _toastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["LookupCategoryNameRequired"], 5000, false);
             return;
         }
 
@@ -87,13 +87,13 @@
 
             if (result != null)
             {
-                _toastService.Show(NotificationSeverity.Success, "Success",
-                    IsCreate ? "Class created successfully" : "Class updated successfully", 5000, false);
+                _toastService.Show(NotificationSeverity.Success, Loc["Success"],
+                    IsCreate ? Loc["LookupCategoryCreated"].Value : Loc["LookupCategoryUpdated"].Value, 5000, false);
                 DialogService.Close(result);
             }
             else
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", "Failed to save class", 5000, true);
+                _toastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["LookupCategorySaveFailed"], 5000, true);
             }
         }
         catch (Exception ex)

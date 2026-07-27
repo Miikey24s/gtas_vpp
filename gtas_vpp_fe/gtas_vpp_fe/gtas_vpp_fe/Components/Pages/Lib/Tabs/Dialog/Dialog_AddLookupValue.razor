@@ -77,7 +77,7 @@
     {
         if (string.IsNullOrWhiteSpace(Model.Code) || string.IsNullOrWhiteSpace(Model.Value))
         {
-            _toastService.Show(NotificationSeverity.Warning, "Validation", "Class Detail Code and Value are required", 5000, false);
+            _toastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["LookupValueRequired"], 5000, false);
             return;
         }
 
@@ -102,13 +102,13 @@
 
             if (result != null)
             {
-                _toastService.Show(NotificationSeverity.Success, "Success",
-                    IsCreate ? "Class detail created successfully" : "Class detail updated successfully", 5000, false);
+                _toastService.Show(NotificationSeverity.Success, Loc["Success"],
+                    IsCreate ? Loc["LookupValueCreated"].Value : Loc["LookupValueUpdated"].Value, 5000, false);
                 DialogService.Close(result);
             }
             else
             {
-                _toastService.Show(NotificationSeverity.Error, "Error", "Failed to save class detail", 5000, true);
+                _toastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["LookupValueSaveFailed"], 5000, true);
             }
         }
         catch (Exception ex)

@@ -210,9 +210,9 @@
   <data name="GroupNameRequired" xml:space="preserve"><value>Tên nhóm là bắt buộc</value></data>
   <data name="CopyFrom" xml:space="preserve"><value>Sao chép từ (tùy chọn)</value></data>
   <data name="CreateNewGroup" xml:space="preserve"><value>Tạo nhóm mới</value></data>
-  <data name="LookupCategoryCode" xml:space="preserve"><value>Mã lớp</value></data>
-  <data name="LookupCategoryName" xml:space="preserve"><value>Tên lớp *</value></data>
-  <data name="ModuleName" xml:space="preserve"><value>Module lớp</value></data>
+  <data name="LookupCategoryCode" xml:space="preserve"><value>Mã loại</value></data>
+  <data name="LookupCategoryName" xml:space="preserve"><value>Tên loại</value></data>
+  <data name="ModuleName" xml:space="preserve"><value>Mô-đun</value></data>
   <data name="LookupValueCode" xml:space="preserve"><value>Mã chi tiết lớp *</value></data>
   <data name="LookupValue" xml:space="preserve"><value>Giá trị chi tiết lớp *</value></data>
   <data name="ExtraField1" xml:space="preserve"><value>Trường bổ sung 1</value></data>
@@ -857,4 +857,22 @@
   <data name="PriceMappingDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa mức giá</value></data>
   <data name="PriceMappingRestored" xml:space="preserve"><value>Đã khôi phục mức giá</value></data>
   <data name="PriceMappingHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn mức giá.</value></data>
+  <data name="ValidationTitle" xml:space="preserve"><value>Kiểm tra dữ liệu</value></data>
+  <data name="LookupCategoryNameRequired" xml:space="preserve"><value>Tên loại là bắt buộc.</value></data>
+  <data name="LookupCategoryCreated" xml:space="preserve"><value>Đã tạo loại danh mục</value></data>
+  <data name="LookupCategoryUpdated" xml:space="preserve"><value>Đã cập nhật loại danh mục</value></data>
+  <data name="LookupCategorySaveFailed" xml:space="preserve"><value>Lưu loại danh mục thất bại</value></data>
+  <data name="LookupValueRequired" xml:space="preserve"><value>Mã và giá trị là bắt buộc.</value></data>
+  <data name="LookupValueCreated" xml:space="preserve"><value>Đã tạo giá trị danh mục</value></data>
+  <data name="LookupValueUpdated" xml:space="preserve"><value>Đã cập nhật giá trị danh mục</value></data>
+  <data name="LookupValueSaveFailed" xml:space="preserve"><value>Lưu giá trị danh mục thất bại</value></data>
+  <data name="AddLookupValue" xml:space="preserve"><value>Thêm giá trị</value></data>
+  <data name="LookupCategoryDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa loại danh mục</value></data>
+  <data name="LookupCategoryRestored" xml:space="preserve"><value>Đã khôi phục loại danh mục</value></data>
+  <data name="LookupCategoryHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn loại danh mục.</value></data>
+  <data name="LookupValueDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa giá trị danh mục</value></data>
+  <data name="LookupValueRestored" xml:space="preserve"><value>Đã khôi phục giá trị danh mục</value></data>
+  <data name="LookupValueHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn giá trị danh mục.</value></data>
+  <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Chọn một loại danh mục ở khung bên trái.</value></data>
+  <data name="LookupNoValues" xml:space="preserve"><value>Không có giá trị nào.</value></data>
 </root>

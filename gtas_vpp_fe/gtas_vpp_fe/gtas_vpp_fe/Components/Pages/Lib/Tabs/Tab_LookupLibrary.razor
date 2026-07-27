@@ -49,7 +49,14 @@ else
                             ColumnWidth="150px"
                             Style="--vpp-admin-grid-min-width: 380px;">
                 <HeaderTemplate>
-                    <div class="vpp-admin-grid-toolbar vpp-admin-grid-toolbar-end">
+                    @* Atlas library-classes: nút thêm mang danh từ riêng, nối dialog sẵn có. *@
+                    <div class="vpp-admin-grid-toolbar">
+                        <RadzenButton Icon="add"
+                                      Text="@Loc["AddClass"]"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Small"
+                                      class="vpp-library-primary-action"
+                                      Click="@OpenAddCategoryAsync" />
                         <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
                     </div>
                 </HeaderTemplate>
@@ -124,14 +131,21 @@ else
                             PageSize="20"
                             PageSizeOptions="@(new int[] { 20, 50, 100 })"
                             Density="Density.Compact"
-                            EmptyText="@(selectedLookupCategory == null ? "Please select a lookup category from the left panel" : "No lookup values found")"
+                            EmptyText="@(selectedLookupCategory == null ? Loc["LookupSelectCategoryPrompt"].Value : Loc["LookupNoValues"].Value)"
                             RowRender="@OnValueRowRender"
                             GridLines="DataGridGridLines.Horizontal"
                             class="@($"auto-fit-grid vpp-admin-grid vpp-class-detail-grid {(valueCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
                             Style="--vpp-admin-grid-min-width: 800px; --vpp-admin-isdeleted-width: 90px;">
                 <HeaderTemplate>
-                    <div class="vpp-admin-grid-toolbar vpp-admin-grid-toolbar-end">
+                    <div class="vpp-admin-grid-toolbar">
+                        <RadzenButton Icon="add"
+                                      Text="@Loc["AddLookupValue"]"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Small"
+                                      class="vpp-library-primary-action"
+                                      Disabled="@(selectedLookupCategory is null)"
+                                      Click="@OpenAddValueAsync" />
                         <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
                     </div>
                 </HeaderTemplate>

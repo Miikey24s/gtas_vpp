@@ -210,9 +210,9 @@
   <data name="GroupNameRequired" xml:space="preserve"><value>Group name is required</value></data>
   <data name="CopyFrom" xml:space="preserve"><value>Copy from (optional)</value></data>
   <data name="CreateNewGroup" xml:space="preserve"><value>Create new group</value></data>
-  <data name="LookupCategoryCode" xml:space="preserve"><value>Class Code</value></data>
-  <data name="LookupCategoryName" xml:space="preserve"><value>Class Name *</value></data>
-  <data name="ModuleName" xml:space="preserve"><value>Class Module</value></data>
+  <data name="LookupCategoryCode" xml:space="preserve"><value>Type code</value></data>
+  <data name="LookupCategoryName" xml:space="preserve"><value>Type name</value></data>
+  <data name="ModuleName" xml:space="preserve"><value>Module</value></data>
   <data name="LookupValueCode" xml:space="preserve"><value>Class Detail Code *</value></data>
   <data name="LookupValue" xml:space="preserve"><value>Class Detail Value *</value></data>
   <data name="ExtraField1" xml:space="preserve"><value>Extra Field 1</value></data>
@@ -857,4 +857,22 @@
   <data name="PriceMappingDeactivated" xml:space="preserve"><value>Price mapping deactivated</value></data>
   <data name="PriceMappingRestored" xml:space="preserve"><value>Price mapping restored</value></data>
   <data name="PriceMappingHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the price mapping.</value></data>
+  <data name="ValidationTitle" xml:space="preserve"><value>Validation</value></data>
+  <data name="LookupCategoryNameRequired" xml:space="preserve"><value>The type name is required.</value></data>
+  <data name="LookupCategoryCreated" xml:space="preserve"><value>Catalog type created</value></data>
+  <data name="LookupCategoryUpdated" xml:space="preserve"><value>Catalog type updated</value></data>
+  <data name="LookupCategorySaveFailed" xml:space="preserve"><value>Failed to save the catalog type</value></data>
+  <data name="LookupValueRequired" xml:space="preserve"><value>Code and value are required.</value></data>
+  <data name="LookupValueCreated" xml:space="preserve"><value>Lookup value created</value></data>
+  <data name="LookupValueUpdated" xml:space="preserve"><value>Lookup value updated</value></data>
+  <data name="LookupValueSaveFailed" xml:space="preserve"><value>Failed to save the lookup value</value></data>
+  <data name="AddLookupValue" xml:space="preserve"><value>Add value</value></data>
+  <data name="LookupCategoryDeactivated" xml:space="preserve"><value>Catalog type deactivated</value></data>
+  <data name="LookupCategoryRestored" xml:space="preserve"><value>Catalog type restored</value></data>
+  <data name="LookupCategoryHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the catalog type.</value></data>
+  <data name="LookupValueDeactivated" xml:space="preserve"><value>Lookup value deactivated</value></data>
+  <data name="LookupValueRestored" xml:space="preserve"><value>Lookup value restored</value></data>
+  <data name="LookupValueHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the lookup value.</value></data>
+  <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Select a catalog type in the left panel.</value></data>
+  <data name="LookupNoValues" xml:space="preserve"><value>No values found.</value></data>
 </root>

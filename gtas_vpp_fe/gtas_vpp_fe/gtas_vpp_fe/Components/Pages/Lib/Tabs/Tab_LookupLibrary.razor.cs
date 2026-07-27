@@ -178,14 +178,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.PatchFromApiAsync<LookupCategoryResDTO>($"{Config.LibraryApi.LookupCategories}/{data.Id}", patchData);
                 if (result != null)
                 {
-                    string message = isDeleted ? "Lookup category marked as deleted" : "Lookup category restored";
-                    _toastService.Show(NotificationSeverity.Success, "Success", message, 3000, false);
+                    string message = isDeleted ? Loc["LookupCategoryDeactivated"].Value : Loc["LookupCategoryRestored"].Value;
+                    _toastService.Show(NotificationSeverity.Success, Loc["Success"], message, 3000, false);
                     await categoryGrid.Reload();
                 }
                 else
                 {
                     data.IsDeleted = !isDeleted;
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to update lookup category status", 5000, true);
+                    _toastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["ChangeRecordStatusFailed"], 5000, true);
                 }
             }
             catch (Exception ex)
@@ -195,10 +195,44 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        // Nối lại 2 dialog thêm mới (trước đây mồ côi — Atlas yêu cầu primary action "Thêm ...").
+        protected async Task OpenAddCategoryAsync()
+        {
+            var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupCategory>(
+                Loc["AddClass"].Value,
+                new Dictionary<string, object> { ["IsCreate"] = true },
+                new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
+
+            if (result is LookupCategoryResDTO)
+            {
+                await categoryGrid.Reload();
+            }
+        }
+
+        protected async Task OpenAddValueAsync()
+        {
+            if (selectedLookupCategory is null)
+            {
+                return;
+            }
+
+            // Dialog không tự gán LookupCategoryId — truyền model đã gắn category đang chọn.
+            var model = new LookupValueResDTO { Code = "", Value = "", LookupCategoryId = selectedLookupCategory.Id };
+            var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupValue>(
+                Loc["AddLookupValue"].Value,
+                new Dictionary<string, object> { ["IsCreate"] = true, ["Model"] = model },
+                new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
+
+            if (result is LookupValueResDTO)
+            {
+                await valueGrid.Reload();
+            }
+        }
+
         protected async Task HardDeleteCategory(LookupCategoryResDTO data)
         {
             var confirm = await DialogService.Confirm(
-                "This will permanently delete the lookup category.",
+                Loc["LookupCategoryHardDeleteConfirm"].Value,
                 Loc["HardDelete"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
 
@@ -356,14 +390,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.PatchFromApiAsync<LookupValueResDTO>($"{Config.LibraryApi.LookupValues}/{data.Id}", patchData);
                 if (result != null)
                 {
-                    string message = isDeleted ? "Lookup value marked as deleted" : "Lookup value restored";
-                    _toastService.Show(NotificationSeverity.Success, "Success", message, 3000, false);
+                    string message = isDeleted ? Loc["LookupValueDeactivated"].Value : Loc["LookupValueRestored"].Value;
+                    _toastService.Show(NotificationSeverity.Success, Loc["Success"], message, 3000, false);
                     await valueGrid.Reload();
                 }
                 else
                 {
                     data.IsDeleted = !isDeleted;
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to update lookup value status", 5000, true);
+                    _toastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["ChangeRecordStatusFailed"], 5000, true);
                 }
             }
             catch (Exception ex)
@@ -376,7 +410,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         protected async Task HardDeleteValue(LookupValueResDTO data)
         {
             var confirm = await DialogService.Confirm(
-                "This will permanently delete the lookup value.",
+                Loc["LookupValueHardDeleteConfirm"].Value,
                 Loc["HardDelete"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
 
