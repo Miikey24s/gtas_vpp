@@ -43,6 +43,15 @@ Thuật ngữ dùng trong tài liệu:
 7. Rà diff, stage đúng file, commit local theo scope. Push/PR/deploy chỉ khi người dùng yêu cầu rõ.
 8. Nếu chưa xong, ghi continuation note với branch, HEAD, dirty files, gate gần nhất và next exact action.
 
+### Plan hai tầng
+
+Với task phức tạp, plan dùng **progressive disclosure** (chỉ mở chi tiết khi cần):
+
+1. **Bản một ánh nhìn:** vừa một màn hình, có mục tiêu, scope, 3–7 bước chính, gate kiểm tra, rủi ro/blocker và next action. Thuật ngữ khó được chú thích ngắn ngay tại chỗ.
+2. **Bản chi tiết:** execution record đầy đủ theo `docs/planning/05-EXECUTION-TEMPLATE.md`.
+
+Bản một ánh nhìn phải link đến đúng mục trong bản chi tiết. Khi tiến độ đổi, cập nhật summary trước; không bắt owner đọc lại toàn bộ record. Task nhỏ hoặc ít rủi ro chỉ dùng bản một ánh nhìn nếu bản chi tiết không tạo thêm giá trị.
+
 ## 4. Prompt contract cho owner
 
 Prompt ngắn vẫn đủ nếu có bốn phần:

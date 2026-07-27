@@ -9,6 +9,7 @@
 - Đọc `AGENTS.md` gần file đang sửa nhất; instruction theo thư mục được ưu tiên hơn root.
 - Workflow lặp lại nằm trong `.agents/skills/`: UI, database safety và luận văn DOCX.
 - Model, reasoning, approval, sandbox, MCP credential và browser profile là cấu hình local/user; không commit vào Git.
+- Plan task phức tạp dùng hai tầng: bản một ánh nhìn trước, có link đến execution record chi tiết; task nhỏ chỉ cần bản ngắn.
 
 ## Phạm vi chuẩn
 

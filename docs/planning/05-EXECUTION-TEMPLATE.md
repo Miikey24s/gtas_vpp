@@ -4,6 +4,23 @@
 > Gợi ý path: `docs/execution/<TASK-ID>.md`.
 > Không ghi secret, password, token, connection string hoặc dữ liệu cá nhân thật.
 
+## 0. Bản một ánh nhìn
+
+> Giữ phần này vừa một màn hình. Đây là nơi owner xem hằng ngày; checklist/log đầy đủ nằm ở các mục chi tiết được link bên dưới.
+
+| Mục | Tóm tắt dễ hiểu | Chi tiết |
+|---|---|---|
+| Kết quả cần đạt | <Một câu mô tả trạng thái cuối> | [Objective](#plan-detail-objective) |
+| Phạm vi | <Chạm gì / không chạm gì> | [Scope](#plan-detail-scope) |
+| Các bước chính | <3–7 bước, kèm trạng thái> | [Implementation](#plan-detail-implementation) |
+| Kiểm tra | <Build/test/browser/DB/Word gate quan trọng> | [Verification](#plan-detail-verification) |
+| Rủi ro hoặc blocker | <Chỉ ghi vấn đề có thể đổi kết quả> | [Risks](#plan-detail-risks) |
+| Bước tiếp theo | <Một hành động cụ thể> | [Continuation](#plan-detail-continuation) |
+
+**Thuật ngữ cần biết:** chỉ giải thích tối đa 1–3 thuật ngữ thực sự khó xuất hiện trong summary. Ví dụ: `gate` = điều kiện phải pass trước khi chuyển bước; `vertical slice` = một lát chức năng hoàn chỉnh có thể chạy và kiểm tra độc lập.
+
+Task nhỏ có thể chỉ dùng mục 0 trong thread. Task phức tạp mới tạo execution record đầy đủ bên dưới.
+
 ## 1. Task header
 
 ```markdown
@@ -24,6 +41,8 @@
 - User approval required: Yes/No
 - User approval evidence/link:
 ```
+
+<a id="plan-detail-objective"></a>
 
 ## 2. Objective và non-goals
 
@@ -75,6 +94,8 @@
 | relevant integration/E2E | | |
 ````
 
+<a id="plan-detail-scope"></a>
+
 ## 4. Scope và impact
 
 ```markdown
@@ -104,6 +125,8 @@
 
 - ADR/diagram/traceability cần cập nhật:
 ```
+
+<a id="plan-detail-implementation"></a>
 
 ## 5. Implementation checklist
 
@@ -166,6 +189,8 @@ Nếu phát hiện công việc mới:
 ````
 
 Không coi `Down()` là rollback đủ cho migration destructive hoặc settlement business facts. Ghi rõ khi rollback thực tế là restore backup hoặc forward correction.
+
+<a id="plan-detail-verification"></a>
 
 ## 7. Test record
 
@@ -254,6 +279,8 @@ Test count phải lấy từ output hiện tại, không copy mốc 147/29 nếu
 - DONE / IN_REVIEW / BLOCKED — lý do:
 ```
 
+<a id="plan-detail-risks"></a>
+
 ## 10. Risk và rollback
 
 ```markdown
@@ -319,6 +346,8 @@ Test count phải lấy từ output hiện tại, không copy mốc 147/29 nếu
 ```
 
 Không đánh dấu blocked chỉ vì task khó. Chỉ block khi thiếu quyết định/quyền/external state thực sự và không còn tiến độ an toàn trong scope.
+
+<a id="plan-detail-continuation"></a>
 
 ## 13. Continuation note sau mất context
 
