@@ -159,6 +159,26 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 | F6 — M3–M8 rollout | Migrate management, period, library, permission, report và system state theo route ledger. | Từng vertical slice độc lập, test/QA/owner review trước commit. |
 | F7 — Hardening | Xóa replacement đã hết consumer; performance/axe/print; visual baseline chỉ sau owner approval. | Full frontend verify + representative full route matrix + diff/debt report. |
 
+### 5.1 Sau mỗi wave owner nhận được gì
+
+| Wave | Anh nhận được sau khi wave hoàn tất | Anh có thể mở và duyệt gì | Mức hoàn thiện UI |
+|---|---|---|---|
+| F0 — Baseline & guard | Một baseline đáng tin: CSS tải đúng thứ tự, route/query metadata đúng, có catalog component/debt và test chặn lỗi kiến trúc quay lại. | So sánh 4 route đại diện trước/sau để xác nhận không có thay đổi visual ngoài ý muốn. | **Nền kỹ thuật** — UI gần như giữ nguyên. |
+| F1 — Token & bridge | Bộ màu, spacing, typography, radius, shadow và Radzen bridge thống nhất cho Light/Dark; thay đổi theme chung có một nơi rõ để chỉnh. | Theme trên các component/route đại diện, contrast Light/Dark và báo cáo debt CSS giảm/tăng. | **Nền visual** — có hệ quy chuẩn, chưa migrate toàn bộ màn. |
+| F2 — Primitive & state | Các khối nhỏ canonical và state loading/empty/filter-empty/error/denied nhất quán trên ít nhất hai consumer thật. | Trực tiếp xem, thử keyboard/focus và so sánh state ở các route đã migrate. | **Khung cơ bản dùng được** — một phần UI đã chạy trên primitive mới. |
+| F3 — Composite | Các cụm UI dùng chung có mục đích rõ; đầu tiên là order-detail dùng chung cho My Orders và History nếu behavior thực tế cho phép. | Hai luồng My Orders/History với dữ liệu, action, paging/virtualization và responsive behavior thật. | **Luồng mẫu hoàn chỉnh** — chứng minh tái sử dụng không làm mất nghiệp vụ. |
+| F4 — Pattern | Bộ workspace pattern nhỏ, typed và tùy biến bằng slot cho các kiểu màn lặp lại như Collection, ListDetail, Operation và Analytics. | Các route mẫu ở từng pattern; kiểm tra route vẫn giữ API, permission và business state riêng. | **Khung scalable hoàn chỉnh** — đủ nền để migrate nhanh toàn sản phẩm. |
+| F5 — M0–M2 reference | Shell, account, catalog, order create, My Orders và History được đưa lên UI system mới và trở thành mẫu chuẩn cho agent. | Toàn bộ M0–M2 ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | **UI nhóm người dùng chính hoàn chỉnh** trên khung mới. |
+| F6 — M3–M8 rollout | Management, period, library, permission, report và system state được migrate theo route ledger; replacement cũ được gỡ khi hết consumer. | Từng route M3–M8 trên browser thật, có evidence và owner review theo vertical slice. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. |
+| F7 — Hardening | Dọn legacy còn lại có replacement, tối ưu performance, axe/Print, khóa visual baseline đã được owner duyệt và tạo báo cáo debt cuối. | Full frontend regression, route matrix đại diện, accessibility/performance và diff visual cuối. | **`UI-SYSTEM-001` hoàn chỉnh** — sẵn sàng bàn giao và mở rộng lâu dài. |
+
+Mốc dễ hiểu:
+
+- Kết thúc **F0**: nền an toàn, chưa phải UI mới.
+- Kết thúc **F4**: khung reusable/scalable đã hoàn chỉnh, nhưng chưa phải toàn bộ màn đã migrate.
+- Kết thúc **F6**: toàn bộ UI trong scope hiện tại đã lên khung mới.
+- Kết thúc **F7**: hoàn tất kỹ thuật, QA, dọn legacy và handoff của `UI-SYSTEM-001`.
+
 ### Thứ tự migration ưu tiên
 
 1. CSS load order và architecture guard.
