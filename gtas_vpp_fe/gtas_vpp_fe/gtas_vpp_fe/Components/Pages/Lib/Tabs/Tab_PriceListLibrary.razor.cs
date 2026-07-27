@@ -28,6 +28,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private int count;
         private int currentSkip;
         private string? currentFilterExpression;
+        private string selectedStatus = string.Empty;
+
+        private IReadOnlyList<PriceListStatusOption> PriceListStatusOptions =>
+        [
+            new(string.Empty, Loc["LibraryAllStatuses"]),
+            new("Draft", Loc["PriceListStatusDraft"]),
+            new("Published", Loc["PriceListStatusPublished"]),
+            new("Expired", Loc["PriceListStatusExpired"])
+        ];
 
         private PriceListResDTO? SelectedPriceList => selectedPriceLists.FirstOrDefault();
 
@@ -66,10 +75,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             isLoading = true;
             currentSkip = args.Skip ?? 0;
-            currentFilterExpression = args.Filter;
+            currentFilterExpression = CombineStatusFilter(args.Filter);
             try
             {
-                var endpoint = BuildPriceListEndpoint(args.Filter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
+                var endpoint = BuildPriceListEndpoint(currentFilterExpression, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
                 priceLists = result.Data ?? [];
                 count = result.TotalCount;
@@ -220,32 +229,27 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task HardDeleteAsync(PriceListResDTO row)
+        private async Task OnStatusChangedAsync(object? value)
         {
-            var confirm = await DialogService.Confirm(
-                Loc["PriceListHardDeleteConfirm"].Value,
-                Loc["HardDelete"].Value,
-                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
-
-            if (confirm != true) return;
-
-            try
-            {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.PriceList}/{row.Id}/hard");
-                if (!deleted)
-                {
-                    Notify(NotificationSeverity.Error, Loc["Error"].Value, Loc["DeleteFailed"].Value);
-                    return;
-                }
-
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListDeleted"].Value);
-                await LoadAsync();
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "DeleteRecordFailed");
-            }
+            selectedStatus = value?.ToString() ?? string.Empty;
+            await LoadAsync();
         }
+
+        private string? CombineStatusFilter(string? gridFilter)
+        {
+            if (string.IsNullOrWhiteSpace(selectedStatus))
+            {
+                return gridFilter;
+            }
+
+            var statusFilter = $"Status == \"{selectedStatus}\"";
+            return string.IsNullOrWhiteSpace(gridFilter)
+                ? statusFilter
+                : $"({gridFilter}) && {statusFilter}";
+        }
+
+        private Task ToggleSelectedPriceListStatusAsync(PriceListResDTO row)
+            => SetDeletedAsync(row, !row.IsDeleted);
 
         private void OnRowRenderPriceList(RowRenderEventArgs<PriceListResDTO> args)
         {
@@ -484,5 +488,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             attributes["class"] = className;
         }
+
+        private sealed record PriceListStatusOption(string Value, string Label);
     }
 }

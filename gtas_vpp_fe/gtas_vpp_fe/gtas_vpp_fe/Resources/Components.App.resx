@@ -816,6 +816,11 @@
   <data name="SupplyPriceMissing" xml:space="preserve"><value>Thiếu giá</value></data>
   <data name="UnitPrice" xml:space="preserve"><value>Đơn giá</value></data>
   <data name="Result" xml:space="preserve"><value>Kết quả</value></data>
+  <data name="Restore" xml:space="preserve"><value>Khôi phục</value></data>
+  <data name="LibraryAllStatuses" xml:space="preserve"><value>Tất cả trạng thái</value></data>
+  <data name="PriceListStatusDraft" xml:space="preserve"><value>Bản nháp</value></data>
+  <data name="PriceListStatusPublished" xml:space="preserve"><value>Đã công bố</value></data>
+  <data name="PriceListStatusExpired" xml:space="preserve"><value>Hết hiệu lực</value></data>
   <data name="SupplyReadyMessage" xml:space="preserve"><value>Nguồn cung đã phủ đủ nhu cầu và không còn điều kiện ngăn chốt.</value></data>
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Tiếp tục chốt kỳ</value></data>
   <data name="PeriodSupplyTitle" xml:space="preserve"><value>Chọn nguồn cung</value></data>

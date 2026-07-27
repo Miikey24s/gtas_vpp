@@ -19,6 +19,14 @@
                           Title="@Loc["Reload"]"
                           aria-label="@Loc["Reload"]"
                           Click="@LoadAsync" />
+            <RadzenDropDown TValue="string"
+                            Data="@PriceListStatusOptions"
+                            TextProperty="Label"
+                            ValueProperty="Value"
+                            Value="@selectedStatus"
+                            Change="@OnStatusChangedAsync"
+                            aria-label="@Loc["Status"]"
+                            Style="width: 170px" />
         </RadzenStack>
         <VppColumnPicker TItem="PriceListResDTO" GridAccessor="@(() => grid)" />
     </RadzenStack>
@@ -82,7 +90,7 @@
                     <span>@FormatEffectiveRange(row)</span>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="Trạng thái" Width="115px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="@Loc["Status"]" Width="115px" TextAlign="TextAlign.Center" Filterable="false">
                 <Template Context="row">
                     <RadzenBadge Text="@GetStatusLabel(row.Status)" BadgeStyle="@GetStatusBadgeStyle(row.Status)" />
                 </Template>
@@ -110,7 +118,6 @@
                         <RadzenButton Icon="timer_off" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="Đánh dấu hết hiệu lực" Disabled="@(row.IsDeleted || row.Status != "Published")" Click="@(() => ExpireAsync(row))" />
                         <RadzenButton Icon="star" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" title="@Loc["SetAsDefault"]" Disabled="@(row.IsDefault || row.IsDeleted)" Click="@(() => SetDefaultAsync(row))" />
                         <RadzenButton Icon="content_copy" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" title="@Loc["Clone"]" Click="@(() => CloneAsync(row))" />
-                        <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" title="@Loc["HardDelete"]" Disabled="@(row.Status == "Published")" Click="@(() => HardDeleteAsync(row))" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>
@@ -120,7 +127,13 @@
     <aside class="vpp-atlas-admin-inspector" aria-live="polite">
         @if (SelectedPriceList is not null)
         {
-            <Component_RecordInspector TItem="PriceListResDTO" Record="SelectedPriceList" />
+            <Component_RecordInspector TItem="PriceListResDTO"
+                                       Record="SelectedPriceList"
+                                       CanEdit="@(SelectedPriceList.Status == "Draft" && !SelectedPriceList.IsDeleted)"
+                                       CanToggleStatus="@(SelectedPriceList.Status != "Published")"
+                                       IsInactive="@SelectedPriceList.IsDeleted"
+                                       EditRequested="@EditAsync"
+                                       ToggleStatusRequested="@ToggleSelectedPriceListStatusAsync" />
         }
         else
         {

@@ -47,10 +47,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         [Parameter] public Func<TType, Task<TType>> Add { get; set; } = default!;
         [Parameter] public Func<TType, Task<TType>> Update { get; set; } = default!;
-        [Parameter] public Func<TType, Task<bool>> Delete { get; set; } = default!;
         [Parameter] public Func<TType, bool, Task<TType>>? SetStatus { get; set; }
         [Parameter] public string? DataEndpoint { get; set; }
-        [Parameter] public bool AllowHardDelete { get; set; } = true;
 
         // Atlas filterBar (W-E): nút thêm mang danh từ riêng của màn ("Thêm phòng ban"…)
         // và ô tìm kiếm với placeholder ngữ cảnh; SearchFields là các property string
@@ -73,6 +71,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             PagePermissionResDTO.Components.Any(y => y.IsVisible && y.IsEnable);
 
         private TType? SelectedRecord => selected_item.FirstOrDefault();
+        private static bool HasSoftDeleteProperty => typeof(TType).GetProperty(nameof(BaseDTO.IsDeleted)) is not null;
 
         protected override async Task OnInitializedAsync()
         {
@@ -146,6 +145,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             await SetDeletedStateAsync(context, false);
         }
 
+        private Task ToggleSelectedStatusAsync(TType context)
+            => SetDeletedStateAsync(context, !IsDeletedRow(context));
+
         private async Task SetDeletedStateAsync(TType context, bool isDeleted)
         {
             onEdit = false;
@@ -187,43 +189,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
         }
 
-        private async Task HardDeleteRow(TType context)
-        {
-            var confirm = await DialogService.Confirm(
-                Loc["PermanentDeleteWarning"].Value,
-                Loc["HardDelete"].Value,
-                new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
-
-            if (confirm != true)
-            {
-                return;
-            }
-
-            await DeleteRow(context);
-        }
-
-        private async Task DeleteRow(TType context)
-        {
-            onEdit = false;
-            if (context == item)
-            {
-                item = default!;
-            }
-
-            if (data.Contains(context))
-            {
-                var result = await Delete(context);
-                if (result == true)
-                    data.Remove(context);
-
-                await DataGrid.Reload();
-                await DataChanged.InvokeAsync(data);
-            }
-            else
-            {
-                DataGrid.CancelEditRow(context);
-            }
-        }
         private Task CancelEdit(TType context)
         {
             onEdit = false;
@@ -460,6 +425,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             bool isDeletedProperty)
         {
             if (isDeletedProperty)
+            {
+                return true;
+            }
+
+            if (typeof(TType) == typeof(SupplierResDTO) && prop.Name == nameof(SupplierResDTO.Address1))
             {
                 return true;
             }

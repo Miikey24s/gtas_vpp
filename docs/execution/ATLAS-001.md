@@ -311,11 +311,11 @@ workflow 58 agent, 42 MUST_FIX xác nhận):
 4. Soft-delete-only (`8fd967c`): categories/suppliers/departments AllowHardDelete=false theo
    cấp bậc hành động Atlas (items vốn đã false).
 
-Còn treo W-E (ghi để làm ở lát sau hoặc chờ owner): thứ tự cột items (Đơn vị trước Danh mục —
-đổi cần sắp lại property DTO hoặc metadata, để lát R-2); hàng hành động trong inspector
-(Chỉnh sửa/Vô hiệu hóa — OWNER_GATE vị trí thao tác); [OWNER-GATE] drawer thêm/sửa vs inline
-row-edit của ShareGrid (chuyển drawer vượt mức gap B); hard-delete còn lại ở classes/price-lists;
-cột địa chỉ suppliers mặc định hiển thị; filter CheckBoxList Status hiển thị giá trị thô.
+**W-E.5/R-2 hoàn thành 2026-07-27:** giữ inline row-edit Radzen hiện hành và đưa action
+`Sửa`/`Vô hiệu hóa`/`Khôi phục` vào inspector (không dựng drawer mới); gỡ toàn bộ đường hard-delete
+khỏi `Component_ShareGrid`, classes và price-lists; khóa `Address1` của suppliers hiển thị mặc định;
+giữ thứ tự metadata items `Đơn vị → Danh mục`; filter trạng thái price-list dùng dropdown VI/EN và
+gửi lại Dynamic LINQ `Status` thay vì lộ giá trị CheckBoxList `Draft/Published/Expired`.
 
 **Retrofit queue W-E (sửa ngược Atlas, chờ owner duyệt):** cột đếm "Mặt hàng"/"Thành viên"/
 "Giá trị" không có field backend (categories/suppliers/departments/classes); Atlas vẽ trường

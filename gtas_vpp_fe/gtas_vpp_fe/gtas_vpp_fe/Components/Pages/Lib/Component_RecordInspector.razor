@@ -68,10 +68,35 @@
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
+
+    @if (CanEdit || CanToggleStatus)
+    {
+        <footer class="vpp-record-inspector-actions">
+            @if (CanEdit)
+            {
+                <RadzenButton Icon="edit"
+                              Text="@Loc["Edit"]"
+                              ButtonStyle="ButtonStyle.Light"
+                              Click="@(_ => EditRequested.InvokeAsync(Record))" />
+            }
+            @if (CanToggleStatus)
+            {
+                <RadzenButton Icon="@(IsInactive ? "restore" : "block")"
+                              Text="@(IsInactive ? Loc["Restore"] : Loc["Deactivate"])"
+                              ButtonStyle="@(IsInactive ? ButtonStyle.Secondary : ButtonStyle.Danger)"
+                              Click="@(_ => ToggleStatusRequested.InvokeAsync(Record))" />
+            }
+        </footer>
+    }
 </section>
 
 @code {
     [Parameter, EditorRequired] public TItem Record { get; set; } = default!;
+    [Parameter] public bool CanEdit { get; set; }
+    [Parameter] public bool CanToggleStatus { get; set; }
+    [Parameter] public bool IsInactive { get; set; }
+    [Parameter] public EventCallback<TItem> EditRequested { get; set; }
+    [Parameter] public EventCallback<TItem> ToggleStatusRequested { get; set; }
 
     private readonly List<PropertyInfo> CoreProperties = [];
     private readonly List<PropertyInfo> AuditProperties = [];

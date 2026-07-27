@@ -229,44 +229,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        protected async Task HardDeleteCategory(LookupCategoryResDTO data)
-        {
-            var confirm = await DialogService.Confirm(
-                Loc["LookupCategoryHardDeleteConfirm"].Value,
-                Loc["HardDelete"].Value,
-                new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
-
-            if (confirm != true)
-            {
-                return;
-            }
-
-            try
-            {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.LookupCategories}/{data.Id}");
-                if (!deleted)
-                {
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to permanently delete lookup category", 5000, true);
-                    return;
-                }
-
-                if (selectedLookupCategory?.Id == data.Id)
-                {
-                    selectedLookupCategories.Clear();
-                    lookupValues.Clear();
-                    valueCount = 0;
-                }
-
-                _toastService.Show(NotificationSeverity.Success, "Success", "Lookup category permanently deleted", 3000, false);
-                await categoryGrid.Reload();
-                await valueGrid.Reload();
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "DeleteRecordFailed");
-            }
-        }
-
         #endregion
 
         #region Lookup value methods
@@ -404,36 +366,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 data.IsDeleted = !isDeleted;
                 _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
-            }
-        }
-
-        protected async Task HardDeleteValue(LookupValueResDTO data)
-        {
-            var confirm = await DialogService.Confirm(
-                Loc["LookupValueHardDeleteConfirm"].Value,
-                Loc["HardDelete"].Value,
-                new ConfirmOptions { OkButtonText = Loc["Delete"].Value, CancelButtonText = Loc["Cancel"].Value });
-
-            if (confirm != true)
-            {
-                return;
-            }
-
-            try
-            {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.LookupValues}/{data.Id}");
-                if (!deleted)
-                {
-                    _toastService.Show(NotificationSeverity.Error, "Error", "Failed to permanently delete lookup category detail", 5000, true);
-                    return;
-                }
-
-                _toastService.Show(NotificationSeverity.Success, "Success", "Lookup value permanently deleted", 3000, false);
-                await valueGrid.Reload();
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 

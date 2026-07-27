@@ -267,16 +267,6 @@
                                       title="@Loc["Edit"]"
                                       Click="@(args => EditRow(context))"
                                       @onclick:stopPropagation="true" />
-                        @if (AllowHardDelete)
-                        {
-                            <RadzenButton Icon="delete_forever"
-                                          Size="ButtonSize.Small"
-                                          ButtonStyle="ButtonStyle.Danger"
-                                          Disabled="@onEdit"
-                                          title="@Loc["HardDelete"]"
-                                          Click="@(args => HardDeleteRow(context))"
-                                          @onclick:stopPropagation="true" />
-                        }
                     </div>
                 </Template>
                 <EditTemplate Context="context">
@@ -294,7 +284,13 @@
 <aside class="vpp-atlas-admin-inspector" aria-live="polite">
     @if (SelectedRecord is not null)
     {
-        <Component_RecordInspector TItem="TType" Record="SelectedRecord" />
+        <Component_RecordInspector TItem="TType"
+                                   Record="SelectedRecord"
+                                   CanEdit="@CanModifyGrid"
+                                   CanToggleStatus="@(CanModifyGrid && HasSoftDeleteProperty)"
+                                   IsInactive="@IsDeletedRow(SelectedRecord)"
+                                   EditRequested="@EditRow"
+                                   ToggleStatusRequested="@ToggleSelectedStatusAsync" />
     }
     else
     {

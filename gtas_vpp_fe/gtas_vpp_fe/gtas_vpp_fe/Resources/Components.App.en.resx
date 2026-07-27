@@ -816,6 +816,11 @@
   <data name="SupplyPriceMissing" xml:space="preserve"><value>Missing price</value></data>
   <data name="UnitPrice" xml:space="preserve"><value>Unit price</value></data>
   <data name="Result" xml:space="preserve"><value>Result</value></data>
+  <data name="Restore" xml:space="preserve"><value>Restore</value></data>
+  <data name="LibraryAllStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="PriceListStatusDraft" xml:space="preserve"><value>Draft</value></data>
+  <data name="PriceListStatusPublished" xml:space="preserve"><value>Published</value></data>
+  <data name="PriceListStatusExpired" xml:space="preserve"><value>Expired</value></data>
   <data name="SupplyReadyMessage" xml:space="preserve"><value>Supply covers all demand and no blockers remain.</value></data>
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Continue to settlement</value></data>
   <data name="PeriodSupplyTitle" xml:space="preserve"><value>Supply selection</value></data>

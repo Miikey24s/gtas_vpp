@@ -1111,13 +1111,13 @@ Status hợp lệ:
 
 | Logical route | Status | Notes |
 |---|---|---|
-| `library.classes` | PENDING | Two-pane lookup hierarchy |
-| `library.categories` | PENDING | Server grid + inspector |
-| `library.items` | PENDING | Product fields/filter/active state |
-| `library.suppliers` | PENDING | Contact/active/audit |
-| `library.departments` | PENDING | Missing dedicated Figma screen; membership impact |
-| `library.pricing.price-lists` | PENDING | Lifecycle/detail drawer |
-| `library.pricing.prices` | PENDING | Product/list/supplier/version filter |
+| `library.classes` | SOURCE_COMPLETE_RUNTIME_PENDING | Two-pane hierarchy, soft-delete only |
+| `library.categories` | SOURCE_COMPLETE_RUNTIME_PENDING | Server grid + inspector actions |
+| `library.items` | SOURCE_COMPLETE_RUNTIME_PENDING | Product fields/filter/active state |
+| `library.suppliers` | SOURCE_COMPLETE_RUNTIME_PENDING | Address visible + contact/active/audit |
+| `library.departments` | SOURCE_COMPLETE_RUNTIME_PENDING | Server grid + inspector actions |
+| `library.pricing.price-lists` | SOURCE_COMPLETE_RUNTIME_PENDING | Lifecycle + inspector, localized status filter |
+| `library.pricing.prices` | SOURCE_COMPLETE_RUNTIME_PENDING | Product/list/supplier/version filter |
 
 ### W6 — Access Control
 

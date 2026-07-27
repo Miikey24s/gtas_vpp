@@ -18,9 +18,11 @@ public sealed class CatalogPagingUiTests
     public void LibraryItemGrid_UsesTypedCatalogEndpointWithoutHardDelete()
     {
         var source = ReadSource("Components", "Pages", "Lib", "Component_Library.razor");
+        var grid = ReadSource("Components", "Pages", "Lib", "Component_ShareGrid.razor.cs");
 
         Assert.Contains("DataEndpoint=\"@Config.ApiCatalogItems\"", source, StringComparison.Ordinal);
-        Assert.Contains("AllowHardDelete=\"false\"", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("AllowHardDelete", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("HardDeleteRow", grid, StringComparison.Ordinal);
         Assert.Contains("SetStatus=@ApiSetStatusAsync", source, StringComparison.Ordinal);
     }
 

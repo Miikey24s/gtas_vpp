@@ -26,6 +26,38 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("IsInspectorFirstProperty", source, StringComparison.Ordinal);
         Assert.Contains("OriginalLanguageCode", source, StringComparison.Ordinal);
         Assert.Contains("DefaultSupplierName", source, StringComparison.Ordinal);
+        Assert.Contains("typeof(TType) == typeof(SupplierResDTO)", source, StringComparison.Ordinal);
+        Assert.Contains("nameof(SupplierResDTO.Address1)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LibraryInspectors_ExposeInlineEditAndSoftDeleteWithoutHardDeleteActions()
+    {
+        var grid = ReadFrontendSource("Components/Pages/Lib/Component_ShareGrid.razor");
+        var gridCode = ReadFrontendSource("Components/Pages/Lib/Component_ShareGrid.razor.cs");
+        var inspector = ReadFrontendSource("Components/Pages/Lib/Component_RecordInspector.razor");
+        var classes = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor");
+        var priceLists = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
+
+        Assert.Contains("EditRequested", inspector, StringComparison.Ordinal);
+        Assert.Contains("ToggleStatusRequested", inspector, StringComparison.Ordinal);
+        Assert.Contains("ToggleSelectedStatusAsync", grid, StringComparison.Ordinal);
+        Assert.DoesNotContain("AllowHardDelete", gridCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("HardDeleteRow", gridCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("delete_forever", classes, StringComparison.Ordinal);
+        Assert.DoesNotContain("HardDeleteAsync", priceLists, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PriceListStatusFilter_UsesLocalizedOptionsInsteadOfRawCheckBoxValues()
+    {
+        var page = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
+        var code = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor.cs");
+
+        Assert.Contains("PriceListStatusOptions", page, StringComparison.Ordinal);
+        Assert.Contains("Filterable=\"false\"", page, StringComparison.Ordinal);
+        Assert.Contains("CombineStatusFilter", code, StringComparison.Ordinal);
+        Assert.Contains("PriceListStatusPublished", code, StringComparison.Ordinal);
     }
 
     [Fact]

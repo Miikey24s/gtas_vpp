@@ -1268,6 +1268,16 @@
     max-width: 340px;
 }
 
+.vpp-record-inspector-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--vpp-space-2);
+    margin-top: auto;
+    padding: var(--vpp-space-4);
+    border-top: 1px solid var(--vpp-border-default);
+    background: var(--vpp-bg-subtle);
+}
+
 .permission-status-filter {
     flex: 0 1 190px;
     min-width: 170px;

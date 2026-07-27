@@ -94,18 +94,6 @@ else
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="72px" MinWidth="72px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Pickable="false" CssClass="rz-col-actions rz-col-actions-tight" HeaderCssClass="rz-col-actions rz-col-actions-tight">
-                        <Template Context="data">
-                            <div class="vpp-admin-actions">
-                                <RadzenButton Icon="delete_forever"
-                                              Size="ButtonSize.Small"
-                                              ButtonStyle="ButtonStyle.Danger"
-                                              title="@Loc["HardDelete"]"
-                                              Click="@(() => HardDeleteCategory(data))"
-                                              @onclick:stopPropagation="true" />
-                            </div>
-                        </Template>
-                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
         </RadzenStack>
@@ -178,18 +166,6 @@ else
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="72px" MinWidth="72px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Pickable="false" CssClass="rz-col-actions rz-col-actions-tight" HeaderCssClass="rz-col-actions rz-col-actions-tight">
-                        <Template Context="data">
-                            <div class="vpp-admin-actions">
-                                <RadzenButton Icon="delete_forever"
-                                              Size="ButtonSize.Small"
-                                              ButtonStyle="ButtonStyle.Danger"
-                                              title="@Loc["HardDelete"]"
-                                              Click="@(() => HardDeleteValue(data))"
-                                              @onclick:stopPropagation="true" />
-                            </div>
-                        </Template>
-                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
         </RadzenStack>
