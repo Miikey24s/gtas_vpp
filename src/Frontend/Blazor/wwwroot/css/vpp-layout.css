@@ -13,11 +13,9 @@ body:has(.vpp-layout) {
     overflow: hidden;
 }
 
-/* Lưu ý cascade: material-base.css của Radzen 11 tự đặt grid-template-areas bằng
-   `.rz-layout:has(>.rz-sidebar-start)…` (specificity 0-3-0/0-4-0, load SAU file này)
-   nên các dòng template dưới đây KHÔNG thắng theme. Template "sidebar full-height,
-   header 72px nối mép phải sidebar" chỉ có hiệu lực nhờ FullHeight="true" trên
-   RadzenSidebar (LeftSidebar.razor) — không được bỏ thuộc tính đó. */
+/* Radzen base đặt grid generic trước; file project này sở hữu template cuối cùng.
+   FullHeight="true" trên RadzenSidebar vẫn là contract runtime bắt buộc để class
+   và semantics của component không trôi khi nâng phiên bản Radzen. */
 .rz-layout.vpp-layout {
     display: grid;
     gap: 0 !important;
@@ -41,7 +39,7 @@ body:has(.vpp-layout) {
 /* W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip khu vực
    + role badge (thanh tab RadzenTabs trong body bị ẩn ở desktop, xem khối
    media phía dưới); mobile giữ hamburger + breadcrumb vị trí. */
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     .vpp-header-breadcrumb {
         display: none !important;
     }
@@ -55,7 +53,7 @@ body:has(.vpp-layout) {
     }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     .vpp-header-tabs {
         display: none !important;
     }
@@ -298,8 +296,7 @@ leftsidebar {
     transition: width var(--vpp-sidebar-transition);
 }
 
-/* Stylesheet theme Radzen được tải sau style shell tự viết. Match đúng runtime
-   element và khóa seam reset để theme không thể khôi phục đường nối. */
+/* Match đúng runtime element để khóa seam reset trên mọi theme Radzen. */
 .rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar {
     border-right: 0 !important;
     box-shadow: none !important;
@@ -1077,8 +1074,9 @@ leftsidebar {
 }
 
 /* ── Thích ứng kích thước màn hình ─────────────────────────────── */
-@media (max-width: 767px) {
-    .rz-layout.vpp-layout {
+@media (max-width: 768px) {
+    .rz-layout.vpp-layout,
+    .rz-layout.vpp-layout:has(> .rz-sidebar.vpp-sidebar) {
         grid-template-columns: 1fr;
         grid-template-rows: var(--vpp-header-height) 1fr;
         grid-template-areas:
@@ -1172,7 +1170,7 @@ leftsidebar {
     }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .permission-user-grid .rz-group-header {
         display: flex;
         flex-direction: column;
@@ -1209,7 +1207,7 @@ leftsidebar {
 }
 
 /* ── Điều hướng phía dưới (di động) ────────────────────────────── */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .vpp-mobile-nav {
         display: flex;
         position: fixed;
@@ -1245,7 +1243,7 @@ leftsidebar {
     }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     .vpp-mobile-nav {
         display: none;
     }
@@ -2486,7 +2484,7 @@ leftsidebar {
     margin-top: var(--vpp-space-4);
 }
 
-@media (min-width: 768px) and (max-width: 1199px) {
+@media (min-width: 769px) and (max-width: 1199px) {
     .vpp-report-kpis {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -2496,7 +2494,7 @@ leftsidebar {
     }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .vpp-report-header {
         align-items: stretch;
         flex-direction: column;
@@ -2529,7 +2527,7 @@ leftsidebar {
     }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     .vpp-report-page {
         padding: var(--vpp-space-4);
     }

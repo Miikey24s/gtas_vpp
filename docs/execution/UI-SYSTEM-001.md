@@ -1,13 +1,13 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `PLANNED — OWNER REVIEW`
+- Status: `IN_REVIEW — F0 IMPLEMENTED; F1 NOT STARTED`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
 - Style contract: Design Atlas M0–M2 đã được owner chuẩn hóa
 - Liên quan: [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md)
 
-> Tài liệu này chỉ lập kế hoạch. Chưa sửa code UI, backend, API, database, RBAC, LVTN hoặc React cho đến khi owner duyệt mục 9.
+> Owner đã duyệt thực thi F0 ngày 2026-07-28. F0 chỉ chuẩn hóa baseline/guard; F1–F7 chưa được tự động mở và vẫn theo gate trong bảng canonical.
 
 ---
 
@@ -49,11 +49,11 @@ Snapshot repository ngày 2026-07-28:
 | Bằng chứng | Hiện trạng | Ý nghĩa cho plan |
 |---|---:|---|
 | Razor component | 81 file | Cần progressive disclosure, không bắt agent nạp cả cây UI. |
-| Authenticated route | 23 logical route | `RouteCatalog` tiếp tục là source of truth cho navigation và QA. |
-| Anonymous route | 9 logical route | Account flow là regression set riêng. |
+| Authenticated route | 30 logical route | `RouteCatalog` đã phản ánh các view/sub-flow query thật và tiếp tục là source of truth cho navigation/QA. |
+| Anonymous route | 10 logical route | Account flow gồm ConfirmEmail động và là regression set riêng. |
 | Authored CSS | 27 file | Chưa cần gom một lần; migrate theo owner/consumer. |
 | Inline style | 261 occurrence | Debt cần giảm dần ở file được chạm. |
-| `!important` | 755 occurrence | Có dấu hiệu cascade/load-order đang bị bù bằng override mạnh. |
+| `!important` | 756 occurrence | Debt baseline hiện tại; F0 không thêm occurrence mới trong diff. |
 | Authored hex | 131 occurrence | Phân loại token hợp lệ và màu rời rạc trước khi thay. |
 | CSS isolation | 7 `.razor.css` file | Cần ưu tiên isolation cho component/route mới hoặc được tách. |
 
@@ -152,8 +152,8 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 
 | Wave | Trạng thái | Model + effort | Thực hiện | Sau wave anh có gì | Visual review | Gate để mở wave sau |
 |---|---|---|---|---|---|---|
-| F0 — Baseline & guard | `READY — OWNER APPROVAL` | **Sol · High** | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên và có test chặn lỗi kiến trúc quay lại. | Contact sheet before/after của 4 route + mini diagram CSS/cascade. | Không có visual change ngoài ý muốn; build/test và 4 route browser regression pass. |
-| F1 — Token & bridge | `PENDING F0` | **Sol · High** | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board token + cùng một cụm Radzen ở Light/Dark. | Không tăng hex/inline/`!important`; representative contrast pass. |
+| F0 — Baseline & guard | `DONE — OWNER REVIEW` | **Sol · High** | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên ở desktop; breakpoint 390/768 không còn chừa gutter cho sidebar đã ẩn. | Contact sheet before/after 4 route + diagram cascade trong evidence local ignored. | Focused architecture, route-real matrix và full frontend verify đã pass; owner duyệt board trước F1. |
+| F1 — Token & bridge | `PENDING F0 OWNER REVIEW` | **Sol · High** | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board token + cùng một cụm Radzen ở Light/Dark. | Không tăng hex/inline/`!important`; representative contrast pass. |
 | F2 — Primitive & state | `PENDING F1` | **Terra · High**; **Sol · High** review | Tạo primitive nhỏ và content-state canonical; migrate tối thiểu 2 consumer; chỉ xóa adapter đã hết consumer. | **Khung cơ bản dùng được:** loading/empty/filter-empty/error/denied nhất quán trên các route đầu tiên. | State matrix desktop/mobile; trace keyboard/focus khi cần. | API typed; unit/architecture/accessibility pass; route thật không regression. |
 | F3 — Composite | `PENDING F2` | **Sol · High** | Tạo composite sau khi so sánh 2 consumer thật; ưu tiên order-detail cho My Orders và History nếu behavior cho phép. | **Luồng mẫu hoàn chỉnh:** chứng minh tái sử dụng không làm mất dữ liệu, action hoặc nghiệp vụ. | My Orders và History cạnh nhau, highlight order-detail dùng chung. | Data, action, paging/virtualization và responsive behavior giữ đúng. |
 | F4 — Pattern | `PENDING F3` | **Sol · XHigh** | Tạo contract nhỏ, typed và tùy biến bằng slot cho Collection, ListDetail, SplitEditor, Operation, Analytics/Account khi đủ consumer. | **Khung scalable hoàn chỉnh:** đủ nền để migrate nhanh sản phẩm mà route vẫn giữ nghiệp vụ riêng. | Pattern map dạng card + thumbnail consumer thật. | Không reflection/endpoint string; route giữ API/permission; tối thiểu 2 consumer/pattern. |
@@ -259,6 +259,14 @@ Chạy bốn archetype đại diện:
 4. `/permission` hoặc `/report` — permission/data visualization.
 
 F0 chỉ được commit khi code gates pass và browser diff được giải thích; không dùng `!important` mới để che cascade regression.
+
+### 7.1 — Kết quả thực thi F0
+
+- `Components/App.razor` tải Radzen base trước `app.css`, VPP tokens, Radzen bridge và các project override; runtime test xác nhận đúng thứ tự link thật.
+- Shell breakpoint đồng bộ với Radzen responsive: `<= 768px` là mobile/overlay, `>= 769px` là desktop/tablet grid. Quy tắc specificity cao không còn giữ cột sidebar 64px khi sidebar đã ẩn.
+- `RouteCatalog` bổ sung `periodTab`, `orderView`, mode order-create, selected price list, required password change và ConfirmEmail; architecture test đối chiếu mọi `@page` Razor.
+- Browser matrix dùng isolated TEST fixture trên Login, History, Library/Departments và Permission tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; kiểm tra geometry, hidden-sidebar gutter, navigation toggle, console, request failure và HTTP lỗi của document/stylesheet/script.
+- Visual diff được giải thích: desktop chỉ còn sai khác nhỏ do render dữ liệu; mobile/768 thay đổi có chủ đích để bỏ gutter ẩn và trả navigation về trạng thái thao tác được. Không thêm `!important`, không đổi API/DTO/RBAC/database/nghiệp vụ.
 
 ---
 

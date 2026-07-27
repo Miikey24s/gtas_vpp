@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.72` — 2026-07-28
+> **Phiên bản:** `2.73` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `PLANNED — OWNER REVIEW`. Đây là plan, chưa cho phép sửa UI production.
+> **Trạng thái:** `F0 IMPLEMENTED — OWNER REVIEW; F1 NOT STARTED`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,10 +24,10 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift và hỏi lại capacity nếu task mới chưa có snapshot. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code đầu tiên? | Sửa thứ tự CSS để Radzen base tải trước project overrides, thêm guard chống hồi quy và QA các route đại diện; không đổi visual có chủ đích. | [Vertical slice đầu tiên](../execution/UI-SYSTEM-001.md#7-vertical-slice-đầu-tiên-sau-khi-owner-duyệt) |
+| Bước code đầu tiên? | F0 đã sửa CSS order, route metadata và regression guard. Bước tiếp theo chỉ là owner review evidence; chưa tự mở F1. | [Kết quả F0](../execution/UI-SYSTEM-001.md#71--kết-quả-thực-thi-f0) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Duyệt kiến trúc, thứ tự F0–F7 và phạm vi slice F0.1–F0.3 trước khi sửa code UI. | [Approval gate](../execution/UI-SYSTEM-001.md#9-owner-approval-gate) |
+| Cần owner duyệt gì? | Duyệt Wave Review Board F0 và xác nhận có mở F1 Token & bridge hay không. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -76,7 +76,7 @@ Khi có xung đột:
 - Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
 - Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; dependency Playwright dùng chung đã chuyển vào `scripts/browser/`.
 - Mọi UI work tiếp theo phải sửa trực tiếp `src/Frontend/Blazor`, dùng API/DTO và database TEST hoặc isolated fixture thật.
-- Thứ tự hiện tại: Atlas `ATLAS-001` đã hoàn tất → owner duyệt `UI-SYSTEM-001` → thực thi F0 theo vertical slice nhỏ → chỉ mở F1–F7 khi gate liền trước pass.
+- Thứ tự hiện tại: Atlas `ATLAS-001` đã hoàn tất → F0 của `UI-SYSTEM-001` đã implement và chờ owner review → chỉ mở F1 khi owner duyệt evidence/gate F0.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
 
 **Bằng chứng kích hoạt lại Blazor/Radzen — 2026-07-21:**
@@ -1574,7 +1574,7 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Gate đang chờ hiện tại: owner duyệt `UI-SYSTEM-001`, sau đó mới thực thi F0.1–F0.3. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
+Gate đang chờ hiện tại: owner duyệt kết quả trực quan F0; sau đó mới mở F1 Token & bridge. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 

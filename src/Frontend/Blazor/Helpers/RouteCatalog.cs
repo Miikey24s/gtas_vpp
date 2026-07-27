@@ -55,10 +55,39 @@ public static class RouteCatalog
             AnyOfPermissions: [],
             Notes: "Authenticated self-service route exposed from UserMenu."),
 
+        new(
+            Key: "account.change-password.required",
+            Path: "/Account/ChangePassword?required=1",
+            Title: "ChangePasswordTitle",
+            PageCode: "",
+            AnyOfPermissions: [],
+            Notes: "Mandatory password-change state after login."),
+
         // ── Bảng điều khiển ────────────────────────────────────────
         new(
             Key: "dashboard.my-orders",
             Path: "/dashboard?tab=0",
+            Title: "MyOrders",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestOrder]),
+
+        new(
+            Key: "dashboard.my-orders.current",
+            Path: "/dashboard?tab=0&orderView=current",
+            Title: "MyOrders",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestOrder]),
+
+        new(
+            Key: "dashboard.my-orders.supplement",
+            Path: "/dashboard?tab=0&orderView=supplement",
+            Title: "MyOrders",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestOrder]),
+
+        new(
+            Key: "dashboard.my-orders.previous",
+            Path: "/dashboard?tab=0&orderView=previous",
             Title: "MyOrders",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
             AnyOfPermissions: [Permissions.RequestOrder]),
@@ -136,13 +165,27 @@ public static class RouteCatalog
             AnyOfPermissions: [Permissions.RequestOrder]),
 
         new(
+            Key: "dashboard.order-create.additional",
+            Path: "/dashboard/order-create?isAdditional=true",
+            Title: "OrderCreate",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestOrder]),
+
+        new(
+            Key: "dashboard.order-create.copy-previous",
+            Path: "/dashboard/order-create?copyFrom=previous",
+            Title: "OrderCreate",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestOrder]),
+
+        new(
             Key: "dashboard.order-create.edit",
             Path: "/dashboard/order-create?orderId={SAMPLE_ORDER_ID}",
             Title: "OrderEdit",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
             AnyOfPermissions: [Permissions.RequestOrder],
             IsDynamic: true,
-            Notes: "Replace {SAMPLE_ORDER_ID} with first order id available to the test user. Variants: ?copyFromOrderId=, ?additional=true."),
+            Notes: "Replace {SAMPLE_ORDER_ID} with the first editable order id available to the test user."),
 
         // ── Danh mục ───────────────────────────────────────────────
         new(
@@ -194,6 +237,15 @@ public static class RouteCatalog
             PageCode: Config.Page_ComponentCode.PageCode.Library,
             AnyOfPermissions: [Permissions.LibraryPrice],
             Notes: "Legacy ?tab=4 redirects to this view."),
+
+        new(
+            Key: "library.pricing.prices.selected-list",
+            Path: "/library?tab=6&pricingTab=prices&priceListId={SAMPLE_PRICE_LIST_ID}",
+            Title: "Prices",
+            PageCode: Config.Page_ComponentCode.PageCode.Library,
+            AnyOfPermissions: [Permissions.LibraryPrice],
+            IsDynamic: true,
+            Notes: "Replace {SAMPLE_PRICE_LIST_ID} with a price list visible to the test user."),
 
         // ── Phân quyền ─────────────────────────────────────────────
         new(
@@ -268,6 +320,16 @@ public static class RouteCatalog
             IsAuthenticated: false),
 
         new(
+            Key: "account.confirm-email",
+            Path: "/Account/ConfirmEmail?userId={SAMPLE_USER_ID}&token={SAMPLE_TOKEN}",
+            Title: "ConfirmEmailTitle",
+            PageCode: "",
+            AnyOfPermissions: [],
+            IsDynamic: true,
+            IsAuthenticated: false,
+            Notes: "Process route; use only a disposable TEST confirmation token."),
+
+        new(
             Key: "login-process",
             Path: Config.LoginProcessPath,
             Title: "LoginProcess",
@@ -303,7 +365,19 @@ public static class RouteCatalog
     /// <summary>
     /// Query parameter làm thay đổi view logic; khóa duy nhất của audit có chứa các giá trị này.
     /// </summary>
-    public static readonly string[] NavigationQueryParams = ["tab", "managementTab", "pricingTab"];
+    public static readonly string[] NavigationQueryParams =
+    [
+        "tab",
+        "managementTab",
+        "periodTab",
+        "pricingTab",
+        "orderView",
+        "orderId",
+        "isAdditional",
+        "copyFrom",
+        "priceListId",
+        "required"
+    ];
 
     /// <summary>
     /// Query parameter KHÔNG làm đổi khóa duy nhất của audit, ví dụ filter và paging.

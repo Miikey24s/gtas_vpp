@@ -113,7 +113,7 @@
 
     window.vppViewport = {
         isDesktop: function () {
-            return window.matchMedia("(min-width: 768px)").matches;
+            return window.matchMedia("(min-width: 769px)").matches;
         }
     };
 

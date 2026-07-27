@@ -10,6 +10,8 @@
     <base href="/" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+    <RadzenTheme Theme="@ThemeState.CurrentTheme"/>
+    <link rel="stylesheet" href="@(ThemeState.IsDark ? "_content/Radzen.Blazor/css/material-dark-base.css" : "_content/Radzen.Blazor/css/material-base.css")" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-tokens.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-radzen-theme.css"]" />
@@ -48,8 +50,6 @@
         })();
     </script>
     <HeadOutlet @rendermode="InteractiveServer" />
-    <RadzenTheme Theme="@ThemeState.CurrentTheme"/>
-    <link rel="stylesheet" href="@(ThemeState.IsDark ? "_content/Radzen.Blazor/css/material-dark-base.css" : "_content/Radzen.Blazor/css/material-base.css")" />
     <link rel="stylesheet" href="@Assets["css/vpp-casing.css"]" />
     <link rel="stylesheet" href="@Assets["css/vpp-toast.css"]" />
 </head>

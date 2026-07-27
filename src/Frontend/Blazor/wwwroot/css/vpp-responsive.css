@@ -91,8 +91,8 @@
     border-top: 1px solid var(--vpp-border-subtle);
 }
 
-/* Mobile: dưới 768px. */
-@media (max-width: 767px) {
+/* Mobile: đến 768px, đồng bộ breakpoint responsive của RadzenSidebar. */
+@media (max-width: 768px) {
     .vpp-hide-mobile { display: none; }
     .vpp-show-mobile { display: block; }
     .vpp-show-tablet,
@@ -157,8 +157,8 @@
     }
 }
 
-/* Máy tính bảng: 768-1199px. */
-@media (min-width: 768px) and (max-width: 1199px) {
+/* Máy tính bảng: 769-1199px. */
+@media (min-width: 769px) and (max-width: 1199px) {
     .vpp-hide-mobile { display: revert; }
     .vpp-show-mobile { display: none; }
     .vpp-hide-tablet { display: none; }
