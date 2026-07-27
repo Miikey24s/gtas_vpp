@@ -22,7 +22,7 @@
 |---|---|---|---|
 | Microsoft Learn MCP | Tài liệu chính chủ .NET, Blazor, ASP.NET Core, Aspire và Microsoft accessibility | Đã cài global | Tra trước khi quyết định API/kiến trúc Microsoft có thể thay đổi theo phiên bản |
 | Sosumi Apple Docs MCP | Apple Developer Documentation, Human Interface Guidelines (HIG) và WWDC ở dạng Markdown cho AI | Đã cài global, kết nối HTTP không cần API key | Nguồn tham khảo trực tiếp cho visual hierarchy, clarity, spacing, feedback và accessibility; đây là dịch vụ mã nguồn mở không chính thức, mọi kết luận quan trọng vẫn đối chiếu URL Apple gốc |
-| shadcn MCP | Tìm, đọc và cài component/block từ shadcn-compatible registries | Cài global khi khởi tạo `gtas_vpp_fe_react` | Dùng trước khi thêm shadcn component; component được đưa thành source trong repo để AI đọc/sửa, không xem registry item là code đã được duyệt tự động |
+| shadcn MCP | Tìm, đọc và cài component/block từ shadcn-compatible registries | Từng dùng cho React POC đã archive | Chỉ dùng cho prototype cô lập khi owner mở lại phạm vi React; không thêm component vào dependency host `gtas_vpp_fe_react/` |
 | Radzen Blazor MCP | Component, property, event, DataGrid, Dialog, validation và theme Radzen | Đã cài | Bắt buộc tra trước khi sửa Radzen; hết quota/key thì dừng toàn bộ công việc và chờ key mới |
 | Playwright MCP | DOM/ARIA snapshot, thao tác route thật, viewport, screenshot, console và request lỗi | Đã cài | Công cụ browser mặc định cho agent; không dùng `networkidle` làm điều kiện duy nhất với Blazor Server |
 | Chrome DevTools MCP | Console/network chuyên sâu, source-mapped error và performance trace | Đã cài global | Chỉ dùng Chrome/Chrome for Testing profile riêng; telemetry và CrUX đã tắt trong config |
@@ -55,12 +55,12 @@ Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret tr
 
 ### Figma / Opus 4.8 Build
 
-- Dùng root `Guidelines.md`, Blazor living plan và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm context; không dùng `gtas_vpp_fe_react/Guidelines.md` trừ khi owner mở lại React.
+- Dùng root `Guidelines.md`, Blazor living plan và `VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md` làm context; React POC cũ chỉ được đọc từ archive tag khi owner yêu cầu.
 - Khi tài khoản có Import GitHub/Code on Canvas, import toàn `Miikey24s/gtas_vpp` ở branch `Nam` để đọc source Blazor, shared DTO và docs thật; không chọn `gtas_vpp_fe_react` làm target. Dùng `VPP-PULSE-FIGMA-CODEBASE-STARTER-PROMPT.md`.
 - Chỉ khi import không khả dụng mới upload `VPP-PULSE-FIGMA-MAKE-CONTEXT.md` và dùng prompt fallback trong `VPP-PULSE-FIGMA-MAKE-STARTER-PROMPT.md`.
 - Với app phức tạp, làm theo phase và screen/workspace thay vì một prompt full end-to-end. Context attachment được giữ xuyên conversation; prompt tiếp theo chỉ giao workspace/state cần mở rộng sau owner review.
 - Bắt đầu phiên Make mới khi source/context cũ đã lỗi thời; không tiếp tục từ chat hoặc code snapshot cũ.
-- Nếu Figma cần React code layer để render, giữ output như prototype/evidence cô lập. Implementation sau review phải được viết lại có kiểm soát trong `gtas_vpp_fe`; không merge code layer vào React phụ hoặc coi nó là cutover.
+- Nếu Figma cần React code layer để render, giữ output như prototype/evidence cô lập. Implementation sau review phải được viết lại có kiểm soát trong `src/Frontend/Blazor/`; không ghi code layer vào dependency host hoặc coi nó là cutover.
 - Nếu imported workflow bắt buộc ghi file, xác minh latest `origin/Nam`, tạo `figma/*` và không push/PR/merge trước owner review. Nút GitHub Push của Make file trống vẫn là luồng một chiều sang repository do Make tạo, không thay thế import codebase thật.
 - Attachment chỉ gồm file cần cho route hiện tại, nêu rõ file nào là authority hay inspiration; không tải secret, cookie, token, connection string hoặc dữ liệu production.
 

@@ -478,7 +478,7 @@ Chỉ chụp ảnh không phải visual regression — chỉ gọi là regressio
 | Hình luận văn lỗi thời sau khi sửa UI | Chỉ chụp lại ở W-H, sau khi UI đã ổn định. Chụp sớm sẽ phải chụp lại nhiều lần |
 | `Tab_History` 577 dòng và `Tab_AdminApproval` 357 dòng | Chẻ nhỏ trước khi sửa bố cục, không sửa trực tiếp trên file lớn |
 | Mất Atlas do cache Codex bị dọn | Giải quyết ngay ở W-A bằng D5 |
-| Phình phạm vi sang React | `gtas_vpp_fe_react/` vẫn `PAUSED/DEFERRED`, không đụng |
+| Phình phạm vi sang React | React POC đã archive; `gtas_vpp_fe_react/` chỉ là Playwright tooling, không thêm application source |
 
 ---
 

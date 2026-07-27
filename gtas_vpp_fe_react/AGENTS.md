@@ -1,28 +1,11 @@
-# GTAS VPP React auxiliary frontend
+# Phạm vi thư mục
 
-Áp dụng cho toàn bộ `gtas_vpp_fe_react/`.
+Thư mục này không còn là frontend React. Nó chỉ giữ dependency Playwright để các
+script chụp hình luận văn hiện có tiếp tục tìm thấy
+`gtas_vpp_fe_react/node_modules/playwright` mà không cần sửa file trong `LVTN/`.
 
-- Đây là frontend React phụ/proof-of-concept đang `PAUSED/DEFERRED`; frontend chính hiện hành là Blazor/Radzen trong `../src/Frontend/Blazor/`.
-- Không sửa thư mục này nếu owner chưa mở lại phạm vi React rõ ràng. Khi được mở lại, đọc và cập nhật `../docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md`.
-- Figma import repository hiện dùng để thiết kế cho frontend Blazor chính. Không chọn thư mục này làm project target chỉ vì Figma code layer dùng React; mọi React output của vòng thiết kế là prototype/evidence, không phải production authority.
-- Không xóa hoặc sửa frontend Blazor chỉ để React hoạt động.
-- React là modernization, không chép route/layout Blazor 1:1. Giữ business invariant, permission, audit và dữ liệu; chủ động tối ưu IA, workflow, component và API contract có kiểm soát.
-- Stack chuẩn: React + TypeScript + Vite, shadcn/ui + Tailwind CSS, React Router, TanStack Query/Table, React Hook Form + Zod và i18next.
-- Dùng shadcn MCP trước khi thêm component mới. Component shadcn là source thuộc repository: đọc, sửa và test trực tiếp; không bọc override CSS dài như cách dùng package UI đóng.
-- Không thêm Next.js, framework SSR hoặc state library khác nếu chưa có nhu cầu sản phẩm được ghi trong living plan.
-- DTO/API types phải sinh bằng `npm run api:generate` từ Swagger/OpenAPI; không copy interface từ C# bằng tay.
-- Khi API hiện tại cản trở outcome, được nâng backend contract bằng change-set riêng có test; không tạo workaround frontend hoặc model giả để che contract thiếu.
-- Server state dùng TanStack Query; local UI state ưu tiên React state/context trước khi thêm store.
-- Mọi text hiển thị dùng i18next VI/EN. Light/Dark/Print phải dùng chung design token.
-- Accessibility tối thiểu: semantic HTML, keyboard/focus, accessible name và axe không có violation critical/serious.
-- Không commit `.env`, generated secret, `node_modules`, `dist`, coverage, Playwright report hoặc test artifacts.
+- Frontend chính: `../src/Frontend/Blazor/`.
+- Không thêm lại source React, Vite, Docker hoặc runtime deployment tại đây.
+- Bản React POC cũ được lưu ở tag `archive/react-poc-2026-07-27` và bản ZIP ngoài repository.
+- Sau khi đổi dependency, chạy `npm ci` và `npm audit`.
 
-Kiểm tra tối thiểu:
-
-```powershell
-npm run lint
-npm run typecheck
-npm test
-npm run build
-npm run test:e2e
-```

@@ -4,7 +4,7 @@
 
 ## Phạm vi và cấu trúc chuẩn
 
-- Backend nằm trong `src/Backend/`; frontend chính hiện hành là Blazor/Radzen trong `src/Frontend/Blazor/`; frontend React trong `gtas_vpp_fe_react/` chỉ là bản proof-of-concept đóng băng để đối chiếu và phục vụ tooling LVTN cũ.
+- Backend nằm trong `src/Backend/`; frontend chính hiện hành là Blazor/Radzen trong `src/Frontend/Blazor/`. React POC đã được lưu ở tag `archive/react-poc-2026-07-27`; `gtas_vpp_fe_react/` hiện chỉ là dependency host Playwright để giữ tương thích với tooling LVTN cũ.
 - Shared DTO duy nhất là `src/Shared/`. Không tạo bản sao shared DTO trong frontend.
 - Không sửa API, database hoặc nghiệp vụ chỉ để làm cho nội dung luận văn khớp; luận văn phải mô tả đúng source thực tế.
 - Khi sửa UI, đọc và tuân thủ `.codexrules` cùng `.github/copilot-instructions.md`.
@@ -13,10 +13,10 @@
 ## UI renovation plan
 
 - Blazor/Radzen là frontend chính và execution authority hiện tại. Trước mọi thay đổi trong `src/Frontend/Blazor/`, phải đọc và cập nhật `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
-- `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md` là hồ sơ của dự án phụ/proof-of-concept đang `PAUSED/DEFERRED`; chỉ sửa `gtas_vpp_fe_react/` khi owner mở lại phạm vi React rõ ràng.
+- `docs/design/VPP-PULSE-REACT-FRONTEND-MIGRATION-PLAN.md` là hồ sơ lưu trữ của React POC. Không thêm lại source/runtime React vào `gtas_vpp_fe_react/` nếu owner chưa mở lại phạm vi rõ ràng.
 - Đọc `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` để chọn đúng nguồn tài liệu, browser tool và QA layer; không cài hoặc gọi nhiều MCP trùng chức năng chỉ để tăng số lượng công cụ.
 - Blazor chạy thật trong browser là nguồn quyết định visual cuối. Figma là nơi nghiên cứu/prototype để owner duyệt; React phụ chỉ là evidence tham khảo, không phải pixel/route authority.
-- Figma có thể import toàn repository để đọc source. Nếu môi trường Figma cần React để dựng code layer, output đó chỉ là design prototype cô lập; không được coi `gtas_vpp_fe_react/` là frontend chính hoặc tự ghi đè `src/Frontend/Blazor/`.
+- Figma có thể import toàn repository để đọc source. Nếu môi trường Figma cần React để dựng code layer, output đó chỉ là design prototype cô lập; không ghi vào dependency host `gtas_vpp_fe_react/`, không coi đó là frontend chính và không tự ghi đè `src/Frontend/Blazor/`.
 - Không tạo thêm UI Lab trong repository. Phần đã duyệt phải được triển khai trực tiếp trong `src/Frontend/Blazor/`, dùng API/DTO và database TEST hoặc isolated fixture thật.
 - `docs/design/atlas/` là bản Design Atlas 28 màn được đưa vào repository ngày 2026-07-26 (quyết định D5 trong `docs/execution/ATLAS-001.md`). Đây là **design reference đóng băng và read-only**, giữ để bảo toàn nguồn của 16 hình giao diện trong luận văn; không phải UI Lab và không được dùng để phát triển tính năng mới. Chỉ sửa khi owner duyệt một thay đổi thiết kế, và phải sửa kèm route Blazor tương ứng cùng route ledger.
 - Kế hoạch triển khai toàn bộ Atlas sang frontend nằm trong `docs/execution/ATLAS-001.md`; đọc mục 1 của file đó để biết thứ tự thẩm quyền khi luận văn, Atlas, backend và frontend mâu thuẫn nhau.

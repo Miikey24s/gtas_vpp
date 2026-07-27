@@ -19,7 +19,7 @@ và auto-memory — không cần chép lại nội dung các file đó vào tóm
 - UI Blazor/Radzen (`src/Frontend/Blazor/`): `.codexrules`, `.github/copilot-instructions.md`,
   `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`.
 - Chọn MCP / browser tool / QA layer: `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md`.
-- React POC (`gtas_vpp_fe_react/`): đã gỡ khỏi runtime và CI/CD; chỉ giữ đóng băng để đối chiếu/tooling LVTN.
+- React POC: đã lưu ở tag `archive/react-poc-2026-07-27` và gỡ khỏi source hoạt động/runtime/CI-CD. `gtas_vpp_fe_react/` chỉ giữ Playwright cho tooling LVTN.
 
 ## MCP đã cấu hình cho Claude Code
 

@@ -1,12 +1,12 @@
 # VPP Pulse — Blazor UI Renovation Living Master Plan
 
-> **Trạng thái:** `ACTIVE — BLAZOR/RADZEN DEADLINE PATH; REACT PAUSED`
+> **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.65` — 2026-07-26
+> **Phiên bản:** `2.66` — 2026-07-27
 >
-> **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen trong giai đoạn deadline. React được giữ nguyên để tiếp tục sau, không xóa hoặc ghi đè.
+> **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
-> **Implementation authority:** Blazor/Radzen là implementation authority hiện tại. React chỉ ở trạng thái `PAUSED/DEFERRED`; không sửa React trong giai đoạn này nếu không có quyết định mới.
+> **Implementation authority:** Blazor/Radzen là implementation authority hiện tại. Chỉ khôi phục hoặc tạo lại React khi owner có quyết định mới.
 >
 > **Research/reference:** Personal Design DNA, VPP Pulse/Figma, PPJ-inspired operating values, Apple HIG và các nguồn UI/data/accessibility chính thức phù hợp từng vấn đề.
 
@@ -48,10 +48,11 @@ Khi có xung đột:
 
 ## 3. Quyết định đã chốt
 
-### 3.0 Quyết định chuyển ưu tiên — 2026-07-21
+### 3.0 Quyết định chuyển ưu tiên — 2026-07-21; cập nhật lưu trữ — 2026-07-27
 
 - Owner tạm ngưng React vì sắp tới đợt deadline và tiếp tục hoàn thiện frontend Blazor/Radzen hiện hành.
-- Không xóa `gtas_vpp_fe_react`, không hoàn tác các commit React đã có; chỉ đóng băng thay đổi mới trên React.
+- Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
+- Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; thư mục `gtas_vpp_fe_react/` chỉ còn dependency Playwright để không phải sửa tooling LVTN.
 - Mọi UI work tiếp theo phải sửa trực tiếp `gtas_vpp_fe`, dùng API/DTO và database TEST hoặc isolated fixture thật.
 - Thứ tự hiện tại: khóa lại W1 `dashboard.my-orders` theo baseline round 6 → QA/owner review/commit vertical slice → W2 employee/order flows → W3 management → W4 procurement/period.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
@@ -82,22 +83,22 @@ Khi có xung đột:
 - Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
 
-### 3.1.1 Frontend React — PAUSED/DEFERRED (quyết định 2026-07-21)
+### 3.1.1 Frontend React — ARCHIVED/DEFERRED (cập nhật 2026-07-27)
 
-- Tạo frontend mới tại `gtas_vpp_fe_react`; hậu tố công nghệ giúp phân biệt rõ với `gtas_vpp_fe` Blazor trong giai đoạn hai stack cùng tồn tại.
+- React POC từng nằm tại `gtas_vpp_fe_react`; source lịch sử hiện được lưu ở tag `archive/react-poc-2026-07-27`.
 - Các nội dung bên dưới là hồ sơ kỹ thuật và bằng chứng đã làm, không phải phạm vi triển khai của giai đoạn deadline hiện tại.
 - Không thực hiện thêm thay đổi, QA hoặc migration route React cho đến khi owner mở lại phạm vi này.
 - Không đổi tên, ghi đè hoặc xóa frontend Blazor. Blazor vẫn là bản luận văn/runtime authority cho đến khi React đạt route parity và owner duyệt cutover rõ ràng.
 - Stack nền: React + TypeScript + Vite, shadcn/ui + Tailwind CSS, React Router, TanStack Query/Table, React Hook Form + Zod, i18next, Lucide và Recharts.
 - Không dùng Next.js cho giai đoạn này: GTAS là application nội bộ, backend ASP.NET Core/JWT đã tách riêng và không cần SEO/React Server Components hoặc thêm một Node production server.
 - TypeScript contract phải sinh từ Swagger/OpenAPI của backend; không tự chép DTO C# bằng tay và không tạo contract nghiệp vụ song song.
-- React POC không còn được AppHost hoặc production runtime khởi động; source chỉ được giữ đóng băng để đối chiếu và phục vụ tooling LVTN cũ.
+- React POC không còn trong source hoạt động, AppHost, production runtime hoặc CI/CD. Dependency host cùng tên chỉ giữ Playwright cho tooling LVTN cũ.
 - Proof-of-concept đầu tiên là `Login → App shell → My Orders` với API/TEST thật, đủ VI/EN, Light/Dark/Print, responsive, loading/empty/error/success, permissions và accessibility.
 - Chỉ bắt đầu migrate route tiếp theo khi proof-of-concept được chứng minh tốt hơn Blazor bằng runtime review và test, không dựa vào mock screenshot.
 
 **React foundation evidence — 2026-07-20:**
 
-- `gtas_vpp_fe_react` đã được scaffold bằng React 19 + TypeScript 6 + Vite 8; không sửa hoặc ghi đè frontend Blazor.
+- React POC lịch sử đã được scaffold bằng React 19 + TypeScript 6 + Vite 8; bằng chứng nằm trong archive tag, không phải project đang chạy.
 - Foundation đã có React Router lazy routes, TanStack Query provider, i18next VI/EN, Light/Dark/Print tokens, shadcn/ui source components, responsive shell và error/not-found boundary.
 - OpenAPI client dùng `@hey-api/openapi-ts`; URL Swagger lấy từ `GTAS_OPENAPI_URL`, còn runtime `/api` dùng Aspire service discovery/proxy hoặc `.env.local` khi chạy Vite độc lập.
 - `src/Hosting/AppHost` chỉ điều phối backend và Blazor/Radzen. React POC đã được gỡ khỏi AppHost, Docker Compose production và CI/CD ngày 2026-07-27.
@@ -965,7 +966,7 @@ Status hợp lệ:
 **W1 My Orders single-viewport tabbed workspace — owner direction 2026-07-23:**
 
 - owner chốt thay ba section dọc bằng một vùng nội dung dùng chung: compressed period header + three summary cards + internal order tabs + one internally scrollable table panel;
-- implementation tiếp tục ở Blazor/Radzen authority; chữ `React` trong prompt là context sai với project boundary hiện hành và không mở lại `gtas_vpp_fe_react`;
+- implementation tiếp tục ở Blazor/Radzen authority; chữ `React` trong prompt là context sai với project boundary hiện hành và không biến dependency host `gtas_vpp_fe_react` thành application;
 - query `tab=0` tiếp tục sở hữu primary Dashboard tab. Internal selection dùng query riêng `orderView=current|supplement|previous` để reload/share không phá route cấp trang;
 - regular current/previous order là duy nhất theo `UX_Requests_OneRegularPerUserPeriod`; supplement không tuyệt đối duy nhất vì backend cho phép nhiều attempt rejected/cancelled trước quota approved, nên normal state vẫn một order nhưng UI phải có compact selector fallback nếu API trả nhiều attempt;
 - tách order table/meta/actions/empty state thành component dùng chung; ba summary card là selector duy nhất với radio-group semantics, RadzenDataGrid bỏ paging 10 dòng để dùng fixed-height virtualization;
@@ -1595,7 +1596,7 @@ Khi tiếp tục UI renovation trong thread/session mới:
 5. Đọc ledger, feedback log và retrofit queue mới nhất.
 6. Chọn đúng route `PENDING`/`CHANGES_REQUESTED` theo thứ tự đã duyệt.
 7. Không suy luận rằng Figma đã cover đủ route.
-8. Không tạo thêm UI Lab/project preview ngoài `gtas_vpp_fe_react` proof-of-concept đã được owner duyệt; không đổi architecture render mode của Blazor.
+8. Không tạo thêm UI Lab/project preview trong repository; React POC cũ chỉ tồn tại ở archive tag và không đổi architecture render mode của Blazor.
 9. Không thay đổi API/DB/nghiệp vụ chỉ để đạt visual.
 10. Cập nhật file này trước khi báo route hoàn tất.
 

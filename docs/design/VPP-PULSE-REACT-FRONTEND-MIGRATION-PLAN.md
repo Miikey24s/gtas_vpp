@@ -1,14 +1,14 @@
 # VPP Pulse — React Frontend Migration Master Plan
 
-> **Trạng thái:** `PAUSED/DEFERRED — AUXILIARY PROOF-OF-CONCEPT`
+> **Trạng thái:** `ARCHIVED/DEFERRED — HISTORICAL PROOF-OF-CONCEPT`
 >
-> **Phiên bản:** `1.4` — 2026-07-21
+> **Phiên bản:** `1.5` — 2026-07-27
 >
-> **Mục tiêu hiện tại:** Lưu hồ sơ kỹ thuật và bằng chứng của frontend React phụ. Không tiếp tục migration hoặc cutover cho đến khi owner mở lại phạm vi bằng quyết định mới.
+> **Mục tiêu hiện tại:** Lưu hồ sơ kỹ thuật và bằng chứng của React POC đã được chuyển sang tag `archive/react-poc-2026-07-27`. Không tiếp tục migration hoặc cutover cho đến khi owner mở lại phạm vi bằng quyết định mới.
 >
-> **Execution authority hiện tại:** `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` + frontend Blazor/Radzen `gtas_vpp_fe/` + browser runtime.
+> **Execution authority hiện tại:** `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` + frontend Blazor/Radzen `src/Frontend/Blazor/` + browser runtime.
 >
-> **Phạm vi file này:** chỉ áp dụng khi sửa dự án phụ `gtas_vpp_fe_react/`; các queue/cutover gate bên dưới được đóng băng, không phải kế hoạch đang chạy.
+> **Phạm vi file này:** tài liệu lịch sử. `gtas_vpp_fe_react/` hiện chỉ là dependency host Playwright; muốn khôi phục React phải bắt đầu từ archive tag trên branch riêng.
 
 ---
 
