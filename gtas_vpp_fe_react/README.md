@@ -16,4 +16,3 @@ npx playwright install chromium
 ```
 
 Không chạy `npm run dev` hoặc deploy từ thư mục này vì nó không còn chứa ứng dụng.
-

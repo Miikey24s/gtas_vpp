@@ -8,4 +8,3 @@ script chụp hình luận văn hiện có tiếp tục tìm thấy
 - Không thêm lại source React, Vite, Docker hoặc runtime deployment tại đây.
 - Bản React POC cũ được lưu ở tag `archive/react-poc-2026-07-27` và bản ZIP ngoài repository.
 - Sau khi đổi dependency, chạy `npm ci` và `npm audit`.
-
