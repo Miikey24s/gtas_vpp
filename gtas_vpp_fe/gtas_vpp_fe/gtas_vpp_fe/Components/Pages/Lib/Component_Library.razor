@@ -29,7 +29,7 @@
                 <RadzenTabsItem Text="@Loc["OperationCategories"]">
                     @if (IsActiveTab(1))
                     {
-                        <Component_ShareGrid TType=VppCategoryResDTO @bind-Data="@operationCategories" Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddCategory"]" SearchPlaceholder="@Loc["LibrarySearchCategories"]" SearchFields="@(new[] { "VppCategoryCode", "VppCategoryName" })" />
+                        <Component_ShareGrid TType=VppCategoryResDTO @bind-Data="@operationCategories" Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddCategory"]" SearchPlaceholder="@Loc["LibrarySearchCategories"]" SearchFields="@(new[] { "VppCategoryCode", "VppCategoryName" })" AllowHardDelete="false" />
                     }
                 </RadzenTabsItem>
             }
@@ -47,7 +47,7 @@
                 <RadzenTabsItem Text="@Loc["Suppliers"]">
                     @if (IsActiveTab(3))
                     {
-                        <Component_ShareGrid TType=SupplierResDTO @bind-Data=@suppliers Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddSupplier"]" SearchPlaceholder="@Loc["LibrarySearchSuppliers"]" SearchFields="@(new[] { "SupplierShortName", "SupplierName" })" />
+                        <Component_ShareGrid TType=SupplierResDTO @bind-Data=@suppliers Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddSupplier"]" SearchPlaceholder="@Loc["LibrarySearchSuppliers"]" SearchFields="@(new[] { "SupplierShortName", "SupplierName" })" AllowHardDelete="false" />
                     }
                 </RadzenTabsItem>
             }
@@ -104,7 +104,7 @@
                 <RadzenTabsItem Text="@Loc["Departments"]">
                     @if (IsActiveTab(5))
                     {
-                        <Component_ShareGrid TType=DepartmentResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddDepartment"]" SearchPlaceholder="@Loc["LibrarySearchDepartments"]" SearchFields="@(new[] { "Code", "Name" })" />
+                        <Component_ShareGrid TType=DepartmentResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync Delete=@ApiDeleteAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddDepartment"]" SearchPlaceholder="@Loc["LibrarySearchDepartments"]" SearchFields="@(new[] { "Code", "Name" })" AllowHardDelete="false" />
                     }
                 </RadzenTabsItem>
             }
