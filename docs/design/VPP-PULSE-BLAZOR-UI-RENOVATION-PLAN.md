@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.69` — 2026-07-28
+> **Phiên bản:** `2.70` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -22,6 +22,7 @@
 | Xây theo kiểu nào? | Hybrid: Razor/HTML sở hữu layout; Radzen sở hữu widget phức tạp; tái sử dụng theo `token → primitive → composite → pattern → route`. | [Kiến trúc đích](../execution/UI-SYSTEM-001.md#3-kiến-trúc-đích) |
 | Làm theo thứ tự nào? | F0 khóa baseline → F1 token/bridge → F2 primitive/state → F3 composite → F4 pattern → F5 M0–M2 → F6 M3–M8 → F7 hardening. | [Các wave F0–F7](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Đầu ra owner nhận được](../execution/UI-SYSTEM-001.md#51-sau-mỗi-wave-owner-nhận-được-gì) |
+| Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#52-visual-review-contract-cho-từng-wave) |
 | Bước code đầu tiên? | Sửa thứ tự CSS để Radzen base tải trước project overrides, thêm guard chống hồi quy và QA các route đại diện; không đổi visual có chủ đích. | [Vertical slice đầu tiên](../execution/UI-SYSTEM-001.md#7-vertical-slice-đầu-tiên-sau-khi-owner-duyệt) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |

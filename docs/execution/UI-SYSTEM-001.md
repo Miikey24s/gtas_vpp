@@ -179,6 +179,37 @@ Mốc dễ hiểu:
 - Kết thúc **F6**: toàn bộ UI trong scope hiện tại đã lên khung mới.
 - Kết thúc **F7**: hoàn tất kỹ thuật, QA, dọn legacy và handoff của `UI-SYSTEM-001`.
 
+### 5.2 Visual review contract cho từng wave
+
+**Quyết định:** hình ảnh là lớp truyền đạt chính cho owner, nhưng không phải bằng chứng duy nhất. Mỗi wave phải tạo một `Wave Review Board` vừa một màn hình, ưu tiên visual và chỉ dùng nhãn ngắn. Screenshot phải lấy từ Blazor runtime với TEST/isolated fixture sau khi implementation chạy được; không dùng mock hoặc Atlas render để tuyên bố code đã hoàn thành.
+
+```mermaid
+flowchart LR
+    A["Visual chính<br/>70–80% diện tích"] --> B["4 nhãn ngắn<br/>Đã đổi · Chưa đổi · Kiểm tra · Cần duyệt"]
+    B --> C["Link route thật<br/>hoặc Playwright trace"]
+    C --> D["Owner: Approve<br/>hoặc Changes requested"]
+```
+
+| Wave | Visual chính trên review board | Evidence bổ sung khi cần |
+|---|---|---|
+| F0 | Contact sheet before/after của 4 route đại diện + mini diagram thứ tự CSS/cascade. | Link route thật; diff computed style; architecture test. |
+| F1 | Theme board: semantic token, typography, spacing và cùng một cụm Radzen ở Light/Dark đặt cạnh nhau. | Contrast result và debt delta cho hex/inline/`!important`. |
+| F2 | State matrix trực quan: loading, empty, filter-empty, error, denied, disabled trên desktop/mobile. | Keyboard/focus clip hoặc trace khi state có interaction. |
+| F3 | My Orders và History đặt cạnh nhau, highlight phần order-detail đã dùng chung. | Playwright trace ngắn cho mở detail, paging/virtualization và quay lại focus. |
+| F4 | Pattern map dạng card: mỗi workspace pattern có cấu trúc khái quát và thumbnail route consumer thật. | Link route mẫu; contract typed/slot chỉ để ở phần chi tiết, không nhồi lên ảnh. |
+| F5 | Contact sheet M0–M2 gồm shell, account, catalog, order create, My Orders và History; có representative mobile/desktop, Light/Dark. | Route matrix, console/network và axe report. |
+| F6 | Contact sheet M3–M8 chia theo subwave/nhóm nghiệp vụ; không nhét mọi màn vào một ảnh chữ quá nhỏ. | Route ledger có link evidence và trace cho flow period/permission phức tạp. |
+| F7 | Final board: before/after tiêu biểu, 4 viewport, Light/Dark/Print và QA scorecard trực quan. | Full regression report, performance trace và visual diff đã owner duyệt. |
+
+Format cố định của mỗi board:
+
+1. Một visual chính đủ lớn để nhìn được trong một lần mở.
+2. Tối đa bốn nhãn ngắn: `Đã thay đổi`, `Giữ nguyên`, `Đã kiểm tra`, `Cần owner duyệt`.
+3. Một link đến route thật hoặc Playwright trace nếu cần hiểu click, focus, animation, responsive hoặc lỗi.
+4. Một mô tả text ngắn nằm ngoài ảnh để tìm kiếm, handoff và đảm bảo accessibility; không nhúng đoạn giải thích dài vào ảnh.
+
+Evidence runtime đầy đủ tiếp tục nằm trong folder ignored. Sau owner approval, mỗi wave được phép commit **một** review board đã nén, dùng deterministic TEST data và không chứa secret/PII vào `docs/design/evidence/ui-system/` nếu nó tạo giá trị handoff lâu dài. Không commit toàn bộ screenshot/trace/video thô.
+
 ### Thứ tự migration ưu tiên
 
 1. CSS load order và architecture guard.
@@ -283,5 +314,7 @@ Sau approval, agent thực thi F0 end-to-end, báo bằng chứng và commit loc
 - [Radzen Blazor DataGrid](https://blazor.radzen.com/datagrid)
 - [Radzen DataGrid LoadData](https://blazor.radzen.com/datagrid-loaddata)
 - [Radzen DataGrid column picker](https://blazor.radzen.com/datagrid-column-picker)
+- [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer)
+- [W3C WAI — Images Tutorial](https://www.w3.org/WAI/tutorials/images/)
 
 Repository source và browser Blazor thật vẫn có thẩm quyền cao hơn ví dụ chung trong tài liệu framework khi behavior dự án khác nhau.

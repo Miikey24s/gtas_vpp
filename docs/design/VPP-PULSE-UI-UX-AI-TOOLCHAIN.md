@@ -103,6 +103,14 @@ Playwright MCP đã phù hợp cho interaction và accessibility tree; Chrome De
 - Phương án phù hợp với C# hiện tại: `Verify.Playwright` cho screenshot approval/diff. Chỉ thêm package và baseline khi route đầu tiên được duyệt để tránh snapshot churn.
 - Không dùng SaaS Percy, Applitools hoặc Chromatic ở giai đoạn hiện tại: có upload/cost và không phù hợp quyết định không tạo UI Lab. Có thể xem lại khi cần CI đa trình duyệt hoặc teamwork.
 
+### 3.3.1 Visual-first owner review
+
+- Mỗi wave của `UI-SYSTEM-001` phải có một `Wave Review Board` vừa một màn hình và dùng visual phù hợp bản chất wave: runtime screenshot, before/after contact sheet, state matrix, token/theme board hoặc architecture/pattern diagram.
+- Ảnh là lớp tóm tắt chính; interaction quan trọng dùng thêm Playwright trace hoặc video ngắn. Trace có lợi hơn screenshot đơn lẻ khi cần xem trước/sau từng action, DOM snapshot, console và network.
+- Không dùng mock/Figma/Atlas render để chứng minh implementation đã hoàn tất. Visual completion evidence phải chụp từ Blazor runtime với TEST/isolated fixture.
+- Review board chỉ có tối đa bốn nhãn ngắn và phải có text summary/alternative bên ngoài ảnh; không biến chữ dài thành ảnh.
+- Evidence thô mặc định Git ignore. Sau owner approval, chỉ commit một board đại diện đã nén cho mỗi wave khi nó hữu ích cho handoff và không chứa secret, PII hoặc dữ liệu production.
+
 ### 3.4 Performance và stability
 
 - Chrome DevTools MCP dùng trong vòng lặp phát triển để tìm long task, request chậm, layout shift và asset/font lỗi.
