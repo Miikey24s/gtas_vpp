@@ -22,11 +22,13 @@
 
 ## Workflow thay đổi
 
-1. Kiểm tra branch, `git status`, diff và instruction có hiệu lực.
+1. Nếu phiên vừa bị stop/resume/compact, phục hồi goal, plan, yêu cầu gần nhất, branch, `git status`, diff, process nền và commit gần nhất; tiếp tục phần dang dở trừ khi owner thay thế mục tiêu.
 2. Đọc architecture/plan, code, test và implementation tương tự trước khi sửa.
 3. Làm vertical slice nhỏ, giữ repository chạy được và không để placeholder thay chức năng thật.
 4. Chạy test hẹp trong vòng lặp; chạy `./scripts/gtas.cmd verify -Scope <scope>` khi change-set hoàn chỉnh.
 5. Rà toàn bộ diff, stage đúng file và tạo commit local có scope rõ. Push/PR/merge/deploy chỉ khi user yêu cầu rõ.
+
+Không coi task cũ đã xong chỉ vì turn bị ngắt. Trước khi đổi hướng, báo checkpoint đã kiểm chứng, phần còn lại và next exact action; không làm lại phần đã có evidence hoặc skip scope chưa hoàn tất.
 
 ## Frontend authority
 

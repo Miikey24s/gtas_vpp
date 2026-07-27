@@ -34,14 +34,23 @@ Thuật ngữ dùng trong tài liệu:
 
 ## 3. Vòng đời task chuẩn
 
-1. Chạy `./scripts/gtas.cmd preflight -Scope <scope>`.
-2. Đọc root và scoped `AGENTS.md`, status/diff, tài liệu authority và implementation tương tự.
-3. Với task phức tạp, tạo/cập nhật execution record từ template; task nhỏ dùng plan trong thread.
-4. Chọn đúng skill và MCP. Không gọi nhiều MCP cùng chức năng.
-5. Triển khai theo vertical slice có thể build/test/browser-verify độc lập.
-6. Chạy test hẹp trong vòng lặp; chạy `./scripts/gtas.cmd verify -Scope <scope>` trước commit khi phạm vi đủ hoàn chỉnh.
-7. Rà diff, stage đúng file, commit local theo scope. Push/PR/deploy chỉ khi người dùng yêu cầu rõ.
-8. Nếu chưa xong, ghi continuation note với branch, HEAD, dirty files, gate gần nhất và next exact action.
+1. Nếu phiên vừa `startup`, `resume` hoặc compact context, chạy resume preflight: đọc goal, plan chưa xong, yêu cầu gần nhất, branch, status/diff, process nền và commit gần nhất.
+2. Phân loại tin nhắn mới là thay thế, bổ sung, hỏi trạng thái hoặc tiếp tục. Không bỏ task cũ nếu owner chưa thay mục tiêu.
+3. Chạy `./scripts/gtas.cmd preflight -Scope <scope>`.
+4. Đọc root và scoped `AGENTS.md`, status/diff, tài liệu authority và implementation tương tự.
+5. Với task phức tạp, tạo/cập nhật execution record từ template; task nhỏ dùng plan trong thread.
+6. Chọn đúng skill và MCP. Không gọi nhiều MCP cùng chức năng.
+7. Triển khai theo vertical slice có thể build/test/browser-verify độc lập.
+8. Chạy test hẹp trong vòng lặp; chạy `./scripts/gtas.cmd verify -Scope <scope>` trước commit khi phạm vi đủ hoàn chỉnh.
+9. Rà diff, stage đúng file, commit local theo scope. Push/PR/deploy chỉ khi người dùng yêu cầu rõ.
+10. Nếu chưa xong, ghi continuation note với branch, HEAD, dirty files, gate gần nhất và next exact action.
+
+### Khôi phục sau gián đoạn
+
+- Task dài dùng persisted goal khi owner yêu cầu; goal chỉ complete khi outcome và verification đều đạt.
+- `.codex/hooks.json` gọi hook read-only ở `startup|resume|compact` để hiển thị branch, working-tree state và commit gần nhất. Hook chỉ là lời nhắc khôi phục, không thay thế goal/plan/Git.
+- Sau khi hook chạy, agent phải kiểm tra goal/plan thực tế, báo phần đã xong và phần chưa xong rồi tiếp tục đúng next action.
+- Nếu task bị ngắt trước khi có edit, ghi rõ “mới audit, chưa sửa”; không suy diễn từ số tool call hoặc plan status.
 
 ### Plan hai tầng
 
@@ -89,9 +98,9 @@ Không cần lặp lại build commands, Git safety, UI authority hoặc LVTN ru
 
 MCP token, API key, account authorization, browser profile và database credential luôn ở local/user scope. Không commit `.mcp.json`, `.claude.json`, `.env`, cookie hoặc storage state.
 
-Không có `.codex/config.toml` trong repository là quyết định có chủ đích ở thời điểm này: model, reasoning, sandbox và approval là preference theo người/máy; MCP đang có credential local. Chỉ thêm project config khi xuất hiện một default ổn định, không nhạy cảm và có thể kiểm chứng trên mọi máy.
+Không có `.codex/config.toml` trong repository là quyết định có chủ đích: model, reasoning, sandbox và approval là preference theo người/máy; MCP đang có credential local. Repository chỉ theo dõi `.codex/hooks.json` và script hook read-only phục vụ khôi phục task; chỉ thêm project config khi xuất hiện một default ổn định, không nhạy cảm và có thể kiểm chứng trên mọi máy.
 
-Không thêm hook hoặc custom agent chỉ vì Codex hỗ trợ chúng. Chỉ thêm hook sau khi script deterministic đã được dùng ổn định và hook không bị coi là security boundary; chỉ thêm custom agent khi có vai trò độc lập, eval chứng minh lợi ích và mỗi agent có worktree riêng.
+Không thêm hook hoặc custom agent chỉ vì Codex hỗ trợ chúng. Hook resume hiện tại được giữ vì read-only, chạy nhanh và giải quyết lỗi lặp lại; hook không phải security boundary. Chỉ thêm hook khác sau khi script deterministic đã ổn định; chỉ thêm custom agent khi có vai trò độc lập, eval chứng minh lợi ích và mỗi agent có worktree riêng.
 
 ## 7. Verification ladder
 

@@ -36,6 +36,8 @@ $requiredFiles = @(
     '.github/instructions/thesis.instructions.md',
     '.github/pull_request_template.md',
     '.github/workflows/ci.yml',
+    '.codex/hooks.json',
+    '.codex/hooks/session-resume-check.ps1',
     '.editorconfig',
     'CLAUDE.md',
     'GEMINI.md'
@@ -90,6 +92,14 @@ Add-Check 'no-snapshot-test-count' ($rootContent -notmatch '\b\d+\s*/\s*\d+\b') 
 
 $legacyRules = Get-Content -LiteralPath (Get-RepoPath '.codexrules') -Raw
 Add-Check 'legacy-codexrules-adapter' ($legacyRules -match 'Legacy UI instruction adapter' -and $legacyRules -match 'Không thêm quy tắc') 'Legacy file only redirects to canonical UI authority.'
+
+$hookConfigPath = Get-RepoPath '.codex/hooks.json'
+$hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'
+$hookConfig = if (Test-Path -LiteralPath $hookConfigPath) { Get-Content -LiteralPath $hookConfigPath -Raw | ConvertFrom-Json } else { $null }
+$sessionHooks = @($hookConfig.hooks.SessionStart)
+$resumeMatcher = @($sessionHooks | Where-Object { $_.matcher -match 'startup' -and $_.matcher -match 'resume' -and $_.matcher -match 'compact' })
+Add-Check 'resume-hook-matcher' ($resumeMatcher.Count -gt 0) 'SessionStart hook covers startup, resume, and compact.'
+Add-Check 'resume-hook-script' (Test-Path -LiteralPath $hookScriptPath) 'Read-only resume hook script exists.'
 
 $failed = @($results | Where-Object Result -eq 'FAIL')
 if ($OutputFormat -eq 'json') {

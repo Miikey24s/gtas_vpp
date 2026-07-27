@@ -369,7 +369,10 @@ scripts/export_db_full.sql
 
 # Local Dev Tools
 .ai_workspace/
-.codex/
+.codex/*
+!.codex/hooks.json
+!.codex/hooks/
+!.codex/hooks/session-resume-check.ps1
 .agents/*
 !.agents/skills/
 !.agents/skills/**
