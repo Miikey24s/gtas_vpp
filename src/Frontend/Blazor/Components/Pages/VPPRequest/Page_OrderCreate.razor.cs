@@ -326,7 +326,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private bool ValidateBeforeSubmit()
         {
-                // Đơn bổ sung bắt buộc có mô tả/lý do.
+            // Đơn bổ sung bắt buộc có mô tả/lý do.
             if (Context.IsAdditional
                 && (string.IsNullOrWhiteSpace(Context.SupplementReason)
                     || Context.SupplementReason.Trim().Length < 5

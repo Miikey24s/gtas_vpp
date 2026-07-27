@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace gtas_vpp_be.Model.VPP
 {
-[Table("RequestLogs")]
+    [Table("RequestLogs")]
     public class RequestLog
     {
         [Key]

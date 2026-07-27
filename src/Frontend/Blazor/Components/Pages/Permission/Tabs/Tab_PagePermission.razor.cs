@@ -249,7 +249,7 @@ public partial class Tab_PagePermission
             groupPermissions = [];
             if (notifyErrors)
             {
-            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
+                NotifyError(UiErrorMapper.GetMessage(ex, Loc));
             }
         }
         finally

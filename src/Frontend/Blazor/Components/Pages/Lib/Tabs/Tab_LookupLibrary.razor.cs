@@ -74,15 +74,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 // Dựng query parameter cho bộ lọc server-side.
                 var queryParams = new List<string> { "showDeleted=true" };
-                
+
                 if (!string.IsNullOrEmpty(args.Filter))
                 {
                     queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
                 }
-                
+
                 queryParams.Add($"skip={args.Skip ?? 0}");
                 queryParams.Add($"top={args.Top ?? 20}");
-                
+
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {
                     queryParams.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
@@ -116,7 +116,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 if (args.Column == null) return;
 
                 var property = args.Column.GetFilterProperty();
-                
+
                 // Yêu cầu giá trị distinct từ server.
                 var queryParams = new List<string>
                 {
@@ -167,7 +167,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userId);
-                
+
                 var patchData = new
                 {
                     IsDeleted = isDeleted,
@@ -256,15 +256,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     "showDeleted=true",
                     $"lookupCategoryId={selectedLookupCategory.Id}"
                 };
-                
+
                 if (!string.IsNullOrEmpty(args.Filter))
                 {
                     queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
                 }
-                
+
                 queryParams.Add($"skip={args.Skip ?? 0}");
                 queryParams.Add($"top={args.Top ?? 20}");
-                
+
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {
                     queryParams.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
@@ -295,7 +295,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 if (args.Column == null) return;
 
                 var property = args.Column.GetFilterProperty();
-                
+
                 // Yêu cầu giá trị distinct từ server.
                 var queryParams = new List<string>
                 {
@@ -341,7 +341,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             try
             {
                 _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userId);
-                
+
                 var patchData = new
                 {
                     IsDeleted = isDeleted,

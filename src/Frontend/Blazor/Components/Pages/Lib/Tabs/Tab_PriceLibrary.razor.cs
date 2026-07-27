@@ -78,7 +78,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
                 priceLists = await priceListsTask ?? [];
                 suppliers = await suppliersTask ?? [];
-                
+
                 selectedPriceListId = ResolveSelectedPriceListId();
                 selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId
                                      ?? suppliers.FirstOrDefault(s => s.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName)?.Id
@@ -189,12 +189,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     VppItemId = row.VppId,
                     PriceListId = selectedPriceListId.Value,
                     SupplierId = selectedSupplierId.Value,
-                        Price = 0,
+                    Price = 0,
                     IsDefault = false,
-                        Description = "",
-                        VatRate = 0,
-                        MinimumOrderQuantity = 0,
-                        LeadTimeDays = 0
+                    Description = "",
+                    VatRate = 0,
+                    MinimumOrderQuantity = 0,
+                    LeadTimeDays = 0
                 };
                 var result = await OpenEditorAsync(Loc["AddNewPrice"].Value, model);
                 if (result is null) return;

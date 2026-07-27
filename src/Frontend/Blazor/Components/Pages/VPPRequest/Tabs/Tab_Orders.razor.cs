@@ -271,8 +271,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 var data = await _apiServices.GetFromApiAsync<List<VppRequestResDTO>>(endpoint);
 
                 var allOrders = (data ?? new()).OrderByDescending(x => x.UpdatedAtUtc).ToList();
-                
-            // Tách đơn theo loại.
+
+                // Tách đơn theo loại.
                 ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == CurrentOrderPeriodDate.Year && x.Month == CurrentOrderPeriodDate.Month).ToList();
                 PreviousOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == PreviousOrderPeriodDate.Year && x.Month == PreviousOrderPeriodDate.Month).ToList();
                 AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdatedAtUtc).ToList();
@@ -450,8 +450,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             ViewingOrder = null;
         }
 
-            // P4/F-16: Nhãn trạng thái và style badge lấy từ helper dùng chung
-            // StatusDisplay/StatusDisplayRadzen; switch cục bộ đã được gỡ.
+        // P4/F-16: Nhãn trạng thái và style badge lấy từ helper dùng chung
+        // StatusDisplay/StatusDisplayRadzen; switch cục bộ đã được gỡ.
 
         public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
 

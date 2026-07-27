@@ -1,4 +1,4 @@
-﻿using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Helpers;
 using Microsoft.AspNetCore.Components;
 
 namespace gtas_vpp_fe.Components.Pages.Authen

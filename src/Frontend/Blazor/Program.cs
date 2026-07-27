@@ -194,7 +194,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapGet("/debug/endpoints", (IEnumerable<Microsoft.AspNetCore.Routing.EndpointDataSource> endpointSources) =>
     {
-        var endpoints = endpointSources.SelectMany(es => es.Endpoints).Select(e => new 
+        var endpoints = endpointSources.SelectMany(es => es.Endpoints).Select(e => new
         {
             DisplayName = e.DisplayName,
             RoutePattern = (e as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern.RawText

@@ -523,22 +523,22 @@ namespace gtas_vpp_be.Controllers
                             ? "Pending approval"
                             : "Disabled application account",
                     Description = userGroup == null ? null : userGroup.Description,
-                     DepartmentName = userGroup == null || userGroup.Department == null
+                    DepartmentName = userGroup == null || userGroup.Department == null
                          ? string.Empty
                          : userGroup.Department.Name,
-                     DepartmentId = userGroup == null ? null : userGroup.DepartmentId,
-                     AccountStatus = user.AccountStatus == AppAccountStatus.Active
+                    DepartmentId = userGroup == null ? null : userGroup.DepartmentId,
+                    AccountStatus = user.AccountStatus == AppAccountStatus.Active
                          ? nameof(AppAccountStatus.Active)
                          : user.AccountStatus == AppAccountStatus.PendingApproval
                              ? nameof(AppAccountStatus.PendingApproval)
                              : nameof(AppAccountStatus.Disabled),
-                     SessionVersion = user.SessionVersion,
-                     GroupCode = userGroup == null || userGroup.PermissionGroup == null
+                    SessionVersion = user.SessionVersion,
+                    GroupCode = userGroup == null || userGroup.PermissionGroup == null
                          ? null
                          : userGroup.PermissionGroup.GroupCode,
-                     IsActive = user.AccountStatus == AppAccountStatus.Active && userGroup != null,
-                     RowVersion = userGroup == null ? null : userGroup.RowVersion,
-                     UserGroup = userGroup == null || userGroup.PermissionGroup == null
+                    IsActive = user.AccountStatus == AppAccountStatus.Active && userGroup != null,
+                    RowVersion = userGroup == null ? null : userGroup.RowVersion,
+                    UserGroup = userGroup == null || userGroup.PermissionGroup == null
                         ? null
                         : new AuthGroupDto
                         {

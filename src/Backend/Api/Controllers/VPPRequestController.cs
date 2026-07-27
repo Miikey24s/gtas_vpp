@@ -618,12 +618,12 @@ namespace gtas_vpp_be.Controllers
                     CurrentMemberCompanyCode,
                     CurrentDepartmentCode,
                     await _permissionService.HasPermissionAsync(User, Permissions.RequestViewAll)),
-                "my-orders" => CurrentUserId.HasValue 
+                "my-orders" => CurrentUserId.HasValue
                     ? await _vppService.GetMyOrdersAsync(
                         CurrentUserId.Value,
                         MergeIntFilters(year, years),
                         MergeIntFilters(month, months),
-                        MergeIntFilters(status, statuses)) 
+                        MergeIntFilters(status, statuses))
                     : new(),
                 _ => await _vppService.GetAllOrdersAsync(year, month, status, departmentCode, CurrentMemberCompanyCode)
             };

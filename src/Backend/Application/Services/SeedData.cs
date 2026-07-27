@@ -24,58 +24,58 @@ namespace gtas_vpp_be.Service.Services
         private const string DemoSeedVersion = "2026-07-19-demo-2-workbook-orders";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
 
-    // ── Mã định danh trang ─────────────────────────────────────
-        private static readonly Guid PageDashboard  = Guid.Parse("DE4FCAAE-E585-4B10-9E4E-DBC41D9629D2");
-        private static readonly Guid PageSidebar    = Guid.Parse("A9825502-EC31-4AB2-9CC5-7A810F9B7BE8");
-        private static readonly Guid PageLibrary    = Guid.Parse("5D88463F-CC1C-40E7-BAAD-018DE589D596");
+        // ── Mã định danh trang ─────────────────────────────────────
+        private static readonly Guid PageDashboard = Guid.Parse("DE4FCAAE-E585-4B10-9E4E-DBC41D9629D2");
+        private static readonly Guid PageSidebar = Guid.Parse("A9825502-EC31-4AB2-9CC5-7A810F9B7BE8");
+        private static readonly Guid PageLibrary = Guid.Parse("5D88463F-CC1C-40E7-BAAD-018DE589D596");
         private static readonly Guid PagePermission = Guid.Parse("20B988D3-7C9A-41EB-BCA0-D94ACE25AC43");
-        private static readonly Guid PageReport     = Guid.Parse("F4C3AECB-7100-48CA-AA37-EAA65EBA8752");
+        private static readonly Guid PageReport = Guid.Parse("F4C3AECB-7100-48CA-AA37-EAA65EBA8752");
 
-    // ── Mã định danh thành phần ────────────────────────────────
-        private static readonly Guid CompMenuDashboard      = Guid.Parse("127B705A-44E1-42F9-9B64-E77BAD63605F");
-        private static readonly Guid CompMenuLibrary        = Guid.Parse("78796E6D-FD41-4ADF-8A43-1100F0FE4D7F");
-        private static readonly Guid CompMenuReport         = Guid.Parse("B2F10C28-E04F-457B-B41B-43CD604DB529");
-        private static readonly Guid CompMenuPermission     = Guid.Parse("9A96C843-43A2-4F8B-AE13-F5B511D8A9D2");
-        private static readonly Guid CompRequestOrder       = Guid.Parse("DF771279-8491-4C09-872E-A860474C340E");
-        private static readonly Guid CompRequestCatalog     = Guid.Parse("22A7CA16-2FE3-46F2-9D19-CE4D0D225552");
-        private static readonly Guid CompRequestHistory     = Guid.Parse("14670749-6D7E-4815-910E-EA649E61CF2E");
+        // ── Mã định danh thành phần ────────────────────────────────
+        private static readonly Guid CompMenuDashboard = Guid.Parse("127B705A-44E1-42F9-9B64-E77BAD63605F");
+        private static readonly Guid CompMenuLibrary = Guid.Parse("78796E6D-FD41-4ADF-8A43-1100F0FE4D7F");
+        private static readonly Guid CompMenuReport = Guid.Parse("B2F10C28-E04F-457B-B41B-43CD604DB529");
+        private static readonly Guid CompMenuPermission = Guid.Parse("9A96C843-43A2-4F8B-AE13-F5B511D8A9D2");
+        private static readonly Guid CompRequestOrder = Guid.Parse("DF771279-8491-4C09-872E-A860474C340E");
+        private static readonly Guid CompRequestCatalog = Guid.Parse("22A7CA16-2FE3-46F2-9D19-CE4D0D225552");
+        private static readonly Guid CompRequestHistory = Guid.Parse("14670749-6D7E-4815-910E-EA649E61CF2E");
         private static readonly Guid CompRequestDeptSummary = Guid.Parse("F3DDBF74-BFAB-4BF7-9F63-DEE5A1D9EE89");
-        private static readonly Guid CompRequestAllSummary  = Guid.Parse("3D32B4E5-10E3-4D3F-8E8C-39E72959849F");
-        private static readonly Guid CompRequestApproval    = Guid.Parse("B7132472-913E-40E4-AFAE-1972FB8FA77A");
-        private static readonly Guid CompLibClass           = Guid.Parse("8657EA31-D139-4E61-B597-64C4E8E88615");
-        private static readonly Guid CompLibCategory        = Guid.Parse("B1F59264-AB93-4E39-BB4C-2397726C69BE");
-        private static readonly Guid CompLibItem            = Guid.Parse("A88BF4B4-F5BB-4E5A-8ADA-73C27606E7E2");
-        private static readonly Guid CompLibSupplier        = Guid.Parse("02C64E1C-FDB0-4FEB-B788-CEBB06CF94C9");
-        private static readonly Guid CompLibPrice           = Guid.Parse("2FFBB515-BF2A-42ED-B4B1-34FBA41017FF");
-        private static readonly Guid CompLibPriceList       = Guid.Parse("4C72920C-125F-4923-8408-352030382B26");
-        private static readonly Guid CompLibDepartment      = Guid.Parse("3179CAE5-10AF-4F8A-BED1-F8AB7C68D881");
-        private static readonly Guid CompPeriodSettle       = Guid.Parse("E7BA9473-961E-4407-986A-94C0FF206039");
-        private static readonly Guid CompPermUser           = Guid.Parse("7A1EF33F-FAB9-47D6-88BF-9D69E90DC519");
-        private static readonly Guid CompPermComponent      = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
-        private static readonly Guid CompReportView         = Guid.Parse("70603737-45C6-4937-A422-4E4FB0EC52CD");
+        private static readonly Guid CompRequestAllSummary = Guid.Parse("3D32B4E5-10E3-4D3F-8E8C-39E72959849F");
+        private static readonly Guid CompRequestApproval = Guid.Parse("B7132472-913E-40E4-AFAE-1972FB8FA77A");
+        private static readonly Guid CompLibClass = Guid.Parse("8657EA31-D139-4E61-B597-64C4E8E88615");
+        private static readonly Guid CompLibCategory = Guid.Parse("B1F59264-AB93-4E39-BB4C-2397726C69BE");
+        private static readonly Guid CompLibItem = Guid.Parse("A88BF4B4-F5BB-4E5A-8ADA-73C27606E7E2");
+        private static readonly Guid CompLibSupplier = Guid.Parse("02C64E1C-FDB0-4FEB-B788-CEBB06CF94C9");
+        private static readonly Guid CompLibPrice = Guid.Parse("2FFBB515-BF2A-42ED-B4B1-34FBA41017FF");
+        private static readonly Guid CompLibPriceList = Guid.Parse("4C72920C-125F-4923-8408-352030382B26");
+        private static readonly Guid CompLibDepartment = Guid.Parse("3179CAE5-10AF-4F8A-BED1-F8AB7C68D881");
+        private static readonly Guid CompPeriodSettle = Guid.Parse("E7BA9473-961E-4407-986A-94C0FF206039");
+        private static readonly Guid CompPermUser = Guid.Parse("7A1EF33F-FAB9-47D6-88BF-9D69E90DC519");
+        private static readonly Guid CompPermComponent = Guid.Parse("45391DDC-5D7F-429B-B57F-3C4E7278209A");
+        private static readonly Guid CompReportView = Guid.Parse("70603737-45C6-4937-A422-4E4FB0EC52CD");
 
         // ── ID ánh xạ page-component ───────────────────────────────
-        private static readonly Guid SidebarDashboardMappingId  = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
-        private static readonly Guid SidebarLibraryMappingId    = Guid.Parse("26AF4773-9D60-4AE6-B014-33D623FBA968");
-        private static readonly Guid SidebarReportMappingId     = Guid.Parse("97E6C9EE-CFFB-4332-AEC3-56824BF2FEFD");
+        private static readonly Guid SidebarDashboardMappingId = Guid.Parse("55A469CC-4499-4677-903C-81798BC0F53A");
+        private static readonly Guid SidebarLibraryMappingId = Guid.Parse("26AF4773-9D60-4AE6-B014-33D623FBA968");
+        private static readonly Guid SidebarReportMappingId = Guid.Parse("97E6C9EE-CFFB-4332-AEC3-56824BF2FEFD");
         private static readonly Guid SidebarPermissionMappingId = Guid.Parse("CAB28621-070E-417A-8780-9F0835B0AD5F");
-        private static readonly Guid DashboardOrderMappingId      = Guid.Parse("9347D472-AD40-40A5-BAD4-DFC4176531A7");
-        private static readonly Guid DashboardCatalogMappingId    = Guid.Parse("0CEA22F8-2463-4C6D-887A-AA4344B08F93");
-        private static readonly Guid DashboardHistoryMappingId    = Guid.Parse("98D45C13-9637-4BB6-8351-19164FB2627A");
-        private static readonly Guid DashboardDepartmentSummaryMappingId    = Guid.Parse("EE872A0B-737E-4D10-87D4-68E567814623");
-        private static readonly Guid DashboardAllOrdersSummaryMappingId     = Guid.Parse("3625955F-4E4B-466D-A56D-A5EC08346F67");
-        private static readonly Guid DashboardApprovalMappingId   = Guid.Parse("0FA7B816-82ED-49A1-A7E8-35443175778F");
-        private static readonly Guid LibraryLookupMappingId      = Guid.Parse("4C2F1AD1-637B-4DDF-95C5-0D84F5D42ABD");
-        private static readonly Guid LibraryCategoryMappingId   = Guid.Parse("25B3721D-CDF2-41B2-A5F1-A24A5826E3C4");
-        private static readonly Guid LibraryItemMappingId       = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
-        private static readonly Guid LibrarySupplierMappingId   = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
-        private static readonly Guid LibraryPriceMappingId      = Guid.Parse("5658FDBD-686D-4BA8-9BB8-8C629671E5FB");
-        private static readonly Guid LibraryPriceListMappingId  = Guid.Parse("BA035879-1C78-4F48-8297-DA3C8AA7245B");
-        private static readonly Guid LibraryDepartmentMappingId       = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
+        private static readonly Guid DashboardOrderMappingId = Guid.Parse("9347D472-AD40-40A5-BAD4-DFC4176531A7");
+        private static readonly Guid DashboardCatalogMappingId = Guid.Parse("0CEA22F8-2463-4C6D-887A-AA4344B08F93");
+        private static readonly Guid DashboardHistoryMappingId = Guid.Parse("98D45C13-9637-4BB6-8351-19164FB2627A");
+        private static readonly Guid DashboardDepartmentSummaryMappingId = Guid.Parse("EE872A0B-737E-4D10-87D4-68E567814623");
+        private static readonly Guid DashboardAllOrdersSummaryMappingId = Guid.Parse("3625955F-4E4B-466D-A56D-A5EC08346F67");
+        private static readonly Guid DashboardApprovalMappingId = Guid.Parse("0FA7B816-82ED-49A1-A7E8-35443175778F");
+        private static readonly Guid LibraryLookupMappingId = Guid.Parse("4C2F1AD1-637B-4DDF-95C5-0D84F5D42ABD");
+        private static readonly Guid LibraryCategoryMappingId = Guid.Parse("25B3721D-CDF2-41B2-A5F1-A24A5826E3C4");
+        private static readonly Guid LibraryItemMappingId = Guid.Parse("0F5560C3-12F5-483D-87AB-FB9DC30D0E54");
+        private static readonly Guid LibrarySupplierMappingId = Guid.Parse("ED1D4ECD-413C-44CB-9CF3-08008D7C058D");
+        private static readonly Guid LibraryPriceMappingId = Guid.Parse("5658FDBD-686D-4BA8-9BB8-8C629671E5FB");
+        private static readonly Guid LibraryPriceListMappingId = Guid.Parse("BA035879-1C78-4F48-8297-DA3C8AA7245B");
+        private static readonly Guid LibraryDepartmentMappingId = Guid.Parse("00BEAA55-C999-413E-AB6E-C43C29578812");
         private static readonly Guid PeriodSettlementMappingId = Guid.Parse("8D9A6954-56AF-4B5C-B9F2-39E4EDD0AA3F");
-        private static readonly Guid PermissionUserMappingId       = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
-        private static readonly Guid PermissionComponentMappingId  = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
-        private static readonly Guid ReportViewMappingId       = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
+        private static readonly Guid PermissionUserMappingId = Guid.Parse("19B50733-B09B-460A-9D3A-D855C1C857FD");
+        private static readonly Guid PermissionComponentMappingId = Guid.Parse("F76984E3-E231-4267-9EA5-AFDFEBD268A3");
+        private static readonly Guid ReportViewMappingId = Guid.Parse("2EFEF4F1-7F17-409B-B156-8DC60B7B8081");
 
         // ════════════════════════════════════════════════════════════
         //  ENTRY POINT CHÍNH
@@ -755,9 +755,18 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private static PermissionComponent C(string code, string name, string desc, Guid id, DateTime now)
-            => new() { Id = id, ComponentCode = code, ComponentName = name, Description = desc,
-                       CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
-                       UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now, IsDeleted = false };
+            => new()
+            {
+                Id = id,
+                ComponentCode = code,
+                ComponentName = name,
+                Description = desc,
+                CreatedByUserId = DefaultUserId,
+                CreatedAtUtc = now,
+                UpdatedByUserId = DefaultUserId,
+                UpdatedAtUtc = now,
+                IsDeleted = false
+            };
 
         // ════════════════════════════════════════════════════════════
         //  Ánh xạ page-component (PageComponentMapping).
@@ -897,10 +906,18 @@ namespace gtas_vpp_be.Service.Services
         }
 
         private static GroupPageComponentMapping CreateGroupPageComponentMapping(Guid pageComponentMappingId, Guid groupId, DateTime now)
-            => new() { PageComponentMappingId = pageComponentMappingId, PermissionGroupId = groupId,
-                       MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode, IsEnable = true, IsVisible = true,
-                       CreatedByUserId = DefaultUserId, CreatedAtUtc = now,
-                       UpdatedByUserId = DefaultUserId, UpdatedAtUtc = now };
+            => new()
+            {
+                PageComponentMappingId = pageComponentMappingId,
+                PermissionGroupId = groupId,
+                MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+                IsEnable = true,
+                IsVisible = true,
+                CreatedByUserId = DefaultUserId,
+                CreatedAtUtc = now,
+                UpdatedByUserId = DefaultUserId,
+                UpdatedAtUtc = now
+            };
 
         private static IReadOnlyList<PageComponentSeedMapping> GetPageComponentSeedMappings()
         {

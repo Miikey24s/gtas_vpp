@@ -759,25 +759,25 @@ public sealed class MembershipAdministrationService(
         PermissionGroup group,
         Department department,
         bool isActive) => new()
-    {
-        MembershipId = membership.Id,
-        AccountId = account.Id,
-        UserLogin = account.UserName ?? string.Empty,
-        FullName = account.FullName,
-        Email = account.Email,
-        AccountStatus = account.AccountStatus.ToString(),
-        SessionVersion = account.SessionVersion,
-        GroupId = group.Id,
-        GroupCode = group.GroupCode,
-        GroupName = group.GroupName ?? string.Empty,
-        PrimaryDepartmentId = department.Id,
-        Code = department.Code ?? string.Empty,
-        Name = department.Name ?? string.Empty,
-        RowVersion = Convert.ToBase64String(membership.RowVersion),
-        IsActive = isActive,
-        CreatedAt = membership.CreatedAtUtc,
-        UpdatedAt = membership.UpdatedAtUtc
-    };
+        {
+            MembershipId = membership.Id,
+            AccountId = account.Id,
+            UserLogin = account.UserName ?? string.Empty,
+            FullName = account.FullName,
+            Email = account.Email,
+            AccountStatus = account.AccountStatus.ToString(),
+            SessionVersion = account.SessionVersion,
+            GroupId = group.Id,
+            GroupCode = group.GroupCode,
+            GroupName = group.GroupName ?? string.Empty,
+            PrimaryDepartmentId = department.Id,
+            Code = department.Code ?? string.Empty,
+            Name = department.Name ?? string.Empty,
+            RowVersion = Convert.ToBase64String(membership.RowVersion),
+            IsActive = isActive,
+            CreatedAt = membership.CreatedAtUtc,
+            UpdatedAt = membership.UpdatedAtUtc
+        };
 
     private async Task NotifyAfterCommitAsync(int accountId, IReadOnlyCollection<Guid> groupIds)
     {

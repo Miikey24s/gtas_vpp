@@ -41,7 +41,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             await base.OnAfterRenderAsync(firstRender);
-            
+
         }
 
         private void OnPermissionStateChanged()

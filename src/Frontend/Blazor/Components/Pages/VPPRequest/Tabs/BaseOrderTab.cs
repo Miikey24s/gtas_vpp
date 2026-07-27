@@ -38,7 +38,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         // ─── Giá trị cascade từ page host ─────────────────────────────────────
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
-    // ─── Tập trạng thái ───────────────────────────────────────────────────
+        // ─── Tập trạng thái ───────────────────────────────────────────────────
         public List<VppRequestResDTO> Orders { get; set; } = new();
         protected HashSet<Guid> LoadedDetailOrderIds { get; } = new();
         protected HashSet<Guid> LoadingDetailOrderIds { get; } = new();
@@ -71,7 +71,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         /// Dựng URL API tương đối cho giá trị filter/paging hiện tại.
         /// Tab kế thừa đọc state bộ lọc riêng cùng <see cref="CurrentSkip"/> và
         /// <see cref="PageSize"/>, rồi trả về giá trị dạng
-    /// Ví dụ: <c>/api/VPPRequest/my-orders-summary?year=2026&amp;skip=0&amp;top=20</c>.
+        /// Ví dụ: <c>/api/VPPRequest/my-orders-summary?year=2026&amp;skip=0&amp;top=20</c>.
         /// </summary>
         protected abstract string BuildEndpoint();
 

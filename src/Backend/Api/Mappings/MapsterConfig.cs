@@ -32,23 +32,23 @@ namespace gtas_vpp_be.Mappings
                 .Ignore(dest => dest.LookupValues!);
             config.NewConfig<LookupCategoryResDTO, LookupCategory>()
                 .Ignore(dest => dest.LookupValues!);
-            
+
             config.NewConfig<LookupValue, LookupValueResDTO>()
                 .Ignore(dest => dest.Category!)
                 .Ignore(dest => dest.VppItemsByUom!);
             config.NewConfig<LookupValueResDTO, LookupValue>()
                 .Ignore(dest => dest.Category!)
                 .Ignore(dest => dest.VppItemsByUom!);
-            
+
             config.NewConfig<VppCategory, VppCategoryResDTO>();
             config.NewConfig<VppCategoryResDTO, VppCategory>();
-            
+
             config.NewConfig<VppItem, VppItemResDTO>();
             config.NewConfig<VppItemResDTO, VppItem>();
-            
+
             config.NewConfig<Supplier, SupplierResDTO>();
             config.NewConfig<SupplierResDTO, Supplier>();
-            
+
             config.NewConfig<SupplierProductMapping, SupplierProductMappingResDTO>();
             config.NewConfig<SupplierProductMappingResDTO, SupplierProductMapping>();
 

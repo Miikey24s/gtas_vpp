@@ -1,4 +1,4 @@
-﻿using gtas_vpp_be.Model;
+using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Helpers.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;

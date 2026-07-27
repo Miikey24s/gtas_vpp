@@ -481,56 +481,56 @@ namespace gtas_vpp_be.Service.Services
             }
 
             return query.Select(x => new PriceListResDTO
-                {
-                    Id = x.Id,
-                    Description = x.Description,
-                    CreatedByUserId = x.CreatedByUserId,
-                    CreatedAtUtc = x.CreatedAtUtc,
-                    UpdatedByUserId = x.UpdatedByUserId,
-                    UpdatedAtUtc = x.UpdatedAtUtc,
-                    IsDeleted = x.IsDeleted,
-                    PriceListCode = x.PriceListCode,
-                    PriceListName = x.PriceListName,
-                    OriginalLanguageCode = x.OriginalLanguageCode,
-                    DisplayName = x.OriginalLanguageCode == languageCode
+            {
+                Id = x.Id,
+                Description = x.Description,
+                CreatedByUserId = x.CreatedByUserId,
+                CreatedAtUtc = x.CreatedAtUtc,
+                UpdatedByUserId = x.UpdatedByUserId,
+                UpdatedAtUtc = x.UpdatedAtUtc,
+                IsDeleted = x.IsDeleted,
+                PriceListCode = x.PriceListCode,
+                PriceListName = x.PriceListName,
+                OriginalLanguageCode = x.OriginalLanguageCode,
+                DisplayName = x.OriginalLanguageCode == languageCode
                         ? x.PriceListName
                         : x.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.PriceListName,
-                    DisplayDescription = x.OriginalLanguageCode == languageCode
+                DisplayDescription = x.OriginalLanguageCode == languageCode
                         ? x.Description
                         : x.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Description).FirstOrDefault() ?? x.Description,
-                    ResolvedLanguageCode = x.OriginalLanguageCode == languageCode || x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode)
+                ResolvedLanguageCode = x.OriginalLanguageCode == languageCode || x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode)
                         ? languageCode
                         : x.OriginalLanguageCode,
-                    IsTranslationFallback = x.OriginalLanguageCode != languageCode && !x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode),
-                    IsDefault = x.IsDefault,
-                    SupplierId = x.SupplierId,
-                    SupplierName = x.Supplier == null
+                IsTranslationFallback = x.OriginalLanguageCode != languageCode && !x.Translations.Any(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode),
+                IsDefault = x.IsDefault,
+                SupplierId = x.SupplierId,
+                SupplierName = x.Supplier == null
                         ? null
                         : x.Supplier.OriginalLanguageCode == languageCode
                             ? x.Supplier.SupplierName
                             : x.Supplier.Translations.Where(t => !t.IsDeleted && t.Status == BusinessTranslationStatus.Approved && t.LanguageCode == languageCode).Select(t => t.Name).FirstOrDefault() ?? x.Supplier.SupplierName,
-                    Version = x.Version,
-                    EffectiveFromUtc = x.EffectiveFromUtc,
-                    EffectiveToUtc = x.EffectiveToUtc,
-                    Status = x.Status == PriceListStatus.Draft
+                Version = x.Version,
+                EffectiveFromUtc = x.EffectiveFromUtc,
+                EffectiveToUtc = x.EffectiveToUtc,
+                Status = x.Status == PriceListStatus.Draft
                         ? "Draft"
                         : x.Status == PriceListStatus.Published ? "Published" : "Expired",
-                    CurrencyCode = x.CurrencyCode,
-                    VatPolicy = x.VatPolicy,
-                    ContractCode = x.ContractCode,
-                    LegacyBackfillStatus = x.LegacyBackfillStatus,
-                    DiscountRate = x.DiscountRate,
-                    RebateAmount = x.RebateAmount,
-                    FeeAmount = x.FeeAmount,
-                    ShippingAmount = x.ShippingAmount,
-                    PublishedAtUtc = x.PublishedAtUtc,
-                    PublishedByUserId = x.PublishedByUserId,
-                    ExpiredAtUtc = x.ExpiredAtUtc,
-                    ExpiredByUserId = x.ExpiredByUserId,
-                    StatusReason = x.StatusReason,
-                    RowVersion = x.RowVersion,
-                    ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted)
-                });
+                CurrencyCode = x.CurrencyCode,
+                VatPolicy = x.VatPolicy,
+                ContractCode = x.ContractCode,
+                LegacyBackfillStatus = x.LegacyBackfillStatus,
+                DiscountRate = x.DiscountRate,
+                RebateAmount = x.RebateAmount,
+                FeeAmount = x.FeeAmount,
+                ShippingAmount = x.ShippingAmount,
+                PublishedAtUtc = x.PublishedAtUtc,
+                PublishedByUserId = x.PublishedByUserId,
+                ExpiredAtUtc = x.ExpiredAtUtc,
+                ExpiredByUserId = x.ExpiredByUserId,
+                StatusReason = x.StatusReason,
+                RowVersion = x.RowVersion,
+                ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted)
+            });
         }
 
         private static IOrderedQueryable<PriceListResDTO> ApplyDefaultOrder(IQueryable<PriceListResDTO> query)

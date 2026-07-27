@@ -19,7 +19,7 @@ namespace gtas_vpp_be.Model.Library
         public int Sort { get; set; }
         public virtual ICollection<VppItem>? VppItemsByUom { get; set; }
         public virtual ICollection<LookupValueTranslation> Translations { get; set; } = [];
-        public LookupValue() {}
+        public LookupValue() { }
         [NotMapped]
         public string? CreatedByUserName { get; set; }
         [NotMapped]

@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 
 namespace gtas_vpp_fe.Components.Pages.Lib
 {
-    public partial class Component_ShareGrid<TType> : ComponentBase where TType : BaseDTO, new ()
+    public partial class Component_ShareGrid<TType> : ComponentBase where TType : BaseDTO, new()
     {
         [Inject]
         private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
@@ -210,7 +210,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
 
             var recordTitle = "Record Details";
-            var nameProp = typeof(TType).GetProperty("Name") ?? 
+            var nameProp = typeof(TType).GetProperty("Name") ??
                            typeof(TType).GetProperties().FirstOrDefault(p => p.Name.EndsWith("Name") || p.Name.EndsWith("Code"));
             if (nameProp != null)
             {

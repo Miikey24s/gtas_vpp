@@ -62,7 +62,7 @@ namespace gtas_vpp_be.Service.Services
         Task ApproveAdditionalOrderAsync(Guid id, int adminId, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
     }
-    
+
     public class VPPRequestService : BaseServices, IVPPRequestService
     {
         private readonly IUnitOfWork _scopedUow;
@@ -464,13 +464,13 @@ namespace gtas_vpp_be.Service.Services
                         throw new BusinessException("A supplement reason of 5 to 500 characters is required.");
                     }
 
-                baseRequest = await requestSet
-                        .FirstOrDefaultAsync(x => x.CreatedByUserId == createdByUserId
-                            && x.MemberCompanyCode == memberCompanyCode
-                            && x.Year == req.Year && x.Month == req.Month
-                            && !x.IsAdditionalOrder && !x.IsDeleted
-                            && x.IsCurrentRevision
-                            && (req.BaseRequestId == null || x.Id == req.BaseRequestId));
+                    baseRequest = await requestSet
+                            .FirstOrDefaultAsync(x => x.CreatedByUserId == createdByUserId
+                                && x.MemberCompanyCode == memberCompanyCode
+                                && x.Year == req.Year && x.Month == req.Month
+                                && !x.IsAdditionalOrder && !x.IsDeleted
+                                && x.IsCurrentRevision
+                                && (req.BaseRequestId == null || x.Id == req.BaseRequestId));
                     if (baseRequest is null)
                         throw new BusinessException("A current regular order is required before creating a supplement.");
                     if (baseRequest.Status is not ((int)VPPStatus.Submitted) and not ((int)VPPStatus.Approved))
@@ -1057,7 +1057,9 @@ namespace gtas_vpp_be.Service.Services
                 Qty = x.RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0
             }).GroupBy(x => 1).Select(g => new
             {
-                TotalCount = g.Count(), TotalLines = g.Sum(x => x.Lines), TotalQty = g.Sum(x => x.Qty)
+                TotalCount = g.Count(),
+                TotalLines = g.Sum(x => x.Lines),
+                TotalQty = g.Sum(x => x.Qty)
             }).FirstOrDefaultAsync();
             var orderedQuery = query.OrderByDescending(x => x.Year)
                 .ThenByDescending(x => x.Month).ThenByDescending(x => x.UpdatedAtUtc);

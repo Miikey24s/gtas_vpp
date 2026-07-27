@@ -31,7 +31,7 @@ namespace gtas_vpp_fe.Helpers
             SetBoolProperty(dict, dto, "IsDeadlinePassed", nameof(VppRequestResDTO.IsDeadlinePassed));
 
             SetStringProperty(dict, dto, nameof(VppRequestResDTO.VppCode));
-        SetStringProperty(dict, dto, nameof(VppRequestResDTO.DepartmentCode));
+            SetStringProperty(dict, dto, nameof(VppRequestResDTO.DepartmentCode));
             SetStringProperty(dict, dto, nameof(VppRequestResDTO.MemberCompanyCode));
             SetStringProperty(dict, dto, nameof(VppRequestResDTO.RequesterName));
             SetStringProperty(dict, dto, nameof(VppRequestResDTO.Description));

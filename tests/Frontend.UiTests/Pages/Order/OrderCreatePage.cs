@@ -45,7 +45,7 @@ namespace gtas_vpp_fe.UITests.Pages.Order
         {
             await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Create Order", RegexOptions.IgnoreCase) }).ClickAsync();
         }
-        
+
         public async Task ClickClearAllAsync()
         {
             await _page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Clear All", RegexOptions.IgnoreCase) }).ClickAsync();

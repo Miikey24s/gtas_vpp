@@ -41,9 +41,9 @@ namespace gtas_vpp_be.Controllers
         [HttpGet("{tableCode}")]
         [Authorize(Policy = Permissions.LibraryView)]
         public async Task<IActionResult> GenericGet(
-            string tableCode, 
-            [FromQuery] Guid? id, 
-            [FromQuery] string? searchText, 
+            string tableCode,
+            [FromQuery] Guid? id,
+            [FromQuery] string? searchText,
             [FromQuery] Guid? lookupCategoryId,
             [FromQuery] string? filter,
             [FromQuery] int? skip,
@@ -58,7 +58,7 @@ namespace gtas_vpp_be.Controllers
             string requestedLanguage = BusinessLanguages.Normalize(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
 
             // Xác định đây có phải request LoadData hay không (có tham số nâng cao).
-            bool isLoadDataRequest = !string.IsNullOrEmpty(filter) || skip.HasValue || top.HasValue || 
+            bool isLoadDataRequest = !string.IsNullOrEmpty(filter) || skip.HasValue || top.HasValue ||
                                      !string.IsNullOrEmpty(orderby) || !string.IsNullOrEmpty(distinct) ||
                                      !string.IsNullOrEmpty(distinctFilter);
 
@@ -203,11 +203,12 @@ namespace gtas_vpp_be.Controllers
 
             var mappings = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
                 .AsNoTracking()
-                .Where(m => (showDeleted || !m.IsDeleted) 
+                .Where(m => (showDeleted || !m.IsDeleted)
                     && m.PriceListId == defaultPriceListId
                     && vppIds.Contains(m.VppItemId)
                     && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
-                .Select(m => new {
+                .Select(m => new
+                {
                     m.VppItemId,
                     m.Price,
                     m.IsDefault,
@@ -220,20 +221,23 @@ namespace gtas_vpp_be.Controllers
                 .GroupBy(m => m.VppItemId)
                 .ToDictionary(
                     g => g.Key,
-                    g => {
+                    g =>
+                    {
                         var bestMapping = g
                             .OrderByDescending(m => m.IsDefault)
                             .ThenBy(m => m.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
                             .ThenBy(m => m.SupplierName)
                             .FirstOrDefault();
-                        return new {
+                        return new
+                        {
                             Price = bestMapping?.Price,
                             SupplierName = bestMapping?.SupplierName
                         };
                     }
                 );
 
-            var dtoList = vppList.Select(x => {
+            var dtoList = vppList.Select(x =>
+            {
                 mappingLookup.TryGetValue(x.Id, out var priceInfo);
                 return new VppItemResDTO
                 {
@@ -488,11 +492,12 @@ namespace gtas_vpp_be.Controllers
 
             var mappings = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
                 .AsNoTracking()
-                .Where(m => (showDeleted || !m.IsDeleted) 
+                .Where(m => (showDeleted || !m.IsDeleted)
                     && m.PriceListId == defaultPriceListId
                     && m.VppItemId == id
                     && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
-                .Select(m => new {
+                .Select(m => new
+                {
                     m.Price,
                     m.IsDefault,
                     SupplierShortName = m.Supplier != null ? m.Supplier.SupplierShortName : null,
@@ -969,7 +974,7 @@ namespace gtas_vpp_be.Controllers
         {
             var dto = JsonSerializer.Deserialize<TDto>(json, _jsonOptions);
             if (dto == null) return BadRequest();
-            
+
             var obj = dto.Adapt<TModel>();
             obj.Id = Guid.Empty;
             var now = _dateTimeProvider.Now;
@@ -979,7 +984,7 @@ namespace gtas_vpp_be.Controllers
             obj.CreatedByUserId = uid;
             obj.UpdatedByUserId = uid;
             obj.IsDeleted = false;
-            
+
             var created = await GetRepository<TModel>().AddAsync(obj);
             var resultDto = created?.Adapt<TDto>();
             return Ok(resultDto);
@@ -989,7 +994,7 @@ namespace gtas_vpp_be.Controllers
         {
             var dto = JsonSerializer.Deserialize<TDto>(json, _jsonOptions);
             if (dto == null) return BadRequest();
-            
+
             var obj = dto.Adapt<TModel>();
             var existing = await GetEntityByIdAsync<TModel>(obj.Id, false);
             if (existing == null)
@@ -1003,7 +1008,7 @@ namespace gtas_vpp_be.Controllers
             obj.UpdatedByUserId = uid;
 
             _unitOfWork.VPPContext.Entry(existing).State = EntityState.Detached;
-            
+
             var updated = await GetRepository<TModel>().UpdateAsync(obj);
             var resultDto = updated.Adapt<TDto>();
             return Ok(resultDto);
