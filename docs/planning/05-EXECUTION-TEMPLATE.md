@@ -13,6 +13,7 @@
 | Kết quả cần đạt | <Một câu mô tả trạng thái cuối> | [Objective](#plan-detail-objective) |
 | Phạm vi | <Chạm gì / không chạm gì> | [Scope](#plan-detail-scope) |
 | Các bước chính | <3–7 bước, kèm trạng thái> | [Implementation](#plan-detail-implementation) |
+| Model routing | <Model + effort theo phase/wave; capacity snapshot + ngày> | [Implementation](#plan-detail-implementation) |
 | Kiểm tra | <Build/test/browser/DB/Word gate quan trọng> | [Verification](#plan-detail-verification) |
 | Rủi ro hoặc blocker | <Chỉ ghi vấn đề có thể đổi kết quả> | [Risks](#plan-detail-risks) |
 | Bước tiếp theo | <Một hành động cụ thể> | [Continuation](#plan-detail-continuation) |
@@ -40,6 +41,7 @@ Task nhỏ có thể chỉ dùng mục 0 trong thread. Task phức tạp mới t
 - Dependencies verified:
 - User approval required: Yes/No
 - User approval evidence/link:
+- Account/quota snapshot (owner-provided + date, nếu có):
 ```
 
 <a id="plan-detail-objective"></a>
@@ -133,9 +135,13 @@ Task nhỏ có thể chỉ dùng mục 0 trong thread. Task phức tạp mới t
 ```markdown
 ## Implementation steps
 
-1. [ ] <Bước nhỏ 1>
-2. [ ] <Bước nhỏ 2>
-3. [ ] <Bước nhỏ 3>
+| Step/checkpoint | Status | Model + effort | Review/handoff gate |
+|---|---|---|---|
+| <Bước nhỏ 1> | TODO | <model + effort> | |
+| <Bước nhỏ 2> | TODO | <model + effort> | |
+| <Bước nhỏ 3> | TODO | <model + effort> | |
+
+Chỉ đổi model ở checkpoint lớn đã có plan, Git state và evidence rõ; không đổi theo từng file. Ghi model đang active riêng với model được khuyến nghị nếu surface hiện tại chưa thực hiện được switch.
 
 ## Files actually changed
 

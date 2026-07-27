@@ -64,6 +64,15 @@ Với task phức tạp, plan dùng **progressive disclosure** (chỉ mở chi t
 
 Bản một ánh nhìn phải link đến đúng mục trong bản chi tiết. Khi tiến độ đổi, cập nhật summary trước; không bắt owner đọc lại toàn bộ record. Task nhỏ hoặc ít rủi ro chỉ dùng bản một ánh nhìn nếu bản chi tiết không tạo thêm giá trị.
 
+### Routing model và reasoning effort
+
+- Với plan, implementation, review hoặc audit không tầm thường, execution record phải đề xuất `model + effort` theo phase/wave/checkpoint dựa trên tài liệu chính thức hiện tại, độ khó, rủi ro, latency/cost, tool support và capacity thực tế.
+- Hỏi owner một lần về số tài khoản GPT Plus còn full quota nếu task lớn chưa có dữ liệu này. Ghi câu trả lời kèm ngày ở `THREAD/GOAL`; không biến số lượng quota tạm thành luật trong repository.
+- Capacity chỉ dùng để lập sequencing và review budget; không cấp quyền tự đổi credential/account hoặc né rate limit/điều khoản provider.
+- Giữ một implementer chính cho mỗi change-set. Chỉ đổi model ở checkpoint đã có plan, Git state và evidence rõ; dùng model mạnh hơn cho kiến trúc, ambiguity, risk và final review, còn implementation rõ/lặp lại ưu tiên model hiệu quả hơn.
+- `Khuyến nghị routing` không đồng nghĩa `model đang active`. Nếu surface hiện tại không có tool chuyển model/effort, agent phải nêu lựa chọn cần dùng và để owner thao tác hoặc xác minh; không khai đã tự đổi.
+- Khi plan có nhiều wave, đặt `Model + effort` trong chính bảng canonical thay vì tạo ledger routing song song.
+
 ### Biên nhận ghi nhận
 
 Sau mỗi lần owner review, sửa cách làm hoặc custom agent, phản hồi kế tiếp phải cho biết thay đổi đã được ghi ở đâu thay vì chỉ nói “đã nhớ”:

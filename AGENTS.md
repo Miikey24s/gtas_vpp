@@ -10,6 +10,8 @@
 - Workflow lặp lại nằm trong `.agents/skills/`: UI, database safety và luận văn DOCX.
 - Model, reasoning, approval, sandbox, MCP credential và browser profile là cấu hình local/user; không commit vào Git.
 - Plan task phức tạp dùng hai tầng: bản một ánh nhìn trước, có link đến execution record chi tiết; task nhỏ chỉ cần bản ngắn.
+- Plan nhiều phase/wave phải đề xuất `model + effort` theo checkpoint từ tài liệu chính thức và capacity hiện tại; hỏi một lần số tài khoản Plus full quota nếu task chưa có snapshot, nhưng không ghi số quota tạm thành invariant của repository.
+- Routing chỉ là khuyến nghị. Không tuyên bố model root đã đổi nếu surface hiện tại không có thao tác/tool xác nhận; ưu tiên đổi ở checkpoint lớn, không đổi theo từng file.
 
 ## Phạm vi chuẩn
 

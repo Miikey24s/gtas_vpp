@@ -95,11 +95,14 @@ Add-Check 'customization-receipt-contract' ($operatingModelContent -match 'Biên
 Add-Check 'customization-receipt-eval' ($evalContent -match '\| E11 \|' -and $evalContent -match 'Nói mơ hồ') 'Behavior eval catches vague or false persistence claims.'
 Add-Check 'hybrid-customization-contract' ($operatingModelContent -match 'Hybrid customization lifecycle' -and $operatingModelContent -match 'KEEP.*UPDATE.*MERGE.*DELETE.*NEEDS APPROVAL') 'Operating model preserves intent while pruning obsolete implementation guidance.'
 Add-Check 'hybrid-customization-eval' ($evalContent -match '\| E12 \|' -and $evalContent -match 'Reset toàn bộ custom') 'Behavior eval covers model upgrades and safe customization pruning.'
+Add-Check 'model-routing-contract' ($operatingModelContent -match 'Routing model và reasoning effort' -and $operatingModelContent -match 'Khuyến nghị routing.*model đang active') 'Operating model routes model and effort by checkpoint without claiming an unsupported switch.'
 
 $uiSkillContent = Get-Content -LiteralPath (Get-RepoPath '.agents/skills/gtas-vpp-ui-system/SKILL.md') -Raw
 Add-Check 'ui-skill-plan-coherence' ($uiSkillContent -match 'one canonical table' -and $uiSkillContent -match 'Do not place adjacent tables with the same row keys') 'UI skill merges repeated wave/route/state ledgers into one canonical table.'
 Add-Check 'ui-skill-wave-report' ($uiSkillContent -match 'Report each completed wave in one compact block' -and $uiSkillContent -match 'owner-visible result') 'UI skill reports owner-visible outcomes, evidence, gates, risk, and commit status coherently.'
 Add-Check 'ui-plan-coherence-eval' ($evalContent -match '\| E13 \|' -and $evalContent -match 'hai bảng song song') 'Behavior eval catches fragmented plans and reports with duplicate row axes.'
+Add-Check 'ui-skill-model-routing' ($uiSkillContent -match 'include `Model \+ effort`' -and $uiSkillContent -match 'wave or major checkpoint boundaries') 'UI skill keeps model routing inside the canonical wave table and limits switches to stable checkpoints.'
+Add-Check 'model-routing-eval' ($evalContent -match '\| E14 \|' -and $evalContent -match 'khai đã tự switch') 'Behavior eval covers capacity snapshots, official guidance, checkpoint routing, and truthful active-model reporting.'
 
 $hookConfigPath = Get-RepoPath '.codex/hooks.json'
 $hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'
