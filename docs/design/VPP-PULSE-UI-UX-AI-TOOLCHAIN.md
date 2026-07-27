@@ -1,6 +1,6 @@
 # VPP Pulse — UI/UX AI Agent Toolchain
 
-> **Trạng thái:** `ADOPTED — UPDATED 2026-07-21`
+> **Trạng thái:** `ADOPTED — UPDATED 2026-07-28`
 >
 > **Mục tiêu:** Giúp AI agent hiểu đúng source, dữ liệu, layout, accessibility, performance và data story của GTAS VPP mà không tạo một UI Lab hoặc toolchain trùng lặp.
 
@@ -13,6 +13,14 @@
 3. Mỗi công cụ có một vai trò rõ. Không cài nhiều MCP cùng đọc browser hoặc cùng tra docs nếu không tạo thêm bằng chứng.
 4. Công cụ tự động phát hiện regression; quyết định UX và data storytelling vẫn cần người review.
 5. Browser test, trace và screenshot chỉ dùng TEST/isolated fixture, không dùng profile cá nhân hoặc production secret.
+
+### 1.1 Execution surface cho AI agent
+
+- Root và scoped `AGENTS.md` cung cấp context theo đúng vùng đang sửa; không nạp toàn bộ repository rules vào mọi prompt.
+- `docs/ai/AI-AGENT-OPERATING-MODEL.md` mô tả vòng đời task và handoff; `.agents/skills/gtas-vpp-ui-system/` chỉ được tải khi task khớp workflow UI.
+- Chạy `./scripts/gtas.cmd preflight -Scope frontend` trước task UI phức tạp và `./scripts/gtas.cmd verify` trước handoff hoàn chỉnh khi phù hợp.
+- Claude, Gemini và Copilot chỉ là adapter trỏ về authority chung. Không duy trì một bản design rule độc lập theo từng agent.
+- MCP credential, browser profile và machine preference ở user/local scope; không commit secret hoặc cấu hình phụ thuộc một máy chỉ để agent khác tự động chạy.
 
 ---
 

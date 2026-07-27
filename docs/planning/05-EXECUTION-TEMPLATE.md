@@ -47,6 +47,7 @@
 ````markdown
 ## Preflight
 
+- [ ] Đã chạy `./scripts/gtas.cmd preflight -Scope <scope>` và lưu summary cần thiết.
 - [ ] Đã đọc AGENTS.md và instruction liên quan.
 - [ ] Đã đọc task card, ADR và business examples.
 - [ ] `git status --short` đã lưu; file dirty ngoài scope đã xác định owner.
@@ -186,6 +187,7 @@ Không coi `Down()` là rollback đủ cho migration destructive hoặc settleme
 | vulnerability/secret scan | | | |
 | `dotnet format ... --verify-no-changes` or changed-file ratchet | | | |
 | `git diff --check` | | | |
+| `./scripts/gtas.cmd verify` nếu phù hợp phạm vi | | | |
 
 ## Failures
 
@@ -295,7 +297,7 @@ Test count phải lấy từ output hiện tại, không copy mốc 147/29 nếu
 - Last known good commit:
 ```
 
-Không commit nếu user chưa yêu cầu/cho phép ở Target task tương ứng.
+Được tạo commit local khi change-set hoàn chỉnh và `AGENTS.md` cho phép. Push, PR, merge, rewrite history hoặc deploy vẫn cần yêu cầu rõ của user.
 
 ## 12. Blocker record
 

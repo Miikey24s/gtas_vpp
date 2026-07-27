@@ -2,12 +2,22 @@
 
 Áp dụng cho AI và lập trình viên làm việc trong toàn bộ repository.
 
+## Mô hình vận hành AI-first
+
+- `docs/ai/AI-AGENT-OPERATING-MODEL.md` là bản đồ chính thức về context, skill, MCP, plan, kiểm thử và handoff cho repository gần như 100% AI-generated.
+- Trước task phức tạp, chạy `./scripts/gtas.cmd preflight -Scope <all|frontend|backend|tests|thesis>` và dùng `docs/planning/05-EXECUTION-TEMPLATE.md` nếu cần execution record dài hạn.
+- Khi sửa trong thư mục có `AGENTS.md` gần hơn, phải đọc file đó trước; hướng dẫn gần file đang sửa được ưu tiên.
+- Workflow UI lặp lại được đóng gói tại `.agents/skills/gtas-vpp-ui-system/`; dùng skill này cho thay đổi Blazor/Radzen, Atlas, design token, responsive hoặc browser QA.
+- Không đưa model, approval policy, sandbox, MCP credential hoặc secret theo máy vào Git. Chỉ tạo `.codex/config.toml` khi có một cấu hình repo-level thực sự ổn định và không nhạy cảm.
+
 ## Phạm vi và cấu trúc chuẩn
 
 - Backend nằm trong `src/Backend/`; frontend chính hiện hành là Blazor/Radzen trong `src/Frontend/Blazor/`. React POC đã được lưu ở tag `archive/react-poc-2026-07-27`; `gtas_vpp_fe_react/` hiện chỉ là dependency host Playwright để giữ tương thích với tooling LVTN cũ.
 - Shared DTO duy nhất là `src/Shared/`. Không tạo bản sao shared DTO trong frontend.
 - Không sửa API, database hoặc nghiệp vụ chỉ để làm cho nội dung luận văn khớp; luận văn phải mô tả đúng source thực tế.
+- Identifier và tên kỹ thuật giữ tiếng Anh theo convention; comment source mới hoặc comment được chạm trong scope viết tiếng Việt ngắn gọn, giải thích nghiệp vụ khó đoán thay vì kể lại code.
 - Khi sửa UI, đọc và tuân thủ `.codexrules` cùng `.github/copilot-instructions.md`.
+- Khi sửa backend, frontend, tests hoặc LVTN, đọc thêm `AGENTS.md` trong chính thư mục phạm vi đó.
 - Khi sửa stored procedure, ưu tiên kiểm tra câu lệnh trong SQL Server Management Studio trước hoặc song song với debug trong code.
 
 ## UI renovation plan
@@ -47,7 +57,14 @@ dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
 dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
 ```
 
-Mốc gần nhất được ghi trong W1 change-set là 397 backend test và 143 frontend test đều pass. Đây chỉ là evidence theo thời điểm; luôn chạy lại test phù hợp sau khi sửa code.
+Lệnh chuẩn cho AI agent:
+
+```powershell
+./scripts/gtas.cmd test
+./scripts/gtas.cmd verify
+```
+
+Không coi số lượng test lịch sử là invariant (giá trị luôn đúng); luôn chạy lại test phù hợp và báo số liệu từ output hiện tại sau khi sửa code.
 
 ## Luận văn
 
@@ -64,6 +81,6 @@ Mốc gần nhất được ghi trong W1 change-set là 397 backend test và 143
 
 - Không commit `.env`, secret, mật khẩu, token, connection string cá nhân hoặc tài khoản test.
 - Không commit `bin/`, `obj/`, `TestResults/`, log, cache, JDK/PlantUML/LibreOffice tải cục bộ, ảnh audit tự động hoặc output render tạm.
-- Chỉ giữ checkpoint Word cuối cùng trong Git; checkpoint trung gian để ở local hoặc ngoài repository.
+- Không commit checkpoint Word trung gian; trong Git chỉ giữ nguồn chuẩn đã được owner duyệt theo `LVTN/README.md`.
 - Không xóa file Word, script tooling, `.puml`, `.svg`, screenshot luận văn hay hướng dẫn AI chỉ vì chúng không tham gia build ứng dụng.
 - Trước khi commit, chạy `git diff --check`, xem toàn bộ `git status` và chỉ stage đúng phạm vi công việc.

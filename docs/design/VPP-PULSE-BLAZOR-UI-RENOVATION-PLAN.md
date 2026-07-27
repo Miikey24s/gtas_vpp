@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.66` — 2026-07-27
+> **Phiên bản:** `2.67` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -83,7 +83,43 @@ Khi có xung đột:
 - Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
 
-### 3.1.1 Frontend React — ARCHIVED/DEFERRED (cập nhật 2026-07-27)
+### 3.1.1 AI-first scalable UI architecture — OWNER-DIRECTED (2026-07-28)
+
+**Decision `D-AI-UI-01`:** M0–M2 Atlas đã được owner chuẩn hóa là style contract cho các wave tiếp theo. Frontend tiếp tục là Blazor + Radzen theo mô hình hybrid; mục tiêu là một khung có thể scale và tùy biến mà agent mới đọc được theo progressive disclosure (chỉ nạp chi tiết khi cần), không phải một “universal component framework”.
+
+| Lớp | Sở hữu | Ví dụ |
+|---|---|---|
+| Design token | Giá trị visual dùng chung | màu, spacing, type scale, radius, shadow, control height, motion |
+| Primitive | Một hành vi/visual nhỏ, ổn định | button, badge, field, surface, content state, icon action |
+| Composite | Cụm UI có mục đích rõ | filter bar, action bar, KPI strip, entity header, order-detail surface |
+| Workspace pattern | Bố cục và state composition có thể tái dùng | Account, Collection, ListDetail, SplitEditor, Operation, Analytics |
+| Route | Nghiệp vụ và tích hợp | API, permission, orchestration, route copy và ngoại lệ đã được duyệt |
+
+Quy tắc bắt buộc:
+
+1. Dùng composition thay vì kế thừa markup. Không tạo `UniversalPage<T>`, `UniversalGrid<T>` hoặc engine cấu hình bằng string.
+2. Chỉ trích xuất abstraction sau khi ít nhất hai route thật có cùng layout và behavior; route vẫn sở hữu API, permission và business state.
+3. Razor/HTML sở hữu shell, navigation, surface, toolbar, action bar, responsive layout và content state. Radzen giữ DataGrid, Dialog, DropDown, DatePicker, Numeric, validation và widget phức tạp tạo giá trị rõ.
+4. Không bọc toàn bộ Radzen. Chuẩn hóa qua `vpp-tokens.css`, `vpp-radzen-theme.css`, primitive/composite có mục đích và CSS isolation của component/route.
+5. Radzen base CSS phải tải trước project overrides. Không tăng thêm inline style, màu hex, pixel spacing hoặc `!important` nếu token/bridge giải quyết được.
+6. Một vertical slice phải hoàn tất route thật, state, responsive, accessibility, VI/EN, Light/Dark và browser evidence phù hợp trước khi nhân rộng pattern.
+
+Rollout khung dùng chung:
+
+| Wave | Kết quả |
+|---|---|
+| F0 | Inventory component/CSS/inline style và xác nhận CSS load order |
+| F1 | Chuẩn hóa token semantic và Radzen bridge |
+| F2 | Primitive + content-state foundation |
+| F3 | Composite dùng chung theo hai consumer thật |
+| F4 | Sáu workspace pattern có contract nhỏ, typed và tùy biến bằng slot |
+| F5 | Migrate M0–M2 làm reference implementation; xóa duplication đã được thay thế |
+| F6 | Mở M3–M8 theo vertical slice và route ledger |
+| F7 | Browser hardening, accessibility, performance và owner-approved visual baseline |
+
+Definition of done của architecture này: agent mới xác định đúng authority bằng `AGENTS.md` gần nhất, dùng repo skill `.agents/skills/gtas-vpp-ui-system/`, không tạo abstraction trước nhu cầu, và chứng minh UI trên Blazor runtime thay vì chỉ dựa vào build/screenshot.
+
+### 3.1.2 Frontend React — ARCHIVED/DEFERRED (cập nhật 2026-07-27)
 
 - React POC từng nằm tại `gtas_vpp_fe_react`; source lịch sử hiện được lưu ở tag `archive/react-poc-2026-07-27`.
 - Các nội dung bên dưới là hồ sơ kỹ thuật và bằng chứng đã làm, không phải phạm vi triển khai của giai đoạn deadline hiện tại.

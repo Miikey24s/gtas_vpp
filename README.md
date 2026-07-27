@@ -29,6 +29,14 @@ Shared DTO chính thức nằm tại `src/Shared`; frontend tham chiếu trực 
 Quy ước UI, localization và accessibility dành cho người và AI nằm tại
 [`src/Frontend/README.md`](src/Frontend/README.md).
 
+## Làm việc với AI agent
+
+- Đọc root `AGENTS.md` và `AGENTS.md` gần file đang sửa nhất.
+- Mô hình context, skill, plan, MCP và handoff nằm tại [`docs/ai/AI-AGENT-OPERATING-MODEL.md`](docs/ai/AI-AGENT-OPERATING-MODEL.md).
+- Trước task phức tạp, chạy `./scripts/gtas.cmd preflight -Scope <all|frontend|backend|tests|thesis>`.
+- UI Blazor/Radzen dùng repo skill `.agents/skills/gtas-vpp-ui-system/`; kế hoạch dài dùng template [`docs/planning/05-EXECUTION-TEMPLATE.md`](docs/planning/05-EXECUTION-TEMPLATE.md).
+- Không commit model preference, MCP credential, browser profile hoặc secret theo máy.
+
 ## Development với .NET Aspire (khuyến nghị)
 
 Yêu cầu .NET 10 SDK và SQL Server local. Repository không chứa connection string sử dụng
@@ -86,6 +94,13 @@ dotnet restore gtas_vpp.sln
 dotnet build gtas_vpp.sln -c Release
 dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
 dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
+```
+
+Lệnh rút gọn cho agent và lập trình viên:
+
+```powershell
+./scripts/gtas.cmd test
+./scripts/gtas.cmd verify
 ```
 
 UI test mặc định tự dựng stack TEST cô lập. Không trỏ test vào ứng dụng hoặc database đang dùng thủ công:

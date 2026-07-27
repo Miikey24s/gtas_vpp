@@ -5,6 +5,10 @@ file đó, không tạo bộ quy tắc song song.
 
 @AGENTS.md
 
+Khi sửa file trong một phạm vi con, đọc `AGENTS.md` gần file đó nhất. Mô hình context, skill,
+execution record và handoff chung nằm tại `docs/ai/AI-AGENT-OPERATING-MODEL.md`; không sao chép
+toàn bộ nội dung các nguồn này vào `CLAUDE.md`.
+
 ## Khi compact/tóm tắt hội thoại
 
 Luôn giữ lại trong bản tóm tắt: (1) mục tiêu task đang làm và task id trong task list;

@@ -370,7 +370,9 @@ scripts/export_db_full.sql
 # Local Dev Tools
 .ai_workspace/
 .codex/
-.agents/
+.agents/*
+!.agents/skills/
+!.agents/skills/**
 .commandcode/
 .playwright-mcp/
 .vscode/

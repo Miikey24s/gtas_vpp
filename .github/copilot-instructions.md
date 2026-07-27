@@ -1,32 +1,16 @@
 # Copilot Instructions
 
+`AGENTS.md` ở root là instruction authority. Trước khi sửa file, đọc thêm `AGENTS.md` gần file đó nhất; với UI đọc `src/Frontend/Blazor/AGENTS.md` và living plan. File này chỉ là adapter ngắn cho GitHub Copilot, không phải nguồn luật song song.
+
 ## Project Guidelines
 - For claim-to-DTO mapping, user prefers manual non-generic mapping instead of generic Mapster-based ToDto.
 - When deleting data, use soft delete via IsDeleted flag and avoid hard deletes.
 - Test stored procedures in SQL Server Management Studio (SSMS) before or alongside debugging them in code.
 
-## UI Design Preferences (UPDATED 2026-05-08 — User Confirmed)
-- **Style**: Enterprise Modern (Atlassian Jira, Salesforce Lightning). Vuông vức, bo cong nhẹ, chuyên nghiệp.
-- **Color Palette — Sky Blue/Teal**:
-  - Primary 500: #0EA5E9 (sky blue)
-  - Primary 600: #0284C7
-  - Primary 700: #0369A1
-  - Accent Teal: #14B8A6
-  - Accent Teal Dark: #0D9488
-  - Light Base background: #F7F8F9
-  - Light Surface: #FFFFFF
-  - Light Text Primary: #172B4D
-  - Light Text Secondary: #44526C
-  - Dark Base: #0A0A0A
-  - Dark Surface: #141414
-  - Dark Text Primary: #FAFAFA
-- **Light mode default** + Dark mode toggle. Dark class: `.rz-theme-dark`.
-- **Border radius**: 6px default (--vpp-radius-md), 8px for modals. NO large rounded corners.
-- **Typography**: Poppins (headings) + Inter (body). Weight 600+ for titles.
-- **Component style**: Clean cards with border + subtle shadow, solid header with bottom-border, left sidebar navigation. No heavy glassmorphism in light mode.
-- **Density**: Balanced (vừa phải).
-- **Animation**: Subtle only (fade/slide nhẹ, 150-200ms). No spring animations.
-- **Responsive**: 3-tier (mobile <768px, tablet 768-1199px, desktop ≥1200px).
-- **Language**: UI supports Vietnamese + English via `@Loc[]` localization keys. Mockups may use Vietnamese for illustration, actual code uses `@Loc["Key"]`.
-- **MCP Radzen Blazor**: ALL phases must query MCP for component properties/events/API before writing code.
-- CSS uses `--vpp-*` token namespace. Legacy `--vpp-ocean-*` tokens get alias mapping.
+## UI Design Preferences
+
+- M0–M2 Atlas là style contract đã được owner chuẩn hóa; browser Blazor thật là visual authority cuối.
+- Dùng Blazor + Radzen theo mô hình hybrid và composition `token → primitive → composite → workspace pattern → route`; không tạo component universal hoặc kế thừa markup.
+- Giá trị visual lấy từ `vpp-tokens.css`; Radzen mapping nằm trong `vpp-radzen-theme.css`. Không sao chép bảng màu sang instruction này.
+- UI dùng `@Loc[]`, Light/Dark, responsive và các state cần thiết. Tra Radzen MCP theo đúng component/API; nếu quota/key lỗi thì dừng phần phụ thuộc Radzen.
+- Chạy `./scripts/gtas.cmd preflight -Scope frontend` trước task phức tạp và test/browser verification theo scoped `AGENTS.md`.

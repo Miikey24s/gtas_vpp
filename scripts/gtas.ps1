@@ -1,7 +1,10 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('help', 'configure', 'status', 'init-db', 'bootstrap-admin', 'run', 'test')]
+    [ValidateSet('help', 'configure', 'status', 'preflight', 'init-db', 'bootstrap-admin', 'run', 'test', 'test-backend', 'test-frontend', 'verify')]
     [string]$Command = 'help',
+
+    [ValidateSet('all', 'frontend', 'backend', 'tests', 'thesis')]
+    [string]$Scope = 'all',
 
     [string]$ConnectionString,
 
@@ -20,6 +23,98 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $BackendProject = Join-Path $RepoRoot 'src/Backend/Api/gtas_vpp_be.csproj'
 $AppHostProject = Join-Path $RepoRoot 'src/Hosting/AppHost/MyAspire.AppHost.csproj'
+
+function Invoke-CheckedCommand([string]$FailureMessage, [scriptblock]$Action) {
+    & $Action
+    if ($LASTEXITCODE -ne 0) {
+        throw "$FailureMessage Exit code: $LASTEXITCODE."
+    }
+}
+
+function Show-AgentPreflight([string]$SelectedScope) {
+    $commonDocuments = @(
+        'AGENTS.md',
+        'docs/ai/AI-AGENT-OPERATING-MODEL.md',
+        'README.md'
+    )
+    $scopeDocuments = switch ($SelectedScope) {
+        'frontend' {
+            @(
+                'src/Frontend/Blazor/AGENTS.md',
+                '.codexrules',
+                '.github/copilot-instructions.md',
+                'docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md',
+                'docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md',
+                'docs/execution/ATLAS-001.md'
+            )
+        }
+        'backend' {
+            @(
+                'src/Backend/AGENTS.md',
+                'docs/architecture/ARCH-001-MODULE-MAP.md'
+            )
+        }
+        'tests' {
+            @(
+                'tests/AGENTS.md',
+                'docs/testing/QA-001-ISOLATED-TESTING.md'
+            )
+        }
+        'thesis' {
+            @(
+                'LVTN/AGENTS.md',
+                'LVTN/README.md'
+            )
+        }
+        default { @() }
+    }
+
+    $branch = (& git branch --show-current).Trim()
+    $head = (& git rev-parse --short HEAD).Trim()
+    $dotnetVersion = (& dotnet --version).Trim()
+    $status = @(& git status --short)
+
+    Write-Host 'GTAS AI agent preflight'
+    Write-Host "Scope: $SelectedScope"
+    Write-Host "Branch/HEAD: $branch @ $head"
+    Write-Host ".NET SDK: $dotnetVersion"
+    Write-Host 'Working tree:'
+    if ($status.Count -eq 0) {
+        Write-Host '  clean'
+    }
+    else {
+        $status | ForEach-Object { Write-Host "  $_" }
+    }
+
+    Write-Host 'Required context:'
+    foreach ($document in @($commonDocuments + $scopeDocuments | Select-Object -Unique)) {
+        $marker = if (Test-Path -LiteralPath (Join-Path $RepoRoot $document)) { '[OK]' } else { '[MISSING]' }
+        Write-Host "  $marker $document"
+    }
+
+    Write-Host 'Next: read the listed context, inspect the relevant implementation and tests, then make one verifiable vertical slice.'
+}
+
+function Test-NuGetVulnerabilities {
+    $auditJson = & dotnet list gtas_vpp.sln package --vulnerable --include-transitive --format json
+    if ($LASTEXITCODE -ne 0) {
+        throw "NuGet vulnerability audit failed with exit code $LASTEXITCODE."
+    }
+
+    $audit = $auditJson | ConvertFrom-Json
+    $packages = @(
+        $audit.projects |
+            ForEach-Object { $_.frameworks } |
+            ForEach-Object { @($_.topLevelPackages) + @($_.transitivePackages) } |
+            Where-Object { $_ }
+    )
+    if ($packages.Count -gt 0) {
+        Write-Host ($packages | ConvertTo-Json -Depth 8)
+        throw 'Vulnerable NuGet packages were found.'
+    }
+
+    Write-Host 'NuGet vulnerability audit passed.'
+}
 
 function New-RandomSecret {
     $bytes = New-Object byte[] 48
@@ -176,10 +271,14 @@ Commands:
   help             Show this short catalog.
   configure        Store Aspire connection/JWT secrets in .NET user-secrets (not Git).
   status           Show branch and whether required Aspire secret keys exist.
+  preflight        Show branch, dirty files, SDK and required context for an AI task.
   init-db          Migrate and seed a TEST/DEMO database; safe to run repeatedly.
   bootstrap-admin  Migrate, ensure one local department, and create the first System Admin once.
   run              Start Aspire in watch/Hot Reload mode for local development.
   test             Build and run backend/frontend unit tests.
+  test-backend     Run backend unit tests.
+  test-frontend    Run frontend unit tests.
+  verify           Mirror the non-browser CI gates before a complete handoff.
 
 DatabaseInitialization modes:
   None                 No migration or seed.
@@ -200,10 +299,13 @@ Configuration catalog:
   AI provider order : ReportInsights:ProviderPriority:0..n
 
 Examples:
+  .\scripts\gtas.cmd preflight -Scope frontend
   .\scripts\gtas.cmd configure
   .\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
   .\scripts\gtas.cmd bootstrap-admin -ConnectionString "..." -DepartmentCode IT -DepartmentName "Information Technology"
   .\scripts\gtas.cmd run
+  .\scripts\gtas.cmd test
+  .\scripts\gtas.cmd verify
 '@ | Write-Host
 }
 
@@ -239,6 +341,9 @@ try {
             Write-Host "Branch: $branch"
             Write-Host "Aspire TEST connection: $databaseStatus"
             Write-Host "Aspire JWT key: $jwtStatus"
+        }
+        'preflight' {
+            Show-AgentPreflight $Scope
         }
         'init-db' {
             $ConnectionString = Read-RequiredValue 'TEST/DEMO database connection string' $ConnectionString
@@ -294,12 +399,65 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Aspire watch exited with code $LASTEXITCODE." }
         }
         'test' {
-            & dotnet build gtas_vpp.sln -c Release
-            if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
-            & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
-            if ($LASTEXITCODE -ne 0) { throw 'Backend tests failed.' }
-            & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
-            if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed.' }
+            Invoke-CheckedCommand 'Build failed.' {
+                & dotnet build gtas_vpp.sln -c Release
+            }
+            Invoke-CheckedCommand 'Backend tests failed.' {
+                & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
+            }
+            Invoke-CheckedCommand 'Frontend tests failed.' {
+                & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+            }
+        }
+        'test-backend' {
+            Invoke-CheckedCommand 'Backend tests failed.' {
+                & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release
+            }
+        }
+        'test-frontend' {
+            Invoke-CheckedCommand 'Frontend tests failed.' {
+                & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release
+            }
+        }
+        'verify' {
+            Invoke-CheckedCommand 'Solution restore failed.' {
+                & dotnet restore gtas_vpp.sln
+            }
+            Invoke-CheckedCommand 'Local tool restore failed.' {
+                & dotnet tool restore
+            }
+            Invoke-CheckedCommand 'Release build failed.' {
+                & dotnet build gtas_vpp.sln -c Release --no-restore
+            }
+            Invoke-CheckedCommand 'Backend unit tests failed.' {
+                & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
+            }
+            Invoke-CheckedCommand 'Frontend unit tests failed.' {
+                & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+            }
+            Invoke-CheckedCommand 'Backend integration tests failed.' {
+                & dotnet test tests/Backend.IntegrationTests/gtas_vpp_be.IntegrationTests.csproj -c Release --no-build
+            }
+            Invoke-CheckedCommand 'UI configuration syntax smoke failed.' {
+                & dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-build --filter 'FullyQualifiedName~ComposeConfigurationSyntaxTests'
+            }
+            Invoke-CheckedCommand 'EF pending-model check failed.' {
+                & dotnet tool run dotnet-ef migrations has-pending-model-changes `
+                    --project src/Backend/Migrations/gtas_vpp_be.Migrations.csproj `
+                    --startup-project src/Backend/Api/gtas_vpp_be.csproj `
+                    --context VPPMigrationDbContext `
+                    --configuration Release `
+                    --no-build
+            }
+            Test-NuGetVulnerabilities
+            Invoke-CheckedCommand 'Thesis structure check failed.' {
+                & python LVTN/tooling/check_thesis.py
+            }
+            & (Join-Path $RepoRoot 'scripts/security/Invoke-Gitleaks.ps1') -Mode Current
+            Invoke-CheckedCommand 'Git whitespace check failed.' {
+                & git diff --check
+            }
+            Write-Host 'GTAS repository verification passed. Authenticated route-real UI QA remains a separate gate for UI changes.'
         }
     }
 }
