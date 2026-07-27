@@ -351,13 +351,36 @@ Ma trận quyền đúng 3 vai trò (D1). Mỗi tài khoản một phân công q
 **Retrofit queue W-F (chờ owner duyệt):** gỡ nút `Lưu ma trận quyền` khỏi Atlas vì action matrix là
 canonical read-only; Atlas không được mô tả khả năng mutation mà backend không cung cấp.
 
-**W-F source hoàn tất; browser gate còn treo:** cần route `/permission` trên TEST đã đăng nhập để kiểm
-tra expanded group, switch UI mapping, matrix ngang ở 390/768/1920, VI/EN, console và network.
+**W-F isolated browser gate pass:** `AtlasWave1Tests` đăng nhập fixture thật và xác nhận `users` +
+`permissions` ở 1920, matrix đúng 18 hàng/4 header; route permission không làm tràn page ở 768 và
+hai tab permission không làm tràn page ở 390. Mutation switch UI mapping chưa chạy trong lượt read-only
+(cần explicit mutation opt-in); owner review trên TEST vẫn còn.
 
 ### W-G — M7 báo cáo (1 màn, gap C)
 
 Bỏ mọi dấu vết PDF ở cả code lẫn Atlas (D3). Giữ CSV UTF-8 + XLSX với 5 sheet
 `Summary / Items / Departments / Trend / TopProducts`. Kỳ đã chốt lấy số từ dữ liệu chốt kỳ, không tính lại.
+
+**Tiến độ 2026-07-27 — W-G `reports` hoàn tất phần source** (frontend `171/171`, backend
+`ReportServiceTests` `7/7` pass):
+
+1. Toolbar một hàng/wrap responsive: search phòng ban client-side, scope/năm/tháng bằng
+   `RadzenDropDown`, áp dụng, tạo nhận định, xóa bộ lọc và hai action `Xuất CSV` / `Xuất Excel`.
+   Hai file gọi đúng endpoint `export` và `export.xlsx`, có toast riêng đúng định dạng.
+2. Panel bằng chứng chốt kỳ chuyển toàn bộ 7 chuỗi sang resx VI+EN; logic chỉ render khi
+   `SettlementId.HasValue` giữ nguyên.
+3. Trend chuyển từ `TotalQuantity` sang `TotalAmount` bằng `RadzenLineSeries`, vì DTO đã có chi phí;
+   không bịa hai series đơn thường/bổ sung mà backend không trả.
+4. Khối phòng ban đổi column chart đếm đơn thành `RadzenDataGrid` với đúng bốn field thật:
+   `Code`, `OrderCount`, `TotalQuantity`, `TotalAmount`; subtitle phân biệt settlement snapshot và live data.
+
+**Retrofit queue W-G (chờ owner duyệt):** Atlas đang vẽ các field không có nguồn backend: KPI
+`Chênh lệch giá`, meta nhân sự/phần trăm, tên phòng ban, số mặt hàng theo phòng, `So kỳ trước` và
+hai series thường/bổ sung. Không render số giả; Atlas cần sửa theo DTO hiện hành nếu owner duyệt.
+
+**W-G isolated browser gate pass:** `AtlasWave1Tests` xác nhận `/report` render sau đăng nhập, hai nút
+`Xuất CSV`/`Xuất Excel` xuất hiện và route không làm tràn page ở 1920/768/390. Lượt read-only chưa bấm
+tải file và chưa có cả fixture kỳ live lẫn kỳ đã chốt; owner review trên TEST vẫn còn.
 
 ### W-H — M8 trạng thái, hardening, và đóng gói luận văn
 

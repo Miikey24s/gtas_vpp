@@ -467,8 +467,8 @@
   <data name="NoReportDataDescription" xml:space="preserve"><value>Hãy đổi phạm vi hoặc kỳ báo cáo rồi thử lại.</value></data>
   <data name="Pricing" xml:space="preserve"><value>Bảng giá</value></data>
   <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>
-  <data name="ReportDepartments" xml:space="preserve"><value>So sánh phòng ban</value></data>
-  <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Số đơn của tối đa 12 phòng ban trong phạm vi được phép.</value></data>
+  <data name="ReportDepartments" xml:space="preserve"><value>Chi phí theo phòng ban</value></data>
+  <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Chi phí, số đơn và số lượng theo phòng ban trong phạm vi được phép.</value></data>
   <data name="ReportExported" xml:space="preserve"><value>Đã xuất báo cáo CSV.</value></data>
   <data name="ReportExportFailed" xml:space="preserve"><value>Không thể xuất báo cáo: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Bộ lọc báo cáo</value></data>
@@ -487,8 +487,8 @@
   <data name="ReportStatus" xml:space="preserve"><value>Cơ cấu trạng thái</value></data>
   <data name="ReportStatusDescription" xml:space="preserve"><value>Tỷ lệ đơn theo trạng thái xử lý hiện tại.</value></data>
   <data name="ReportSummary" xml:space="preserve"><value>Tổng quan báo cáo</value></data>
-  <data name="ReportTrend" xml:space="preserve"><value>Xu hướng theo kỳ</value></data>
-  <data name="ReportTrendDescription" xml:space="preserve"><value>Số lượng văn phòng phẩm được yêu cầu theo từng tháng.</value></data>
+  <data name="ReportTrend" xml:space="preserve"><value>Chi phí theo 6 kỳ gần nhất</value></data>
+  <data name="ReportTrendDescription" xml:space="preserve"><value>Tổng chi phí văn phòng phẩm theo từng kỳ báo cáo.</value></data>
   <data name="Requesters" xml:space="preserve"><value>Người yêu cầu</value></data>
   <data name="ScopeAll" xml:space="preserve"><value>Toàn doanh nghiệp</value></data>
   <data name="ScopeDepartment" xml:space="preserve"><value>Phòng ban</value></data>
@@ -943,4 +943,20 @@
   <data name="PermissionActionReportViewAll" xml:space="preserve"><value>Xem báo cáo toàn công ty</value></data>
   <data name="PermissionActionReportExport" xml:space="preserve"><value>Xuất báo cáo</value></data>
   <data name="PermissionActionPeriodSettle" xml:space="preserve"><value>Rà soát và chốt kỳ</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>Xuất CSV</value></data>
+  <data name="ReportExportedCsv" xml:space="preserve"><value>Đã xuất báo cáo CSV.</value></data>
+  <data name="ReportExportedXlsx" xml:space="preserve"><value>Đã xuất báo cáo Excel.</value></data>
+  <data name="ReportDepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm phòng ban</value></data>
+  <data name="SettlementEvidence" xml:space="preserve"><value>Bằng chứng chốt kỳ</value></data>
+  <data name="SettlementEvidenceTitle" xml:space="preserve"><value>Dữ liệu kỳ đã được đối chiếu</value></data>
+  <data name="SettlementEvidenceDescription" xml:space="preserve"><value>Báo cáo sử dụng dữ liệu được lưu tại thời điểm chốt kỳ.</value></data>
+  <data name="SettlementRevision" xml:space="preserve"><value>Phiên bản</value></data>
+  <data name="SettlementPrimarySupplier" xml:space="preserve"><value>Nhà cung cấp chính</value></data>
+  <data name="SettlementGrandTotal" xml:space="preserve"><value>Tổng chốt kỳ</value></data>
+  <data name="SettlementVariance" xml:space="preserve"><value>Chênh lệch phân bổ</value></data>
+  <data name="ReportCost" xml:space="preserve"><value>Chi phí</value></data>
+  <data name="ReportDepartmentsSettledDescription" xml:space="preserve"><value>Số liệu được ghi nhận khi chốt kỳ.</value></data>
+  <data name="ReportDepartmentsLiveDescription" xml:space="preserve"><value>Số liệu tạm tính từ các đơn hợp lệ hiện hành.</value></data>
+  <data name="NoDepartmentReportData" xml:space="preserve"><value>Không có phòng ban phù hợp bộ lọc</value></data>
+  <data name="OrderCount" xml:space="preserve"><value>Số đơn</value></data>
 </root>

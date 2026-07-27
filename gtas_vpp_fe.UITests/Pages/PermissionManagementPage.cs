@@ -47,7 +47,7 @@ namespace gtas_vpp_fe.UITests.Pages
             }
 
             await visibleSwitch.ClickAsync();
-            await _page.GetByText("Permission updated", new PageGetByTextOptions { Exact = false }).Last.WaitForAsync();
+            await _page.GetByText("Đã cập nhật phân quyền", new PageGetByTextOptions { Exact = false }).Last.WaitForAsync();
         }
 
         public async Task WaitForReportMenuVisibleAsync()

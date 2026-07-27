@@ -32,7 +32,53 @@ else
                     <p>@string.Format(Loc["GeneratedAt"], FormatGeneratedAt(Summary.GeneratedAt))</p>
                 }
             </div>
-            <div class="vpp-report-actions">
+        </header>
+
+        <section class="vpp-report-filters" aria-label="@Loc["ReportFilters"]">
+            <div class="vpp-report-filter-controls">
+                <label class="vpp-order-view-search vpp-report-department-search">
+                    <VppIcon Name="search" />
+                    <input value="@DepartmentSearchText"
+                           @oninput="OnDepartmentSearchInput"
+                           placeholder="@Loc["ReportDepartmentSearchPlaceholder"]"
+                           aria-label="@Loc["ReportDepartmentSearchPlaceholder"]" />
+                </label>
+                <label class="vpp-report-filter-field">
+                    <span>@Loc["ReportScope"]</span>
+                    <RadzenDropDown TValue="string"
+                                    Data="@LocalizedScopeOptions"
+                                    TextProperty="@nameof(ReportScopeDisplayOption.Label)"
+                                    ValueProperty="@nameof(ReportScopeDisplayOption.Value)"
+                                    @bind-Value="SelectedScope"
+                                    aria-label="@Loc["ReportScope"]" />
+                </label>
+                <label class="vpp-report-filter-field">
+                    <span>@Loc["Year"]</span>
+                    <RadzenDropDown TValue="int?"
+                                    Data="@AvailableYears"
+                                    @bind-Value="SelectedYear"
+                                    AllowClear="true"
+                                    Placeholder="@Loc["AllYears"]"
+                                    aria-label="@Loc["Year"]" />
+                </label>
+                <label class="vpp-report-filter-field">
+                    <span>@Loc["Month"]</span>
+                    <RadzenDropDown TValue="int?"
+                                    Data="@MonthOptions"
+                                    TextProperty="@nameof(ReportMonthOption.Label)"
+                                    ValueProperty="@nameof(ReportMonthOption.Value)"
+                                    @bind-Value="SelectedMonth"
+                                    AllowClear="true"
+                                    Placeholder="@Loc["AllMonths"]"
+                                    aria-label="@Loc["Month"]" />
+                </label>
+                <RadzenButton Icon="filter_alt"
+                              Text="@Loc["ApplyFilters"]"
+                              ButtonStyle="ButtonStyle.Light"
+                              Click="LoadAsync"
+                              Disabled="@IsLoading" />
+            </div>
+            <div class="vpp-report-filter-actions">
                 @if (Summary is { TotalOrders: > 0 })
                 {
                     <RadzenButton Icon="auto_awesome"
@@ -43,52 +89,25 @@ else
                                   Click="GenerateInsightsAsync"
                                   Disabled="@(IsLoading || IsExporting)" />
                 }
+                <RadzenButton Icon="filter_alt_off"
+                              Text="@Loc["ClearFilters"]"
+                              ButtonStyle="ButtonStyle.Light"
+                              Click="ClearReportFiltersAsync"
+                              Disabled="@IsLoading" />
                 @if (CanExport)
                 {
-                    <RadzenButton Icon="file_download"
-                                  Text="@Loc["ExportReport"]"
+                    <RadzenButton Icon="description"
+                                  Text="@Loc["ExportCsv"]"
+                                  ButtonStyle="ButtonStyle.Secondary"
+                                  Click="ExportCsvAsync"
+                                  Disabled="@(IsLoading || IsExporting || Summary is null)" />
+                    <RadzenButton Icon="table_view"
+                                  Text="@Loc["ExportExcel"]"
                                   ButtonStyle="ButtonStyle.Primary"
-                                  Click="ExportAsync"
+                                  Click="ExportXlsxAsync"
                                   Disabled="@(IsLoading || IsExporting || Summary is null)" />
                 }
             </div>
-        </header>
-
-        <section class="vpp-report-filters" aria-label="@Loc["ReportFilters"]">
-            <label>
-                <span>@Loc["ReportScope"]</span>
-                <select @bind="SelectedScope">
-                    @foreach (var option in ScopeOptions)
-                    {
-                        <option value="@option.Value">@Loc[option.ResourceKey]</option>
-                    }
-                </select>
-            </label>
-            <label>
-                <span>@Loc["Year"]</span>
-                <select @bind="SelectedYear">
-                    <option value="">@Loc["AllYears"]</option>
-                    @foreach (var year in AvailableYears)
-                    {
-                        <option value="@year">@year</option>
-                    }
-                </select>
-            </label>
-            <label>
-                <span>@Loc["Month"]</span>
-                <select @bind="SelectedMonth">
-                    <option value="">@Loc["AllMonths"]</option>
-                    @for (var month = 1; month <= 12; month++)
-                    {
-                        <option value="@month">@month.ToString("00")</option>
-                    }
-                </select>
-            </label>
-            <RadzenButton Icon="filter_alt"
-                          Text="@Loc["ApplyFilters"]"
-                          ButtonStyle="ButtonStyle.Light"
-                          Click="LoadAsync"
-                          Disabled="@IsLoading" />
         </section>
 
         @if (IsLoading && Summary is null)
@@ -115,16 +134,16 @@ else
 
             @if (Summary.SettlementId.HasValue)
             {
-                <section class="vpp-report-settlement-evidence" aria-label="Bằng chứng chốt kỳ">
+                <section class="vpp-report-settlement-evidence" aria-label="@Loc["SettlementEvidence"]">
                     <div>
                         <span class="rzi rzi-verified_user" aria-hidden="true"></span>
-                        <p><strong>Dữ liệu kỳ đã được đối chiếu</strong><small>Báo cáo sử dụng dữ liệu được lưu tại thời điểm chốt kỳ.</small></p>
+                        <p><strong>@Loc["SettlementEvidenceTitle"]</strong><small>@Loc["SettlementEvidenceDescription"]</small></p>
                     </div>
                     <dl>
-                        <div><dt>Phiên bản</dt><dd>@(Summary.SettlementRevisionNumber?.ToString() ?? "—")</dd></div>
-                        <div><dt>Nhà cung cấp chính</dt><dd>@(Summary.SettlementPrimarySupplierName ?? "—")</dd></div>
-                        <div><dt>Tổng chốt kỳ</dt><dd>@FormatDecimalAmount(Summary.SettlementGrandTotal)</dd></div>
-                        <div><dt>Chênh lệch phân bổ</dt><dd>@FormatDecimalAmount(Summary.SettlementVariance)</dd></div>
+                        <div><dt>@Loc["SettlementRevision"]</dt><dd>@(Summary.SettlementRevisionNumber?.ToString() ?? "—")</dd></div>
+                        <div><dt>@Loc["SettlementPrimarySupplier"]</dt><dd>@(Summary.SettlementPrimarySupplierName ?? "—")</dd></div>
+                        <div><dt>@Loc["SettlementGrandTotal"]</dt><dd>@FormatDecimalAmount(Summary.SettlementGrandTotal)</dd></div>
+                        <div><dt>@Loc["SettlementVariance"]</dt><dd>@FormatDecimalAmount(Summary.SettlementVariance)</dd></div>
                     </dl>
                 </section>
             }
@@ -155,12 +174,15 @@ else
                     <h2>@Loc["ReportTrend"]</h2>
                     <p>@Loc["ReportTrendDescription"]</p>
                     <RadzenChart Style="height: 320px;">
-                        <RadzenColumnSeries Data="@Summary.PeriodTrend"
-                                            CategoryProperty="Period"
-                                            ValueProperty="TotalQuantity"
-                                            Title="@Loc["TotalQuantity"]" />
+                        <RadzenChartTooltipOptions Shared="true" />
+                        <RadzenLineSeries Data="@Summary.PeriodTrend"
+                                          CategoryProperty="Period"
+                                          ValueProperty="TotalAmount"
+                                          Title="@Loc["ReportCost"]"
+                                          Smooth="true"
+                                          StrokeWidth="3" />
                         <RadzenCategoryAxis />
-                        <RadzenValueAxis />
+                        <RadzenValueAxis Formatter="@FormatChartAmount" />
                         <RadzenLegend Position="LegendPosition.Bottom" />
                     </RadzenChart>
                 </article>
@@ -180,15 +202,36 @@ else
                 {
                     <article class="vpp-report-card vpp-report-card-wide">
                         <h2>@Loc["ReportDepartments"]</h2>
-                        <p>@Loc["ReportDepartmentsDescription"]</p>
-                        <RadzenChart Style="height: 340px;">
-                            <RadzenColumnSeries Data="@Summary.DepartmentBreakdown"
-                                                CategoryProperty="Code"
-                                                ValueProperty="OrderCount"
-                                                Title="@Loc["TotalOrders"]" />
-                            <RadzenCategoryAxis />
-                            <RadzenValueAxis />
-                        </RadzenChart>
+                        <p>@(Summary.SettlementId.HasValue ? Loc["ReportDepartmentsSettledDescription"] : Loc["ReportDepartmentsLiveDescription"])</p>
+                        @if (FilteredDepartmentBreakdown.Count == 0)
+                        {
+                            <VppEmptyState Icon="search_off"
+                                           Title="@Loc["NoDepartmentReportData"]"
+                                           Description="@Loc["ReportDepartmentSearchPlaceholder"]" />
+                        }
+                        else
+                        {
+                            <RadzenDataGrid TItem="ReportDepartmentPointResDTO"
+                                            Data="@FilteredDepartmentBreakdown"
+                                            AllowPaging="false"
+                                            AllowSorting="true"
+                                            Density="Density.Compact"
+                                            GridLines="DataGridGridLines.Horizontal"
+                                            class="vpp-report-department-grid">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="Code" Title="@Loc["DepartmentCode"]" />
+                                    <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="OrderCount" Title="@Loc["OrderCount"]" TextAlign="TextAlign.Right">
+                                        <Template Context="department">@department.OrderCount.ToString("N0")</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" TextAlign="TextAlign.Right">
+                                        <Template Context="department">@department.TotalQuantity.ToString("N0")</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalAmount" Title="@Loc["TotalAmount"]" TextAlign="TextAlign.Right">
+                                        <Template Context="department">@FormatAmount(department.TotalAmount)</Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        }
                     </article>
                 }
 

@@ -152,6 +152,10 @@ nhóm quyền/phòng ban → kích hoạt. `Component_RecordInspector` chỉ hi�
 
 **Chỉ có CSV và XLSX. Không có PDF** (quyết định D3).
 
+`Report.razor` dùng cùng `scope/year/month` cho summary và hai export. Search phòng ban chỉ lọc
+client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
+`SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại.
+
 ### M8 — Trạng thái hệ thống
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |

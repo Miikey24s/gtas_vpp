@@ -2259,8 +2259,8 @@ leftsidebar {
 }
 
 .vpp-report-filters {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(140px, 1fr)) auto;
+    display: flex;
+    flex-wrap: wrap;
     align-items: end;
     gap: var(--vpp-space-3);
     margin-bottom: var(--vpp-space-5);
@@ -2270,26 +2270,42 @@ leftsidebar {
     background: var(--vpp-bg-surface);
 }
 
-.vpp-report-filters label {
+.vpp-report-filter-controls,
+.vpp-report-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-report-filter-controls {
+    flex: 1 1 680px;
+}
+
+.vpp-report-filter-actions {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+}
+
+.vpp-report-filter-field {
     display: grid;
+    flex: 0 1 150px;
+    min-width: 130px;
     gap: var(--vpp-space-2);
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-semibold);
 }
 
-.vpp-report-filters select {
+.vpp-report-filter-field .rz-dropdown {
+    width: 100%;
     min-height: 40px;
-    padding: 0 var(--vpp-space-3);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-md);
-    color: var(--vpp-text-primary);
-    background: var(--vpp-bg-surface);
 }
 
-.vpp-report-filters select:focus-visible {
-    border-color: var(--vpp-primary);
-    outline: 2px solid rgba(var(--vpp-primary-rgb), 0.18);
+.vpp-report-department-search {
+    flex: 1 1 220px;
+    max-width: 320px;
+    min-height: 40px;
 }
 
 .vpp-report-kpis {
@@ -2442,6 +2458,10 @@ leftsidebar {
     grid-column: 1 / -1;
 }
 
+.vpp-report-department-grid {
+    margin-top: var(--vpp-space-4);
+}
+
 @media (min-width: 768px) and (max-width: 1199px) {
     .vpp-report-kpis {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2458,15 +2478,26 @@ leftsidebar {
         flex-direction: column;
     }
 
-    .vpp-report-actions {
-        justify-content: flex-start;
-    }
-
-    .vpp-report-filters,
     .vpp-report-kpis,
     .vpp-report-insight-grid,
     .vpp-report-grid {
         grid-template-columns: 1fr;
+    }
+
+    .vpp-report-filter-controls,
+    .vpp-report-filter-actions {
+        align-items: stretch;
+        flex: 1 1 100%;
+    }
+
+    .vpp-report-department-search,
+    .vpp-report-filter-field {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .vpp-report-filter-actions .rz-button {
+        flex: 1 1 auto;
     }
 
     .vpp-report-card-wide {

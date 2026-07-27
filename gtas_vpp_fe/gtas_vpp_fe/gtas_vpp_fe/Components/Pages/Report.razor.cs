@@ -24,10 +24,21 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected string SelectedScope { get; set; } = ReportScopes.Own;
     protected int? SelectedYear { get; set; }
     protected int? SelectedMonth { get; set; }
+    protected string DepartmentSearchText { get; set; } = string.Empty;
 
     protected bool CanViewReport => ScopeOptions.Count > 0;
     protected bool CanExport => PermissionState.HasPermission(Permissions.ReportExport);
     protected IReadOnlyList<int> AvailableYears => Summary?.AvailableYears ?? [];
+    protected IReadOnlyList<ReportMonthOption> MonthOptions { get; } = Enumerable.Range(1, 12)
+        .Select(month => new ReportMonthOption(month, month.ToString("00", CultureInfo.InvariantCulture)))
+        .ToArray();
+    protected IReadOnlyList<ReportScopeDisplayOption> LocalizedScopeOptions => ScopeOptions
+        .Select(option => new ReportScopeDisplayOption(option.Value, Localizer[option.ResourceKey].Value))
+        .ToArray();
+    protected IReadOnlyList<ReportDepartmentPointResDTO> FilteredDepartmentBreakdown => Summary?.DepartmentBreakdown
+        .Where(item => string.IsNullOrWhiteSpace(DepartmentSearchText)
+            || item.Code.Contains(DepartmentSearchText.Trim(), StringComparison.OrdinalIgnoreCase))
+        .ToList() ?? [];
     protected IReadOnlyList<StatusChartPoint> StatusChartData => Summary?.StatusBreakdown
         .Select(item => new StatusChartPoint(Localizer[item.ResourceKey], item.OrderCount))
         .ToList() ?? [];
@@ -58,7 +69,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
         PermissionState.Changed += OnPermissionStateChanged;
         await PermissionState.EnsureLoadedAsync();
-        SelectedScope = ScopeOptions.LastOrDefault()?.Value ?? ReportScopes.Own;
+        SelectedScope = GetDefaultScope();
         if (CanViewReport)
         {
             await LoadAsync();
@@ -101,7 +112,11 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
     }
 
-    protected async Task ExportAsync()
+    protected Task ExportCsvAsync() => ExportAsync("export", "ReportExportedCsv");
+
+    protected Task ExportXlsxAsync() => ExportAsync("export.xlsx", "ReportExportedXlsx");
+
+    private async Task ExportAsync(string action, string successResourceKey)
     {
         if (!CanExport || IsExporting)
         {
@@ -111,11 +126,11 @@ public abstract class ReportBase : ComponentBase, IDisposable
         IsExporting = true;
         try
         {
-            var file = await Api.GetFileFromApiAsync(BuildEndpoint("export.xlsx"));
+            var file = await Api.GetFileFromApiAsync(BuildEndpoint(action));
             await using var stream = new MemoryStream(file.Content, writable: false);
             using var streamReference = new DotNetStreamReference(stream);
             await JS.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
-            Toast.Success(Localizer["Success"], Localizer["ReportExported"]);
+            Toast.Success(Localizer["Success"], Localizer[successResourceKey]);
         }
         catch (Exception ex)
         {
@@ -149,6 +164,20 @@ public abstract class ReportBase : ComponentBase, IDisposable
         {
             IsLoadingInsights = false;
         }
+    }
+
+    protected void OnDepartmentSearchInput(ChangeEventArgs args)
+    {
+        DepartmentSearchText = args.Value?.ToString() ?? string.Empty;
+    }
+
+    protected async Task ClearReportFiltersAsync()
+    {
+        DepartmentSearchText = string.Empty;
+        SelectedScope = GetDefaultScope();
+        SelectedYear = null;
+        SelectedMonth = null;
+        await LoadAsync();
     }
 
     protected RenderFragment Kpi(string icon, string label, string value) => builder =>
@@ -202,6 +231,10 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected static string FormatGeneratedAt(DateTime value) =>
         value.ToLocalTime().ToString("HH:mm dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN"));
 
+    protected static string FormatChartAmount(object value) =>
+        Convert.ToInt64(value, CultureInfo.InvariantCulture)
+            .ToString("N0", CultureInfo.CurrentUICulture);
+
     private string BuildEndpoint(string action)
     {
         var query = $"scope={Uri.EscapeDataString(SelectedScope)}";
@@ -217,6 +250,10 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
     public void Dispose() => PermissionState.Changed -= OnPermissionStateChanged;
 
+    private string GetDefaultScope() => ScopeOptions.LastOrDefault()?.Value ?? ReportScopes.Own;
+
     protected sealed record StatusChartPoint(string Label, int OrderCount);
     protected sealed record ReportScopeOption(string Value, string ResourceKey);
+    protected sealed record ReportScopeDisplayOption(string Value, string Label);
+    protected sealed record ReportMonthOption(int Value, string Label);
 }

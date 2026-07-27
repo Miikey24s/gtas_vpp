@@ -46,6 +46,8 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Visible,
             Timeout = 30_000
         });
+        (await Page.Locator(".vpp-permission-matrix tbody tr").CountAsync()).Should().Be(18);
+        (await Page.Locator(".vpp-permission-matrix thead th").CountAsync()).Should().Be(4);
 
         await GotoMainRouteAsync("dashboard?tab=5&periodTab=review");
         await Page.Locator(".vpp-period-workspace").WaitForAsync();
@@ -55,9 +57,21 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
 
         await GotoMainRouteAsync("report");
         await Page.Locator("h1.vpp-report-heading").WaitForAsync();
+        await Page.Locator(".vpp-report-filters").WaitForAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Xuất CSV", Exact = true }).WaitForAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Xuất Excel", Exact = true }).WaitForAsync();
+
+        await Page.SetViewportSizeAsync(768, 1024);
+        foreach (var route in new[] { "permission?tab=1", "report" })
+        {
+            await GotoMainRouteAsync(route);
+            var hasHorizontalOverflow = await Page.EvaluateAsync<bool>(
+                "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1");
+            hasHorizontalOverflow.Should().BeFalse($"{route} should fit the tablet viewport");
+        }
 
         await Page.SetViewportSizeAsync(390, 844);
-        foreach (var route in new[] { "library?tab=2", "permission?tab=0", "dashboard?tab=5&periodTab=review", "report" })
+        foreach (var route in new[] { "library?tab=2", "permission?tab=0", "permission?tab=1", "dashboard?tab=5&periodTab=review", "report" })
         {
             await GotoMainRouteAsync(route);
             var hasHorizontalOverflow = await Page.EvaluateAsync<bool>(

@@ -46,9 +46,20 @@ public sealed class AtlasWave1ArchitectureTests
     public void Reports_ShowSettlementEvidenceOnlyWhenTheApiProvidesIt()
     {
         var report = ReadFrontendSource("Components/Pages/Report.razor");
+        var reportCode = ReadFrontendSource("Components/Pages/Report.razor.cs");
 
         Assert.Contains("Summary.SettlementId.HasValue", report, StringComparison.Ordinal);
         Assert.Contains("vpp-report-settlement-evidence", report, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"SettlementEvidence\"]", report, StringComparison.Ordinal);
+        Assert.Contains("ExportCsvAsync", report, StringComparison.Ordinal);
+        Assert.Contains("ExportXlsxAsync", report, StringComparison.Ordinal);
+        Assert.Contains("ClearReportFiltersAsync", report, StringComparison.Ordinal);
+        Assert.Contains("ValueProperty=\"TotalAmount\"", report, StringComparison.Ordinal);
+        Assert.Contains("RadzenDataGrid TItem=\"ReportDepartmentPointResDTO\"", report, StringComparison.Ordinal);
+        Assert.Contains("FilteredDepartmentBreakdown", reportCode, StringComparison.Ordinal);
+        Assert.Contains("ExportAsync(\"export\", \"ReportExportedCsv\")", reportCode, StringComparison.Ordinal);
+        Assert.Contains("ExportAsync(\"export.xlsx\", \"ReportExportedXlsx\")", reportCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("aria-label=\"Bằng chứng chốt kỳ\"", report, StringComparison.Ordinal);
     }
 
     [Fact]
