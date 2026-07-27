@@ -93,6 +93,8 @@ $operatingModelContent = Get-Content -LiteralPath (Get-RepoPath 'docs/ai/AI-AGEN
 $evalContent = Get-Content -LiteralPath (Get-RepoPath 'docs/ai/AI-AGENT-EVALS.md') -Raw
 Add-Check 'customization-receipt-contract' ($operatingModelContent -match 'Biên nhận ghi nhận' -and $operatingModelContent -match 'PENDING APPROVAL') 'Operating model makes persistence location and approval state visible.'
 Add-Check 'customization-receipt-eval' ($evalContent -match '\| E11 \|' -and $evalContent -match 'Nói mơ hồ') 'Behavior eval catches vague or false persistence claims.'
+Add-Check 'hybrid-customization-contract' ($operatingModelContent -match 'Hybrid customization lifecycle' -and $operatingModelContent -match 'KEEP.*UPDATE.*MERGE.*DELETE.*NEEDS APPROVAL') 'Operating model preserves intent while pruning obsolete implementation guidance.'
+Add-Check 'hybrid-customization-eval' ($evalContent -match '\| E12 \|' -and $evalContent -match 'Reset toàn bộ custom') 'Behavior eval covers model upgrades and safe customization pruning.'
 
 $hookConfigPath = Get-RepoPath '.codex/hooks.json'
 $hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'

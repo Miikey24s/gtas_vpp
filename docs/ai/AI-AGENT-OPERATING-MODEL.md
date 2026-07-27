@@ -143,3 +143,15 @@ Build/unit pass không chứng minh UI đúng. Screenshot chưa được owner d
 - Adapter nền tảng phải ngắn; nếu nội dung trùng nguồn chuẩn, thay bằng đường dẫn/import.
 - Review định kỳ các instruction và xóa luật đã superseded để tránh agent nhận context mâu thuẫn.
 - `scripts/ai/Test-AgentSetup.ps1` là deterministic lint cho instruction graph; `docs/ai/AI-AGENT-EVALS.md` là bộ bài đánh giá hành vi, không thay thế product tests.
+
+### Hybrid customization lifecycle
+
+Khi model/provider/tooling được nâng cấp, không giữ full custom vô thời hạn và cũng không reset sạch:
+
+1. Giữ owner intent, risk tolerance, product authority, architecture constraint và definition of done.
+2. Đối chiếu official docs, installed version và behavior eval để gắn nhãn `KEEP`, `UPDATE`, `MERGE`, `DELETE` hoặc `NEEDS APPROVAL`.
+3. Tự dọn path/command stale, metadata drift và duplicate có authority thay thế rõ khi deterministic checks pass.
+4. Nếu cleanup làm đổi behavior, architecture, security boundary, cost hoặc workflow owner nhìn thấy, phải báo evidence và chờ owner duyệt.
+5. Chỉ nâng từ prompt → skill → automation → plugin khi workflow đủ ổn định: one-off ở thread/goal; workflow lặp lại ở skill; pass/fail cơ học ở script/CI/hook; plugin chỉ dùng khi cần phân phối nhiều repo/provider, gom nhiều skill hoặc kèm MCP/app.
+
+Monthly audit chỉ đọc và báo cáo trước. Unattended edit chỉ được bật cho workflow hẹp, reversible, đã qua nhiều dry-run và có gate xác định.
