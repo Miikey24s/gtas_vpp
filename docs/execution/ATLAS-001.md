@@ -291,6 +291,36 @@ chế độ Theo đơn theo D8/D18).
 chỉ ánh xạ soft-delete (`Hoạt động` / `Ngừng áp dụng`); riêng bảng giá có vòng đời `Draft / Published /
 Expired`. Không bao giờ render `PasswordHash`, token hay security stamp.
 
+**Tiến độ 2026-07-27 — W-E triển khai phần chính** (commit `291eeb0`…`8fd967c`; phân tích
+workflow 58 agent, 42 MUST_FIX xác nhận):
+
+1. ShareGrid dùng chung (`291eeb0`): thêm CreateLabel/SearchPlaceholder/SearchFields — ô tìm
+   kiếm ngữ cảnh theo filterBar Atlas (Dynamic LINQ OR, debounce 280ms, gộp với filter cột)
+   + nút thêm mang danh từ riêng từng màn; key resx IsDeleted hết lộ tên property ("Vô hiệu
+   hóa"); RecordInspector render IsDeleted thành badge trạng thái đảo chiều đúng semantics
+   (Hoạt động/Ngừng áp dụng, nhãn "Trạng thái"); hero resolve VppCategoryName/SupplierShortName;
+   nhãn cột "Tên viết tắt" (hết sai "Mã nhà cung cấp"); badge inspector "Đang chọn".
+2. Pricing (`6de930e`): price-lists thêm cột "Hiệu lực" (EffectiveFrom–To), badge Hết hiệu lực
+   → amber, toàn bộ copy vòng đời publish/expire/deactivate → resx VI; prices thêm cột Thuế
+   (VatRate có sẵn trong DTO), placeholder ngữ cảnh, copy soft/hard-delete VI.
+3. Classes (`0292a42`): nối 2 dialog thêm mới mồ côi thành primary action "Thêm loại danh mục"
+   / "Thêm giá trị" (value gắn sẵn LookupCategoryId); copy "lớp/Module" → "loại/Mô-đun";
+   toàn bộ chuỗi EN hardcode trong tab + 2 dialog → resx VI.
+4. Soft-delete-only (`8fd967c`): categories/suppliers/departments AllowHardDelete=false theo
+   cấp bậc hành động Atlas (items vốn đã false).
+
+Còn treo W-E (ghi để làm ở lát sau hoặc chờ owner): thứ tự cột items (Đơn vị trước Danh mục —
+đổi cần sắp lại property DTO hoặc metadata, để lát R-2); hàng hành động trong inspector
+(Chỉnh sửa/Vô hiệu hóa — OWNER_GATE vị trí thao tác); [OWNER-GATE] drawer thêm/sửa vs inline
+row-edit của ShareGrid (chuyển drawer vượt mức gap B); hard-delete còn lại ở classes/price-lists;
+cột địa chỉ suppliers mặc định hiển thị; filter CheckBoxList Status hiển thị giá trị thô.
+
+**Retrofit queue W-E (sửa ngược Atlas, chờ owner duyệt):** cột đếm "Mặt hàng"/"Thành viên"/
+"Giá trị" không có field backend (categories/suppliers/departments/classes); Atlas vẽ trường
+không tồn tại (RowVersion, "Nguồn dữ liệu", tên người cập nhật, "Hiệu lực" per-mức-giá,
+"Chiết khấu/Phí bổ sung" cấp mức giá); manifest ghi "được phê duyệt" cho suppliers nhưng
+backend không có vòng đời phê duyệt; classes Atlas vẽ 1 bảng phẳng thiếu vùng LookupValue.
+
 ### W-F — M6 người dùng và phân quyền (2 màn, gap B)
 
 Ma trận quyền đúng 3 vai trò (D1). Mỗi tài khoản một phân công quyền đang hiệu lực; đặt lại mật khẩu,
