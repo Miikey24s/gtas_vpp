@@ -1,3 +1,4 @@
+using gtas_vpp_shared.Constants;
 using Xunit;
 
 namespace gtas_vpp_fe.Tests.Architecture;
@@ -67,6 +68,26 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("IsSensitiveProperty(prop.Name)", inspector, StringComparison.Ordinal);
         Assert.Contains("name is \"SessionVersion\"", inspector, StringComparison.Ordinal);
         Assert.DoesNotContain("name is \"Id\" or \"RowVersion\" or \"SessionVersion\"", inspector, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void M6_PermissionMatrix_IsCanonicalReadOnlyAndUsesBackendGroupCodes()
+    {
+        var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_PagePermission.razor");
+        var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_PagePermission.razor.cs");
+
+        Assert.Equal(18, CanonicalRbac.Actions.Count);
+        Assert.Equal(3, CanonicalRbac.Personas.Count);
+        Assert.All(CanonicalRbac.Actions, action =>
+            Assert.True(CanonicalRbac.HasAction(CanonicalRbac.Dev.GroupId, action.PermissionCode)));
+        Assert.Contains("CanonicalRbac.Actions", page, StringComparison.Ordinal);
+        Assert.Contains("CanonicalRbac.Personas", page, StringComparison.Ordinal);
+        Assert.Contains("CanonicalRbac.HasAction", page, StringComparison.Ordinal);
+        Assert.Contains("PermissionGroupDto.GroupName", page, StringComparison.Ordinal);
+        Assert.Contains("group.GroupCode", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("group.GroupName switch", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("Permission updated", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("Lưu ma trận quyền", page, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -338,8 +338,21 @@ Ma trận quyền đúng 3 vai trò (D1). Mỗi tài khoản một phân công q
 4. Build Release frontend pass (còn 2 warning nullability có sẵn ở `Tab_LookupLibrary`); browser
    route thật vẫn chờ phiên TEST đã đăng nhập để kiểm tra 3 viewport, VI/EN, console và network.
 
-**Còn lại W-F.2:** dựng ma trận quyền read-only 18 action × 3 vai trò từ `CanonicalRbac`, giữ vùng
-quản trị component động hiện có, sửa `GroupCode` suy diễn bằng tên hiển thị và đưa copy còn lại vào resx.
+**Tiến độ 2026-07-27 — W-F.2 `permissions` hoàn tất phần source** (frontend `171/171` test pass):
+
+1. Thêm ma trận chỉ đọc trực tiếp từ `CanonicalRbac.Actions`, `CanonicalRbac.Personas` và
+   `CanonicalRbac.HasAction`: đúng 18 action × 3 vai trò, cột DEV được nhấn nhẹ, có table semantics,
+   vùng cuộn keyboard-focus và footer tĩnh; không render nút lưu giả.
+2. Grid nhóm đổi sang `DTOs.Res.Permission.PermissionGroupResDTO`, bind `GroupCode` backend trả về
+   thay vì suy diễn từ `GroupName`; nhãn vai trò lấy resx nên không lặp `DEV` và không vỡ khi đổi ngôn ngữ.
+3. Giữ nguyên vùng quản trị component động bên dưới; action permission luôn read-only, chỉ UI mapping
+   có `CanConfigure` mới bật switch. Copy/toast/inspector VI+EN đã đưa vào resx.
+
+**Retrofit queue W-F (chờ owner duyệt):** gỡ nút `Lưu ma trận quyền` khỏi Atlas vì action matrix là
+canonical read-only; Atlas không được mô tả khả năng mutation mà backend không cung cấp.
+
+**W-F source hoàn tất; browser gate còn treo:** cần route `/permission` trên TEST đã đăng nhập để kiểm
+tra expanded group, switch UI mapping, matrix ngang ở 390/768/1920, VI/EN, console và network.
 
 ### W-G — M7 báo cáo (1 màn, gap C)
 

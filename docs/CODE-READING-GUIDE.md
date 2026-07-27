@@ -138,6 +138,12 @@ Tất cả nằm ở `/library?tab=N`, dùng chung `Pages/Lib/Component_ShareGri
 nhóm quyền/phòng ban → kích hoạt. `Component_RecordInspector` chỉ hiển thị dữ liệu nghiệp vụ và audit;
 `SessionVersion`, password hash, security stamp và token bị loại trước khi reflection phân nhóm tab.
 
+`Tab_PagePermission` có hai lớp cố ý tách biệt:
+
+- **Ma trận action 18×3:** đọc trực tiếp `CanonicalRbac.Actions/Personas/HasAction`, không có nút lưu.
+- **Ánh xạ UI:** dữ liệu từ `GET groups/{id}/page-components`; chỉ component UI có `CanConfigure`
+  mới được bật/tắt. `GroupCode` lấy từ DTO backend, tuyệt đối không suy ra từ tên vai trò đã dịch.
+
 ### M7 — Báo cáo
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |

@@ -1273,6 +1273,127 @@
     min-width: 170px;
 }
 
+.vpp-permission-matrix-card {
+    overflow: hidden;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-surface);
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-permission-matrix-header,
+.permission-ui-admin-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-permission-matrix-header {
+    padding: var(--vpp-space-4) var(--vpp-space-5);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-permission-matrix-header h2,
+.permission-ui-admin-heading h2 {
+    margin: 0;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-lg);
+}
+
+.vpp-permission-matrix-header p,
+.permission-ui-admin-heading p {
+    margin: 0.3rem 0 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-permission-matrix-badge {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--vpp-primary-500) 28%, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-sm);
+    background: color-mix(in srgb, var(--vpp-primary-500) 8%, var(--vpp-bg-surface));
+    color: var(--vpp-primary-700);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-permission-matrix-scroll {
+    max-height: 32rem;
+    overflow: auto;
+}
+
+.vpp-permission-matrix {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.vpp-permission-matrix thead {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-permission-matrix th,
+.vpp-permission-matrix td {
+    height: 44px;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--vpp-border-subtle);
+    text-align: center;
+}
+
+.vpp-permission-matrix th:first-child {
+    width: 44%;
+    text-align: left;
+}
+
+.vpp-permission-matrix th strong,
+.vpp-permission-matrix th span {
+    display: block;
+}
+
+.vpp-permission-matrix th span {
+    margin-top: 0.15rem;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-regular);
+}
+
+.vpp-permission-matrix .is-dev {
+    background: color-mix(in srgb, var(--vpp-primary-500) 4%, transparent);
+}
+
+.vpp-permission-granted {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--vpp-radius-sm);
+    background: color-mix(in srgb, var(--vpp-success) 12%, transparent);
+    color: var(--vpp-success);
+}
+
+.vpp-permission-not-granted {
+    color: var(--vpp-text-disabled);
+}
+
+.vpp-permission-matrix-card > footer {
+    padding: var(--vpp-space-3) var(--vpp-space-5);
+    border-top: 1px solid var(--vpp-border-default);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.permission-ui-admin-heading {
+    padding: var(--vpp-space-3) var(--vpp-space-1) 0;
+}
+
 /* Atlas department-summary: toolbar tìm kiếm/lọc trên đầu card danh sách đơn. */
 .vpp-atlas-orders-toolbar {
     display: flex;
@@ -1804,6 +1925,12 @@
     .permission-status-filter {
         flex: 1 1 100%;
         width: 100%;
+    }
+
+    .vpp-permission-matrix-header,
+    .permission-ui-admin-heading {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .vpp-admin-grid-toolbar {

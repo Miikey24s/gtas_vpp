@@ -8,23 +8,17 @@ using Microsoft.AspNetCore.Components;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
+using PermissionGroupDto = gtas_vpp_shared.DTOs.Res.Permission.PermissionGroupResDTO;
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
 public partial class Tab_PagePermission
 {
-    private static string GetGroupDisplayName(PermissionGroupResDTO group) =>
-        string.Equals(group.GroupName, "DEV", StringComparison.OrdinalIgnoreCase)
-            ? "Quản trị hệ thống (DEV)"
-            : group.GroupName ?? "—";
+    private string GetGroupDisplayName(PermissionGroupDto group) =>
+        GetRoleDisplayName(group.GroupCode, group.GroupName);
 
-    private static string GetGroupCode(PermissionGroupResDTO group) => group.GroupName switch
-    {
-        "DEV" => "DEV",
-        "Nhân viên" => "EMPLOYEE",
-        "Quản lý" => "MANAGER",
-        _ => group.GroupName ?? "—"
-    };
+    private static string GetGroupCode(PermissionGroupDto group) =>
+        string.IsNullOrWhiteSpace(group.GroupCode) ? "—" : group.GroupCode;
 
     [Inject] public IToastService _toastService { get; set; } = default!;
     [Inject] public IAPIServices _apiServices { get; set; } = default!;
@@ -34,9 +28,9 @@ public partial class Tab_PagePermission
     [Parameter]
     public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
-    public List<PermissionGroupResDTO> list_Group { get; set; } = [];
-    public RadzenDataGrid<PermissionGroupResDTO> grid { get; set; } = default!;
-    public IList<PermissionGroupResDTO> selected_Group { get; set; } = [];
+    public List<PermissionGroupDto> list_Group { get; set; } = [];
+    public RadzenDataGrid<PermissionGroupDto> grid { get; set; } = default!;
+    public IList<PermissionGroupDto> selected_Group { get; set; } = [];
     public List<PermissionPageComponentResDTO> groupPermissions { get; set; } = [];
     public IList<PermissionComponentAccessResDTO> selectedComponents { get; set; } = [];
     public RadzenDataGrid<PermissionComponentAccessResDTO> componentGrid { get; set; } = default!;
@@ -89,7 +83,7 @@ public partial class Tab_PagePermission
 
         try
         {
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupResDTO>>(
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupDto>>(
                 BuildGroupsEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
 
             list_Group = result.Data ?? [];
@@ -108,7 +102,7 @@ public partial class Tab_PagePermission
         }
     }
 
-    protected async Task LoadGroupFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<PermissionGroupResDTO> args)
+    protected async Task LoadGroupFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<PermissionGroupDto> args)
     {
         if (args.Column is null)
         {
@@ -143,7 +137,7 @@ public partial class Tab_PagePermission
                 queryParams.Add($"top={args.Top.Value}");
             }
 
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupResDTO>>(
+            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupDto>>(
                 $"/api/Permission/groups?{string.Join("&", queryParams)}");
 
             args.Data = result.Data ?? [];
@@ -155,7 +149,7 @@ public partial class Tab_PagePermission
         }
     }
 
-    protected Task GroupRowExpand(PermissionGroupResDTO group) => LoadGroupPermissionsAsync(group.Id, true);
+    protected Task GroupRowExpand(PermissionGroupDto group) => LoadGroupPermissionsAsync(group.Id, true);
 
     protected async Task SetComponentVisibilityAsync(
         PermissionComponentAccessResDTO component)
@@ -218,8 +212,8 @@ public partial class Tab_PagePermission
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Permission updated",
-                Detail = $"Component '{component.ComponentName}' updated successfully",
+                Summary = Loc["PermissionUpdated"].Value,
+                Detail = Loc["PermissionComponentUpdated", component.ComponentName ?? string.Empty].Value,
                 Duration = 3000
             });
         }
@@ -272,21 +266,21 @@ public partial class Tab_PagePermission
         && !Permissions.IsActionCode(component.ComponentCode)
         && !component.IsDeleted;
 
-    protected static string GetPermissionKind(
+    protected string GetPermissionKind(
         PermissionComponentAccessResDTO component) =>
         Permissions.IsActionCode(component.ComponentCode)
-            ? "API cố định"
-            : "Hiển thị UI";
+            ? Loc["PermissionKindFixedApi"].Value
+            : Loc["PermissionKindUiDisplay"].Value;
 
-    protected async Task OnGroupRowDoubleClick(DataGridRowMouseEventArgs<PermissionGroupResDTO> args)
+    protected async Task OnGroupRowDoubleClick(DataGridRowMouseEventArgs<PermissionGroupDto> args)
     {
         if (args.Data is null)
         {
             return;
         }
 
-        await DialogService.OpenSideAsync<Component_RecordInspector<PermissionGroupResDTO>>(
-            $"Role: {args.Data.GroupName}",
+        await DialogService.OpenSideAsync<Component_RecordInspector<PermissionGroupDto>>(
+            Loc["RoleInspectorTitle", GetGroupDisplayName(args.Data)].Value,
             new Dictionary<string, object?> { { "Record", args.Data } },
             options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
     }
@@ -301,7 +295,7 @@ public partial class Tab_PagePermission
 
         await DialogService.OpenSideAsync<
             Component_RecordInspector<PermissionComponentAccessResDTO>>(
-                $"Component: {args.Data.ComponentName}",
+                Loc["ComponentInspectorTitle", args.Data.ComponentName ?? string.Empty].Value,
                 new Dictionary<string, object?> { { "Record", args.Data } },
                 options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
     }
@@ -309,7 +303,7 @@ public partial class Tab_PagePermission
     private void NotifyError(string detail) => Toast.Notify(new NotificationMessage
     {
         Severity = NotificationSeverity.Error,
-        Summary = "Error",
+        Summary = Loc["Error"].Value,
         Detail = detail,
         Duration = 10000
     });
@@ -340,4 +334,38 @@ public partial class Tab_PagePermission
 
         return $"/api/Permission/groups?{string.Join("&", queryParams)}";
     }
+
+    private bool IsDevPersona(RbacPersonaDefinition persona) =>
+        string.Equals(persona.GroupCode, CanonicalRbac.Dev.GroupCode, StringComparison.OrdinalIgnoreCase);
+
+    private string GetRoleDisplayName(string? groupCode, string? fallback = null) => groupCode switch
+    {
+        "EMPLOYEE" => Loc["RoleEmployee"].Value,
+        "MANAGER" => Loc["RoleManager"].Value,
+        "DEV" => Loc["RoleDev"].Value,
+        _ => fallback ?? groupCode ?? "—"
+    };
+
+    private string GetActionDisplayName(string permissionCode) => permissionCode switch
+    {
+        Permissions.RequestViewOwn => Loc["PermissionActionRequestViewOwn"].Value,
+        Permissions.RequestViewDepartment => Loc["PermissionActionRequestViewDepartment"].Value,
+        Permissions.RequestViewAll => Loc["PermissionActionRequestViewAll"].Value,
+        Permissions.RequestCreate => Loc["PermissionActionRequestCreate"].Value,
+        Permissions.RequestUpdateOwn => Loc["PermissionActionRequestUpdateOwn"].Value,
+        Permissions.RequestCancelOwn => Loc["PermissionActionRequestCancelOwn"].Value,
+        Permissions.RequestApprove => Loc["PermissionActionRequestApprove"].Value,
+        Permissions.RequestReject => Loc["PermissionActionRequestReject"].Value,
+        Permissions.RequestCatalogView => Loc["PermissionActionRequestCatalogView"].Value,
+        Permissions.LibraryView => Loc["PermissionActionLibraryView"].Value,
+        Permissions.LibraryManage => Loc["PermissionActionLibraryManage"].Value,
+        Permissions.PermissionView => Loc["PermissionActionPermissionView"].Value,
+        Permissions.PermissionManage => Loc["PermissionActionPermissionManage"].Value,
+        Permissions.ReportViewOwn => Loc["PermissionActionReportViewOwn"].Value,
+        Permissions.ReportViewDepartment => Loc["PermissionActionReportViewDepartment"].Value,
+        Permissions.ReportViewAll => Loc["PermissionActionReportViewAll"].Value,
+        Permissions.ReportExport => Loc["PermissionActionReportExport"].Value,
+        Permissions.PeriodSettle => Loc["PermissionActionPeriodSettle"].Value,
+        _ => permissionCode
+    };
 }

@@ -903,4 +903,44 @@
   <data name="SelectUserForDetails" xml:space="preserve"><value>Chọn người dùng để xem chi tiết</value></data>
   <data name="UserAdministrationBackendHint" xml:space="preserve"><value>Quyền kích hoạt, đặt lại mật khẩu và ngừng phân công luôn được kiểm tra từ backend.</value></data>
   <data name="UserInspectorTitle" xml:space="preserve"><value>Người dùng: {0}</value></data>
+  <data name="PermissionReferenceAlert" xml:space="preserve"><value>Ba vai trò chuẩn là dữ liệu tham chiếu chỉ đọc. Quyền API được cố định theo ma trận đã kiểm duyệt; quản trị viên chỉ có thể điều chỉnh hiển thị giao diện trong phạm vi của từng vai trò.</value></data>
+  <data name="PermissionMatrixTitle" xml:space="preserve"><value>Ma trận quyền thao tác</value></data>
+  <data name="PermissionMatrixDescription" xml:space="preserve"><value>Ba vai trò thống nhất: Nhân viên, Quản lý và Quản trị hệ thống</value></data>
+  <data name="ReadOnlyReference" xml:space="preserve"><value>Chỉ đọc</value></data>
+  <data name="PermissionActionColumn" xml:space="preserve"><value>Quyền thao tác</value></data>
+  <data name="PermissionGranted" xml:space="preserve"><value>Được cấp quyền</value></data>
+  <data name="PermissionNotGranted" xml:space="preserve"><value>Không được cấp quyền</value></data>
+  <data name="PermissionMatrixSummary" xml:space="preserve"><value>Tổng cộng {0} quyền thao tác · {1} vai trò cố định</value></data>
+  <data name="PermissionUiAdministrationTitle" xml:space="preserve"><value>Hiển thị giao diện theo vai trò</value></data>
+  <data name="PermissionUiAdministrationDescription" xml:space="preserve"><value>Mở từng vai trò để quản lý khả năng hiển thị và kích hoạt các thành phần giao diện có thể cấu hình.</value></data>
+  <data name="NoPermissionMappings" xml:space="preserve"><value>Vai trò này chưa có ánh xạ thành phần giao diện.</value></data>
+  <data name="PermissionType" xml:space="preserve"><value>Loại quyền</value></data>
+  <data name="PermissionKindFixedApi" xml:space="preserve"><value>API cố định</value></data>
+  <data name="PermissionKindUiDisplay" xml:space="preserve"><value>Hiển thị UI</value></data>
+  <data name="MappingId" xml:space="preserve"><value>Mã ánh xạ</value></data>
+  <data name="PermissionModel" xml:space="preserve"><value>Mô hình</value></data>
+  <data name="CanonicalRoleReadOnly" xml:space="preserve"><value>Vai trò chuẩn · chỉ đọc</value></data>
+  <data name="Identifier" xml:space="preserve"><value>Định danh</value></data>
+  <data name="PermissionUpdated" xml:space="preserve"><value>Đã cập nhật phân quyền</value></data>
+  <data name="PermissionComponentUpdated" xml:space="preserve"><value>Đã cập nhật thành phần “{0}”.</value></data>
+  <data name="RoleInspectorTitle" xml:space="preserve"><value>Vai trò: {0}</value></data>
+  <data name="ComponentInspectorTitle" xml:space="preserve"><value>Thành phần: {0}</value></data>
+  <data name="PermissionActionRequestViewOwn" xml:space="preserve"><value>Xem đơn của bản thân</value></data>
+  <data name="PermissionActionRequestViewDepartment" xml:space="preserve"><value>Xem đơn trong phòng ban</value></data>
+  <data name="PermissionActionRequestViewAll" xml:space="preserve"><value>Xem đơn toàn công ty</value></data>
+  <data name="PermissionActionRequestCreate" xml:space="preserve"><value>Tạo đơn</value></data>
+  <data name="PermissionActionRequestUpdateOwn" xml:space="preserve"><value>Cập nhật đơn của bản thân</value></data>
+  <data name="PermissionActionRequestCancelOwn" xml:space="preserve"><value>Hủy đơn của bản thân</value></data>
+  <data name="PermissionActionRequestApprove" xml:space="preserve"><value>Duyệt đơn bổ sung</value></data>
+  <data name="PermissionActionRequestReject" xml:space="preserve"><value>Từ chối đơn bổ sung</value></data>
+  <data name="PermissionActionRequestCatalogView" xml:space="preserve"><value>Tra cứu danh mục đặt hàng</value></data>
+  <data name="PermissionActionLibraryView" xml:space="preserve"><value>Xem dữ liệu danh mục</value></data>
+  <data name="PermissionActionLibraryManage" xml:space="preserve"><value>Quản lý dữ liệu danh mục</value></data>
+  <data name="PermissionActionPermissionView" xml:space="preserve"><value>Xem phân quyền</value></data>
+  <data name="PermissionActionPermissionManage" xml:space="preserve"><value>Quản lý phân quyền</value></data>
+  <data name="PermissionActionReportViewOwn" xml:space="preserve"><value>Xem báo cáo của bản thân</value></data>
+  <data name="PermissionActionReportViewDepartment" xml:space="preserve"><value>Xem báo cáo phòng ban</value></data>
+  <data name="PermissionActionReportViewAll" xml:space="preserve"><value>Xem báo cáo toàn công ty</value></data>
+  <data name="PermissionActionReportExport" xml:space="preserve"><value>Xuất báo cáo</value></data>
+  <data name="PermissionActionPeriodSettle" xml:space="preserve"><value>Rà soát và chốt kỳ</value></data>
 </root>

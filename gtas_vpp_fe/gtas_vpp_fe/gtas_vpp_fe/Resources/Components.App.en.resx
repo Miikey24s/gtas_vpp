@@ -903,4 +903,44 @@
   <data name="SelectUserForDetails" xml:space="preserve"><value>Select a user to view details</value></data>
   <data name="UserAdministrationBackendHint" xml:space="preserve"><value>Activation, password reset, and assignment deactivation are always enforced by the backend.</value></data>
   <data name="UserInspectorTitle" xml:space="preserve"><value>User: {0}</value></data>
+  <data name="PermissionReferenceAlert" xml:space="preserve"><value>The three canonical roles are read-only reference data. API permissions are fixed by the reviewed matrix; administrators can only adjust configurable UI visibility within each role.</value></data>
+  <data name="PermissionMatrixTitle" xml:space="preserve"><value>Action permission matrix</value></data>
+  <data name="PermissionMatrixDescription" xml:space="preserve"><value>Three canonical roles: Employee, Manager, and System Administrator</value></data>
+  <data name="ReadOnlyReference" xml:space="preserve"><value>Read only</value></data>
+  <data name="PermissionActionColumn" xml:space="preserve"><value>Action permission</value></data>
+  <data name="PermissionGranted" xml:space="preserve"><value>Granted</value></data>
+  <data name="PermissionNotGranted" xml:space="preserve"><value>Not granted</value></data>
+  <data name="PermissionMatrixSummary" xml:space="preserve"><value>{0} action permissions · {1} fixed roles</value></data>
+  <data name="PermissionUiAdministrationTitle" xml:space="preserve"><value>Role-based UI visibility</value></data>
+  <data name="PermissionUiAdministrationDescription" xml:space="preserve"><value>Expand a role to manage visibility and enablement for configurable UI components.</value></data>
+  <data name="NoPermissionMappings" xml:space="preserve"><value>This role has no UI component mappings.</value></data>
+  <data name="PermissionType" xml:space="preserve"><value>Permission type</value></data>
+  <data name="PermissionKindFixedApi" xml:space="preserve"><value>Fixed API</value></data>
+  <data name="PermissionKindUiDisplay" xml:space="preserve"><value>UI visibility</value></data>
+  <data name="MappingId" xml:space="preserve"><value>Mapping ID</value></data>
+  <data name="PermissionModel" xml:space="preserve"><value>Model</value></data>
+  <data name="CanonicalRoleReadOnly" xml:space="preserve"><value>Canonical role · read only</value></data>
+  <data name="Identifier" xml:space="preserve"><value>Identifier</value></data>
+  <data name="PermissionUpdated" xml:space="preserve"><value>Permission updated</value></data>
+  <data name="PermissionComponentUpdated" xml:space="preserve"><value>Component “{0}” was updated.</value></data>
+  <data name="RoleInspectorTitle" xml:space="preserve"><value>Role: {0}</value></data>
+  <data name="ComponentInspectorTitle" xml:space="preserve"><value>Component: {0}</value></data>
+  <data name="PermissionActionRequestViewOwn" xml:space="preserve"><value>View own requests</value></data>
+  <data name="PermissionActionRequestViewDepartment" xml:space="preserve"><value>View department requests</value></data>
+  <data name="PermissionActionRequestViewAll" xml:space="preserve"><value>View company requests</value></data>
+  <data name="PermissionActionRequestCreate" xml:space="preserve"><value>Create request</value></data>
+  <data name="PermissionActionRequestUpdateOwn" xml:space="preserve"><value>Update own request</value></data>
+  <data name="PermissionActionRequestCancelOwn" xml:space="preserve"><value>Cancel own request</value></data>
+  <data name="PermissionActionRequestApprove" xml:space="preserve"><value>Approve supplement</value></data>
+  <data name="PermissionActionRequestReject" xml:space="preserve"><value>Reject supplement</value></data>
+  <data name="PermissionActionRequestCatalogView" xml:space="preserve"><value>View request catalog</value></data>
+  <data name="PermissionActionLibraryView" xml:space="preserve"><value>View library data</value></data>
+  <data name="PermissionActionLibraryManage" xml:space="preserve"><value>Manage library data</value></data>
+  <data name="PermissionActionPermissionView" xml:space="preserve"><value>View access administration</value></data>
+  <data name="PermissionActionPermissionManage" xml:space="preserve"><value>Manage access</value></data>
+  <data name="PermissionActionReportViewOwn" xml:space="preserve"><value>View own report</value></data>
+  <data name="PermissionActionReportViewDepartment" xml:space="preserve"><value>View department report</value></data>
+  <data name="PermissionActionReportViewAll" xml:space="preserve"><value>View company report</value></data>
+  <data name="PermissionActionReportExport" xml:space="preserve"><value>Export report</value></data>
+  <data name="PermissionActionPeriodSettle" xml:space="preserve"><value>Review and settle period</value></data>
 </root>
