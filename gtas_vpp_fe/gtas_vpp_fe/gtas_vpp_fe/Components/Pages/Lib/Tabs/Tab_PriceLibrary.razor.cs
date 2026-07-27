@@ -285,7 +285,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     return;
                 }
 
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, isDeleted ? "Price mapping marked IsDeleted" : "Price mapping restored");
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, isDeleted ? Loc["PriceMappingDeactivated"].Value : Loc["PriceMappingRestored"].Value);
                 await LoadPricesAsync();
             }
             catch (Exception ex)
@@ -300,7 +300,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             if (!row.PriceMappingId.HasValue) return;
 
             var confirm = await DialogService.Confirm(
-                "This will permanently delete the price mapping.",
+                Loc["PriceMappingHardDeleteConfirm"].Value,
                 Loc["HardDelete"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
 

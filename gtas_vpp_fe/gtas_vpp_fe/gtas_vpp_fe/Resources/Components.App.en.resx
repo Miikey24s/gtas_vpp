@@ -845,4 +845,16 @@
   <data name="LibraryStatusActive" xml:space="preserve"><value>Active</value></data>
   <data name="LibraryStatusInactive" xml:space="preserve"><value>Inactive</value></data>
   <data name="RecordStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="PriceListDeactivated" xml:space="preserve"><value>Price list deactivated</value></data>
+  <data name="PriceListRestored" xml:space="preserve"><value>Price list restored</value></data>
+  <data name="PriceListHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the price list.</value></data>
+  <data name="PriceListPublishConfirm" xml:space="preserve"><value>Publish this draft price list? Published terms and prices become immutable.</value></data>
+  <data name="PriceListPublishTitle" xml:space="preserve"><value>Publish price list</value></data>
+  <data name="PriceListPublished" xml:space="preserve"><value>Price list published</value></data>
+  <data name="PriceListExpireConfirm" xml:space="preserve"><value>Mark this published price list as expired? Historical data remains available.</value></data>
+  <data name="PriceListExpireTitle" xml:space="preserve"><value>Mark as expired</value></data>
+  <data name="PriceListExpired" xml:space="preserve"><value>Price list marked as expired</value></data>
+  <data name="PriceMappingDeactivated" xml:space="preserve"><value>Price mapping deactivated</value></data>
+  <data name="PriceMappingRestored" xml:space="preserve"><value>Price mapping restored</value></data>
+  <data name="PriceMappingHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the price mapping.</value></data>
 </root>

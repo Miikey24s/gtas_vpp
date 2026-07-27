@@ -845,4 +845,16 @@
   <data name="LibraryStatusActive" xml:space="preserve"><value>Hoạt động</value></data>
   <data name="LibraryStatusInactive" xml:space="preserve"><value>Ngừng áp dụng</value></data>
   <data name="RecordStatus" xml:space="preserve"><value>Trạng thái</value></data>
+  <data name="PriceListDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa bảng giá</value></data>
+  <data name="PriceListRestored" xml:space="preserve"><value>Đã khôi phục bảng giá</value></data>
+  <data name="PriceListHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn bảng giá.</value></data>
+  <data name="PriceListPublishConfirm" xml:space="preserve"><value>Công bố bảng giá nháp này? Điều khoản và mức giá sau công bố là bất biến.</value></data>
+  <data name="PriceListPublishTitle" xml:space="preserve"><value>Công bố bảng giá</value></data>
+  <data name="PriceListPublished" xml:space="preserve"><value>Đã công bố bảng giá</value></data>
+  <data name="PriceListExpireConfirm" xml:space="preserve"><value>Đánh dấu bảng giá đã công bố này hết hiệu lực? Dữ liệu lịch sử vẫn được giữ.</value></data>
+  <data name="PriceListExpireTitle" xml:space="preserve"><value>Đánh dấu hết hiệu lực</value></data>
+  <data name="PriceListExpired" xml:space="preserve"><value>Đã đánh dấu bảng giá hết hiệu lực</value></data>
+  <data name="PriceMappingDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa mức giá</value></data>
+  <data name="PriceMappingRestored" xml:space="preserve"><value>Đã khôi phục mức giá</value></data>
+  <data name="PriceMappingHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn mức giá.</value></data>
 </root>

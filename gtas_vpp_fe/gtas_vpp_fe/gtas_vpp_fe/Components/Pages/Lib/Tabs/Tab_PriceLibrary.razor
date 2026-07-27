@@ -30,8 +30,8 @@
         <RadzenFormField Text="@Loc["Search"]" Style="min-width:240px;">
             <RadzenTextBox @bind-Value="searchText"
                            @oninput="@(async args => await OnSearchInputAsync(args.Value?.ToString()))"
-                           Placeholder="@Loc["Search"]"
-                           aria-label="@Loc["Search"]"
+                           Placeholder="@Loc["LibrarySearchPrices"]"
+                           aria-label="@Loc["LibrarySearchPrices"]"
                            Style="width:100%" />
         </RadzenFormField>
         <RadzenButton Icon="refresh"
@@ -94,6 +94,19 @@
                     @if (row.Price.HasValue)
                     {
                         <span>@row.Price.Value.ToString("N0")</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted" style="font-style: italic;">--</span>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            @* Atlas library-prices: cột Thuế (VAT) hiển thị thuế suất của mức giá. *@
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VatRate" Title="@Loc["VatRate"]" Width="86px" TextAlign="TextAlign.Right">
+                <Template Context="row">
+                    @if (row.PriceMappingId.HasValue)
+                    {
+                        <span>@row.VatRate.ToString("0.##")%</span>
                     }
                     else
                     {

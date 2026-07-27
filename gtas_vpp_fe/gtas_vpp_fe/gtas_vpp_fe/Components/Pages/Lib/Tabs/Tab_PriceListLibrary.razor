@@ -76,6 +76,12 @@
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" />
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="SupplierName" Title="Nhà cung cấp" Width="170px" />
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="Version" Title="Phiên bản" Width="92px" TextAlign="TextAlign.Center" />
+            @* Atlas library-price-lists: cột "Hiệu lực" hiển thị khoảng EffectiveFrom–EffectiveTo. *@
+            <RadzenDataGridColumn TItem="PriceListResDTO" Property="EffectiveFromUtc" Title="@Loc["EffectiveRange"]" Width="150px" TextAlign="TextAlign.Center" Filterable="false">
+                <Template Context="row">
+                    <span>@FormatEffectiveRange(row)</span>
+                </Template>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="Trạng thái" Width="115px" TextAlign="TextAlign.Center">
                 <Template Context="row">
                     <RadzenBadge Text="@GetStatusLabel(row.Status)" BadgeStyle="@GetStatusBadgeStyle(row.Status)" />

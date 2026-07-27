@@ -210,7 +210,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     return;
                 }
 
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, isDeleted ? "Price list marked IsDeleted" : "Price list restored");
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, isDeleted ? Loc["PriceListDeactivated"].Value : Loc["PriceListRestored"].Value);
                 await LoadAsync();
             }
             catch (Exception ex)
@@ -223,7 +223,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task HardDeleteAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
-                "This will permanently delete the price list.",
+                Loc["PriceListHardDeleteConfirm"].Value,
                 Loc["HardDelete"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
 
@@ -281,8 +281,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task PublishAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
-                "Publish this draft price book? Published terms and items become immutable.",
-                "Publish",
+                Loc["PriceListPublishConfirm"].Value,
+                Loc["PriceListPublishTitle"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
             if (confirm != true) return;
 
@@ -295,7 +295,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         RowVersion = row.RowVersion,
                         Reason = "Approved by procurement admin"
                     });
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, "Price book published");
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListPublished"].Value);
                 await LoadAsync();
             }
             catch (Exception ex)
@@ -307,8 +307,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task ExpireAsync(PriceListResDTO row)
         {
             var confirm = await DialogService.Confirm(
-                "Expire this published price book? Historical data remains available.",
-                "Expire",
+                Loc["PriceListExpireConfirm"].Value,
+                Loc["PriceListExpireTitle"].Value,
                 new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
             if (confirm != true) return;
 
@@ -322,7 +322,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         Reason = "Expired by procurement admin",
                         EffectiveToUtc = DateTime.UtcNow
                     });
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, "Price book expired");
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListExpired"].Value);
                 await LoadAsync();
             }
             catch (Exception ex)
@@ -411,8 +411,25 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             "Published" => BadgeStyle.Success,
             "Draft" => BadgeStyle.Info,
+            // Atlas library-price-lists: "Hết hiệu lực" là badge amber (cảnh báo), không phải xám.
+            "Expired" => BadgeStyle.Warning,
             _ => BadgeStyle.Light
         };
+
+        // Atlas cột "Hiệu lực": khoảng dd/MM–dd/MM (kèm năm khi khác năm hiện tại);
+        // bảng giá chưa có ngày kết thúc hiển thị mũi tên mở.
+        private static string FormatEffectiveRange(PriceListResDTO row)
+        {
+            var from = row.EffectiveFromUtc.ToLocalTime();
+            var fromText = from.ToString("dd/MM/yyyy");
+            if (!row.EffectiveToUtc.HasValue)
+            {
+                return $"{fromText} →";
+            }
+
+            var to = row.EffectiveToUtc.Value.ToLocalTime();
+            return $"{fromText} – {to:dd/MM/yyyy}";
+        }
 
         private static string BuildPriceListEndpoint(
             string? filter = null,
