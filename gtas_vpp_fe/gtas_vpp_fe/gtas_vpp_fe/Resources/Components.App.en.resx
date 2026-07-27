@@ -806,6 +806,16 @@
   <data name="SupplyExceptionResolvedFormat" xml:space="preserve"><value>Alternative price found · {0} VND</value></data>
   <data name="SupplyExceptionAuditHint" xml:space="preserve"><value>Exceptions are stored in the immutable log when the period is settled.</value></data>
   <data name="SupplyReRunWithExceptions" xml:space="preserve"><value>Re-run with exceptions</value></data>
+  <data name="SupplyPriceComparisonTitle" xml:space="preserve"><value>Demand price comparison</value></data>
+  <data name="SupplyPriceComparisonSubtitle" xml:space="preserve"><value>Actual unit prices from the primary supplier price list and valid exceptions</value></data>
+  <data name="SupplyPriceComparisonEmpty" xml:space="preserve"><value>No comparison data yet</value></data>
+  <data name="SupplyPriceComparisonEmptyHint" xml:space="preserve"><value>Select a supplier and run the preview to load the applicable price list.</value></data>
+  <data name="SupplyPriceComparisonCount" xml:space="preserve"><value>{0} items require comparison</value></data>
+  <data name="SupplyPriceAvailable" xml:space="preserve"><value>Priced</value></data>
+  <data name="SupplyPriceException" xml:space="preserve"><value>Exception</value></data>
+  <data name="SupplyPriceMissing" xml:space="preserve"><value>Missing price</value></data>
+  <data name="UnitPrice" xml:space="preserve"><value>Unit price</value></data>
+  <data name="Result" xml:space="preserve"><value>Result</value></data>
   <data name="SupplyReadyMessage" xml:space="preserve"><value>Supply covers all demand and no blockers remain.</value></data>
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Continue to settlement</value></data>
   <data name="PeriodSupplyTitle" xml:space="preserve"><value>Supply selection</value></data>

@@ -806,6 +806,16 @@
   <data name="SupplyExceptionResolvedFormat" xml:space="preserve"><value>Đã có giá thay thế · {0} VND</value></data>
   <data name="SupplyExceptionAuditHint" xml:space="preserve"><value>Ngoại lệ được lưu vào nhật ký bất biến khi xác nhận chốt kỳ.</value></data>
   <data name="SupplyReRunWithExceptions" xml:space="preserve"><value>Chạy lại với ngoại lệ</value></data>
+  <data name="SupplyPriceComparisonTitle" xml:space="preserve"><value>Đối chiếu giá theo nhu cầu</value></data>
+  <data name="SupplyPriceComparisonSubtitle" xml:space="preserve"><value>Đơn giá thực từ bảng giá của nhà cung cấp chính và ngoại lệ hợp lệ</value></data>
+  <data name="SupplyPriceComparisonEmpty" xml:space="preserve"><value>Chưa có dữ liệu đối chiếu</value></data>
+  <data name="SupplyPriceComparisonEmptyHint" xml:space="preserve"><value>Chọn nhà cung cấp và chạy xem trước để tải bảng giá áp dụng.</value></data>
+  <data name="SupplyPriceComparisonCount" xml:space="preserve"><value>Tổng cộng {0} mặt hàng cần đối chiếu</value></data>
+  <data name="SupplyPriceAvailable" xml:space="preserve"><value>Có giá</value></data>
+  <data name="SupplyPriceException" xml:space="preserve"><value>Ngoại lệ</value></data>
+  <data name="SupplyPriceMissing" xml:space="preserve"><value>Thiếu giá</value></data>
+  <data name="UnitPrice" xml:space="preserve"><value>Đơn giá</value></data>
+  <data name="Result" xml:space="preserve"><value>Kết quả</value></data>
   <data name="SupplyReadyMessage" xml:space="preserve"><value>Nguồn cung đã phủ đủ nhu cầu và không còn điều kiện ngăn chốt.</value></data>
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Tiếp tục chốt kỳ</value></data>
   <data name="PeriodSupplyTitle" xml:space="preserve"><value>Chọn nguồn cung</value></data>

@@ -240,11 +240,11 @@ quyết từng mục):
 | D22 | `supplement-approval` **giữ hàng KPI 3 thẻ** như ALLOWED_DIFF | Dữ liệu thật, có ích cho người duyệt; E2E đang bám. Atlas không vẽ nhưng không mâu thuẫn nghiệp vụ |
 | D23 | Gỡ đường settle cũ (POST `/settle` không snapshot/InputHash) khỏi `PeriodReviewPanel` — chỉ gỡ code FE chết, backend giữ nguyên | Trái D4 (chốt kỳ là bước 4); trùng lặp PeriodSettlementPanel; đã kiểm chứng là không còn lối vào UI hợp lệ |
 | D24 | Owner duyệt thực thi toàn bộ ATLAS-001, gồm refactor liên quan; chẻ `Tab_AdminApproval` theo cùng pattern coordinator/presentation của C-7 | Giảm host 419 dòng xuống dưới 100 dòng; hai workspace con nhận dữ liệu/callback rõ ràng, không đổi API/DTO/nghiệp vụ |
+| D25 | Bảng "Đối chiếu giá theo nhu cầu" join `GET /api/vppprice/item-prices` theo `PrimarySupplierId` + `PrimaryPriceListId`; ngoại lệ hợp lệ dùng `SettlementExceptionResDTO.NetUnitPrice` | Persona MANAGER đã có `LibraryView`; hiển thị được đơn giá thật cho mọi dòng mà không mở rộng DTO/schema hoặc suy diễn số liệu |
 
-[OWNER-GATE còn treo] (không chặn W-D, chỉ chặn phần hiển thị tương ứng): (a) hiển thị "còn x/3"
-quota bổ sung cho người duyệt cần mở rộng DTO hàng chờ — ngoài phạm vi D7; (b) cột Đơn giá per-item
-ở bảng "Đối chiếu giá theo nhu cầu" — phương án join `GET /api/vppprice/item-prices` (policy
-LibraryView) hay chỉ hiện giá cho dòng Ngoại lệ, sẽ chọn theo quyền persona lúc triển khai và ghi lại.
+[OWNER-GATE còn treo] (không chặn W-D, chỉ chặn phần hiển thị tương ứng): hiển thị "còn x/3"
+quota bổ sung cho người duyệt cần mở rộng DTO hàng chờ — ngoài phạm vi D7. Đơn giá per-item đã chốt
+theo D25 bằng API `item-prices` có policy `LibraryView`.
 
 **Tiến độ 2026-07-27 (tối) — W-D triển khai xong phần chính** (commit `332370f`…`6af4ca7`):
 
@@ -272,8 +272,8 @@ LibraryView) hay chỉ hiện giá cho dòng Ngoại lệ, sẽ chọn theo quy�
 8. `period-review` (W-D.3 + D23, `274761f`): period-hero 3 trạng thái + readiness list nêu
    đích danh nguyên nhân + nút mở màn duyệt; gỡ đường settle cũ POST /settle khỏi FE.
 
-Còn treo trong W-D: bảng "Đối chiếu giá theo nhu cầu" per-item (OWNER-GATE phương án join
-item-prices). Lát R-2 chẻ `Tab_AdminApproval` đã hoàn thành 2026-07-27: host còn dưới 100 dòng,
+Còn treo trong W-D: quota "còn x/3" cần mở rộng DTO hàng chờ. Bảng "Đối chiếu giá theo nhu cầu"
+per-item đã dùng giá thật theo D25. Lát R-2 chẻ `Tab_AdminApproval` đã hoàn thành 2026-07-27: host còn dưới 100 dòng,
 markup vận hành kỳ và hàng chờ duyệt chuyển sang `PeriodOperationsWorkspace` và
 `PendingApprovalWorkspace`, giữ nguyên endpoint/DTO/handler. Route ledger: period-demand + supply-allocation đổi
 từ **D — chưa có** sang **đã có route thật**.

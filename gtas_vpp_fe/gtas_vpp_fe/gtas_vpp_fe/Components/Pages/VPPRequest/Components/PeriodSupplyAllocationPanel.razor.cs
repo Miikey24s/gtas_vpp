@@ -16,11 +16,35 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         [Parameter] public EventCallback OnContinueToSettle { get; set; }
 
         private List<SupplierResDTO> suppliers = [];
+        private List<VppItemPriceResDTO> primaryItemPrices = [];
         private AggregatedVppResDTO? demand;
         private Guid? selectedSupplierId;
         private int selectedYear = DateTime.Now.Year;
         private int selectedMonth = DateTime.Now.Month;
         private bool isBusy;
+        private bool isPriceComparisonLoading;
+
+        private List<SupplyPriceComparisonRow> PriceComparisonRows => demand?.Items
+            .Select(item =>
+            {
+                var exception = State.Preview?.Exceptions.FirstOrDefault(x => x.VppId == item.VppId && x.IsValid);
+                var primaryPrice = primaryItemPrices.FirstOrDefault(x => x.VppId == item.VppId);
+                var unitPrice = exception?.NetUnitPrice ?? primaryPrice?.NetPrice ?? primaryPrice?.Price;
+                var result = exception is not null
+                    ? SupplyPriceResult.Exception
+                    : unitPrice.HasValue
+                        ? SupplyPriceResult.Available
+                        : SupplyPriceResult.Missing;
+
+                return new SupplyPriceComparisonRow(
+                    item.VppId,
+                    item.VppCode,
+                    item.VppName,
+                    item.TotalQty,
+                    unitPrice,
+                    result);
+            })
+            .ToList() ?? [];
 
         private string ShortInputHash => string.IsNullOrWhiteSpace(State.Preview?.InputHash)
             ? "—"
@@ -67,6 +91,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             selectedSupplierId = State.SelectedSupplierId;
             await LoadSuppliersAsync();
             await LoadDemandNamesAsync();
+            if (State.Preview is not null)
+            {
+                await LoadPrimaryItemPricesAsync(State.Preview);
+            }
         }
 
         private void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
@@ -110,6 +138,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             State.SelectedSupplierId = value;
             State.Exceptions.Clear();
             State.SetPreview(null);
+            primaryItemPrices.Clear();
             await InvokeAsync(StateHasChanged);
         }
 
@@ -158,6 +187,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     });
 
                 State.SetPreview(preview);
+                if (preview is not null)
+                {
+                    await LoadPrimaryItemPricesAsync(preview);
+                }
             }
             catch (Exception ex)
             {
@@ -177,9 +210,62 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
 
         private static string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
 
+        private async Task LoadPrimaryItemPricesAsync(SettlementPreviewResDTO preview)
+        {
+            primaryItemPrices.Clear();
+            if (!preview.PrimarySupplierId.HasValue || !preview.PrimaryPriceListId.HasValue)
+            {
+                return;
+            }
+
+            isPriceComparisonLoading = true;
+            try
+            {
+                var endpoint = $"{Config.LibraryApi.VPPPrice_ItemPrices}?supplierId={preview.PrimarySupplierId.Value}&priceListId={preview.PrimaryPriceListId.Value}&showDeleted=false&top=5000";
+                primaryItemPrices = await ApiServices.GetFromApiAsync<List<VppItemPriceResDTO>>(endpoint) ?? [];
+            }
+            catch (Exception ex)
+            {
+                Toast.Error(ex, Loc);
+            }
+            finally
+            {
+                isPriceComparisonLoading = false;
+            }
+        }
+
+        private string GetPriceResultText(SupplyPriceResult result) => result switch
+        {
+            SupplyPriceResult.Available => Loc["SupplyPriceAvailable"],
+            SupplyPriceResult.Exception => Loc["SupplyPriceException"],
+            _ => Loc["SupplyPriceMissing"]
+        };
+
+        private static string GetPriceResultCss(SupplyPriceResult result) => result switch
+        {
+            SupplyPriceResult.Available => "vpp-badge-success",
+            SupplyPriceResult.Exception => "vpp-badge-warning",
+            _ => "vpp-badge-danger"
+        };
+
         public void Dispose()
         {
             State.Changed -= OnStateChanged;
+        }
+
+        private sealed record SupplyPriceComparisonRow(
+            Guid VppId,
+            string? VppCode,
+            string? VppName,
+            int TotalQuantity,
+            decimal? UnitPrice,
+            SupplyPriceResult Result);
+
+        private enum SupplyPriceResult
+        {
+            Missing,
+            Available,
+            Exception
         }
     }
 }

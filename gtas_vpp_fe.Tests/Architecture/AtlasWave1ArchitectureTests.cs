@@ -58,6 +58,20 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
+    public void SupplyAllocation_UsesAuthorizedItemPricesForThePerItemComparison()
+    {
+        var page = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor");
+        var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor.cs");
+
+        Assert.Contains("SupplyPriceComparisonTitle", page, StringComparison.Ordinal);
+        Assert.Contains("RadzenDataGrid TItem=\"SupplyPriceComparisonRow\"", page, StringComparison.Ordinal);
+        Assert.Contains("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
+        Assert.Contains("preview.PrimaryPriceListId", code, StringComparison.Ordinal);
+        Assert.Contains("exception?.NetUnitPrice", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("UnitPrice =", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Reports_ShowSettlementEvidenceOnlyWhenTheApiProvidesIt()
     {
         var report = ReadFrontendSource("Components/Pages/Report.razor");

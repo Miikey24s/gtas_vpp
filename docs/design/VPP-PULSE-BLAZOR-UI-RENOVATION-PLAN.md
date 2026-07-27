@@ -1102,7 +1102,7 @@ Status hợp lệ:
 | `dashboard.period-operations` | SOURCE_COMPLETE_RUNTIME_PENDING | Permission-dependent sub-tabs; host đã chẻ R-2 |
 | Period review | SOURCE_COMPLETE_RUNTIME_PENDING | Hero + readiness blockers từ preview thật |
 | Additional approval queue | SOURCE_COMPLETE_RUNTIME_PENDING | Sort chờ lâu nhất, detail/action tách component |
-| Supplier/price comparison | IN_IMPLEMENTATION | Supplier-first + exception; còn quyết định đơn giá per-item |
+| Supplier/price comparison | SOURCE_COMPLETE_RUNTIME_PENDING | Supplier-first; đơn giá thật từ item-prices + giá ngoại lệ từ preview |
 | Settlement preview | SOURCE_COMPLETE_RUNTIME_PENDING | Exceptions/evidence/hash |
 | Confirm settlement | SOURCE_COMPLETE_RUNTIME_PENDING | Immutable snapshot warning |
 | Settled/revision view | PENDING | Reconciliation + audit timeline |
