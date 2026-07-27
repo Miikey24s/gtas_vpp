@@ -21,6 +21,8 @@
 | Quyết định UI | `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` | Design contract, owner feedback, route ledger và retrofit queue |
 | Tool selection | `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` | Chọn MCP/browser/QA đúng vai trò |
 | Adapter agent | `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md` | Trỏ về nguồn chuẩn và bổ sung hành vi riêng của nền tảng |
+| Goal đang hoạt động | Goal của task/thread | Outcome dài hạn còn dang dở; không thay thế plan hoặc Git evidence |
+| Memory | Memory theo user/session | Preference và context đã học; chỉ là gợi ý khi sự thật có thể drift |
 
 Không đưa toàn bộ architecture hoặc business rules vào prompt. Prompt chỉ cần `Goal`, `Context`, `Constraints` và `Done when`; agent tự đọc nguồn chuẩn được trỏ từ `AGENTS.md`.
 
@@ -36,6 +38,7 @@ Thuật ngữ dùng trong tài liệu:
 
 1. Nếu phiên vừa `startup`, `resume` hoặc compact context, chạy resume preflight: đọc goal, plan chưa xong, yêu cầu gần nhất, branch, status/diff, process nền và commit gần nhất.
 2. Phân loại tin nhắn mới là thay thế, bổ sung, hỏi trạng thái hoặc tiếp tục. Không bỏ task cũ nếu owner chưa thay mục tiêu.
+   - Nếu một prompt chứa nhiều task, sắp theo dependency, conflict, rủi ro và approval gate. Chỉ thay đổi đáng kể thứ tự sau khi báo owner và được duyệt; nếu thứ tự hiện tại ổn thì tiếp tục ngay.
 3. Chạy `./scripts/gtas.cmd preflight -Scope <scope>`.
 4. Đọc root và scoped `AGENTS.md`, status/diff, tài liệu authority và implementation tương tự.
 5. Với task phức tạp, tạo/cập nhật execution record từ template; task nhỏ dùng plan trong thread.
@@ -60,6 +63,25 @@ Với task phức tạp, plan dùng **progressive disclosure** (chỉ mở chi t
 2. **Bản chi tiết:** execution record đầy đủ theo `docs/planning/05-EXECUTION-TEMPLATE.md`.
 
 Bản một ánh nhìn phải link đến đúng mục trong bản chi tiết. Khi tiến độ đổi, cập nhật summary trước; không bắt owner đọc lại toàn bộ record. Task nhỏ hoặc ít rủi ro chỉ dùng bản một ánh nhìn nếu bản chi tiết không tạo thêm giá trị.
+
+### Biên nhận ghi nhận
+
+Sau mỗi lần owner review, sửa cách làm hoặc custom agent, phản hồi kế tiếp phải cho biết thay đổi đã được ghi ở đâu thay vì chỉ nói “đã nhớ”:
+
+| Nhãn | Dùng khi | Hiệu lực |
+|---|---|---|
+| `THREAD` | Chỉ hiểu trong task hiện tại, chưa ghi file | Mất khi context không còn |
+| `GOAL` | Outcome dài hạn đang active | Theo task đến khi complete/clear |
+| `MEMORY` | Preference hoặc context cần dùng qua phiên | Cross-session nhưng phải nhường repository evidence |
+| `GLOBAL AGENTS` | Cách giao tiếp/làm việc áp dụng mọi repo | Mọi project trên máy/user profile |
+| `REPO AUTHORITY` | Architecture, command, product rule hoặc definition of done | Repository và scope tương ứng |
+| `SKILL` | Workflow lặp lại có procedure/reference/script | Tự kích hoạt khi task khớp description |
+| `SCRIPT/CI/HOOK/AUTOMATION` | Kiểm tra hoặc lifecycle có pass/fail ổn định | Tự động/enforced theo trigger |
+| `PLUGIN` | Nhóm capability ổn định cần cài/phân phối | Các surface/provider hỗ trợ plugin |
+
+Biên nhận dùng bốn cột `Nội dung`, `Đã lưu ở`, `Phạm vi/hiệu lực`, `Bằng chứng`. Chỉ ghi `đã lưu` sau khi write/validation thành công; ý tưởng đang chờ quyết định phải ghi `PENDING APPROVAL`.
+
+Nếu agent phản biện một giải pháp của owner, phải nêu evidence, phương án khuyến nghị và tác động, sau đó chờ owner duyệt trước khi triển khai hướng khác. Audit read-only và phần độc lập vẫn có thể tiếp tục.
 
 ## 4. Prompt contract cho owner
 

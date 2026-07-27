@@ -89,6 +89,11 @@ foreach ($skill in $skills) {
 $rootContent = Get-Content -LiteralPath (Get-RepoPath 'AGENTS.md') -Raw
 Add-Check 'no-snapshot-test-count' ($rootContent -notmatch '\b\d+\s*/\s*\d+\b') 'Root guidance contains no stale test-count snapshot.'
 
+$operatingModelContent = Get-Content -LiteralPath (Get-RepoPath 'docs/ai/AI-AGENT-OPERATING-MODEL.md') -Raw
+$evalContent = Get-Content -LiteralPath (Get-RepoPath 'docs/ai/AI-AGENT-EVALS.md') -Raw
+Add-Check 'customization-receipt-contract' ($operatingModelContent -match 'Biên nhận ghi nhận' -and $operatingModelContent -match 'PENDING APPROVAL') 'Operating model makes persistence location and approval state visible.'
+Add-Check 'customization-receipt-eval' ($evalContent -match '\| E11 \|' -and $evalContent -match 'Nói mơ hồ') 'Behavior eval catches vague or false persistence claims.'
+
 $hookConfigPath = Get-RepoPath '.codex/hooks.json'
 $hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'
 $hookConfig = if (Test-Path -LiteralPath $hookConfigPath) { Get-Content -LiteralPath $hookConfigPath -Raw | ConvertFrom-Json } else { $null }
