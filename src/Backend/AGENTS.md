@@ -3,6 +3,7 @@
 Áp dụng cho toàn bộ `src/Backend/`.
 
 - Đọc root `AGENTS.md`, `docs/architecture/ARCH-001-MODULE-MAP.md` và API/service/model/migration liên quan trước khi sửa.
+- Dùng repo skill `.agents/skills/gtas-vpp-db-safety/` khi thay đổi entity mapping, migration, stored procedure, seed/backfill hoặc data repair.
 - Giữ hướng dependency: API → Application → Domain; migration project chỉ chứa persistence/migration concerns. Shared contract duy nhất nằm trong `src/Shared/`.
 - Authorization phải được kiểm tra ở backend theo permission/policy; UI visibility không phải security boundary.
 - Không thay đổi nghiệp vụ, API hoặc database chỉ để khớp Atlas hoặc luận văn.

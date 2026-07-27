@@ -626,7 +626,7 @@ original scope so reduced/folded alternatives remain auditable.
 | Status / Priority / Difficulty | `NOT_STARTED` / P1 / XL |
 | Mục tiêu | “Vietnamese modern enterprise” design system quanh Radzen, task-first IA, VI mặc định, localization-ready và WCAG foundation. English/dark mode không nằm trong P1 core. |
 | Lý do | CSS override debt cao; internal pages chưa có personality/consistency/VI/a11y dù login direction tốt. |
-| Dependency | UI-001, D-009; `.codexrules` và Copilot UI instructions. |
+| Dependency | UI-001, D-009; scoped frontend `AGENTS.md`, UI repo skill và Copilot path instructions. |
 | Phạm vi / file dự kiến | Rebrand PPJ→GTAS VPP, app shell/layout, design tokens/layers, localization resources, shared UI primitives, targeted pages; anonymize public/demo assets; no library rewrite. |
 | Frontend | PageHeader/PeriodBanner/KPI/Filter/State/Timeline/Confirmation; semantic h1/button/step/focus; reduced motion; 3 breakpoint contract. |
 | Backend | Localization/error code support only nếu cần. |

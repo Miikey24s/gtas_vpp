@@ -34,7 +34,7 @@ File này phải được cập nhật trong cùng change-set khi một quyết 
 - `docs/design/VPP-PULSE-PRODUCT-BLUEPRINT.md` giữ IA, data storytelling và screen inventory mở rộng.
 - `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` định nghĩa MCP, browser QA, accessibility, visual regression và performance workflow cho AI agent.
 - Figma `GTAS VPP — VPP Pulse` là tài liệu tham khảo flow/visual/state, không thay thế route/source audit.
-- `.github/copilot-instructions.md` và `.codexrules` giữ convention Blazor/Radzen hiện hành.
+- `src/Frontend/Blazor/AGENTS.md`, UI repo skill và `.github/instructions/frontend.instructions.md` giữ convention Blazor/Radzen hiện hành; `.codexrules` chỉ là legacy adapter.
 - `src/Frontend/Blazor/Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
 
 Khi có xung đột:
@@ -1627,7 +1627,7 @@ Khi tiếp tục UI renovation trong thread/session mới:
 
 1. Đọc `AGENTS.md` và mọi `AGENTS.md` gần scope.
 2. Đọc toàn bộ file này.
-3. Đọc `.codexrules`, `.github/copilot-instructions.md` và route source.
+3. Đọc `src/Frontend/Blazor/AGENTS.md`, UI repo skill, `.github/copilot-instructions.md` và route source.
 4. Kiểm tra `git status`, branch và diff chưa commit.
 5. Đọc ledger, feedback log và retrofit queue mới nhất.
 6. Chọn đúng route `PENDING`/`CHANGES_REQUESTED` theo thứ tự đã duyệt.

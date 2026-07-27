@@ -1,15 +1,5 @@
-# Quy tắc kiểm thử UI/UX Blazor/Radzen
-- Trước khi dùng Playwright, luôn xác nhận URL local của ứng dụng và phạm vi route cần kiểm thử.
-- Khi làm việc với Radzen Blazor component, form, DataGrid, Dialog, validation, theme hoặc layout, phải dùng MCP radzen-blazor để tra cứu tài liệu/best practice liên quan trước khi sửa code.
-- Ứng dụng cần đăng nhập trước khi kiểm thử các route được bảo vệ. Chỉ dùng tài khoản test do người dùng cung cấp, không ghi credential, token, cookie hoặc session data vào source code.
-- Sau khi đăng nhập thành công, giữ nguyên browser context/session cho các route tiếp theo. Nếu bắt buộc tạo context mới thì phải tái sử dụng storage state/session test, không đăng nhập lặp lại không cần thiết.
-- Kiểm thử toàn bộ route đã đăng nhập có thể truy cập được từ menu, sidebar, link trong trang và các route được khai báo trong file .razor.
-- Khi crawl route, chỉ kiểm thử các mẫu route duy nhất. Với route động có tham số như /entity/{id}, /entity/edit/{id} hoặc các link khác nhau nhưng cùng cấu trúc, chỉ chọn 1 dữ liệu mẫu đại diện để tránh vòng lặp vô hạn và token burn.
-- Với Blazor Server, không chỉ dựa vào networkidle. Cần chờ nội dung chính của trang xuất hiện, loading indicator biến mất và UI reconnect của Blazor không hiển thị.
-- Luôn thu thập lỗi browser console và network request thất bại trước khi kết luận UI hoạt động đúng.
-- Kiểm thử trên 3 viewport: Mobile 390x844, Tablet 768x1024, Desktop 1920x1080.
-- Với form Radzen, mọi input bắt buộc phải có RadzenRequiredValidator hoặc cơ chế validation tương đương.
-- Ưu tiên dùng Radzen component, Radzen utility CSS và style hiện có của dự án thay vì tạo custom CSS mới.
-- Với từng route, khi khả thi cần kiểm tra render ban đầu, responsive layout, thao tác chính, dialog, form, validation state, empty state, loading state và error state.
-- Sửa code theo kiểu cuốn chiếu: xử lý từng route hoặc từng nhóm lỗi liên quan, chạy dotnet build/test phù hợp nếu khả thi, rồi kiểm tra lại route bị ảnh hưởng bằng Playwright trước khi chuyển sang nhóm sửa lớn tiếp theo.
-- Không thay đổi authentication, authorization, database schema, migration, production config hoặc backend behavior nếu người dùng chưa yêu cầu rõ.
+# Legacy UI instruction adapter
+
+Nguồn chính thức nằm tại `src/Frontend/Blazor/AGENTS.md`, repo skill
+`.agents/skills/gtas-vpp-ui-system/` và Blazor living plan. Không thêm quy tắc
+UI độc lập vào file compatibility này.

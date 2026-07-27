@@ -1,0 +1,4 @@
+interface:
+  display_name: "GTAS VPP Database Safety"
+  short_description: "Safely change GTAS database and migrations"
+  default_prompt: "Use $gtas-vpp-db-safety to implement a safe GTAS VPP database or EF migration change with preflight and rollback evidence."

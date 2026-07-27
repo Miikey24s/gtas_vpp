@@ -48,13 +48,14 @@
 ## Preflight
 
 - [ ] Đã chạy `./scripts/gtas.cmd preflight -Scope <scope>` và lưu summary cần thiết.
+- [ ] `./scripts/gtas.cmd agent-check` pass; custom instruction/skill mới có eval phù hợp.
 - [ ] Đã đọc AGENTS.md và instruction liên quan.
 - [ ] Đã đọc task card, ADR và business examples.
 - [ ] `git status --short` đã lưu; file dirty ngoài scope đã xác định owner.
 - [ ] Branch/base commit đúng; không stage file ngoài scope.
 - [ ] Baseline build/test được xác nhận hoặc failure hiện có được ghi.
 - [ ] Nếu DB: backup/sanitized clone/preflight/rollback path đã sẵn sàng.
-- [ ] Nếu UI: đã đọc `.codexrules` và `.github/copilot-instructions.md`.
+- [ ] Nếu UI: đã đọc `src/Frontend/Blazor/AGENTS.md`, UI skill và living plan.
 - [ ] Nếu Word: original read-only, working/final path đúng, render workflow sẵn sàng.
 - [ ] Nếu external system/secret: quyền của người dùng đã được xác nhận.
 
@@ -187,7 +188,7 @@ Không coi `Down()` là rollback đủ cho migration destructive hoặc settleme
 | vulnerability/secret scan | | | |
 | `dotnet format ... --verify-no-changes` or changed-file ratchet | | | |
 | `git diff --check` | | | |
-| `./scripts/gtas.cmd verify` nếu phù hợp phạm vi | | | |
+| `./scripts/gtas.cmd verify -Scope <scope>` nếu phù hợp phạm vi | | | |
 
 ## Failures
 

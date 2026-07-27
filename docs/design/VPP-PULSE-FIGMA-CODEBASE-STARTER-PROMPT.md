@@ -24,7 +24,8 @@ PRE-FLIGHT VÀ NGUỒN AUTHORITY
 3. Đọc đầy đủ theo thứ tự:
    - Guidelines.md
    - AGENTS.md
-   - .codexrules
+   - src/Frontend/Blazor/AGENTS.md
+   - .agents/skills/gtas-vpp-ui-system/SKILL.md
    - .github/copilot-instructions.md
    - docs/design/VPP-PULSE-FIGMA-MAKE-BUILD-BRIEF.md
    - docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md

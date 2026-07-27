@@ -34,7 +34,8 @@ Quy ước UI, localization và accessibility dành cho người và AI nằm t�
 - Đọc root `AGENTS.md` và `AGENTS.md` gần file đang sửa nhất.
 - Mô hình context, skill, plan, MCP và handoff nằm tại [`docs/ai/AI-AGENT-OPERATING-MODEL.md`](docs/ai/AI-AGENT-OPERATING-MODEL.md).
 - Trước task phức tạp, chạy `./scripts/gtas.cmd preflight -Scope <all|frontend|backend|tests|thesis>`.
-- UI Blazor/Radzen dùng repo skill `.agents/skills/gtas-vpp-ui-system/`; kế hoạch dài dùng template [`docs/planning/05-EXECUTION-TEMPLATE.md`](docs/planning/05-EXECUTION-TEMPLATE.md).
+- Repo skills bao phủ UI Blazor/Radzen, database safety và thesis DOCX; kế hoạch dài dùng template [`docs/planning/05-EXECUTION-TEMPLATE.md`](docs/planning/05-EXECUTION-TEMPLATE.md).
+- Chạy `./scripts/gtas.cmd agent-check` để lint instruction/skill và xem [`docs/ai/AI-AGENT-EVALS.md`](docs/ai/AI-AGENT-EVALS.md) khi đánh giá một custom mới.
 - Không commit model preference, MCP credential, browser profile hoặc secret theo máy.
 
 ## Development với .NET Aspire (khuyến nghị)
@@ -100,7 +101,7 @@ Lệnh rút gọn cho agent và lập trình viên:
 
 ```powershell
 ./scripts/gtas.cmd test
-./scripts/gtas.cmd verify
+./scripts/gtas.cmd verify -Scope all
 ```
 
 UI test mặc định tự dựng stack TEST cô lập. Không trỏ test vào ứng dụng hoặc database đang dùng thủ công:

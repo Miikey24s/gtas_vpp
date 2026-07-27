@@ -4,7 +4,7 @@
 
 ## Context bắt buộc
 
-- Đọc root `AGENTS.md`, `.codexrules`, `.github/copilot-instructions.md`.
+- Đọc root `AGENTS.md` và `.github/copilot-instructions.md`; `.codexrules` chỉ là legacy adapter.
 - Đọc `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md` và cập nhật cùng change-set khi thay đổi design contract, route status hoặc owner feedback.
 - Đọc `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` trước khi chọn MCP hoặc QA layer.
 - Dùng repo skill `.agents/skills/gtas-vpp-ui-system/` cho thay đổi UI, Atlas, token, responsive hoặc visual QA.
@@ -30,11 +30,13 @@
 
 1. Chạy `./scripts/gtas.cmd preflight -Scope frontend` từ repo root.
 2. Đọc route, DTO/API, permission, fixture và implementation tương tự.
-3. Tra Microsoft Learn/Radzen MCP đúng component trước khi sửa API Radzen; hết quota/key thì dừng.
-4. Làm một vertical slice, chạy frontend unit/architecture test và route-real Playwright.
-5. Kiểm tra `390×844`, `768×1024`, `1366×768`, `1920×1080`; VI/EN, Light/Dark và Print khi liên quan.
-6. Loading, empty, error, denied, disabled, success và filtered-empty phải ổn định hình học.
-7. Chỉ khóa visual baseline sau owner approval.
+3. Tra Microsoft Learn cho .NET/Blazor/Aspire; tra Radzen MCP theo đúng component, model, field, binding/event và behavior. Hết quota/key thì dừng phần phụ thuộc Radzen.
+4. Với route bảo vệ, dùng tài khoản/fixture TEST, giữ browser context hợp lý và không lưu credential/cookie/storage vào Git.
+5. Làm một vertical slice, chạy frontend unit/architecture test và route-real Playwright. Không dùng `networkidle` làm điều kiện duy nhất với Blazor Server.
+6. Kiểm tra `390×844`, `768×1024`, `1366×768`, `1920×1080`; VI/EN, Light/Dark và Print khi liên quan.
+7. Thu console/network failure; kiểm tra keyboard/focus, dialog return, validation, loading, empty, filtered-empty, error, denied, disabled và success.
+8. Route động chỉ dùng dữ liệu đại diện; tránh crawl lặp vô hạn. Chrome DevTools chỉ dùng khi cần trace/performance sâu.
+9. Không đổi auth, database schema hoặc backend behavior chỉ để sửa visual. Chỉ khóa baseline sau owner approval.
 
 ## Lệnh tối thiểu
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GTAS VPP Thesis DOCX"
+  short_description: "Safely edit and verify the GTAS thesis"
+  default_prompt: "Use $gtas-vpp-thesis-docx to update the GTAS VPP thesis through a review copy and render-and-verify workflow."

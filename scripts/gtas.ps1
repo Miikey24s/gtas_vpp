@@ -1,10 +1,13 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('help', 'configure', 'status', 'preflight', 'init-db', 'bootstrap-admin', 'run', 'test', 'test-backend', 'test-frontend', 'verify')]
+    [ValidateSet('help', 'configure', 'status', 'preflight', 'doctor', 'agent-check', 'init-db', 'bootstrap-admin', 'run', 'test', 'test-backend', 'test-frontend', 'verify')]
     [string]$Command = 'help',
 
     [ValidateSet('all', 'frontend', 'backend', 'tests', 'thesis')]
     [string]$Scope = 'all',
+
+    [ValidateSet('text', 'json')]
+    [string]$OutputFormat = 'text',
 
     [string]$ConnectionString,
 
@@ -31,48 +34,74 @@ function Invoke-CheckedCommand([string]$FailureMessage, [scriptblock]$Action) {
     }
 }
 
-function Show-AgentPreflight([string]$SelectedScope) {
+function Get-AgentScopeDocuments([string]$SelectedScope) {
     $commonDocuments = @(
         'AGENTS.md',
         'docs/ai/AI-AGENT-OPERATING-MODEL.md',
+        'docs/ai/CODE-REVIEW.md',
         'README.md'
     )
-    $scopeDocuments = switch ($SelectedScope) {
-        'frontend' {
-            @(
+    $documentsByScope = @{
+        frontend = @(
                 'src/Frontend/Blazor/AGENTS.md',
-                '.codexrules',
                 '.github/copilot-instructions.md',
                 'docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md',
                 'docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md',
-                'docs/execution/ATLAS-001.md'
-            )
-        }
-        'backend' {
-            @(
+                'docs/execution/ATLAS-001.md',
+                '.agents/skills/gtas-vpp-ui-system/SKILL.md'
+        )
+        backend = @(
                 'src/Backend/AGENTS.md',
-                'docs/architecture/ARCH-001-MODULE-MAP.md'
-            )
-        }
-        'tests' {
-            @(
+                'docs/architecture/ARCH-001-MODULE-MAP.md',
+                '.agents/skills/gtas-vpp-db-safety/SKILL.md'
+        )
+        tests = @(
                 'tests/AGENTS.md',
                 'docs/testing/QA-001-ISOLATED-TESTING.md'
-            )
-        }
-        'thesis' {
-            @(
+        )
+        thesis = @(
                 'LVTN/AGENTS.md',
-                'LVTN/README.md'
-            )
-        }
-        default { @() }
+                'LVTN/README.md',
+                '.agents/skills/gtas-vpp-thesis-docx/SKILL.md'
+        )
     }
 
+    $scopeDocuments = if ($SelectedScope -eq 'all') {
+        @($documentsByScope.Values | ForEach-Object { $_ })
+    }
+    else {
+        @($documentsByScope[$SelectedScope])
+    }
+
+    @($commonDocuments + $scopeDocuments | Select-Object -Unique)
+}
+
+function Show-AgentPreflight([string]$SelectedScope, [string]$Format) {
     $branch = (& git branch --show-current).Trim()
     $head = (& git rev-parse --short HEAD).Trim()
     $dotnetVersion = (& dotnet --version).Trim()
     $status = @(& git status --short)
+    $documents = @(Get-AgentScopeDocuments $SelectedScope | ForEach-Object {
+        [pscustomobject]@{
+            Path = $_
+            Exists = Test-Path -LiteralPath (Join-Path $RepoRoot $_)
+        }
+    })
+
+    $summary = [pscustomobject]@{
+        Scope = $SelectedScope
+        Branch = $branch
+        Head = $head
+        DotnetSdk = $dotnetVersion
+        WorkingTreeClean = $status.Count -eq 0
+        Changes = $status
+        RequiredContext = $documents
+    }
+
+    if ($Format -eq 'json') {
+        $summary | ConvertTo-Json -Depth 5
+        return
+    }
 
     Write-Host 'GTAS AI agent preflight'
     Write-Host "Scope: $SelectedScope"
@@ -87,12 +116,77 @@ function Show-AgentPreflight([string]$SelectedScope) {
     }
 
     Write-Host 'Required context:'
-    foreach ($document in @($commonDocuments + $scopeDocuments | Select-Object -Unique)) {
-        $marker = if (Test-Path -LiteralPath (Join-Path $RepoRoot $document)) { '[OK]' } else { '[MISSING]' }
-        Write-Host "  $marker $document"
+    foreach ($document in $documents) {
+        $marker = if ($document.Exists) { '[OK]' } else { '[MISSING]' }
+        Write-Host "  $marker $($document.Path)"
     }
 
     Write-Host 'Next: read the listed context, inspect the relevant implementation and tests, then make one verifiable vertical slice.'
+}
+
+function Show-Doctor([string]$SelectedScope, [string]$Format) {
+    $requiredCommands = @('git', 'dotnet', 'python')
+    if ($SelectedScope -eq 'frontend' -or $SelectedScope -eq 'all') {
+        $requiredCommands += @('node', 'npm')
+    }
+
+    $checks = [Collections.Generic.List[object]]::new()
+    foreach ($commandName in @($requiredCommands | Select-Object -Unique)) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+        $checks.Add([pscustomobject]@{
+            Type = 'command'
+            Name = $commandName
+            Required = $true
+            Available = $null -ne $command
+            Detail = if ($command) { $command.Source } else { 'Not found on PATH.' }
+        })
+    }
+
+    foreach ($document in Get-AgentScopeDocuments $SelectedScope) {
+        $exists = Test-Path -LiteralPath (Join-Path $RepoRoot $document)
+        $checks.Add([pscustomobject]@{
+            Type = 'context'
+            Name = $document
+            Required = $true
+            Available = $exists
+            Detail = if ($exists) { 'Available.' } else { 'Missing required context.' }
+        })
+    }
+
+    if ($SelectedScope -eq 'thesis' -or $SelectedScope -eq 'all') {
+        $word = Get-Command winword -ErrorAction SilentlyContinue
+        $wordComAvailable = $false
+        if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+            $wordComAvailable = $null -ne [type]::GetTypeFromProgID('Word.Application')
+        }
+        $soffice = Get-Command soffice -ErrorAction SilentlyContinue
+        $checks.Add([pscustomobject]@{
+            Type = 'optional'
+            Name = 'Word or LibreOffice'
+            Required = $false
+            Available = ($null -ne $word -or $wordComAvailable -or $null -ne $soffice)
+            Detail = 'Required only when updating/rendering Word fields locally.'
+        })
+    }
+
+    $failed = @($checks | Where-Object { $_.Required -and -not $_.Available })
+    $result = [pscustomobject]@{
+        Scope = $SelectedScope
+        Result = if ($failed.Count -eq 0) { 'PASS' } else { 'FAIL' }
+        Checks = $checks
+    }
+
+    if ($Format -eq 'json') {
+        $result | ConvertTo-Json -Depth 5
+    }
+    else {
+        $checks | Format-Table Type, Name, Required, Available, Detail -AutoSize
+        Write-Host "Doctor result: $($result.Result)."
+    }
+
+    if ($failed.Count -gt 0) {
+        exit 1
+    }
 }
 
 function Test-NuGetVulnerabilities {
@@ -272,13 +366,15 @@ Commands:
   configure        Store Aspire connection/JWT secrets in .NET user-secrets (not Git).
   status           Show branch and whether required Aspire secret keys exist.
   preflight        Show branch, dirty files, SDK and required context for an AI task.
+  doctor           Check local tools and required context without exposing secrets.
+  agent-check      Lint the repository AI instruction and skill setup.
   init-db          Migrate and seed a TEST/DEMO database; safe to run repeatedly.
   bootstrap-admin  Migrate, ensure one local department, and create the first System Admin once.
   run              Start Aspire in watch/Hot Reload mode for local development.
   test             Build and run backend/frontend unit tests.
   test-backend     Run backend unit tests.
   test-frontend    Run frontend unit tests.
-  verify           Mirror the non-browser CI gates before a complete handoff.
+  verify           Run CI-style gates for -Scope all|frontend|backend|tests|thesis.
 
 DatabaseInitialization modes:
   None                 No migration or seed.
@@ -300,16 +396,20 @@ Configuration catalog:
 
 Examples:
   .\scripts\gtas.cmd preflight -Scope frontend
+  .\scripts\gtas.cmd preflight -Scope all -OutputFormat json
+  .\scripts\gtas.cmd doctor -Scope frontend
+  .\scripts\gtas.cmd agent-check
   .\scripts\gtas.cmd configure
   .\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
   .\scripts\gtas.cmd bootstrap-admin -ConnectionString "..." -DepartmentCode IT -DepartmentName "Information Technology"
   .\scripts\gtas.cmd run
   .\scripts\gtas.cmd test
-  .\scripts\gtas.cmd verify
+  .\scripts\gtas.cmd verify -Scope all
 '@ | Write-Host
 }
 
-if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+$requiresDotnet = $Command -notin @('help', 'doctor', 'agent-check') -and -not ($Command -eq 'verify' -and $Scope -eq 'thesis')
+if ($requiresDotnet -and -not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     throw '.NET SDK is required.'
 }
 
@@ -343,7 +443,14 @@ try {
             Write-Host "Aspire JWT key: $jwtStatus"
         }
         'preflight' {
-            Show-AgentPreflight $Scope
+            Show-AgentPreflight $Scope $OutputFormat
+        }
+        'doctor' {
+            Show-Doctor $Scope $OutputFormat
+        }
+        'agent-check' {
+            & (Join-Path $RepoRoot 'scripts/ai/Test-AgentSetup.ps1') -OutputFormat $OutputFormat
+            if (-not $?) { throw 'Agent setup validation failed.' }
         }
         'init-db' {
             $ConnectionString = Read-RequiredValue 'TEST/DEMO database connection string' $ConnectionString
@@ -420,44 +527,65 @@ try {
             }
         }
         'verify' {
-            Invoke-CheckedCommand 'Solution restore failed.' {
-                & dotnet restore gtas_vpp.sln
+            & (Join-Path $RepoRoot 'scripts/ai/Test-AgentSetup.ps1')
+            if (-not $?) { throw 'Agent setup validation failed.' }
+
+            if ($Scope -ne 'thesis') {
+                Invoke-CheckedCommand 'Solution restore failed.' {
+                    & dotnet restore gtas_vpp.sln
+                }
+                Invoke-CheckedCommand 'Release build failed.' {
+                    & dotnet build gtas_vpp.sln -c Release --no-restore
+                }
             }
-            Invoke-CheckedCommand 'Local tool restore failed.' {
-                & dotnet tool restore
+
+            if ($Scope -in @('all', 'backend', 'tests')) {
+                Invoke-CheckedCommand 'Backend unit tests failed.' {
+                    & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
+                }
             }
-            Invoke-CheckedCommand 'Release build failed.' {
-                & dotnet build gtas_vpp.sln -c Release --no-restore
+            if ($Scope -in @('all', 'frontend', 'tests')) {
+                Invoke-CheckedCommand 'Frontend unit tests failed.' {
+                    & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+                }
+                Invoke-CheckedCommand 'UI configuration syntax smoke failed.' {
+                    & dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-build --filter 'FullyQualifiedName~ComposeConfigurationSyntaxTests'
+                }
             }
-            Invoke-CheckedCommand 'Backend unit tests failed.' {
-                & dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --no-build
+            if ($Scope -in @('all', 'backend', 'tests')) {
+                Invoke-CheckedCommand 'Backend integration tests failed.' {
+                    & dotnet test tests/Backend.IntegrationTests/gtas_vpp_be.IntegrationTests.csproj -c Release --no-build
+                }
             }
-            Invoke-CheckedCommand 'Frontend unit tests failed.' {
-                & dotnet test tests/Frontend.UnitTests/gtas_vpp_fe.Tests.csproj -c Release --no-build
+            if ($Scope -in @('all', 'backend')) {
+                Invoke-CheckedCommand 'Local tool restore failed.' {
+                    & dotnet tool restore
+                }
+                Invoke-CheckedCommand 'EF pending-model check failed.' {
+                    & dotnet tool run dotnet-ef migrations has-pending-model-changes `
+                        --project src/Backend/Migrations/gtas_vpp_be.Migrations.csproj `
+                        --startup-project src/Backend/Api/gtas_vpp_be.csproj `
+                        --context VPPMigrationDbContext `
+                        --configuration Release `
+                        --no-build
+                }
             }
-            Invoke-CheckedCommand 'Backend integration tests failed.' {
-                & dotnet test tests/Backend.IntegrationTests/gtas_vpp_be.IntegrationTests.csproj -c Release --no-build
+            if ($Scope -ne 'thesis') {
+                Test-NuGetVulnerabilities
+                Invoke-CheckedCommand 'Formatting verification failed.' {
+                    & dotnet format gtas_vpp.sln --verify-no-changes --no-restore
+                }
             }
-            Invoke-CheckedCommand 'UI configuration syntax smoke failed.' {
-                & dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-build --filter 'FullyQualifiedName~ComposeConfigurationSyntaxTests'
-            }
-            Invoke-CheckedCommand 'EF pending-model check failed.' {
-                & dotnet tool run dotnet-ef migrations has-pending-model-changes `
-                    --project src/Backend/Migrations/gtas_vpp_be.Migrations.csproj `
-                    --startup-project src/Backend/Api/gtas_vpp_be.csproj `
-                    --context VPPMigrationDbContext `
-                    --configuration Release `
-                    --no-build
-            }
-            Test-NuGetVulnerabilities
-            Invoke-CheckedCommand 'Thesis structure check failed.' {
-                & python LVTN/tooling/check_thesis.py
+            if ($Scope -in @('all', 'thesis')) {
+                Invoke-CheckedCommand 'Thesis structure check failed.' {
+                    & python LVTN/tooling/check_thesis.py
+                }
             }
             & (Join-Path $RepoRoot 'scripts/security/Invoke-Gitleaks.ps1') -Mode Current
             Invoke-CheckedCommand 'Git whitespace check failed.' {
                 & git diff --check
             }
-            Write-Host 'GTAS repository verification passed. Authenticated route-real UI QA remains a separate gate for UI changes.'
+            Write-Host "GTAS verification passed for scope '$Scope'. Authenticated route-real UI QA remains a separate gate for UI changes."
         }
     }
 }

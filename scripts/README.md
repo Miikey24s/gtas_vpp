@@ -38,12 +38,14 @@ Các lệnh khác:
 ```powershell
 .\scripts\gtas.cmd status                     # Kiểm tra branch và user-secrets
 .\scripts\gtas.cmd preflight -Scope frontend  # Context + branch + dirty files trước task AI
+.\scripts\gtas.cmd doctor -Scope frontend     # SDK/tool/context có sẵn trên máy
+.\scripts\gtas.cmd agent-check                # Lint AGENTS, adapter và repo skill
 .\scripts\gtas.cmd test-backend               # Backend unit test
 .\scripts\gtas.cmd test-frontend              # Frontend unit test
 .\scripts\gtas.cmd test                       # Build + backend/frontend unit test
-.\scripts\gtas.cmd verify                     # Các gate CI không cần browser trước handoff
+.\scripts\gtas.cmd verify -Scope all          # Các gate CI không cần browser trước handoff
 ```
 
-`preflight` nhận `all`, `frontend`, `backend`, `tests` hoặc `thesis` và chỉ in metadata an toàn, không đọc giá trị secret. `verify` mirror các gate CI gồm restore/build, unit + integration, UI config smoke, EF model check, NuGet vulnerability audit, luận văn, Gitleaks và whitespace; UI thay đổi vẫn phải được kiểm tra trên route Blazor thật riêng.
+`preflight`, `doctor` và `verify` nhận `all`, `frontend`, `backend`, `tests` hoặc `thesis`; `preflight`/`doctor` còn hỗ trợ `-OutputFormat json`. Các lệnh chỉ in metadata an toàn, không đọc giá trị secret. `verify` chạy đúng gate theo scope, luôn kiểm tra agent setup, Gitleaks và whitespace; UI thay đổi vẫn phải được kiểm tra trên route Blazor thật riêng.
 
 Script chỉ cho phép `init-db` và `bootstrap-admin` trên database có `TEST` hoặc `DEMO`; không lưu secret trong repository. Danh mục cấu hình đầy đủ nằm tại [`../docs/configuration/LOCAL-CONFIGURATION.md`](../docs/configuration/LOCAL-CONFIGURATION.md).
