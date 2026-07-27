@@ -73,6 +73,10 @@
                 </button>
                 <NotificationCenter MenuMode="true" />
                 <div class="user-dropdown-action-divider" role="separator"></div>
+                <a href="/Account/ChangePassword" class="user-dropdown-action" @onclick="CloseMenu">
+                    <VppIcon Name="key" Class="user-dropdown-icon" />
+                    <span class="user-dropdown-action-label">@Loc["ChangePasswordTitle"]</span>
+                </a>
                 <a href="/logoutprocess" class="user-dropdown-action user-dropdown-logout">
                     <VppIcon Name="@VppIcons.Logout" Class="user-dropdown-icon" />
                     <span class="user-dropdown-action-label">@Loc["Logout"]</span>

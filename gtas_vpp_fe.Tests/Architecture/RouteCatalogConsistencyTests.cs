@@ -22,5 +22,8 @@ public sealed class RouteCatalogConsistencyTests
         Assert.All(
             RouteCatalog.Authenticated.Where(route => !route.IsDynamic),
             route => Assert.StartsWith("/", route.Path));
+        Assert.Contains(
+            RouteCatalog.Authenticated,
+            route => route.Key == "account.change-password" && route.Path == "/Account/ChangePassword");
     }
 }

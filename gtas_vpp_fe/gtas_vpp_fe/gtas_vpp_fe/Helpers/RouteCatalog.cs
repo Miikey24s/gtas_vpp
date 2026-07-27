@@ -47,6 +47,14 @@ public static class RouteCatalog
     /// </summary>
     public static readonly Route[] Authenticated =
     [
+        new(
+            Key: "account.change-password",
+            Path: "/Account/ChangePassword",
+            Title: "ChangePasswordTitle",
+            PageCode: "",
+            AnyOfPermissions: [],
+            Notes: "Authenticated self-service route exposed from UserMenu."),
+
         // ── Dashboard ──────────────────────────────────────────────
         new(
             Key: "dashboard.my-orders",

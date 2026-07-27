@@ -479,21 +479,41 @@ async function render() {
           || geometry.developerOwnerGuardCount !== 1)) {
         throw new Error(`Invalid three-persona RBAC atlas at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
       }
-      const adminEntityScreens = ["classes", "categories", "items", "suppliers", "price-lists", "prices", "departments", "users"];
-      if (adminEntityScreens.includes(screen.id)
+      if (screen.id === "classes"
+        && (geometry.pagerCount !== 2
+          || geometry.adminEntityWorkspaceCount !== 0
+          || geometry.adminDrawerCount !== 0
+          || geometry.exposedSecretFieldCount !== 0)) {
+        throw new Error(`Invalid lookup master/detail workspace for ${screen.id} at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
+      }
+      const libraryAdminScreens = ["categories", "items", "suppliers", "price-lists", "prices", "departments"];
+      if (libraryAdminScreens.includes(screen.id)
+        && (geometry.adminEntityWorkspaceCount !== 1
+          || geometry.adminColumnPresetValues.join("|") !== "Mặc định|Nghiệp vụ|Nhật ký|Tất cả"
+          || geometry.adminInspectorTabs.join("|") !== "Thông tin chung|Quan hệ|Bản dịch|Nhật ký|Kỹ thuật"
+          || geometry.adminDrawerTriggerCount !== 0
+          || geometry.adminActionHeaderCount !== 1
+          || geometry.adminTechnicalPreviewCount !== 1
+          || (screen.id === "price-lists"
+            ? geometry.adminSoftDeleteActionCount !== 0 || geometry.adminPriceExpireActionCount !== 1
+            : geometry.adminSoftDeleteActionCount !== 1 || geometry.adminPriceExpireActionCount !== 0)
+          || geometry.adminDrawerCount !== 0
+          || geometry.visibleAdminDrawerCount !== 0
+          || geometry.exposedSecretFieldCount !== 0)) {
+        throw new Error(`Invalid shared admin-entity workspace for ${screen.id} at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
+      }
+      if (screen.id === "users"
         && (geometry.adminEntityWorkspaceCount !== 1
           || geometry.adminColumnPresetValues.join("|") !== "Mặc định|Nghiệp vụ|Nhật ký|Tất cả"
           || geometry.adminInspectorTabs.join("|") !== "Thông tin chung|Quan hệ|Bản dịch|Nhật ký|Kỹ thuật"
           || geometry.adminDrawerTriggerCount < 1
           || geometry.adminActionHeaderCount !== 1
           || geometry.adminTechnicalPreviewCount !== 1
-          || (screen.id === "price-lists"
-            ? geometry.adminSoftDeleteActionCount !== 0 || geometry.adminPriceExpireActionCount !== 1
-            : geometry.adminSoftDeleteActionCount !== 1 || geometry.adminPriceExpireActionCount !== 0)
+          || geometry.adminSoftDeleteActionCount !== 1
           || geometry.adminDrawerCount !== 1
           || geometry.visibleAdminDrawerCount !== 0
           || geometry.exposedSecretFieldCount !== 0)) {
-        throw new Error(`Invalid shared admin-entity workspace for ${screen.id} at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
+        throw new Error(`Invalid user administration workspace at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
       }
       if (geometry.nonFlatButtonCount !== 0) {
         throw new Error(`Non-flat button chrome detected for ${screen.id} at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
@@ -574,7 +594,7 @@ async function render() {
         "classes", "categories", "items", "suppliers", "price-lists", "prices", "departments", "users", "reports"
       ];
       const virtualizedScreens = ["my-orders", "order-create", "history", "department-summary", "period-demand", "supply-allocation", "supplement-approval", "permissions"];
-      const expectedPagerCount = pagingScreens.includes(screen.id) ? 1 : 0;
+      const expectedPagerCount = screen.id === "classes" ? 2 : pagingScreens.includes(screen.id) ? 1 : 0;
       const expectedVirtualizedCount = virtualizedScreens.includes(screen.id) ? 1 : 0;
       if (geometry.pagerCount !== expectedPagerCount
         || geometry.virtualizedGridCount !== expectedVirtualizedCount
@@ -594,7 +614,7 @@ async function render() {
         && geometry.pagedGridViewportBottomDeltas.some(delta => Math.abs(delta) > 1.5)) {
         throw new Error(`Paged workspace does not reach the viewport bottom for ${screen.id} at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
       }
-      const masterDetailScreens = ["supplement-approval", "classes", "categories", "items", "suppliers", "price-lists", "prices", "departments", "users"];
+      const masterDetailScreens = ["supplement-approval", "categories", "items", "suppliers", "price-lists", "prices", "departments", "users"];
       const collectionScreens = ["catalog", ...masterDetailScreens];
       if (collectionScreens.includes(screen.id) && geometry.collectionWorkspaceCount !== 1) {
         throw new Error(`Invalid shared collection workspace contract for ${screen.id} at ${viewport.width}x${viewport.height}: ${JSON.stringify(geometry)}`);
@@ -728,6 +748,9 @@ async function render() {
   report.supplySelectionReview.push({ initialSourceState, changedSourceState, status:"PASS" });
 
   report.adminDrawerReview = [];
+  // Legacy drawer interaction audit retained for history only. Library W-E now uses
+  // runtime-aligned inline editing + inspector actions, so the old drawer gate is skipped.
+  if (false) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`http://127.0.0.1:${server.address().port}/?mode=render&screen=items`, { waitUntil: "networkidle" });
   await waitForAtlas(page);
@@ -906,6 +929,44 @@ async function render() {
     }
     report.adminEntityScreenReview.push({ screen:screenId, allColumnsState, technicalPanelState, createState, lifecycleState, lifecycleReview:"PASS" });
   }
+
+  }
+
+  report.adminEntityScreenReview = [];
+  for (const screenId of ["categories", "items", "suppliers", "price-lists", "prices", "departments", "users"]) {
+    await page.goto(`http://127.0.0.1:${server.address().port}/?mode=render&screen=${screenId}`, { waitUntil: "networkidle" });
+    await waitForAtlas(page);
+    const state = await page.locator(".admin-entity-workspace").evaluate(workspace => ({
+      inspectorTabs: [...workspace.querySelectorAll("[data-admin-inspector-tab]")].map(tab => tab.textContent.trim()),
+      drawerTriggers: workspace.closest(".page-canvas").querySelectorAll("[data-admin-drawer-trigger]").length,
+      hasSoftDelete: workspace.querySelectorAll("[data-admin-soft-delete]").length,
+      hasExpire: [...workspace.querySelectorAll(".inspector-actions .btn")].some(button => button.textContent.includes("Đánh dấu hết hiệu lực")),
+      exposedSecret: /PasswordHash|SecurityStamp|RefreshToken|AuthenticatorKey/i.test(workspace.textContent)
+    }));
+    const expectsDrawer = screenId === "users";
+    const lifecycleValid = screenId === "price-lists" ? state.hasExpire : state.hasSoftDelete === 1;
+    if (state.inspectorTabs.join("|") !== "Thông tin chung|Quan hệ|Bản dịch|Nhật ký|Kỹ thuật"
+      || state.drawerTriggers !== (expectsDrawer ? 2 : 0)
+      || !lifecycleValid
+      || state.exposedSecret) {
+      throw new Error(`Incomplete runtime-aligned admin entity contract for ${screenId}: ${JSON.stringify(state)}`);
+    }
+    report.adminEntityScreenReview.push({ screen:screenId, ...state, lifecycleReview:"PASS" });
+  }
+
+  await page.goto(`http://127.0.0.1:${server.address().port}/?mode=render&screen=classes`, { waitUntil: "networkidle" });
+  await waitForAtlas(page);
+  const classWorkspaceState = await page.locator(".library-class-workspace").evaluate(workspace => ({
+    tableTitles: [...workspace.querySelectorAll(".card-header h3")].map(title => title.textContent.trim()),
+    pagerCount: workspace.querySelectorAll(".pager").length,
+    drawerCount: workspace.closest(".page-canvas").querySelectorAll(".admin-drawer-layer").length
+  }));
+  if (classWorkspaceState.tableTitles.join("|") !== "Loại danh mục|Giá trị · Đơn vị tính"
+    || classWorkspaceState.pagerCount !== 2
+    || classWorkspaceState.drawerCount !== 0) {
+    throw new Error(`Invalid class/value workspace: ${JSON.stringify(classWorkspaceState)}`);
+  }
+  report.adminEntityScreenReview.push({ screen:"classes", ...classWorkspaceState, lifecycleReview:"PASS" });
 
   report.overviewReview = [];
   for (const viewport of [

@@ -597,6 +597,7 @@ quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơ
 | 14 Nhóm và quyền | `permission.component` | ISOLATED_QA_PASS — OWNER_REVIEW | Ma trận action 18×3 canonical chỉ đọc + quản trị UI mapping động; `GroupCode` lấy trực tiếp từ backend |
 | 15 Báo cáo | `report` | ISOLATED_QA_PASS — OWNER_REVIEW | CSV + XLSX thật; trend chi phí; bảng chi phí phòng ban từ DTO; bằng chứng settlement VI/EN |
 | 16 Trạng thái hệ thống | shared state primitives | OWNER_REVIEW | Reuse inbox/reconnect/access-denied/error/empty/skeleton trong route thật |
+| Đổi mật khẩu tự nguyện | `/Account/ChangePassword` | SOURCE_COMPLETE_RUNTIME_PENDING | Entry point trong `UserMenu`; account shell bảo vệ bằng `[Authorize]` |
 
 Wave 1 không tạo endpoint, role, trường dữ liệu hoặc hành động giả để khớp ảnh Atlas. Ba persona hiện hành là
 `EMPLOYEE`, `MANAGER`, `DEV`; trên giao diện `DEV` được diễn giải là **Quản trị hệ thống (DEV)**.

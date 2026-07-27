@@ -41,6 +41,18 @@ public sealed class AccountLifecycleRouteTests
     }
 
     [Fact]
+    public void AuthenticatedUserMenu_ExposesVoluntaryPasswordChangeInRuntimeAndAtlas()
+    {
+        var menu = ReadSource("Components", "Layout", "UserMenu.razor");
+        var atlas = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "docs", "design", "atlas", "atlas.js"));
+
+        Assert.Contains("href=\"/Account/ChangePassword\"", menu, StringComparison.Ordinal);
+        Assert.Contains("screenTarget(\"change-password\")", atlas, StringComparison.Ordinal);
+        Assert.Contains("số và ký tự đặc biệt", atlas, StringComparison.Ordinal);
+        Assert.Contains("chờ quản trị viên phê duyệt", atlas, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LogoutPage_AlwaysContinuesToSessionRevocation()
     {
         var source = ReadSource("Components", "Pages", "Authen", "Logout.razor");

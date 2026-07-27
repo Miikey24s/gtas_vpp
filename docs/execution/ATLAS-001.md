@@ -158,10 +158,9 @@ ErrorBoundary có nút khôi phục), popup tài khoản + hộp thư thông bá
 icon nav theo Atlas (D13), xóa `HeaderControls.razor` mồ côi. Header desktop hoãn theo D14 —
 còn **W-B.2b**: chuyển tab strip vào primary header rồi bật desktop.
 
-**Retrofit queue (sửa ngược Atlas, chờ owner duyệt):** (1) Atlas thiếu màn/mục nav `Toàn bộ đơn`
-(`RequestAllOrdersSummary`) — bổ sung vào Atlas thay vì cắt nav Blazor; (2) màn `account-change`
-không có entry point tự nguyện trong popup tài khoản — nếu duyệt, thêm hàng `Đổi mật khẩu` đồng
-thời ở `atlas.js` và `UserMenu.razor`.
+**Retrofit W-B hoàn thành 2026-07-27:** `Toàn bộ đơn` không tăng màn Atlas vì D2/D8 đã hấp thụ
+vào chế độ `Theo đơn` của `period-demand`; URL cũ chỉ còn redirect tương thích. Popup tài khoản
+Blazor và màn hệ thống Atlas đều có entry point `Đổi mật khẩu`; route được thêm vào `RouteCatalog`.
 
 ### W-C — M2 vòng đời đơn của nhân viên (4 màn, gap A/B/C)
 
@@ -186,13 +185,11 @@ chuyển toàn bộ sang `::deep` neo `.vpp-history-page` (script deterministic,
 markup giữ nguyên byte class/id/aria nên E2E selector sống; architecture test repoint theo file mới.
 [OWNER-GATE] nhãn "Email công ty" đã chốt ở D15.
 
-**Retrofit queue W-C (sửa ngược Atlas, chờ owner duyệt):** hero my-orders biến thể chưa có đơn
-("Tạo đơn kỳ này" + "Sao chép kỳ trước"); 3 thẻ tóm tắt là radiogroup điều hướng; empty state
-my-orders; rút gọn mã đơn dài + copy; lý do đơn bổ sung ≥5 ký tự; màn review OrderCreateStep3
-chưa có trong manifest; giỏ rỗng order-create; fixture history badge "Đã chốt" sai hợp đồng
-trạng thái; Dialog_RequestHistory chưa được Atlas thiết kế; mâu thuẫn legend chart vs badge loại
-đơn; drawer vẽ tên phòng ban nhưng DTO chỉ có mã; hint chính sách mật khẩu thiếu "ký tự đặc biệt";
-alert register sai (backend có luồng đăng ký chờ duyệt thật); biến thể change-password bắt buộc.
+**Retrofit W-C hoàn thành 2026-07-27:** Atlas giữ đúng 28 màn nhưng bổ sung các state trong archetype:
+my-orders empty + CTA tạo/sao chép, ba thẻ `radiogroup`, mã rút gọn/copy; order-create có state giỏ
+rỗng, review bước 2 và lý do bổ sung tối thiểu 5 ký tự; history bỏ trạng thái giả `Đã chốt`, dùng mã
+phòng ban DTO và có mẫu dialog lịch sử. Account reset/change thêm ký tự đặc biệt; register mô tả
+đúng luồng chờ duyệt. Không thêm screen thứ 29 chỉ để biểu diễn state nội bộ của order-create.
 
 **Ràng buộc nghiệp vụ:** màn nhân viên **không hiển thị đơn giá, thành tiền hoặc tạm tính** — luận văn
 §3.3.2.3 và §3.3.1.2. Đây là ràng buộc quyền, không phải lựa chọn thị giác.
@@ -241,6 +238,7 @@ quyết từng mục):
 | D23 | Gỡ đường settle cũ (POST `/settle` không snapshot/InputHash) khỏi `PeriodReviewPanel` — chỉ gỡ code FE chết, backend giữ nguyên | Trái D4 (chốt kỳ là bước 4); trùng lặp PeriodSettlementPanel; đã kiểm chứng là không còn lối vào UI hợp lệ |
 | D24 | Owner duyệt thực thi toàn bộ ATLAS-001, gồm refactor liên quan; chẻ `Tab_AdminApproval` theo cùng pattern coordinator/presentation của C-7 | Giảm host 419 dòng xuống dưới 100 dòng; hai workspace con nhận dữ liệu/callback rõ ràng, không đổi API/DTO/nghiệp vụ |
 | D25 | Bảng "Đối chiếu giá theo nhu cầu" join `GET /api/vppprice/item-prices` theo `PrimarySupplierId` + `PrimaryPriceListId`; ngoại lệ hợp lệ dùng `SettlementExceptionResDTO.NetUnitPrice` | Persona MANAGER đã có `LibraryView`; hiển thị được đơn giá thật cho mọi dòng mà không mở rộng DTO/schema hoặc suy diễn số liệu |
+| D26 | Owner duyệt full plan nên retrofit ngược Atlas được thực thi; state nội bộ không tăng manifest quá 28 màn | Atlas bỏ dữ liệu/hành động giả theo DTO/backend thật; order-create/my-orders/history variants nằm trong archetype hiện có; renderer cập nhật từ drawer CRUD giả sang inline/inspector contract |
 
 [OWNER-GATE còn treo] (không chặn W-D, chỉ chặn phần hiển thị tương ứng): hiển thị "còn x/3"
 quota bổ sung cho người duyệt cần mở rộng DTO hàng chờ — ngoài phạm vi D7. Đơn giá per-item đã chốt
@@ -278,14 +276,11 @@ markup vận hành kỳ và hàng chờ duyệt chuyển sang `PeriodOperationsW
 `PendingApprovalWorkspace`, giữ nguyên endpoint/DTO/handler. Route ledger: period-demand + supply-allocation đổi
 từ **D — chưa có** sang **đã có route thật**.
 
-**Retrofit queue W-D (sửa ngược Atlas, chờ owner duyệt):** cột "Kiểm tra" (Đủ dữ liệu/Cần kiểm tra)
-của period-demand không có field backend; fixture department-summary dùng trạng thái "Nháp"/"Chưa tạo"
-không tồn tại trong VppStatusContract (hàng "Chưa tạo" còn có mã đơn — mâu thuẫn nội tại); aside vẽ
-tên phòng ban đầy đủ nhưng DTO chỉ có mã (trùng mục W-C); copy approval "Hạn mức còn lại: 38 sản
-phẩm" + trạng thái "Cần làm rõ" không tồn tại nghiệp vụ; Atlas settlement thiếu biến thể đã-chốt/
-hiệu-chỉnh (không vẽ lịch sử phiên bản, form bốn mắt); Atlas vẽ "Ghi chú chốt kỳ" nhưng
-SettlementConfirmReqDTO không có trường note; bảng trái period-demand gom theo phòng ban (thay bằng
-chế độ Theo đơn theo D8/D18).
+**Retrofit W-D hoàn thành 2026-07-27:** Atlas bỏ cột `Kiểm tra`, trạng thái `Nháp/Chưa tạo/Cần làm rõ`,
+quota sản phẩm và tên phòng ban không có trong DTO; `period-demand` hiển thị đúng hai chế độ Theo đơn /
+Theo mặt hàng. Settlement bỏ ghi chú xác nhận không có trong `SettlementConfirmReqDTO`, đồng thời thêm
+biến thể hiệu chỉnh có lý do và mô tả nguyên tắc bốn mắt. Quota `còn x/3` vẫn không hiển thị vì cần
+mở rộng DTO hàng chờ; đây là chủ đích không bịa dữ liệu, không phải phần code còn thiếu.
 
 ### W-E — M5A + M5B thư viện dữ liệu (7 màn, gap B)
 
@@ -317,11 +312,10 @@ khỏi `Component_ShareGrid`, classes và price-lists; khóa `Address1` của su
 giữ thứ tự metadata items `Đơn vị → Danh mục`; filter trạng thái price-list dùng dropdown VI/EN và
 gửi lại Dynamic LINQ `Status` thay vì lộ giá trị CheckBoxList `Draft/Published/Expired`.
 
-**Retrofit queue W-E (sửa ngược Atlas, chờ owner duyệt):** cột đếm "Mặt hàng"/"Thành viên"/
-"Giá trị" không có field backend (categories/suppliers/departments/classes); Atlas vẽ trường
-không tồn tại (RowVersion, "Nguồn dữ liệu", tên người cập nhật, "Hiệu lực" per-mức-giá,
-"Chiết khấu/Phí bổ sung" cấp mức giá); manifest ghi "được phê duyệt" cho suppliers nhưng
-backend không có vòng đời phê duyệt; classes Atlas vẽ 1 bảng phẳng thiếu vùng LookupValue.
+**Retrofit W-E hoàn thành 2026-07-27:** Atlas bỏ các cột đếm không có DTO, nguồn/updater giả,
+hiệu lực per-price và chiết khấu/phí cấp mức giá; suppliers dùng địa chỉ thật và copy `đang áp dụng`.
+Items theo thứ tự Đơn vị → Danh mục. Classes chuyển thành workspace hai bảng Loại danh mục ↔ Giá trị;
+Library không còn drawer CRUD giả, phản ánh inline edit + inspector/soft-delete của Blazor.
 
 ### W-F — M6 người dùng và phân quyền (2 màn, gap B)
 
@@ -350,8 +344,8 @@ Ma trận quyền đúng 3 vai trò (D1). Mỗi tài khoản một phân công q
 3. Giữ nguyên vùng quản trị component động bên dưới; action permission luôn read-only, chỉ UI mapping
    có `CanConfigure` mới bật switch. Copy/toast/inspector VI+EN đã đưa vào resx.
 
-**Retrofit queue W-F (chờ owner duyệt):** gỡ nút `Lưu ma trận quyền` khỏi Atlas vì action matrix là
-canonical read-only; Atlas không được mô tả khả năng mutation mà backend không cung cấp.
+**Retrofit W-F hoàn thành 2026-07-27:** Atlas đã gỡ nút `Lưu ma trận quyền`; ma trận 18×3 được mô tả
+là canonical read-only, mutation phân công nằm ở màn người dùng.
 
 **W-F isolated browser gate pass:** `AtlasWave1Tests` đăng nhập fixture thật và xác nhận `users` +
 `permissions` ở 1920, matrix đúng 18 hàng/4 header; route permission không làm tràn page ở 768 và
@@ -376,9 +370,9 @@ Bỏ mọi dấu vết PDF ở cả code lẫn Atlas (D3). Giữ CSV UTF-8 + XLS
 4. Khối phòng ban đổi column chart đếm đơn thành `RadzenDataGrid` với đúng bốn field thật:
    `Code`, `OrderCount`, `TotalQuantity`, `TotalAmount`; subtitle phân biệt settlement snapshot và live data.
 
-**Retrofit queue W-G (chờ owner duyệt):** Atlas đang vẽ các field không có nguồn backend: KPI
-`Chênh lệch giá`, meta nhân sự/phần trăm, tên phòng ban, số mặt hàng theo phòng, `So kỳ trước` và
-hai series thường/bổ sung. Không render số giả; Atlas cần sửa theo DTO hiện hành nếu owner duyệt.
+**Retrofit W-G hoàn thành 2026-07-27:** Atlas dùng đúng KPI `TotalOrders/TotalLines/TotalQuantity/
+TotalAmount/TotalRequesters`, trend một series `PeriodTrend.TotalAmount`, và bảng phòng ban chỉ gồm
+`Code/OrderCount/TotalQuantity/TotalAmount`; đã bỏ toàn bộ field so sánh/nhân sự/tên phòng không có DTO.
 
 **W-G isolated browser gate pass:** `AtlasWave1Tests` xác nhận `/report` render sau đăng nhập, hai nút
 `Xuất CSV`/`Xuất Excel` xuất hiện và route không làm tràn page ở 1920/768/390. Lượt read-only chưa bấm
