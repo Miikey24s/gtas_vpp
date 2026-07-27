@@ -1,6 +1,6 @@
 ---
 name: gtas-vpp-ui-system
-description: Implement or refactor GTAS VPP Blazor/Radzen UI using the owner-approved M0-M2 Atlas style contract, reusable design tokens and workspace patterns, responsive route-real QA, and the repository living plan. Use for changes under src/Frontend/Blazor involving layout, design system, Radzen components, Atlas parity, responsive behavior, visual states, accessibility, or browser verification.
+description: Plan, implement, refactor, review, or report GTAS VPP Blazor/Radzen UI using the owner-approved M0-M2 Atlas style contract, reusable design tokens and workspace patterns, responsive route-real QA, and the repository living plan. Use for UI plans, wave reports, visual review artifacts, or changes under src/Frontend/Blazor involving layout, design system, Radzen components, Atlas parity, responsive behavior, visual states, accessibility, or browser verification.
 ---
 
 # GTAS VPP UI System
@@ -43,6 +43,14 @@ Use composition, not markup inheritance. Do not create `UniversalPage<T>`, `Univ
 5. Run focused tests while iterating, then verify the authenticated route with Playwright at `390×844`, `768×1024`, `1366×768`, and `1920×1080` when relevant.
 6. Check VI/EN, Light/Dark, console/network, keyboard, accessibility, and Print where the route supports them.
 7. Update the living plan in the same change-set when a design decision, owner feedback, route state, or retrofit requirement changes.
+
+## Keep plans and reports coherent
+
+- Use one canonical table when rows share the same axis such as wave, route, state, or component. Put implementation, owner-visible outcome, visual artifact, validation gate, and status in columns of that table.
+- Do not place adjacent tables with the same row keys and ask the owner to reconcile them. Merge them; keep separate sections only for cross-cutting rules that do not repeat every row.
+- Make the one-glance plan summarize and link to the canonical execution table instead of duplicating its ledger.
+- Report each completed wave in one compact block: owner-visible result, Wave Review Board or route evidence, checks actually run, remaining risk, next gate, and commit status.
+- Lead reports with what the owner can see or use. Distinguish clearly between technical foundation, partially migrated UI, full current-scope UI, and final hardening.
 
 ## Finish
 

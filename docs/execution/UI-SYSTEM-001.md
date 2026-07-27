@@ -148,29 +148,18 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 
 ## 5. Kế hoạch thực thi F0–F7
 
-| Wave | Deliverable | Gate để mở wave sau |
-|---|---|---|
-| F0 — Baseline & guard | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | Không có thay đổi visual có chủ đích; build/test pass; 4 route đại diện pass browser regression. |
-| F1 — Token & bridge | Semantic token đủ Light/Dark; Radzen bridge có phạm vi; phân loại legacy CSS. | Không tăng authored hex/inline/`!important`; contrast representative pass. |
-| F2 — Primitive & state | Primitive nhỏ và một content-state canonical; migrate tối thiểu 2 consumer; xóa adapter chỉ khi hết consumer. | API component typed; unit/architecture/accessibility pass; route thật không regression. |
-| F3 — Composite | Shared order-detail surface và các composite chỉ sau so sánh 2 consumer thật. | My Orders + History giữ đúng data, action, paging/virtualization và responsive behavior. |
-| F4 — Pattern | Contract nhỏ cho Collection, ListDetail, SplitEditor, Operation, Analytics/Account nếu có đủ consumer. | Không reflection/endpoint string; route sở hữu nghiệp vụ; ít nhất 2 consumer/pattern. |
-| F5 — M0–M2 reference | Migrate shell/account/catalog/order create/my orders/history thành reference implementation. | 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility pass. |
-| F6 — M3–M8 rollout | Migrate management, period, library, permission, report và system state theo route ledger. | Từng vertical slice độc lập, test/QA/owner review trước commit. |
-| F7 — Hardening | Xóa replacement đã hết consumer; performance/axe/print; visual baseline chỉ sau owner approval. | Full frontend verify + representative full route matrix + diff/debt report. |
+Đây là bảng canonical duy nhất cho chuỗi wave. Báo cáo tiến độ và bản một ánh nhìn phải link về bảng này, không tạo bảng F0–F7 song song.
 
-### 5.1 Sau mỗi wave owner nhận được gì
-
-| Wave | Anh nhận được sau khi wave hoàn tất | Anh có thể mở và duyệt gì | Mức hoàn thiện UI |
-|---|---|---|---|
-| F0 — Baseline & guard | Một baseline đáng tin: CSS tải đúng thứ tự, route/query metadata đúng, có catalog component/debt và test chặn lỗi kiến trúc quay lại. | So sánh 4 route đại diện trước/sau để xác nhận không có thay đổi visual ngoài ý muốn. | **Nền kỹ thuật** — UI gần như giữ nguyên. |
-| F1 — Token & bridge | Bộ màu, spacing, typography, radius, shadow và Radzen bridge thống nhất cho Light/Dark; thay đổi theme chung có một nơi rõ để chỉnh. | Theme trên các component/route đại diện, contrast Light/Dark và báo cáo debt CSS giảm/tăng. | **Nền visual** — có hệ quy chuẩn, chưa migrate toàn bộ màn. |
-| F2 — Primitive & state | Các khối nhỏ canonical và state loading/empty/filter-empty/error/denied nhất quán trên ít nhất hai consumer thật. | Trực tiếp xem, thử keyboard/focus và so sánh state ở các route đã migrate. | **Khung cơ bản dùng được** — một phần UI đã chạy trên primitive mới. |
-| F3 — Composite | Các cụm UI dùng chung có mục đích rõ; đầu tiên là order-detail dùng chung cho My Orders và History nếu behavior thực tế cho phép. | Hai luồng My Orders/History với dữ liệu, action, paging/virtualization và responsive behavior thật. | **Luồng mẫu hoàn chỉnh** — chứng minh tái sử dụng không làm mất nghiệp vụ. |
-| F4 — Pattern | Bộ workspace pattern nhỏ, typed và tùy biến bằng slot cho các kiểu màn lặp lại như Collection, ListDetail, Operation và Analytics. | Các route mẫu ở từng pattern; kiểm tra route vẫn giữ API, permission và business state riêng. | **Khung scalable hoàn chỉnh** — đủ nền để migrate nhanh toàn sản phẩm. |
-| F5 — M0–M2 reference | Shell, account, catalog, order create, My Orders và History được đưa lên UI system mới và trở thành mẫu chuẩn cho agent. | Toàn bộ M0–M2 ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | **UI nhóm người dùng chính hoàn chỉnh** trên khung mới. |
-| F6 — M3–M8 rollout | Management, period, library, permission, report và system state được migrate theo route ledger; replacement cũ được gỡ khi hết consumer. | Từng route M3–M8 trên browser thật, có evidence và owner review theo vertical slice. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. |
-| F7 — Hardening | Dọn legacy còn lại có replacement, tối ưu performance, axe/Print, khóa visual baseline đã được owner duyệt và tạo báo cáo debt cuối. | Full frontend regression, route matrix đại diện, accessibility/performance và diff visual cuối. | **`UI-SYSTEM-001` hoàn chỉnh** — sẵn sàng bàn giao và mở rộng lâu dài. |
+| Wave | Trạng thái | Thực hiện | Sau wave anh có gì | Visual review | Gate để mở wave sau |
+|---|---|---|---|---|---|
+| F0 — Baseline & guard | `READY — OWNER APPROVAL` | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên và có test chặn lỗi kiến trúc quay lại. | Contact sheet before/after của 4 route + mini diagram CSS/cascade. | Không có visual change ngoài ý muốn; build/test và 4 route browser regression pass. |
+| F1 — Token & bridge | `PENDING F0` | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board token + cùng một cụm Radzen ở Light/Dark. | Không tăng hex/inline/`!important`; representative contrast pass. |
+| F2 — Primitive & state | `PENDING F1` | Tạo primitive nhỏ và content-state canonical; migrate tối thiểu 2 consumer; chỉ xóa adapter đã hết consumer. | **Khung cơ bản dùng được:** loading/empty/filter-empty/error/denied nhất quán trên các route đầu tiên. | State matrix desktop/mobile; trace keyboard/focus khi cần. | API typed; unit/architecture/accessibility pass; route thật không regression. |
+| F3 — Composite | `PENDING F2` | Tạo composite sau khi so sánh 2 consumer thật; ưu tiên order-detail cho My Orders và History nếu behavior cho phép. | **Luồng mẫu hoàn chỉnh:** chứng minh tái sử dụng không làm mất dữ liệu, action hoặc nghiệp vụ. | My Orders và History cạnh nhau, highlight order-detail dùng chung. | Data, action, paging/virtualization và responsive behavior giữ đúng. |
+| F4 — Pattern | `PENDING F3` | Tạo contract nhỏ, typed và tùy biến bằng slot cho Collection, ListDetail, SplitEditor, Operation, Analytics/Account khi đủ consumer. | **Khung scalable hoàn chỉnh:** đủ nền để migrate nhanh sản phẩm mà route vẫn giữ nghiệp vụ riêng. | Pattern map dạng card + thumbnail consumer thật. | Không reflection/endpoint string; route giữ API/permission; tối thiểu 2 consumer/pattern. |
+| F5 — M0–M2 reference | `PENDING F4` | Migrate shell, account, catalog, order create, My Orders và History thành reference implementation. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Contact sheet M0–M2 có mobile/desktop và Light/Dark đại diện. | 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility pass. |
+| F6 — M3–M8 rollout | `PENDING F5` | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | Từng vertical slice có test, route-real QA, evidence và owner review trước commit. |
+| F7 — Hardening | `PENDING F6` | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
 
 Mốc dễ hiểu:
 
@@ -179,7 +168,7 @@ Mốc dễ hiểu:
 - Kết thúc **F6**: toàn bộ UI trong scope hiện tại đã lên khung mới.
 - Kết thúc **F7**: hoàn tất kỹ thuật, QA, dọn legacy và handoff của `UI-SYSTEM-001`.
 
-### 5.2 Visual review contract cho từng wave
+### 5.1 Visual review contract
 
 **Quyết định:** hình ảnh là lớp truyền đạt chính cho owner, nhưng không phải bằng chứng duy nhất. Mỗi wave phải tạo một `Wave Review Board` vừa một màn hình, ưu tiên visual và chỉ dùng nhãn ngắn. Screenshot phải lấy từ Blazor runtime với TEST/isolated fixture sau khi implementation chạy được; không dùng mock hoặc Atlas render để tuyên bố code đã hoàn thành.
 
@@ -189,17 +178,6 @@ flowchart LR
     B --> C["Link route thật<br/>hoặc Playwright trace"]
     C --> D["Owner: Approve<br/>hoặc Changes requested"]
 ```
-
-| Wave | Visual chính trên review board | Evidence bổ sung khi cần |
-|---|---|---|
-| F0 | Contact sheet before/after của 4 route đại diện + mini diagram thứ tự CSS/cascade. | Link route thật; diff computed style; architecture test. |
-| F1 | Theme board: semantic token, typography, spacing và cùng một cụm Radzen ở Light/Dark đặt cạnh nhau. | Contrast result và debt delta cho hex/inline/`!important`. |
-| F2 | State matrix trực quan: loading, empty, filter-empty, error, denied, disabled trên desktop/mobile. | Keyboard/focus clip hoặc trace khi state có interaction. |
-| F3 | My Orders và History đặt cạnh nhau, highlight phần order-detail đã dùng chung. | Playwright trace ngắn cho mở detail, paging/virtualization và quay lại focus. |
-| F4 | Pattern map dạng card: mỗi workspace pattern có cấu trúc khái quát và thumbnail route consumer thật. | Link route mẫu; contract typed/slot chỉ để ở phần chi tiết, không nhồi lên ảnh. |
-| F5 | Contact sheet M0–M2 gồm shell, account, catalog, order create, My Orders và History; có representative mobile/desktop, Light/Dark. | Route matrix, console/network và axe report. |
-| F6 | Contact sheet M3–M8 chia theo subwave/nhóm nghiệp vụ; không nhét mọi màn vào một ảnh chữ quá nhỏ. | Route ledger có link evidence và trace cho flow period/permission phức tạp. |
-| F7 | Final board: before/after tiêu biểu, 4 viewport, Light/Dark/Print và QA scorecard trực quan. | Full regression report, performance trace và visual diff đã owner duyệt. |
 
 Format cố định của mỗi board:
 

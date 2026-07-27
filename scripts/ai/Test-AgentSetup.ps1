@@ -96,6 +96,11 @@ Add-Check 'customization-receipt-eval' ($evalContent -match '\| E11 \|' -and $ev
 Add-Check 'hybrid-customization-contract' ($operatingModelContent -match 'Hybrid customization lifecycle' -and $operatingModelContent -match 'KEEP.*UPDATE.*MERGE.*DELETE.*NEEDS APPROVAL') 'Operating model preserves intent while pruning obsolete implementation guidance.'
 Add-Check 'hybrid-customization-eval' ($evalContent -match '\| E12 \|' -and $evalContent -match 'Reset toàn bộ custom') 'Behavior eval covers model upgrades and safe customization pruning.'
 
+$uiSkillContent = Get-Content -LiteralPath (Get-RepoPath '.agents/skills/gtas-vpp-ui-system/SKILL.md') -Raw
+Add-Check 'ui-skill-plan-coherence' ($uiSkillContent -match 'one canonical table' -and $uiSkillContent -match 'Do not place adjacent tables with the same row keys') 'UI skill merges repeated wave/route/state ledgers into one canonical table.'
+Add-Check 'ui-skill-wave-report' ($uiSkillContent -match 'Report each completed wave in one compact block' -and $uiSkillContent -match 'owner-visible result') 'UI skill reports owner-visible outcomes, evidence, gates, risk, and commit status coherently.'
+Add-Check 'ui-plan-coherence-eval' ($evalContent -match '\| E13 \|' -and $evalContent -match 'hai bảng song song') 'Behavior eval catches fragmented plans and reports with duplicate row axes.'
+
 $hookConfigPath = Get-RepoPath '.codex/hooks.json'
 $hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'
 $hookConfig = if (Test-Path -LiteralPath $hookConfigPath) { Get-Content -LiteralPath $hookConfigPath -Raw | ConvertFrom-Json } else { $null }

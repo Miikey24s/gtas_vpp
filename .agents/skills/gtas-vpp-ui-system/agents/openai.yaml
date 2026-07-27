@@ -1,4 +1,4 @@
 interface:
   display_name: "GTAS VPP UI System"
-  short_description: "Build scalable Blazor and Radzen UI"
-  default_prompt: "Use $gtas-vpp-ui-system to implement a GTAS VPP UI change with the approved design system and browser verification workflow."
+  short_description: "Plan and build scalable Blazor Radzen UI"
+  default_prompt: "Use $gtas-vpp-ui-system to plan, implement, or report a GTAS VPP UI wave with one coherent execution table and route-real verification."
