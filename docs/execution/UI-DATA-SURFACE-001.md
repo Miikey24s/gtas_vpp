@@ -1,7 +1,7 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DRAFT — PENDING OWNER APPROVAL`  
-> Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.  
+> Trạng thái: `DRAFT — PENDING OWNER APPROVAL`
+> Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
 ## 1. Bản một ánh nhìn
@@ -249,4 +249,3 @@ Nguồn:
 - Footer đúng data behavior; không pager giả hoặc footer rỗng trang trí.
 - Legacy adapter/CSS chỉ còn khi ledger chứng minh vẫn có consumer.
 - F5/F6 visual board được owner duyệt; R1 giữ UI/interaction parity; F7 full gate pass.
-
