@@ -83,6 +83,23 @@ public sealed class UiSystemF1TokenArchitectureTests
         var tokens = ReadCss("vpp-tokens.css");
         var polish = ReadCss("vpp-polish.css");
         var app = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
+        var appShell = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
+        var authoredStyleOffenders = Directory
+            .EnumerateFiles(root, "*.css", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}wwwroot{Path.DirectorySeparatorChar}lib{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path =>
+            {
+                var source = File.ReadAllText(path);
+                return source.Contains("::-webkit-scrollbar", StringComparison.Ordinal)
+                    || source.Contains("scrollbar-width:", StringComparison.Ordinal)
+                    || source.Contains("scrollbar-color:", StringComparison.Ordinal)
+                    || source.Contains("-ms-overflow-style:", StringComparison.Ordinal);
+            })
+            .Select(path => Path.GetRelativePath(root, path))
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .ToArray();
 
         Assert.DoesNotContain(".vpp-glass", tokens, StringComparison.Ordinal);
         Assert.DoesNotContain("--vpp-shadow-glass", tokens, StringComparison.Ordinal);
@@ -91,6 +108,8 @@ public sealed class UiSystemF1TokenArchitectureTests
         Assert.DoesNotContain("::-webkit-scrollbar", tokens, StringComparison.Ordinal);
         Assert.DoesNotContain("::-webkit-scrollbar", polish, StringComparison.Ordinal);
         Assert.DoesNotContain("scrollbar-color:", polish, StringComparison.Ordinal);
+        Assert.Empty(authoredStyleOffenders);
+        Assert.Contains("<body class=\"rz-default-scrollbars\">", appShell, StringComparison.Ordinal);
         Assert.Contains("LEGACY COMPATIBILITY", app, StringComparison.Ordinal);
     }
 

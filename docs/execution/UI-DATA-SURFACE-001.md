@@ -98,6 +98,20 @@ Footer virtualization không bị “trống” nếu nó trả lời được �
 - Bảng nhiều cột có thể chuyển sang mobile card/list hoặc horizontal region có chủ đích; không ép desktop row-height lên mobile card.
 - Popup/popover phải dùng cùng transient motion, không đổi geometry khi mở và không vượt viewport.
 
+### 3.5 Data loading và virtualization
+
+Virtualization chỉ nên giảm số DOM row, không được biến mỗi đoạn cuộn thành một loading state nhìn thấy được.
+
+| Mode | Dùng khi | Contract |
+|---|---|---|
+| `ClientSnapshotVirtualized` | Dataset hữu hạn, DTO nhẹ, cần chọn/duyệt liên tục; ví dụ catalog Create Order hiện khoảng 547 dòng | Tải snapshot một lần khi vào màn hoặc đổi filter; DOM vẫn chỉ render viewport + overscan; cuộn không gọi API và không hiện loader |
+| `ServerPaging` | Danh sách quản trị/lịch sử có thể tăng dài, người dùng tra cứu theo trang | API `skip/top`, pager rõ; không continuous scroll |
+| `ServerVirtualizedPrefetch` | Dataset rất lớn nhưng nghiệp vụ bắt buộc cuộn liên tục | Cache cửa sổ hiện tại + trước/sau, prefetch nền, fixed row height; không dùng blocking loader cho mỗi lần cuộn |
+
+Khuyến nghị cho Create Order hiện tại là `ClientSnapshotVirtualized`: 547 `ProductOption` chỉ gồm id và vài chuỗi ngắn, nên giữ snapshot trong memory nhẹ hơn nhiều so với render 547 component row. Radzen vẫn chỉ mount số row nhìn thấy; hiệu năng cuộn không phụ thuộc network. API hiện giới hạn 100 dòng/request, vì vậy frontend sẽ tải theo batch và chỉ hiện một initial/filter loading state. Ngưỡng chuyển mode phải được đo bằng payload, latency và route-real benchmark; không ghi một con số tạm thành invariant toàn repository.
+
+Không dùng lại contract hiện tại `LoadData` theo từng cửa sổ + `IsLoading=true` mỗi lần scroll cho dataset hữu hạn, vì nó làm network latency và loading overlay xuất hiện trực tiếp trong thao tác cuộn.
+
 ## 4. Kiến trúc component
 
 ```text
@@ -147,6 +161,7 @@ Gate: owner duyệt motif, density và rollout order.
 - Tạo `VppDataSurfaceFrame`, `VppDataToolbar`, `VppDataSummaryFooter`, `VppCellValuePopover`.
 - Giữ `VppFilterSearch`, `VppFilterSelect<T>`, `VppClearFiltersButton` làm canonical filter controls.
 - Thêm architecture tests: không duplicate focus ring; shared transient surface; opt-in Radzen bridge; không reflection/endpoint string.
+- Khóa ba data-source mode và performance gate: request count trong lúc scroll, bounded DOM, fixed row height, overscan và loading visibility.
 - Chứng minh trên hai consumer khác behavior: một paged và một virtualized.
 
 Gate: build/unit + route-real desktop/mobile + owner visual review.
@@ -162,7 +177,7 @@ Gate: History list/detail + My Orders + Catalog giống motif, nhưng không đ�
 
 ### DS3 — Workflow chính
 
-- Create Order catalog bên trái: shared toolbar, row density, code/note popup và virtual footer.
+- Create Order catalog bên trái: chuyển sang client snapshot + virtualized DOM, shared toolbar, fixed rich-row density, code/note popup và virtual footer; scroll không phát request/loading mới.
 - Department Summary: shared toolbar, paged footer và detail-on-demand giữ nguyên.
 - Period Review/Rà soát: filter/column/summary theo cùng motif; không nhập business action vào shared frame.
 - Kiểm tra empty, filtered-empty, loading, error và long-data.

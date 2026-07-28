@@ -105,9 +105,13 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                     .filter(element => ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))
                     .every(element => {
                         const style = getComputedStyle(element);
-                        return style.scrollbarGutter === 'auto' && (!style.scrollbarWidth || style.scrollbarWidth === 'auto');
+                        const webkitScrollbar = getComputedStyle(element, '::-webkit-scrollbar');
+                        return style.scrollbarGutter === 'auto'
+                            && (!style.scrollbarWidth || style.scrollbarWidth === 'auto')
+                            && webkitScrollbar.width === 'auto';
                     });
-                return `${documentDoesNotScroll && sameHeight && nativeScrollbar}|document=${documentDoesNotScroll}|height=${sameHeight}|native=${nativeScrollbar}`;
+                const radzenScrollbarOptOut = document.body.classList.contains('rz-default-scrollbars');
+                return `${documentDoesNotScroll && sameHeight && nativeScrollbar && radzenScrollbarOptOut}|document=${documentDoesNotScroll}|height=${sameHeight}|native=${nativeScrollbar}|optout=${radzenScrollbarOptOut}`;
             }
             """);
         geometry.Should().StartWith("true", $"{route} must stay within the viewport and use native scroll regions");

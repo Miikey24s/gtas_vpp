@@ -225,6 +225,8 @@ Mốc dễ hiểu:
 - Evidence round 6: browser gate chạy cả expanded + collapsed, cấm overlap rail, khóa gap/bottom anchor và width trong viewport; isolated `ShellNavigationRegressionTests.UserMenu_OpensWithoutAnchorDriftOrWidthPulse` pass. Ảnh runtime `f4-user-menu-collapsed-settled.png` đã được kiểm bằng mắt trong folder ignored; chưa mở F5.
 - Owner review round 7 thay đổi quyết định popup collapsed: ưu tiên panel mở phía trên avatar như sidebar expanded, cho phép phủ lên main content thay vì neo sang phải rail. Search composite chỉ vẽ focus ở khung ngoài; My Orders bỏ centered `max-width` để outer inset không đổi giữa sidebar expanded/collapsed ở wide viewport.
 - Hai sửa visual nhỏ round 7 đã triển khai và có focused browser gate; phần chuẩn hóa filter/data-surface toàn hệ thống chưa triển khai. Kế hoạch con [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md) đang `DRAFT — PENDING OWNER APPROVAL`, map vào F5/F6/F7 và không thay bảng canonical F0–F7.
+- Owner review round 8 chỉ ra scrollbar mảnh trong Create Order và flicker khi server virtualization đổi cửa sổ dữ liệu. Audit xác nhận CSS authored của project không còn scrollbar pseudo-selector; Radzen 11.1.4 vẫn custom toàn `.rz-layout` theo mặc định. `App.razor` dùng opt-out chính thức `rz-default-scrollbars` để trả appearance cho browser/OS; vùng nào cuộn vẫn giữ `overflow: auto` nội bộ.
+- Virtualization policy được bổ sung vào draft `UI-DATA-SURFACE-001`: dataset hữu hạn/DTO nhẹ dùng client snapshot + virtualized DOM; danh sách dài dùng server paging; server virtualization chỉ dùng khi có prefetch cache và không bật blocking loader theo từng scroll. Create Order hiện vẫn giữ implementation server-window cũ cho tới khi owner duyệt DS0–DS1/DS3.
 
 ### 5.1 Visual review contract
 
