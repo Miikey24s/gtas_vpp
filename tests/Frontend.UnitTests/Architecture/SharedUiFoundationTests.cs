@@ -316,6 +316,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("grid-template-rows: var(--vpp-header-height) 1fr;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-tabs > .rz-tabview-nav-container,\n    .vpp-admin-tabs > .rz-tabview-nav {\n        display: none !important;\n    }", layoutCss.Replace("\r\n", "\n"), StringComparison.Ordinal);
         Assert.Contains(".vpp-header-tabs", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-layout-header .vpp-header-tab", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("color: var(--vpp-text-secondary);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-header-breadcrumb", layoutCss, StringComparison.Ordinal);
         Assert.Contains("vpp-header-tabs", source, StringComparison.Ordinal);
         Assert.Contains("vpp-header-breadcrumb", source, StringComparison.Ordinal);

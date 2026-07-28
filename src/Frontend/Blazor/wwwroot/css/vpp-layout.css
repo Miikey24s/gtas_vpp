@@ -97,7 +97,8 @@ leftsidebar {
     scrollbar-width: none;
 }
 
-.vpp-header-tab {
+/* Scope qua header để thắng rule link mặc định của Radzen mà không cần !important. */
+.vpp-layout-header .vpp-header-tab {
     display: inline-flex;
     align-items: center;
     gap: var(--vpp-space-1);
@@ -114,13 +115,13 @@ leftsidebar {
     text-decoration: none;
 }
 
-.vpp-header-tab:hover {
+.vpp-layout-header .vpp-header-tab:hover {
     color: var(--vpp-text-primary);
     text-decoration: none;
     background: var(--vpp-navigation-item-hover-bg);
 }
 
-.vpp-header-tab::after {
+.vpp-layout-header .vpp-header-tab::after {
     content: "";
     position: absolute;
     inset: auto var(--vpp-space-2) 0;
@@ -133,26 +134,26 @@ leftsidebar {
                 transform var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
 }
 
-.vpp-header-tab.is-active {
+.vpp-layout-header .vpp-header-tab.is-active {
     color: var(--vpp-text-primary);
 }
 
-.vpp-header-tab.is-active::after {
+.vpp-layout-header .vpp-header-tab.is-active::after {
     opacity: 1;
     transform: scaleX(1);
 }
 
-.vpp-header-tab .vpp-header-breadcrumb-sep {
+.vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-sep {
     color: var(--vpp-text-tertiary);
     font-size: 1rem;
 }
 
-.vpp-header-tab .vpp-header-breadcrumb-ancestor {
+.vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-ancestor {
     color: var(--vpp-text-tertiary);
     font-weight: var(--vpp-font-weight-medium);
 }
 
-.vpp-header-tab .vpp-header-breadcrumb-leaf {
+.vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-leaf {
     color: var(--vpp-text-primary);
     font-weight: var(--vpp-font-weight-semibold);
 }

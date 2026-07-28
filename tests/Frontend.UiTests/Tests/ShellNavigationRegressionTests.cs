@@ -78,6 +78,64 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
     }
 
     [Fact]
+    public async Task DesktopPrimaryHeaderTabs_KeepReadableInactiveText()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        var headerTabs = Page.Locator(".vpp-layout-header .vpp-header-tabs .vpp-header-tab");
+        await headerTabs.First.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await headerTabs.CountAsync()).Should().BeGreaterThan(1,
+            "the dashboard area must expose both selected and unselected desktop header tabs");
+
+        var headerTabColors = await Page.EvaluateAsync<string[]>(
+            """
+            () => {
+                const resolveColor = token => {
+                    const probe = document.createElement('span');
+                    probe.style.color = `var(${token})`;
+                    document.body.appendChild(probe);
+                    const color = getComputedStyle(probe).color;
+                    probe.remove();
+                    return color;
+                };
+                const active = document.querySelector('.vpp-layout-header .vpp-header-tab.is-active');
+                const inactive = document.querySelector('.vpp-layout-header .vpp-header-tab:not(.is-active)');
+                return [
+                    getComputedStyle(active).color,
+                    getComputedStyle(inactive).color,
+                    resolveColor('--vpp-text-primary'),
+                    resolveColor('--vpp-text-secondary')
+                ];
+            }
+            """);
+
+        headerTabColors[0].Should().Be(headerTabColors[2],
+            "the selected desktop header tab must use the primary text token");
+        headerTabColors[1].Should().Be(headerTabColors[3],
+            "unselected desktop header tabs must use the readable secondary text token");
+        headerTabColors[1].Should().NotBe("rgb(255, 255, 255)",
+            "unselected desktop header text must not disappear on the light navigation surface");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "desktop-header-readable-tabs-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+    }
+
+    [Fact]
     public async Task ActiveChildIndicator_FollowsSiblingExpansion_HidesWithItsParent_AndAlignsWithBrand()
     {
         await Page.SetViewportSizeAsync(1366, 768);
