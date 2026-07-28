@@ -242,8 +242,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("SnapshotBatchSize = 100", selection, StringComparison.Ordinal);
         Assert.Contains("VppDataFooterMode.Virtualized", selection, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", selection, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", selection, StringComparison.Ordinal);
-        Assert.Contains("AllowPaging=\"false\"", selection, StringComparison.Ordinal);
+        Assert.Contains("<Virtualize", selection, StringComparison.Ordinal);
+        Assert.Contains("ItemSize=\"52\"", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("<RadzenDataGrid", selection, StringComparison.Ordinal);
     }
 
     [Fact]

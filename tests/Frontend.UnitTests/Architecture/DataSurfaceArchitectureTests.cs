@@ -134,7 +134,9 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("<VppDataToolbar", create, StringComparison.Ordinal);
         Assert.Contains("<VppCellValuePopover", create, StringComparison.Ordinal);
         Assert.Contains("VppDataFooterMode.Virtualized", create, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", create, StringComparison.Ordinal);
+        Assert.Contains("<Virtualize", create, StringComparison.Ordinal);
+        Assert.Contains("ItemSize=\"52\"", create, StringComparison.Ordinal);
+        Assert.DoesNotContain("<RadzenDataGrid", create, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", create, StringComparison.Ordinal);
 
         Assert.Contains("TestId=\"department-summary-data-surface\"", department, StringComparison.Ordinal);
@@ -169,8 +171,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(18, consumers.Length);
-        Assert.Equal(24, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(17, consumers.Length);
+        Assert.Equal(23, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

@@ -380,29 +380,6 @@
     z-index: 4;
 }
 
-/* Data-surface snapshot dùng cùng một scroll viewport cho header và virtual rows.
-   Header phải tạo lớp opaque thật; nếu không row đầu của cửa sổ ảo sẽ xuyên lên khi cuộn. */
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-data-grid-data,
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-datatable-scrollable-header,
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-datatable-scrollable-body,
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-datatable-scrollable-wrapper,
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-datatable-tablewrapper,
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-grid-table {
-    border-radius: 0;
-}
-
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-grid-table thead > tr > th {
-    position: sticky;
-    top: 0;
-    z-index: 6;
-    background: var(--vpp-surface-grid-header);
-    background-clip: padding-box;
-}
-
-.vpp-data-source-client-snapshot-virtualized .vpp-data-grid .rz-grid-table tbody > tr.vpp-virtual-row-under-header > td {
-    visibility: hidden;
-}
-
 .vpp-order-grid .rz-grid-table th.rz-col-icon,
 .vpp-order-grid .rz-grid-table td.rz-col-icon,
 .vpp-wizard-panel-card .rz-grid-table th.rz-col-icon,

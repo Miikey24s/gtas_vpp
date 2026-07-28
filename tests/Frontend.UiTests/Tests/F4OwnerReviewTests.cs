@@ -35,11 +35,11 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await AssertBoundedPageAndSharedFilterAsync("users", ".vpp-permission-user-page");
 
         await Page.GotoAsync($"{BaseUrl}dashboard/order-create");
-        await WaitForRowsAsync(".vpp-order-builder-grid");
+        await WaitForRowsAsync(".vpp-order-builder-grid", ".vpp-order-builder-virtual-row");
         await Page.Locator(".vpp-header-tab.is-active .vpp-header-breadcrumb-ancestor").WaitForAsync();
         (await Page.Locator(".vpp-order-flow-steps li").CountAsync()).Should().Be(2);
         await AssertBoundedPageAndSharedFilterAsync("order-create", ".vpp-order-create-page");
-        var visibleRowNumbers = await Page.Locator(".vpp-order-builder-grid tbody tr td:first-child")
+        var visibleRowNumbers = await Page.Locator(".vpp-order-builder-virtual-row .vpp-order-builder-virtual-cell:first-child")
             .AllTextContentsAsync();
         visibleRowNumbers.Take(3).Should().Equal("1", "2", "3");
         var firstCodeTrigger = Page.Locator(".vpp-order-builder-grid .vpp-cell-value-popover-trigger").First;
@@ -56,19 +56,43 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 productRequestsDuringScroll.Add(request.Url);
             }
         };
-        var mountedRowsBeforeScroll = await Page.Locator(".vpp-order-builder-grid tbody tr").CountAsync();
-        await Page.Locator(".vpp-order-builder-grid").EvaluateAsync("""
-            grid => {
-                const scroller = [...grid.querySelectorAll('*')]
-                    .find(element => element.scrollHeight > element.clientHeight + 1
-                        && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY));
+        var mountedRowsBeforeScroll = await Page.Locator(".vpp-order-builder-virtual-row").CountAsync();
+        var scrollPaintContract = await Page.Locator(".vpp-order-builder-grid").EvaluateAsync<string>("""
+            async grid => {
+                const scroller = grid;
                 if (!scroller) throw new Error('Order catalog virtual scroller was not found.');
-                scroller.scrollTop = Math.min(820, scroller.scrollHeight - scroller.clientHeight);
-                scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
+                const header = grid.querySelector('.vpp-order-builder-virtual-header');
+                const firstRow = grid.querySelector('.vpp-order-builder-virtual-row');
+                if (!header || !firstRow) throw new Error('Order catalog header or row was not found.');
+                const rowHeight = Math.max(1, firstRow.getBoundingClientRect().height);
+                const maxScroll = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+                const positions = [0, .35, .85, 1.35, 3.15, 7.4, 12.65, 18.2]
+                    .map(multiplier => Math.min(maxScroll, rowHeight * multiplier));
+                const failures = [];
+                for (const position of positions) {
+                    scroller.scrollTop = position;
+                    scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
+                    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                    const headerRect = header.getBoundingClientRect();
+                    const sampleY = headerRect.top + Math.max(1, headerRect.height / 2);
+                    const sampleXs = [.05, .25, .55, .82, .96]
+                        .map(ratio => headerRect.left + headerRect.width * ratio);
+                    const hits = sampleXs.map(x => document.elementFromPoint(x, sampleY));
+                    const headerOwnsPaint = hits.every(hit => hit?.closest('.vpp-order-builder-virtual-header') === header);
+                    if (!headerOwnsPaint) {
+                        failures.push(`${Math.round(position)}:${hits.map(hit => `${hit?.tagName ?? 'none'}.${hit?.className ?? ''}`).join('>')}`);
+                    }
+                }
+                const headerStyle = getComputedStyle(header);
+                const body = grid.querySelector('.vpp-order-builder-virtual-body');
+                const bodyStyle = body ? getComputedStyle(body) : null;
+                return `${failures.length === 0}|failures=${failures.join(',')}|positions=${positions.map(Math.round).join(',')}`
+                    + `|header=${headerStyle.position}/${headerStyle.zIndex}/${headerStyle.transform}`
+                    + `|body=${bodyStyle?.position}/${bodyStyle?.zIndex}/${bodyStyle?.transform}`;
             }
             """);
-        await Page.WaitForTimeoutAsync(600);
-        var mountedRowsAfterScroll = await Page.Locator(".vpp-order-builder-grid tbody tr").CountAsync();
+        scrollPaintContract.Should().StartWith("true", "the sticky header must own the paint layer throughout virtual scrolling without per-row JavaScript guards");
+        var mountedRowsAfterScroll = await Page.Locator(".vpp-order-builder-virtual-row").CountAsync();
         var virtualizationGeometry = await Page.Locator(".vpp-order-create-page").EvaluateAsync<string>("""
             root => {
                 const selectors = [
@@ -88,10 +112,8 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
             """);
         var headerAndViewportChrome = await Page.Locator(".vpp-order-builder-grid").EvaluateAsync<string>("""
             grid => {
-                const scroller = [...grid.querySelectorAll('*')]
-                    .find(element => element.scrollHeight > element.clientHeight + 1
-                        && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY));
-                const header = grid.querySelector('thead th');
+                const scroller = grid;
+                const header = grid.querySelector('.vpp-order-builder-virtual-header');
                 if (!scroller || !header) return 'missing';
                 const scrollerStyle = getComputedStyle(scroller);
                 const headerStyle = getComputedStyle(header);
@@ -108,38 +130,32 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const squareViewport = radii.every(radius => Number.parseFloat(radius) === 0);
                 const opaqueHeader = headerStyle.backgroundColor !== 'rgba(0, 0, 0, 0)'
                     && headerStyle.backgroundColor !== 'transparent';
-                const headerOwnsHitArea = !!topElement?.closest('thead');
-                const headerBottom = grid.querySelector('thead')?.getBoundingClientRect().bottom ?? headerRect.bottom;
+                const headerOwnsStack = headerStyle.position === 'sticky'
+                    && Number.parseInt(headerStyle.zIndex || '0', 10) > 0;
+                const headerOwnsHitArea = topElement?.closest('.vpp-order-builder-virtual-header') === header;
+                const headerBottom = headerRect.bottom;
                 const overlappingCodes = [...grid.querySelectorAll('.vpp-cell-value-popover-trigger')]
                     .filter(trigger => {
                         const rect = trigger.getBoundingClientRect();
                         return rect.top < headerBottom && rect.bottom > headerRect.top;
-                    });
-                const visibleTextOverlaps = [...grid.querySelectorAll('.vpp-order-builder-item-cell strong, .vpp-cell-value-popover-trigger')]
-                    .filter(element => {
-                        const rect = element.getBoundingClientRect();
-                        const style = getComputedStyle(element);
-                        return style.visibility !== 'hidden'
-                            && Number.parseFloat(style.opacity || '1') > 0
-                            && rect.top < headerBottom
-                            && rect.bottom > headerRect.top;
                     });
                 const overlapProtected = overlappingCodes.every(trigger => {
                     const rect = trigger.getBoundingClientRect();
                     const hit = document.elementFromPoint(
                         rect.left + Math.min(8, rect.width / 2),
                         Math.min(headerBottom - 1, rect.top + rect.height / 2));
-                    return !!hit?.closest('thead');
+                    return hit?.closest('.vpp-order-builder-virtual-header') === header;
                 });
                 const firstOverlap = overlappingCodes[0];
                 const firstOverlapRect = firstOverlap?.getBoundingClientRect();
                 const firstOverlapHit = firstOverlapRect
                     ? document.elementFromPoint(firstOverlapRect.left + 8, Math.min(headerBottom - 1, firstOverlapRect.top + firstOverlapRect.height / 2))
                     : null;
-                return `${squareViewport && opaqueHeader && headerOwnsHitArea && overlapProtected && visibleTextOverlaps.length === 0}`
+                const hasLegacyRowGuard = !!grid.querySelector('.vpp-virtual-row-under-header');
+                return `${squareViewport && opaqueHeader && headerOwnsStack && headerOwnsHitArea && overlapProtected && !hasLegacyRowGuard}`
                     + `|radii=${radii.join(',')}|background=${headerStyle.backgroundColor}`
-                    + `|z=${headerStyle.zIndex}|hit=${topElement?.tagName ?? 'none'}`
-                    + `|overlap=${overlappingCodes.length}|visibleTextOverlap=${visibleTextOverlaps.length}|overlapHit=${firstOverlapHit?.tagName ?? 'none'}`;
+                    + `|header=${headerStyle.position}/${headerStyle.zIndex}`
+                    + `|hit=${topElement?.tagName ?? 'none'}|overlap=${overlappingCodes.length}|overlapHit=${firstOverlapHit?.tagName ?? 'none'}`;
             }
             """);
         productRequestsDuringScroll.Should().BeEmpty("client-snapshot virtualization must not call the product API while scrolling");
@@ -266,10 +282,10 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         contract.Should().EndWith("|0.2s");
     }
 
-    private async Task WaitForRowsAsync(string gridSelector)
+    private async Task WaitForRowsAsync(string gridSelector, string rowSelector = "tbody tr")
     {
         await Page.WaitForFunctionAsync(
-            $"() => document.querySelectorAll('{gridSelector} tbody tr td').length > 1",
+            $"() => document.querySelector('{gridSelector}')?.querySelectorAll('{rowSelector}').length > 1",
             null,
             new() { Timeout = 60_000 });
         await Page.WaitForFunctionAsync(

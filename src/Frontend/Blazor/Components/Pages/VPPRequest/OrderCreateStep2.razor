@@ -1,6 +1,5 @@
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_fe.Services
-@implements IAsyncDisposable
 @inject IJSRuntime JSRuntime
 
 <div class="wizard-step wizard-step-products">
@@ -49,71 +48,71 @@
             </Toolbar>
 
             <ChildContent>
-            <div class="vpp-order-builder-grid-frame" @ref="_gridFrame">
-                <RadzenDataGrid @ref="productGrid"
-                                TItem="ProductOption"
-                                Data="@ProductOptions"
-                                Count="@ProductCount"
-                                IsLoading="@IsLoadingProducts"
-                                AllowVirtualization="true"
-                                VirtualizationOverscanCount="10"
-                                AllowPaging="false"
-                                AllowSorting="true"
-                                AllowFiltering="false"
-                                AllowColumnResize="true"
-                                AllowAlternatingRows="false"
-                                Density="Density.Compact"
-                                GridLines="DataGridGridLines.Horizontal"
-                                RowRender="@OnRowRender"
-                                Style="height: 100%; max-height: 100%;"
-                                class="vpp-order-builder-grid vpp-data-grid vpp-data-density-rich-two-line">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="ProductOption" Title="#" Width="56px" TextAlign="TextAlign.Center" Sortable="false">
-                            <Template Context="row">@GetProductRowNumber(row)</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <div class="vpp-order-builder-item-cell">
-                                    <strong>@row.VppName</strong>
-                                    <VppCellValuePopover Value="@row.VppCode"
-                                                         Label="@Loc["ItemCode"]"
-                                                         CopyLabel="@Loc["Copy"]"
-                                                         Kind="VppCellValueKind.Code"
-                                                         IsOpen="@(_openProductCodeId == row.Id)"
-                                                         Toggled="@(() => ToggleProductCode(row.Id))"
-                                                         CopyRequested="@CopyProductCodeAsync"
-                                                         TriggerClass="vpp-order-builder-code" />
+            <div class="vpp-order-builder-grid-frame">
+                <div class="vpp-order-builder-grid"
+                     role="table"
+                     aria-rowcount="@ProductCount"
+                     aria-labelledby="order-catalog-title">
+                    <div class="vpp-order-builder-virtual-header" role="row">
+                        <span role="columnheader">#</span>
+                        <span role="columnheader">@Loc["ItemName"]</span>
+                        <span role="columnheader">@Loc["Category"]</span>
+                        <span role="columnheader">@Loc["UOM"]</span>
+                        <span role="columnheader">@Loc["Actions"]</span>
+                    </div>
+
+                    <div class="vpp-order-builder-virtual-body" role="rowgroup">
+                        <Virtualize @key="ProductOptions"
+                                    Items="@ProductOptions"
+                                    Context="row"
+                                    ItemSize="52"
+                                    OverscanCount="10"
+                                    SpacerElement="div">
+                            <div @key="row.Id"
+                                 class="vpp-order-builder-virtual-row @(IsSelected(row.Id) ? "vpp-wizard-row-selected" : string.Empty)"
+                                 role="row">
+                                <span class="vpp-order-builder-virtual-cell is-index" role="cell">@GetProductRowNumber(row)</span>
+                                <div class="vpp-order-builder-virtual-cell" role="cell">
+                                    <div class="vpp-order-builder-item-cell">
+                                        <strong>@row.VppName</strong>
+                                        <VppCellValuePopover Value="@row.VppCode"
+                                                             Label="@Loc["ItemCode"]"
+                                                             CopyLabel="@Loc["Copy"]"
+                                                             Kind="VppCellValueKind.Code"
+                                                             IsOpen="@(_openProductCodeId == row.Id)"
+                                                             Toggled="@(() => ToggleProductCode(row.Id))"
+                                                             CopyRequested="@CopyProductCodeAsync"
+                                                             TriggerClass="vpp-order-builder-code" />
+                                    </div>
                                 </div>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="ProductOption" Property="VppCategoryName" Title="@Loc["Category"]" Width="220px" TextAlign="TextAlign.Left" />
-                        <RadzenDataGridColumn TItem="ProductOption" Property="UomName" Title="@Loc["UOM"]" Width="110px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="ProductOption" Title="@Loc["Actions"]" Width="100px" Sortable="false" TextAlign="TextAlign.Center">
-                            <Template Context="row">
-                                @if (IsSelected(row.Id))
-                                {
-                                    <button type="button"
-                                            class="vpp-order-builder-row-action is-remove"
-                                            title="@Loc["RemoveItemFromOrder"]"
-                                            aria-label="@Loc["RemoveItemFromOrder"]"
-                                            @onclick="() => RemoveProductAsync(row.Id)">
-                                        <VppIcon Name="close" />
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button"
-                                            class="vpp-order-builder-row-action"
-                                            aria-label="@Loc["AddProductToOrder"]"
-                                            @onclick="() => AddProductAsync(row)">
-                                        <VppIcon Name="add" />
-                                        <span>@Loc["Add"]</span>
-                                    </button>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
+                                <span class="vpp-order-builder-virtual-cell" role="cell">@row.VppCategoryName</span>
+                                <span class="vpp-order-builder-virtual-cell is-centered" role="cell">@row.UomName</span>
+                                <div class="vpp-order-builder-virtual-cell is-action" role="cell">
+                                    @if (IsSelected(row.Id))
+                                    {
+                                        <button type="button"
+                                                class="vpp-order-builder-row-action is-remove"
+                                                title="@Loc["RemoveItemFromOrder"]"
+                                                aria-label="@Loc["RemoveItemFromOrder"]"
+                                                @onclick="() => RemoveProductAsync(row.Id)">
+                                            <VppIcon Name="close" />
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="vpp-order-builder-row-action"
+                                                aria-label="@Loc["AddProductToOrder"]"
+                                                @onclick="() => AddProductAsync(row)">
+                                            <VppIcon Name="add" />
+                                            <span>@Loc["Add"]</span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </Virtualize>
+                    </div>
+                </div>
             </div>
             </ChildContent>
             <Footer>
@@ -328,16 +327,11 @@
     public string? SearchText { get; set; }
     public string? CategoryFilter { get; set; }
     public string? UnitFilter { get; set; }
-    public RadzenDataGrid<ProductOption>? productGrid;
-
     private const int SnapshotBatchSize = 100;
     private readonly List<ProductOption> _allProductOptions = [];
-    private readonly Dictionary<ProductOption, int> _visibleRowNumbers = new(ReferenceEqualityComparer.Instance);
     private CancellationTokenSource? _searchDebounceCts;
     private Guid? _openProductCodeId;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
-    private ElementReference _gridFrame;
-    private IJSObjectReference? _gridModule;
 
     private string OrderNotePopoverId => $"vpp-order-note-{_instanceId}";
     private bool HasProductFilters => !string.IsNullOrWhiteSpace(SearchText)
@@ -360,7 +354,7 @@
     private string? _orderNoteSnapshot;
 
     private int GetProductRowNumber(ProductOption row)
-        => _visibleRowNumbers.GetValueOrDefault(row, ProductOptions.IndexOf(row) + 1);
+        => ProductOptions.IndexOf(row) + 1;
 
     private void SnapshotItemNote(OrderCreateContext.SelectedItem item)
     {
@@ -383,19 +377,6 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadProductSnapshotAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
-
-        _gridModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
-            "import",
-            "./Components/Pages/VPPRequest/OrderCreateStep2.razor.js?v=20260729-virtual-header-2");
-        await _gridModule.InvokeVoidAsync("observeVirtualRows", _gridFrame);
     }
 
     private void BuildFilterOptions()
@@ -498,8 +479,6 @@
                 && (string.IsNullOrEmpty(UnitFilter) || string.Equals(item.UomName, UnitFilter, StringComparison.CurrentCultureIgnoreCase)))
             .ToList();
         ProductCount = ProductOptions.Count;
-        _visibleRowNumbers.Clear();
-        _ = productGrid?.Reload();
     }
 
     private void ToggleProductCode(Guid id)
@@ -575,20 +554,6 @@
         Context.NotifyStateChanged();
     }
 
-    private void OnRowRender(RowRenderEventArgs<ProductOption> args)
-    {
-        if (args.Data is null)
-        {
-            return;
-        }
-
-        _visibleRowNumbers[args.Data] = args.Index + 1;
-        if (IsSelected(args.Data.Id))
-        {
-            args.Attributes["class"] = "vpp-wizard-row-selected";
-        }
-    }
-
     private async Task RefreshSelectionAsync()
     {
         Context.NotifyStateChanged();
@@ -601,23 +566,9 @@
     private string GetItemNotePopoverId(OrderCreateContext.SelectedItem item)
         => $"vpp-item-note-{_instanceId}-{item.VppId:N}";
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         _searchDebounceCts?.Cancel();
         _searchDebounceCts?.Dispose();
-
-        if (_gridModule is null)
-        {
-            return;
-        }
-
-        try
-        {
-            await _gridModule.InvokeVoidAsync("disposeVirtualRows", _gridFrame);
-            await _gridModule.DisposeAsync();
-        }
-        catch (JSDisconnectedException)
-        {
-        }
     }
 }

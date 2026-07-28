@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` không được tính là grid instance.
+Source hiện có **17 file / 23 DataGrid thật**. Generic type reference trong `VppColumnPicker` và Blazor `Virtualize` riêng của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -24,7 +24,6 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/Components/PeriodDemandPanel.razor` | 1 | Demand collection | `Static` + client pager | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor` | 2 | Review + detail | `ServerPaging` + `Static` | `Compact` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor` | 1 | Allocation comparison | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
-| `Components/Pages/VPPRequest/OrderCreateStep2.razor` | 1 | Orderable catalog | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_AllOrdersSummary.razor` | 2 | Orders + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
@@ -34,6 +33,7 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 | Consumer | Loại | Quyết định |
 |---|---|---|
 | `HistoryOrderList` mobile list | Responsive mirror | Dùng cùng data/filter/state với desktop; không tạo data-source mode riêng |
+| `OrderCreateStep2` orderable catalog | Blazor `Virtualize` data surface | Giữ snapshot client, bounded DOM và shared toolbar/footer; header tách khỏi virtual rows để không phụ thuộc table paint order của Radzen |
 | `OrderCreateStep2` draft list | Static workflow list | Giữ action/quantity route-owned; chỉ nhận row rhythm/footer ở DS3 |
 | `Tab_PagePermission` permission matrix | Matrix exception | Không ép cột `#`, paging hoặc data-table motif thông thường |
 | `PeriodDemandPanel` nested detail table | Static nested detail | Giữ progressive disclosure; không biến thành grid server độc lập nếu chưa cần |

@@ -12,7 +12,10 @@ public sealed class CatalogPagingUiTests
         Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", source, StringComparison.Ordinal);
         Assert.Contains("SnapshotBatchSize = 100", source, StringComparison.Ordinal);
         Assert.Contains("LoadProductSnapshotAsync", source, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", source, StringComparison.Ordinal);
+        Assert.Contains("<Virtualize", source, StringComparison.Ordinal);
+        Assert.Contains("OverscanCount=\"10\"", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-builder-virtual-header", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("<RadzenDataGrid", source, StringComparison.Ordinal);
         Assert.Contains("VppDataFooterMode.Virtualized", source, StringComparison.Ordinal);
         Assert.Contains("GetFromApiWithTotalCountAsync", source, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", source, StringComparison.Ordinal);
