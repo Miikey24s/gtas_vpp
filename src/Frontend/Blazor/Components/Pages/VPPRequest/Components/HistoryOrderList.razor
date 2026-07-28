@@ -59,21 +59,21 @@
 
     @if (HasGridLoadError)
     {
-        <VppStatePanel State="error"
-                       Icon="error"
-                       Title="@Loc["HistoryLoadFailed"]"
-                       Description="@Loc["HistoryLoadErrorDescription"]"
-                       RetryText="@Loc["Retry"]"
-                       RetryAction="@(_ => RetryRequested.InvokeAsync())"
-                       Class="vpp-history-state-panel vpp-history-grid-state" />
+        <VppContentState State="VppContentStateKind.Error"
+                         Icon="error"
+                         Title="@Loc["HistoryLoadFailed"]"
+                         Description="@Loc["HistoryLoadErrorDescription"]"
+                         PrimaryActionText="@Loc["Retry"]"
+                         PrimaryAction="@(_ => RetryRequested.InvokeAsync())"
+                         Class="vpp-history-state-panel vpp-history-grid-state" />
     }
     else if (TotalCount == 0 && !IsGridLoading)
     {
-        <VppStatePanel State="empty"
-                       Icon="search_off"
-                       Title="@Loc["NoOrdersMatchSelectedFilters"]"
-                       Description="@Loc["HistoryAdjustFilters"]"
-                       Class="vpp-history-state-panel vpp-history-grid-state" />
+        <VppContentState State="VppContentStateKind.FilteredEmpty"
+                         Icon="search_off"
+                         Title="@Loc["NoOrdersMatchSelectedFilters"]"
+                         Description="@Loc["HistoryAdjustFilters"]"
+                         Class="vpp-history-state-panel vpp-history-grid-state" />
     }
     else
     {

@@ -1,0 +1,65 @@
+<section class="vpp-content-state vpp-state-panel vpp-content-state-@StateCssClass @Class"
+         role="@SemanticRole"
+         aria-live="@LiveRegionMode"
+         aria-busy="@IsLoading"
+         aria-labelledby="@TitleId"
+         aria-describedby="@(HasDescription ? DescriptionId : null)">
+    <VppIcon Name="@Icon" Class="vpp-state-panel-icon" />
+    <div class="vpp-state-panel-copy">
+        <h2 id="@TitleId" class="vpp-state-panel-title">@Title</h2>
+        @if (HasDescription)
+        {
+            <p id="@DescriptionId" class="vpp-state-panel-description">@Description</p>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(PrimaryActionText) && PrimaryAction.HasDelegate)
+    {
+        <RadzenButton Text="@PrimaryActionText"
+                      ButtonStyle="@EffectivePrimaryButtonStyle"
+                      Click="@PrimaryAction"
+                      class="vpp-state-panel-action" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(SecondaryActionText) && SecondaryAction.HasDelegate)
+    {
+        <RadzenLink Click="@SecondaryAction" class="vpp-empty-state-link vpp-state-panel-secondary">@SecondaryActionText</RadzenLink>
+    }
+    else if (!string.IsNullOrWhiteSpace(SecondaryActionText) && !string.IsNullOrWhiteSpace(SecondaryActionHref))
+    {
+        <a class="vpp-empty-state-link vpp-state-panel-secondary" href="@SecondaryActionHref">
+            <VppIcon Name="@VppIcons.ArrowBack" />
+            @SecondaryActionText
+        </a>
+    }
+</section>
+
+@code {
+    [Parameter] public VppContentStateKind State { get; set; } = VppContentStateKind.Empty;
+    [Parameter] public string Icon { get; set; } = VppIcons.Inbox;
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? PrimaryActionText { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> PrimaryAction { get; set; }
+    [Parameter] public ButtonStyle? PrimaryButtonStyle { get; set; }
+    [Parameter] public string? SecondaryActionText { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> SecondaryAction { get; set; }
+    [Parameter] public string? SecondaryActionHref { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string TitleId { get; set; } = $"content-state-{Guid.NewGuid():N}";
+
+    private string DescriptionId => $"{TitleId}-description";
+    private bool HasDescription => !string.IsNullOrWhiteSpace(Description);
+    private bool IsLoading => State == VppContentStateKind.Loading;
+    private bool IsError => State == VppContentStateKind.Error;
+    private string SemanticRole => IsError ? "alert" : "status";
+    private string LiveRegionMode => IsError ? "assertive" : "polite";
+    private string StateCssClass => State switch
+    {
+        VppContentStateKind.FilteredEmpty => "filtered-empty",
+        _ => State.ToString().ToLowerInvariant()
+    };
+
+    private ButtonStyle EffectivePrimaryButtonStyle => PrimaryButtonStyle
+        ?? (IsError ? ButtonStyle.Primary : ButtonStyle.Light);
+}

@@ -55,21 +55,21 @@
 
                 @if (HasLoadError)
                 {
-                    <VppStatePanel State="error"
-                                   Icon="error_outline"
-                                   Title="@Loc["CatalogLoadFailed"]"
-                                   Description="@Loc["CatalogLoadFailedDescription"]"
-                                   RetryText="@Loc["Retry"]"
-                                   RetryAction="@(_ => ReloadAsync())"
-                                   Class="vpp-catalog-state" />
+                    <VppContentState State="VppContentStateKind.Error"
+                                     Icon="error_outline"
+                                     Title="@Loc["CatalogLoadFailed"]"
+                                     Description="@Loc["CatalogLoadFailedDescription"]"
+                                     PrimaryActionText="@Loc["Retry"]"
+                                     PrimaryAction="@(_ => ReloadAsync())"
+                                     Class="vpp-catalog-state" />
                 }
                 else if (ProductCount == 0 && !IsGridLoading)
                 {
-                    <VppStatePanel State="empty"
-                                   Icon="search_off"
-                                   Title="@Loc["NoCatalogProductsMatchQuery"]"
-                                   Description="@Loc["AdjustCatalogFilters"]"
-                                   Class="vpp-catalog-state" />
+                    <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                     Icon="search_off"
+                                     Title="@Loc["NoCatalogProductsMatchQuery"]"
+                                     Description="@Loc["AdjustCatalogFilters"]"
+                                     Class="vpp-catalog-state" />
                 }
                 else
                 {

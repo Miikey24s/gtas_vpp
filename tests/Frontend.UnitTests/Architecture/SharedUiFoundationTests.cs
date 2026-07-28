@@ -602,7 +602,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("ToggleDetailNote", history, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyDrawer, StringComparison.Ordinal);
-        Assert.Contains("VppStatePanel State=\"error\"", history, StringComparison.Ordinal);
+        Assert.Contains("VppContentState State=\"VppContentStateKind.Error\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("RadzenStackedColumnSeries", historyChart, StringComparison.Ordinal);
         Assert.Contains("vpp-history-drawer", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("AllowVirtualization=\"true\"", historyDrawer, StringComparison.Ordinal);
@@ -658,18 +658,30 @@ public sealed class SharedUiFoundationTests
     public void SharedStates_ExposeLiveRegionAndFocusContracts()
     {
         var root = GetFrontendRoot();
-        var statePanel = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppStatePanel.razor"));
+        var contentState = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppContentState.razor"));
+        var contentStateKind = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppContentStateKind.cs"));
         var emptyState = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppEmptyState.razor"));
         var notifications = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
 
-        Assert.Contains("role=\"@SemanticRole\"", statePanel, StringComparison.Ordinal);
-        Assert.Contains("aria-busy=\"@IsLoading\"", statePanel, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind State", contentState, StringComparison.Ordinal);
+        foreach (var state in new[] { "Empty", "FilteredEmpty", "Loading", "Error", "Denied", "Disabled", "Success" })
+        {
+            Assert.Contains(state, contentStateKind, StringComparison.Ordinal);
+        }
+        Assert.Contains("role=\"@SemanticRole\"", contentState, StringComparison.Ordinal);
+        Assert.Contains("aria-busy=\"@IsLoading\"", contentState, StringComparison.Ordinal);
+        Assert.Contains("aria-describedby=\"@(HasDescription ? DescriptionId : null)\"", contentState, StringComparison.Ordinal);
         Assert.Contains("role=\"status\"", emptyState, StringComparison.Ordinal);
         Assert.Contains("aria-labelledby=\"@TitleId\"", emptyState, StringComparison.Ordinal);
         Assert.Contains("tabindex=\"-1\"", notifications, StringComparison.Ordinal);
         Assert.Contains("await _panel.FocusAsync();", notifications, StringComparison.Ordinal);
         Assert.Contains("await _trigger.FocusAsync();", notifications, StringComparison.Ordinal);
         Assert.Contains("vpp-notification-empty--loading", notifications, StringComparison.Ordinal);
+
+        var historyOrders = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
+        var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
+        Assert.Contains("VppContentStateKind.FilteredEmpty", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind.Error", catalog, StringComparison.Ordinal);
     }
 
     [Fact]
