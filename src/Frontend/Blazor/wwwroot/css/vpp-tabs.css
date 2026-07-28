@@ -158,9 +158,9 @@
     padding-bottom: 0;
 }
 
-/* Content route chính sở hữu inset gọn riêng để control đầu tiên thẳng với dòng navigation đầu của sidebar. */
+/* Shell sở hữu outer inset; panel route chỉ truyền nguyên vùng khả dụng cho workspace. */
 .vpp-admin-tabs > .rz-tabview-panels > .rz-tabview-panel {
-    padding-top: 0;
+    padding: 0;
 }
 
 /* ── librariestab (class dùng chung) — bảo đảm đủ chiều rộng ── */

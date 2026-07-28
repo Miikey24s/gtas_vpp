@@ -777,8 +777,8 @@ h1:focus {
         color: var(--rz-base-900);
     }
 
-.rz-body {
-    padding: var(--rz-layout-body-padding-1) !important;
+.rz-body:not(.vpp-layout-body) {
+    padding: var(--rz-layout-body-padding-1);
 }
 
 .rz-group-header .rz-column-picker .rz-dropdown {
@@ -1099,8 +1099,8 @@ h1:focus {
     font-weight: 700 !important;
 }
 
-.rz-body {
-    box-shadow: -2px 2px 5px rgba(69, 73, 79, 0.3), -2px 1px 3px 0px rgba(69, 73, 79, 0.15) !important;
+.rz-body:not(.vpp-layout-body) {
+    box-shadow: -2px 2px 5px rgba(69, 73, 79, 0.3), -2px 1px 3px 0px rgba(69, 73, 79, 0.15);
 }
 
 .cartdialog .rz-dialog-content {

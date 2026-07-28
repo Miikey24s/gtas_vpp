@@ -19,4 +19,4 @@ Pattern chỉ sở hữu bố cục và cách ghép các vùng nội dung. Route
 4. Pattern mới cần ít nhất hai consumer thật, architecture test và route-real browser evidence.
 5. Không tạo `UniversalPage`, `UniversalGrid` hoặc một pattern chứa mọi loại màn hình.
 
-Khoảng cách ngoài page do bốn token `--vpp-page-inset-*` ở `vpp-tokens.css` sở hữu. Mỗi cạnh phải nhất quán giữa các page, nhưng bốn cạnh không bắt buộc bằng nhau.
+Khoảng cách ngoài page do bốn token `--vpp-page-inset-*` ở `vpp-tokens.css` sở hữu. Inline-start/end mặc định đối xứng; block-start/end có thể khác nhau. Pattern root và top-level route panel không được cộng thêm padding ngoài ẩn — spacing bên trong thuộc slot/component con.

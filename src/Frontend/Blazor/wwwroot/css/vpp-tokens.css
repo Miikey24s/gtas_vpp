@@ -356,9 +356,9 @@
     --vpp-wizard-width: 800px;
     /* Các cạnh có thể đổi độc lập, nhưng cùng một cạnh phải giữ một nhịp trên mọi page. */
     --vpp-page-inset-block-start: var(--vpp-space-2);
-    --vpp-page-inset-inline-end: var(--vpp-space-2);
+    --vpp-page-inset-inline-end: var(--vpp-space-5);
     --vpp-page-inset-block-end: var(--vpp-space-2);
-    --vpp-page-inset-inline-start: var(--vpp-space-2);
+    --vpp-page-inset-inline-start: var(--vpp-space-5);
 
     /* Nhịp điều hướng dùng chung theo hướng: sidebar xếp dọc, header/tab xếp ngang. */
     --vpp-navigation-surface-gap: var(--vpp-space-1);

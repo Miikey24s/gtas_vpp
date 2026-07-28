@@ -29,6 +29,7 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             new PatternRoute("list-detail", "users", "permission?tab=0")
         };
         PageInsetGeometry? baseline = null;
+        var visibleInsetFailures = new List<string>();
 
         foreach (var route in routes)
         {
@@ -47,40 +48,8 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             });
             await WaitForPatternContentAsync(pattern);
 
-            var geometry = await Page.EvaluateAsync<PageInsetGeometry>(
-                $$"""
-                () => {
-                    const body = document.querySelector('.vpp-layout-body');
-                    const content = document.querySelector('.vpp-content');
-                    const style = getComputedStyle(body);
-                    const rect = body.getBoundingClientRect();
-                    const contentRect = content.getBoundingClientRect();
-                    const pattern = document.querySelector('[data-vpp-workspace-pattern="{{route.Pattern}}"]');
-                    const patternRect = pattern.getBoundingClientRect();
-                    return {
-                        top: Number.parseFloat(style.paddingTop),
-                        right: Number.parseFloat(style.paddingRight),
-                        bottom: Number.parseFloat(style.paddingBottom),
-                        left: Number.parseFloat(style.paddingLeft),
-                        patternInsideInlineStart: patternRect.left + .5 >= rect.left + Number.parseFloat(style.paddingLeft),
-                        patternInsideBlockStart: patternRect.top + .5 >= rect.top + Number.parseFloat(style.paddingTop),
-                        contentTopGap: contentRect.top - rect.top,
-                        contentRightGap: rect.right - contentRect.right,
-                        contentBottomGap: rect.bottom - contentRect.bottom,
-                        contentLeftGap: contentRect.left - rect.left,
-                        hasDocumentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
-                    };
-                }
-                """);
-
-            geometry.PatternInsideInlineStart.Should().BeTrue($"{route.Pattern} must respect the shell inline inset");
-            geometry.PatternInsideBlockStart.Should().BeTrue($"{route.Pattern} must respect the shell top inset");
-            geometry.ContentLeftGap.Should().BeApproximately(geometry.Left, 0.1, "main content must start at the shell inline inset");
-            geometry.ContentRightGap.Should().BeApproximately(geometry.Right, 0.1, "main content must end at the shell inline inset");
-            geometry.ContentTopGap.Should().BeApproximately(geometry.Top, 0.1, "main content must start below the header by the shared block inset");
-            geometry.ContentBottomGap.Should().BeApproximately(geometry.Bottom, 0.1, "main content must stop above the viewport edge by the shared block inset");
-            geometry.ContentLeftGap.Should().BeApproximately(geometry.ContentRightGap, 0.1, "inline outer inset must be symmetric");
-            geometry.HasDocumentOverflow.Should().BeFalse($"{route.Pattern} must not overflow the document horizontally");
+            var geometry = await MeasurePageInsetGeometryAsync(route.Pattern);
+            AssertPageInsetGeometry(geometry, $"{route.EvidenceName}/expanded", visibleInsetFailures);
 
             if (baseline is null)
             {
@@ -95,7 +64,20 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             }
 
             await CaptureEvidenceAsync(route.EvidenceName);
+
+            await Page.Locator(".vpp-sidebar-toggle").ClickAsync();
+            await AssertShellSeamStateAsync(expectedWidth: 72, collapsed: true);
+            var collapsedGeometry = await MeasurePageInsetGeometryAsync(route.Pattern);
+            AssertPageInsetGeometry(collapsedGeometry, $"{route.EvidenceName}/collapsed", visibleInsetFailures);
+            await CaptureEvidenceAsync($"{route.EvidenceName}-collapsed");
+
+            await Page.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
+            await AssertShellSeamStateAsync(expectedWidth: 286, collapsed: false);
         }
+
+        visibleInsetFailures.Should().BeEmpty(
+            "the shell owns outer inset; authenticated workspace roots must not add hidden inline padding or wrapper gaps. Measurements: {0}",
+            string.Join(" | ", visibleInsetFailures));
 
         await Page.GotoAsync($"{BaseUrl}perform-logout", new PageGotoOptions
         {
@@ -118,6 +100,115 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             Timeout = 30_000
         });
         await CaptureEvidenceAsync("account-forgot");
+    }
+
+    private async Task<PageInsetGeometry> MeasurePageInsetGeometryAsync(string patternName)
+    {
+        return await Page.EvaluateAsync<PageInsetGeometry>(
+            $$"""
+            () => {
+                const body = document.querySelector('.vpp-layout-body');
+                const content = document.querySelector('.vpp-content');
+                const style = getComputedStyle(body);
+                const rect = body.getBoundingClientRect();
+                const contentRect = content.getBoundingClientRect();
+                const pattern = document.querySelector('[data-vpp-workspace-pattern="{{patternName}}"]');
+                const patternRect = pattern.getBoundingClientRect();
+                const patternStyle = getComputedStyle(pattern);
+                const tokenProbe = document.createElement('div');
+                tokenProbe.style.position = 'fixed';
+                tokenProbe.style.visibility = 'hidden';
+                tokenProbe.style.paddingInlineStart = 'var(--vpp-page-inset-inline-start)';
+                tokenProbe.style.paddingInlineEnd = 'var(--vpp-page-inset-inline-end)';
+                document.body.appendChild(tokenProbe);
+                const tokenProbeStyle = getComputedStyle(tokenProbe);
+                const resolvedInlineStartToken = Number.parseFloat(tokenProbeStyle.paddingInlineStart);
+                const resolvedInlineEndToken = Number.parseFloat(tokenProbeStyle.paddingInlineEnd);
+                tokenProbe.remove();
+                const ancestorDiagnostics = [];
+                let current = pattern;
+                while (current && current !== content.parentElement) {
+                    const currentRect = current.getBoundingClientRect();
+                    const currentStyle = getComputedStyle(current);
+                    ancestorDiagnostics.push([
+                        current.tagName.toLowerCase(),
+                        current.className || '(no-class)',
+                        `x=${currentRect.left.toFixed(1)}`,
+                        `w=${currentRect.width.toFixed(1)}`,
+                        `r=${currentRect.right.toFixed(1)}`,
+                        `display=${currentStyle.display}`,
+                        `box=${currentStyle.boxSizing}`,
+                        `width=${currentStyle.width}`,
+                        `padding=${currentStyle.padding}`,
+                        `margin=${currentStyle.margin}`,
+                        `overflow=${currentStyle.overflowX}/${currentStyle.overflowY}`,
+                        `gutter=${currentStyle.scrollbarGutter}`
+                    ].join(' '));
+                    current = current.parentElement;
+                }
+                return {
+                    top: Number.parseFloat(style.paddingTop),
+                    right: Number.parseFloat(style.paddingRight),
+                    bottom: Number.parseFloat(style.paddingBottom),
+                    left: Number.parseFloat(style.paddingLeft),
+                    patternInsideInlineStart: patternRect.left + .5 >= rect.left + Number.parseFloat(style.paddingLeft),
+                    patternInsideBlockStart: patternRect.top + .5 >= rect.top + Number.parseFloat(style.paddingTop),
+                    contentTopGap: contentRect.top - rect.top,
+                    contentRightGap: rect.right - contentRect.right,
+                    contentBottomGap: rect.bottom - contentRect.bottom,
+                    contentLeftGap: contentRect.left - rect.left,
+                    patternLeftGap: patternRect.left - contentRect.left,
+                    patternRightGap: contentRect.right - patternRect.right,
+                    patternTopGap: patternRect.top - contentRect.top,
+                    patternBottomGap: contentRect.bottom - patternRect.bottom,
+                    patternPaddingTop: Number.parseFloat(patternStyle.paddingTop),
+                    patternPaddingRight: Number.parseFloat(patternStyle.paddingRight),
+                    patternPaddingBottom: Number.parseFloat(patternStyle.paddingBottom),
+                    patternPaddingLeft: Number.parseFloat(patternStyle.paddingLeft),
+                    ancestorDiagnostics: ancestorDiagnostics.join(' -> '),
+                    rootFontSize: getComputedStyle(document.documentElement).fontSize,
+                    inlineStartToken: getComputedStyle(document.documentElement).getPropertyValue('--vpp-page-inset-inline-start').trim(),
+                    spaceFiveToken: getComputedStyle(document.documentElement).getPropertyValue('--vpp-space-5').trim(),
+                    tokenStylesheetHref: Array.from(document.styleSheets)
+                        .map(sheet => sheet.href || '')
+                        .find(href => href.includes('vpp-tokens')) || '(missing)',
+                    resolvedInlineStartToken,
+                    resolvedInlineEndToken,
+                    hasDocumentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+                };
+            }
+            """);
+    }
+
+    private static void AssertPageInsetGeometry(
+        PageInsetGeometry geometry,
+        string evidenceName,
+        ICollection<string> visibleInsetFailures)
+    {
+        geometry.PatternInsideInlineStart.Should().BeTrue($"{evidenceName} must respect the shell inline inset");
+        geometry.PatternInsideBlockStart.Should().BeTrue($"{evidenceName} must respect the shell top inset");
+        geometry.ContentLeftGap.Should().BeApproximately(geometry.Left, 0.1, "main content must start at the shell inline inset");
+        geometry.ContentRightGap.Should().BeApproximately(geometry.Right, 0.1, "main content must end at the shell inline inset");
+        geometry.Left.Should().BeApproximately(geometry.ResolvedInlineStartToken, 0.1,
+            "the VPP shell must apply its resolved inline-start token; runtime root={0}, inline-token={1}, space-5={2}, stylesheet={3}",
+            geometry.RootFontSize, geometry.InlineStartToken, geometry.SpaceFiveToken, geometry.TokenStylesheetHref);
+        geometry.Right.Should().BeApproximately(geometry.ResolvedInlineEndToken, 0.1,
+            "the VPP shell must apply its resolved inline-end token");
+        geometry.ContentTopGap.Should().BeApproximately(geometry.Top, 0.1, "main content must start below the header by the shared block inset");
+        geometry.ContentBottomGap.Should().BeApproximately(geometry.Bottom, 0.1, "main content must stop above the viewport edge by the shared block inset");
+        geometry.ContentLeftGap.Should().BeApproximately(geometry.ContentRightGap, 0.1, "inline outer inset must be symmetric");
+        geometry.HasDocumentOverflow.Should().BeFalse($"{evidenceName} must not overflow the document horizontally");
+
+        if (Math.Abs(geometry.PatternLeftGap) > 0.5
+            || Math.Abs(geometry.PatternRightGap) > 0.5
+            || geometry.PatternPaddingLeft > 0.5
+            || geometry.PatternPaddingRight > 0.5)
+        {
+            visibleInsetFailures.Add(
+                $"{evidenceName}: gap T/R/B/L={geometry.PatternTopGap:0.##}/{geometry.PatternRightGap:0.##}/{geometry.PatternBottomGap:0.##}/{geometry.PatternLeftGap:0.##}, "
+                + $"padding T/R/B/L={geometry.PatternPaddingTop:0.##}/{geometry.PatternPaddingRight:0.##}/{geometry.PatternPaddingBottom:0.##}/{geometry.PatternPaddingLeft:0.##}; "
+                + geometry.AncestorDiagnostics);
+        }
     }
 
     private async Task AssertShellSeamAsync()
@@ -193,20 +284,30 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
 
     private async Task WaitForPatternContentAsync(ILocator pattern)
     {
-        if (await pattern.GetAttributeAsync("aria-busy") is null)
+        if (await pattern.GetAttributeAsync("aria-busy") is not null)
+        {
+            await pattern.WaitForAsync(new()
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 30_000
+            });
+            await Page.WaitForFunctionAsync(
+                "element => element.getAttribute('aria-busy') !== 'true'",
+                await pattern.ElementHandleAsync(),
+                new() { Timeout = 30_000 });
+        }
+
+        var historySkeleton = pattern.Locator(".vpp-history-loading-state");
+        if (await historySkeleton.CountAsync() == 0)
         {
             return;
         }
 
-        await pattern.WaitForAsync(new()
+        await historySkeleton.WaitForAsync(new()
         {
-            State = WaitForSelectorState.Visible,
-            Timeout = 30_000
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
         });
-        await Page.WaitForFunctionAsync(
-            "element => element.getAttribute('aria-busy') !== 'true'",
-            await pattern.ElementHandleAsync(),
-            new() { Timeout = 30_000 });
     }
 
     private sealed record PatternRoute(string Pattern, string EvidenceName, string Path);
@@ -221,6 +322,21 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
         public double ContentRightGap { get; init; }
         public double ContentBottomGap { get; init; }
         public double ContentLeftGap { get; init; }
+        public double PatternLeftGap { get; init; }
+        public double PatternRightGap { get; init; }
+        public double PatternTopGap { get; init; }
+        public double PatternBottomGap { get; init; }
+        public double PatternPaddingTop { get; init; }
+        public double PatternPaddingRight { get; init; }
+        public double PatternPaddingBottom { get; init; }
+        public double PatternPaddingLeft { get; init; }
+        public string AncestorDiagnostics { get; init; } = string.Empty;
+        public string RootFontSize { get; init; } = string.Empty;
+        public string InlineStartToken { get; init; } = string.Empty;
+        public string SpaceFiveToken { get; init; } = string.Empty;
+        public string TokenStylesheetHref { get; init; } = string.Empty;
+        public double ResolvedInlineStartToken { get; init; }
+        public double ResolvedInlineEndToken { get; init; }
         public bool PatternInsideInlineStart { get; init; }
         public bool PatternInsideBlockStart { get; init; }
         public bool HasDocumentOverflow { get; init; }

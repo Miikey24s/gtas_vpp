@@ -125,6 +125,7 @@ public sealed class SharedUiFoundationTests
         var adminCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+        var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
         var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
         var libraryPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Page_Library.razor"));
         var permissionPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Page_Permission.razor"));
@@ -187,6 +188,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-layout-body-inset: var(--vpp-page-inset-inline-start);", layoutCss, StringComparison.Ordinal);
         Assert.DoesNotContain("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".rz-body:not(.vpp-layout-body)", appCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("padding: var(--rz-layout-body-padding-1) !important;", appCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-admin-tabs.vpp-history-shell > .rz-tabview-panels > .rz-tabview-panel", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("flex: 1 1 auto;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("gap: 0 !important;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(100% + var(--vpp-page-inset-inline-start) + var(--vpp-page-inset-inline-end));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline-start: calc(-1 * var(--vpp-page-inset-inline-start));", tabsCss, StringComparison.Ordinal);
