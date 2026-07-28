@@ -208,6 +208,14 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                 .every(animation => animation.playState !== 'running' && animation.playState !== 'pending')
             """);
 
+        var sidebar = Page.Locator(".vpp-sidebar");
+        if (await sidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
+        {
+            await sidebar.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
+            await Page.WaitForFunctionAsync(
+                "() => !document.querySelector('.vpp-sidebar')?.classList.contains('sidebar-collapsed')");
+        }
+
         var trigger = Page.Locator(".vpp-sidebar-user-menu .user-menu-trigger");
         await trigger.ClickAsync();
         var menu = Page.Locator(".vpp-sidebar-user-menu .user-dropdown");
@@ -257,6 +265,61 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
 
         await Page.Locator(".user-dropdown-backdrop").ClickAsync(new() { Force = true });
         await menu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+        if (!await sidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
+        {
+            await Page.Locator(".vpp-sidebar-toggle").ClickAsync();
+        }
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-sidebar')?.classList.contains('sidebar-collapsed')");
+
+        await trigger.ClickAsync();
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var collapsedGeometry = await Page.EvaluateAsync<CollapsedUserMenuGeometry>(
+            """
+            () => {
+                const sidebar = document.querySelector('.vpp-sidebar').getBoundingClientRect();
+                const menu = document.querySelector('.vpp-sidebar-user-menu .user-dropdown').getBoundingClientRect();
+                return {
+                    sidebarRight: sidebar.right,
+                    menuLeft: menu.left,
+                    menuRight: menu.right,
+                    menuBottom: menu.bottom,
+                    viewportWidth: window.innerWidth,
+                    viewportHeight: window.innerHeight
+                };
+            }
+            """);
+        collapsedGeometry.MenuLeft.Should().BeGreaterThan(collapsedGeometry.SidebarRight,
+            "the expanded account surface must open beside the collapsed rail instead of covering it");
+        (collapsedGeometry.MenuLeft - collapsedGeometry.SidebarRight).Should().BeInRange(6.5, 8.5,
+            "the rail edge can include Radzen's one-pixel runtime box, but the visual gap must stay one compact token");
+        (collapsedGeometry.ViewportHeight - collapsedGeometry.MenuBottom).Should().BeInRange(6.5, 8.5);
+        collapsedGeometry.MenuRight.Should().BeLessThanOrEqualTo(collapsedGeometry.ViewportWidth - 8);
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "f4-user-menu-collapsed-settled.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
+        await Page.Locator(".user-dropdown-backdrop").ClickAsync(new() { Force = true });
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+    }
+
+    private sealed class CollapsedUserMenuGeometry
+    {
+        public double SidebarRight { get; set; }
+        public double MenuLeft { get; set; }
+        public double MenuRight { get; set; }
+        public double MenuBottom { get; set; }
+        public double ViewportWidth { get; set; }
+        public double ViewportHeight { get; set; }
     }
 
     [Fact]

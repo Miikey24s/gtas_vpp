@@ -797,8 +797,9 @@ a:hover {
 }
 
 .sidebar-collapsed .vpp-sidebar-user-menu .user-dropdown {
-    left: var(--vpp-space-2);
-    width: min(calc(var(--vpp-sidebar-width) - var(--vpp-space-2)), calc(100vw - 16px));
+    bottom: var(--vpp-space-2);
+    left: calc(var(--vpp-sidebar-collapsed-width) + var(--vpp-space-2));
+    width: min(310px, calc(100vw - var(--vpp-sidebar-collapsed-width) - (2 * var(--vpp-space-2))));
 }
 
 @media (max-width: 767px) {
