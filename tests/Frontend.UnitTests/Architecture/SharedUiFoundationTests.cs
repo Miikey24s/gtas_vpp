@@ -664,10 +664,13 @@ public sealed class SharedUiFoundationTests
         var notifications = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
 
         Assert.Contains("VppContentStateKind State", contentState, StringComparison.Ordinal);
-        foreach (var state in new[] { "Empty", "FilteredEmpty", "Loading", "Error", "Denied", "Disabled", "Success" })
+        foreach (var state in new[] { "Empty", "FilteredEmpty", "Loading", "Error", "Denied", "Disabled", "Success", "Warning" })
         {
             Assert.Contains(state, contentStateKind, StringComparison.Ordinal);
         }
+        Assert.Contains("vpp-content-state-@StateCssClass", contentState, StringComparison.Ordinal);
+        Assert.Contains("vpp-state-panel-@StateCssClass", contentState, StringComparison.Ordinal);
+        Assert.Contains("Icon=\"@PrimaryActionIcon\"", contentState, StringComparison.Ordinal);
         Assert.Contains("role=\"@SemanticRole\"", contentState, StringComparison.Ordinal);
         Assert.Contains("aria-busy=\"@IsLoading\"", contentState, StringComparison.Ordinal);
         Assert.Contains("aria-describedby=\"@(HasDescription ? DescriptionId : null)\"", contentState, StringComparison.Ordinal);
@@ -682,6 +685,8 @@ public sealed class SharedUiFoundationTests
         var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
         Assert.Contains("VppContentStateKind.FilteredEmpty", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppContentStateKind.Error", catalog, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Refresh\"", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Refresh\"", catalog, StringComparison.Ordinal);
     }
 
     [Fact]

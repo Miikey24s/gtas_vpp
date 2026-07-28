@@ -1,4 +1,4 @@
-<section class="vpp-content-state vpp-state-panel vpp-content-state-@StateCssClass @Class"
+<section class="vpp-content-state vpp-state-panel vpp-content-state-@StateCssClass vpp-state-panel-@StateCssClass @Class"
          role="@SemanticRole"
          aria-live="@LiveRegionMode"
          aria-busy="@IsLoading"
@@ -16,6 +16,7 @@
     @if (!string.IsNullOrWhiteSpace(PrimaryActionText) && PrimaryAction.HasDelegate)
     {
         <RadzenButton Text="@PrimaryActionText"
+                      Icon="@PrimaryActionIcon"
                       ButtonStyle="@EffectivePrimaryButtonStyle"
                       Click="@PrimaryAction"
                       class="vpp-state-panel-action" />
@@ -40,6 +41,7 @@
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
     [Parameter] public string? Description { get; set; }
     [Parameter] public string? PrimaryActionText { get; set; }
+    [Parameter] public string? PrimaryActionIcon { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> PrimaryAction { get; set; }
     [Parameter] public ButtonStyle? PrimaryButtonStyle { get; set; }
     [Parameter] public string? SecondaryActionText { get; set; }
