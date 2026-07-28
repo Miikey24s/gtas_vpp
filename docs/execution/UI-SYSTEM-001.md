@@ -1,6 +1,6 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `IN_REVIEW — F0/F1/F2/F3 DONE; F4 IMPLEMENTED`
+- Status: `PAUSED_BY_OWNER — dự kiến tiếp tục 2026-07-30; F0/F1/F2/F3 DONE; F4 IMPLEMENTED/IN_REVIEW`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
@@ -9,6 +9,9 @@
 - CSS ownership: [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md)
 
 > F0 và F1 đã được tích hợp vào branch authority; owner xác nhận F1 hoàn tất. F2 đã qua Terra implementation, Sol review và lượt fix regression. Owner mở F4 sau khi duyệt F3. F4 đã tích hợp năm lượt owner review, đang chờ duyệt visual cuối; chưa mở F5.
+>
+> Pause receipt 2026-07-29: owner tạm dừng UI-SYSTEM-001 để lập plan backend refactor và dự kiến
+> quay lại ngày 2026-07-30. Không tự mở F5 hoặc tiếp tục visual review trong thời gian pause.
 
 ---
 

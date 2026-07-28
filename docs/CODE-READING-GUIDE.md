@@ -296,12 +296,16 @@ Các quy tắc trên được khóa bằng architecture test trong `tests/Fronte
 ## 6. Quy ước comment
 
 - Code, tên biến, tên hàm, tên file: **tiếng Anh 100%**.
-- Comment tiếng Việt **chỉ** ở chỗ luật nghiệp vụ không đoán được từ code, kèm số mục luận văn:
+- Comment tiếng Việt **chỉ** ở chỗ cần giải thích lý do nghiệp vụ, security boundary, concurrency,
+  compatibility hoặc recovery mà tên code chưa thể hiện đủ:
 
 ```csharp
-// Quy tắc bốn mắt: người xác nhận hiệu chỉnh không được là người tạo
-// phiên bản đang hiện hành. Xem luận văn §2.3.1.9.
+// Không cho người tạo tự xác nhận hiệu chỉnh để giữ nguyên tắc bốn mắt.
 if (currentRevision.CreatedBy == actingUserId)
 ```
 
+- Không mặc định gắn số mục luận văn vào source. Mapping giữa code và luận văn được giữ trong sổ tay
+  này để code production không mang dấu vết học thuật dễ stale hoặc quá lộ liễu.
 - Không comment những dòng tự hiển nhiên. Comment giải thích **vì sao**, không mô tả lại **cái gì**.
+- Giải thích dài đưa vào guide/ADR; XML documentation chỉ dùng cho public surface hoặc domain rule
+  thật sự khó hiểu, không tạo boilerplate cho mọi getter/setter.

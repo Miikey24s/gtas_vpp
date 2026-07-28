@@ -3,13 +3,18 @@
 Chủ plan: owner Nguyễn An Nam. Khởi tạo 2026-07-26 theo yêu cầu owner (mở sớm, chạy song song
 phần không xung đột với ATLAS-001 thay vì chờ ATLAS-001 xong hẳn).
 
+> Cập nhật 2026-07-29: phần **R-1 backend** và quy ước comment backend đã được thay thế bởi
+> [`BACKEND-REFACTOR-001.md`](BACKEND-REFACTOR-001.md). Record này tiếp tục giữ lịch sử R-0 E2E,
+> R-2 frontend và các decision đã hoàn thành; không dùng mục R-1 bên dưới làm execution authority mới.
+
 ## 1. Mục tiêu và thứ tự thẩm quyền
 
 Tiêu chí gốc (quyết định D6 của ATLAS-001, cam kết xuyên phiên):
 
 1. Code, tên biến/hàm/file: **tiếng Anh 100%**.
 2. Owner vibe-coding nhưng phải **đọc hiểu và trình bày được** source khi bảo vệ luận văn.
-3. Comment **tiếng Việt ngắn** chỉ tại điểm luật nghiệp vụ khó đoán, kèm số mục luận văn (vd §2.3.1.9).
+3. Comment **tiếng Việt ngắn** chỉ tại điểm luật nghiệp vụ khó đoán, giải thích vì sao/ràng buộc.
+   Không mặc định gắn số mục luận văn trong source; mapping học thuật nằm ở `docs/CODE-READING-GUIDE.md`.
 4. `docs/CODE-READING-GUIDE.md` cập nhật đồng bộ từng đợt.
 5. **Không đổi nghiệp vụ/API/schema** — muốn đổi phải hỏi owner trước, từng mục một.
 
@@ -50,10 +55,8 @@ cách ly hoàn toàn theo nhóm.
 
 ## 4. R-1 backend, R-2 frontend, R-3 database — các lát đọc-hiểu
 
-- **R-1 backend (`gtas_vpp_be`)**: rà từng service theo thứ tự luận văn chương 2 (Auth →
-  VPPRequest → PeriodSettlement → Library → Report). Mỗi service: (a) tên method/biến EN chuẩn,
-  (b) comment VI + §, (c) tách method dài theo bước nghiệp vụ, (d) xóa dead code (đã có ứng viên:
-  project `MyAspire.ServiceDefaults` mồ côi — chờ owner duyệt xóa).
+- **R-1 backend**: đã được supersede bởi `BACKEND-REFACTOR-001.md`; dùng record mới cho scope,
+  comment policy, wave, verification và routing. Không tiếp tục triển khai từ mô tả cũ này.
 - **R-2 frontend (`gtas_vpp_fe`)**: sau khi wave ATLAS tương ứng đóng. Ứng viên đầu: các file đã
   ổn định qua W-B/W-C (VppStatePanel, VppIcons, LeftSidebar, NotificationCenter). `Tab_History`
   đã có kế hoạch chẻ 5 component (C-7 của W-C — tính là một lát R-2 làm sớm).
@@ -62,13 +65,11 @@ cách ly hoàn toàn theo nhóm.
   CODE-READING-GUIDE (bảng ↔ mục luận văn §3.2), index/performance chỉ khi có số đo và owner duyệt
   từng mục.
 
-## 5. Trình tự tổng
+## 5. Trình tự hiện hành
 
-1. **R-0** (E2E speed) — bắt đầu ngay sau khi lượt full E2E chốt batch W-B/W-C xanh (cần baseline xanh để so).
-2. C-7 chẻ Tab_History (lát R-2 làm sớm, đã lên lịch ở ATLAS W-C).
-3. R-1 backend theo module, xen kẽ giữa các wave ATLAS W-D…W-H (backend ít bị wave UI đụng).
-4. R-2 frontend cuốn chiếu theo wave ATLAS đã đóng.
-5. R-3 database sau khi R-1 module tương ứng xong (đọc SP trong ngữ cảnh service đã sạch).
+Trình tự cũ theo ATLAS W-B…W-H đã hoàn thành vai trò lịch sử. Thứ tự portfolio hiện hành và wave
+backend nằm tại `BACKEND-REFACTOR-001.md` mục 8/12; trạng thái UI nằm tại `UI-SYSTEM-001.md`.
+Không duy trì thêm một bảng thứ tự song song trong record này.
 
 ## 6. Decision log
 
