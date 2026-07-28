@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.77` — 2026-07-28
+> **Phiên bản:** `2.78` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -413,7 +413,7 @@ Contract này tổng hợp ba task tham chiếu `My Orders`, `Fix sidebar và he
 - Primary header full-bleed từ mép sidebar đến mép phải viewport; navigation chrome và sidebar dùng cùng surface token, divider/hairline có một owner và không tạo bốn cạnh trắng hoặc line kép.
 - Root icon giữ cùng cột ở expanded/collapsed. Child và grandchild dùng depth token đệ quy: interaction surface vẫn full-row, chỉ rail/icon/text lùi cấp; không thêm cấp sâu hơn grandchild. Nếu hierarchy tiếp tục sâu, chuyển sang split/list trong page.
 - Header tab và sidebar dùng cùng interaction primitive: row/hitbox, typography, neutral hover, project-blue active indicator, focus-visible và press feedback. Khác biệt duy nhất là indicator nằm dưới tab và bên trái navigation item.
-- Dòng phụ dưới tên người dùng trong sidebar hiển thị **group/role hiện hành** giống badge header (`Nhân viên`, `Quản lý`, `Quản trị hệ thống` hoặc tên group tùy biến); popup tài khoản vẫn giữ phòng ban để hai loại ngữ cảnh không bị đánh tráo.
+- Dòng phụ dưới tên người dùng trong sidebar hiển thị **group/role hiện hành** (`Nhân viên`, `Quản lý`, `Quản trị hệ thống` hoặc tên group tùy biến); shared header không lặp group/role. Popup tài khoản vẫn giữ phòng ban để hai loại ngữ cảnh không bị đánh tráo.
 
 **Motion và performance**
 
@@ -1251,6 +1251,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-28 | Shared header + compact Radzen tabs | Bỏ group/role badge khỏi header; group chỉ hiện ở sidebar identity. Tab không active khi hover/focus phải giữ text primary có ưu tiên cao hơn Radzen theme, tránh chữ trắng trên nền sáng | Owner phát hiện header lặp `Quản trị hệ thống` và tab `Danh mục mặt hàng` bị trắng chữ tại breakpoint nhỏ | Global shell | Gỡ `vpp-header-role-badge`; khóa màu base/hover của tab bằng semantic token với cascade phù hợp; thêm browser regression 700px | Mọi authenticated route, primary Radzen tabs mobile/tablet | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-28 | F3 shared order detail | My Orders và History phải giống nhau từ ô tìm kiếm đến footer, gồm popup lọc và code/note interaction; chỉ header và độ rộng khác. Header History chuyển sang bố cục phiếu PDF, giữ PDF/Excel/ghi chú và bỏ lịch sử phiên bản | Owner review phát hiện F3 ban đầu mới dùng chung grid/footer nên abstraction chưa bao phủ toàn behavior thật | Shared composite + local route header | Mở rộng `VppOrderItemsSurface` thành filter-to-footer contract; giữ filter state/API/capability ở route; đổi History sheet header theo `OrderPdfBuilder` | My Orders current/supplement/previous, History detail, future approval/management detail | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-27 | W-H global hardening | Shared states có live-region/focus semantics; Radzen 11.1.4 DataGrid chỉ normalize accessibility trên vùng opt-in; chart thiếu chuỗi hợp lệ chuyển sang empty state thay vì render SVG `NaN`; print ẩn toàn bộ chrome/action/transient UI | Route-real axe phát hiện nested grid/rowgroup, chart `NaN` và focus notification chưa bền; sửa tại shared boundary giảm drift giữa route | Global M8 | Đóng W-H; thêm 28×4 runtime matrix, representative Dark/Print/axe và capture gate | State primitives, report/history chart, opted-in grids, notification center, print stylesheet | VERIFIED — 112 runtime combinations + axe/print/dark pass |
 | 2026-07-27 | Report + order export | E2E phải tải file thật và kiểm tra extension/payload, không dừng ở việc nút xuất hiện | W-G và D10 trước đó mới có render gate; browser download mới chứng minh đủ FE → authenticated API → byte stream → file | Cross-route | Thêm `ExportDownloadTests`; report CSV/XLSX và order PDF/XLSX | Report, My Orders, History/order detail export consumers | VERIFIED — 4 downloads pass on isolated fixture |

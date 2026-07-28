@@ -37,7 +37,7 @@ body:has(.vpp-layout) {
 }
 
 /* W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip khu vực
-   + role badge (thanh tab RadzenTabs trong body bị ẩn ở desktop, xem khối
+   (thanh tab RadzenTabs trong body bị ẩn ở desktop, xem khối
    media phía dưới); mobile giữ hamburger + breadcrumb vị trí. */
 @media (min-width: 769px) {
     .vpp-header-breadcrumb {
@@ -188,28 +188,6 @@ leftsidebar {
     flex: 0 0 auto;
     color: var(--vpp-text-tertiary);
     font-size: 1rem;
-}
-
-/* Role badge của phiên đăng nhập, mép phải header theo Atlas .review-role. */
-.vpp-header-role-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    flex: 0 0 auto;
-    margin-left: auto;
-    height: 24px;
-    padding: 0 10px;
-    border: 1px solid color-mix(in srgb, var(--vpp-info) 35%, transparent);
-    border-radius: var(--vpp-radius-full);
-    background: var(--vpp-info-muted);
-    color: var(--vpp-info-strong);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-semibold);
-    white-space: nowrap;
-}
-
-.vpp-header-role-badge .vpp-icon {
-    font-size: 0.95rem;
 }
 
 .vpp-global-loader {

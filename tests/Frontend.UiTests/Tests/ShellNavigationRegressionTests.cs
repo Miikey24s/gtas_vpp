@@ -9,6 +9,75 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task CompactPrimaryTabs_KeepReadableHoverTextAndHeaderDoesNotRepeatRole()
+    {
+        await Page.SetViewportSizeAsync(700, 900);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=1", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        (await Page.Locator(".vpp-header-role-badge").CountAsync())
+            .Should().Be(0, "the permission group belongs to the sidebar identity, not the shared header");
+
+        var primaryTabs = Page.Locator("""
+            .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role='tab'],
+            .vpp-admin-tabs > .rz-tabview-nav > li > button[role='tab']
+            """);
+        await primaryTabs.First.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        var activeTab = Page.Locator("""
+            .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role='tab'][aria-selected='true'],
+            .vpp-admin-tabs > .rz-tabview-nav > li > button[role='tab'][aria-selected='true']
+            """).First;
+        var inactiveTab = Page.Locator("""
+            .vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role='tab'][aria-selected='false'],
+            .vpp-admin-tabs > .rz-tabview-nav > li > button[role='tab'][aria-selected='false']
+            """).First;
+
+        await activeTab.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await inactiveTab.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await inactiveTab.HoverAsync();
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const tabs = [...document.querySelectorAll('.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"], .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"]')];
+                const active = tabs.find(tab => tab.getAttribute('aria-selected') === 'true');
+                const hovered = tabs.find(tab => tab.matches(':hover') && tab.getAttribute('aria-selected') !== 'true');
+                const textColor = tab => getComputedStyle(tab.querySelector('.rz-tabview-title') ?? tab).color;
+                return active && hovered && textColor(active) === textColor(hovered);
+            }
+            """);
+
+        var colors = await Page.EvaluateAsync<string[]>("""
+            () => {
+                const tabs = [...document.querySelectorAll('.vpp-admin-tabs > .rz-tabview-nav-container > .rz-tabview-nav > li > button[role="tab"], .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"]')];
+                const active = tabs.find(tab => tab.getAttribute('aria-selected') === 'true');
+                const hovered = tabs.find(tab => tab.matches(':hover') && tab.getAttribute('aria-selected') !== 'true');
+                const textColor = tab => tab ? getComputedStyle(tab.querySelector('.rz-tabview-title') ?? tab).color : '';
+                return [textColor(active), textColor(hovered)];
+            }
+            """);
+
+        colors[0].Should().NotBeNullOrWhiteSpace();
+        colors[1].Should().Be(colors[0], "hovered inactive tabs must use the same readable primary text as the selected tab");
+        colors[1].Should().NotBe("rgb(255, 255, 255)", "light-theme hover text must not disappear on the pale surface");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "header-compact-tabs-700x900.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+    }
+
+    [Fact]
     public async Task ActiveChildIndicator_FollowsSiblingExpansion_HidesWithItsParent_AndAlignsWithBrand()
     {
         await Page.SetViewportSizeAsync(1366, 768);

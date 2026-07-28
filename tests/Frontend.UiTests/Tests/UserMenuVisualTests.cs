@@ -16,10 +16,9 @@ public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
 
         var trigger = Page.Locator(".user-menu-trigger");
         await trigger.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        var headerRole = await Page.Locator(".vpp-header-role-badge").EvaluateAsync<string>(
-            """element => { const copy = element.cloneNode(true); copy.querySelector('.vpp-icon')?.remove(); return copy.textContent?.trim() ?? ''; }""");
         var sidebarSubline = (await trigger.Locator(".user-menu-trigger-subline").TextContentAsync() ?? string.Empty).Trim();
-        sidebarSubline.Should().Be(headerRole, "the sidebar identity should show the current permission group");
+        sidebarSubline.Should().NotBeNullOrWhiteSpace("the sidebar identity should show the current permission group");
+        (await Page.Locator(".vpp-header-role-badge").CountAsync()).Should().Be(0, "the permission group should not be repeated in the header");
 
         await trigger.ClickAsync();
         var dropdown = Page.Locator("#user-menu-dropdown");

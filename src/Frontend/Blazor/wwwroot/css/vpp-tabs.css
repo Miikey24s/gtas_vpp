@@ -56,7 +56,7 @@
     line-height: 20px;
     letter-spacing: normal !important;
     text-transform: none !important;
-    color: var(--vpp-text-secondary);
+    color: var(--vpp-text-secondary) !important;
     border: none !important;
     background: transparent !important;
     border-radius: var(--vpp-radius-md);
@@ -74,6 +74,7 @@
     justify-content: center;
     height: 20px;
     line-height: 20px;
+    color: inherit !important;
 }
 
 /* ── Mục tab — Rê chuột ─────────────────────────────────────── */
@@ -83,7 +84,7 @@
 .rz-tabview-nav .rz-tabview-nav-link:focus-visible,
 .rz-tabs-item:focus-visible,
 .rz-tabview-nav > li > button[role="tab"]:focus-visible {
-    color: var(--vpp-text-primary);
+    color: var(--vpp-text-primary) !important;
     background: var(--vpp-navigation-item-hover-bg) !important;
 }
 
