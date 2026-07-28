@@ -76,64 +76,59 @@ html {
 }
 
 /* Motion chung cho transient surface do project sở hữu: menu lọc, popup,
-   popover và panel nổi mở cùng nhịp với account menu. Hướng dịch chuyển bám
-   theo vị trí surface so với trigger; modal giữa màn hình giữ tâm cố định. */
+   popover và panel nổi mở cùng nhịp. Chỉ animate paint/clip để bounding box
+   dùng cho anchor positioning không bị co, lệch hoặc nhảy giữa các frame. */
 .vpp-transient-surface {
-    transform-origin: top center;
     animation: vpp-transient-enter-down
         var(--vpp-transient-motion-duration)
         var(--vpp-transient-motion-easing)
         both;
+    will-change: opacity, clip-path;
 }
 
 .vpp-transient-surface.is-above,
 .vpp-transient-surface--above {
-    transform-origin: bottom center;
     animation-name: vpp-transient-enter-up;
 }
 
 .vpp-transient-surface--center:popover-open {
-    transform-origin: center;
     animation-name: vpp-transient-enter-center;
 }
 
 .vpp-order-grid .rz-grid-table tbody > tr:nth-last-child(-n + 2) .vpp-transient-surface {
-    transform-origin: bottom center;
     animation-name: vpp-transient-enter-up;
 }
 
 @keyframes vpp-transient-enter-down {
     from {
         opacity: 0;
-        transform: translateY(calc(0px - var(--vpp-transient-motion-distance)))
-                   scale(var(--vpp-transient-motion-scale));
+        clip-path: inset(0 0 100% 0 round var(--vpp-radius-lg));
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        clip-path: inset(0 round var(--vpp-radius-lg));
     }
 }
 
 @keyframes vpp-transient-enter-up {
     from {
         opacity: 0;
-        transform: translateY(var(--vpp-transient-motion-distance))
-                   scale(var(--vpp-transient-motion-scale));
+        clip-path: inset(100% 0 0 0 round var(--vpp-radius-lg));
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        clip-path: inset(0 round var(--vpp-radius-lg));
     }
 }
 
 @keyframes vpp-transient-enter-center {
     from {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(var(--vpp-transient-motion-scale));
+        clip-path: inset(5% round var(--vpp-radius-lg));
     }
     to {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
+        clip-path: inset(0 round var(--vpp-radius-lg));
     }
 }
 
@@ -381,7 +376,8 @@ html.vpp-page-entering .vpp-admin-tabs > .rz-tabview-panels {
     .vpp-order-card,
     .vpp-data-card,
     .vpp-settle-container,
-    .vpp-settle-status-card {
+    .vpp-settle-status-card,
+    .vpp-transient-surface {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
     }

@@ -662,6 +662,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("@keyframes vpp-transient-enter-up", polish, StringComparison.Ordinal);
         Assert.Contains("@keyframes vpp-transient-enter-center", polish, StringComparison.Ordinal);
         Assert.Contains(".vpp-transient-surface.is-above", polish, StringComparison.Ordinal);
+        Assert.Contains("clip-path:", polish, StringComparison.Ordinal);
+        Assert.DoesNotContain("transform: translateY(calc(0px - var(--vpp-transient-motion-distance)))", polish, StringComparison.Ordinal);
+        Assert.DoesNotContain("transform: translateY(var(--vpp-transient-motion-distance))", polish, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", userMenu, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", orderSurface, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", historyList, StringComparison.Ordinal);

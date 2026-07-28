@@ -299,6 +299,34 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         itemCategoryMenuMotion.Should().StartWith("true|vpp-transient-enter-",
             "shared order filters must use the global transient-surface motion language");
         itemCategoryMenuMotion.Should().Contain("|0.2s|cubic-bezier(0.32, 0.72, 0, 1)");
+        var geometryAffectingKeyframes = await itemCategoryMenu.EvaluateAsync<string[]>("""
+            menu => (menu.getAnimations()[0]?.effect.getKeyframes() ?? [])
+                .flatMap(frame => ['transform', 'translate', 'scale']
+                    .filter(property => frame[property] && frame[property] !== 'none')
+                    .map(property => `${property}:${frame[property]}`))
+            """);
+        geometryAffectingKeyframes.Should().BeEmpty(
+            "anchored transient surfaces must reveal without changing the rectangle used for viewport positioning");
+
+        var motionFrames = await itemCategoryMenu.EvaluateAsync<double[][]>("""
+            menu => new Promise(resolve => {
+                const frames = [];
+                const sample = () => {
+                    const rect = menu.getBoundingClientRect();
+                    frames.push([rect.left, rect.top, rect.width, rect.height]);
+                    if (frames.length < 10) {
+                        requestAnimationFrame(sample);
+                        return;
+                    }
+                    resolve(frames);
+                };
+                requestAnimationFrame(sample);
+            })
+            """);
+        (motionFrames.Max(frame => frame[0]) - motionFrames.Min(frame => frame[0])).Should().BeLessThan(0.75,
+            "the popup left edge must remain visually anchored throughout the opening effect");
+        (motionFrames.Max(frame => frame[2]) - motionFrames.Min(frame => frame[2])).Should().BeLessThan(0.75,
+            "the popup width must not pulse while opening");
         var itemCategoryMenuGeometry = await itemCategoryMenu.EvaluateAsync<string>("""
             menu => {
                 const rect = menu.getBoundingClientRect();
@@ -309,6 +337,41 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         itemCategoryMenuGeometry.Should().StartWith("true", "My Orders must reuse the bounded History filter popup");
         await itemCategoryMenu.GetByRole(AriaRole.Option).Nth(0).ClickAsync();
         await itemCategoryMenu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+        var transientEvidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(transientEvidenceDirectory))
+        {
+            Directory.CreateDirectory(transientEvidenceDirectory);
+            await Page.SetViewportSizeAsync(1920, 1080);
+            await itemCategoryTrigger.ClickAsync();
+            await itemCategoryMenu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(transientEvidenceDirectory, "f4-filter-motion-start.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Allow,
+                Caret = ScreenshotCaret.Hide
+            });
+            await Task.Delay(70, TestContext.Current.CancellationToken);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(transientEvidenceDirectory, "f4-filter-motion-mid.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Allow,
+                Caret = ScreenshotCaret.Hide
+            });
+            await Task.Delay(160, TestContext.Current.CancellationToken);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(transientEvidenceDirectory, "f4-filter-motion-settled.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Allow,
+                Caret = ScreenshotCaret.Hide
+            });
+            await itemCategoryMenu.GetByRole(AriaRole.Option).Nth(0).ClickAsync();
+            await itemCategoryMenu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+            await Page.SetViewportSizeAsync(1366, 900);
+        }
 
         var itemCodeTrigger = currentOrderPanel.Locator(".vpp-history-detail-code").First;
         await itemCodeTrigger.ClickAsync();

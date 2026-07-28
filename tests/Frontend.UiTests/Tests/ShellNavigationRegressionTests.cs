@@ -191,6 +191,75 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
     }
 
     [Fact]
+    public async Task UserMenu_OpensWithoutAnchorDriftOrWidthPulse()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.Locator(".vpp-sidebar[data-shell-ready='true']").WaitForAsync();
+        await Page.WaitForFunctionAsync("""
+            () => ['.vpp-layout', '.vpp-sidebar']
+                .map(selector => document.querySelector(selector))
+                .filter(Boolean)
+                .flatMap(element => element.getAnimations({ subtree: true }))
+                .every(animation => animation.playState !== 'running' && animation.playState !== 'pending')
+            """);
+
+        var trigger = Page.Locator(".vpp-sidebar-user-menu .user-menu-trigger");
+        await trigger.ClickAsync();
+        var menu = Page.Locator(".vpp-sidebar-user-menu .user-dropdown");
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        var geometryAffectingKeyframes = await menu.EvaluateAsync<string[]>("""
+            element => (element.getAnimations()[0]?.effect.getKeyframes() ?? [])
+                .flatMap(frame => ['transform', 'translate', 'scale']
+                    .filter(property => frame[property] && frame[property] !== 'none')
+                    .map(property => `${property}:${frame[property]}`))
+            """);
+        geometryAffectingKeyframes.Should().BeEmpty(
+            "the account menu and anchored filter surfaces must share one non-shifting reveal contract");
+
+        var frames = await menu.EvaluateAsync<double[][]>("""
+            element => new Promise(resolve => {
+                const frames = [];
+                const sample = () => {
+                    const rect = element.getBoundingClientRect();
+                    frames.push([rect.left, rect.top, rect.width, rect.height]);
+                    if (frames.length < 10) {
+                        requestAnimationFrame(sample);
+                        return;
+                    }
+                    resolve(frames);
+                };
+                requestAnimationFrame(sample);
+            })
+            """);
+        (frames.Max(frame => frame[0]) - frames.Min(frame => frame[0])).Should().BeLessThan(0.75,
+            "the user menu left edge must remain anchored while revealing");
+        (frames.Max(frame => frame[2]) - frames.Min(frame => frame[2])).Should().BeLessThan(0.75,
+            "the user menu width must remain visually stable while revealing");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "f4-user-menu-motion-settled.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Allow,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
+        await Page.Locator(".user-dropdown-backdrop").ClickAsync(new() { Force = true });
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+    }
+
+    [Fact]
     public async Task ActiveChildIndicator_FollowsSiblingExpansion_HidesWithItsParent_AndAlignsWithBrand()
     {
         await Page.SetViewportSizeAsync(1366, 768);
