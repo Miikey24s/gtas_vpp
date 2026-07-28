@@ -563,6 +563,7 @@
   <data name="CurrentOrderDetails" xml:space="preserve"><value>Chi tiết đơn</value></data>
   <data name="LatestSubmissionDateFormat" xml:space="preserve"><value>Gửi gần nhất · {0}</value></data>
   <data name="SubmittedAtInlineFormat" xml:space="preserve"><value>Gửi lúc {0}</value></data>
+  <data name="SubmittedAtLabel" xml:space="preserve"><value>Gửi lúc</value></data>
   <data name="MostRequestedItemFormat" xml:space="preserve"><value>Nhiều nhất · {0}</value></data>
   <data name="NoCurrentRegularOrders" xml:space="preserve"><value>Chưa có đơn thường trong kỳ này</value></data>
   <data name="NoCurrentRegularOrdersNextStep" xml:space="preserve"><value>Dùng nút tạo đơn phía trên để bắt đầu; bạn cũng có thể sao chép dữ liệu kỳ trước nếu có.</value></data>

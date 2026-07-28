@@ -563,6 +563,7 @@
   <data name="CurrentOrderDetails" xml:space="preserve"><value>Order details</value></data>
   <data name="LatestSubmissionDateFormat" xml:space="preserve"><value>Latest submission · {0}</value></data>
   <data name="SubmittedAtInlineFormat" xml:space="preserve"><value>Submitted {0}</value></data>
+  <data name="SubmittedAtLabel" xml:space="preserve"><value>Submitted at</value></data>
   <data name="MostRequestedItemFormat" xml:space="preserve"><value>Highest quantity · {0}</value></data>
   <data name="NoCurrentRegularOrders" xml:space="preserve"><value>No regular order in this cycle yet</value></data>
   <data name="NoCurrentRegularOrdersNextStep" xml:space="preserve"><value>Use the create action above to begin; you can also copy the previous cycle when available.</value></data>

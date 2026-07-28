@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.76` — 2026-07-28
+> **Phiên bản:** `2.77` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -24,10 +24,10 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | F1 đã được owner xác nhận; F2 đã qua Terra implementation + Sol review/fix; F3 đã implement/test xong và chờ duyệt board My Orders + History. | [Kết quả F3](../execution/UI-SYSTEM-001.md#53-f3-execution-record--2026-07-28) |
+| Bước code hiện tại? | F3 đã được làm lại theo review owner: My Orders và History dùng chung toàn bộ từ bộ lọc đến footer; History có header kiểu PDF và không còn lịch sử phiên bản. | [Kết quả F3](../execution/UI-SYSTEM-001.md#53-f3-execution-record--2026-07-28) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Duyệt board My Orders + History để khóa F3 và mở F4; code/test F3 đã hoàn tất. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
+| Cần owner duyệt gì? | Duyệt board F3 cập nhật: hai route giống nhau từ filter → footer, chỉ khác header và độ rộng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -431,7 +431,8 @@ Contract này tổng hợp ba task tham chiếu `My Orders`, `Fix sidebar và he
 - Không đặt nút `Làm mới/Refresh` thường trực ở page heading. Dữ liệu cập nhật theo thao tác/filter hoặc navigation; retry chỉ xuất hiện trong error state có thể khôi phục, còn reload toàn document đã thuộc browser.
 - Trong bảng đơn hàng, tên mặt hàng và mã mặt hàng nằm chung một cột: tên là dòng chính, mã là metadata dòng phụ để giữ bảng gọn và dễ quét. Chỉ màn hình quản trị dữ liệu thư viện mới tách `Mã mặt hàng` thành cột riêng khi mã là đối tượng thao tác chính.
 - Nhãn hướng tới người dùng phải viết đầy đủ `Đơn vị`; không dùng viết tắt nội bộ `ĐVT` trên màn hình, mockup, export hoặc bản in.
-- My Orders và History dùng chung một `order-detail surface`: cùng filter toolbar, sáu cột, name+code hierarchy, alignment, empty/loading/error và internal virtualization contract. Chỉ width/context thay đổi; action slot lấy từ capability backend.
+- My Orders và History dùng chung một `order-detail surface` từ filter đến footer: cùng search, popup danh mục/đơn vị, clear-filter state, code/note popover, sáu cột, name+code hierarchy, alignment, empty/loading/error, virtualization và count footer. Chỉ header/context và chiều rộng thay đổi; action lấy từ capability backend.
+- Header History bám phiếu PDF canonical: kicker GTAS VPP, mã + trạng thái, một hàng `Kỳ · Loại đơn · Người đặt · Phòng ban · Gửi lúc`, ghi chú và PDF/Excel. Không hiển thị action `Xem lịch sử phiên bản` trong phiếu chi tiết.
 - Đơn hiện tại hoặc đơn bổ sung chỉ hiện sửa/hủy khi `CanEdit/CanCancel` cho phép. Đơn kỳ trước và History là read-only đối với mutation: không hiện sửa/hủy; read-only navigation như xem lịch sử chỉ giữ khi nghiệp vụ cho phép.
 - Page ngắn ưu tiên một viewport. Dữ liệu dài dùng vùng scroll có biên rõ, sticky header, server paging hoặc virtualization theo capacity; detail tối đa khoảng 500 dòng chỉ cuộn trong panel, không kéo dài toàn page.
 
@@ -1250,6 +1251,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-28 | F3 shared order detail | My Orders và History phải giống nhau từ ô tìm kiếm đến footer, gồm popup lọc và code/note interaction; chỉ header và độ rộng khác. Header History chuyển sang bố cục phiếu PDF, giữ PDF/Excel/ghi chú và bỏ lịch sử phiên bản | Owner review phát hiện F3 ban đầu mới dùng chung grid/footer nên abstraction chưa bao phủ toàn behavior thật | Shared composite + local route header | Mở rộng `VppOrderItemsSurface` thành filter-to-footer contract; giữ filter state/API/capability ở route; đổi History sheet header theo `OrderPdfBuilder` | My Orders current/supplement/previous, History detail, future approval/management detail | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-27 | W-H global hardening | Shared states có live-region/focus semantics; Radzen 11.1.4 DataGrid chỉ normalize accessibility trên vùng opt-in; chart thiếu chuỗi hợp lệ chuyển sang empty state thay vì render SVG `NaN`; print ẩn toàn bộ chrome/action/transient UI | Route-real axe phát hiện nested grid/rowgroup, chart `NaN` và focus notification chưa bền; sửa tại shared boundary giảm drift giữa route | Global M8 | Đóng W-H; thêm 28×4 runtime matrix, representative Dark/Print/axe và capture gate | State primitives, report/history chart, opted-in grids, notification center, print stylesheet | VERIFIED — 112 runtime combinations + axe/print/dark pass |
 | 2026-07-27 | Report + order export | E2E phải tải file thật và kiểm tra extension/payload, không dừng ở việc nút xuất hiện | W-G và D10 trước đó mới có render gate; browser download mới chứng minh đủ FE → authenticated API → byte stream → file | Cross-route | Thêm `ExportDownloadTests`; report CSV/XLSX và order PDF/XLSX | Report, My Orders, History/order detail export consumers | VERIFIED — 4 downloads pass on isolated fixture |
 | 2026-07-27 | Permission UI mapping | E2E/page object định danh nhóm bằng `GroupCode=DEV`, không bằng tên hiển thị đã dịch | W-F tách identity bảo mật khỏi display name; selector cũ `Quản trị hệ thống (DEV)` lỗi sau refactor đúng | Local M6 + test contract | Cập nhật page object và chạy mutation opt-in | Permission group grid, future localized security selectors | VERIFIED — hide/show report permission updates current session |

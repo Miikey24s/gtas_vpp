@@ -1,7 +1,81 @@
 @using System.Globalization
 
-<div class="@RegionClass">
-    @if (IsHistoryDrawer && Items.Count > 0)
+<section class="vpp-order-items-surface @VariantClass" data-testid="@($"{TestId}-items")">
+    @if (ShowFilters && TotalItemCount > 0)
+    {
+        <div class="vpp-order-items-toolbar vpp-history-detail-toolbar" aria-label="@FiltersAriaLabel">
+            <label class="vpp-history-search vpp-history-detail-search @(!string.IsNullOrWhiteSpace(SearchText) ? "is-active" : string.Empty)">
+                <VppIcon Name="search" />
+                <input value="@SearchText"
+                       @oninput="SearchChanged"
+                       placeholder="@SearchPlaceholder"
+                       aria-label="@SearchPlaceholder" />
+            </label>
+            <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
+                <button type="button"
+                        class="vpp-history-select-trigger @(!string.IsNullOrEmpty(SelectedCategory) ? "is-active" : string.Empty)"
+                        aria-haspopup="listbox"
+                        aria-expanded="@(OpenFilterMenu == CategoryMenu)"
+                        aria-label="@CategoryAriaLabel"
+                        title="@CategorySelectionLabel"
+                        @onclick="@(() => FilterMenuToggled.InvokeAsync(CategoryMenu))"
+                        @onclick:stopPropagation>
+                    <span class="vpp-history-select-label">@CategorySelectionLabel</span>
+                    <VppIcon Name="expand_more" />
+                </button>
+                @if (OpenFilterMenu == CategoryMenu)
+                {
+                    <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                        <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedCategory)" @onclick="@(() => CategorySelected.InvokeAsync(string.Empty))">@AllCategoriesLabel</button>
+                        @foreach (var category in Categories)
+                        {
+                            <button type="button" role="option" aria-selected="@(SelectedCategory == category)" title="@category" @onclick="@(() => CategorySelected.InvokeAsync(category))">@category</button>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
+                <button type="button"
+                        class="vpp-history-select-trigger @(!string.IsNullOrEmpty(SelectedUnit) ? "is-active" : string.Empty)"
+                        aria-haspopup="listbox"
+                        aria-expanded="@(OpenFilterMenu == UnitMenu)"
+                        aria-label="@EffectiveUnitHeaderLabel"
+                        title="@UnitSelectionLabel"
+                        @onclick="@(() => FilterMenuToggled.InvokeAsync(UnitMenu))"
+                        @onclick:stopPropagation>
+                    <span class="vpp-history-select-label">@UnitSelectionLabel</span>
+                    <VppIcon Name="expand_more" />
+                </button>
+                @if (OpenFilterMenu == UnitMenu)
+                {
+                    <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                        <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedUnit)" @onclick="@(() => UnitSelected.InvokeAsync(string.Empty))">@AllUnitsLabel</button>
+                        @foreach (var unit in Units)
+                        {
+                            <button type="button" role="option" aria-selected="@(SelectedUnit == unit)" title="@unit" @onclick="@(() => UnitSelected.InvokeAsync(unit))">@unit</button>
+                        }
+                    </div>
+                }
+            </div>
+            <button type="button"
+                    class="vpp-history-clear vpp-history-detail-clear @(HasFilters ? "is-active" : string.Empty)"
+                    @onclick="FiltersCleared">
+                <VppIcon Name="filter_alt_off" />
+                @ClearFiltersLabel
+            </button>
+        </div>
+    }
+
+    @if (!IsHistoryDrawer && HasOpenTransientSurface)
+    {
+        <button type="button"
+                class="vpp-order-items-transient-backdrop"
+                aria-label="@Loc["Close"]"
+                @onclick="TransientSurfacesClosed"></button>
+    }
+
+    <div class="@RegionClass">
+    @if (Items.Count > 0)
     {
         <div class="vpp-history-detail-grid-header" aria-hidden="true">
             <span class="vpp-history-detail-grid-header-cell vpp-history-detail-number">#</span>
@@ -13,9 +87,9 @@
         </div>
     }
 
-    @if (IsHistoryDrawer && Items.Count == 0)
+    @if (Items.Count == 0 && TotalItemCount > 0)
     {
-        <VppContentState State="@(TotalItemCount > 0 ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+        <VppContentState State="VppContentStateKind.FilteredEmpty"
                          Icon="search_off"
                          Title="@Loc["HistoryNoItems"]"
                          Description="@Loc["HistoryNoItemsDescription"]"
@@ -34,7 +108,7 @@
                         AllowFiltering="false"
                         AllowSorting="false"
                         AllowColumnResize="false"
-                        AllowAlternatingRows="@(!IsHistoryDrawer)"
+                        AllowAlternatingRows="false"
                         Density="Density.Compact"
                         GridLines="DataGridGridLines.Horizontal"
                         Style="@GridStyle"
@@ -80,9 +154,7 @@
                                       CssClass="@HistoryItemClass"
                                       HeaderCssClass="@HistoryItemClass">
                     <Template Context="item">
-                        @if (IsHistoryDrawer)
-                        {
-                            <div class="vpp-history-item-line">
+                        <div class="vpp-history-item-line">
                                 <strong class="vpp-history-item-name" title="@item.Name">@item.Name</strong>
                                 @if (!string.IsNullOrWhiteSpace(item.Code))
                                 {
@@ -106,18 +178,7 @@
                                         </span>
                                     }
                                 }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="vpp-order-product-cell">
-                                <strong>@item.Name</strong>
-                                @if (!string.IsNullOrWhiteSpace(item.Code))
-                                {
-                                    <small>@item.Code</small>
-                                }
-                            </div>
-                        }
+                        </div>
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -129,14 +190,7 @@
                                       CssClass="@HistoryCategoryClass"
                                       HeaderCssClass="@HistoryCategoryClass">
                     <Template Context="item">
-                        @if (IsHistoryDrawer)
-                        {
-                            <span class="vpp-history-cell-ellipsis" title="@item.CategoryName">@item.CategoryName</span>
-                        }
-                        else
-                        {
-                            @item.CategoryName
-                        }
+                        <span class="vpp-history-cell-ellipsis" title="@item.CategoryName">@item.CategoryName</span>
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -156,14 +210,7 @@
                                       CssClass="@HistoryQuantityClass"
                                       HeaderCssClass="@HistoryQuantityClass">
                     <Template Context="item">
-                        @if (IsHistoryDrawer)
-                        {
-                            <span class="vpp-history-number">@FormatNumber(item.Quantity)</span>
-                        }
-                        else
-                        {
-                            @item.Quantity
-                        }
+                        <span class="vpp-history-number">@FormatNumber(item.Quantity)</span>
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -176,15 +223,13 @@
                                       CssClass="@HistoryNoteClass"
                                       HeaderCssClass="@HistoryNoteClass">
                     <Template Context="item">
-                        @if (IsHistoryDrawer)
+                        @if (string.IsNullOrWhiteSpace(item.Note))
                         {
-                            @if (string.IsNullOrWhiteSpace(item.Note))
-                            {
-                                <span class="vpp-history-note">–</span>
-                            }
-                            else
-                            {
-                                <div class="vpp-history-note-cell">
+                            <span class="vpp-history-note">–</span>
+                        }
+                        else
+                        {
+                            <div class="vpp-history-note-cell">
                                     <button type="button"
                                             class="vpp-history-note vpp-history-note-trigger"
                                             aria-haspopup="dialog"
@@ -203,12 +248,7 @@
                                             </button>
                                         </div>
                                     }
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="vpp-order-note" title="@item.Note">@item.Note</div>
+                            </div>
                         }
                     </Template>
                 </RadzenDataGridColumn>
@@ -220,16 +260,10 @@
 @if (IsHistoryDrawer || TotalItemCount > 0)
 {
     <footer class="@FooterClass">
-        @if (IsHistoryDrawer)
-        {
-            @Loc["HistoryDetailCount", Items.Count, TotalItemCount]
-        }
-        else
-        {
-            @Loc["VirtualizedCatalogSummary", Items.Count]
-        }
+        @Loc["HistoryDetailCount", Items.Count, TotalItemCount]
     </footer>
 }
+</section>
 
 @code {
     [Parameter] public VppOrderItemsSurfaceVariant Variant { get; set; }
@@ -237,7 +271,6 @@
     [Parameter] public int TotalItemCount { get; set; }
     [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
     [Parameter] public string? UnitHeaderLabel { get; set; }
-    [Parameter] public bool HasNotes { get; set; }
     [Parameter] public string TestId { get; set; } = "order-items-surface";
     [Parameter] public string EmptyIcon { get; set; } = VppIcons.Orders;
     [Parameter] public string EmptyTitle { get; set; } = string.Empty;
@@ -249,31 +282,58 @@
     [Parameter] public EventCallback<string> CodeToggled { get; set; }
     [Parameter] public EventCallback<int> NoteToggled { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
+    [Parameter] public bool ShowFilters { get; set; } = true;
+    [Parameter] public IReadOnlyList<string> Categories { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Units { get; set; } = [];
+    [Parameter] public string SearchText { get; set; } = string.Empty;
+    [Parameter] public string SelectedCategory { get; set; } = string.Empty;
+    [Parameter] public string SelectedUnit { get; set; } = string.Empty;
+    [Parameter] public string OpenFilterMenu { get; set; } = string.Empty;
+    [Parameter] public bool HasFilters { get; set; }
+    [Parameter] public string? SearchPlaceholder { get; set; }
+    [Parameter] public string? FiltersAriaLabel { get; set; }
+    [Parameter] public string? CategoryAriaLabel { get; set; }
+    [Parameter] public string? AllCategoriesText { get; set; }
+    [Parameter] public string? AllUnitsText { get; set; }
+    [Parameter] public string? ClearFiltersText { get; set; }
+    [Parameter] public EventCallback<ChangeEventArgs> SearchChanged { get; set; }
+    [Parameter] public EventCallback<string> FilterMenuToggled { get; set; }
+    [Parameter] public EventCallback<string> CategorySelected { get; set; }
+    [Parameter] public EventCallback<string> UnitSelected { get; set; }
+    [Parameter] public EventCallback FiltersCleared { get; set; }
+    [Parameter] public EventCallback TransientSurfacesClosed { get; set; }
 
     private RadzenDataGrid<VppOrderDetailItem>? _grid;
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
-    private bool ShowNoteColumn => IsHistoryDrawer || HasNotes;
+    private const string CategoryMenu = "category";
+    private const string UnitMenu = "uom";
+    private bool ShowNoteColumn => true;
+    private bool HasOpenTransientSurface => !string.IsNullOrEmpty(OpenFilterMenu) || !string.IsNullOrEmpty(ActiveCode) || ActiveNoteNumber.HasValue;
     private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
-    private string RegionClass => IsHistoryDrawer ? "vpp-history-detail-grid-region" : "vpp-order-view-grid-frame";
-    private string GridClass => IsHistoryDrawer
-        ? "vpp-history-detail-grid"
-        : "vpp-order-grid vpp-order-grid-embedded vpp-order-grid-scrollable";
-    private string GridStyle => IsHistoryDrawer ? "width: 100%;" : "height: 100%;";
-    private string FooterClass => IsHistoryDrawer ? "vpp-history-detail-footer" : "vpp-order-view-data-footer";
-    private string ItemHeaderLabel => IsHistoryDrawer ? Loc["HistoryItem"] : Loc["ItemName"];
+    private string VariantClass => IsHistoryDrawer ? "is-history" : "is-workspace";
+    private string RegionClass => "vpp-history-detail-grid-region vpp-order-items-grid-region";
+    private string GridClass => "vpp-history-detail-grid vpp-order-items-grid";
+    private string GridStyle => "width: 100%;";
+    private string FooterClass => "vpp-history-detail-footer vpp-order-items-footer";
+    private string ItemHeaderLabel => Loc["HistoryItem"];
     private string EffectiveUnitHeaderLabel => string.IsNullOrWhiteSpace(UnitHeaderLabel) ? Loc["UOM"] : UnitHeaderLabel;
-    private string? NumberColumnWidth => IsHistoryDrawer ? null : "56px";
-    private string? CategoryColumnWidth => IsHistoryDrawer ? null : "160px";
-    private string? UnitColumnWidth => IsHistoryDrawer ? null : "96px";
-    private string? QuantityColumnWidth => IsHistoryDrawer ? null : "120px";
-    private string? NoteColumnWidth => IsHistoryDrawer ? null : "220px";
-    private string? HistoryNumberClass => IsHistoryDrawer ? "vpp-history-detail-number" : null;
-    private string? HistoryItemClass => IsHistoryDrawer ? "vpp-history-detail-item" : null;
-    private string? HistoryCategoryClass => IsHistoryDrawer ? "vpp-history-detail-category" : null;
-    private string? HistoryUnitClass => IsHistoryDrawer ? "vpp-history-detail-uom" : null;
-    private string? HistoryQuantityClass => IsHistoryDrawer ? "vpp-history-detail-quantity" : null;
-    private string? HistoryNoteClass => IsHistoryDrawer ? "vpp-history-detail-note-column" : null;
+    private string CategorySelectionLabel => string.IsNullOrEmpty(SelectedCategory) ? AllCategoriesLabel : SelectedCategory;
+    private string UnitSelectionLabel => string.IsNullOrEmpty(SelectedUnit) ? AllUnitsLabel : SelectedUnit;
+    private string AllCategoriesLabel => AllCategoriesText ?? Loc["HistoryAllCategories"];
+    private string AllUnitsLabel => AllUnitsText ?? Loc["HistoryAllUnits"];
+    private string ClearFiltersLabel => ClearFiltersText ?? Loc["HistoryClearFilters"];
+    private string NumberColumnWidth => "5%";
+    private string CategoryColumnWidth => "18%";
+    private string UnitColumnWidth => "12%";
+    private string QuantityColumnWidth => "14%";
+    private string NoteColumnWidth => "20%";
+    private string HistoryNumberClass => "vpp-history-detail-number";
+    private string HistoryItemClass => "vpp-history-detail-item";
+    private string HistoryCategoryClass => "vpp-history-detail-category";
+    private string HistoryUnitClass => "vpp-history-detail-uom";
+    private string HistoryQuantityClass => "vpp-history-detail-quantity";
+    private string HistoryNoteClass => "vpp-history-detail-note-column";
 
     public async Task ReloadAsync()
     {

@@ -696,22 +696,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _detailUom = string.Empty;
     }
 
-    private async Task OpenHistoryAsync()
-    {
-        if (_selectedOrder is null)
-        {
-            return;
-        }
-
-        await DialogService.OpenAsync<Dialog_RequestHistory>(
-            Loc["RequestLifecycle"],
-            new Dictionary<string, object?>
-            {
-                [nameof(Dialog_RequestHistory.RequestId)] = _selectedOrder.Id
-            },
-            new DialogOptions { Width = "min(760px, 96vw)", Resizable = true, Draggable = true });
-    }
-
     private string ScopeLabel => _scope switch
     {
         Last1Scope => Loc["HistoryCurrentPeriod"].Value,
@@ -736,12 +720,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         "additional" => Loc["AdditionalOrder"].Value,
         _ => Loc["HistoryAllOrderTypes"].Value
     };
-    private string DetailCategoryLabel => string.IsNullOrEmpty(_detailCategory)
-        ? Loc["HistoryAllCategories"].Value
-        : _detailCategory;
-    private string DetailUomLabel => string.IsNullOrEmpty(_detailUom)
-        ? Loc["HistoryAllUnits"].Value
-        : _detailUom;
     private string UnitHeaderLabel => Loc["UOM"].Value.Trim() switch
     {
         "ĐVT" or "DVT" => "Đơn vị",

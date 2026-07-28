@@ -489,6 +489,7 @@ public sealed class SharedUiFoundationTests
         var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
         var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
+        var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
         var kpiStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-kpi.css"));
         var gridStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-datagrid.css"));
         var layoutStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
@@ -515,8 +516,12 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", orderPanel, StringComparison.Ordinal);
         Assert.Contains("Property=\"Quantity\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("Property=\"UomName\"", orderItemsSurface, StringComparison.Ordinal);
-        Assert.Contains("private string? QuantityColumnWidth", orderItemsSurface, StringComparison.Ordinal);
-        Assert.Contains("private string? UnitColumnWidth", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("private string QuantityColumnWidth", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("private string UnitColumnWidth", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-items-toolbar", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-select-menu", orderItemsSurface, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-view-filters", orderPanel, StringComparison.Ordinal);
+        Assert.Contains(".vpp-order-items-toolbar", orderItemsStyles, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-card-kind", orderPanel, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-state", source, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"false\"", orderItemsSurface, StringComparison.Ordinal);
@@ -572,6 +577,16 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("AllowVirtualization=\"true\"", surface, StringComparison.Ordinal);
         Assert.Contains("CodeToggled", surface, StringComparison.Ordinal);
         Assert.Contains("NoteToggled", surface, StringComparison.Ordinal);
+        Assert.Contains("SearchChanged", surface, StringComparison.Ordinal);
+        Assert.Contains("FilterMenuToggled", surface, StringComparison.Ordinal);
+        Assert.Contains("CategorySelected", surface, StringComparison.Ordinal);
+        Assert.Contains("UnitSelected", surface, StringComparison.Ordinal);
+        Assert.Contains("FiltersCleared", surface, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-history-detail-toolbar", orderPanel, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-history-detail-toolbar", historyDrawer, StringComparison.Ordinal);
+        Assert.DoesNotContain("HistoryRequested", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-sheet-kicker", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("SubmittedAtLabel", historyDrawer, StringComparison.Ordinal);
         Assert.DoesNotContain("ApiServices", surface, StringComparison.Ordinal);
         Assert.DoesNotContain("Config.", surface, StringComparison.Ordinal);
         Assert.DoesNotContain("CancelRequested", surface, StringComparison.Ordinal);
@@ -628,7 +643,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-history-detail-no-selection", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("HistoryChartNoData", historyChart, StringComparison.Ordinal);
         Assert.Contains("Summary.Periods.Count > 0 && (ShowRegularSeries || ShowAdditionalSeries)", historyChart, StringComparison.Ordinal);
-        Assert.Contains("vpp-history-detail-clear", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-clear", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
         Assert.Contains("<VppIcon Name=\"filter_none\" />", historyOrders, StringComparison.Ordinal);
         Assert.Contains("<VppIcon Name=\"filter_none\" />", orderItemsSurface, StringComparison.Ordinal);

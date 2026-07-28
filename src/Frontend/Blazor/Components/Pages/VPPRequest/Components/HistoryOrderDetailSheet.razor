@@ -1,7 +1,6 @@
 @* Atlas orderDetailSheet: drawer chi tiết phiếu (backdrop + header + tóm tắt + toolbar lọc + bảng ảo hóa) — state do Tab_History giữ. *@
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_fe.Helpers
-@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryFormat
 
 @if (IsOpen && SelectedOrder is not null)
@@ -15,21 +14,14 @@
            aria-modal="@(IsOpen ? "true" : "false")"
            aria-labelledby="history-drawer-title">
         <header class="vpp-history-drawer-header">
-            <div>
-                @* Atlas orderDetailSheet: kicker "Phiếu chi tiết đơn" + mã + badge + meta "Gửi lúc ...". *@
-                <h2 id="history-drawer-title">@Loc["HistoryDetailSheetTitle"]</h2>
+            <div class="vpp-history-sheet-heading">
+                <p class="vpp-history-sheet-kicker">GTAS VPP — <span>@Loc["HistoryDetailSheetTitle"]</span></p>
                 @if (SelectedOrder is not null)
                 {
                     <div class="vpp-history-drawer-code">
-                        <strong>@SelectedOrder.VppCode</strong>
+                        <h2 id="history-drawer-title">@SelectedOrder.VppCode</h2>
                         <span class="vpp-badge @StatusDisplay.GetCssClass(SelectedOrder.Status)">@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]</span>
                     </div>
-                    @if (SelectedOrder.SubmittedDate.HasValue)
-                    {
-                        <span class="vpp-history-drawer-submitted">
-                            @string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate))
-                        </span>
-                    }
                 }
             </div>
             @if (SelectedOrder is not null && !HasDetailError)
@@ -89,26 +81,17 @@
         else
         {
             <section class="vpp-history-drawer-summary">
-                @* Atlas: 4 ô Kỳ · Loại đơn · Người đặt · Phòng ban (Ngày gửi đã chuyển lên header; DTO chỉ có mã phòng ban — xem retrofit #11). *@
+                @* Header phiếu bám đúng trật tự dữ liệu của bản PDF canonical. *@
                 <dl class="vpp-history-order-meta">
                     <div><dt>@Loc["Period"]</dt><dd>@SelectedOrder.Period</dd></div>
                     <div><dt>@Loc["HistoryOrderType"]</dt><dd><span class="vpp-history-order-type @(SelectedOrder.IsAdditionalOrder ? "is-additional" : "is-regular")">@(SelectedOrder.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></dd></div>
                     <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedOrder.RequesterName">@(string.IsNullOrWhiteSpace(SelectedOrder.RequesterName) ? "–" : SelectedOrder.RequesterName)</dd></div>
                     <div><dt>@Loc["Department"]</dt><dd title="@SelectedOrder.DepartmentCode">@(string.IsNullOrWhiteSpace(SelectedOrder.DepartmentCode) ? "–" : SelectedOrder.DepartmentCode)</dd></div>
-                </dl>
-                <dl class="vpp-history-order-totals">
-                    <div><dd>@FormatNumber(SelectedOrder.TotalLines)</dd><dt>@Loc["HistoryItem"]</dt></div>
-                    <div><dd>@FormatNumber(SelectedOrder.TotalQty)</dd><dt>@Loc["TotalQuantity"]</dt></div>
+                    <div><dt>@Loc["SubmittedAtLabel"]</dt><dd>@(SelectedOrder.SubmittedDate.HasValue ? DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate) : "–")</dd></div>
                 </dl>
                 <div class="vpp-history-order-note">
-                    <div>
-                        <span>@Loc["Note"]</span>
-                        <p>@(string.IsNullOrWhiteSpace(SelectedOrder.Description) ? "–" : SelectedOrder.Description)</p>
-                    </div>
-                    <button type="button" @onclick="HistoryRequested">
-                        @Loc["ViewRequestHistory"]
-                        <VppIcon Name="chevron_right" />
-                    </button>
+                    <span>@Loc["Note"]</span>
+                    <p>@(string.IsNullOrWhiteSpace(SelectedOrder.Description) ? "–" : SelectedOrder.Description)</p>
                 </div>
             </section>
 
@@ -118,58 +101,10 @@
                     <h3>@Loc["HistoryItemsHeading"]</h3>
                     <p>@Loc["HistoryItemsHeadingHint"]</p>
                 </div>
-                <span class="vpp-badge status-info">@Loc["ItemsCount", SelectedOrder.Items?.Count ?? 0]</span>
-            </div>
-
-            <div class="vpp-history-detail-toolbar">
-                <label class="vpp-history-search vpp-history-detail-search @(!string.IsNullOrWhiteSpace(DetailSearch) ? "is-active" : string.Empty)">
-                    <VppIcon Name="search" />
-                    <input value="@DetailSearch"
-                           @oninput="DetailSearchChanged"
-                           placeholder="@Loc["HistorySearchItem"]"
-                           aria-label="@Loc["HistorySearchItem"]" />
-                </label>
-                <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
-                    <button type="button" class="vpp-history-select-trigger @(!string.IsNullOrEmpty(DetailCategory) ? "is-active" : string.Empty)"
-                            aria-haspopup="listbox" aria-expanded="@(OpenFilterMenu == CategoryMenu)"
-                            aria-label="@Loc["Category"]" title="@DetailCategoryLabel" @onclick="@(() => FilterMenuToggled.InvokeAsync(CategoryMenu))" @onclick:stopPropagation>
-                        <span class="vpp-history-select-label">@DetailCategoryLabel</span><VppIcon Name="expand_more" />
-                    </button>
-                    @if (OpenFilterMenu == CategoryMenu)
-                    {
-                        <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
-                            <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(DetailCategory)" @onclick="@(() => DetailCategorySelected.InvokeAsync(string.Empty))">@Loc["HistoryAllCategories"]</button>
-                            @foreach (var category in DetailCategories)
-                            {
-                                <button type="button" role="option" aria-selected="@(DetailCategory == category)" title="@category" @onclick="@(() => DetailCategorySelected.InvokeAsync(category))">@category</button>
-                            }
-                        </div>
-                    }
+                <div class="vpp-history-items-summary" aria-label="@Loc["HistoryItemsHeading"]">
+                    <span><strong>@FormatNumber(SelectedOrder.TotalLines)</strong> @Loc["HistoryItem"]</span>
+                    <span><strong>@FormatNumber(SelectedOrder.TotalQty)</strong> @Loc["TotalQuantity"]</span>
                 </div>
-                @* Atlas order-detail-toolbar: bộ lọc thứ ba "Tất cả đơn vị" (lọc client-side theo UomName). *@
-                <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
-                    <button type="button" class="vpp-history-select-trigger @(!string.IsNullOrEmpty(DetailUom) ? "is-active" : string.Empty)"
-                            aria-haspopup="listbox" aria-expanded="@(OpenFilterMenu == UomMenu)"
-                            aria-label="@UnitHeaderLabel" title="@DetailUomLabel" @onclick="@(() => FilterMenuToggled.InvokeAsync(UomMenu))" @onclick:stopPropagation>
-                        <span class="vpp-history-select-label">@DetailUomLabel</span><VppIcon Name="expand_more" />
-                    </button>
-                    @if (OpenFilterMenu == UomMenu)
-                    {
-                        <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
-                            <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(DetailUom)" @onclick="@(() => DetailUomSelected.InvokeAsync(string.Empty))">@Loc["HistoryAllUnits"]</button>
-                            @foreach (var uom in DetailUoms)
-                            {
-                                <button type="button" role="option" aria-selected="@(DetailUom == uom)" title="@uom" @onclick="@(() => DetailUomSelected.InvokeAsync(uom))">@uom</button>
-                            }
-                        </div>
-                    }
-                </div>
-                <button type="button"
-                        class="vpp-history-clear vpp-history-detail-clear @(HasDetailFilters ? "is-active" : string.Empty)"
-                        @onclick="DetailFiltersCleared">
-                    <VppIcon Name="filter_alt_off" />
-                    @Loc["HistoryClearFilters"]
-                </button>
             </div>
 
             <VppOrderItemsSurface @ref="_detailSurface"
@@ -182,7 +117,25 @@
                                   ActiveNoteNumber="@ActiveDetailNoteNumber"
                                   CodeToggled="@DetailCodeToggled"
                                   NoteToggled="@DetailNoteToggled"
-                                  CopyRequested="@CopyRequested" />
+                                  CopyRequested="@CopyRequested"
+                                  Categories="@DetailCategories"
+                                  Units="@DetailUoms"
+                                  SearchText="@DetailSearch"
+                                  SelectedCategory="@DetailCategory"
+                                  SelectedUnit="@DetailUom"
+                                  OpenFilterMenu="@OpenFilterMenu"
+                                  HasFilters="@HasDetailFilters"
+                                  SearchPlaceholder="@Loc["HistorySearchItem"]"
+                                  FiltersAriaLabel="@Loc["CatalogFilters"]"
+                                  CategoryAriaLabel="@Loc["Category"]"
+                                  AllCategoriesText="@Loc["HistoryAllCategories"]"
+                                  AllUnitsText="@Loc["HistoryAllUnits"]"
+                                  ClearFiltersText="@Loc["HistoryClearFilters"]"
+                                  SearchChanged="@DetailSearchChanged"
+                                  FilterMenuToggled="@FilterMenuToggled"
+                                  CategorySelected="@DetailCategorySelected"
+                                  UnitSelected="@DetailUomSelected"
+                                  FiltersCleared="@DetailFiltersCleared" />
             @if (IsDetailLoading)
             {
                 <div class="vpp-history-region-loading vpp-history-detail-refresh" role="status" aria-live="polite"><span class="vpp-history-state-spinner" aria-hidden="true"></span>@Loc["Loading"]</div>
@@ -208,12 +161,9 @@
     [Parameter] public bool HasTableFilters { get; set; }
     [Parameter] public int TotalCount { get; set; }
     [Parameter] public string UnitHeaderLabel { get; set; } = string.Empty;
-    [Parameter] public string DetailCategoryLabel { get; set; } = string.Empty;
-    [Parameter] public string DetailUomLabel { get; set; } = string.Empty;
     [Parameter] public bool IsExporting { get; set; }
     [Parameter] public EventCallback CloseRequested { get; set; }
     [Parameter] public EventCallback<string> ExportRequested { get; set; }
-    [Parameter] public EventCallback HistoryRequested { get; set; }
     [Parameter] public EventCallback RetryRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> DetailSearchChanged { get; set; }
     [Parameter] public EventCallback<string> FilterMenuToggled { get; set; }

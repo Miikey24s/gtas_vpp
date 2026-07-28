@@ -430,10 +430,10 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         // xóa trắng giá trị vừa gõ vào ô tìm kiếm (tái hiện khi backend lạnh).
         await Page.WaitForFunctionAsync(
             "() => document.activeElement?.classList.contains('vpp-history-drawer')");
-        var selectedOrderCode = (await drawer.Locator(".vpp-history-drawer-code strong").InnerTextAsync()).Trim();
+        var selectedOrderCode = (await drawer.Locator(".vpp-history-drawer-code h2").InnerTextAsync()).Trim();
         var drawerHeadingAlignment = await drawer.Locator(".vpp-history-drawer-code").EvaluateAsync<string>("""
             row => {
-                const code = row.querySelector('strong');
+                const code = row.querySelector('h2');
                 const badge = row.querySelector('.vpp-badge');
                 if (!code || !badge) return 'missing';
                 const rowRect = row.getBoundingClientRect();
@@ -737,13 +737,11 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         """);
         horizontalOverflow.Should().BeFalse();
 
-        await drawer.GetByRole(AriaRole.Button, new() { Name = "Xem lịch sử phiên bản", Exact = true }).ClickAsync();
-        var dialog = Page.Locator(".rz-dialog:visible").Last;
-        await dialog.GetByText("Vòng đời đơn yêu cầu", new() { Exact = false }).WaitForAsync();
-        await dialog.GetByText("1 phiên bản", new() { Exact = false }).WaitForAsync();
-        await dialog.GetByText("Dòng thời gian", new() { Exact = true }).WaitForAsync();
-        await dialog.GetByText("Các phiên bản của đơn", new() { Exact = true }).WaitForAsync();
-        await dialog.GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true }).ClickAsync();
+        (await drawer.GetByRole(AriaRole.Button, new() { Name = "Xem lịch sử phiên bản", Exact = true }).CountAsync())
+            .Should().Be(0, "owner removed revision history from the printable order-detail sheet");
+        await drawer.Locator(".vpp-history-order-note > span").GetByText("Ghi chú", new() { Exact = true }).WaitForAsync();
+        (await drawer.Locator(".vpp-history-drawer-actions").GetByText("Xuất PDF", new() { Exact = true }).CountAsync()).Should().Be(1);
+        (await drawer.Locator(".vpp-history-drawer-actions").GetByText("Xuất Excel", new() { Exact = true }).CountAsync()).Should().Be(1);
 
         var mainFilterTriggers = Page.Locator(".vpp-history-filters .vpp-history-select-trigger");
         var orderTypeFilter = mainFilterTriggers.Nth(0);

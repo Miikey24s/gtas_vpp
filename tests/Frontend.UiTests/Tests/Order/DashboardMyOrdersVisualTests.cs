@@ -283,23 +283,45 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
 
         await Page.SetViewportSizeAsync(1366, 900);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
-        await Page.Locator("[data-testid='current-order-panel']:visible").WaitForAsync();
+        var currentOrderPanel = Page.Locator("[data-testid='current-order-panel']:visible");
+        await currentOrderPanel.WaitForAsync();
+
+        var itemCategoryTrigger = currentOrderPanel.Locator(".vpp-history-detail-select .vpp-history-select-trigger").Nth(0);
+        await itemCategoryTrigger.ClickAsync();
+        var itemCategoryMenu = currentOrderPanel.Locator(".vpp-history-detail-select .vpp-history-select-menu").Nth(0);
+        await itemCategoryMenu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var itemCategoryMenuGeometry = await itemCategoryMenu.EvaluateAsync<string>("""
+            menu => {
+                const rect = menu.getBoundingClientRect();
+                const contained = rect.left >= 0 && rect.right <= window.innerWidth && rect.top >= 0 && rect.bottom <= window.innerHeight;
+                return `${contained}|left=${Math.round(rect.left)}|right=${Math.round(rect.right)}|width=${Math.round(rect.width)}`;
+            }
+        """);
+        itemCategoryMenuGeometry.Should().StartWith("true", "My Orders must reuse the bounded History filter popup");
+        await itemCategoryMenu.GetByRole(AriaRole.Option).Nth(0).ClickAsync();
+        await itemCategoryMenu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+        var itemCodeTrigger = currentOrderPanel.Locator(".vpp-history-detail-code").First;
+        await itemCodeTrigger.ClickAsync();
+        await currentOrderPanel.Locator(".vpp-history-detail-code-popover").WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await currentOrderPanel.Locator(".vpp-order-items-transient-backdrop").ClickAsync(new() { Force = true });
+        await currentOrderPanel.Locator(".vpp-history-detail-code-popover").WaitForAsync(new() { State = WaitForSelectorState.Detached });
 
         var scrollContract = await Page.EvaluateAsync<string[]>("""
             () => {
-                const grid = document.querySelector('.vpp-order-grid-scrollable');
+                const grid = document.querySelector("[data-testid='current-order-panel-items'] .vpp-order-items-grid");
                 const scrollHost = grid?.querySelector('.rz-data-grid-data, .rz-datatable-scrollable-body, .rz-datatable-tablewrapper');
-                const header = grid?.querySelector('thead th');
+                const visibleHeader = grid?.closest('.vpp-order-items-grid-region')?.querySelector('.vpp-history-detail-grid-header');
                 return [
                     scrollHost ? getComputedStyle(scrollHost).overflowY : '',
-                    header ? getComputedStyle(header).position : '',
+                    visibleHeader && !scrollHost?.contains(visibleHeader) ? 'outside-scroll-host' : '',
                     grid?.getAttribute('style') ?? ''
                 ];
             }
             """);
         new[] { "auto", "scroll" }.Should().Contain(scrollContract[0], "the grid body should own vertical scrolling");
-        scrollContract[1].Should().Be("sticky", "column headers should remain visible while the grid body scrolls");
-        scrollContract[2].Should().Contain("height: 100%", "the virtualized grid needs a bounded viewport");
+        scrollContract[1].Should().Be("outside-scroll-host", "the shared visible header should remain outside the virtualized scroll body");
+        scrollContract[2].Should().Contain("width: 100%", "the virtualized shared grid should fill its bounded region");
 
         if (int.TryParse(Environment.GetEnvironmentVariable("GTAS_E2E_LONG_ORDER_LINES"), out var longOrderLineCount)
             && longOrderLineCount >= 500)

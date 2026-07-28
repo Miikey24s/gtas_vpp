@@ -128,53 +128,42 @@
     </header>
     }
 
-    @if (Items.Count > 0)
-    {
-        @* Atlas orderItemsRegion: toolbar lọc (tìm kiếm · danh mục · đơn vị · xóa bộ lọc) ngay trên bảng mặt hàng. *@
-        <div class="vpp-order-view-filters" aria-label="@Loc["CatalogFilters"]">
-            <label class="vpp-order-view-search">
-                <VppIcon Name="search" />
-                <input value="@ItemSearch"
-                       @oninput="OnItemSearchInput"
-                       placeholder="@Loc["SearchOrderItems"]"
-                       aria-label="@Loc["SearchOrderItems"]" />
-            </label>
-            <RadzenDropDown TValue="string"
-                            Data="@CategoryFilterOptions"
-                            Value="@CategoryFilter"
-                            Change="@OnCategoryFilterChanged"
-                            AllowClear="true"
-                            Placeholder="@Loc["AllCategories"]"
-                            aria-label="@Loc["AllCategories"]"
-                            class="vpp-order-view-select" />
-            <RadzenDropDown TValue="string"
-                            Data="@UnitFilterOptions"
-                            Value="@UnitFilter"
-                            Change="@OnUnitFilterChanged"
-                            AllowClear="true"
-                            Placeholder="@Loc["AllUnits"]"
-                            aria-label="@Loc["AllUnits"]"
-                            class="vpp-order-view-select" />
-            <button type="button" class="vpp-order-view-clear" @onclick="ClearItemFiltersAsync">
-                <VppIcon Name="filter_alt_off" />
-                <span>@Loc["ClearFilters"]</span>
-            </button>
-        </div>
-    }
-
     <VppOrderItemsSurface @ref="_itemsSurface"
                           Variant="VppOrderItemsSurfaceVariant.Workspace"
                           Items="@FilteredItems"
                           TotalItemCount="@Items.Count"
                           AriaLabel="@PanelLabel"
                           UnitHeaderLabel="@Loc["UOM"]"
-                          HasNotes="@HasBusinessNotes"
                           TestId="@TestId"
                           EmptyIcon="@EmptyIcon"
                           EmptyTitle="@EmptyTitle"
                           EmptyDescription="@EmptyDescription"
                           EmptyActionText="@EmptyActionText"
-                          EmptyActionClick="@EmptyActionClick" />
+                          EmptyActionClick="@EmptyActionClick"
+                          Categories="@CategoryFilterOptions"
+                          Units="@UnitFilterOptions"
+                          SearchText="@(ItemSearch ?? string.Empty)"
+                          SelectedCategory="@(CategoryFilter ?? string.Empty)"
+                          SelectedUnit="@(UnitFilter ?? string.Empty)"
+                          OpenFilterMenu="@OpenFilterMenu"
+                          HasFilters="@HasItemFilters"
+                          SearchPlaceholder="@Loc["HistorySearchItem"]"
+                          FiltersAriaLabel="@Loc["CatalogFilters"]"
+                          CategoryAriaLabel="@Loc["Category"]"
+                          AllCategoriesText="@Loc["HistoryAllCategories"]"
+                          AllUnitsText="@Loc["HistoryAllUnits"]"
+                          ClearFiltersText="@Loc["HistoryClearFilters"]"
+                          SearchChanged="@OnItemSearchInput"
+                          FilterMenuToggled="@ToggleFilterMenu"
+                          CategorySelected="@SelectCategoryAsync"
+                          UnitSelected="@SelectUnitAsync"
+                          FiltersCleared="@ClearItemFiltersAsync"
+                          ActiveCode="@ActiveItemCode"
+                          ActiveNoteNumber="@ActiveItemNoteNumber"
+                          CodeToggled="@ToggleItemCode"
+                          NoteToggled="@ToggleItemNote"
+                          CopyRequested="@CopyCodeRequested"
+                          TransientSurfacesClosed="@CloseTransientSurfaces" />
 </section>
 
 @code {
@@ -207,23 +196,29 @@
     private string? ItemSearch { get; set; }
     private string? CategoryFilter { get; set; }
     private string? UnitFilter { get; set; }
+    private string OpenFilterMenu { get; set; } = string.Empty;
+    private string? ActiveItemCode { get; set; }
+    private int? ActiveItemNoteNumber { get; set; }
 
     private List<VppRequestDetailResDTO> Items => Order?.Items ?? [];
     private List<VppOrderDetailItem> FilteredItems => _filteredItems;
-    private bool HasBusinessNotes => Items.Any(item => GetBusinessNote(item.Description) is not null);
     private string OrderPickerId => $"{TestId}-picker";
 
-    private IEnumerable<string> CategoryFilterOptions => GetDistinctValues(item => item.CategoryName);
-    private IEnumerable<string> UnitFilterOptions => GetDistinctValues(item => item.UomName);
+    private IReadOnlyList<string> CategoryFilterOptions => GetDistinctValues(item => item.CategoryName);
+    private IReadOnlyList<string> UnitFilterOptions => GetDistinctValues(item => item.UomName);
+    private bool HasItemFilters => !string.IsNullOrWhiteSpace(ItemSearch)
+        || !string.IsNullOrEmpty(CategoryFilter)
+        || !string.IsNullOrEmpty(UnitFilter);
 
     protected override void OnParametersSet() => RebuildFilteredItems();
 
-    private IEnumerable<string> GetDistinctValues(Func<VppRequestDetailResDTO, string?> selector) => Items
+    private IReadOnlyList<string> GetDistinctValues(Func<VppRequestDetailResDTO, string?> selector) => Items
         .Select(selector)
         .Where(value => !string.IsNullOrWhiteSpace(value))
         .Select(value => value!.Trim())
         .Distinct(StringComparer.CurrentCultureIgnoreCase)
-        .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase);
+        .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase)
+        .ToArray();
 
     private void RebuildFilteredItems()
     {
@@ -251,28 +246,60 @@
 
     private async Task OnItemSearchInput(ChangeEventArgs args)
     {
+        CloseTransientSurfaces();
         ItemSearch = args.Value?.ToString();
         await ApplyItemFiltersAsync();
     }
 
-    private async Task OnCategoryFilterChanged(object? value)
+    private void ToggleFilterMenu(string menu)
     {
-        CategoryFilter = value?.ToString();
+        var shouldOpen = !string.Equals(OpenFilterMenu, menu, StringComparison.Ordinal);
+        CloseTransientSurfaces();
+        OpenFilterMenu = shouldOpen ? menu : string.Empty;
+    }
+
+    private async Task SelectCategoryAsync(string value)
+    {
+        CloseTransientSurfaces();
+        CategoryFilter = value;
         await ApplyItemFiltersAsync();
     }
 
-    private async Task OnUnitFilterChanged(object? value)
+    private async Task SelectUnitAsync(string value)
     {
-        UnitFilter = value?.ToString();
+        CloseTransientSurfaces();
+        UnitFilter = value;
         await ApplyItemFiltersAsync();
     }
 
     private async Task ClearItemFiltersAsync()
     {
+        CloseTransientSurfaces();
         ItemSearch = null;
         CategoryFilter = null;
         UnitFilter = null;
         await ApplyItemFiltersAsync();
+    }
+
+    private void ToggleItemCode(string code)
+    {
+        var shouldOpen = !string.Equals(ActiveItemCode, code, StringComparison.Ordinal);
+        CloseTransientSurfaces();
+        ActiveItemCode = shouldOpen ? code : null;
+    }
+
+    private void ToggleItemNote(int number)
+    {
+        var shouldOpen = ActiveItemNoteNumber != number;
+        CloseTransientSurfaces();
+        ActiveItemNoteNumber = shouldOpen ? number : null;
+    }
+
+    private void CloseTransientSurfaces()
+    {
+        OpenFilterMenu = string.Empty;
+        ActiveItemCode = null;
+        ActiveItemNoteNumber = null;
     }
 
     private async Task ApplyItemFiltersAsync()

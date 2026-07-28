@@ -1521,9 +1521,22 @@
 
 ::deep .vpp-history-drawer-header {
     flex: 0 0 auto;
-    min-height: 66px;
-    padding: var(--vpp-space-3) var(--vpp-space-4);
+    min-height: 84px;
+    align-items: flex-end;
+    gap: var(--vpp-space-4);
+    padding: var(--vpp-space-4);
     border-bottom: 1px solid var(--vpp-border-default);
+}
+
+::deep .vpp-history-sheet-heading {
+    min-width: 0;
+}
+
+::deep .vpp-history-sheet-kicker {
+    margin: 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-medium);
 }
 
 ::deep .vpp-history-drawer-code {
@@ -1534,9 +1547,9 @@
     margin-top: 3px;
 }
 
-::deep .vpp-history-drawer-code strong {
+::deep .vpp-history-drawer-code h2 {
     overflow: hidden;
-    font-size: var(--vpp-text-lg);
+    font-size: var(--vpp-text-xl);
     font-variant-numeric: tabular-nums;
     line-height: var(--vpp-history-inline-pill-height);
     text-overflow: ellipsis;
@@ -1546,14 +1559,6 @@
 ::deep .vpp-history-drawer-code .vpp-badge {
     flex: 0 0 auto;
     align-self: center;
-}
-
-/* Meta "Gửi lúc ..." + cặp nút xuất trong header phiếu (Atlas orderDetailSheet + D10). */
-::deep .vpp-history-drawer-submitted {
-    display: block;
-    margin-top: 2px;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
 }
 
 ::deep .vpp-history-drawer-actions {
@@ -1593,7 +1598,7 @@
 @supports (text-box: trim-both cap alphabetic) {
     ::deep .vpp-history-chart-legend-label,
     ::deep .vpp-history-order-type,
-    ::deep .vpp-history-drawer-code strong,
+    ::deep .vpp-history-drawer-code h2,
     ::deep .vpp-history-drawer-code .vpp-badge,
     ::deep .vpp-history-grid .vpp-badge {
         text-box: trim-both cap alphabetic;
@@ -1685,10 +1690,9 @@
     border-radius: 0;
 }
 
-::deep .vpp-history-order-meta,
-::deep .vpp-history-order-totals {
+::deep .vpp-history-order-meta {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     row-gap: var(--vpp-space-3);
     margin: 0;
     padding: var(--vpp-space-3) var(--vpp-space-4);
@@ -1698,30 +1702,17 @@
     border-bottom: 1px solid var(--vpp-border-default);
 }
 
-::deep .vpp-history-order-totals {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-bottom: 1px solid var(--vpp-border-default);
-}
-
-::deep .vpp-history-order-meta div,
-::deep .vpp-history-order-totals div {
+::deep .vpp-history-order-meta div {
     min-width: 0;
 }
 
-::deep .vpp-history-order-totals div + div {
-    padding-inline-start: var(--vpp-space-4);
-    border-inline-start: 1px solid var(--vpp-border-default);
-}
-
 ::deep .vpp-history-order-meta dt,
-::deep .vpp-history-order-totals dt,
 ::deep .vpp-history-order-note span {
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-xs);
 }
 
-::deep .vpp-history-order-meta dd,
-::deep .vpp-history-order-totals dd {
+::deep .vpp-history-order-meta dd {
     margin: 3px 0 0;
     overflow: hidden;
     font-size: var(--vpp-text-sm);
@@ -1731,14 +1722,11 @@
     white-space: nowrap;
 }
 
-::deep .vpp-history-order-totals dd {
-    margin: 0 0 2px;
-    font-size: var(--vpp-text-lg);
-}
-
 ::deep .vpp-history-order-note {
-    gap: var(--vpp-space-3);
-    padding: var(--vpp-space-3);
+    display: grid;
+    gap: var(--vpp-space-1);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: 1px solid var(--vpp-border-default);
 }
 
 ::deep .vpp-history-order-note > div {
@@ -1753,20 +1741,19 @@
     white-space: nowrap;
 }
 
-::deep .vpp-history-order-note button {
-    display: inline-flex;
+::deep .vpp-history-items-summary {
+    display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 2px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--vpp-primary-700);
-    font: inherit;
+    gap: var(--vpp-space-4);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+::deep .vpp-history-items-summary strong {
+    color: var(--vpp-text-primary);
     font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-medium);
-    white-space: nowrap;
-    cursor: pointer;
 }
 
 ::deep .vpp-history-detail-toolbar {
@@ -2179,6 +2166,17 @@
 }
 
 @media (max-width: 767px) {
+    ::deep .vpp-history-drawer-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: var(--vpp-space-2);
+    }
+
+    ::deep .vpp-history-drawer-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
     ::deep .vpp-history-toolbar {
         align-items: flex-start;
     }
@@ -2228,12 +2226,13 @@
         row-gap: var(--vpp-space-3);
     }
 
-    ::deep .vpp-history-order-note button {
-        font-size: 0;
+    ::deep .vpp-history-order-meta div:last-child {
+        grid-column: 1 / -1;
     }
 
-    ::deep .vpp-history-order-note button .vpp-icon {
-        font-size: 20px;
+    ::deep .vpp-history-items-heading {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
     ::deep .vpp-history-detail-select {
