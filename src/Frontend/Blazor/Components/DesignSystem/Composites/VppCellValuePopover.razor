@@ -1,4 +1,7 @@
-<span class="vpp-cell-value-popover vpp-cell-value-popover-@KindValue @Class">
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<span class="vpp-cell-value-popover vpp-cell-value-popover-@KindValue @Class" @ref="_root">
     <button type="button"
             class="vpp-cell-value-popover-trigger @TriggerClass"
             aria-haspopup="dialog"
@@ -48,6 +51,52 @@
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? TriggerClass { get; set; }
     [Parameter] public string? PanelClass { get; set; }
+
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsOpen && _module is null)
+        {
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/DesignSystem/Composites/VppCellValuePopover.razor.js");
+            await _module.InvokeVoidAsync("observeCellValuePopover", _root);
+        }
+
+        if (IsOpen && _module is not null)
+        {
+            await _module.InvokeVoidAsync("refreshCellValuePopover", _root);
+        }
+        else if (!IsOpen && _module is not null)
+        {
+            await DisposeModuleAsync();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await DisposeModuleAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+
+    private async ValueTask DisposeModuleAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        await _module.InvokeVoidAsync("disposeCellValuePopover", _root);
+        await _module.DisposeAsync();
+        _module = null;
+    }
 
     private string EffectiveDisplayText => string.IsNullOrWhiteSpace(DisplayText)
         ? (string.IsNullOrWhiteSpace(Value) ? EmptyText : Value)

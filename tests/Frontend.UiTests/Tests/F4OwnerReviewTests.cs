@@ -42,6 +42,53 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         var visibleRowNumbers = await Page.Locator(".vpp-order-builder-grid tbody tr td:first-child")
             .AllTextContentsAsync();
         visibleRowNumbers.Take(3).Should().Equal("1", "2", "3");
+        var firstCodeTrigger = Page.Locator(".vpp-order-builder-grid .vpp-cell-value-popover-trigger").First;
+        await firstCodeTrigger.ClickAsync();
+        await Page.Locator(".vpp-order-builder-grid .vpp-cell-value-popover-panel:visible").First.WaitForAsync();
+        await CaptureAsync("ds3-order-create-code-popover-1920x1080.png");
+        await firstCodeTrigger.ClickAsync();
+
+        var productRequestsDuringScroll = new List<string>();
+        Page.Request += (_, request) =>
+        {
+            if (request.Url.Contains("/api/VPPRequest/products", StringComparison.OrdinalIgnoreCase))
+            {
+                productRequestsDuringScroll.Add(request.Url);
+            }
+        };
+        var mountedRowsBeforeScroll = await Page.Locator(".vpp-order-builder-grid tbody tr").CountAsync();
+        await Page.Locator(".vpp-order-builder-grid").EvaluateAsync("""
+            grid => {
+                const scroller = [...grid.querySelectorAll('*')]
+                    .find(element => element.scrollHeight > element.clientHeight + 1
+                        && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY));
+                if (!scroller) throw new Error('Order catalog virtual scroller was not found.');
+                scroller.scrollTop = scroller.scrollHeight;
+                scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
+            }
+            """);
+        await Page.WaitForTimeoutAsync(600);
+        var mountedRowsAfterScroll = await Page.Locator(".vpp-order-builder-grid tbody tr").CountAsync();
+        var virtualizationGeometry = await Page.Locator(".vpp-order-create-page").EvaluateAsync<string>("""
+            root => {
+                const selectors = [
+                    '.vpp-wizard-stage', '.wizard-step-products', '.vpp-order-builder',
+                    '.vpp-split-editor-workspace', '.vpp-order-builder-catalog',
+                    '.vpp-order-builder-data-surface', '.vpp-data-surface-body',
+                    '.vpp-order-builder-grid-frame', '.vpp-order-builder-grid'
+                ];
+                return selectors.map(selector => {
+                    const element = root.querySelector(selector);
+                    if (!element) return `${selector}=missing`;
+                    const rect = element.getBoundingClientRect();
+                    const style = getComputedStyle(element);
+                    return `${selector}=${rect.height}/${element.clientHeight}/${element.scrollHeight}/${style.overflowY}`;
+                }).join('|');
+            }
+            """);
+        productRequestsDuringScroll.Should().BeEmpty("client-snapshot virtualization must not call the product API while scrolling");
+        mountedRowsBeforeScroll.Should().BeLessThanOrEqualTo(40, virtualizationGeometry);
+        mountedRowsAfterScroll.Should().BeLessThanOrEqualTo(40, virtualizationGeometry);
         await CaptureAsync("f4-review-order-create-1920x1080.png");
     }
 

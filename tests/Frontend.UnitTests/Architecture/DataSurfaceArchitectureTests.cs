@@ -121,6 +121,37 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
+    public void WorkflowConsumers_UseCanonicalChromeAndKeepTheirDataBehavior()
+    {
+        var root = GetFrontendRoot();
+        var create = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "OrderCreateStep2.razor"));
+        var department = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor"));
+        var review = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "PeriodReviewPanel.razor"));
+
+        Assert.Contains("TestId=\"order-create-catalog-data-surface\"", create, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", create, StringComparison.Ordinal);
+        Assert.Contains("<VppDataToolbar", create, StringComparison.Ordinal);
+        Assert.Contains("<VppCellValuePopover", create, StringComparison.Ordinal);
+        Assert.Contains("VppDataFooterMode.Virtualized", create, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", create, StringComparison.Ordinal);
+        Assert.DoesNotContain("LoadData=", create, StringComparison.Ordinal);
+
+        Assert.Contains("TestId=\"department-summary-data-surface\"", department, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ServerPaging", department, StringComparison.Ordinal);
+        Assert.Contains("<VppDataToolbar", department, StringComparison.Ordinal);
+        Assert.Equal(4, Regex.Matches(department, "<VppFilterSelect\\b").Count);
+        Assert.Contains("AllowPaging=\"true\"", department, StringComparison.Ordinal);
+        Assert.Contains("LoadData=\"@OnLoadData\"", department, StringComparison.Ordinal);
+
+        Assert.Contains("TestId=\"period-review-data-surface\"", review, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ServerPaging", review, StringComparison.Ordinal);
+        Assert.Contains("<VppDataToolbar", review, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Matches(review, "<VppFilterSelect\\b").Count);
+        Assert.Contains("AllowPaging=\"true\"", review, StringComparison.Ordinal);
+        Assert.Contains("LoadData=\"@OnLoadData\"", review, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ConsumerLedger_CoversEveryRadzenDataGridFileAndCount()
     {
         var repositoryRoot = FindRepositoryRoot();

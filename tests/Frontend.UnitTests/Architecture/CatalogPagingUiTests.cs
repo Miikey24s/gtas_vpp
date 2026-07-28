@@ -5,12 +5,17 @@ namespace gtas_vpp_fe.Tests.Architecture;
 public sealed class CatalogPagingUiTests
 {
     [Fact]
-    public void OrderWizard_UsesServerPagedProductCatalog()
+    public void OrderWizard_UsesClientSnapshotWithVirtualizedDom()
     {
         var source = ReadSource("Components", "Pages", "VPPRequest", "OrderCreateStep2.razor");
 
-        Assert.Contains("LoadData=\"@LoadProductsAsync\"", source, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", source, StringComparison.Ordinal);
+        Assert.Contains("SnapshotBatchSize = 100", source, StringComparison.Ordinal);
+        Assert.Contains("LoadProductSnapshotAsync", source, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", source, StringComparison.Ordinal);
+        Assert.Contains("VppDataFooterMode.Virtualized", source, StringComparison.Ordinal);
         Assert.Contains("GetFromApiWithTotalCountAsync", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("LoadData=", source, StringComparison.Ordinal);
         Assert.DoesNotContain("products/lookup", source, StringComparison.OrdinalIgnoreCase);
     }
 

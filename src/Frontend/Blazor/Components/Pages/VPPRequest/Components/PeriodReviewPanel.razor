@@ -4,34 +4,18 @@
 
 
 <RadzenStack Gap="1rem">
-    <div class="vpp-data-card">
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.End" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="@Loc["Year"]" Style="width: 160px">
-                <RadzenNumeric TValue="int"
-                               Value="@selectedYear"
-                               ValueChanged="@OnYearChangedAsync"
-                               Min="2024"
-                               Max="2030"
-                               InputAttributes="@(new Dictionary<string, object> { ["aria-label"] = Loc["Year"].Value })"
-                               Disabled="@isLoading"
-                               Style="width:100%" />
-            </RadzenFormField>
-
-            <RadzenFormField Text="@Loc["Month"]" Style="width: 160px">
-                <RadzenDropDown TValue="int"
-                                Data="@months"
-                                Value="@selectedMonth"
-                                ValueChanged="@OnMonthChangedAsync"
-                                Disabled="@isLoading"
-                                Style="width:100%" />
-            </RadzenFormField>
-
+    <div class="vpp-data-card vpp-period-review-toolbar-card">
+        <VppDataToolbar AriaLabel="@Loc["ReviewOrderBeforeSubmit"]" Class="vpp-period-review-toolbar">
+            <VppFilterSelect TValue="int" Value="@selectedYear" Options="@ReviewYearOptions"
+                             ValueChanged="@OnYearChangedAsync" Placeholder="@Loc["Year"]" AriaLabel="@Loc["Year"]" />
+            <VppFilterSelect TValue="int" Value="@selectedMonth" Options="@ReviewMonthOptions"
+                             ValueChanged="@OnMonthChangedAsync" Placeholder="@Loc["Month"]" AriaLabel="@Loc["Month"]" />
             <RadzenButton Icon="refresh"
                           Text="@Loc["Reload"]"
                           ButtonStyle="ButtonStyle.Light"
                           Disabled="@isLoading"
                           Click="@ReloadPeriodAsync" />
-        </RadzenStack>
+        </VppDataToolbar>
     </div>
 
     @* Atlas period-review: hero tóm tắt trạng thái chốt + readiness list nêu đích danh
@@ -142,7 +126,11 @@
         }
         else
         {
-            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
+            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                 Density="VppDataDensity.Compact"
+                                 AriaLabel="@Loc["ReviewOrderBeforeSubmit"]"
+                                 TestId="period-review-data-surface"
+                                 Class="vpp-period-review-data-surface">
                 <RadzenDataGrid TItem="VppRequestResDTO" Data="@orders"
                                 Count="@totalCount" LoadData="@OnLoadData"
                                 AllowPaging="true" PageSize="@pageSize"
@@ -162,7 +150,7 @@
                                 LoadColumnFilterData="@OnLoadColumnFilterData"
                                 FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-order-grid"
+                                class="vpp-order-grid vpp-data-grid vpp-data-density-compact"
                                 Style="border: none; --vpp-grid-min-width: 1420px;">
                     <Columns>
                         <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
@@ -246,7 +234,7 @@
                         </div>
                     </Template>
                 </RadzenDataGrid>
-            </div>
+            </VppDataSurfaceFrame>
         }
     }
 </RadzenStack>

@@ -68,57 +68,32 @@
                 <VppMobileCard Items="@Orders" />
             </div>
 
-            <div class="vpp-data-card vpp-datagrid" style="padding: 0; overflow: hidden;">
+            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                 Density="VppDataDensity.Compact"
+                                 AriaLabel="@Loc["HistoryOrderList"]"
+                                 TestId="department-summary-data-surface"
+                                 Class="vpp-department-data-surface">
                 @* Atlas department-summary: toolbar lọc trên đầu card danh sách (tìm mã đơn/họ tên
                    + loại đơn + trạng thái + kỳ) thay cho filter CheckBoxList theo cột. *@
-                <div class="vpp-atlas-orders-toolbar">
-                    <h3 id="department-orders-title">@Loc["HistoryOrderList"]</h3>
+                <Toolbar>
+                <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
+                                Class="vpp-atlas-orders-toolbar">
                     <div class="vpp-atlas-orders-filters" aria-label="@Loc["ClearFilters"]">
-                        <label class="vpp-order-view-search">
-                            <VppIcon Name="search" />
-                            <input value="@SearchText"
-                                   @oninput="OnSearchInput"
-                                   placeholder="@Loc["DepartmentSearchPlaceholder"]"
-                                   aria-label="@Loc["DepartmentSearchPlaceholder"]" />
-                        </label>
-                        <RadzenDropDown TValue="int?"
-                                        Data="@OrderTypeOptions"
-                                        TextProperty="Text"
-                                        ValueProperty="Value"
-                                        Value="@OrderTypeFilter"
-                                        Change="@OnOrderTypeChanged"
-                                        aria-label="@Loc["HistoryOrderType"]"
-                                        class="vpp-order-view-select" />
-                        <RadzenDropDown TValue="int?"
-                                        Data="@StatusOptions"
-                                        TextProperty="Text"
-                                        ValueProperty="Value"
-                                        Value="@StatusFilter"
-                                        Change="@OnStatusChanged"
-                                        aria-label="@Loc["Status"]"
-                                        class="vpp-order-view-select" />
-                        <RadzenDropDown TValue="int?"
-                                        Data="@YearOptions"
-                                        TextProperty="Text"
-                                        ValueProperty="Value"
-                                        Value="@YearFilter"
-                                        Change="@OnYearChanged"
-                                        aria-label="@Loc["Year"]"
-                                        class="vpp-order-view-select vpp-order-view-select-compact" />
-                        <RadzenDropDown TValue="int?"
-                                        Data="@MonthOptions"
-                                        TextProperty="Text"
-                                        ValueProperty="Value"
-                                        Value="@MonthFilter"
-                                        Change="@OnMonthChanged"
-                                        aria-label="@Loc["Month"]"
-                                        class="vpp-order-view-select vpp-order-view-select-compact" />
-                        <button type="button" class="vpp-order-view-clear" disabled="@(!HasToolbarFilters)" @onclick="ClearToolbarFiltersAsync">
-                            <VppIcon Name="filter_alt_off" />
-                            <span>@Loc["ClearFilters"]</span>
-                        </button>
+                        <VppFilterSearch Value="@SearchText" Input="@OnSearchInput"
+                                         Placeholder="@Loc["DepartmentSearchPlaceholder"]" AriaLabel="@Loc["DepartmentSearchPlaceholder"]" />
+                        <VppFilterSelect TValue="int?" Value="@OrderTypeFilter" Options="@OrderTypeFilterOptions"
+                                         ValueChanged="@(value => OnOrderTypeChanged(value))" Placeholder="@Loc["HistoryAllOrderTypes"]" AriaLabel="@Loc["HistoryOrderType"]" />
+                        <VppFilterSelect TValue="int?" Value="@StatusFilter" Options="@StatusFilterOptions"
+                                         ValueChanged="@(value => OnStatusChanged(value))" Placeholder="@Loc["HistoryAllStatuses"]" AriaLabel="@Loc["Status"]" />
+                        <VppFilterSelect TValue="int?" Value="@YearFilter" Options="@YearFilterOptions"
+                                         ValueChanged="@(value => OnYearChanged(value))" Placeholder="@Loc["Year"]" AriaLabel="@Loc["Year"]" />
+                        <VppFilterSelect TValue="int?" Value="@MonthFilter" Options="@MonthFilterOptions"
+                                         ValueChanged="@(value => OnMonthChanged(value))" Placeholder="@Loc["Month"]" AriaLabel="@Loc["Month"]" />
+                        <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasToolbarFilters" Clicked="@ClearToolbarFiltersAsync" />
                     </div>
-                </div>
+                </VppDataToolbar>
+                </Toolbar>
+                <ChildContent>
                 <RadzenDataGrid TItem="VppRequestResDTO" Data="@Orders"
                                 Count="@TotalCount" LoadData="@OnLoadData"
                                 AllowPaging="true" PageSize="@PageSize"
@@ -133,7 +108,7 @@
                                 AllowColumnReorder="false"
                                 IsLoading="@IsGridLoading"
                                 Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-order-grid"
+                                class="vpp-order-grid vpp-data-grid vpp-data-density-compact"
                                 Style="border: none; --vpp-grid-min-width: 1080px;">
                     <Columns>
                         <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
@@ -187,7 +162,8 @@
                         <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.Description)" Title="@Loc["Note"]" Width="180px" TextAlign="TextAlign.Left" />
                     </Columns>
                 </RadzenDataGrid>
-            </div>
+                </ChildContent>
+            </VppDataSurfaceFrame>
             </div>
             <aside class="vpp-atlas-order-detail" aria-live="polite">
                 @if (SelectedOrder is null)

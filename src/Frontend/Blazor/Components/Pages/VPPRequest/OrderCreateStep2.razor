@@ -1,5 +1,6 @@
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_fe.Services
+@inject IJSRuntime JSRuntime
 
 <div class="wizard-step wizard-step-products">
     <div class="vpp-order-builder">
@@ -13,7 +14,15 @@
                 </div>
             </header>
 
-            <div class="vpp-order-builder-filters" aria-label="@Loc["CatalogFilters"]">
+            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotVirtualized"
+                                 Density="VppDataDensity.RichTwoLine"
+                                 Bordered="false"
+                                 AriaLabelledBy="order-catalog-title"
+                                 TestId="order-create-catalog-data-surface"
+                                 Class="vpp-order-builder-data-surface">
+            <Toolbar>
+            <VppDataToolbar AriaLabel="@Loc["CatalogFilters"]"
+                            Class="vpp-order-builder-filters">
                 <VppFilterSearch Value="@SearchText"
                                  Input="@OnSearchInput"
                                  Placeholder="@Loc["SearchCatalogItems"]"
@@ -22,28 +31,31 @@
                                  Value="@(CategoryFilter ?? string.Empty)"
                                  Options="@CategoryOptions"
                                  ValueChanged="@OnCategoryChanged"
+                                 Opening="@CloseProductTransientSurfaces"
                                  Placeholder="@Loc["AllCategories"]"
                                  AriaLabel="@Loc["AllCategories"]" />
                 <VppFilterSelect TValue="string"
                                  Value="@(UnitFilter ?? string.Empty)"
                                  Options="@UnitOptions"
                                  ValueChanged="@OnUnitChanged"
+                                 Opening="@CloseProductTransientSurfaces"
                                  Placeholder="@Loc["AllUnits"]"
                                  AriaLabel="@Loc["AllUnits"]" />
                 <VppClearFiltersButton Text="@Loc["ClearFilters"]"
                                        IsActive="@HasProductFilters"
                                        Clicked="@ClearFiltersAsync" />
-            </div>
+            </VppDataToolbar>
+            </Toolbar>
 
+            <ChildContent>
             <div class="vpp-order-builder-grid-frame">
                 <RadzenDataGrid @ref="productGrid"
                                 TItem="ProductOption"
                                 Data="@ProductOptions"
                                 Count="@ProductCount"
-                                LoadData="@LoadProductsAsync"
                                 IsLoading="@IsLoadingProducts"
                                 AllowVirtualization="true"
-                                VirtualizationOverscanCount="5"
+                                VirtualizationOverscanCount="10"
                                 AllowPaging="false"
                                 AllowSorting="true"
                                 AllowFiltering="false"
@@ -52,7 +64,8 @@
                                 Density="Density.Compact"
                                 GridLines="DataGridGridLines.Horizontal"
                                 RowRender="@OnRowRender"
-                                class="vpp-order-builder-grid">
+                                Style="height: 100%; max-height: 100%;"
+                                class="vpp-order-builder-grid vpp-data-grid vpp-data-density-rich-two-line">
                     <Columns>
                         <RadzenDataGridColumn TItem="ProductOption" Title="#" Width="56px" TextAlign="TextAlign.Center" Sortable="false">
                             <Template Context="row">@GetProductRowNumber(row)</Template>
@@ -61,7 +74,14 @@
                             <Template Context="row">
                                 <div class="vpp-order-builder-item-cell">
                                     <strong>@row.VppName</strong>
-                                    <small>@row.VppCode</small>
+                                    <VppCellValuePopover Value="@row.VppCode"
+                                                         Label="@Loc["ItemCode"]"
+                                                         CopyLabel="@Loc["Copy"]"
+                                                         Kind="VppCellValueKind.Code"
+                                                         IsOpen="@(_openProductCodeId == row.Id)"
+                                                         Toggled="@(() => ToggleProductCode(row.Id))"
+                                                         CopyRequested="@CopyProductCodeAsync"
+                                                         TriggerClass="vpp-order-builder-code" />
                                 </div>
                             </Template>
                         </RadzenDataGridColumn>
@@ -94,7 +114,14 @@
                     </Columns>
                 </RadzenDataGrid>
             </div>
-            <footer class="vpp-order-builder-data-footer">@Loc["VirtualizedCatalogSummary", ProductCount]</footer>
+            </ChildContent>
+            <Footer>
+                <VppDataSummaryFooter Mode="VppDataFooterMode.Virtualized"
+                                      Summary="@Loc["VirtualizedCatalogSummary", ProductCount]"
+                                      IsLoading="@IsLoadingProducts"
+                                      Class="vpp-order-builder-data-footer" />
+            </Footer>
+            </VppDataSurfaceFrame>
         </section>
         </Primary>
 
@@ -302,9 +329,11 @@
     public string? UnitFilter { get; set; }
     public RadzenDataGrid<ProductOption>? productGrid;
 
-    private int _currentSkip;
+    private const int SnapshotBatchSize = 100;
+    private readonly List<ProductOption> _allProductOptions = [];
     private readonly Dictionary<ProductOption, int> _visibleRowNumbers = new(ReferenceEqualityComparer.Instance);
     private CancellationTokenSource? _searchDebounceCts;
+    private Guid? _openProductCodeId;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
 
     private string OrderNotePopoverId => $"vpp-order-note-{_instanceId}";
@@ -328,7 +357,7 @@
     private string? _orderNoteSnapshot;
 
     private int GetProductRowNumber(ProductOption row)
-        => _visibleRowNumbers.GetValueOrDefault(row, _currentSkip + 1);
+        => _visibleRowNumbers.GetValueOrDefault(row, ProductOptions.IndexOf(row) + 1);
 
     private void SnapshotItemNote(OrderCreateContext.SelectedItem item)
     {
@@ -350,30 +379,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(
-            LoadFilterOptionsAsync("VppCategoryName", CategoryOptions, Loc["AllCategories"]),
-            LoadFilterOptionsAsync("UomName", UnitOptions, Loc["AllUnits"]));
+        await LoadProductSnapshotAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void BuildFilterOptions()
     {
-        if (firstRender && productGrid is not null)
+        static void Fill(List<VppFilterOption<string>> target, string allText, IEnumerable<string?> values)
         {
-            await productGrid.Reload();
-        }
-    }
-
-    private async Task LoadFilterOptionsAsync(string property, List<VppFilterOption<string>> target, string allText)
-    {
-        target.Clear();
-        target.Add(new VppFilterOption<string>(string.Empty, allText));
-        try
-        {
-            var data = await ApiServices.GetFromApiAsync<List<ProductOption>>(
-                $"/api/VPPRequest/products?distinct={property}&top=1000") ?? [];
-            var values = property == "UomName"
-                ? data.Select(item => item.UomName)
-                : data.Select(item => item.VppCategoryName);
+            target.Clear();
+            target.Add(new VppFilterOption<string>(string.Empty, allText));
             target.AddRange(values
                 .Where(value => !string.IsNullOrWhiteSpace(value))
                 .Select(value => value!.Trim())
@@ -381,32 +395,27 @@
                 .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase)
                 .Select(value => new VppFilterOption<string>(value, value)));
         }
-        catch
-        {
-        }
+
+        Fill(CategoryOptions, Loc["AllCategories"], _allProductOptions.Select(item => item.VppCategoryName));
+        Fill(UnitOptions, Loc["AllUnits"], _allProductOptions.Select(item => item.UomName));
     }
 
-    private async Task LoadProductsAsync(LoadDataArgs args)
+    private async Task LoadProductSnapshotAsync()
     {
         IsLoadingProducts = true;
-        _currentSkip = args.Skip ?? 0;
-        _visibleRowNumbers.Clear();
         try
         {
-            var query = new List<string>
+            _allProductOptions.Clear();
+            for (var skip = 0; ; skip += SnapshotBatchSize)
             {
-                $"skip={args.Skip ?? 0}",
-                $"top={args.Top ?? 40}"
-            };
-            if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-            var filter = BuildFilter();
-            if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
-            if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
-
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(
-                $"/api/VPPRequest/products?{string.Join("&", query)}");
-            ProductOptions = result.Data ?? [];
-            ProductCount = result.TotalCount;
+                var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(
+                    $"/api/VPPRequest/products?skip={skip}&top={SnapshotBatchSize}&orderby=VppName");
+                var batch = result.Data ?? [];
+                _allProductOptions.AddRange(batch);
+                if (_allProductOptions.Count >= result.TotalCount || batch.Count == 0) break;
+            }
+            BuildFilterOptions();
+            ApplyProductFilters();
         }
         catch (Exception ex)
         {
@@ -429,51 +438,67 @@
         try
         {
             await Task.Delay(300, _searchDebounceCts.Token);
-            await ReloadProductsAsync();
+            ApplyProductFilters();
         }
         catch (OperationCanceledException)
         {
         }
     }
 
-    private async Task OnCategoryChanged(string value)
+    private Task OnCategoryChanged(string value)
     {
         CategoryFilter = string.IsNullOrWhiteSpace(value) ? null : value;
-        await ReloadProductsAsync();
+        CloseProductTransientSurfaces();
+        ApplyProductFilters();
+        return Task.CompletedTask;
     }
 
-    private async Task OnUnitChanged(string value)
+    private Task OnUnitChanged(string value)
     {
         UnitFilter = string.IsNullOrWhiteSpace(value) ? null : value;
-        await ReloadProductsAsync();
+        CloseProductTransientSurfaces();
+        ApplyProductFilters();
+        return Task.CompletedTask;
     }
 
-    private async Task ClearFiltersAsync()
+    private Task ClearFiltersAsync()
     {
         SearchText = null;
         CategoryFilter = null;
         UnitFilter = null;
-        await ReloadProductsAsync();
+        CloseProductTransientSurfaces();
+        ApplyProductFilters();
+        return Task.CompletedTask;
     }
 
-    private async Task ReloadProductsAsync()
+    private void ApplyProductFilters()
     {
-        if (productGrid is not null)
+        var search = SearchText?.Trim();
+        ProductOptions = _allProductOptions.Where(item =>
+                (string.IsNullOrEmpty(search)
+                    || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
+                    || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+                && (string.IsNullOrEmpty(CategoryFilter) || string.Equals(item.VppCategoryName, CategoryFilter, StringComparison.CurrentCultureIgnoreCase))
+                && (string.IsNullOrEmpty(UnitFilter) || string.Equals(item.UomName, UnitFilter, StringComparison.CurrentCultureIgnoreCase)))
+            .ToList();
+        ProductCount = ProductOptions.Count;
+        _visibleRowNumbers.Clear();
+        _ = productGrid?.Reload();
+    }
+
+    private void ToggleProductCode(Guid id)
+        => _openProductCodeId = _openProductCodeId == id ? null : id;
+
+    private void CloseProductTransientSurfaces()
+        => _openProductCodeId = null;
+
+    private async Task CopyProductCodeAsync(string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
         {
-            await productGrid.Reload();
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", value);
         }
     }
-
-    private string? BuildFilter()
-    {
-        var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(CategoryFilter)) parts.Add($"VppCategoryName == \"{EscapeFilterValue(CategoryFilter)}\"");
-        if (!string.IsNullOrWhiteSpace(UnitFilter)) parts.Add($"UomName == \"{EscapeFilterValue(UnitFilter)}\"");
-        return parts.Count == 0 ? null : string.Join(" && ", parts);
-    }
-
-    private static string EscapeFilterValue(string value)
-        => value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
 
     private bool IsSelected(Guid id) => Context.SelectedItems.Any(item => item.VppId == id);
 
@@ -541,7 +566,7 @@
             return;
         }
 
-        _visibleRowNumbers[args.Data] = _currentSkip + args.Index + 1;
+        _visibleRowNumbers[args.Data] = args.Index + 1;
         if (IsSelected(args.Data.Id))
         {
             args.Attributes["class"] = "vpp-wizard-row-selected";

@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -20,6 +21,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         [Parameter] public EventCallback OnSettled { get; set; }
 
         private readonly List<int> months = Enumerable.Range(1, 12).ToList();
+        private IReadOnlyList<VppFilterOption<int>> ReviewYearOptions => Enumerable.Range(2024, 7)
+            .Select(year => new VppFilterOption<int>(year, year.ToString()))
+            .ToArray();
+        private IReadOnlyList<VppFilterOption<int>> ReviewMonthOptions => months
+            .Select(month => new VppFilterOption<int>(month, month.ToString("00")))
+            .ToArray();
         private readonly HashSet<Guid> loadedDetailOrderIds = new();
         private readonly HashSet<Guid> loadingDetailOrderIds = new();
         private List<VppRequestResDTO> orders = [];

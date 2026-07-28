@@ -1387,6 +1387,30 @@ leftsidebar {
 }
 
 /* Atlas period-review: hero trạng thái chốt + readiness list nêu đích danh nguyên nhân. */
+.vpp-period-review-toolbar-card {
+    overflow: visible;
+}
+
+.vpp-period-review-toolbar {
+    display: grid;
+    grid-template-columns: minmax(120px, 180px) minmax(120px, 180px) auto;
+    justify-content: start;
+}
+
+.vpp-period-review-data-surface {
+    min-height: 0;
+}
+
+@media (max-width: 768px) {
+    .vpp-period-review-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vpp-period-review-toolbar .rz-button {
+        width: 100%;
+    }
+}
+
 .vpp-period-hero {
     display: flex;
     flex-wrap: wrap;

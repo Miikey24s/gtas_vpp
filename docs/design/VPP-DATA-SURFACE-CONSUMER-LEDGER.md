@@ -1,6 +1,6 @@
 # VPP Data Surface Consumer Ledger
 
-> Snapshot: `2026-07-29` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS1 DONE; DS2 IMPLEMENTED — OWNER REVIEW`
+> Snapshot: `2026-07-29` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS2 DONE; DS3 IMPLEMENTED — OWNER REVIEW`
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 
@@ -22,12 +22,12 @@ Source hiện có **19 file / 25 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 2 | Approval + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
 | `Components/Pages/VPPRequest/Components/PeriodDemandPanel.razor` | 1 | Demand collection | `Static` + client pager | `RichTwoLine` | DS3 |
-| `Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor` | 2 | Review + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
+| `Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor` | 2 | Review + detail | `ServerPaging` + `Static` | `Compact` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor` | 1 | Allocation comparison | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
-| `Components/Pages/VPPRequest/OrderCreateStep2.razor` | 1 | Orderable catalog | legacy server-window virtualization → `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
+| `Components/Pages/VPPRequest/OrderCreateStep2.razor` | 1 | Orderable catalog | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_AllOrdersSummary.razor` | 2 | Orders + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
-| `Components/Pages/VPPRequest/Tabs/Tab_DepartmentSummary.razor` | 1 | Department orders | `ServerPaging` | `Compact` | DS3 |
+| `Components/Pages/VPPRequest/Tabs/Tab_DepartmentSummary.razor` | 1 | Department orders | `ServerPaging` | `Compact` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
 
 ## Custom list/table inventory
@@ -59,3 +59,9 @@ Source hiện có **19 file / 25 DataGrid thật**. Generic type reference trong
 - `HistoryOrderList`: canonical search/select/clear, typed server-paged frame và compact density; không còn route-owned filter menu/CSS/state.
 - `VppOrderItemsSurface`: canonical filters, typed client-snapshot virtualized frame, rich two-line rows và virtual footer dùng chung cho History detail + My Orders.
 - `Tab_ProductCatalog`: canonical toolbar trong typed server-paged frame, rich two-line bridge và giữ API/paging/sort hiện hữu.
+
+## DS3 workflow group
+
+- `OrderCreateStep2`: client snapshot theo batch, virtualized DOM thật, canonical toolbar/code popup/virtual footer; scroll không gọi lại API.
+- `Tab_DepartmentSummary`: canonical server-paged frame/toolbar/compact rows; filter dùng container-responsive layout trong master/detail.
+- `PeriodReviewPanel`: canonical year/month toolbar và server-paged frame; route giữ reload/readiness/settlement action, empty state vẫn có semantics.

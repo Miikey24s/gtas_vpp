@@ -1,6 +1,6 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DS0–DS1 DONE; DS2 IMPLEMENTED — OWNER REVIEW; DS3–DS4/R1 LOCKED`
+> Trạng thái: `DS0–DS2 DONE; DS3 IMPLEMENTED — OWNER REVIEW; DS4/R1 LOCKED`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
@@ -26,8 +26,8 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 |---|---|---|---|---|---|
 | DS0 — Contract | `DONE — OWNER APPROVED 2026-07-29` | Khóa motif, density, footer mode và consumer ledger | Một board nhìn là hiểu toàn hệ thống | **Sol · XHigh** — quyết định kiến trúc dài hạn | Đã duyệt motif và hai density profile |
 | DS1 — Foundation | `DONE — OWNER APPROVED 2026-07-29` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Đã duyệt 2 route đại diện |
-| DS2 — Reference | `IMPLEMENTED — OWNER REVIEW` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Duyệt board danh sách + chi tiết |
-| DS3 — Workflow | `LOCKED — PENDING DS2 REVIEW` | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route thật |
+| DS2 — Reference | `DONE — OWNER APPROVED 2026-07-29` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Đã duyệt và mở DS3 |
+| DS3 — Workflow | `IMPLEMENTED — OWNER REVIEW` | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route/state thật |
 | DS4 — Admin | `LOCKED` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Duyệt admin board |
 | R1 — Refactor | `LOCKED` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
 
@@ -207,6 +207,16 @@ Gate: History list/detail + My Orders + Catalog giống motif, nhưng không đ�
 - Kiểm tra empty, filtered-empty, loading, error và long-data.
 
 Gate: board 4 route thật, console/network sạch và không document-level scroll ngoài contract.
+
+#### DS3 implementation record — 2026-07-29
+
+- Owner mở DS3 sau khi review xong DS2; DS2 được ghi nhận `DONE — OWNER APPROVED` và DS4/R1 vẫn khóa.
+- Create Order catalog dùng `ClientSnapshotVirtualized`: tải toàn snapshot theo batch `100`, filter client, Radzen chỉ mount viewport + overscan; cuộn không phát thêm request `/api/VPPRequest/products` và không hiện loading theo cửa sổ. Grid được khóa viewport hữu hạn để virtualization thực sự hoạt động, không chỉ bật cờ.
+- Create Order dùng shared toolbar/filter/clear, `RichTwoLine`, virtual footer và `VppCellValuePopover` cho code; draft/action/note/submit vẫn do route sở hữu.
+- Department Summary dùng shared toolbar + typed server-paged frame, compact density và pager hiện hữu; filter responsive theo độ rộng khung master nên không bị cắt khi master/detail chia đôi. API, permission, row selection và detail-on-demand không đổi.
+- Period Review dùng shared year/month select và typed server-paged frame; reload, readiness, chốt kỳ và các action nghiệp vụ không được đưa vào shared component. Empty-period fixture vẫn hiển thị content state thay vì grid rỗng.
+- Visual evidence ignored: `tmp/ds3-review/f4-review-order-create-1920x1080.png`, `ds3-order-create-code-popover-1920x1080.png`, `ds3-department-summary-1366x768.png`, `ds3-period-review-1366x768.png`.
+- Evidence hiện tại: Release build `0 warning / 0 error`; frontend unit/architecture `196/196` pass; isolated Playwright Create Order + Department Summary + Period Review `3/3` pass. `verify -Scope frontend` chỉ dừng tại `model-routing-eval` của change-set AI-harness có sẵn ngoài DS3 (`62/63` setup checks pass); owner visual review còn là gate đóng DS3.
 
 ### DS4 — Library, admin và permission
 

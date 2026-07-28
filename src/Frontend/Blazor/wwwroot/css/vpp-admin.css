@@ -1489,14 +1489,14 @@
 }
 
 /* Atlas department-summary: toolbar tìm kiếm/lọc trên đầu card danh sách đơn. */
+.vpp-department-data-surface {
+    container-type: inline-size;
+}
+
 .vpp-atlas-orders-toolbar {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--vpp-space-2);
-    padding: var(--vpp-space-3) var(--vpp-space-4);
-    border-bottom: 1px solid var(--vpp-border-default);
 }
 
 .vpp-atlas-orders-toolbar h3 {
@@ -1505,12 +1505,12 @@
 }
 
 .vpp-atlas-orders-filters {
-    display: flex;
+    display: grid;
     flex: 1 1 480px;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
-    gap: var(--vpp-space-2);
+    grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(118px, 150px)) repeat(2, minmax(84px, 104px)) auto;
+    min-width: 0;
+    width: 100%;
 }
 
 .vpp-atlas-orders-filters .vpp-order-view-search {
@@ -1885,6 +1885,62 @@
 @media (min-width: 1281px) {
     .vpp-admin-class-split .rz-splitter-pane:first-child {
         min-width: 397px;
+    }
+}
+
+@media (max-width: 1199px) {
+    .vpp-atlas-orders-toolbar {
+        display: grid;
+        align-items: stretch;
+    }
+
+    .vpp-atlas-orders-filters {
+        grid-template-columns: minmax(0, 1fr) repeat(2, minmax(112px, 1fr));
+    }
+
+    .vpp-atlas-orders-filters .vpp-filter-search {
+        grid-column: 1 / -1;
+    }
+}
+
+@container (max-width: 900px) {
+    .vpp-atlas-orders-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+
+    .vpp-atlas-orders-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .vpp-atlas-orders-filters .vpp-filter-search {
+        grid-column: 1 / -1;
+    }
+
+    .vpp-atlas-orders-filters .vpp-clear-filters {
+        width: 100%;
+    }
+}
+
+@container (max-width: 620px) {
+    .vpp-atlas-orders-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vpp-atlas-orders-filters .vpp-filter-search,
+    .vpp-atlas-orders-filters .vpp-clear-filters {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 767px) {
+    .vpp-atlas-orders-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vpp-atlas-orders-filters > * {
+        grid-column: 1;
     }
 }
 

@@ -238,6 +238,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("vpp-order-action-save", selection, StringComparison.Ordinal);
         Assert.Contains("vpp-order-action-note", selection, StringComparison.Ordinal);
         Assert.Contains("popovertarget=\"@GetItemNotePopoverId(item)\"", selection, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", selection, StringComparison.Ordinal);
+        Assert.Contains("SnapshotBatchSize = 100", selection, StringComparison.Ordinal);
+        Assert.Contains("VppDataFooterMode.Virtualized", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("LoadData=", selection, StringComparison.Ordinal);
         Assert.Contains("AllowVirtualization=\"true\"", selection, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"false\"", selection, StringComparison.Ordinal);
     }

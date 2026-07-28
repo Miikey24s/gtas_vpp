@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
@@ -34,6 +35,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<OptionItem> MonthOptions { get; } = new();
         public List<OptionItem> StatusOptions { get; } = new();
         public List<OptionItem> OrderTypeOptions { get; } = new();
+        protected IReadOnlyList<VppFilterOption<int?>> YearFilterOptions => YearOptions.Select(option => new VppFilterOption<int?>(option.Value, option.Text)).ToArray();
+        protected IReadOnlyList<VppFilterOption<int?>> MonthFilterOptions => MonthOptions.Select(option => new VppFilterOption<int?>(option.Value, option.Text)).ToArray();
+        protected IReadOnlyList<VppFilterOption<int?>> StatusFilterOptions => StatusOptions.Select(option => new VppFilterOption<int?>(option.Value, option.Text)).ToArray();
+        protected IReadOnlyList<VppFilterOption<int?>> OrderTypeFilterOptions => OrderTypeOptions.Select(option => new VppFilterOption<int?>(option.Value, option.Text)).ToArray();
 
         protected override bool CanView => HasDashboardPermission(Permissions.RequestDepartmentSummary);
         protected override string ErrorSummary => Loc["DepartmentSummary"];
@@ -78,14 +83,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             var currentYear = DateTime.Now.Year;
             YearOptions.Clear();
-            YearOptions.Add(new OptionItem { Value = null, Text = Loc["All"] });
+            YearOptions.Add(new OptionItem { Value = null, Text = Loc["AllYears"] });
             for (var i = currentYear - 3; i <= currentYear + 1; i++)
             {
                 YearOptions.Add(new OptionItem { Value = i, Text = i.ToString() });
             }
 
             MonthOptions.Clear();
-            MonthOptions.Add(new OptionItem { Value = null, Text = Loc["All"] });
+            MonthOptions.Add(new OptionItem { Value = null, Text = Loc["AllMonths"] });
             for (var i = 1; i <= 12; i++)
             {
                 MonthOptions.Add(new OptionItem { Value = i, Text = i.ToString("00") });
