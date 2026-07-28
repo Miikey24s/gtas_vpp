@@ -4,8 +4,10 @@
 @inject GlobalClass glb
 @typeparam TType
 
-<div class="vpp-atlas-admin-workspace">
-<div class="vpp-atlas-admin-collection">
+<VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
+                        ListClass="vpp-atlas-admin-collection"
+                        DetailClass="vpp-atlas-admin-inspector">
+<List>
 <RadzenDataGrid @ref="DataGrid"
                 data-vpp-grid-region="true"
                 aria-label="@GridAriaLabel"
@@ -283,9 +285,9 @@
         }
     </Columns>
 </RadzenDataGrid>
-</div>
+</List>
 
-<aside class="vpp-atlas-admin-inspector" aria-live="polite">
+<Detail>
     @if (SelectedRecord is not null)
     {
         <Component_RecordInspector TItem="TType"
@@ -304,8 +306,8 @@
             <span>Bảng vẫn hỗ trợ lọc, sắp xếp, phân trang và chỉnh sửa theo quyền hiện có.</span>
         </div>
     }
-</aside>
-</div>
+</Detail>
+</VppListDetailWorkspace>
 
 @code {
     public IList<TType> selected_item = new List<TType>();

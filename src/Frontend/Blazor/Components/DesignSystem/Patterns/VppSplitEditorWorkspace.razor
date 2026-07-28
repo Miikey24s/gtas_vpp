@@ -1,0 +1,52 @@
+@if (Resizable)
+{
+    <div class="@RootClass" data-vpp-workspace-pattern="split-editor">
+        <RadzenSplitter class="@($"vpp-split-editor-control {SplitterClass}")">
+            <RadzenSplitterPane Size="@PrimarySize" Min="@PrimaryMin" Max="@PrimaryMax">
+                @Primary
+            </RadzenSplitterPane>
+            <RadzenSplitterPane>
+                @Secondary
+            </RadzenSplitterPane>
+        </RadzenSplitter>
+    </div>
+}
+else
+{
+    <div class="@RootClass" data-vpp-workspace-pattern="split-editor">
+        @Primary
+        @Secondary
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment? Primary { get; set; }
+    [Parameter, EditorRequired] public RenderFragment? Secondary { get; set; }
+    [Parameter] public VppSplitEditorRatio Ratio { get; set; } = VppSplitEditorRatio.Balanced;
+    [Parameter] public bool Resizable { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? SplitterClass { get; set; }
+
+    private string RootClass => $"vpp-split-editor-workspace {(Resizable ? "is-resizable" : "is-fixed")} is-ratio-{Ratio.ToString().ToLowerInvariant()} {Class}";
+
+    private string PrimarySize => Ratio switch
+    {
+        VppSplitEditorRatio.CompactPrimary => "31%",
+        VppSplitEditorRatio.WidePrimary => "64%",
+        _ => "50%"
+    };
+
+    private string PrimaryMin => Ratio switch
+    {
+        VppSplitEditorRatio.CompactPrimary => "24%",
+        VppSplitEditorRatio.WidePrimary => "50%",
+        _ => "30%"
+    };
+
+    private string PrimaryMax => Ratio switch
+    {
+        VppSplitEditorRatio.CompactPrimary => "38%",
+        VppSplitEditorRatio.WidePrimary => "75%",
+        _ => "70%"
+    };
+}

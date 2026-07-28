@@ -1,0 +1,25 @@
+<div class="@RootClass"
+     data-vpp-workspace-pattern="analytics"
+     aria-busy="@IsBusy"
+     aria-labelledby="@LabelledBy">
+    @Context
+    @Summary
+    @Visualization
+    @ChildContent
+    @Detail
+</div>
+
+@code {
+    [Parameter] public RenderFragment? Context { get; set; }
+    [Parameter] public RenderFragment? Summary { get; set; }
+    [Parameter] public RenderFragment? Visualization { get; set; }
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Detail { get; set; }
+    [Parameter] public VppWorkspaceGap Gap { get; set; } = VppWorkspaceGap.Standard;
+    [Parameter] public bool FillAvailableSpace { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public string? LabelledBy { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string RootClass => $"vpp-analytics-workspace-pattern is-gap-{Gap.ToString().ToLowerInvariant()} {(FillAvailableSpace ? "is-fill" : null)} {Class}";
+}

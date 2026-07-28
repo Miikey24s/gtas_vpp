@@ -1,55 +1,14 @@
-<main class="@PageClass">
-    <div class="@ShellClass">
-        @if (ShowArtwork)
-        {
-            <div class="vpp-login-art" aria-hidden="true">
-                <img class="vpp-login-art-image"
-                     src="@Assets["images/login-bg-gtas.png"]"
-                     width="1678"
-                     height="937"
-                     loading="eager"
-                     fetchpriority="high"
-                     decoding="async"
-                     alt="" />
-            </div>
-        }
-
-        <section class="vpp-login-card" aria-labelledby="@TitleId">
-            <div class="vpp-login-card-inner">
-                <div class="vpp-account-topbar">
-                    @if (ShowBrand)
-                    {
-                        <a class="vpp-account-brand" href="@Config.LoginPagePath" aria-label="GTAS VPP">
-                            <VppBrandMark />
-                            <strong>GTAS VPP</strong>
-                        </a>
-                    }
-                    <VppLanguageSwitch />
-                </div>
-
-                <header class="vpp-login-header">
-                    @if (!string.IsNullOrWhiteSpace(Eyebrow))
-                    {
-                        <div class="vpp-account-eyebrow">@Eyebrow</div>
-                    }
-                    <h1 class="vpp-login-title" id="@TitleId">
-                        @Title
-                        @if (!string.IsNullOrWhiteSpace(Accent))
-                        {
-                            <span class="vpp-login-title-accent">@Accent</span>
-                        }
-                    </h1>
-                    @if (!string.IsNullOrWhiteSpace(Description))
-                    {
-                        <p class="vpp-account-description">@Description</p>
-                    }
-                </header>
-
-                @ChildContent
-            </div>
-        </section>
-    </div>
-</main>
+<VppAccountWorkspace Title="@Title"
+                     Accent="@Accent"
+                     Eyebrow="@Eyebrow"
+                     Description="@Description"
+                     TitleId="@TitleId"
+                     ShowArtwork="@ShowArtwork"
+                     ShowBrand="@ShowBrand"
+                     Compact="@Compact"
+                     Scrollable="@Scrollable">
+    @ChildContent
+</VppAccountWorkspace>
 
 @code {
     [Parameter, EditorRequired]
@@ -82,14 +41,4 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private string PageClass => string.Join(
-        " ",
-        new[]
-        {
-            "vpp-login-page",
-            Compact ? "vpp-account-page-compact" : null,
-            Scrollable ? "vpp-account-page-scrollable" : null
-        }.Where(value => !string.IsNullOrWhiteSpace(value)));
-
-    private string ShellClass => "vpp-login-shell";
 }

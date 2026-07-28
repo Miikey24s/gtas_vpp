@@ -6,7 +6,9 @@
 
 @if (CanView)
 {
-    <RadzenStack Gap="1rem" class="rz-p-0 rz-p-md-2">
+    <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Comfortable"
+                           IsBusy="@(IsLoading || IsGridLoading)"
+                           Class="rz-p-0 rz-p-md-2">
 
         @* ── KPI Summary ────────────────────────────────────── *@
         @if (IsLoading)
@@ -313,7 +315,7 @@
             </aside>
             </div>
         }
-    </RadzenStack>
+    </VppAnalyticsWorkspace>
 }
 else
 {

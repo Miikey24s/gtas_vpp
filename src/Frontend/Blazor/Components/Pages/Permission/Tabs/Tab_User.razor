@@ -15,8 +15,11 @@
 
 @if (PermissionState.HasPermission(Permissions.PermissionView))
 {
-    <div class="vpp-atlas-admin-workspace vpp-atlas-user-workspace">
-    <div class="vpp-atlas-admin-collection">
+    <VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
+                            Class="vpp-atlas-user-workspace"
+                            ListClass="vpp-atlas-admin-collection"
+                            DetailClass="vpp-atlas-admin-inspector">
+    <List>
     <RadzenDataGrid @ref="userGrid"
                     TItem="UserAdministrationResDTO"
                     Data="@users"
@@ -254,8 +257,8 @@
                                   Pickable="true" />
         </Columns>
     </RadzenDataGrid>
-    </div>
-    <aside class="vpp-atlas-admin-inspector" aria-live="polite">
+    </List>
+    <Detail>
         @if (SelectedUser is not null)
         {
             <Component_RecordInspector TItem="UserAdministrationResDTO" Record="SelectedUser" />
@@ -268,8 +271,8 @@
                 <span>@Loc["UserAdministrationBackendHint"]</span>
             </div>
         }
-    </aside>
-    </div>
+    </Detail>
+    </VppListDetailWorkspace>
 }
 else
 {

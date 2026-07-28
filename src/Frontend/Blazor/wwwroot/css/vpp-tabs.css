@@ -197,16 +197,17 @@
 .vpp-admin-tabs > .rz-tabview-nav {
     box-sizing: border-box;
     position: sticky !important;
-    top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-layout-body-inset));
+    top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-page-inset-block-start));
     z-index: var(--vpp-z-sticky);
-    width: calc(100% + (2 * var(--vpp-layout-body-inset)));
+    width: calc(100% + var(--vpp-page-inset-inline-start) + var(--vpp-page-inset-inline-end));
     max-width: none;
     height: var(--vpp-library-primary-tabs-height) !important;
     min-height: var(--vpp-library-primary-tabs-height) !important;
     max-height: var(--vpp-library-primary-tabs-height) !important;
-    margin-block-start: calc(-1 * var(--vpp-layout-body-inset));
-    margin-block-end: var(--vpp-layout-body-inset);
-    margin-inline: calc(-1 * var(--vpp-layout-body-inset));
+    margin-block-start: calc(-1 * var(--vpp-page-inset-block-start));
+    margin-block-end: var(--vpp-page-inset-block-start);
+    margin-inline-start: calc(-1 * var(--vpp-page-inset-inline-start));
+    margin-inline-end: calc(-1 * var(--vpp-page-inset-inline-end));
     background: var(--vpp-navigation-chrome-bg);
     border: 0;
     border-bottom: 0;

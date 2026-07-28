@@ -2,7 +2,9 @@
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using Radzen
 
-<RadzenStack Gap="2rem" class="rz-p-0 rz-p-md-2">
+<VppOperationWorkspace Gap="VppWorkspaceGap.Spacious"
+                       IsBusy="@(IsLoading || IsGridLoading)"
+                       Class="rz-p-0 rz-p-md-2">
     <div class="vpp-section">
         <RadzenStack Gap="1rem">
             @if (IsLoading)
@@ -251,7 +253,7 @@
             }
         </RadzenStack>
     </div>
-</RadzenStack>
+</VppOperationWorkspace>
 
 @code {
     [Parameter, EditorRequired] public List<VppRequestResDTO> Orders { get; set; } = [];

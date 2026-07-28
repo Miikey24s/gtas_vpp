@@ -1,0 +1,12 @@
+.vpp-operation-workspace-pattern {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.is-gap-compact { gap: var(--vpp-space-2); }
+.is-gap-standard { gap: var(--vpp-space-3); }
+.is-gap-comfortable { gap: var(--vpp-space-4); }
+.is-gap-relaxed { gap: var(--vpp-space-5); }
+.is-gap-spacious { gap: var(--vpp-space-8); }

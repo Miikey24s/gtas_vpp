@@ -5,6 +5,9 @@
 @* Coordinator màn Lịch sử: giữ toàn bộ state và handler; markup từng vùng Atlas nằm trong 5 component con
    (HistoryScopeBar · HistoryKpiCards · HistoryTrendChart · HistoryOrderList · HistoryOrderDetailSheet). *@
 <div class="vpp-history-page @(_isSummaryLoading && !_isInitialLoading ? "is-summary-refreshing" : string.Empty) @(IsGridLoading && !_isInitialLoading ? "is-grid-refreshing" : string.Empty)" @ref="_historyRoot" aria-busy="@IsRefreshing">
+    <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Compact"
+                           FillAvailableSpace="true"
+                           IsBusy="@IsRefreshing">
     @if (!CanView)
     {
         <VppEmptyState Icon="lock"
@@ -138,4 +141,5 @@
                              DetailCodeToggled="@ToggleDetailCode"
                              DetailNoteToggled="@ToggleDetailNote"
                              CopyRequested="@CopyTextAsync" />
+    </VppAnalyticsWorkspace>
 </div>

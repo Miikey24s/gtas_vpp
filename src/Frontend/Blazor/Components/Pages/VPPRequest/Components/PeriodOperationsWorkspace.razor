@@ -1,6 +1,8 @@
 @using System.Security.Claims
 
-<div class="vpp-period-workspace rz-p-0 rz-p-md-2">
+<VppOperationWorkspace Gap="VppWorkspaceGap.Relaxed"
+                       Class="vpp-period-workspace rz-p-0 rz-p-md-2">
+    <Header>
     <header class="vpp-period-workspace-header">
         <div>
             <span class="vpp-period-eyebrow">@Loc["PeriodOperations"]</span>
@@ -30,7 +32,9 @@
             <button type="button" @onclick="@(() => NavigateRequested.InvokeAsync("review"))"><b>4</b> @Loc["PeriodSettleStep"]</button>
         </nav>
     </header>
+    </Header>
 
+    <ChildContent>
     @if (ShowDemand)
     {
         <PeriodDemandPanel Claims="@Claims" />
@@ -57,7 +61,8 @@
             <PeriodSettlementPanel OnSettled="@Settled" />
         </section>
     }
-</div>
+    </ChildContent>
+</VppOperationWorkspace>
 
 @code {
     [Parameter] public IEnumerable<Claim>? Claims { get; set; }

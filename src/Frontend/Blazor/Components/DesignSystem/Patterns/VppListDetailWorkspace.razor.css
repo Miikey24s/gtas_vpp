@@ -1,0 +1,30 @@
+.vpp-list-detail-workspace {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-list-detail-workspace.is-ratio-standard {
+    grid-template-columns: minmax(0, 1.8fr) minmax(19rem, 0.8fr);
+}
+
+.vpp-list-detail-workspace.is-ratio-widelist {
+    grid-template-columns: minmax(0, 2.1fr) minmax(18rem, 1fr);
+}
+
+.vpp-list-detail-workspace-list,
+.vpp-list-detail-workspace-detail {
+    min-width: 0;
+    min-height: 0;
+}
+
+@media (max-width: 1100px) {
+    .vpp-list-detail-workspace {
+        grid-template-columns: 1fr;
+    }
+}

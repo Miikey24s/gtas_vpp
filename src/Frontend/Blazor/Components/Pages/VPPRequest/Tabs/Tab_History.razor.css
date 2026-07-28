@@ -1,10 +1,9 @@
 .vpp-history-page {
     --vpp-history-inline-pill-height: 22px;
     position: relative;
-    display: grid;
+    display: block;
     width: 100%;
     min-width: 0;
-    gap: var(--vpp-space-2);
     padding: var(--vpp-space-1) var(--vpp-space-1) var(--vpp-space-4);
     overflow-x: clip;
     font-family: var(--vpp-font-sidebar);
@@ -1402,6 +1401,9 @@
         min-height: 0;
         overflow: hidden;
         padding-bottom: 0;
+    }
+
+    .vpp-history-page ::deep .vpp-analytics-workspace-pattern {
         grid-template-columns: minmax(0, 1.45fr) minmax(420px, 0.95fr);
         grid-template-rows: auto auto auto minmax(0, 1fr);
         align-content: stretch;

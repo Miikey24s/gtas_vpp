@@ -7,9 +7,7 @@
 }
 
 .vpp-order-builder {
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.8fr);
-    gap: var(--vpp-space-3);
+    display: block;
 }
 
 .vpp-order-builder-catalog,

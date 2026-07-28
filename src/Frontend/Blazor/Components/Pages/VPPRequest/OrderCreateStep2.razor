@@ -3,6 +3,8 @@
 
 <div class="wizard-step wizard-step-products">
     <div class="vpp-order-builder">
+        <VppSplitEditorWorkspace Ratio="VppSplitEditorRatio.WidePrimary">
+        <Primary>
         <section class="vpp-order-builder-catalog" aria-labelledby="order-catalog-title">
             <header class="vpp-order-builder-section-header">
                 <div>
@@ -104,7 +106,9 @@
             </div>
             <footer class="vpp-order-builder-data-footer">@Loc["VirtualizedCatalogSummary", ProductCount]</footer>
         </section>
+        </Primary>
 
+        <Secondary>
         <aside class="vpp-order-draft" aria-labelledby="order-draft-title">
             <header class="vpp-order-draft-header">
                 <div>
@@ -274,6 +278,8 @@
                 </footer>
             </div>
         </aside>
+        </Secondary>
+        </VppSplitEditorWorkspace>
     </div>
 </div>
 

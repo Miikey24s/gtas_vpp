@@ -184,18 +184,19 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("content: none;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-layout-body-inset: var(--rz-layout-body-padding-1, var(--vpp-space-2));", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-layout-body-inset: var(--vpp-page-inset-inline-start);", layoutCss, StringComparison.Ordinal);
         Assert.DoesNotContain("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
         Assert.Contains("gap: 0 !important;", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("width: calc(100% + (2 * var(--vpp-layout-body-inset)));", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("margin-inline: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("margin-block-start: calc(-1 * var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("margin-block-end: var(--vpp-layout-body-inset);", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("width: calc(100% + var(--vpp-page-inset-inline-start) + var(--vpp-page-inset-inline-end));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline-start: calc(-1 * var(--vpp-page-inset-inline-start));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-inline-end: calc(-1 * var(--vpp-page-inset-inline-end));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-block-start: calc(-1 * var(--vpp-page-inset-block-start));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("margin-block-end: var(--vpp-page-inset-block-start);", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".librariestab > .rz-tabview-panels", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border: 0 !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("background: transparent !important;", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-layout-body-inset));", tabsCss, StringComparison.Ordinal);
+        Assert.Contains("top: calc(var(--vpp-tabs-sticky-top) - var(--vpp-page-inset-block-start));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("display: flow-root;", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-admin-tabs .rz-tabview-nav-container", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
@@ -560,6 +561,71 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void WorkspacePatterns_AreTypedAndBackedByRealConsumers()
+    {
+        var root = GetFrontendRoot();
+        var patternsRoot = Path.Combine(root, "Components", "DesignSystem", "Patterns");
+        var patternFiles = new[]
+        {
+            "VppAccountWorkspace.razor",
+            "VppCollectionWorkspace.razor",
+            "VppListDetailWorkspace.razor",
+            "VppSplitEditorWorkspace.razor",
+            "VppOperationWorkspace.razor",
+            "VppAnalyticsWorkspace.razor"
+        };
+
+        foreach (var file in patternFiles)
+        {
+            Assert.True(File.Exists(Path.Combine(patternsRoot, file)), $"Missing workspace pattern: {file}");
+        }
+
+        var patternSource = string.Join(
+            Environment.NewLine,
+            Directory.GetFiles(patternsRoot, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(path => path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                .Select(File.ReadAllText));
+        Assert.DoesNotContain("UniversalPage", patternSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("UniversalGrid", patternSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("System.Reflection", patternSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", patternSource, StringComparison.Ordinal);
+        Assert.Contains("VppListDetailRatio", patternSource, StringComparison.Ordinal);
+        Assert.Contains("VppSplitEditorRatio", patternSource, StringComparison.Ordinal);
+        Assert.Contains("RenderFragment", patternSource, StringComparison.Ordinal);
+
+        var accountShell = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppAccountShell.razor"));
+        var authRoot = Path.Combine(root, "Components", "Pages", "Authen");
+        var accountConsumerCount = Directory.GetFiles(authRoot, "*.razor", SearchOption.TopDirectoryOnly)
+            .Sum(path => File.ReadAllText(path).Split("<VppAccountShell", StringSplitOptions.None).Length - 1);
+        Assert.Contains("<VppAccountWorkspace", accountShell, StringComparison.Ordinal);
+        Assert.True(accountConsumerCount >= 2, "Account pattern needs at least two real route consumers.");
+
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor", "<VppCollectionWorkspace");
+        AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor", "<VppCollectionWorkspace");
+        AssertPatternConsumer(root, "Pages", "Lib", "Component_ShareGrid.razor", "<VppListDetailWorkspace");
+        AssertPatternConsumer(root, "Pages", "Permission", "Tabs", "Tab_User.razor", "<VppListDetailWorkspace");
+        AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor", "<VppSplitEditorWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "OrderCreateStep2.razor", "<VppSplitEditorWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodOperationsWorkspace.razor", "<VppOperationWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor", "<VppOperationWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_History.razor", "<VppAnalyticsWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor", "<VppAnalyticsWorkspace");
+
+        var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+        foreach (var token in new[]
+                 {
+                     "--vpp-page-inset-block-start",
+                     "--vpp-page-inset-inline-end",
+                     "--vpp-page-inset-block-end",
+                     "--vpp-page-inset-inline-start"
+                 })
+        {
+            Assert.Contains(token, tokens, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void OrderDetailComposite_UsesTypedVariantsAndKeepsRouteActionsOutside()
     {
         var root = GetFrontendRoot();
@@ -597,6 +663,13 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("CancelRequested", surface, StringComparison.Ordinal);
         Assert.Contains("CancelRequested", orderPanel, StringComparison.Ordinal);
         Assert.Contains("ExportRequested", historyDrawer, StringComparison.Ordinal);
+    }
+
+    private static void AssertPatternConsumer(string root, string first, params string[] pathAndMarker)
+    {
+        var marker = pathAndMarker[^1];
+        var path = Path.Combine(new[] { root, "Components", first }.Concat(pathAndMarker[..^1]).ToArray());
+        Assert.Contains(marker, File.ReadAllText(path), StringComparison.Ordinal);
     }
 
     [Fact]

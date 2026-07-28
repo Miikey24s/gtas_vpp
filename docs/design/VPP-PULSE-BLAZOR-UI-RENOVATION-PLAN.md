@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.78` — 2026-07-28
+> **Phiên bản:** `2.79` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0/F1/F2 DONE; F3 IMPLEMENTED — OWNER REVIEW`.
+> **Trạng thái:** `F0/F1/F2/F3 DONE; F4 IMPLEMENTED — OWNER REVIEW`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,10 +24,10 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | F3 review round 4: My Orders và History dùng chung cả focus/hover, popup, row feedback, scroll ảo nội bộ, header grid cố định và footer; chỉ header nghiệp vụ và độ rộng route khác nhau. | [Kết quả F3](../execution/UI-SYSTEM-001.md#53-f3-execution-record--2026-07-28) |
+| Bước code hiện tại? | F4 đã tạo sáu workspace pattern typed, khóa page outer inset và chứng minh hai consumer thật cho từng pattern; chưa mở F5. | [Kết quả F4](../execution/UI-SYSTEM-001.md#54-f4-execution-record--2026-07-28) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Duyệt board F3 round 4 ở cả trạng thái tĩnh và interaction: popup filter, focus/hover, row hover, footer và scroll 500 dòng; chỉ header và độ rộng được phép khác. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
+| Cần owner duyệt gì? | Duyệt board F4: sáu archetype giữ đúng layout/behavior route cũ, khoảng cách page nhất quán với header/sidebar và không xuất hiện khung “vạn năng”. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -77,7 +77,7 @@ Khi có xung đột:
 - Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
 - Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; dependency Playwright dùng chung đã chuyển vào `scripts/browser/`.
 - Mọi UI work tiếp theo phải sửa trực tiếp `src/Frontend/Blazor`, dùng API/DTO và database TEST hoặc isolated fixture thật.
-- Thứ tự hiện tại: Atlas `ATLAS-001` hoàn tất → F0/F1 đã tích hợp và F1 được owner xác nhận → F2 đã qua implementation + independent review/fix → F3 đang khóa review round 4 cho interaction/scroll parity, chờ owner review trước F4.
+- Thứ tự hiện tại: Atlas `ATLAS-001` hoàn tất → F0/F1 đã tích hợp → F2 qua implementation + independent review/fix → F3 owner-approved → F4 implemented/tested, chờ owner review trước F5.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
 
 **Bằng chứng kích hoạt lại Blazor/Radzen — 2026-07-21:**
@@ -1252,6 +1252,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-28 | F4 workspace patterns + page outer inset | Chuẩn hóa sáu pattern `Account / Collection / ListDetail / SplitEditor / Operation / Analytics` bằng typed slot; mỗi cạnh page dùng một token riêng và phải nhất quán giữa route | Owner muốn UI scale/tùy biến tốt cho AI agent, các màn hình có khoảng cách với header/sidebar rõ ràng nhưng không tạo component vạn năng | Global UI architecture | Thêm folder `DesignSystem/Patterns`, README chọn pattern, architecture gate hai consumer và route-real geometry gate | M0–M8 migration ở F5–F6 | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-28 | Shared header + compact Radzen tabs | Bỏ group/role badge khỏi header; group chỉ hiện ở sidebar identity. Tab không active khi hover/focus phải giữ text primary có ưu tiên cao hơn Radzen theme, tránh chữ trắng trên nền sáng | Owner phát hiện header lặp `Quản trị hệ thống` và tab `Danh mục mặt hàng` bị trắng chữ tại breakpoint nhỏ | Global shell | Gỡ `vpp-header-role-badge`; khóa màu base/hover của tab bằng semantic token với cascade phù hợp; thêm browser regression 700px | Mọi authenticated route, primary Radzen tabs mobile/tablet | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-28 | F3 shared order detail | My Orders và History phải giống nhau từ ô tìm kiếm đến footer, gồm popup lọc và code/note interaction; chỉ header và độ rộng khác. Header History chuyển sang bố cục phiếu PDF, giữ PDF/Excel/ghi chú và bỏ lịch sử phiên bản | Owner review phát hiện F3 ban đầu mới dùng chung grid/footer nên abstraction chưa bao phủ toàn behavior thật | Shared composite + local route header | Mở rộng `VppOrderItemsSurface` thành filter-to-footer contract; giữ filter state/API/capability ở route; đổi History sheet header theo `OrderPdfBuilder` | My Orders current/supplement/previous, History detail, future approval/management detail | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-27 | W-H global hardening | Shared states có live-region/focus semantics; Radzen 11.1.4 DataGrid chỉ normalize accessibility trên vùng opt-in; chart thiếu chuỗi hợp lệ chuyển sang empty state thay vì render SVG `NaN`; print ẩn toàn bộ chrome/action/transient UI | Route-real axe phát hiện nested grid/rowgroup, chart `NaN` và focus notification chưa bền; sửa tại shared boundary giảm drift giữa route | Global M8 | Đóng W-H; thêm 28×4 runtime matrix, representative Dark/Print/axe và capture gate | State primitives, report/history chart, opted-in grids, notification center, print stylesheet | VERIFIED — 112 runtime combinations + axe/print/dark pass |
@@ -1580,7 +1581,7 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Gate đang chờ hiện tại: owner duyệt F3 Wave Review Board My Orders + History; sau đó mới mở F4 Pattern. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
+Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu workspace archetype và page outer inset; sau đó mới mở F5 migrate M0–M2 reference. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 

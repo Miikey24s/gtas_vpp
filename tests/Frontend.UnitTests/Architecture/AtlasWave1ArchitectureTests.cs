@@ -13,7 +13,10 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var source = ReadFrontendSource(relativePath);
 
-        Assert.Contains("vpp-atlas-admin-workspace", source, StringComparison.Ordinal);
+        Assert.True(
+            source.Contains("<VppListDetailWorkspace", StringComparison.Ordinal)
+            || source.Contains("vpp-atlas-admin-workspace", StringComparison.Ordinal),
+            "F4 consumers use the typed list-detail pattern; routes not migrated until F5 keep the Atlas adapter.");
         Assert.Contains("Component_RecordInspector", source, StringComparison.Ordinal);
         Assert.Contains("DataGridSelectionMode.Single", source, StringComparison.Ordinal);
     }

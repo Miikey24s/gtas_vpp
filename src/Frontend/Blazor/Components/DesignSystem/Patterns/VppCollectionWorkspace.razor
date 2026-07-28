@@ -1,0 +1,26 @@
+<section class="@RootClass"
+         data-vpp-workspace-pattern="collection"
+         aria-busy="@IsBusy"
+         aria-labelledby="@LabelledBy">
+    @Header
+    @Summary
+    @Toolbar
+    @ChildContent
+    @Footer
+</section>
+
+@code {
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? Summary { get; set; }
+    [Parameter] public RenderFragment? Toolbar { get; set; }
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public VppWorkspaceGap Gap { get; set; } = VppWorkspaceGap.Standard;
+    [Parameter] public bool FillAvailableSpace { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public string? LabelledBy { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string RootClass => $"vpp-collection-workspace-pattern {GapClass} {(FillAvailableSpace ? "is-fill" : null)} {Class}";
+    private string GapClass => $"is-gap-{Gap.ToString().ToLowerInvariant()}";
+}

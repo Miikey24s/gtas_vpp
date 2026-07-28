@@ -1192,6 +1192,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
     {
         var search = root.Locator(".vpp-history-detail-search input");
         await search.FocusAsync();
+        await WaitForInteractionChromeAsync();
         var focusChrome = await root.EvaluateAsync<string>("""
             root => {
                 const label = root.querySelector('.vpp-history-detail-search');
@@ -1203,6 +1204,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 
         var categoryTrigger = root.Locator(".vpp-history-detail-select .vpp-history-select-trigger").First;
         await categoryTrigger.HoverAsync();
+        await WaitForInteractionChromeAsync();
         var hoverChrome = await categoryTrigger.EvaluateAsync<string>("""
             trigger => {
                 const style = getComputedStyle(trigger);
@@ -1237,6 +1239,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 
         var firstRow = root.Locator("tbody tr").First;
         await firstRow.HoverAsync();
+        await WaitForInteractionChromeAsync();
         var rowChrome = await firstRow.Locator("td").First.EvaluateAsync<string>("""
             cell => {
                 const style = getComputedStyle(cell);
@@ -1271,5 +1274,11 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         """);
 
         return [focusChrome, hoverChrome, popupChrome, rowChrome, scrollChrome];
+    }
+
+    private async Task WaitForInteractionChromeAsync()
+    {
+        // Đo sau transition để so sánh trạng thái cuối, không lấy màu/bóng ở frame trung gian.
+        await Page.WaitForTimeoutAsync(220);
     }
 }

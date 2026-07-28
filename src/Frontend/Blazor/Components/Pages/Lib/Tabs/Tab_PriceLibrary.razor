@@ -1,7 +1,7 @@
 @using gtas_vpp_shared.DTOs.Res.Library
 
 
-<RadzenStack Gap="0.75rem" class="vpp-admin-workspace vpp-price-workspace">
+<VppCollectionWorkspace Class="vpp-admin-workspace vpp-price-workspace">
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap" class="vpp-admin-filterbar vpp-price-filterbar">
         <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
             <RadzenDropDown TValue="Guid?"
@@ -165,4 +165,4 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
-</RadzenStack>
+</VppCollectionWorkspace>

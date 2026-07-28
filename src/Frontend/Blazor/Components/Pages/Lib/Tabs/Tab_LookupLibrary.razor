@@ -19,8 +19,10 @@
 }
 else
 {
-<RadzenSplitter class="vpp-admin-split vpp-admin-class-split">
-    <RadzenSplitterPane Size="31%" Min="24%" Max="38%">
+<VppSplitEditorWorkspace Resizable="true"
+                         Ratio="VppSplitEditorRatio.CompactPrimary"
+                         SplitterClass="vpp-admin-split vpp-admin-class-split">
+    <Primary>
         <RadzenStack Gap="0.75rem">
             <RadzenDataGrid @ref="categoryGrid" TItem="LookupCategoryResDTO"
                             Data="@lookupCategories"
@@ -97,9 +99,9 @@ else
                 </Columns>
             </RadzenDataGrid>
         </RadzenStack>
-    </RadzenSplitterPane>
+    </Primary>
 
-    <RadzenSplitterPane>
+    <Secondary>
         <RadzenStack Gap="0.75rem">
             <RadzenDataGrid @ref="valueGrid" TItem="LookupValueResDTO"
                             Data="@lookupValues"
@@ -169,6 +171,6 @@ else
                 </Columns>
             </RadzenDataGrid>
         </RadzenStack>
-    </RadzenSplitterPane>
-</RadzenSplitter>
+    </Secondary>
+</VppSplitEditorWorkspace>
 }

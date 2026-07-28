@@ -354,6 +354,11 @@
     --vpp-header-height: var(--vpp-sidebar-collapsed-width);
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;
+    /* Các cạnh có thể đổi độc lập, nhưng cùng một cạnh phải giữ một nhịp trên mọi page. */
+    --vpp-page-inset-block-start: var(--vpp-space-2);
+    --vpp-page-inset-inline-end: var(--vpp-space-2);
+    --vpp-page-inset-block-end: var(--vpp-space-2);
+    --vpp-page-inset-inline-start: var(--vpp-space-2);
 
 /* Indicator navigation dùng chung: dọc trong sidebar, ngang trong tab. */
     --vpp-nav-indicator-color: var(--vpp-primary-500);

@@ -5,6 +5,7 @@
 @if (CanView)
 {
     <div class="vpp-catalog-workspace">
+        <VppCollectionWorkspace FillAvailableSpace="true" IsBusy="@IsFirstLoading">
         @if (IsFirstLoading)
         {
             <SkeletonPage Cards="0" Rows="10" Cols="5" />
@@ -117,6 +118,7 @@
                 }
             </section>
         }
+        </VppCollectionWorkspace>
     </div>
 }
 else

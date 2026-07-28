@@ -201,10 +201,9 @@ leftsidebar {
 }
 
 .vpp-layout-body {
-    /* app.css legacy sở hữu padding thật của RadzenBody bằng !important.
-       Chrome full-bleed phải dùng cùng runtime token; giá trị 1.25rem riêng từng
-       kéo tab header 72px lên cao hơn viewport 10.5px. */
-    --vpp-layout-body-inset: var(--rz-layout-body-padding-1, var(--vpp-space-2));
+    /* Alias legacy giữ cho route cũ trong lúc F5/F6 migrate. Contract F4 dùng bốn
+       page-inset độc lập để cùng một cạnh luôn thẳng hàng giữa các màn hình. */
+    --vpp-layout-body-inset: var(--vpp-page-inset-inline-start);
     grid-area: rz-body;
     overflow-y: auto;
     overflow-x: hidden;
@@ -213,13 +212,19 @@ leftsidebar {
     scrollbar-gutter: auto;
     min-height: 0;
     min-width: 0;
-    padding: var(--vpp-layout-body-inset);
+    padding: var(--vpp-page-inset-block-start)
+             var(--vpp-page-inset-inline-end)
+             var(--vpp-page-inset-block-end)
+             var(--vpp-page-inset-inline-start);
     background-color: var(--vpp-bg-elevated) !important;
 }
 
 .rz-layout.vpp-layout > .rz-body.vpp-layout-body {
     margin: 0;
-    padding: var(--vpp-layout-body-inset);
+    padding: var(--vpp-page-inset-block-start)
+             var(--vpp-page-inset-inline-end)
+             var(--vpp-page-inset-block-end)
+             var(--vpp-page-inset-inline-start);
     background-color: var(--vpp-bg-elevated) !important;
     border: none;
     border-radius: var(--vpp-radius-none);
@@ -966,8 +971,8 @@ leftsidebar {
 .vpp-admin-tabs.vpp-orders-shell > .rz-tabview-nav-container,
 .vpp-admin-tabs.vpp-orders-shell > .rz-tabview-nav {
     flex: 0 0 auto;
-    width: calc(100% + (2 * var(--vpp-layout-body-inset))) !important;
-    min-width: calc(100% + (2 * var(--vpp-layout-body-inset))) !important;
+    width: calc(100% + var(--vpp-page-inset-inline-start) + var(--vpp-page-inset-inline-end)) !important;
+    min-width: calc(100% + var(--vpp-page-inset-inline-start) + var(--vpp-page-inset-inline-end)) !important;
     max-width: none !important;
 }
 
@@ -1091,8 +1096,11 @@ leftsidebar {
     }
 
     .rz-layout.vpp-layout > .rz-body.vpp-layout-body {
-        --vpp-layout-body-inset: var(--rz-layout-body-padding-1, var(--vpp-space-2));
-        padding: var(--vpp-layout-body-inset);
+        --vpp-layout-body-inset: var(--vpp-page-inset-inline-start);
+        padding: var(--vpp-page-inset-block-start)
+                 var(--vpp-page-inset-inline-end)
+                 var(--vpp-page-inset-block-end)
+                 var(--vpp-page-inset-inline-start);
     }
 
     .vpp-layout-header {

@@ -1798,12 +1798,14 @@
    72) → bảng tràn ngang bị cắt. Kìm pane theo min-width grid + chrome thật của
    vùng dữ liệu: 384px (bảng + border pane) chỉ hết tràn phần bảng; đo E2E ở
    1366×768 vẫn dư 7px vì scrollbar/gutter dọc của .rz-data-grid-data chiếm chỗ
-   trong clientWidth → cột cuối bị cắt đúng 7px. 392 = 384 + 7 (scrollbar đo
-   thực) + 1 dự phòng làm tròn; chỉ áp ở layout hai cột (>1280px). E2E:
+   trong clientWidth → cột cuối bị cắt đúng 7px. Workspace pattern F4 thêm một
+   container typed quanh splitter và làm phần content box khả dụng giảm 5px;
+   397px giữ nguyên contract không tràn của master grid sau composition mới.
+   Chỉ áp ở layout hai cột (>1280px). E2E:
    LibraryGridScrollTests.Class_Definitions_Use_Compact_Master_Detail_Layout. */
 @media (min-width: 1281px) {
     .vpp-admin-class-split .rz-splitter-pane:first-child {
-        min-width: 392px;
+        min-width: 397px;
     }
 }
 
