@@ -4,7 +4,6 @@ const historyChartLabelConfigs = new WeakMap();
 const transientSurfaceSelector = [
     '.vpp-history-range-popover',
     '.vpp-history-kpi-popover',
-    '.vpp-history-select-menu',
     '.vpp-history-code-popover',
     '.vpp-history-note-popover',
     '.vpp-history-detail-code-popover'
@@ -105,7 +104,7 @@ function positionHistoryTransientSurfaces(root) {
             const anchor = surface.parentElement;
             if (!anchor) return;
 
-            const isViewportSurface = surface.matches('.vpp-history-select-menu, .vpp-history-code-popover, .vpp-history-note-popover, .vpp-history-detail-code-popover');
+            const isViewportSurface = surface.matches('.vpp-history-code-popover, .vpp-history-note-popover, .vpp-history-detail-code-popover');
             if (isViewportSurface) {
                 surface.classList.add('is-viewport-surface');
                 surface.style.removeProperty('width');
@@ -114,17 +113,10 @@ function positionHistoryTransientSurfaces(root) {
                 surface.style.setProperty('top', '8px', 'important');
                 surface.style.setProperty('right', 'auto', 'important');
                 surface.style.setProperty('bottom', 'auto', 'important');
-                const trigger = surface.matches('.vpp-history-select-menu')
-                    ? anchor.querySelector('.vpp-history-select-trigger')
-                    : null;
-                const anchorRect = (trigger ?? anchor).getBoundingClientRect();
+                const anchorRect = anchor.getBoundingClientRect();
                 const viewportGap = 8;
                 const surfaceGap = 4;
                 surface.style.setProperty('max-width', `calc(100vw - ${viewportGap * 2}px)`, 'important');
-                if (surface.matches('.vpp-history-select-menu')) {
-                    surface.style.setProperty('width', 'max-content', 'important');
-                    surface.style.setProperty('min-width', `${Math.ceil(anchorRect.width)}px`, 'important');
-                }
                 let surfaceRect = surface.getBoundingClientRect();
                 if (surfaceRect.width > window.innerWidth - viewportGap * 2) {
                     surface.style.setProperty('width', `${Math.max(160, window.innerWidth - viewportGap * 2)}px`, 'important');
@@ -136,7 +128,7 @@ function positionHistoryTransientSurfaces(root) {
                 const top = openAbove
                     ? Math.max(viewportGap, anchorRect.top - surfaceRect.height - surfaceGap)
                     : Math.min(window.innerHeight - surfaceRect.height - viewportGap, anchorRect.bottom + surfaceGap);
-                const prefersEnd = surface.matches('.vpp-history-note-popover, .vpp-history-select-menu');
+                const prefersEnd = surface.matches('.vpp-history-note-popover');
                 const preferredLeft = prefersEnd
                     ? anchorRect.right - surfaceRect.width
                     : anchorRect.left;
@@ -254,7 +246,7 @@ export function observeHistoryViewport(root, dotNetReference) {
     const onScroll = () => positionHistoryTransientSurfaces(root);
     const onDocumentPointerDown = event => {
         const target = event.target;
-        if (target instanceof Element && target.closest('.vpp-history-scope, .vpp-history-select, .vpp-history-kpi-card, .vpp-history-note-cell, .vpp-history-code-cell, .vpp-history-detail-code, .vpp-history-detail-code-popover')) return;
+        if (target instanceof Element && target.closest('.vpp-history-scope, .vpp-history-kpi-card, .vpp-history-note-cell, .vpp-history-code-cell, .vpp-history-detail-code, .vpp-history-detail-code-popover')) return;
         dotNetReference.invokeMethodAsync('CloseHistoryFilterMenuAsync').catch(() => {});
     };
     const onDocumentKeyDown = event => {

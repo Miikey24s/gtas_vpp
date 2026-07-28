@@ -98,6 +98,29 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
+    public void ReferenceConsumers_UseCanonicalFiltersAndTypedFramesWithoutLegacyMenus()
+    {
+        var root = GetFrontendRoot();
+        var history = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
+        var historyCode = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.cs"));
+        var historyStyles = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.css"));
+        var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
+
+        Assert.Contains("<Toolbar>", history, StringComparison.Ordinal);
+        Assert.Contains("<VppFilterSearch", history, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Matches(history, "<VppFilterSelect\\b").Count);
+        Assert.DoesNotContain("vpp-history-select-menu", history, StringComparison.Ordinal);
+        Assert.DoesNotContain("OpenFilterMenu", history, StringComparison.Ordinal);
+        Assert.DoesNotContain("_openFilterMenu", historyCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-history-select-menu", historyStyles, StringComparison.Ordinal);
+
+        Assert.Contains("TestId=\"catalog-data-surface\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ServerPaging", catalog, StringComparison.Ordinal);
+        Assert.Contains("VppDataDensity.RichTwoLine", catalog, StringComparison.Ordinal);
+        Assert.Contains("vpp-data-grid vpp-data-density-rich-two-line", catalog, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ConsumerLedger_CoversEveryRadzenDataGridFileAndCount()
     {
         var repositoryRoot = FindRepositoryRoot();

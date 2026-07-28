@@ -5,64 +5,43 @@
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryFormat
 
 <section class="vpp-history-orders-card" aria-labelledby="history-orders-title">
-    <header class="vpp-history-orders-toolbar">
-        <h2 id="history-orders-title">@Loc["HistoryOrderList"]</h2>
-        <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
-                        Padded="false"
-                        Class="vpp-history-filters">
-            <label class="vpp-history-search @(!string.IsNullOrWhiteSpace(Search) ? "is-active" : string.Empty)">
-                <VppIcon Name="search" />
-                <input value="@Search"
-                       @oninput="SearchChanged"
-                       placeholder="@Loc["HistorySearchOrderOrNote"]"
-                       aria-label="@Loc["HistorySearchOrderOrNote"]" />
-            </label>
-            <div class="vpp-history-select" @onclick:stopPropagation>
-                <button type="button" class="vpp-history-select-trigger @(!string.IsNullOrEmpty(SelectedOrderType) ? "is-active" : string.Empty)"
-                        aria-haspopup="listbox" aria-expanded="@(OpenFilterMenu == OrderTypeMenu)"
-                        aria-label="@Loc["HistoryOrderType"]" @onclick="@(() => FilterMenuToggled.InvokeAsync(OrderTypeMenu))" @onclick:stopPropagation>
-                    <span class="vpp-history-select-label">@OrderTypeFilterLabel</span><VppIcon Name="expand_more" />
-                </button>
-                @if (OpenFilterMenu == OrderTypeMenu)
-                {
-                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
-                        <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedOrderType)" @onclick="@(() => OrderTypeSelected.InvokeAsync(string.Empty))">@Loc["HistoryAllOrderTypes"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedOrderType == "regular")" @onclick="@(() => OrderTypeSelected.InvokeAsync("regular"))">@Loc["Regular"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedOrderType == "additional")" @onclick="@(() => OrderTypeSelected.InvokeAsync("additional"))">@Loc["AdditionalOrder"]</button>
-                    </div>
-                }
-            </div>
-            <div class="vpp-history-select" @onclick:stopPropagation>
-                <button type="button" class="vpp-history-select-trigger @(SelectedStatus.HasValue ? "is-active" : string.Empty)"
-                        aria-haspopup="listbox" aria-expanded="@(OpenFilterMenu == StatusMenu)"
-                        aria-label="@Loc["Status"]" @onclick="@(() => FilterMenuToggled.InvokeAsync(StatusMenu))" @onclick:stopPropagation>
-                    <span class="vpp-history-select-label">@StatusFilterLabel</span><VppIcon Name="expand_more" />
-                </button>
-                @if (OpenFilterMenu == StatusMenu)
-                {
-                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
-                        <button type="button" role="option" aria-selected="@(!SelectedStatus.HasValue)" @onclick="@(() => StatusSelected.InvokeAsync(null))">@Loc["HistoryAllStatuses"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedStatus == 1)" @onclick="@(() => StatusSelected.InvokeAsync(1))">@Loc["Submitted"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedStatus == 4)" @onclick="@(() => StatusSelected.InvokeAsync(4))">@Loc["Cancelled"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedStatus == 6)" @onclick="@(() => StatusSelected.InvokeAsync(6))">@Loc["Pending"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedStatus == 7)" @onclick="@(() => StatusSelected.InvokeAsync(7))">@Loc["Approved"]</button>
-                        <button type="button" role="option" aria-selected="@(SelectedStatus == 8)" @onclick="@(() => StatusSelected.InvokeAsync(8))">@Loc["Rejected"]</button>
-                    </div>
-                }
-            </div>
-            <VppClearFiltersButton Text="@Loc["HistoryClearFilters"]"
-                                   IsActive="@HasTableFilters"
-                                   Clicked="@TableFiltersCleared"
-                                   Class="vpp-history-clear" />
-        </VppDataToolbar>
-    </header>
-
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
                          Bordered="false"
                          AriaLabelledBy="history-orders-title"
                          TestId="history-orders-data-surface"
                          Class="vpp-history-data-frame">
+    <Toolbar>
+        <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
+                        Class="vpp-history-orders-toolbar">
+            <h2 id="history-orders-title">@Loc["HistoryOrderList"]</h2>
+            <div class="vpp-history-filters">
+                <VppFilterSearch Value="@Search"
+                                 Input="@SearchChanged"
+                                 Placeholder="@Loc["HistorySearchOrderOrNote"]"
+                                 AriaLabel="@Loc["HistorySearchOrderOrNote"]" />
+                <VppFilterSelect TValue="string"
+                                 Value="@SelectedOrderType"
+                                 Options="@OrderTypeOptions"
+                                 ValueChanged="@OrderTypeSelected"
+                                 Opening="@TransientSurfacesClosed"
+                                 Placeholder="@Loc["HistoryAllOrderTypes"]"
+                                 AriaLabel="@Loc["HistoryOrderType"]" />
+                <VppFilterSelect TValue="int?"
+                                 Value="@SelectedStatus"
+                                 Options="@StatusOptions"
+                                 ValueChanged="@StatusSelected"
+                                 Opening="@TransientSurfacesClosed"
+                                 Placeholder="@Loc["HistoryAllStatuses"]"
+                                 AriaLabel="@Loc["Status"]" />
+                <VppClearFiltersButton Text="@Loc["HistoryClearFilters"]"
+                                       IsActive="@HasTableFilters"
+                                       Clicked="@TableFiltersCleared"
+                                       Class="vpp-history-clear" />
+            </div>
+        </VppDataToolbar>
+    </Toolbar>
+    <ChildContent>
     @if (HasGridLoadError)
     {
         <VppContentState State="VppContentStateKind.Error"
@@ -188,6 +167,7 @@
             }
         </div>
     }
+    </ChildContent>
     </VppDataSurfaceFrame>
 </section>
 
@@ -201,21 +181,35 @@
     [Parameter] public string Search { get; set; } = string.Empty;
     [Parameter] public string SelectedOrderType { get; set; } = string.Empty;
     [Parameter] public int? SelectedStatus { get; set; }
-    [Parameter] public string OpenFilterMenu { get; set; } = string.Empty;
     [Parameter] public Guid? ActiveCodeOrderId { get; set; }
     [Parameter] public Guid? ActiveNoteOrderId { get; set; }
     [Parameter] public bool HasTableFilters { get; set; }
-    [Parameter] public string OrderTypeFilterLabel { get; set; } = string.Empty;
-    [Parameter] public string StatusFilterLabel { get; set; } = string.Empty;
     [Parameter] public EventCallback<LoadDataArgs> LoadRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> OrderSelected { get; set; }
     [Parameter] public EventCallback RetryRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> SearchChanged { get; set; }
-    [Parameter] public EventCallback<string> FilterMenuToggled { get; set; }
     [Parameter] public EventCallback<string> OrderTypeSelected { get; set; }
     [Parameter] public EventCallback<int?> StatusSelected { get; set; }
     [Parameter] public EventCallback TableFiltersCleared { get; set; }
+    [Parameter] public EventCallback TransientSurfacesClosed { get; set; }
     [Parameter] public EventCallback<Guid> CodeToggled { get; set; }
     [Parameter] public EventCallback<Guid> NoteToggled { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
+
+    private IReadOnlyList<VppFilterOption<string>> OrderTypeOptions =>
+    [
+        new(string.Empty, Loc["HistoryAllOrderTypes"]),
+        new("regular", Loc["Regular"]),
+        new("additional", Loc["AdditionalOrder"])
+    ];
+
+    private IReadOnlyList<VppFilterOption<int?>> StatusOptions =>
+    [
+        new(null, Loc["HistoryAllStatuses"]),
+        new(1, Loc["Submitted"]),
+        new(4, Loc["Cancelled"]),
+        new(6, Loc["Pending"]),
+        new(7, Loc["Approved"]),
+        new(8, Loc["Rejected"])
+    ];
 }

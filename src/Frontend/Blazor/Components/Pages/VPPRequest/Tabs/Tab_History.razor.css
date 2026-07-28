@@ -644,207 +644,16 @@
     white-space: nowrap;
 }
 
-::deep .vpp-history-search:not(.vpp-history-detail-search) {
-    display: flex;
+::deep .vpp-history-filters > .vpp-filter-search {
+    flex: 1 1 18rem;
     min-width: 0;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    padding-inline-start: var(--vpp-space-2);
-    border: 0;
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
-    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
+    max-width: 260px;
 }
 
-::deep .vpp-history-search:not(.vpp-history-detail-search):focus-within {
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 20%, transparent),
-                0 1px 2px rgb(0 0 0 / 8%);
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search).is-active {
-    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
-    color: var(--vpp-primary-700);
-    box-shadow: inset 0 0 0 1px var(--vpp-primary-500), 0 1px 2px rgb(0 0 0 / 8%);
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search).is-active:focus-within {
-    box-shadow: inset 0 0 0 1px var(--vpp-primary-600), 0 1px 3px rgb(0 0 0 / 10%);
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search).is-active input {
-    color: var(--vpp-text-primary);
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search).is-active input::placeholder {
-    color: var(--vpp-text-secondary);
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search) {
-    width: clamp(170px, 18vw, 260px);
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search) input {
-    width: 100%;
-    height: 32px;
-    border: 0;
-    background: transparent;
-    padding: 0 var(--vpp-space-2) 0 0;
-}
-
-::deep .vpp-history-filters select {
+::deep .vpp-history-filters > .vpp-filter-select {
     width: 126px;
-    height: 32px;
-    padding: 0 28px 0 var(--vpp-space-2);
-    cursor: pointer;
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) {
-    position: relative;
-    width: 126px;
-    flex: 0 0 auto;
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger {
-    display: inline-flex;
-    width: 100%;
-    height: 32px;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--vpp-space-1);
-    overflow: hidden;
-    padding: 0 var(--vpp-space-2);
-    border: 0;
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-secondary);
-    font: inherit;
-    font-size: var(--vpp-text-sm);
-    text-align: start;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger:hover,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger:focus-visible {
-    outline: none;
-    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-primary);
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger.is-active,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger.is-active:hover,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger.is-active:focus-visible {
-    background: var(--vpp-primary-500);
-    color: #fff;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger.is-active:hover {
-    background: var(--vpp-primary-600);
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger .vpp-icon {
-    flex: 0 0 auto;
-    font-size: 18px;
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-trigger .vpp-history-select-label {
     min-width: 0;
-    overflow: hidden;
-    flex: 1 1 auto;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu {
-    position: absolute;
-    z-index: 40;
-    inset-block-start: calc(100% + 5px);
-    inset-inline-end: 0;
-    display: grid;
-    width: max-content;
-    min-width: 100%;
-    max-width: min(360px, calc(100vw - 24px));
-    padding: 4px;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-bg-elevated);
-    box-shadow: var(--vpp-shadow-lg);
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu button {
-    position: relative;
-    display: block;
-    min-height: 30px;
-    padding: 0 24px 0 10px;
-    border: 0;
-    border-radius: var(--vpp-radius-md);
-    background: transparent;
-    color: var(--vpp-text-primary);
-    font: inherit;
-    font-size: var(--vpp-text-sm);
-    max-width: 100%;
-    overflow: hidden;
-    text-align: start;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu button:hover,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu button:focus-visible {
-    outline: none;
-    background: var(--vpp-navigation-item-hover-bg);
-}
-
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu button[aria-selected="true"]::before {
-    position: absolute;
-    inset-inline-end: 8px;
-    content: "•";
-    color: var(--vpp-primary-500);
-    font-size: 18px;
-    line-height: 28px;
-}
-
-::deep .vpp-history-period-select {
-    width: min(220px, 100%);
-}
-
-::deep .vpp-history-period-select .vpp-history-select-trigger {
-    gap: var(--vpp-space-1);
-    padding-inline: var(--vpp-space-2);
-}
-
-::deep .vpp-history-period-select .vpp-history-select-trigger > .vpp-icon:first-child {
-    color: currentColor;
-}
-
-::deep .vpp-history-period-menu {
-    width: min(250px, calc(100vw - 24px));
-    min-width: 220px;
-    padding-block: 6px;
-}
-
-::deep .vpp-history-menu-heading {
-    margin: 4px 12px 6px;
-    color: var(--vpp-text-tertiary);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-semibold);
-}
-
-::deep .vpp-history-period-menu button[aria-pressed="true"] {
-    background: var(--vpp-navigation-item-active-bg);
-    color: var(--vpp-text-primary);
-    font-weight: var(--vpp-font-weight-semibold);
-}
-
-::deep .vpp-history-period-menu button[aria-pressed="true"]::before {
-    content: "✓";
-    position: absolute;
-    inset-inline-end: 12px;
-    color: var(--vpp-primary-600);
+    flex: 0 0 126px;
 }
 
 ::deep .vpp-history-range-editor {
@@ -1125,9 +934,10 @@
         gap: var(--vpp-space-1);
     }
 
-    ::deep .vpp-history-search:not(.vpp-history-detail-search),
-    ::deep .vpp-history-filters > .vpp-history-select {
+    ::deep .vpp-history-filters > .vpp-filter-search,
+    ::deep .vpp-history-filters > .vpp-filter-select {
         width: auto;
+        max-width: none;
     }
 
     /* Layout desktop chia đôi có thể làm grid đơn hẹp; giữ header tiếng Việt đầy đủ trong tối đa hai dòng gọn. */
@@ -1287,7 +1097,6 @@
 
 ::deep .vpp-history-range-popover.is-above,
 ::deep .vpp-history-kpi-popover.is-above,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu.is-above,
 ::deep .vpp-history-code-popover.is-above,
 ::deep .vpp-history-grid-wrap .vpp-history-note-popover.is-above {
     inset-block: auto calc(100% + var(--vpp-space-2));
@@ -1295,7 +1104,6 @@
 
 ::deep .vpp-history-range-popover.is-align-start,
 ::deep .vpp-history-kpi-popover.is-align-start,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu.is-align-start,
 ::deep .vpp-history-code-popover.is-align-start,
 ::deep .vpp-history-grid-wrap .vpp-history-note-popover.is-align-start {
     inset-inline: auto auto;
@@ -1304,20 +1112,9 @@
 
 ::deep .vpp-history-range-popover.is-align-end,
 ::deep .vpp-history-kpi-popover.is-align-end,
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu.is-align-end,
 ::deep .vpp-history-code-popover.is-align-end,
 ::deep .vpp-history-grid-wrap .vpp-history-note-popover.is-align-end {
     inset-inline: auto 0;
-}
-
-/* Menu thoát stacking context của grid/card để không bị vẽ dưới bề mặt lân cận; JavaScript ghim theo tọa độ viewport của trigger. */
-::deep .vpp-history-select:not(.vpp-history-detail-select) > .vpp-history-select-menu.is-viewport-surface {
-    position: fixed;
-    z-index: 1000;
-    inset: auto;
-    min-width: 0;
-    max-height: min(360px, calc(100vh - 16px));
-    overflow-y: auto;
 }
 
 ::deep .vpp-history-order-type {
@@ -1575,26 +1372,15 @@
     color: var(--vpp-text-primary);
 }
 
-::deep .vpp-history-range-popover input:focus-visible,
-::deep .vpp-history-filters input:focus-visible,
-::deep .vpp-history-filters select:focus-visible {
+::deep .vpp-history-range-popover input:focus-visible {
     outline: none;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 20%, transparent),
                 0 1px 2px rgb(0 0 0 / 8%);
 }
 
-::deep .vpp-history-range-popover input:focus,
-::deep .vpp-history-filters input:focus,
-::deep .vpp-history-filters select:focus {
+::deep .vpp-history-range-popover input:focus {
     outline: none;
     border-color: transparent;
-    box-shadow: none !important;
-}
-
-::deep .vpp-history-search:not(.vpp-history-detail-search) input:focus,
-::deep .vpp-history-search:not(.vpp-history-detail-search) input:focus-visible {
-    border: 0 !important;
-    outline: 0 !important;
     box-shadow: none !important;
 }
 
@@ -1729,8 +1515,9 @@
         flex: 1 1 auto;
     }
 
-    ::deep .vpp-history-search:not(.vpp-history-detail-search) {
+    ::deep .vpp-history-filters > .vpp-filter-search {
         width: auto;
+        max-width: none;
     }
 }
 
@@ -1748,7 +1535,11 @@
     }
 
     ::deep .vpp-history-filters {
-        grid-template-columns: minmax(0, 1fr) 1fr 1fr auto;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    ::deep .vpp-history-filters > .vpp-filter-search {
+        grid-column: 1 / -1;
     }
 
     ::deep .vpp-history-grid-wrap {
@@ -1837,7 +1628,12 @@
     }
 
     ::deep .vpp-history-filters {
-        grid-template-columns: minmax(0, 1fr) 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    ::deep .vpp-history-filters > .vpp-filter-search {
+        grid-column: 1 / -1;
+        max-width: none;
     }
 
     ::deep .vpp-history-clear {

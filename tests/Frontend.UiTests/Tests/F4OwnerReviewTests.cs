@@ -52,14 +52,14 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await LoginAsAsync(TestAccounts.Employee);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=1");
 
-        var listSearch = Page.Locator(".vpp-history-orders-card .vpp-history-search");
+        var listSearch = Page.Locator(".vpp-history-orders-card .vpp-filter-search");
         var detailSearch = Page.Locator(".vpp-history-detail-toolbar .vpp-filter-search");
         await listSearch.WaitForAsync(new() { Timeout = 60_000 });
         await detailSearch.WaitForAsync(new() { Timeout = 60_000 });
 
         var parity = await Page.EvaluateAsync<double[][]>("""
             () => {
-                const list = document.querySelector('.vpp-history-orders-card .vpp-history-search');
+                const list = document.querySelector('.vpp-history-orders-card .vpp-filter-search');
                 const detail = document.querySelector('.vpp-history-detail-toolbar .vpp-filter-search');
                 const values = element => {
                     const rect = element.getBoundingClientRect();
@@ -73,7 +73,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         parity[1][1].Should().BeApproximately(parity[0][1], 0.5);
 
         var visualParity = await Page.EvaluateAsync<string[]>("""
-            () => ['.vpp-history-orders-card .vpp-history-search', '.vpp-history-detail-toolbar .vpp-filter-search']
+            () => ['.vpp-history-orders-card .vpp-filter-search', '.vpp-history-detail-toolbar .vpp-filter-search']
                 .map(selector => {
                     const style = getComputedStyle(document.querySelector(selector));
                     return `${style.backgroundColor}|${style.boxShadow}`;

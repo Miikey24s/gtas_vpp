@@ -145,7 +145,6 @@
                           SearchText="@(ItemSearch ?? string.Empty)"
                           SelectedCategory="@(CategoryFilter ?? string.Empty)"
                           SelectedUnit="@(UnitFilter ?? string.Empty)"
-                          OpenFilterMenu="@OpenFilterMenu"
                           HasFilters="@HasItemFilters"
                           SearchPlaceholder="@Loc["HistorySearchItem"]"
                           FiltersAriaLabel="@Loc["CatalogFilters"]"
@@ -154,7 +153,6 @@
                           AllUnitsText="@Loc["HistoryAllUnits"]"
                           ClearFiltersText="@Loc["HistoryClearFilters"]"
                           SearchChanged="@OnItemSearchInput"
-                          FilterMenuToggled="@ToggleFilterMenu"
                           CategorySelected="@SelectCategoryAsync"
                           UnitSelected="@SelectUnitAsync"
                           FiltersCleared="@ClearItemFiltersAsync"
@@ -196,7 +194,6 @@
     private string? ItemSearch { get; set; }
     private string? CategoryFilter { get; set; }
     private string? UnitFilter { get; set; }
-    private string OpenFilterMenu { get; set; } = string.Empty;
     private int? ActiveItemCodeNumber { get; set; }
     private int? ActiveItemNoteNumber { get; set; }
 
@@ -251,13 +248,6 @@
         await ApplyItemFiltersAsync();
     }
 
-    private void ToggleFilterMenu(string menu)
-    {
-        var shouldOpen = !string.Equals(OpenFilterMenu, menu, StringComparison.Ordinal);
-        CloseTransientSurfaces();
-        OpenFilterMenu = shouldOpen ? menu : string.Empty;
-    }
-
     private async Task SelectCategoryAsync(string value)
     {
         CloseTransientSurfaces();
@@ -297,7 +287,6 @@
 
     private void CloseTransientSurfaces()
     {
-        OpenFilterMenu = string.Empty;
         ActiveItemCodeNumber = null;
         ActiveItemNoteNumber = null;
     }

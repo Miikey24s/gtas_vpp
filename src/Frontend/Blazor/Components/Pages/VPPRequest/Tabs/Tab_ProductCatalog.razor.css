@@ -20,6 +20,11 @@
     background: var(--vpp-bg-elevated);
 }
 
+.vpp-catalog-data-frame {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 .vpp-catalog-filter-group ::deep .vpp-filter-search { max-width: none; }
 .vpp-catalog-filter-group ::deep .vpp-filter-select { flex-basis: 14rem; }
 

@@ -701,7 +701,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         if (categoryOptionCount > 1)
         {
             // Trigger phải phản ánh lựa chọn mới trước khi đọc trạng thái is-active.
-            await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-filter-select .vpp-filter-select-trigger')?.classList.contains('is-active')");
+            await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-toolbar .vpp-filter-select-trigger')?.classList.contains('is-active')");
             var categorySelectionState = await detailCategoryFilter.EvaluateAsync<string>("""
                 trigger => `${trigger.classList.contains('is-active')}|title=${trigger.getAttribute('title')}|text=${trigger.textContent.trim()}`
             """);
@@ -767,7 +767,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         (await drawer.Locator(".vpp-history-drawer-actions").GetByText("Xuất PDF", new() { Exact = true }).CountAsync()).Should().Be(1);
         (await drawer.Locator(".vpp-history-drawer-actions").GetByText("Xuất Excel", new() { Exact = true }).CountAsync()).Should().Be(1);
 
-        var mainFilterTriggers = Page.Locator(".vpp-history-filters .vpp-history-select-trigger");
+        var mainFilterTriggers = Page.Locator(".vpp-history-filters .vpp-filter-select-trigger");
         var orderTypeFilter = mainFilterTriggers.Nth(0);
         var statusFilter = mainFilterTriggers.Nth(1);
         var clearFilters = Page.Locator(".vpp-history-orders-card .vpp-history-clear");
@@ -777,25 +777,25 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await kpiPopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await statusFilter.ClickAsync();
         await kpiPopover.WaitForAsync(new() { State = WaitForSelectorState.Detached });
-        var openFilterMenu = Page.Locator(".vpp-history-select-menu");
+        var openFilterMenu = Page.Locator(".vpp-history-orders-card .vpp-filter-select-popover:popover-open");
         await openFilterMenu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await Page.Locator("#history-orders-title").ClickAsync();
-        await openFilterMenu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+        await Page.Locator(".vpp-history-orders-card .vpp-filter-select-popover:popover-open").WaitForAsync(new() { State = WaitForSelectorState.Detached });
 
         await statusFilter.ClickAsync();
         await Page.GetByRole(AriaRole.Option, new() { Name = "Đã gửi", Exact = true }).ClickAsync();
-        await Page.WaitForFunctionAsync("() => document.querySelectorAll('.vpp-history-filters .vpp-history-select-trigger')[1]?.classList.contains('is-active')");
+        await Page.WaitForFunctionAsync("() => document.querySelectorAll('.vpp-history-filters .vpp-filter-select-trigger')[1]?.classList.contains('is-active')");
         (await statusFilter.GetAttributeAsync("class")).Should().Contain("is-active");
         (await clearFilters.GetAttributeAsync("class")).Should().Contain("is-active");
 
         await orderTypeFilter.ClickAsync();
         await Page.GetByRole(AriaRole.Option, new() { Name = "Đơn thường", Exact = true }).ClickAsync();
-        await Page.WaitForFunctionAsync("() => document.querySelectorAll('.vpp-history-filters .vpp-history-select-trigger')[0]?.classList.contains('is-active')");
+        await Page.WaitForFunctionAsync("() => document.querySelectorAll('.vpp-history-filters .vpp-filter-select-trigger')[0]?.classList.contains('is-active')");
         (await orderTypeFilter.GetAttributeAsync("class")).Should().Contain("is-active");
 
         await clearFilters.ClickAsync();
         await Page.WaitForFunctionAsync("""
-            () => [...document.querySelectorAll('.vpp-history-filters .vpp-history-select-trigger')]
+            () => [...document.querySelectorAll('.vpp-history-filters .vpp-filter-select-trigger')]
                 .every(trigger => !trigger.classList.contains('is-active'))
                 && !document.querySelector('.vpp-history-orders-card .vpp-history-clear')?.classList.contains('is-active')
         """);
@@ -803,10 +803,10 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         (await orderTypeFilter.InnerTextAsync()).Should().Contain("Tất cả loại đơn");
         await clearFilters.ClickAsync();
 
-        var mainSearchSurface = Page.Locator(".vpp-history-orders-card .vpp-history-search");
+        var mainSearchSurface = Page.Locator(".vpp-history-orders-card .vpp-filter-search");
         var mainSearchInput = mainSearchSurface.Locator("input");
         await mainSearchInput.FillAsync("QA");
-        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-orders-card .vpp-history-search')?.classList.contains('is-active')");
+        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-orders-card .vpp-filter-search')?.classList.contains('is-active')");
         (await mainSearchSurface.GetAttributeAsync("class")).Should().Contain("is-active");
         var activeSearchVisual = await mainSearchSurface.EvaluateAsync<string>("""
             surface => {
@@ -821,15 +821,15 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         activeSearchVisual.Should().StartWith("true", "a populated search must use a blue outline with readable dark text instead of a full blue fill");
         (await clearFilters.GetAttributeAsync("class")).Should().Contain("is-active");
         await clearFilters.ClickAsync();
-        await Page.WaitForFunctionAsync("() => !document.querySelector('.vpp-history-orders-card .vpp-history-search')?.classList.contains('is-active')");
+        await Page.WaitForFunctionAsync("() => !document.querySelector('.vpp-history-orders-card .vpp-filter-search')?.classList.contains('is-active')");
         (await mainSearchInput.InputValueAsync()).Should().BeEmpty();
 
         await statusFilter.ClickAsync();
-        var statusMenu = Page.Locator(".vpp-history-orders-card .vpp-history-select-menu");
+        var statusMenu = Page.Locator(".vpp-history-orders-card .vpp-filter-select-popover:popover-open");
         await statusMenu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var statusMenuGeometry = await statusMenu.EvaluateAsync<string>("""
             menu => {
-                const trigger = menu.parentElement?.querySelector('.vpp-history-select-trigger');
+                const trigger = document.querySelectorAll('.vpp-history-filters .vpp-filter-select-trigger')[1];
                 if (!trigger) return 'missing';
                 const rect = menu.getBoundingClientRect();
                 const triggerRect = trigger.getBoundingClientRect();
@@ -879,7 +879,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         }
         catch (TimeoutException)
         {
-            await Page.Locator(".vpp-history-filters .vpp-history-select-trigger").Nth(1).ClickAsync();
+            await Page.Locator(".vpp-history-filters .vpp-filter-select-trigger").Nth(1).ClickAsync();
             await rejectedOption.ClickAsync();
             await emptyFilterMessage.WaitForAsync();
         }

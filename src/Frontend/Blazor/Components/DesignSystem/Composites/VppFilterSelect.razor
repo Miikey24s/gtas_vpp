@@ -7,7 +7,8 @@
             style="anchor-name: @AnchorName"
             aria-haspopup="listbox"
             aria-label="@AriaLabel"
-            title="@SelectedLabel">
+            title="@SelectedLabel"
+            @onclick="@(() => Opening.InvokeAsync())">
         <span class="vpp-filter-select-label">@SelectedLabel</span>
         <VppIcon Name="@VppIcons.ExpandMore" />
     </button>
@@ -39,6 +40,7 @@
     [Parameter] public TValue Value { get; set; } = default!;
     [Parameter, EditorRequired] public IReadOnlyList<VppFilterOption<TValue>> Options { get; set; } = [];
     [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public EventCallback Opening { get; set; }
     [Parameter, EditorRequired] public string Placeholder { get; set; } = string.Empty;
     [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public string? Class { get; set; }

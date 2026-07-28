@@ -17,10 +17,6 @@ public static class HistoryUiKeys
     public const string Last6Scope = "last6";
     public const string Last12Scope = "last12";
     public const string CustomScope = "custom";
-    public const string StatusMenu = "status";
-    public const string OrderTypeMenu = "order-type";
-    public const string CategoryMenu = "category";
-    public const string UomMenu = "uom";
     public const string KpiPeriods = "periods";
     public const string KpiOrders = "orders";
     public const string KpiLines = "lines";

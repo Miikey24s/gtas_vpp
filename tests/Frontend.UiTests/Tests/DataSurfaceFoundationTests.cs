@@ -30,22 +30,30 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
             await pagedSurface.WaitForAsync();
             (await pagedSurface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
             (await pagedSurface.GetAttributeAsync("data-vpp-data-density")).Should().Be("compact");
-            (await pagedSurface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(0,
-                "the History toolbar remains outside the inner data frame during DS1");
-            (await Page.Locator(".vpp-history-orders-card [data-vpp-data-toolbar='true']").CountAsync()).Should().Be(1);
+            (await pagedSurface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(1,
+                "DS2 moves the canonical History toolbar into the shared data frame");
+            (await pagedSurface.Locator(".vpp-filter-search").CountAsync()).Should().Be(1);
+            (await pagedSurface.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
             (await pagedSurface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
             await AssertNoDocumentOverflowAsync(viewport.Width);
-            await CaptureAsync($"ds1-history-paged-{viewport.Width}x{viewport.Height}.png");
+            await CaptureAsync($"ds2-history-paged-{viewport.Width}x{viewport.Height}.png");
 
             if (viewport.Width >= 1000)
             {
                 await AssertDesktopRhythmAsync();
+                var filterTrigger = pagedSurface.Locator(".vpp-filter-select-trigger").First;
+                await filterTrigger.ClickAsync();
+                var filterPanel = pagedSurface.Locator(".vpp-filter-select-popover:popover-open").First;
+                await filterPanel.WaitForAsync();
+                await CaptureAsync($"ds2-history-filter-popup-{viewport.Width}x{viewport.Height}.png");
+                await Page.Keyboard.PressAsync("Escape");
+
                 var codeTrigger = pagedSurface.Locator(".vpp-cell-value-popover-code .vpp-cell-value-popover-trigger").First;
                 await codeTrigger.ClickAsync();
                 var panel = pagedSurface.Locator(".vpp-cell-value-popover-panel").First;
                 await panel.WaitForAsync();
                 (await panel.GetAttributeAsync("class")).Should().Contain("vpp-transient-surface");
-                await CaptureAsync($"ds1-history-cell-popover-{viewport.Width}x{viewport.Height}.png");
+                await CaptureAsync($"ds2-history-cell-popover-{viewport.Width}x{viewport.Height}.png");
                 await Page.Keyboard.PressAsync("Escape");
             }
 

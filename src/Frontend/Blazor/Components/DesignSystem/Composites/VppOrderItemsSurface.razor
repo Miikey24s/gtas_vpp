@@ -23,12 +23,14 @@
                              Value="@SelectedCategory"
                              Options="@CategoryFilterOptions"
                              ValueChanged="@CategorySelected"
+                             Opening="@TransientSurfacesClosed"
                              Placeholder="@AllCategoriesLabel"
                              AriaLabel="@CategoryAriaLabel" />
             <VppFilterSelect TValue="string"
                              Value="@SelectedUnit"
                              Options="@UnitFilterOptions"
                              ValueChanged="@UnitSelected"
+                             Opening="@TransientSurfacesClosed"
                              Placeholder="@AllUnitsLabel"
                              AriaLabel="@EffectiveUnitHeaderLabel" />
             <VppClearFiltersButton Text="@ClearFiltersLabel"
@@ -233,7 +235,6 @@
     [Parameter] public string SearchText { get; set; } = string.Empty;
     [Parameter] public string SelectedCategory { get; set; } = string.Empty;
     [Parameter] public string SelectedUnit { get; set; } = string.Empty;
-    [Parameter] public string OpenFilterMenu { get; set; } = string.Empty;
     [Parameter] public bool HasFilters { get; set; }
     [Parameter] public string? SearchPlaceholder { get; set; }
     [Parameter] public string? FiltersAriaLabel { get; set; }
@@ -242,7 +243,6 @@
     [Parameter] public string? AllUnitsText { get; set; }
     [Parameter] public string? ClearFiltersText { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> SearchChanged { get; set; }
-    [Parameter] public EventCallback<string> FilterMenuToggled { get; set; }
     [Parameter] public EventCallback<string> CategorySelected { get; set; }
     [Parameter] public EventCallback<string> UnitSelected { get; set; }
     [Parameter] public EventCallback FiltersCleared { get; set; }
@@ -254,7 +254,7 @@
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
     private bool ShowNoteColumn => true;
-    private bool HasOpenTransientSurface => !string.IsNullOrEmpty(OpenFilterMenu) || ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
+    private bool HasOpenTransientSurface => ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
     private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
     private string VariantClass => IsHistoryDrawer ? "is-history" : "is-workspace";
     private string RegionClass => "vpp-history-detail-grid-region vpp-order-items-grid-region";

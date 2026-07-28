@@ -21,51 +21,60 @@
                     </div>
                 </header>
 
-                <div class="vpp-catalog-filter-group" aria-label="@Loc["CatalogFilters"]">
-                    <VppFilterSearch Value="@SearchText"
-                                     Input="@OnSearchInput"
-                                     Placeholder="@Loc["SearchCatalogItems"]"
-                                     AriaLabel="@Loc["SearchCatalogItems"]" />
-                    <VppFilterSelect TValue="string"
-                                     Value="@CategoryFilterValue"
-                                     Options="@CategoryOptions"
-                                     ValueChanged="@OnCategoryChanged"
-                                     Placeholder="@Loc["AllCategories"]"
-                                     AriaLabel="@Loc["AllCategories"]" />
-                    <VppFilterSelect TValue="string"
-                                     Value="@(UnitFilter ?? string.Empty)"
-                                     Options="@UnitOptions"
-                                     ValueChanged="@OnUnitChanged"
-                                     Placeholder="@Loc["AllUnits"]"
-                                     AriaLabel="@Loc["AllUnits"]" />
-                    <VppClearFiltersButton Text="@Loc["ClearFilters"]"
-                                           IsActive="@HasFilters"
-                                           Clicked="@ClearFiltersAsync" />
-                </div>
-
-                @if (HasLoadError)
-                {
-                    <VppContentState State="VppContentStateKind.Error"
-                                     Icon="error_outline"
-                                     Title="@Loc["CatalogLoadFailed"]"
-                                     Description="@Loc["CatalogLoadFailedDescription"]"
-                                     PrimaryActionText="@Loc["Retry"]"
-                                     PrimaryActionIcon="@VppIcons.Refresh"
-                                     PrimaryAction="@(_ => ReloadAsync())"
-                                     Class="vpp-catalog-state" />
-                }
-                else if (ProductCount == 0 && !IsGridLoading)
-                {
-                    <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                     Icon="search_off"
-                                     Title="@Loc["NoCatalogProductsMatchQuery"]"
-                                     Description="@Loc["AdjustCatalogFilters"]"
-                                     Class="vpp-catalog-state" />
-                }
-                else
-                {
-                    <div class="vpp-catalog-grid-frame">
-                        <RadzenDataGrid @ref="productGrid"
+                <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                     Density="VppDataDensity.RichTwoLine"
+                                     Bordered="false"
+                                     AriaLabelledBy="catalog-result-title"
+                                     TestId="catalog-data-surface"
+                                     Class="vpp-catalog-data-frame">
+                    <Toolbar>
+                        <VppDataToolbar AriaLabel="@Loc["CatalogFilters"]"
+                                        Class="vpp-catalog-filter-group">
+                            <VppFilterSearch Value="@SearchText"
+                                             Input="@OnSearchInput"
+                                             Placeholder="@Loc["SearchCatalogItems"]"
+                                             AriaLabel="@Loc["SearchCatalogItems"]" />
+                            <VppFilterSelect TValue="string"
+                                             Value="@CategoryFilterValue"
+                                             Options="@CategoryOptions"
+                                             ValueChanged="@OnCategoryChanged"
+                                             Placeholder="@Loc["AllCategories"]"
+                                             AriaLabel="@Loc["AllCategories"]" />
+                            <VppFilterSelect TValue="string"
+                                             Value="@(UnitFilter ?? string.Empty)"
+                                             Options="@UnitOptions"
+                                             ValueChanged="@OnUnitChanged"
+                                             Placeholder="@Loc["AllUnits"]"
+                                             AriaLabel="@Loc["AllUnits"]" />
+                            <VppClearFiltersButton Text="@Loc["ClearFilters"]"
+                                                   IsActive="@HasFilters"
+                                                   Clicked="@ClearFiltersAsync" />
+                        </VppDataToolbar>
+                    </Toolbar>
+                    <ChildContent>
+                    @if (HasLoadError)
+                    {
+                        <VppContentState State="VppContentStateKind.Error"
+                                         Icon="error_outline"
+                                         Title="@Loc["CatalogLoadFailed"]"
+                                         Description="@Loc["CatalogLoadFailedDescription"]"
+                                         PrimaryActionText="@Loc["Retry"]"
+                                         PrimaryActionIcon="@VppIcons.Refresh"
+                                         PrimaryAction="@(_ => ReloadAsync())"
+                                         Class="vpp-catalog-state" />
+                    }
+                    else if (ProductCount == 0 && !IsGridLoading)
+                    {
+                        <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                         Icon="search_off"
+                                         Title="@Loc["NoCatalogProductsMatchQuery"]"
+                                         Description="@Loc["AdjustCatalogFilters"]"
+                                         Class="vpp-catalog-state" />
+                    }
+                    else
+                    {
+                        <div class="vpp-catalog-grid-frame">
+                            <RadzenDataGrid @ref="productGrid"
                                         TItem="ProductItem"
                                         Data="@Products"
                                         Count="@ProductCount"
@@ -83,7 +92,7 @@
                                         IsLoading="@IsGridLoading"
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
-                                        class="vpp-catalog-grid">
+                                        class="vpp-catalog-grid vpp-data-grid vpp-data-density-rich-two-line">
                             <Columns>
                                 @* Atlas catalog: bảng tra cứu 4 cột, không có cột thứ tự "#" (mã VPP ở ô mặt hàng đã tự định danh dòng). *@
                                 <RadzenDataGridColumn TItem="ProductItem" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
@@ -102,9 +111,11 @@
                                     </Template>
                                 </RadzenDataGridColumn>
                             </Columns>
-                        </RadzenDataGrid>
-                    </div>
-                }
+                            </RadzenDataGrid>
+                        </div>
+                    }
+                    </ChildContent>
+                </VppDataSurfaceFrame>
             </section>
         }
         </VppCollectionWorkspace>

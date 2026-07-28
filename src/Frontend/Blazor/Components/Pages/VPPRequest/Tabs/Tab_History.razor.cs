@@ -40,7 +40,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private string _detailSearch = string.Empty;
     private string _detailCategory = string.Empty;
     private string _detailUom = string.Empty;
-    private string _openFilterMenu = string.Empty;
     private bool _showCustomRange;
     private bool _showScopeMenu;
     private string _activeKpi = string.Empty;
@@ -354,18 +353,10 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         }
     }
 
-    private void ToggleFilterMenu(string menu)
-    {
-        var shouldOpen = _openFilterMenu != menu;
-        CloseTransientSurfaces();
-        _openFilterMenu = shouldOpen ? menu : string.Empty;
-    }
-
     [JSInvokable]
     public async Task CloseHistoryFilterMenuAsync()
     {
-        if (string.IsNullOrEmpty(_openFilterMenu)
-            && !_showScopeMenu
+        if (!_showScopeMenu
             && string.IsNullOrEmpty(_activeKpi)
             && !_activeCodeOrderId.HasValue
             && !_activeNoteOrderId.HasValue
@@ -445,7 +436,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
 
     private void CloseTransientSurfaces()
     {
-        _openFilterMenu = string.Empty;
         _showScopeMenu = false;
         _showCustomRange = false;
         _activeKpi = string.Empty;
@@ -469,7 +459,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private async Task SelectStatusAsync(int? status)
     {
         _selectedStatus = status;
-        _openFilterMenu = string.Empty;
         CurrentSkip = 0;
         await LoadOrdersAndSelectAsync();
     }
@@ -477,7 +466,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private async Task SelectOrderTypeAsync(string orderType)
     {
         _selectedOrderType = orderType;
-        _openFilterMenu = string.Empty;
         CurrentSkip = 0;
         await LoadOrdersAndSelectAsync();
     }
@@ -488,7 +476,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _selectedStatus = null;
         _selectedOrderType = string.Empty;
         _selectedPeriod = null;
-        _openFilterMenu = string.Empty;
         CurrentSkip = 0;
         await LoadOrdersAndSelectAsync();
     }
@@ -615,7 +602,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private async Task SelectDetailCategoryAsync(string category)
     {
         _detailCategory = category;
-        _openFilterMenu = string.Empty;
         RebuildDetailRows();
         if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
         await InvokeAsync(StateHasChanged);
@@ -624,7 +610,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private async Task SelectDetailUomAsync(string uom)
     {
         _detailUom = uom;
-        _openFilterMenu = string.Empty;
         RebuildDetailRows();
         if (_detailSheet is not null) await _detailSheet.ReloadDetailGridAsync();
         await InvokeAsync(StateHasChanged);
@@ -637,7 +622,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
 
     private async Task ClearDetailFiltersAsync()
     {
-        _openFilterMenu = string.Empty;
         if (!HasDetailFilters)
         {
             return;
@@ -704,21 +688,6 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         Last12Scope => Loc["HistoryLast12Periods"].Value,
         CustomScope => Loc["HistoryCustom"].Value,
         _ => Loc["HistoryAllPeriods"].Value
-    };
-    private string StatusFilterLabel => _selectedStatus switch
-    {
-        1 => Loc["Submitted"].Value,
-        4 => Loc["Cancelled"].Value,
-        6 => Loc["Pending"].Value,
-        7 => Loc["Approved"].Value,
-        8 => Loc["Rejected"].Value,
-        _ => Loc["HistoryAllStatuses"].Value
-    };
-    private string OrderTypeFilterLabel => _selectedOrderType switch
-    {
-        "regular" => Loc["Regular"].Value,
-        "additional" => Loc["AdditionalOrder"].Value,
-        _ => Loc["HistoryAllOrderTypes"].Value
     };
     private string UnitHeaderLabel => Loc["UOM"].Value.Trim() switch
     {

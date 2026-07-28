@@ -1,6 +1,6 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DS0 DONE; DS1 IMPLEMENTED — OWNER REVIEW; DS2–DS4/R1 LOCKED`
+> Trạng thái: `DS0–DS1 DONE; DS2 IMPLEMENTED — OWNER REVIEW; DS3–DS4/R1 LOCKED`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
@@ -25,9 +25,9 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 | Phase | Trạng thái | Làm gì | Sau phase có gì | Model + effort | Gate owner |
 |---|---|---|---|---|---|
 | DS0 — Contract | `DONE — OWNER APPROVED 2026-07-29` | Khóa motif, density, footer mode và consumer ledger | Một board nhìn là hiểu toàn hệ thống | **Sol · XHigh** — quyết định kiến trúc dài hạn | Đã duyệt motif và hai density profile |
-| DS1 — Foundation | `IMPLEMENTED — OWNER REVIEW` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Duyệt 2 route đại diện |
-| DS2 — Reference | `LOCKED — PENDING DS1 REVIEW` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Duyệt board danh sách + chi tiết |
-| DS3 — Workflow | `LOCKED` | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route thật |
+| DS1 — Foundation | `DONE — OWNER APPROVED 2026-07-29` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Đã duyệt 2 route đại diện |
+| DS2 — Reference | `IMPLEMENTED — OWNER REVIEW` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Duyệt board danh sách + chi tiết |
+| DS3 — Workflow | `LOCKED — PENDING DS2 REVIEW` | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route thật |
 | DS4 — Admin | `LOCKED` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Duyệt admin board |
 | R1 — Refactor | `LOCKED` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
 
@@ -187,6 +187,16 @@ Gate: build/unit + route-real desktop/mobile + owner visual review.
 4. Rà My Orders ở sidebar expanded/collapsed và 4 viewport.
 
 Gate: History list/detail + My Orders + Catalog giống motif, nhưng không đổi API/action.
+
+#### DS2 implementation record — 2026-07-29
+
+- History list đã thay toàn bộ search/select tự dựng bằng `VppFilterSearch`, hai `VppFilterSelect<T>` và `VppClearFiltersButton`; toolbar nằm trong slot của `VppDataSurfaceFrame` và vẫn giữ server paging, debounce, selection cùng API hiện hữu.
+- Đã xóa `OpenFilterMenu`, `FilterMenuToggled`, bốn menu key, route CSS/JS legacy của select sau khi consumer search về 0. `VppFilterSelect` có callback `Opening` để đóng KPI/code/note transient surface trước khi browser mở popover canonical.
+- History detail và My Orders tiếp tục dùng cùng `VppOrderItemsSurface`; loại bỏ state menu lọc không còn cần, giữ client-snapshot virtualization, row density, footer và action nghiệp vụ.
+- Product Catalog đã dùng typed `VppDataSurfaceFrame` với `ServerPaging`, `RichTwoLine`, canonical toolbar và opt-in Radzen bridge; API, sort, page size và bốn cột không đổi.
+- Responsive nhìn bằng mắt: desktop `1920/1366`, tablet `768` và mobile `390`; search chiếm hàng riêng ở tablet hẹp/mobile, filter popup neo đúng trigger và không có document-level horizontal overflow. Evidence ignored nằm ở `tmp/ds2-review/ds2-*`.
+- Evidence: frontend Release build `0 warning / 0 error`; `./scripts/gtas.cmd test-frontend` pass `195/195`; isolated Playwright DS2/History/My Orders/Catalog pass `9/9`, responsive rerun pass `1/1`.
+- `gtas-vpp-ui-system` checklist data-surface chưa ghi trong change-set này vì skill đang có thay đổi AI-harness ngoài scope; chỉ cập nhật sau khi change-set đó được hợp nhất hoặc owner cho phép xử lý chung.
 
 ### DS3 — Workflow chính
 

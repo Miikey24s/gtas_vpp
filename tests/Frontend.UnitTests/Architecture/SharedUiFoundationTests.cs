@@ -700,7 +700,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ActiveCode == item.Code", surface, StringComparison.Ordinal);
         Assert.Contains("NoteToggled", surface, StringComparison.Ordinal);
         Assert.Contains("SearchChanged", surface, StringComparison.Ordinal);
-        Assert.Contains("FilterMenuToggled", surface, StringComparison.Ordinal);
+        Assert.Contains("Opening=\"@TransientSurfacesClosed\"", surface, StringComparison.Ordinal);
+        Assert.DoesNotContain("FilterMenuToggled", surface, StringComparison.Ordinal);
         Assert.Contains("CategorySelected", surface, StringComparison.Ordinal);
         Assert.Contains("UnitSelected", surface, StringComparison.Ordinal);
         Assert.Contains("FiltersCleared", surface, StringComparison.Ordinal);
