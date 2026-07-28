@@ -319,6 +319,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-header-tabs", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab", layoutCss, StringComparison.Ordinal);
         Assert.Contains("color: var(--vpp-text-secondary);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-layout-header .vpp-header-tab::before", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("inset: var(--vpp-space-2) 0;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("border-radius: var(--vpp-radius-md);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-layout-header .vpp-header-tab:hover::before", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-layout-header .vpp-header-tab:focus-visible::before", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-header-breadcrumb", layoutCss, StringComparison.Ordinal);
         Assert.Contains("vpp-header-tabs", source, StringComparison.Ordinal);
         Assert.Contains("vpp-header-breadcrumb", source, StringComparison.Ordinal);

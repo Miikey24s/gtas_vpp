@@ -103,6 +103,7 @@ leftsidebar {
     align-items: center;
     gap: var(--vpp-space-1);
     position: relative;
+    isolation: isolate;
     padding-inline: var(--vpp-space-3);
     color: var(--vpp-text-secondary);
     font-family: var(--vpp-font-sidebar);
@@ -115,9 +116,25 @@ leftsidebar {
     text-decoration: none;
 }
 
-.vpp-layout-header .vpp-header-tab:hover {
+.vpp-layout-header .vpp-header-tab::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: var(--vpp-space-2) 0;
+    border-radius: var(--vpp-radius-md);
+    background: transparent;
+    transition: background-color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
+    pointer-events: none;
+}
+
+.vpp-layout-header .vpp-header-tab:hover,
+.vpp-layout-header .vpp-header-tab:focus-visible {
     color: var(--vpp-text-primary);
     text-decoration: none;
+}
+
+.vpp-layout-header .vpp-header-tab:hover::before,
+.vpp-layout-header .vpp-header-tab:focus-visible::before {
     background: var(--vpp-navigation-item-hover-bg);
 }
 

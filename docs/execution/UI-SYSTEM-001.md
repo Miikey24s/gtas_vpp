@@ -206,6 +206,7 @@ Mốc dễ hiểu:
 - Bốn token `--vpp-page-inset-block-start`, `--vpp-page-inset-inline-end`, `--vpp-page-inset-block-end`, `--vpp-page-inset-inline-start` là authority cho khoảng cách ngoài page. Mỗi cạnh nhất quán giữa route nhưng bốn cạnh vẫn độc lập để chỉnh theo shell.
 - Radzen MCP xác nhận contract `RadzenSplitter`/`RadzenSplitterPane` dùng `Size`, `Min`, `Max` theo px hoặc `%`; `VppSplitEditorWorkspace` chỉ bọc behavior này ở pattern có resize, route cố định dùng CSS grid responsive.
 - Regression F4 phát hiện pane master Lookup thiếu 5px sau composition và interaction test đọc màu giữa transition. Production constraint được hiệu chỉnh ở consumer; test tiếp tục so sánh tuyệt đối nhưng chờ transition ổn định trước khi đo.
+- Owner review F4 yêu cầu hover tab header theo cùng radius system. Header dùng pseudo-surface inset `--vpp-space-2`, bo `--vpp-radius-md` và hỗ trợ hover/focus-visible; active underline vẫn giữ trục đáy nên không biến navigation thành pill.
 - Evidence: frontend build `0 warning/error`; frontend unit/architecture `189/189`; `WorkspacePatternTests` pass `1/1` trên 12 route consumer; focused interaction/scroll regression pass `6/6`. `verify -Scope frontend` chạy nhưng dừng ở `model-routing-eval` thuộc nhóm AI-harness đã dirty từ trước và ngoài scope F4 (`62 pass / 1 fail`); không sửa hoặc stage nhóm đó. Screenshot/board thô nằm local ignored, không commit trước owner approval.
 
 ### 5.1 Visual review contract

@@ -86,6 +86,8 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         {
             WaitUntil = WaitUntilState.DOMContentLoaded
         });
+        await Page.WaitForFunctionAsync(
+            "() => !document.documentElement.classList.contains('vpp-page-entering')");
 
         var headerTabs = Page.Locator(".vpp-layout-header .vpp-header-tabs .vpp-header-tab");
         await headerTabs.First.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -120,6 +122,59 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             "unselected desktop header tabs must use the readable secondary text token");
         headerTabColors[1].Should().NotBe("rgb(255, 255, 255)",
             "unselected desktop header text must not disappear on the light navigation surface");
+
+        var inactiveHeaderTab = Page.Locator(
+            ".vpp-layout-header .vpp-header-tabs .vpp-header-tab:not(.is-active)").First;
+        await inactiveHeaderTab.HoverAsync();
+        await Page.WaitForFunctionAsync(
+            """
+            element => {
+                if (!element.matches(':hover')) return false;
+                const probe = document.createElement('span');
+                probe.style.backgroundColor = 'var(--vpp-navigation-item-hover-bg)';
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe).backgroundColor;
+                probe.remove();
+                return getComputedStyle(element, '::before').backgroundColor === expected;
+            }
+            """,
+            await inactiveHeaderTab.ElementHandleAsync(),
+            new() { Timeout = 5_000 });
+        var hoverSurface = await inactiveHeaderTab.EvaluateAsync<string[]>(
+            """
+            element => {
+                const probe = document.createElement('span');
+                probe.style.position = 'absolute';
+                probe.style.backgroundColor = 'var(--vpp-navigation-item-hover-bg)';
+                probe.style.borderRadius = 'var(--vpp-radius-md)';
+                probe.style.top = 'var(--vpp-space-2)';
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe);
+                const surface = getComputedStyle(element, '::before');
+                const values = [
+                    surface.backgroundColor,
+                    expected.backgroundColor,
+                    surface.borderRadius,
+                    expected.borderRadius,
+                    surface.top,
+                    expected.top,
+                    surface.bottom,
+                    element.matches(':hover').toString()
+                ];
+                probe.remove();
+                return values;
+            }
+            """);
+        hoverSurface[7].Should().Be("true",
+            "the browser must keep the inactive header tab hovered while its surface is measured");
+        hoverSurface[0].Should().Be(hoverSurface[1],
+            "desktop header hover must use the shared navigation surface token");
+        hoverSurface[2].Should().Be(hoverSurface[3],
+            "desktop header hover must use the shared medium radius token");
+        hoverSurface[4].Should().Be(hoverSurface[5],
+            "the hover surface must stay inset from the top of the header");
+        hoverSurface[6].Should().Be(hoverSurface[5],
+            "the hover surface must stay equally inset from the bottom of the header");
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
