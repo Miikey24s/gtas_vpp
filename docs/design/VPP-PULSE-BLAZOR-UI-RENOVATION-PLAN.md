@@ -24,10 +24,10 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | F3 đã được làm lại theo review owner: My Orders và History dùng chung toàn bộ từ bộ lọc đến footer; History có header kiểu PDF và không còn lịch sử phiên bản. | [Kết quả F3](../execution/UI-SYSTEM-001.md#53-f3-execution-record--2026-07-28) |
+| Bước code hiện tại? | F3 review round 4: My Orders và History dùng chung cả focus/hover, popup, row feedback, scroll ảo nội bộ, header grid cố định và footer; chỉ header nghiệp vụ và độ rộng route khác nhau. | [Kết quả F3](../execution/UI-SYSTEM-001.md#53-f3-execution-record--2026-07-28) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Duyệt board F3 cập nhật: hai route giống nhau từ filter → footer, chỉ khác header và độ rộng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
+| Cần owner duyệt gì? | Duyệt board F3 round 4 ở cả trạng thái tĩnh và interaction: popup filter, focus/hover, row hover, footer và scroll 500 dòng; chỉ header và độ rộng được phép khác. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -77,7 +77,7 @@ Khi có xung đột:
 - Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
 - Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; dependency Playwright dùng chung đã chuyển vào `scripts/browser/`.
 - Mọi UI work tiếp theo phải sửa trực tiếp `src/Frontend/Blazor`, dùng API/DTO và database TEST hoặc isolated fixture thật.
-- Thứ tự hiện tại: Atlas `ATLAS-001` hoàn tất → F0/F1 đã tích hợp và F1 được owner xác nhận → F2 đã qua implementation + independent review/fix → F3 đã implement/test xong, chờ owner review trước F4.
+- Thứ tự hiện tại: Atlas `ATLAS-001` hoàn tất → F0/F1 đã tích hợp và F1 được owner xác nhận → F2 đã qua implementation + independent review/fix → F3 đang khóa review round 4 cho interaction/scroll parity, chờ owner review trước F4.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
 
 **Bằng chứng kích hoạt lại Blazor/Radzen — 2026-07-21:**

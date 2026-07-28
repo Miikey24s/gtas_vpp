@@ -109,6 +109,27 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
     }
 
     [Fact]
+    public async Task MyOrdersAndHistory_ShareOrderItemsInteractionAndScrollChrome()
+    {
+        await Page.SetViewportSizeAsync(1366, 900);
+        await LoginAsAsync(TestAccounts.Employee);
+
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0&orderView=current");
+        var workspace = Page.Locator("[data-testid='current-order-panel-items']");
+        await workspace.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var workspaceChrome = await CaptureOrderItemsChromeAsync(workspace, "my-orders");
+
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=1");
+        var history = Page.Locator(".vpp-history-drawer [data-testid='order-items-surface-items']");
+        await history.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var historyChrome = await CaptureOrderItemsChromeAsync(history, "history");
+
+        historyChrome.Should().Equal(
+            workspaceChrome,
+            "My Orders and History must resolve the same focus, hover, popup, row and internal-scroll chrome from the shared composite");
+    }
+
+    [Fact]
     public async Task Employee_CanOpenSeededRequestHistoryFromHistoryTab()
     {
         await LoginAsAsync(TestAccounts.Employee);
@@ -1116,7 +1137,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                                 && listClearStyle.borderRadius === detailClearStyle.borderRadius
                                 && listClearStyle.fontSize === detailClearStyle.fontSize;
                             const footerMatches = pagerRect.height >= 40
-                                && Math.abs(pagerRect.height - detailFooterRect.height) <= 4;
+                                && Math.abs(pagerRect.height - detailFooterRect.height) <= 1;
                             const summaryText = pager.textContent?.replace(/\s+/g, ' ').trim() ?? '';
                             const summaryMatches = summaryText.includes('Hiển thị')
                                 && summaryText.includes('đơn');
@@ -1165,5 +1186,90 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 }
             }
         }
+    }
+
+    private async Task<string[]> CaptureOrderItemsChromeAsync(ILocator root, string evidenceName)
+    {
+        var search = root.Locator(".vpp-history-detail-search input");
+        await search.FocusAsync();
+        var focusChrome = await root.EvaluateAsync<string>("""
+            root => {
+                const label = root.querySelector('.vpp-history-detail-search');
+                if (!(label instanceof HTMLElement)) return 'missing';
+                const style = getComputedStyle(label);
+                return [label.getBoundingClientRect().height, style.borderRadius, style.backgroundColor, style.boxShadow, style.color, style.fontSize].join('|');
+            }
+        """);
+
+        var categoryTrigger = root.Locator(".vpp-history-detail-select .vpp-history-select-trigger").First;
+        await categoryTrigger.HoverAsync();
+        var hoverChrome = await categoryTrigger.EvaluateAsync<string>("""
+            trigger => {
+                const style = getComputedStyle(trigger);
+                return [trigger.getBoundingClientRect().height, style.borderRadius, style.backgroundColor, style.color, style.boxShadow, style.fontSize].join('|');
+            }
+        """);
+
+        await categoryTrigger.ClickAsync();
+        var menu = root.Locator(".vpp-history-detail-select .vpp-history-select-menu").First;
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-order-items-surface .vpp-history-select-menu')?.classList.contains('is-viewport-surface') === true");
+        var popupChrome = await menu.EvaluateAsync<string>("""
+            menu => {
+                const style = getComputedStyle(menu);
+                const rect = menu.getBoundingClientRect();
+                const contained = rect.left >= 7 && rect.top >= 7
+                    && rect.right <= window.innerWidth - 7
+                    && rect.bottom <= window.innerHeight - 7;
+                return [style.position, style.borderRadius, style.backgroundColor, style.boxShadow, style.fontSize, contained, menu.classList.contains('is-viewport-surface')].join('|');
+            }
+        """);
+
+        var evidenceDirectory = Path.Combine(Path.GetTempPath(), "gtas-vpp-f3-interaction-parity");
+        Directory.CreateDirectory(evidenceDirectory);
+        await root.ScreenshotAsync(new()
+        {
+            Path = Path.Combine(evidenceDirectory, $"{evidenceName}-popup-1366x900.png"),
+            Animations = ScreenshotAnimations.Disabled
+        });
+        await categoryTrigger.ClickAsync();
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+        var firstRow = root.Locator("tbody tr").First;
+        await firstRow.HoverAsync();
+        var rowChrome = await firstRow.Locator("td").First.EvaluateAsync<string>("""
+            cell => {
+                const style = getComputedStyle(cell);
+                return [cell.getBoundingClientRect().height, style.backgroundColor, style.borderBottomColor, style.fontSize].join('|');
+            }
+        """);
+
+        var scrollChrome = await root.EvaluateAsync<string>("""
+            root => {
+                const region = root.querySelector('.vpp-order-items-grid-region');
+                const grid = root.querySelector('.vpp-order-items-grid');
+                const scroll = grid?.querySelector('.rz-data-grid-data');
+                const header = region?.querySelector('.vpp-history-detail-grid-header');
+                const footer = root.querySelector('.vpp-order-items-footer');
+                if (!(region instanceof HTMLElement)
+                    || !(scroll instanceof HTMLElement)
+                    || !(header instanceof HTMLElement)
+                    || !(footer instanceof HTMLElement)) return 'missing';
+                const style = getComputedStyle(scroll);
+                const hasOverflow = scroll.scrollHeight > scroll.clientHeight + 1;
+                const classMatches = scroll.classList.contains('has-vertical-overflow') === hasOverflow;
+                return [
+                    style.overflowY,
+                    style.overscrollBehaviorY,
+                    !scroll.contains(header),
+                    Math.round(header.getBoundingClientRect().height),
+                    Math.round(footer.getBoundingClientRect().height),
+                    classMatches,
+                    getComputedStyle(region).getPropertyValue('--vpp-history-detail-scrollbar-width').trim()
+                ].join('|');
+            }
+        """);
+
+        return [focusChrome, hoverChrome, popupChrome, rowChrome, scrollChrome];
     }
 }

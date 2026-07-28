@@ -336,7 +336,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             await Page.WaitForFunctionAsync(
                 """
                 () => {
-                    const grid = document.querySelector('.vpp-order-grid-scrollable');
+                    const grid = document.querySelector('.vpp-order-items-grid');
                     return grid && [grid, ...grid.querySelectorAll('*')]
                         .some(element => ['auto', 'scroll'].includes(getComputedStyle(element).overflowY)
                             && element.scrollHeight > element.clientHeight * 4);
@@ -346,7 +346,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 new PageWaitForFunctionOptions { Timeout = 60_000 });
             var longListContract = await Page.EvaluateAsync<double[]>("""
                 () => {
-                    const grid = document.querySelector('.vpp-order-grid-scrollable');
+                    const grid = document.querySelector('.vpp-order-items-grid');
                     const candidates = grid
                         ? [grid, ...grid.querySelectorAll('*')]
                             .filter(element => ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))
@@ -368,7 +368,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 """);
             var longListDiagnostics = await Page.EvaluateAsync<string>("""
                 () => {
-                    const grid = document.querySelector('.vpp-order-grid-scrollable');
+                    const grid = document.querySelector('.vpp-order-items-grid');
                     return JSON.stringify({
                         scrollCandidates: [...grid.querySelectorAll('*')]
                         .map(element => ({
@@ -410,7 +410,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 var soakContract = await Page.EvaluateAsync<int[]>("""
                     () => [
                         document.documentElement.scrollHeight - window.innerHeight,
-                        document.querySelectorAll('.vpp-order-grid-scrollable tbody tr').length,
+                        document.querySelectorAll('.vpp-order-items-grid tbody tr').length,
                         document.querySelectorAll('.vpp-tab-shared-indicator').length
                     ]
                     """);

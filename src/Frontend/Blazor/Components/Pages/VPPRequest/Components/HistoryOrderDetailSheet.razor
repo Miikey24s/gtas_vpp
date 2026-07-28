@@ -113,7 +113,7 @@
                                   TotalItemCount="@(SelectedOrder.Items?.Count ?? 0)"
                                   AriaLabel="@Loc["HistoryItemsHeading"]"
                                   UnitHeaderLabel="@UnitHeaderLabel"
-                                  ActiveCode="@ActiveDetailCode"
+                                  ActiveCodeNumber="@ActiveDetailCodeNumber"
                                   ActiveNoteNumber="@ActiveDetailNoteNumber"
                                   CodeToggled="@DetailCodeToggled"
                                   NoteToggled="@DetailNoteToggled"
@@ -155,7 +155,7 @@
     [Parameter] public string DetailCategory { get; set; } = string.Empty;
     [Parameter] public string DetailUom { get; set; } = string.Empty;
     [Parameter] public string OpenFilterMenu { get; set; } = string.Empty;
-    [Parameter] public string? ActiveDetailCode { get; set; }
+    [Parameter] public int? ActiveDetailCodeNumber { get; set; }
     [Parameter] public int? ActiveDetailNoteNumber { get; set; }
     [Parameter] public bool HasDetailFilters { get; set; }
     [Parameter] public bool HasTableFilters { get; set; }
@@ -170,7 +170,7 @@
     [Parameter] public EventCallback<string> DetailCategorySelected { get; set; }
     [Parameter] public EventCallback<string> DetailUomSelected { get; set; }
     [Parameter] public EventCallback DetailFiltersCleared { get; set; }
-    [Parameter] public EventCallback<string> DetailCodeToggled { get; set; }
+    [Parameter] public EventCallback<int> DetailCodeToggled { get; set; }
     [Parameter] public EventCallback<int> DetailNoteToggled { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
 

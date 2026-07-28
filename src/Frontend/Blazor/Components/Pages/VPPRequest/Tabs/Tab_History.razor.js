@@ -13,17 +13,9 @@ const transientSurfaceSelector = [
 function updateHistoryScrollGutters(root) {
     if (!root) return;
 
-    root.querySelectorAll('.rz-data-grid-data').forEach(surface => {
+    root.querySelectorAll('.vpp-history-grid .rz-data-grid-data').forEach(surface => {
         const hasVerticalOverflow = surface.scrollHeight > surface.clientHeight + 1;
         surface.classList.toggle('has-vertical-overflow', hasVerticalOverflow);
-
-        const detailRegion = surface.closest('.vpp-history-detail-grid-region');
-        if (detailRegion) {
-            const scrollbarWidth = hasVerticalOverflow
-                ? Math.max(0, surface.offsetWidth - surface.clientWidth)
-                : 0;
-            detailRegion.style.setProperty('--vpp-history-detail-scrollbar-width', `${scrollbarWidth}px`);
-        }
     });
 }
 
@@ -118,6 +110,7 @@ function positionHistoryTransientSurfaces(root) {
 
     window.requestAnimationFrame(() => {
         root.querySelectorAll(transientSurfaceSelector).forEach(surface => {
+            if (surface.closest('.vpp-order-items-surface')) return;
             const anchor = surface.parentElement;
             if (!anchor) return;
 

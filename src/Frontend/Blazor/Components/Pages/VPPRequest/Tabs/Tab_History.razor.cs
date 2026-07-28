@@ -52,7 +52,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private bool _isInitialLoading = true;
     private Guid? _activeCodeOrderId;
     private Guid? _activeNoteOrderId;
-    private string? _activeDetailCode;
+    private int? _activeDetailCodeNumber;
     private int? _activeDetailNoteNumber;
     private bool _showRegularSeries = true;
     private bool _showAdditionalSeries = true;
@@ -369,7 +369,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
             && string.IsNullOrEmpty(_activeKpi)
             && !_activeCodeOrderId.HasValue
             && !_activeNoteOrderId.HasValue
-            && string.IsNullOrEmpty(_activeDetailCode)
+            && !_activeDetailCodeNumber.HasValue
             && !_activeDetailNoteNumber.HasValue)
         {
             return;
@@ -400,11 +400,11 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _activeNoteOrderId = shouldOpen ? orderId : null;
     }
 
-    private void ToggleDetailCode(string code)
+    private void ToggleDetailCode(int number)
     {
-        var shouldOpen = !string.Equals(_activeDetailCode, code, StringComparison.Ordinal);
+        var shouldOpen = _activeDetailCodeNumber != number;
         CloseTransientSurfaces();
-        _activeDetailCode = shouldOpen ? code : null;
+        _activeDetailCodeNumber = shouldOpen ? number : null;
     }
 
     private void ToggleDetailNote(int number)
@@ -451,7 +451,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _activeKpi = string.Empty;
         _activeCodeOrderId = null;
         _activeNoteOrderId = null;
-        _activeDetailCode = null;
+        _activeDetailCodeNumber = null;
         _activeDetailNoteNumber = null;
     }
 
@@ -533,7 +533,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
         _isDrawerOpen = focusPanel;
         _isDetailLoading = true;
         _detailError = false;
-        _activeDetailCode = null;
+        _activeDetailCodeNumber = null;
         _activeDetailNoteNumber = null;
         if (!preserveCurrentDetail)
         {

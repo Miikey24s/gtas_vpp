@@ -1,6 +1,8 @@
 @using System.Globalization
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
 
-<section class="vpp-order-items-surface @VariantClass" data-testid="@($"{TestId}-items")">
+<section class="vpp-order-items-surface @VariantClass" data-testid="@($"{TestId}-items")" @ref="_surface">
     @if (ShowFilters && TotalItemCount > 0)
     {
         <div class="vpp-order-items-toolbar vpp-history-detail-toolbar" aria-label="@FiltersAriaLabel">
@@ -159,14 +161,14 @@
                                     <button type="button"
                                             class="vpp-history-detail-code"
                                             aria-haspopup="dialog"
-                                            aria-expanded="@(ActiveCode == item.Code)"
+                                            aria-expanded="@(ActiveCodeNumber == item.Number)"
                                             aria-label="@($"{Loc["ItemCode"]}: {item.Code}")"
                                             title="@item.Code"
-                                            @onclick="@(() => CodeToggled.InvokeAsync(item.Code!))"
+                                            @onclick="@(() => CodeToggled.InvokeAsync(item.Number))"
                                             @onclick:stopPropagation>
                                         @item.Code
                                     </button>
-                                    @if (ActiveCode == item.Code)
+                                    @if (ActiveCodeNumber == item.Number)
                                     {
                                         <span class="vpp-history-detail-code-popover" role="dialog" aria-label="@Loc["ItemCode"]" @onclick:stopPropagation>
                                             <span class="vpp-history-popover-value">@item.Code</span>
@@ -275,9 +277,9 @@
     [Parameter] public string EmptyDescription { get; set; } = string.Empty;
     [Parameter] public string? EmptyActionText { get; set; }
     [Parameter] public EventCallback EmptyActionClick { get; set; }
-    [Parameter] public string? ActiveCode { get; set; }
+    [Parameter] public int? ActiveCodeNumber { get; set; }
     [Parameter] public int? ActiveNoteNumber { get; set; }
-    [Parameter] public EventCallback<string> CodeToggled { get; set; }
+    [Parameter] public EventCallback<int> CodeToggled { get; set; }
     [Parameter] public EventCallback<int> NoteToggled { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
     [Parameter] public bool ShowFilters { get; set; } = true;
@@ -302,12 +304,14 @@
     [Parameter] public EventCallback TransientSurfacesClosed { get; set; }
 
     private RadzenDataGrid<VppOrderDetailItem>? _grid;
+    private ElementReference _surface;
+    private IJSObjectReference? _module;
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
     private const string CategoryMenu = "category";
     private const string UnitMenu = "uom";
     private bool ShowNoteColumn => true;
-    private bool HasOpenTransientSurface => !string.IsNullOrEmpty(OpenFilterMenu) || !string.IsNullOrEmpty(ActiveCode) || ActiveNoteNumber.HasValue;
+    private bool HasOpenTransientSurface => !string.IsNullOrEmpty(OpenFilterMenu) || ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
     private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
     private string VariantClass => IsHistoryDrawer ? "is-history" : "is-workspace";
     private string RegionClass => "vpp-history-detail-grid-region vpp-order-items-grid-region";
@@ -338,6 +342,44 @@
         if (_grid is not null)
         {
             await _grid.Reload();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                    "import",
+                    "./Components/DesignSystem/Composites/VppOrderItemsSurface.razor.js?v=20260728-f3-parity-1");
+                await _module.InvokeVoidAsync("observeOrderItemsSurface", _surface);
+            }
+            else if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("refreshOrderItemsSurface", _surface);
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync("disposeOrderItemsSurface", _surface);
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
         }
     }
 
