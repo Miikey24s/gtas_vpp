@@ -24,7 +24,7 @@
 .vpp-order-items-surface .vpp-order-items-toolbar label {
     display: flex;
     width: 100%;
-    height: var(--vpp-control-height);
+    height: 32px;
     min-width: 0;
     align-items: center;
     gap: var(--vpp-space-1);
@@ -47,7 +47,7 @@
 
 .vpp-order-items-toolbar label input {
     width: 100%;
-    height: var(--vpp-control-height);
+    height: 32px;
     min-width: 0;
     padding: 0 var(--vpp-space-2) 0 0;
     border: 0;
@@ -74,7 +74,7 @@
 .vpp-order-items-surface .vpp-order-items-toolbar .vpp-history-select-trigger {
     display: inline-flex;
     width: 100%;
-    height: var(--vpp-control-height);
+    height: 32px;
     align-items: center;
     justify-content: space-between;
     gap: var(--vpp-space-1);
@@ -164,41 +164,6 @@
     content: "•";
     color: var(--vpp-primary-500);
     font-size: var(--vpp-text-xl);
-}
-
-.vpp-order-items-surface .vpp-order-items-toolbar .vpp-history-clear {
-    display: inline-flex;
-    min-width: 108px;
-    height: var(--vpp-control-height);
-    align-items: center;
-    justify-content: center;
-    gap: var(--vpp-space-1);
-    padding: 0 var(--vpp-space-2);
-    border: 1px solid var(--vpp-border-strong);
-    border-radius: var(--vpp-radius-lg);
-    background: transparent;
-    color: var(--vpp-primary-700);
-    font: inherit;
-    font-size: var(--vpp-text-sm);
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background-color var(--vpp-transition-fast), color var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast);
-}
-
-.vpp-order-items-toolbar .vpp-history-clear.is-active {
-    border-color: transparent;
-    background: var(--vpp-primary-500);
-    color: var(--vpp-color-white);
-    box-shadow: var(--vpp-shadow-xs);
-}
-
-.vpp-order-items-toolbar .vpp-history-clear.is-active:hover {
-    background: var(--vpp-primary-600);
-}
-
-.vpp-order-items-toolbar .vpp-history-clear:focus-visible {
-    outline: 2px solid var(--vpp-border-focus);
-    outline-offset: 2px;
 }
 
 .vpp-order-items-transient-backdrop {
@@ -479,12 +444,12 @@
 
 .vpp-order-items-footer {
     flex: 0 0 auto;
-    min-height: 38px;
+    min-height: 42px;
     padding: 0 var(--vpp-space-4);
     border-top: 1px solid var(--vpp-border-default);
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-xs);
-    line-height: 38px;
+    line-height: 42px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -498,7 +463,7 @@
         grid-column: 1 / -1;
     }
 
-    .vpp-order-items-toolbar .vpp-history-clear {
+    .vpp-order-items-toolbar ::deep .vpp-clear-filters {
         grid-column: 1 / -1;
         width: 100%;
     }

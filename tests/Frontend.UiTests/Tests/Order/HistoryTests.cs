@@ -1094,6 +1094,39 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 if (viewport.Width >= 1280)
                 {
                     await Page.Locator(".vpp-history-drawer").WaitForAsync();
+                    var sharedDataChrome = await Page.EvaluateAsync<string>("""
+                        () => {
+                            const listClear = document.querySelector('.vpp-history-orders-card .vpp-clear-filters');
+                            const detailClear = document.querySelector('.vpp-history-drawer .vpp-clear-filters');
+                            const pager = document.querySelector('.vpp-history-grid .rz-paginator, .vpp-history-grid .rz-pager');
+                            const detailFooter = document.querySelector('.vpp-history-detail-footer');
+                            if (!(listClear instanceof HTMLElement)
+                                || !(detailClear instanceof HTMLElement)
+                                || !(pager instanceof HTMLElement)
+                                || !(detailFooter instanceof HTMLElement)) return 'missing';
+
+                            const listClearRect = listClear.getBoundingClientRect();
+                            const detailClearRect = detailClear.getBoundingClientRect();
+                            const listClearStyle = getComputedStyle(listClear);
+                            const detailClearStyle = getComputedStyle(detailClear);
+                            const pagerRect = pager.getBoundingClientRect();
+                            const detailFooterRect = detailFooter.getBoundingClientRect();
+                            const clearMatches = Math.abs(listClearRect.height - detailClearRect.height) <= 1
+                                && Math.abs(listClearRect.width - detailClearRect.width) <= 4
+                                && listClearStyle.borderRadius === detailClearStyle.borderRadius
+                                && listClearStyle.fontSize === detailClearStyle.fontSize;
+                            const footerMatches = pagerRect.height >= 40
+                                && Math.abs(pagerRect.height - detailFooterRect.height) <= 4;
+                            const summaryText = pager.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+                            const summaryMatches = summaryText.includes('Hiển thị')
+                                && summaryText.includes('đơn');
+                            const visible = pager.getClientRects().length > 0
+                                && detailFooter.getClientRects().length > 0;
+                            return `${clearMatches && footerMatches && summaryMatches && visible}|clear=${Math.round(listClearRect.width)}x${Math.round(listClearRect.height)}/${Math.round(detailClearRect.width)}x${Math.round(detailClearRect.height)}|footer=${Math.round(pagerRect.height)}/${Math.round(detailFooterRect.height)}|summary=${summaryText}`;
+                        }
+                    """);
+                    sharedDataChrome.Should().StartWith("true", "order list and detail must share clear-filter geometry and footer rhythm while retaining paging versus virtualization behavior");
+
                     var layoutGeometry = await Page.EvaluateAsync<string>("""
                         () => {
                             const kpis = document.querySelector('.vpp-history-kpis');

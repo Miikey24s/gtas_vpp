@@ -23,6 +23,7 @@ public static class VppIcons
     public const string Department = "table_view";
     public const string Error = "error";
     public const string ExpandMore = "expand_more";
+    public const string FilterOff = "filter_alt_off";
     public const string Folder = "folder_open";
     public const string Group = "group";
     public const string History = "history";

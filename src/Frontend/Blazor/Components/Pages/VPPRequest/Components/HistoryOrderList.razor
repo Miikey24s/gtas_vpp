@@ -48,12 +48,10 @@
                     </div>
                 }
             </div>
-            <button type="button"
-                    class="vpp-history-clear @(HasTableFilters ? "is-active" : string.Empty)"
-                    @onclick="TableFiltersCleared">
-                <VppIcon Name="filter_alt_off" />
-                @Loc["HistoryClearFilters"]
-            </button>
+            <VppClearFiltersButton Text="@Loc["HistoryClearFilters"]"
+                                   IsActive="@HasTableFilters"
+                                   Clicked="@TableFiltersCleared"
+                                   Class="vpp-history-clear" />
         </div>
     </header>
 
@@ -87,7 +85,7 @@
                             RowSelect="@OrderSelected"
                             AllowPaging="true"
                             PageSize="@PageSize"
-                            PagerAlwaysVisible="false"
+                            PagerAlwaysVisible="true"
                             ShowPagingSummary="true"
                             PagingSummaryFormat="@Loc["HistoryPagingSummaryFormat"]"
                             PagerHorizontalAlign="HorizontalAlign.Right"

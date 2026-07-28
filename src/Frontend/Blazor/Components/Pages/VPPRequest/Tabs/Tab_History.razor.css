@@ -196,7 +196,6 @@
 
 ::deep .vpp-history-scope button,
 ::deep .vpp-history-refresh,
-::deep .vpp-history-clear,
 ::deep .vpp-history-period-filter,
 ::deep .vpp-history-range-apply {
     border: 1px solid var(--vpp-border-default);
@@ -240,8 +239,7 @@
     border-radius: var(--vpp-radius-md);
 }
 
-::deep .vpp-history-refresh,
-::deep .vpp-history-clear {
+::deep .vpp-history-refresh {
     border: 0;
     border-radius: var(--vpp-radius-lg);
     background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
@@ -249,7 +247,6 @@
 
 ::deep .vpp-history-scope button:hover,
 ::deep .vpp-history-refresh:hover,
-::deep .vpp-history-clear:hover,
 ::deep .vpp-history-period-filter:hover {
     background: var(--vpp-navigation-item-hover-bg);
     color: var(--vpp-text-primary);
@@ -892,42 +889,6 @@
     width: 100%;
 }
 
-::deep .vpp-history-clear {
-    display: inline-flex;
-    height: 32px;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    padding: 0 var(--vpp-space-2);
-    min-width: 112px;
-    justify-content: center;
-    border: 1px solid var(--vpp-border-strong);
-    border-radius: var(--vpp-radius-lg);
-    color: var(--vpp-primary-700);
-    opacity: 1;
-    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
-}
-
-::deep .vpp-history-clear.is-active {
-    border-color: transparent;
-    background: var(--vpp-primary-500);
-    color: #fff;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
-}
-
-::deep .vpp-history-clear.is-active:hover {
-    background: var(--vpp-primary-600);
-    color: #fff;
-}
-
-::deep .vpp-history-clear:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 24%, transparent);
-}
-
-::deep .vpp-history-clear.is-active:focus-visible {
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 42%), 0 1px 2px rgb(0 0 0 / 12%);
-}
-
 ::deep .vpp-history-grid-wrap {
     position: relative;
     display: flex;
@@ -1036,9 +997,14 @@
     background: color-mix(in srgb, var(--vpp-primary-500) 7%, var(--vpp-bg-elevated));
 }
 
+::deep .vpp-history-grid .rz-paginator,
 ::deep .vpp-history-grid .rz-pager {
+    display: flex;
+    align-items: center;
     min-height: 42px;
+    padding: 0 var(--vpp-space-4);
     border-top: 1px solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
     font-size: var(--vpp-text-xs);
 }
 

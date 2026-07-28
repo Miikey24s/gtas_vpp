@@ -643,7 +643,7 @@
   <data name="HistoryAllOrderTypes" xml:space="preserve"><value>Tất cả loại đơn</value></data>
   <data name="HistoryClearFilters" xml:space="preserve"><value>Xóa bộ lọc</value></data>
   <data name="HistoryAdjustFilters" xml:space="preserve"><value>Hãy thay đổi hoặc xóa bớt điều kiện lọc.</value></data>
-  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Trang {0}/{1} · {2} đơn</value></data>
+  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Hiển thị {0}–{1} trên {2} đơn</value></data>
   <data name="HistorySearchItem" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
   <data name="HistoryAllCategories" xml:space="preserve"><value>Tất cả danh mục</value></data>
   <data name="HistoryItem" xml:space="preserve"><value>Mặt hàng</value></data>

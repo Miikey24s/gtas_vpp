@@ -1,0 +1,44 @@
+.vpp-clear-filters {
+    display: inline-flex;
+    min-width: 112px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-1);
+    padding: 0 var(--vpp-space-2);
+    border: 1px solid var(--vpp-border-strong);
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
+    color: var(--vpp-primary-700);
+    font: inherit;
+    font-size: var(--vpp-text-sm);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--vpp-transition-fast), color var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast);
+}
+
+.vpp-clear-filters:hover {
+    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-clear-filters.is-active {
+    border-color: transparent;
+    background: var(--vpp-primary-500);
+    color: var(--vpp-color-white);
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-clear-filters.is-active:hover {
+    background: var(--vpp-primary-600);
+    color: var(--vpp-color-white);
+}
+
+.vpp-clear-filters:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 24%, transparent);
+}
+
+.vpp-clear-filters.is-active:focus-visible {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 42%), var(--vpp-shadow-xs);
+}

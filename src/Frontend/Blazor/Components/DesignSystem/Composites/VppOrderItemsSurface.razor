@@ -57,12 +57,10 @@
                     </div>
                 }
             </div>
-            <button type="button"
-                    class="vpp-history-clear vpp-history-detail-clear @(HasFilters ? "is-active" : string.Empty)"
-                    @onclick="FiltersCleared">
-                <VppIcon Name="filter_alt_off" />
-                @ClearFiltersLabel
-            </button>
+            <VppClearFiltersButton Text="@ClearFiltersLabel"
+                                   IsActive="@HasFilters"
+                                   Clicked="@FiltersCleared"
+                                   Class="vpp-history-clear vpp-history-detail-clear" />
         </div>
     }
 

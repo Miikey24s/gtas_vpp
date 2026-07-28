@@ -643,7 +643,7 @@
   <data name="HistoryAllOrderTypes" xml:space="preserve"><value>All order types</value></data>
   <data name="HistoryClearFilters" xml:space="preserve"><value>Clear filters</value></data>
   <data name="HistoryAdjustFilters" xml:space="preserve"><value>Change or clear some filters.</value></data>
-  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Page {0}/{1} · {2} orders</value></data>
+  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Showing {0}–{1} of {2} orders</value></data>
   <data name="HistorySearchItem" xml:space="preserve"><value>Search item code or name</value></data>
   <data name="HistoryAllCategories" xml:space="preserve"><value>All categories</value></data>
   <data name="HistoryItem" xml:space="preserve"><value>Item</value></data>

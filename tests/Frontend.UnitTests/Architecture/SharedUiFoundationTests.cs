@@ -634,6 +634,9 @@ public sealed class SharedUiFoundationTests
         var historyOrders = File.ReadAllText(Path.Combine(historyComponentsRoot, "HistoryOrderList.razor"));
         var historyDrawer = File.ReadAllText(Path.Combine(historyComponentsRoot, "HistoryOrderDetailSheet.razor"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
+        var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
+        var clearFiltersButton = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppClearFiltersButton.razor"));
+        var clearFiltersStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppClearFiltersButton.razor.css"));
 
         Assert.Contains("vpp-history-kpis", historyKpis, StringComparison.Ordinal);
         Assert.Contains("vpp-history-loading-state", history, StringComparison.Ordinal);
@@ -644,10 +647,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-history-detail-no-selection", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("HistoryChartNoData", historyChart, StringComparison.Ordinal);
         Assert.Contains("Summary.Periods.Count > 0 && (ShowRegularSeries || ShowAdditionalSeries)", historyChart, StringComparison.Ordinal);
+        Assert.Contains("<VppClearFiltersButton", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("<VppClearFiltersButton", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("vpp-history-detail-clear", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("VppIcons.FilterOff", clearFiltersButton, StringComparison.Ordinal);
+        Assert.Contains("height: 32px;", clearFiltersStyles, StringComparison.Ordinal);
+        Assert.Contains("min-height: 42px;", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
-        Assert.Contains("<VppIcon Name=\"filter_none\" />", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("<VppIcon Name=\"filter_none\" />", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("Property=\"Note\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("ToggleDetailNote", history, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyOrders, StringComparison.Ordinal);
@@ -662,6 +668,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ExpandMode=", history, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("PagerAlwaysVisible=\"true\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("PageSize = 6;", historyCode, StringComparison.Ordinal);
         Assert.Contains("Math.Clamp(pageSize, 3, 20)", historyCode, StringComparison.Ordinal);
         Assert.Contains("SetHistoryViewport", historyCode, StringComparison.Ordinal);
