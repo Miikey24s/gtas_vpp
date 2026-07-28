@@ -172,100 +172,17 @@
                 </button>
             </div>
 
-            <div class="vpp-history-detail-grid-region">
-                @if (DetailRows.Count == 0)
-                {
-                    <VppStatePanel State="empty"
-                                   Icon="search_off"
-                                   Title="@Loc["HistoryNoItems"]"
-                                   Description="@Loc["HistoryNoItemsDescription"]"
-                                   Class="vpp-history-state-panel vpp-history-detail-empty" />
-                }
-                else
-                {
-                <div class="vpp-history-detail-grid-header" aria-hidden="true">
-                    <span class="vpp-history-detail-grid-header-cell vpp-history-detail-number">#</span>
-                    <span class="vpp-history-detail-grid-header-cell vpp-history-detail-item">@Loc["HistoryItem"]</span>
-                    <span class="vpp-history-detail-grid-header-cell vpp-history-detail-category">@Loc["Category"]</span>
-                    <span class="vpp-history-detail-grid-header-cell vpp-history-detail-uom">@UnitHeaderLabel</span>
-                    <span class="vpp-history-detail-grid-header-cell vpp-history-detail-quantity">@Loc["Quantity"]</span>
-                    <span class="vpp-history-detail-grid-header-cell vpp-history-detail-note-column">@Loc["Note"]</span>
-                </div>
-                <RadzenDataGrid TItem="HistoryDetailRow"
-                                @ref="_detailGrid"
-                                Data="@DetailRows"
-                                AllowVirtualization="true"
-                                VirtualizationOverscanCount="4"
-                                AllowPaging="false"
-                                AllowSorting="false"
-                                AllowFiltering="false"
-                                AllowColumnResize="false"
-                                AllowAlternatingRows="false"
-                                Density="Density.Compact"
-                                GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-history-detail-grid"
-                                Style="width: 100%;">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="HistoryDetailRow" Title="#" TextAlign="TextAlign.Center" CssClass="vpp-history-detail-number" HeaderCssClass="vpp-history-detail-number">
-                            <Template Context="row">@row.Number</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="HistoryDetailRow" Title="@Loc["HistoryItem"]" CssClass="vpp-history-detail-item" HeaderCssClass="vpp-history-detail-item">
-                            <Template Context="row">
-                                <div class="vpp-history-item-line">
-                                    <strong class="vpp-history-item-name" title="@row.Item.VppName">@row.Item.VppName</strong>
-                                    @if (!string.IsNullOrWhiteSpace(row.Item.VppCode))
-                                    {
-                                        <button type="button" class="vpp-history-detail-code" aria-haspopup="dialog" aria-expanded="@(ActiveDetailCode == row.Item.VppCode)" aria-label="@($"{Loc["ItemCode"]}: {row.Item.VppCode}")" title="@row.Item.VppCode" @onclick="@(() => DetailCodeToggled.InvokeAsync(row.Item.VppCode!))" @onclick:stopPropagation>@row.Item.VppCode</button>
-                                        @if (ActiveDetailCode == row.Item.VppCode)
-                                        {
-                                            <span class="vpp-history-detail-code-popover" role="dialog" aria-label="@Loc["ItemCode"]" @onclick:stopPropagation>
-                                                <span class="vpp-history-popover-value">@row.Item.VppCode</span>
-                                                <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(row.Item.VppCode))" @onclick:stopPropagation>
-                                                    <VppIcon Name="filter_none" />
-                                                </button>
-                                            </span>
-                                        }
-                                    }
-                                </div>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="HistoryDetailRow" Property="Item.CategoryName" Title="@Loc["Category"]" CssClass="vpp-history-detail-category" HeaderCssClass="vpp-history-detail-category">
-                            <Template Context="row"><span class="vpp-history-cell-ellipsis" title="@row.Item.CategoryName">@row.Item.CategoryName</span></Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="HistoryDetailRow" Property="Item.UomName" Title="@UnitHeaderLabel" TextAlign="TextAlign.Center" CssClass="vpp-history-detail-uom" HeaderCssClass="vpp-history-detail-uom" />
-                        <RadzenDataGridColumn TItem="HistoryDetailRow" Property="Item.Qty" Title="@Loc["Quantity"]" TextAlign="TextAlign.Right" CssClass="vpp-history-detail-quantity" HeaderCssClass="vpp-history-detail-quantity">
-                            <Template Context="row"><span class="vpp-history-number">@FormatNumber(row.Item.Qty)</span></Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="HistoryDetailRow" Property="Item.Description" Title="@Loc["Note"]" CssClass="vpp-history-detail-note-column" HeaderCssClass="vpp-history-detail-note-column">
-                            <Template Context="row">
-                                @if (string.IsNullOrWhiteSpace(row.Item.Description))
-                                {
-                                    <span class="vpp-history-note">–</span>
-                                }
-                                else
-                                {
-                                    <div class="vpp-history-note-cell">
-                                        <button type="button" class="vpp-history-note vpp-history-note-trigger" aria-haspopup="dialog" aria-expanded="@(ActiveDetailNoteNumber == row.Number)" title="@row.Item.Description" @onclick="@(() => DetailNoteToggled.InvokeAsync(row.Number))" @onclick:stopPropagation>@row.Item.Description</button>
-                                        @if (ActiveDetailNoteNumber == row.Number)
-                                        {
-                                            <div class="vpp-history-note-popover" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
-                                                <span class="vpp-history-popover-value">@row.Item.Description</span>
-                                                <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(row.Item.Description))" @onclick:stopPropagation>
-                                                    <VppIcon Name="filter_none" />
-                                                </button>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
-                }
-            </div>
-            <footer class="vpp-history-detail-footer">
-                @Loc["HistoryDetailCount", DetailRows.Count, SelectedOrder?.Items?.Count ?? 0]
-            </footer>
+            <VppOrderItemsSurface @ref="_detailSurface"
+                                  Variant="VppOrderItemsSurfaceVariant.HistoryDrawer"
+                                  Items="@DetailRows"
+                                  TotalItemCount="@(SelectedOrder.Items?.Count ?? 0)"
+                                  AriaLabel="@Loc["HistoryItemsHeading"]"
+                                  UnitHeaderLabel="@UnitHeaderLabel"
+                                  ActiveCode="@ActiveDetailCode"
+                                  ActiveNoteNumber="@ActiveDetailNoteNumber"
+                                  CodeToggled="@DetailCodeToggled"
+                                  NoteToggled="@DetailNoteToggled"
+                                  CopyRequested="@CopyRequested" />
             @if (IsDetailLoading)
             {
                 <div class="vpp-history-region-loading vpp-history-detail-refresh" role="status" aria-live="polite"><span class="vpp-history-state-spinner" aria-hidden="true"></span>@Loc["Loading"]</div>
@@ -278,7 +195,7 @@
     [Parameter] public VppRequestResDTO? SelectedOrder { get; set; }
     [Parameter] public bool IsDetailLoading { get; set; }
     [Parameter] public bool HasDetailError { get; set; }
-    [Parameter, EditorRequired] public IReadOnlyList<HistoryDetailRow> DetailRows { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<VppOrderDetailItem> DetailRows { get; set; } = [];
     [Parameter] public IReadOnlyList<string> DetailCategories { get; set; } = [];
     [Parameter] public IReadOnlyList<string> DetailUoms { get; set; } = [];
     [Parameter] public string DetailSearch { get; set; } = string.Empty;
@@ -307,7 +224,7 @@
     [Parameter] public EventCallback<int> DetailNoteToggled { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
 
-    private RadzenDataGrid<HistoryDetailRow>? _detailGrid;
+    private VppOrderItemsSurface? _detailSurface;
 
     /// <summary>Element của aside drawer — Tab_History dùng cho JS focusHistoryDrawer.</summary>
     public ElementReference DrawerElement { get; private set; }
@@ -315,9 +232,9 @@
     /// <summary>Cho Tab_History gọi Reload() bảng chi tiết sau khi lọc lại dữ liệu.</summary>
     public async Task ReloadDetailGridAsync()
     {
-        if (_detailGrid is not null)
+        if (_detailSurface is not null)
         {
-            await _detailGrid.Reload();
+            await _detailSurface.ReloadAsync();
         }
     }
 }

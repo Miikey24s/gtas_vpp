@@ -1,14 +1,9 @@
 using System.Globalization;
-using gtas_vpp_shared.DTOs.Res.VPP;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
 // Hỗ trợ dùng chung cho màn Lịch sử (Atlas history): Tab_History là coordinator giữ toàn bộ state,
-// 5 component con (HistoryScopeBar, HistoryKpiCards, HistoryTrendChart, HistoryOrderList,
-// HistoryOrderDetailSheet) chỉ nhận tham số và bắn EventCallback.
-
-/// <summary>Một dòng trong bảng chi tiết phiếu (số thứ tự sau khi lọc + mặt hàng).</summary>
-public sealed record HistoryDetailRow(int Number, VppRequestDetailResDTO Item);
+// 5 component con chỉ nhận tham số và bắn EventCallback; item-detail dùng composite DesignSystem.
 
 /// <summary>
 /// Khóa chuỗi trạng thái UI của màn Lịch sử. Giá trị phải giữ nguyên vì được so sánh

@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.74` — 2026-07-28
+> **Phiên bản:** `2.75` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F1 IMPLEMENTED — OWNER REVIEW; F2 NOT STARTED`.
+> **Trạng thái:** `F0/F1/F2 DONE; F3 IMPLEMENTED — OWNER REVIEW`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,10 +24,10 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code đầu tiên? | F1 đã khóa semantic token, Radzen bridge và CSS ownership. Bước tiếp theo chỉ là owner review Theme Board; chưa tự mở F2. | [Kết quả F1](../execution/UI-SYSTEM-001.md#72--kết-quả-thực-thi-f1) |
+| Bước code hiện tại? | F1 đã được owner xác nhận; F2 đã qua Terra implementation + Sol review/fix; F3 đã implement/test xong và chờ duyệt board My Orders + History. | [Kết quả F3](../execution/UI-SYSTEM-001.md#53-f3-execution-record--2026-07-28) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Duyệt Theme Review Board F1 và xác nhận có mở F2 Primitive & state hay không. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
+| Cần owner duyệt gì? | Duyệt board My Orders + History để khóa F3 và mở F4; code/test F3 đã hoàn tất. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -77,7 +77,7 @@ Khi có xung đột:
 - Quyết định “không xóa React POC” ngày 2026-07-21 đã được owner thay thế ngày 2026-07-27 bằng yêu cầu dọn sâu repository.
 - Source React POC được bảo toàn ở tag `archive/react-poc-2026-07-27` và bản ZIP phục hồi ngoài repository; dependency Playwright dùng chung đã chuyển vào `scripts/browser/`.
 - Mọi UI work tiếp theo phải sửa trực tiếp `src/Frontend/Blazor`, dùng API/DTO và database TEST hoặc isolated fixture thật.
-- Thứ tự hiện tại: Atlas `ATLAS-001` đã hoàn tất → F0 đã pass → F1 của `UI-SYSTEM-001` đã implement và chờ owner review → chỉ mở F2 khi owner duyệt evidence/gate F1.
+- Thứ tự hiện tại: Atlas `ATLAS-001` hoàn tất → F0/F1 đã tích hợp và F1 được owner xác nhận → F2 đã qua implementation + independent review/fix → F3 đã implement/test xong, chờ owner review trước F4.
 - Khi deadline qua hoặc owner yêu cầu quay lại React, kế hoạch React được mở lại bằng một quyết định riêng; không tự động cutover.
 
 **Bằng chứng kích hoạt lại Blazor/Radzen — 2026-07-21:**
@@ -1575,7 +1575,7 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Gate đang chờ hiện tại: owner duyệt Theme Review Board F1; sau đó mới mở F2 Primitive & state. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
+Gate đang chờ hiện tại: owner duyệt F3 Wave Review Board My Orders + History; sau đó mới mở F4 Pattern. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 

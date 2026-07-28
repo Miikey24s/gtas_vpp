@@ -486,6 +486,7 @@ public sealed class SharedUiFoundationTests
         var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
         var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
         var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var kpiStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-kpi.css"));
         var gridStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-datagrid.css"));
         var layoutStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
@@ -509,17 +510,19 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("vpp-native-tab-list", source, StringComparison.Ordinal);
         Assert.Contains("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
         Assert.Contains("vpp-data-card-actions", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("Title=\"#\" Width=\"56px\" TextAlign=\"TextAlign.Center\"", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("Property=\"Qty\" Title=\"@Loc[\"Quantity\"]\" Width=\"120px\" TextAlign=\"TextAlign.Right\"", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("Property=\"UomName\" Title=\"@Loc[\"UOM\"]\" Width=\"96px\" TextAlign=\"TextAlign.Center\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("Property=\"Quantity\"", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("Property=\"UomName\"", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("private string? QuantityColumnWidth", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("private string? UnitColumnWidth", orderItemsSurface, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-card-kind", orderPanel, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-state", source, StringComparison.Ordinal);
-        Assert.Contains("AllowPaging=\"false\"", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("VirtualizationOverscanCount=\"10\"", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("<EmptyTemplate>", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("EmptyActionText", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("EmptyActionClick", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"false\"", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("IsHistoryDrawer ? 4 : 10", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("<EmptyTemplate>", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("EmptyActionText", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("EmptyActionClick", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("CreateOrderThisCycle", source, StringComparison.Ordinal);
         Assert.Contains("AvailableOrders.Count > 1", orderPanel, StringComparison.Ordinal);
         Assert.Contains("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
@@ -544,6 +547,34 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-surface-raised);", tokens, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OrderDetailComposite_UsesTypedVariantsAndKeepsRouteActionsOutside()
+    {
+        var root = GetFrontendRoot();
+        var compositesRoot = Path.Combine(root, "Components", "DesignSystem", "Composites");
+        var surface = File.ReadAllText(Path.Combine(compositesRoot, "VppOrderItemsSurface.razor"));
+        var variant = File.ReadAllText(Path.Combine(compositesRoot, "VppOrderItemsSurfaceVariant.cs"));
+        var item = File.ReadAllText(Path.Combine(compositesRoot, "VppOrderDetailItem.cs"));
+        var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var historyDrawer = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderDetailSheet.razor"));
+
+        Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("Workspace", variant, StringComparison.Ordinal);
+        Assert.Contains("HistoryDrawer", variant, StringComparison.Ordinal);
+        Assert.Contains("public sealed record VppOrderDetailItem", item, StringComparison.Ordinal);
+        Assert.Equal(6, surface.Split("<RadzenDataGridColumn", StringSplitOptions.None).Length - 1);
+        Assert.Contains("VppContentStateKind.FilteredEmpty", surface, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", surface, StringComparison.Ordinal);
+        Assert.Contains("CodeToggled", surface, StringComparison.Ordinal);
+        Assert.Contains("NoteToggled", surface, StringComparison.Ordinal);
+        Assert.DoesNotContain("ApiServices", surface, StringComparison.Ordinal);
+        Assert.DoesNotContain("Config.", surface, StringComparison.Ordinal);
+        Assert.DoesNotContain("CancelRequested", surface, StringComparison.Ordinal);
+        Assert.Contains("CancelRequested", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("ExportRequested", historyDrawer, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -584,6 +615,7 @@ public sealed class SharedUiFoundationTests
         var historyChart = File.ReadAllText(Path.Combine(historyComponentsRoot, "HistoryTrendChart.razor"));
         var historyOrders = File.ReadAllText(Path.Combine(historyComponentsRoot, "HistoryOrderList.razor"));
         var historyDrawer = File.ReadAllText(Path.Combine(historyComponentsRoot, "HistoryOrderDetailSheet.razor"));
+        var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
 
         Assert.Contains("vpp-history-kpis", historyKpis, StringComparison.Ordinal);
         Assert.Contains("vpp-history-loading-state", history, StringComparison.Ordinal);
@@ -597,17 +629,18 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-history-detail-clear", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
         Assert.Contains("<VppIcon Name=\"filter_none\" />", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("<VppIcon Name=\"filter_none\" />", historyDrawer, StringComparison.Ordinal);
-        Assert.Contains("Property=\"Item.Description\" Title=\"@Loc[\"Note\"]\"", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("<VppIcon Name=\"filter_none\" />", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("Property=\"Note\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("ToggleDetailNote", history, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("VppContentState State=\"VppContentStateKind.Error\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("RadzenStackedColumnSeries", historyChart, StringComparison.Ordinal);
         Assert.Contains("vpp-history-drawer", historyDrawer, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", historyDrawer, StringComparison.Ordinal);
-        Assert.Contains("VirtualizationOverscanCount=\"4\"", historyDrawer, StringComparison.Ordinal);
-        Assert.Contains("vpp-history-detail-grid-header", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDrawer, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("IsHistoryDrawer ? 4 : 10", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("vpp-history-detail-grid-header", orderItemsSurface, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", history, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", historyDrawer, StringComparison.Ordinal);
@@ -708,11 +741,11 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var script = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
-        var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var libraryGrid = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_ShareGrid.razor"));
         var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
 
-        Assert.Contains("data-vpp-grid-region=\"true\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-grid-region=\"true\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("data-vpp-grid-region=\"true\"", libraryGrid, StringComparison.Ordinal);
         Assert.Equal(2, report.Split("data-vpp-grid-region=\"true\"", StringSplitOptions.None).Length - 1);
         Assert.Contains("normalizeGridRegions", script, StringComparison.Ordinal);

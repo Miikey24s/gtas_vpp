@@ -1,6 +1,6 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `IN_REVIEW — F1 IMPLEMENTED; F2 NOT STARTED`
+- Status: `IN_REVIEW — F0/F1/F2 DONE; F3 IMPLEMENTED`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
@@ -8,7 +8,7 @@
 - Liên quan: [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md)
 - CSS ownership: [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md)
 
-> Owner đã duyệt F0 và mở F1 ngày 2026-07-28. F1 chuẩn hóa foundation token/bridge; F2–F7 chưa được tự động mở và vẫn theo gate trong bảng canonical.
+> F0 và F1 đã được tích hợp vào branch authority; owner xác nhận F1 hoàn tất. F2 đã qua Terra implementation, Sol review và lượt fix regression. F3 đã implement/test xong, đang chờ owner duyệt review board.
 
 ---
 
@@ -151,18 +151,18 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 
 Đây là bảng canonical duy nhất cho chuỗi wave. Báo cáo tiến độ và bản một ánh nhìn phải link về bảng này, không tạo bảng F0–F7 hoặc routing song song.
 
-| Wave | Trạng thái | Model + effort | Thực hiện | Sau wave anh có gì | Visual review | Gate để mở wave sau |
+| Wave | Trạng thái | Model + effort · lý do | Thực hiện | Sau wave anh có gì | Visual review | Gate để mở wave sau |
 |---|---|---|---|---|---|---|
-| F0 — Baseline & guard | `DONE — OWNER REVIEW` | **Sol · High** | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên ở desktop; breakpoint 390/768 không còn chừa gutter cho sidebar đã ẩn. | Contact sheet before/after 4 route + diagram cascade trong evidence local ignored. | Focused architecture, route-real matrix và full frontend verify đã pass; owner duyệt board trước F1. |
-| F1 — Token & bridge | `DONE — OWNER REVIEW` | **Sol · High** | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board 4 route thật đặt Light/Dark cạnh nhau. | Hex authored giảm `131 → 108`; inline/`!important` không tăng; resolved bridge, route health và representative axe pass. |
-| F2 — Primitive & state | `PENDING F1 OWNER REVIEW` | **Terra · High**; **Sol · High** review | Tạo primitive nhỏ và content-state canonical; migrate tối thiểu 2 consumer; chỉ xóa adapter đã hết consumer. | **Khung cơ bản dùng được:** loading/empty/filter-empty/error/denied nhất quán trên các route đầu tiên. | State matrix desktop/mobile; trace keyboard/focus khi cần. | API typed; unit/architecture/accessibility pass; route thật không regression. |
-| F3 — Composite | `PENDING F2` | **Sol · High** | Tạo composite sau khi so sánh 2 consumer thật; ưu tiên order-detail cho My Orders và History nếu behavior cho phép. | **Luồng mẫu hoàn chỉnh:** chứng minh tái sử dụng không làm mất dữ liệu, action hoặc nghiệp vụ. | My Orders và History cạnh nhau, highlight order-detail dùng chung. | Data, action, paging/virtualization và responsive behavior giữ đúng. |
-| F4 — Pattern | `PENDING F3` | **Sol · XHigh** | Tạo contract nhỏ, typed và tùy biến bằng slot cho Collection, ListDetail, SplitEditor, Operation, Analytics/Account khi đủ consumer. | **Khung scalable hoàn chỉnh:** đủ nền để migrate nhanh sản phẩm mà route vẫn giữ nghiệp vụ riêng. | Pattern map dạng card + thumbnail consumer thật. | Không reflection/endpoint string; route giữ API/permission; tối thiểu 2 consumer/pattern. |
-| F5 — M0–M2 reference | `PENDING F4` | **Terra · High**; **Sol · High** review từng slice | Migrate shell, account, catalog, order create, My Orders và History thành reference implementation. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Contact sheet M0–M2 có mobile/desktop và Light/Dark đại diện. | 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility pass. |
-| F6 — M3–M8 rollout | `PENDING F5` | **Terra · High** | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | Từng vertical slice có test, route-real QA, evidence và owner review trước commit. |
-| F7 — Hardening | `PENDING F6` | **Sol · XHigh** | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
+| F0 — Baseline & guard | `DONE — OWNER REVIEW` | **Sol · High** — cascade/architecture mơ hồ, sai nền sẽ lan toàn plan. | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên ở desktop; breakpoint 390/768 không còn chừa gutter cho sidebar đã ẩn. | Contact sheet before/after 4 route + diagram cascade trong evidence local ignored. | Focused architecture, route-real matrix và full frontend verify đã pass. |
+| F1 — Token & bridge | `DONE — OWNER CONFIRMED` | **Sol · High** — token/bridge ảnh hưởng mọi component phía sau. | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board 4 route thật đặt Light/Dark cạnh nhau. | Hex authored giảm `131 → 108`; inline/`!important` không tăng; resolved bridge, route health và representative axe pass. |
+| F2 — Primitive & state | `DONE — SOL REVIEWED` | **Terra · High** implement; **Sol · High** review — khóa API/state contract và regression visual. | Tạo `VppContentState` typed; migrate History + Catalog; giữ adapter còn consumer; sửa class CSS compatibility và khôi phục retry icon. | **Khung cơ bản dùng được:** error và filter-empty đầu tiên đã thống nhất typed API. | Runtime isolated History + Catalog; evidence thô ignored. | Build `0 warning/error`, frontend `180/180`, isolated Playwright `3/3`; fix ở `139e151`. |
+| F3 — Composite | `DONE — OWNER REVIEW` | **Sol · High** — phải suy luận behavior chung từ hai consumer thật, rủi ro abstraction sai. | Trích xuất order-item detail surface typed dùng chung cho My Orders và History; route giữ header/action/nghiệp vụ riêng. | **Luồng mẫu hoàn chỉnh:** hai route dùng chung 6 cột, virtualization, empty/footer mà không mất action hoặc nghiệp vụ. | Review board My Orders + History từ runtime isolated; evidence local ignored. | Build/frontend tests và 5 Playwright test pass; responsive, Light/Dark, popover và URL state giữ đúng. |
+| F4 — Pattern | `PENDING F3` | **Sol · XHigh** — checkpoint kiến trúc khó nhất, ảnh hưởng scalability dài hạn. | Tạo contract nhỏ, typed và tùy biến bằng slot cho Collection, ListDetail, SplitEditor, Operation, Analytics/Account khi đủ consumer. | **Khung scalable hoàn chỉnh:** đủ nền để migrate nhanh sản phẩm mà route vẫn giữ nghiệp vụ riêng. | Pattern map dạng card + thumbnail consumer thật. | Không reflection/endpoint string; route giữ API/permission; tối thiểu 2 consumer/pattern. |
+| F5 — M0–M2 reference | `PENDING F4` | **Terra · High** implement; **Sol · High** review từng slice — giữ chuẩn reference. | Migrate shell, account, catalog, order create, My Orders và History thành reference implementation. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Contact sheet M0–M2 có mobile/desktop và Light/Dark đại diện. | 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility pass. |
+| F6 — M3–M8 rollout | `PENDING F5` | **Terra · High** — rollout lớn nhưng pattern đã ổn định. | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | Từng vertical slice có test, route-real QA, evidence và owner review trước commit. |
+| F7 — Hardening | `PENDING F6` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
 
-Routing trên áp dụng riêng cho `UI-SYSTEM-001`, dựa trên [OpenAI model selection](https://learn.chatgpt.com/docs/models) và [latest model guide](https://developers.openai.com/api/docs/guides/latest-model) đã kiểm tra ngày 2026-07-28. Chỉ đổi model ở ranh giới wave hoặc checkpoint lớn; `Sol review` là một lượt review độc lập, không phải hai agent cùng sửa một worktree. Theo quyết định owner mới nhất, plan không kiểm tra hoặc báo cáo quota/% tài khoản trừ khi owner chủ động mở lại phạm vi đó.
+Routing trên áp dụng riêng cho `UI-SYSTEM-001`; chỉ đổi model ở ranh giới wave/checkpoint lớn. `Sol review` là lượt review độc lập, không phải hai agent cùng sửa một worktree. Theo quyết định owner mới nhất, plan không kiểm tra hoặc báo cáo quota/% tài khoản trừ khi owner chủ động mở lại phạm vi đó.
 
 Mốc dễ hiểu:
 
@@ -170,6 +170,24 @@ Mốc dễ hiểu:
 - Kết thúc **F4**: khung reusable/scalable đã hoàn chỉnh, nhưng chưa phải toàn bộ màn đã migrate.
 - Kết thúc **F6**: toàn bộ UI trong scope hiện tại đã lên khung mới.
 - Kết thúc **F7**: hoàn tất kỹ thuật, QA, dọn legacy và handoff của `UI-SYSTEM-001`.
+
+### 5.2 F2 execution record — 2026-07-28
+
+- F2 được triển khai trên branch authority trước khi hai commit F0/F1 từ worktree tách được tích hợp; hiện dependency đã được hợp nhất đúng thứ tự trong lịch sử branch hiện tại.
+- Canonical primitive là `Components/DesignSystem/Primitives/VppContentState.razor` với `VppContentStateKind`; enum bao phủ `Empty`, `FilteredEmpty`, `Loading`, `Error`, `Denied`, `Disabled`, `Success` và `Warning`.
+- Hai consumer thật đã migrate: `HistoryOrderList` và `Tab_ProductCatalog`, cho error/retry và filter-empty. `VppStatePanel`/`VppEmptyState` còn consumer nên được giữ làm adapter tương thích, không xóa.
+- Sol review phát hiện và sửa hai regression: state class không còn match CSS legacy và retry action mất icon Refresh. Fix commit `139e151`.
+- Evidence: `dotnet build src/Frontend/Blazor/gtas_vpp_fe.csproj --no-restore -c Release` (`0 warning/error`); `./scripts/gtas.cmd test-frontend` (`180/180`); isolated Playwright `HistoryTests` + `ProductCatalogTests` (`3/3`). Screenshot/trace thô không commit khi chưa có owner visual approval.
+
+### 5.3 F3 execution record — 2026-07-28
+
+- So sánh hai consumer xác nhận phần header/action không cùng behavior: My Orders giữ edit/cancel/order-attempt; History giữ drawer/focus/export/popover. F3 không gộp các trách nhiệm này.
+- Composite canonical là `Components/DesignSystem/Composites/VppOrderItemsSurface.razor`, dùng `VppOrderDetailItem` và enum `VppOrderItemsSurfaceVariant` thay string config/reflection.
+- `VppOrderWorkspacePanel` và `HistoryOrderDetailSheet` đều migrate sang composite. Phần dùng chung gồm sáu cột `# · Mặt hàng · Danh mục · Đơn vị · Số lượng · Ghi chú`, virtualization, empty/filter-empty và footer; variant chỉ giữ hình học Workspace/History.
+- `HistoryDetailRow` adapter cũ được gỡ; route tiếp tục sở hữu API, filter state, permission, export, edit/cancel và orchestration.
+- Một UI test cũ còn tìm `[role=radio]` dù runtime authority đã chuyển sang group button `aria-pressed`; test được cập nhật theo contract hiện hành, không đổi production UI để chiều assertion cũ.
+- Evidence: frontend build `0 warning/error`; frontend unit/architecture `188/188`; isolated matrix `UiSystemF1ThemeTests`, `DashboardMyOrdersVisualTests`, `HistoryTests`, `ProductCatalogTests` pass `5/5`, bao phủ 4 viewport, VI/EN đại diện, Light/Dark, console/network, drawer/popover và URL-selected view.
+- Wave Review Board local ignored: `gtas-vpp-ui-system-f3/F3-WAVE-REVIEW-BOARD.png`; ảnh thô không commit trước owner approval.
 
 ### 5.1 Visual review contract
 

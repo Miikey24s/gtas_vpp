@@ -1,0 +1,287 @@
+@using System.Globalization
+
+<div class="@RegionClass">
+    @if (IsHistoryDrawer && Items.Count > 0)
+    {
+        <div class="vpp-history-detail-grid-header" aria-hidden="true">
+            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-number">#</span>
+            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-item">@Loc["HistoryItem"]</span>
+            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-category">@Loc["Category"]</span>
+            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-uom">@EffectiveUnitHeaderLabel</span>
+            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-quantity">@Loc["Quantity"]</span>
+            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-note-column">@Loc["Note"]</span>
+        </div>
+    }
+
+    @if (IsHistoryDrawer && Items.Count == 0)
+    {
+        <VppContentState State="@(TotalItemCount > 0 ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                         Icon="search_off"
+                         Title="@Loc["HistoryNoItems"]"
+                         Description="@Loc["HistoryNoItemsDescription"]"
+                         Class="vpp-history-state-panel vpp-history-detail-empty" />
+    }
+    else
+    {
+        <RadzenDataGrid TItem="VppOrderDetailItem"
+                        data-vpp-grid-region="true"
+                        aria-label="@AriaLabel"
+                        @ref="_grid"
+                        Data="@Items"
+                        AllowPaging="false"
+                        AllowVirtualization="true"
+                        VirtualizationOverscanCount="@VirtualizationOverscanCount"
+                        AllowFiltering="false"
+                        AllowSorting="false"
+                        AllowColumnResize="false"
+                        AllowAlternatingRows="@(!IsHistoryDrawer)"
+                        Density="Density.Compact"
+                        GridLines="DataGridGridLines.Horizontal"
+                        Style="@GridStyle"
+                        class="@GridClass">
+            <EmptyTemplate>
+                <div class="vpp-order-grid-empty">
+                    @if (TotalItemCount > 0)
+                    {
+                        <span class="vpp-orders-empty-icon"><VppIcon Name="search_off" /></span>
+                        <strong>@Loc["HistoryNoItems"]</strong>
+                        <p>@Loc["HistoryNoItemsDescription"]</p>
+                    }
+                    else
+                    {
+                        <span class="vpp-orders-empty-icon"><VppIcon Name="@EmptyIcon" /></span>
+                        <strong>@EmptyTitle</strong>
+                        <p>@EmptyDescription</p>
+                        @if (HasEmptyAction)
+                        {
+                            <RadzenButton Text="@EmptyActionText"
+                                          Icon="@VppIcons.Add"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Click="@(async _ => await EmptyActionClick.InvokeAsync())"
+                                          data-testid="@($"{TestId}-empty-action")" />
+                        }
+                    }
+                </div>
+            </EmptyTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="VppOrderDetailItem"
+                                      Title="#"
+                                      Width="@NumberColumnWidth"
+                                      TextAlign="TextAlign.Center"
+                                      CssClass="@HistoryNumberClass"
+                                      HeaderCssClass="@HistoryNumberClass">
+                    <Template Context="item">@item.Number</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VppOrderDetailItem"
+                                      Property="Name"
+                                      Title="@ItemHeaderLabel"
+                                      TextAlign="TextAlign.Left"
+                                      CssClass="@HistoryItemClass"
+                                      HeaderCssClass="@HistoryItemClass">
+                    <Template Context="item">
+                        @if (IsHistoryDrawer)
+                        {
+                            <div class="vpp-history-item-line">
+                                <strong class="vpp-history-item-name" title="@item.Name">@item.Name</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.Code))
+                                {
+                                    <button type="button"
+                                            class="vpp-history-detail-code"
+                                            aria-haspopup="dialog"
+                                            aria-expanded="@(ActiveCode == item.Code)"
+                                            aria-label="@($"{Loc["ItemCode"]}: {item.Code}")"
+                                            title="@item.Code"
+                                            @onclick="@(() => CodeToggled.InvokeAsync(item.Code!))"
+                                            @onclick:stopPropagation>
+                                        @item.Code
+                                    </button>
+                                    @if (ActiveCode == item.Code)
+                                    {
+                                        <span class="vpp-history-detail-code-popover" role="dialog" aria-label="@Loc["ItemCode"]" @onclick:stopPropagation>
+                                            <span class="vpp-history-popover-value">@item.Code</span>
+                                            <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(item.Code))" @onclick:stopPropagation>
+                                                <VppIcon Name="filter_none" />
+                                            </button>
+                                        </span>
+                                    }
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="vpp-order-product-cell">
+                                <strong>@item.Name</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.Code))
+                                {
+                                    <small>@item.Code</small>
+                                }
+                            </div>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VppOrderDetailItem"
+                                      Property="CategoryName"
+                                      Title="@Loc["Category"]"
+                                      Width="@CategoryColumnWidth"
+                                      TextAlign="TextAlign.Left"
+                                      CssClass="@HistoryCategoryClass"
+                                      HeaderCssClass="@HistoryCategoryClass">
+                    <Template Context="item">
+                        @if (IsHistoryDrawer)
+                        {
+                            <span class="vpp-history-cell-ellipsis" title="@item.CategoryName">@item.CategoryName</span>
+                        }
+                        else
+                        {
+                            @item.CategoryName
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VppOrderDetailItem"
+                                      Property="UomName"
+                                      Title="@EffectiveUnitHeaderLabel"
+                                      Width="@UnitColumnWidth"
+                                      TextAlign="TextAlign.Center"
+                                      CssClass="@HistoryUnitClass"
+                                      HeaderCssClass="@HistoryUnitClass" />
+
+                <RadzenDataGridColumn TItem="VppOrderDetailItem"
+                                      Property="Quantity"
+                                      Title="@Loc["Quantity"]"
+                                      Width="@QuantityColumnWidth"
+                                      TextAlign="TextAlign.Right"
+                                      CssClass="@HistoryQuantityClass"
+                                      HeaderCssClass="@HistoryQuantityClass">
+                    <Template Context="item">
+                        @if (IsHistoryDrawer)
+                        {
+                            <span class="vpp-history-number">@FormatNumber(item.Quantity)</span>
+                        }
+                        else
+                        {
+                            @item.Quantity
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="VppOrderDetailItem"
+                                      Property="Note"
+                                      Title="@Loc["Note"]"
+                                      Width="@NoteColumnWidth"
+                                      TextAlign="TextAlign.Left"
+                                      Visible="@ShowNoteColumn"
+                                      CssClass="@HistoryNoteClass"
+                                      HeaderCssClass="@HistoryNoteClass">
+                    <Template Context="item">
+                        @if (IsHistoryDrawer)
+                        {
+                            @if (string.IsNullOrWhiteSpace(item.Note))
+                            {
+                                <span class="vpp-history-note">–</span>
+                            }
+                            else
+                            {
+                                <div class="vpp-history-note-cell">
+                                    <button type="button"
+                                            class="vpp-history-note vpp-history-note-trigger"
+                                            aria-haspopup="dialog"
+                                            aria-expanded="@(ActiveNoteNumber == item.Number)"
+                                            title="@item.Note"
+                                            @onclick="@(() => NoteToggled.InvokeAsync(item.Number))"
+                                            @onclick:stopPropagation>
+                                        @item.Note
+                                    </button>
+                                    @if (ActiveNoteNumber == item.Number)
+                                    {
+                                        <div class="vpp-history-note-popover" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
+                                            <span class="vpp-history-popover-value">@item.Note</span>
+                                            <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(item.Note))" @onclick:stopPropagation>
+                                                <VppIcon Name="filter_none" />
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="vpp-order-note" title="@item.Note">@item.Note</div>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
+</div>
+
+@if (IsHistoryDrawer || TotalItemCount > 0)
+{
+    <footer class="@FooterClass">
+        @if (IsHistoryDrawer)
+        {
+            @Loc["HistoryDetailCount", Items.Count, TotalItemCount]
+        }
+        else
+        {
+            @Loc["VirtualizedCatalogSummary", Items.Count]
+        }
+    </footer>
+}
+
+@code {
+    [Parameter] public VppOrderItemsSurfaceVariant Variant { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<VppOrderDetailItem> Items { get; set; } = [];
+    [Parameter] public int TotalItemCount { get; set; }
+    [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
+    [Parameter] public string? UnitHeaderLabel { get; set; }
+    [Parameter] public bool HasNotes { get; set; }
+    [Parameter] public string TestId { get; set; } = "order-items-surface";
+    [Parameter] public string EmptyIcon { get; set; } = VppIcons.Orders;
+    [Parameter] public string EmptyTitle { get; set; } = string.Empty;
+    [Parameter] public string EmptyDescription { get; set; } = string.Empty;
+    [Parameter] public string? EmptyActionText { get; set; }
+    [Parameter] public EventCallback EmptyActionClick { get; set; }
+    [Parameter] public string? ActiveCode { get; set; }
+    [Parameter] public int? ActiveNoteNumber { get; set; }
+    [Parameter] public EventCallback<string> CodeToggled { get; set; }
+    [Parameter] public EventCallback<int> NoteToggled { get; set; }
+    [Parameter] public EventCallback<string?> CopyRequested { get; set; }
+
+    private RadzenDataGrid<VppOrderDetailItem>? _grid;
+    private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
+    private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
+    private bool ShowNoteColumn => IsHistoryDrawer || HasNotes;
+    private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
+    private string RegionClass => IsHistoryDrawer ? "vpp-history-detail-grid-region" : "vpp-order-view-grid-frame";
+    private string GridClass => IsHistoryDrawer
+        ? "vpp-history-detail-grid"
+        : "vpp-order-grid vpp-order-grid-embedded vpp-order-grid-scrollable";
+    private string GridStyle => IsHistoryDrawer ? "width: 100%;" : "height: 100%;";
+    private string FooterClass => IsHistoryDrawer ? "vpp-history-detail-footer" : "vpp-order-view-data-footer";
+    private string ItemHeaderLabel => IsHistoryDrawer ? Loc["HistoryItem"] : Loc["ItemName"];
+    private string EffectiveUnitHeaderLabel => string.IsNullOrWhiteSpace(UnitHeaderLabel) ? Loc["UOM"] : UnitHeaderLabel;
+    private string? NumberColumnWidth => IsHistoryDrawer ? null : "56px";
+    private string? CategoryColumnWidth => IsHistoryDrawer ? null : "160px";
+    private string? UnitColumnWidth => IsHistoryDrawer ? null : "96px";
+    private string? QuantityColumnWidth => IsHistoryDrawer ? null : "120px";
+    private string? NoteColumnWidth => IsHistoryDrawer ? null : "220px";
+    private string? HistoryNumberClass => IsHistoryDrawer ? "vpp-history-detail-number" : null;
+    private string? HistoryItemClass => IsHistoryDrawer ? "vpp-history-detail-item" : null;
+    private string? HistoryCategoryClass => IsHistoryDrawer ? "vpp-history-detail-category" : null;
+    private string? HistoryUnitClass => IsHistoryDrawer ? "vpp-history-detail-uom" : null;
+    private string? HistoryQuantityClass => IsHistoryDrawer ? "vpp-history-detail-quantity" : null;
+    private string? HistoryNoteClass => IsHistoryDrawer ? "vpp-history-detail-note-column" : null;
+
+    public async Task ReloadAsync()
+    {
+        if (_grid is not null)
+        {
+            await _grid.Reload();
+        }
+    }
+
+    private static string FormatNumber(int value) => value.ToString("N0", CultureInfo.CurrentCulture);
+}

@@ -111,7 +111,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         document.querySelectorAll('.vpp-orders-empty .vpp-empty-state-actions').length,
                         createActions.length,
                         document.querySelectorAll('[data-testid$="coming-soon"]:disabled').length,
-                        document.querySelectorAll('.vpp-orders-summary-grid [role="radio"]').length,
+                        document.querySelectorAll('.vpp-orders-summary-grid button[aria-pressed]').length,
                         document.querySelectorAll('.vpp-orders-state').length,
                         document.querySelectorAll('.vpp-order-view-meta .vpp-order-card-kind').length,
                         exportActions.filter(button => !button.disabled).length
@@ -129,7 +129,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             audit[7].Should().Be(0, "empty state must not repeat actions already shown in the story header");
             audit[8].Should().BeLessThanOrEqualTo(1, "the create-order action should have one source of truth");
             audit[9].Should().Be(0, "roadmap coming-soon placeholders were replaced by real export actions (W-C.0)");
-            audit[10].Should().Be(3, "the order selector should expose exactly three radio-style summary cards");
+            audit[10].Should().Be(3, "the order selector should expose exactly three pressed-state summary buttons");
             audit[11].Should().Be(0, "the current-cycle page should not repeat an open-period badge");
             audit[12].Should().Be(0, "the selected tab should replace the repeated order-type heading above the grid");
             if (viewport.Width >= 1366)
@@ -409,7 +409,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=previous(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.ReloadAsync();
         await Page.Locator("[data-testid='previous-order-panel']:visible").WaitForAsync();
-        (await Page.Locator(".vpp-orders-summary-grid article.is-selected [role='radio']").InnerTextAsync())
+        (await Page.Locator(".vpp-orders-summary-grid article.is-selected button[aria-pressed='true']").InnerTextAsync())
             .Should().Contain("Kỳ trước", "reload should preserve the selected order summary from the URL");
 
         await Page.Locator(".vpp-orders-summary-grid article").Nth(0).Locator("button").ClickAsync();

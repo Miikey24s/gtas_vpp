@@ -1,4 +1,5 @@
 using System.Globalization;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.Constants;
@@ -10,8 +11,8 @@ using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 
-// Các hằng khóa UI (scope/menu/KPI/series) và record HistoryDetailRow đã chuyển sang
-// Components/HistorySupport.cs để 5 component con của màn Lịch sử dùng chung.
+// Các hằng khóa UI (scope/menu/KPI/series) nằm trong Components/HistorySupport.cs;
+// item-detail dùng record typed của DesignSystem để chia sẻ với My Orders.
 public partial class Tab_History : BaseOrderTab, IAsyncDisposable
 {
     [Inject] public DialogService DialogService { get; set; } = default!;
@@ -23,7 +24,7 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
     private HistoryOrderDetailSheet? _detailSheet;
     private VppOrderHistorySummaryResDTO? _summary;
     private VppRequestResDTO? _selectedOrder;
-    private readonly List<HistoryDetailRow> _detailRows = [];
+    private readonly List<VppOrderDetailItem> _detailRows = [];
     private readonly List<string> _detailCategories = [];
     private readonly List<string> _detailUoms = [];
     private string _scope = Last1Scope;
@@ -665,7 +666,14 @@ public partial class Tab_History : BaseOrderTab, IAsyncDisposable
             .ToList();
 
         _detailRows.Clear();
-        _detailRows.AddRange(filtered.Select((item, index) => new HistoryDetailRow(index + 1, item)));
+        _detailRows.AddRange(filtered.Select((item, index) => new VppOrderDetailItem(
+            index + 1,
+            item.VppCode,
+            item.VppName ?? string.Empty,
+            item.CategoryName,
+            item.UomName,
+            item.Qty,
+            item.Description)));
     }
 
     private Task ExportSelectedOrderAsync(string format)

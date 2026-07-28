@@ -245,15 +245,17 @@ public sealed class AtlasWave1ArchitectureTests
         var historyOrders = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderList.razor");
         var historyDetail = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderDetailSheet.razor");
         var detail = ReadFrontendSource("Components/Pages/VPPRequest/Components/VppOrderWorkspacePanel.razor");
+        var orderItemsSurface = ReadFrontendSource("Components/DesignSystem/Composites/VppOrderItemsSurface.razor");
 
         Assert.Contains("CurrentOrderViewIndex", orders, StringComparison.Ordinal);
         Assert.Contains("SupplementOrderViewIndex", orders, StringComparison.Ordinal);
         Assert.Contains("PreviousOrderViewIndex", orders, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", orders, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"true\"", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", historyDetail, StringComparison.Ordinal);
-        Assert.Contains("AllowPaging=\"false\"", detail, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", detail, StringComparison.Ordinal);
+        Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDetail, StringComparison.Ordinal);
+        Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", detail, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"false\"", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", orderItemsSurface, StringComparison.Ordinal);
     }
 
     [Fact]
