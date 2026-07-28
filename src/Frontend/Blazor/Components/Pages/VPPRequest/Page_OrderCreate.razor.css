@@ -11,7 +11,8 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-6);
     min-height: 72px;
     padding: var(--vpp-space-3) var(--vpp-space-5);
     border: 1px solid var(--vpp-border-default);
@@ -19,12 +20,30 @@
     background: var(--vpp-bg-elevated);
 }
 
+.vpp-order-flow-heading {
+    display: grid;
+    gap: var(--vpp-space-1);
+    min-width: 13rem;
+}
+
+.vpp-order-flow-heading span {
+    color: var(--vpp-primary-700);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-order-flow-heading strong {
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-lg);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
 .vpp-order-flow-steps {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0;
-    width: min(100%, 520px);
+    width: min(100%, 620px);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -53,13 +72,20 @@
     display: inline-flex;
     align-items: center;
     gap: var(--vpp-space-2);
-    min-height: 40px;
-    padding: 0 var(--vpp-space-2);
-    border: 0;
+    min-height: 48px;
+    padding: var(--vpp-space-1) var(--vpp-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-secondary);
-    background: var(--vpp-bg-elevated);
+    background: transparent;
     font: inherit;
     cursor: pointer;
+}
+
+.vpp-order-flow-steps button:hover {
+    border-color: var(--vpp-border-default);
+    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-text-primary);
 }
 
 .vpp-order-flow-steps button > span {
@@ -77,6 +103,11 @@
 .vpp-order-flow-steps li.is-active button,
 .vpp-order-flow-steps li.is-complete button {
     color: var(--vpp-text-primary);
+}
+
+.vpp-order-flow-steps li.is-active button {
+    border-color: color-mix(in srgb, var(--vpp-primary-500) 32%, var(--vpp-border-default));
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, var(--vpp-bg-elevated));
 }
 
 .vpp-order-flow-steps li.is-active button > span,
@@ -100,8 +131,14 @@
 
 @media (max-width: 767px) {
     .vpp-order-flow-header {
+        align-items: stretch;
+        flex-direction: column;
         min-height: 64px;
         padding-inline: var(--vpp-space-2);
+    }
+
+    .vpp-order-flow-heading {
+        min-width: 0;
     }
 
     .vpp-order-flow-steps strong {

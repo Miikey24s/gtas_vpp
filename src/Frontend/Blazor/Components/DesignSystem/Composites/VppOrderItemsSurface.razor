@@ -6,59 +6,22 @@
     @if (ShowFilters && TotalItemCount > 0)
     {
         <div class="vpp-order-items-toolbar vpp-history-detail-toolbar" aria-label="@FiltersAriaLabel">
-            <label class="vpp-history-search vpp-history-detail-search @(!string.IsNullOrWhiteSpace(SearchText) ? "is-active" : string.Empty)">
-                <VppIcon Name="search" />
-                <input value="@SearchText"
-                       @oninput="SearchChanged"
-                       placeholder="@SearchPlaceholder"
-                       aria-label="@SearchPlaceholder" />
-            </label>
-            <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
-                <button type="button"
-                        class="vpp-history-select-trigger @(!string.IsNullOrEmpty(SelectedCategory) ? "is-active" : string.Empty)"
-                        aria-haspopup="listbox"
-                        aria-expanded="@(OpenFilterMenu == CategoryMenu)"
-                        aria-label="@CategoryAriaLabel"
-                        title="@CategorySelectionLabel"
-                        @onclick="@(() => FilterMenuToggled.InvokeAsync(CategoryMenu))"
-                        @onclick:stopPropagation>
-                    <span class="vpp-history-select-label">@CategorySelectionLabel</span>
-                    <VppIcon Name="expand_more" />
-                </button>
-                @if (OpenFilterMenu == CategoryMenu)
-                {
-                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
-                        <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedCategory)" @onclick="@(() => CategorySelected.InvokeAsync(string.Empty))">@AllCategoriesLabel</button>
-                        @foreach (var category in Categories)
-                        {
-                            <button type="button" role="option" aria-selected="@(SelectedCategory == category)" title="@category" @onclick="@(() => CategorySelected.InvokeAsync(category))">@category</button>
-                        }
-                    </div>
-                }
-            </div>
-            <div class="vpp-history-select vpp-history-detail-select" @onclick:stopPropagation>
-                <button type="button"
-                        class="vpp-history-select-trigger @(!string.IsNullOrEmpty(SelectedUnit) ? "is-active" : string.Empty)"
-                        aria-haspopup="listbox"
-                        aria-expanded="@(OpenFilterMenu == UnitMenu)"
-                        aria-label="@EffectiveUnitHeaderLabel"
-                        title="@UnitSelectionLabel"
-                        @onclick="@(() => FilterMenuToggled.InvokeAsync(UnitMenu))"
-                        @onclick:stopPropagation>
-                    <span class="vpp-history-select-label">@UnitSelectionLabel</span>
-                    <VppIcon Name="expand_more" />
-                </button>
-                @if (OpenFilterMenu == UnitMenu)
-                {
-                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
-                        <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedUnit)" @onclick="@(() => UnitSelected.InvokeAsync(string.Empty))">@AllUnitsLabel</button>
-                        @foreach (var unit in Units)
-                        {
-                            <button type="button" role="option" aria-selected="@(SelectedUnit == unit)" title="@unit" @onclick="@(() => UnitSelected.InvokeAsync(unit))">@unit</button>
-                        }
-                    </div>
-                }
-            </div>
+            <VppFilterSearch Value="@SearchText"
+                             Input="@SearchChanged"
+                             Placeholder="@SearchPlaceholder"
+                             AriaLabel="@SearchPlaceholder" />
+            <VppFilterSelect TValue="string"
+                             Value="@SelectedCategory"
+                             Options="@CategoryFilterOptions"
+                             ValueChanged="@CategorySelected"
+                             Placeholder="@AllCategoriesLabel"
+                             AriaLabel="@CategoryAriaLabel" />
+            <VppFilterSelect TValue="string"
+                             Value="@SelectedUnit"
+                             Options="@UnitFilterOptions"
+                             ValueChanged="@UnitSelected"
+                             Placeholder="@AllUnitsLabel"
+                             AriaLabel="@EffectiveUnitHeaderLabel" />
             <VppClearFiltersButton Text="@ClearFiltersLabel"
                                    IsActive="@HasFilters"
                                    Clicked="@FiltersCleared"
@@ -75,18 +38,6 @@
     }
 
     <div class="@RegionClass">
-    @if (Items.Count > 0)
-    {
-        <div class="vpp-history-detail-grid-header" aria-hidden="true">
-            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-number">#</span>
-            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-item">@Loc["HistoryItem"]</span>
-            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-category">@Loc["Category"]</span>
-            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-uom">@EffectiveUnitHeaderLabel</span>
-            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-quantity">@Loc["Quantity"]</span>
-            <span class="vpp-history-detail-grid-header-cell vpp-history-detail-note-column">@Loc["Note"]</span>
-        </div>
-    }
-
     @if (Items.Count == 0 && TotalItemCount > 0)
     {
         <VppContentState State="VppContentStateKind.FilteredEmpty"
@@ -308,22 +259,22 @@
     private IJSObjectReference? _module;
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
-    private const string CategoryMenu = "category";
-    private const string UnitMenu = "uom";
     private bool ShowNoteColumn => true;
     private bool HasOpenTransientSurface => !string.IsNullOrEmpty(OpenFilterMenu) || ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
     private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
     private string VariantClass => IsHistoryDrawer ? "is-history" : "is-workspace";
     private string RegionClass => "vpp-history-detail-grid-region vpp-order-items-grid-region";
-    private string GridClass => "vpp-history-detail-grid vpp-order-items-grid";
+    private string GridClass => "vpp-history-detail-grid vpp-order-items-grid vpp-order-grid-scrollable";
     private string GridStyle => "width: 100%;";
     private string FooterClass => "vpp-history-detail-footer vpp-order-items-footer";
     private string ItemHeaderLabel => Loc["HistoryItem"];
     private string EffectiveUnitHeaderLabel => string.IsNullOrWhiteSpace(UnitHeaderLabel) ? Loc["UOM"] : UnitHeaderLabel;
-    private string CategorySelectionLabel => string.IsNullOrEmpty(SelectedCategory) ? AllCategoriesLabel : SelectedCategory;
-    private string UnitSelectionLabel => string.IsNullOrEmpty(SelectedUnit) ? AllUnitsLabel : SelectedUnit;
     private string AllCategoriesLabel => AllCategoriesText ?? Loc["HistoryAllCategories"];
     private string AllUnitsLabel => AllUnitsText ?? Loc["HistoryAllUnits"];
+    private IReadOnlyList<VppFilterOption<string>> CategoryFilterOptions =>
+        [new(string.Empty, AllCategoriesLabel), .. Categories.Select(category => new VppFilterOption<string>(category, category))];
+    private IReadOnlyList<VppFilterOption<string>> UnitFilterOptions =>
+        [new(string.Empty, AllUnitsLabel), .. Units.Select(unit => new VppFilterOption<string>(unit, unit))];
     private string ClearFiltersLabel => ClearFiltersText ?? Loc["HistoryClearFilters"];
     private string NumberColumnWidth => "5%";
     private string CategoryColumnWidth => "18%";

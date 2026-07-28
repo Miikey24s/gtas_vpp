@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
@@ -11,12 +12,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 
 public partial class Tab_ProductCatalog : IDisposable
 {
-    public sealed class FilterOption<TValue>
-    {
-        public TValue? Value { get; set; }
-        public string Text { get; set; } = string.Empty;
-    }
-
     public sealed class ProductItem
     {
         public Guid Id { get; set; }
@@ -35,8 +30,8 @@ public partial class Tab_ProductCatalog : IDisposable
     [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
     public List<ProductItem> Products { get; set; } = [];
-    public List<FilterOption<Guid?>> CategoryOptions { get; set; } = [];
-    public List<FilterOption<string>> UnitOptions { get; set; } = [];
+    public List<VppFilterOption<string>> CategoryOptions { get; set; } = [];
+    public List<VppFilterOption<string>> UnitOptions { get; set; } = [];
     public int ProductCount { get; set; }
     public bool IsFirstLoading { get; set; } = true;
     public bool IsGridLoading { get; set; }
@@ -52,6 +47,8 @@ public partial class Tab_ProductCatalog : IDisposable
     private bool CanView => PermissionState.HasVisibleComponent(
         Config.Page_ComponentCode.PageCode.Dashboard,
         Permissions.RequestProductCatalog);
+    private bool HasFilters => !string.IsNullOrWhiteSpace(SearchText) || CategoryFilter.HasValue || !string.IsNullOrWhiteSpace(UnitFilter);
+    private string CategoryFilterValue => CategoryFilter?.ToString() ?? string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,16 +61,14 @@ public partial class Tab_ProductCatalog : IDisposable
         try
         {
             var data = await ApiServices.GetFromApiAsync<List<CategoryItem>>(Config.VppApi.Categories) ?? [];
-            CategoryOptions = [new() { Value = null, Text = Loc["AllCategories"] }];
-            CategoryOptions.AddRange(data.Select(category => new FilterOption<Guid?>
-            {
-                Value = category.Id,
-                Text = category.VppCategoryName ?? category.VppCategoryCode ?? string.Empty
-            }));
+            CategoryOptions = [new(string.Empty, Loc["AllCategories"])];
+            CategoryOptions.AddRange(data.Select(category => new VppFilterOption<string>(
+                category.Id.ToString(),
+                category.VppCategoryName ?? category.VppCategoryCode ?? string.Empty)));
         }
         catch
         {
-            CategoryOptions = [new() { Value = null, Text = Loc["AllCategories"] }];
+            CategoryOptions = [new(string.Empty, Loc["AllCategories"])];
         }
     }
 
@@ -83,17 +78,17 @@ public partial class Tab_ProductCatalog : IDisposable
         {
             var data = await ApiServices.GetFromApiAsync<List<ProductItem>>(
                 "/api/VPPRequest/products?distinct=UomName&top=1000") ?? [];
-            UnitOptions = [new() { Value = null, Text = Loc["AllUnits"] }];
+            UnitOptions = [new(string.Empty, Loc["AllUnits"])];
             UnitOptions.AddRange(data
                 .Where(item => !string.IsNullOrWhiteSpace(item.UomName))
                 .Select(item => item.UomName!.Trim())
                 .Distinct(StringComparer.CurrentCultureIgnoreCase)
                 .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
-                .Select(name => new FilterOption<string> { Value = name, Text = name }));
+                .Select(name => new VppFilterOption<string>(name, name)));
         }
         catch
         {
-            UnitOptions = [new() { Value = null, Text = Loc["AllUnits"] }];
+            UnitOptions = [new(string.Empty, Loc["AllUnits"])];
         }
     }
 
@@ -153,15 +148,15 @@ public partial class Tab_ProductCatalog : IDisposable
         }
     }
 
-    private async Task OnCategoryChanged(object? value)
+    private async Task OnCategoryChanged(string value)
     {
-        CategoryFilter = value is Guid id ? id : null;
+        CategoryFilter = Guid.TryParse(value, out var categoryId) ? categoryId : null;
         await ReloadFromFirstPageAsync();
     }
 
-    private async Task OnUnitChanged(object? value)
+    private async Task OnUnitChanged(string value)
     {
-        UnitFilter = value?.ToString();
+        UnitFilter = string.IsNullOrWhiteSpace(value) ? null : value;
         await ReloadFromFirstPageAsync();
     }
 

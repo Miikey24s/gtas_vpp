@@ -19,7 +19,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         });
 
         var detailRegion = Page.Locator(".vpp-history-detail-grid-region");
-        var detailHeader = detailRegion.Locator(".vpp-history-detail-grid-header");
+        var detailHeader = detailRegion.Locator(".vpp-history-detail-grid thead");
         await detailHeader.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var detailGrid = detailRegion.Locator(".vpp-history-detail-grid");
         var detailScroll = detailGrid.Locator(".rz-data-grid-data");
@@ -63,10 +63,9 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var fixedHeaderLayer = await detailRegion.EvaluateAsync<string>("""
             region => {
                 const surface = region.querySelector('.rz-data-grid-data');
-                const visibleHead = region.querySelector('.vpp-history-detail-grid-header');
                 const nativeHead = region.querySelector('.vpp-history-detail-grid thead');
-                const headers = [...region.querySelectorAll('.vpp-history-detail-grid-header-cell')];
-                if (!surface || !visibleHead || !nativeHead || !headers.length) return 'missing';
+                const headers = [...region.querySelectorAll('.vpp-history-detail-grid thead th')];
+                if (!surface || !nativeHead || !headers.length) return 'missing';
 
                 const parseAlpha = color => {
                     const match = color.match(/rgba?\([^,]+,[^,]+,[^,]+(?:,\s*([\d.]+))?\)/);
@@ -76,25 +75,24 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                     const rect = header.getBoundingClientRect();
                     const hit = document.elementFromPoint(rect.left + Math.min(6, rect.width / 2), rect.top + rect.height / 2);
                     return {
-                        matches: hit?.closest('.vpp-history-detail-grid-header-cell') === header,
+                        matches: hit?.closest('th') === header,
                         tag: hit?.tagName ?? 'none',
                         className: hit?.className?.toString() ?? '',
                         text: hit?.textContent?.trim().slice(0, 32) ?? ''
                     };
                 });
-                const headRect = visibleHead.getBoundingClientRect();
+                const headRect = nativeHead.getBoundingClientRect();
                 const surfaceRect = surface.getBoundingClientRect();
-                const headStyle = getComputedStyle(visibleHead);
+                const headStyle = getComputedStyle(headers[0]);
                 const nativeHeadStyle = getComputedStyle(nativeHead);
                 const surfaceStyle = getComputedStyle(surface);
                 const opaque = parseAlpha(headStyle.backgroundColor) >= .99;
-                const separatedFromViewport = Math.abs(headRect.bottom - surfaceRect.top) <= 1;
+                const pinnedToViewport = Math.abs(headRect.top - surfaceRect.top) <= 1.5;
                 const isolated = surfaceStyle.isolation === 'isolate';
                 const scrollViewport = ['auto', 'scroll'].includes(surfaceStyle.overflowY);
-                const nativeHeaderPreserved = nativeHeadStyle.position === 'absolute'
-                    && nativeHead.getBoundingClientRect().width <= 1;
+                const nativeHeaderPreserved = nativeHeadStyle.position === 'sticky';
                 const hitHeader = hits.every(hit => hit.matches);
-                return `${hitHeader && opaque && separatedFromViewport && isolated && scrollViewport && nativeHeaderPreserved}|hit=${hitHeader}|hits=${JSON.stringify(hits)}|opaque=${opaque}|separated=${separatedFromViewport}|isolated=${isolated}|scrollViewport=${scrollViewport}|native=${nativeHeaderPreserved}|scroll=${surface.scrollTop}|head=${headRect.top}/${headRect.bottom}|surface=${surfaceRect.top}/${surfaceRect.bottom}`;
+                return `${hitHeader && opaque && pinnedToViewport && isolated && scrollViewport && nativeHeaderPreserved}|hit=${hitHeader}|hits=${JSON.stringify(hits)}|opaque=${opaque}|pinned=${pinnedToViewport}|isolated=${isolated}|scrollViewport=${scrollViewport}|native=${nativeHeaderPreserved}|scroll=${surface.scrollTop}|head=${headRect.top}/${headRect.bottom}|surface=${surfaceRect.top}/${surfaceRect.bottom}`;
             }
         """);
 
@@ -105,7 +103,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             Path = Path.Combine(screenshotDirectory, "history-detail-fixed-header-scrolled.png"),
             Animations = ScreenshotAnimations.Disabled
         });
-        fixedHeaderLayer.Should().StartWith("true", "virtualized detail rows must stay inside a separate scroll viewport below the fixed visible header");
+        fixedHeaderLayer.Should().StartWith("true", "the native DataGrid header must remain sticky while virtualized detail rows scroll beneath it");
     }
 
     [Fact]
@@ -443,7 +441,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Visible
         });
         await drawer.GetByText("Phiếu chi tiết đơn", new() { Exact = true }).WaitForAsync();
-        await drawer.Locator(".vpp-history-detail-grid-header-cell.vpp-history-detail-item").WaitForAsync();
+        await drawer.Locator(".vpp-history-detail-grid thead th.vpp-history-detail-item").WaitForAsync();
         // OpenOrderAsync giữ detail cũ hiển thị trong lúc gọi API; khi API xong nó reset
         // bộ lọc rồi focus drawer (focusHistoryDrawer trong finally). Drawer Visible chỉ là
         // trạng thái giữa chừng — mọi tương tác toolbar phía sau phải chờ đúng tín hiệu
@@ -471,27 +469,26 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await drawer.Locator(".vpp-history-detail-grid-region").WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await drawer.Locator(".vpp-history-detail-footer").WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var detailRegion = drawer.Locator(".vpp-history-detail-grid-region");
-        var detailHeader = detailRegion.Locator(".vpp-history-detail-grid-header");
+        var detailHeader = detailRegion.Locator(".vpp-history-detail-grid thead");
         await detailHeader.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var detailGrid = drawer.Locator(".vpp-history-detail-grid");
-        var detailHeaderLabels = await detailHeader.Locator(".vpp-history-detail-grid-header-cell").AllInnerTextsAsync();
+        var detailHeaderLabels = await detailHeader.Locator("th").AllInnerTextsAsync();
         detailHeaderLabels.Select(label => label.Trim()).Should().Equal("#", "Mặt hàng", "Danh mục", "Đơn vị", "Số lượng", "Ghi chú");
         var headerSurfaceParity = await Page.EvaluateAsync<string>("""
             () => {
                 const master = document.querySelector('.vpp-history-grid thead th');
-                const detailSurface = document.querySelector('.vpp-history-detail-grid-header');
-                const detail = detailSurface?.querySelector('.vpp-history-detail-grid-header-cell');
+                const detailSurface = document.querySelector('.vpp-history-detail-grid thead');
+                const detail = detailSurface?.querySelector('th');
                 const body = document.querySelector('.vpp-history-grid tbody td');
                 if (!master || !detailSurface || !detail || !body) return 'missing';
                 const masterStyle = getComputedStyle(master);
-                const detailSurfaceStyle = getComputedStyle(detailSurface);
                 const detailStyle = getComputedStyle(detail);
                 const bodyStyle = getComputedStyle(body);
-                const sameBackground = masterStyle.backgroundColor === detailSurfaceStyle.backgroundColor;
+                const sameBackground = masterStyle.backgroundColor === detailStyle.backgroundColor;
                 const tintedHeader = masterStyle.backgroundColor !== bodyStyle.backgroundColor;
                 const sameColor = masterStyle.color === detailStyle.color;
                 const sameWeight = masterStyle.fontWeight === detailStyle.fontWeight;
-                return `${sameBackground && tintedHeader && sameColor && sameWeight}|bg=${masterStyle.backgroundColor}/${detailSurfaceStyle.backgroundColor}/body:${bodyStyle.backgroundColor}|color=${masterStyle.color}/${detailStyle.color}|weight=${masterStyle.fontWeight}/${detailStyle.fontWeight}`;
+                return `${sameBackground && tintedHeader && sameColor && sameWeight}|bg=${masterStyle.backgroundColor}/${detailStyle.backgroundColor}/body:${bodyStyle.backgroundColor}|color=${masterStyle.color}/${detailStyle.color}|weight=${masterStyle.fontWeight}/${detailStyle.fontWeight}`;
             }
         """);
         headerSurfaceParity.Should().StartWith("true", "master and detail tables must share the same header visual system");
@@ -523,8 +520,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             var fixedHeaderLayer = await detailRegion.EvaluateAsync<string>("""
                 region => {
                     const surface = region.querySelector('.rz-data-grid-data');
-                    const head = region.querySelector('.vpp-history-detail-grid-header');
-                    const headers = [...region.querySelectorAll('.vpp-history-detail-grid-header-cell')];
+                    const head = region.querySelector('.vpp-history-detail-grid thead');
+                    const headers = [...region.querySelectorAll('.vpp-history-detail-grid thead th')];
                     if (!surface || !head || !headers.length) return 'missing';
 
                     const parseAlpha = color => {
@@ -537,17 +534,18 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                         const rect = header.getBoundingClientRect();
                         const hit = document.elementFromPoint(rect.left + Math.min(6, rect.width / 2), rect.top + rect.height / 2);
                         return {
-                            matches: hit?.closest('.vpp-history-detail-grid-header-cell') === header,
+                            matches: hit?.closest('th') === header,
                             tag: hit?.tagName ?? 'none',
                             className: hit?.className?.toString() ?? '',
                             text: hit?.textContent?.trim().slice(0, 32) ?? ''
                         };
                     });
                     const hitHeader = hits.every(hit => hit.matches);
-                    const opaque = parseAlpha(getComputedStyle(head).backgroundColor) >= .99;
-                    const separatedFromViewport = Math.abs(headRect.bottom - surfaceRect.top) <= 1;
+                    const opaque = parseAlpha(getComputedStyle(headers[0]).backgroundColor) >= .99;
+                    const pinnedToViewport = Math.abs(headRect.top - surfaceRect.top) <= 1.5;
                     const isolated = getComputedStyle(surface).isolation === 'isolate';
-                    return `${hitHeader && opaque && separatedFromViewport && isolated}|hit=${hitHeader}|hits=${JSON.stringify(hits)}|opaque=${opaque}|separated=${separatedFromViewport}|isolated=${isolated}|scroll=${surface.scrollTop}|head=${headRect.top}/${headRect.bottom}|surface=${surfaceRect.top}/${surfaceRect.bottom}`;
+                    const sticky = getComputedStyle(head).position === 'sticky';
+                    return `${hitHeader && opaque && pinnedToViewport && isolated && sticky}|hit=${hitHeader}|hits=${JSON.stringify(hits)}|opaque=${opaque}|pinned=${pinnedToViewport}|isolated=${isolated}|sticky=${sticky}|scroll=${surface.scrollTop}|head=${headRect.top}/${headRect.bottom}|surface=${surfaceRect.top}/${surfaceRect.bottom}`;
                 }
             """);
 
@@ -648,23 +646,23 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             Path = Path.Combine(detailScreenshotDirectory, "history-detail-item-identity.png"),
             Animations = ScreenshotAnimations.Disabled
         });
-        var detailSearchSurface = drawer.Locator(".vpp-history-detail-toolbar label");
+        var detailSearchSurface = drawer.Locator(".vpp-history-detail-toolbar .vpp-filter-search");
         var detailSearchInput = detailSearchSurface.Locator("input");
         var detailClearFilters = drawer.Locator(".vpp-history-detail-clear");
         (await detailClearFilters.IsEnabledAsync()).Should().BeTrue();
         await detailSearchInput.FillAsync("Bìa");
-        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-toolbar label')?.classList.contains('is-active')");
+        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-toolbar .vpp-filter-search')?.classList.contains('is-active')");
         (await detailSearchSurface.GetAttributeAsync("class")).Should().Contain("is-active");
         (await detailClearFilters.GetAttributeAsync("class")).Should().Contain("is-active");
         await detailClearFilters.ClickAsync();
-        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-search input')?.value === ''");
+        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-toolbar .vpp-filter-search input')?.value === ''");
         (await detailSearchInput.InputValueAsync()).Should().BeEmpty();
-        await Page.WaitForFunctionAsync("() => !document.querySelector('.vpp-history-detail-toolbar label')?.classList.contains('is-active')");
+        await Page.WaitForFunctionAsync("() => !document.querySelector('.vpp-history-detail-toolbar .vpp-filter-search')?.classList.contains('is-active')");
 
         // Toolbar chi tiết giờ có 2 select (danh mục + đơn vị) — trỏ đích danh select danh mục (đầu tiên).
-        var detailCategoryFilter = drawer.Locator(".vpp-history-detail-select .vpp-history-select-trigger").First;
+        var detailCategoryFilter = drawer.Locator(".vpp-filter-select .vpp-filter-select-trigger").First;
         await detailCategoryFilter.ClickAsync();
-        var categoryOptions = Page.Locator(".vpp-history-detail-select .vpp-history-select-menu [role='option']");
+        var categoryOptions = Page.Locator(".vpp-filter-select .vpp-filter-select-popover:popover-open [role='option']");
         var categoryOptionCount = await categoryOptions.CountAsync();
         var longestCategoryIndex = await categoryOptions.EvaluateAllAsync<int>("""
             options => options.reduce((longest, option, index, all) =>
@@ -673,11 +671,11 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         """);
         var longestOptionGeometry = await categoryOptions.Nth(longestCategoryIndex).EvaluateAsync<string>("""
             option => {
-                const menu = option.closest('.vpp-history-select-menu');
+                const menu = option.closest('.vpp-filter-select-popover');
                 if (!menu) return 'missing';
                 const full = option.scrollWidth <= option.clientWidth + 1;
                 const rect = menu.getBoundingClientRect();
-                const trigger = menu.parentElement?.querySelector('.vpp-history-select-trigger');
+                const trigger = menu.parentElement?.querySelector('.vpp-filter-select-trigger');
                 const triggerRect = trigger?.getBoundingClientRect();
                 const contained = rect.left >= 0 && rect.right <= window.innerWidth;
                 const compact = rect.width <= 360 && (!triggerRect || rect.width >= triggerRect.width - 1);
@@ -691,14 +689,14 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         // Chờ menu danh mục đóng hẳn sau khi chọn thay vì ngủ cứng.
         await Page.WaitForFunctionAsync("""
             () => {
-                const menu = document.querySelector('.vpp-history-detail-select .vpp-history-select-menu');
+                const menu = document.querySelector('.vpp-filter-select .vpp-filter-select-popover:popover-open');
                 return !menu || menu.getClientRects().length === 0;
             }
         """);
         if (categoryOptionCount > 1)
         {
             // Trigger phải phản ánh lựa chọn mới trước khi đọc trạng thái is-active.
-            await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-select .vpp-history-select-trigger')?.classList.contains('is-active')");
+            await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-filter-select .vpp-filter-select-trigger')?.classList.contains('is-active')");
             var categorySelectionState = await detailCategoryFilter.EvaluateAsync<string>("""
                 trigger => `${trigger.classList.contains('is-active')}|title=${trigger.getAttribute('title')}|text=${trigger.textContent.trim()}`
             """);
@@ -706,7 +704,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         }
         var detailFilterGeometry = await detailCategoryFilter.EvaluateAsync<string>("""
             trigger => {
-                const label = trigger.querySelector('.vpp-history-select-label');
+                const label = trigger.querySelector('.vpp-filter-select-label');
                 const icon = trigger.querySelector('.vpp-icon');
                 const toolbar = trigger.closest('.vpp-history-detail-toolbar');
                 if (!label || !icon || !toolbar) return 'missing';
@@ -743,8 +741,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await Page.WaitForFunctionAsync("""
             () => {
                 const clear = document.querySelector('.vpp-history-detail-clear');
-                const category = document.querySelector('.vpp-history-detail-select .vpp-history-select-trigger');
-                const search = document.querySelector('.vpp-history-detail-search input');
+                const category = document.querySelector('.vpp-filter-select .vpp-filter-select-trigger');
+                const search = document.querySelector('.vpp-history-detail-toolbar .vpp-filter-search input');
                 return clear
                     && !clear.classList.contains('is-active')
                     && category
@@ -1035,33 +1033,18 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                     }
                 """);
 
-                // Grid có thể bị tạo lại (@key theo PageSize từ viewport observer) và được
-                // quan sát giữa chừng layout — chờ hàng lấp đầy bề ngang surface trước khi
-                // chốt mẫu hình học; điều kiện chính là đúng phép đo được assert bên dưới.
-                await Page.WaitForFunctionAsync("""
+                var nativeScrollbarContract = await Page.EvaluateAsync<string>("""
                     () => {
                         const surface = document.querySelector('.vpp-history-grid .rz-data-grid-data');
-                        const row = surface?.querySelector('tbody tr');
-                        if (!surface || !row) return false;
-                        const hasOverflow = surface.scrollHeight > surface.clientHeight + 1;
-                        const classMatches = surface.classList.contains('has-vertical-overflow') === hasOverflow;
-                        const rightGap = Math.abs(surface.getBoundingClientRect().right - row.getBoundingClientRect().right);
-                        return classMatches && (hasOverflow || rightGap <= 2);
+                        if (!surface) return 'missing';
+                        const style = getComputedStyle(surface);
+                        const native = !surface.classList.contains('has-vertical-overflow')
+                            && style.scrollbarGutter === 'auto'
+                            && (!style.scrollbarWidth || style.scrollbarWidth === 'auto');
+                        return `${native}|gutter=${style.scrollbarGutter}|width=${style.scrollbarWidth}|class=${surface.classList.contains('has-vertical-overflow')}`;
                     }
                 """);
-                var scrollbarGutterGeometry = await Page.EvaluateAsync<string>("""
-                    () => {
-                        const surface = document.querySelector('.vpp-history-grid .rz-data-grid-data');
-                        const row = surface?.querySelector('tbody tr');
-                        if (!surface || !row) return 'missing';
-                        const hasOverflow = surface.scrollHeight > surface.clientHeight + 1;
-                        const classMatches = surface.classList.contains('has-vertical-overflow') === hasOverflow;
-                        const rightGap = Math.abs(surface.getBoundingClientRect().right - row.getBoundingClientRect().right);
-                        const noUnusedStrip = hasOverflow || rightGap <= 2;
-                        return `${classMatches && noUnusedStrip}|overflow=${hasOverflow}|class=${surface.classList.contains('has-vertical-overflow')}|gap=${Math.round(rightGap * 10) / 10}`;
-                    }
-                """);
-                scrollbarGutterGeometry.Should().StartWith("true", "short lists must not reserve a false scrollbar strip at the right edge");
+                nativeScrollbarContract.Should().StartWith("true", "History must keep the browser-native scrollbar without authored gutters or width overrides");
 
                 if (viewport.Width >= 1366)
                 {
@@ -1084,7 +1067,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 
                 if (viewport.Width == 1920 && await drawer.IsVisibleAsync())
                 {
-                    var detailDesktopHeaders = await drawer.Locator(".vpp-history-detail-grid-header-cell").EvaluateAllAsync<string>("""
+                    var detailDesktopHeaders = await drawer.Locator(".vpp-history-detail-grid thead th").EvaluateAllAsync<string>("""
                         headers => {
                             const labels = headers;
                             const complete = labels.every(label => label.scrollWidth <= label.clientWidth + 1);
@@ -1190,19 +1173,19 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 
     private async Task<string[]> CaptureOrderItemsChromeAsync(ILocator root, string evidenceName)
     {
-        var search = root.Locator(".vpp-history-detail-search input");
+        var search = root.Locator(".vpp-filter-search input");
         await search.FocusAsync();
         await WaitForInteractionChromeAsync();
         var focusChrome = await root.EvaluateAsync<string>("""
             root => {
-                const label = root.querySelector('.vpp-history-detail-search');
+                const label = root.querySelector('.vpp-filter-search');
                 if (!(label instanceof HTMLElement)) return 'missing';
                 const style = getComputedStyle(label);
                 return [label.getBoundingClientRect().height, style.borderRadius, style.backgroundColor, style.boxShadow, style.color, style.fontSize].join('|');
             }
         """);
 
-        var categoryTrigger = root.Locator(".vpp-history-detail-select .vpp-history-select-trigger").First;
+        var categoryTrigger = root.Locator(".vpp-filter-select .vpp-filter-select-trigger").First;
         await categoryTrigger.HoverAsync();
         await WaitForInteractionChromeAsync();
         var hoverChrome = await categoryTrigger.EvaluateAsync<string>("""
@@ -1213,9 +1196,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         """);
 
         await categoryTrigger.ClickAsync();
-        var menu = root.Locator(".vpp-history-detail-select .vpp-history-select-menu").First;
+        var menu = root.Locator(".vpp-filter-select .vpp-filter-select-popover").First;
         await menu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-order-items-surface .vpp-history-select-menu')?.classList.contains('is-viewport-surface') === true");
         var popupChrome = await menu.EvaluateAsync<string>("""
             menu => {
                 const style = getComputedStyle(menu);
@@ -1223,7 +1205,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 const contained = rect.left >= 7 && rect.top >= 7
                     && rect.right <= window.innerWidth - 7
                     && rect.bottom <= window.innerHeight - 7;
-                return [style.position, style.borderRadius, style.backgroundColor, style.boxShadow, style.fontSize, contained, menu.classList.contains('is-viewport-surface')].join('|');
+                return [style.position, style.borderRadius, style.backgroundColor, style.boxShadow, style.fontSize, contained, menu.matches(':popover-open')].join('|');
             }
         """);
 
@@ -1234,8 +1216,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             Path = Path.Combine(evidenceDirectory, $"{evidenceName}-popup-1366x900.png"),
             Animations = ScreenshotAnimations.Disabled
         });
-        await categoryTrigger.ClickAsync();
-        await menu.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+        await Page.Keyboard.PressAsync("Escape");
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         var firstRow = root.Locator("tbody tr").First;
         await firstRow.HoverAsync();
@@ -1252,7 +1234,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 const region = root.querySelector('.vpp-order-items-grid-region');
                 const grid = root.querySelector('.vpp-order-items-grid');
                 const scroll = grid?.querySelector('.rz-data-grid-data');
-                const header = region?.querySelector('.vpp-history-detail-grid-header');
+                const header = grid?.querySelector('thead');
                 const footer = root.querySelector('.vpp-order-items-footer');
                 if (!(region instanceof HTMLElement)
                     || !(scroll instanceof HTMLElement)
@@ -1260,15 +1242,15 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                     || !(footer instanceof HTMLElement)) return 'missing';
                 const style = getComputedStyle(scroll);
                 const hasOverflow = scroll.scrollHeight > scroll.clientHeight + 1;
-                const classMatches = scroll.classList.contains('has-vertical-overflow') === hasOverflow;
+                const nativeHeader = getComputedStyle(header).position === 'sticky';
                 return [
                     style.overflowY,
                     style.overscrollBehaviorY,
-                    !scroll.contains(header),
+                    scroll.contains(header),
                     Math.round(header.getBoundingClientRect().height),
                     Math.round(footer.getBoundingClientRect().height),
-                    classMatches,
-                    getComputedStyle(region).getPropertyValue('--vpp-history-detail-scrollbar-width').trim()
+                    nativeHeader,
+                    getComputedStyle(scroll).scrollbarWidth
                 ].join('|');
             }
         """);

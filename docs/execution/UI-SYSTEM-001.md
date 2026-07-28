@@ -8,7 +8,7 @@
 - Liên quan: [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md)
 - CSS ownership: [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md)
 
-> F0 và F1 đã được tích hợp vào branch authority; owner xác nhận F1 hoàn tất. F2 đã qua Terra implementation, Sol review và lượt fix regression. Owner mở F4 sau khi duyệt F3. F4 đã implement/test xong, đang chờ owner duyệt review board; chưa mở F5.
+> F0 và F1 đã được tích hợp vào branch authority; owner xác nhận F1 hoàn tất. F2 đã qua Terra implementation, Sol review và lượt fix regression. Owner mở F4 sau khi duyệt F3. F4 đã tích hợp năm lượt owner review, đang chờ duyệt visual cuối; chưa mở F5.
 
 ---
 
@@ -217,6 +217,10 @@ Mốc dễ hiểu:
 - Owner review round 4 phát hiện motion dùng `translate + scale` làm sai `getBoundingClientRect()` trong lúc popup fixed-position tự neo theo trigger: surface bị đo khi đang co/dịch rồi nở về kích thước thật, gây lệch ngang và nhảy. Contract toàn cục được đổi sang `opacity + clip-path`; motion chỉ thay đổi phần được vẽ, không thay bounding box hoặc transform định vị của popup/popover.
 - Browser gate mới cấm `transform`, `translate`, `scale` trong keyframe transient surface và lấy mẫu mép trái/chiều rộng qua 10 animation frame. Visual QA phải xem bằng mắt chuỗi ảnh start/mid/settled ở runtime thật; geometry test chỉ là lớp phòng hồi quy, không thay kết luận thị giác. `dotnet watch` trên máy owner là tiến trình do owner quản lý: phải kiểm tra port/PID/command line trước mọi thao tác và không tự dừng, restart hoặc chiếm port.
 - Evidence round 4: ảnh runtime `1920×1080` start/mid/settled được kiểm bằng mắt, popup giữ cùng mép trái và chiều rộng, không co ngang hoặc đẩy table; My Orders filter + History popover + user menu isolated pass `3/3`; frontend unit/architecture pass `190/190`. `verify -Scope frontend` vẫn dừng ở `model-routing-eval` của nhóm AI-harness dirty ngoài scope (`62 pass / 1 fail`); nhóm đó được giữ nguyên và không stage.
+- Owner review round 5 chuyển toàn bộ scrollbar do project tự vẽ/ẩn/gutter sang scrollbar native của browser/OS; các vùng dữ liệu vẫn cuộn nội bộ để route không cuộn cả document. Search chi tiết đơn dùng cùng primitive và visual chrome với search danh sách đơn; header bảng chi tiết dùng cùng token nền/chữ/font-weight với bảng danh sách.
+- Product Catalog và Permission Users có page identity header + filter toolbar dùng chung `VppFilterSearch`/`VppFilterSelect`/`VppClearFiltersButton`; popup/popover kế thừa `vpp-transient-surface`. Hai route được bounded theo viewport. Users bỏ nút tải lại, tự reload theo filter và có column picker tương tác; Account được owner duyệt giữ nguyên.
+- Create Order dùng nested header `Đơn hàng của tôi › Tạo đơn kỳ này`, header workflow và stepper hai bước rõ hơn; catalog bên trái dùng shared filter motif, nội dung cuộn nội bộ và số thứ tự virtualization lấy từ `RowRenderEventArgs.Index` để không lặp `0/1` sau re-render.
+- Evidence round 5: runtime `1920×1080` Catalog, Users + column picker, Create Order và History search parity đã được kiểm bằng mắt; document không overflow, loading overlay đã settle trước capture và controls giữ cùng nhịp 32px. Frontend unit/architecture `190/190`; F4 owner-review browser `2/2`; focused Catalog/workspace/My Orders/History regression `8/8` sau khi sửa selector migration và header-token parity. Evidence thô ở `tmp/f4-owner-review-final2/` (ignored); F4 vẫn chờ owner duyệt, chưa mở F5.
 
 ### 5.1 Visual review contract
 

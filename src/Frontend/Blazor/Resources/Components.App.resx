@@ -892,6 +892,10 @@
   <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Chọn một loại danh mục ở khung bên trái.</value></data>
   <data name="LookupNoValues" xml:space="preserve"><value>Không có giá trị nào.</value></data>
   <data name="UserSearchPlaceholder" xml:space="preserve"><value>Tìm tài khoản, họ tên hoặc email</value></data>
+  <data name="UserManagementTitle" xml:space="preserve"><value>Quản trị người dùng</value></data>
+  <data name="SystemAdministration" xml:space="preserve"><value>Quản trị hệ thống</value></data>
+  <data name="UserCountSummary" xml:space="preserve"><value>{0} người dùng trong hệ thống</value></data>
+  <data name="UserFilters" xml:space="preserve"><value>Bộ lọc người dùng</value></data>
   <data name="AllAccountStatuses" xml:space="preserve"><value>Tất cả trạng thái</value></data>
   <data name="PermissionGroup" xml:space="preserve"><value>Nhóm quyền</value></data>
   <data name="AccountStatus" xml:space="preserve"><value>Trạng thái tài khoản</value></data>

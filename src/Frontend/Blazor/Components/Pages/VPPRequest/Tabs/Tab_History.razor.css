@@ -924,11 +924,6 @@
     min-height: 0;
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    scrollbar-gutter: auto;
-}
-
-::deep .vpp-history-grid .rz-data-grid-data.has-vertical-overflow {
-    scrollbar-gutter: stable;
 }
 
 ::deep .vpp-history-grid table {

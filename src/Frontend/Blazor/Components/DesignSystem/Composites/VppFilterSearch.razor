@@ -1,0 +1,15 @@
+<label class="vpp-filter-search @(!string.IsNullOrWhiteSpace(Value) ? "is-active" : null) @Class">
+    <VppIcon Name="@VppIcons.Search" />
+    <input value="@Value"
+           @oninput="Input"
+           placeholder="@Placeholder"
+           aria-label="@AriaLabel" />
+</label>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter, EditorRequired] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public EventCallback<ChangeEventArgs> Input { get; set; }
+    [Parameter] public string? Class { get; set; }
+}

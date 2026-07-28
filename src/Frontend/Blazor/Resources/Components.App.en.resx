@@ -892,6 +892,10 @@
   <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Select a catalog type in the left panel.</value></data>
   <data name="LookupNoValues" xml:space="preserve"><value>No values found.</value></data>
   <data name="UserSearchPlaceholder" xml:space="preserve"><value>Search account, full name, or email</value></data>
+  <data name="UserManagementTitle" xml:space="preserve"><value>User administration</value></data>
+  <data name="SystemAdministration" xml:space="preserve"><value>System administration</value></data>
+  <data name="UserCountSummary" xml:space="preserve"><value>{0} users in the system</value></data>
+  <data name="UserFilters" xml:space="preserve"><value>User filters</value></data>
   <data name="AllAccountStatuses" xml:space="preserve"><value>All statuses</value></data>
   <data name="PermissionGroup" xml:space="preserve"><value>Permission group</value></data>
   <data name="AccountStatus" xml:space="preserve"><value>Account status</value></data>

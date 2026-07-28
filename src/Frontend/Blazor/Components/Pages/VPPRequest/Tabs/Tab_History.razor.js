@@ -10,15 +10,6 @@ const transientSurfaceSelector = [
     '.vpp-history-detail-code-popover'
 ].join(',');
 
-function updateHistoryScrollGutters(root) {
-    if (!root) return;
-
-    root.querySelectorAll('.vpp-history-grid .rz-data-grid-data').forEach(surface => {
-        const hasVerticalOverflow = surface.scrollHeight > surface.clientHeight + 1;
-        surface.classList.toggle('has-vertical-overflow', hasVerticalOverflow);
-    });
-}
-
 function formatHistoryChartValue(value) {
     const locale = document.documentElement.lang || navigator.language || 'vi-VN';
     const formatter = Math.abs(value) >= 10_000
@@ -257,7 +248,6 @@ export function observeHistoryViewport(root, dotNetReference) {
         debounceId = window.setTimeout(() => {
             notify();
             positionHistoryTransientSurfaces(root);
-            updateHistoryScrollGutters(root);
             scheduleHistoryChartLabels(root);
         }, 140);
     };
@@ -278,20 +268,17 @@ export function observeHistoryViewport(root, dotNetReference) {
     document.addEventListener('keydown', onDocumentKeyDown, true);
     const surfaceObserver = new MutationObserver(() => {
         positionHistoryTransientSurfaces(root);
-        updateHistoryScrollGutters(root);
     });
     surfaceObserver.observe(root, { childList: true, subtree: true });
     const ordersCard = root.querySelector('.vpp-history-orders-card');
     const sizeObserver = ordersCard instanceof HTMLElement
         ? new ResizeObserver(() => {
             notify();
-            updateHistoryScrollGutters(root);
         })
         : null;
     sizeObserver?.observe(ordersCard);
     updateHistoryScopeIndicator(root);
     positionHistoryTransientSurfaces(root);
-    updateHistoryScrollGutters(root);
     historyViewportObservers.set(root, () => {
         window.clearTimeout(debounceId);
         window.removeEventListener('resize', onResize);

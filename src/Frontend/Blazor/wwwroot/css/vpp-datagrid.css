@@ -204,7 +204,6 @@
     border: 0;
     overflow-x: auto;
     max-width: 100%;
-    scrollbar-gutter: stable;
 }
 
 .vpp-order-grid .rz-grid-table,
@@ -372,7 +371,6 @@
     min-height: 0;
     height: 100%;
     overflow: auto;
-    scrollbar-gutter: stable both-edges;
 }
 
 .vpp-order-grid-scrollable .rz-grid-table thead,

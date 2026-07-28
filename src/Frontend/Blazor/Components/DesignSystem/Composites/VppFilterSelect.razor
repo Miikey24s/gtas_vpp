@@ -1,0 +1,58 @@
+@typeparam TValue
+
+<div class="vpp-filter-select @Class">
+    <button type="button"
+            class="vpp-filter-select-trigger @(IsActive ? "is-active" : null)"
+            popovertarget="@PopoverId"
+            style="anchor-name: @AnchorName"
+            aria-haspopup="listbox"
+            aria-label="@AriaLabel"
+            title="@SelectedLabel">
+        <span class="vpp-filter-select-label">@SelectedLabel</span>
+        <VppIcon Name="@VppIcons.ExpandMore" />
+    </button>
+
+    <div id="@PopoverId"
+         class="vpp-filter-select-popover vpp-transient-surface"
+         popover="auto"
+         role="listbox"
+         aria-label="@AriaLabel"
+         style="position-anchor: @AnchorName">
+        @foreach (var option in Options)
+        {
+            <button type="button"
+                    role="option"
+                    aria-selected="@IsSelected(option.Value)"
+                    title="@option.Label"
+                    popovertarget="@PopoverId"
+                    popovertargetaction="hide"
+                    @onclick="@(() => SelectAsync(option.Value))">
+                <span>@option.Label</span>
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly string instanceId = Guid.NewGuid().ToString("N");
+
+    [Parameter] public TValue Value { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<VppFilterOption<TValue>> Options { get; set; } = [];
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter, EditorRequired] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string PopoverId => $"vpp-filter-select-{instanceId}";
+    private string AnchorName => $"--vpp-filter-select-{instanceId}";
+    private bool IsActive => Value switch
+    {
+        string text => !string.IsNullOrWhiteSpace(text),
+        _ => !EqualityComparer<TValue>.Default.Equals(Value, default!)
+    };
+    private string SelectedLabel => Options.FirstOrDefault(option => IsSelected(option.Value))?.Label ?? Placeholder;
+
+    private bool IsSelected(TValue optionValue) => EqualityComparer<TValue>.Default.Equals(Value, optionValue);
+
+    private Task SelectAsync(TValue value) => ValueChanged.InvokeAsync(value);
+}

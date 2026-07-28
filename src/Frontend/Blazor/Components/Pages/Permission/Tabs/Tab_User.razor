@@ -15,6 +15,32 @@
 
 @if (PermissionState.HasPermission(Permissions.PermissionView))
 {
+    <section class="vpp-permission-user-page" aria-labelledby="permission-user-title">
+        <header class="vpp-permission-user-header">
+            <div>
+                <span>@Loc["SystemAdministration"]</span>
+                <h2 id="permission-user-title">@Loc["UserManagementTitle"]</h2>
+                <p>@Loc["UserCountSummary", userCount]</p>
+            </div>
+        </header>
+
+        <div class="vpp-permission-user-filters" aria-label="@Loc["UserFilters"]">
+            <VppFilterSearch Value="@SearchText"
+                             Input="@SearchTextOnInput"
+                             Placeholder="@Loc["UserSearchPlaceholder"]"
+                             AriaLabel="@Loc["UserSearchPlaceholder"]" />
+            <VppFilterSelect TValue="string"
+                             Value="@(SelectedAccountStatus ?? string.Empty)"
+                             Options="@AccountStatusOptions"
+                             ValueChanged="@OnAccountStatusChangedAsync"
+                             Placeholder="@Loc["AllAccountStatuses"]"
+                             AriaLabel="@Loc["AllAccountStatuses"]" />
+            <VppClearFiltersButton Text="@Loc["ClearFilters"]"
+                                   IsActive="@HasUserFilters"
+                                   Clicked="@ButtonOnClick_Clear" />
+            <VppColumnPicker TItem="UserAdministrationResDTO" GridAccessor="@(() => userGrid)" />
+        </div>
+
     <VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
                             Class="vpp-atlas-user-workspace"
                             ListClass="vpp-atlas-admin-collection"
@@ -55,61 +81,6 @@
                     RowDoubleClick="@OnRowDoubleClick"
                     class="permission-user-grid vpp-admin-page-grid vpp-admin-grid"
                     Style="--vpp-admin-grid-min-width: 1420px;">
-        <HeaderTemplate>
-            <RadzenStack Orientation="Orientation.Horizontal"
-                         AlignItems="AlignItems.Center"
-                         JustifyContent="JustifyContent.SpaceBetween"
-                         Gap="0.5rem"
-                         Wrap="FlexWrap.Wrap"
-                         class="vpp-admin-grid-toolbar permission-grid-toolbar">
-                <RadzenStack Orientation="Orientation.Horizontal"
-                             AlignItems="AlignItems.Center"
-                             Gap="0.5rem"
-                             Wrap="FlexWrap.Wrap"
-                             class="vpp-admin-toolbar-main">
-                    <label class="vpp-order-view-search vpp-library-search permission-search-field">
-                        <VppIcon Name="search" />
-                        <input value="@SearchText"
-                               @oninput="SearchTextOnInput"
-                               @onkeypress="SearchTextOnKeyUp"
-                               placeholder="@Loc["UserSearchPlaceholder"]"
-                               aria-label="@Loc["UserSearchPlaceholder"]" />
-                    </label>
-                    <RadzenDropDown TValue="string"
-                                    Data="@AccountStatusOptions"
-                                    TextProperty="@nameof(AccountStatusOption.Label)"
-                                    ValueProperty="@nameof(AccountStatusOption.Value)"
-                                    @bind-Value="SelectedAccountStatus"
-                                    AllowClear="true"
-                                    Placeholder="@Loc["AllAccountStatuses"]"
-                                    aria-label="@Loc["AllAccountStatuses"]"
-                                    Change="@OnAccountStatusChangedAsync"
-                                    Disabled="@(isUserLoading || isUserLookupLoading)"
-                                    class="permission-status-filter" />
-                    <RadzenButton Size="ButtonSize.ExtraSmall"
-                                  Disabled="@(isUserLoading || isUserLookupLoading)"
-                                  ButtonStyle="ButtonStyle.Secondary"
-                                  Icon="filter_alt_off"
-                                  title="@Loc["Reset"]"
-                                  aria-label="@Loc["Reset"]"
-                                  Click="@ButtonOnClick_Clear" />
-                    <RadzenButton Size="ButtonSize.ExtraSmall"
-                                  Disabled="@(isUserLoading || isUserLookupLoading)"
-                                  Icon="search"
-                                  title="@Loc["Search"]"
-                                  aria-label="@Loc["Search"]"
-                                  Click="@ButtonOnClick_SearchUser" />
-                    <RadzenButton Icon="refresh"
-                                  Text="@Loc["Reload"]"
-                                  Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Light"
-                                  class="vpp-library-refresh-action"
-                                  Click="@ButtonOnClick_Reload" />
-                </RadzenStack>
-                <VppColumnPicker TItem="UserAdministrationResDTO" GridAccessor="@(() => userGrid)" />
-            </RadzenStack>
-        </HeaderTemplate>
-
         <Columns>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
                                   Width="52px"
@@ -273,6 +244,7 @@
         }
     </Detail>
     </VppListDetailWorkspace>
+    </section>
 }
 else
 {

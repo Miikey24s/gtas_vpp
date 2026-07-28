@@ -203,7 +203,7 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void M2_CatalogKeepsFiltersInTheHeaderAndUsesServerPaging()
+    public void M2_CatalogSeparatesIdentityHeaderFromSharedFiltersAndUsesServerPaging()
     {
         var catalog = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor");
         var catalogCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor.cs");
@@ -212,7 +212,9 @@ public sealed class AtlasWave1ArchitectureTests
         var headerEnd = catalog.IndexOf("</header>", headerStart, StringComparison.Ordinal);
         var filterStart = catalog.IndexOf("vpp-catalog-filter-group", StringComparison.Ordinal);
 
-        Assert.True(headerStart >= 0 && headerEnd > headerStart && filterStart > headerStart && filterStart < headerEnd);
+        Assert.True(headerStart >= 0 && headerEnd > headerStart && filterStart > headerEnd);
+        Assert.Contains("<VppFilterSearch", catalog, StringComparison.Ordinal);
+        Assert.Equal(2, catalog.Split("<VppFilterSelect", StringSplitOptions.None).Length - 1);
         Assert.Contains("AllowPaging=\"true\"", catalog, StringComparison.Ordinal);
         Assert.Contains("Count=\"@ProductCount\"", catalog, StringComparison.Ordinal);
         Assert.Contains("LoadData=\"@LoadProductsAsync\"", catalog, StringComparison.Ordinal);

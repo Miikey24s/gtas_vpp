@@ -4,11 +4,6 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Grid bố cục ─────────────────────────────────────────────── */
-html:has(.vpp-layout),
-body:has(.vpp-layout) {
-    scrollbar-gutter: auto;
-}
-
 body:has(.vpp-layout) {
     overflow: hidden;
 }
@@ -110,7 +105,6 @@ leftsidebar {
     flex: 1 1 auto;
     min-width: 0;
     overflow-x: auto;
-    scrollbar-width: none;
 }
 
 /* Scope qua header để thắng rule link mặc định của Radzen mà không cần !important. */
@@ -165,11 +159,17 @@ leftsidebar {
 
 .vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-ancestor {
     color: var(--vpp-text-tertiary);
+    padding: var(--vpp-space-1) var(--vpp-space-2);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-sm);
+    background: color-mix(in srgb, var(--vpp-text-primary) 3%, var(--vpp-bg-elevated));
+    font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-medium);
 }
 
 .vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-leaf {
     color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-semibold);
 }
 
@@ -222,9 +222,6 @@ leftsidebar {
     grid-area: rz-body;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Gutter ổn định cấp page để lại dải cố định cạnh chrome full-bleed.
-       View dữ liệu dày tự sở hữu gutter ổn định trong vùng scroll. */
-    scrollbar-gutter: auto;
     min-height: 0;
     min-width: 0;
     box-sizing: border-box;
@@ -1023,6 +1020,27 @@ leftsidebar {
     overflow: hidden;
 }
 
+/* Collection/admin route cần giữ page trong viewport; grid/panel bên trong sở hữu
+   vùng cuộn native và paging thay vì kéo dài toàn document. */
+.vpp-admin-tabs.vpp-bounded-shell {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: visible;
+}
+
+.vpp-admin-tabs.vpp-bounded-shell > .rz-tabview-panels,
+.vpp-admin-tabs.vpp-bounded-shell > .rz-tabview-panels > .rz-tabview-panel {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
 .vpp-notification-panel-footer button {
     display: inline-flex;
     align-items: center;
@@ -1042,7 +1060,6 @@ leftsidebar {
     min-height: 0;
     overflow: auto;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
 }
 
 /* ── Tiêu đề trang ─────────────────────────────────────────────── */

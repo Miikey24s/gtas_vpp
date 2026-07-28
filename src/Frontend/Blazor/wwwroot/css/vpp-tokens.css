@@ -446,7 +446,6 @@ html {
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scrollbar-gutter: stable;
 }
 
 body {
@@ -457,7 +456,6 @@ body {
     background-color: var(--vpp-bg-base);
     transition: background-color var(--vpp-transition-slow),
                 color var(--vpp-transition-slow);
-    scrollbar-gutter: stable;
 }
 
 h1, h2, h3, h4, h5, h6 {

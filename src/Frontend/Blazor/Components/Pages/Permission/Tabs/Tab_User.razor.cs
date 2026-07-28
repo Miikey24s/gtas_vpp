@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Components.Pages.Lib;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -17,7 +18,7 @@ using MembershipAdministrationResDTO = gtas_vpp_shared.DTOs.Res.Permission.Membe
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
-public partial class Tab_User
+public partial class Tab_User : IDisposable
 {
     [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
     [Parameter]
@@ -42,8 +43,11 @@ public partial class Tab_User
     private bool hasRequestedInitialUserGridLoad;
 
     private UserAdministrationResDTO? SelectedUser => selectedUsers.FirstOrDefault();
-    private IReadOnlyList<AccountStatusOption> AccountStatusOptions =>
+    private CancellationTokenSource? searchDebounceCts;
+    private bool HasUserFilters => !string.IsNullOrWhiteSpace(SearchText) || !string.IsNullOrWhiteSpace(SelectedAccountStatus);
+    private IReadOnlyList<VppFilterOption<string>> AccountStatusOptions =>
     [
+        new(string.Empty, Loc["AllAccountStatuses"].Value),
         new("Active", Loc["AccountStatusActive"].Value),
         new("PendingApproval", Loc["AccountStatusPendingApproval"].Value),
         new("Disabled", Loc["AccountStatusDisabled"].Value)
@@ -75,15 +79,6 @@ public partial class Tab_User
         }
     }
 
-    protected async Task LoadBaseData()
-    {
-        await LoadGroupLookupsAsync();
-        if (userGrid is not null)
-        {
-            await userGrid.Reload();
-        }
-    }
-
     private async Task LoadGroupLookupsAsync()
     {
         isUserLookupLoading = true;
@@ -111,20 +106,6 @@ public partial class Tab_User
         }
     }
 
-    protected async Task ButtonOnClick_SearchUser()
-    {
-        if (string.IsNullOrWhiteSpace(SearchText))
-        {
-            await ButtonOnClick_Clear();
-            return;
-        }
-
-        if (userGrid is not null)
-        {
-            await userGrid.FirstPage(true);
-        }
-    }
-
     protected async Task ButtonOnClick_Clear()
     {
         SearchText = string.Empty;
@@ -135,10 +116,9 @@ public partial class Tab_User
         }
     }
 
-    protected Task ButtonOnClick_Reload() => LoadBaseData();
-
-    protected async Task OnAccountStatusChangedAsync(object? _)
+    protected async Task OnAccountStatusChangedAsync(string value)
     {
+        SelectedAccountStatus = string.IsNullOrWhiteSpace(value) ? null : value;
         if (userGrid is not null)
         {
             await userGrid.FirstPage(true);
@@ -253,16 +233,22 @@ public partial class Tab_User
         }
     }
 
-    protected void SearchTextOnInput(ChangeEventArgs args)
+    protected async Task SearchTextOnInput(ChangeEventArgs args)
     {
         SearchText = args.Value?.ToString() ?? string.Empty;
-    }
-
-    protected async Task SearchTextOnKeyUp(KeyboardEventArgs args)
-    {
-        if (args.Code is "Enter" or "NumpadEnter")
+        searchDebounceCts?.Cancel();
+        searchDebounceCts?.Dispose();
+        searchDebounceCts = new CancellationTokenSource();
+        try
         {
-            await ButtonOnClick_SearchUser();
+            await Task.Delay(300, searchDebounceCts.Token);
+            if (userGrid is not null)
+            {
+                await userGrid.FirstPage(true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 
@@ -580,5 +566,9 @@ public partial class Tab_User
         return $"/api/Permission/users{queryString}";
     }
 
-    private sealed record AccountStatusOption(string Value, string Label);
+    public void Dispose()
+    {
+        searchDebounceCts?.Cancel();
+        searchDebounceCts?.Dispose();
+    }
 }

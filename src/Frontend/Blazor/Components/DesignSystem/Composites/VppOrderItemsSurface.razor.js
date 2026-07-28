@@ -1,22 +1,8 @@
 const orderItemsObservers = new WeakMap();
 const transientSurfaceSelector = [
-    '.vpp-history-select-menu',
     '.vpp-history-note-popover',
     '.vpp-history-detail-code-popover'
 ].join(',');
-
-function updateScrollGutter(root) {
-    const region = root?.querySelector('.vpp-order-items-grid-region');
-    const surface = region?.querySelector('.vpp-order-items-grid .rz-data-grid-data');
-    if (!(region instanceof HTMLElement) || !(surface instanceof HTMLElement)) return;
-
-    const hasVerticalOverflow = surface.scrollHeight > surface.clientHeight + 1;
-    surface.classList.toggle('has-vertical-overflow', hasVerticalOverflow);
-    const scrollbarWidth = hasVerticalOverflow
-        ? Math.max(0, surface.offsetWidth - surface.clientWidth)
-        : 0;
-    region.style.setProperty('--vpp-history-detail-scrollbar-width', `${scrollbarWidth}px`);
-}
 
 function positionTransientSurfaces(root) {
     if (!root) return;
@@ -34,18 +20,10 @@ function positionTransientSurfaces(root) {
             surface.style.setProperty('right', 'auto', 'important');
             surface.style.setProperty('bottom', 'auto', 'important');
 
-            const trigger = surface.matches('.vpp-history-select-menu')
-                ? anchor.querySelector('.vpp-history-select-trigger')
-                : null;
-            const anchorRect = (trigger ?? anchor).getBoundingClientRect();
+            const anchorRect = anchor.getBoundingClientRect();
             const viewportGap = 8;
             const surfaceGap = 4;
             surface.style.setProperty('max-width', `calc(100vw - ${viewportGap * 2}px)`, 'important');
-            if (surface.matches('.vpp-history-select-menu')) {
-                surface.style.setProperty('width', 'max-content', 'important');
-                surface.style.setProperty('min-width', `${Math.ceil(anchorRect.width)}px`, 'important');
-            }
-
             let surfaceRect = surface.getBoundingClientRect();
             if (surfaceRect.width > window.innerWidth - viewportGap * 2) {
                 surface.style.setProperty('width', `${Math.max(160, window.innerWidth - viewportGap * 2)}px`, 'important');
@@ -58,7 +36,7 @@ function positionTransientSurfaces(root) {
             const top = openAbove
                 ? Math.max(viewportGap, anchorRect.top - surfaceRect.height - surfaceGap)
                 : Math.min(window.innerHeight - surfaceRect.height - viewportGap, anchorRect.bottom + surfaceGap);
-            const prefersEnd = surface.matches('.vpp-history-note-popover, .vpp-history-select-menu');
+            const prefersEnd = surface.matches('.vpp-history-note-popover');
             const preferredLeft = prefersEnd ? anchorRect.right - surfaceRect.width : anchorRect.left;
             const left = Math.min(
                 Math.max(viewportGap, preferredLeft),
@@ -97,7 +75,6 @@ function positionTransientSurfaces(root) {
 }
 
 export function refreshOrderItemsSurface(root) {
-    updateScrollGutter(root);
     positionTransientSurfaces(root);
 }
 

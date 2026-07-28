@@ -3,8 +3,7 @@
    Selection color, print, cursor
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Scrollbar toàn cục dùng giao diện native của trình duyệt/hệ điều hành.
-   Chỉ vùng điều hướng tab được phép ẩn scrollbar vì có affordance cuộn riêng. */
+/* Scrollbar dùng nguyên giao diện và hành vi native của trình duyệt/hệ điều hành. */
 
 /* ── Màu selection ───────────────────────────────────────────── */
 ::selection {

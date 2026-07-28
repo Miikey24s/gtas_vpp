@@ -10,16 +10,10 @@
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;          /* Trình duyệt Firefox. */
     gap: var(--vpp-space-1) !important;
     height: var(--vpp-tabs-bar-height);
     min-height: var(--vpp-tabs-bar-height);
     padding: 2px var(--vpp-space-1) !important;
-}
-
-/* Ẩn scrollbar trên WebKit. */
-.rz-tabview-nav::-webkit-scrollbar {
-    display: none;
 }
 
 /* Radzen focus toàn tab list sau click; giữ list trung tính và chuyển feedback bàn phím vào hitbox thật của tab được chọn. */
