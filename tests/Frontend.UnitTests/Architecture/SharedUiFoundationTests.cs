@@ -550,7 +550,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("EmptyActionClick", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("CreateOrderThisCycle", source, StringComparison.Ordinal);
         Assert.Contains("AvailableOrders.Count > 1", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("margin-inline: auto;", kpiStyles, StringComparison.Ordinal);
         Assert.Contains("height: 100%;", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-orders-summary-grid article", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-orders-selected-view", kpiStyles, StringComparison.Ordinal);

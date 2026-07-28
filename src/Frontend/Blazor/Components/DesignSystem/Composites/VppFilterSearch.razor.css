@@ -49,6 +49,15 @@
     font: inherit;
 }
 
+/* Input và icon cùng tạo thành một control. Focus bàn phím được vẽ ở khung
+   ngoài bằng :focus-within; bỏ ring toàn cục trên input để tránh hai viền lệch. */
+.vpp-filter-search input:focus,
+.vpp-filter-search input:focus-visible {
+    outline: 0 !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
+
 .vpp-filter-search input::placeholder {
     color: var(--vpp-text-muted);
     opacity: 1;

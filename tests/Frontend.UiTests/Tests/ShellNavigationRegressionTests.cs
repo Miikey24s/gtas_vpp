@@ -279,9 +279,11 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             """
             () => {
                 const sidebar = document.querySelector('.vpp-sidebar').getBoundingClientRect();
+                const trigger = document.querySelector('.vpp-sidebar-user-menu .user-menu-trigger').getBoundingClientRect();
                 const menu = document.querySelector('.vpp-sidebar-user-menu .user-dropdown').getBoundingClientRect();
                 return {
                     sidebarRight: sidebar.right,
+                    triggerTop: trigger.top,
                     menuLeft: menu.left,
                     menuRight: menu.right,
                     menuBottom: menu.bottom,
@@ -290,12 +292,15 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                 };
             }
             """);
-        collapsedGeometry.MenuLeft.Should().BeGreaterThan(collapsedGeometry.SidebarRight,
-            "the expanded account surface must open beside the collapsed rail instead of covering it");
-        (collapsedGeometry.MenuLeft - collapsedGeometry.SidebarRight).Should().BeInRange(6.5, 8.5,
-            "the rail edge can include Radzen's one-pixel runtime box, but the visual gap must stay one compact token");
-        (collapsedGeometry.ViewportHeight - collapsedGeometry.MenuBottom).Should().BeInRange(6.5, 8.5);
-        collapsedGeometry.MenuRight.Should().BeLessThanOrEqualTo(collapsedGeometry.ViewportWidth - 8);
+        collapsedGeometry.MenuLeft.Should().BeLessThan(collapsedGeometry.SidebarRight,
+            "the collapsed account surface must remain anchored over the rail instead of moving beside it");
+        collapsedGeometry.MenuLeft.Should().BeInRange(3.5, 4.5,
+            "the popup must keep one compact inset from the viewport edge");
+        collapsedGeometry.MenuBottom.Should().BeLessThan(collapsedGeometry.TriggerTop,
+            "the collapsed account surface must open above the avatar trigger");
+        (collapsedGeometry.TriggerTop - collapsedGeometry.MenuBottom).Should().BeInRange(6.5, 16.5,
+            "the popup and avatar need a compact visible gap");
+        collapsedGeometry.MenuRight.Should().BeLessThanOrEqualTo(collapsedGeometry.ViewportWidth - 4);
 
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
@@ -315,6 +320,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
     private sealed class CollapsedUserMenuGeometry
     {
         public double SidebarRight { get; set; }
+        public double TriggerTop { get; set; }
         public double MenuLeft { get; set; }
         public double MenuRight { get; set; }
         public double MenuBottom { get; set; }

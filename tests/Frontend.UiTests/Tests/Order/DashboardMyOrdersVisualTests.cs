@@ -10,6 +10,84 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task MyOrders_KeepsTheShellInsetWhenSidebarChangesState()
+    {
+        await Page.SetViewportSizeAsync(1920, 1080);
+        await LoginAsAsync(TestAccounts.Employee);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.Locator(".vpp-sidebar[data-shell-ready='true']").WaitForAsync();
+        await Page.Locator(".vpp-orders-workspace").WaitForAsync();
+
+        var searchInput = Page.Locator(".vpp-filter-search input:visible").First;
+        await searchInput.FocusAsync();
+        var focusChrome = await searchInput.EvaluateAsync<string[]>("""
+            input => {
+                const inputStyle = getComputedStyle(input);
+                const surfaceStyle = getComputedStyle(input.closest('.vpp-filter-search'));
+                return [inputStyle.outlineStyle, inputStyle.boxShadow, surfaceStyle.boxShadow];
+            }
+            """);
+        focusChrome[0].Should().Be("none", "the shared search owns one focus surface instead of a short inner oval");
+        focusChrome[1].Should().Be("none", "the input itself must not draw a second focus ring");
+        focusChrome[2].Should().NotBe("none", "the composite outer frame must keep visible keyboard focus");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "p0-my-orders-focus-expanded.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
+        var sidebar = Page.Locator(".vpp-sidebar");
+        if (await sidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
+        {
+            await Page.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
+            await Page.WaitForFunctionAsync(
+                "() => !document.querySelector('.vpp-sidebar')?.classList.contains('sidebar-collapsed')");
+        }
+
+        var expanded = await MeasureWorkspaceInsetAsync();
+
+        await Page.Locator(".vpp-sidebar-toggle").ClickAsync();
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-sidebar')?.classList.contains('sidebar-collapsed')");
+        var collapsed = await MeasureWorkspaceInsetAsync();
+
+        expanded[0].Should().BeApproximately(expanded[2], 0.5,
+            "My Orders must start at the shell inline-start inset when the sidebar is expanded");
+        expanded[1].Should().BeApproximately(expanded[3], 0.5,
+            "My Orders must end at the shell inline-end inset when the sidebar is expanded");
+        collapsed[0].Should().BeApproximately(collapsed[2], 0.5,
+            "My Orders must start at the same shell inset when the sidebar is collapsed");
+        collapsed[1].Should().BeApproximately(collapsed[3], 0.5,
+            "My Orders must end at the same shell inset when the sidebar is collapsed");
+        collapsed[0].Should().BeApproximately(expanded[0], 0.5,
+            "collapsing the sidebar must not add a route-specific centered max-width gap");
+        collapsed[1].Should().BeApproximately(expanded[1], 0.5,
+            "the right page edge must keep the same visual rhythm in both sidebar states");
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "p0-my-orders-inset-collapsed.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+    }
+
+    [Fact]
     public async Task MyOrders_UsesOneResponsiveDataStoryWithoutRepeatedActions()
     {
         var browserErrors = new List<string>();
@@ -556,5 +634,27 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         }
 
         throw new TimeoutException($"Timed out waiting for URL '{expectedUrl}'. Last URL: {Page.Url}");
+    }
+
+    private async Task<double[]> MeasureWorkspaceInsetAsync()
+    {
+        await Page.WaitForFunctionAsync(
+            "() => !document.querySelector('.vpp-layout')?.getAnimations({ subtree: true }).some(animation => animation.playState === 'running' || animation.playState === 'pending')");
+
+        return await Page.EvaluateAsync<double[]>("""
+            () => {
+                const body = document.querySelector('.vpp-layout-body');
+                const workspace = document.querySelector('.vpp-orders-workspace');
+                const bodyRect = body.getBoundingClientRect();
+                const workspaceRect = workspace.getBoundingClientRect();
+                const bodyStyle = getComputedStyle(body);
+                return [
+                    workspaceRect.left - bodyRect.left,
+                    bodyRect.right - workspaceRect.right,
+                    Number.parseFloat(bodyStyle.paddingInlineStart),
+                    Number.parseFloat(bodyStyle.paddingInlineEnd)
+                ];
+            }
+            """);
     }
 }
