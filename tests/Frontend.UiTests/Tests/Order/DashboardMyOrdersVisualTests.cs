@@ -290,6 +290,15 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         await itemCategoryTrigger.ClickAsync();
         var itemCategoryMenu = currentOrderPanel.Locator(".vpp-history-detail-select .vpp-history-select-menu").Nth(0);
         await itemCategoryMenu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var itemCategoryMenuMotion = await itemCategoryMenu.EvaluateAsync<string>("""
+            menu => {
+                const styles = getComputedStyle(menu);
+                return `${menu.classList.contains('vpp-transient-surface')}|${styles.animationName}|${styles.animationDuration}|${styles.animationTimingFunction}`;
+            }
+        """);
+        itemCategoryMenuMotion.Should().StartWith("true|vpp-transient-enter-",
+            "shared order filters must use the global transient-surface motion language");
+        itemCategoryMenuMotion.Should().Contain("|0.2s|cubic-bezier(0.32, 0.72, 0, 1)");
         var itemCategoryMenuGeometry = await itemCategoryMenu.EvaluateAsync<string>("""
             menu => {
                 const rect = menu.getBoundingClientRect();

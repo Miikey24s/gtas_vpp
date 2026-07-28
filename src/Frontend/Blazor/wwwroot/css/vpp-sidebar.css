@@ -17,7 +17,7 @@
 .vpp-sidebar {
     --vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);
     --vpp-sidebar-item-active-bg: var(--vpp-navigation-item-active-bg);
-    --vpp-sidebar-row-half-gap: 2px;
+    --vpp-sidebar-row-half-gap: calc(var(--vpp-navigation-surface-gap) / 2);
     --vpp-sidebar-icon-box-size: 24px;
     --vpp-sidebar-primary-content-offset: 8px;
     --vpp-sidebar-rail-content-gap: 12px;
@@ -39,7 +39,7 @@
     min-height: var(--vpp-navigation-row-height);
     border: none;
     border-radius: var(--vpp-radius-md);
-    margin: 0 var(--vpp-space-1);
+    margin: 0 var(--vpp-navigation-surface-cross-inset);
     transition: background-color var(--vpp-transition-fast),
                 color var(--vpp-transition-fast);
     position: relative;

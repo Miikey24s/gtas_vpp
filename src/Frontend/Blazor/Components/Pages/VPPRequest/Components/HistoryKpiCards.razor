@@ -10,7 +10,7 @@
         </button>
         @if (ActiveKpi == KpiPeriods)
         {
-            <div id="history-kpi-periods" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+            <div id="history-kpi-periods" class="vpp-history-kpi-popover vpp-transient-surface" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
                 <strong>@Loc["HistoryKpiDetailTitle"]</strong>
                 <p>@Loc["HistoryKpiPeriodsHint"]</p>
                 <dl><div><dt>@Loc["HistoryKpiScope"]</dt><dd>@ChartRangeLabel</dd></div><div><dt>@Loc["HistoryKpiOrdersPerPeriod"]</dt><dd>@FormatRatio(Summary.TotalOrders, Summary.PeriodCount)</dd></div></dl>
@@ -24,7 +24,7 @@
         </button>
         @if (ActiveKpi == KpiOrders)
         {
-            <div id="history-kpi-orders" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+            <div id="history-kpi-orders" class="vpp-history-kpi-popover vpp-transient-surface" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
                 <strong>@Loc["HistoryKpiDetailTitle"]</strong>
                 <p>@Loc["HistoryKpiOrdersHint"]</p>
                 <dl><div><dt>@Loc["HistoryKpiAveragePerOrder"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalOrders) @Loc["TotalQuantity"]</dd></div><div><dt>@Loc["HistoryKpiLinesPerOrder"]</dt><dd>@FormatRatio(Summary.TotalLines, Summary.TotalOrders) @Loc["TotalLineItems"]</dd></div></dl>
@@ -37,7 +37,7 @@
         </button>
         @if (ActiveKpi == KpiLines)
         {
-            <div id="history-kpi-lines" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+            <div id="history-kpi-lines" class="vpp-history-kpi-popover vpp-transient-surface" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
                 <strong>@Loc["HistoryKpiDetailTitle"]</strong>
                 <p>@Loc["HistoryKpiLinesHint"]</p>
                 <dl><div><dt>@Loc["HistoryKpiAveragePerLine"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalLines) @Loc["TotalQuantity"]</dd></div><div><dt>@Loc["HistoryKpiAveragePerOrder"]</dt><dd>@FormatRatio(Summary.TotalLines, Summary.TotalOrders) @Loc["TotalLineItems"]</dd></div></dl>
@@ -50,7 +50,7 @@
         </button>
         @if (ActiveKpi == KpiQuantity)
         {
-            <div id="history-kpi-quantity" class="vpp-history-kpi-popover" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
+            <div id="history-kpi-quantity" class="vpp-history-kpi-popover vpp-transient-surface" role="dialog" aria-label="@Loc["HistoryKpiDetailTitle"]">
                 <strong>@Loc["HistoryKpiDetailTitle"]</strong>
                 <p>@Loc["HistoryKpiQuantityHint"]</p>
                 <dl><div><dt>@Loc["HistoryKpiAveragePerOrder"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalOrders)</dd></div><div><dt>@Loc["HistoryKpiAveragePerLine"]</dt><dd>@FormatRatio(Summary.TotalQuantity, Summary.TotalLines)</dd></div></dl>

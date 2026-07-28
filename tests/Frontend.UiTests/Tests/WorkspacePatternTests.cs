@@ -13,6 +13,7 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
+        await AssertShellSeamAsync();
 
         var routes = new[]
         {
@@ -50,8 +51,10 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
                 $$"""
                 () => {
                     const body = document.querySelector('.vpp-layout-body');
+                    const content = document.querySelector('.vpp-content');
                     const style = getComputedStyle(body);
                     const rect = body.getBoundingClientRect();
+                    const contentRect = content.getBoundingClientRect();
                     const pattern = document.querySelector('[data-vpp-workspace-pattern="{{route.Pattern}}"]');
                     const patternRect = pattern.getBoundingClientRect();
                     return {
@@ -61,6 +64,10 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
                         left: Number.parseFloat(style.paddingLeft),
                         patternInsideInlineStart: patternRect.left + .5 >= rect.left + Number.parseFloat(style.paddingLeft),
                         patternInsideBlockStart: patternRect.top + .5 >= rect.top + Number.parseFloat(style.paddingTop),
+                        contentTopGap: contentRect.top - rect.top,
+                        contentRightGap: rect.right - contentRect.right,
+                        contentBottomGap: rect.bottom - contentRect.bottom,
+                        contentLeftGap: contentRect.left - rect.left,
                         hasDocumentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
                     };
                 }
@@ -68,6 +75,11 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
 
             geometry.PatternInsideInlineStart.Should().BeTrue($"{route.Pattern} must respect the shell inline inset");
             geometry.PatternInsideBlockStart.Should().BeTrue($"{route.Pattern} must respect the shell top inset");
+            geometry.ContentLeftGap.Should().BeApproximately(geometry.Left, 0.1, "main content must start at the shell inline inset");
+            geometry.ContentRightGap.Should().BeApproximately(geometry.Right, 0.1, "main content must end at the shell inline inset");
+            geometry.ContentTopGap.Should().BeApproximately(geometry.Top, 0.1, "main content must start below the header by the shared block inset");
+            geometry.ContentBottomGap.Should().BeApproximately(geometry.Bottom, 0.1, "main content must stop above the viewport edge by the shared block inset");
+            geometry.ContentLeftGap.Should().BeApproximately(geometry.ContentRightGap, 0.1, "inline outer inset must be symmetric");
             geometry.HasDocumentOverflow.Should().BeFalse($"{route.Pattern} must not overflow the document horizontally");
 
             if (baseline is null)
@@ -106,6 +118,59 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             Timeout = 30_000
         });
         await CaptureEvidenceAsync("account-forgot");
+    }
+
+    private async Task AssertShellSeamAsync()
+    {
+        await AssertShellSeamStateAsync(expectedWidth: 286, collapsed: false);
+
+        await Page.Locator(".vpp-sidebar-toggle").ClickAsync();
+        await AssertShellSeamStateAsync(expectedWidth: 72, collapsed: true);
+
+        await Page.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
+        await AssertShellSeamStateAsync(expectedWidth: 286, collapsed: false);
+    }
+
+    private async Task AssertShellSeamStateAsync(double expectedWidth, bool collapsed)
+    {
+        await Page.WaitForFunctionAsync(
+            """
+            expected => {
+                const sidebar = document.querySelector('.vpp-sidebar');
+                const body = document.querySelector('.vpp-layout-body');
+                if (!sidebar || !body) return false;
+                const width = sidebar.getBoundingClientRect().width;
+                return Math.abs(width - expected.width) <= .2
+                    && sidebar.classList.contains('sidebar-collapsed') === expected.collapsed;
+            }
+            """,
+            new { width = expectedWidth, collapsed });
+
+        var seam = await Page.EvaluateAsync<ShellSeamGeometry>(
+            """
+            () => {
+                const layout = document.querySelector('.vpp-layout').getBoundingClientRect();
+                const sidebar = document.querySelector('.vpp-sidebar').getBoundingClientRect();
+                const header = document.querySelector('.vpp-layout-header').getBoundingClientRect();
+                const body = document.querySelector('.vpp-layout-body').getBoundingClientRect();
+                return {
+                    layoutLeft: layout.left,
+                    sidebarLeft: sidebar.left,
+                    sidebarRight: sidebar.right,
+                    headerLeft: header.left,
+                    bodyLeft: body.left,
+                    bodyRight: body.right,
+                    viewportRight: window.innerWidth
+                };
+            }
+            """);
+
+        seam.SidebarLeft.Should().BeApproximately(seam.LayoutLeft, 0.1);
+        seam.HeaderLeft.Should().BeApproximately(seam.SidebarRight, 0.2,
+            "header and sidebar must share one straight shell seam");
+        seam.BodyLeft.Should().BeApproximately(seam.SidebarRight, 0.2,
+            "body and sidebar must share one straight shell seam");
+        seam.BodyRight.Should().BeApproximately(seam.ViewportRight, 0.2);
     }
 
     private async Task CaptureEvidenceAsync(string pattern)
@@ -152,8 +217,23 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
         public double Right { get; init; }
         public double Bottom { get; init; }
         public double Left { get; init; }
+        public double ContentTopGap { get; init; }
+        public double ContentRightGap { get; init; }
+        public double ContentBottomGap { get; init; }
+        public double ContentLeftGap { get; init; }
         public bool PatternInsideInlineStart { get; init; }
         public bool PatternInsideBlockStart { get; init; }
         public bool HasDocumentOverflow { get; init; }
+    }
+
+    private sealed class ShellSeamGeometry
+    {
+        public double LayoutLeft { get; init; }
+        public double SidebarLeft { get; init; }
+        public double SidebarRight { get; init; }
+        public double HeaderLeft { get; init; }
+        public double BodyLeft { get; init; }
+        public double BodyRight { get; init; }
+        public double ViewportRight { get; init; }
     }
 }

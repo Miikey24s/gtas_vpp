@@ -23,7 +23,7 @@
                 </button>
                 @if (OpenFilterMenu == OrderTypeMenu)
                 {
-                    <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
                         <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedOrderType)" @onclick="@(() => OrderTypeSelected.InvokeAsync(string.Empty))">@Loc["HistoryAllOrderTypes"]</button>
                         <button type="button" role="option" aria-selected="@(SelectedOrderType == "regular")" @onclick="@(() => OrderTypeSelected.InvokeAsync("regular"))">@Loc["Regular"]</button>
                         <button type="button" role="option" aria-selected="@(SelectedOrderType == "additional")" @onclick="@(() => OrderTypeSelected.InvokeAsync("additional"))">@Loc["AdditionalOrder"]</button>
@@ -38,7 +38,7 @@
                 </button>
                 @if (OpenFilterMenu == StatusMenu)
                 {
-                    <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
                         <button type="button" role="option" aria-selected="@(!SelectedStatus.HasValue)" @onclick="@(() => StatusSelected.InvokeAsync(null))">@Loc["HistoryAllStatuses"]</button>
                         <button type="button" role="option" aria-selected="@(SelectedStatus == 1)" @onclick="@(() => StatusSelected.InvokeAsync(1))">@Loc["Submitted"]</button>
                         <button type="button" role="option" aria-selected="@(SelectedStatus == 4)" @onclick="@(() => StatusSelected.InvokeAsync(4))">@Loc["Cancelled"]</button>
@@ -108,7 +108,7 @@
                                 <button type="button" class="vpp-history-code vpp-history-code-trigger" aria-haspopup="dialog" aria-expanded="@(ActiveCodeOrderId == row.Id)" title="@row.VppCode" @onclick="@(() => CodeToggled.InvokeAsync(row.Id))" @onclick:stopPropagation>@row.VppCode</button>
                                 @if (ActiveCodeOrderId == row.Id)
                                 {
-                                    <div class="vpp-history-code-popover" role="dialog" aria-label="@Loc["OrderCode"]" @onclick:stopPropagation>
+                                    <div class="vpp-history-code-popover vpp-transient-surface" role="dialog" aria-label="@Loc["OrderCode"]" @onclick:stopPropagation>
                                         <span class="vpp-history-popover-value">@row.VppCode</span>
                                         <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(row.VppCode))" @onclick:stopPropagation>
                                             <VppIcon Name="filter_none" />
@@ -150,7 +150,7 @@
                                     <button type="button" class="vpp-history-note vpp-history-note-trigger" aria-haspopup="dialog" aria-expanded="@(ActiveNoteOrderId == row.Id)" title="@row.Description" @onclick="@(() => NoteToggled.InvokeAsync(row.Id))" @onclick:stopPropagation>@row.Description</button>
                                     @if (ActiveNoteOrderId == row.Id)
                                     {
-                                        <div class="vpp-history-note-popover" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
+                                        <div class="vpp-history-note-popover vpp-transient-surface" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
                                             <span class="vpp-history-popover-value">@row.Description</span>
                                             <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(row.Description))" @onclick:stopPropagation>
                                                 <VppIcon Name="filter_none" />

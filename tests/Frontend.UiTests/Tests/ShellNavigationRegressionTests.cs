@@ -147,7 +147,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                 probe.style.position = 'absolute';
                 probe.style.backgroundColor = 'var(--vpp-navigation-item-hover-bg)';
                 probe.style.borderRadius = 'var(--vpp-radius-md)';
-                probe.style.top = 'var(--vpp-space-2)';
+                probe.style.top = 'var(--vpp-navigation-surface-cross-inset)';
                 document.body.appendChild(probe);
                 const expected = getComputedStyle(probe);
                 const surface = getComputedStyle(element, '::before');
@@ -463,19 +463,32 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         tabGeometry.LogoCenter.Should().BeApproximately(tabGeometry.TitleCenter, 1,
             "the brand mark must share the same visual centre as the header labels");
 
-        // The active underline is a CSS ::after transition, not a Web Animations
-        // API animation, so read its transition duration instead of getAnimations().
-        var headerTabUnderlineDuration = await activeHeaderTab.EvaluateAsync<string>(
-            "element => getComputedStyle(element, '::after').transitionDuration");
-        headerTabUnderlineDuration.Should().Contain("0.2s",
-            "the header underline must use the same motion duration as the PanelMenu expansion");
-
         var headerTabs = Page.Locator(".vpp-layout-header .vpp-header-tabs .vpp-header-tab");
         (await headerTabs.CountAsync()).Should().BeGreaterThan(1,
             "the dashboard area must expose more than one header tab");
+        var headerIndicator = Page.Locator(".vpp-layout-header .vpp-header-tabs > .vpp-tab-shared-indicator");
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-header-tabs > .vpp-tab-shared-indicator')?.classList.contains('is-ready') === true");
+        (await headerIndicator.EvaluateAsync<string>("element => getComputedStyle(element).height"))
+            .Should().Be("3px", "the horizontal header line must reuse the shared navigation indicator");
+
         var secondHeaderTab = headerTabs.Nth(1);
         var secondHeaderTabPath = await secondHeaderTab.GetAttributeAsync("href");
         secondHeaderTabPath.Should().NotBeNullOrWhiteSpace("header tabs must navigate through real routes");
+
+        // Giữ route hiện tại trong một click để quan sát một indicator thật trượt
+        // ngang; sau đó click lần hai để kiểm tra navigation như bình thường.
+        await secondHeaderTab.EvaluateAsync("element => element.addEventListener('click', event => event.preventDefault(), { once: true })");
+        var headerIndicatorSamples = await SampleHorizontalIndicatorMotionAsync(headerIndicator, secondHeaderTab);
+        AssertSmoothHorizontalMotion(headerIndicatorSamples,
+            "the header line must travel directly between adjacent primary tabs");
+        var headerIndicatorDuration = await headerIndicator.EvaluateAsync<double>(
+            "element => element.getAnimations()[0]?.effect.getTiming().duration ?? 0");
+        headerIndicatorDuration.Should().Be(200,
+            "the header line must use the same 200ms motion token as sidebar expansion/indicator");
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-header-tabs > .vpp-tab-shared-indicator')?.getAnimations().length === 0");
+
         await secondHeaderTab.ClickAsync();
         await Page.WaitForURLAsync(
             url => url.EndsWith(secondHeaderTabPath!, StringComparison.OrdinalIgnoreCase),
@@ -584,6 +597,27 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         return [.. await samplingTask];
     }
 
+    private async Task<List<double>> SampleHorizontalIndicatorMotionAsync(ILocator indicator, ILocator target)
+    {
+        var samplingTask = indicator.EvaluateAsync<double[]>(
+            """
+            element => new Promise(resolve => {
+                const samples = [];
+                const sampleFrame = () => {
+                    samples.push(element.getBoundingClientRect().left);
+                    if (samples.length < 8) {
+                        requestAnimationFrame(sampleFrame);
+                        return;
+                    }
+                    resolve(samples);
+                };
+                requestAnimationFrame(sampleFrame);
+            })
+            """);
+        await target.ClickAsync();
+        return [.. await samplingTask];
+    }
+
     private static void AssertSmoothMotion(IReadOnlyList<double> samples, bool movingDown, string because)
     {
         var deltas = samples.Zip(samples.Skip(1), (current, next) => next - current).ToArray();
@@ -595,6 +629,19 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
 
         directedMoves.Should().BeGreaterThanOrEqualTo(3, $"{because} must produce multiple visible frames");
         totalDistance.Should().BeGreaterThan(20, $"{because} must move the line a meaningful distance");
+        largestStep.Should().BeLessThan(totalDistance * 0.75,
+            $"{because} must not teleport the line directly to its final position");
+    }
+
+    private static void AssertSmoothHorizontalMotion(IReadOnlyList<double> samples, string because)
+    {
+        var deltas = samples.Zip(samples.Skip(1), (current, next) => next - current).ToArray();
+        var directedMoves = deltas.Count(delta => delta > 0.2);
+        var totalDistance = samples[^1] - samples[0];
+        var largestStep = deltas.Select(Math.Abs).DefaultIfEmpty(0).Max();
+
+        directedMoves.Should().BeGreaterThanOrEqualTo(3, $"{because} must produce multiple visible frames");
+        totalDistance.Should().BeGreaterThan(12, $"{because} must move the line a meaningful distance during the sampled animation window");
         largestStep.Should().BeLessThan(totalDistance * 0.75,
             $"{because} must not teleport the line directly to its final position");
     }

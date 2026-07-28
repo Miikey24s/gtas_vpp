@@ -176,7 +176,7 @@
                                     <span class="vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@row.VppCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
                                         @GetShortCode(row)
                                     </span>
-                                    <div class="vpp-order-code-popover">
+                                    <div class="vpp-order-code-popover vpp-transient-surface">
                                         <span class="vpp-order-code-popover-text">@row.VppCode</span>
                                         <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(row.VppCode))" Title="@Loc["Copy"]" />
                                     </div>

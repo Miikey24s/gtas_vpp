@@ -75,6 +75,68 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Motion chung cho transient surface do project sở hữu: menu lọc, popup,
+   popover và panel nổi mở cùng nhịp với account menu. Hướng dịch chuyển bám
+   theo vị trí surface so với trigger; modal giữa màn hình giữ tâm cố định. */
+.vpp-transient-surface {
+    transform-origin: top center;
+    animation: vpp-transient-enter-down
+        var(--vpp-transient-motion-duration)
+        var(--vpp-transient-motion-easing)
+        both;
+}
+
+.vpp-transient-surface.is-above,
+.vpp-transient-surface--above {
+    transform-origin: bottom center;
+    animation-name: vpp-transient-enter-up;
+}
+
+.vpp-transient-surface--center:popover-open {
+    transform-origin: center;
+    animation-name: vpp-transient-enter-center;
+}
+
+.vpp-order-grid .rz-grid-table tbody > tr:nth-last-child(-n + 2) .vpp-transient-surface {
+    transform-origin: bottom center;
+    animation-name: vpp-transient-enter-up;
+}
+
+@keyframes vpp-transient-enter-down {
+    from {
+        opacity: 0;
+        transform: translateY(calc(0px - var(--vpp-transient-motion-distance)))
+                   scale(var(--vpp-transient-motion-scale));
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes vpp-transient-enter-up {
+    from {
+        opacity: 0;
+        transform: translateY(var(--vpp-transient-motion-distance))
+                   scale(var(--vpp-transient-motion-scale));
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes vpp-transient-enter-center {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(var(--vpp-transient-motion-scale));
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
 /* Chuẩn hóa căn chỉnh dropdown Radzen giữa page, grid và pager. */
 .rz-dropdown {
     display: inline-flex;

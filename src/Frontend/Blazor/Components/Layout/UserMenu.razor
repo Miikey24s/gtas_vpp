@@ -27,7 +27,10 @@
 
     @if (_isOpen)
     {
-        <section id="user-menu-dropdown" class="user-dropdown" role="dialog" aria-label="@Loc["Profile"]">
+        <section id="user-menu-dropdown"
+                 class="user-dropdown vpp-transient-surface @(SidebarMode ? "is-above" : string.Empty)"
+                 role="dialog"
+                 aria-label="@Loc["Profile"]">
             <div class="user-dropdown-profile">
                 <div class="user-avatar-lg" aria-hidden="true">@GetInitials()</div>
                 <div class="user-dropdown-identity">

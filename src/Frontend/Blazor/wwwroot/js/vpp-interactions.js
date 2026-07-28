@@ -196,12 +196,14 @@
     var navigationMotionEasing = rootMotionStyles
         .getPropertyValue("--vpp-navigation-motion-easing").trim()
         || "cubic-bezier(0.32, 0.72, 0, 1)";
-    var tabListSelector = ".rz-tabview-nav";
-    var tabTargetSelector = ".rz-tabview-nav-link, .rz-tabs-item, [role='tab']";
+    var tabListSelector = ".rz-tabview-nav, .vpp-header-tabs";
+    var tabTargetSelector = ".rz-tabview-nav-link, .rz-tabs-item, [role='tab'], .vpp-header-tab";
     var activeTabSelector = ".rz-tabview-selected .rz-tabview-nav-link, "
         + ".rz-tabview-nav-link.rz-state-active, "
         + ".rz-tabs-item.rz-state-active, "
-        + "[role='tab'][aria-selected='true']";
+        + "[role='tab'][aria-selected='true'], "
+        + ".vpp-header-tab.is-active, "
+        + ".vpp-header-tab[aria-current='page']";
     var tabIndicatorDuration = navigationMotionDuration;
     var sidebarNavSelector = ".vpp-sidebar-nav";
     var sidebarIndicatorDuration = navigationMotionDuration;

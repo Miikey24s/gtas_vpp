@@ -12,7 +12,7 @@
         <button type="button" class="@ScopeButtonClass(CustomScope)" aria-pressed="@(Scope == CustomScope)" aria-expanded="@ShowCustomRange" @onclick="@(() => CustomScopeRequested.InvokeAsync())">@Loc["HistoryCustom"] <VppIcon Name="calendar_month" /></button>
         @if (ShowCustomRange)
         {
-            <div class="vpp-history-range-popover" role="dialog" aria-label="@Loc["HistoryCustomRange"]" @onclick:stopPropagation>
+            <div class="vpp-history-range-popover vpp-transient-surface" role="dialog" aria-label="@Loc["HistoryCustomRange"]" @onclick:stopPropagation>
                 <label><span>@Loc["HistoryFromPeriod"]</span><input type="month" value="@CustomFrom" @onchange="CustomFromChanged" /></label>
                 <label><span>@Loc["HistoryToPeriod"]</span><input type="month" value="@CustomTo" @onchange="CustomToChanged" /></label>
                 <button type="button" class="vpp-history-range-apply" @onclick="CustomRangeApplied">@Loc["ApplyFilters"]</button>

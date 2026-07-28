@@ -175,7 +175,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("font-weight: 400 !important;", tabsCss, StringComparison.Ordinal);
         Assert.DoesNotContain("transition: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
-        Assert.Contains(".rz-tabview .vpp-tab-shared-indicator", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-tab-indicator-host", tabsCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-tabs", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav:focus-visible", tabsCss, StringComparison.Ordinal);
         Assert.Contains("outline: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview-selected > .rz-tabview-nav-link", tabsCss, StringComparison.Ordinal);
@@ -206,7 +207,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("tabList.style.setProperty(\"padding-block\", verticalInset, \"important\")", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("var tabListSelector = \".rz-tabview-nav\";", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var tabListSelector = \".rz-tabview-nav, .vpp-header-tabs\";", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("return tabList.closest(\".rz-tabview-nav-container\") || tabList;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var scrollOffset = host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var currentScrollOffset = elements.host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
@@ -320,7 +321,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-layout-header .vpp-header-tab", layoutCss, StringComparison.Ordinal);
         Assert.Contains("color: var(--vpp-text-secondary);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab::before", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("inset: var(--vpp-space-2) 0;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("gap: var(--vpp-navigation-surface-gap);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("inset: var(--vpp-navigation-surface-cross-inset) 0;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("border-radius: var(--vpp-radius-md);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab:hover::before", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab:focus-visible::before", layoutCss, StringComparison.Ordinal);
@@ -364,12 +366,12 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("inset-block-start: calc((var(--vpp-header-height) - var(--vpp-sidebar-collapsed-control-height)) / 2);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-product", layoutCss, StringComparison.Ordinal);
         Assert.Contains("translate: none;", layoutCss, StringComparison.Ordinal);
-        Assert.Contains("margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("margin: 0 var(--vpp-navigation-surface-cross-inset);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-item-2nd-level-margin-inline: var(--vpp-space-1);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-item-padding-block: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-item-2nd-level-padding-block: 0;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-2nd-level-vertical-offset: 0;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-sidebar-row-half-gap: 2px;", sidebarCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-row-half-gap: calc(var(--vpp-navigation-surface-gap) / 2);", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-header-to-nav-overlap: 0px;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("border-block-end: 0 !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
@@ -413,6 +415,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-sidebar-brand", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".vpp-sidebar-user-menu .user-menu-trigger", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav-link", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-tab", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("button[role='tab']", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("position: relative;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".rz-tabview .rz-tabview-nav-link.vpp-pressing::before", polishCss, StringComparison.Ordinal);
@@ -558,7 +561,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-admin-tabs.vpp-orders-shell", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("overflow: visible;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("border-right: 0;", layoutStyles, StringComparison.Ordinal);
-        Assert.Contains("var(--vpp-border-default) var(--vpp-header-height) 100%", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("--vpp-shell-sidebar-track: var(--vpp-sidebar-width);", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("inset-inline-start: calc(var(--vpp-shell-sidebar-track) - 1px);", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("transition: inset-inline-start var(--vpp-sidebar-transition);", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("background-image: none;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none !important;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", layoutStyles, StringComparison.Ordinal);
@@ -628,6 +634,34 @@ public sealed class SharedUiFoundationTests
         {
             Assert.Contains(token, tokens, StringComparison.Ordinal);
         }
+
+        Assert.Contains("--vpp-navigation-surface-gap", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-surface-cross-inset", tokens, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TransientSurfaces_UseOneDirectionalMotionContract()
+    {
+        var root = GetFrontendRoot();
+        var polish = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
+        var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+        var userMenu = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
+        var orderSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
+        var historyList = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
+        var historyKpis = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryKpiCards.razor"));
+        var orderCreate = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "OrderCreateStep2.razor"));
+
+        Assert.Contains("--vpp-transient-motion-duration", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-transient-motion-easing", tokens, StringComparison.Ordinal);
+        Assert.Contains("@keyframes vpp-transient-enter-down", polish, StringComparison.Ordinal);
+        Assert.Contains("@keyframes vpp-transient-enter-up", polish, StringComparison.Ordinal);
+        Assert.Contains("@keyframes vpp-transient-enter-center", polish, StringComparison.Ordinal);
+        Assert.Contains(".vpp-transient-surface.is-above", polish, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface", userMenu, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface", orderSurface, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface", historyList, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface", historyKpis, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface--center", orderCreate, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -398,7 +398,6 @@
     background: var(--vpp-bg-elevated);
     box-shadow: var(--vpp-shadow-lg);
     color: var(--vpp-text-primary);
-    animation: vpp-history-kpi-popover-in 160ms ease-out both;
 }
 
 ::deep .vpp-history-kpi-card:nth-child(4) .vpp-history-kpi-popover {
@@ -443,11 +442,6 @@
     font-variant-numeric: tabular-nums;
     font-weight: var(--vpp-font-weight-semibold);
     text-align: end;
-}
-
-@keyframes vpp-history-kpi-popover-in {
-    from { opacity: 0; transform: translateY(-4px) scale(.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 ::deep .vpp-history-kpis span {

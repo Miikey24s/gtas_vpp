@@ -17,9 +17,11 @@ body:has(.vpp-layout) {
    FullHeight="true" trên RadzenSidebar vẫn là contract runtime bắt buộc để class
    và semantics của component không trôi khi nâng phiên bản Radzen. */
 .rz-layout.vpp-layout {
+    --vpp-shell-sidebar-track: var(--vpp-sidebar-width);
+    position: relative;
     display: grid;
     gap: 0 !important;
-    grid-template-columns: var(--vpp-sidebar-width) 1fr;
+    grid-template-columns: var(--vpp-shell-sidebar-track) 1fr;
     grid-template-rows: var(--vpp-header-height) 1fr;
     grid-template-areas:
         "rz-sidebar rz-header"
@@ -33,7 +35,21 @@ body:has(.vpp-layout) {
 }
 
 .rz-layout.vpp-layout:has(.sidebar-collapsed) {
-    grid-template-columns: var(--vpp-sidebar-collapsed-width) 1fr;
+    --vpp-shell-sidebar-track: var(--vpp-sidebar-collapsed-width);
+}
+
+/* Divider thuộc shell grid thay vì bám theo width nội bộ của RadzenSidebar.
+   Vì vậy đường dọc luôn thẳng với mép header/body trong cả lúc mở và thu gọn. */
+.rz-layout.vpp-layout::after {
+    content: "";
+    position: absolute;
+    z-index: calc(var(--vpp-z-sidebar) + 1);
+    inset-block: var(--vpp-header-height) 0;
+    inset-inline-start: calc(var(--vpp-shell-sidebar-track) - 1px);
+    width: 1px;
+    background: var(--vpp-border-default);
+    pointer-events: none;
+    transition: inset-inline-start var(--vpp-sidebar-transition);
 }
 
 /* W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip khu vực
@@ -90,7 +106,7 @@ leftsidebar {
     display: flex;
     align-items: stretch;
     align-self: stretch;
-    gap: var(--vpp-space-2);
+    gap: var(--vpp-navigation-surface-gap);
     flex: 1 1 auto;
     min-width: 0;
     overflow-x: auto;
@@ -120,7 +136,7 @@ leftsidebar {
     content: "";
     position: absolute;
     z-index: -1;
-    inset: var(--vpp-space-2) 0;
+    inset: var(--vpp-navigation-surface-cross-inset) 0;
     border-radius: var(--vpp-radius-md);
     background: transparent;
     transition: background-color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
@@ -138,26 +154,8 @@ leftsidebar {
     background: var(--vpp-navigation-item-hover-bg);
 }
 
-.vpp-layout-header .vpp-header-tab::after {
-    content: "";
-    position: absolute;
-    inset: auto var(--vpp-space-2) 0;
-    height: var(--vpp-nav-indicator-thickness);
-    border-radius: var(--vpp-nav-indicator-radius);
-    background: var(--vpp-nav-indicator-color);
-    opacity: 0;
-    transform: scaleX(0.6);
-    transition: opacity var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
-                transform var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
-}
-
 .vpp-layout-header .vpp-header-tab.is-active {
     color: var(--vpp-text-primary);
-}
-
-.vpp-layout-header .vpp-header-tab.is-active::after {
-    opacity: 1;
-    transform: scaleX(1);
 }
 
 .vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-sep {
@@ -229,6 +227,7 @@ leftsidebar {
     scrollbar-gutter: auto;
     min-height: 0;
     min-width: 0;
+    box-sizing: border-box;
     padding: var(--vpp-page-inset-block-start)
              var(--vpp-page-inset-inline-end)
              var(--vpp-page-inset-block-end)
@@ -279,17 +278,9 @@ leftsidebar {
 /* ── Thanh bên ───────────────────────────────────────────────── */
 .vpp-sidebar {
     background-color: var(--vpp-navigation-chrome-bg);
-    /* Giữ logo và tab chính trên một bề mặt chrome liền mạch. Divider chỉ bắt đầu
-       bên dưới header 72px dùng chung. */
+    /* Divider dọc do shell grid sở hữu để không lệch khi width Radzen chuyển trạng thái. */
     border-right: 0;
-    background-image: linear-gradient(
-        to bottom,
-        transparent 0 var(--vpp-header-height),
-        var(--vpp-border-default) var(--vpp-header-height) 100%
-    );
-    background-position: right top;
-    background-repeat: no-repeat;
-    background-size: 1px 100%;
+    background-image: none;
     box-shadow: none !important;
     display: flex;
     flex-direction: column;

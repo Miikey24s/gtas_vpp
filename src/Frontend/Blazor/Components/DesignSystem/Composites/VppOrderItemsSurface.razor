@@ -27,7 +27,7 @@
                 </button>
                 @if (OpenFilterMenu == CategoryMenu)
                 {
-                    <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
                         <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedCategory)" @onclick="@(() => CategorySelected.InvokeAsync(string.Empty))">@AllCategoriesLabel</button>
                         @foreach (var category in Categories)
                         {
@@ -50,7 +50,7 @@
                 </button>
                 @if (OpenFilterMenu == UnitMenu)
                 {
-                    <div class="vpp-history-select-menu" role="listbox" @onclick:stopPropagation>
+                    <div class="vpp-history-select-menu vpp-transient-surface" role="listbox" @onclick:stopPropagation>
                         <button type="button" role="option" aria-selected="@string.IsNullOrEmpty(SelectedUnit)" @onclick="@(() => UnitSelected.InvokeAsync(string.Empty))">@AllUnitsLabel</button>
                         @foreach (var unit in Units)
                         {
@@ -170,7 +170,7 @@
                                     </button>
                                     @if (ActiveCodeNumber == item.Number)
                                     {
-                                        <span class="vpp-history-detail-code-popover" role="dialog" aria-label="@Loc["ItemCode"]" @onclick:stopPropagation>
+                                        <span class="vpp-history-detail-code-popover vpp-transient-surface" role="dialog" aria-label="@Loc["ItemCode"]" @onclick:stopPropagation>
                                             <span class="vpp-history-popover-value">@item.Code</span>
                                             <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(item.Code))" @onclick:stopPropagation>
                                                 <VppIcon Name="filter_none" />
@@ -241,7 +241,7 @@
                                     </button>
                                     @if (ActiveNoteNumber == item.Number)
                                     {
-                                        <div class="vpp-history-note-popover" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
+                                        <div class="vpp-history-note-popover vpp-transient-surface" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
                                             <span class="vpp-history-popover-value">@item.Note</span>
                                             <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(item.Note))" @onclick:stopPropagation>
                                                 <VppIcon Name="filter_none" />

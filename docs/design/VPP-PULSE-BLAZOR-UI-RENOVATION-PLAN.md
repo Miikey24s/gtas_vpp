@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.79` — 2026-07-28
+> **Phiên bản:** `2.80` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -24,7 +24,7 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | F4 đã tạo sáu workspace pattern typed, khóa page outer inset và chứng minh hai consumer thật cho từng pattern; chưa mở F5. | [Kết quả F4](../execution/UI-SYSTEM-001.md#54-f4-execution-record--2026-07-28) |
+| Bước code hiện tại? | F4 đã tạo sáu workspace pattern typed; owner changes về shell seam, directional indicator, transient motion và outer inset đã tích hợp/test; chưa mở F5. | [Kết quả F4](../execution/UI-SYSTEM-001.md#54-f4-execution-record--2026-07-28) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
 | Cần owner duyệt gì? | Duyệt board F4: sáu archetype giữ đúng layout/behavior route cũ, khoảng cách page nhất quán với header/sidebar và không xuất hiện khung “vạn năng”. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
@@ -411,15 +411,16 @@ Contract này tổng hợp ba task tham chiếu `My Orders`, `Fix sidebar và he
 - Mọi mockup authenticated phải render trọn shell; không duyệt page crop bỏ sidebar/header vì sẽ che mất lỗi trục, inset và surface.
 - Sidebar collapsed width và primary header height dùng cùng semantic token. Logo/brand và primary-tab label được so theo cùng outer visual axis; không tuyên bố cân chỉ vì từng phần tử tự center trong hitbox riêng.
 - Primary header full-bleed từ mép sidebar đến mép phải viewport; navigation chrome và sidebar dùng cùng surface token, divider/hairline có một owner và không tạo bốn cạnh trắng hoặc line kép.
-- Mọi page authenticated dùng cùng `page outer inset` theo từng trục: khoảng cách từ content đến đáy header, mép sau sidebar, mép phải và mép dưới phải nhất quán giữa các màn hình. Bốn giá trị không bắt buộc bằng nhau; điều bắt buộc là cùng một cạnh phải cho cùng một nhịp trên mọi page. Full-bleed navigation, print và overlay chỉ được ngoại lệ khi contract ghi rõ.
+- Mọi page authenticated dùng cùng `page outer inset` theo từng trục: khoảng cách từ content đến đáy header, mép sau sidebar, mép phải và mép dưới phải nhất quán giữa các màn hình. Mặc định inline-start bằng inline-end (`symmetric content inset`); block-start/block-end có thể khác nhau nhưng mỗi cạnh phải giữ đúng một nhịp trên mọi page. Full-bleed navigation, print và overlay chỉ được ngoại lệ khi contract ghi rõ.
 - Root icon giữ cùng cột ở expanded/collapsed. Child và grandchild dùng depth token đệ quy: interaction surface vẫn full-row, chỉ rail/icon/text lùi cấp; không thêm cấp sâu hơn grandchild. Nếu hierarchy tiếp tục sâu, chuyển sang split/list trong page.
-- Header tab và sidebar dùng cùng interaction primitive: row/hitbox, typography, neutral hover, project-blue active indicator, focus-visible và press feedback. Khác biệt duy nhất là indicator nằm dưới tab và bên trái navigation item.
+- Header tab và sidebar dùng cùng interaction primitive: row/hitbox, typography, neutral hover, project-blue active indicator, focus-visible và press feedback. `Orientation-aware navigation rhythm`: sidebar dọc dùng hover surface gần sát hai mép ngang và gap theo trục dọc; header ngang dùng surface gần sát hai mép dọc và cùng gap theo trục ngang.
 - Dòng phụ dưới tên người dùng trong sidebar hiển thị **group/role hiện hành** (`Nhân viên`, `Quản lý`, `Quản trị hệ thống` hoặc tên group tùy biến); shared header không lặp group/role. Popup tài khoản vẫn giữ phòng ban để hai loại ngữ cảnh không bị đánh tráo.
 
 **Motion và performance**
 
-- Indicator là một shared object đi trực tiếp source → destination; không chạy tuần tự qua item trung gian, không bung từ tâm và không treo khi ancestor bị collapse/clip.
+- Indicator là một shared object đi trực tiếp source → destination: header/tab chạy trái–phải, sidebar chạy trên–dưới; không chạy tuần tự qua item trung gian, không bung từ tâm và không treo khi ancestor bị collapse/clip. Contract này chỉ áp dụng cho navigation/selector có một active target, không áp dụng cho divider hoặc viền bảng tĩnh.
 - Sidebar expand/collapse, expander và indicator dùng cùng motion token khoảng `180–220ms`, easing vào nhanh/dừng mềm; movement phải theo hướng gây ra thay đổi và có `prefers-reduced-motion` fallback.
+- Menu lọc, popup, popover và transient panel do project sở hữu dùng một enter-motion token chung với account menu; hướng mở bám vị trí trên/dưới trigger, còn modal giữa màn hình giữ tâm cố định.
 - Không dùng Canvas glyph offset, fixed optical offset theo từng chuỗi, DOM probe tạo node hoặc global `MutationObserver` quét DataGrid/virtualized rows. Runtime geometry chỉ đo route thật khi cần QA; interaction production ưu tiên component event/state trực tiếp.
 - Refresh/direct-load có thể dùng reveal rất nhẹ, nhưng shell phải hiện ngay, không layout shift, không lặp ở internal navigation và không che loading/error thật.
 
@@ -1252,6 +1253,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-28 | F4 shell geometry + global interaction motion | Divider dọc thuộc shell grid để luôn thẳng khi sidebar mở/thu; active indicator dùng một object chạy theo hướng; header/sidebar dùng gap + cross-axis inset chung; transient surface dùng một enter-motion contract. `Main content` được gọi ngắn là `symmetric content inset` khi nói khoảng cách trái–phải | Owner yêu cầu shell thẳng, line/hover có cùng motif theo hướng, popup lọc mở như user menu và outer inset dễ gọi tên/kiểm tra giữa mọi màn hình | Global shell + design-system interaction | Thêm navigation/transient token; mở native header cho shared indicator runtime; route-real seam/inset/motion gates; không áp line động cho divider/table border | Mọi authenticated route, project-owned filter menu/popover/popup, F5–F6 migration | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-28 | F4 workspace patterns + page outer inset | Chuẩn hóa sáu pattern `Account / Collection / ListDetail / SplitEditor / Operation / Analytics` bằng typed slot; mỗi cạnh page dùng một token riêng và phải nhất quán giữa route | Owner muốn UI scale/tùy biến tốt cho AI agent, các màn hình có khoảng cách với header/sidebar rõ ràng nhưng không tạo component vạn năng | Global UI architecture | Thêm folder `DesignSystem/Patterns`, README chọn pattern, architecture gate hai consumer và route-real geometry gate | M0–M8 migration ở F5–F6 | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-28 | Shared header + compact Radzen tabs | Bỏ group/role badge khỏi header; group chỉ hiện ở sidebar identity. Tab không active giữ text primary khi hover/focus; bề mặt hover bo `--vpp-radius-md`, inset đều khỏi hai cạnh header, còn active giữ gạch xanh sát đáy | Owner phát hiện header lặp group, chữ tab biến mất trên nền sáng và hover hình chữ nhật cao toàn header không cùng ngôn ngữ bo góc của design system | Global shell | Gỡ `vpp-header-role-badge`; khóa màu semantic; dùng pseudo-surface bo/inset để không làm lệch active underline; thêm architecture + browser regression | Mọi authenticated route, primary header tabs desktop và compact Radzen tabs mobile/tablet | IMPLEMENTED — OWNER_REVIEW |
 | 2026-07-28 | F3 shared order detail | My Orders và History phải giống nhau từ ô tìm kiếm đến footer, gồm popup lọc và code/note interaction; chỉ header và độ rộng khác. Header History chuyển sang bố cục phiếu PDF, giữ PDF/Excel/ghi chú và bỏ lịch sử phiên bản | Owner review phát hiện F3 ban đầu mới dùng chung grid/footer nên abstraction chưa bao phủ toàn behavior thật | Shared composite + local route header | Mở rộng `VppOrderItemsSurface` thành filter-to-footer contract; giữ filter state/API/capability ở route; đổi History sheet header theo `OrderPdfBuilder` | My Orders current/supplement/previous, History detail, future approval/management detail | IMPLEMENTED — OWNER_REVIEW |
@@ -1581,7 +1583,7 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu workspace archetype và page outer inset; sau đó mới mở F5 migrate M0–M2 reference. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
+Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu workspace archetype, shell seam mở/thu, navigation hover/indicator và symmetric content inset; sau đó mới mở F5 migrate M0–M2 reference. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 

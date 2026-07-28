@@ -116,11 +116,11 @@
     content: none;
 }
 
-.rz-tabview .vpp-tab-indicator-host {
+.vpp-tab-indicator-host {
     position: relative;
 }
 
-.rz-tabview .vpp-tab-shared-indicator {
+.vpp-tab-shared-indicator {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -136,7 +136,7 @@
     will-change: transform, width;
 }
 
-.rz-tabview .vpp-tab-shared-indicator.is-ready {
+.vpp-tab-shared-indicator.is-ready {
     opacity: 1;
 }
 
@@ -409,7 +409,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .rz-tabview .vpp-tab-shared-indicator {
+    .vpp-tab-shared-indicator {
         will-change: auto;
     }
 }
