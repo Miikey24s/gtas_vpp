@@ -86,9 +86,57 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 }).join('|');
             }
             """);
+        var headerAndViewportChrome = await Page.Locator(".vpp-order-builder-grid").EvaluateAsync<string>("""
+            grid => {
+                const scroller = [...grid.querySelectorAll('*')]
+                    .find(element => element.scrollHeight > element.clientHeight + 1
+                        && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY));
+                const header = grid.querySelector('thead th');
+                if (!scroller || !header) return 'missing';
+                const scrollerStyle = getComputedStyle(scroller);
+                const headerStyle = getComputedStyle(header);
+                const headerRect = header.getBoundingClientRect();
+                const topElement = document.elementFromPoint(
+                    headerRect.left + Math.min(12, headerRect.width / 2),
+                    headerRect.top + headerRect.height / 2);
+                const radii = [
+                    scrollerStyle.borderTopLeftRadius,
+                    scrollerStyle.borderTopRightRadius,
+                    scrollerStyle.borderBottomRightRadius,
+                    scrollerStyle.borderBottomLeftRadius
+                ];
+                const squareViewport = radii.every(radius => Number.parseFloat(radius) === 0);
+                const opaqueHeader = headerStyle.backgroundColor !== 'rgba(0, 0, 0, 0)'
+                    && headerStyle.backgroundColor !== 'transparent';
+                const headerOwnsHitArea = !!topElement?.closest('thead');
+                const headerBottom = grid.querySelector('thead')?.getBoundingClientRect().bottom ?? headerRect.bottom;
+                const overlappingCodes = [...grid.querySelectorAll('.vpp-cell-value-popover-trigger')]
+                    .filter(trigger => {
+                        const rect = trigger.getBoundingClientRect();
+                        return rect.top < headerBottom && rect.bottom > headerRect.top;
+                    });
+                const overlapProtected = overlappingCodes.every(trigger => {
+                    const rect = trigger.getBoundingClientRect();
+                    const hit = document.elementFromPoint(
+                        rect.left + Math.min(8, rect.width / 2),
+                        Math.min(headerBottom - 1, rect.top + rect.height / 2));
+                    return !!hit?.closest('thead');
+                });
+                const firstOverlap = overlappingCodes[0];
+                const firstOverlapRect = firstOverlap?.getBoundingClientRect();
+                const firstOverlapHit = firstOverlapRect
+                    ? document.elementFromPoint(firstOverlapRect.left + 8, Math.min(headerBottom - 1, firstOverlapRect.top + firstOverlapRect.height / 2))
+                    : null;
+                return `${squareViewport && opaqueHeader && headerOwnsHitArea && overlapProtected}`
+                    + `|radii=${radii.join(',')}|background=${headerStyle.backgroundColor}`
+                    + `|z=${headerStyle.zIndex}|hit=${topElement?.tagName ?? 'none'}`
+                    + `|overlap=${overlappingCodes.length}|overlapHit=${firstOverlapHit?.tagName ?? 'none'}`;
+            }
+            """);
         productRequestsDuringScroll.Should().BeEmpty("client-snapshot virtualization must not call the product API while scrolling");
         mountedRowsBeforeScroll.Should().BeLessThanOrEqualTo(40, virtualizationGeometry);
         mountedRowsAfterScroll.Should().BeLessThanOrEqualTo(40, virtualizationGeometry);
+        headerAndViewportChrome.Should().StartWith("true", "virtual rows must stay visually below an opaque header and the inner scroll viewport must join the footer without rounded corners");
         await CaptureAsync("f4-review-order-create-1920x1080.png");
     }
 

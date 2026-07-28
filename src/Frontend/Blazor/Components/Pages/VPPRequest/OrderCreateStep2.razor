@@ -1,5 +1,6 @@
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_fe.Services
+@implements IAsyncDisposable
 @inject IJSRuntime JSRuntime
 
 <div class="wizard-step wizard-step-products">
@@ -48,7 +49,7 @@
             </Toolbar>
 
             <ChildContent>
-            <div class="vpp-order-builder-grid-frame">
+            <div class="vpp-order-builder-grid-frame" @ref="_gridFrame">
                 <RadzenDataGrid @ref="productGrid"
                                 TItem="ProductOption"
                                 Data="@ProductOptions"
@@ -335,6 +336,8 @@
     private CancellationTokenSource? _searchDebounceCts;
     private Guid? _openProductCodeId;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
+    private ElementReference _gridFrame;
+    private IJSObjectReference? _gridModule;
 
     private string OrderNotePopoverId => $"vpp-order-note-{_instanceId}";
     private bool HasProductFilters => !string.IsNullOrWhiteSpace(SearchText)
@@ -380,6 +383,19 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadProductSnapshotAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _gridModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+            "import",
+            "./Components/Pages/VPPRequest/OrderCreateStep2.razor.js");
+        await _gridModule.InvokeVoidAsync("observeVirtualRows", _gridFrame);
     }
 
     private void BuildFilterOptions()
@@ -585,9 +601,23 @@
     private string GetItemNotePopoverId(OrderCreateContext.SelectedItem item)
         => $"vpp-item-note-{_instanceId}-{item.VppId:N}";
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         _searchDebounceCts?.Cancel();
         _searchDebounceCts?.Dispose();
+
+        if (_gridModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _gridModule.InvokeVoidAsync("disposeVirtualRows", _gridFrame);
+            await _gridModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
     }
 }
