@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.75` — 2026-07-28
+> **Phiên bản:** `2.76` — 2026-07-28
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -413,6 +413,7 @@ Contract này tổng hợp ba task tham chiếu `My Orders`, `Fix sidebar và he
 - Primary header full-bleed từ mép sidebar đến mép phải viewport; navigation chrome và sidebar dùng cùng surface token, divider/hairline có một owner và không tạo bốn cạnh trắng hoặc line kép.
 - Root icon giữ cùng cột ở expanded/collapsed. Child và grandchild dùng depth token đệ quy: interaction surface vẫn full-row, chỉ rail/icon/text lùi cấp; không thêm cấp sâu hơn grandchild. Nếu hierarchy tiếp tục sâu, chuyển sang split/list trong page.
 - Header tab và sidebar dùng cùng interaction primitive: row/hitbox, typography, neutral hover, project-blue active indicator, focus-visible và press feedback. Khác biệt duy nhất là indicator nằm dưới tab và bên trái navigation item.
+- Dòng phụ dưới tên người dùng trong sidebar hiển thị **group/role hiện hành** giống badge header (`Nhân viên`, `Quản lý`, `Quản trị hệ thống` hoặc tên group tùy biến); popup tài khoản vẫn giữ phòng ban để hai loại ngữ cảnh không bị đánh tráo.
 
 **Motion và performance**
 

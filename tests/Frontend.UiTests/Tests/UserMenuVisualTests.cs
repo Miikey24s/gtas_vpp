@@ -9,6 +9,27 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class UserMenuVisualTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task SidebarIdentity_ShowsGroupWhilePopupKeepsDepartment()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+
+        var trigger = Page.Locator(".user-menu-trigger");
+        await trigger.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var headerRole = await Page.Locator(".vpp-header-role-badge").EvaluateAsync<string>(
+            """element => { const copy = element.cloneNode(true); copy.querySelector('.vpp-icon')?.remove(); return copy.textContent?.trim() ?? ''; }""");
+        var sidebarSubline = (await trigger.Locator(".user-menu-trigger-subline").TextContentAsync() ?? string.Empty).Trim();
+        sidebarSubline.Should().Be(headerRole, "the sidebar identity should show the current permission group");
+
+        await trigger.ClickAsync();
+        var dropdown = Page.Locator("#user-menu-dropdown");
+        await dropdown.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var department = (await dropdown.Locator(".user-dropdown-department-name").InnerTextAsync()).Trim();
+        department.Should().NotBeNullOrWhiteSpace("the account popup should retain department context");
+        department.Should().NotBe(sidebarSubline, "group and department are different identity dimensions");
+    }
+
+    [Fact]
     public async Task AccountMenu_MatchesAtlasStructureAndKeepsLogoutNeutralUntilInteraction()
     {
         await Page.SetViewportSizeAsync(1366, 768);

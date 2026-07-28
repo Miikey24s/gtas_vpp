@@ -258,6 +258,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<NotificationCenter MenuMode=\"true\"", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-profile", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("UserEmail", source, StringComparison.Ordinal);
+        Assert.Contains("SidebarSubline=\"@RoleBadgeLabel\"", source, StringComparison.Ordinal);
+        Assert.Contains("@SidebarSublineDisplay", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-email", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-department", userMenuSource, StringComparison.Ordinal);
         Assert.Contains("user-dropdown-action-divider", userMenuSource, StringComparison.Ordinal);

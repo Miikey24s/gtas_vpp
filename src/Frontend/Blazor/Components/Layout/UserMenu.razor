@@ -17,9 +17,9 @@
         {
             <span class="user-menu-trigger-copy">
                 <span class="user-menu-trigger-name">@UserFullName</span>
-                @if (SidebarMode && !string.IsNullOrWhiteSpace(DepartmentDisplayName))
+                @if (SidebarMode && !string.IsNullOrWhiteSpace(SidebarSublineDisplay))
                 {
-                    <small class="user-menu-trigger-subline">@DepartmentDisplayName</small>
+                    <small class="user-menu-trigger-subline">@SidebarSublineDisplay</small>
                 }
             </span>
         }
@@ -94,6 +94,7 @@
     [Parameter] public string? UserFullName { get; set; }
     [Parameter] public string? UserLogin { get; set; }
     [Parameter] public string? UserEmail { get; set; }
+    [Parameter] public string? SidebarSubline { get; set; }
     [Parameter] public string? DepartmentName { get; set; }
     [Parameter] public string? DepartmentCode { get; set; }
     [Parameter] public bool IsLightTheme { get; set; } = true;
@@ -120,6 +121,10 @@
     private string DepartmentDisplayName => !string.IsNullOrWhiteSpace(DepartmentName)
         ? DepartmentName.Trim()
         : DepartmentCode?.Trim() ?? string.Empty;
+
+    private string SidebarSublineDisplay => !string.IsNullOrWhiteSpace(SidebarSubline)
+        ? SidebarSubline.Trim()
+        : DepartmentDisplayName;
 
     private string DepartmentDisplayCode => DepartmentCode?.Trim() ?? string.Empty;
 
