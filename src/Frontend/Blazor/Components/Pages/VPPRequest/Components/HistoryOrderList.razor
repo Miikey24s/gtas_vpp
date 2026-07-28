@@ -7,7 +7,9 @@
 <section class="vpp-history-orders-card" aria-labelledby="history-orders-title">
     <header class="vpp-history-orders-toolbar">
         <h2 id="history-orders-title">@Loc["HistoryOrderList"]</h2>
-        <div class="vpp-history-filters">
+        <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
+                        Padded="false"
+                        Class="vpp-history-filters">
             <label class="vpp-history-search @(!string.IsNullOrWhiteSpace(Search) ? "is-active" : string.Empty)">
                 <VppIcon Name="search" />
                 <input value="@Search"
@@ -52,9 +54,15 @@
                                    IsActive="@HasTableFilters"
                                    Clicked="@TableFiltersCleared"
                                    Class="vpp-history-clear" />
-        </div>
+        </VppDataToolbar>
     </header>
 
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                         Density="VppDataDensity.Compact"
+                         Bordered="false"
+                         AriaLabelledBy="history-orders-title"
+                         TestId="history-orders-data-surface"
+                         Class="vpp-history-data-frame">
     @if (HasGridLoadError)
     {
         <VppContentState State="VppContentStateKind.Error"
@@ -96,7 +104,7 @@
                             Density="Density.Compact"
                             GridLines="DataGridGridLines.Horizontal"
                             IsLoading="@IsGridLoading"
-                            class="vpp-history-grid">
+                            class="vpp-history-grid vpp-data-grid vpp-data-density-compact">
                 <Columns>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
                         <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
@@ -104,18 +112,16 @@
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="Period" Title="@Loc["Period"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center" />
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="VppCode" Title="@Loc["OrderCode"]" CssClass="vpp-history-col-left" HeaderCssClass="vpp-history-col-left">
                         <Template Context="row">
-                            <div class="vpp-history-code-cell">
-                                <button type="button" class="vpp-history-code vpp-history-code-trigger" aria-haspopup="dialog" aria-expanded="@(ActiveCodeOrderId == row.Id)" title="@row.VppCode" @onclick="@(() => CodeToggled.InvokeAsync(row.Id))" @onclick:stopPropagation>@row.VppCode</button>
-                                @if (ActiveCodeOrderId == row.Id)
-                                {
-                                    <div class="vpp-history-code-popover vpp-transient-surface" role="dialog" aria-label="@Loc["OrderCode"]" @onclick:stopPropagation>
-                                        <span class="vpp-history-popover-value">@row.VppCode</span>
-                                        <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(row.VppCode))" @onclick:stopPropagation>
-                                            <VppIcon Name="filter_none" />
-                                        </button>
-                                    </div>
-                                }
-                            </div>
+                            <VppCellValuePopover Value="@row.VppCode"
+                                                 Label="@Loc["OrderCode"]"
+                                                 CopyLabel="@Loc["Copy"]"
+                                                 Kind="VppCellValueKind.Code"
+                                                 IsOpen="@(ActiveCodeOrderId == row.Id)"
+                                                 Toggled="@(() => CodeToggled.InvokeAsync(row.Id))"
+                                                 CopyRequested="@CopyRequested"
+                                                 Class="vpp-history-code-cell"
+                                                 TriggerClass="vpp-history-code vpp-history-code-trigger"
+                                                 PanelClass="vpp-history-code-popover" />
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Title="@Loc["HistoryOrderType"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-type vpp-history-col-center" HeaderCssClass="vpp-history-col-type vpp-history-col-center">
@@ -146,18 +152,16 @@
                             }
                             else
                             {
-                                <div class="vpp-history-note-cell">
-                                    <button type="button" class="vpp-history-note vpp-history-note-trigger" aria-haspopup="dialog" aria-expanded="@(ActiveNoteOrderId == row.Id)" title="@row.Description" @onclick="@(() => NoteToggled.InvokeAsync(row.Id))" @onclick:stopPropagation>@row.Description</button>
-                                    @if (ActiveNoteOrderId == row.Id)
-                                    {
-                                        <div class="vpp-history-note-popover vpp-transient-surface" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
-                                            <span class="vpp-history-popover-value">@row.Description</span>
-                                            <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(row.Description))" @onclick:stopPropagation>
-                                                <VppIcon Name="filter_none" />
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
+                                <VppCellValuePopover Value="@row.Description"
+                                                     Label="@Loc["Note"]"
+                                                     CopyLabel="@Loc["Copy"]"
+                                                     Kind="VppCellValueKind.Note"
+                                                     IsOpen="@(ActiveNoteOrderId == row.Id)"
+                                                     Toggled="@(() => NoteToggled.InvokeAsync(row.Id))"
+                                                     CopyRequested="@CopyRequested"
+                                                     Class="vpp-history-note-cell"
+                                                     TriggerClass="vpp-history-note vpp-history-note-trigger"
+                                                     PanelClass="vpp-history-note-popover" />
                             }
                         </Template>
                     </RadzenDataGridColumn>
@@ -184,6 +188,7 @@
             }
         </div>
     }
+    </VppDataSurfaceFrame>
 </section>
 
 @code {

@@ -1,0 +1,142 @@
+using System.Text.RegularExpressions;
+using Xunit;
+
+namespace gtas_vpp_fe.Tests.Architecture;
+
+public sealed class DataSurfaceArchitectureTests
+{
+    [Fact]
+    public void SharedFoundation_IsTypedComposableAndRouteAgnostic()
+    {
+        var root = GetFrontendRoot();
+        var componentRoot = Path.Combine(root, "Components", "DesignSystem", "Composites");
+        var contracts = Read(componentRoot, "VppDataSurfaceContracts.cs");
+        var frame = Read(componentRoot, "VppDataSurfaceFrame.razor");
+        var toolbar = Read(componentRoot, "VppDataToolbar.razor");
+        var footer = Read(componentRoot, "VppDataSummaryFooter.razor");
+        var cellPopover = Read(componentRoot, "VppCellValuePopover.razor");
+        var cellPopoverStyles = Read(componentRoot, "VppCellValuePopover.razor.css");
+        var combined = string.Join('\n', frame, toolbar, footer, cellPopover);
+
+        foreach (var contract in new[]
+                 {
+                     "VppDataSourceMode", "ServerPaging", "ClientSnapshotVirtualized",
+                     "ServerVirtualizedPrefetch", "VppDataDensity", "Compact", "RichTwoLine",
+                     "VppDataFooterMode", "VppCellValueKind"
+                 })
+        {
+            Assert.Contains(contract, contracts, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("RenderFragment? Toolbar", frame, StringComparison.Ordinal);
+        Assert.Contains("RenderFragment ChildContent", frame, StringComparison.Ordinal);
+        Assert.Contains("RenderFragment? Footer", frame, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-data-source-mode", frame, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-data-density", frame, StringComparison.Ordinal);
+        Assert.Contains("role=\"group\"", toolbar, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-data-footer-mode", footer, StringComparison.Ordinal);
+        Assert.Contains("aria-live=\"polite\"", footer, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface", cellPopover, StringComparison.Ordinal);
+        Assert.Contains("VppCellValueKind Kind", cellPopover, StringComparison.Ordinal);
+        Assert.Contains("outline: 0;", cellPopoverStyles, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: inset 0 0 0 1px var(--vpp-border-focus);", cellPopoverStyles, StringComparison.Ordinal);
+
+        foreach (var forbidden in new[] { "ApiServices", "HttpClient", "LoadData=", "System.Reflection", "/api/" })
+        {
+            Assert.DoesNotContain(forbidden, combined, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public void TokensAndRadzenBridge_AreSemanticAndOptIn()
+    {
+        var root = GetFrontendRoot();
+        var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
+        var bridge = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-radzen-theme.css"));
+
+        foreach (var token in new[]
+                 {
+                     "--vpp-data-control-height: 32px;",
+                     "--vpp-data-toolbar-height: 42px;",
+                     "--vpp-data-header-height: 40px;",
+                     "--vpp-data-row-compact-height: 40px;",
+                     "--vpp-data-row-rich-two-line-height: 52px;",
+                     "--vpp-data-footer-height: 42px;"
+                 })
+        {
+            Assert.Contains(token, tokens, StringComparison.Ordinal);
+        }
+
+        Assert.Contains(".vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
+        Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
+        Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
+        Assert.DoesNotContain("body .rz-data-grid", bridge, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RepresentativeConsumers_KeepPagedAndVirtualizedBehaviorDistinct()
+    {
+        var root = GetFrontendRoot();
+        var history = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
+        var orderItems = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
+
+        Assert.Contains("VppDataSourceMode.ServerPaging", history, StringComparison.Ordinal);
+        Assert.Contains("<VppDataToolbar", history, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"true\"", history, StringComparison.Ordinal);
+        Assert.Contains("LoadData=\"@LoadRequested\"", history, StringComparison.Ordinal);
+        Assert.Contains("vpp-data-grid vpp-data-density-compact", history, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Matches(history, "<VppCellValuePopover\\b").Count);
+
+        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", orderItems, StringComparison.Ordinal);
+        Assert.Contains("<Toolbar>", orderItems, StringComparison.Ordinal);
+        Assert.Contains("VppDataFooterMode.Virtualized", orderItems, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"true\"", orderItems, StringComparison.Ordinal);
+        Assert.Contains("VirtualizationOverscanCount=\"@VirtualizationOverscanCount\"", orderItems, StringComparison.Ordinal);
+        Assert.DoesNotContain("LoadData=", orderItems, StringComparison.Ordinal);
+        Assert.Contains("vpp-data-density-rich-two-line", orderItems, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Matches(orderItems, "<VppCellValuePopover\\b").Count);
+    }
+
+    [Fact]
+    public void ConsumerLedger_CoversEveryRadzenDataGridFileAndCount()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var frontendRoot = Path.Combine(repositoryRoot, "src", "Frontend", "Blazor");
+        var componentRoot = Path.Combine(frontendRoot, "Components");
+        var ledger = File.ReadAllText(Path.Combine(repositoryRoot, "docs", "design", "VPP-DATA-SURFACE-CONSUMER-LEDGER.md"));
+        var gridPattern = new Regex("<RadzenDataGrid(?=\\s|>)", RegexOptions.CultureInvariant);
+        var consumers = Directory.EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
+            .Select(path => new { Path = path, Count = gridPattern.Matches(File.ReadAllText(path)).Count })
+            .Where(consumer => consumer.Count > 0)
+            .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(19, consumers.Length);
+        Assert.Equal(25, consumers.Sum(consumer => consumer.Count));
+
+        foreach (var consumer in consumers)
+        {
+            var relative = Path.GetRelativePath(frontendRoot, consumer.Path).Replace('\\', '/');
+            Assert.Contains($"| `{relative}` | {consumer.Count} |", ledger, StringComparison.Ordinal);
+        }
+    }
+
+    private static string Read(string root, string fileName) => File.ReadAllText(Path.Combine(root, fileName));
+
+    private static string GetFrontendRoot() => Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor");
+
+    private static string FindRepositoryRoot()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory);
+             directory is not null;
+             directory = directory.Parent)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "gtas_vpp.slnx")))
+            {
+                return directory.FullName;
+            }
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the GTAS VPP repository root.");
+    }
+}

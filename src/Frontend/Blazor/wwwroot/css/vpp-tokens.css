@@ -351,6 +351,16 @@
     --vpp-tabs-bar-height: 44px;
     --vpp-control-height: 36px;
     --vpp-control-height-compact: 30px;
+    --vpp-data-control-height: 32px;
+    --vpp-data-toolbar-height: 42px;
+    --vpp-data-header-height: 40px;
+    --vpp-data-row-compact-height: 40px;
+    --vpp-data-row-rich-two-line-height: 52px;
+    --vpp-data-footer-height: 42px;
+    --vpp-data-toolbar-gap: var(--vpp-space-2);
+    --vpp-data-toolbar-padding-block: var(--vpp-space-1);
+    --vpp-data-toolbar-padding-inline: var(--vpp-space-3);
+    --vpp-data-footer-padding-inline: var(--vpp-space-3);
     --vpp-header-height: var(--vpp-sidebar-collapsed-width);
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;

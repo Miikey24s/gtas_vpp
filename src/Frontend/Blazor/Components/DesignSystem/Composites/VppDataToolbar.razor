@@ -1,0 +1,13 @@
+<div class="vpp-data-toolbar @(Padded ? string.Empty : "is-unpadded") @Class"
+     data-vpp-data-toolbar="true"
+     role="group"
+     aria-label="@AriaLabel">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
+    [Parameter] public bool Padded { get; set; } = true;
+    [Parameter] public string? Class { get; set; }
+}

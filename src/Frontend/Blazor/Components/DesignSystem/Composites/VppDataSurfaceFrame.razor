@@ -1,0 +1,62 @@
+<section class="vpp-data-surface @DensityClass @SourceModeClass @(Bordered ? "is-bordered" : "is-embedded") @Class"
+         data-vpp-data-surface="true"
+         data-vpp-data-source-mode="@SourceModeValue"
+         data-vpp-data-density="@DensityValue"
+         data-testid="@TestId"
+         aria-label="@AriaLabel"
+         aria-labelledby="@AriaLabelledBy">
+    @if (Toolbar is not null)
+    {
+        <div class="vpp-data-surface-toolbar-slot">
+            @Toolbar
+        </div>
+    }
+
+    <div class="vpp-data-surface-body">
+        @ChildContent
+    </div>
+
+    @if (Footer is not null)
+    {
+        <div class="vpp-data-surface-footer-slot">
+            @Footer
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment? Toolbar { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public VppDataSourceMode DataSourceMode { get; set; } = VppDataSourceMode.Static;
+    [Parameter] public VppDataDensity Density { get; set; } = VppDataDensity.Compact;
+    [Parameter] public bool Bordered { get; set; } = true;
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? AriaLabelledBy { get; set; }
+    [Parameter] public string? TestId { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string DensityClass => Density == VppDataDensity.RichTwoLine
+        ? "vpp-data-density-rich-two-line"
+        : "vpp-data-density-compact";
+
+    private string SourceModeClass => DataSourceMode switch
+    {
+        VppDataSourceMode.ServerPaging => "vpp-data-source-server-paging",
+        VppDataSourceMode.ClientSnapshotVirtualized => "vpp-data-source-client-snapshot-virtualized",
+        VppDataSourceMode.ServerVirtualizedPrefetch => "vpp-data-source-server-virtualized-prefetch",
+        _ => "vpp-data-source-static"
+    };
+
+    private string SourceModeValue => DataSourceMode switch
+    {
+        VppDataSourceMode.ServerPaging => "server-paging",
+        VppDataSourceMode.ClientSnapshotVirtualized => "client-snapshot-virtualized",
+        VppDataSourceMode.ServerVirtualizedPrefetch => "server-virtualized-prefetch",
+        _ => "static"
+    };
+
+    private string DensityValue => Density == VppDataDensity.RichTwoLine
+        ? "rich-two-line"
+        : "compact";
+}

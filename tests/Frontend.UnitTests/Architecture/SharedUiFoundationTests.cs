@@ -654,6 +654,7 @@ public sealed class SharedUiFoundationTests
         var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         var userMenu = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
         var orderSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
+        var cellValuePopover = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppCellValuePopover.razor"));
         var historyList = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
         var historyKpis = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryKpiCards.razor"));
         var orderCreate = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "OrderCreateStep2.razor"));
@@ -668,8 +669,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("transform: translateY(calc(0px - var(--vpp-transient-motion-distance)))", polish, StringComparison.Ordinal);
         Assert.DoesNotContain("transform: translateY(var(--vpp-transient-motion-distance))", polish, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", userMenu, StringComparison.Ordinal);
-        Assert.Contains("vpp-transient-surface", orderSurface, StringComparison.Ordinal);
-        Assert.Contains("vpp-transient-surface", historyList, StringComparison.Ordinal);
+        Assert.Contains("<VppCellValuePopover", orderSurface, StringComparison.Ordinal);
+        Assert.Contains("<VppCellValuePopover", historyList, StringComparison.Ordinal);
+        Assert.Contains("vpp-transient-surface", cellValuePopover, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", historyKpis, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface--center", orderCreate, StringComparison.Ordinal);
     }
@@ -779,7 +781,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-history-detail-clear", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("VppIcons.FilterOff", clearFiltersButton, StringComparison.Ordinal);
         Assert.Contains("height: 32px;", clearFiltersStyles, StringComparison.Ordinal);
-        Assert.Contains("min-height: 42px;", orderItemsStyles, StringComparison.Ordinal);
+        Assert.Contains("min-height: var(--vpp-data-footer-height);", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
         Assert.Contains("Property=\"Note\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("ToggleDetailNote", history, StringComparison.Ordinal);

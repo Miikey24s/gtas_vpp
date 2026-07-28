@@ -24,6 +24,11 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var detailGrid = detailRegion.Locator(".vpp-history-detail-grid");
         var detailScroll = detailGrid.Locator(".rz-data-grid-data");
         await detailScroll.Locator("tbody tr").First.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Page.Locator(".vpp-history-loading-drawer").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
+        });
 
         // QaFixtureSeeder chỉ seed đơn QA-OWN nhiều dòng khi bật opt-in
         // GTAS_E2E_LONG_ORDER_LINES (xem VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md);
@@ -1181,7 +1186,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 const label = root.querySelector('.vpp-filter-search');
                 if (!(label instanceof HTMLElement)) return 'missing';
                 const style = getComputedStyle(label);
-                return [label.getBoundingClientRect().height, style.borderRadius, style.backgroundColor, style.boxShadow, style.color, style.fontSize].join('|');
+                const height = Math.round(label.getBoundingClientRect().height * 100) / 100;
+                return [height, style.borderRadius, style.backgroundColor, style.boxShadow, style.color, style.fontSize].join('|');
             }
         """);
 
@@ -1191,7 +1197,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var hoverChrome = await categoryTrigger.EvaluateAsync<string>("""
             trigger => {
                 const style = getComputedStyle(trigger);
-                return [trigger.getBoundingClientRect().height, style.borderRadius, style.backgroundColor, style.color, style.boxShadow, style.fontSize].join('|');
+                const height = Math.round(trigger.getBoundingClientRect().height * 100) / 100;
+                return [height, style.borderRadius, style.backgroundColor, style.color, style.boxShadow, style.fontSize].join('|');
             }
         """);
 
@@ -1225,7 +1232,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var rowChrome = await firstRow.Locator("td").First.EvaluateAsync<string>("""
             cell => {
                 const style = getComputedStyle(cell);
-                return [cell.getBoundingClientRect().height, style.backgroundColor, style.borderBottomColor, style.fontSize].join('|');
+                const height = Math.round(cell.getBoundingClientRect().height * 100) / 100;
+                return [height, style.backgroundColor, style.borderBottomColor, style.fontSize].join('|');
             }
         """);
 

@@ -1,0 +1,47 @@
+<footer class="vpp-data-summary-footer @ModeClass @Class"
+        data-vpp-data-footer="true"
+        data-vpp-data-footer-mode="@ModeValue"
+        aria-live="polite"
+        aria-busy="@IsLoading">
+    <span class="vpp-data-summary-footer-text">@Summary</span>
+
+    @if (IsLoading && !string.IsNullOrWhiteSpace(LoadingText))
+    {
+        <span class="vpp-data-summary-footer-loading">
+            <span class="vpp-data-summary-footer-spinner" aria-hidden="true"></span>
+            @LoadingText
+        </span>
+    }
+
+    @if (TrailingContent is not null)
+    {
+        <span class="vpp-data-summary-footer-trailing">
+            @TrailingContent
+        </span>
+    }
+</footer>
+
+@code {
+    [Parameter] public VppDataFooterMode Mode { get; set; } = VppDataFooterMode.Static;
+    [Parameter, EditorRequired] public string Summary { get; set; } = string.Empty;
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string? LoadingText { get; set; }
+    [Parameter] public RenderFragment? TrailingContent { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string ModeClass => Mode switch
+    {
+        VppDataFooterMode.Paged => "is-paged",
+        VppDataFooterMode.Virtualized => "is-virtualized",
+        VppDataFooterMode.UnknownTotal => "is-unknown-total",
+        _ => "is-static"
+    };
+
+    private string ModeValue => Mode switch
+    {
+        VppDataFooterMode.Paged => "paged",
+        VppDataFooterMode.Virtualized => "virtualized",
+        VppDataFooterMode.UnknownTotal => "unknown-total",
+        _ => "static"
+    };
+}

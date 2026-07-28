@@ -1,0 +1,34 @@
+.vpp-data-surface {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-data-surface.is-bordered {
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-card);
+}
+
+.vpp-data-surface.is-embedded {
+    border: 0;
+    border-radius: 0;
+}
+
+.vpp-data-surface-toolbar-slot,
+.vpp-data-surface-footer-slot {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.vpp-data-surface-body {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+}

@@ -1,6 +1,6 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DRAFT — PENDING OWNER APPROVAL`
+> Trạng thái: `DS0 DONE; DS1 IMPLEMENTED — OWNER REVIEW; DS2–DS4/R1 LOCKED`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
@@ -22,14 +22,14 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 
 ### Phạm vi theo thứ tự
 
-| Phase | Làm gì | Sau phase có gì | Model + effort | Gate owner |
-|---|---|---|---|---|
-| DS0 — Contract | Khóa motif, density, footer mode và consumer ledger | Một board nhìn là hiểu toàn hệ thống | **Sol · XHigh** — quyết định kiến trúc dài hạn | Duyệt motif và hai density profile |
-| DS1 — Foundation | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Duyệt 2 route đại diện |
-| DS2 — Reference | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Duyệt board danh sách + chi tiết |
-| DS3 — Workflow | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route thật |
-| DS4 — Admin | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Duyệt admin board |
-| R1 — Refactor | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
+| Phase | Trạng thái | Làm gì | Sau phase có gì | Model + effort | Gate owner |
+|---|---|---|---|---|---|
+| DS0 — Contract | `DONE — OWNER APPROVED 2026-07-29` | Khóa motif, density, footer mode và consumer ledger | Một board nhìn là hiểu toàn hệ thống | **Sol · XHigh** — quyết định kiến trúc dài hạn | Đã duyệt motif và hai density profile |
+| DS1 — Foundation | `IMPLEMENTED — OWNER REVIEW` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Duyệt 2 route đại diện |
+| DS2 — Reference | `LOCKED — PENDING DS1 REVIEW` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Duyệt board danh sách + chi tiết |
+| DS3 — Workflow | `LOCKED` | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route thật |
+| DS4 — Admin | `LOCKED` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Duyệt admin board |
+| R1 — Refactor | `LOCKED` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
 
 ### Bốn quyết định cần owner duyệt
 
@@ -40,7 +40,7 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 
 ## 2. Hiện trạng và nguyên nhân trùng code
 
-- Repository có 18 Razor page/component dùng `RadzenDataGrid`.
+- Repository hiện có 19 file chứa 25 `RadzenDataGrid` thật; ledger canonical nằm tại [`VPP-DATA-SURFACE-CONSUMER-LEDGER`](../design/VPP-DATA-SURFACE-CONSUMER-LEDGER.md).
 - `VppFilterSearch` hiện được dùng trực tiếp ở Product Catalog, Create Order, Permission Users và trong `VppOrderItemsSurface`.
 - `HistoryOrderList` vẫn tự dựng `vpp-history-search`, `vpp-history-select`, menu state và một block CSS route riêng.
 - Đây là kết quả của migration theo vertical slice ở F4: shared filters được chứng minh trên consumer mới/chạm tới, còn History list giữ implementation cũ để tránh big-bang cùng lúc với server paging, popup state và responsive mobile list.
@@ -147,13 +147,13 @@ Không tạo:
 
 ### DS0 — Contract và visual board
 
-- Lập consumer ledger cho 18 DataGrid và các custom list/table.
+- Lập consumer ledger cho 19 file / 25 DataGrid và các custom list/table.
 - Phân loại từng surface: `Paged`, `Virtualized`, `Static`, `Matrix/Tree`, `Dialog`.
 - Chụp route thật đại diện: History list, My Orders detail, Product Catalog, Users.
 - Tạo board chú thích trực tiếp toolbar/header/row/footer, hai density và outer inset ở sidebar expanded/collapsed.
 - Khóa acceptance criteria trước khi sửa shared CSS.
 
-Gate: owner duyệt motif, density và rollout order.
+Gate: **DONE** — owner duyệt DS0–DS1 ngày 2026-07-29; ledger có architecture gate chống quên consumer mới.
 
 ### DS1 — Shared foundation
 
@@ -165,6 +165,19 @@ Gate: owner duyệt motif, density và rollout order.
 - Chứng minh trên hai consumer khác behavior: một paged và một virtualized.
 
 Gate: build/unit + route-real desktop/mobile + owner visual review.
+
+#### DS1 implementation record — 2026-07-29
+
+- Shared foundation: `VppDataSurfaceFrame`, `VppDataToolbar`, `VppDataSummaryFooter`, `VppCellValuePopover`; typed contract: `VppDataSourceMode`, `VppDataDensity`, `VppDataFooterMode`, `VppCellValueKind`.
+- Semantic token khóa nhịp `32 / 42 / 40 / 40|52 / 42`; Radzen bridge chỉ áp dụng khi consumer opt-in class `vpp-data-grid`.
+- Paged proof: `HistoryOrderList` giữ nguyên `LoadData`, `skip/top`, pager, selection và filter state; thêm typed frame/toolbar/cell popover.
+- Virtualized proof: `VppOrderItemsSurface` giữ input snapshot route-owned, `AllowVirtualization`, overscan và không có `LoadData`; thêm typed frame/footer/cell popover.
+- Compatibility alias `vpp-history-popover-*` còn trong shared cell popover để JS/CSS/test hiện hữu không vỡ; chỉ DS2 được xóa khi ledger consumer bằng 0.
+- Performance gate route-real: virtualized scroll không phát request `/api/VPPRequest/*`, DOM mounted không quá 40 row, không pager giả và browser/OS scrollbar giữ nguyên.
+- Wave Review Board ignored: `tmp/ds1-review/ds1-history-paged-{1920x1080,1366x768,768x1024,390x844}.png`, `ds1-history-cell-popover-*`, `ds1-order-items-virtualized-*`, dark representative `1366x768`.
+- Evidence: frontend Release build `0 warning / 0 error`; `./scripts/gtas.cmd test-frontend` pass `194/194`; focused isolated Playwright DS1 + History/F4 pass `5/5`, sau đó DS1 four-viewport/dark rerun pass `1/1`.
+- `verify -Scope frontend` dừng tại `model-routing-eval` thuộc change-set AI-harness có sẵn ngoài scope; 62/63 agent-setup checks pass và DS1 không sửa/stage các file đó.
+- Create Order vẫn giữ legacy server-window virtualization trong DS1; migration snapshot client thuộc DS3 và chưa được thực hiện.
 
 ### DS2 — Reference M0–M2
 

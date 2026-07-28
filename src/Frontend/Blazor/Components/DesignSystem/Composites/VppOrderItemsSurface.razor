@@ -3,9 +3,18 @@
 @inject IJSRuntime JSRuntime
 
 <section class="vpp-order-items-surface @VariantClass" data-testid="@($"{TestId}-items")" @ref="_surface">
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotVirtualized"
+                         Density="VppDataDensity.RichTwoLine"
+                         Bordered="false"
+                         AriaLabel="@AriaLabel"
+                         TestId="@($"{TestId}-data-surface")"
+                         Class="vpp-order-items-data-frame">
+    <Toolbar>
     @if (ShowFilters && TotalItemCount > 0)
     {
-        <div class="vpp-order-items-toolbar vpp-history-detail-toolbar" aria-label="@FiltersAriaLabel">
+        <VppDataToolbar AriaLabel="@FiltersAriaLabel"
+                        Padded="false"
+                        Class="vpp-order-items-toolbar vpp-history-detail-toolbar">
             <VppFilterSearch Value="@SearchText"
                              Input="@SearchChanged"
                              Placeholder="@SearchPlaceholder"
@@ -26,9 +35,11 @@
                                    IsActive="@HasFilters"
                                    Clicked="@FiltersCleared"
                                    Class="vpp-history-clear vpp-history-detail-clear" />
-        </div>
+        </VppDataToolbar>
     }
+    </Toolbar>
 
+    <ChildContent>
     @if (!IsHistoryDrawer && HasOpenTransientSurface)
     {
         <button type="button"
@@ -109,25 +120,15 @@
                                 <strong class="vpp-history-item-name" title="@item.Name">@item.Name</strong>
                                 @if (!string.IsNullOrWhiteSpace(item.Code))
                                 {
-                                    <button type="button"
-                                            class="vpp-history-detail-code"
-                                            aria-haspopup="dialog"
-                                            aria-expanded="@(ActiveCodeNumber == item.Number)"
-                                            aria-label="@($"{Loc["ItemCode"]}: {item.Code}")"
-                                            title="@item.Code"
-                                            @onclick="@(() => CodeToggled.InvokeAsync(item.Number))"
-                                            @onclick:stopPropagation>
-                                        @item.Code
-                                    </button>
-                                    @if (ActiveCodeNumber == item.Number)
-                                    {
-                                        <span class="vpp-history-detail-code-popover vpp-transient-surface" role="dialog" aria-label="@Loc["ItemCode"]" @onclick:stopPropagation>
-                                            <span class="vpp-history-popover-value">@item.Code</span>
-                                            <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(item.Code))" @onclick:stopPropagation>
-                                                <VppIcon Name="filter_none" />
-                                            </button>
-                                        </span>
-                                    }
+                                    <VppCellValuePopover Value="@item.Code"
+                                                         Label="@Loc["ItemCode"]"
+                                                         CopyLabel="@Loc["Copy"]"
+                                                         Kind="VppCellValueKind.Code"
+                                                         IsOpen="@(ActiveCodeNumber == item.Number)"
+                                                         Toggled="@(() => CodeToggled.InvokeAsync(item.Number))"
+                                                         CopyRequested="@CopyRequested"
+                                                         TriggerClass="vpp-history-detail-code"
+                                                         PanelClass="vpp-history-detail-code-popover" />
                                 }
                         </div>
                     </Template>
@@ -180,26 +181,16 @@
                         }
                         else
                         {
-                            <div class="vpp-history-note-cell">
-                                    <button type="button"
-                                            class="vpp-history-note vpp-history-note-trigger"
-                                            aria-haspopup="dialog"
-                                            aria-expanded="@(ActiveNoteNumber == item.Number)"
-                                            title="@item.Note"
-                                            @onclick="@(() => NoteToggled.InvokeAsync(item.Number))"
-                                            @onclick:stopPropagation>
-                                        @item.Note
-                                    </button>
-                                    @if (ActiveNoteNumber == item.Number)
-                                    {
-                                        <div class="vpp-history-note-popover vpp-transient-surface" role="dialog" aria-label="@Loc["Note"]" @onclick:stopPropagation>
-                                            <span class="vpp-history-popover-value">@item.Note</span>
-                                            <button type="button" class="vpp-history-popover-copy" title="@Loc["Copy"]" aria-label="@Loc["Copy"]" @onclick="@(() => CopyRequested.InvokeAsync(item.Note))" @onclick:stopPropagation>
-                                                <VppIcon Name="filter_none" />
-                                            </button>
-                                        </div>
-                                    }
-                            </div>
+                            <VppCellValuePopover Value="@item.Note"
+                                                 Label="@Loc["Note"]"
+                                                 CopyLabel="@Loc["Copy"]"
+                                                 Kind="VppCellValueKind.Note"
+                                                 IsOpen="@(ActiveNoteNumber == item.Number)"
+                                                 Toggled="@(() => NoteToggled.InvokeAsync(item.Number))"
+                                                 CopyRequested="@CopyRequested"
+                                                 Class="vpp-history-note-cell"
+                                                 TriggerClass="vpp-history-note vpp-history-note-trigger"
+                                                 PanelClass="vpp-history-note-popover" />
                         }
                     </Template>
                 </RadzenDataGridColumn>
@@ -207,13 +198,16 @@
         </RadzenDataGrid>
     }
 </div>
-
-@if (IsHistoryDrawer || TotalItemCount > 0)
-{
-    <footer class="@FooterClass">
-        @Loc["HistoryDetailCount", Items.Count, TotalItemCount]
-    </footer>
-}
+    </ChildContent>
+    <Footer>
+        @if (IsHistoryDrawer || TotalItemCount > 0)
+        {
+            <VppDataSummaryFooter Mode="VppDataFooterMode.Virtualized"
+                                  Summary="@Loc["HistoryDetailCount", Items.Count, TotalItemCount]"
+                                  Class="@FooterClass" />
+        }
+    </Footer>
+    </VppDataSurfaceFrame>
 </section>
 
 @code {
@@ -264,7 +258,7 @@
     private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
     private string VariantClass => IsHistoryDrawer ? "is-history" : "is-workspace";
     private string RegionClass => "vpp-history-detail-grid-region vpp-order-items-grid-region";
-    private string GridClass => "vpp-history-detail-grid vpp-order-items-grid vpp-order-grid-scrollable";
+    private string GridClass => "vpp-history-detail-grid vpp-order-items-grid vpp-order-grid-scrollable vpp-data-grid vpp-data-density-rich-two-line";
     private string GridStyle => "width: 100%;";
     private string FooterClass => "vpp-history-detail-footer vpp-order-items-footer";
     private string ItemHeaderLabel => Loc["HistoryItem"];

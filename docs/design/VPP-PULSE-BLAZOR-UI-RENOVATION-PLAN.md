@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.82` — 2026-07-28
+> **Phiên bản:** `2.83` — 2026-07-29
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -24,7 +24,7 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | F4 đã tích hợp owner review round 7–8: popup user collapsed mở phía trên avatar; My Orders giữ inset khi mở/thu; Radzen custom scrollbar được opt-out để dùng browser/OS default. Data-surface và virtualization policy đã có draft nhưng chưa migrate trước owner approval. | [Kết quả F4](../execution/UI-SYSTEM-001.md#54-f4-execution-record--2026-07-28) |
+| Bước code hiện tại? | Data-surface DS0 đã khóa ledger; DS1 đã tạo typed frame/toolbar/footer/cell popover và chứng minh trên History paged + order-items virtualized. DS2–DS4 vẫn khóa chờ owner review DS1; Create Order chưa đổi data-loading. | [Data-surface execution](../execution/UI-DATA-SURFACE-001.md#5-kế-hoạch-chi-tiết) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
 | Cần owner duyệt gì? | Duyệt visual cuối của F4 trên Catalog, Users + cột hiển thị, Create Order hai bước và History detail: native scroll, không cuộn toàn trang, filter/popup cùng motif danh sách đơn và header cấp cháu dễ đọc. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |

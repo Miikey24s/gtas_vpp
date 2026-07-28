@@ -1,0 +1,92 @@
+.vpp-cell-value-popover {
+    position: relative;
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.vpp-cell-value-popover-trigger {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.vpp-cell-value-popover-code .vpp-cell-value-popover-trigger,
+.vpp-cell-value-popover-code .vpp-cell-value-popover-value {
+    font-family: var(--vpp-font-mono);
+}
+
+.vpp-cell-value-popover-trigger:hover {
+    color: var(--vpp-primary-700);
+    text-decoration: underline dotted var(--vpp-border-strong);
+    text-underline-offset: 2px;
+}
+
+.vpp-cell-value-popover-trigger:focus-visible {
+    outline: 0;
+    border-radius: var(--vpp-radius-sm);
+    box-shadow: inset 0 0 0 1px var(--vpp-border-focus);
+    color: var(--vpp-primary-700);
+}
+
+.vpp-cell-value-popover-panel {
+    position: absolute;
+    z-index: var(--vpp-z-dropdown);
+    inset-block-start: calc(100% + var(--vpp-space-1));
+    inset-inline-start: 0;
+    display: flex;
+    width: max-content;
+    min-width: 10rem;
+    max-width: min(28rem, calc(100vw - var(--vpp-space-4)));
+    align-items: flex-start;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-2);
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+    color: var(--vpp-text-primary);
+    box-shadow: var(--vpp-shadow-lg);
+}
+
+.vpp-cell-value-popover-note .vpp-cell-value-popover-panel {
+    inset-inline: auto 0;
+    min-width: min(20rem, calc(100vw - var(--vpp-space-4)));
+}
+
+.vpp-cell-value-popover-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.vpp-cell-value-popover-copy {
+    display: inline-flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--vpp-radius-sm);
+    background: transparent;
+    color: var(--vpp-text-secondary);
+    cursor: pointer;
+}
+
+.vpp-cell-value-popover-copy:hover,
+.vpp-cell-value-popover-copy:focus-visible {
+    outline: 0;
+    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-primary-700);
+}

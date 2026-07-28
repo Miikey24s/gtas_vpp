@@ -1,0 +1,21 @@
+.vpp-data-toolbar {
+    display: flex;
+    min-width: 0;
+    min-height: var(--vpp-data-toolbar-height);
+    align-items: center;
+    gap: var(--vpp-data-toolbar-gap);
+    padding: var(--vpp-data-toolbar-padding-block) var(--vpp-data-toolbar-padding-inline);
+}
+
+.vpp-data-toolbar.is-unpadded {
+    min-height: 0;
+    padding: 0;
+}
+
+@media (max-width: 767px) {
+    .vpp-data-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+}

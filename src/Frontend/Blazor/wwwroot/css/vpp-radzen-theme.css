@@ -142,3 +142,34 @@
 .rz-dialog-alert {
     margin: 0;
 }
+
+/* Data surface opt-in: chỉ grid đã migrate mới nhận nhịp canonical DS1. */
+.vpp-data-grid.rz-data-grid,
+.vpp-data-grid.rz-datatable {
+    --rz-grid-header-background-color: var(--vpp-surface-grid-header);
+    --rz-grid-header-color: var(--vpp-text-secondary);
+    --rz-grid-cell-color: var(--vpp-text-primary);
+    --rz-grid-border-color: var(--vpp-border-default);
+}
+
+.vpp-data-grid .rz-grid-table thead > tr > th {
+    height: var(--vpp-data-header-height);
+    max-height: var(--vpp-data-header-height);
+}
+
+.vpp-data-grid.vpp-data-density-compact .rz-grid-table tbody > tr,
+.vpp-data-grid.vpp-data-density-compact .rz-grid-table tbody > tr > td {
+    height: var(--vpp-data-row-compact-height);
+    max-height: var(--vpp-data-row-compact-height);
+}
+
+.vpp-data-grid.vpp-data-density-rich-two-line .rz-grid-table tbody > tr,
+.vpp-data-grid.vpp-data-density-rich-two-line .rz-grid-table tbody > tr > td {
+    height: var(--vpp-data-row-rich-two-line-height);
+    max-height: var(--vpp-data-row-rich-two-line-height);
+}
+
+.vpp-data-grid .rz-paginator,
+.vpp-data-grid .rz-pager {
+    min-height: var(--vpp-data-footer-height);
+}
