@@ -1,7 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-    VPP DESIGN TOKEN FOUNDATION — Phase 1
-    Enterprise Modern | Sky Blue/Teal | Light Mode Default
-    ═══════════════════════════════════════════════════════════════════════════ */
+   VPP DESIGN TOKEN FOUNDATION — UI-SYSTEM-001 F1
+   Giá trị thô và semantic role duy nhất cho VPP + Radzen bridge.
+   Route/component chỉ dùng token semantic; không khai báo màu theme mới cục bộ.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Font tự host (F-31) ─────────────────────────────────────────
    Poppins (display) + Inter (body) + JetBrains Mono (code) shipped from
@@ -99,6 +100,9 @@
 
 /* ── Kiểu chữ ────────────────────────────────────────────────── */
 :root {
+    --vpp-color-white: #FFFFFF;
+    --vpp-color-black: #0A0A0A;
+
     --vpp-font-display: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
     --vpp-font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI Variable Text', 'Segoe UI', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     --vpp-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
@@ -140,7 +144,7 @@
     --vpp-primary-200: #7DD3FC;
     --vpp-primary-300: #38BDF8;
     --vpp-primary-400: #0EA5E9;
-    --vpp-primary-500: #0EA5E9;
+    --vpp-primary-500: var(--vpp-primary-400);
     --vpp-primary-600: #0284C7;
     --vpp-primary-700: #0369A1;
     --vpp-primary-800: #075985;
@@ -156,84 +160,171 @@
        (sky/emerald/amber/red) để badge phân biệt Submitted(info), Pending(warning),
        Approved(success), Cancelled(light), Rejected(danger).
        Hậu tố Muted dùng alpha 10% (0x1A) cho nền badge nhẹ. */
-    --vpp-info: #0EA5E9;
+    --vpp-info: var(--vpp-primary-500);
+    --vpp-info-strong: var(--vpp-info);
     --vpp-info-rgb: 14, 165, 233;
-    --vpp-info-muted: #0EA5E91A;
+    --vpp-info-muted: rgba(var(--vpp-info-rgb), 0.102);
     --vpp-success: #10B981;
     --vpp-success-rgb: 16, 185, 129;
-    --vpp-success-muted: #10B9811A;
+    --vpp-success-muted: rgba(var(--vpp-success-rgb), 0.102);
     --vpp-warning: #F59E0B;
     --vpp-warning-rgb: 245, 158, 11;
-    --vpp-warning-muted: #F59E0B1A;
+    --vpp-warning-muted: rgba(var(--vpp-warning-rgb), 0.102);
     --vpp-danger: #EF4444;
     --vpp-danger-rgb: 239, 68, 68;
-    --vpp-danger-muted: #EF44441A;
+    --vpp-danger-muted: rgba(var(--vpp-danger-rgb), 0.102);
 
-/* Các lớp nền. */
-    --vpp-bg-base: #0A0A0A;
-    --vpp-bg-elevated: #141414;
-    --vpp-bg-surface: #1C2128;
-    --vpp-bg-overlay: rgba(0, 0, 0, 0.6);
-    --vpp-bg-tooltip: #27272A;
+    /* Thang neutral phục vụ bridge; consumer nghiệp vụ dùng semantic role bên dưới. */
+    --vpp-neutral-50: #0D0D0D;
+    --vpp-neutral-100: var(--vpp-color-black);
+    --vpp-neutral-200: #141414;
+    --vpp-neutral-300: #1E1E1E;
+    --vpp-neutral-400: #1C2128;
+    --vpp-neutral-500: #2A2A2A;
+    --vpp-neutral-600: #3A3A3A;
+    --vpp-neutral-700: #52525B;
+    --vpp-neutral-800: #B5BDC9;
+    --vpp-neutral-900: #FAFAFA;
 
-/* Văn bản. */
-    --vpp-text-primary: #FAFAFA;
-    --vpp-text-secondary: #B5BDC9;
+    /* Semantic surface. */
+    --vpp-surface-canvas: var(--vpp-neutral-100);
+    --vpp-surface-raised: var(--vpp-neutral-200);
+    --vpp-surface-panel: var(--vpp-neutral-400);
+    --vpp-surface-control: var(--vpp-neutral-400);
+    --vpp-surface-menu: var(--vpp-neutral-200);
+    --vpp-surface-dialog: var(--vpp-neutral-200);
+    --vpp-surface-grid-header: var(--vpp-neutral-400);
+    --vpp-surface-overlay: rgba(0, 0, 0, 0.6);
+    --vpp-surface-tooltip: #27272A;
+
+    /* Alias tương thích; F2–F6 migrate consumer dần sang tên semantic mới. */
+    --vpp-bg-base: var(--vpp-surface-canvas);
+    --vpp-bg-elevated: var(--vpp-surface-raised);
+    --vpp-bg-surface: var(--vpp-surface-panel);
+    --vpp-bg-overlay: var(--vpp-surface-overlay);
+    --vpp-bg-tooltip: var(--vpp-surface-tooltip);
+
+    /* Semantic content. */
+    --vpp-text-primary: var(--vpp-neutral-900);
+    --vpp-text-secondary: var(--vpp-neutral-800);
     --vpp-text-tertiary: #7A869A;
-    --vpp-text-inverse: #0A0A0A;
-    --vpp-text-on-surface: #FFFFFF;
+    --vpp-text-disabled: var(--vpp-text-tertiary);
+    --vpp-text-inverse: var(--vpp-color-black);
+    --vpp-text-on-surface: var(--vpp-color-white);
+    --vpp-text-tooltip: var(--vpp-text-primary);
     --vpp-text-link: var(--vpp-primary-400);
     --vpp-text-link-hover: var(--vpp-primary-300);
 
-/* Đường viền. */
+    /* Semantic border và action. */
     --vpp-border-default: rgba(255, 255, 255, 0.08);
     --vpp-border-strong: rgba(255, 255, 255, 0.12);
     --vpp-border-focus: var(--vpp-primary-500);
+    --vpp-action-primary: var(--vpp-primary-500);
+    --vpp-action-primary-hover: var(--vpp-primary-600);
+    --vpp-action-primary-active: var(--vpp-primary-700);
+    --vpp-radzen-primary-dark: var(--vpp-primary-700);
+    --vpp-action-primary-light: var(--vpp-primary-200);
+    --vpp-action-primary-rgb: 14, 165, 233;
+    --vpp-action-primary-subtle: rgba(14, 165, 233, 0.12);
+    --vpp-action-secondary: var(--vpp-accent-500);
+    --vpp-action-secondary-hover: var(--vpp-accent-600);
+    --vpp-action-secondary-light: var(--vpp-accent-400);
 
-/* Bề mặt navigation dùng chung cho dòng sidebar và item tab. */
+    /* Semantic interaction dùng chung. */
     --vpp-navigation-item-hover-bg: rgba(255, 255, 255, 0.10);
     --vpp-navigation-item-active-bg: rgba(255, 255, 255, 0.13);
-    --vpp-navigation-chrome-bg: var(--vpp-bg-surface);
+    --vpp-navigation-chrome-bg: var(--vpp-surface-panel);
+    --vpp-grid-stripe-bg: rgba(255, 255, 255, 0.02);
+    --vpp-grid-hover-bg: rgba(14, 165, 233, 0.05);
+    --vpp-grid-selected-bg: rgba(14, 165, 233, 0.08);
+    --vpp-navigation-item-active-fg: var(--vpp-primary-400);
+    --vpp-elevation-default: var(--vpp-shadow-sm);
+    --vpp-elevation-panel: var(--vpp-shadow-md);
+    --vpp-elevation-card: var(--vpp-shadow-sm);
+    --vpp-elevation-dialog: var(--vpp-shadow-xl);
 }
 
 /* ── Màu cho light mode ──────────────────────────────────────── */
 :root:not(.rz-theme-dark) {
     color-scheme: light;
 
-    --vpp-bg-base: #F7F8F9;
-    --vpp-bg-elevated: #FFFFFF;
-    --vpp-bg-surface: #FFFFFF;
-    --vpp-bg-overlay: rgba(0, 0, 0, 0.4);
-    --vpp-bg-tooltip: #18181B;
+    --vpp-neutral-50: #FAFAFA;
+    --vpp-neutral-100: #F7F8F9;
+    --vpp-neutral-200: #F4F4F5;
+    --vpp-neutral-300: #E4E4E7;
+    --vpp-neutral-400: #D4D4D8;
+    --vpp-neutral-500: #A1A1AA;
+    --vpp-neutral-600: #71717A;
+    --vpp-neutral-700: #44526C;
+    --vpp-neutral-800: #3F3F46;
+    --vpp-neutral-900: #172B4D;
 
-    --vpp-text-primary: #172B4D;
-    --vpp-text-secondary: #44526C;
+    --vpp-surface-canvas: var(--vpp-neutral-100);
+    --vpp-surface-raised: var(--vpp-color-white);
+    --vpp-surface-panel: var(--vpp-surface-raised);
+    --vpp-surface-control: var(--vpp-surface-raised);
+    --vpp-surface-menu: var(--vpp-surface-raised);
+    --vpp-surface-dialog: var(--vpp-surface-raised);
+    --vpp-surface-grid-header: #F7FAFC;
+    --vpp-surface-overlay: rgba(0, 0, 0, 0.4);
+    --vpp-surface-tooltip: #18181B;
+
+    --vpp-bg-base: var(--vpp-surface-canvas);
+    --vpp-bg-elevated: var(--vpp-surface-raised);
+    --vpp-bg-surface: var(--vpp-surface-panel);
+    --vpp-bg-overlay: var(--vpp-surface-overlay);
+    --vpp-bg-tooltip: var(--vpp-surface-tooltip);
+
+    --vpp-text-primary: var(--vpp-neutral-900);
+    --vpp-text-secondary: var(--vpp-neutral-700);
     --vpp-text-tertiary: #6B778C;
-    --vpp-text-inverse: #FAFAFA;
-    --vpp-text-on-surface: #FFFFFF;
+    --vpp-text-disabled: var(--vpp-text-tertiary);
+    --vpp-text-inverse: var(--vpp-neutral-50);
+    --vpp-text-on-surface: var(--vpp-color-white);
+    --vpp-text-tooltip: var(--vpp-text-inverse);
     --vpp-text-link: var(--vpp-primary-600);
     --vpp-text-link-hover: var(--vpp-primary-700);
 
     /* Semantic light mode: tông sâu theo Atlas để chữ badge đạt AA trên nền sáng
        (dark mode giữ tông Tailwind sáng ở khối mặc định phía trên). */
-    --vpp-info: #0284C7;
+    --vpp-info: var(--vpp-primary-600);
+    --vpp-info-strong: var(--vpp-primary-700);
     --vpp-info-rgb: 2, 132, 199;
-    --vpp-info-muted: #0284C71A;
+    --vpp-info-muted: rgba(var(--vpp-info-rgb), 0.102);
     --vpp-success: #16835F;
     --vpp-success-rgb: 22, 131, 95;
-    --vpp-success-muted: #16835F1A;
+    --vpp-success-muted: rgba(var(--vpp-success-rgb), 0.102);
     --vpp-warning: #B56A12;
     --vpp-warning-rgb: 181, 106, 18;
-    --vpp-warning-muted: #B56A121A;
+    --vpp-warning-muted: rgba(var(--vpp-warning-rgb), 0.102);
     --vpp-danger: #C63F45;
     --vpp-danger-rgb: 198, 63, 69;
-    --vpp-danger-muted: #C63F451A;
+    --vpp-danger-muted: rgba(var(--vpp-danger-rgb), 0.102);
 
     --vpp-border-default: rgba(9, 30, 66, 0.08);
     --vpp-border-strong: rgba(9, 30, 66, 0.14);
+    --vpp-border-focus: var(--vpp-primary-600);
+    --vpp-action-primary: var(--vpp-primary-600);
+    --vpp-action-primary-hover: var(--vpp-primary-700);
+    --vpp-action-primary-active: var(--vpp-primary-800);
+    --vpp-radzen-primary-dark: var(--vpp-primary-800);
+    --vpp-action-primary-light: var(--vpp-primary-100);
+    --vpp-action-primary-rgb: 2, 132, 199;
+    --vpp-action-primary-subtle: rgba(14, 165, 233, 0.08);
+    --vpp-action-secondary: var(--vpp-accent-500);
+    --vpp-action-secondary-hover: var(--vpp-accent-600);
+    --vpp-action-secondary-light: var(--vpp-accent-400);
     --vpp-navigation-item-hover-bg: rgba(9, 30, 66, 0.075);
     --vpp-navigation-item-active-bg: rgba(9, 30, 66, 0.10);
-    --vpp-navigation-chrome-bg: var(--vpp-bg-elevated);
+    --vpp-navigation-chrome-bg: var(--vpp-surface-raised);
+    --vpp-grid-stripe-bg: rgba(14, 165, 233, 0.025);
+    --vpp-grid-hover-bg: rgba(14, 165, 233, 0.05);
+    --vpp-grid-selected-bg: rgba(14, 165, 233, 0.08);
+    --vpp-navigation-item-active-fg: var(--vpp-primary-700);
+    --vpp-elevation-default: var(--vpp-shadow-xs);
+    --vpp-elevation-panel: var(--vpp-shadow-sm);
+    --vpp-elevation-card: var(--vpp-shadow-xs);
+    --vpp-elevation-dialog: var(--vpp-shadow-lg);
 }
 
 /* ── Thang khoảng cách (cơ sở 4px) ────────────────────────────── */
@@ -270,9 +361,10 @@
     --vpp-nav-indicator-inset: var(--vpp-space-2);
     --vpp-nav-indicator-radius: var(--vpp-radius-full);
 
-/* Magic number bố cục từ giai đoạn migrate legacy. */
-    --ppj-logo-primary-color: #001836;
-    --ppj-logo-secondary-color: #690202;
+    --vpp-border-width: 1px;
+    --vpp-dialog-title-padding-block: 1rem 0.875rem;
+    --vpp-dialog-title-padding-inline: 1.25rem;
+    --vpp-dialog-content-padding: 1.25rem;
 }
 
 /* ── Bán kính bo góc ─────────────────────────────────────────── */
@@ -303,7 +395,6 @@
     --vpp-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.2);
     --vpp-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5), 0 8px 10px rgba(0, 0, 0, 0.2);
     --vpp-shadow-glow: 0 0 20px rgba(14, 165, 233, 0.15);
-    --vpp-shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 :root:not(.rz-theme-dark) {
@@ -313,7 +404,6 @@
     --vpp-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
     --vpp-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 10px rgba(0, 0, 0, 0.05);
     --vpp-shadow-glow: 0 0 20px rgba(14, 165, 233, 0.1);
-    --vpp-shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 /* ── Hiệu ứng chuyển đổi ──────────────────────────────────────── */
@@ -368,54 +458,6 @@ h1 { font-size: var(--vpp-text-4xl); }
 h2 { font-size: var(--vpp-text-3xl); }
 h3 { font-size: var(--vpp-text-2xl); }
 h4 { font-size: var(--vpp-text-xl); }
-
-/* ── Utility bề mặt kính ─────────────────────────────────────── */
-.vpp-glass {
-    background: rgba(26, 26, 26, 0.7);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid var(--vpp-border-default);
-}
-
-.rz-theme-dark .vpp-glass,
-:root.rz-theme-dark .vpp-glass {
-    background: rgba(26, 26, 26, 0.7);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-}
-
-:root:not(.rz-theme-dark) .vpp-glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-}
-
-/* ── Thanh cuộn (tối ưu cho chế độ tối) ───────────────────────── */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--vpp-radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-:root:not(.rz-theme-dark) ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-}
-
-:root:not(.rz-theme-dark) ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.25);
-}
 
 /* ── Vòng tiêu điểm ────────────────────────────────────────────── */
 *:focus-visible {

@@ -1,7 +1,7 @@
 :root {
     --rz-root-font-size: 14px !important;
-    --ppj-logo-primary-color: #001836;
-    --ppj-logo-secondary-color: #690202;
+    /* LEGACY COMPATIBILITY: không thêm design value mới tại đây.
+       F2–F6 retire từng consumer về vpp-tokens.css/component CSS có owner rõ. */
     --ppj-panel-menu-item-border: 1px solid var(--rz-white);
     --dark: black;
     --white: white;

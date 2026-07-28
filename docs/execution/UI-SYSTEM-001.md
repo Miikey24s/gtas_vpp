@@ -1,13 +1,14 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `IN_REVIEW — F0 IMPLEMENTED; F1 NOT STARTED`
+- Status: `IN_REVIEW — F1 IMPLEMENTED; F2 NOT STARTED`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
 - Style contract: Design Atlas M0–M2 đã được owner chuẩn hóa
 - Liên quan: [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md)
+- CSS ownership: [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md)
 
-> Owner đã duyệt thực thi F0 ngày 2026-07-28. F0 chỉ chuẩn hóa baseline/guard; F1–F7 chưa được tự động mở và vẫn theo gate trong bảng canonical.
+> Owner đã duyệt F0 và mở F1 ngày 2026-07-28. F1 chuẩn hóa foundation token/bridge; F2–F7 chưa được tự động mở và vẫn theo gate trong bảng canonical.
 
 ---
 
@@ -153,15 +154,15 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 | Wave | Trạng thái | Model + effort | Thực hiện | Sau wave anh có gì | Visual review | Gate để mở wave sau |
 |---|---|---|---|---|---|---|
 | F0 — Baseline & guard | `DONE — OWNER REVIEW` | **Sol · High** | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên ở desktop; breakpoint 390/768 không còn chừa gutter cho sidebar đã ẩn. | Contact sheet before/after 4 route + diagram cascade trong evidence local ignored. | Focused architecture, route-real matrix và full frontend verify đã pass; owner duyệt board trước F1. |
-| F1 — Token & bridge | `PENDING F0 OWNER REVIEW` | **Sol · High** | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board token + cùng một cụm Radzen ở Light/Dark. | Không tăng hex/inline/`!important`; representative contrast pass. |
-| F2 — Primitive & state | `PENDING F1` | **Terra · High**; **Sol · High** review | Tạo primitive nhỏ và content-state canonical; migrate tối thiểu 2 consumer; chỉ xóa adapter đã hết consumer. | **Khung cơ bản dùng được:** loading/empty/filter-empty/error/denied nhất quán trên các route đầu tiên. | State matrix desktop/mobile; trace keyboard/focus khi cần. | API typed; unit/architecture/accessibility pass; route thật không regression. |
+| F1 — Token & bridge | `DONE — OWNER REVIEW` | **Sol · High** | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board 4 route thật đặt Light/Dark cạnh nhau. | Hex authored giảm `131 → 108`; inline/`!important` không tăng; resolved bridge, route health và representative axe pass. |
+| F2 — Primitive & state | `PENDING F1 OWNER REVIEW` | **Terra · High**; **Sol · High** review | Tạo primitive nhỏ và content-state canonical; migrate tối thiểu 2 consumer; chỉ xóa adapter đã hết consumer. | **Khung cơ bản dùng được:** loading/empty/filter-empty/error/denied nhất quán trên các route đầu tiên. | State matrix desktop/mobile; trace keyboard/focus khi cần. | API typed; unit/architecture/accessibility pass; route thật không regression. |
 | F3 — Composite | `PENDING F2` | **Sol · High** | Tạo composite sau khi so sánh 2 consumer thật; ưu tiên order-detail cho My Orders và History nếu behavior cho phép. | **Luồng mẫu hoàn chỉnh:** chứng minh tái sử dụng không làm mất dữ liệu, action hoặc nghiệp vụ. | My Orders và History cạnh nhau, highlight order-detail dùng chung. | Data, action, paging/virtualization và responsive behavior giữ đúng. |
 | F4 — Pattern | `PENDING F3` | **Sol · XHigh** | Tạo contract nhỏ, typed và tùy biến bằng slot cho Collection, ListDetail, SplitEditor, Operation, Analytics/Account khi đủ consumer. | **Khung scalable hoàn chỉnh:** đủ nền để migrate nhanh sản phẩm mà route vẫn giữ nghiệp vụ riêng. | Pattern map dạng card + thumbnail consumer thật. | Không reflection/endpoint string; route giữ API/permission; tối thiểu 2 consumer/pattern. |
 | F5 — M0–M2 reference | `PENDING F4` | **Terra · High**; **Sol · High** review từng slice | Migrate shell, account, catalog, order create, My Orders và History thành reference implementation. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Contact sheet M0–M2 có mobile/desktop và Light/Dark đại diện. | 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility pass. |
 | F6 — M3–M8 rollout | `PENDING F5` | **Terra · High** | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | Từng vertical slice có test, route-real QA, evidence và owner review trước commit. |
 | F7 — Hardening | `PENDING F6` | **Sol · XHigh** | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
 
-Routing trên áp dụng riêng cho `UI-SYSTEM-001`, dựa trên [OpenAI model selection](https://learn.chatgpt.com/docs/models) và [latest model guide](https://developers.openai.com/api/docs/guides/latest-model) đã kiểm tra ngày 2026-07-28, cùng snapshot owner cung cấp: **10 tài khoản Plus full quota qua CLIProxyAPI**. Snapshot này chưa được CLIProxy tự đo và phải hỏi lại trước khi bắt đầu một wave ở phiên/task mới. Chỉ đổi model ở ranh giới wave hoặc checkpoint lớn; `Sol review` là một lượt review độc lập, không phải hai agent cùng sửa một worktree. Nếu surface hiện tại không cho agent tự chuyển model/effort, owner chọn model được khuyến nghị rồi agent xác minh trước khi tiếp tục. Capacity chỉ ảnh hưởng sequencing/review budget, không cho phép agent truy cập hoặc đổi credential/account hay né rate limit/điều khoản provider.
+Routing trên áp dụng riêng cho `UI-SYSTEM-001`, dựa trên [OpenAI model selection](https://learn.chatgpt.com/docs/models) và [latest model guide](https://developers.openai.com/api/docs/guides/latest-model) đã kiểm tra ngày 2026-07-28. Chỉ đổi model ở ranh giới wave hoặc checkpoint lớn; `Sol review` là một lượt review độc lập, không phải hai agent cùng sửa một worktree. Theo quyết định owner mới nhất, plan không kiểm tra hoặc báo cáo quota/% tài khoản trừ khi owner chủ động mở lại phạm vi đó.
 
 Mốc dễ hiểu:
 
@@ -267,6 +268,15 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - `RouteCatalog` bổ sung `periodTab`, `orderView`, mode order-create, selected price list, required password change và ConfirmEmail; architecture test đối chiếu mọi `@page` Razor.
 - Browser matrix dùng isolated TEST fixture trên Login, History, Library/Departments và Permission tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; kiểm tra geometry, hidden-sidebar gutter, navigation toggle, console, request failure và HTTP lỗi của document/stylesheet/script.
 - Visual diff được giải thích: desktop chỉ còn sai khác nhỏ do render dữ liệu; mobile/768 thay đổi có chủ đích để bỏ gutter ẩn và trả navigation về trạng thái thao tác được. Không thêm `!important`, không đổi API/DTO/RBAC/database/nghiệp vụ.
+
+### 7.2 — Kết quả thực thi F1
+
+- `vpp-tokens.css` là authority duy nhất cho palette thô và semantic role Light/Dark: surface, content, action, border, navigation, DataGrid và elevation; alias `--vpp-bg-*` được giữ để migrate consumer dần thay vì big-bang.
+- `vpp-radzen-theme.css` giảm từ 305 xuống 144 dòng và chỉ ánh xạ `--rz-*` sang token VPP; architecture guard chặn màu literal và token tham chiếu chưa được định nghĩa.
+- [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md) phân loại foundation, Radzen bridge, shared, feature, cross-cutting, legacy và vendor CSS để agent biết đúng nơi sửa.
+- Retire ba debt không còn hợp đồng hợp lệ: global custom scrollbar, `.vpp-glass`/glass shadow không consumer và token PPJ logo trùng/không dùng. `app.css` chỉ giữ compatibility, không nhận design value mới.
+- Authored hex giảm `131 → 108`; F1 không thêm inline style và `!important` giữ nguyên `756`. Role badge dùng semantic foreground mạnh hơn để pass contrast trong Light mode.
+- Browser Theme Review chạy My Orders, History, Library/Departments và Permission ở `1366×768`, Light/Dark; xác nhận VPP token và Radzen variable resolve cùng giá trị, không overflow/console/network lỗi và representative axe không có violation critical/serious.
 
 ---
 

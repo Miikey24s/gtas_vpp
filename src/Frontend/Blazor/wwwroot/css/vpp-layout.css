@@ -202,7 +202,7 @@ leftsidebar {
     border: 1px solid color-mix(in srgb, var(--vpp-info) 35%, transparent);
     border-radius: var(--vpp-radius-full);
     background: var(--vpp-info-muted);
-    color: var(--vpp-info);
+    color: var(--vpp-info-strong);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     white-space: nowrap;

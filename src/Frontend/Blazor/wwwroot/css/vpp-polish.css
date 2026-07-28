@@ -1,32 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    VPP POLISH — Phase 15
-   Scrollbar, selection color, print, cursor
+   Selection color, print, cursor
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Scrollbar tùy chỉnh ─────────────────────────────────────── */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--vpp-border-default);
-    border-radius: var(--vpp-radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--vpp-border-strong);
-}
-
-/* Trình duyệt Firefox. */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--vpp-border-default) transparent;
-}
+/* Scrollbar toàn cục dùng giao diện native của trình duyệt/hệ điều hành.
+   Chỉ vùng điều hướng tab được phép ẩn scrollbar vì có affordance cuộn riêng. */
 
 /* ── Màu selection ───────────────────────────────────────────── */
 ::selection {

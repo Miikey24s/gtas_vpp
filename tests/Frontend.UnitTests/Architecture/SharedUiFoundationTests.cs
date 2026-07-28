@@ -161,8 +161,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("border: 0 !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-hover-bg", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-active-bg", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-surface);", tokensCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-elevated);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-surface-panel);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-surface-raised);", tokensCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-navigation-chrome-bg);", tabsCss, StringComparison.Ordinal);
         Assert.DoesNotContain("background: var(--vpp-bg-elevated);", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-navigation-item-hover-bg", sidebarCss, StringComparison.Ordinal);
@@ -543,7 +543,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("box-shadow: none !important;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("box-shadow: inset 0 -1px 0 var(--vpp-border-default);", layoutStyles, StringComparison.Ordinal);
-        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-bg-elevated);", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-chrome-bg: var(--vpp-surface-raised);", tokens, StringComparison.Ordinal);
     }
 
     [Fact]
