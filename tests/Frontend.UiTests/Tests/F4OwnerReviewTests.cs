@@ -63,7 +63,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                     .find(element => element.scrollHeight > element.clientHeight + 1
                         && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY));
                 if (!scroller) throw new Error('Order catalog virtual scroller was not found.');
-                scroller.scrollTop = scroller.scrollHeight;
+                scroller.scrollTop = Math.min(820, scroller.scrollHeight - scroller.clientHeight);
                 scroller.dispatchEvent(new Event('scroll', { bubbles: true }));
             }
             """);
@@ -115,6 +115,15 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                         const rect = trigger.getBoundingClientRect();
                         return rect.top < headerBottom && rect.bottom > headerRect.top;
                     });
+                const visibleTextOverlaps = [...grid.querySelectorAll('.vpp-order-builder-item-cell strong, .vpp-cell-value-popover-trigger')]
+                    .filter(element => {
+                        const rect = element.getBoundingClientRect();
+                        const style = getComputedStyle(element);
+                        return style.visibility !== 'hidden'
+                            && Number.parseFloat(style.opacity || '1') > 0
+                            && rect.top < headerBottom
+                            && rect.bottom > headerRect.top;
+                    });
                 const overlapProtected = overlappingCodes.every(trigger => {
                     const rect = trigger.getBoundingClientRect();
                     const hit = document.elementFromPoint(
@@ -127,10 +136,10 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const firstOverlapHit = firstOverlapRect
                     ? document.elementFromPoint(firstOverlapRect.left + 8, Math.min(headerBottom - 1, firstOverlapRect.top + firstOverlapRect.height / 2))
                     : null;
-                return `${squareViewport && opaqueHeader && headerOwnsHitArea && overlapProtected}`
+                return `${squareViewport && opaqueHeader && headerOwnsHitArea && overlapProtected && visibleTextOverlaps.length === 0}`
                     + `|radii=${radii.join(',')}|background=${headerStyle.backgroundColor}`
                     + `|z=${headerStyle.zIndex}|hit=${topElement?.tagName ?? 'none'}`
-                    + `|overlap=${overlappingCodes.length}|overlapHit=${firstOverlapHit?.tagName ?? 'none'}`;
+                    + `|overlap=${overlappingCodes.length}|visibleTextOverlap=${visibleTextOverlaps.length}|overlapHit=${firstOverlapHit?.tagName ?? 'none'}`;
             }
             """);
         productRequestsDuringScroll.Should().BeEmpty("client-snapshot virtualization must not call the product API while scrolling");

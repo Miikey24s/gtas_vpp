@@ -17,27 +17,43 @@ export function observeVirtualRows(root) {
     if (!(root instanceof HTMLElement) || observers.has(root)) return;
 
     let frame = 0;
-    const refresh = () => {
+    let scroller = null;
+    const scheduleRefresh = () => {
         window.cancelAnimationFrame(frame);
         frame = window.requestAnimationFrame(() => refreshRows(root));
     };
-    const scroller = [...root.querySelectorAll('*')]
-        .find(element => element.scrollHeight > element.clientHeight + 1
-            && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY));
-    const mutationObserver = new MutationObserver(refresh);
-    const resizeObserver = new ResizeObserver(refresh);
+    // Scroll phải cập nhật đồng bộ trước lần paint kế tiếp. Nếu đợi thêm một rAF,
+    // cell hai dòng (tên + mã) có thể lộ một frame phía trên sticky header.
+    const refreshImmediately = () => {
+        window.cancelAnimationFrame(frame);
+        refreshRows(root);
+    };
+    const connectScroller = () => {
+        const nextScroller = [...root.querySelectorAll('*')]
+            .find(element => element.scrollHeight > element.clientHeight + 1
+                && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY)) ?? null;
+        if (nextScroller === scroller) return;
+        scroller?.removeEventListener('scroll', refreshImmediately);
+        scroller = nextScroller;
+        scroller?.addEventListener('scroll', refreshImmediately, { passive: true });
+    };
+    const mutationObserver = new MutationObserver(() => {
+        connectScroller();
+        scheduleRefresh();
+    });
+    const resizeObserver = new ResizeObserver(scheduleRefresh);
     mutationObserver.observe(root, { childList: true, subtree: true });
     resizeObserver.observe(root);
-    scroller?.addEventListener('scroll', refresh, { passive: true });
-    window.addEventListener('resize', refresh, { passive: true });
+    connectScroller();
+    window.addEventListener('resize', scheduleRefresh, { passive: true });
     observers.set(root, () => {
         window.cancelAnimationFrame(frame);
         mutationObserver.disconnect();
         resizeObserver.disconnect();
-        scroller?.removeEventListener('scroll', refresh);
-        window.removeEventListener('resize', refresh);
+        scroller?.removeEventListener('scroll', refreshImmediately);
+        window.removeEventListener('resize', scheduleRefresh);
     });
-    refresh();
+    refreshImmediately();
 }
 
 export function disposeVirtualRows(root) {

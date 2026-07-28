@@ -394,7 +394,7 @@
 
         _gridModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
             "import",
-            "./Components/Pages/VPPRequest/OrderCreateStep2.razor.js");
+            "./Components/Pages/VPPRequest/OrderCreateStep2.razor.js?v=20260729-virtual-header-2");
         await _gridModule.InvokeVoidAsync("observeVirtualRows", _gridFrame);
     }
 
