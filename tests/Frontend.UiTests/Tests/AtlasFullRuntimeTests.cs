@@ -33,7 +33,7 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         new("order-create", "dashboard/order-create", ".vpp-order-create-page"),
         new("history", "dashboard?tab=1", ".vpp-history-page"),
         new("catalog", "dashboard?tab=2", ".vpp-catalog-workspace"),
-        new("department-summary", "dashboard?tab=3&managementTab=department", ".vpp-atlas-order-workspace"),
+        new("department-summary", "dashboard?tab=3&managementTab=department", ".vpp-history-page"),
         new("supplement-approval", "dashboard?tab=5&periodTab=pending", ".vpp-section"),
         new("period-review", "dashboard?tab=5&periodTab=review", "#period-review-title"),
         new("period-demand", "dashboard?tab=5&periodTab=demand", ".vpp-demand-view-toggle"),

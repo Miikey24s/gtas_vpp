@@ -176,7 +176,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         await SwitchUserAsync(TestAccounts.Procurement);
         await CaptureRouteAsync(directory, "ui-period-review.png", "dashboard?tab=5&periodTab=review", "#period-review-title");
         await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending", ".vpp-section");
-        await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department", ".vpp-atlas-order-workspace");
+        await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department", ".vpp-history-page");
         await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand", ".vpp-demand-view-toggle");
         await CaptureRouteAsync(directory, "ui-supply-allocation.png", "dashboard?tab=5&periodTab=supply", ".vpp-supply-pricelist-lock");
         await CaptureRouteAsync(directory, "ui-settlement-flow.png", "dashboard?tab=5&periodTab=review", "#period-settlement-title");

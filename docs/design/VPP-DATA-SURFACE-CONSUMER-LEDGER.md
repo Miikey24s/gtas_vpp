@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **19 file / 25 DataGrid thật**. Generic type reference trong `VppColumnPicker` không được tính là grid instance.
+Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -27,7 +27,6 @@ Source hiện có **19 file / 25 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/OrderCreateStep2.razor` | 1 | Orderable catalog | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_AllOrdersSummary.razor` | 2 | Orders + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
-| `Components/Pages/VPPRequest/Tabs/Tab_DepartmentSummary.razor` | 1 | Department orders | `ServerPaging` | `Compact` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
 
 ## Custom list/table inventory
@@ -63,5 +62,5 @@ Source hiện có **19 file / 25 DataGrid thật**. Generic type reference trong
 ## DS3 workflow group
 
 - `OrderCreateStep2`: client snapshot theo batch, virtualized DOM thật, canonical toolbar/code popup/virtual footer; scroll không gọi lại API.
-- `Tab_DepartmentSummary`: canonical server-paged frame/toolbar/compact rows; filter dùng container-responsive layout trong master/detail.
+- `Tab_DepartmentSummary`: tái sử dụng `HistoryOrderList` và toàn bộ History workspace; route chỉ truyền cột người đặt riêng, API và permission phòng ban.
 - `PeriodReviewPanel`: canonical year/month toolbar và server-paged frame; route giữ reload/readiness/settlement action, empty state vẫn có semantics.

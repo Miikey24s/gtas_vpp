@@ -1,302 +1,133 @@
-@inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.BaseOrderTab
-@using gtas_vpp_shared.DTOs.Res.VPP
-@using gtas_vpp_shared.DTOs.Share
+@inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.HistoryOrderWorkspaceTabBase
+@using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 @using gtas_vpp_fe.Helpers
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
+@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryFormat
 
+@* Tổng hợp phòng ban dùng cùng workspace Lịch sử; chỉ thay contract cột danh sách. *@
+<HistoryWorkspaceShell @ref="_workspaceShell"
+                       IsBusy="@IsRefreshing"
+                       IsSummaryRefreshing="@(_isSummaryLoading && !_isInitialLoading)"
+                       IsGridRefreshing="@(IsGridLoading && !_isInitialLoading)">
+    @if (!CanView)
+    {
+        <VppEmptyState Icon="lock"
+                       Title="@Loc["AccessDenied"]"
+                       Description="@Loc["NoPermission"]"
+                       SecondaryText="@Loc["BackToAllowedPage"]"
+                       SecondaryHref="/" />
+    }
+    else if (_isInitialLoading)
+    {
+        <div class="vpp-history-loading-state" role="status" aria-live="polite" aria-label="@Loc["Loading"]">
+            <div class="vpp-history-loading-toolbar"><span class="vpp-history-skeleton vpp-history-skeleton-scope"></span></div>
+            <div class="vpp-history-loading-kpis">@for (var i = 0; i < 4; i++) { <div class="vpp-history-loading-kpi"><span class="vpp-history-skeleton vpp-history-skeleton-label"></span><span class="vpp-history-skeleton vpp-history-skeleton-value"></span></div> }</div>
+            <div class="vpp-history-loading-chart"><span class="vpp-history-skeleton vpp-history-skeleton-title"></span><span class="vpp-history-skeleton vpp-history-skeleton-chart"></span></div>
+            <div class="vpp-history-loading-table"><span class="vpp-history-skeleton vpp-history-skeleton-title"></span>@for (var i = 0; i < 5; i++) { <span class="vpp-history-skeleton vpp-history-skeleton-row"></span> }</div>
+            <div class="vpp-history-loading-drawer"><span class="vpp-history-skeleton vpp-history-skeleton-summary"></span><span class="vpp-history-skeleton vpp-history-skeleton-toolbar"></span>@for (var i = 0; i < 7; i++) { <span class="vpp-history-skeleton vpp-history-skeleton-detail-row"></span> }</div>
+        </div>
+    }
+    else
+    {
+        <HistoryScopeBar Scope="@_scope"
+                         ShowCustomRange="@_showCustomRange"
+                         CustomFrom="@_customFrom"
+                         CustomTo="@_customTo"
+                         PresetScopeSelected="@SelectPresetScopeAsync"
+                         CustomScopeRequested="@(() => SelectScopeAsync(CustomScope))"
+                         CustomFromChanged="@OnCustomFromChanged"
+                         CustomToChanged="@OnCustomToChanged"
+                         CustomRangeApplied="@ApplyCustomRangeAsync" />
 
-@if (CanView)
-{
-    <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Comfortable"
-                           IsBusy="@(IsLoading || IsGridLoading)">
-
-        @* ── KPI Summary ────────────────────────────────────── *@
-        @if (IsLoading)
+        @if (_summaryError)
         {
-            <SkeletonPage Cards="3" Rows="6" Cols="7" />
+            <VppStatePanel State="error" Icon="error" Title="@Loc["HistoryLoadFailed"]"
+                           Description="@Loc["HistoryLoadErrorDescription"]" RetryText="@Loc["Retry"]"
+                           RetryAction="@(_ => RefreshAsync())" Class="vpp-history-state-panel" />
+        }
+        else if (_summary is null)
+        {
+            <VppEmptyState Icon="business" Title="@Loc["NoData"]"
+                           Description="@Loc["NoDepartmentOrdersFound"]" PrimaryText="@Loc["Refresh"]"
+                           PrimaryAction="@(_ => RefreshAsync())" Class="vpp-history-state-panel" />
         }
         else
         {
-            <div class="kpi-grid" style="--kpi-cols: 3;">
-                <div class="kpi-card kpi-blue">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["Orders"]</span>
-                            <span class="kpi-card-icon rzi rzi-receipt-long"></span>
-                        </div>
-                        <div class="kpi-card-value">@TotalCount</div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-emerald">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["TotalLineItems"]</span>
-                            <span class="kpi-card-icon rzi rzi-format-list-numbered"></span>
-                        </div>
-                        <div class="kpi-card-value">@TotalLines</div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-amber">
-                    <div class="kpi-card-shine"></div>
-                    <div class="kpi-card-content">
-                        <div class="kpi-card-header">
-                            <span class="kpi-card-label">@Loc["TotalQuantity"]</span>
-                            <span class="kpi-card-icon rzi rzi-inventory-2"></span>
-                        </div>
-                        <div class="kpi-card-value">@TotalQty</div>
-                        <span class="kpi-card-meta">@PeriodMetaText</span>
-                    </div>
-                </div>
-            </div>
-        }
+            <HistoryKpiCards Summary="@_summary" ActiveKpi="@_activeKpi"
+                             ChartRangeLabel="@ChartRangeLabel" KpiToggled="@ToggleKpi" />
 
-        @* ── DataGrid ───────────────────────────────────────── *@
-        @if (TotalCount == 0 && !IsGridLoading && !IsLoading && !HasToolbarFilters)
-        {
-            <VppEmptyState Icon="business"
-                           Title="@Loc["NoData"]"
-                           Description="@Loc["NoDepartmentOrdersFound"]"
-                           PrimaryText="@Loc["Reload"]"
-                           PrimaryAction="@(async _ => await ReloadAsync())" />
-        }
-        else
-        {
-            <div class="vpp-atlas-order-workspace">
-            <div class="vpp-atlas-order-collection">
-            <div class="vpp-mobile-cards">
-                <VppMobileCard Items="@Orders" />
-            </div>
+            <HistoryTrendChart Summary="@_summary"
+                               ShowRegularSeries="@_showRegularSeries"
+                               ShowAdditionalSeries="@_showAdditionalSeries"
+                               IsSummaryLoading="@_isSummaryLoading"
+                               HasSelectedPeriod="@_selectedPeriod.HasValue"
+                               SelectedPeriodLabel="@SelectedPeriodLabel"
+                               ChartRangeLabel="@ChartRangeLabel"
+                               ChartAccessibleLabel="@ChartAccessibleLabel"
+                               SeriesClicked="@OnChartSeriesClick"
+                               SelectedPeriodCleared="@ClearSelectedPeriodAsync"
+                               SeriesToggled="@ToggleChartSeries" />
 
-            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
-                                 Density="VppDataDensity.Compact"
-                                 AriaLabel="@Loc["HistoryOrderList"]"
-                                 TestId="department-summary-data-surface"
-                                 Class="vpp-department-data-surface">
-                @* Atlas department-summary: toolbar lọc trên đầu card danh sách (tìm mã đơn/họ tên
-                   + loại đơn + trạng thái + kỳ) thay cho filter CheckBoxList theo cột. *@
-                <Toolbar>
-                <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
-                                Class="vpp-atlas-orders-toolbar">
-                    <div class="vpp-atlas-orders-filters" aria-label="@Loc["ClearFilters"]">
-                        <VppFilterSearch Value="@SearchText" Input="@OnSearchInput"
-                                         Placeholder="@Loc["DepartmentSearchPlaceholder"]" AriaLabel="@Loc["DepartmentSearchPlaceholder"]" />
-                        <VppFilterSelect TValue="int?" Value="@OrderTypeFilter" Options="@OrderTypeFilterOptions"
-                                         ValueChanged="@(value => OnOrderTypeChanged(value))" Placeholder="@Loc["HistoryAllOrderTypes"]" AriaLabel="@Loc["HistoryOrderType"]" />
-                        <VppFilterSelect TValue="int?" Value="@StatusFilter" Options="@StatusFilterOptions"
-                                         ValueChanged="@(value => OnStatusChanged(value))" Placeholder="@Loc["HistoryAllStatuses"]" AriaLabel="@Loc["Status"]" />
-                        <VppFilterSelect TValue="int?" Value="@YearFilter" Options="@YearFilterOptions"
-                                         ValueChanged="@(value => OnYearChanged(value))" Placeholder="@Loc["Year"]" AriaLabel="@Loc["Year"]" />
-                        <VppFilterSelect TValue="int?" Value="@MonthFilter" Options="@MonthFilterOptions"
-                                         ValueChanged="@(value => OnMonthChanged(value))" Placeholder="@Loc["Month"]" AriaLabel="@Loc["Month"]" />
-                        <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasToolbarFilters" Clicked="@ClearToolbarFiltersAsync" />
-                    </div>
-                </VppDataToolbar>
-                </Toolbar>
-                <ChildContent>
-                <RadzenDataGrid TItem="VppRequestResDTO" Data="@Orders"
-                                Count="@TotalCount" LoadData="@OnLoadData"
-                                AllowPaging="true" PageSize="@PageSize"
-                                PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
-                                PageSizeText="@Loc["ItemsPerPage"]"
-                                ShowPagingSummary="true"
-                                PagerHorizontalAlign="HorizontalAlign.Left"
-                                AllowSorting="true" AllowAlternatingRows="true"
-                                AllowColumnResize="true"
-                                RowSelect="SelectDepartmentOrderAsync"
-                                SelectionMode="DataGridSelectionMode.Single"
-                                AllowColumnReorder="false"
-                                IsLoading="@IsGridLoading"
-                                Density="Density.Compact" GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-order-grid vpp-data-grid vpp-data-density-compact"
-                                Style="border: none; --vpp-grid-min-width: 1080px;">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="50px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
-                            <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.Period)" Title="@Loc["Period"]" Width="95px" TextAlign="TextAlign.Center">
-                            <Template Context="row">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@row.Period" />
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.VppCode)" Title="@Loc["OrderCode"]" Width="200px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <div class="vpp-order-code-cell">
-                                    <span class="vpp-link-text vpp-order-code-link vpp-order-code-trigger" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="@row.VppCode" style="cursor: pointer; text-decoration: underline dotted var(--vpp-border-strong); user-select: all;">
-                                        @GetShortCode(row)
-                                    </span>
-                                    <div class="vpp-order-code-popover vpp-transient-surface">
-                                        <span class="vpp-order-code-popover-text">@row.VppCode</span>
-                                        <RadzenButton Icon="content_copy" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Style="width: 24px; height: 24px; padding: 0; min-width: 24px;" Click="@(async _ => await CopyToClipboard(row.VppCode))" Title="@Loc["Copy"]" />
-                                    </div>
-                                </div>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.RequesterName)" Title="@Loc["FullName"]" Width="150px" TextAlign="TextAlign.Left">
-                            <Template Context="row">
-                                <span style="font-weight: var(--vpp-font-weight-medium);">@row.RequesterName</span>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.IsAdditionalOrder)" Title="@Loc["HistoryOrderType"]" Width="120px" TextAlign="TextAlign.Center">
-                            <Template Context="row">
-                                <span class="vpp-badge @(row.IsAdditionalOrder ? "vpp-badge-warning" : "vpp-badge-info")">
-                                    @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])
-                                </span>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" Width="130px" TextAlign="TextAlign.Center" Sortable="true">
-                            <Template Context="row">
-                                <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@row.StatusText</span>
-                                @if (row.SettledAt.HasValue)
-                                {
-                                    <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(row.SettledAt, DateFormatter.LongDate)} - {row.SettledByPriceListName}")">
-                                        @Loc["Settled"]
-                                    </span>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-                        @* F-29: đi qua DateFormatter để culture vi-VN được áp dụng nhất quán với các tab đơn hàng còn lại. *@
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" Width="150px" TextAlign="TextAlign.Center" FormatString="{0:HH:mm dd/MM/yyyy}">
-                            <Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.Description)" Title="@Loc["Note"]" Width="180px" TextAlign="TextAlign.Left" />
-                    </Columns>
-                </RadzenDataGrid>
-                </ChildContent>
-            </VppDataSurfaceFrame>
-            </div>
-            <aside class="vpp-atlas-order-detail" aria-live="polite">
-                @if (SelectedOrder is null)
-                {
-                    <div class="vpp-atlas-order-detail-empty">
-                        <span class="rzi rzi-receipt_long" aria-hidden="true"></span>
-                        <strong>@Loc["HistorySelectOrder"]</strong>
-                        <span>@Loc["DepartmentDetailScopeHint"]</span>
-                    </div>
-                }
-                else
-                {
-                    @* Atlas orderDetailSheet: kicker + mã/badge + meta + nút xuất (D10) + tóm tắt + ghi chú + mặt hàng. *@
-                    <header class="vpp-atlas-sheet-header">
-                        <div>
-                            <span class="vpp-atlas-sheet-kicker">@Loc["HistoryDetailSheetTitle"]</span>
-                            <div class="vpp-atlas-sheet-code">
-                                <strong>@SelectedOrder.VppCode</strong>
-                                <span class="vpp-badge @StatusDisplay.GetCssClass(SelectedOrder.Status)">@SelectedOrder.StatusText</span>
-                            </div>
-                            @if (SelectedOrder.SubmittedDate.HasValue)
-                            {
-                                <p class="vpp-atlas-sheet-meta">@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate))</p>
-                            }
-                        </div>
-                        <div class="vpp-atlas-sheet-actions">
-                            <RadzenButton Icon="picture_as_pdf"
-                                          Size="ButtonSize.Small"
-                                          ButtonStyle="ButtonStyle.Base"
-                                          Variant="Variant.Text"
-                                          Click="@(async _ => await ExportOrderPdfAsync(SelectedOrder))"
-                                          Title="@Loc["ExportPdf"]"
-                                          aria-label="@string.Format(Loc["ExportOrderPdfAria"], SelectedOrder.VppCode)"
-                                          Disabled="@IsExportingOrder" />
-                            <RadzenButton Icon="table_view"
-                                          Size="ButtonSize.Small"
-                                          ButtonStyle="ButtonStyle.Base"
-                                          Variant="Variant.Text"
-                                          Click="@(async _ => await ExportOrderExcelAsync(SelectedOrder))"
-                                          Title="@Loc["ExportExcel"]"
-                                          aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedOrder.VppCode)"
-                                          Disabled="@IsExportingOrder" />
-                        </div>
-                    </header>
-                    <dl class="vpp-atlas-order-facts">
-                        <div><dt>@Loc["Period"]</dt><dd>@SelectedOrder.Period</dd></div>
-                        <div><dt>@Loc["HistoryOrderType"]</dt><dd><span class="vpp-badge @(SelectedOrder.IsAdditionalOrder ? "vpp-badge-warning" : "vpp-badge-info")">@(SelectedOrder.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></dd></div>
-                        <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedOrder.RequesterName">@(string.IsNullOrWhiteSpace(SelectedOrder.RequesterName) ? "–" : SelectedOrder.RequesterName)</dd></div>
-                        <div><dt>@Loc["Department"]</dt><dd title="@SelectedOrder.DepartmentCode">@(string.IsNullOrWhiteSpace(SelectedOrder.DepartmentCode) ? "–" : SelectedOrder.DepartmentCode)</dd></div>
-                    </dl>
-                    <div class="vpp-atlas-sheet-totals">
-                        <div><strong>@SelectedOrder.TotalLines</strong><span>@Loc["HistoryItem"]</span></div>
-                        <div><strong>@SelectedOrder.TotalQty</strong><span>@Loc["TotalQuantity"]</span></div>
-                    </div>
-                    <div class="vpp-atlas-sheet-note">
-                        <span>@Loc["Note"]</span>
-                        <p>@(string.IsNullOrWhiteSpace(SelectedOrder.Description) ? "–" : SelectedOrder.Description)</p>
-                    </div>
-                    <div class="vpp-atlas-order-items">
-                        <div class="vpp-atlas-sheet-items-heading">
-                            <h3>@Loc["HistoryItemsHeading"]</h3>
-                            <span class="vpp-badge vpp-badge-info">@Loc["ItemsCount", SelectedOrder.Items?.Count ?? 0]</span>
-                        </div>
-                        @if (IsRowDetailLoading(SelectedOrder.Id))
-                        {
-                            <SkeletonPage Cards="0" Rows="5" Cols="3" />
-                        }
-                        else if (SelectedOrder.Items is null || SelectedOrder.Items.Count == 0)
-                        {
-                            <VppEmptyState Icon="inventory_2" Title="@Loc["OrderHasNoItems"]" />
-                        }
-                        else
-                        {
-                            <div class="vpp-atlas-sheet-filters">
-                                <label class="vpp-order-view-search">
-                                    <VppIcon Name="search" />
-                                    <input value="@AsideSearch"
-                                           @oninput="OnAsideSearchInput"
-                                           placeholder="@Loc["HistorySearchItem"]"
-                                           aria-label="@Loc["HistorySearchItem"]" />
-                                </label>
-                                <RadzenDropDown TValue="string"
-                                                Data="@AsideCategoryOptions"
-                                                Value="@AsideCategory"
-                                                Change="@OnAsideCategoryChanged"
-                                                AllowClear="true"
-                                                Placeholder="@Loc["AllCategories"]"
-                                                aria-label="@Loc["AllCategories"]"
-                                                class="vpp-order-view-select" />
-                                <RadzenDropDown TValue="string"
-                                                Data="@AsideUomOptions"
-                                                Value="@AsideUom"
-                                                Change="@OnAsideUomChanged"
-                                                AllowClear="true"
-                                                Placeholder="@Loc["AllUnits"]"
-                                                aria-label="@Loc["AllUnits"]"
-                                                class="vpp-order-view-select" />
-                                <button type="button" class="vpp-order-view-clear" disabled="@(!HasAsideFilters)" @onclick="ClearAsideFilters">
-                                    <VppIcon Name="filter_alt_off" />
-                                    <span>@Loc["ClearFilters"]</span>
-                                </button>
-                            </div>
-                            @if (!FilteredAsideItems.Any())
-                            {
-                                <p class="vpp-atlas-sheet-no-match">@Loc["NoOrdersMatchSelectedFilters"]</p>
-                            }
-                            @foreach (var item in FilteredAsideItems)
-                            {
-                                <div class="vpp-atlas-order-item">
-                                    <span>
-                                        <strong title="@item.VppName">@item.VppName</strong>
-                                        <small>@item.VppCode · @item.CategoryName · @item.UomName</small>
-                                        @if (!string.IsNullOrWhiteSpace(item.Description))
-                                        {
-                                            <small class="vpp-atlas-item-note" title="@item.Description">@item.Description</small>
-                                        }
-                                    </span>
-                                    <b>@item.Qty</b>
-                                </div>
-                            }
-                        }
-                    </div>
-                }
-            </aside>
-            </div>
+            <HistoryOrderList Orders="@Orders" TotalCount="@TotalCount" PageSize="@PageSize"
+                              CurrentSkip="@CurrentSkip" IsGridLoading="@IsGridLoading"
+                              HasGridLoadError="@HasGridLoadError" Search="@_search"
+                              SelectedOrderType="@_selectedOrderType" SelectedStatus="@_selectedStatus"
+                              ActiveCodeOrderId="@_activeCodeOrderId" ActiveNoteOrderId="@_activeNoteOrderId"
+                              HasTableFilters="@HasTableFilters" LoadRequested="@OnHistoryLoadData"
+                              OrderSelected="@OnOrderSelectedAsync" RetryRequested="@LoadOrdersAndSelectAsync"
+                              SearchChanged="@OnSearchInput" OrderTypeSelected="@SelectOrderTypeAsync"
+                              StatusSelected="@SelectStatusAsync" TableFiltersCleared="@ClearTableFiltersAsync"
+                              TransientSurfacesClosed="@CloseTransientSurfaces" CodeToggled="@ToggleCode"
+                              NoteToggled="@ToggleNote" CopyRequested="@CopyTextAsync"
+                              TestId="department-summary-data-surface"
+                              Class="vpp-history-orders-card--department">
+                <Columns>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
+                        <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="Period" Title="@Loc["Period"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center" />
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="VppCode" Title="@Loc["OrderCode"]" CssClass="vpp-history-col-left" HeaderCssClass="vpp-history-col-left">
+                        <Template Context="row"><VppCellValuePopover Value="@row.VppCode" Label="@Loc["OrderCode"]" CopyLabel="@Loc["Copy"]" Kind="VppCellValueKind.Code" IsOpen="@(_activeCodeOrderId == row.Id)" Toggled="@(() => ToggleCode(row.Id))" CopyRequested="@CopyTextAsync" Class="vpp-history-code-cell" TriggerClass="vpp-history-code vpp-history-code-trigger" PanelClass="vpp-history-code-popover" /></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="RequesterName" Title="@Loc["HistoryRequester"]" CssClass="vpp-history-col-left" HeaderCssClass="vpp-history-col-left">
+                        <Template Context="row"><span title="@row.RequesterName">@(string.IsNullOrWhiteSpace(row.RequesterName) ? "–" : row.RequesterName)</span></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Title="@Loc["HistoryOrderType"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-type vpp-history-col-center" HeaderCssClass="vpp-history-col-type vpp-history-col-center">
+                        <Template Context="row"><span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
+                        <Template Context="row"><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="SubmittedDate" Title="@Loc["SubmittedDate"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-date vpp-history-col-center" HeaderCssClass="vpp-history-col-date vpp-history-col-center">
+                        <Template Context="row"><span class="vpp-history-date">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</span></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="Description" Title="@Loc["Note"]" CssClass="vpp-history-col-note vpp-history-col-left" HeaderCssClass="vpp-history-col-note vpp-history-col-left">
+                        <Template Context="row">
+                            @if (string.IsNullOrWhiteSpace(row.Description)) { <span class="vpp-history-note">–</span> }
+                            else { <VppCellValuePopover Value="@row.Description" Label="@Loc["Note"]" CopyLabel="@Loc["Copy"]" Kind="VppCellValueKind.Note" IsOpen="@(_activeNoteOrderId == row.Id)" Toggled="@(() => ToggleNote(row.Id))" CopyRequested="@CopyTextAsync" Class="vpp-history-note-cell" TriggerClass="vpp-history-note vpp-history-note-trigger" PanelClass="vpp-history-note-popover" /> }
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+                <MobileRow Context="row">
+                    <span class="vpp-history-mobile-topline"><strong>@row.VppCode</strong><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></span>
+                    <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@row.Period · @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span>
+                    <span>@Loc["HistoryRequester"]: @(string.IsNullOrWhiteSpace(row.RequesterName) ? "–" : row.RequesterName)</span>
+                    <span class="vpp-history-note">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
+                </MobileRow>
+            </HistoryOrderList>
         }
-    </VppAnalyticsWorkspace>
-}
-else
-{
-    <VppEmptyState Icon="lock"
-                   Title="@Loc["AccessDenied"]"
-                   Description="@Loc["NoPermission"]"
-                   SecondaryText="@Loc["BackToAllowedPage"]"
-                   SecondaryHref="/" />
-}
+    }
+
+    <HistoryOrderDetailSheet @ref="_detailSheet" IsOpen="@_isDrawerOpen" SelectedOrder="@_selectedOrder"
+                             IsDetailLoading="@_isDetailLoading" HasDetailError="@_detailError"
+                             DetailRows="@_detailRows" DetailCategories="@_detailCategories" DetailUoms="@_detailUoms"
+                             DetailSearch="@_detailSearch" DetailCategory="@_detailCategory" DetailUom="@_detailUom"
+                             ActiveDetailCodeNumber="@_activeDetailCodeNumber" ActiveDetailNoteNumber="@_activeDetailNoteNumber"
+                             HasDetailFilters="@HasDetailFilters" HasTableFilters="@HasTableFilters" TotalCount="@TotalCount"
+                             UnitHeaderLabel="@UnitHeaderLabel" IsExporting="@IsExportingOrder" CloseRequested="@CloseDrawer"
+                             ExportRequested="@ExportSelectedOrderAsync" RetryRequested="@(() => OpenOrderAsync(_selectedOrder!, false))"
+                             DetailSearchChanged="@OnDetailSearchInput" DetailCategorySelected="@SelectDetailCategoryAsync"
+                             DetailUomSelected="@SelectDetailUomAsync" DetailFiltersCleared="@ClearDetailFiltersAsync"
+                             DetailCodeToggled="@ToggleDetailCode" DetailNoteToggled="@ToggleDetailNote" CopyRequested="@CopyTextAsync" />
+</HistoryWorkspaceShell>

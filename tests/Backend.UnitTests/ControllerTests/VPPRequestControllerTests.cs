@@ -137,6 +137,43 @@ public class VPPRequestControllerTests
     }
 
     [Fact]
+    public async Task GetDepartmentOrderHistorySummary_UsesClaimScope()
+    {
+        var expected = new VppOrderHistorySummaryResDTO { TotalOrders = 2, TotalQuantity = 18 };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetDepartmentOrderHistorySummaryAsync("IT", "77500", 202601, 202612))
+            .ReturnsAsync(expected);
+        var controller = CreateController(
+            service.Object,
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetDepartmentOrderHistorySummary(202601, 202612);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+    }
+
+    [Fact]
+    public async Task GetDepartmentOrderHistory_SetsTotalCountAndIgnoresClientDepartment()
+    {
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetDepartmentOrderHistoryPageAsync(
+                "IT", "77500", null, null, null, null, null, null, 0, 6))
+            .ReturnsAsync((new List<VppRequestResDTO> { new() { DepartmentCode = "IT" } }, 7));
+        var controller = CreateController(
+            service.Object,
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetDepartmentOrderHistory(
+            null, null, null, null, null, null, 0, 6);
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("7", controller.Response.Headers["X-Total-Count"].ToString());
+    }
+
+    [Fact]
     public async Task CreateOrder_ValidRequest_ReturnsOk()
     {
         var expected = new VppRequestResDTO { Id = Guid.NewGuid(), Year = 2026, Month = 4, Status = 1 };

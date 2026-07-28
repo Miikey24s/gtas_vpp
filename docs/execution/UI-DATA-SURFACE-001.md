@@ -40,7 +40,7 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 
 ## 2. Hiện trạng và nguyên nhân trùng code
 
-- Repository hiện có 19 file chứa 25 `RadzenDataGrid` thật; ledger canonical nằm tại [`VPP-DATA-SURFACE-CONSUMER-LEDGER`](../design/VPP-DATA-SURFACE-CONSUMER-LEDGER.md).
+- Repository hiện có 18 file chứa 24 `RadzenDataGrid` thật sau khi Tổng hợp phòng ban tái sử dụng grid của Lịch sử; ledger canonical nằm tại [`VPP-DATA-SURFACE-CONSUMER-LEDGER`](../design/VPP-DATA-SURFACE-CONSUMER-LEDGER.md).
 - `VppFilterSearch` hiện được dùng trực tiếp ở Product Catalog, Create Order, Permission Users và trong `VppOrderItemsSurface`.
 - `HistoryOrderList` vẫn tự dựng `vpp-history-search`, `vpp-history-select`, menu state và một block CSS route riêng.
 - Đây là kết quả của migration theo vertical slice ở F4: shared filters được chứng minh trên consumer mới/chạm tới, còn History list giữ implementation cũ để tránh big-bang cùng lúc với server paging, popup state và responsive mobile list.
@@ -147,7 +147,7 @@ Không tạo:
 
 ### DS0 — Contract và visual board
 
-- Lập consumer ledger cho 19 file / 25 DataGrid và các custom list/table.
+- Lập consumer ledger cho 18 file / 24 DataGrid và các custom list/table; số lượng giảm vì History và Tổng hợp phòng ban dùng chung một grid có slot cột.
 - Phân loại từng surface: `Paged`, `Virtualized`, `Static`, `Matrix/Tree`, `Dialog`.
 - Chụp route thật đại diện: History list, My Orders detail, Product Catalog, Users.
 - Tạo board chú thích trực tiếp toolbar/header/row/footer, hai density và outer inset ở sidebar expanded/collapsed.
@@ -218,6 +218,14 @@ Gate: board 4 route thật, console/network sạch và không document-level scr
 - Owner-review fix: Create Order dùng geometry guard cho row virtualization để phần row bị translate không xuyên lên sticky header; inner Radzen scroll viewport bỏ radius nên nối thẳng với virtual footer, vẫn giữ scrollbar mặc định.
 - Visual evidence ignored: `tmp/ds3-review/f4-review-order-create-1920x1080.png`, `ds3-order-create-code-popover-1920x1080.png`, `ds3-department-summary-1366x768.png`, `ds3-period-review-1366x768.png`.
 - Evidence hiện tại: Release build `0 warning / 0 error`; frontend unit/architecture `196/196` pass; isolated Playwright Create Order + Department Summary + Period Review `3/3` pass. `verify -Scope frontend` chỉ dừng tại `model-routing-eval` của change-set AI-harness có sẵn ngoài DS3 (`62/63` setup checks pass); owner visual review còn là gate đóng DS3.
+
+#### Department Summary parity record — 2026-07-29
+
+- Theo owner review, Tổng hợp phòng ban không còn giữ một master/detail implementation riêng: route dùng chung `HistoryOrderWorkspaceTabBase`, `HistoryWorkspaceShell`, scope kỳ, KPI, biểu đồ, toolbar, pager, popup, responsive mobile list và `HistoryOrderDetailSheet` với Lịch sử đơn.
+- `HistoryOrderList` nhận slot typed cho cột và mobile row; Department chỉ truyền 8 cột `# → Kỳ → Mã đơn → Người đặt → Loại đơn → Trạng thái → Ngày gửi → Ghi chú`. CSS có track riêng cho schema 8 cột nhưng dùng chung density, row/footer và interaction.
+- Backend thêm endpoint history-like theo phòng ban cho summary + server paging; server luôn lấy `DepartmentCode` và `MemberCompanyCode` từ claim, không tin scope do client gửi. API cũ được giữ cho consumer chưa migrate.
+- Consumer ledger giảm từ `19 file / 25 grid` còn `18 file / 24 grid` vì hai route dùng cùng một grid thật, không sao chép markup.
+- Evidence: solution Release build `0 warning / 0 error`; frontend unit/architecture `196/196`; backend unit `429/429`; isolated Department Summary Playwright `1/1`, không horizontal overflow tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; ảnh đã được kiểm bằng mắt tại `tmp/department-history-parity/` (ignored). `verify -Scope frontend` vẫn dừng ở `model-routing-eval` của nhóm AI-harness dirty ngoài scope (`62/63`).
 
 ### DS4 — Library, admin và permission
 

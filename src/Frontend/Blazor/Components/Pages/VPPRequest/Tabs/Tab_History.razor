@@ -1,13 +1,13 @@
-@inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.BaseOrderTab
+@inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.HistoryOrderWorkspaceTabBase
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
 
 @* Coordinator màn Lịch sử: giữ toàn bộ state và handler; markup từng vùng Atlas nằm trong 5 component con
    (HistoryScopeBar · HistoryKpiCards · HistoryTrendChart · HistoryOrderList · HistoryOrderDetailSheet). *@
-<div class="vpp-history-page @(_isSummaryLoading && !_isInitialLoading ? "is-summary-refreshing" : string.Empty) @(IsGridLoading && !_isInitialLoading ? "is-grid-refreshing" : string.Empty)" @ref="_historyRoot" aria-busy="@IsRefreshing">
-    <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Compact"
-                           FillAvailableSpace="true"
-                           IsBusy="@IsRefreshing">
+<HistoryWorkspaceShell @ref="_workspaceShell"
+                       IsBusy="@IsRefreshing"
+                       IsSummaryRefreshing="@(_isSummaryLoading && !_isInitialLoading)"
+                       IsGridRefreshing="@(IsGridLoading && !_isInitialLoading)">
     @if (!CanView)
     {
         <VppEmptyState Icon="lock"
@@ -136,5 +136,4 @@
                              DetailCodeToggled="@ToggleDetailCode"
                              DetailNoteToggled="@ToggleDetailNote"
                              CopyRequested="@CopyTextAsync" />
-    </VppAnalyticsWorkspace>
-</div>
+</HistoryWorkspaceShell>

@@ -627,8 +627,8 @@ public sealed class SharedUiFoundationTests
         AssertPatternConsumer(root, "Pages", "VPPRequest", "OrderCreateStep2.razor", "<VppSplitEditorWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodOperationsWorkspace.razor", "<VppOperationWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor", "<VppOperationWorkspace");
-        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_History.razor", "<VppAnalyticsWorkspace");
-        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor", "<VppAnalyticsWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_History.razor", "<HistoryWorkspaceShell");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor", "<HistoryWorkspaceShell");
 
         var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         foreach (var token in new[]
@@ -752,8 +752,10 @@ public sealed class SharedUiFoundationTests
             root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor"));
         var historyCode = File.ReadAllText(Path.Combine(
             root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.cs"));
+        var historyWorkspaceCode = File.ReadAllText(Path.Combine(
+            root, "Components", "Pages", "VPPRequest", "Tabs", "HistoryOrderWorkspaceTabBase.cs"));
         var historyStyles = File.ReadAllText(Path.Combine(
-            root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.css"));
+            root, "Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"));
         var historyScript = File.ReadAllText(Path.Combine(
             root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.js"));
         // Sau C-7, markup từng vùng của màn Lịch sử nằm trong các component con presentational.
@@ -800,12 +802,13 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ExpandMode=", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("PagerAlwaysVisible=\"true\"", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("PageSize = 6;", historyCode, StringComparison.Ordinal);
-        Assert.Contains("Math.Clamp(pageSize, 3, 20)", historyCode, StringComparison.Ordinal);
-        Assert.Contains("SetHistoryViewport", historyCode, StringComparison.Ordinal);
+        Assert.Contains("HistoryPageEndpoint => Config.VppApi.MyOrderHistory", historyCode, StringComparison.Ordinal);
+        Assert.Contains("PageSize = 6;", historyWorkspaceCode, StringComparison.Ordinal);
+        Assert.Contains("Math.Clamp(pageSize, 3, 20)", historyWorkspaceCode, StringComparison.Ordinal);
+        Assert.Contains("SetHistoryViewport", historyWorkspaceCode, StringComparison.Ordinal);
         Assert.Contains("HasGridLoadError", history, StringComparison.Ordinal);
-        Assert.Contains("_detailError", historyCode, StringComparison.Ordinal);
-        Assert.Contains("ClearDetailFiltersAsync", historyCode, StringComparison.Ordinal);
+        Assert.Contains("_detailError", historyWorkspaceCode, StringComparison.Ordinal);
+        Assert.Contains("ClearDetailFiltersAsync", historyWorkspaceCode, StringComparison.Ordinal);
         Assert.Contains("--vpp-history-inline-pill-height: 22px;", historyStyles, StringComparison.Ordinal);
         Assert.DoesNotContain("::deep .vpp-history-detail-toolbar", historyStyles, StringComparison.Ordinal);
         Assert.DoesNotContain("::deep .vpp-history-detail-grid", historyStyles, StringComparison.Ordinal);

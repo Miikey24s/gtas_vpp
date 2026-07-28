@@ -1,0 +1,19 @@
+<div class="vpp-history-page @(IsSummaryRefreshing ? "is-summary-refreshing" : string.Empty) @(IsGridRefreshing ? "is-grid-refreshing" : string.Empty) @Class"
+     @ref="RootElement"
+     aria-busy="@IsBusy">
+    <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Compact"
+                           FillAvailableSpace="true"
+                           IsBusy="@IsBusy">
+        @ChildContent
+    </VppAnalyticsWorkspace>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public bool IsSummaryRefreshing { get; set; }
+    [Parameter] public bool IsGridRefreshing { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    public ElementReference RootElement { get; private set; }
+}

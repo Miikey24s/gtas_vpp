@@ -274,6 +274,37 @@ public class VPPRequestServiceTests
         Assert.Empty(order.Items);
     }
 
+    [Fact]
+    public async Task GetDepartmentOrderHistory_UsesDepartmentAndCompanyScopeForSummaryAndPage()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 7, 23, 9, 0, 0);
+        var matching = CreateHistoryHeader(5615, 2026, 7, false, true, "Department stationery", now);
+        var otherDepartment = CreateHistoryHeader(9001, 2026, 7, false, true, "HR stationery", now);
+        otherDepartment.DepartmentCode = "HR";
+        var otherCompany = CreateHistoryHeader(9002, 2026, 7, true, true, "Other company", now);
+        otherCompany.MemberCompanyCode = "88000";
+        context.Set<VppRequest>().AddRange(matching, otherDepartment, otherCompany);
+        context.Set<VppRequestDetail>().AddRange(
+            CreateDetailWithQuantity(matching.Id, now, 12),
+            CreateDetailWithQuantity(otherDepartment.Id, now, 30),
+            CreateDetailWithQuantity(otherCompany.Id, now, 50));
+        await context.SaveChangesAsync();
+        var service = CreateService(context, now);
+
+        var summary = await service.GetDepartmentOrderHistorySummaryAsync("IT", "77500", null, null);
+        var (data, totalCount) = await service.GetDepartmentOrderHistoryPageAsync(
+            "IT", "77500", null, null, 202607, "stationery", null, false, 0, 6);
+
+        Assert.Equal(1, summary.TotalOrders);
+        Assert.Equal(12, summary.TotalQuantity);
+        var order = Assert.Single(data);
+        Assert.Equal(1, totalCount);
+        Assert.Equal(matching.Id, order.Id);
+        Assert.Equal("IT", order.DepartmentCode);
+        Assert.Equal(12, order.TotalQty);
+    }
+
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);

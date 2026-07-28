@@ -808,6 +808,11 @@
         grid-template-columns: minmax(0, .4fr) minmax(0, .75fr) minmax(0, 1.8fr) minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
     }
 
+    ::deep .vpp-history-orders-card--department .vpp-history-grid table thead > tr,
+    ::deep .vpp-history-orders-card--department .vpp-history-grid table tbody > tr {
+        grid-template-columns: minmax(0, .35fr) minmax(0, .62fr) minmax(0, 1.5fr) minmax(0, 1.1fr) minmax(0, .85fr) minmax(0, .85fr) minmax(0, 1fr) minmax(0, 1.35fr);
+    }
+
     ::deep .vpp-history-grid table thead > tr > th,
     ::deep .vpp-history-grid table tbody > tr > td {
         display: flex;
@@ -893,6 +898,11 @@
     ::deep .vpp-history-grid table tbody > tr {
         grid-template-columns: minmax(0, .3fr) minmax(0, .62fr) minmax(0, 1.55fr) minmax(0, .85fr) minmax(0, .8fr) minmax(0, .9fr) minmax(0, .95fr) minmax(0, 1.2fr) minmax(0, 1.65fr);
     }
+
+    ::deep .vpp-history-orders-card--department .vpp-history-grid table thead > tr,
+    ::deep .vpp-history-orders-card--department .vpp-history-grid table tbody > tr {
+        grid-template-columns: minmax(0, .3fr) minmax(0, .58fr) minmax(0, 1.45fr) minmax(0, 1.1fr) minmax(0, .82fr) minmax(0, .82fr) minmax(0, 1fr) minmax(0, 1.4fr);
+    }
 }
 
 @media (min-width: 1600px) {
@@ -908,6 +918,19 @@
             minmax(5.75rem, .82fr)
             minmax(7.75rem, 1.08fr)
             minmax(10rem, 2.18fr);
+    }
+
+    ::deep .vpp-history-orders-card--department .vpp-history-grid table thead > tr,
+    ::deep .vpp-history-orders-card--department .vpp-history-grid table tbody > tr {
+        grid-template-columns:
+            minmax(2rem, .28fr)
+            minmax(4.5rem, .52fr)
+            minmax(8.5rem, 1.2fr)
+            minmax(7rem, 1fr)
+            minmax(5rem, .68fr)
+            minmax(5.5rem, .72fr)
+            minmax(7.75rem, .95fr)
+            minmax(10rem, 1.65fr);
     }
 }
 

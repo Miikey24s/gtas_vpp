@@ -141,6 +141,26 @@ namespace gtas_vpp_be.Controllers
             return Ok(result);
         }
 
+        [HttpGet("department-order-history-summary")]
+        [Authorize(Policy = Permissions.RequestViewDepartment)]
+        [ProducesResponseType<VppOrderHistorySummaryResDTO>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDepartmentOrderHistorySummary(
+            [FromQuery] int? fromPeriod,
+            [FromQuery] int? toPeriod)
+        {
+            if (string.IsNullOrWhiteSpace(CurrentDepartmentCode))
+                return Forbid();
+            if (!HasValidPeriodRange(fromPeriod, toPeriod))
+                return BadRequest(new { Message = "The selected period range is invalid." });
+
+            var result = await _vppService.GetDepartmentOrderHistorySummaryAsync(
+                CurrentDepartmentCode,
+                CurrentMemberCompanyCode,
+                fromPeriod,
+                toPeriod);
+            return Ok(result);
+        }
+
         [HttpGet("my-order-history")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
         [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
@@ -163,6 +183,42 @@ namespace gtas_vpp_be.Controllers
 
             var (data, totalCount) = await _vppService.GetMyOrderHistoryPageAsync(
                 CurrentUserId.Value,
+                fromPeriod,
+                toPeriod,
+                exactPeriod,
+                search,
+                status,
+                isAdditionalOrder,
+                skip,
+                top);
+            Response.Headers.Append("X-Total-Count", totalCount.ToString());
+            return Ok(data);
+        }
+
+        [HttpGet("department-order-history")]
+        [Authorize(Policy = Permissions.RequestViewDepartment)]
+        [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDepartmentOrderHistory(
+            [FromQuery] int? fromPeriod,
+            [FromQuery] int? toPeriod,
+            [FromQuery] int? exactPeriod,
+            [FromQuery] string? search,
+            [FromQuery] int? status,
+            [FromQuery] bool? isAdditionalOrder,
+            [FromQuery] int? skip,
+            [FromQuery] int? top)
+        {
+            if (string.IsNullOrWhiteSpace(CurrentDepartmentCode))
+                return Forbid();
+            if (!HasValidPeriodRange(fromPeriod, toPeriod)
+                || (exactPeriod.HasValue && !IsValidPeriod(exactPeriod.Value)))
+            {
+                return BadRequest(new { Message = "The selected period is invalid." });
+            }
+
+            var (data, totalCount) = await _vppService.GetDepartmentOrderHistoryPageAsync(
+                CurrentDepartmentCode,
+                CurrentMemberCompanyCode,
                 fromPeriod,
                 toPeriod,
                 exactPeriod,

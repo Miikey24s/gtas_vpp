@@ -37,6 +37,22 @@ namespace gtas_vpp_be.Service.Services
             bool? isAdditionalOrder,
             int? skip,
             int? top);
+        Task<VppOrderHistorySummaryResDTO> GetDepartmentOrderHistorySummaryAsync(
+            string departmentCode,
+            string? memberCompanyCode,
+            int? fromPeriod,
+            int? toPeriod);
+        Task<(List<VppRequestResDTO> Data, int TotalCount)> GetDepartmentOrderHistoryPageAsync(
+            string departmentCode,
+            string? memberCompanyCode,
+            int? fromPeriod,
+            int? toPeriod,
+            int? exactPeriod,
+            string? search,
+            int? status,
+            bool? isAdditionalOrder,
+            int? skip,
+            int? top);
         Task<VppRequestResDTO?> GetOrderByIdAsync(Guid id);
         Task<VppRequestResDTO> CreateOrderAsync(VppRequestCreateReqDTO req, int createdByUserId, string departmentCode, string memberCompanyCode);
         Task<VppRequestResDTO> UpdateOrderAsync(VppRequestUpdateReqDTO req);
@@ -116,6 +132,27 @@ namespace gtas_vpp_be.Service.Services
             int? toPeriod)
         {
             var query = BuildMyOrderHistoryQuery(userId, fromPeriod, toPeriod);
+            return await BuildOrderHistorySummaryAsync(query, fromPeriod);
+        }
+
+        public async Task<VppOrderHistorySummaryResDTO> GetDepartmentOrderHistorySummaryAsync(
+            string departmentCode,
+            string? memberCompanyCode,
+            int? fromPeriod,
+            int? toPeriod)
+        {
+            var query = BuildDepartmentOrderHistoryQuery(
+                departmentCode,
+                memberCompanyCode,
+                fromPeriod,
+                toPeriod);
+            return await BuildOrderHistorySummaryAsync(query, fromPeriod);
+        }
+
+        private static async Task<VppOrderHistorySummaryResDTO> BuildOrderHistorySummaryAsync(
+            IQueryable<VppRequest> query,
+            int? fromPeriod)
+        {
             var stats = await query
                 .Select(order => new
                 {
@@ -277,6 +314,85 @@ namespace gtas_vpp_be.Service.Services
             return (result, totalCount);
         }
 
+        public async Task<(List<VppRequestResDTO> Data, int TotalCount)> GetDepartmentOrderHistoryPageAsync(
+            string departmentCode,
+            string? memberCompanyCode,
+            int? fromPeriod,
+            int? toPeriod,
+            int? exactPeriod,
+            string? search,
+            int? status,
+            bool? isAdditionalOrder,
+            int? skip,
+            int? top)
+        {
+            var query = BuildDepartmentOrderHistoryQuery(
+                departmentCode,
+                memberCompanyCode,
+                fromPeriod,
+                toPeriod);
+            if (exactPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
+            }
+
+            var normalizedSearch = search?.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                query = query.Where(order =>
+                    (order.VppCode != null && order.VppCode.Contains(normalizedSearch))
+                    || (order.Description != null && order.Description.Contains(normalizedSearch)));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(order => order.Status == status.Value);
+            }
+
+            if (isAdditionalOrder.HasValue)
+            {
+                query = query.Where(order => order.IsAdditionalOrder == isAdditionalOrder.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageSkip = Math.Max(skip ?? 0, 0);
+            var pageSize = Math.Clamp(top ?? 6, 1, 100);
+            var result = await query
+                .OrderByDescending(order => order.Year)
+                .ThenByDescending(order => order.Month)
+                .ThenByDescending(order => order.SubmittedDate ?? order.UpdatedAtUtc)
+                .Select(order => new VppRequestResDTO
+                {
+                    Id = order.Id,
+                    Description = order.Description,
+                    CreatedByUserId = order.CreatedByUserId,
+                    CreatedAtUtc = order.CreatedAtUtc,
+                    UpdatedByUserId = order.UpdatedByUserId,
+                    UpdatedAtUtc = order.UpdatedAtUtc,
+                    VppCode = order.VppCode,
+                    Year = order.Year,
+                    Month = order.Month,
+                    PeriodId = order.PeriodId,
+                    RequestSeriesId = order.RequestSeriesId,
+                    RevisionNumber = order.RevisionNumber,
+                    IsCurrentRevision = order.IsCurrentRevision,
+                    Status = order.Status,
+                    SubmittedDate = order.SubmittedDate,
+                    IsAdditionalOrder = order.IsAdditionalOrder,
+                    SettledAt = order.SettledAt,
+                    DepartmentCode = order.DepartmentCode,
+                    TotalLines = order.RequestDetails.Count(detail => !detail.IsDeleted),
+                    TotalQty = order.RequestDetails
+                        .Where(detail => !detail.IsDeleted)
+                        .Sum(detail => (int?)detail.Qty) ?? 0
+                })
+                .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
+            ApplyPeriodFlags(result);
+            return (result, totalCount);
+        }
+
         private IQueryable<VppRequest> BuildMyOrderHistoryQuery(
             int userId,
             int? fromPeriod,
@@ -287,6 +403,33 @@ namespace gtas_vpp_be.Service.Services
                 .Where(order => order.CreatedByUserId == userId
                     && !order.IsDeleted
                     && order.IsCurrentRevision);
+
+            if (fromPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) >= fromPeriod.Value);
+            }
+
+            if (toPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) <= toPeriod.Value);
+            }
+
+            return query;
+        }
+
+        private IQueryable<VppRequest> BuildDepartmentOrderHistoryQuery(
+            string departmentCode,
+            string? memberCompanyCode,
+            int? fromPeriod,
+            int? toPeriod)
+        {
+            var query = _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(order => !order.IsDeleted
+                    && order.IsCurrentRevision
+                    && order.DepartmentCode == departmentCode
+                    && (string.IsNullOrEmpty(memberCompanyCode)
+                        || order.MemberCompanyCode == memberCompanyCode));
 
             if (fromPeriod.HasValue)
             {

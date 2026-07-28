@@ -103,7 +103,7 @@ public sealed class DataSurfaceArchitectureTests
         var root = GetFrontendRoot();
         var history = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
         var historyCode = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.cs"));
-        var historyStyles = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.css"));
+        var historyStyles = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"));
         var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
 
         Assert.Contains("<Toolbar>", history, StringComparison.Ordinal);
@@ -126,6 +126,7 @@ public sealed class DataSurfaceArchitectureTests
         var root = GetFrontendRoot();
         var create = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "OrderCreateStep2.razor"));
         var department = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor"));
+        var sharedOrderList = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
         var review = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "PeriodReviewPanel.razor"));
 
         Assert.Contains("TestId=\"order-create-catalog-data-surface\"", create, StringComparison.Ordinal);
@@ -137,11 +138,14 @@ public sealed class DataSurfaceArchitectureTests
         Assert.DoesNotContain("LoadData=", create, StringComparison.Ordinal);
 
         Assert.Contains("TestId=\"department-summary-data-surface\"", department, StringComparison.Ordinal);
-        Assert.Contains("VppDataSourceMode.ServerPaging", department, StringComparison.Ordinal);
-        Assert.Contains("<VppDataToolbar", department, StringComparison.Ordinal);
-        Assert.Equal(4, Regex.Matches(department, "<VppFilterSelect\\b").Count);
-        Assert.Contains("AllowPaging=\"true\"", department, StringComparison.Ordinal);
-        Assert.Contains("LoadData=\"@OnLoadData\"", department, StringComparison.Ordinal);
+        Assert.Contains("<HistoryWorkspaceShell", department, StringComparison.Ordinal);
+        Assert.Contains("<HistoryOrderList", department, StringComparison.Ordinal);
+        Assert.Contains("Property=\"RequesterName\"", department, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ServerPaging", sharedOrderList, StringComparison.Ordinal);
+        Assert.Contains("<VppDataToolbar", sharedOrderList, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Matches(sharedOrderList, "<VppFilterSelect\\b").Count);
+        Assert.Contains("AllowPaging=\"true\"", sharedOrderList, StringComparison.Ordinal);
+        Assert.Contains("LoadData=\"@LoadRequested\"", sharedOrderList, StringComparison.Ordinal);
 
         Assert.Contains("TestId=\"period-review-data-surface\"", review, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ServerPaging", review, StringComparison.Ordinal);
@@ -165,8 +169,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(19, consumers.Length);
-        Assert.Equal(25, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(18, consumers.Length);
+        Assert.Equal(24, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

@@ -4,17 +4,17 @@
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryFormat
 
-<section class="vpp-history-orders-card" aria-labelledby="history-orders-title">
+<section class="vpp-history-orders-card @Class" aria-labelledby="history-orders-title">
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
                          Bordered="false"
                          AriaLabelledBy="history-orders-title"
-                         TestId="history-orders-data-surface"
+                         TestId="@TestId"
                          Class="vpp-history-data-frame">
     <Toolbar>
         <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
                         Class="vpp-history-orders-toolbar">
-            <h2 id="history-orders-title">@Loc["HistoryOrderList"]</h2>
+            <h2 id="history-orders-title">@EffectiveTitle</h2>
             <div class="vpp-history-filters">
                 <VppFilterSearch Value="@Search"
                                  Input="@SearchChanged"
@@ -85,6 +85,12 @@
                             IsLoading="@IsGridLoading"
                             class="vpp-history-grid vpp-data-grid vpp-data-density-compact">
                 <Columns>
+                    @if (Columns is not null)
+                    {
+                        @Columns
+                    }
+                    else
+                    {
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
                         <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
@@ -144,6 +150,7 @@
                             }
                         </Template>
                     </RadzenDataGridColumn>
+                    }
                 </Columns>
             </RadzenDataGrid>
             @if (IsGridLoading)
@@ -156,6 +163,12 @@
             @foreach (var row in Orders)
             {
                 <button type="button" @onclick="() => OrderSelected.InvokeAsync(row)">
+                    @if (MobileRow is not null)
+                    {
+                        @MobileRow(row)
+                    }
+                    else
+                    {
                     <span class="vpp-history-mobile-topline">
                         <strong>@row.VppCode</strong>
                         <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span>
@@ -163,6 +176,7 @@
                     <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@row.Period · @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span>
                     <span>@Loc["HistoryItem"]: @FormatNumber(row.TotalLines) · @Loc["Quantity"]: @FormatNumber(row.TotalQty)</span>
                     <span class="vpp-history-note">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
+                    }
                 </button>
             }
         </div>
@@ -184,6 +198,11 @@
     [Parameter] public Guid? ActiveCodeOrderId { get; set; }
     [Parameter] public Guid? ActiveNoteOrderId { get; set; }
     [Parameter] public bool HasTableFilters { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string TestId { get; set; } = "history-orders-data-surface";
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? Columns { get; set; }
+    [Parameter] public RenderFragment<VppRequestResDTO>? MobileRow { get; set; }
     [Parameter] public EventCallback<LoadDataArgs> LoadRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> OrderSelected { get; set; }
     [Parameter] public EventCallback RetryRequested { get; set; }
@@ -212,4 +231,8 @@
         new(7, Loc["Approved"]),
         new(8, Loc["Rejected"])
     ];
+
+    private string EffectiveTitle => string.IsNullOrWhiteSpace(Title)
+        ? Loc["HistoryOrderList"].Value
+        : Title;
 }
