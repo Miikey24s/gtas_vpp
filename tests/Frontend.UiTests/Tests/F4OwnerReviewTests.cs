@@ -80,6 +80,23 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 })
             """);
         visualParity[1].Should().Be(visualParity[0]);
+
+        await listSearch.Locator("input").FillAsync("udad");
+        var activeSearchChrome = await listSearch.EvaluateAsync<string>("""
+            search => {
+                const input = search.querySelector('input');
+                const searchStyle = getComputedStyle(search);
+                const inputStyle = getComputedStyle(input);
+                const borderIsContinuous = ['borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor']
+                    .map(property => searchStyle[property])
+                    .every(color => color === searchStyle.borderTopColor);
+                const inputHasNoBorder = ['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth']
+                    .map(property => inputStyle[property])
+                    .every(width => width === '0px');
+                return `${borderIsContinuous && inputHasNoBorder && inputStyle.backgroundColor === 'rgba(0, 0, 0, 0)' && inputStyle.outlineStyle === 'none'}|border=${searchStyle.borderTopColor}|inputBorder=${inputStyle.borderTopWidth}|inputBg=${inputStyle.backgroundColor}|inputOutline=${inputStyle.outlineStyle}`;
+            }
+        """);
+        activeSearchChrome.Should().StartWith("true", "the search wrapper must own one continuous border without an inner input ring or opaque fill");
         await CaptureAsync("f4-review-history-search-parity-1920x1080.png");
     }
 

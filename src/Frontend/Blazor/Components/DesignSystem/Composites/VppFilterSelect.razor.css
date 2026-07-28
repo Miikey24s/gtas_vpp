@@ -61,7 +61,7 @@
     position: fixed;
     position-area: block-end span-inline-end;
     inset: auto;
-    min-width: max(12rem, anchor-size(width));
+    min-width: anchor-size(width);
     width: max-content;
     max-width: min(24rem, calc(100vw - 1rem));
     max-height: min(22rem, calc(100vh - 1rem));

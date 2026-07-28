@@ -1,4 +1,5 @@
 .vpp-filter-search {
+    box-sizing: border-box;
     display: flex;
     flex: 1 1 18rem;
     align-items: center;
@@ -6,13 +7,12 @@
     min-width: 12rem;
     height: 32px;
     padding-inline-start: var(--vpp-space-2);
-    border: 0;
+    border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-lg);
     background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
     color: var(--vpp-text-secondary);
-    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
-    transition: border-color var(--vpp-transition-fast),
-                box-shadow var(--vpp-transition-fast),
+    box-shadow: none;
+    transition: box-shadow var(--vpp-transition-fast),
                 background-color var(--vpp-transition-fast);
 }
 
@@ -21,14 +21,19 @@
 }
 
 .vpp-filter-search:focus-within {
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 20%, transparent),
-                var(--vpp-shadow-xs);
+    border-color: color-mix(in srgb, var(--vpp-text-primary) 20%, var(--vpp-border-default));
+    box-shadow: var(--vpp-shadow-xs);
 }
 
 .vpp-filter-search.is-active {
     background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
+    border-color: var(--vpp-primary-500);
     color: var(--vpp-primary-700);
-    box-shadow: inset 0 0 0 1px var(--vpp-primary-500), var(--vpp-shadow-xs);
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-filter-search.is-active:focus-within {
+    border-color: var(--vpp-primary-500);
 }
 
 .vpp-filter-search .vpp-icon {
@@ -42,9 +47,9 @@
     min-width: 0;
     height: 32px;
     padding: 0 var(--vpp-space-2) 0 0;
-    border: 0;
+    border: 0 !important;
     outline: 0;
-    background: transparent;
+    background: transparent !important;
     color: var(--vpp-text-primary);
     font: inherit;
 }

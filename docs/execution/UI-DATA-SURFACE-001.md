@@ -195,6 +195,7 @@ Gate: History list/detail + My Orders + Catalog giống motif, nhưng không đ�
 - History detail và My Orders tiếp tục dùng cùng `VppOrderItemsSurface`; loại bỏ state menu lọc không còn cần, giữ client-snapshot virtualization, row density, footer và action nghiệp vụ.
 - Product Catalog đã dùng typed `VppDataSurfaceFrame` với `ServerPaging`, `RichTwoLine`, canonical toolbar và opt-in Radzen bridge; API, sort, page size và bốn cột không đổi.
 - Responsive nhìn bằng mắt: desktop `1920/1366`, tablet `768` và mobile `390`; search chiếm hàng riêng ở tablet hẹp/mobile, filter popup neo đúng trigger và không có document-level horizontal overflow. Evidence ignored nằm ở `tmp/ds2-review/ds2-*`.
+- Owner review fix: popup select bỏ min-width cứng `12rem`, chỉ rộng hơn trigger khi nội dung cần; search dùng border thật do wrapper sở hữu và đổi active ngay, không còn frame transition làm viền bị đứt khi vừa gõ.
 - Evidence: frontend Release build `0 warning / 0 error`; `./scripts/gtas.cmd test-frontend` pass `195/195`; isolated Playwright DS2/History/My Orders/Catalog pass `9/9`, responsive rerun pass `1/1`.
 - `gtas-vpp-ui-system` checklist data-surface chưa ghi trong change-set này vì skill đang có thay đổi AI-harness ngoài scope; chỉ cập nhật sau khi change-set đó được hợp nhất hoặc owner cho phép xử lý chung.
 

@@ -814,8 +814,16 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 const surfaceStyle = getComputedStyle(surface);
                 const inputStyle = input ? getComputedStyle(input) : null;
                 const isWhiteText = inputStyle?.color === 'rgb(255, 255, 255)';
-                const hasOutline = surfaceStyle.boxShadow.includes('inset');
-                return `${hasOutline && !isWhiteText}|outline=${hasOutline}|white=${isWhiteText}|bg=${surfaceStyle.backgroundColor}`;
+                const probe = document.createElement('span');
+                probe.style.color = 'var(--vpp-primary-500)';
+                document.body.append(probe);
+                const primary = getComputedStyle(probe).color;
+                probe.remove();
+                const hasActiveBorder = surfaceStyle.borderTopColor === primary
+                    && surfaceStyle.borderRightColor === primary
+                    && surfaceStyle.borderBottomColor === primary
+                    && surfaceStyle.borderLeftColor === primary;
+                return `${hasActiveBorder && !isWhiteText}|border=${surfaceStyle.borderTopColor}|primary=${primary}|white=${isWhiteText}|bg=${surfaceStyle.backgroundColor}`;
             }
         """);
         activeSearchVisual.Should().StartWith("true", "a populated search must use a blue outline with readable dark text instead of a full blue fill");
@@ -835,11 +843,18 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 const triggerRect = trigger.getBoundingClientRect();
                 const contained = rect.left >= 7 && rect.right <= window.innerWidth - 7;
                 const compact = rect.width <= 360 && rect.width >= triggerRect.width - 1;
+                const shortMenuStaysCompact = rect.width - triggerRect.width <= 32;
                 const anchored = Math.min(Math.abs(rect.left - triggerRect.left), Math.abs(rect.right - triggerRect.right)) <= 2;
-                return `${contained && compact && anchored}|contained=${contained}|compact=${compact}|anchored=${anchored}|width=${rect.width}|trigger=${triggerRect.width}|left=${rect.left}|right=${rect.right}|triggerLeft=${triggerRect.left}|triggerRight=${triggerRect.right}`;
+                return `${contained && compact && shortMenuStaysCompact && anchored}|contained=${contained}|compact=${compact}|expansion=${rect.width - triggerRect.width}|anchored=${anchored}|width=${rect.width}|trigger=${triggerRect.width}|left=${rect.left}|right=${rect.right}|triggerLeft=${triggerRect.left}|triggerRight=${triggerRect.right}`;
             }
         """);
         statusMenuGeometry.Should().StartWith("true", "a project select menu must remain content-sized instead of expanding to the viewport");
+        await Page.ScreenshotAsync(new()
+        {
+            Path = Path.Combine(detailScreenshotDirectory, "history-status-filter-compact.png"),
+            Animations = ScreenshotAnimations.Disabled,
+            Caret = ScreenshotCaret.Hide
+        });
 
         await Page.EvaluateAsync("""
             () => {
