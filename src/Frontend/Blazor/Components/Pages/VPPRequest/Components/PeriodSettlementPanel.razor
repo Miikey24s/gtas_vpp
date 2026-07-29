@@ -44,7 +44,17 @@
         <dl>
             <div>
                 <dt>@Loc["SupplyPrimarySupplier"]</dt>
-                <dd>@PrimarySupplierName</dd>
+                <dd>
+                    <button type="button"
+                            class="vpp-settlement-supplier-trigger"
+                            popovertarget="@SupplierPopoverId"
+                            aria-haspopup="listbox"
+                            aria-label="@Loc["SettlementChooseSupplier"]"
+                            disabled="@(isPreviewLoading || SupplierQuotes.Count == 0)">
+                        <span>@PrimarySupplierName</span>
+                        <VppIcon Name="@VppIcons.ExpandMore" />
+                    </button>
+                </dd>
             </div>
             <div>
                 <dt>@Loc["SupplyEffectivePriceList"]</dt>
@@ -55,20 +65,38 @@
                 <dd>@FormatMoney(Preview?.PrimaryQuote?.GrandTotal ?? status?.GrandTotal ?? 0)</dd>
             </div>
         </dl>
-        <div class="vpp-settlement-decision-actions">
-            <RadzenButton Icon="compare_arrows"
-                          Text="@Loc["SettlementCompareOptions"]"
-                          ButtonStyle="ButtonStyle.Base"
-                          Variant="Variant.Text"
-                          Disabled="@(isPreviewLoading || Preview?.Quotes.Count == 0)"
-                          Click="@OpenSupplierDialog" />
-            <RadzenButton Icon="edit"
-                          Text="@Loc["SettlementChangeSupplier"]"
-                          ButtonStyle="ButtonStyle.Light"
-                          Disabled="@(isPreviewLoading || Preview?.Quotes.Count == 0)"
-                          Click="@OpenSupplierDialog" />
-        </div>
     </section>
+
+    <div id="@SupplierPopoverId"
+         class="vpp-settlement-supplier-popover vpp-transient-surface"
+         popover="auto"
+         role="listbox"
+         aria-label="@Loc["SettlementChooseSupplier"]">
+        <header>
+            <h2>@Loc["SettlementChooseSupplier"]</h2>
+            <p>@Month.ToString("00")/@Year · @Loc["SettlementSupplierDialogHint"]</p>
+        </header>
+        <div class="vpp-settlement-quote-list">
+            @foreach (var quote in SupplierQuotes)
+            {
+                var isSelected = IsCurrentQuote(quote);
+                <button type="button"
+                        role="option"
+                        class="vpp-settlement-quote-option @(isSelected ? "is-selected" : null) @(!quote.IsEligible ? "is-unavailable" : null)"
+                        aria-selected="@isSelected.ToString().ToLowerInvariant()"
+                        disabled="@(isPreviewLoading || !quote.IsEligible)"
+                        popovertarget="@SupplierPopoverId"
+                        popovertargetaction="hide"
+                        @onclick="@(() => ApplySupplierQuoteAsync(quote))">
+                    <span class="vpp-settlement-quote-radio" aria-hidden="true"></span>
+                    <span class="vpp-settlement-quote-name"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></span>
+                    <span class="vpp-settlement-quote-coverage">@quote.CoveredItemCount/@quote.RequestedItemCount · @quote.CoveragePercent.ToString("N0")%</span>
+                    <strong class="vpp-settlement-money">@FormatMoney(quote.GrandTotal)</strong>
+                    <span class="vpp-settlement-quote-state">@(quote.IsEligible ? Loc["SettlementEligibleOption"] : Loc["SettlementUnavailableOption"])</span>
+                </button>
+            }
+        </div>
+    </div>
 
     @if (HasPeriodBlockers)
     {
@@ -234,7 +262,7 @@
                                   Text="@Loc["SettlementViewPreview"]"
                                   ButtonStyle="ButtonStyle.Light"
                                   Disabled="@(isPreviewLoading || Preview is null)"
-                                  Click="@OpenSupplierDialog" />
+                                  popovertarget="@SupplierPopoverId" />
                     @if (canCorrect)
                     {
                         <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanConfirm || isCorrecting)" Click="@OpenCorrectionDialog" />
@@ -280,44 +308,6 @@
                              DetailCodeToggled="@ToggleDetailCode"
                              DetailNoteToggled="@ToggleDetailNote"
                              CopyRequested="@CopyToClipboard" />
-
-    @if (isSupplierDialogOpen)
-    {
-        <button type="button" class="vpp-settlement-dialog-backdrop" aria-label="@Loc["Close"]" @onclick="@CloseSupplierDialog"></button>
-        <section class="vpp-settlement-supplier-dialog vpp-transient-surface vpp-transient-surface--center"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="settlement-supplier-dialog-title">
-            <header>
-                <div>
-                    <h2 id="settlement-supplier-dialog-title">@Loc["SettlementChooseSupplier"]</h2>
-                    <p>@Month.ToString("00")/@Year · @Loc["SettlementSupplierDialogHint"]</p>
-                </div>
-                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Small" Click="@CloseSupplierDialog" aria-label="@Loc["Close"]" />
-            </header>
-            <div class="vpp-settlement-quote-list">
-                @foreach (var quote in SupplierQuotes)
-                {
-                    var isSelected = pendingPriceListId == quote.PriceListId;
-                    <button type="button"
-                            class="vpp-settlement-quote-option @(isSelected ? "is-selected" : null) @(!quote.IsEligible ? "is-unavailable" : null)"
-                            aria-pressed="@isSelected.ToString().ToLowerInvariant()"
-                            disabled="@(!quote.IsEligible)"
-                            @onclick="@(() => SelectSupplierQuote(quote))">
-                        <span class="vpp-settlement-quote-radio" aria-hidden="true"></span>
-                        <span class="vpp-settlement-quote-name"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></span>
-                        <span class="vpp-settlement-quote-coverage">@quote.CoveredItemCount/@quote.RequestedItemCount · @quote.CoveragePercent.ToString("N0")%</span>
-                        <strong class="vpp-settlement-money">@FormatMoney(quote.GrandTotal)</strong>
-                        <span class="vpp-settlement-quote-state">@(quote.IsEligible ? Loc["SettlementEligibleOption"] : Loc["SettlementUnavailableOption"])</span>
-                    </button>
-                }
-            </div>
-            <footer>
-                <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@CloseSupplierDialog" />
-                <RadzenButton Icon="check" Text="@Loc["Apply"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(isPreviewLoading || !pendingPriceListId.HasValue)" Click="@ApplySupplierQuoteAsync" />
-            </footer>
-        </section>
-    }
 
     @if (isCorrectionDialogOpen)
     {

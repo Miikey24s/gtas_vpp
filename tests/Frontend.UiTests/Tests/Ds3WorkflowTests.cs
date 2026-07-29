@@ -27,7 +27,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         {
             await Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn" }).ClickAsync();
             await Page.Locator(".vpp-settlement-period-target .vpp-filter-select-trigger[aria-label='Tháng']").ClickAsync();
-            await Page.Locator(".vpp-filter-select-popover:popover-open [role='option']", new() { HasText = "07" }).ClickAsync();
+            await Page.Locator(".vpp-filter-select-popover:popover-open [role='option']", new() { HasText = "06" }).ClickAsync();
             await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
             {
                 State = WaitForSelectorState.Hidden,
@@ -58,14 +58,16 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             }
         }
 
-        var compareButton = Page.GetByRole(AriaRole.Button, new() { Name = "So sánh phương án" });
-        if (await compareButton.IsEnabledAsync())
+        var supplierTrigger = Page.Locator(".vpp-settlement-supplier-trigger");
+        if (await supplierTrigger.IsEnabledAsync())
         {
-            await compareButton.ClickAsync();
-            var dialog = Page.Locator(".vpp-settlement-supplier-dialog:visible");
-            await dialog.WaitForAsync();
-            (await dialog.GetAttributeAsync("class")).Should().Contain("vpp-transient-surface");
-            await dialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+            await supplierTrigger.ClickAsync();
+            var popover = Page.Locator(".vpp-settlement-supplier-popover:popover-open");
+            await popover.WaitForAsync();
+            (await popover.GetAttributeAsync("class")).Should().Contain("vpp-transient-surface");
+            (await popover.Locator("[role='option']").CountAsync()).Should().BeGreaterThan(0);
+            await CaptureAsync("ds3-period-supplier-dropdown-1366x768.png");
+            await Page.Keyboard.PressAsync("Escape");
         }
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban" }).ClickAsync();

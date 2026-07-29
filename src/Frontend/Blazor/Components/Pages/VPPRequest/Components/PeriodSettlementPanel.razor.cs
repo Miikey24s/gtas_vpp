@@ -34,6 +34,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private readonly List<VppOrderDetailItem> detailRows = [];
     private readonly List<string> detailCategories = [];
     private readonly List<string> detailUoms = [];
+    private readonly string supplierPopoverId = $"vpp-settlement-supplier-{Guid.NewGuid():N}";
     private CancellationTokenSource? searchDebounce;
     private List<VppRequestResDTO> orders = [];
     private List<VppRequestResDTO> periodOrdersSnapshot = [];
@@ -44,7 +45,6 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isSettling;
     private bool isCorrecting;
     private bool canCorrect;
-    private bool isSupplierDialogOpen;
     private bool isCorrectionDialogOpen;
     private bool isDrawerOpen;
     private bool isDetailFullscreen;
@@ -70,7 +70,6 @@ public partial class PeriodSettlementPanel : IDisposable
     private int loadedMonth;
     private int? activeDetailCodeNumber;
     private int? activeDetailNoteNumber;
-    private Guid? pendingPriceListId;
     private VppRequestResDTO? selectedOrder;
     private HistoryOrderDetailSheet? detailSheet;
 
@@ -136,6 +135,8 @@ public partial class PeriodSettlementPanel : IDisposable
     private IReadOnlyList<PriceBookQuoteResDTO> SupplierQuotes => Preview?.Quotes
         .OrderBy(quote => quote.Rank)
         .ToArray() ?? [];
+
+    private string SupplierPopoverId => supplierPopoverId;
 
     private IReadOnlyList<VppSegmentedOption<string>> PeriodScopeOptions =>
     [
@@ -263,7 +264,6 @@ public partial class PeriodSettlementPanel : IDisposable
 
             State.SelectedSupplierId = preview?.PrimarySupplierId;
             State.SetPreview(preview);
-            pendingPriceListId = preview?.PrimaryPriceListId;
         }
         finally
         {
@@ -507,15 +507,6 @@ public partial class PeriodSettlementPanel : IDisposable
         await LoadOrdersAsync(firstLoad: false);
     }
 
-    private Task OpenSupplierDialog()
-    {
-        pendingPriceListId = Preview?.PrimaryPriceListId;
-        isSupplierDialogOpen = true;
-        return InvokeAsync(StateHasChanged);
-    }
-
-    private void CloseSupplierDialog() => isSupplierDialogOpen = false;
-
     private Task OpenCorrectionDialog()
     {
         isCorrectionDialogOpen = true;
@@ -524,12 +515,11 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private void CloseCorrectionDialog() => isCorrectionDialogOpen = false;
 
-    private void SelectSupplierQuote(PriceBookQuoteResDTO quote) => pendingPriceListId = quote.PriceListId;
+    private bool IsCurrentQuote(PriceBookQuoteResDTO quote) => Preview?.PrimaryPriceListId == quote.PriceListId;
 
-    private async Task ApplySupplierQuoteAsync()
+    private async Task ApplySupplierQuoteAsync(PriceBookQuoteResDTO quote)
     {
-        var quote = SupplierQuotes.FirstOrDefault(item => item.PriceListId == pendingPriceListId);
-        if (quote is null || !quote.IsEligible)
+        if (!quote.IsEligible || isPreviewLoading || IsCurrentQuote(quote))
         {
             return;
         }
@@ -539,7 +529,6 @@ public partial class PeriodSettlementPanel : IDisposable
             State.Exceptions.Clear();
         }
         await LoadPreviewAsync(quote.SupplierId, quote.PriceListId);
-        isSupplierDialogOpen = false;
     }
 
     private async Task OpenOrderAsync(VppRequestResDTO order)

@@ -983,8 +983,6 @@
   <data name="OrderCount" xml:space="preserve"><value>Orders</value></data>
   <data name="SettlementViewMode" xml:space="preserve"><value>Settlement view mode</value></data>
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Supplier and price list used for settlement</value></data>
-  <data name="SettlementCompareOptions" xml:space="preserve"><value>Compare options</value></data>
-  <data name="SettlementChangeSupplier" xml:space="preserve"><value>Change</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>All departments</value></data>
   <data name="SettlementDepartmentRequester" xml:space="preserve"><value>Department / Requester</value></data>
   <data name="SettlementViewPreview" xml:space="preserve"><value>View preview</value></data>
