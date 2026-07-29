@@ -36,7 +36,10 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 
         await Page.GotoAsync($"{BaseUrl}dashboard/order-create");
         await WaitForRowsAsync(".vpp-order-builder-grid", ".vpp-order-builder-virtual-row");
-        await Page.Locator(".vpp-header-tab.is-active .vpp-header-breadcrumb-ancestor").WaitForAsync();
+        var activeHeaderTab = Page.Locator(".vpp-header-tab.is-active");
+        await activeHeaderTab.WaitForAsync();
+        (await activeHeaderTab.InnerTextAsync()).Trim().Should().Be("Đơn hàng của tôi");
+        (await Page.Locator(".vpp-header-breadcrumb, .vpp-header-breadcrumb-ancestor, .vpp-header-breadcrumb-leaf").CountAsync()).Should().Be(0);
         (await Page.Locator(".vpp-order-flow-steps li").CountAsync()).Should().Be(2);
         await AssertBoundedPageAndSharedFilterAsync("order-create", ".vpp-order-create-page");
         var visibleRowNumbers = await Page.Locator(".vpp-order-builder-virtual-row .vpp-order-builder-virtual-cell:first-child")

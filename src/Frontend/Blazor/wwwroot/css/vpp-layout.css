@@ -49,12 +49,8 @@ body:has(.vpp-layout) {
 
 /* W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip khu vực
    (thanh tab RadzenTabs trong body bị ẩn ở desktop, xem khối
-   media phía dưới); mobile giữ hamburger + breadcrumb vị trí. */
+   media phía dưới); mobile giữ hamburger và tab trong body. */
 @media (min-width: 769px) {
-    .vpp-header-breadcrumb {
-        display: none !important;
-    }
-
     /* Tab strip đã chuyển lên header — nav RadzenTabs cấp cao nhất trong body
        chỉ còn phục vụ mobile. Chỉ ẩn nav trực tiếp (>) để không đụng tab con
        (management/pricing) nằm sâu trong panel. */
@@ -150,60 +146,6 @@ leftsidebar {
 
 .vpp-layout-header .vpp-header-tab.is-active {
     color: var(--vpp-text-primary);
-}
-
-.vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-sep {
-    color: var(--vpp-text-tertiary);
-    font-size: 1rem;
-}
-
-.vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-ancestor {
-    color: var(--vpp-text-tertiary);
-    padding: var(--vpp-space-1) var(--vpp-space-2);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-sm);
-    background: color-mix(in srgb, var(--vpp-text-primary) 3%, var(--vpp-bg-elevated));
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-medium);
-}
-
-.vpp-layout-header .vpp-header-tab .vpp-header-breadcrumb-leaf {
-    color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-semibold);
-}
-
-/* Breadcrumb cha › con trong header (nestedHeaderPaths của Atlas). */
-.vpp-header-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    font-family: var(--vpp-font-sidebar);
-}
-
-.vpp-header-breadcrumb-ancestor {
-    overflow: hidden;
-    color: var(--vpp-text-tertiary);
-    font-size: var(--vpp-text-sm);
-    text-overflow: ellipsis;
-}
-
-.vpp-header-breadcrumb-leaf {
-    overflow: hidden;
-    color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-base);
-    font-weight: var(--vpp-font-weight-semibold);
-    text-overflow: ellipsis;
-}
-
-.vpp-header-breadcrumb-sep {
-    flex: 0 0 auto;
-    color: var(--vpp-text-tertiary);
-    font-size: 1rem;
 }
 
 .vpp-global-loader {

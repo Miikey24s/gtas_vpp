@@ -26,35 +26,8 @@
                     <a class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
                        href="@headerTab.Path"
                        aria-current="@(headerTab.IsActive ? "page" : null)">
-                        @if (headerTab.IsActive && headerTab.Breadcrumb is { Count: > 1 })
-                        {
-                            @for (var i = 0; i < headerTab.Breadcrumb.Count; i++)
-                            {
-                                @if (i > 0)
-                                {
-                                    <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-breadcrumb-sep" />
-                                }
-                                <span class="@(i == headerTab.Breadcrumb.Count - 1 ? "vpp-header-breadcrumb-leaf" : "vpp-header-breadcrumb-ancestor")">@headerTab.Breadcrumb[i]</span>
-                            }
-                        }
-                        else
-                        {
-                            @headerTab.Label
-                        }
+                        @headerTab.Label
                     </a>
-                }
-            </nav>
-        }
-        @if (HeaderPathSegments.Count > 0)
-        {
-            <nav class="vpp-header-breadcrumb" aria-label="@Loc["CurrentLocation"]">
-                @for (var i = 0; i < HeaderPathSegments.Count; i++)
-                {
-                    @if (i > 0)
-                    {
-                        <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-breadcrumb-sep" />
-                    }
-                    <span class="@(i == HeaderPathSegments.Count - 1 ? "vpp-header-breadcrumb-leaf" : "vpp-header-breadcrumb-ancestor")">@HeaderPathSegments[i]</span>
                 }
             </nav>
         }

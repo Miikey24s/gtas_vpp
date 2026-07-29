@@ -40,6 +40,13 @@ public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
             await Page.Locator("[data-testid='department-summary-data-surface']:visible").Last
                 .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
             await Page.WaitForTimeoutAsync(250);
+            var activeHeaderTab = Page.Locator(".vpp-layout-header .vpp-header-tab.is-active");
+            if (viewport.Width >= 769)
+            {
+                await activeHeaderTab.WaitForAsync();
+                (await activeHeaderTab.InnerTextAsync()).Trim().Should().Be("Tổng hợp phòng ban");
+            }
+            (await Page.Locator(".vpp-header-breadcrumb, .vpp-header-breadcrumb-ancestor, .vpp-header-breadcrumb-leaf").CountAsync()).Should().Be(0);
             var hasHorizontalOverflow = await Page.EvaluateAsync<bool>(
                 "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1");
             hasHorizontalOverflow.Should().BeFalse($"route must not overflow at {viewport.Width}x{viewport.Height}");

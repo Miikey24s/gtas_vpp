@@ -203,21 +203,20 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void M2_CatalogSeparatesIdentityHeaderFromSharedFiltersAndUsesServerPaging()
+    public void M2_CatalogUsesFlatSharedFiltersAndVisibleServerPaging()
     {
         var catalog = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor");
         var catalogCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor.cs");
 
-        var headerStart = catalog.IndexOf("<header class=\"vpp-catalog-card-header\">", StringComparison.Ordinal);
-        var headerEnd = catalog.IndexOf("</header>", headerStart, StringComparison.Ordinal);
-        var filterStart = catalog.IndexOf("vpp-catalog-filter-group", StringComparison.Ordinal);
-
-        Assert.True(headerStart >= 0 && headerEnd > headerStart && filterStart > headerEnd);
+        Assert.DoesNotContain("vpp-catalog-card-header", catalog, StringComparison.Ordinal);
         Assert.Contains("<VppFilterSearch", catalog, StringComparison.Ordinal);
         Assert.Equal(2, catalog.Split("<VppFilterSelect", StringSplitOptions.None).Length - 1);
         Assert.Contains("AllowPaging=\"true\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("PagerAlwaysVisible=\"true\"", catalog, StringComparison.Ordinal);
         Assert.Contains("Count=\"@ProductCount\"", catalog, StringComparison.Ordinal);
         Assert.Contains("LoadData=\"@LoadProductsAsync\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("Title=\"#\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("CurrentSkip = args.Skip ?? 0;", catalogCode, StringComparison.Ordinal);
         Assert.DoesNotContain("DownloadCatalog", catalog, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowCatalogDownloadNotice", catalogCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"@Loc[\"Status\"]\"", catalog, StringComparison.Ordinal);

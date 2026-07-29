@@ -242,6 +242,7 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
+        var sourceCode = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor.cs"));
         var userMenuSource = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
         var brandMarkSource = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppBrandMark.razor"));
         var appSource = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
@@ -320,7 +321,7 @@ public sealed class SharedUiFoundationTests
         // W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip
         // khu vực; group hiện ở sidebar identity thay vì lặp trong header.
         // Nav RadzenTabs cấp cao nhất trong body chỉ còn
-        // phục vụ mobile; breadcrumb vị trí chỉ hiện ở mobile.
+        // phục vụ mobile; header chỉ còn một cấp tab, không render breadcrumb con/cháu.
         Assert.DoesNotContain("grid-template-rows: 0 1fr;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("grid-template-rows: var(--vpp-header-height) 1fr;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-tabs > .rz-tabview-nav-container,\n    .vpp-admin-tabs > .rz-tabview-nav {\n        display: none !important;\n    }", layoutCss.Replace("\r\n", "\n"), StringComparison.Ordinal);
@@ -333,9 +334,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("border-radius: var(--vpp-radius-md);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab:hover::before", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab:focus-visible::before", layoutCss, StringComparison.Ordinal);
-        Assert.Contains(".vpp-header-breadcrumb", layoutCss, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-header-breadcrumb", layoutCss, StringComparison.Ordinal);
         Assert.Contains("vpp-header-tabs", source, StringComparison.Ordinal);
-        Assert.Contains("vpp-header-breadcrumb", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-header-breadcrumb", source, StringComparison.Ordinal);
+        Assert.Contains("new(Loc[\"DepartmentSummary\"], \"/dashboard?tab=3&managementTab=department\", tab == \"3\")", sourceCode, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-header-role-badge", source, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-header-role-badge", layoutCss, StringComparison.Ordinal);
         Assert.Contains("\"rz-sidebar rz-header\"", layoutCss, StringComparison.Ordinal);

@@ -12,19 +12,11 @@
         }
         else
         {
-            <section class="vpp-catalog-card" aria-labelledby="catalog-result-title">
-                <header class="vpp-catalog-card-header">
-                    <div class="vpp-catalog-heading">
-                        <span>@Loc["ProductCatalog"]</span>
-                        <h2 id="catalog-result-title">@Loc["AvailableCatalogItems", ProductCount]</h2>
-                        <p>@Loc["CatalogReferenceDescription"]</p>
-                    </div>
-                </header>
-
+            <section class="vpp-catalog-card" aria-label="@Loc["ProductCatalog"]">
                 <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                                      Density="VppDataDensity.RichTwoLine"
                                      Bordered="false"
-                                     AriaLabelledBy="catalog-result-title"
+                                     AriaLabel="@Loc["ProductCatalog"]"
                                      TestId="catalog-data-surface"
                                      Class="vpp-catalog-data-frame">
                     <Toolbar>
@@ -81,7 +73,7 @@
                                         LoadData="@LoadProductsAsync"
                                         AllowPaging="true"
                                         PageSize="20"
-                                        PagerAlwaysVisible="false"
+                                        PagerAlwaysVisible="true"
                                         ShowPagingSummary="true"
                                         PagingSummaryFormat="@Loc["CatalogPagingSummary"]"
                                         PagerHorizontalAlign="HorizontalAlign.Right"
@@ -94,7 +86,9 @@
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-catalog-grid vpp-data-grid vpp-data-density-rich-two-line">
                             <Columns>
-                                @* Atlas catalog: bảng tra cứu 4 cột, không có cột thứ tự "#" (mã VPP ở ô mặt hàng đã tự định danh dòng). *@
+                                <RadzenDataGridColumn TItem="ProductItem" Title="#" Width="56px" TextAlign="TextAlign.Center" Sortable="false" Resizable="false">
+                                    <Template Context="row">@(CurrentSkip + Products.IndexOf(row) + 1)</Template>
+                                </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="ProductItem" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
                                     <Template Context="row">
                                         <div class="vpp-catalog-item-cell">

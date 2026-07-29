@@ -33,6 +33,7 @@ public partial class Tab_ProductCatalog : IDisposable
     public List<VppFilterOption<string>> CategoryOptions { get; set; } = [];
     public List<VppFilterOption<string>> UnitOptions { get; set; } = [];
     public int ProductCount { get; set; }
+    public int CurrentSkip { get; set; }
     public bool IsFirstLoading { get; set; } = true;
     public bool IsGridLoading { get; set; }
     public bool HasLoadError { get; set; }
@@ -105,6 +106,7 @@ public partial class Tab_ProductCatalog : IDisposable
 
         try
         {
+            CurrentSkip = args.Skip ?? 0;
             var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(BuildProductsEndpoint(args));
             Products = result.Data ?? [];
             ProductCount = result.TotalCount;
