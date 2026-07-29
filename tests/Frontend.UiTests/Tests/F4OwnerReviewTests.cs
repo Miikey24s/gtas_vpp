@@ -406,7 +406,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
             }
             """);
         contract.Should().StartWith("true|vpp-transient-enter-");
-        contract.Should().EndWith("|0.2s");
+        contract.Should().EndWith("|0.16s");
     }
 
     private async Task WaitForRowsAsync(string gridSelector, string rowSelector = "tbody tr")

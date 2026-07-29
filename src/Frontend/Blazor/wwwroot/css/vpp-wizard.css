@@ -444,25 +444,6 @@
     font-size: var(--vpp-text-base);
 }
 
-.vpp-wizard-selection-empty {
-    flex: 1;
-    padding: var(--vpp-space-8) var(--vpp-space-5);
-}
-
-.vpp-wizard-selection-empty .vpp-empty-state-icon {
-    font-size: 2.75rem;
-    margin-bottom: var(--vpp-space-3);
-}
-
-.vpp-wizard-selection-empty .vpp-empty-state-title {
-    font-size: var(--vpp-text-lg);
-}
-
-.vpp-wizard-selection-empty .vpp-empty-state-desc {
-    font-size: var(--vpp-text-sm);
-    margin-bottom: 0;
-}
-
 /* ── Xem lại ─────────────────────────────────────────────────── */
 .vpp-wizard-review-metrics {
     display: grid;

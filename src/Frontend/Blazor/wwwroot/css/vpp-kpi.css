@@ -668,29 +668,6 @@
     white-space: nowrap;
 }
 
-.vpp-orders-empty.vpp-empty-state {
-    min-height: 168px;
-    padding: var(--vpp-space-6);
-    border: 1px dashed var(--vpp-border-default);
-    border-radius: var(--vpp-radius-card);
-    background: color-mix(in srgb, var(--vpp-primary-500) 2%, var(--vpp-bg-elevated));
-}
-
-.vpp-orders-empty .vpp-empty-state-icon {
-    margin-bottom: var(--vpp-space-2);
-    font-size: 2.25rem;
-}
-
-.vpp-orders-empty .vpp-empty-state-title {
-    font-size: var(--vpp-text-lg);
-}
-
-.vpp-orders-empty .vpp-empty-state-desc {
-    max-width: 34rem;
-    margin-bottom: 0;
-    font-size: var(--vpp-text-sm);
-}
-
 .vpp-orders-card-list {
     min-width: 0;
 }
@@ -909,10 +886,6 @@
         flex-direction: column;
     }
 
-    .vpp-orders-empty.vpp-empty-state {
-        min-height: 150px;
-        padding: var(--vpp-space-5) var(--vpp-space-4);
-    }
 }
 
 @media print {
@@ -927,8 +900,7 @@
     }
 
     .vpp-orders-story,
-    .vpp-orders-archive,
-    .vpp-orders-empty.vpp-empty-state {
+    .vpp-orders-archive {
         border-color: #666;
         box-shadow: none;
     }
@@ -1149,78 +1121,6 @@
 .vpp-badge-warning { background: var(--vpp-warning-muted); color: var(--vpp-warning); }
 .vpp-badge-info    { background: var(--vpp-info-muted); color: var(--vpp-info); }
 .vpp-badge-secondary { background: var(--vpp-bg-surface); color: var(--vpp-text-secondary); }
-
-/* ── Trạng thái rỗng ─────────────────────────────────────────── */
-.vpp-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--vpp-space-16) var(--vpp-space-6);
-    text-align: center;
-}
-
-.vpp-empty-state-icon {
-    font-size: 4rem;
-    color: var(--vpp-text-tertiary);
-    opacity: 0.4;
-    margin-bottom: var(--vpp-space-4);
-}
-
-.vpp-empty-state-title {
-    font-family: var(--vpp-font-display);
-    font-size: var(--vpp-text-xl);
-    font-weight: var(--vpp-font-weight-semibold);
-    color: var(--vpp-text-primary);
-    margin-bottom: var(--vpp-space-2);
-}
-
-.vpp-empty-state-desc {
-    font-size: var(--vpp-text-base);
-    color: var(--vpp-text-secondary);
-    max-width: 360px;
-    margin-bottom: var(--vpp-space-6);
-}
-
-.vpp-empty-state-action {
-    padding: var(--vpp-space-2) var(--vpp-space-5);
-    background: var(--vpp-primary-500);
-    color: var(--vpp-text-inverse);
-    border: none;
-    border-radius: var(--vpp-radius-button);
-    font-family: var(--vpp-font-body);
-    font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-medium);
-    cursor: pointer;
-    transition:
-        background-color var(--vpp-transition-fast),
-        color var(--vpp-transition-fast),
-        box-shadow var(--vpp-transition-fast);
-}
-
-.vpp-empty-state-action:hover {
-    background: var(--vpp-primary-600);
-    box-shadow: var(--vpp-shadow-sm);
-}
-
-.vpp-empty-state.vpp-empty-state-compact {
-    padding: var(--vpp-space-5) var(--vpp-space-4);
-}
-
-.vpp-empty-state.vpp-empty-state-compact .vpp-empty-state-icon {
-    font-size: 2.5rem;
-    margin-bottom: var(--vpp-space-2);
-}
-
-.vpp-empty-state.vpp-empty-state-compact .vpp-empty-state-title {
-    font-size: var(--vpp-text-base);
-    margin-bottom: var(--vpp-space-1);
-}
-
-.vpp-empty-state.vpp-empty-state-compact .vpp-empty-state-desc {
-    font-size: var(--vpp-text-sm);
-    margin-bottom: var(--vpp-space-4);
-}
 
 /* ── Đường phân cách khu vực ─────────────────────────────────── */
 .vpp-section-divider {

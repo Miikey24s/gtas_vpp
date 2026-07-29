@@ -278,6 +278,13 @@ Mốc dễ hiểu:
 - Tất cả page consumer đã migrate khỏi `VppEmptyState` và `VppStatePanel` string API sang `VppContentStateKind` typed. Ba adapter `EmptyState`, `VppEmptyState`, `VppStatePanel` được xóa sau khi architecture scan xác nhận consumer bằng 0.
 - Evidence: Release build `0 warning/error`; frontend unit/architecture `199/199`; DS3 desktop `1/1`, responsive `1024×768` + `390×844` `2/2`; History/Catalog/Department/DS3/Report matrix `10/10`; Order Create lifecycle mutation-isolated `1/1`. Ảnh desktop/mobile được kiểm bằng mắt; output thô vẫn Git ignored.
 
+### 5.9 R1 behavior-preserving refactor — 2026-07-29
+
+- State adapter cleanup hoàn tất ở F6B. R1 tiếp tục gỡ duplicate orchestration: cell-value popup chỉ còn một observer/positioning module tại `VppCellValuePopover`; History JS chỉ sở hữu range/KPI transient surfaces và page-size/chart behavior.
+- `VppOrderItemsSurface` không còn import module JS riêng, lifecycle/dispose trùng hoặc alias `vpp-history-popover-value/copy`. CSS chết của empty-state adapter và wizard state cũ được xóa sau source scan về 0 consumer.
+- Không mass-split `vpp-layout.css`, `HistoryWorkspaceShell.razor.css` hoặc generic admin code chỉ để đạt quota dòng. R1 ưu tiên seam có bằng chứng và giảm nguồn behavior cạnh tranh; các file lớn còn lại được giữ cho đến khi có ownership boundary nhỏ, độc lập và test được.
+- Evidence: Release build `0 warning/error`; frontend unit/architecture `199/199`; History + My Orders + F4 interaction matrix `8/9` pass lần đầu, failure duy nhất là assertion motion Apple cũ `0.2s`; cập nhật về canonical OpenAI token `0.16s` rồi F4 `4/4` pass. Popup code/filter screenshots được xem bằng mắt, không lệch anchor hoặc mất copy action.
+
 ### 5.1 Visual review contract
 
 **Quyết định:** hình ảnh là lớp truyền đạt chính cho owner, nhưng không phải bằng chứng duy nhất. Mỗi wave phải tạo một `Wave Review Board` vừa một màn hình, ưu tiên visual và chỉ dùng nhãn ngắn. Screenshot phải lấy từ Blazor runtime với TEST/isolated fixture sau khi implementation chạy được; không dùng mock hoặc Atlas render để tuyên bố code đã hoàn thành. Mọi kết luận về thẳng hàng, khoảng cách, kích thước hoặc motion phải có lượt quan sát bằng mắt trên runtime; motion cần chuỗi frame đại diện thay vì chỉ một ảnh đã settle.

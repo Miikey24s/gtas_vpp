@@ -19,13 +19,11 @@
               role="dialog"
               aria-label="@Label"
               @onclick:stopPropagation>
-            @* Alias history được giữ trong DS1 để JS/test/CSS consumer cũ tiếp tục hoạt động;
-               DS2 chỉ xóa sau khi consumer ledger về 0. *@
-            <span class="vpp-cell-value-popover-value vpp-history-popover-value">@Value</span>
+            <span class="vpp-cell-value-popover-value">@Value</span>
             @if (AllowCopy && CopyRequested.HasDelegate)
             {
                 <button type="button"
-                        class="vpp-cell-value-popover-copy vpp-history-popover-copy"
+                        class="vpp-cell-value-popover-copy"
                         title="@CopyLabel"
                         aria-label="@CopyLabel"
                         @onclick="CopyAsync"

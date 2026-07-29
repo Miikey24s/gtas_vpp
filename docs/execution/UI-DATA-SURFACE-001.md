@@ -1,6 +1,6 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DS0–DS4 IMPLEMENTED; R1 IN PROGRESS — LEGACY STATE ADAPTERS REMOVED; FINAL OWNER REVIEW AFTER F7`
+> Trạng thái: `DS0–DS4 + R1 DONE — FINAL OWNER REVIEW AFTER F7`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
@@ -29,7 +29,7 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 | DS2 — Reference | `DONE — OWNER APPROVED 2026-07-29` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Đã duyệt và mở DS3 |
 | DS3 — Workflow | `IMPLEMENTED — FULL ROLLOUT OPENED` | Create Order, Department Summary, 4 bước Vận hành kỳ | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Được phép tiếp tục; vẫn nằm trong final review toàn hệ thống |
 | DS4 — Admin | `IMPLEMENTED — FINAL REVIEW DEFERRED TO F7` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Gộp vào final board theo yêu cầu owner |
-| R1 — Refactor | `IN PROGRESS — STATE ADAPTERS DONE` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
+| R1 — Refactor | `DONE — 2026-07-29` | Xóa adapter/CSS/state hết consumer; bỏ orchestration popup trùng | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Build/unit + popup/virtualization browser parity pass |
 
 ### Bốn quyết định owner đã duyệt
 
@@ -269,7 +269,7 @@ Tên chính xác cho việc “đổi code nhưng UI/tương tác không đổi�
 - So sánh trước/sau bằng DOM contract, screenshot, interaction, console/network và test route thật.
 - Không kết hợp refactor rộng với redesign đang còn review.
 
-Checkpoint 2026-07-29: mọi page consumer đã dùng `VppContentStateKind`; ba adapter `EmptyState`, `VppEmptyState`, `VppStatePanel` được xóa sau khi architecture scan về 0 consumer. Period workflow được nối full-height đến bottom inset và khóa responsive filter control theo shared CSS; behavior API/RBAC/settlement không đổi.
+Checkpoint 2026-07-29: mọi page consumer đã dùng `VppContentStateKind`; ba adapter `EmptyState`, `VppEmptyState`, `VppStatePanel` được xóa sau khi architecture scan về 0 consumer. `VppCellValuePopover` trở thành authority duy nhất cho viewport positioning; hai observer JS trùng ở History/Order Items và alias value/copy cũ được gỡ. CSS state/wizard không còn consumer cũng được xóa. Không tách file chỉ để giảm số dòng khi responsibility chưa tạo seam rõ.
 
 ## 6. Cách cleanup trong lúc còn thiết kế
 

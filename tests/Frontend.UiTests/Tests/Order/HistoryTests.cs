@@ -321,7 +321,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             }
         """);
         codePopoverGeometry.Should().StartWith("true", "the full order code must remain visible above the grid stacking and viewport boundaries");
-        var copyActionGeometry = await codePopover.Locator(".vpp-history-popover-copy").EvaluateAsync<string>("""
+        var copyActionGeometry = await codePopover.Locator(".vpp-cell-value-popover-copy").EvaluateAsync<string>("""
             button => {
                 const icon = button.querySelector('.vpp-icon');
                 if (!icon) return 'missing';
@@ -351,8 +351,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await noteTrigger.ClickAsync();
         var notePopover = rows.First.Locator(".vpp-history-note-popover");
         await notePopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        (await notePopover.Locator(".vpp-history-popover-value").InnerTextAsync()).Should().Be(await noteTrigger.GetAttributeAsync("title"));
-        await notePopover.Locator(".vpp-history-popover-copy").WaitForAsync();
+        (await notePopover.Locator(".vpp-cell-value-popover-value").InnerTextAsync()).Should().Be(await noteTrigger.GetAttributeAsync("title"));
+        await notePopover.Locator(".vpp-cell-value-popover-copy").WaitForAsync();
         // Double-rAF: chờ render lắng xuống trước khi đo hình học popover.
         await WaitForRenderSettleAsync();
         var notePopoverGeometry = await notePopover.EvaluateAsync<string>("""
@@ -627,8 +627,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var detailCodePopover = drawer.Locator(".vpp-history-detail-code-popover");
         await detailCodePopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await Page.WaitForFunctionAsync("() => document.querySelector('.vpp-history-detail-code-popover')?.classList.contains('is-viewport-surface')");
-        (await detailCodePopover.Locator(".vpp-history-popover-value").InnerTextAsync()).Should().Be(await detailItemCode.GetAttributeAsync("title"));
-        await detailCodePopover.Locator(".vpp-history-popover-copy").WaitForAsync();
+        (await detailCodePopover.Locator(".vpp-cell-value-popover-value").InnerTextAsync()).Should().Be(await detailItemCode.GetAttributeAsync("title"));
+        await detailCodePopover.Locator(".vpp-cell-value-popover-copy").WaitForAsync();
         var detailCodeGeometry = await detailCodePopover.EvaluateAsync<string>("""
             popover => {
                 const anchor = popover.parentElement;

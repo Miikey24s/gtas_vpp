@@ -817,7 +817,8 @@ public sealed class SharedUiFoundationTests
         var historyDrawer = File.ReadAllText(Path.Combine(historyComponentsRoot, "HistoryOrderDetailSheet.razor"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
-        var orderItemsScript = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.js"));
+        var orderItemsScriptPath = Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.js");
+        var cellValueScript = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppCellValuePopover.razor.js"));
         var clearFiltersButton = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppClearFiltersButton.razor"));
         var clearFiltersStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppClearFiltersButton.razor.css"));
 
@@ -866,7 +867,10 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("::deep .vpp-history-detail-empty", historyStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-items-surface ::deep .vpp-history-detail-empty", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("vpp-history-detail-note-column", orderItemsStyles, StringComparison.Ordinal);
-        Assert.Contains("::deep .vpp-history-popover-copy .vpp-icon", orderItemsStyles, StringComparison.Ordinal);
+        Assert.Contains("::deep .vpp-cell-value-popover-copy .vpp-icon", orderItemsStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-history-popover-copy", orderItemsStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("@inject IJSRuntime", orderItemsSurface, StringComparison.Ordinal);
+        Assert.False(File.Exists(orderItemsScriptPath));
         Assert.Contains("font-size: 14px;", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("grid-template-rows: auto auto auto minmax(0, 1fr);", historyStyles, StringComparison.Ordinal);
         Assert.Contains("vpp-history-skeleton", historyStyles, StringComparison.Ordinal);
@@ -883,11 +887,12 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("new ResizeObserver(() => {", historyScript, StringComparison.Ordinal);
         Assert.DoesNotContain("updateHistoryScrollGutters", historyScript, StringComparison.Ordinal);
         Assert.DoesNotContain("has-vertical-overflow", historyScript, StringComparison.Ordinal);
-        Assert.DoesNotContain("surface.offsetWidth - surface.clientWidth", orderItemsScript, StringComparison.Ordinal);
-        Assert.Contains("observeOrderItemsSurface", orderItemsScript, StringComparison.Ordinal);
-        Assert.Contains("positionTransientSurfaces", orderItemsScript, StringComparison.Ordinal);
+        Assert.Contains("observeCellValuePopover", cellValueScript, StringComparison.Ordinal);
+        Assert.Contains("positionPanel", cellValueScript, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-history-code-popover", historyScript, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-history-note-popover", historyScript, StringComparison.Ordinal);
         Assert.Contains("renderHistoryChartLabels", historyScript, StringComparison.Ordinal);
-        Assert.Contains("surface.style.removeProperty('min-width')", historyScript, StringComparison.Ordinal);
+        Assert.Contains("panel.style.setProperty('max-width'", cellValueScript, StringComparison.Ordinal);
         Assert.Contains("notation: 'compact'", historyScript, StringComparison.Ordinal);
         Assert.Contains("if (height >= 1100) return 8;", historyScript, StringComparison.Ordinal);
         Assert.Contains("if (height >= 680) return 4;", historyScript, StringComparison.Ordinal);
