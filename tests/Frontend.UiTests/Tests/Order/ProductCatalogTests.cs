@@ -31,6 +31,11 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator("[data-testid='catalog-data-surface']").GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
         (await grid.Locator("thead th").First.InnerTextAsync()).Trim().Should().Be("#");
         (await grid.Locator("tbody tr").First.Locator("td").First.InnerTextAsync()).Trim().Should().Be("1");
+        var idleSortIconDisplay = await grid.Locator("thead th").Nth(1)
+            .Locator(".rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc)")
+            .EvaluateAsync<string>("element => getComputedStyle(element).display");
+        idleSortIconDisplay.Should().Be("none",
+            "an inactive sort affordance must not overlap the catalog column label");
         var gridCornerRadius = await grid.EvaluateAsync<string>("""
             element => {
                 const style = getComputedStyle(element);

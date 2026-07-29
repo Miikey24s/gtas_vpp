@@ -55,6 +55,7 @@ public sealed class DataSurfaceArchitectureTests
         var root = GetFrontendRoot();
         var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         var bridge = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-radzen-theme.css"));
+        var dataGrid = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-datagrid.css"));
 
         foreach (var token in new[]
                  {
@@ -80,6 +81,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
         Assert.DoesNotContain("body .rz-data-grid", bridge, StringComparison.Ordinal);
+        Assert.Contains(".vpp-data-grid .rz-grid-table thead th .rz-sortable-column-icon.rzi-sort", dataGrid, StringComparison.Ordinal);
+        Assert.Contains(":is(.rzi-sort-asc, .rzi-sort-desc)", dataGrid, StringComparison.Ordinal);
     }
 
     [Fact]
