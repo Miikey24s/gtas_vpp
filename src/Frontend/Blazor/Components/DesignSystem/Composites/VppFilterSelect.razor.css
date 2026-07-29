@@ -115,7 +115,7 @@
     inset-block: var(--vpp-space-2);
     inset-inline-start: var(--vpp-space-1);
     width: 3px;
-    border-radius: var(--vpp-radius-pill);
+    border-radius: var(--vpp-radius-full);
     background: var(--vpp-primary-500);
     content: "";
 }

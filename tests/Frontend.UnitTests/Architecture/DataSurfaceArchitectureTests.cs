@@ -70,6 +70,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains(".vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
         Assert.Contains("[data-vpp-data-surface=\"true\"] .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
         Assert.Contains("--rz-grid-border-radius: 0;", bridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-paginator .rz-dropdown", bridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li).rz-state-highlight", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
         Assert.DoesNotContain("body .rz-data-grid", bridge, StringComparison.Ordinal);

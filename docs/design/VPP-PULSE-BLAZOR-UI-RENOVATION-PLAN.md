@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.91` — 2026-07-29
+> **Phiên bản:** `2.92` — 2026-07-29
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -1254,6 +1254,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-29 | Canonical select + pager page-size dropdown | `VppFilterSelect` là visual contract cho select toàn dự án; dropdown chọn số dòng của Radzen pager phải cùng chiều cao, radius, hover/focus, popup và selected indicator | Owner phát hiện page-size select vẫn dùng chrome Radzen mặc định nên lệch rõ với các ô lọc đã chuẩn hóa | Global select interaction | Ánh xạ pager trigger và Radzen dropdown portal vào cùng token/chrome; giữ form-specific override có chủ đích | Mọi data pager và Radzen dropdown popup; Catalog/History/Department/Period/Admin là consumer đại diện | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Shared data-surface grid seam | Khung data surface sở hữu bo góc ngoài; `RadzenDataGrid` nằm dưới toolbar phải vuông, không tự bo hai góc trên tại đường nối toolbar → header bảng | Owner phát hiện Catalog xuất hiện hai góc cong thừa ngay trên hàng tên cột, làm bề mặt ghép trông như hai card chồng nhau | Shared data-surface bridge | Scope `--rz-grid-border-radius: 0` cho `.vpp-data-grid` bên trong `VppDataSurfaceFrame`; thêm architecture + computed-style browser gate | Catalog và mọi grid đã opt-in vào shared data surface | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Global art direction + execution mode | Retire `T001`; OpenAI/Codex minimal system thay Apple làm visual research chính. Dùng system colors/font, restrained type scale, token spacing/radius, icon outline, một CTA chính và motion có mục đích; không sao chép pixel ChatGPT | Owner muốn làm toàn bộ UI một lượt chuẩn và cho rằng OpenAI phù hợp hơn với cách GPT-5.6/Codex mở rộng codebase | Global | Hoàn tất F5–F7 + DS4/R1; khôi phục full QA; thêm OpenAI visual/motion contract và final runtime board | Toàn bộ M0–M8, shell, transient surfaces, animations, docs/toolchain | IMPLEMENTED — OWNER FINAL REVIEW |
 | 2026-07-29 | DS2 Catalog + primary header flattening | Catalog bỏ block giới thiệu lặp, dùng đúng motif `filter → header có # → rows → footer/pager`; server paging luôn hiện trong viewport. Primary header không còn tab con/breadcrumb; `Quản lý` được thay trực tiếp bằng `Tổng hợp phòng ban` | Owner review phát hiện Catalog thiếu footer/cột số thứ tự dù API đã paging và nested header-tab tạo hierarchy thừa | Catalog route + global authenticated header | Sửa grid thành flex data/pager, thêm page-aware row number; xóa breadcrumb model/markup/CSS và dùng label primary trực tiếp | Catalog, dashboard/order-create, period, pricing và mọi header consumer | IMPLEMENTED — OWNER REVIEW |

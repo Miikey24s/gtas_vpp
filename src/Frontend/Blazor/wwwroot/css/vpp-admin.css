@@ -854,8 +854,8 @@
     width: auto !important;
     min-width: 5.75rem;
     max-width: 7rem;
-    height: 34px;
-    min-height: 34px;
+    height: var(--vpp-data-control-height);
+    min-height: var(--vpp-data-control-height);
     margin-block: 0;
     flex: 0 0 auto;
 }
@@ -866,9 +866,9 @@
 .permission-component-grid.vpp-admin-grid .rz-pager .rz-dropdown .rz-dropdown-label {
     display: flex;
     align-items: center;
-    min-height: 32px;
-    height: 32px;
-    line-height: 32px;
+    min-height: var(--vpp-data-control-height);
+    height: var(--vpp-data-control-height);
+    line-height: var(--vpp-data-control-height);
     padding-inline: 0.85rem 1.75rem;
     padding-block: 0;
 }
@@ -880,7 +880,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 32px;
+    min-height: var(--vpp-data-control-height);
 }
 
 .vpp-admin-page-grid.vpp-admin-grid .rz-paginator,
@@ -898,7 +898,7 @@
     display: inline-flex;
     align-items: center;
     align-self: center;
-    min-height: 34px;
+    min-height: var(--vpp-data-control-height);
     margin-inline-start: 0.35rem;
     margin-block: 0;
     line-height: 1;

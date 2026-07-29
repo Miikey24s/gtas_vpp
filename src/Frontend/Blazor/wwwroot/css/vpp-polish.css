@@ -182,10 +182,9 @@
 .rz-dropdown-panel .rz-listbox-item {
     display: flex;
     align-items: center;
-    min-height: 40px;
+    min-height: 30px;
     line-height: 1.25;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-block: 0;
 }
 
 .rz-grid-table td .rz-cell-data:has(.rz-dropdown) {
@@ -210,8 +209,8 @@
     width: auto !important;
     min-width: 5.75rem;
     max-width: 7rem;
-    height: 34px;
-    min-height: 34px;
+    height: var(--vpp-data-control-height);
+    min-height: var(--vpp-data-control-height);
     flex: 0 0 auto;
 }
 
@@ -219,7 +218,7 @@
 .rz-pager .rz-pagesize-text {
     display: inline-flex;
     align-items: center;
-    min-height: 34px;
+    min-height: var(--vpp-data-control-height);
     margin-block: 0;
     line-height: 1;
     white-space: nowrap;
