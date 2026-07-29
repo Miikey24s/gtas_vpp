@@ -9,6 +9,40 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task MyOrders_UsesCompactPeriodSegmentedSelectorWithContextualAction()
+    {
+        await Page.SetViewportSizeAsync(1920, 1080);
+        await LoginAsAsync(TestAccounts.Employee);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
+
+        var story = Page.Locator(".vpp-orders-story");
+        await story.WaitForAsync();
+        var selector = story.Locator(".vpp-orders-summary-grid");
+        (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(3);
+        (await story.Locator("[data-testid='create-supplement']").CountAsync()).Should().Be(0,
+            "the supplement CTA belongs to the supplement segment instead of floating above the current order");
+
+        var compactGeometry = await story.EvaluateAsync<string>("""
+            root => {
+                const selector = root.querySelector('.vpp-orders-summary-grid');
+                const controls = root.querySelector('.vpp-orders-story-controls');
+                const period = root.querySelector('.vpp-orders-period-row');
+                if (!selector || !controls || !period) return 'missing';
+                const selectorRect = selector.getBoundingClientRect();
+                return `${selectorRect.height >= 34 && selectorRect.height <= 42 && root.getBoundingClientRect().height < 180}`
+                    + `|selector=${selectorRect.height}|story=${root.getBoundingClientRect().height}`;
+            }
+            """);
+        compactGeometry.Should().StartWith("true", "period information and the three order views should form one compact overview");
+
+        await selector.Locator("article").Nth(1).Locator("button").ClickAsync();
+        await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
+        await story.Locator("[data-testid='create-supplement']").WaitForAsync();
+        (await story.Locator(".vpp-orders-selection-summary").InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
+        await CaptureAsync("t001-my-orders-segmented-selector-1920x1080.png");
+    }
+
+    [Fact]
     public async Task AdditionalOrder_DirectQuantityAndReviewRemainUsable()
     {
         await Page.SetViewportSizeAsync(1920, 1080);

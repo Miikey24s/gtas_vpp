@@ -131,7 +131,7 @@
     position: relative;
     display: block;
     flex: 0 0 auto;
-    padding: var(--vpp-space-4) var(--vpp-space-5);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
     overflow: hidden;
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-card);
@@ -143,10 +143,7 @@
 }
 
 .vpp-orders-story-header {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--vpp-space-4);
-    align-items: start;
+    display: block;
 }
 
 .vpp-orders-story-intro {
@@ -154,9 +151,10 @@
 }
 
 .vpp-orders-story-commands {
-    display: grid;
-    gap: var(--vpp-space-2);
-    justify-items: end;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .vpp-orders-eyebrow {
@@ -180,14 +178,21 @@
 }
 
 .vpp-orders-story-heading {
-    margin-top: var(--vpp-space-2);
+    margin-top: var(--vpp-space-1);
+}
+
+.vpp-orders-period-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--vpp-space-2) var(--vpp-space-4);
 }
 
 .vpp-orders-story-heading h2 {
     margin: 0;
     color: var(--vpp-text-primary);
     font-family: var(--vpp-font-display);
-    font-size: clamp(1.75rem, 2.2vw, 2.125rem);
+    font-size: clamp(1.5rem, 2vw, 1.875rem);
     font-weight: var(--vpp-font-weight-bold);
     line-height: 1.2;
 }
@@ -224,6 +229,14 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--vpp-space-2);
+}
+
+.vpp-orders-story-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    margin-top: var(--vpp-space-3);
 }
 
 .vpp-orders-story-actions .rz-button,
@@ -267,46 +280,57 @@
 }
 
 .vpp-orders-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--vpp-space-3);
-    margin-top: var(--vpp-space-4);
+    display: inline-grid;
+    grid-template-columns: repeat(3, max-content);
+    gap: 2px;
+    width: max-content;
+    max-width: 100%;
+    margin: 0;
+    padding: 2px;
+    overflow-x: auto;
+    border: 1px solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--vpp-border-default) 42%, var(--vpp-bg-elevated));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
 }
 
 .vpp-orders-summary-grid article {
     min-width: 0;
-    min-height: 84px;
+    min-height: 0;
     padding: 0;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-bg-elevated);
-    transition: border-color var(--vpp-transition-fast), background-color var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast);
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
 }
 
 .vpp-orders-summary-grid article:hover {
-    border-color: var(--vpp-border-strong);
-    background: color-mix(in srgb, var(--vpp-primary-500) 3%, var(--vpp-bg-elevated));
+    background: var(--vpp-navigation-item-hover-bg);
 }
 
 .vpp-orders-summary-grid article.is-selected {
-    border-color: color-mix(in srgb, var(--vpp-primary-500) 45%, var(--vpp-border-default));
-    background: color-mix(in srgb, var(--vpp-primary-500) 6%, var(--vpp-bg-elevated));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 12%, transparent);
+    background: var(--vpp-primary-500);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(255 255 255 / 10%);
 }
 
 .vpp-orders-summary-grid article > button {
-    display: grid;
-    gap: var(--vpp-space-1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
     width: 100%;
-    min-height: 82px;
-    padding: var(--vpp-space-3) var(--vpp-space-4);
+    min-height: 32px;
+    padding: 0 var(--vpp-space-3);
     color: inherit;
     background: transparent;
     border: 0;
     border-radius: inherit;
     font: inherit;
-    text-align: start;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    white-space: nowrap;
     cursor: pointer;
+    transition: background-color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
 }
 
 .vpp-orders-summary-grid article > button:focus-visible {
@@ -314,29 +338,27 @@
     outline-offset: 2px;
 }
 
-.vpp-orders-summary-grid span,
-.vpp-orders-summary-grid small {
-    overflow: hidden;
-    color: color-mix(in srgb, var(--vpp-text-secondary) 90%, var(--vpp-text-primary));
-    font-size: var(--vpp-text-xs);
-    line-height: 1.4;
-    text-overflow: ellipsis;
+.vpp-orders-summary-grid article.is-selected > button,
+.vpp-orders-summary-grid article.is-selected .vpp-orders-summary-label {
+    color: var(--vpp-text-inverse);
+    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-orders-summary-label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--vpp-space-2);
     min-width: 0;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
 }
 
 .vpp-orders-summary-count {
     display: inline-grid;
     flex: 0 0 auto;
-    min-width: 24px;
-    height: 22px;
-    padding-inline: 6px;
+    min-width: 20px;
+    height: 20px;
+    padding-inline: 5px;
     place-items: center;
     border-radius: var(--vpp-radius-full);
     color: var(--vpp-text-secondary);
@@ -345,14 +367,34 @@
     font-variant-numeric: tabular-nums;
 }
 
-.vpp-orders-summary-grid strong {
+.vpp-orders-summary-grid article.is-selected .vpp-orders-summary-count {
+    color: var(--vpp-text-inverse);
+    background: rgb(255 255 255 / 18%);
+}
+
+.vpp-orders-selection-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-height: 24px;
+    margin-top: var(--vpp-space-2);
+    padding-inline: 4px;
     overflow: hidden;
-    color: var(--vpp-text-primary);
-    font-family: var(--vpp-font-display);
-    font-size: var(--vpp-text-base);
-    font-weight: var(--vpp-font-weight-semibold);
-    line-height: 1.3;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    white-space: nowrap;
+}
+
+.vpp-orders-selection-summary strong,
+.vpp-orders-selection-summary span:last-child {
+    overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.vpp-orders-selection-summary strong {
+    flex: 0 0 auto;
+    color: var(--vpp-text-primary);
+    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-orders-selected-view {
@@ -775,12 +817,13 @@
 }
 
 @media (max-width: 991px) {
-    .vpp-orders-story-header {
-        grid-template-columns: 1fr;
+    .vpp-orders-story-controls {
+        align-items: stretch;
+        flex-wrap: wrap;
     }
 
     .vpp-orders-story-commands {
-        justify-items: start;
+        justify-content: flex-start;
     }
 
     .vpp-orders-export-actions {
@@ -794,7 +837,7 @@
 
 @media (max-width: 767px) {
     .vpp-orders-story {
-        padding: var(--vpp-space-4);
+        padding: var(--vpp-space-3);
     }
 
     .vpp-orders-story-commands,
@@ -810,22 +853,26 @@
         width: 100%;
     }
 
-    .vpp-orders-summary-grid {
-        grid-template-columns: 1fr;
-        gap: var(--vpp-space-3);
+    .vpp-orders-story-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .vpp-orders-summary-grid article,
-    .vpp-orders-summary-grid article:first-child,
-    .vpp-orders-summary-grid article:last-child {
-        min-height: 0;
-        padding: 0;
-        border: 1px solid var(--vpp-border-default);
+    .vpp-orders-summary-grid {
+        grid-template-columns: repeat(3, max-content);
+        width: 100%;
     }
 
     .vpp-orders-summary-grid article > button {
-        min-height: 76px;
-        padding: var(--vpp-space-3);
+        min-height: 34px;
+        padding-inline: var(--vpp-space-2);
+        font-size: var(--vpp-text-xs);
+    }
+
+    .vpp-orders-selection-summary {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        white-space: normal;
     }
 
     .vpp-order-view-meta {

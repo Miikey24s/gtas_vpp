@@ -118,6 +118,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string PreviousCycleSummaryTitle => PreviousOrders.Count == 0
             ? Loc["NoPreviousOrderYet"].Value
             : string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count);
+        public string SelectedOrderViewTitle => OrderViewSelectedIndex switch
+        {
+            SupplementOrderViewIndex => SupplementSummaryTitle,
+            PreviousOrderViewIndex => PreviousCycleSummaryTitle,
+            _ => OrdersStoryTitle
+        };
+        public string SelectedOrderViewSummary => OrderViewSelectedIndex switch
+        {
+            SupplementOrderViewIndex => SupplementSectionDescription,
+            PreviousOrderViewIndex => $"{PreviousOrderPeriodText} · {Loc["PreviousCycleReadOnly"].Value}",
+            _ => CurrentOrderSummaryText
+        };
         public string OrdersStoryDescription
         {
             get
@@ -152,7 +164,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanCreateSupplement => CanCreate && PeriodInfo?.CanCreateAdditional == true;
         private bool CanCopyPrevious => CanCreate && PeriodInfo?.CanCopyPrevious == true;
         private bool ShowSupplementAction => CanCreate && PeriodInfo is { HasCurrentPeriodOrder: true, MaxAdditionalOrders: > 0 };
-        private bool HasAvailableStoryAction => CanCreateRegular || CanCopyPrevious || ShowSupplementAction;
         private string SupplementActionHint => CanCreateSupplement
             ? Loc["RequestAdditional"].Value
             : Loc["SupplementUnavailable"].Value;

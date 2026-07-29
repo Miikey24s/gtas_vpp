@@ -224,7 +224,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const contentRect = workspace?.parentElement?.getBoundingClientRect();
                         const storyTitle = document.querySelector('.vpp-orders-story-heading h2');
                         const summaryLabel = document.querySelector('.vpp-orders-summary-label');
-                        const summaryCard = document.querySelector('.vpp-orders-summary-grid article');
+                        const summaryCard = document.querySelector('.vpp-orders-summary-grid');
                         const exportAction = [...document.querySelectorAll('.order-page button')]
                             .find(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));
                         return [
@@ -245,7 +245,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 desktopGeometry[1].Should().BeLessThanOrEqualTo(1760.5, "wide layouts should stay bounded without visually detaching from the sidebar");
                 desktopGeometry[2].Should().BeLessThanOrEqualTo(8, "the My Orders workspace should remain centered in its content region");
                 desktopGeometry[3].Should().BeGreaterThan(desktopGeometry[4] + 8, "the period title must clearly outrank summary labels");
-                desktopGeometry[5].Should().BeGreaterThanOrEqualTo(1, "summary items should read as bordered cards");
+                desktopGeometry[5].Should().BeGreaterThanOrEqualTo(1, "the segmented order selector should have one bounded outer surface");
                 desktopGeometry[6].Should().BeGreaterThanOrEqualTo(0.75, "export action labels must remain legible");
                 desktopGeometry[7].Should().BeLessThanOrEqualTo(2, "short orders should not create document-level vertical scrolling");
 
