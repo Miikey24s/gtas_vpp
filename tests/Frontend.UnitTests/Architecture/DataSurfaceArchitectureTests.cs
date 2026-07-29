@@ -121,6 +121,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("TestId=\"catalog-data-surface\"", catalog, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ServerPaging", catalog, StringComparison.Ordinal);
         Assert.Contains("VppDataDensity.RichTwoLine", catalog, StringComparison.Ordinal);
+        Assert.Contains("Bordered=\"true\"", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("<section class=\"vpp-catalog-card\"", catalog, StringComparison.Ordinal);
         Assert.Contains("vpp-data-grid vpp-data-density-rich-two-line", catalog, StringComparison.Ordinal);
     }
 

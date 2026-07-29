@@ -20,25 +20,13 @@
     background: var(--vpp-bg-elevated);
 }
 
-.vpp-catalog-data-frame {
+.vpp-catalog-workspace ::deep .vpp-catalog-data-frame {
     flex: 1 1 auto;
     min-height: 0;
 }
 
 .vpp-catalog-filter-group ::deep .vpp-filter-search { max-width: none; }
 .vpp-catalog-filter-group ::deep .vpp-filter-select { flex-basis: 14rem; }
-
-.vpp-catalog-card {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-bg-elevated);
-}
 
 .vpp-catalog-grid-frame {
     display: flex;
@@ -124,7 +112,7 @@
         max-width: none;
     }
 
-    .vpp-catalog-card {
+    .vpp-catalog-workspace ::deep .vpp-catalog-data-frame {
         min-height: 620px;
     }
 }

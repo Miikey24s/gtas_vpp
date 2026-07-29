@@ -12,13 +12,12 @@
         }
         else
         {
-            <section class="vpp-catalog-card" aria-label="@Loc["ProductCatalog"]">
-                <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
-                                     Density="VppDataDensity.RichTwoLine"
-                                     Bordered="false"
-                                     AriaLabel="@Loc["ProductCatalog"]"
-                                     TestId="catalog-data-surface"
-                                     Class="vpp-catalog-data-frame">
+            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                 Density="VppDataDensity.RichTwoLine"
+                                 Bordered="true"
+                                 AriaLabel="@Loc["ProductCatalog"]"
+                                 TestId="catalog-data-surface"
+                                 Class="vpp-catalog-data-frame">
                     <Toolbar>
                         <VppDataToolbar AriaLabel="@Loc["CatalogFilters"]"
                                         Class="vpp-catalog-filter-group">
@@ -110,8 +109,7 @@
                         </div>
                     }
                     </ChildContent>
-                </VppDataSurfaceFrame>
-            </section>
+            </VppDataSurfaceFrame>
         }
         </VppCollectionWorkspace>
     </div>

@@ -11,7 +11,7 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
     [Fact]
     public async Task Employee_CanBrowseRequestProductCatalog()
     {
-        await Page.SetViewportSizeAsync(1920, 1080);
+        await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsAsync(TestAccounts.Employee);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=2", new PageGotoOptions
         {
@@ -38,6 +38,40 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
             }
         """);
         gridCornerRadius.Should().Be("0px|0px", "the grid header joins the toolbar inside one shared data surface");
+        var surfaceSeam = await Page.GetByTestId("catalog-data-surface").EvaluateAsync<string>("""
+            surface => {
+                const toolbar = surface.querySelector('.vpp-data-surface-toolbar-slot');
+                const header = surface.querySelector('.vpp-data-grid thead');
+                const grid = surface.querySelector('.vpp-data-grid');
+                if (!toolbar || !header || !grid) return 'missing';
+                const surfaceStyle = getComputedStyle(surface);
+                const gridStyle = getComputedStyle(grid);
+                const toolbarRect = toolbar.getBoundingClientRect();
+                const headerRect = header.getBoundingClientRect();
+                const oneOwner = parseFloat(surfaceStyle.borderTopWidth) > 0
+                    && parseFloat(surfaceStyle.borderTopLeftRadius) > 0
+                    && parseFloat(gridStyle.borderTopLeftRadius) === 0;
+                const aligned = Math.abs(toolbarRect.bottom - headerRect.top) <= 1;
+                const notOverlapping = headerRect.top >= toolbarRect.bottom - .5;
+                return `${oneOwner && aligned && notOverlapping}`
+                    + `|toolbar=${toolbarRect.bottom}|header=${headerRect.top}`
+                    + `|surfaceRadius=${surfaceStyle.borderTopLeftRadius}|gridRadius=${gridStyle.borderTopLeftRadius}`;
+            }
+        """);
+        surfaceSeam.Should().StartWith("true", "toolbar and header must form one surface without nested-card overlap");
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "catalog-surface-seam-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
         await grid.Locator(".rz-paginator, .rz-pager").WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await grid.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
         var filterTrigger = Page.Locator(".vpp-filter-select-trigger").First;
@@ -76,13 +110,11 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         """);
         catalogGeometry.Should().StartWith("true", "Catalog pager must stay at the workspace bottom without document scrolling");
 
-        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
-            Directory.CreateDirectory(evidenceDirectory);
             await Page.ScreenshotAsync(new()
             {
-                Path = Path.Combine(evidenceDirectory, "catalog-page-size-select-1920x1080.png"),
+                Path = Path.Combine(evidenceDirectory, "catalog-page-size-select-1366x768.png"),
                 FullPage = false,
                 Animations = ScreenshotAnimations.Disabled,
                 Caret = ScreenshotCaret.Hide

@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.93` — 2026-07-29
+> **Phiên bản:** `2.94` — 2026-07-29
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -1254,6 +1254,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-29 | Catalog toolbar → grid seam correction | Không dùng route card bọc một `VppDataSurfaceFrame` embedded rồi ép grid vuông; một frame duy nhất phải sở hữu border/radius/clip, grid bên trong vuông và header bắt đầu đúng sau toolbar | Lượt sửa radius đầu làm runtime trông như header bị lớp toolbar/card đè lên vì surface ownership bị chia đôi | Catalog + shared data-surface rule | Bỏ `section.vpp-catalog-card`, bật `Bordered=true` cho frame canonical và khóa geometry `toolbar.bottom = thead.top`, không overlap | Catalog; dùng làm reference cho consumer data-surface mới | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | My Orders view selector | Chỉ giữ selector ngang và contextual action; bỏ dòng tóm tắt `Đơn đã gửi · n mặt hàng · tổng số lượng n` và bỏ card/wrapper bao ngoài selector | Badge trong selector và bảng đơn đã cung cấp đủ context; summary + outer card tạo thêm một tầng visual không có giá trị | My Orders route | Xóa summary markup/computed copy; switchbar trở thành layout container trong suốt, selector tự sở hữu surface | `dashboard?tab=0` | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Canonical select + pager page-size dropdown | `VppFilterSelect` là visual contract cho select toàn dự án; dropdown chọn số dòng của Radzen pager phải cùng chiều cao, radius, hover/focus, popup và selected indicator | Owner phát hiện page-size select vẫn dùng chrome Radzen mặc định nên lệch rõ với các ô lọc đã chuẩn hóa | Global select interaction | Ánh xạ pager trigger và Radzen dropdown portal vào cùng token/chrome; giữ form-specific override có chủ đích | Mọi data pager và Radzen dropdown popup; Catalog/History/Department/Period/Admin là consumer đại diện | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Shared data-surface grid seam | Khung data surface sở hữu bo góc ngoài; `RadzenDataGrid` nằm dưới toolbar phải vuông, không tự bo hai góc trên tại đường nối toolbar → header bảng | Owner phát hiện Catalog xuất hiện hai góc cong thừa ngay trên hàng tên cột, làm bề mặt ghép trông như hai card chồng nhau | Shared data-surface bridge | Scope `--rz-grid-border-radius: 0` cho `.vpp-data-grid` bên trong `VppDataSurfaceFrame`; thêm architecture + computed-style browser gate | Catalog và mọi grid đã opt-in vào shared data surface | IMPLEMENTED — OWNER REVIEW |
