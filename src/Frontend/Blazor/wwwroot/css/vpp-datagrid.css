@@ -286,14 +286,45 @@
     text-align: right;
 }
 
-.vpp-order-grid .rz-grid-table thead th .rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc),
-.vpp-data-grid .rz-grid-table thead th .rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc) {
-    display: none;
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th:has(.rz-sortable-column-icon) {
+    cursor: pointer;
+    transition:
+        background-color var(--vpp-transition-fast),
+        color var(--vpp-transition-fast);
 }
 
-.vpp-data-grid .rz-grid-table thead th .rz-sortable-column-icon:is(.rzi-sort-asc, .rzi-sort-desc) {
-    flex: 0 0 auto;
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th:has(.rz-sortable-column-icon):hover,
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th:has(.rz-sortable-column-icon):focus-within {
+    background: color-mix(in srgb, var(--vpp-primary-500) 5%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-primary);
+}
+
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th .rz-sortable-column-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 1.25rem;
+    width: 1.25rem;
+    min-width: 1.25rem;
     margin-inline-start: var(--vpp-space-1);
+    color: var(--vpp-text-tertiary);
+    opacity: 0;
+    transition:
+        color var(--vpp-transition-fast),
+        opacity var(--vpp-transition-fast);
+}
+
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th:has(.rz-sortable-column-icon):hover
+    .rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc),
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th:has(.rz-sortable-column-icon):focus-within
+    .rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc) {
+    opacity: 0.68;
+}
+
+:is(.vpp-order-grid, .vpp-data-grid) .rz-grid-table thead th
+    .rz-sortable-column-icon:is(.rzi-sort-asc, .rzi-sort-desc) {
+    color: var(--vpp-primary-600);
+    opacity: 1;
 }
 
 .vpp-order-grid .rz-grid-table thead th .rz-grid-filter-icon {

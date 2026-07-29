@@ -31,11 +31,55 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator("[data-testid='catalog-data-surface']").GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
         (await grid.Locator("thead th").First.InnerTextAsync()).Trim().Should().Be("#");
         (await grid.Locator("tbody tr").First.Locator("td").First.InnerTextAsync()).Trim().Should().Be("1");
-        var idleSortIconDisplay = await grid.Locator("thead th").Nth(1)
-            .Locator(".rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc)")
-            .EvaluateAsync<string>("element => getComputedStyle(element).display");
-        idleSortIconDisplay.Should().Be("none",
-            "an inactive sort affordance must not overlap the catalog column label");
+        var itemHeader = grid.Locator("thead th").Nth(1);
+        var idleSortIcon = itemHeader
+            .Locator(".rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc)");
+        var idleSortChromeIsStable = await idleSortIcon.EvaluateAsync<bool>("""
+            element => {
+                const style = getComputedStyle(element);
+                return style.display !== 'none'
+                    && Number.parseFloat(style.width) > 0
+                    && Number.parseFloat(style.opacity) === 0;
+            }
+        """);
+        idleSortChromeIsStable.Should().BeTrue(
+            "inactive sort keeps a stable track but stays visually quiet");
+
+        var itemTitleBeforeSort = await itemHeader.Locator(".rz-column-title").EvaluateAsync<string>("""
+            element => {
+                const rect = element.getBoundingClientRect();
+                return `${rect.left}|${rect.width}`;
+            }
+        """);
+        await itemHeader.HoverAsync();
+        var hoverSortOpacity = await idleSortIcon.EvaluateAsync<double>(
+            "element => Number.parseFloat(getComputedStyle(element).opacity)");
+        hoverSortOpacity.Should().BeGreaterThan(0,
+            "hover reveals the sort affordance without moving the label");
+
+        await itemHeader.ClickAsync();
+        var ascendingSortIcon = itemHeader.Locator(".rz-sortable-column-icon.rzi-sort-asc");
+        await ascendingSortIcon.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await ascendingSortIcon.EvaluateAsync<string>("element => getComputedStyle(element).opacity"))
+            .Should().Be("1");
+        var itemTitleAfterSort = await itemHeader.Locator(".rz-column-title").EvaluateAsync<string>("""
+            element => {
+                const rect = element.getBoundingClientRect();
+                return `${rect.left}|${rect.width}`;
+            }
+        """);
+        itemTitleAfterSort.Should().Be(itemTitleBeforeSort,
+            "active sort uses the reserved icon track and must not shift the column title");
+
+        await itemHeader.ClickAsync();
+        await itemHeader.Locator(".rz-sortable-column-icon.rzi-sort-desc")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await itemHeader.ClickAsync();
+        await idleSortIcon.WaitForAsync(new() { State = WaitForSelectorState.Attached });
+        await grid.Locator("tbody tr").First.HoverAsync();
+        await Page.WaitForTimeoutAsync(200);
+        (await idleSortIcon.EvaluateAsync<string>("element => getComputedStyle(element).opacity"))
+            .Should().Be("0", "the third click restores the default ordering and quiet header state");
         var gridCornerRadius = await grid.EvaluateAsync<string>("""
             element => {
                 const style = getComputedStyle(element);

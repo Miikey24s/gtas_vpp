@@ -81,8 +81,48 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
         Assert.DoesNotContain("body .rz-data-grid", bridge, StringComparison.Ordinal);
-        Assert.Contains(".vpp-data-grid .rz-grid-table thead th .rz-sortable-column-icon.rzi-sort", dataGrid, StringComparison.Ordinal);
+        Assert.Contains("th:has(.rz-sortable-column-icon):hover", dataGrid, StringComparison.Ordinal);
+        Assert.Contains("th:has(.rz-sortable-column-icon):focus-within", dataGrid, StringComparison.Ordinal);
+        Assert.Contains("opacity: 0;", dataGrid, StringComparison.Ordinal);
         Assert.Contains(":is(.rzi-sort-asc, .rzi-sort-desc)", dataGrid, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SortableGrids_UseCanonicalSingleColumnContract()
+    {
+        var root = GetFrontendRoot();
+        var componentRoot = Path.Combine(root, "Components");
+        var sortableGridCount = 0;
+
+        foreach (var file in Directory.EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            var cursor = 0;
+
+            while (true)
+            {
+                var sortIndex = source.IndexOf("AllowSorting=\"true\"", cursor, StringComparison.Ordinal);
+                if (sortIndex < 0) break;
+
+                var gridStart = source.LastIndexOf("<RadzenDataGrid", sortIndex, StringComparison.Ordinal);
+                var columnsStart = source.IndexOf("<Columns>", sortIndex, StringComparison.Ordinal);
+                Assert.True(gridStart >= 0 && columnsStart > sortIndex,
+                    $"Không xác định được opening tag của sortable grid trong {file}.");
+
+                var gridContract = source[gridStart..columnsStart];
+                Assert.Contains("AllowMultiColumnSorting=\"false\"", gridContract, StringComparison.Ordinal);
+                Assert.Contains("ShowMultiColumnSortingIndex=\"false\"", gridContract, StringComparison.Ordinal);
+                Assert.Contains("GotoFirstPageOnSort=\"true\"", gridContract, StringComparison.Ordinal);
+                Assert.DoesNotContain("AllowMultiColumnSorting=\"true\"", gridContract, StringComparison.Ordinal);
+                Assert.DoesNotContain("ShowMultiColumnSortingIndex=\"true\"", gridContract, StringComparison.Ordinal);
+
+                sortableGridCount++;
+                cursor = sortIndex + 1;
+            }
+        }
+
+        Assert.True(sortableGridCount >= 16,
+            $"Sort contract phải bao phủ toàn bộ grid hiện tại; chỉ tìm thấy {sortableGridCount} grid.");
     }
 
     [Fact]
