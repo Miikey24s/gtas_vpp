@@ -14,3 +14,54 @@
     min-height: 0;
     overflow: hidden;
 }
+
+.vpp-order-review-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    min-height: 64px;
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-order-review-back {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
+    padding: 0 var(--vpp-space-3);
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-text-primary);
+    background: transparent;
+    font: inherit;
+    font-weight: var(--vpp-font-weight-medium);
+    cursor: pointer;
+}
+
+.vpp-order-review-back:hover {
+    background: var(--vpp-bg-surface);
+}
+
+.vpp-order-review-actions ::deep .rz-button {
+    min-height: 40px;
+    border-radius: var(--vpp-radius-md);
+    box-shadow: none;
+}
+
+@media (max-width: 767px) {
+    .vpp-order-review-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .vpp-order-review-actions > *,
+    .vpp-order-review-actions ::deep .rz-button {
+        width: 100%;
+    }
+}

@@ -128,18 +128,10 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
             State = WaitForSelectorState.Visible,
             Timeout = 60_000
         });
-        var quantityValue = quantityStepper.Locator("span");
-        var currentQuantity = int.Parse(await quantityValue.InnerTextAsync());
-        while (currentQuantity < 4)
-        {
-            await quantityStepper.GetByRole(AriaRole.Button, new() { Name = "Tăng số lượng" }).ClickAsync();
-            currentQuantity++;
-        }
-        while (currentQuantity > 4)
-        {
-            await quantityStepper.GetByRole(AriaRole.Button, new() { Name = "Giảm số lượng" }).ClickAsync();
-            currentQuantity--;
-        }
+        var quantityInput = quantityStepper.Locator("input[type=number]");
+        await quantityInput.FillAsync("4");
+        await quantityInput.PressAsync("Tab");
+        (await quantityInput.InputValueAsync()).Should().Be("4");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục" }).ClickAsync();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Cập nhật đơn" }).ClickAsync();
         await WaitForUrlMatchAsync(

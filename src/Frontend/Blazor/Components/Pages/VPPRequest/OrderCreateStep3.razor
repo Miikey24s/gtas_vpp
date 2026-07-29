@@ -17,8 +17,19 @@
         <dl class="vpp-order-review-summary">
             <div><dt>@Loc["TotalLineItems"]</dt><dd>@Context.SelectedItems.Count</dd></div>
             <div><dt>@Loc["TotalQuantity"]</dt><dd>@Context.TotalQty</dd></div>
-            <div><dt>@(Context.IsAdditional ? Loc["SupplementReason"] : Loc["OrderNote"])</dt><dd>@OrderNote</dd></div>
+            <div class="@(IsSupplementReasonMissing ? "is-missing" : null)">
+                <dt>@(Context.IsAdditional ? Loc["SupplementReason"] : Loc["OrderNote"])</dt>
+                <dd>@OrderNote</dd>
+            </div>
         </dl>
+
+        @if (IsSupplementReasonMissing)
+        {
+            <div class="vpp-order-review-warning" role="alert">
+                <VppIcon Name="info" />
+                <span>@Loc["ProvideReasonBeforeContinue"]</span>
+            </div>
+        }
 
         @if (Context.SelectedItems.Count == 0)
         {
@@ -83,6 +94,10 @@
     private string OrderNote => Context.IsAdditional
         ? Context.SupplementReason ?? "–"
         : Context.Description ?? "–";
+
+    private bool IsSupplementReasonMissing => Context.IsAdditional
+        && (string.IsNullOrWhiteSpace(Context.SupplementReason)
+            || Context.SupplementReason.Trim().Length < 5);
 
     private void RemoveItem(OrderCreateContext.SelectedItem item)
     {

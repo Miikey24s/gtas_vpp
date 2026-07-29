@@ -9,6 +9,62 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task AdditionalOrder_DirectQuantityAndReviewRemainUsable()
+    {
+        await Page.SetViewportSizeAsync(1920, 1080);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard/order-create?isAdditional=True");
+        await WaitForRowsAsync(".vpp-order-builder-grid", ".vpp-order-builder-virtual-row");
+
+        var availableAction = Page.Locator(".vpp-order-builder-row-action:not(.is-remove)").First;
+        await availableAction.ClickAsync();
+        await Page.Locator(".vpp-order-builder-row-action:not(.is-remove)").First.ClickAsync();
+        await Page.Locator(".vpp-order-draft-item").Nth(1).WaitForAsync();
+
+        var quantityInput = Page.Locator(".vpp-order-draft-item .vpp-order-quantity-input").First;
+        await quantityInput.FillAsync("4");
+        await quantityInput.PressAsync("Tab");
+        (await quantityInput.InputValueAsync()).Should().Be("4");
+
+        var draftColumns = await Page.Locator(".vpp-order-draft").EvaluateAsync<string>("""
+            draft => {
+                const header = draft.querySelector('.vpp-order-draft-columns');
+                const row = draft.querySelector('.vpp-order-draft-item-main');
+                const input = draft.querySelector('.vpp-order-quantity-input');
+                if (!header || !row || !input) return 'missing';
+                const headerColumns = getComputedStyle(header).gridTemplateColumns;
+                const rowColumns = getComputedStyle(row).gridTemplateColumns;
+                return `${headerColumns === rowColumns && input.getBoundingClientRect().width >= 40}`
+                    + `|header=${headerColumns}|row=${rowColumns}|input=${input.getBoundingClientRect().width}`;
+            }
+            """);
+        draftColumns.Should().StartWith("true", "draft headers, rows and direct quantity input must share the same column tracks");
+        await CaptureAsync("t001-additional-order-draft-1920x1080.png");
+
+        var continueButton = Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục" });
+        (await continueButton.IsEnabledAsync()).Should().BeTrue("a missing supplement reason is validated visibly before submit instead of silently disabling navigation");
+        await continueButton.ClickAsync();
+
+        var reviewPanel = Page.Locator(".vpp-order-review-panel");
+        await reviewPanel.WaitForAsync();
+        await Page.Locator(".vpp-order-review-warning").WaitForAsync();
+        await Page.Locator(".vpp-order-review-grid tbody tr").First.WaitForAsync();
+        var reviewGeometry = await reviewPanel.EvaluateAsync<string>("""
+            panel => {
+                const frame = panel.querySelector('.vpp-order-review-grid-frame');
+                const header = panel.querySelector('.vpp-order-review-header');
+                const footer = panel.querySelector('.vpp-order-builder-data-footer');
+                if (!frame || !header || !footer) return 'missing';
+                const bounded = document.documentElement.scrollHeight <= document.documentElement.clientHeight + 1;
+                return `${bounded && panel.getBoundingClientRect().height > 500 && frame.getBoundingClientRect().height > 250}`
+                    + `|panel=${panel.getBoundingClientRect().height}|grid=${frame.getBoundingClientRect().height}`;
+            }
+            """);
+        reviewGeometry.Should().StartWith("true", "the review step must be a bounded full-height data surface instead of unstyled document content");
+        await CaptureAsync("t001-additional-order-review-1920x1080.png");
+    }
+
+    [Fact]
     public async Task CatalogUsersAndOrderCreate_UseSharedFiltersWithoutDocumentScroll()
     {
         await Page.SetViewportSizeAsync(1920, 1080);

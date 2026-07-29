@@ -166,7 +166,15 @@
                                 </div>
                                 <div class="vpp-order-quantity-stepper" aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")">
                                     <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Qty <= 1)">−</button>
-                                    <span>@item.Qty</span>
+                                    <input type="number"
+                                           class="vpp-order-quantity-input"
+                                           min="1"
+                                           max="9999"
+                                           step="1"
+                                           value="@item.Qty"
+                                           inputmode="numeric"
+                                           aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")"
+                                           @onchange="args => SetQuantity(item, args.Value)" />
                                     <button type="button" @onclick="() => ChangeQuantity(item, 1)" aria-label="@Loc["IncreaseQuantity"]">+</button>
                                 </div>
                                 <span class="vpp-order-draft-unit">@item.UomName</span>
@@ -338,8 +346,7 @@
         || !string.IsNullOrWhiteSpace(CategoryFilter)
         || !string.IsNullOrWhiteSpace(UnitFilter);
 
-    private bool CanContinue => Context.SelectedItems.Count > 0
-        && (!Context.IsAdditional || (!string.IsNullOrWhiteSpace(Context.SupplementReason) && Context.SupplementReason.Trim().Length >= 5));
+    private bool CanContinue => Context.SelectedItems.Count > 0;
     private string OrderNoteLabel => Context.IsAdditional ? Loc["SupplementReason"].Value : Loc["OrderNote"].Value;
     private string OrderNotePlaceholder => Context.IsAdditional ? Loc["SupplementReasonPlaceholder"].Value : Loc["OrderNotePlaceholder"].Value;
     private string? OrderNote => Context.IsAdditional ? Context.SupplementReason : Context.Description;
@@ -532,6 +539,13 @@
     private void ChangeQuantity(OrderCreateContext.SelectedItem item, int delta)
     {
         item.Qty = Math.Clamp(item.Qty + delta, 1, 9999);
+        Context.NotifyStateChanged();
+    }
+
+    private void SetQuantity(OrderCreateContext.SelectedItem item, object? value)
+    {
+        var parsed = int.TryParse(value?.ToString(), out var quantity) ? quantity : 1;
+        item.Qty = Math.Clamp(parsed, 1, 9999);
         Context.NotifyStateChanged();
     }
 
