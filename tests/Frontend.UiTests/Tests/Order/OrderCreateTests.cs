@@ -53,10 +53,10 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         var orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await Page.GetByText("Đơn đã gửi", new() { Exact = true }).WaitForAsync();
-        await orderCard.Locator(".vpp-order-grid tbody tr").First.WaitForAsync(
+        await orderCard.Locator(".vpp-order-items-grid tbody tr").First.WaitForAsync(
             new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        // Atlas orderItemsRegion column order: # · Mặt hàng · Danh mục · Đơn vị · Số lượng (· Ghi chú).
-        var columnGeometry = await orderCard.Locator(".vpp-order-grid").EvaluateAsync<double[]>("""
+        // Canonical order-items column order: # · Mặt hàng · Danh mục · Đơn vị · Số lượng · Ghi chú.
+        var columnGeometry = await orderCard.Locator(".vpp-order-items-grid").EvaluateAsync<double[]>("""
             grid => {
                 const headers = [...grid.querySelectorAll('thead th')];
                 const dataRow = [...grid.querySelectorAll('tbody tr')]
@@ -79,19 +79,21 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
                     headers[1].getBoundingClientRect().width,
                     headers[2].getBoundingClientRect().width,
                     headers[3].getBoundingClientRect().width,
-                    headers[4].getBoundingClientRect().width
+                    headers[4].getBoundingClientRect().width,
+                    headers[5].getBoundingClientRect().width,
+                    grid.getBoundingClientRect().width
                 ];
             }
             """);
         columnGeometry[0].Should().BeLessThanOrEqualTo(1.5, "quantity header and values should share the same right axis");
         columnGeometry[1].Should().BeLessThanOrEqualTo(1.5, "UOM header and values should share the same center axis");
-        columnGeometry[2].Should().BeApproximately(56, 1, "the row-number column should stay fixed");
-        columnGeometry[4].Should().BeApproximately(160, 1, "the category column should stay fixed");
-        columnGeometry[5].Should().BeApproximately(96, 1, "the UOM column should stay fixed");
-        columnGeometry[6].Should().BeApproximately(120, 1, "the quantity column should stay fixed");
-        // 1366px viewport − expanded 286px sidebar − fixed columns (56+160+96+120) leaves ~580-630px
-        // for the flexible item-name column; 500 asserts it still dominates without scrollbar flake.
-        columnGeometry[3].Should().BeGreaterThan(500, "the item-name column should absorb the remaining width");
+        var gridWidth = columnGeometry[8];
+        (columnGeometry[2] / gridWidth).Should().BeApproximately(0.05, 0.01, "the row-number track should use the canonical 5% ratio");
+        (columnGeometry[3] / gridWidth).Should().BeApproximately(0.31, 0.015, "the item track should remain the largest flexible data track");
+        (columnGeometry[4] / gridWidth).Should().BeApproximately(0.18, 0.01, "the category track should use the canonical 18% ratio");
+        (columnGeometry[5] / gridWidth).Should().BeApproximately(0.12, 0.01, "the UOM track should use the canonical 12% ratio");
+        (columnGeometry[6] / gridWidth).Should().BeApproximately(0.14, 0.01, "the quantity track should use the canonical 14% ratio");
+        (columnGeometry[7] / gridWidth).Should().BeApproximately(0.20, 0.01, "the note track should use the canonical 20% ratio");
         (await Page.Locator(".vpp-orders-story-heading p").CountAsync()).Should().Be(0,
             "a submitted order should not repeat navigation or processing guidance below the takeaway");
         (await Page.Locator(".vpp-orders-summary-grid article").CountAsync()).Should().Be(3,

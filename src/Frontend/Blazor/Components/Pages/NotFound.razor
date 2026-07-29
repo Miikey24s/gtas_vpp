@@ -7,16 +7,14 @@
     <VppPageHeader Title="@Loc["PageNotFound"]"
                    Description="@Loc["PageNotFoundDescription"]"
                    HeadingId="not-found-heading" />
-    <VppStatePanel State="empty"
-                   Icon="search_off"
-                   Title="@Loc["PageNotFound"]"
-                   Description="@Loc["PageNotFoundDescription"]" />
-    <div class="vpp-system-page-actions">
-        <RadzenButton Text="@Loc["BackToDashboard"]"
-                      Icon="dashboard"
-                      ButtonStyle="ButtonStyle.Primary"
-                      Click="GoToDashboard" />
-    </div>
+    <VppContentState State="VppContentStateKind.Empty"
+                     Icon="search_off"
+                     Title="@Loc["PageNotFound"]"
+                     Description="@Loc["PageNotFoundDescription"]"
+                     PrimaryActionText="@Loc["BackToDashboard"]"
+                     PrimaryActionIcon="dashboard"
+                     PrimaryAction="@(_ => GoToDashboard())"
+                     PrimaryButtonStyle="ButtonStyle.Primary" />
 </main>
 
 @code {

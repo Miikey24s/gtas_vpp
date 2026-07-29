@@ -17,16 +17,15 @@
                     @Body
                 </ChildContent>
                 <ErrorContent>
-                    <VppStatePanel State="error"
-                                   Icon="error_outline"
-                                   Title="@Loc["ErrorPageTitle"]"
-                                   Description="@Loc["ErrorPageDescription"]"
-                                   RetryAction="@RecoverFromError" />
-                    <div class="vpp-system-page-actions">
-                        <a class="vpp-empty-state-link" href="/" data-enhance-nav="false">
-                            @Loc["BackToDashboard"]
-                        </a>
-                    </div>
+                    <VppContentState State="VppContentStateKind.Error"
+                                     Icon="error_outline"
+                                     Title="@Loc["ErrorPageTitle"]"
+                                     Description="@Loc["ErrorPageDescription"]"
+                                     PrimaryActionText="@Loc["Retry"]"
+                                     PrimaryActionIcon="@VppIcons.Refresh"
+                                     PrimaryAction="@RecoverFromError"
+                                     SecondaryActionText="@Loc["BackToDashboard"]"
+                                     SecondaryActionHref="/" />
                 </ErrorContent>
             </ErrorBoundary>
         </div>

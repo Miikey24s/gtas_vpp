@@ -1,5 +1,6 @@
 @page "/Error"
 @using System.Diagnostics
+@inject NavigationManager Navigation
 
 <PageTitle>GTAS VPP - @Loc["ErrorPageTitle"]</PageTitle>
 
@@ -7,10 +8,15 @@
     <VppPageHeader Title="@Loc["ErrorPageTitle"]"
                    Description="@Loc["ErrorPageDescription"]"
                    HeadingId="error-heading" />
-    <VppStatePanel State="error"
-                   Icon="error_outline"
-                   Title="@Loc["ErrorPageTitle"]"
-                   Description="@Loc["ErrorPageDescription"]" />
+    <VppContentState State="VppContentStateKind.Error"
+                     Icon="error_outline"
+                     Title="@Loc["ErrorPageTitle"]"
+                     Description="@Loc["ErrorPageDescription"]"
+                     PrimaryActionText="@Loc["Retry"]"
+                     PrimaryActionIcon="@VppIcons.Refresh"
+                     PrimaryAction="@Reload"
+                     SecondaryActionText="@Loc["BackToDashboard"]"
+                     SecondaryActionHref="/" />
     @if (ShowRequestId)
     {
         <p class="vpp-system-trace">
@@ -29,4 +35,6 @@
 
     protected override void OnInitialized() =>
         RequestId = Activity.Current?.TraceId.ToString() ?? HttpContext?.TraceIdentifier;
+
+    private void Reload() => Navigation.Refresh(forceReload: true);
 }

@@ -137,12 +137,8 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 ];
             }
             """);
-        refreshMotion[0].Should().Be("true", "a document refresh should start the coordinated shell reveal");
-        refreshMotion[1].Should().Contain("vpp-shell-enter-inline", "the sidebar should use the shared refresh motion");
-        await Page.WaitForFunctionAsync(
-            "() => !document.documentElement.classList.contains('vpp-page-entering')",
-            null,
-            new PageWaitForFunctionOptions { Timeout = 2_000 });
+        refreshMotion[0].Should().Be("false", "document refresh must paint the stable shell immediately without a decorative reveal state");
+        refreshMotion[1].Should().Be("none", "the sidebar must not replay entry animation on every refresh");
 
         foreach (var viewport in new[]
                  {
@@ -376,7 +372,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         """);
         itemCategoryMenuMotion.Should().StartWith("true|vpp-transient-enter-",
             "shared order filters must use the global transient-surface motion language");
-        itemCategoryMenuMotion.Should().Contain("|0.2s|cubic-bezier(0.32, 0.72, 0, 1)");
+        itemCategoryMenuMotion.Should().Contain("|0.16s|cubic-bezier(0.2, 0, 0, 1)");
         var geometryAffectingKeyframes = await itemCategoryMenu.EvaluateAsync<string[]>("""
             menu => (menu.getAnimations()[0]?.effect.getKeyframes() ?? [])
                 .flatMap(frame => ['transform', 'translate', 'scale']

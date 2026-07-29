@@ -55,6 +55,7 @@ public sealed class AccountShellSmokeTests : TestBase
         var routes = new[]
         {
             "Account/Login",
+            "loginprocess",
             "Account/ForgotPassword",
             "Account/ResetPassword",
             "Account/Register",

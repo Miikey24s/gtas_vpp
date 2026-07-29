@@ -9,15 +9,12 @@
     </ChildContent>
     <ErrorContent>
         <main class="vpp-system-page">
-            <VppStatePanel State="error"
-                           Icon="error_outline"
-                           Title="@Loc["ErrorPageTitle"]"
-                           Description="@Loc["ErrorPageDescription"]" />
-            <div class="vpp-system-page-actions">
-                <a class="vpp-empty-state-link" href="@Config.LoginPagePath" data-enhance-nav="false">
-                    @Loc["Login"]
-                </a>
-            </div>
+            <VppContentState State="VppContentStateKind.Error"
+                             Icon="error_outline"
+                             Title="@Loc["ErrorPageTitle"]"
+                             Description="@Loc["ErrorPageDescription"]"
+                             SecondaryActionText="@Loc["Login"]"
+                             SecondaryActionHref="@Config.LoginPagePath" />
         </main>
     </ErrorContent>
 </ErrorBoundary>

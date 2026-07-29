@@ -929,8 +929,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("role=\"status\"", emptyState, StringComparison.Ordinal);
         Assert.Contains("aria-labelledby=\"@TitleId\"", emptyState, StringComparison.Ordinal);
         Assert.Contains("tabindex=\"-1\"", notifications, StringComparison.Ordinal);
-        Assert.Contains("await _panel.FocusAsync();", notifications, StringComparison.Ordinal);
-        Assert.Contains("await _trigger.FocusAsync();", notifications, StringComparison.Ordinal);
+        Assert.Contains("_focusPanelOnRender = true;", notifications, StringComparison.Ordinal);
+        Assert.Contains("_focusTriggerOnRender = true;", notifications, StringComparison.Ordinal);
+        Assert.Contains("await TryFocusAsync(_panel);", notifications, StringComparison.Ordinal);
+        Assert.Contains("await TryFocusAsync(_trigger);", notifications, StringComparison.Ordinal);
+        Assert.Contains("catch (JSDisconnectedException", notifications, StringComparison.Ordinal);
         Assert.Contains("vpp-notification-empty--loading", notifications, StringComparison.Ordinal);
 
         var historyOrders = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
@@ -1001,6 +1004,33 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("state === \"failed\"", script, StringComparison.Ordinal);
         Assert.Contains("state === \"paused\" || state === \"resume-failed\"", script, StringComparison.Ordinal);
         Assert.Contains("location.reload();", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SystemRoutes_UseTypedContentStatesAndNeverRenderABlankLoginTransition()
+    {
+        var root = GetFrontendRoot();
+        var pagesRoot = Path.Combine(root, "Components", "Pages");
+        var home = File.ReadAllText(Path.Combine(pagesRoot, "Home.razor"));
+        var error = File.ReadAllText(Path.Combine(pagesRoot, "Error.razor"));
+        var notFound = File.ReadAllText(Path.Combine(pagesRoot, "NotFound.razor"));
+        var loginProcess = File.ReadAllText(Path.Combine(pagesRoot, "Authen", "Login.razor"));
+        var routes = File.ReadAllText(Path.Combine(root, "Components", "Routes.razor"));
+        var mainLayout = File.ReadAllText(Path.Combine(root, "Components", "Layout", "MainLayout.razor"));
+        var loginLayout = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LoginLayout.razor"));
+
+        Assert.Contains("VppContentStateKind.Loading", home, StringComparison.Ordinal);
+        Assert.Contains("RedirectingToAllowedWorkspace", home, StringComparison.Ordinal);
+        Assert.Contains("<VppAccountShell", loginProcess, StringComparison.Ordinal);
+        Assert.Contains("LoginRedirectMessage", loginProcess, StringComparison.Ordinal);
+        Assert.Contains("BackToLogin", loginProcess, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind.Error", error, StringComparison.Ordinal);
+        Assert.Contains("PrimaryAction=\"@Reload\"", error, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind.Empty", notFound, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind.Denied", routes, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind.Error", mainLayout, StringComparison.Ordinal);
+        Assert.Contains("VppContentStateKind.Error", loginLayout, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppStatePanel", string.Join("\n", home, error, notFound, routes, mainLayout, loginLayout), StringComparison.Ordinal);
     }
 
     private static string GetFrontendRoot()

@@ -47,6 +47,7 @@ public static class VppIcons
     public const string Price = "payments";
     public const string PriceList = "price_change";
     public const string Pricing = "sell";
+    public const string Progress = "progress_activity";
     public const string Permissions = "admin_panel_settings";
     public const string Reports = "analytics";
     public const string Rejected = "cancel";

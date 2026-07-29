@@ -4,6 +4,15 @@
 @inject gtas_vpp_fe.Helpers.AuthHelper AuthHelper
 @inject gtas_vpp_fe.Services.PermissionState PermissionState
 
+<PageTitle>GTAS VPP - @Loc["Loading"]</PageTitle>
+
+<main class="vpp-system-page">
+    <VppContentState State="VppContentStateKind.Loading"
+                     Icon="@VppIcons.Progress"
+                     Title="@Loc["Loading"]"
+                     Description="@Loc["RedirectingToAllowedWorkspace"]" />
+</main>
+
 @code {
     protected override async Task OnInitializedAsync()
     {

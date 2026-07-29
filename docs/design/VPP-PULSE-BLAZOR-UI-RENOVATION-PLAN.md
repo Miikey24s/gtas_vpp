@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0–F4 DONE; F5 IN PROGRESS; F6/F7 OPENED BY OWNER`.
+> **Trạng thái:** `F0–F5 DONE; F6 IN PROGRESS; F7 OPENED BY OWNER`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,7 +24,7 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | `T001` đã retired; F4 trở thành regression contract. Đang triển khai F5 M0–M2, sau đó F6 M3–M8, R1 refactor và F7 hardening liên tục trước lượt owner review tổng thể. | [Data-surface execution](../execution/UI-DATA-SURFACE-001.md#5-kế-hoạch-chi-tiết) |
+| Bước code hiện tại? | `T001` đã retired; F5 M0–M2 đã hoàn tất. Đang rollout F6 M3–M8, sau đó R1 refactor và F7 hardening liên tục trước lượt owner review tổng thể. | [Data-surface execution](../execution/UI-DATA-SURFACE-001.md#5-kế-hoạch-chi-tiết) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
 | Cần owner duyệt gì? | Sau F7, owner rà lại toàn bộ màn hình một lần bằng final review board: responsive, VI/EN, Light/Dark, motion/animation, keyboard, state và nghiệp vụ đại diện. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
@@ -692,18 +692,18 @@ Status hợp lệ:
 
 | Route/state | Status | Notes |
 |---|---|---|
-| `/` redirect | PENDING | First accessible route, no blank flash |
+| `/` redirect | VERIFIED | Typed loading state trong lúc resolve first-accessible route, không blank flash |
 | `/Account/Login` | APPROVED | Centered shell; inline credential feedback; VI/EN switch |
 | `/Account/Register` | APPROVED | No employee-code field; localized stable validation; no desktop scroll |
 | `/Account/ConfirmEmail` | APPROVED | Success/expired/invalid; compact shell |
 | `/Account/ForgotPassword` | APPROVED | Anti-enumeration; compact recovery shell |
 | `/Account/ResetPassword` | APPROVED | Policy/expired/replay; invalid link hides form |
 | `/Account/ChangePassword` | APPROVED | Current/new/confirm; forced-change context |
-| `/loginprocess` | PENDING | Progress/fallback only |
+| `/loginprocess` | VERIFIED | Shared account progress shell + fallback về login; không còn route trắng |
 | `/logoutprocess` | APPROVED | Safe clear + redirect login; branded progress shell |
-| `/Error` | PENDING | Safe message + correlation + retry |
-| `/not-found` | PENDING | Return to valid workspace |
-| Shell/notification/reconnect | OWNER_REVIEW | Reconnect giữ circuit behavior chuẩn Blazor; status/alert tối giản đang được retrofit theo OpenAI/Codex contract |
+| `/Error` | SOURCE_VERIFIED | Typed error state + correlation + retry + dashboard fallback |
+| `/not-found` | VERIFIED | Typed empty state; browser flow quay về valid workspace pass |
+| Shell/notification/reconnect | VERIFIED_F5 | Notification focus-after-render không làm chết circuit; reconnect giữ contract Blazor; full motion/a11y matrix tiếp tục ở F7 |
 
 **W0.2 round-2 evidence — 2026-07-19:**
 
@@ -751,11 +751,11 @@ Status hợp lệ:
 
 | Logical route | Status | Notes |
 |---|---|---|
-| `dashboard.my-orders` | OWNER_REVIEW | Nested PanelMenu surfaces now inherit semantic navigation chrome; My Orders shell/grid refinement remains verified |
-| `dashboard.history` | OWNER_REVIEW | Summary → period trend → exact order list + persistent desktop detail panel; no default current-period filter |
-| `dashboard.catalog` | PENDING | Browse/search/read-only detail |
-| `dashboard.order-create.new` | PENDING | Select → review → submit |
-| `dashboard.order-create.edit` | PENDING | Update + stale/permission guard |
+| `dashboard.my-orders` | VERIFIED_F5 | Shared data story/order-detail, native scroll, canonical filter/transient motion |
+| `dashboard.history` | VERIFIED_F5 | Summary → trend → paged list + bounded virtualized detail; persistent/overlay responsive behavior |
+| `dashboard.catalog` | VERIFIED_F5 | Read-only server-paged collection, canonical toolbar/footer and full-height workspace |
+| `dashboard.order-create.new` | VERIFIED_F5 | Select → review → submit; shared stepper/data surface and editable quantity |
+| `dashboard.order-create.edit` | VERIFIED_F5 | Update lifecycle and current order detail composite regression pass |
 | Copy previous | PENDING | Diff and source context |
 | Additional request | PENDING | Reason/quota/current attempt |
 

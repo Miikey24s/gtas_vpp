@@ -4,4 +4,17 @@
 
 @inject NavigationManager UriHelper
 
-<PageTitle>GTAS VPP - Login</PageTitle>
+<PageTitle>GTAS VPP - @Loc["Login"]</PageTitle>
+
+<VppAccountShell Title="@Loc["Login"]"
+                 TitleId="login-process-title"
+                 Compact="true">
+    <div class="vpp-account-progress" role="status" aria-live="polite" aria-busy="true">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        <span>@Loc["LoginRedirectMessage"]</span>
+    </div>
+    <a class="vpp-account-back-link" href="@Config.LoginPagePath" data-enhance-nav="false">
+        <VppIcon Name="@VppIcons.ArrowBack" />
+        <span>@Loc["BackToLogin"]</span>
+    </a>
+</VppAccountShell>

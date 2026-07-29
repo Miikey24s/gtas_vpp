@@ -127,6 +127,9 @@
 
     private bool _isOpen;
     private bool _actionFailed;
+    private bool _focusPanelOnRender;
+    private bool _focusTriggerOnRender;
+    private bool _isDisposed;
     private ElementReference _trigger;
     private ElementReference _panel;
 
@@ -141,8 +144,8 @@
         if (_isOpen)
         {
             _actionFailed = false;
+            _focusPanelOnRender = true;
             await InvokeAsync(StateHasChanged);
-            await _panel.FocusAsync();
             await Inbox.RefreshAsync();
         }
     }
@@ -150,8 +153,45 @@
     private async Task Close()
     {
         _isOpen = false;
+        _focusTriggerOnRender = true;
         await InvokeAsync(StateHasChanged);
-        await _trigger.FocusAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (_focusPanelOnRender && _isOpen)
+        {
+            _focusPanelOnRender = false;
+            await TryFocusAsync(_panel);
+        }
+
+        if (_focusTriggerOnRender && !_isOpen)
+        {
+            _focusTriggerOnRender = false;
+            await TryFocusAsync(_trigger);
+        }
+    }
+
+    private async Task TryFocusAsync(ElementReference element)
+    {
+        try
+        {
+            await element.FocusAsync();
+        }
+        catch (InvalidOperationException exception)
+        {
+            // Full-page navigation có thể dispose DOM giữa render và focus.
+            Logger.LogDebug(exception, "Notification focus target is no longer available.");
+        }
+        catch (JSDisconnectedException exception)
+        {
+            Logger.LogDebug(exception, "Notification focus was skipped because the circuit disconnected.");
+        }
     }
 
     private void HandleKeyDown(KeyboardEventArgs args)
@@ -227,5 +267,9 @@
 
     private void OnInboxChanged() => _ = InvokeAsync(StateHasChanged);
 
-    public void Dispose() => Inbox.Changed -= OnInboxChanged;
+    public void Dispose()
+    {
+        _isDisposed = true;
+        Inbox.Changed -= OnInboxChanged;
+    }
 }

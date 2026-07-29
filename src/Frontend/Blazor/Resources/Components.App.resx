@@ -50,6 +50,8 @@
   <data name="Search" xml:space="preserve"><value>Tìm kiếm</value></data>
   <data name="Export" xml:space="preserve"><value>Xuất file</value></data>
   <data name="Loading" xml:space="preserve"><value>Đang tải...</value></data>
+  <data name="RedirectingToAllowedWorkspace" xml:space="preserve"><value>Đang mở khu vực bạn được phép sử dụng.</value></data>
+  <data name="LoginRedirectMessage" xml:space="preserve"><value>Đang hoàn tất đăng nhập...</value></data>
   <data name="ConnectionStatus" xml:space="preserve"><value>Trạng thái kết nối</value></data>
   <data name="ReconnectTitle" xml:space="preserve"><value>Đang kết nối lại</value></data>
   <data name="ReconnectingToServer" xml:space="preserve"><value>Kết nối tạm thời bị gián đoạn. Hệ thống đang tự khôi phục phiên làm việc.</value></data>
