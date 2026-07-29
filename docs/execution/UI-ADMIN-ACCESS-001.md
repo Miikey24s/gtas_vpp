@@ -153,7 +153,7 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 | Gap | Phương án |
 |---|---|
 | Generic Library API đang nhận DTO rộng và một số entity chưa có unique/typed validation đầy đủ | Tạo typed request + validation theo từng domain trước khi khóa editor; không dựa chỉ vào validation UI. |
-| Lookup/category/supplier/department chưa có dependency impact rõ trước deactivate | Bổ sung preflight/impact response hoặc endpoint kiểm tra; dialog confirm phải hiển thị dependency thật. |
+| Lookup/category/supplier/department chưa có dependency impact rõ trước deactivate | Lookup category/value và VPP category đã có read-only dependency-impact endpoint; supplier/department sẽ bổ sung cùng wave domain tương ứng trước khi migrate status action. |
 | Count như số item, số bảng giá, số user/child chưa có projection ổn định | Chỉ thêm cột sau khi API trả count trực tiếp; không tải navigation collection nặng chỉ để đếm. |
 | Permission hiện PATCH từng mapping ngay lập tức | Thêm batch command transaction; validate toàn draft trước khi ghi, audit before/after và chỉ đóng modal khi toàn batch thành công. |
 | User chưa có admin-create endpoint | Thêm typed admin invitation command; dùng Identity token + email/outbox; không dùng password tạm. |
@@ -173,7 +173,7 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 |---|---|---|---|---|---|
 | **AA0 — Baseline & contract** | **COMPLETED — CONTRACT LOCKED** | **Sol · High** | Chụp route-real hiện tại, inventory DTO/API/permission, khóa column/dialog contract và API gaps | Contract ba mức dialog, cột và API gap đã ghi; không đổi nghiệp vụ | Source/schema/permission ledger khớp; no hidden API invention |
 | **AA1 — Shared admin foundation** | **FOUNDATION SLICE COMPLETE — FULL-WIDTH MIGRATION PENDING AA2** | **Sol · High** | Chuẩn hóa modal shell adaptive, toolbar/column policy giữ nguyên frame hiện có; action menu để sau khi đủ consumer | Hai lookup editor thật dùng shell; full-width Collection legacy sẽ migrate ở AA2/AA3 | 203 unit/architecture pass; isolated route-real desktop/mobile pass; owner visual review |
-| **AA2 — Lookup & categories** | **IN PROGRESS — CATEGORY SLICE COMPLETE** | **Terra · High implement; Sol · High review** | Loại→Giá trị ListDetail; Danh mục Collection; typed modal; dependency-aware deactivate | Danh mục đã full-width + popup typed; Lookup/dependency impact còn lại | Category route-real pass; Lookup dependency state pending |
+| **AA2 — Lookup & categories** | **IN PROGRESS — UI + LOOKUP IMPACT COMPLETE** | **Terra · High implement; Sol · High review** | Loại→Giá trị ListDetail; Danh mục Collection; typed modal; dependency-aware deactivate | Danh mục full-width + popup typed; Lookup Add/Edit + impact guard đã có | Category route-real pass; backend impact unit pass; full lookup visual pending |
 | **AA3 — Items, suppliers, departments** | `PENDING AA2` | **Terra · High implement; Sol · High review** | Migrate ba Collection grid, typed editor, hierarchy validation, bỏ reflection inline edit | Ba màn quản trị phẳng đồng bộ, tận dụng full width | API validation, 390–1920, no document scroll |
 | **AA4 — Pricing** | `PENDING AA3` | **Sol · XHigh** | Bảng giá + Giá mặt hàng; lifecycle actions; optimistic concurrency; modal thương mại | Luồng Draft → edit item → publish/expire rõ ràng, không nhầm form với action | Pricing invariants, concurrency, currency/date, mutation E2E |
 | **AA5 — Admin user invitation** | `PENDING AA1` | **Sol · XHigh** | Full-width user grid; add-user invitation editor; membership/status actions; bỏ inline dropdown | Admin tạo user mà không biết password; resend/revoke/activate state rõ | Identity token, uniqueness, transaction, audit, email-disabled state, self-lockout |
@@ -203,7 +203,9 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 
 - `/library?tab=1` không còn dùng `Component_ShareGrid` legacy. Route đã chuyển sang `Tab_CategoryLibrary` typed, full-width `VppCollectionWorkspace`, server paging/filter/sort trên toàn nguồn và column picker hiện hành.
 - Thêm/Sửa dùng `Dialog_CategoryEditor` compact adaptive; không còn inline row edit cho Danh mục. Permission hiện hành vẫn khóa Add/Edit/Status khi component không được enable.
-- Lookup ListDetail đã có Edit popup typed cho cả `LookupCategory` và `LookupValue`; Add/Edit dùng cùng `VppAdminDialogProfiles`, không mở inline cell editor. Dependency impact trước khi deactivate vẫn là phần backend kế tiếp, chưa giả vờ hoàn tất.
+- Lookup ListDetail đã có Edit popup typed cho cả `LookupCategory` và `LookupValue`; Add/Edit dùng cùng `VppAdminDialogProfiles`, không mở inline cell editor.
+- Library API đã thêm `GET /api/Library/{tableCode}/{id}/dependency-impact` cho `lookup-categories`, `lookup-values` và `vpp-categories`; UI chặn deactivate khi còn bản ghi active tham chiếu. Không đổi schema/migration.
 - Consumer ledger được cập nhật thành `16 file / 21 DataGrid`; pattern test của Danh mục đổi từ ListDetail sang Collection.
 - Evidence: Release build `0 warning`; `203` unit/architecture tests pass; isolated Playwright category surface + typed dialog pass. Screenshot `1366×768` đã được kiểm bằng mắt, artifact thô giữ trong `tmp/` ignored.
 - AA2 còn Lookup dependency-aware deactivate và mutation CRUD an toàn; không được suy ra là toàn wave đã hoàn tất.
+- AA2 còn full lookup route visual review và mutation CRUD isolated; supplier/department dependency impact được giữ ở AA3.

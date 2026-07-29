@@ -451,6 +451,7 @@
   <data name="NoMatchingColumns" xml:space="preserve"><value>No matching columns</value></data>
   <data name="Reset" xml:space="preserve"><value>Reset</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="DependencyDeactivateBlocked" xml:space="preserve"><value>Cannot deactivate this record because it is in use ({0} references).</value></data>
   <data name="AllMonths" xml:space="preserve"><value>All months</value></data>
   <data name="AllYears" xml:space="preserve"><value>All years</value></data>
   <data name="ApplyFilters" xml:space="preserve"><value>Apply</value></data>

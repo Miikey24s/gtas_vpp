@@ -168,6 +168,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
+                if (isDeleted && !await CanDeactivateAsync(Config.LibraryApi.LookupCategories, data.Id))
+                {
+                    data.IsDeleted = false;
+                    return;
+                }
+
                 _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userId);
 
                 var patchData = new
@@ -372,6 +378,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
+                if (isDeleted && !await CanDeactivateAsync(Config.LibraryApi.LookupValues, data.Id))
+                {
+                    data.IsDeleted = false;
+                    return;
+                }
+
                 _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userId);
 
                 var patchData = new
@@ -461,6 +473,25 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 UpdatedAtUtc = source.UpdatedAtUtc,
                 UpdatedByUserId = source.UpdatedByUserId
             };
+
+        private async Task<bool> CanDeactivateAsync(string endpoint, Guid id)
+        {
+            var impact = await _apiServices.GetFromApiAsync<LibraryDependencyImpactResDTO>(
+                $"{endpoint}/{id}/dependency-impact");
+
+            if (impact is null || impact.CanDeactivate)
+            {
+                return true;
+            }
+
+            _toastService.Show(
+                NotificationSeverity.Warning,
+                Loc["ValidationTitle"],
+                string.Format(Loc["DependencyDeactivateBlocked"].Value, impact.ActiveReferenceCount),
+                5000,
+                false);
+            return false;
+        }
         #endregion
     }
 }

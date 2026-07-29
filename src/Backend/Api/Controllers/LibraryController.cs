@@ -768,6 +768,35 @@ namespace gtas_vpp_be.Controllers
             };
         }
 
+        [HttpGet("{tableCode}/{id:guid}/dependency-impact")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        public async Task<IActionResult> GetDependencyImpact(string tableCode, Guid id)
+        {
+            var normalizedTableCode = tableCode.Trim().ToLowerInvariant();
+            var context = _unitOfWork.VPPContext;
+            var (dependencyKind, count) = normalizedTableCode switch
+            {
+                "lookup-categories" => ("lookup-values", await context.LookupValues.CountAsync(x => x.LookupCategoryId == id && !x.IsDeleted)),
+                "lookup-values" => ("vpp-items", await context.VppItems.CountAsync(x => x.UomId == id && !x.IsDeleted)),
+                "vpp-categories" => ("vpp-items", await context.VppItems.CountAsync(x => x.VppCategoryId == id && !x.IsDeleted)),
+                _ => (string.Empty, -1)
+            };
+
+            if (count < 0)
+            {
+                return BadRequest(new { Message = $"Dependency impact for Table Code '{tableCode}' is not supported." });
+            }
+
+            return Ok(new LibraryDependencyImpactResDTO
+            {
+                RecordId = id,
+                TableCode = normalizedTableCode,
+                DependencyKind = dependencyKind,
+                ActiveReferenceCount = count,
+                CanDeactivate = count == 0
+            });
+        }
+
         [HttpPost("{tableCode}")]
         [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GenericCreate(string tableCode, [FromBody] JsonElement payload)
