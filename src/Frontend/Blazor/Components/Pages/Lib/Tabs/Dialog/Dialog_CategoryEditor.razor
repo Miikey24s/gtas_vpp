@@ -1,0 +1,84 @@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.Library
+@inject DialogService DialogService
+@inject IAPIServices ApiServices
+@inject IToastService ToastService
+@inject GlobalClass Global
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Compact" TestId="category-editor">
+    <ChildContent>
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="@Loc["CategoryCode"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="Model.VppCategoryCode" Name="category-code" Style="width:100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="@Loc["CategoryName"]" Variant="Variant.Outlined">
+                <RadzenTextBox @bind-Value="Model.VppCategoryName" Name="category-name" Style="width:100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="Model.Description" Name="category-description" Rows="4" Style="width:100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </ChildContent>
+    <Footer>
+        <div class="vpp-adaptive-dialog-actions">
+            <RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" />
+            <RadzenButton Text="@Loc["Save"]" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
+        </div>
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter] public VppCategoryResDTO Model { get; set; } = new();
+    [Parameter] public bool IsCreate { get; set; }
+
+    private bool isBusy;
+
+    private async Task CancelAsync() => await DialogService.TryCloseAsync(null);
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Model.VppCategoryCode) || string.IsNullOrWhiteSpace(Model.VppCategoryName))
+        {
+            ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["CategoryName"], 4000, false);
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            Model.UpdatedAtUtc = DateTime.Now;
+            Model.UpdatedByUserId = Global.UserInfo.UserID;
+            VppCategoryResDTO? result;
+
+            if (IsCreate)
+            {
+                Model.Id = Guid.NewGuid();
+                Model.CreatedAtUtc = DateTime.Now;
+                Model.CreatedByUserId = Global.UserInfo.UserID;
+                result = await ApiServices.PostFromApiAsync<VppCategoryResDTO>(Config.LibraryApi.VppCategories, Model);
+            }
+            else
+            {
+                result = await ApiServices.PatchFromApiAsync<VppCategoryResDTO>($"{Config.LibraryApi.VppCategories}/{Model.Id}", Model);
+            }
+
+            if (result is null)
+            {
+                ToastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["UpdateRecordFailed"], 5000, true);
+                return;
+            }
+
+            ToastService.Show(NotificationSeverity.Success, Loc["Success"], IsCreate ? Loc["RecordAddedSuccess"] : Loc["RecordUpdatedSuccess"], 4000, false);
+            DialogService.Close(result);
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error(ex, Loc, IsCreate ? "CreateRecordFailed" : "UpdateRecordFailed");
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

@@ -147,7 +147,7 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                     (await surface.Locator(".vpp-data-grid").CountAsync()).Should().BeGreaterThanOrEqualTo(1);
                 }
 
-                if (viewport.Width == 768 && route.Label is "categories" or "price-lists" or "users")
+                if (viewport.Width == 768 && route.Label is "price-lists" or "users")
                 {
                     var responsiveWorkspace = Page.Locator(".vpp-list-detail-workspace").First;
                     var columnCount = await responsiveWorkspace.EvaluateAsync<int>(

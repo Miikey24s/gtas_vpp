@@ -16,13 +16,13 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.SetViewportSizeAsync(1366, 420);
         await Page.GotoAsync($"{BaseUrl}library?tab=1", new() { WaitUntil = WaitUntilState.Load });
 
-        var surface = Page.Locator(".vpp-list-detail-workspace .vpp-data-surface").First;
-        var grid = Page.Locator(".library-share-grid:visible");
+        var surface = Page.Locator("[data-testid='category-admin-data-surface']");
+        var grid = Page.Locator("[data-testid='category-admin-data-surface'] .vpp-data-grid:visible");
         await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await grid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await Page.WaitForFunctionAsync("""
             () => {
-                const grid = [...document.querySelectorAll('.library-share-grid')]
+                const grid = [...document.querySelectorAll('[data-testid="category-admin-data-surface"] .vpp-data-grid')]
                     .find(candidate => candidate.getClientRects().length > 0);
                 const body = grid?.querySelector('.rz-data-grid-data');
                 return !!body && (body.querySelectorAll('tbody > tr').length > 0
@@ -33,19 +33,17 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         (await surface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(1);
         (await surface.Locator(".vpp-column-picker-trigger").CountAsync()).Should().Be(1);
         var createButton = surface.Locator(".vpp-library-primary-action");
-        var reloadButton = surface.Locator(".vpp-library-refresh-action");
         await createButton.WaitForAsync();
-        await reloadButton.WaitForAsync();
 
         var geometry = await surface.EvaluateAsync<double[]>("""
             element => {
                 const body = document.querySelector('.vpp-layout-body');
-                const workspace = element.closest('.vpp-list-detail-workspace');
+                const workspace = element.closest('[data-vpp-workspace-pattern="collection"]');
                 const panel = element.closest('.rz-tabview-panel');
                 const toolbar = element.querySelector('.vpp-data-toolbar');
                 const create = element.querySelector('.vpp-library-primary-action');
                 const picker = element.querySelector('.vpp-column-picker-trigger');
-                const grid = element.querySelector('.library-share-grid');
+                const grid = element.querySelector('.vpp-data-grid');
                 const header = grid?.querySelector('thead');
                 const firstRow = grid?.querySelector('tbody > tr');
                 const pager = grid?.querySelector('.rz-paginator, .rz-pager');
@@ -77,9 +75,45 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         geometry[8].Should().BeApproximately(0, 0.5);
 
         var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
-        await deletedCells.First.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 15_000 });
-        (await deletedCells.CountAsync()).Should().BeGreaterThan(0);
+        var emptyState = grid.Locator(".rz-datatable-emptymessage");
+        ((await deletedCells.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
+            "the isolated fixture may be empty, but the typed grid must settle to rows or its empty state");
         (await deletedCells.Locator(".vpp-admin-status-badge").CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Category_Editor_OpensAsTypedDialogInsteadOfInlineRowEdit()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=1", new() { WaitUntil = WaitUntilState.Load });
+
+        var surface = Page.Locator("[data-testid='category-admin-data-surface']");
+        var createButton = surface.Locator(".vpp-library-primary-action");
+        await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await createButton.ClickAsync();
+
+        var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await dialog.Locator("[data-testid='category-editor']").CountAsync()).Should().Be(1);
+        (await surface.Locator(".rz-cell-editing").CountAsync()).Should().Be(0);
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa2-category-collection-editor.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
+        await Page.Keyboard.PressAsync("Escape");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }
 
     [Fact]

@@ -29,7 +29,7 @@
                 <RadzenTabsItem Text="@Loc["OperationCategories"]">
                     @if (IsActiveTab(1))
                     {
-                        <Component_ShareGrid TType=VppCategoryResDTO @bind-Data="@operationCategories" Add=@ApiAddAsync Update=@ApiUpdateAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddCategory"]" GridAriaLabel="@Loc["OperationCategories"]" SearchPlaceholder="@Loc["LibrarySearchCategories"]" SearchFields="@(new[] { "VppCategoryCode", "VppCategoryName" })" />
+                        <Tab_CategoryLibrary PagePermissionResDTO="@PagePermissionResDTO" />
                     }
                 </RadzenTabsItem>
             }

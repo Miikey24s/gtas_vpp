@@ -25,7 +25,7 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             new PatternRoute("operation", "period-review", "dashboard?tab=5&periodTab=review"),
             new PatternRoute("split-editor", "lookup", "library?tab=0"),
             new PatternRoute("split-editor", "order-create", "dashboard/order-create"),
-            new PatternRoute("list-detail", "library", "library?tab=1"),
+            new PatternRoute("collection", "library", "library?tab=1"),
             new PatternRoute("list-detail", "users", "permission?tab=0")
         };
         PageInsetGeometry? baseline = null;

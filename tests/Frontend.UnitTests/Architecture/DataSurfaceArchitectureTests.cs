@@ -230,8 +230,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(15, consumers.Length);
-        Assert.Equal(20, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(16, consumers.Length);
+        Assert.Equal(21, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

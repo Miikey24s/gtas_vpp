@@ -173,7 +173,7 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 |---|---|---|---|---|---|
 | **AA0 — Baseline & contract** | **COMPLETED — CONTRACT LOCKED** | **Sol · High** | Chụp route-real hiện tại, inventory DTO/API/permission, khóa column/dialog contract và API gaps | Contract ba mức dialog, cột và API gap đã ghi; không đổi nghiệp vụ | Source/schema/permission ledger khớp; no hidden API invention |
 | **AA1 — Shared admin foundation** | **FOUNDATION SLICE COMPLETE — FULL-WIDTH MIGRATION PENDING AA2** | **Sol · High** | Chuẩn hóa modal shell adaptive, toolbar/column policy giữ nguyên frame hiện có; action menu để sau khi đủ consumer | Hai lookup editor thật dùng shell; full-width Collection legacy sẽ migrate ở AA2/AA3 | 203 unit/architecture pass; isolated route-real desktop/mobile pass; owner visual review |
-| **AA2 — Lookup & categories** | `PENDING AA1` | **Terra · High implement; Sol · High review** | Loại→Giá trị ListDetail; Danh mục Collection; typed modal; dependency-aware deactivate | Hai màn đầu hoàn chỉnh, có add/edit popup và column picker | CRUD route-real; filter full DB; dependency state |
+| **AA2 — Lookup & categories** | **IN PROGRESS — CATEGORY SLICE COMPLETE** | **Terra · High implement; Sol · High review** | Loại→Giá trị ListDetail; Danh mục Collection; typed modal; dependency-aware deactivate | Danh mục đã full-width + popup typed; Lookup/dependency impact còn lại | Category route-real pass; Lookup dependency state pending |
 | **AA3 — Items, suppliers, departments** | `PENDING AA2` | **Terra · High implement; Sol · High review** | Migrate ba Collection grid, typed editor, hierarchy validation, bỏ reflection inline edit | Ba màn quản trị phẳng đồng bộ, tận dụng full width | API validation, 390–1920, no document scroll |
 | **AA4 — Pricing** | `PENDING AA3` | **Sol · XHigh** | Bảng giá + Giá mặt hàng; lifecycle actions; optimistic concurrency; modal thương mại | Luồng Draft → edit item → publish/expire rõ ràng, không nhầm form với action | Pricing invariants, concurrency, currency/date, mutation E2E |
 | **AA5 — Admin user invitation** | `PENDING AA1` | **Sol · XHigh** | Full-width user grid; add-user invitation editor; membership/status actions; bỏ inline dropdown | Admin tạo user mà không biết password; resend/revoke/activate state rõ | Identity token, uniqueness, transaction, audit, email-disabled state, self-lockout |
@@ -198,3 +198,11 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - Hai editor lookup thật đã migrate: `Dialog_AddLookupCategory` và `Dialog_AddLookupValue`; footer dùng `TryCloseAsync`, options không còn hard-code width tại caller.
 - Evidence: frontend Release build pass; `203` frontend unit/architecture tests pass; isolated Playwright `LookupEditor_Uses_AdaptiveDialogShell_OnDesktopAndMobile` pass ở desktop `1366×768` và mobile `390×844`. Screenshot visual review đã kiểm tra bằng mắt; evidence thô nằm trong thư mục tạm ignored và không đưa vào commit.
 - AA1 chưa được suy ra là hoàn tất toàn wave: migration full-width Collection của các admin grid legacy (`Component_ShareGrid`) vẫn để AA2/AA3, đúng dependency và decision record hiện hành.
+
+## 10. Execution record — AA2 category slice — 2026-07-30
+
+- `/library?tab=1` không còn dùng `Component_ShareGrid` legacy. Route đã chuyển sang `Tab_CategoryLibrary` typed, full-width `VppCollectionWorkspace`, server paging/filter/sort trên toàn nguồn và column picker hiện hành.
+- Thêm/Sửa dùng `Dialog_CategoryEditor` compact adaptive; không còn inline row edit cho Danh mục. Permission hiện hành vẫn khóa Add/Edit/Status khi component không được enable.
+- Consumer ledger được cập nhật thành `16 file / 21 DataGrid`; pattern test của Danh mục đổi từ ListDetail sang Collection.
+- Evidence: Release build `0 warning`; `203` unit/architecture tests pass; isolated Playwright category surface + typed dialog pass. Screenshot `1366×768` đã được kiểm bằng mắt, artifact thô giữ trong `tmp/` ignored.
+- AA2 còn Lookup dependency-aware deactivate và mutation CRUD an toàn; không được suy ra là toàn wave đã hoàn tất.
