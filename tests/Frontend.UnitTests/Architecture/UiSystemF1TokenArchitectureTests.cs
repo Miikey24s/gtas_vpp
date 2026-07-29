@@ -113,6 +113,67 @@ public sealed class UiSystemF1TokenArchitectureTests
         Assert.Contains("LEGACY COMPATIBILITY", app, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void OpenAiVisualContract_AllowsGradientsOnlyForFunctionalFeedback()
+    {
+        var root = GetFrontendRoot();
+        var allowedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            Path.Combine("Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"),
+            Path.Combine("wwwroot", "app.css"),
+            Path.Combine("wwwroot", "css", "vpp-datagrid.css"),
+            Path.Combine("wwwroot", "css", "vpp-tabs.css"),
+            Path.Combine("wwwroot", "css", "vpp-tokens.css")
+        };
+        var offenders = Directory
+            .EnumerateFiles(root, "*.css", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}wwwroot{Path.DirectorySeparatorChar}lib{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => Regex.IsMatch(File.ReadAllText(path), @"(?:linear|radial|conic)-gradient\(", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+            .Select(path => Path.GetRelativePath(root, path))
+            .Where(path => !allowedFiles.Contains(path))
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Empty(offenders);
+        Assert.DoesNotContain("gradient(", ReadCss("vpp-login.css"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("gradient(", ReadCss("vpp-wizard.css"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("gradient(", ReadCss("vpp-layout.css"), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("gradient(", ReadCss("vpp-polish.css"), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CanonicalMotionTokens_DriveSharedTransientAndLoadingFeedback()
+    {
+        var tokens = ReadCss("vpp-tokens.css");
+        var layout = ReadCss("vpp-layout.css");
+        var polish = ReadCss("vpp-polish.css");
+        var wizard = ReadCss("vpp-wizard.css");
+        var history = File.ReadAllText(Path.Combine(
+            GetFrontendRoot(),
+            "Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"));
+
+        foreach (var token in new[]
+                 {
+                     "--vpp-motion-fast-duration: 120ms;",
+                     "--vpp-motion-base-duration: 180ms;",
+                     "--vpp-motion-layout-duration: 220ms;",
+                     "--vpp-motion-skeleton-duration: 1200ms;",
+                     "--vpp-motion-spinner-duration: 900ms;",
+                     "--vpp-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);"
+                 })
+        {
+            Assert.Contains(token, tokens, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("var(--vpp-motion-spinner-duration)", layout, StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-motion-skeleton-duration)", polish, StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-motion-base-duration)", wizard, StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-motion-spinner-duration)", history, StringComparison.Ordinal);
+        Assert.Contains("var(--vpp-motion-skeleton-duration)", history, StringComparison.Ordinal);
+    }
+
     private static string ReadCss(string fileName)
         => File.ReadAllText(Path.Combine(GetFrontendRoot(), "wwwroot", "css", fileName));
 

@@ -7,10 +7,10 @@
 .vpp-sidebar {
     font-family: var(--vpp-font-sidebar);
     transition: width var(--vpp-sidebar-transition),
-                background-color 160ms ease,
-                border-color 160ms ease,
-                color 160ms ease,
-                box-shadow 160ms ease !important;
+                background-color var(--vpp-transition-fast),
+                border-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast) !important;
     overflow: visible !important;
 }
 

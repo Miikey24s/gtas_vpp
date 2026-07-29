@@ -44,7 +44,7 @@ html:root {
     overflow: hidden;
     border-radius: var(--vpp-radius-md) !important;
     background: transparent !important;
-    animation: vpp-toast-in 180ms ease-out both;
+    animation: vpp-toast-in var(--vpp-motion-base-duration) var(--vpp-motion-easing-standard) both;
     pointer-events: auto;
 }
 
@@ -104,7 +104,9 @@ html:root {
     border-radius: var(--vpp-radius-sm) !important;
     color: var(--vpp-text-secondary) !important;
     opacity: 0.8 !important;
-    transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                opacity var(--vpp-transition-fast);
 }
 
 .rz-notification-close:hover,

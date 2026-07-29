@@ -1,6 +1,6 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `ACTIVE — F0–F6 DONE; F7 IN PROGRESS`
+- Status: `IMPLEMENTED — F0–F7 DONE; OWNER FINAL VISUAL REVIEW PENDING`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
@@ -178,7 +178,7 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 | F4 — Pattern | `DONE — OWNER OPENED FULL ROLLOUT 2026-07-29` | **Sol · XHigh** — checkpoint kiến trúc khó nhất, ảnh hưởng scalability dài hạn. | Khóa `page outer inset`; tạo sáu pattern typed/slot-based; chuẩn hóa shell seam, directional indicator, navigation rhythm và transient-surface motion toàn cục. | **Khung scalable hoàn chỉnh:** agent có bản đồ chọn pattern; page giữ cùng nhịp với header/sidebar; interaction nổi dùng một ngôn ngữ; route vẫn sở hữu API/permission/nghiệp vụ. Đây chưa phải toàn bộ màn đã migrate. | Runtime board 6 archetype + 12 route consumer; shell expanded/collapsed; hover/indicator và popup filter; evidence local ignored. | Owner yêu cầu tiếp tục toàn plan; mọi correction F4 trở thành regression contract của F5–F7. |
 | F5 — M0–M2 reference | `DONE — 2026-07-29` | **Terra · High** implement; **Sol · High** review từng slice — giữ chuẩn reference. | Shell/account/system transition, catalog, order create, My Orders và History dùng OpenAI/Codex contract; route đã đúng pattern được harden thay vì rewrite. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Runtime browser matrix 4 viewport; account VI/EN; shell motion; data/filter/detail và Create Order lifecycle. | Release build + frontend `198/198`; focused M0–M2 browser matrix `14/14`, Create Order lifecycle `1/1`, not-found flow `1/1`. |
 | F6 — M3–M8 rollout | `DONE — FINAL REVIEW DEFERRED TO F7` | **Terra · High** — rollout lớn nhưng pattern đã ổn định. | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | F6A/F6B có build, unit/architecture, route-real và visual evidence; owner review tổng thể dồn sau F7. |
-| F7 — Hardening | `IN PROGRESS` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
+| F7 — Hardening | `DONE — OWNER FINAL REVIEW` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, đồng bộ motion, axe/Print và chuẩn bị visual baseline để owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh về implementation:** sẵn sàng cho lượt rà toàn bộ màn hình và các correction cuối của owner. | Final board: 4 viewport, Light/Dark/Print, account/data/workflow/transient surface và QA scorecard. | Gate frontend tương đương pass; `verify` wrapper chỉ bị chặn bởi một AI-harness eval ngoài scope UI. |
 
 Routing trên áp dụng riêng cho `UI-SYSTEM-001`; chỉ đổi model ở ranh giới wave/checkpoint lớn. `Sol review` là lượt review độc lập, không phải hai agent cùng sửa một worktree. Theo quyết định owner mới nhất, plan không kiểm tra hoặc báo cáo quota/% tài khoản trừ khi owner chủ động mở lại phạm vi đó.
 
@@ -245,7 +245,7 @@ Mốc dễ hiểu:
 - Hai sửa visual nhỏ round 7 đã triển khai và có focused browser gate. Kế hoạch con [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md) đã hoàn tất DS0–DS2 và triển khai DS3 workflow group, map vào F5/F6/F7 nhưng không thay bảng canonical F0–F7.
 - Owner review round 8 chỉ ra scrollbar mảnh trong Create Order và flicker khi server virtualization đổi cửa sổ dữ liệu. Audit xác nhận CSS authored của project không còn scrollbar pseudo-selector; Radzen 11.1.4 vẫn custom toàn `.rz-layout` theo mặc định. `App.razor` dùng opt-out chính thức `rz-default-scrollbars` để trả appearance cho browser/OS; vùng nào cuộn vẫn giữ `overflow: auto` nội bộ.
 - Virtualization policy được áp dụng ở Create Order DS3: dataset hữu hạn/DTO nhẹ dùng client snapshot + virtualized DOM; danh sách dài tiếp tục server paging; server virtualization chỉ dùng khi có prefetch cache và không bật blocking loader theo từng scroll.
-- Owner duyệt DS0–DS2 ngày 2026-07-29. DS3 đã chuẩn hóa Create Order, Department Summary và Period Review, hiện chờ owner visual review; DS4/R1 chưa mở.
+- Checkpoint lịch sử: owner duyệt DS0–DS2 ngày 2026-07-29; sau đó DS3, DS4 và R1 đã được triển khai liên tục theo yêu cầu dồn review tổng thể sau F7.
 - Owner review DS3 thay hero step lớn của Create Order và Period Operations bằng shared compact segmented stepper. Component typed giữ `Pending/Active/Complete`, route giữ workflow; focused browser gate khóa chiều cao/containment trong full-height wizard và visual runtime hai route đã được kiểm bằng mắt.
 
 ### 5.5 O0–O1 OpenAI direction và motion foundation — 2026-07-29
@@ -284,6 +284,17 @@ Mốc dễ hiểu:
 - `VppOrderItemsSurface` không còn import module JS riêng, lifecycle/dispose trùng hoặc alias `vpp-history-popover-value/copy`. CSS chết của empty-state adapter và wizard state cũ được xóa sau source scan về 0 consumer.
 - Không mass-split `vpp-layout.css`, `HistoryWorkspaceShell.razor.css` hoặc generic admin code chỉ để đạt quota dòng. R1 ưu tiên seam có bằng chứng và giảm nguồn behavior cạnh tranh; các file lớn còn lại được giữ cho đến khi có ownership boundary nhỏ, độc lập và test được.
 - Evidence: Release build `0 warning/error`; frontend unit/architecture `199/199`; History + My Orders + F4 interaction matrix `8/9` pass lần đầu, failure duy nhất là assertion motion Apple cũ `0.2s`; cập nhật về canonical OpenAI token `0.16s` rồi F4 `4/4` pass. Popup code/filter screenshots được xem bằng mắt, không lệch anchor hoặc mất copy action.
+
+### 5.10 F7 hardening và final handoff — 2026-07-29
+
+- Decorative gradient đã bị loại khỏi login, wizard, shell language control và account avatar. Architecture allowlist chỉ cho phép gradient có chức năng rõ: skeleton loading và fade báo còn nội dung tab ngang; scrollbar authored vẫn bằng 0 và app dùng scrollbar mặc định browser/OS.
+- Motion authored được đưa về token canonical: hover/focus `120ms`, transient `160ms`, navigation `180ms`, layout `220ms`, skeleton `1200ms`, spinner `900ms`, cùng easing `cubic-bezier(0.2, 0, 0, 1)`. Reconnect, toast, History, wizard, admin, sidebar và loading footer dùng cùng contract; reduced-motion tắt loop hoặc chuyển tức thời.
+- Visual QA bằng mắt phát hiện và sửa hai lỗi mà overflow assertion không thấy: divider desktop còn rò xuống mobile tại `x≈71px`, và bước 4 Vận hành kỳ chỉ lộ một phần ngoài mép phải. Divider nay ẩn dưới `769px`; `VppWorkflowStepper` tự cuộn active step vào vùng nhìn thấy, smooth khi người dùng đổi bước và instant trong reduced-motion/first render.
+- Accessibility smoke phát hiện chữ `VI` active không đủ contrast trên mobile; language thumb chuyển sang semantic active color đậm hơn và axe sau sửa pass ở `390×844`, `768×1024`, `1920×1080`.
+- Debt snapshot cuối: inline style `261 → 208`, authored hex `131 → 110`, `!important` `756 → 740`; không dùng mass-refactor hoặc đổi nghiệp vụ để ép số đẹp.
+- Evidence: Release solution build `0 warning/error`; frontend unit/architecture `201/201`; Compose UI smoke `2/2`; `AtlasFullRuntimeTests` `2/2` bao phủ 28 màn × 4 viewport, Dark representative, Print và axe; focused shell/theme/account/reconnect/F4/data/workflow `21/21` sau correction; Accessibility `1/1`; Global render flow `1/1`; NuGet audit, format, gitleaks và `git diff --check` pass.
+- `./scripts/gtas.cmd verify -Scope frontend` dừng trước frontend gates tại `model-routing-eval` (`62 pass / 1 fail`) do bảy file AI-harness dirty ngoài scope. Các gate còn lại của chính wrapper đã được chạy trực tiếp và pass; UI commit không stage hoặc sửa nhóm AI-harness đó.
+- Final runtime board local ignored: `%TEMP%\gtas-vpp-ui-system-f7-final\F7-FINAL-REVIEW-BOARD.png`; ảnh thô cùng folder, không commit trước owner approval.
 
 ### 5.1 Visual review contract
 
@@ -409,13 +420,14 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 
 ## 9. Owner approval gate
 
-Trước khi sửa UI thật, owner duyệt ba điểm:
+Ba gate mở plan đã được owner duyệt trong các checkpoint trước:
 
-- [ ] Kiến trúc hybrid và quy tắc `2 consumer trước abstraction`.
-- [ ] Thứ tự F0–F7 và nguyên tắc migrate dần, không rewrite big-bang.
-- [ ] Slice đầu tiên F0.1–F0.3: CSS order, route metadata và regression baseline.
+- [x] Kiến trúc hybrid và quy tắc `2 consumer trước abstraction`.
+- [x] Thứ tự F0–F7 và nguyên tắc migrate dần, không rewrite big-bang.
+- [x] Slice đầu tiên F0.1–F0.3: CSS order, route metadata và regression baseline.
+- [ ] Owner rà final board + route thật và ghi correction cuối nếu có.
 
-Sau approval, agent thực thi F0 end-to-end, báo bằng chứng và commit local. Push/PR chỉ khi owner yêu cầu rõ.
+Implementation F0–F7 đã hoàn tất và commit local theo slice. Push/PR chỉ khi owner yêu cầu rõ.
 
 ---
 

@@ -99,6 +99,17 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
 
             (await Page.Locator(".vpp-workflow-step.is-active").CountAsync()).Should().Be(1);
             (await Page.Locator(".vpp-period-target .vpp-filter-select").CountAsync()).Should().Be(2);
+            await Page.WaitForFunctionAsync("""
+                () => {
+                    const stepper = document.querySelector('.vpp-workflow-stepper');
+                    const active = stepper?.querySelector('.vpp-workflow-step.is-active');
+                    if (!stepper || !active) return false;
+                    const stepperRect = stepper.getBoundingClientRect();
+                    const activeRect = active.getBoundingClientRect();
+                    return activeRect.left >= stepperRect.left + 3
+                        && activeRect.right <= stepperRect.right - 3;
+                }
+                """);
 
             var containment = await Page.EvaluateAsync<string>("""
                 () => {

@@ -12,7 +12,7 @@ public sealed class UiSystemF1ThemeTests : TestBase, IAuthenticatedUiTest
     [
         new("my-orders", "dashboard?tab=0", ".vpp-orders-story"),
         new("history", "dashboard?tab=1", ".vpp-history-page", ".vpp-history-loading-state"),
-        new("library-departments", "library?tab=5", ".vpp-atlas-admin-workspace", ".vpp-global-loader"),
+        new("library-departments", "library?tab=5", ".vpp-admin-data-surface", ".vpp-global-loader"),
         new("permission", "permission?tab=1", ".vpp-permission-matrix", ".vpp-global-loader")
     ];
 

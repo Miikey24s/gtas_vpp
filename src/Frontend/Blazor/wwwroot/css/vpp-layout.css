@@ -247,8 +247,8 @@ leftsidebar {
     padding: var(--vpp-space-2);
     flex: 0 0 auto;
     overflow: hidden;
-    /* Kéo dài baseline của toolbar chính bên dưới logo. Cách này tạo giao điểm chữ T
-       kiểu macOS gọn mà không khôi phục seam dọc của header. */
+    /* Kéo dài baseline của toolbar bên dưới logo để tạo giao điểm chữ T gọn,
+       không khôi phục seam dọc trong vùng header. */
     box-shadow: inset 0 -1px 0 var(--vpp-border-default);
 }
 
@@ -264,7 +264,7 @@ leftsidebar {
     opacity: 1;
     transform: scale(1) translateX(0);
     transform-origin: left center;
-    transition: opacity 160ms ease-out 45ms,
+    transition: opacity var(--vpp-transient-motion-duration) var(--vpp-motion-easing-standard) var(--vpp-motion-stagger-duration),
                 transform var(--vpp-sidebar-transition),
                 visibility 0s linear 0s;
 }
@@ -274,7 +274,7 @@ leftsidebar {
     opacity: 0;
     transform: scale(0.95) translateX(-4px);
     pointer-events: none;
-    transition-delay: 0s, 0s, 220ms;
+    transition-delay: 0s, 0s, var(--vpp-motion-layout-duration);
 }
 
 .vpp-sidebar-expanded-brand {
@@ -338,7 +338,7 @@ leftsidebar {
     transform: scale(1) translateX(0);
     transform-origin: left center;
     transition: max-width var(--vpp-sidebar-transition),
-                opacity 150ms ease-out 50ms,
+                opacity var(--vpp-transient-motion-duration) var(--vpp-motion-easing-standard) var(--vpp-motion-stagger-duration),
                 transform var(--vpp-sidebar-transition),
                 visibility 0s linear 0s;
 }
@@ -408,9 +408,9 @@ leftsidebar {
     transform: scale(0.95) translateY(4px);
     transform-origin: center;
     pointer-events: none;
-    transition: opacity 160ms ease-out,
+    transition: opacity var(--vpp-transient-motion-duration) var(--vpp-motion-easing-standard),
                 transform var(--vpp-sidebar-transition),
-                visibility 0s linear 220ms;
+                visibility 0s linear var(--vpp-motion-layout-duration);
 }
 
 .sidebar-collapsed .vpp-sidebar-collapsed-brand {
@@ -419,7 +419,7 @@ leftsidebar {
     opacity: 1;
     transform: scale(1) translateY(0);
     pointer-events: auto;
-    transition-delay: 45ms, 0s, 0s;
+    transition-delay: var(--vpp-motion-stagger-duration), 0s, 0s;
 }
 
 .vpp-sidebar-collapsed-logo,
@@ -557,8 +557,7 @@ leftsidebar {
     left: 3px;
     width: calc((100% - 6px) / 2);
     border-radius: var(--vpp-radius-full);
-    background:
-        linear-gradient(135deg, rgba(var(--vpp-primary-rgb), 0.96), rgba(20, 184, 166, 0.92));
+    background: var(--vpp-action-primary-active);
     box-shadow: 0 4px 12px rgba(var(--vpp-primary-rgb), 0.24);
     transform: translateX(0);
     transition:
@@ -856,7 +855,7 @@ leftsidebar {
     border: 2px solid color-mix(in srgb, var(--vpp-primary) 24%, transparent);
     border-top-color: var(--vpp-primary);
     border-radius: 50%;
-    animation: vpp-notification-spin 800ms linear infinite;
+    animation: vpp-notification-spin var(--vpp-motion-spinner-duration) linear infinite;
 }
 
 @keyframes vpp-notification-spin {
@@ -865,7 +864,7 @@ leftsidebar {
 
 @media (prefers-reduced-motion: reduce) {
     .vpp-notification-spinner {
-        animation-duration: 1.6s;
+        animation: none;
     }
 }
 
@@ -1032,6 +1031,10 @@ leftsidebar {
 
 /* ── Thích ứng kích thước màn hình ─────────────────────────────── */
 @media (max-width: 768px) {
+    .rz-layout.vpp-layout::after {
+        display: none;
+    }
+
     .rz-layout.vpp-layout,
     .rz-layout.vpp-layout:has(> .rz-sidebar.vpp-sidebar) {
         grid-template-columns: 1fr;

@@ -8,6 +8,7 @@
     min-height: 36px;
     padding: 2px;
     overflow-x: auto;
+    scroll-padding-inline: var(--vpp-space-1);
     border: 1px solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
     border-radius: 10px;
     background: color-mix(in srgb, var(--vpp-border-default) 42%, var(--vpp-bg-elevated));
@@ -43,6 +44,10 @@
     transition: background-color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
                 color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
                 box-shadow var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
+}
+
+.vpp-workflow-step {
+    scroll-margin-inline: var(--vpp-space-1);
 }
 
 .vpp-workflow-step button:hover:not(:disabled):not([aria-current="step"]) {

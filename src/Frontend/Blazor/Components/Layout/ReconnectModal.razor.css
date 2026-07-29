@@ -40,13 +40,13 @@
 }
 
 #components-reconnect-modal[open] {
-    animation: reconnect-present 180ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    animation: reconnect-present var(--vpp-motion-base-duration) var(--vpp-motion-easing-standard) both;
 }
 
 #components-reconnect-modal::backdrop {
     background: rgba(15, 23, 42, 0.3);
     backdrop-filter: blur(2px);
-    animation: reconnect-backdrop-present 160ms ease-out both;
+    animation: reconnect-backdrop-present var(--vpp-transient-motion-duration) var(--vpp-motion-easing-standard) both;
 }
 
 .components-reconnect-container {
@@ -74,7 +74,7 @@
     border: 2px solid color-mix(in srgb, var(--vpp-primary-500) 24%, transparent);
     border-top-color: currentColor;
     border-radius: var(--vpp-radius-full);
-    animation: reconnect-spin 800ms linear infinite;
+    animation: reconnect-spin var(--vpp-motion-spinner-duration) linear infinite;
 }
 
 .components-reconnect-symbol {
@@ -201,7 +201,7 @@
     }
 
     .components-reconnect-spinner {
-        animation-duration: 1.6s;
+        animation: none;
     }
 
     #components-reconnect-modal button {

@@ -184,7 +184,10 @@
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-medium);
     cursor: pointer;
-    transition: border-color 120ms ease, box-shadow 120ms ease, color 120ms ease, background 120ms ease;
+    transition: border-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast);
 }
 
 .vpp-column-picker-leading-icon {

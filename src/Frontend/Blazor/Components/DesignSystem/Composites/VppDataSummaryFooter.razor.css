@@ -33,7 +33,7 @@
     border: 2px solid var(--vpp-border-strong);
     border-top-color: var(--vpp-primary-500);
     border-radius: var(--vpp-radius-full);
-    animation: vpp-data-summary-spin 700ms linear infinite;
+    animation: vpp-data-summary-spin var(--vpp-motion-spinner-duration) linear infinite;
 }
 
 @keyframes vpp-data-summary-spin {

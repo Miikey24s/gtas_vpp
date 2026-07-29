@@ -331,4 +331,4 @@ Nguồn:
 - Outer inset giữ đúng ở sidebar expanded/collapsed.
 - Footer đúng data behavior; không pager giả hoặc footer rỗng trang trí.
 - Legacy adapter/CSS chỉ còn khi ledger chứng minh vẫn có consumer.
-- F5/F6 visual board được owner duyệt; R1 giữ UI/interaction parity; F7 full gate pass.
+- F5/F6 runtime evidence đã được gom vào lượt review tổng thể theo yêu cầu owner; R1 giữ UI/interaction parity; F7 technical gate pass và final board chờ owner duyệt.

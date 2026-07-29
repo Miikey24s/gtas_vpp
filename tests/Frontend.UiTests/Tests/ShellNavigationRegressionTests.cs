@@ -375,17 +375,20 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             "element => element.classList.contains('is-ready') && getComputedStyle(element).opacity === '1'"))
             .Should().BeTrue("the active library child starts visible");
 
-        // Animation shell-enter/sidebar dùng transform nên getBoundingClientRect trả
-        // tọa độ sub-pixel khi đo giữa chừng (thấy 7.35 thay vì 8 trên circuit lạnh).
-        // Chờ hết page-entering và hình học logo đứng yên qua 2 khung rAF liên tiếp.
+        // Shell-enter và thao tác mở sidebar đều dùng transform. Chờ cả hai motion
+        // kết thúc trước khi đo; hai rAF đơn thuần vẫn có thể bắt đúng đoạn easing
+        // gần như đứng yên nhưng chưa về matrix identity.
         await Page.WaitForFunctionAsync("() => !document.documentElement.classList.contains('vpp-page-entering')");
         await Page.WaitForFunctionAsync("""
-            () => new Promise(resolve => {
-                const measure = () => document.querySelector('.vpp-sidebar-expanded-logo')?.getBoundingClientRect().left ?? -1;
-                const first = measure();
-                requestAnimationFrame(() => requestAnimationFrame(() => resolve(first >= 0 && measure() === first)));
-            })
+            () => {
+                const chrome = document.querySelector('.vpp-sidebar-expanded-chrome');
+                if (!chrome) return false;
+                const style = getComputedStyle(chrome);
+                return style.opacity === '1'
+                    && (style.transform === 'none' || style.transform === 'matrix(1, 0, 0, 1, 0, 0)');
+            }
             """);
+        await WaitForRenderSettleAsync();
 
         var hierarchy = await Page.EvaluateAsync<SidebarHierarchyGeometry>(
             """

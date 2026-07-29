@@ -434,6 +434,7 @@
     --vpp-motion-slow-duration: 240ms;
     --vpp-motion-skeleton-duration: 1200ms;
     --vpp-motion-spinner-duration: 900ms;
+    --vpp-motion-stagger-duration: 48ms;
     --vpp-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
     --vpp-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
     --vpp-transition-fast: var(--vpp-motion-fast-duration) var(--vpp-motion-easing-standard);

@@ -212,7 +212,8 @@
     background: transparent;
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
 }
 
 .user-dropdown-logout:hover {
@@ -569,7 +570,7 @@ h1:focus {
 .busylogo {
     width: 200px;
     animation-name: logoanimation;
-    animation-duration: 2s;
+    animation-duration: var(--vpp-motion-skeleton-duration);
     animation-iteration-count: infinite;
 }
 
@@ -1233,7 +1234,7 @@ thead {
     border: none !important; /* Xóa bỏ border vật lý để chống giật */
     box-shadow: inset 0 0 0 1px var(--rz-input-border-color, var(--rz-base-400, #dee2e6)) !important;
     border-radius: var(--rz-border-radius, 4px) !important;
-    transition: box-shadow 0.2s ease !important;
+    transition: box-shadow var(--vpp-transition-fast) !important;
     background-color: transparent !important; /* Tránh đè nền mặc định */
 }
 
@@ -1310,7 +1311,8 @@ thead {
 .rz-formfield.rz-variant-text .rz-textbox,
 .rz-formfield.rz-variant-text .rz-password,
 .rz-formfield.rz-variant-text .rz-numeric {
-    transition: border-bottom-color 0.15s ease, box-shadow 0.15s ease !important;
+    transition: border-bottom-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast) !important;
 }
 
 /* ── Chuyển đổi chế độ tối/sáng ──────────────────────────────── */
@@ -1336,7 +1338,7 @@ body, .rz-panel, .rz-card, .rz-dialog, .rz-data-grid, .rz-menu,
         var(--vpp-bg-elevated) 50%,
         var(--vpp-border-default) 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
+    animation: shimmer var(--vpp-motion-skeleton-duration) var(--vpp-motion-easing-standard) infinite;
     border-radius: var(--vpp-radius-sm);
 }
 

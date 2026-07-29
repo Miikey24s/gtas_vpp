@@ -258,10 +258,10 @@ body,
 .vpp-settle-container,
 .vpp-settle-status-card {
     transition:
-        background-color 160ms ease,
-        border-color 160ms ease,
-        color 160ms ease,
-        box-shadow 160ms ease;
+        background-color var(--vpp-transition-fast),
+        border-color var(--vpp-transition-fast),
+        color var(--vpp-transition-fast),
+        box-shadow var(--vpp-transition-fast);
 }
 
 html.vpp-culture-changing .vpp-content {
@@ -410,7 +410,7 @@ a:hover {
     min-width: 0;
 }
 
-/* Dòng phụ (phòng ban/vai trò) dưới tên ở footer sidebar theo Atlas .sidebar-user. */
+/* Dòng phụ phòng ban/vai trò dưới tên trong account trigger của sidebar. */
 .user-menu-trigger-subline {
     max-width: 190px;
     overflow: hidden;
@@ -422,7 +422,7 @@ a:hover {
     white-space: nowrap;
     opacity: 1;
     transition: max-width var(--vpp-sidebar-transition),
-                opacity 150ms ease-out 45ms;
+                opacity var(--vpp-transient-motion-duration) var(--vpp-motion-easing-standard) var(--vpp-motion-stagger-duration);
 }
 
 .user-menu-trigger-name {
@@ -439,7 +439,7 @@ a:hover {
     transform: scale(1) translateX(0);
     transform-origin: left center;
     transition: max-width var(--vpp-sidebar-transition),
-                opacity 150ms ease-out 45ms,
+                opacity var(--vpp-transient-motion-duration) var(--vpp-motion-easing-standard) var(--vpp-motion-stagger-duration),
                 transform var(--vpp-sidebar-transition),
                 visibility 0s linear 0s;
 }
@@ -472,7 +472,7 @@ a:hover {
     height: 64px;
     margin-top: var(--vpp-space-1);
     border: 2px solid color-mix(in srgb, var(--vpp-primary-500) 28%, transparent);
-    background: linear-gradient(145deg, var(--vpp-primary-500), var(--vpp-accent-500));
+    background: var(--vpp-action-primary);
     box-shadow: 0 8px 20px rgba(var(--vpp-primary-rgb), 0.18);
     font-size: 1.05rem;
     letter-spacing: 0.02em;
@@ -715,7 +715,7 @@ a:hover {
     opacity: 0;
     transform: scale(0.95) translateX(-4px);
     pointer-events: none;
-    transition-delay: 0s, 0s, 0s, 220ms;
+    transition-delay: 0s, 0s, 0s, var(--vpp-motion-layout-duration);
 }
 
 .sidebar-collapsed .vpp-sidebar-user-menu .user-menu-trigger-subline {
@@ -879,7 +879,7 @@ a:hover {
 }
 
 .vpp-state-panel-loading .vpp-state-panel-icon {
-    animation: vpp-state-pulse 1.2s ease-in-out infinite;
+    animation: vpp-state-pulse var(--vpp-motion-skeleton-duration) var(--vpp-motion-easing-standard) infinite;
 }
 
 .vpp-system-page {

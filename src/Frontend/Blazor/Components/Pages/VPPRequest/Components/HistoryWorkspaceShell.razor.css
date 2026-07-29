@@ -108,7 +108,7 @@
         color-mix(in srgb, var(--vpp-text-primary) 3%, var(--vpp-bg-elevated)) 42%,
         color-mix(in srgb, var(--vpp-text-primary) 7%, var(--vpp-bg-elevated)) 60%);
     background-size: 240% 100%;
-    animation: vpp-history-shimmer 1.8s cubic-bezier(.32, .72, 0, 1) infinite;
+    animation: vpp-history-shimmer var(--vpp-motion-skeleton-duration) var(--vpp-motion-easing-standard) infinite;
 }
 
 ::deep .vpp-history-skeleton-scope { width: min(360px, 45%); height: 32px; border-radius: 10px; }
@@ -146,7 +146,7 @@
     border: 2px solid color-mix(in srgb, var(--vpp-primary-500) 22%, transparent);
     border-top-color: var(--vpp-primary-500);
     border-radius: 50%;
-    animation: vpp-history-spin .8s linear infinite;
+    animation: vpp-history-spin var(--vpp-motion-spinner-duration) linear infinite;
 }
 
 ::deep .vpp-history-state-panel {
@@ -218,7 +218,9 @@
     border-radius: 7px;
     background: transparent;
     color: color-mix(in srgb, var(--vpp-text-primary) 84%, var(--vpp-bg-elevated));
-    transition: background-color 140ms ease, box-shadow 140ms ease, color 140ms ease;
+    transition: background-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
 }
 
 ::deep .vpp-history-scope button.is-active {
@@ -326,7 +328,8 @@
     border-radius: var(--vpp-radius-md);
     background: var(--vpp-bg-elevated);
     box-shadow: var(--vpp-shadow-xs);
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    transition: border-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
 }
 
 ::deep .vpp-history-kpis article {
@@ -372,7 +375,9 @@
     font: inherit;
     text-align: start;
     cursor: pointer;
-    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
 }
 
 /* KPI card thể hiện khả năng click qua hover, focus và popover; tắt chevron disclosure từ theme. */
@@ -563,7 +568,10 @@
     font-weight: var(--vpp-font-weight-medium);
     line-height: 1;
     cursor: pointer;
-    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    transition: background-color var(--vpp-transition-fast),
+                border-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
 }
 
 ::deep .vpp-history-chart-legend-label {
@@ -1078,7 +1086,8 @@
     color: var(--vpp-text-secondary);
     font: inherit;
     cursor: pointer;
-    transition: background-color 160ms ease, color 160ms ease;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
 }
 
 ::deep .vpp-history-grid-wrap .vpp-cell-value-popover-copy:hover {
@@ -1210,7 +1219,8 @@
     background: var(--vpp-bg-elevated);
     box-shadow: var(--vpp-shadow-xl);
     outline: none;
-    transition: box-shadow 160ms ease, border-color 160ms ease;
+    transition: box-shadow var(--vpp-transition-fast),
+                border-color var(--vpp-transition-fast);
 }
 
 @media (min-width: 1280px) {

@@ -1,4 +1,7 @@
-<nav class="vpp-workflow-stepper @Class" aria-label="@AriaLabel">
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<nav @ref="_root" class="vpp-workflow-stepper @Class" aria-label="@AriaLabel">
     <ol>
         @foreach (var step in Steps)
         {
@@ -29,6 +32,63 @@
     [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> StepSelected { get; set; }
     [Parameter] public string? Class { get; set; }
+
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private string? _activeStepKey;
+    private bool _needsVisibilitySync;
+
+    protected override void OnParametersSet()
+    {
+        var activeStepKey = Steps.FirstOrDefault(step => step.State == VppWorkflowStepState.Active)?.Key;
+        if (!string.Equals(activeStepKey, _activeStepKey, StringComparison.Ordinal))
+        {
+            _activeStepKey = activeStepKey;
+            _needsVisibilitySync = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_needsVisibilitySync)
+        {
+            return;
+        }
+
+        try
+        {
+            _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/DesignSystem/Composites/VppWorkflowStepper.razor.js");
+            await _module.InvokeVoidAsync("ensureActiveVisible", _root, !firstRender);
+            _needsVisibilitySync = false;
+        }
+        catch (InvalidOperationException)
+        {
+            // Prerender chưa có JS runtime; interactive render kế tiếp sẽ đồng bộ lại.
+        }
+        catch (JSDisconnectedException)
+        {
+            // Circuit đã đóng nên không còn viewport để cuộn.
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // Circuit đã đóng; module sẽ được browser thu hồi cùng document.
+        }
+    }
 
     private static string GetStateClass(VppWorkflowStepState state) => state switch
     {

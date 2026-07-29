@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.89` — 2026-07-29
+> **Phiên bản:** `2.90` — 2026-07-29
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0–F5 DONE; F6 IN PROGRESS; F7 OPENED BY OWNER`.
+> **Trạng thái:** `F0–F7 IMPLEMENTED; OWNER FINAL VISUAL REVIEW PENDING`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,7 +24,7 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | `T001` đã retired; F5 M0–M2 đã hoàn tất. Đang rollout F6 M3–M8, sau đó R1 refactor và F7 hardening liên tục trước lượt owner review tổng thể. | [Data-surface execution](../execution/UI-DATA-SURFACE-001.md#5-kế-hoạch-chi-tiết) |
+| Bước code hiện tại? | `T001` đã retired; F0–F7, DS0–DS4 và R1 đã triển khai. Bước kế tiếp là owner rà final board + route thật, rồi agent xử lý correction cuối nếu có. | [F7 handoff](../execution/UI-SYSTEM-001.md#510-f7-hardening-và-final-handoff--2026-07-29) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
 | Cần owner duyệt gì? | Sau F7, owner rà lại toàn bộ màn hình một lần bằng final review board: responsive, VI/EN, Light/Dark, motion/animation, keyboard, state và nghiệp vụ đại diện. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
@@ -102,7 +102,7 @@ Khi có xung đột:
 - Figma chỉ dùng khi cần so sánh phương án, minh họa flow hoặc lưu research.
 - Khi Figma có Import GitHub/Code on Canvas, import toàn repository để đọc đúng Blazor, shared DTO, route catalog và living plan; không chọn `scripts/browser` làm frontend target.
 - Figma không chạy/ship Blazor thay Codex. Nếu cần React code layer để dựng preview, output đó chỉ là prototype thiết kế cô lập; sau owner review, implementation thật vẫn được viết và QA trong `src/Frontend/Blazor`.
-- Toolchain phải đi theo vai trò: Sosumi/Apple HIG cho hierarchy/clarity/spacing/feedback, Microsoft Learn/Radzen cho framework/component, Playwright cho route/DOM/ARIA, Chrome DevTools cho debug/performance, axe cho accessibility và Figma cho design context.
+- Toolchain phải đi theo vai trò: OpenAI Developer UI guidance cho hierarchy/clarity/spacing/feedback, Microsoft Learn/Radzen cho framework/component, Playwright cho route/DOM/ARIA, Chrome DevTools cho debug/performance, axe cho accessibility và Figma cho design context khi cần.
 - Nếu Radzen MCP hết quota hoặc key không hoạt động, dừng toàn bộ công việc và chờ owner cung cấp key mới.
 - Mỗi route được sửa, QA, review và commit như một vertical slice nhỏ.
 
@@ -402,7 +402,7 @@ Mỗi vùng chỉ trả lời một câu hỏi: **đang ở đâu → điều g�
 
 Mỗi wave phải chạy browser review ở `1920×1080`, spot-check `768×1024`/`390×844`, VI/EN, Light/Dark/Print, loading/empty/error/success/disabled và kiểm tra console/network trước khi chuyển wave.
 
-### 6.6 OpenAI/Codex-inspired shell và page contract — superseded 2026-07-29
+### 6.6 OpenAI/Codex-inspired shell và page contract — current from 2026-07-29
 
 Contract này giữ toàn bộ geometry/nghiệp vụ owner đã duyệt từ các vòng trước, nhưng art direction hiện hành là OpenAI/Codex minimal system. Nó áp dụng cho **header, sidebar và toàn bộ page**, không chỉ route đang được nhắc tới.
 
@@ -533,7 +533,7 @@ Quy tắc triển khai Atlas và Blazor: screen chỉ compose archetype + fixtur
 
 **Hai motif confirmations đã được owner chốt ngày 2026-07-23:**
 
-1. Typography: system-font stack kiểu Apple cho shell/navigation/form/table; Poppins chỉ giữ ở headline/KPI editorial cần tạo dấu ấn. Phương án này tránh toàn app giống Apple clone nhưng vẫn giữ shell đúng motif owner đã duyệt.
+1. Typography: system-font stack trung tính cho shell/navigation/form/table; Poppins chỉ giữ ở headline/KPI editorial cần tạo dấu ấn. Quyết định lịch sử này hiện được mở rộng bởi `D-OPENAI-UI-01`: hierarchy gọn, ít decoration và không mô phỏng pixel sản phẩm bên ngoài.
 2. Phạm vi vòng ảnh đầu: 28 desktop Light screens; Dark chỉ render M0 + ba archetype đại diện (data workspace, form, admin matrix), rồi mới sinh full Dark/responsive sau khi Light motif được duyệt.
 
 **Agent-ready refactor sau mockup approval, trước route implementation:**
@@ -1072,7 +1072,7 @@ Status hợp lệ:
 - do Radzen theme được nạp sau authored CSS, seam reset được khóa trên selector runtime `.rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar` với `!important`;
 - browser computed-style xác nhận `border-right-width: 0px`, `box-shadow: none`; screenshot/regression pass tại `1366×768` và `1920×1080`; frontend `149/149` pass; route trở lại `OWNER_REVIEW` và chưa commit lượt follow-up.
 
-**Shared Apple-style refresh reveal — owner direction 2026-07-23:**
+**Shared refresh reveal — owner direction 2026-07-23 — historical, motion values superseded by D-OPENAI-UI-01:**
 
 - refresh/direct document load dùng một motion language chung cho logo/sidebar, primary header và content; nền shell được paint ngay để tránh white flash;
 - sidebar content fade + dịch ngang `6px`, primary header fade + dịch dọc `-6px`, panel fade + nâng `8px`/scale `0.997`; cùng easing `cubic-bezier(0.32, 0.72, 0, 1)` và stagger tối đa `85ms`;
@@ -1084,7 +1084,7 @@ Status hợp lệ:
 **Unified toolbar baseline refinement — owner feedback 2026-07-23:**
 
 - owner xác nhận vertical seam đã hết nhưng continuous white chrome làm logo trông nổi rời và tổng thể thiếu điểm neo;
-- chọn macOS unified-toolbar pattern: giữ logo/tab cùng white surface, không khôi phục vertical seam, kéo một hairline ngang xuyên suốt dưới cả sidebar header và primary tabs;
+- chọn unified-toolbar pattern: giữ logo/tab cùng white surface, không khôi phục vertical seam, kéo một hairline ngang xuyên suốt dưới cả sidebar header và primary tabs;
 - divider dọc vẫn chỉ bắt đầu dưới header, tạo T-junction rõ nhưng nhẹ; dùng semantic border token, không hard-code màu;
 - browser screenshot tại `1366×768`/`1920×1080` xác nhận baseline liền từ logo qua tabs và T-junction sạch; My Orders responsive/refresh regression pass, frontend `150/150`;
 - shared shell trở lại `OWNER_REVIEW`; chưa commit lượt follow-up.
@@ -1117,7 +1117,7 @@ Status hợp lệ:
 - architecture `149/149` pass; isolated expanded-sidebar regression xác nhận toàn bộ inactive child/grandchild wrapper có computed background `rgba(0, 0, 0, 0)` và geometry/indicator/motion vẫn pass;
 - route trở lại `OWNER_REVIEW`; giữ gate chưa commit trước visual approval.
 
-**W1 shared reconnect direction — 2026-07-22:**
+**W1 shared reconnect direction — 2026-07-22 — historical, visual direction superseded by D-OPENAI-UI-01:**
 
 - owner yêu cầu thiết kế lại reconnect theo Apple HIG nhưng không thay đổi global `InteractiveServer` hoặc cơ chế circuit reconnect hiện hành;
 - trạng thái tự khôi phục dùng spinner nhỏ, copy ngắn và không có action; chỉ khi `failed`, `paused` hoặc `resume-failed` mới hiển thị nút hành động;
@@ -1254,7 +1254,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
-| 2026-07-29 | Global art direction + execution mode | Retire `T001`; OpenAI/Codex minimal system thay Apple làm visual research chính. Dùng system colors/font, restrained type scale, token spacing/radius, icon outline, một CTA chính và motion có mục đích; không sao chép pixel ChatGPT | Owner muốn làm toàn bộ UI một lượt chuẩn và cho rằng OpenAI phù hợp hơn với cách GPT-5.6/Codex mở rộng codebase | Global | Mở F5–F7 + DS4/R1; khôi phục full QA; thêm OpenAI visual/motion contract vào authority | Toàn bộ M0–M8, shell, transient surfaces, animations, docs/toolchain | IN PROGRESS |
+| 2026-07-29 | Global art direction + execution mode | Retire `T001`; OpenAI/Codex minimal system thay Apple làm visual research chính. Dùng system colors/font, restrained type scale, token spacing/radius, icon outline, một CTA chính và motion có mục đích; không sao chép pixel ChatGPT | Owner muốn làm toàn bộ UI một lượt chuẩn và cho rằng OpenAI phù hợp hơn với cách GPT-5.6/Codex mở rộng codebase | Global | Hoàn tất F5–F7 + DS4/R1; khôi phục full QA; thêm OpenAI visual/motion contract và final runtime board | Toàn bộ M0–M8, shell, transient surfaces, animations, docs/toolchain | IMPLEMENTED — OWNER FINAL REVIEW |
 | 2026-07-29 | DS2 Catalog + primary header flattening | Catalog bỏ block giới thiệu lặp, dùng đúng motif `filter → header có # → rows → footer/pager`; server paging luôn hiện trong viewport. Primary header không còn tab con/breadcrumb; `Quản lý` được thay trực tiếp bằng `Tổng hợp phòng ban` | Owner review phát hiện Catalog thiếu footer/cột số thứ tự dù API đã paging và nested header-tab tạo hierarchy thừa | Catalog route + global authenticated header | Sửa grid thành flex data/pager, thêm page-aware row number; xóa breadcrumb model/markup/CSS và dùng label primary trực tiếp | Catalog, dashboard/order-create, period, pricing và mọi header consumer | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | DS3 History + Department Summary viewport correction | Cả hai route dùng cùng shell full-height; chi tiết đơn bắt đầu ngang mép trên KPI và cùng chạm đáy viewport với danh sách. Không dùng `text-box` trim cho nội dung phiếu/badge tiếng Việt vì có thể xén dấu hoặc đỉnh glyph | Owner review phát hiện Department Summary bị đứt chuỗi height, detail bắt đầu cao hơn KPI và phần trên chữ bị cắt | Shared History workspace + dashboard shell routing | Áp `vpp-history-shell` cho History và Department Summary; đổi detail sang grid row KPI → đáy; bỏ local glyph trim và khóa bằng route geometry | History, Department Summary, future HistoryWorkspaceShell consumers | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-28 | F4 owner review round 6 — collapsed user popup | Sidebar mở rộng giữ account popup trong sidebar; sidebar thu gọn phải mở popup sang bên phải rail và bám đáy, không dùng panel rộng phủ lên icon/navigation | Owner phát hiện popup user ở rail thu gọn không còn giống behavior trước và che cả sidebar lẫn main content | Global shell interaction | Tách anchor theo shell state; thêm browser geometry gate cho expanded motion và collapsed no-overlap/bottom anchor | Account menu ở mọi authenticated route, desktop collapsed shell | IMPLEMENTED — OWNER_REVIEW |

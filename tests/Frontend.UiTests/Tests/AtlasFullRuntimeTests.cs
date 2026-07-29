@@ -40,10 +40,10 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         new("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']"),
         new("settlement-flow", "dashboard?tab=5&periodTab=settle", "[data-testid='period-settlement-data-surface']"),
         new("classes", "library?tab=0", ".vpp-admin-class-split"),
-        new("categories", "library?tab=1", ".vpp-atlas-admin-workspace"),
-        new("items", "library?tab=2", ".vpp-atlas-admin-workspace"),
-        new("departments", "library?tab=5", ".vpp-atlas-admin-workspace"),
-        new("suppliers", "library?tab=3", ".vpp-atlas-admin-workspace"),
+        new("categories", "library?tab=1", ".vpp-admin-data-surface"),
+        new("items", "library?tab=2", ".vpp-admin-data-surface"),
+        new("departments", "library?tab=5", ".vpp-admin-data-surface"),
+        new("suppliers", "library?tab=3", ".vpp-admin-data-surface"),
         new("price-lists", "library?tab=6&pricingTab=price-lists", ".vpp-price-list-workspace"),
         new("prices", "library?tab=6&pricingTab=prices", ".vpp-price-workspace"),
         new("users", "permission?tab=0", ".vpp-atlas-user-workspace"),
@@ -116,7 +116,7 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
                  {
                      new AtlasRuntimeScreen("my-orders", "dashboard?tab=0", ".vpp-orders-workspace"),
                      new AtlasRuntimeScreen("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']"),
-                     new AtlasRuntimeScreen("items", "library?tab=2", ".vpp-atlas-admin-workspace"),
+                     new AtlasRuntimeScreen("items", "library?tab=2", ".vpp-admin-data-surface"),
                      new AtlasRuntimeScreen("reports", "report", ".vpp-report-page")
                  })
         {

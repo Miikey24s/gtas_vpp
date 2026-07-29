@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
     VPP LOGIN PAGE
-    Full-screen artwork with overlay login card
+    Artwork toàn màn hình với account panel tối giản theo UI system.
     ═══════════════════════════════════════════════════════════════════════════ */
 
 .vpp-login-page {
@@ -55,8 +55,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background:
-        linear-gradient(90deg, rgba(15, 23, 42, 0.04) 0%, rgba(15, 23, 42, 0.02) 42%, rgba(255, 255, 255, 0.08) 74%, rgba(255, 255, 255, 0.16) 100%);
+    background: color-mix(in srgb, var(--vpp-login-bg) 10%, transparent);
 }
 
 .vpp-login-art {
@@ -177,7 +176,7 @@
     outline: none !important;
     outline-width: 0 !important;
     padding: 4px 0 !important;
-    transition: border-color 0.2s ease-in-out !important;
+    transition: border-color var(--vpp-transition-fast) !important;
 }
 
 .vpp-login-field .rz-textbox,
@@ -288,7 +287,7 @@
     margin-top: 12px;
     border: none;
     border-radius: var(--vpp-radius-button) !important;
-    background: linear-gradient(135deg, var(--vpp-primary-500) 0%, var(--vpp-primary-600) 100%) !important;
+    background: var(--vpp-action-primary) !important;
     color: var(--vpp-text-on-surface) !important;
     font-family: var(--vpp-font-display);
     font-size: 1.22rem;
@@ -296,13 +295,15 @@
     letter-spacing: 0;
     box-shadow: 0 10px 20px rgba(var(--vpp-primary-rgb), 0.18) !important;
     overflow: hidden;
-    transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+    transition: transform var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast);
 }
 
 .vpp-login-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 14px 24px rgba(var(--vpp-primary-rgb), 0.24);
-    filter: saturate(1.05);
+    background: var(--vpp-action-primary-hover) !important;
 }
 
 .vpp-login-btn:active {
@@ -383,7 +384,7 @@
     }
 
     .vpp-login-shell::before {
-        background: linear-gradient(180deg, rgba(15, 23, 42, 0.03) 0%, rgba(15, 23, 42, 0.05) 40%, rgba(255, 255, 255, 0.14) 60%, rgba(255, 255, 255, 0.64) 100%);
+        background: color-mix(in srgb, var(--vpp-login-bg) 20%, transparent);
     }
 
     .vpp-login-art-image {
@@ -419,7 +420,7 @@
     width: 100%;
     min-height: var(--vpp-login-field-min-height);
     border-bottom: 1px solid rgba(9, 30, 66, 0.16);
-    transition: border-color 0.2s ease-in-out;
+    transition: border-color var(--vpp-transition-fast);
 }
 
 .vpp-login-password-wrapper .rz-password,
@@ -469,7 +470,7 @@
     justify-content: center !important;
     outline: none !important;
     box-shadow: none !important;
-    transition: color 0.15s ease-in-out !important;
+    transition: color var(--vpp-transition-fast) !important;
     z-index: 10;
 }
 
@@ -491,10 +492,7 @@
     --vpp-account-field-inner-gap: 4px;
     --vpp-account-form-action-gap: 8px;
     --vpp-account-action-link-gap: 14px;
-    background:
-        radial-gradient(circle at 14% 18%, rgba(14, 165, 233, 0.11), transparent 32%),
-        radial-gradient(circle at 88% 82%, rgba(20, 184, 166, 0.09), transparent 28%),
-        #f4f7fa;
+    background: var(--vpp-bg-base);
 }
 
 .vpp-account-page-compact .vpp-login-shell {
@@ -507,11 +505,7 @@
 }
 
 .vpp-account-page-compact .vpp-login-shell::before {
-    background:
-        linear-gradient(rgba(9, 30, 66, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(9, 30, 66, 0.035) 1px, transparent 1px);
-    background-size: 32px 32px;
-    mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+    background: transparent;
 }
 
 .vpp-account-page-compact .vpp-login-card {
@@ -710,7 +704,8 @@
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-primary-600);
     text-decoration: none;
-    transition: color 0.15s ease, background-color 0.15s ease;
+    transition: color var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast);
 }
 
 .vpp-login-links a:hover,

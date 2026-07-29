@@ -46,6 +46,7 @@ public sealed class UiSystemF0ArchitectureTests
         var interactions = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
 
         Assert.Contains("@media (max-width: 768px)", layout, StringComparison.Ordinal);
+        Assert.Contains(".rz-layout.vpp-layout::after {\n        display: none;", layout.Replace("\r\n", "\n", StringComparison.Ordinal), StringComparison.Ordinal);
         Assert.Contains("@media (min-width: 769px)", layout, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout:has(> .rz-sidebar.vpp-sidebar)", layout, StringComparison.Ordinal);
         Assert.Contains("@media (max-width: 768px)", responsive, StringComparison.Ordinal);

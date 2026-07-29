@@ -97,8 +97,8 @@ public sealed class AccessibilitySmokeTests : TestBase
                 .Where(violation =>
                     string.Equals(violation.Impact, "critical", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(violation.Impact, "serious", StringComparison.OrdinalIgnoreCase))
-                .Select(violation =>
-                    $"{violation.Id} ({violation.Impact}): {violation.Help} — {violation.HelpUrl}")
+                .SelectMany(violation => violation.Nodes.Select(node =>
+                    $"{violation.Id} ({violation.Impact}): {violation.Help}; target={string.Join(" ", node.Target)}; html={node.Html} — {violation.HelpUrl}"))
                 .ToArray();
             blockingViolations.Should().BeEmpty(
                 $"the login page must have no critical/serious axe violations at {viewport.Width}px");
