@@ -24,7 +24,9 @@
 }
 
 @media (max-width: 1100px) {
-    .vpp-list-detail-workspace {
+    .vpp-list-detail-workspace.is-ratio-standard,
+    .vpp-list-detail-workspace.is-ratio-widelist {
         grid-template-columns: 1fr;
+        overflow: visible;
     }
 }

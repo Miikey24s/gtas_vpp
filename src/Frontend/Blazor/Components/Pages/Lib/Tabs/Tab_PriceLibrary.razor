@@ -2,7 +2,13 @@
 
 
 <VppCollectionWorkspace Class="vpp-admin-workspace vpp-price-workspace">
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End" Gap="0.75rem" Wrap="FlexWrap.Wrap" class="vpp-admin-filterbar vpp-price-filterbar">
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                         Density="VppDataDensity.Compact"
+                         AriaLabel="@Loc["Prices"]"
+                         TestId="prices-data-surface"
+                         Class="vpp-admin-data-surface">
+    <Toolbar>
+    <VppDataToolbar AriaLabel="@Loc["Prices"]" Class="vpp-admin-filterbar vpp-price-filterbar">
         <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
             <RadzenDropDown TValue="Guid?"
                             Data="@priceLists"
@@ -44,7 +50,9 @@
                       Click="@LoadPricesAsync"
                       Disabled="@(!HasPriceListSelected)" />
         <VppColumnPicker TItem="VppItemPriceResDTO" GridAccessor="@(() => grid)" />
-    </RadzenStack>
+    </VppDataToolbar>
+    </Toolbar>
+    <ChildContent>
 
     @if (!HasPriceLists)
     {
@@ -54,6 +62,8 @@
     }
 
     <RadzenDataGrid @ref="grid"
+                    data-vpp-grid-region="true"
+                    aria-label="@Loc["Prices"]"
                     TItem="VppItemPriceResDTO"
                     Data="@displayItems"
                     Count="@priceCount"
@@ -76,7 +86,7 @@
                     AllowPickAllColumns="true"
                     ColumnsPickerAllowFiltering="true"
                     RowRender="@OnRowRenderPrice"
-                    class="vpp-admin-grid vpp-admin-page-grid vpp-price-grid"
+                    class="vpp-admin-grid vpp-admin-page-grid vpp-price-grid vpp-data-grid vpp-data-density-compact"
                     ColumnWidth="150px"
                     Style="--vpp-admin-grid-min-width: 1380px;">
         <Columns>
@@ -97,11 +107,11 @@
                     }
                     else
                     {
-                        <span class="text-muted" style="font-style: italic;">--</span>
+                        <span class="text-muted vpp-admin-empty-value">--</span>
                     }
                 </Template>
             </RadzenDataGridColumn>
-            @* Atlas library-prices: cột Thuế (VAT) hiển thị thuế suất của mức giá. *@
+            @* Thuế VAT là dữ liệu cấp mức giá, không suy ra từ bảng giá. *@
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VatRate" Title="@Loc["VatRate"]" Width="86px" TextAlign="TextAlign.Right">
                 <Template Context="row">
                     @if (row.PriceMappingId.HasValue)
@@ -110,13 +120,13 @@
                     }
                     else
                     {
-                        <span class="text-muted" style="font-style: italic;">--</span>
+                        <span class="text-muted vpp-admin-empty-value">--</span>
                     }
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="126px" TextAlign="TextAlign.Center">
                 <Template Context="row">
-                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
+                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" class="vpp-admin-switch-readonly" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
@@ -128,8 +138,7 @@
                             Value="@row.IsDeleted"
                             Disabled="@(!IsSelectedPriceListDraft)"
                                           Change="@(async (bool value) => await SetDeletedPriceAsync(row, value))"
-                                          class="isDeleteSwitch"
-                                          Style="transform: scale(0.75);" />
+                                          class="isDeleteSwitch vpp-admin-switch-compact" />
                         </div>
                     }
                     else
@@ -165,4 +174,6 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+    </ChildContent>
+    </VppDataSurfaceFrame>
 </VppCollectionWorkspace>

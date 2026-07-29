@@ -10,415 +10,152 @@ namespace gtas_vpp_fe.UITests.Tests.Library;
 public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task Category_Grid_Uses_Page_Scroll_Without_Header_Overlap()
+    public async Task Category_Grid_Uses_Bounded_Data_Surface_Without_Header_Overlap()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 420);
-        await Page.GotoAsync($"{BaseUrl}library?tab=1");
+        await Page.GotoAsync($"{BaseUrl}library?tab=1", new() { WaitUntil = WaitUntilState.Load });
 
+        var surface = Page.Locator(".vpp-list-detail-workspace .vpp-data-surface").First;
         var grid = Page.Locator(".library-share-grid:visible");
-        var gridData = grid.Locator(".rz-data-grid-data");
-        await grid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        // Chờ body của grid có ít nhất 1 hàng hoặc hiện empty-state thay cho sleep cố định.
+        await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await grid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await Page.WaitForFunctionAsync("""
             () => {
                 const grid = [...document.querySelectorAll('.library-share-grid')]
                     .find(candidate => candidate.getClientRects().length > 0);
                 const body = grid?.querySelector('.rz-data-grid-data');
-                if (!body) {
-                    return false;
-                }
-
-                return body.querySelectorAll('tbody > tr').length > 0
-                    || !!grid.querySelector('.rz-datatable-emptymessage');
+                return !!body && (body.querySelectorAll('tbody > tr').length > 0
+                    || !!grid.querySelector('.rz-datatable-emptymessage'));
             }
             """);
 
-        var gridChrome = await grid.EvaluateAsync<string[]>("""
-            element => {
-                const style = getComputedStyle(element);
-                return [style.borderTopWidth, style.borderRadius, style.boxShadow, style.backgroundColor];
-            }
-            """);
-        gridChrome.Should().Equal("0px", "0px", "none", "rgba(0, 0, 0, 0)");
-
-        var edgeOffsets = await grid.EvaluateAsync<double[]>("""
-            element => {
-                const panel = element.closest('.rz-tabview-panel');
-                const workspace = element.closest('.vpp-atlas-admin-workspace');
-                const collection = element.closest('.vpp-atlas-admin-collection');
-                if (!panel || !workspace || !collection) {
-                    throw new Error('Category Atlas workspace was not rendered.');
-                }
-
-                const gridRect = element.getBoundingClientRect();
-                const panelRect = panel.getBoundingClientRect();
-                const workspaceRect = workspace.getBoundingClientRect();
-                const collectionRect = collection.getBoundingClientRect();
-                return [
-                    workspaceRect.left - panelRect.left,
-                    panelRect.right - workspaceRect.right,
-                    gridRect.left - collectionRect.left,
-                    collectionRect.right - gridRect.right
-                ];
-            }
-            """);
-        edgeOffsets[0].Should().BeApproximately(0, 0.5);
-        edgeOffsets[1].Should().BeApproximately(0, 0.5);
-        edgeOffsets[2].Should().BeApproximately(0, 0.5);
-        edgeOffsets[3].Should().BeApproximately(0, 0.5);
-
-        var toolbarAlignment = await grid.EvaluateAsync<double[]>("""
-            element => {
-                const header = element.querySelector('.rz-group-header');
-                const customHeader = element.querySelector('.rz-custom-header');
-                const picker = element.querySelector('.vpp-column-picker-trigger');
-                if (!header || !customHeader || !picker) {
-                    throw new Error('Category toolbar or column picker was not rendered.');
-                }
-
-                const customRect = customHeader.getBoundingClientRect();
-                const pickerRect = picker.getBoundingClientRect();
-                return [
-                    header.getBoundingClientRect().height,
-                    Math.abs((customRect.top + customRect.height / 2) - (pickerRect.top + pickerRect.height / 2))
-                ];
-            }
-            """);
-        toolbarAlignment[0].Should().BeLessThan(60);
-        toolbarAlignment[1].Should().BeLessThan(5);
-
-        var createButton = grid.Locator(".vpp-library-primary-action");
-        var reloadButton = grid.Locator(".vpp-library-refresh-action");
+        (await surface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(1);
+        (await surface.Locator(".vpp-column-picker-trigger").CountAsync()).Should().Be(1);
+        var createButton = surface.Locator(".vpp-library-primary-action");
+        var reloadButton = surface.Locator(".vpp-library-refresh-action");
         await createButton.WaitForAsync();
         await reloadButton.WaitForAsync();
-        (await createButton.InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
-        (await reloadButton.InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
-        (await reloadButton.GetAttributeAsync("aria-label")).Should().NotBeNullOrWhiteSpace();
 
-        var actionSizes = await grid.EvaluateAsync<double[]>("""
+        var geometry = await surface.EvaluateAsync<double[]>("""
             element => {
+                const body = document.querySelector('.vpp-layout-body');
+                const workspace = element.closest('.vpp-list-detail-workspace');
+                const panel = element.closest('.rz-tabview-panel');
+                const toolbar = element.querySelector('.vpp-data-toolbar');
                 const create = element.querySelector('.vpp-library-primary-action');
-                const reload = element.querySelector('.vpp-library-refresh-action');
-                if (!create || !reload) {
-                    throw new Error('Library actions were not rendered.');
-                }
-
-                return [
-                    create.getBoundingClientRect().height,
-                    reload.getBoundingClientRect().height,
-                    reload.getBoundingClientRect().width
-                ];
-            }
-            """);
-        // 30px = bậc compact của button ladder Atlas (--vpp-control-height-compact, W-B.2).
-        actionSizes[0].Should().BeApproximately(30, 1);
-        actionSizes[1].Should().BeApproximately(30, 1);
-        actionSizes[2].Should().BeGreaterThan(70);
-
-        var actionAppearance = await reloadButton.EvaluateAsync<string[]>("""
-            element => {
-                const icon = element.querySelector('.rzi');
-                const style = getComputedStyle(element);
-                const iconStyle = icon ? getComputedStyle(icon) : null;
-                return [style.opacity, style.color, iconStyle?.opacity ?? '0'];
-            }
-            """);
-        actionAppearance[0].Should().Be("1");
-        actionAppearance[2].Should().Be("1");
-
-        // W-B.2b: on desktop the primary tab strip moved into the shell header;
-        // the in-body RadzenTabs nav only serves mobile and must stay hidden here.
-        var primaryNavState = await Page.EvaluateAsync<string[]>("""
-            () => {
-                const bodyNav = document.querySelector(
-                    '.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav');
-                const header = document.querySelector('.vpp-layout-header');
-                const headerTabs = header?.querySelector('.vpp-header-tabs');
-                if (!bodyNav || !header || !headerTabs) {
-                    throw new Error('Primary tab strip or shell header was not rendered.');
-                }
-
-                return [
-                    getComputedStyle(bodyNav).display,
-                    getComputedStyle(header).display,
-                    getComputedStyle(headerTabs).display
-                ];
-            }
-            """);
-        primaryNavState[0].Should().Be("none", "desktop replaces the in-body primary tab strip with the shell header tabs");
-        primaryNavState[1].Should().NotBe("none", "the shell header row must be visible on desktop");
-        primaryNavState[2].Should().NotBe("none", "the shell header must expose the section tab strip on desktop");
-
-        var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
-        await deletedCells.First.WaitForAsync(new LocatorWaitForOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = 15000
-        });
-        (await deletedCells.CountAsync()).Should().BeGreaterThan(0);
-        (await deletedCells.Locator(".vpp-admin-status-badge").CountAsync()).Should().Be(0);
-
-        var hasInternalVerticalScroll = await gridData.EvaluateAsync<bool>(
-            "element => element.scrollHeight > element.clientHeight + 1");
-        hasInternalVerticalScroll.Should().BeFalse();
-
-        // W-B.2b: thanh tab 72px rời khỏi body ở desktop nên fixture QA ngắn có thể
-        // vừa khít 1366x420 mà không cần cuộn. Thu viewport theo nội dung thật để
-        // hợp đồng "body cuộn + header ghim" vẫn kiểm chứng được.
-        var categoryContentBottom = await Page.EvaluateAsync<double>("""
-            () => {
-                const scroller = document.querySelector('.vpp-layout-body');
-                const grid = [...document.querySelectorAll('.library-share-grid')]
-                    .find(candidate => candidate.getBoundingClientRect().height > 0);
-                if (!scroller || !grid) {
-                    throw new Error('Library scroll container or visible grid was not rendered.');
-                }
-
-                const paddingBottom = Number.parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
-                return grid.getBoundingClientRect().bottom + scroller.scrollTop + paddingBottom;
-            }
-            """);
-        // Sàn clamp phải nhỏ hơn content bottom của fixture QA ngắn nhất, nếu không
-        // viewport thu vẫn cao hơn nội dung và body không có gì để cuộn (metric = 0).
-        // 120 = header 72px + tối thiểu ~48px body; content thật luôn vượt mốc này
-        // (header + toolbar + thead + ≥1 hàng) nên luôn bảo đảm viewport < content bottom.
-        var categoryProbeHeight = Math.Clamp((int)Math.Round(categoryContentBottom) - 60, 120, 420);
-        await Page.SetViewportSizeAsync(1366, categoryProbeHeight);
-        // Chờ viewport mới thực sự áp dụng trước khi đo vị trí header.
-        await Page.WaitForFunctionAsync("expected => window.innerHeight === expected", categoryProbeHeight);
-
-        var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
-            "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
-
-        var contentScroller = Page.Locator(".vpp-layout-body");
-        await contentScroller.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        // Chờ scrollTop thực sự chạm đáy đúng như phép gán ở trên.
-        await Page.WaitForFunctionAsync("""
-            () => {
-                const scroller = document.querySelector('.vpp-layout-body');
-                return !!scroller
-                    && scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
-            }
-            """);
-
-        var pinnedHeaderMetrics = await Page.EvaluateAsync<double[]>("""
-            () => {
-                const scroller = document.querySelector('.vpp-layout-body');
-                const header = document.querySelector('.vpp-layout-header');
-                if (!scroller || !header) {
-                    throw new Error('Library scroll container or shell header was not rendered.');
-                }
-
-                return [
-                    header.getBoundingClientRect().top,
-                    scroller.scrollTop,
-                    scroller.scrollHeight - scroller.clientHeight
-                ];
-            }
-            """);
-        pinnedHeaderMetrics[2].Should().BeGreaterThan(0);
-        pinnedHeaderMetrics[1].Should().BeApproximately(pinnedHeaderMetrics[2], 1);
-        pinnedHeaderMetrics[0].Should().BeApproximately(headerTopBeforeScroll, 0.5,
-            "the shell header is a fixed grid row and must not move while the body scrolls");
-        pinnedHeaderMetrics[0].Should().BeApproximately(0, 0.5,
-            "the shell header row must stay pinned to the viewport top");
-
-        var headerRowGap = await Page.EvaluateAsync<double>("""
-            () => {
-                const grid = document.querySelector('.library-share-grid');
+                const picker = element.querySelector('.vpp-column-picker-trigger');
+                const grid = element.querySelector('.library-share-grid');
                 const header = grid?.querySelector('thead');
                 const firstRow = grid?.querySelector('tbody > tr');
-                if (!header || !firstRow) {
-                    throw new Error('Category grid header or first row was not rendered.');
+                const pager = grid?.querySelector('.rz-paginator, .rz-pager');
+                if (!body || !workspace || !panel || !toolbar || !create || !picker || !grid || !header || !firstRow || !pager) {
+                    throw new Error('Canonical category data surface was not rendered.');
                 }
-
-                return firstRow.getBoundingClientRect().top - header.getBoundingClientRect().bottom;
+                const createRect = create.getBoundingClientRect();
+                const pickerRect = picker.getBoundingClientRect();
+                return [
+                    workspace.getBoundingClientRect().left - panel.getBoundingClientRect().left,
+                    panel.getBoundingClientRect().right - workspace.getBoundingClientRect().right,
+                    toolbar.getBoundingClientRect().height,
+                    Math.abs((createRect.top + createRect.height / 2) - (pickerRect.top + pickerRect.height / 2)),
+                    body.scrollHeight - body.clientHeight,
+                    element.getBoundingClientRect().bottom,
+                    pager.getBoundingClientRect().bottom,
+                    window.innerHeight,
+                    firstRow.getBoundingClientRect().top - header.getBoundingClientRect().bottom
+                ];
             }
             """);
+        geometry[0].Should().BeApproximately(0, 0.5);
+        geometry[1].Should().BeApproximately(0, 0.5);
+        geometry[2].Should().BeApproximately(42, 2);
+        geometry[3].Should().BeLessThan(5);
+        geometry[4].Should().BeLessThanOrEqualTo(1, "the route uses a bounded grid viewport instead of document scrolling");
+        geometry[5].Should().BeLessThanOrEqualTo(geometry[7] + 1);
+        geometry[6].Should().BeLessThanOrEqualTo(geometry[5] + 1);
+        geometry[8].Should().BeApproximately(0, 0.5);
 
-        headerRowGap.Should().BeApproximately(0, 0.5);
+        var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
+        await deletedCells.First.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 15_000 });
+        (await deletedCells.CountAsync()).Should().BeGreaterThan(0);
+        (await deletedCells.Locator(".vpp-admin-status-badge").CountAsync()).Should().Be(0);
     }
 
     [Fact]
-    public async Task Pricing_Grids_Use_Content_Height_And_Page_Scroll()
+    public async Task Pricing_Grids_Use_Bounded_Data_Surfaces_And_NormalFlow_Tabs()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 420);
-        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists");
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists", new() { WaitUntil = WaitUntilState.Load });
 
-        var priceListGrid = Page.Locator(".vpp-price-list-workspace .vpp-admin-page-grid");
-        await priceListGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        // Chờ body của grid có ít nhất 1 hàng hoặc hiện empty-state thay cho sleep cố định.
-        await Page.WaitForFunctionAsync("""
-            () => {
-                const grid = document.querySelector('.vpp-price-list-workspace .vpp-admin-page-grid');
-                if (!grid || grid.getClientRects().length === 0) {
-                    return false;
-                }
-
-                const body = grid.querySelector('.rz-data-grid-data');
-                if (!body) {
-                    return false;
-                }
-
-                return body.querySelectorAll('tbody > tr').length > 0
-                    || !!grid.querySelector('.rz-datatable-emptymessage');
-            }
-            """);
-
-        (await Page.Locator(".vpp-price-list-workspace .vpp-admin-section-title").CountAsync()).Should().Be(0);
-
-        var secondaryTabHostPadding = await Page.EvaluateAsync<double?>("""
-            () => {
-                const secondaryTabs = document.querySelector('.vpp-secondary-tabs');
-                if (!secondaryTabs) {
-                    return null;
-                }
-
-                const hostPanel = secondaryTabs.parentElement?.closest('.rz-tabview-panel');
-                if (!hostPanel) {
-                    throw new Error('Pricing tab host panel was not rendered.');
-                }
-
-                return parseFloat(getComputedStyle(hostPanel).paddingTop);
-            }
-            """);
-        if (secondaryTabHostPadding.HasValue)
-        {
-            secondaryTabHostPadding.Value.Should().BeLessThanOrEqualTo(0.5);
-        }
-
+        var priceListSurface = Page.Locator("[data-testid='price-lists-data-surface']");
+        var priceListGrid = priceListSurface.Locator(".vpp-admin-page-grid");
         var secondaryTabs = Page.Locator(
             ".vpp-secondary-tabs > .rz-tabview-nav-container, .vpp-secondary-tabs > .rz-tabview-nav");
-        await secondaryTabs.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        var secondaryTabPosition = await secondaryTabs.EvaluateAsync<double[]>("""
-            element => {
-                const owner = element.closest('.librariestab');
-                if (!owner) {
-                    throw new Error('Library tab owner was not rendered.');
-                }
-
-                const ownerStyle = getComputedStyle(owner);
-                return [
-                    getComputedStyle(element).position === 'sticky' ? 1 : 0,
-                    parseFloat(getComputedStyle(element).top),
-                    parseFloat(ownerStyle.getPropertyValue('--vpp-tabs-sticky-top'))
-                        + parseFloat(ownerStyle.getPropertyValue('--vpp-library-primary-tabs-height'))
-                ];
-            }
-            """);
-        secondaryTabPosition[0].Should().Be(1);
-        secondaryTabPosition[1].Should().BeApproximately(secondaryTabPosition[2], 0.5);
-
-        var priceListLayout = await priceListGrid.EvaluateAsync<double[]>("""
-            element => {
-                return [
-                    element.getBoundingClientRect().height,
-                    parseFloat(getComputedStyle(element).borderTopWidth),
-                    [...element.querySelectorAll('*')].filter(child => {
-                        const overflowY = getComputedStyle(child).overflowY;
-                        return (overflowY === 'auto' || overflowY === 'scroll')
-                            && child.scrollHeight > child.clientHeight + 1;
-                    }).length
-                ];
-            }
-            """);
-        priceListLayout[0].Should().BeLessThan(300);
-        priceListLayout[1].Should().Be(0);
-        priceListLayout[2].Should().Be(0);
-
-        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices");
-        var priceGrid = Page.Locator(".vpp-price-grid");
-        await priceGrid.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await Page.SetViewportSizeAsync(1366, 300);
-        // Chờ viewport mới thực sự áp dụng trước khi đo scroller lồng nhau.
-        await Page.WaitForFunctionAsync("expected => window.innerHeight === expected", 300);
-
-        var nestedVerticalScrollers = await priceGrid.EvaluateAsync<int>("""
-            element => [...element.querySelectorAll('*')].filter(child => {
-                const overflowY = getComputedStyle(child).overflowY;
-                return (overflowY === 'auto' || overflowY === 'scroll')
-                    && child.scrollHeight > child.clientHeight + 1;
-            }).length
-            """);
-        nestedVerticalScrollers.Should().Be(0);
-
-        // W-B.2b: the primary tab bar left the body on desktop, so the old
-        // primary+secondary sticky stack no longer exists; the shell header row
-        // must instead stay put while the body scrolls to the bottom.
-        // Thu viewport theo nội dung thật (fixture giá QA ngắn) để body chắc chắn
-        // có phần tràn cần cuộn — cùng lý do với probe của tab Danh mục ở trên.
-        var pricingContentBottom = await Page.EvaluateAsync<double>("""
-            () => {
-                const scroller = document.querySelector('.vpp-layout-body');
-                const grid = document.querySelector('.vpp-price-grid');
-                if (!scroller || !grid) {
-                    throw new Error('Pricing scroll container or price grid was not rendered.');
-                }
-
-                const paddingBottom = Number.parseFloat(getComputedStyle(scroller).paddingBottom) || 0;
-                return grid.getBoundingClientRect().bottom + scroller.scrollTop + paddingBottom;
-            }
-            """);
-        var pricingProbeHeight = Math.Clamp((int)Math.Round(pricingContentBottom) - 60, 180, 300);
-        await Page.SetViewportSizeAsync(1366, pricingProbeHeight);
-        // Chờ viewport mới thực sự áp dụng trước khi đo vị trí header.
-        await Page.WaitForFunctionAsync("expected => window.innerHeight === expected", pricingProbeHeight);
-
-        var headerTopBeforeScroll = await Page.EvaluateAsync<double>(
-            "() => document.querySelector('.vpp-layout-header').getBoundingClientRect().top");
-        await Page.Locator(".vpp-layout-body").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        // Chờ chạm đáy VÀ chiều cao nội dung đứng yên qua 2 khung rAF: grid có thể còn
-        // nở thêm sau resize làm đáy trôi đi giữa lúc chờ và lúc đo; nếu nội dung nở,
-        // ghim lại scrollTop rồi thử tiếp trong cùng vòng chờ.
+        await priceListSurface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await priceListGrid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await secondaryTabs.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await Page.WaitForFunctionAsync("""
-            () => new Promise(resolve => {
-                const scroller = document.querySelector('.vpp-layout-body');
-                if (!scroller) { resolve(false); return; }
-                const atBottom = () =>
-                    scroller.scrollTop >= scroller.scrollHeight - scroller.clientHeight - 1;
-                if (!atBottom()) {
-                    scroller.scrollTop = scroller.scrollHeight;
-                }
-                const firstHeight = scroller.scrollHeight;
-                requestAnimationFrame(() => requestAnimationFrame(() =>
-                    resolve(atBottom() && scroller.scrollHeight === firstHeight)));
-            })
-            """);
-        var pinnedShellMetrics = await Page.EvaluateAsync<double[]>("""
             () => {
-                const scroller = document.querySelector('.vpp-layout-body');
-                const primary = document.querySelector(
-                    '.vpp-admin-tabs > .rz-tabview-nav-container, .vpp-admin-tabs > .rz-tabview-nav');
-                const header = document.querySelector('.vpp-layout-header');
-                const headerTabs = header?.querySelector('.vpp-header-tabs');
-                if (!scroller || !primary || !header || !headerTabs) {
-                    throw new Error('Pricing shell navigation was not rendered.');
+                const grid = document.querySelector('[data-testid="price-lists-data-surface"] .vpp-admin-page-grid');
+                const body = grid?.querySelector('.rz-data-grid-data');
+                return !!body && (body.querySelectorAll('tbody > tr').length > 0
+                    || !!grid.querySelector('.rz-datatable-emptymessage'));
+            }
+            """);
+
+        var priceListMetrics = await priceListSurface.EvaluateAsync<double[]>("""
+            element => {
+                const body = document.querySelector('.vpp-layout-body');
+                const tabs = document.querySelector('.vpp-secondary-tabs > .rz-tabview-nav-container, .vpp-secondary-tabs > .rz-tabview-nav');
+                const grid = element.querySelector('.vpp-admin-page-grid');
+                const pager = element.querySelector('.rz-paginator, .rz-pager');
+                if (!body || !tabs || !grid || !pager) {
+                    throw new Error('Canonical price-list surface was not rendered.');
                 }
-
-                // Grid có thể nở thêm giữa lúc wait chạm đáy resolve và lúc đo — ghim đáy
-                // và đọc trong cùng một khối đồng bộ để scrollTop và max scroll nhất quán
-                // trong cùng một frame; assertion vẫn kiểm đúng "body scroller chạm được đáy".
-                scroller.scrollTop = scroller.scrollHeight;
-
                 return [
-                    scroller.scrollTop,
-                    scroller.scrollHeight - scroller.clientHeight,
-                    getComputedStyle(primary).display === 'none' ? 1 : 0,
-                    getComputedStyle(headerTabs).display === 'none' ? 0 : 1,
-                    header.getBoundingClientRect().top
+                    getComputedStyle(tabs).position === 'relative' ? 1 : 0,
+                    tabs.getBoundingClientRect().bottom,
+                    element.getBoundingClientRect().top,
+                    parseFloat(getComputedStyle(grid).borderTopWidth),
+                    body.scrollHeight - body.clientHeight,
+                    pager.getBoundingClientRect().bottom,
+                    window.innerHeight
                 ];
             }
             """);
-        pinnedShellMetrics[1].Should().BeGreaterThan(0);
-        pinnedShellMetrics[0].Should().BeApproximately(pinnedShellMetrics[1], 1);
-        pinnedShellMetrics[2].Should().Be(1, "desktop hides the in-body primary tab strip in favour of the shell header tabs");
-        pinnedShellMetrics[3].Should().Be(1, "the shell header must keep the section tab strip visible on desktop");
-        pinnedShellMetrics[4].Should().BeApproximately(headerTopBeforeScroll, 0.5,
-            "the shell header is a fixed grid row and must not move while the body scrolls");
-        pinnedShellMetrics[4].Should().BeApproximately(0, 0.5,
-            "the shell header row must stay pinned to the viewport top");
+        priceListMetrics[0].Should().Be(1);
+        priceListMetrics[1].Should().BeLessThanOrEqualTo(priceListMetrics[2] + 1,
+            "nested navigation stays in normal flow and cannot cover the data toolbar");
+        priceListMetrics[3].Should().Be(0);
+        priceListMetrics[4].Should().BeLessThanOrEqualTo(1);
+        priceListMetrics[5].Should().BeLessThanOrEqualTo(priceListMetrics[6] + 1);
+
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices", new() { WaitUntil = WaitUntilState.Load });
+        var priceSurface = Page.Locator("[data-testid='prices-data-surface']");
+        var priceGrid = priceSurface.Locator(".vpp-price-grid");
+        await priceSurface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await priceGrid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        var priceMetrics = await priceSurface.EvaluateAsync<double[]>("""
+            element => {
+                const body = document.querySelector('.vpp-layout-body');
+                const grid = element.querySelector('.vpp-price-grid');
+                if (!body || !grid) {
+                    throw new Error('Canonical price surface was not rendered.');
+                }
+                return [
+                    body.scrollHeight - body.clientHeight,
+                    grid.getBoundingClientRect().bottom,
+                    window.innerHeight,
+                    parseFloat(getComputedStyle(grid).borderTopWidth)
+                ];
+            }
+            """);
+        priceMetrics[0].Should().BeLessThanOrEqualTo(1);
+        priceMetrics[1].Should().BeLessThanOrEqualTo(priceMetrics[2] + 1);
+        priceMetrics[3].Should().Be(0);
     }
 
     [Fact]
@@ -468,7 +205,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         layout[1].Should().Be(1);
         layout[2].Should().BeLessThanOrEqualTo(1);
 
-        var pickerTrigger = master.Locator(".vpp-column-picker-trigger");
+        var pickerTrigger = Page.Locator("[data-testid='lookup-categories-data-surface'] .vpp-column-picker-trigger");
         (await pickerTrigger.CountAsync()).Should().Be(1);
         var masterChrome = await master.EvaluateAsync<string[]>("""
             element => {
@@ -621,7 +358,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.WaitForFunctionAsync(
             """
             expected => document.querySelector(
-                '.vpp-class-master-grid .vpp-column-picker-count')?.textContent?.trim() === expected.toString()
+                '[data-testid="lookup-categories-data-surface"] .vpp-column-picker-count')?.textContent?.trim() === expected.toString()
             """,
             initialVisibleCount);
         int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync()).Should().Be(initialVisibleCount);

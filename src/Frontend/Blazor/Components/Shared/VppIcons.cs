@@ -60,6 +60,7 @@ public static class VppIcons
     public const string Refresh = "refresh";
     public const string Reset = "restart_alt";
     public const string Search = "search";
+    public const string Select = "touch_app";
     public const string Schedule = "schedule";
     public const string SidebarCollapse = "left_panel_close";
     public const string SidebarExpand = "left_panel_open";

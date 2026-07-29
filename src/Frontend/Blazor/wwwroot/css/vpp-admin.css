@@ -952,6 +952,8 @@
 }
 
 .vpp-atlas-admin-inspector {
+    min-height: 0;
+    overflow: hidden;
     border-inline-start: 1px solid var(--vpp-border-default);
     background: var(--vpp-bg-elevated);
 }
@@ -1083,9 +1085,11 @@
 @media (max-width: 1100px) {
     .vpp-atlas-admin-workspace {
         grid-template-columns: 1fr;
+        height: auto;
     }
 
     .vpp-atlas-admin-inspector {
+        overflow: visible;
         border-inline-start: 0;
         border-top: 1px solid var(--vpp-border-default);
     }
@@ -1263,10 +1267,57 @@
     border-top: 1px solid var(--vpp-border-default);
 }
 
-/* Atlas library filterBar (W-E): ô tìm kiếm ngữ cảnh trong toolbar ShareGrid. */
+/* Ô tìm kiếm ngữ cảnh trong toolbar dùng chung của các danh mục quản trị. */
 .vpp-library-search {
     flex: 1 1 220px;
     max-width: 340px;
+}
+
+.vpp-admin-data-surface {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.vpp-data-toolbar.vpp-admin-toolbar,
+.vpp-data-toolbar.vpp-admin-grid-toolbar,
+.vpp-data-toolbar.vpp-admin-filterbar,
+.vpp-data-toolbar.vpp-permission-user-filters {
+    min-height: var(--vpp-data-toolbar-height);
+    margin: 0;
+    padding: var(--vpp-data-toolbar-padding-block) var(--vpp-data-toolbar-padding-inline);
+    border: 0;
+    border-radius: 0;
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-admin-data-surface .vpp-admin-grid.rz-data-grid,
+.vpp-admin-data-surface .vpp-admin-grid.rz-datatable {
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.vpp-admin-cell-control {
+    width: 100%;
+}
+
+.vpp-admin-switch-compact {
+    scale: 0.75;
+}
+
+.vpp-admin-switch-readonly {
+    scale: 0.8;
+}
+
+.vpp-admin-switch-inline {
+    flex: unset;
+}
+
+.vpp-admin-empty-value {
+    font-style: italic;
 }
 
 .vpp-record-inspector-actions {
@@ -1368,6 +1419,14 @@
     border-radius: var(--vpp-radius-md);
     background: var(--vpp-bg-surface);
     box-shadow: var(--vpp-shadow-xs);
+}
+
+/* Bounded shell truyền đúng chiều cao còn lại; grid và inspector sở hữu vùng
+   cuộn native, không để workspace bị cắt dưới viewport. */
+.vpp-admin-tabs.vpp-bounded-shell .vpp-atlas-admin-workspace,
+.vpp-admin-tabs.vpp-bounded-shell .vpp-list-detail-workspace {
+    height: 100%;
+    min-height: 0;
 }
 
 .vpp-permission-matrix-header,
@@ -2031,15 +2090,17 @@
     .vpp-admin-class-split.rz-splitter {
         display: flex !important;
         flex-direction: column !important;
-        height: auto !important;
+        height: 100% !important;
+        min-height: 0;
     }
 
     .vpp-admin-class-split .rz-splitter-pane {
-        flex: 0 0 auto !important;
+        flex: 1 1 0 !important;
         width: 100% !important;
         min-width: 0 !important;
         min-height: 0;
         border-right: 0;
+        overflow: hidden;
     }
 
     .vpp-admin-class-split .rz-splitter-bar {
@@ -2064,7 +2125,7 @@
         padding-top: var(--vpp-space-3);
     }
 
-    .vpp-admin-filterbar {
+.vpp-admin-filterbar {
         align-items: stretch;
     }
 

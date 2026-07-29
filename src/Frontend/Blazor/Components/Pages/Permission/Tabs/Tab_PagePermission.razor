@@ -82,7 +82,27 @@
             <p>@Loc["PermissionUiAdministrationDescription"]</p>
         </div>
 
+        <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                             Density="VppDataDensity.Compact"
+                             AriaLabel="@Loc["PermissionUiAdministrationTitle"]"
+                             TestId="permission-groups-data-surface"
+                             Class="vpp-admin-data-surface">
+        <Toolbar>
+            <VppDataToolbar AriaLabel="@Loc["PermissionUiAdministrationTitle"]" Class="vpp-admin-grid-toolbar">
+                <RadzenButton Icon="refresh"
+                              Size="ButtonSize.Small"
+                              Text="@Loc["Reload"]"
+                              ButtonStyle="ButtonStyle.Light"
+                              class="vpp-library-refresh-action"
+                              Disabled="@IsLoading"
+                              Click="@LoadBaseData" />
+                <VppColumnPicker TItem="PermissionGroupDto" GridAccessor="@(() => grid)" />
+            </VppDataToolbar>
+        </Toolbar>
+        <ChildContent>
         <RadzenDataGrid @ref="grid"
+                        data-vpp-grid-region="true"
+                        aria-label="@Loc["PermissionUiAdministrationTitle"]"
                         TItem="PermissionGroupDto"
                         Data="@list_Group"
                         Count="@groupCount"
@@ -115,26 +135,8 @@
                         ExpandMode="DataGridExpandMode.Single"
                         RowExpand="@GroupRowExpand"
                         RowDoubleClick="@OnGroupRowDoubleClick"
-                        class="permission-group-grid vpp-admin-page-grid vpp-admin-grid vpp-admin-grid-single-page"
+                        class="permission-group-grid vpp-admin-page-grid vpp-admin-grid vpp-admin-grid-single-page vpp-data-grid vpp-data-density-compact"
                         Style="--vpp-admin-grid-min-width: 760px;">
-            <HeaderTemplate>
-                <RadzenStack Orientation="Orientation.Horizontal"
-                             AlignItems="AlignItems.Center"
-                             JustifyContent="JustifyContent.SpaceBetween"
-                             Gap="0.5rem"
-                             Wrap="FlexWrap.Wrap"
-                             class="vpp-admin-grid-toolbar">
-                    <RadzenButton Icon="refresh"
-                                  Size="ButtonSize.Small"
-                                  Text="@Loc["Reload"]"
-                                  ButtonStyle="ButtonStyle.Light"
-                                  class="vpp-library-refresh-action"
-                                  Disabled="@IsLoading"
-                                  Click="@LoadBaseData" />
-                    <VppColumnPicker TItem="PermissionGroupDto" GridAccessor="@(() => grid)" />
-                </RadzenStack>
-            </HeaderTemplate>
-
             <Template Context="group">
                 <div class="permission-group-detail">
                     @if (IsLoading_Child)
@@ -169,6 +171,8 @@
                                             </div>
 
                                             <RadzenDataGrid @ref="componentGrid"
+                                                            data-vpp-grid-region="true"
+                                                            aria-label="@Loc["ComponentName"]"
                                                             TItem="PermissionComponentAccessResDTO"
                                                             Data="@components"
                                                             @bind-Value="selectedComponents"
@@ -192,7 +196,7 @@
                                                             GridLines="DataGridGridLines.Horizontal"
                                                             SelectionMode="DataGridSelectionMode.Single"
                                                             RowDoubleClick="@OnComponentRowDoubleClick"
-                                                            class="permission-component-grid vpp-admin-page-grid vpp-admin-grid"
+                                                            class="permission-component-grid vpp-admin-page-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
                                                             Style="--vpp-admin-grid-min-width: 980px;">
                                                 <Columns>
                                                     <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
@@ -240,7 +244,7 @@
                                                             <RadzenSwitch @bind-Value="component.IsVisible"
                                                                           Change="@(_ => SetComponentVisibilityAsync(component))"
                                                                           Disabled="@(!CanToggleComponent(component) || IsLoading_Child)"
-                                                                          Style="flex: unset" />
+                                                                          class="vpp-admin-switch-inline" />
                                                         </Template>
                                                     </RadzenDataGridColumn>
                                                     <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
@@ -253,7 +257,7 @@
                                                             <RadzenSwitch @bind-Value="component.IsEnable"
                                                                           Change="@(_ => SetComponentEnabledAsync(component))"
                                                                           Disabled="@(!CanToggleComponent(component) || IsLoading_Child)"
-                                                                          Style="flex: unset" />
+                                                                          class="vpp-admin-switch-inline" />
                                                         </Template>
                                                     </RadzenDataGridColumn>
                                                     <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
@@ -320,6 +324,8 @@
                                       Pickable="true" />
             </Columns>
         </RadzenDataGrid>
+        </ChildContent>
+        </VppDataSurfaceFrame>
     </RadzenStack>
 }
 else

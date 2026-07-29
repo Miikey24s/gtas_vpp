@@ -136,7 +136,7 @@ else
             {
                 <section class="vpp-report-settlement-evidence" aria-label="@Loc["SettlementEvidence"]">
                     <div>
-                        <span class="rzi rzi-verified_user" aria-hidden="true"></span>
+                        <VppIcon Name="@VppIcons.VerifiedUser" />
                         <p><strong>@Loc["SettlementEvidenceTitle"]</strong><small>@Loc["SettlementEvidenceDescription"]</small></p>
                     </div>
                     <dl>
@@ -153,7 +153,7 @@ else
                 <section class="vpp-report-insight" aria-live="polite" aria-label="@Loc["ReportInsights"]">
                     <header>
                         <div>
-                            <h2><span class="rzi rzi-auto_awesome" aria-hidden="true"></span>@Loc["ReportInsights"]</h2>
+                            <h2><VppIcon Name="auto_awesome" />@Loc["ReportInsights"]</h2>
                             <p>@Insight.Summary</p>
                         </div>
                         <span class="vpp-report-insight-source">
@@ -182,6 +182,7 @@ else
                                               ValueProperty="TotalAmount"
                                               Title="@Loc["ReportCost"]"
                                               Smooth="@CanSmoothPeriodTrend"
+                                              Stroke="var(--vpp-primary-500)"
                                               StrokeWidth="3" />
                             <RadzenCategoryAxis />
                             <RadzenValueAxis Formatter="@FormatChartAmount" />
@@ -202,9 +203,10 @@ else
                     @if (HasStatusChartData)
                     {
                         <RadzenChart Style="height: 320px;">
-                            <RadzenDonutSeries Data="@StatusChartData"
-                                               CategoryProperty="Label"
-                                               ValueProperty="OrderCount" />
+                        <RadzenDonutSeries Data="@StatusChartData"
+                                           CategoryProperty="Label"
+                                           ValueProperty="OrderCount"
+                                           Fills="@ReportStatusFills" />
                             <RadzenLegend Position="LegendPosition.Bottom" />
                         </RadzenChart>
                     }
@@ -237,7 +239,7 @@ else
                                             AllowSorting="true"
                                             Density="Density.Compact"
                                             GridLines="DataGridGridLines.Horizontal"
-                                            class="vpp-report-department-grid">
+                                            class="vpp-report-department-grid vpp-data-grid vpp-data-density-compact">
                                 <Columns>
                                     <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="Code" Title="@Loc["DepartmentCode"]" />
                                     <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="OrderCount" Title="@Loc["OrderCount"]" TextAlign="TextAlign.Right">
@@ -265,7 +267,8 @@ else
                                     AllowPaging="false"
                                     AllowSorting="true"
                                     Density="Density.Compact"
-                                    GridLines="DataGridGridLines.Horizontal">
+                                    GridLines="DataGridGridLines.Horizontal"
+                                    class="vpp-data-grid vpp-data-density-compact">
                         <Columns>
                             <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductCode" Title="@Loc["ProductCode"]" />
                             <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductName" Title="@Loc["ProductName"]" />

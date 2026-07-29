@@ -1,6 +1,6 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DS0–DS3 IMPLEMENTED; DS4/R1 OPENED BY OWNER 2026-07-29`
+> Trạng thái: `DS0–DS4 IMPLEMENTED; R1 IN PROGRESS — FINAL OWNER REVIEW AFTER F7`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
@@ -28,8 +28,8 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 | DS1 — Foundation | `DONE — OWNER APPROVED 2026-07-29` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Đã duyệt 2 route đại diện |
 | DS2 — Reference | `DONE — OWNER APPROVED 2026-07-29` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Đã duyệt và mở DS3 |
 | DS3 — Workflow | `IMPLEMENTED — FULL ROLLOUT OPENED` | Create Order, Department Summary, 4 bước Vận hành kỳ | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Được phép tiếp tục; vẫn nằm trong final review toàn hệ thống |
-| DS4 — Admin | `IN PROGRESS` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Duyệt trong final admin board |
-| R1 — Refactor | `OPEN — AFTER EACH CONSUMER CUTOVER` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
+| DS4 — Admin | `IMPLEMENTED — FINAL REVIEW DEFERRED TO F7` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Gộp vào final board theo yêu cầu owner |
+| R1 — Refactor | `IN PROGRESS` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
 
 ### Bốn quyết định owner đã duyệt
 
@@ -249,6 +249,15 @@ Gate: board 4 route thật, console/network sạch và không document-level scr
 - Permission matrix/tree được ghi ngoại lệ nếu motif table thường không phù hợp.
 
 Gate: owner duyệt admin board và keyboard/accessibility trace.
+
+#### DS4 implementation record — 2026-07-29
+
+- Library, Lookup, Price, Price List, Users và Permission group được migrate sang `VppDataSurfaceFrame → VppDataToolbar → route-owned RadzenDataGrid`; API, paging, permission, inline edit và action nghiệp vụ giữ nguyên.
+- Admin collection dùng `ServerPaging + Compact`; Report giữ `Static + Compact`, không gắn frame/pager giả. Permission matrix vẫn là ngoại lệ vì dữ liệu là ma trận capability, không phải collection thông thường.
+- Outer Library shell trở thành bounded workspace; Lookup giữ hai pane desktop, chia hai vùng dọc trong viewport ở tablet. List/detail đổi sang một cột dưới `1100px`, sửa lỗi selector responsive có specificity thấp hơn rule ratio.
+- Secondary Pricing tabs trở lại normal flow thay vì sticky-offset; toolbar không còn bị tab lồng đè. Loading screenshot gate chờ mọi Radzen overlay thật sự ẩn trước khi đo/chụp.
+- Visual runtime đã được xem bằng mắt ở desktop `1920×1080` và tablet `768×1024` cho Lookup, Categories, Items, Suppliers, Departments, Price Lists, Prices, Users, Permission và Report; evidence thô ở `tmp/ui-system-f6a-final3/` (ignored).
+- Evidence checkpoint: Release build `0 warning/error`; frontend unit/architecture `199/199`; isolated DS4 route matrix + workspace/Library regression `5/5`; Permission mutation/restore `1/1`. Owner yêu cầu làm hết UI trước rồi review một lượt, nên DS4 không giữ gate duyệt riêng và được chuyển vào final F7 board.
 
 ### R1 — Behavior-preserving UI refactor
 

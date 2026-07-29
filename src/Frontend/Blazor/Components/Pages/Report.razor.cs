@@ -46,6 +46,13 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected bool HasPeriodTrend => Summary?.PeriodTrend.Count >= 2;
     protected bool CanSmoothPeriodTrend => Summary?.PeriodTrend.Count >= 3;
     protected bool HasStatusChartData => StatusChartData.Count > 0;
+    protected IReadOnlyList<string> ReportStatusFills { get; } =
+    [
+        "#0EA5E9",
+        "#10B981",
+        "#F59E0B",
+        "#EF4444"
+    ];
 
     protected IReadOnlyList<ReportScopeOption> ScopeOptions
     {

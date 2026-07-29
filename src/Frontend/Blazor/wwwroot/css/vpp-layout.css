@@ -974,6 +974,18 @@ leftsidebar {
     overflow: hidden;
 }
 
+@media (max-width: 1100px) {
+    .vpp-admin-tabs.vpp-bounded-shell:has(.vpp-list-detail-workspace),
+    .vpp-admin-tabs.vpp-bounded-shell:has(.vpp-list-detail-workspace) > .rz-tabview-panels,
+    .vpp-admin-tabs.vpp-bounded-shell:has(.vpp-list-detail-workspace) > .rz-tabview-panels > .rz-tabview-panel,
+    .vpp-secondary-tabs:has(.vpp-list-detail-workspace),
+    .vpp-secondary-tabs:has(.vpp-list-detail-workspace) > .rz-tabview-panels,
+    .vpp-secondary-tabs:has(.vpp-list-detail-workspace) > .rz-tabview-panels > .rz-tabview-panel {
+        height: auto;
+        overflow: visible;
+    }
+}
+
 .vpp-notification-panel-footer button {
     display: inline-flex;
     align-items: center;

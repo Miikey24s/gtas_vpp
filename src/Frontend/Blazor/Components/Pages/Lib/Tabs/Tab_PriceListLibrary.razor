@@ -2,9 +2,19 @@
 @using gtas_vpp_fe.Components.Pages.Lib
 
 
-<RadzenStack Gap="0.75rem" class="vpp-admin-workspace vpp-price-list-workspace">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="0.75rem" Wrap="FlexWrap.Wrap" class="vpp-admin-toolbar">
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.375rem" class="vpp-library-actions">
+<VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
+                        Class="vpp-admin-workspace vpp-price-list-workspace vpp-atlas-admin-workspace"
+                        ListClass="vpp-atlas-admin-collection"
+                        DetailClass="vpp-atlas-admin-inspector">
+<List>
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                         Density="VppDataDensity.Compact"
+                         AriaLabel="@Loc["PriceLists"]"
+                         TestId="price-lists-data-surface"
+                         Class="vpp-admin-data-surface">
+    <Toolbar>
+    <VppDataToolbar AriaLabel="@Loc["PriceLists"]" Class="vpp-admin-toolbar">
+        <div class="vpp-library-actions">
             <RadzenButton Icon="add"
                           Text="@Loc["AddPriceList"]"
                           Size="ButtonSize.Small"
@@ -27,13 +37,14 @@
                             Change="@OnStatusChangedAsync"
                             aria-label="@Loc["Status"]"
                             Style="width: 170px" />
-        </RadzenStack>
+        </div>
         <VppColumnPicker TItem="PriceListResDTO" GridAccessor="@(() => grid)" />
-    </RadzenStack>
-
-    <div class="vpp-atlas-admin-workspace">
-    <div class="vpp-atlas-admin-collection">
+    </VppDataToolbar>
+    </Toolbar>
+    <ChildContent>
     <RadzenDataGrid @ref="grid"
+                    data-vpp-grid-region="true"
+                    aria-label="@Loc["PriceLists"]"
                     TItem="PriceListResDTO"
                     Data="@priceLists"
                     Count="@count"
@@ -59,7 +70,7 @@
                     @bind-Value="selectedPriceLists"
                     SelectionMode="DataGridSelectionMode.Single"
                     RowSelect="OnPriceListSelected"
-                    class="@($"vpp-admin-grid vpp-admin-page-grid {(count <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                    class="@($"vpp-admin-grid vpp-admin-page-grid vpp-data-grid vpp-data-density-compact {(count <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                     ColumnWidth="150px"
                     Style="--vpp-admin-grid-min-width: 1160px;">
         <Columns>
@@ -75,8 +86,7 @@
                                       Value="@row.IsDeleted"
                                       Disabled="@(row.Status == "Published")"
                                       Change="@(async (bool value) => await SetDeletedAsync(row, value))"
-                                      class="isDeleteSwitch"
-                                      Style="transform: scale(0.75);" />
+                                      class="isDeleteSwitch vpp-admin-switch-compact" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>
@@ -84,7 +94,7 @@
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" />
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="SupplierName" Title="Nhà cung cấp" Width="170px" />
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="Version" Title="Phiên bản" Width="92px" TextAlign="TextAlign.Center" />
-            @* Atlas library-price-lists: cột "Hiệu lực" hiển thị khoảng EffectiveFrom–EffectiveTo. *@
+            @* Khoảng hiệu lực được gộp trong một cột để giữ bảng dễ quét. *@
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="EffectiveFromUtc" Title="@Loc["EffectiveRange"]" Width="150px" TextAlign="TextAlign.Center" Filterable="false">
                 <Template Context="row">
                     <span>@FormatEffectiveRange(row)</span>
@@ -97,7 +107,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDefault" Title="Mặc định" Width="104px" TextAlign="TextAlign.Center">
                 <Template Context="row">
-                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" Style="transform: scale(0.8);" />
+                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" class="vpp-admin-switch-readonly" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PriceListResDTO" Property="ItemCount" Title="Số mặt hàng" Width="104px" TextAlign="TextAlign.Center">
@@ -123,8 +133,10 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
-    </div>
-    <aside class="vpp-atlas-admin-inspector" aria-live="polite">
+    </ChildContent>
+    </VppDataSurfaceFrame>
+</List>
+<Detail>
         @if (SelectedPriceList is not null)
         {
             <Component_RecordInspector TItem="PriceListResDTO"
@@ -138,11 +150,10 @@
         else
         {
             <div class="vpp-atlas-admin-inspector-empty">
-                <span class="rzi rzi-price_change" aria-hidden="true"></span>
+                <VppIcon Name="@VppIcons.PriceList" />
                 <strong>Chọn bảng giá để xem vòng đời</strong>
                 <span>Chỉ bản nháp được chỉnh sửa; bản đã công bố được bảo toàn theo nghiệp vụ hiện hành.</span>
             </div>
         }
-    </aside>
-    </div>
-</RadzenStack>
+</Detail>
+</VppListDetailWorkspace>

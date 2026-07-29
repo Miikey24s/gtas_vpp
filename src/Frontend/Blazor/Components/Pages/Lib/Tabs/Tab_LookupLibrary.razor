@@ -13,18 +13,30 @@
 @inject IJSRuntime js
 
 
-@if (isCategoryLoading)
-{
-    <SkeletonGrid Rows="8" Cols="3" />
-}
-else
-{
 <VppSplitEditorWorkspace Resizable="true"
                          Ratio="VppSplitEditorRatio.CompactPrimary"
                          SplitterClass="vpp-admin-split vpp-admin-class-split">
     <Primary>
-        <RadzenStack Gap="0.75rem">
+        <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                 Density="VppDataDensity.Compact"
+                                 AriaLabel="@Loc["ClassDefinitions"]"
+                                 TestId="lookup-categories-data-surface"
+                                 Class="vpp-admin-data-surface">
+            <Toolbar>
+                <VppDataToolbar AriaLabel="@Loc["ClassDefinitions"]" Class="vpp-admin-grid-toolbar">
+                    <RadzenButton Icon="add"
+                                  Text="@Loc["AddClass"]"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Size="ButtonSize.Small"
+                                  class="vpp-library-primary-action"
+                                  Click="@OpenAddCategoryAsync" />
+                    <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
+                </VppDataToolbar>
+            </Toolbar>
+            <ChildContent>
             <RadzenDataGrid @ref="categoryGrid" TItem="LookupCategoryResDTO"
+                            data-vpp-grid-region="true"
+                            aria-label="@Loc["ClassDefinitions"]"
                             Data="@lookupCategories"
                             Count="@categoryCount"
                             LoadData="@LoadCategories"
@@ -47,21 +59,9 @@ else
                             RowSelect="@OnCategorySelected"
                             RowRender="@OnCategoryRowRender"
                             GridLines="DataGridGridLines.Horizontal"
-                            class="@($"auto-fit-grid vpp-admin-grid vpp-class-master-grid {(categoryCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                            class="@($"auto-fit-grid vpp-admin-grid vpp-class-master-grid vpp-data-grid vpp-data-density-compact {(categoryCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
                             Style="--vpp-admin-grid-min-width: 380px;">
-                <HeaderTemplate>
-                    @* Atlas library-classes: nút thêm mang danh từ riêng, nối dialog sẵn có. *@
-                    <div class="vpp-admin-grid-toolbar">
-                        <RadzenButton Icon="add"
-                                      Text="@Loc["AddClass"]"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Size="ButtonSize.Small"
-                                      class="vpp-library-primary-action"
-                                      Click="@OpenAddCategoryAsync" />
-                        <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
-                    </div>
-                </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="#" Width="48px" MinWidth="48px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
@@ -80,8 +80,7 @@ else
                                     <span @onclick:stopPropagation="true">
                                         <RadzenSwitch @bind-Value="@data.IsDeleted"
                                                       Change="@(async (bool value) => await ToggleCategoryDeleted(data, value))"
-                                                      class="isDeleteSwitch"
-                                                      Style="transform: scale(0.7);" />
+                                                      class="isDeleteSwitch vpp-admin-switch-compact" />
                                     </span>
                                 </div>
                             </div>
@@ -98,12 +97,32 @@ else
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                 </Columns>
             </RadzenDataGrid>
-        </RadzenStack>
+            </ChildContent>
+            </VppDataSurfaceFrame>
     </Primary>
 
     <Secondary>
-        <RadzenStack Gap="0.75rem">
+        <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                 Density="VppDataDensity.Compact"
+                                 AriaLabel="@Loc["Value"]"
+                                 TestId="lookup-values-data-surface"
+                                 Class="vpp-admin-data-surface">
+            <Toolbar>
+                <VppDataToolbar AriaLabel="@Loc["Value"]" Class="vpp-admin-grid-toolbar">
+                    <RadzenButton Icon="add"
+                                  Text="@Loc["AddLookupValue"]"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Size="ButtonSize.Small"
+                                  class="vpp-library-primary-action"
+                                  Disabled="@(selectedLookupCategory is null)"
+                                  Click="@OpenAddValueAsync" />
+                    <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
+                </VppDataToolbar>
+            </Toolbar>
+            <ChildContent>
             <RadzenDataGrid @ref="valueGrid" TItem="LookupValueResDTO"
+                            data-vpp-grid-region="true"
+                            aria-label="@Loc["Value"]"
                             Data="@lookupValues"
                             Count="@valueCount"
                             LoadData="@LoadValues"
@@ -124,21 +143,9 @@ else
                             EmptyText="@(selectedLookupCategory == null ? Loc["LookupSelectCategoryPrompt"].Value : Loc["LookupNoValues"].Value)"
                             RowRender="@OnValueRowRender"
                             GridLines="DataGridGridLines.Horizontal"
-                            class="@($"auto-fit-grid vpp-admin-grid vpp-class-detail-grid {(valueCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                            class="@($"auto-fit-grid vpp-admin-grid vpp-class-detail-grid vpp-data-grid vpp-data-density-compact {(valueCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
                             Style="--vpp-admin-grid-min-width: 800px; --vpp-admin-isdeleted-width: 90px;">
-                <HeaderTemplate>
-                    <div class="vpp-admin-grid-toolbar">
-                        <RadzenButton Icon="add"
-                                      Text="@Loc["AddLookupValue"]"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Size="ButtonSize.Small"
-                                      class="vpp-library-primary-action"
-                                      Disabled="@(selectedLookupCategory is null)"
-                                      Click="@OpenAddValueAsync" />
-                        <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
-                    </div>
-                </HeaderTemplate>
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
@@ -150,8 +157,7 @@ else
                             <div class="vpp-admin-is-deleted-cell">
                                 <RadzenSwitch @bind-Value="@data.IsDeleted"
                                               Change="@(async (bool value) => await ToggleValueDeleted(data, value))"
-                                              class="isDeleteSwitch"
-                                              Style="transform: scale(0.75);" />
+                                              class="isDeleteSwitch vpp-admin-switch-compact" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>
@@ -170,7 +176,7 @@ else
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                 </Columns>
             </RadzenDataGrid>
-        </RadzenStack>
+            </ChildContent>
+            </VppDataSurfaceFrame>
     </Secondary>
 </VppSplitEditorWorkspace>
-}

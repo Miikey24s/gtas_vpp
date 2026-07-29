@@ -981,6 +981,36 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void Ds4AdminConsumers_UseCanonicalServerPagedDataSurfaces()
+    {
+        var root = GetFrontendRoot();
+        var componentShareGrid = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_ShareGrid.razor"));
+        var lookup = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor"));
+        var price = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor"));
+        var priceList = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor"));
+        var users = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_User.razor"));
+        var permissions = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_PagePermission.razor"));
+        var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
+
+        foreach (var source in new[] { componentShareGrid, lookup, price, priceList, users, permissions })
+        {
+            Assert.Contains("VppDataSourceMode.ServerPaging", source, StringComparison.Ordinal);
+            Assert.Contains("VppDataDensity.Compact", source, StringComparison.Ordinal);
+            Assert.Contains("<VppDataToolbar", source, StringComparison.Ordinal);
+            Assert.Contains("vpp-data-grid vpp-data-density-compact", source, StringComparison.Ordinal);
+        }
+
+        Assert.Equal(2, lookup.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);
+        Assert.Contains("permission-users-data-surface", users, StringComparison.Ordinal);
+        Assert.Contains("permission-groups-data-surface", permissions, StringComparison.Ordinal);
+        Assert.Equal(2, report.Split("data-vpp-grid-region=\"true\"", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, report.Split("vpp-data-density-compact", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("rzi-person_search", users, StringComparison.Ordinal);
+        Assert.DoesNotContain("rzi-price_change", priceList, StringComparison.Ordinal);
+        Assert.DoesNotContain("rzi-verified_user", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReconnectModal_UsesTheAccessibleActionableStateContract()
     {
         var root = GetFrontendRoot();

@@ -8,6 +8,44 @@
                         ListClass="vpp-atlas-admin-collection"
                         DetailClass="vpp-atlas-admin-inspector">
 <List>
+<VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                     Density="VppDataDensity.Compact"
+                     AriaLabel="@GridAriaLabel"
+                     Class="vpp-admin-data-surface">
+<Toolbar>
+    <VppDataToolbar AriaLabel="@GridAriaLabel" Class="vpp-admin-grid-toolbar">
+        <div class="vpp-library-actions">
+            <RadzenButton Icon="add"
+                          Text="@(CreateLabel ?? Loc["Create"].Value)"
+                          aria-label="@(CreateLabel ?? Loc["Create"].Value)"
+                          title="@(CreateLabel ?? Loc["Create"].Value)"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Size="ButtonSize.Small"
+                          class="consumptionaddbutton vpp-library-primary-action"
+                          IsBusy="@glb.isBusyPage"
+                          Click="@InsertRow"
+                          Disabled="@onEdit" />
+            <RadzenButton Icon="refresh"
+                          Text="@Loc["Reload"]"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Small"
+                          class="vpp-library-refresh-action"
+                          Title="@Loc["Reload"]"
+                          aria-label="@Loc["Reload"]"
+                          Click="@ReloadGridAsync"
+                          Disabled="@onEdit" />
+        </div>
+        @if (SearchFields.Length > 0)
+        {
+            <VppFilterSearch Value="@searchText"
+                             Input="@OnSearchInputAsync"
+                             Placeholder="@SearchPlaceholder"
+                             AriaLabel="@SearchPlaceholder" />
+        }
+        <VppColumnPicker TItem="TType" GridAccessor="@(() => DataGrid)" />
+    </VppDataToolbar>
+</Toolbar>
+<ChildContent>
 <RadzenDataGrid @ref="DataGrid"
                 data-vpp-grid-region="true"
                 aria-label="@GridAriaLabel"
@@ -30,7 +68,7 @@
                 PageSizeOptions="@(new int[] { 20, 50, 100 })"
                 ColumnWidth="150px"
                 GridLines="DataGridGridLines.Horizontal"
-                class="librarypagegrid library-share-grid vpp-admin-grid"
+                class="librarypagegrid library-share-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
                 Style="@GridStyle"
                 TItem="TType"
                 IsLoading="@glb.isBusyPage"
@@ -48,49 +86,6 @@
                 RowRender="@OnRowRender"
                 EditMode="DataGridEditMode.Single"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
-    <HeaderTemplate>
-        <RadzenStack Orientation="Orientation.Horizontal"
-                     AlignItems="AlignItems.Center"
-                     JustifyContent="JustifyContent.SpaceBetween"
-                     Gap="0.5rem"
-                     Wrap="FlexWrap.Wrap"
-                     class="vpp-admin-grid-toolbar">
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.375rem" class="vpp-library-actions">
-                <RadzenButton Icon="add"
-                              Text="@(CreateLabel ?? Loc["Create"].Value)"
-                              aria-label="@(CreateLabel ?? Loc["Create"].Value)"
-                              title="@(CreateLabel ?? Loc["Create"].Value)"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Size="ButtonSize.Small"
-                              class="consumptionaddbutton vpp-library-primary-action"
-                              IsBusy="@glb.isBusyPage"
-                              Click="@InsertRow"
-                              Disabled="@onEdit" />
-                <RadzenButton Icon="refresh"
-                              Text="@Loc["Reload"]"
-                              ButtonStyle="ButtonStyle.Light"
-                              Size="ButtonSize.Small"
-                              class="vpp-library-refresh-action"
-                              Title="@Loc["Reload"]"
-                              aria-label="@Loc["Reload"]"
-                              Click="@ReloadGridAsync"
-                              Disabled="@onEdit" />
-                @if (SearchFields.Length > 0)
-                {
-                    @* Atlas filterBar: tìm kiếm ngữ cảnh trên các trường định danh của màn. *@
-                    <label class="vpp-order-view-search vpp-library-search">
-                        <VppIcon Name="search" />
-                        <input value="@searchText"
-                               @oninput="OnSearchInputAsync"
-                               placeholder="@SearchPlaceholder"
-                               aria-label="@SearchPlaceholder" />
-                    </label>
-                }
-            </RadzenStack>
-            <VppColumnPicker TItem="TType" GridAccessor="@(() => DataGrid)" />
-        </RadzenStack>
-    </HeaderTemplate>
-
     <Columns>
         <RadzenDataGridColumn TItem="TType" Width="52px" MinWidth="52px" Title="#" Reorderable="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
             <Template Context="context">
@@ -152,8 +147,7 @@
                                               Value="@IsDeletedRow(context)"
                                               Change="@(async (bool value) => await SetDeletedStateAsync(context, value))"
                                               Disabled="@(!CanModifyGrid || onEdit)"
-                                              class="isDeleteSwitch"
-                                              Style="transform: scale(0.75);" />
+                                              class="isDeleteSwitch vpp-admin-switch-compact" />
                             </div>
                         </Template>
                         <EditTemplate Context="context">
@@ -162,8 +156,7 @@
                                               Value="@IsDeletedRow(context)"
                                               Change="@(async (bool value) => await SetDeletedStateAsync(context, value))"
                                               Disabled="true"
-                                              class="isDeleteSwitch"
-                                              Style="transform: scale(0.75);" />
+                                              class="isDeleteSwitch vpp-admin-switch-compact" />
                             </div>
                         </EditTemplate>
                     </RadzenDataGridColumn>
@@ -285,6 +278,8 @@
         }
     </Columns>
 </RadzenDataGrid>
+</ChildContent>
+</VppDataSurfaceFrame>
 </List>
 
 <Detail>
@@ -301,7 +296,7 @@
     else
     {
         <div class="vpp-atlas-admin-inspector-empty">
-            <span class="rzi rzi-touch_app" aria-hidden="true"></span>
+            <VppIcon Name="@VppIcons.Select" />
             <strong>Chọn một bản ghi để xem chi tiết</strong>
             <span>Bảng vẫn hỗ trợ lọc, sắp xếp, phân trang và chỉnh sửa theo quyền hiện có.</span>
         </div>

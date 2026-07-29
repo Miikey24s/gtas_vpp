@@ -1,6 +1,6 @@
 # VPP Data Surface Consumer Ledger
 
-> Snapshot: `2026-07-29` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS2 DONE; DS3 IMPLEMENTED — OWNER REVIEW`
+> Snapshot: `2026-07-29` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 IMPLEMENTED; R1 IN PROGRESS`
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 
@@ -11,13 +11,13 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
 | `Components/DesignSystem/Composites/VppOrderItemsSurface.razor` | 1 | Detail items | `ClientSnapshotVirtualized` | `RichTwoLine` | DS2 reference complete |
-| `Components/Pages/Lib/Component_ShareGrid.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 |
-| `Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor` | 2 | Master/detail admin | `ServerPaging` | `Compact` | DS4 |
-| `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 |
-| `Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 |
-| `Components/Pages/Permission/Tabs/Tab_PagePermission.razor` | 2 | Permission collection | `ServerPaging` | `Compact` | DS4 |
-| `Components/Pages/Permission/Tabs/Tab_User.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 |
-| `Components/Pages/Report.razor` | 2 | Static report | `Static` | `Compact` | DS4 / exception review |
+| `Components/Pages/Lib/Component_ShareGrid.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor` | 2 | Master/detail admin | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Permission/Tabs/Tab_PagePermission.razor` | 2 | Permission collection | `ServerPaging` | `Compact` | DS4 complete; matrix exception retained |
+| `Components/Pages/Permission/Tabs/Tab_User.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Report.razor` | 2 | Static report | `Static` | `Compact` | DS4 static exception complete |
 | `Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor` | 1 | Dialog history | `Static` | `Compact` | Deferred dialog exception; không thuộc reference route DS2 |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 2 | Approval + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
@@ -66,3 +66,11 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 - `Tab_DepartmentSummary`: tái sử dụng `HistoryOrderList` và toàn bộ History workspace; route chỉ truyền cột người đặt riêng, API và permission phòng ban.
 - `PeriodReviewPanel`: canonical search/type/status toolbar và server-paged frame; kỳ được sở hữu bởi workspace bốn bước, route giữ readiness và empty/error semantics.
 - `PeriodDemandPanel`, `PeriodSupplyAllocationPanel`, `PeriodSettlementPanel`: dùng cùng kỳ và cùng settlement preview; mỗi bước có typed frame, native scroll/paging và footer chuyển bước rõ ràng.
+
+## DS4 admin group
+
+- `Component_ShareGrid`, Lookup, Price, Price List và Users dùng typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager.
+- Library shell truyền chiều cao viewport xuống active panel; Lookup chia đôi desktop và xếp dọc tablet. List/detail admin cũng xếp dọc ở tablet để không cắt pane hoặc tạo horizontal document overflow.
+- Pricing tabs là navigation nội bộ trong flow, không còn sticky-offset đè lên toolbar.
+- Permission group/component grids opt-in cùng header/row/footer bridge; permission action matrix tiếp tục là ngoại lệ đúng nghiệp vụ.
+- Report giữ hai grid static: dùng compact visual contract nhưng không giả server paging, pager hoặc footer.

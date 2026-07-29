@@ -264,6 +264,13 @@ Mốc dễ hiểu:
 - Browser regression được cập nhật từ assumption Apple cũ sang contract hiện hành: refresh không replay decorative reveal; navigation indicator `180ms`; transient surface `160ms`; grid order-detail kiểm tỷ lệ cột canonical thay vì pixel cứng của implementation đã retire.
 - Evidence: Release build `0 warning/error`; frontend unit/architecture `198/198`; account shell gồm `/loginprocess` pass ba viewport; focused shell/My Orders/Catalog/History matrix tổng hợp `14/14`; Create Order regular lifecycle `1/1`; not-found → dashboard `1/1`. Các kết luận visual cuối tiếp tục được đối chiếu bằng screenshot/contact sheet ở F7.
 
+### 5.7 F6A management, library, permission và report — 2026-07-29
+
+- Các collection quản trị dùng cùng typed data-surface contract nhưng route vẫn sở hữu DTO, cột, API, permission, inline edit và action. Report được ghi rõ là static exception, Permission matrix là matrix exception.
+- Library truyền full-height từ shell đến grid/pager. Lookup desktop giữ master/detail resize; tablet chia dọc hai pane. List/detail admin xếp dọc dưới `1100px`; nested Pricing tab không còn sticky-offset đè toolbar.
+- Toolbar, search/filter, column picker, header/row/footer và transient loading dùng shared token/motion. Icon raw và transform switch được thay bằng semantic icon/class trong các file chạm tới.
+- Browser evidence chỉ được chụp sau loading overlay settle; desktop/tablet screenshots của 10 admin/report route đã được kiểm bằng mắt. Release build pass `0 warning/error`, frontend unit/architecture pass `199/199`, DS4 route matrix + workspace/Library regression pass `5/5`, Permission mutation/restore pass `1/1`; owner review được dồn sau F7 theo yêu cầu làm hết plan trước.
+
 ### 5.1 Visual review contract
 
 **Quyết định:** hình ảnh là lớp truyền đạt chính cho owner, nhưng không phải bằng chứng duy nhất. Mỗi wave phải tạo một `Wave Review Board` vừa một màn hình, ưu tiên visual và chỉ dùng nhãn ngắn. Screenshot phải lấy từ Blazor runtime với TEST/isolated fixture sau khi implementation chạy được; không dùng mock hoặc Atlas render để tuyên bố code đã hoàn thành. Mọi kết luận về thẳng hàng, khoảng cách, kích thước hoặc motion phải có lượt quan sát bằng mắt trên runtime; motion cần chuỗi frame đại diện thay vì chỉ một ảnh đã settle.

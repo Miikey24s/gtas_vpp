@@ -18,13 +18,23 @@
     <section class="vpp-permission-user-page" aria-labelledby="permission-user-title">
         <header class="vpp-permission-user-header">
             <div>
-                <span>@Loc["SystemAdministration"]</span>
                 <h2 id="permission-user-title">@Loc["UserManagementTitle"]</h2>
                 <p>@Loc["UserCountSummary", userCount]</p>
             </div>
         </header>
 
-        <div class="vpp-permission-user-filters" aria-label="@Loc["UserFilters"]">
+    <VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
+                            Class="vpp-atlas-user-workspace"
+                            ListClass="vpp-atlas-admin-collection"
+                            DetailClass="vpp-atlas-admin-inspector">
+    <List>
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                         Density="VppDataDensity.Compact"
+                         AriaLabel="@Loc["UserManagementTitle"]"
+                         TestId="permission-users-data-surface"
+                         Class="vpp-admin-data-surface">
+    <Toolbar>
+        <VppDataToolbar AriaLabel="@Loc["UserFilters"]" Class="vpp-permission-user-filters">
             <VppFilterSearch Value="@SearchText"
                              Input="@SearchTextOnInput"
                              Placeholder="@Loc["UserSearchPlaceholder"]"
@@ -39,14 +49,12 @@
                                    IsActive="@HasUserFilters"
                                    Clicked="@ButtonOnClick_Clear" />
             <VppColumnPicker TItem="UserAdministrationResDTO" GridAccessor="@(() => userGrid)" />
-        </div>
-
-    <VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
-                            Class="vpp-atlas-user-workspace"
-                            ListClass="vpp-atlas-admin-collection"
-                            DetailClass="vpp-atlas-admin-inspector">
-    <List>
+        </VppDataToolbar>
+    </Toolbar>
+    <ChildContent>
     <RadzenDataGrid @ref="userGrid"
+                    data-vpp-grid-region="true"
+                    aria-label="@Loc["UserManagementTitle"]"
                     TItem="UserAdministrationResDTO"
                     Data="@users"
                     Count="@userCount"
@@ -79,7 +87,7 @@
                     SelectionMode="DataGridSelectionMode.Single"
                     RowSelect="OnUserSelected"
                     RowDoubleClick="@OnRowDoubleClick"
-                    class="permission-user-grid vpp-admin-page-grid vpp-admin-grid"
+                    class="permission-user-grid vpp-admin-page-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
                     Style="--vpp-admin-grid-min-width: 1420px;">
         <Columns>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
@@ -132,7 +140,7 @@
                                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                     Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
                                     Change="@(_ => DropdownOnChange_Group(user))"
-                                    Style="width: 100%;" />
+                                    class="vpp-admin-cell-control" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
@@ -150,7 +158,7 @@
                                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                     Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
                                     Change="@(_ => DropdownOnChange_Department(user))"
-                                    Style="width: 100%;" />
+                                    class="vpp-admin-cell-control" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="UserAdministrationResDTO"
@@ -162,7 +170,7 @@
                 <Template Context="user">
                     @if (user.IsAdmin)
                     {
-                        <RadzenIcon Icon="check_circle" />
+                        <VppIcon Name="@VppIcons.Approved" />
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -228,6 +236,8 @@
                                   Pickable="true" />
         </Columns>
     </RadzenDataGrid>
+    </ChildContent>
+    </VppDataSurfaceFrame>
     </List>
     <Detail>
         @if (SelectedUser is not null)
@@ -237,7 +247,7 @@
         else
         {
             <div class="vpp-atlas-admin-inspector-empty">
-                <span class="rzi rzi-person_search" aria-hidden="true"></span>
+                <VppIcon Name="@VppIcons.Search" />
                 <strong>@Loc["SelectUserForDetails"]</strong>
                 <span>@Loc["UserAdministrationBackendHint"]</span>
             </div>
