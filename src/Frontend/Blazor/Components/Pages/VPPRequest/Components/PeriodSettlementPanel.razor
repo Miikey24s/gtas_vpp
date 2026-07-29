@@ -41,62 +41,41 @@
     </div>
 
     <section class="vpp-settlement-decision-strip" aria-label="@Loc["SettlementSupplierDecision"]">
-        <dl>
-            <div>
-                <dt>@Loc["SupplyPrimarySupplier"]</dt>
-                <dd>
-                    <button type="button"
-                            class="vpp-settlement-supplier-trigger"
-                            popovertarget="@SupplierPopoverId"
-                            aria-haspopup="listbox"
-                            aria-label="@Loc["SettlementChooseSupplier"]"
-                            disabled="@(isPreviewLoading || SupplierQuotes.Count == 0)">
-                        <span>@PrimarySupplierName</span>
-                        <VppIcon Name="@VppIcons.ExpandMore" />
-                    </button>
-                </dd>
-            </div>
-            <div>
-                <dt>@Loc["SupplyEffectivePriceList"]</dt>
-                <dd>@PrimaryPriceListLabel</dd>
-            </div>
-            <div class="vpp-settlement-decision-total">
-                <dt>@Loc["SettleQuoteTotal"]</dt>
-                <dd>@FormatMoney(Preview?.PrimaryQuote?.GrandTotal ?? status?.GrandTotal ?? 0)</dd>
-            </div>
-        </dl>
-    </section>
-
-    <div id="@SupplierPopoverId"
-         class="vpp-settlement-supplier-popover vpp-transient-surface"
-         popover="auto"
-         role="listbox"
-         aria-label="@Loc["SettlementChooseSupplier"]">
-        <header>
-            <h2>@Loc["SettlementChooseSupplier"]</h2>
-            <p>@Month.ToString("00")/@Year · @Loc["SettlementSupplierDialogHint"]</p>
-        </header>
-        <div class="vpp-settlement-quote-list">
-            @foreach (var quote in SupplierQuotes)
+        <div class="vpp-settlement-decision-field">
+            <span>@Loc["SupplyPrimarySupplier"]</span>
+            <VppFilterSelect TValue="Guid?"
+                             Value="@SelectedSupplierId"
+                             Options="@SupplierOptions"
+                             ValueChanged="@OnSupplierChangedAsync"
+                             Placeholder="@Loc["SupplyPrimarySupplier"]"
+                             AriaLabel="@Loc["SupplyPrimarySupplier"]"
+                             Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
+        </div>
+        <div class="vpp-settlement-decision-field">
+            <span>@Loc["SupplyEffectivePriceList"]</span>
+            <VppFilterSelect TValue="Guid?"
+                             Value="@SelectedPriceListId"
+                             Options="@PriceListOptions"
+                             ValueChanged="@OnPriceListChangedAsync"
+                             Placeholder="@Loc["SupplyEffectivePriceList"]"
+                             AriaLabel="@Loc["SupplyEffectivePriceList"]"
+                             Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
+        </div>
+        <div class="vpp-settlement-decision-total">
+            <span>@Loc["SettleQuoteTotal"]</span>
+            <strong>@FormatMoney(Preview?.PrimaryQuote?.GrandTotal ?? status?.GrandTotal ?? 0)</strong>
+        </div>
+        <div class="vpp-settlement-decision-action">
+            @if (canCorrect)
             {
-                var isSelected = IsCurrentQuote(quote);
-                <button type="button"
-                        role="option"
-                        class="vpp-settlement-quote-option @(isSelected ? "is-selected" : null) @(!quote.IsEligible ? "is-unavailable" : null)"
-                        aria-selected="@isSelected.ToString().ToLowerInvariant()"
-                        disabled="@(isPreviewLoading || !quote.IsEligible)"
-                        popovertarget="@SupplierPopoverId"
-                        popovertargetaction="hide"
-                        @onclick="@(() => ApplySupplierQuoteAsync(quote))">
-                    <span class="vpp-settlement-quote-radio" aria-hidden="true"></span>
-                    <span class="vpp-settlement-quote-name"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></span>
-                    <span class="vpp-settlement-quote-coverage">@quote.CoveredItemCount/@quote.RequestedItemCount · @quote.CoveragePercent.ToString("N0")%</span>
-                    <strong class="vpp-settlement-money">@FormatMoney(quote.GrandTotal)</strong>
-                    <span class="vpp-settlement-quote-state">@(quote.IsEligible ? Loc["SettlementEligibleOption"] : Loc["SettlementUnavailableOption"])</span>
-                </button>
+                <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanConfirm || isCorrecting)" Click="@OpenCorrectionDialog" />
+            }
+            else
+            {
+                <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanConfirm || isSettling)" Click="@SettleAsync" />
             }
         </div>
-    </div>
+    </section>
 
     @if (HasPeriodBlockers)
     {
@@ -106,36 +85,54 @@
         </div>
     }
 
-    <VppDataSurfaceFrame DataSourceMode="@(viewMode == OrdersView ? VppDataSourceMode.ServerPaging : VppDataSourceMode.ClientSnapshotPaged)"
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                          Density="VppDataDensity.Compact"
                          AriaLabel="@Loc["PeriodSettlement"]"
                          TestId="period-settlement-data-surface"
                          Class="vpp-period-data-frame vpp-settlement-orders-frame">
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["PeriodSettlement"]" Class="vpp-period-data-toolbar vpp-settlement-data-toolbar">
-                <div class="vpp-period-filters">
+                <div class="vpp-period-filters @(viewMode == ItemsView ? "is-item-view" : "is-department-view")">
                     <VppFilterSearch Value="@searchText"
                                      Input="@OnSearchInputAsync"
-                                     Placeholder="@Loc["HistorySearchOrderOrNote"]"
-                                     AriaLabel="@Loc["HistorySearchOrderOrNote"]" />
-                    <VppFilterSelect TValue="string"
-                                     Value="@selectedOrderType"
-                                     Options="@OrderTypeOptions"
-                                     ValueChanged="@OnOrderTypeChangedAsync"
-                                     Placeholder="@Loc["HistoryAllOrderTypes"]"
-                                     AriaLabel="@Loc["HistoryOrderType"]" />
-                    <VppFilterSelect TValue="int?"
-                                     Value="@selectedStatus"
-                                     Options="@StatusOptions"
-                                     ValueChanged="@OnStatusChangedAsync"
-                                     Placeholder="@Loc["HistoryAllStatuses"]"
-                                     AriaLabel="@Loc["Status"]" />
-                    <VppFilterSelect TValue="string"
-                                     Value="@selectedDepartment"
-                                     Options="@DepartmentOptions"
-                                     ValueChanged="@OnDepartmentChangedAsync"
-                                     Placeholder="@Loc["SettlementAllDepartments"]"
-                                     AriaLabel="@Loc["Department"]" />
+                                     Placeholder="@(viewMode == ItemsView ? Loc["SearchCatalogItems"] : Loc["HistorySearchOrderOrNote"])"
+                                     AriaLabel="@(viewMode == ItemsView ? Loc["SearchCatalogItems"] : Loc["HistorySearchOrderOrNote"])" />
+                    @if (viewMode == ItemsView)
+                    {
+                        <VppFilterSelect TValue="string"
+                                         Value="@selectedItemCategory"
+                                         Options="@ItemCategoryOptions"
+                                         ValueChanged="@OnItemCategoryChangedAsync"
+                                         Placeholder="@Loc["AllCategories"]"
+                                         AriaLabel="@Loc["Category"]" />
+                        <VppFilterSelect TValue="string"
+                                         Value="@selectedItemUom"
+                                         Options="@ItemUomOptions"
+                                         ValueChanged="@OnItemUomChangedAsync"
+                                         Placeholder="@Loc["AllUnits"]"
+                                         AriaLabel="@Loc["UOM"]" />
+                    }
+                    else
+                    {
+                        <VppFilterSelect TValue="string"
+                                         Value="@selectedOrderType"
+                                         Options="@OrderTypeOptions"
+                                         ValueChanged="@OnOrderTypeChangedAsync"
+                                         Placeholder="@Loc["HistoryAllOrderTypes"]"
+                                         AriaLabel="@Loc["HistoryOrderType"]" />
+                        <VppFilterSelect TValue="int?"
+                                         Value="@selectedStatus"
+                                         Options="@StatusOptions"
+                                         ValueChanged="@OnStatusChangedAsync"
+                                         Placeholder="@Loc["HistoryAllStatuses"]"
+                                         AriaLabel="@Loc["Status"]" />
+                        <VppFilterSelect TValue="string"
+                                         Value="@selectedDepartment"
+                                         Options="@DepartmentOptions"
+                                         ValueChanged="@OnDepartmentChangedAsync"
+                                         Placeholder="@Loc["SettlementAllDepartments"]"
+                                         AriaLabel="@Loc["Department"]" />
+                    }
                     <VppClearFiltersButton Text="@Loc["HistoryClearFilters"]"
                                            IsActive="@HasFilters"
                                            Clicked="@ClearFiltersAsync" />
@@ -157,25 +154,22 @@
                                  PrimaryActionIcon="@VppIcons.Refresh"
                                  PrimaryAction="@(_ => ReloadPeriodAsync())" />
             }
-            else if (viewMode == OrdersView)
+            else if (viewMode == ItemsView)
             {
-                @if (totalCount == 0 && !isGridLoading)
+                @if (FilteredItemRows.Count == 0 && !isGridLoading)
                 {
                     <VppContentState State="VppContentStateKind.FilteredEmpty"
                                      Icon="search_off"
-                                     Title="@Loc["NoOrdersMatchSelectedFilters"]"
+                                     Title="@Loc["NoCatalogProductsMatchQuery"]"
                                      Description="@Loc["HistoryAdjustFilters"]" />
                 }
                 else
                 {
                     <div class="vpp-period-grid-wrap">
-                        <RadzenDataGrid TItem="VppRequestResDTO"
-                                        Data="@orders"
-                                        Count="@totalCount"
-                                        LoadData="@OnLoadData"
-                                        RowSelect="@OpenOrderAsync"
+                        <RadzenDataGrid TItem="AggregatedVppItemResDTO"
+                                        Data="@FilteredItemRows"
                                         AllowPaging="true"
-                                        PageSize="@pageSize"
+                                        PageSize="@VppPagingProfiles.LargeWorkingSet.DefaultPageSize"
                                         PageSizeOptions="@VppPagingProfiles.LargeWorkingSet.PageSizeOptions"
                                         PagerAlwaysVisible="true"
                                         ShowPagingSummary="true"
@@ -192,19 +186,15 @@
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-order-grid vpp-data-grid vpp-data-density-compact vpp-settlement-order-grid">
                             <Columns>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(currentSkip + orders.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.VppCode)" Title="@Loc["OrderCode"]" Width="190px">
-                                    <Template Context="row"><strong class="vpp-settlement-order-code">@row.VppCode</strong></Template>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(FilteredItemRows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.VppName)" Title="@Loc["OrderItems"]">
+                                    <Template Context="row"><div class="vpp-order-product-cell"><strong>@row.VppName</strong><small>@row.VppCode</small></div></Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.DepartmentCode)" Title="@Loc["SettlementDepartmentRequester"]" Width="190px">
-                                    <Template Context="row"><div class="vpp-order-product-cell"><strong>@DisplayDepartment(row.DepartmentCode)</strong><small>@DisplayRequester(row.RequesterName)</small></div></Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Title="@Loc["HistoryOrderType"]" Width="118px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.StatusText)" Title="@Loc["Status"]" Width="126px" TextAlign="TextAlign.Center"><Template Context="row"><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalLines)" Title="@Loc["TotalLineItems"]" Width="104px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="112px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.TotalAmount)" Title="@Loc["Amount"]" Width="150px" TextAlign="TextAlign.Right"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.TotalAmount)</strong></Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.SubmittedDate)" Title="@Loc["SubmittedDate"]" Width="164px" TextAlign="TextAlign.Center"><Template Context="row">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.CategoryName)" Title="@Loc["Category"]" Width="220px" />
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.UomName)" Title="@Loc["UOM"]" Width="110px" TextAlign="TextAlign.Center" />
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["OrderCount"]" Width="100px" TextAlign="TextAlign.Right" Sortable="false"><Template Context="row">@row.Breakdown.Count</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="124px" TextAlign="TextAlign.Right"><Template Context="row"><strong>@row.TotalQty</strong></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettleQuoteCoverage"]" Width="148px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><span class="vpp-badge @(IsItemCovered(row) ? "vpp-badge-success" : "vpp-badge-warning")">@(IsItemCovered(row) ? Loc["SupplyCoverageFull"] : Loc["SupplyPriceMissing"])</span></Template></RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -248,66 +238,12 @@
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="112px" TextAlign="TextAlign.Right" />
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalAmount" Title="@Loc["Amount"]" Width="156px" TextAlign="TextAlign.Right"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.TotalAmount)</strong></Template></RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="@Loc["Status"]" Width="130px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><span class="vpp-badge @row.StatusCss">@row.StatusText</span></Template></RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="@Loc["Details"]" Width="112px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><RadzenButton Icon="arrow_forward" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Small" Text="@Loc["View"]" Click="@(_ => OpenDepartmentOrdersAsync(row.DepartmentCode))" /></Template></RadzenDataGridColumn>
                         </Columns>
                     </RadzenDataGrid>
                 </div>
             }
         </ChildContent>
-        <Footer>
-            <div class="vpp-period-action-footer vpp-settlement-footer">
-                <span>@FooterConditionText</span>
-                <div class="vpp-settle-footer-actions">
-                    <RadzenButton Icon="preview"
-                                  Text="@Loc["SettlementViewPreview"]"
-                                  ButtonStyle="ButtonStyle.Light"
-                                  Disabled="@(isPreviewLoading || Preview is null)"
-                                  popovertarget="@SupplierPopoverId" />
-                    @if (canCorrect)
-                    {
-                        <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanConfirm || isCorrecting)" Click="@OpenCorrectionDialog" />
-                    }
-                    else
-                    {
-                        <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanConfirm || isSettling)" Click="@SettleAsync" />
-                    }
-                </div>
-            </div>
-        </Footer>
     </VppDataSurfaceFrame>
-
-    <HistoryOrderDetailSheet @ref="detailSheet"
-                             IsOpen="@isDrawerOpen"
-                             IsFullscreen="@isDetailFullscreen"
-                             SelectedOrder="@selectedOrder"
-                             SelectedSupplierName="@PrimarySupplierName"
-                             SelectedOrderAmount="@(selectedOrder?.TotalAmount ?? 0)"
-                             IsDetailLoading="@isDetailLoading"
-                             HasDetailError="@detailError"
-                             DetailRows="@detailRows"
-                             DetailCategories="@detailCategories"
-                             DetailUoms="@detailUoms"
-                             DetailSearch="@detailSearch"
-                             DetailCategory="@detailCategory"
-                             DetailUom="@detailUom"
-                             ActiveDetailCodeNumber="@activeDetailCodeNumber"
-                             ActiveDetailNoteNumber="@activeDetailNoteNumber"
-                             HasDetailFilters="@HasDetailFilters"
-                             HasTableFilters="@HasFilters"
-                             TotalCount="@totalCount"
-                             UnitHeaderLabel="@Loc["UOM"]"
-                             IsExporting="@isExportingOrder"
-                             CloseRequested="@CloseDrawer"
-                             FullscreenRequested="@ToggleDetailFullscreen"
-                             ExportRequested="@ExportSelectedOrderAsync"
-                             RetryRequested="@RetryDetailAsync"
-                             DetailSearchChanged="@OnDetailSearchInput"
-                             DetailCategorySelected="@SelectDetailCategoryAsync"
-                             DetailUomSelected="@SelectDetailUomAsync"
-                             DetailFiltersCleared="@ClearDetailFiltersAsync"
-                             DetailCodeToggled="@ToggleDetailCode"
-                             DetailNoteToggled="@ToggleDetailNote"
-                             CopyRequested="@CopyToClipboard" />
 
     @if (isCorrectionDialogOpen)
     {

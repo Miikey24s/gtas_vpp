@@ -6,7 +6,6 @@ using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using Radzen;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
@@ -15,14 +14,13 @@ public partial class PeriodSettlementPanel : IDisposable
 {
     private const string CurrentPeriodScope = "current";
     private const string CustomPeriodScope = "custom";
-    private const string OrdersView = "orders";
+    private const string ItemsView = "items";
     private const string DepartmentsView = "departments";
 
     [Inject] private IAPIServices ApiServices { get; set; } = default!;
     [Inject] private IToastService Toast { get; set; } = default!;
     [Inject] private DialogService DialogService { get; set; } = default!;
     [Inject] private PeriodSettlementState State { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     [Parameter] public int Year { get; set; }
     [Parameter] public int Month { get; set; }
@@ -31,13 +29,9 @@ public partial class PeriodSettlementPanel : IDisposable
     [Parameter] public EventCallback<PeriodTargetSelection> PeriodChanged { get; set; }
     [Parameter] public EventCallback OnSettled { get; set; }
 
-    private readonly List<VppOrderDetailItem> detailRows = [];
-    private readonly List<string> detailCategories = [];
-    private readonly List<string> detailUoms = [];
-    private readonly string supplierPopoverId = $"vpp-settlement-supplier-{Guid.NewGuid():N}";
     private CancellationTokenSource? searchDebounce;
-    private List<VppRequestResDTO> orders = [];
     private List<VppRequestResDTO> periodOrdersSnapshot = [];
+    private AggregatedVppResDTO? periodDemand;
     private PeriodSettlementResDTO? status;
     private bool isLoading = true;
     private bool isGridLoading;
@@ -46,32 +40,18 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isCorrecting;
     private bool canCorrect;
     private bool isCorrectionDialogOpen;
-    private bool isDrawerOpen;
-    private bool isDetailFullscreen;
-    private bool isDetailLoading;
-    private bool detailError;
-    private bool isExportingOrder;
     private string? alertMessage;
     private string periodScope = CurrentPeriodScope;
-    private string viewMode = OrdersView;
+    private string viewMode = ItemsView;
     private string searchText = string.Empty;
     private string selectedOrderType = string.Empty;
     private int? selectedStatus;
     private string selectedDepartment = string.Empty;
-    private string? currentOrderByExpression;
-    private string detailSearch = string.Empty;
-    private string detailCategory = string.Empty;
-    private string detailUom = string.Empty;
+    private string selectedItemCategory = string.Empty;
+    private string selectedItemUom = string.Empty;
     private string correctionReason = string.Empty;
-    private int totalCount;
-    private int currentSkip;
-    private int pageSize = VppPagingProfiles.LargeWorkingSet.DefaultPageSize;
     private int loadedYear;
     private int loadedMonth;
-    private int? activeDetailCodeNumber;
-    private int? activeDetailNoteNumber;
-    private VppRequestResDTO? selectedOrder;
-    private HistoryOrderDetailSheet? detailSheet;
 
     private SettlementPreviewResDTO? Preview => State.Preview is { } preview
         && preview.Year == Year && preview.Month == Month ? preview : null;
@@ -82,26 +62,14 @@ public partial class PeriodSettlementPanel : IDisposable
         && !string.IsNullOrWhiteSpace(State.IdempotencyKey);
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
-        || !string.IsNullOrWhiteSpace(selectedOrderType)
-        || selectedStatus.HasValue
-        || !string.IsNullOrWhiteSpace(selectedDepartment);
-
-    private bool HasDetailFilters => !string.IsNullOrWhiteSpace(detailSearch)
-        || !string.IsNullOrWhiteSpace(detailCategory)
-        || !string.IsNullOrWhiteSpace(detailUom);
+        || (viewMode == ItemsView
+            ? !string.IsNullOrWhiteSpace(selectedItemCategory) || !string.IsNullOrWhiteSpace(selectedItemUom)
+            : !string.IsNullOrWhiteSpace(selectedOrderType) || selectedStatus.HasValue || !string.IsNullOrWhiteSpace(selectedDepartment));
 
     private bool HasPeriodBlockers => Preview?.Blockers.Count > 0 || status?.PendingAdditionalCount > 0;
     private string SettlementPageClass => HasPeriodBlockers
         ? "vpp-period-settlement-page has-blockers"
         : "vpp-period-settlement-page";
-
-    private string PrimarySupplierName => Preview?.PrimaryQuote?.SupplierName
-        ?? status?.PrimarySupplierName
-        ?? Loc["SettlementNotSelected"].Value;
-
-    private string PrimaryPriceListLabel => Preview?.PrimaryQuote is { } quote
-        ? $"{quote.PriceListCode} · v{quote.Version}"
-        : status?.PriceListName ?? Loc["SettlementNotSelected"].Value;
 
     private string FooterConditionText
     {
@@ -136,7 +104,22 @@ public partial class PeriodSettlementPanel : IDisposable
         .OrderBy(quote => quote.Rank)
         .ToArray() ?? [];
 
-    private string SupplierPopoverId => supplierPopoverId;
+    private Guid? SelectedSupplierId => Preview?.PrimarySupplierId;
+    private Guid? SelectedPriceListId => Preview?.PrimaryPriceListId;
+
+    private IReadOnlyList<VppFilterOption<Guid?>> SupplierOptions => SupplierQuotes
+        .Where(quote => quote.IsEligible)
+        .GroupBy(quote => quote.SupplierId)
+        .Select(group => group.OrderBy(quote => quote.Rank).First())
+        .OrderBy(quote => quote.Rank)
+        .Select(quote => new VppFilterOption<Guid?>(quote.SupplierId, quote.SupplierName ?? Loc["SettlementNotSelected"]))
+        .ToArray();
+
+    private IReadOnlyList<VppFilterOption<Guid?>> PriceListOptions => SupplierQuotes
+        .Where(quote => quote.IsEligible && quote.SupplierId == SelectedSupplierId)
+        .OrderBy(quote => quote.Rank)
+        .Select(quote => new VppFilterOption<Guid?>(quote.PriceListId, $"{quote.PriceListCode} · v{quote.Version}"))
+        .ToArray();
 
     private IReadOnlyList<VppSegmentedOption<string>> PeriodScopeOptions =>
     [
@@ -146,7 +129,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private IReadOnlyList<VppSegmentedOption<string>> ViewModeOptions =>
     [
-        new(OrdersView, Loc["SettlementByOrder"]),
+        new(ItemsView, Loc["SettlementByItem"]),
         new(DepartmentsView, Loc["SettlementByDepartment"])
     ];
 
@@ -186,6 +169,32 @@ public partial class PeriodSettlementPanel : IDisposable
                 .Select(code => new VppFilterOption<string>(code, code)))
             .ToArray();
 
+    private IReadOnlyList<VppFilterOption<string>> ItemCategoryOptions =>
+        new[] { new VppFilterOption<string>(string.Empty, Loc["AllCategories"]) }
+            .Concat((periodDemand?.Items ?? [])
+                .Select(item => item.CategoryName)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Select(value => value!)
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase)
+                .Select(value => new VppFilterOption<string>(value, value)))
+            .ToArray();
+
+    private IReadOnlyList<VppFilterOption<string>> ItemUomOptions =>
+        new[] { new VppFilterOption<string>(string.Empty, Loc["AllUnits"]) }
+            .Concat((periodDemand?.Items ?? [])
+                .Select(item => item.UomName)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Select(value => value!)
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase)
+                .Select(value => new VppFilterOption<string>(value, value)))
+            .ToArray();
+
+    private List<AggregatedVppItemResDTO> FilteredItemRows => (periodDemand?.Items ?? [])
+        .Where(MatchesItemFilters)
+        .ToList();
+
     private List<DepartmentSettlementRow> FilteredDepartmentRows => periodOrdersSnapshot
         .Where(MatchesClientFilters)
         .GroupBy(order => DisplayDepartment(order.DepartmentCode), StringComparer.CurrentCultureIgnoreCase)
@@ -215,16 +224,13 @@ public partial class PeriodSettlementPanel : IDisposable
         isLoading = true;
         isGridLoading = true;
         alertMessage = null;
-        currentSkip = 0;
-        currentOrderByExpression = null;
-        CloseDrawer();
 
         try
         {
             await LoadStatusAsync();
             await LoadPreviewAsync();
+            await LoadPeriodDemandAsync();
             await LoadAllPeriodOrdersAsync();
-            await LoadOrdersAsync(firstLoad: true);
         }
         catch (Exception ex)
         {
@@ -297,66 +303,11 @@ public partial class PeriodSettlementPanel : IDisposable
         periodOrdersSnapshot = snapshot;
     }
 
-    private async Task LoadOrdersAsync(bool firstLoad)
+    private async Task LoadPeriodDemandAsync()
     {
-        isLoading = firstLoad && isLoading;
-        isGridLoading = !firstLoad || isGridLoading;
-        try
-        {
-            var (data, count, _, _, _) = await ApiServices
-                .GetFromApiWithAmountStatsAsync<List<VppRequestResDTO>>(BuildOrdersEndpoint());
-            orders = data ?? [];
-            totalCount = count;
-            alertMessage = null;
-        }
-        catch (Exception ex)
-        {
-            alertMessage = UiErrorMapper.GetMessage(ex, Loc);
-            Toast.Error(ex, Loc);
-        }
-        finally
-        {
-            isGridLoading = false;
-        }
+        periodDemand = await ApiServices.GetFromApiAsync<AggregatedVppResDTO>(
+            $"{Config.VppApi.PeriodDemand}?year={Year}&month={Month}");
     }
-
-    private string BuildOrdersEndpoint()
-    {
-        var query = new List<string>
-        {
-            $"year={Year}",
-            $"month={Month}",
-            $"skip={currentSkip}",
-            $"top={pageSize}"
-        };
-        if (selectedStatus.HasValue) query.Add($"status={selectedStatus.Value}");
-        var filter = BuildFilterExpression();
-        if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
-        if (!string.IsNullOrWhiteSpace(currentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(currentOrderByExpression)}");
-        return $"{Config.VppApi.AllOrders}?{string.Join("&", query)}";
-    }
-
-    private string? BuildFilterExpression()
-    {
-        var clauses = new List<string>();
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            var value = EscapeDynamicString(searchText.Trim());
-            clauses.Add($"((VppCode != null && VppCode.ToLower().Contains(\"{value}\")) || (RequesterName != null && RequesterName.ToLower().Contains(\"{value}\")) || (Description != null && Description.ToLower().Contains(\"{value}\")))");
-        }
-        if (selectedOrderType == "regular") clauses.Add("IsAdditionalOrder == false");
-        if (selectedOrderType == "additional") clauses.Add("IsAdditionalOrder == true");
-        if (!string.IsNullOrWhiteSpace(selectedDepartment))
-        {
-            clauses.Add($"(DepartmentCode != null && DepartmentCode.ToLower() == \"{EscapeDynamicString(selectedDepartment)}\")");
-        }
-        return clauses.Count == 0 ? null : string.Join(" && ", clauses);
-    }
-
-    private static string EscapeDynamicString(string value) => value
-        .ToLowerInvariant()
-        .Replace("\\", "\\\\", StringComparison.Ordinal)
-        .Replace("\"", "\\\"", StringComparison.Ordinal);
 
     private bool MatchesClientFilters(VppRequestResDTO order)
     {
@@ -375,6 +326,18 @@ public partial class PeriodSettlementPanel : IDisposable
             && (!selectedStatus.HasValue || order.Status == selectedStatus.Value)
             && (string.IsNullOrWhiteSpace(selectedDepartment)
                 || string.Equals(order.DepartmentCode, selectedDepartment, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    private bool MatchesItemFilters(AggregatedVppItemResDTO item)
+    {
+        var search = searchText.Trim();
+        return (string.IsNullOrWhiteSpace(search)
+                || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
+                || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+            && (string.IsNullOrWhiteSpace(selectedItemCategory)
+                || string.Equals(item.CategoryName, selectedItemCategory, StringComparison.CurrentCultureIgnoreCase))
+            && (string.IsNullOrWhiteSpace(selectedItemUom)
+                || string.Equals(item.UomName, selectedItemUom, StringComparison.CurrentCultureIgnoreCase));
     }
 
     private DepartmentSettlementRow CreateDepartmentRow(string departmentCode, List<VppRequestResDTO> departmentOrders)
@@ -397,19 +360,6 @@ public partial class PeriodSettlementPanel : IDisposable
             departmentOrders.Sum(order => order.TotalAmount),
             statusValue.Item1,
             statusValue.Item2);
-    }
-
-    private async Task OnLoadData(LoadDataArgs args)
-    {
-        if (viewMode != OrdersView || isLoading)
-        {
-            return;
-        }
-
-        currentSkip = args.Skip ?? 0;
-        if (args.Top is > 0) pageSize = args.Top.Value;
-        currentOrderByExpression = args.OrderBy;
-        await LoadOrdersAsync(firstLoad: false);
     }
 
     private async Task OnSearchInputAsync(ChangeEventArgs args)
@@ -446,17 +396,21 @@ public partial class PeriodSettlementPanel : IDisposable
         return ApplyFiltersAsync();
     }
 
+    private Task OnItemCategoryChangedAsync(string value)
+    {
+        selectedItemCategory = value;
+        return ApplyFiltersAsync();
+    }
+
+    private Task OnItemUomChangedAsync(string value)
+    {
+        selectedItemUom = value;
+        return ApplyFiltersAsync();
+    }
+
     private async Task ApplyFiltersAsync()
     {
-        currentSkip = 0;
-        if (viewMode == OrdersView)
-        {
-            await LoadOrdersAsync(firstLoad: false);
-        }
-        else
-        {
-            await InvokeAsync(StateHasChanged);
-        }
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ClearFiltersAsync()
@@ -465,6 +419,8 @@ public partial class PeriodSettlementPanel : IDisposable
         selectedOrderType = string.Empty;
         selectedStatus = null;
         selectedDepartment = string.Empty;
+        selectedItemCategory = string.Empty;
+        selectedItemUom = string.Empty;
         await ApplyFiltersAsync();
     }
 
@@ -492,19 +448,38 @@ public partial class PeriodSettlementPanel : IDisposable
     private async Task OnViewModeChangedAsync(string mode)
     {
         viewMode = mode;
-        currentSkip = 0;
-        if (mode == OrdersView)
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnSupplierChangedAsync(Guid? supplierId)
+    {
+        if (!supplierId.HasValue || isPreviewLoading)
         {
-            await LoadOrdersAsync(firstLoad: false);
+            return;
+        }
+
+        var quote = SupplierQuotes
+            .Where(item => item.SupplierId == supplierId.Value && item.IsEligible)
+            .OrderBy(item => item.Rank)
+            .FirstOrDefault();
+        if (quote is not null)
+        {
+            await ApplySupplierQuoteAsync(quote);
         }
     }
 
-    private async Task OpenDepartmentOrdersAsync(string departmentCode)
+    private async Task OnPriceListChangedAsync(Guid? priceListId)
     {
-        selectedDepartment = departmentCode;
-        viewMode = OrdersView;
-        currentSkip = 0;
-        await LoadOrdersAsync(firstLoad: false);
+        if (!priceListId.HasValue || isPreviewLoading)
+        {
+            return;
+        }
+
+        var quote = SupplierQuotes.FirstOrDefault(item => item.PriceListId == priceListId.Value && item.IsEligible);
+        if (quote is not null)
+        {
+            await ApplySupplierQuoteAsync(quote);
+        }
     }
 
     private Task OpenCorrectionDialog()
@@ -516,6 +491,9 @@ public partial class PeriodSettlementPanel : IDisposable
     private void CloseCorrectionDialog() => isCorrectionDialogOpen = false;
 
     private bool IsCurrentQuote(PriceBookQuoteResDTO quote) => Preview?.PrimaryPriceListId == quote.PriceListId;
+
+    private bool IsItemCovered(AggregatedVppItemResDTO item) =>
+        Preview?.PrimaryQuote is { } quote && !quote.MissingVppIds.Contains(item.VppId);
 
     private async Task ApplySupplierQuoteAsync(PriceBookQuoteResDTO quote)
     {
@@ -529,186 +507,6 @@ public partial class PeriodSettlementPanel : IDisposable
             State.Exceptions.Clear();
         }
         await LoadPreviewAsync(quote.SupplierId, quote.PriceListId);
-    }
-
-    private async Task OpenOrderAsync(VppRequestResDTO order)
-    {
-        if (isDetailLoading || order.Id == Guid.Empty)
-        {
-            return;
-        }
-
-        selectedOrder = order;
-        isDrawerOpen = true;
-        isDetailLoading = true;
-        detailError = false;
-        ResetDetailFilters();
-        await InvokeAsync(StateHasChanged);
-
-        try
-        {
-            selectedOrder = await ApiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{order.Id}") ?? order;
-            BuildDetailOptions();
-            RebuildDetailRows();
-        }
-        catch (Exception ex)
-        {
-            detailError = true;
-            Toast.Error(ex, Loc);
-        }
-        finally
-        {
-            isDetailLoading = false;
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
-    private Task RetryDetailAsync() => selectedOrder is null ? Task.CompletedTask : OpenOrderAsync(selectedOrder);
-
-    private void BuildDetailOptions()
-    {
-        detailCategories.Clear();
-        detailUoms.Clear();
-        detailCategories.AddRange((selectedOrder?.Items ?? [])
-            .Select(item => item.CategoryName)
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .Select(value => value!)
-            .Distinct(StringComparer.CurrentCultureIgnoreCase)
-            .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase));
-        detailUoms.AddRange((selectedOrder?.Items ?? [])
-            .Select(item => item.UomName)
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .Select(value => value!)
-            .Distinct(StringComparer.CurrentCultureIgnoreCase)
-            .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase));
-    }
-
-    private void RebuildDetailRows()
-    {
-        var search = detailSearch.Trim();
-        var filtered = (selectedOrder?.Items ?? [])
-            .Where(item => (string.IsNullOrWhiteSpace(search)
-                    || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                    || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
-                && (string.IsNullOrWhiteSpace(detailCategory)
-                    || string.Equals(item.CategoryName, detailCategory, StringComparison.CurrentCultureIgnoreCase))
-                && (string.IsNullOrWhiteSpace(detailUom)
-                    || string.Equals(item.UomName, detailUom, StringComparison.CurrentCultureIgnoreCase)))
-            .ToList();
-
-        detailRows.Clear();
-        detailRows.AddRange(filtered.Select((item, index) => new VppOrderDetailItem(
-            index + 1,
-            item.VppCode,
-            item.VppName ?? string.Empty,
-            item.CategoryName,
-            item.UomName,
-            item.Qty,
-            item.Description)));
-    }
-
-    private async Task OnDetailSearchInput(ChangeEventArgs args)
-    {
-        detailSearch = args.Value?.ToString() ?? string.Empty;
-        await RefreshDetailSurfaceAsync();
-    }
-
-    private Task SelectDetailCategoryAsync(string category)
-    {
-        detailCategory = category;
-        return RefreshDetailSurfaceAsync();
-    }
-
-    private Task SelectDetailUomAsync(string uom)
-    {
-        detailUom = uom;
-        return RefreshDetailSurfaceAsync();
-    }
-
-    private async Task ClearDetailFiltersAsync()
-    {
-        ResetDetailFilters();
-        await RefreshDetailSurfaceAsync();
-    }
-
-    private async Task RefreshDetailSurfaceAsync()
-    {
-        RebuildDetailRows();
-        if (detailSheet is not null)
-        {
-            await detailSheet.ReloadDetailGridAsync();
-        }
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private void ResetDetailFilters()
-    {
-        detailSearch = string.Empty;
-        detailCategory = string.Empty;
-        detailUom = string.Empty;
-        activeDetailCodeNumber = null;
-        activeDetailNoteNumber = null;
-        detailRows.Clear();
-        detailCategories.Clear();
-        detailUoms.Clear();
-    }
-
-    private void ToggleDetailCode(int number)
-    {
-        activeDetailNoteNumber = null;
-        activeDetailCodeNumber = activeDetailCodeNumber == number ? null : number;
-    }
-
-    private void ToggleDetailNote(int number)
-    {
-        activeDetailCodeNumber = null;
-        activeDetailNoteNumber = activeDetailNoteNumber == number ? null : number;
-    }
-
-    private async Task CopyToClipboard(string? text)
-    {
-        if (!string.IsNullOrWhiteSpace(text))
-        {
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
-        }
-    }
-
-    private void CloseDrawer()
-    {
-        isDrawerOpen = false;
-        isDetailFullscreen = false;
-    }
-
-    private void ToggleDetailFullscreen() => isDetailFullscreen = !isDetailFullscreen;
-
-    private Task ExportSelectedOrderAsync(string format) => selectedOrder is null
-        ? Task.CompletedTask
-        : ExportOrderAsync(selectedOrder, format);
-
-    private async Task ExportOrderAsync(VppRequestResDTO order, string format)
-    {
-        if (isExportingOrder)
-        {
-            return;
-        }
-
-        isExportingOrder = true;
-        try
-        {
-            var file = await ApiServices.GetFileFromApiAsync($"{Config.VppApi.Orders}/{order.Id}/{format}");
-            await using var stream = new MemoryStream(file.Content, writable: false);
-            using var streamReference = new DotNetStreamReference(stream);
-            await JSRuntime.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
-            Toast.Notify(NotificationSeverity.Success, Loc["Order"], Loc["OrderExported"]);
-        }
-        catch (Exception ex)
-        {
-            Toast.Error(ex, Loc);
-        }
-        finally
-        {
-            isExportingOrder = false;
-        }
     }
 
     private async Task SettleAsync()
@@ -816,7 +614,6 @@ public partial class PeriodSettlementPanel : IDisposable
     };
 
     private static string DisplayDepartment(string? value) => string.IsNullOrWhiteSpace(value) ? "–" : value;
-    private static string DisplayRequester(string? value) => string.IsNullOrWhiteSpace(value) ? "–" : value;
     private static string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
     private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
 

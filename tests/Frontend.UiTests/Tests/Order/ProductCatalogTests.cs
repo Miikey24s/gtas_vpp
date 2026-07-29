@@ -52,6 +52,7 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
             }
         """);
         await itemHeader.HoverAsync();
+        await Page.WaitForTimeoutAsync(200);
         var hoverSortOpacity = await idleSortIcon.EvaluateAsync<double>(
             "element => Number.parseFloat(getComputedStyle(element).opacity)");
         hoverSortOpacity.Should().BeGreaterThan(0,
@@ -165,6 +166,27 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
             pageSizePanel,
             pageSizePanel.Locator(".rz-state-highlight").First);
         pageSizePopupGeometry.Should().Be(filterPopupGeometry, "Radzen select popup must reuse canonical filter popup geometry");
+        var pageSizePopupContainment = await pageSizePanel.EvaluateAsync<string>("""
+            panel => {
+                const panelRect = panel.getBoundingClientRect();
+                const options = [...panel.querySelectorAll('.rz-dropdown-item, .rz-dropdown-items > li')];
+                const list = panel.querySelector('.rz-dropdown-items');
+                const optionsContained = options.every(option => {
+                    const rect = option.getBoundingClientRect();
+                    return rect.left >= panelRect.left - 1 && rect.right <= panelRect.right + 1;
+                });
+                const firstRect = options[0]?.getBoundingClientRect();
+                const listRect = list?.getBoundingClientRect();
+                const firstStyle = options[0] ? getComputedStyle(options[0]) : null;
+                return `${optionsContained}|${panel.scrollWidth <= panel.clientWidth + 1}`
+                    + `|panel=${panelRect.left},${panelRect.right},${panel.clientWidth},${panel.scrollWidth}`
+                    + `|list=${listRect?.left},${listRect?.right},${list?.clientWidth},${list?.scrollWidth}`
+                    + `|first=${firstRect?.left},${firstRect?.right}`
+                    + `|style=${firstStyle?.marginLeft},${firstStyle?.left},${firstStyle?.translate},${firstStyle?.transform},${firstStyle?.paddingLeft}`;
+            }
+        """);
+        pageSizePopupContainment.Should().StartWith("true|true|",
+            "page-size option hover/selected surfaces must stay inside the popup instead of bleeding to the right");
         var pageSizeSelectedChrome = await ReadOptionChromeAsync(pageSizePanel.Locator(".rz-state-highlight").First);
         var pageSizeHoverOption = pageSizePanel.Locator(".rz-dropdown-item:not(.rz-state-highlight)").First;
         await pageSizeHoverOption.HoverAsync();

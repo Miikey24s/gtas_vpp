@@ -77,13 +77,16 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("vpp-period-workspace-header", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<h1", workspace, StringComparison.Ordinal);
         Assert.Contains("<VppSegmentedSelector", settlement, StringComparison.Ordinal);
-        Assert.Contains("vpp-settlement-supplier-popover", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppFilterSelect TValue=\"Guid?\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementByItem", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementByDepartment", settlementCode, StringComparison.Ordinal);
         Assert.Contains("HasPeriodBlockers", settlement, StringComparison.Ordinal);
         Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
         Assert.Contains("InputHash = preview.InputHash", settlementCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Phương án chốt", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("SettlementViewPreview", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Footer>", settlement, StringComparison.Ordinal);
         Assert.Contains("Click=\"@SettleAsync\"", settlement, StringComparison.Ordinal);
     }
 
@@ -101,14 +104,15 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void UnifiedSettlement_UsesBackendPreviewForSupplierComparison()
+    public void UnifiedSettlement_UsesDemandAndPreviewForItemAndSupplierSelection()
     {
         var page = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
 
-        Assert.Contains("vpp-settlement-supplier-trigger", page, StringComparison.Ordinal);
-        Assert.Contains("vpp-settlement-supplier-popover", page, StringComparison.Ordinal);
-        Assert.Contains("SupplierQuotes", page, StringComparison.Ordinal);
+        Assert.Contains("OnSupplierChangedAsync", page, StringComparison.Ordinal);
+        Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
+        Assert.Contains("AggregatedVppItemResDTO", page, StringComparison.Ordinal);
+        Assert.Contains("Config.VppApi.PeriodDemand", code, StringComparison.Ordinal);
         Assert.Contains("Config.RequestApi.PeriodSettlement.Preview", code, StringComparison.Ordinal);
         Assert.Contains("PrimarySupplierId = supplierId", code, StringComparison.Ordinal);
         Assert.Contains("PriceListId = priceListId", code, StringComparison.Ordinal);

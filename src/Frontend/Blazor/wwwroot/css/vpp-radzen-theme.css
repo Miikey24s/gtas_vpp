@@ -135,11 +135,26 @@
 
 /* Select Radzen dùng cùng chrome và popup với VppFilterSelect canonical. */
 .rz-dropdown-panel {
+    box-sizing: border-box;
     padding: var(--vpp-space-1);
+    overflow: hidden;
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-lg);
     background: var(--vpp-bg-elevated);
     box-shadow: var(--vpp-shadow-lg);
+}
+
+.rz-dropdown-panel .rz-dropdown-items-wrapper,
+.rz-dropdown-panel .rz-dropdown-items {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    inset-inline-start: 0;
+    margin-inline: 0;
+    transform: none;
+    overflow-x: hidden;
 }
 
 .rz-dropdown-panel .rz-dropdown-items {
@@ -149,6 +164,12 @@
 
 .rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li) {
     position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    inset-inline-start: 0;
+    margin-inline: 0;
+    transform: none;
     min-height: 30px;
     margin: 0;
     padding: 0 var(--vpp-space-2);

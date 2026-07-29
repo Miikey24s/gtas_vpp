@@ -9,7 +9,7 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task PeriodSettlement_UsesUnifiedSelectorsSupplierDecisionAndPagedOrders()
+    public async Task PeriodSettlement_UsesItemAndDepartmentViewsWithInlineSupplierSelection()
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
@@ -42,32 +42,18 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
 
         var toolbar = surface.Locator(".vpp-settlement-data-toolbar:visible");
         (await toolbar.Locator(".vpp-filter-search").CountAsync()).Should().Be(1);
-        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(3);
-        (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
+        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
+        (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
+        (await Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng" }).CountAsync()).Should().Be(1);
+        (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select").CountAsync()).Should().Be(2);
+        (await Page.Locator(".vpp-settlement-decision-action .rz-button").CountAsync()).Should().Be(1);
+        (await surface.Locator(".vpp-settlement-footer").CountAsync()).Should().Be(0);
+        (await Page.GetByRole(AriaRole.Button, new() { Name = "Xem bản xem trước" }).CountAsync()).Should().Be(0);
 
         if (await surface.Locator(".rz-data-grid:visible").CountAsync() > 0)
         {
             (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
-            await CaptureAsync("ds3-period-settlement-orders-1366x768.png");
-            var firstRow = surface.Locator(".vpp-settlement-order-grid .rz-data-row").First;
-            if (await firstRow.CountAsync() > 0)
-            {
-                await firstRow.ClickAsync();
-                await Page.Locator(".vpp-history-drawer.is-open:visible").WaitForAsync(new() { Timeout = 10_000 });
-                await Page.Locator(".vpp-history-drawer.is-open .vpp-history-drawer-actions button[aria-label='Đóng']").ClickAsync();
-            }
-        }
-
-        var supplierTrigger = Page.Locator(".vpp-settlement-supplier-trigger");
-        if (await supplierTrigger.IsEnabledAsync())
-        {
-            await supplierTrigger.ClickAsync();
-            var popover = Page.Locator(".vpp-settlement-supplier-popover:popover-open");
-            await popover.WaitForAsync();
-            (await popover.GetAttributeAsync("class")).Should().Contain("vpp-transient-surface");
-            (await popover.Locator("[role='option']").CountAsync()).Should().BeGreaterThan(0);
-            await CaptureAsync("ds3-period-supplier-dropdown-1366x768.png");
-            await Page.Keyboard.PressAsync("Escape");
+            await CaptureAsync("ds3-period-settlement-items-1366x768.png");
         }
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban" }).ClickAsync();
@@ -76,6 +62,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
                 ?.getAttribute("data-vpp-data-source-mode") === "client-snapshot-paged"
             """);
         (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
+        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(3);
 
         var viewportContract = await Page.EvaluateAsync<string>("""
             () => `${document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1}`

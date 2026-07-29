@@ -985,17 +985,12 @@
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Nhà cung cấp và bảng giá dùng để chốt kỳ</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>Tất cả phòng ban</value></data>
   <data name="SettlementDepartmentRequester" xml:space="preserve"><value>Phòng ban / Người đặt</value></data>
-  <data name="SettlementViewPreview" xml:space="preserve"><value>Xem bản xem trước</value></data>
-  <data name="SettlementChooseSupplier" xml:space="preserve"><value>Chọn nhà cung cấp</value></data>
-  <data name="SettlementSupplierDialogHint" xml:space="preserve"><value>So sánh độ phủ, bảng giá và tổng tiền trước khi áp dụng.</value></data>
-  <data name="SettlementEligibleOption" xml:space="preserve"><value>Có thể chọn</value></data>
-  <data name="SettlementUnavailableOption" xml:space="preserve"><value>Chưa đủ độ phủ</value></data>
   <data name="SettlementNotSelected" xml:space="preserve"><value>Chưa chọn</value></data>
   <data name="SettlementReadyCondition" xml:space="preserve"><value>Đủ điều kiện chốt kỳ với bản xem trước hiện tại.</value></data>
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Chọn nhà cung cấp đủ độ phủ để tiếp tục.</value></data>
   <data name="SettlementCurrentPeriod" xml:space="preserve"><value>Kỳ này</value></data>
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Tùy chọn</value></data>
-  <data name="SettlementByOrder" xml:space="preserve"><value>Theo đơn</value></data>
+  <data name="SettlementByItem" xml:space="preserve"><value>Theo mặt hàng</value></data>
   <data name="SettlementByDepartment" xml:space="preserve"><value>Theo phòng ban</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Cần rà soát</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>Xem toàn màn hình</value></data>

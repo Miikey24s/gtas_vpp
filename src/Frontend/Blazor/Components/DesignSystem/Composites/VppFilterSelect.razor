@@ -8,6 +8,7 @@
             aria-haspopup="listbox"
             aria-label="@AriaLabel"
             title="@SelectedLabel"
+            disabled="@Disabled"
             @onclick="@(() => Opening.InvokeAsync())">
         <span class="vpp-filter-select-label">@SelectedLabel</span>
         <VppIcon Name="@VppIcons.ExpandMore" />
@@ -41,6 +42,7 @@
     [Parameter, EditorRequired] public IReadOnlyList<VppFilterOption<TValue>> Options { get; set; } = [];
     [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
     [Parameter] public EventCallback Opening { get; set; }
+    [Parameter] public bool Disabled { get; set; }
     [Parameter, EditorRequired] public string Placeholder { get; set; } = string.Empty;
     [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public string? Class { get; set; }
@@ -56,5 +58,5 @@
 
     private bool IsSelected(TValue optionValue) => EqualityComparer<TValue>.Default.Equals(Value, optionValue);
 
-    private Task SelectAsync(TValue value) => ValueChanged.InvokeAsync(value);
+    private Task SelectAsync(TValue value) => Disabled ? Task.CompletedTask : ValueChanged.InvokeAsync(value);
 }

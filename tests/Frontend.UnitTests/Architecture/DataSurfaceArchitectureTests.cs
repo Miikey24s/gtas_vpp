@@ -208,12 +208,12 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("LoadData=\"@LoadRequested\"", sharedOrderList, StringComparison.Ordinal);
 
         Assert.Contains("TestId=\"period-settlement-data-surface\"", settlement, StringComparison.Ordinal);
-        Assert.Contains("VppDataSourceMode.ServerPaging", settlement, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", settlement, StringComparison.Ordinal);
         Assert.Contains("<VppDataToolbar", settlement, StringComparison.Ordinal);
-        Assert.Equal(5, Regex.Matches(settlement, "<VppFilterSelect\\b").Count);
+        Assert.Equal(9, Regex.Matches(settlement, "<VppFilterSelect\\b").Count);
         Assert.Equal(2, Regex.Matches(settlement, "<RadzenDataGrid(?=\\s|>)").Count);
-        Assert.Contains("LoadData=\"@OnLoadData\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("AggregatedVppItemResDTO", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("LoadData=", settlement, StringComparison.Ordinal);
     }
 
     [Fact]
