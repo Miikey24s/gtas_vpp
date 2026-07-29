@@ -256,6 +256,17 @@
     border-radius: 0;
 }
 
+/* Data surface giữ schema cột ổn định khi vùng nội dung hẹp hoặc browser zoom cao.
+   Route chỉ khai báo min-width cần thiết; khung dùng native scroll thay vì ép cột chồng lên nhau. */
+[data-vpp-data-surface="true"] .vpp-data-grid .rz-data-grid-data {
+    min-width: 0;
+    overflow: auto;
+}
+
+[data-vpp-data-surface="true"] .vpp-data-grid .rz-grid-table {
+    min-width: var(--vpp-data-grid-min-width, 100%);
+}
+
 .vpp-data-grid .rz-grid-table thead > tr > th {
     height: var(--vpp-data-header-height);
     max-height: var(--vpp-data-header-height);

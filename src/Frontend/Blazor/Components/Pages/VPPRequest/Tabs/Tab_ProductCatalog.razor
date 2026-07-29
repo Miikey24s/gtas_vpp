@@ -86,10 +86,10 @@
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-catalog-grid vpp-data-grid vpp-data-density-rich-two-line">
                             <Columns>
-                                <RadzenDataGridColumn TItem="ProductItem" Title="#" Width="56px" TextAlign="TextAlign.Center" Sortable="false" Resizable="false">
+                                <RadzenDataGridColumn TItem="ProductItem" Title="#" Width="56px" MinWidth="56px" TextAlign="TextAlign.Center" Sortable="false" Resizable="false">
                                     <Template Context="row">@(CurrentSkip + Products.IndexOf(row) + 1)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="ProductItem" Property="VppName" Title="@Loc["ItemName"]" TextAlign="TextAlign.Left">
+                                <RadzenDataGridColumn TItem="ProductItem" Property="VppName" Title="@Loc["ItemName"]" Width="300px" MinWidth="280px" TextAlign="TextAlign.Left">
                                     <Template Context="row">
                                         <div class="vpp-catalog-item-cell">
                                             <strong>@row.VppName</strong>
@@ -97,9 +97,9 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="ProductItem" Property="VppCategoryName" Title="@Loc["Category"]" Width="260px" TextAlign="TextAlign.Left" />
-                                <RadzenDataGridColumn TItem="ProductItem" Property="UomName" Title="@Loc["UOM"]" Width="130px" TextAlign="TextAlign.Center" />
-                                <RadzenDataGridColumn TItem="ProductItem" Property="Description" Title="@Loc["Description"]" Width="340px" TextAlign="TextAlign.Left">
+                                <RadzenDataGridColumn TItem="ProductItem" Property="VppCategoryName" Title="@Loc["Category"]" Width="220px" MinWidth="200px" TextAlign="TextAlign.Left" />
+                                <RadzenDataGridColumn TItem="ProductItem" Property="UomName" Title="@Loc["UOM"]" Width="110px" MinWidth="100px" TextAlign="TextAlign.Center" />
+                                <RadzenDataGridColumn TItem="ProductItem" Property="Description" Title="@Loc["Description"]" Width="300px" MinWidth="280px" TextAlign="TextAlign.Left">
                                     <Template Context="row">
                                         <span class="vpp-catalog-description" title="@row.Description">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
                                     </Template>

@@ -38,6 +38,7 @@
 }
 
 .vpp-catalog-grid {
+    --vpp-data-grid-min-width: 956px;
     display: flex;
     flex: 1 1 auto;
     width: 100%;
@@ -51,8 +52,6 @@
 .vpp-catalog-grid ::deep .rz-data-grid-data {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
 }
 
 .vpp-catalog-grid ::deep .rz-paginator,

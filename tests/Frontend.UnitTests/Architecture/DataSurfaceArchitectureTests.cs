@@ -61,7 +61,8 @@ public sealed class DataSurfaceArchitectureTests
                      "--vpp-data-header-height: 40px;",
                      "--vpp-data-row-compact-height: 40px;",
                      "--vpp-data-row-rich-two-line-height: 52px;",
-                     "--vpp-data-footer-height: 42px;"
+                     "--vpp-data-footer-height: 42px;",
+                     "--vpp-data-grid-min-width: 100%;"
                  })
         {
             Assert.Contains(token, tokens, StringComparison.Ordinal);
@@ -70,6 +71,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains(".vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
         Assert.Contains("[data-vpp-data-surface=\"true\"] .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
         Assert.Contains("--rz-grid-border-radius: 0;", bridge, StringComparison.Ordinal);
+        Assert.Contains("--vpp-data-grid-min-width", bridge, StringComparison.Ordinal);
+        Assert.Contains("overflow: auto;", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-paginator .rz-dropdown", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li).rz-state-highlight", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
@@ -109,6 +112,7 @@ public sealed class DataSurfaceArchitectureTests
         var historyCode = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.cs"));
         var historyStyles = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"));
         var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
+        var catalogStyles = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor.css"));
 
         Assert.Contains("<Toolbar>", history, StringComparison.Ordinal);
         Assert.Contains("<VppFilterSearch", history, StringComparison.Ordinal);
@@ -124,6 +128,9 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("Bordered=\"true\"", catalog, StringComparison.Ordinal);
         Assert.DoesNotContain("<section class=\"vpp-catalog-card\"", catalog, StringComparison.Ordinal);
         Assert.Contains("vpp-data-grid vpp-data-density-rich-two-line", catalog, StringComparison.Ordinal);
+        Assert.Contains("MinWidth=\"280px\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("--vpp-data-grid-min-width: 956px;", catalogStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("overflow-x: hidden;", catalogStyles, StringComparison.Ordinal);
     }
 
     [Fact]

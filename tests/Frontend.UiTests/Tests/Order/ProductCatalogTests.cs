@@ -118,11 +118,33 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         """);
         catalogGeometry.Should().StartWith("true", "Catalog pager must stay at the workspace bottom without document scrolling");
 
+        await Page.SetViewportSizeAsync(960, 768);
+        await Page.WaitForTimeoutAsync(250);
+        var narrowGridGeometry = await grid.EvaluateAsync<string>("""
+            element => {
+                const dataViewport = element.querySelector('.rz-data-grid-data');
+                const headers = [...element.querySelectorAll('thead th')];
+                const itemHeader = headers[1];
+                const categoryHeader = headers[2];
+                if (!dataViewport || !itemHeader || !categoryHeader) return 'missing';
+                const itemRect = itemHeader.getBoundingClientRect();
+                const categoryRect = categoryHeader.getBoundingClientRect();
+                const stableColumns = itemRect.width >= 279 && categoryRect.width >= 199;
+                const separated = itemRect.right <= categoryRect.left + .5;
+                const nativeOverflow = dataViewport.scrollWidth > dataViewport.clientWidth;
+                return `${stableColumns && separated && nativeOverflow}`
+                    + `|item=${itemRect.width}|category=${categoryRect.width}`
+                    + `|scroll=${dataViewport.scrollWidth}/${dataViewport.clientWidth}`;
+            }
+        """);
+        narrowGridGeometry.Should().StartWith("true",
+            "the shared data-surface must preserve column geometry and use native horizontal scrolling when space is constrained");
+
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
             await Page.ScreenshotAsync(new()
             {
-                Path = Path.Combine(evidenceDirectory, "catalog-page-size-select-1366x768.png"),
+                Path = Path.Combine(evidenceDirectory, "catalog-shared-frame-narrow-960x768.png"),
                 FullPage = false,
                 Animations = ScreenshotAnimations.Disabled,
                 Caret = ScreenshotCaret.Hide

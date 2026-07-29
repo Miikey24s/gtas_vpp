@@ -361,6 +361,7 @@
     --vpp-data-toolbar-padding-block: var(--vpp-space-1);
     --vpp-data-toolbar-padding-inline: var(--vpp-space-3);
     --vpp-data-footer-padding-inline: var(--vpp-space-3);
+    --vpp-data-grid-min-width: 100%;
     --vpp-header-height: var(--vpp-sidebar-collapsed-width);
     --vpp-content-max-width: 100%;
     --vpp-wizard-width: 800px;
