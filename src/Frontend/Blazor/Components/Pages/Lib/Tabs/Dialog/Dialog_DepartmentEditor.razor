@@ -1,0 +1,37 @@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.Library
+@inject DialogService DialogService
+@inject IAPIServices ApiServices
+@inject IToastService ToastService
+@inject GlobalClass Global
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="department-editor">
+    <ChildContent><RadzenStack Gap="1rem"><RadzenRow><RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Mã phòng ban" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Code" Style="width:100%" /></RadzenFormField></RadzenColumn><RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["DepartmentName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Name" Style="width:100%" /></RadzenFormField></RadzenColumn></RadzenRow><RadzenFormField Text="Phòng ban cha" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid?" Data="@ParentOptions" TextProperty="Name" ValueProperty="Id" @bind-Value="Model.ParentDepartmentId" AllowFiltering="true" Style="width:100%" /></RadzenFormField><RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField></RadzenStack></ChildContent>
+    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["Save"]" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" /></div></Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter] public DepartmentResDTO Model { get; set; } = new();
+    [Parameter] public bool IsCreate { get; set; }
+    [Parameter] public IEnumerable<DepartmentResDTO> Departments { get; set; } = [];
+    private bool isBusy;
+    private IEnumerable<DepartmentResDTO> ParentOptions => Departments.Where(x => x.Id != Model.Id && !x.IsDeleted);
+    private async Task CancelAsync() => await DialogService.TryCloseAsync(null);
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Model.Code) || string.IsNullOrWhiteSpace(Model.Name)) { ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["DepartmentName"], 4000, false); return; }
+        if (Model.ParentDepartmentId == Model.Id) { ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["DepartmentName"], 4000, false); return; }
+        isBusy = true;
+        try
+        {
+            Model.UpdatedAtUtc = DateTime.Now; Model.UpdatedByUserId = Global.UserInfo.UserID; DepartmentResDTO? result;
+            if (IsCreate) { Model.Id = Guid.NewGuid(); Model.CreatedAtUtc = DateTime.Now; Model.CreatedByUserId = Global.UserInfo.UserID; result = await ApiServices.PostFromApiAsync<DepartmentResDTO>(Config.LibraryApi.Departments, Model); }
+            else result = await ApiServices.PatchFromApiAsync<DepartmentResDTO>($"{Config.LibraryApi.Departments}/{Model.Id}", Model);
+            if (result is null) { ToastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["UpdateRecordFailed"], 5000, true); return; }
+            ToastService.Show(NotificationSeverity.Success, Loc["Success"], IsCreate ? Loc["RecordAddedSuccess"] : Loc["RecordUpdatedSuccess"], 4000, false); DialogService.Close(result);
+        }
+        catch (Exception ex) { ToastService.Error(ex, Loc, IsCreate ? "CreateRecordFailed" : "UpdateRecordFailed"); }
+        finally { isBusy = false; }
+    }
+}

@@ -159,6 +159,23 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
     }
 
     [Fact]
+    public async Task Department_Editor_UsesStandardAdaptiveDialog()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=5", new() { WaitUntil = WaitUntilState.Load });
+        var surface = Page.Locator("[data-testid='department-admin-data-surface']");
+        var createButton = surface.Locator(".vpp-library-primary-action");
+        await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await createButton.ClickAsync();
+        var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--standard:visible");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await dialog.Locator("[data-testid='department-editor']").CountAsync()).Should().Be(1);
+        await Page.Keyboard.PressAsync("Escape");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+    }
+
+    [Fact]
     public async Task Pricing_Grids_Use_Bounded_Data_Surfaces_And_NormalFlow_Tabs()
     {
         await LoginAsDefaultUserAsync();

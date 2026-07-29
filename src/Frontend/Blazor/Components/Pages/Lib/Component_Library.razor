@@ -95,7 +95,7 @@
                 <RadzenTabsItem Text="@Loc["Departments"]">
                     @if (IsActiveTab(5))
                     {
-                        <Component_ShareGrid TType=DepartmentResDTO @bind-Data=@departments Add=@ApiAddAsync Update=@ApiUpdateAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddDepartment"]" GridAriaLabel="@Loc["Departments"]" SearchPlaceholder="@Loc["LibrarySearchDepartments"]" SearchFields="@(new[] { "Code", "Name" })" />
+                        <Tab_DepartmentLibrary PagePermissionResDTO="@PagePermissionResDTO" />
                     }
                 </RadzenTabsItem>
             }
