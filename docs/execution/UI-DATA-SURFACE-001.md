@@ -220,6 +220,8 @@ Gate: board 4 route thật, console/network sạch và không document-level scr
 - Regression gate cuộn qua nhiều vị trí lẻ theo chiều cao row, kiểm header luôn sở hữu paint/hit area, DOM row vẫn bounded và không còn module/class guard động; browser screenshot là bằng chứng visual cuối.
 - Visual evidence ignored: `tmp/ds3-review/f4-review-order-create-1920x1080.png`, `ds3-order-create-code-popover-1920x1080.png`, `ds3-department-summary-1366x768.png`, `ds3-period-review-1366x768.png`.
 - Evidence hiện tại: Release build `0 warning / 0 error`; frontend unit/architecture `196/196` pass; isolated Playwright Create Order + Department Summary + Period Review `3/3` pass. `verify -Scope frontend` chỉ dừng tại `model-routing-eval` của change-set AI-harness có sẵn ngoài DS3 (`62/63` setup checks pass); owner visual review còn là gate đóng DS3.
+- Owner-review correction: bỏ hai hero workflow lớn ở Create Order và Period Operations. Hai route dùng chung `VppWorkflowStepper` dạng segmented compact theo motif chọn kỳ: bước hiện tại nền xanh, bước đã qua có check, bước chờ trung tính; route vẫn sở hữu điều hướng và điều kiện nghiệp vụ.
+- Regression runtime phát hiện stepper Create Order bị flex container toàn chiều cao ép từ button `30px` xuống root khoảng `7px`. Shared chrome được khóa `flex-shrink: 0` + `min-height: 36px`; browser gate đo containment thật để ngăn tái diễn. Focused isolated Playwright Create Order + Period Review pass `2/2`; ảnh settled đã được kiểm bằng mắt tại `tmp/workflow-stepper-fix/` (ignored).
 
 #### Department Summary parity record — 2026-07-29
 

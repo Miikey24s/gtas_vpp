@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -49,6 +50,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public bool DraftRecovered { get; set; }
         public int currentStep { get; set; }
         public int StepCount => 2;
+
+        private IReadOnlyList<VppWorkflowStep> OrderWorkflowSteps =>
+        [
+            new("products", 1, Loc["SelectProducts"], currentStep == 0 ? VppWorkflowStepState.Active : VppWorkflowStepState.Complete),
+            new("review", 2, Loc["ReviewSubmit"], currentStep == 1 ? VppWorkflowStepState.Active : VppWorkflowStepState.Pending)
+        ];
 
         public OrderCreateContext Context { get; set; } = new();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
@@ -304,6 +311,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             currentStep = step;
             Context.NotifyStateChanged();
         }
+
+        private void OnOrderWorkflowStepSelected(string stepKey)
+            => GoToStep(string.Equals(stepKey, "review", StringComparison.Ordinal) ? 1 : 0);
 
         private Task GoNextStepAsync()
         {

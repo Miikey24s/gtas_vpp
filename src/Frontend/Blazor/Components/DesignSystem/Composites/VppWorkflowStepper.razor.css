@@ -1,0 +1,114 @@
+.vpp-workflow-stepper {
+    box-sizing: border-box;
+    display: flex;
+    flex: 0 0 auto;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    padding: 2px;
+    overflow-x: auto;
+    border: 1px solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--vpp-border-default) 42%, var(--vpp-bg-elevated));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
+}
+
+.vpp-workflow-stepper ol {
+    display: flex;
+    min-width: max-content;
+    align-items: stretch;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vpp-workflow-step button {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: color-mix(in srgb, var(--vpp-text-primary) 84%, var(--vpp-bg-elevated));
+    font: inherit;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                box-shadow var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
+}
+
+.vpp-workflow-step button:hover:not(:disabled):not([aria-current="step"]) {
+    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-workflow-step button:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 24%, transparent);
+}
+
+.vpp-workflow-step button:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.vpp-workflow-step-marker {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--vpp-text-primary) 7%, transparent);
+    color: var(--vpp-text-secondary);
+    font-size: 11px;
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: 1;
+}
+
+.vpp-workflow-step-marker ::deep .vpp-icon {
+    font-size: 14px;
+}
+
+.vpp-workflow-step.is-active button {
+    background: var(--vpp-primary-500);
+    color: #fff;
+    font-weight: var(--vpp-font-weight-semibold);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(255 255 255 / 10%);
+}
+
+.vpp-workflow-step.is-active .vpp-workflow-step-marker {
+    background: rgb(255 255 255 / 18%);
+    color: #fff;
+}
+
+.vpp-workflow-step.is-complete button {
+    color: var(--vpp-primary-700);
+}
+
+.vpp-workflow-step.is-complete .vpp-workflow-step-marker {
+    background: color-mix(in srgb, var(--vpp-primary-500) 14%, transparent);
+    color: var(--vpp-primary-700);
+}
+
+@media (max-width: 560px) {
+    .vpp-workflow-step button {
+        padding-inline: 9px;
+        font-size: var(--vpp-text-xs);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-workflow-step button {
+        transition-duration: .01ms;
+    }
+}

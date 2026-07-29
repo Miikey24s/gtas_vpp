@@ -231,6 +231,7 @@ Mốc dễ hiểu:
 - Owner review round 8 chỉ ra scrollbar mảnh trong Create Order và flicker khi server virtualization đổi cửa sổ dữ liệu. Audit xác nhận CSS authored của project không còn scrollbar pseudo-selector; Radzen 11.1.4 vẫn custom toàn `.rz-layout` theo mặc định. `App.razor` dùng opt-out chính thức `rz-default-scrollbars` để trả appearance cho browser/OS; vùng nào cuộn vẫn giữ `overflow: auto` nội bộ.
 - Virtualization policy được áp dụng ở Create Order DS3: dataset hữu hạn/DTO nhẹ dùng client snapshot + virtualized DOM; danh sách dài tiếp tục server paging; server virtualization chỉ dùng khi có prefetch cache và không bật blocking loader theo từng scroll.
 - Owner duyệt DS0–DS2 ngày 2026-07-29. DS3 đã chuẩn hóa Create Order, Department Summary và Period Review, hiện chờ owner visual review; DS4/R1 chưa mở.
+- Owner review DS3 thay hero step lớn của Create Order và Period Operations bằng shared compact segmented stepper. Component typed giữ `Pending/Active/Complete`, route giữ workflow; focused browser gate khóa chiều cao/containment trong full-height wizard và visual runtime hai route đã được kiểm bằng mắt.
 
 ### 5.1 Visual review contract
 

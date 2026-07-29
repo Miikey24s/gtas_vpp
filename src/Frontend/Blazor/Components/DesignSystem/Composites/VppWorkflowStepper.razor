@@ -1,0 +1,39 @@
+<nav class="vpp-workflow-stepper @Class" aria-label="@AriaLabel">
+    <ol>
+        @foreach (var step in Steps)
+        {
+            <li class="vpp-workflow-step @GetStateClass(step.State)">
+                <button type="button"
+                        disabled="@(!step.IsEnabled)"
+                        aria-current="@(step.State == VppWorkflowStepState.Active ? "step" : null)"
+                        @onclick="@(() => StepSelected.InvokeAsync(step.Key))">
+                    <span class="vpp-workflow-step-marker" aria-hidden="true">
+                        @if (step.State == VppWorkflowStepState.Complete)
+                        {
+                            <VppIcon Name="@VppIcons.Check" />
+                        }
+                        else
+                        {
+                            @step.Number
+                        }
+                    </span>
+                    <span class="vpp-workflow-step-label">@step.Label</span>
+                </button>
+            </li>
+        }
+    </ol>
+</nav>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<VppWorkflowStep> Steps { get; set; } = [];
+    [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> StepSelected { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private static string GetStateClass(VppWorkflowStepState state) => state switch
+    {
+        VppWorkflowStepState.Active => "is-active",
+        VppWorkflowStepState.Complete => "is-complete",
+        _ => "is-pending"
+    };
+}

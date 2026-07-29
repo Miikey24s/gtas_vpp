@@ -633,6 +633,8 @@ public sealed class SharedUiFoundationTests
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor", "<VppOperationWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_History.razor", "<HistoryWorkspaceShell");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor", "<HistoryWorkspaceShell");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Page_OrderCreate.razor", "<VppWorkflowStepper");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodOperationsWorkspace.razor", "<VppWorkflowStepper");
 
         var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         foreach (var token in new[]

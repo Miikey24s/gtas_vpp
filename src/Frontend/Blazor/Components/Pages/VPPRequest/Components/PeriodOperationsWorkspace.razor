@@ -1,38 +1,12 @@
 @using System.Security.Claims
 
-<VppOperationWorkspace Gap="VppWorkspaceGap.Relaxed"
+<VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
                        Class="vpp-period-workspace">
-    <Header>
-    <header class="vpp-period-workspace-header">
-        <div>
-            <span class="vpp-period-eyebrow">@Loc["PeriodOperations"]</span>
-            @if (ShowDemand)
-            {
-                <h1>@Loc["PeriodDemandTitle"]</h1>
-                <p>@Loc["PeriodDemandDescription"]</p>
-            }
-            else if (ShowSupply)
-            {
-                <h1>@Loc["PeriodSupplyTitle"]</h1>
-                <p>@Loc["PeriodSupplyDescription"]</p>
-            }
-            else
-            {
-                <h1>@Loc["PeriodReviewSettleTitle"]</h1>
-                <p>@Loc["PeriodReviewSettleDescription"]</p>
-            }
-        </div>
-        <nav class="vpp-period-flow" aria-label="@Loc["PeriodFlowAria"]">
-            <button type="button" class="@(ShowReview ? "is-active" : null)"
-                    @onclick="@(() => NavigateRequested.InvokeAsync("review"))"><b>1</b> @Loc["PeriodReview"]</button>
-            <button type="button" class="@(ShowDemand ? "is-active" : null)"
-                    @onclick="@(() => NavigateRequested.InvokeAsync("demand"))"><b>2</b> @Loc["PeriodDemandStep"]</button>
-            <button type="button" class="@(ShowSupply ? "is-active" : null)"
-                    @onclick="@(() => NavigateRequested.InvokeAsync("supply"))"><b>3</b> @Loc["PeriodSupplyStep"]</button>
-            <button type="button" @onclick="@(() => NavigateRequested.InvokeAsync("review"))"><b>4</b> @Loc["PeriodSettleStep"]</button>
-        </nav>
-    </header>
-    </Header>
+    <Steps>
+        <VppWorkflowStepper Steps="@PeriodWorkflowSteps"
+                            AriaLabel="@Loc["PeriodFlowAria"]"
+                            StepSelected="@OnPeriodStepSelected" />
+    </Steps>
 
     <ChildContent>
     @if (ShowDemand)
@@ -71,4 +45,24 @@
     [Parameter] public bool ShowSupply { get; set; }
     [Parameter] public EventCallback<string> NavigateRequested { get; set; }
     [Parameter] public EventCallback Settled { get; set; }
+
+    private int CurrentStepNumber => ShowSupply ? 3 : ShowDemand ? 2 : 1;
+
+    private IReadOnlyList<VppWorkflowStep> PeriodWorkflowSteps =>
+    [
+        CreateStep("review", 1, Loc["PeriodReview"]),
+        CreateStep("demand", 2, Loc["PeriodDemandStep"]),
+        CreateStep("supply", 3, Loc["PeriodSupplyStep"]),
+        CreateStep("settle", 4, Loc["PeriodSettleStep"])
+    ];
+
+    private VppWorkflowStep CreateStep(string key, int number, string label)
+        => new(key, number, label, number < CurrentStepNumber
+            ? VppWorkflowStepState.Complete
+            : number == CurrentStepNumber
+                ? VppWorkflowStepState.Active
+                : VppWorkflowStepState.Pending);
+
+    private Task OnPeriodStepSelected(string stepKey)
+        => NavigateRequested.InvokeAsync(string.Equals(stepKey, "settle", StringComparison.Ordinal) ? "review" : stepKey);
 }

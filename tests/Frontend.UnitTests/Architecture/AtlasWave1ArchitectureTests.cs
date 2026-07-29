@@ -73,6 +73,9 @@ public sealed class AtlasWave1ArchitectureTests
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
+        Assert.Contains("<VppWorkflowStepper", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-period-workspace-header", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("<h1", workspace, StringComparison.Ordinal);
         // Copy đã chuyển sang resx (W-D): khóa qua key SettleQuotesHeading thay vì chuỗi cứng.
         Assert.Contains("Loc[\"SettleQuotesHeading\"]", settlement, StringComparison.Ordinal);
         Assert.Contains("preview.Blockers", settlement, StringComparison.Ordinal);
@@ -223,12 +226,14 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void M2_OrderCreateUsesCenteredTwoStepHeaderAndAtlasFooterActions()
+    public void M2_OrderCreateUsesCompactTwoStepNavigationAndAtlasFooterActions()
     {
         var page = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor");
         var selection = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep2.razor");
 
-        Assert.Contains("vpp-order-flow-steps", page, StringComparison.Ordinal);
+        Assert.Contains("<VppWorkflowStepper", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-flow-header", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-flow-heading", page, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-flow-back", page, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-save-draft", page, StringComparison.Ordinal);
         Assert.Contains("BackRequested=\"@GoBack\"", page, StringComparison.Ordinal);

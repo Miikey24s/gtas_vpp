@@ -40,7 +40,23 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await activeHeaderTab.WaitForAsync();
         (await activeHeaderTab.InnerTextAsync()).Trim().Should().Be("Đơn hàng của tôi");
         (await Page.Locator(".vpp-header-breadcrumb, .vpp-header-breadcrumb-ancestor, .vpp-header-breadcrumb-leaf").CountAsync()).Should().Be(0);
-        (await Page.Locator(".vpp-order-flow-steps li").CountAsync()).Should().Be(2);
+        (await Page.Locator(".vpp-order-create-page .vpp-workflow-step").CountAsync()).Should().Be(2);
+        var workflowStepperGeometry = await Page.Locator(".vpp-order-create-page .vpp-workflow-stepper").EvaluateAsync<string>("""
+            stepper => {
+                const rect = stepper.getBoundingClientRect();
+                const button = stepper.querySelector('button');
+                const buttonRect = button?.getBoundingClientRect();
+                const style = getComputedStyle(stepper);
+                const fullyContainsButton = !!buttonRect
+                    && buttonRect.top >= rect.top - .5
+                    && buttonRect.bottom <= rect.bottom + .5;
+                return `${rect.height >= 34 && fullyContainsButton}`
+                    + `|stepper=${rect.height}|button=${buttonRect?.height ?? 0}`
+                    + `|flex=${style.flexGrow}/${style.flexShrink}/${style.flexBasis}`
+                    + `|overflow=${style.overflowX}/${style.overflowY}`;
+            }
+            """);
+        workflowStepperGeometry.Should().StartWith("true", "the compact workflow stepper must keep its full visual height inside the full-screen order wizard");
         await AssertBoundedPageAndSharedFilterAsync("order-create", ".vpp-order-create-page");
         var visibleRowNumbers = await Page.Locator(".vpp-order-builder-virtual-row .vpp-order-builder-virtual-cell:first-child")
             .AllTextContentsAsync();

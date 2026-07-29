@@ -1739,20 +1739,9 @@ leftsidebar {
 
 .vpp-period-workspace {
     display: grid;
-    gap: var(--vpp-space-5);
+    gap: var(--vpp-space-3);
 }
 
-.vpp-period-workspace-header {
-    display: grid;
-    gap: var(--vpp-space-4);
-    padding: var(--vpp-space-5);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: radial-gradient(circle at 90% 20%, color-mix(in srgb, var(--vpp-primary-500) 12%, transparent), transparent 34%), var(--vpp-bg-elevated);
-}
-
-.vpp-period-workspace-header h1,
-.vpp-period-workspace-header p,
 .vpp-period-stage-heading h2,
 .vpp-period-stage-heading p,
 .vpp-settlement-preview-heading h3,
@@ -1761,97 +1750,12 @@ leftsidebar {
     margin: 0;
 }
 
-.vpp-period-workspace-header h1 {
-    color: var(--vpp-text-primary);
-    font-size: clamp(1.45rem, 1.2vw + 1rem, 2rem);
-}
-
-.vpp-period-workspace-header p {
-    max-width: 70rem;
-    margin-top: 0.45rem;
-    color: var(--vpp-text-secondary);
-}
-
-.vpp-period-eyebrow,
 .vpp-period-stage-heading span,
 .vpp-settlement-preview-heading span {
     color: var(--vpp-primary-700);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
     letter-spacing: 0.04em;
-}
-
-.vpp-period-flow {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    overflow: hidden;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-md);
-    background: var(--vpp-bg-surface);
-}
-
-.vpp-period-flow span,
-.vpp-period-flow button {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    min-width: 0;
-    padding: 0.7rem 0.9rem;
-    border: 0;
-    border-inline-end: 1px solid var(--vpp-border-default);
-    background: var(--vpp-bg-surface);
-    color: var(--vpp-text-primary);
-    font: inherit;
-    font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-medium);
-    text-align: left;
-}
-
-.vpp-period-flow span:last-child,
-.vpp-period-flow button:last-child {
-    border-inline-end: 0;
-}
-
-/* Atlas periodFlowNav (D4): 4 bước là nút điều hướng thật giữa các màn vận hành kỳ. */
-.vpp-period-flow button {
-    cursor: pointer;
-}
-
-.vpp-period-flow button:hover:not(.is-active) {
-    background: color-mix(in srgb, var(--vpp-primary-500) 4%, transparent);
-    color: var(--vpp-text-primary);
-}
-
-.vpp-period-flow button:focus-visible {
-    outline: 2px solid var(--vpp-primary-500);
-    outline-offset: -2px;
-}
-
-.vpp-period-flow b {
-    display: grid;
-    flex: 0 0 auto;
-    place-items: center;
-    width: 1.65rem;
-    height: 1.65rem;
-    border-radius: 50%;
-    background: var(--vpp-bg-elevated);
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-}
-
-.vpp-period-flow .is-active {
-    background: var(--vpp-primary-900);
-    color: var(--vpp-primary-200);
-}
-
-:root:not(.rz-theme-dark) .vpp-period-flow .is-active {
-    background: color-mix(in srgb, var(--vpp-primary-500) 8%, var(--vpp-bg-surface));
-    color: var(--vpp-primary-700);
-}
-
-.vpp-period-flow .is-active b {
-    background: var(--vpp-primary-700);
-    color: #fff;
 }
 
 .vpp-period-stage {
@@ -2088,17 +1992,8 @@ leftsidebar {
 }
 
 @media (max-width: 900px) {
-    .vpp-period-flow,
     .vpp-settlement-preview-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .vpp-period-flow span:nth-child(2) {
-        border-inline-end: 0;
-    }
-
-    .vpp-period-flow span:nth-child(-n + 2) {
-        border-bottom: 1px solid var(--vpp-border-default);
     }
 
     .vpp-period-stage-heading,
@@ -2114,15 +2009,10 @@ leftsidebar {
 }
 
 @media (max-width: 560px) {
-    .vpp-period-flow,
     .vpp-settlement-preview-kpis {
         grid-template-columns: 1fr;
     }
 
-    .vpp-period-flow span {
-        border-inline-end: 0;
-        border-bottom: 1px solid var(--vpp-border-default);
-    }
 }
 
 /* ── Page báo cáo ────────────────────────────────────────────── */

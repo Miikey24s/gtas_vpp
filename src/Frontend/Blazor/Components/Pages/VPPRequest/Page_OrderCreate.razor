@@ -15,26 +15,9 @@
     else
     {
         <div class="vpp-wizard vpp-order-create-page">
-            <header class="vpp-order-flow-header" aria-label="@Loc["OrderCreationSteps"]">
-                <div class="vpp-order-flow-heading">
-                    <span>@Loc["OrderCreationSteps"]</span>
-                    <strong>@OrderModeTitle</strong>
-                </div>
-                <ol class="vpp-order-flow-steps">
-                    <li class="@(currentStep == 0 ? "is-active" : "is-complete")">
-                        <button type="button" @onclick="() => GoToStep(0)" aria-current="@(currentStep == 0 ? "step" : null)">
-                            <span>1</span>
-                            <strong>@Loc["SelectProducts"]</strong>
-                        </button>
-                    </li>
-                    <li class="@(currentStep == 1 ? "is-active" : string.Empty)">
-                        <button type="button" @onclick="() => GoToStep(1)" aria-current="@(currentStep == 1 ? "step" : null)">
-                            <span>2</span>
-                            <strong>@Loc["ReviewSubmit"]</strong>
-                        </button>
-                    </li>
-                </ol>
-            </header>
+            <VppWorkflowStepper Steps="@OrderWorkflowSteps"
+                                AriaLabel="@Loc["OrderCreationSteps"]"
+                                StepSelected="@OnOrderWorkflowStepSelected" />
 
             @if (!CanSubmitForPeriod)
             {
