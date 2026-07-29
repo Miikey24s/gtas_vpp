@@ -81,7 +81,8 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 
         var reviewPanel = Page.Locator(".vpp-order-review-panel");
         await reviewPanel.WaitForAsync();
-        await Page.Locator(".vpp-order-review-warning").WaitForAsync();
+        var reasonPrompt = Page.Locator(".vpp-order-review-warning");
+        await reasonPrompt.WaitForAsync();
         await Page.Locator(".vpp-order-review-grid tbody tr").First.WaitForAsync();
         var reviewGeometry = await reviewPanel.EvaluateAsync<string>("""
             panel => {
@@ -95,6 +96,14 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
             }
             """);
         reviewGeometry.Should().StartWith("true", "the review step must be a bounded full-height data surface instead of unstyled document content");
+        await reasonPrompt.ClickAsync();
+        var reasonDialog = Page.Locator(".vpp-supplement-reason-dialog");
+        await reasonDialog.WaitForAsync();
+        await CaptureAsync("t001-supplement-reason-form-1920x1080.png");
+        await reasonDialog.Locator("textarea").FillAsync("Bổ sung vật tư phát sinh trong kỳ");
+        await reasonDialog.Locator(".vpp-supplement-reason-save").ClickAsync();
+        await reasonDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        (await Page.Locator(".vpp-order-review-warning").CountAsync()).Should().Be(0);
         await CaptureAsync("t001-additional-order-review-1920x1080.png");
     }
 

@@ -25,10 +25,13 @@
 
         @if (IsSupplementReasonMissing)
         {
-            <div class="vpp-order-review-warning" role="alert">
+            <button type="button"
+                    class="vpp-order-review-warning"
+                    @onclick="SupplementReasonRequested">
                 <VppIcon Name="info" />
                 <span>@Loc["ProvideReasonBeforeContinue"]</span>
-            </div>
+                <strong>@Loc["SupplementReason"]</strong>
+            </button>
         }
 
         @if (Context.SelectedItems.Count == 0)
@@ -90,6 +93,7 @@
 
 @code {
     [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+    [Parameter] public EventCallback SupplementReasonRequested { get; set; }
 
     private string OrderNote => Context.IsAdditional
         ? Context.SupplementReason ?? "–"

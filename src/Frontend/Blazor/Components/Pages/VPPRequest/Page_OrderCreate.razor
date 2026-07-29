@@ -38,7 +38,7 @@
                 }
                 else
                 {
-                    <OrderCreateStep3 />
+                    <OrderCreateStep3 SupplementReasonRequested="@OpenSupplementReasonForm" />
                     <div class="vpp-wizard-nav vpp-order-review-actions">
                         <button type="button" class="vpp-order-review-back" @onclick="GoPreviousStep">
                             <VppIcon Name="arrow_back" />
@@ -54,6 +54,50 @@
                     </div>
                 }
             </section>
+
+            @if (_showSupplementReasonForm)
+            {
+                <div class="vpp-supplement-reason-backdrop" @onclick="CloseSupplementReasonForm">
+                    <section class="vpp-supplement-reason-dialog"
+                             role="dialog"
+                             aria-modal="true"
+                             aria-labelledby="supplement-reason-title"
+                             @onclick:stopPropagation>
+                        <header>
+                            <div>
+                                <strong id="supplement-reason-title">@Loc["SupplementReason"]</strong>
+                                <span>@Loc["OrderBeingCreated"]</span>
+                            </div>
+                            <button type="button" aria-label="@Loc["Close"]" @onclick="CloseSupplementReasonForm">
+                                <VppIcon Name="close" />
+                            </button>
+                        </header>
+
+                        <textarea value="@_supplementReasonDraft"
+                                  @oninput="args => UpdateSupplementReasonDraft(args.Value?.ToString())"
+                                  maxlength="500"
+                                  autofocus
+                                  aria-describedby="supplement-reason-help"
+                                  placeholder="@Loc["SupplementReasonPlaceholder"]"></textarea>
+                        <small id="supplement-reason-help" class="@(_supplementReasonTouched && !CanSaveSupplementReason ? "is-invalid" : null)">
+                            @(_supplementReasonTouched && !CanSaveSupplementReason
+                                ? Loc["ProvideReasonBeforeContinue"]
+                                : Loc["OrderNoteScopeHint"])
+                        </small>
+
+                        <footer>
+                            <button type="button" class="vpp-supplement-reason-cancel" @onclick="CloseSupplementReasonForm">@Loc["Cancel"]</button>
+                            <button type="button"
+                                    class="vpp-supplement-reason-save"
+                                    disabled="@(!CanSaveSupplementReason)"
+                                    @onclick="SaveSupplementReason">
+                                <VppIcon Name="check" />
+                                <span>@Loc["SaveNote"]</span>
+                            </button>
+                        </footer>
+                    </section>
+                </div>
+            }
         </div>
     }
 </CascadingValue>

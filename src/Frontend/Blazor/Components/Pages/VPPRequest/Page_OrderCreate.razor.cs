@@ -59,6 +59,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public OrderCreateContext Context { get; set; } = new();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
+        private bool _showSupplementReasonForm;
+        private bool _supplementReasonTouched;
+        private string? _supplementReasonDraft;
+
+        private bool CanSaveSupplementReason
+            => !string.IsNullOrWhiteSpace(_supplementReasonDraft)
+                && _supplementReasonDraft.Trim().Length is >= 5 and <= 500;
 
 
         // P1: BE sở hữu dữ liệu kỳ có thẩm quyền; FE không suy Year/Month từ DateTime.Now.
@@ -342,16 +349,42 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     || Context.SupplementReason.Trim().Length < 5
                     || Context.SupplementReason.Trim().Length > 500))
             {
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = Loc["Order"],
-                    Detail = Loc["ProvideReasonBeforeContinue"],
-                    Duration = 3500
-                });
+                OpenSupplementReasonForm();
                 return false;
             }
             return true;
+        }
+
+        private void OpenSupplementReasonForm()
+        {
+            _supplementReasonDraft = Context.SupplementReason;
+            _supplementReasonTouched = false;
+            _showSupplementReasonForm = true;
+        }
+
+        private void CloseSupplementReasonForm()
+        {
+            _showSupplementReasonForm = false;
+            _supplementReasonTouched = false;
+        }
+
+        private void UpdateSupplementReasonDraft(string? value)
+        {
+            _supplementReasonDraft = value;
+            _supplementReasonTouched = true;
+        }
+
+        private void SaveSupplementReason()
+        {
+            _supplementReasonTouched = true;
+            if (!CanSaveSupplementReason)
+            {
+                return;
+            }
+
+            Context.SupplementReason = _supplementReasonDraft!.Trim();
+            Context.NotifyStateChanged();
+            CloseSupplementReasonForm();
         }
 
         private async Task LoadPeriodInfoAsync()

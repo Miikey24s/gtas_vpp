@@ -95,12 +95,27 @@
     flex: 0 0 auto;
     align-items: center;
     gap: var(--vpp-space-2);
+    width: 100%;
     min-height: 40px;
     padding: var(--vpp-space-2) var(--vpp-space-4);
+    border: 0;
     border-bottom: 1px solid color-mix(in srgb, var(--vpp-warning) 24%, var(--vpp-border-default));
     color: var(--vpp-text-primary);
     background: color-mix(in srgb, var(--vpp-warning) 9%, var(--vpp-bg-elevated));
+    font: inherit;
     font-size: var(--vpp-text-sm);
+    text-align: left;
+    cursor: pointer;
+}
+
+.vpp-order-review-warning:hover {
+    background: color-mix(in srgb, var(--vpp-warning) 14%, var(--vpp-bg-elevated));
+}
+
+.vpp-order-review-warning strong {
+    margin-left: auto;
+    color: var(--vpp-primary-700);
+    font-size: var(--vpp-text-xs);
 }
 
 .vpp-order-review-grid-frame {
