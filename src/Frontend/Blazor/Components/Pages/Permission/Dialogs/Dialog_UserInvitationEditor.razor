@@ -1,0 +1,47 @@
+@using gtas_vpp_shared.DTOs.Req.Account
+@using gtas_vpp_shared.DTOs.Res.Auth
+@using gtas_vpp_shared.DTOs.Res.Library
+@inject DialogService DialogService
+@inject IToastService ToastService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="user-invitation-editor">
+    <ChildContent>
+        <RadzenStack Gap="1rem">
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Tên đăng nhập" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Username" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Email" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Email" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Họ và tên" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.FullName" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Mã nhân viên" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.EmployeeCode" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PermissionGroup"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Groups" TextProperty="GroupName" ValueProperty="Id" @bind-Value="Model.GroupId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Department"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Departments" TextProperty="Name" ValueProperty="Id" @bind-Value="Model.PrimaryDepartmentId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenFormField Text="Lý do" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Reason" Rows="3" Style="width:100%" /></RadzenFormField>
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" ShowIcon="true">Quản trị viên không tạo hoặc nhìn thấy mật khẩu. Người dùng sẽ nhận liên kết một lần để tự đặt mật khẩu.</RadzenAlert>
+        </RadzenStack>
+    </ChildContent>
+    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="Gửi lời mời" Icon="mail" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" /></div></Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter] public AdminAccountInvitationReqDTO Model { get; set; } = new();
+    [Parameter] public IReadOnlyList<PermissionGroupResDTO> Groups { get; set; } = [];
+    [Parameter] public IReadOnlyList<DepartmentResDTO> Departments { get; set; } = [];
+
+    private async Task CancelAsync() => await DialogService.TryCloseAsync(null);
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Model.Username) || string.IsNullOrWhiteSpace(Model.Email)
+            || string.IsNullOrWhiteSpace(Model.FullName) || Model.GroupId == Guid.Empty
+            || Model.PrimaryDepartmentId == Guid.Empty)
+        {
+            ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], "Vui lòng nhập đủ thông tin bắt buộc.", 4000, false);
+            return;
+        }
+
+        await DialogService.TryCloseAsync(Model);
+    }
+}

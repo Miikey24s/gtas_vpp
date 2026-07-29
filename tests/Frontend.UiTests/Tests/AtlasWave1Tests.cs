@@ -37,8 +37,16 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
             "the price-list controller must activate successfully and return a normal empty or populated grid");
 
         await GotoMainRouteAsync("permission?tab=0");
-        await Page.Locator(".vpp-atlas-user-workspace").WaitForAsync();
-        await Page.Locator(".vpp-record-inspector").WaitForAsync();
+        var userSurface = Page.Locator("[data-testid='permission-users-data-surface']");
+        await userSurface.WaitForAsync();
+        (await Page.Locator(".vpp-record-inspector").CountAsync()).Should().Be(0,
+            "user administration uses the full-width collection pattern instead of a fixed inspector");
+        (await Page.Locator(".permission-user-grid tbody .rz-dropdown").CountAsync()).Should().Be(0,
+            "membership changes belong in the adaptive editor rather than inline grid dropdowns");
+        var invitationButton = Page.GetByRole(AriaRole.Button, new() { Name = "Thêm người dùng", Exact = true });
+        await invitationButton.WaitForAsync();
+        (await invitationButton.GetAttributeAsync("title")).Should().NotBeNullOrWhiteSpace(
+            "the invitation action explains why it is unavailable when email delivery is disabled");
 
         await GotoMainRouteAsync("permission?tab=1");
         await Page.GetByText("Ba vai trò chuẩn", new() { Exact = false }).First.WaitForAsync(new LocatorWaitForOptions

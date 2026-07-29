@@ -7,7 +7,6 @@ public sealed class AtlasWave1ArchitectureTests
 {
     [Theory]
     [InlineData("Components/Pages/Lib/Component_ShareGrid.razor")]
-    [InlineData("Components/Pages/Permission/Tabs/Tab_User.razor")]
     public void AdministrativeCollections_ExposeAResponsiveInspector(string relativePath)
     {
         var source = ReadFrontendSource(relativePath);
@@ -30,6 +29,26 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("DefaultSupplierName", source, StringComparison.Ordinal);
         Assert.Contains("typeof(TType) == typeof(SupplierResDTO)", source, StringComparison.Ordinal);
         Assert.Contains("nameof(SupplierResDTO.Address1)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UserAdministrationUsesFullWidthCollectionAndPasswordlessInvitationDialogs()
+    {
+        var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
+        var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
+        var invitation = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserInvitationEditor.razor");
+        var membership = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserMembershipEditor.razor");
+
+        Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("Component_RecordInspector", page, StringComparison.Ordinal);
+        Assert.Contains("Thêm người dùng", page, StringComparison.Ordinal);
+        Assert.Contains("Config.ApiAccountAdminInviteEndpoint", code, StringComparison.Ordinal);
+        Assert.Contains("Config.ApiAccountAdminSendPasswordResetLinkEndpoint", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("CreateTemporaryPassword", code, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", invitation, StringComparison.Ordinal);
+        Assert.Contains("không tạo hoặc nhìn thấy mật khẩu", invitation, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", membership, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -173,6 +192,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Loc[\"PermissionGroup\"]", users, StringComparison.Ordinal);
         Assert.Contains("accountStatus=", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Reset mật khẩu", users, StringComparison.Ordinal);
+        Assert.DoesNotContain("TemporaryPassword", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Membership updated", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Deactivate membership", userCode, StringComparison.Ordinal);
         Assert.Contains("IsSensitiveProperty(prop.Name)", inspector, StringComparison.Ordinal);

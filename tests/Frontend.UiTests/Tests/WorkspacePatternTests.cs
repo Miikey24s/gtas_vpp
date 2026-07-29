@@ -26,7 +26,7 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             new PatternRoute("split-editor", "lookup", "library?tab=0"),
             new PatternRoute("split-editor", "order-create", "dashboard/order-create"),
             new PatternRoute("collection", "library", "library?tab=1"),
-            new PatternRoute("list-detail", "users", "permission?tab=0")
+            new PatternRoute("collection", "users", "permission?tab=0")
         };
         PageInsetGeometry? baseline = null;
         var visibleInsetFailures = new List<string>();

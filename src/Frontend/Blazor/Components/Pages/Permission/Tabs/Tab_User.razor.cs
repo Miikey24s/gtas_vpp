@@ -1,5 +1,6 @@
-using gtas_vpp_fe.Components.Pages.Lib;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
+using gtas_vpp_fe.Components.Pages.Permission.Models;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -10,7 +11,6 @@ using gtas_vpp_shared.DTOs.Res.Account;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -28,8 +28,9 @@ public partial class Tab_User : IDisposable
 
     private string SearchText { get; set; } = string.Empty;
     private string? SelectedAccountStatus { get; set; }
+    private Guid? SelectedGroupId { get; set; }
+    private Guid? SelectedDepartmentId { get; set; }
     public List<UserAdministrationResDTO> users { get; set; } = [];
-    public IList<UserAdministrationResDTO> selectedUsers { get; set; } = [];
     public RadzenDataGrid<UserAdministrationResDTO>? userGrid { get; set; }
     public List<PermissionGroupResDTO> permissionGroups { get; set; } = [];
     public List<DepartmentResDTO> departments { get; set; } = [];
@@ -41,10 +42,17 @@ public partial class Tab_User : IDisposable
     private bool isUserLoading;
     private bool isUserLookupLoading;
     private bool hasRequestedInitialUserGridLoad;
-
-    private UserAdministrationResDTO? SelectedUser => selectedUsers.FirstOrDefault();
+    private AccountAdministrationCapabilitiesResDTO accountCapabilities = new();
     private CancellationTokenSource? searchDebounceCts;
-    private bool HasUserFilters => !string.IsNullOrWhiteSpace(SearchText) || !string.IsNullOrWhiteSpace(SelectedAccountStatus);
+    private bool HasUserFilters => !string.IsNullOrWhiteSpace(SearchText)
+                                   || !string.IsNullOrWhiteSpace(SelectedAccountStatus)
+                                   || SelectedGroupId.HasValue
+                                   || SelectedDepartmentId.HasValue;
+    private bool CanManageUsers => PermissionState.HasPermission(Permissions.PermissionManage);
+    private bool CanInviteUsers => CanManageUsers && accountCapabilities.InvitationEnabled;
+    private string InvitationCapabilityMessage => string.IsNullOrWhiteSpace(accountCapabilities.Message)
+        ? "Email invitation capability is not available."
+        : accountCapabilities.Message;
     private IReadOnlyList<VppFilterOption<string>> AccountStatusOptions =>
     [
         new(string.Empty, Loc["AllAccountStatuses"].Value),
@@ -52,6 +60,10 @@ public partial class Tab_User : IDisposable
         new("PendingApproval", Loc["AccountStatusPendingApproval"].Value),
         new("Disabled", Loc["AccountStatusDisabled"].Value)
     ];
+    private IReadOnlyList<VppFilterOption<Guid?>> GroupFilterOptions
+        => permissionGroups.Select(group => new VppFilterOption<Guid?>(group.Id, group.GroupName ?? "–")).ToList();
+    private IReadOnlyList<VppFilterOption<Guid?>> DepartmentFilterOptions
+        => departments.Select(department => new VppFilterOption<Guid?>(department.Id, department.Name ?? "–")).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,6 +86,8 @@ public partial class Tab_User : IDisposable
     {
         if (firstRender && !hasRequestedInitialUserGridLoad && userGrid is not null)
         {
+            // Radzen grid được prerender trước khi circuit tương tác sẵn sàng;
+            // chủ động reload đúng một lần để LoadData chạy trên route thật.
             hasRequestedInitialUserGridLoad = true;
             await userGrid.Reload();
         }
@@ -87,16 +101,21 @@ public partial class Tab_User : IDisposable
             var groupTask = _apiServices.GetFromApiAsync<List<PermissionGroupResDTO>>(Config.ApiPermissionGroupsEndpoint);
             var departmentTask = _apiServices.GetFromApiAsync<List<DepartmentResDTO>>(
                 "/api/Library/departments?top=1000&showDeleted=false&orderby=Name");
-            await Task.WhenAll(groupTask, departmentTask);
+            var capabilityTask = CanManageUsers
+                ? _apiServices.GetFromApiAsync<AccountAdministrationCapabilitiesResDTO>(Config.ApiAccountAdminCapabilitiesEndpoint)
+                : Task.FromResult<AccountAdministrationCapabilitiesResDTO?>(null);
+            await Task.WhenAll(groupTask, departmentTask, capabilityTask);
             permissionGroups = await groupTask ?? [];
             departments = (await departmentTask ?? [])
                 .OrderBy(department => department.Name)
                 .ToList();
+            accountCapabilities = await capabilityTask ?? new AccountAdministrationCapabilitiesResDTO();
         }
         catch (Exception ex)
         {
             permissionGroups = [];
             departments = [];
+            accountCapabilities = new AccountAdministrationCapabilitiesResDTO();
             NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
         finally
@@ -110,6 +129,8 @@ public partial class Tab_User : IDisposable
     {
         SearchText = string.Empty;
         SelectedAccountStatus = null;
+        SelectedGroupId = null;
+        SelectedDepartmentId = null;
         if (userGrid is not null)
         {
             await userGrid.FirstPage(true);
@@ -125,6 +146,18 @@ public partial class Tab_User : IDisposable
         }
     }
 
+    private async Task OnGroupFilterChangedAsync(Guid? value)
+    {
+        SelectedGroupId = value;
+        if (userGrid is not null) await userGrid.FirstPage(true);
+    }
+
+    private async Task OnDepartmentFilterChangedAsync(Guid? value)
+    {
+        SelectedDepartmentId = value;
+        if (userGrid is not null) await userGrid.FirstPage(true);
+    }
+
     protected async Task LoadUsersAsync(LoadDataArgs args)
     {
         isUserLoading = true;
@@ -137,19 +170,7 @@ public partial class Tab_User : IDisposable
             var result = await _apiServices.GetFromApiWithTotalCountAsync<List<UserAdministrationResDTO>>(
                 BuildUsersEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
             users = result.Data ?? [];
-            foreach (var user in users)
-            {
-                user.UserGroup = permissionGroups.FirstOrDefault(group => group.Id == user.GroupId);
-            }
             userCount = result.TotalCount;
-            if (users.Count > 0 && (SelectedUser is null || users.All(user => user.UserId != SelectedUser.UserId)))
-            {
-                selectedUsers = [users[0]];
-            }
-            else if (users.Count == 0)
-            {
-                selectedUsers = [];
-            }
         }
         catch (Exception ex)
         {
@@ -178,6 +199,18 @@ public partial class Tab_User : IDisposable
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
+            }
+            if (!string.IsNullOrWhiteSpace(SelectedAccountStatus))
+            {
+                queryParams.Add($"accountStatus={Uri.EscapeDataString(SelectedAccountStatus)}");
+            }
+            if (SelectedGroupId.HasValue)
+            {
+                queryParams.Add($"groupId={SelectedGroupId.Value}");
+            }
+            if (SelectedDepartmentId.HasValue)
+            {
+                queryParams.Add($"departmentId={SelectedDepartmentId.Value}");
             }
 
             queryParams.Add($"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}");
@@ -212,27 +245,6 @@ public partial class Tab_User : IDisposable
         }
     }
 
-    protected async Task OnRowDoubleClick(DataGridRowMouseEventArgs<UserAdministrationResDTO> args)
-    {
-        if (args.Data is null)
-        {
-            return;
-        }
-
-        await DialogService.OpenSideAsync<Component_RecordInspector<UserAdministrationResDTO>>(
-            Loc["UserInspectorTitle", args.Data.UserLogin ?? string.Empty].Value,
-            new Dictionary<string, object?> { { "Record", args.Data } },
-            options: new SideDialogOptions { Position = DialogPosition.Right, Width = "500px" });
-    }
-
-    private void OnUserSelected(UserAdministrationResDTO user)
-    {
-        if (user is not null)
-        {
-            selectedUsers = [user];
-        }
-    }
-
     protected async Task SearchTextOnInput(ChangeEventArgs args)
     {
         SearchText = args.Value?.ToString() ?? string.Empty;
@@ -252,23 +264,77 @@ public partial class Tab_User : IDisposable
         }
     }
 
-    protected Task DropdownOnChange_Group(UserAdministrationResDTO user) =>
-        CanPrepareActivation(user)
-            ? Task.CompletedTask
-            : PersistMembershipAsync(user, "Role changed by permission administrator.");
+    private async Task OpenInvitationAsync()
+    {
+        if (!CanInviteUsers) return;
+        var result = await DialogService.OpenAsync<Dialog_UserInvitationEditor>(
+            "Thêm người dùng",
+            new Dictionary<string, object?>
+            {
+                [nameof(Dialog_UserInvitationEditor.Model)] = new AdminAccountInvitationReqDTO(),
+                [nameof(Dialog_UserInvitationEditor.Groups)] = permissionGroups,
+                [nameof(Dialog_UserInvitationEditor.Departments)] = departments
+            },
+            VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard, "Thêm người dùng", closeAriaLabel: Loc["Close"].Value));
+        if (result is not AdminAccountInvitationReqDTO request) return;
 
-    protected Task DropdownOnChange_Department(UserAdministrationResDTO user) =>
-        CanPrepareActivation(user)
-            ? Task.CompletedTask
-            : PersistMembershipAsync(user, "Primary department changed by permission administrator.");
+        isUserLoading = true;
+        try
+        {
+            await _apiServices.PostFromApiAsync<AccountLifecycleResDTO>(Config.ApiAccountAdminInviteEndpoint, request);
+            Toast.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Đã gửi lời mời",
+                Detail = "Tài khoản đã được tạo mà không có mật khẩu; liên kết thiết lập một lần đã được đưa vào email outbox.",
+                Duration = 6000
+            });
+            await ReloadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
+        }
+        finally
+        {
+            isUserLoading = false;
+            StateHasChanged();
+        }
+    }
 
-    protected async Task ActivateAccountAsync(UserAdministrationResDTO user)
+    private async Task OpenMembershipEditorAsync(UserAdministrationResDTO user)
+    {
+        if (!CanEditMembership(user) && !CanPrepareActivation(user)) return;
+        var model = new UserMembershipEditModel
+        {
+            AccountId = user.UserId,
+            GroupId = user.GroupId,
+            PrimaryDepartmentId = user.DepartmentId ?? Guid.Empty,
+            ExpectedRowVersion = CanEditMembership(user) ? GetRowVersion(user) : null,
+            Reason = CanPrepareActivation(user)
+                ? "Kích hoạt tài khoản lần đầu bởi quản trị viên phân quyền."
+                : "Cập nhật nhóm quyền hoặc phòng ban bởi quản trị viên phân quyền."
+        };
+        var result = await DialogService.OpenAsync<Dialog_UserMembershipEditor>(
+            CanPrepareActivation(user) ? Loc["ActivateAccount"].Value : Loc["PermissionGroup"].Value,
+            new Dictionary<string, object?>
+            {
+                [nameof(Dialog_UserMembershipEditor.Model)] = model,
+                [nameof(Dialog_UserMembershipEditor.Groups)] = permissionGroups,
+                [nameof(Dialog_UserMembershipEditor.Departments)] = departments
+            },
+            VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["PermissionGroup"].Value, closeAriaLabel: Loc["Close"].Value));
+        if (result is not UserMembershipEditModel request) return;
+
+        if (CanPrepareActivation(user)) await ActivateAccountAsync(user, request);
+        else await PersistMembershipAsync(user, request);
+    }
+
+    private async Task ActivateAccountAsync(UserAdministrationResDTO user, UserMembershipEditModel assignment)
     {
         if (!CanPrepareActivation(user)
-            || user.UserGroup is null
-            || user.UserGroup.Id == Guid.Empty
-            || user.DepartmentId is not Guid departmentId
-            || departmentId == Guid.Empty)
+            || assignment.GroupId == Guid.Empty
+            || assignment.PrimaryDepartmentId == Guid.Empty)
         {
             NotifyError(Loc["ActivateAccountRequiresAssignment"].Value);
             return;
@@ -292,9 +358,9 @@ public partial class Tab_User : IDisposable
                 new AdminAccountActivationReqDTO
                 {
                     AccountId = user.UserId,
-                    GroupId = user.UserGroup.Id,
-                    PrimaryDepartmentId = departmentId,
-                    Reason = "Initial account approval by permission administrator."
+                    GroupId = assignment.GroupId,
+                    PrimaryDepartmentId = assignment.PrimaryDepartmentId,
+                    Reason = assignment.Reason
                 });
             Toast.Notify(new NotificationMessage
             {
@@ -317,42 +383,39 @@ public partial class Tab_User : IDisposable
         }
     }
 
-    protected async Task ResetPasswordAsync(UserAdministrationResDTO user)
+    private async Task SendPasswordResetLinkAsync(UserAdministrationResDTO user)
     {
-        if (!CanResetPassword(user))
+        if (!CanSendPasswordLink(user))
         {
             return;
         }
 
         var confirmed = await DialogService.Confirm(
-            Loc["AdminResetPasswordConfirm", user.FullName ?? user.UserLogin ?? string.Empty].Value,
-            Loc["ResetPasswordAction"].Value,
-            new ConfirmOptions { OkButtonText = Loc["Reset"].Value, CancelButtonText = Loc["Cancel"].Value });
+            $"Gửi liên kết thiết lập/đặt lại mật khẩu tới {user.Email}?",
+            "Gửi liên kết một lần",
+            new ConfirmOptions { OkButtonText = "Gửi", CancelButtonText = Loc["Cancel"].Value });
         if (confirmed != true)
         {
             return;
         }
 
-        var temporaryPassword = CreateTemporaryPassword();
         glb.isBusyPage = true;
         isUserLoading = true;
         try
         {
             await _apiServices.PostFromApiAsync<AccountLifecycleResDTO>(
-                Config.ApiAccountAdminResetPasswordEndpoint,
-                new AdminPasswordResetReqDTO
+                Config.ApiAccountAdminSendPasswordResetLinkEndpoint,
+                new AdminPasswordResetLinkReqDTO
                 {
                     AccountId = user.UserId,
-                    TemporaryPassword = temporaryPassword,
-                    ConfirmPassword = temporaryPassword,
-                    Reason = "Password reset by permission administrator."
+                    Reason = "One-time password setup/reset link requested by permission administrator."
                 });
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = Loc["TemporaryPassword"].Value,
-                Detail = Loc["TemporaryPasswordDelivery", temporaryPassword].Value,
-                Duration = 30000
+                Summary = "Đã gửi liên kết",
+                Detail = "Quản trị viên không nhìn thấy mật khẩu; người dùng tự đặt mật khẩu qua liên kết một lần.",
+                Duration = 6000
             });
         }
         catch (Exception ex)
@@ -433,23 +496,24 @@ public partial class Tab_User : IDisposable
         && user.UserId != UserClaims
         && string.Equals(user.AccountStatus, "PendingApproval", StringComparison.OrdinalIgnoreCase);
 
-    protected bool CanResetPassword(UserAdministrationResDTO user) =>
-        PermissionState.HasPermission(Permissions.PermissionManage)
+    private bool CanSendPasswordLink(UserAdministrationResDTO user) =>
+        CanManageUsers
+        && accountCapabilities.InvitationEnabled
         && user.UserId > 0
         && user.UserId != UserClaims
-        && string.Equals(user.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase);
+        && !string.IsNullOrWhiteSpace(user.Email)
+        && !string.Equals(user.AccountStatus, "Disabled", StringComparison.OrdinalIgnoreCase);
 
     protected bool CanDeactivateMembership(UserAdministrationResDTO user) =>
         CanEditMembership(user);
 
     private async Task PersistMembershipAsync(
         UserAdministrationResDTO user,
-        string reason)
+        UserMembershipEditModel model)
     {
         if (!CanEditMembership(user)
-            || user.UserGroup is null
-            || user.DepartmentId is not Guid departmentId
-            || departmentId == Guid.Empty)
+            || model.GroupId == Guid.Empty
+            || model.PrimaryDepartmentId == Guid.Empty)
         {
             await ReloadUsersAsync();
             return;
@@ -462,10 +526,10 @@ public partial class Tab_User : IDisposable
             var request = new MembershipUpsertReqDTO
             {
                 AccountId = user.UserId,
-                GroupId = user.UserGroup.Id,
-                PrimaryDepartmentId = departmentId,
+                GroupId = model.GroupId,
+                PrimaryDepartmentId = model.PrimaryDepartmentId,
                 ExpectedRowVersion = user.IsActive ? GetRowVersion(user) : null,
-                Reason = reason
+                Reason = model.Reason
             };
             await _apiServices.PutFromApiAsync<MembershipAdministrationResDTO>(
                 "/api/Permission/memberships",
@@ -514,6 +578,18 @@ public partial class Tab_User : IDisposable
             _ => user.AccountStatus ?? Loc["StatusUnknown"].Value
         };
 
+    private static string GetInvitationStatusLabel(UserAdministrationResDTO user)
+        => !user.EmailConfirmed && user.MustChangePassword
+            ? "Chờ đặt mật khẩu"
+            : user.EmailConfirmed && user.MustChangePassword
+                ? "Cần đổi mật khẩu"
+                : user.EmailConfirmed ? "Đã xác nhận" : "Chưa xác nhận";
+
+    private static BadgeStyle GetInvitationBadgeStyle(UserAdministrationResDTO user)
+        => !user.EmailConfirmed && user.MustChangePassword
+            ? BadgeStyle.Warning
+            : user.EmailConfirmed && !user.MustChangePassword ? BadgeStyle.Success : BadgeStyle.Info;
+
     private void NotifyError(string detail) => Toast.Notify(new NotificationMessage
     {
         Severity = NotificationSeverity.Error,
@@ -521,13 +597,6 @@ public partial class Tab_User : IDisposable
         Detail = detail,
         Duration = 10000
     });
-
-    private static string CreateTemporaryPassword()
-    {
-        Span<byte> bytes = stackalloc byte[12];
-        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
-        return $"Tmp-{Convert.ToHexString(bytes)[..12]}aA1!";
-    }
 
     private string BuildUsersEndpoint(string? filter, int? skip, int? top, string? orderBy)
     {
@@ -540,6 +609,16 @@ public partial class Tab_User : IDisposable
         if (!string.IsNullOrWhiteSpace(SelectedAccountStatus))
         {
             queryParams.Add($"accountStatus={Uri.EscapeDataString(SelectedAccountStatus)}");
+        }
+
+        if (SelectedGroupId.HasValue)
+        {
+            queryParams.Add($"groupId={SelectedGroupId.Value}");
+        }
+
+        if (SelectedDepartmentId.HasValue)
+        {
+            queryParams.Add($"departmentId={SelectedDepartmentId.Value}");
         }
 
         if (!string.IsNullOrWhiteSpace(filter))

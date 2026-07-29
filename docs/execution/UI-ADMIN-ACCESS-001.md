@@ -1,6 +1,6 @@
 # UI-ADMIN-ACCESS-001 — Quản trị danh mục và phân quyền
 
-> Trạng thái: **APPROVED CURRENT SCOPE — IMPLEMENTING AA0/AA1**
+> Trạng thái: **IMPLEMENTING — AA0–AA5 COMPLETE, AA6 ACTIVE**
 >
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md) và [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md)
 >
@@ -172,12 +172,12 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 | Wave | Trạng thái | Model + effort | Thực hiện | Sau wave owner có gì để duyệt | Gate |
 |---|---|---|---|---|---|
 | **AA0 — Baseline & contract** | **COMPLETED — CONTRACT LOCKED** | **Sol · High** | Chụp route-real hiện tại, inventory DTO/API/permission, khóa column/dialog contract và API gaps | Contract ba mức dialog, cột và API gap đã ghi; không đổi nghiệp vụ | Source/schema/permission ledger khớp; no hidden API invention |
-| **AA1 — Shared admin foundation** | **FOUNDATION SLICE COMPLETE — FULL-WIDTH MIGRATION PENDING AA2** | **Sol · High** | Chuẩn hóa modal shell adaptive, toolbar/column policy giữ nguyên frame hiện có; action menu để sau khi đủ consumer | Hai lookup editor thật dùng shell; full-width Collection legacy sẽ migrate ở AA2/AA3 | 203 unit/architecture pass; isolated route-real desktop/mobile pass; owner visual review |
-| **AA2 — Lookup & categories** | **IN PROGRESS — UI + LOOKUP IMPACT COMPLETE** | **Terra · High implement; Sol · High review** | Loại→Giá trị ListDetail; Danh mục Collection; typed modal; dependency-aware deactivate | Danh mục full-width + popup typed; Lookup Add/Edit + impact guard đã có | Category route-real pass; backend impact unit pass; full lookup visual pending |
+| **AA1 — Shared admin foundation** | **COMPLETED — ADAPTIVE DIALOG FOUNDATION** | **Sol · High** | Chuẩn hóa modal shell adaptive, toolbar/column policy giữ nguyên frame hiện có; action menu để sau khi đủ consumer | Compact/Standard/Workspace dialog đã có consumer thật | 203 unit/architecture pass; isolated route-real desktop/mobile pass; owner visual review |
+| **AA2 — Lookup & categories** | **COMPLETED — LISTDETAIL + COLLECTION + IMPACT GUARD** | **Terra · High implement; Sol · High review** | Loại→Giá trị ListDetail; Danh mục Collection; typed modal; dependency-aware deactivate | Danh mục full-width + popup typed; Lookup Add/Edit + impact guard đã có | Category/lookup route-real và backend impact tests pass; full matrix gom ở AA7 |
 | **AA3 — Items, suppliers, departments** | **COMPLETED — UI + API INTEGRITY GUARD** | **Terra · High implement; Sol · High review** | Migrate ba Collection grid, typed editor, hierarchy/dependency validation, bỏ reflection inline edit | Item/Supplier/Department typed full-width; deactivate an toàn; cây phòng ban không tạo vòng lặp | 4 backend integrity tests, 203 frontend tests, Release build 0 warning, Supplier/Department isolated browser pass; full visual matrix gom ở AA7 |
 | **AA4 — Pricing** | **COMPLETED — FULL-WIDTH + ADAPTIVE EDITORS** | **Sol · XHigh** | Bảng giá + Giá mặt hàng; lifecycle actions; optimistic concurrency; modal thương mại | Hai Collection đồng bộ filter; Bảng giá không còn inspector chật; editor giá/bảng giá dùng adaptive shell | 19 pricing backend tests, 203 frontend tests, Release build 0 warning, 2 isolated pricing browser tests; mutation E2E vẫn cần opt-in |
-| **AA5 — Admin user invitation** | `PENDING AA1` | **Sol · XHigh** | Full-width user grid; add-user invitation editor; membership/status actions; bỏ inline dropdown | Admin tạo user mà không biết password; resend/revoke/activate state rõ | Identity token, uniqueness, transaction, audit, email-disabled state, self-lockout |
-| **AA6 — Canonical permission editor** | `PENDING AA1/AA5` | **Sol · XHigh implement; Sol · Max review** | Group list-detail, workspace batch modal, unified access-state selector, canonical action/UI separation, realtime refresh | Owner xem và lưu UI permission một lần; action matrix vẫn read-only | Batch atomicity, protected DEV recovery, session invalidation, audit |
+| **AA5 — Admin user invitation** | **COMPLETED — PASSWORDLESS + FULL-WIDTH USER ADMIN** | **Sol · XHigh** | Full-width user grid; add-user invitation editor; membership/status actions; bỏ inline dropdown | Admin tạo user mà không biết password; email-disabled state giải thích rõ | 26 focused backend tests, 203 frontend tests, Release build 0 warning, isolated desktop/mobile + editor pass |
+| **AA6 — Canonical permission editor** | **IN PROGRESS — AA5 COMPLETE** | **Sol · XHigh implement; Sol · Max review** | Group list-detail, workspace batch modal, unified access-state selector, canonical action/UI separation, realtime refresh | Owner xem và lưu UI permission một lần; action matrix vẫn read-only | Batch atomicity, protected DEV recovery, session invalidation, audit |
 | **AA7 — Security audit & hardening** | `PENDING AA5/AA6` | **Sol · XHigh** | Audit read-only, full visual/motion/accessibility/VI-EN review, refactor duplicate code | Toàn bộ quản trị + phân quyền đồng bộ và có truy vết | Full frontend/backend/integration verify, authenticated browser matrix |
 | **AA-RBAC — Custom role inheritance** | **DEFERRED BY OWNER** | **Sol · Max** | Plan/database task riêng khi owner mở lại | Không ảnh hưởng current UI execution | Chưa được phép tạo migration/code |
 
@@ -238,3 +238,13 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - `Dialog_PriceListEditor` dùng Workspace adaptive; `Dialog_PriceEditor` dùng Standard adaptive. Publish/expire/set-default/clone vẫn là action lifecycle riêng, không trộn vào form.
 - Lỗi overlay loading do reload lần hai đã được phát hiện bằng screenshot và loại bỏ; ảnh runtime sau sửa đã được kiểm bằng mắt ở `1366×420`.
 - Evidence: frontend Release build `0 warning`; 203 unit/architecture tests; 19 backend PriceList/VPPPrice tests; isolated Playwright pricing geometry + price-list adaptive editor pass. Mutation publish/expire không chạy vì chưa bật mutation opt-in.
+
+## 15. Execution record — AA5 admin user invitation — 2026-07-30
+
+- Backend bổ sung invitation passwordless và gửi liên kết thiết lập/đặt lại mật khẩu một lần. Admin không nhập, nhận hoặc nhìn thấy mật khẩu; acceptance xác nhận email và xóa `MustChangePassword`.
+- `/permission?tab=0` đã chuyển từ ListDetail + inspector sang full-width `VppCollectionWorkspace`. Grid bỏ toàn bộ dropdown sửa inline; nhóm quyền/phòng ban và activation mở typed adaptive editor.
+- Toolbar có search, trạng thái, nhóm quyền, phòng ban, clear-filter, Add User và column picker. Hai action cuối được gom thành một cụm để wrap có trật tự ở desktop hẹp và mobile.
+- Email disabled là trạng thái an toàn có chủ đích: Add User và gửi reset link bị khóa, tooltip lấy từ capability API giải thích nguyên nhân; không tự bật SMTP hoặc sửa secret/config.
+- Sửa regression route thật do Radzen grid prerender không tự gọi `LoadData`: khôi phục reload đúng một lần trong `OnAfterRenderAsync`, không dùng reload lặp hoặc timer.
+- Evidence: 26 focused backend lifecycle/controller tests; frontend Release build `0 warning`; 203/203 frontend unit/architecture tests; isolated Playwright desktop `1366×768`, mobile `390×844` và compact membership editor pass. Screenshot đã được kiểm bằng mắt; artifact thô nằm trong `tmp/` ignored.
+- Custom role/group inheritance vẫn `DEFERRED`; AA5 không tạo migration hoặc thay canonical RBAC.

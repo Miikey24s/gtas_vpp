@@ -5,257 +5,86 @@
 @using gtas_vpp_shared.DTOs.Req.Account
 @using gtas_vpp_shared.DTOs.Res.Account
 @using gtas_vpp_fe.Helpers
-@using gtas_vpp_fe.Components.Pages.Lib
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
 @inject GlobalClass glb
 @inject NavigationManager NavigationManager
 @inject IToastService Toast
 
-
 @if (PermissionState.HasPermission(Permissions.PermissionView))
 {
-    <section class="vpp-permission-user-page" aria-labelledby="permission-user-title">
-        <header class="vpp-permission-user-header">
-            <div>
-                <h2 id="permission-user-title">@Loc["UserManagementTitle"]</h2>
-                <p>@Loc["UserCountSummary", userCount]</p>
-            </div>
-        </header>
-
-    <VppListDetailWorkspace Ratio="VppListDetailRatio.WideList"
-                            Class="vpp-atlas-user-workspace"
-                            ListClass="vpp-atlas-admin-collection"
-                            DetailClass="vpp-atlas-admin-inspector">
-    <List>
-    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
-                         Density="VppDataDensity.Compact"
-                         AriaLabel="@Loc["UserManagementTitle"]"
-                         TestId="permission-users-data-surface"
-                         Class="vpp-admin-data-surface">
-    <Toolbar>
-        <VppDataToolbar AriaLabel="@Loc["UserFilters"]" Class="vpp-permission-user-filters">
-            <VppFilterSearch Value="@SearchText"
-                             Input="@SearchTextOnInput"
-                             Placeholder="@Loc["UserSearchPlaceholder"]"
-                             AriaLabel="@Loc["UserSearchPlaceholder"]" />
-            <VppFilterSelect TValue="string"
-                             Value="@(SelectedAccountStatus ?? string.Empty)"
-                             Options="@AccountStatusOptions"
-                             ValueChanged="@OnAccountStatusChangedAsync"
-                             Placeholder="@Loc["AllAccountStatuses"]"
-                             AriaLabel="@Loc["AllAccountStatuses"]" />
-            <VppClearFiltersButton Text="@Loc["ClearFilters"]"
-                                   IsActive="@HasUserFilters"
-                                   Clicked="@ButtonOnClick_Clear" />
-            <VppColumnPicker TItem="UserAdministrationResDTO" GridAccessor="@(() => userGrid)" />
-        </VppDataToolbar>
-    </Toolbar>
-    <ChildContent>
-    <RadzenDataGrid @ref="userGrid"
-                    data-vpp-grid-region="true"
-                    aria-label="@Loc["UserManagementTitle"]"
-                    TItem="UserAdministrationResDTO"
-                    Data="@users"
-                    Count="@userCount"
-                    LoadData="@LoadUsersAsync"
-                    LoadColumnFilterData="@LoadUserFilterDataAsync"
-                    IsLoading="@(isUserLoading || isUserLookupLoading)"
-                    @bind-Value="selectedUsers"
-                    AllowFiltering="true"
-                    AllowColumnResize="true"
-                    AllowMultiColumnSorting="false"
-                    AllowSorting="true"
-                    AllowPaging="true"
-                    GotoFirstPageOnSort="true"
-                    AllowGrouping="false"
-                    AllowVirtualization="false"
-                    AllowAlternatingRows="false"
-                    AllowColumnReorder="true"
-                    AllowColumnPicking="false"
-                    AllowPickAllColumns="true"
-                    ColumnsPickerAllowFiltering="true"
-                    ShowMultiColumnSortingIndex="false"
-                    ShowPagingSummary="true"
-                    PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
-                    PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
-                    FilterMode="FilterMode.CheckBoxList"
-                    FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    LogicalFilterOperator="LogicalFilterOperator.And"
-                    Density="Density.Compact"
-                    GridLines="DataGridGridLines.Horizontal"
-                    SelectionMode="DataGridSelectionMode.Single"
-                    RowSelect="OnUserSelected"
-                    RowDoubleClick="@OnRowDoubleClick"
-                    class="permission-user-grid vpp-admin-page-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
-                    Style="--vpp-admin-grid-min-width: 1420px;">
-        <Columns>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Width="52px"
-                                  MinWidth="52px"
-                                  Title="#"
-                                  Reorderable="false"
-                                  Filterable="false"
-                                  Groupable="false"
-                                  Pickable="false"
-                                  Sortable="false"
-                                  TextAlign="TextAlign.Center">
-                <Template Context="user">
-                    @(currentUserSkip + users.IndexOf(user) + 1)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["AccountStatus"]"
-                                  Width="150px"
-                                  Property="@nameof(UserAdministrationResDTO.AccountStatus)"
-                                  Filterable="false">
-                <Template Context="user">
-                    <RadzenBadge Text="@GetAccountStatusLabel(user)"
-                                 BadgeStyle="@(user.IsActive ? BadgeStyle.Success : BadgeStyle.Light)" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["UserLogin"]"
-                                  Property="@nameof(UserAdministrationResDTO.UserLogin)"
-                                  Width="150px" />
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["FullName"]"
-                                  Property="@nameof(UserAdministrationResDTO.FullName)"
-                                  Width="190px" />
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["Email"]"
-                                  Property="@nameof(UserAdministrationResDTO.Email)"
-                                  Width="220px" />
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["PermissionGroup"]"
-                                  Property="@nameof(UserAdministrationResDTO.GroupName)"
-                                  Width="190px">
-                <Template Context="user">
-                    <RadzenDropDown TValue="PermissionGroupResDTO"
-                                    Data="@permissionGroups"
-                                    TextProperty="@nameof(PermissionGroupResDTO.GroupName)"
-                                    @bind-Value="user.UserGroup"
-                                    AllowClear="false"
-                                    AllowFiltering="true"
-                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
-                                    Change="@(_ => DropdownOnChange_Group(user))"
-                                    class="vpp-admin-cell-control" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["Department"]"
-                                  Property="@nameof(UserAdministrationResDTO.DepartmentName)"
-                                  Width="210px">
-                <Template Context="user">
-                    <RadzenDropDown TValue="Guid?"
-                                    Data="@departments"
-                                    TextProperty="@nameof(DepartmentResDTO.Name)"
-                                    ValueProperty="@nameof(DepartmentResDTO.Id)"
-                                    @bind-Value="user.DepartmentId"
-                                    AllowClear="false"
-                                    AllowFiltering="true"
-                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user) || isUserLoading)"
-                                    Change="@(_ => DropdownOnChange_Department(user))"
-                                    class="vpp-admin-cell-control" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["Admin"]"
-                                  Property="@nameof(UserAdministrationResDTO.IsAdmin)"
-                                  Width="92px"
-                                  Filterable="false"
-                                  TextAlign="TextAlign.Center">
-                <Template Context="user">
-                    @if (user.IsAdmin)
-                    {
-                        <VppIcon Name="@VppIcons.Approved" />
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["ActivateAccount"]"
-                                  Width="120px"
-                                  Filterable="false"
-                                  Sortable="false"
-                                  TextAlign="TextAlign.Center">
-                <Template Context="user">
-                    <RadzenSwitch Value="@user.IsActive"
-                                  Change="@(_ => DeactivateMembershipAsync(user))"
-                                  Disabled="@(!CanDeactivateMembership(user) || isUserLoading)"
-                                  title="@(CanDeactivateMembership(user) ? Loc["DeactivateMembership"].Value : Loc["ProtectedOrInactiveMembership"].Value)" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["AccountAdministration"]"
-                                  Width="190px"
-                                  Filterable="false"
-                                  Sortable="false"
-                                  TextAlign="TextAlign.Center">
-                <Template Context="user">
-                    @if (CanPrepareActivation(user))
-                    {
-                        <RadzenButton Icon="person_add"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Size="ButtonSize.Small"
-                                      Text="@Loc["Activate"]"
-                                      Click="@(_ => ActivateAccountAsync(user))"
-                                      Disabled="@isUserLoading"
-                                      title="@Loc["ActivateAccountHint"]" />
-                    }
-                    else if (CanResetPassword(user))
-                    {
-                        <RadzenButton Icon="lock_reset"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Size="ButtonSize.Small"
-                                      Text="@Loc["ResetPasswordAction"]"
-                                      Click="@(_ => ResetPasswordAsync(user))"
-                                      Disabled="@isUserLoading"
-                                      title="@Loc["AdminResetPasswordHint"]" />
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="@Loc["Description"]"
-                                  Property="@nameof(UserAdministrationResDTO.Description)"
-                                  Width="220px"
-                                  Visible="true"
-                                  Pickable="true" />
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="Account Id"
-                                  Property="@nameof(UserAdministrationResDTO.UserId)"
-                                  Width="110px"
-                                  Visible="false"
-                                  Pickable="true" />
-            <RadzenDataGridColumn TItem="UserAdministrationResDTO"
-                                  Title="Row version"
-                                  Property="@nameof(UserAdministrationResDTO.RowVersion)"
-                                  Width="220px"
-                                  Visible="false"
-                                  Pickable="true" />
-        </Columns>
-    </RadzenDataGrid>
-    </ChildContent>
-    </VppDataSurfaceFrame>
-    </List>
-    <Detail>
-        @if (SelectedUser is not null)
-        {
-            <Component_RecordInspector TItem="UserAdministrationResDTO" Record="SelectedUser" />
-        }
-        else
-        {
-            <div class="vpp-atlas-admin-inspector-empty">
-                <VppIcon Name="@VppIcons.Search" />
-                <strong>@Loc["SelectUserForDetails"]</strong>
-                <span>@Loc["UserAdministrationBackendHint"]</span>
-            </div>
-        }
-    </Detail>
-    </VppListDetailWorkspace>
-    </section>
+    <VppCollectionWorkspace FillAvailableSpace="true" Class="vpp-permission-user-page vpp-admin-workspace">
+        <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                             Density="VppDataDensity.Compact"
+                             AriaLabel="@Loc["UserManagementTitle"]"
+                             TestId="permission-users-data-surface"
+                             Class="vpp-admin-data-surface">
+            <Toolbar>
+                <VppDataToolbar AriaLabel="@Loc["UserFilters"]" Class="vpp-admin-grid-toolbar vpp-permission-user-filters">
+                    <VppFilterSearch Value="@SearchText" Input="@SearchTextOnInput" Placeholder="@Loc["UserSearchPlaceholder"]" AriaLabel="@Loc["UserSearchPlaceholder"]" />
+                    <VppFilterSelect TValue="string" Value="@(SelectedAccountStatus ?? string.Empty)" Options="@AccountStatusOptions" ValueChanged="@OnAccountStatusChangedAsync" Placeholder="@Loc["AllAccountStatuses"]" AriaLabel="@Loc["AllAccountStatuses"]" />
+                    <VppFilterSelect TValue="Guid?" Value="@SelectedGroupId" Options="@GroupFilterOptions" ValueChanged="@OnGroupFilterChangedAsync" Placeholder="@Loc["PermissionGroup"]" AriaLabel="@Loc["PermissionGroup"]" />
+                    <VppFilterSelect TValue="Guid?" Value="@SelectedDepartmentId" Options="@DepartmentFilterOptions" ValueChanged="@OnDepartmentFilterChangedAsync" Placeholder="@Loc["Department"]" AriaLabel="@Loc["Department"]" />
+                    <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasUserFilters" Clicked="@ButtonOnClick_Clear" />
+                    <div class="vpp-admin-toolbar-actions vpp-permission-user-actions">
+                        <RadzenButton Icon="person_add" Text="Thêm người dùng" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" class="vpp-library-primary-action" Disabled="@(!CanInviteUsers)" Click="@OpenInvitationAsync" title="@InvitationCapabilityMessage" />
+                        <VppColumnPicker TItem="UserAdministrationResDTO" GridAccessor="@(() => userGrid)" />
+                    </div>
+                </VppDataToolbar>
+            </Toolbar>
+            <ChildContent>
+                <RadzenDataGrid @ref="userGrid"
+                                data-vpp-grid-region="true"
+                                aria-label="@Loc["UserManagementTitle"]"
+                                TItem="UserAdministrationResDTO"
+                                Data="@users"
+                                Count="@userCount"
+                                LoadData="@LoadUsersAsync"
+                                LoadColumnFilterData="@LoadUserFilterDataAsync"
+                                IsLoading="@(isUserLoading || isUserLookupLoading)"
+                                AllowFiltering="true"
+                                AllowColumnResize="true"
+                                AllowMultiColumnSorting="false"
+                                AllowSorting="true"
+                                AllowPaging="true"
+                                PagerAlwaysVisible="true"
+                                GotoFirstPageOnSort="true"
+                                AllowGrouping="false"
+                                AllowVirtualization="false"
+                                AllowAlternatingRows="false"
+                                AllowColumnReorder="true"
+                                AllowColumnPicking="false"
+                                AllowPickAllColumns="true"
+                                ColumnsPickerAllowFiltering="true"
+                                ShowMultiColumnSortingIndex="false"
+                                PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
+                                PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
+                                FilterMode="FilterMode.CheckBoxList"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                LogicalFilterOperator="LogicalFilterOperator.And"
+                                Density="Density.Compact"
+                                GridLines="DataGridGridLines.Horizontal"
+                                class="permission-user-grid vpp-admin-page-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
+                                Style="--vpp-admin-grid-min-width: 1420px;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Width="52px" MinWidth="52px" Title="#" Reorderable="false" Filterable="false" Pickable="false" Sortable="false" TextAlign="TextAlign.Center"><Template Context="user">@(currentUserSkip + users.IndexOf(user) + 1)</Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["AccountStatus"]" Width="145px" Property="@nameof(UserAdministrationResDTO.AccountStatus)" Filterable="false"><Template Context="user"><RadzenBadge Text="@GetAccountStatusLabel(user)" BadgeStyle="@(user.IsActive ? BadgeStyle.Success : BadgeStyle.Light)" /></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="Người dùng" Property="@nameof(UserAdministrationResDTO.FullName)" Width="220px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.FullName ?? "–")</strong><small>@(user.UserLogin ?? "–")</small></div></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Email"]" Property="@nameof(UserAdministrationResDTO.Email)" Width="250px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.Email ?? "–")</strong><small>@(user.EmployeeCode ?? "–")</small></div></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["PermissionGroup"]" Property="@nameof(UserAdministrationResDTO.GroupName)" Width="190px"><Template Context="user">@(string.IsNullOrWhiteSpace(user.GroupName) ? "–" : user.GroupName)</Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Department"]" Property="@nameof(UserAdministrationResDTO.DepartmentName)" Width="200px"><Template Context="user">@(string.IsNullOrWhiteSpace(user.DepartmentName) ? "–" : user.DepartmentName)</Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="Trạng thái lời mời" Width="155px" Filterable="false" Sortable="false"><Template Context="user"><RadzenBadge Text="@GetInvitationStatusLabel(user)" BadgeStyle="@GetInvitationBadgeStyle(user)" /></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Admin"]" Property="@nameof(UserAdministrationResDTO.IsAdmin)" Width="82px" Filterable="false" TextAlign="TextAlign.Center"><Template Context="user">@if (user.IsAdmin) { <VppIcon Name="@VppIcons.Approved" /> }</Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="150px" MinWidth="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center"><Template Context="user"><div class="vpp-admin-actions"><RadzenButton Icon="manage_accounts" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user))" Click="@(() => OpenMembershipEditorAsync(user))" title="@Loc["PermissionGroup"]" /><RadzenButton Icon="mark_email_unread" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanSendPasswordLink(user))" Click="@(() => SendPasswordResetLinkAsync(user))" title="Gửi liên kết đặt lại mật khẩu" /><RadzenButton Icon="person_off" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(!CanDeactivateMembership(user))" Click="@(() => DeactivateMembershipAsync(user))" title="@Loc["DeactivateMembership"]" /></div></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Description"]" Property="@nameof(UserAdministrationResDTO.Description)" Width="220px" Visible="false" Pickable="true" />
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="Account Id" Property="@nameof(UserAdministrationResDTO.UserId)" Width="110px" Visible="false" Pickable="true" />
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="Row version" Property="@nameof(UserAdministrationResDTO.RowVersion)" Width="220px" Visible="false" Pickable="true" />
+                    </Columns>
+                </RadzenDataGrid>
+            </ChildContent>
+        </VppDataSurfaceFrame>
+    </VppCollectionWorkspace>
 }
 else
 {

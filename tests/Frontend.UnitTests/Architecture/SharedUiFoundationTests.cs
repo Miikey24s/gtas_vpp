@@ -628,8 +628,9 @@ public sealed class SharedUiFoundationTests
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_SupplierLibrary.razor", "<VppCollectionWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_ItemLibrary.razor", "<VppCollectionWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_DepartmentLibrary.razor", "<VppCollectionWorkspace");
+        AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor", "<VppCollectionWorkspace");
+        AssertPatternConsumer(root, "Pages", "Permission", "Tabs", "Tab_User.razor", "<VppCollectionWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Component_ShareGrid.razor", "<VppListDetailWorkspace");
-        AssertPatternConsumer(root, "Pages", "Permission", "Tabs", "Tab_User.razor", "<VppListDetailWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor", "<VppSplitEditorWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "OrderCreateStep2.razor", "<VppSplitEditorWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor", "<HistoryWorkspaceShell");

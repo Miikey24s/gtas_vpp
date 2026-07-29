@@ -135,7 +135,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 
         await Page.GotoAsync($"{BaseUrl}permission?tab=0");
         await WaitForRowsAsync(".permission-user-grid");
-        await Page.Locator(".vpp-permission-user-header").WaitForAsync();
+        await Page.Locator("[data-testid='permission-users-data-surface']").WaitForAsync();
         (await Page.GetByRole(AriaRole.Button, new() { Name = "Tải lại" }).CountAsync()).Should().Be(0);
         var columnPicker = Page.Locator(".vpp-column-picker-trigger");
         await columnPicker.WaitForAsync();
