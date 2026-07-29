@@ -68,21 +68,23 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var host = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor");
         var workspace = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodOperationsWorkspace.razor");
-        var review = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor");
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var settlementCode = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
-        Assert.Contains("<VppWorkflowStepper", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppWorkflowStepper", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-period-workspace-header", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<h1", workspace, StringComparison.Ordinal);
-        // Copy đã chuyển sang resx (W-D): khóa qua key SettleQuotesHeading thay vì chuỗi cứng.
-        Assert.Contains("Loc[\"SettleQuotesHeading\"]", settlement, StringComparison.Ordinal);
-        Assert.Contains("Preview.Blockers", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppSegmentedSelector", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementCompareOptions", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementByDepartment", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("HasPeriodBlockers", settlement, StringComparison.Ordinal);
+        Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
         Assert.Contains("InputHash = preview.InputHash", settlementCode, StringComparison.Ordinal);
-        Assert.DoesNotContain("Click=\"@SettleAsync\"", review, StringComparison.Ordinal);
+        Assert.DoesNotContain("Phương án chốt", settlement, StringComparison.Ordinal);
+        Assert.Contains("Click=\"@SettleAsync\"", settlement, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -99,17 +101,17 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void SupplyAllocation_UsesAuthorizedItemPricesForThePerItemComparison()
+    public void UnifiedSettlement_UsesBackendPreviewForSupplierComparison()
     {
-        var page = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor");
-        var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor.cs");
+        var page = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
+        var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
 
-        Assert.Contains("SupplyPriceComparisonTitle", page, StringComparison.Ordinal);
-        Assert.Contains("RadzenDataGrid TItem=\"SupplyPriceComparisonRow\"", page, StringComparison.Ordinal);
-        Assert.Contains("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
-        Assert.Contains("preview.PrimaryPriceListId", code, StringComparison.Ordinal);
-        Assert.Contains("exception?.NetUnitPrice", code, StringComparison.Ordinal);
-        Assert.DoesNotContain("UnitPrice =", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementCompareOptions", page, StringComparison.Ordinal);
+        Assert.Contains("SupplierQuotes", page, StringComparison.Ordinal);
+        Assert.Contains("Config.RequestApi.PeriodSettlement.Preview", code, StringComparison.Ordinal);
+        Assert.Contains("PrimarySupplierId = supplierId", code, StringComparison.Ordinal);
+        Assert.Contains("PriceListId = priceListId", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
     }
 
     [Fact]

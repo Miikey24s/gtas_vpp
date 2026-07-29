@@ -4,9 +4,8 @@ using gtas_vpp_shared.DTOs.Res.VPP;
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
 {
     /// <summary>
-    /// Trạng thái dùng chung của luồng vận hành kỳ trong một circuit: bước Chọn nguồn cung
-    /// (supply-allocation) tạo bản xem trước, bước Chốt kỳ (settlement-flow) xác nhận đúng
-    /// bản đó qua InputHash + PriceAsOfUtc + idempotency key. Scoped per circuit —
+    /// Trạng thái dùng chung của màn Chốt kỳ hợp nhất trong một circuit: phần chọn nhà cung cấp
+    /// tạo bản xem trước, phần xác nhận chốt đúng bản đó qua InputHash + PriceAsOfUtc + idempotency key. Scoped per circuit —
     /// InteractiveServer global nên mỗi phiên người dùng có một bản riêng.
     /// </summary>
     public sealed class PeriodSettlementState
@@ -22,7 +21,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         public event Action? Changed;
 
         /// <summary>
-        /// Cả bốn bước phải thao tác trên cùng một kỳ. Khi đổi kỳ, mọi lựa chọn
+        /// Toàn bộ selector và dữ liệu chốt phải thao tác trên cùng một kỳ. Khi đổi kỳ, mọi lựa chọn
         /// nguồn cung và preview cũ bị xóa để không thể chốt nhầm snapshot.
         /// </summary>
         public void SetPeriod(int year, int month)

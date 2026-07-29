@@ -981,4 +981,28 @@
   <data name="ReportDepartmentsLiveDescription" xml:space="preserve"><value>Provisional figures from the current eligible requests.</value></data>
   <data name="NoDepartmentReportData" xml:space="preserve"><value>No departments match the filter</value></data>
   <data name="OrderCount" xml:space="preserve"><value>Orders</value></data>
+  <data name="SettlementViewMode" xml:space="preserve"><value>Settlement view mode</value></data>
+  <data name="SettlementSupplierDecision" xml:space="preserve"><value>Supplier and price list used for settlement</value></data>
+  <data name="SettlementCompareOptions" xml:space="preserve"><value>Compare options</value></data>
+  <data name="SettlementChangeSupplier" xml:space="preserve"><value>Change</value></data>
+  <data name="SettlementAllDepartments" xml:space="preserve"><value>All departments</value></data>
+  <data name="SettlementDepartmentRequester" xml:space="preserve"><value>Department / Requester</value></data>
+  <data name="SettlementViewPreview" xml:space="preserve"><value>View preview</value></data>
+  <data name="SettlementChooseSupplier" xml:space="preserve"><value>Choose supplier</value></data>
+  <data name="SettlementSupplierDialogHint" xml:space="preserve"><value>Compare coverage, price list and total before applying.</value></data>
+  <data name="SettlementEligibleOption" xml:space="preserve"><value>Available</value></data>
+  <data name="SettlementUnavailableOption" xml:space="preserve"><value>Insufficient coverage</value></data>
+  <data name="SettlementNotSelected" xml:space="preserve"><value>Not selected</value></data>
+  <data name="SettlementReadyCondition" xml:space="preserve"><value>The current preview is ready for settlement.</value></data>
+  <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Select a supplier with sufficient coverage to continue.</value></data>
+  <data name="SettlementCurrentPeriod" xml:space="preserve"><value>Current period</value></data>
+  <data name="SettlementCustomPeriod" xml:space="preserve"><value>Custom</value></data>
+  <data name="SettlementByOrder" xml:space="preserve"><value>By order</value></data>
+  <data name="SettlementByDepartment" xml:space="preserve"><value>By department</value></data>
+  <data name="SettlementNeedsReview" xml:space="preserve"><value>Needs review</value></data>
+  <data name="ViewFullscreen" xml:space="preserve"><value>View fullscreen</value></data>
+  <data name="ExitFullscreen" xml:space="preserve"><value>Exit fullscreen</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="View" xml:space="preserve"><value>View</value></data>
+  <data name="Details" xml:space="preserve"><value>Details</value></data>
 </root>

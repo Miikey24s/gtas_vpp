@@ -408,7 +408,7 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Selector ngang trong content dùng `VppSegmentedSelector<TValue>` typed; header-tab toàn cục là ngoại lệ navigation. Các adapter Radzen secondary-tab đã hết consumer được retire thay vì giữ hai implementation cùng visual.
 - Sidebar đổi nhãn `Vận hành kỳ` thành `Quản lý kỳ`, chỉ còn `Chốt kỳ` và `Duyệt đơn bổ sung`. Workspace Chốt kỳ tương lai tích hợp rà soát, gom nhu cầu, chọn nhà cung cấp và chốt; không nhân page theo từng bước.
 - Duyệt đơn bổ sung chuyển sang split list-detail có thao tác. Paging profile được đưa vào shared contract; Create Order dùng page `100` trên full authorized snapshot để tránh flicker virtualization nhưng vẫn giới hạn DOM.
-- Chốt kỳ đang ở `PENDING OWNER VISUAL APPROVAL`: tạo concept image trước, chưa thay production route cho tới khi owner duyệt.
+- Chốt kỳ đã được owner duyệt concept và triển khai thành workspace hợp nhất: không còn workflow bốn bước, KPI/readiness card hoặc tiêu đề `Phương án chốt`; dùng hai selector ngang, decision strip nhà cung cấp, bảng Theo đơn/Theo phòng ban, supplier dialog và detail drawer overlay.
 - Verification: frontend `201/201`, Release build sạch và 7 focused isolated browser tests pass; visual evidence selector/Create Order/pending split đã được kiểm bằng mắt, không điều khiển host `dotnet watch` của owner.
 
 ---

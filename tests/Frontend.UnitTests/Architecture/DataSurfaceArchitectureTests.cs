@@ -121,7 +121,7 @@ public sealed class DataSurfaceArchitectureTests
             }
         }
 
-        Assert.True(sortableGridCount >= 16,
+        Assert.True(sortableGridCount >= 15,
             $"Sort contract phải bao phủ toàn bộ grid hiện tại; chỉ tìm thấy {sortableGridCount} grid.");
     }
 
@@ -185,7 +185,7 @@ public sealed class DataSurfaceArchitectureTests
         var create = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "OrderCreateStep2.razor"));
         var department = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor"));
         var sharedOrderList = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
-        var review = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "PeriodReviewPanel.razor"));
+        var settlement = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor"));
 
         Assert.Contains("TestId=\"order-create-catalog-data-surface\"", create, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", create, StringComparison.Ordinal);
@@ -207,12 +207,13 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("AllowPaging=\"true\"", sharedOrderList, StringComparison.Ordinal);
         Assert.Contains("LoadData=\"@LoadRequested\"", sharedOrderList, StringComparison.Ordinal);
 
-        Assert.Contains("TestId=\"period-review-data-surface\"", review, StringComparison.Ordinal);
-        Assert.Contains("VppDataSourceMode.ServerPaging", review, StringComparison.Ordinal);
-        Assert.Contains("<VppDataToolbar", review, StringComparison.Ordinal);
-        Assert.Equal(2, Regex.Matches(review, "<VppFilterSelect\\b").Count);
-        Assert.Contains("AllowPaging=\"true\"", review, StringComparison.Ordinal);
-        Assert.Contains("LoadData=\"@OnLoadData\"", review, StringComparison.Ordinal);
+        Assert.Contains("TestId=\"period-settlement-data-surface\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ServerPaging", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppDataToolbar", settlement, StringComparison.Ordinal);
+        Assert.Equal(5, Regex.Matches(settlement, "<VppFilterSelect\\b").Count);
+        Assert.Equal(2, Regex.Matches(settlement, "<RadzenDataGrid(?=\\s|>)").Count);
+        Assert.Contains("LoadData=\"@OnLoadData\"", settlement, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -229,8 +230,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(18, consumers.Length);
-        Assert.Equal(23, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(15, consumers.Length);
+        Assert.Equal(20, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

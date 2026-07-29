@@ -628,12 +628,12 @@ public sealed class SharedUiFoundationTests
         AssertPatternConsumer(root, "Pages", "Permission", "Tabs", "Tab_User.razor", "<VppListDetailWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor", "<VppSplitEditorWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "OrderCreateStep2.razor", "<VppSplitEditorWorkspace");
-        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodOperationsWorkspace.razor", "<VppOperationWorkspace");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor", "<HistoryWorkspaceShell");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor", "<VppOperationWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_History.razor", "<HistoryWorkspaceShell");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor", "<HistoryWorkspaceShell");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Page_OrderCreate.razor", "<VppWorkflowStepper");
-        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodOperationsWorkspace.razor", "<VppWorkflowStepper");
+        AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor", "<VppSegmentedSelector");
 
         var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         foreach (var token in new[]

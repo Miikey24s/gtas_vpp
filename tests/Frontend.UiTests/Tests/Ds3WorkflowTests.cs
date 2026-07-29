@@ -9,87 +9,95 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task PeriodReview_UsesCanonicalToolbarAndServerPagedSurface()
+    public async Task PeriodSettlement_UsesUnifiedSelectorsSupplierDecisionAndPagedOrders()
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=review");
 
-        var flowbar = Page.Locator(".vpp-period-flowbar:visible");
-        await flowbar.WaitForAsync(new() { Timeout = 60_000 });
-        (await Page.Locator(".vpp-admin-tabs.vpp-bounded-shell:visible").CountAsync()).Should().Be(1);
-        (await flowbar.Locator(".vpp-workflow-step").CountAsync()).Should().Be(4);
-        (await flowbar.Locator(".vpp-period-target .vpp-filter-select").CountAsync()).Should().Be(2);
-        await Page.Locator(".vpp-period-workspace .vpp-skeleton-page").WaitForAsync(new()
+        var surface = Page.Locator("[data-testid='period-settlement-data-surface']:visible");
+        await surface.WaitForAsync(new() { Timeout = 60_000 });
+        await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
         {
             State = WaitForSelectorState.Hidden,
             Timeout = 60_000
         });
-        await CaptureAsync("ds3-period-review-loaded-1366x768.png");
 
-        var toolbar = Page.Locator("[data-testid='period-review-data-surface'] .vpp-period-data-toolbar:visible");
-        await toolbar.WaitForAsync();
+        if (await surface.Locator(".vpp-content-state:visible").CountAsync() > 0)
+        {
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn" }).ClickAsync();
+            await Page.Locator(".vpp-settlement-period-target .vpp-filter-select-trigger[aria-label='Tháng']").ClickAsync();
+            await Page.Locator(".vpp-filter-select-popover:popover-open [role='option']", new() { HasText = "07" }).ClickAsync();
+            await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
+            {
+                State = WaitForSelectorState.Hidden,
+                Timeout = 60_000
+            });
+        }
+
+        (await Page.Locator(".vpp-workflow-stepper:visible").CountAsync()).Should().Be(0);
+        (await Page.Locator(".vpp-settlement-selector-row .vpp-segmented-selector:visible").CountAsync()).Should().Be(2);
+        (await Page.Locator(".vpp-settlement-decision-strip:visible").CountAsync()).Should().Be(1);
+        (await Page.GetByText("Phương án chốt", new() { Exact = true }).CountAsync()).Should().Be(0);
+
+        var toolbar = surface.Locator(".vpp-settlement-data-toolbar:visible");
         (await toolbar.Locator(".vpp-filter-search").CountAsync()).Should().Be(1);
-        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
-        var surface = Page.Locator("[data-testid='period-review-data-surface']:visible");
-        if (await surface.CountAsync() > 0)
+        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(3);
+        (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
+
+        if (await surface.Locator(".rz-data-grid:visible").CountAsync() > 0)
         {
-            (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
-            if (await surface.Locator(".rz-data-grid:visible").CountAsync() > 0)
+            (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
+            await CaptureAsync("ds3-period-settlement-orders-1366x768.png");
+            var firstRow = surface.Locator(".vpp-settlement-order-grid .rz-data-row").First;
+            if (await firstRow.CountAsync() > 0)
             {
-                (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
+                await firstRow.ClickAsync();
+                await Page.Locator(".vpp-history-drawer.is-open:visible").WaitForAsync(new() { Timeout = 10_000 });
+                await Page.Locator(".vpp-history-drawer.is-open .vpp-history-drawer-actions button[aria-label='Đóng']").ClickAsync();
             }
-            else
-            {
-                (await surface.Locator(".vpp-content-state:visible").CountAsync()).Should().BeGreaterThan(0);
-            }
-        }
-        else
-        {
-            (await Page.Locator(".vpp-empty-state:visible, .vpp-content-state:visible").CountAsync())
-                .Should().BeGreaterThan(0, "an empty period must use the canonical content state instead of a blank grid");
         }
 
-        var orderTypeFilter = toolbar.Locator(".vpp-filter-select-trigger").First;
-        await orderTypeFilter.ClickAsync();
-        var popup = Page.Locator(".vpp-filter-select-popover:popover-open").First;
-        await popup.WaitForAsync();
-        (await popup.GetAttributeAsync("class")).Should().Contain("vpp-transient-surface");
-        await Page.Keyboard.PressAsync("Escape");
+        var compareButton = Page.GetByRole(AriaRole.Button, new() { Name = "So sánh phương án" });
+        if (await compareButton.IsEnabledAsync())
+        {
+            await compareButton.ClickAsync();
+            var dialog = Page.Locator(".vpp-settlement-supplier-dialog:visible");
+            await dialog.WaitForAsync();
+            (await dialog.GetAttributeAsync("class")).Should().Contain("vpp-transient-surface");
+            await dialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+        }
+
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban" }).ClickAsync();
+        await Page.WaitForFunctionAsync("""
+            () => document.querySelector("[data-testid='period-settlement-data-surface']")
+                ?.getAttribute("data-vpp-data-source-mode") === "client-snapshot-paged"
+            """);
+        (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
 
         var viewportContract = await Page.EvaluateAsync<string>("""
             () => `${document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1}`
                 + `|${document.documentElement.scrollHeight <= document.documentElement.clientHeight + 1}`
             """);
-        viewportContract.Should().Be("true|true", "period review must stay inside the application main-content scroller");
+        viewportContract.Should().Be("true|true");
+        await CaptureAsync("ds3-period-settlement-unified-1366x768.png");
         await AssertSurfaceFillsContentHeightAsync(surface);
-        await CaptureAsync("ds3-period-review-1366x768.png");
-
-        await AssertPeriodStepAsync("demand", "period-demand-data-surface", "ds3-period-demand-1366x768.png");
-        await AssertPeriodStepAsync("supply", "period-supply-data-surface", "ds3-period-supply-1366x768.png");
-        await AssertPeriodStepAsync("settle", "period-settlement-data-surface", "ds3-period-settlement-1366x768.png");
     }
 
     [Theory]
+    [InlineData(1920, 1080)]
     [InlineData(1024, 768)]
+    [InlineData(768, 1024)]
     [InlineData(390, 844)]
-    public async Task PeriodWorkflow_RemainsContainedAndReadableAcrossResponsiveViewports(int width, int height)
+    public async Task UnifiedPeriodSettlement_RemainsContainedAcrossResponsiveViewports(int width, int height)
     {
         await Page.SetViewportSizeAsync(width, height);
         await LoginAsDefaultUserAsync();
 
-        var steps = new[]
+        foreach (var legacyStep in new[] { "review", "demand", "supply", "settle" })
         {
-            (Key: "review", TestId: "period-review-data-surface"),
-            (Key: "demand", TestId: "period-demand-data-surface"),
-            (Key: "supply", TestId: "period-supply-data-surface"),
-            (Key: "settle", TestId: "period-settlement-data-surface")
-        };
-
-        foreach (var step in steps)
-        {
-            await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab={step.Key}");
-            var surface = Page.Locator($"[data-testid='{step.TestId}']:visible");
+            await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab={legacyStep}");
+            var surface = Page.Locator("[data-testid='period-settlement-data-surface']:visible");
             await surface.WaitForAsync(new() { Timeout = 60_000 });
             await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
             {
@@ -97,55 +105,19 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
                 Timeout = 60_000
             });
 
-            (await Page.Locator(".vpp-workflow-step.is-active").CountAsync()).Should().Be(1);
-            (await Page.Locator(".vpp-period-target .vpp-filter-select").CountAsync()).Should().Be(2);
-            await Page.WaitForFunctionAsync("""
-                () => {
-                    const stepper = document.querySelector('.vpp-workflow-stepper');
-                    const active = stepper?.querySelector('.vpp-workflow-step.is-active');
-                    if (!stepper || !active) return false;
-                    const stepperRect = stepper.getBoundingClientRect();
-                    const activeRect = active.getBoundingClientRect();
-                    return activeRect.left >= stepperRect.left + 3
-                        && activeRect.right <= stepperRect.right - 3;
-                }
-                """);
-
+            (await Page.Locator(".vpp-workflow-stepper:visible").CountAsync()).Should().Be(0);
             var containment = await Page.EvaluateAsync<string>("""
                 () => {
                     const root = document.documentElement;
                     const main = document.querySelector('#main-content');
-                    const stepper = document.querySelector('.vpp-workflow-stepper');
                     const noDocumentOverflow = root.scrollWidth <= root.clientWidth + 1;
                     const mainContained = !main || main.getBoundingClientRect().right <= root.clientWidth + 1;
-                    const stepperContained = !stepper || stepper.getBoundingClientRect().right <= root.clientWidth + 1;
-                    return `${noDocumentOverflow}|${mainContained}|${stepperContained}`;
+                    return `${noDocumentOverflow}|${mainContained}`;
                 }
                 """);
-            containment.Should().Be("true|true|true");
-
-            await CaptureAsync($"ds3-period-{step.Key}-{width}x{height}.png");
+            containment.Should().Be("true|true");
+            await CaptureAsync($"ds3-period-settlement-{legacyStep}-{width}x{height}.png");
         }
-    }
-
-    private async Task AssertPeriodStepAsync(string step, string testId, string screenshot)
-    {
-        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab={step}");
-        var surface = Page.Locator($"[data-testid='{testId}']:visible");
-        await surface.WaitForAsync(new() { Timeout = 60_000 });
-        await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
-        {
-            State = WaitForSelectorState.Hidden,
-            Timeout = 60_000
-        });
-        (await Page.Locator(".vpp-workflow-step.is-active").CountAsync()).Should().Be(1);
-        var viewportContract = await Page.EvaluateAsync<string>("""
-            () => `${document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1}`
-                + `|${document.documentElement.scrollHeight <= document.documentElement.clientHeight + 1}`
-            """);
-        viewportContract.Should().Be("true|true");
-        await AssertSurfaceFillsContentHeightAsync(surface);
-        await CaptureAsync(screenshot);
     }
 
     private async Task AssertSurfaceFillsContentHeightAsync(ILocator surface)
@@ -158,7 +130,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             }
             """);
 
-        bottomGap.Should().BeLessThanOrEqualTo(2, "period data surfaces must fill the bounded workspace to the common bottom inset");
+        bottomGap.Should().BeLessThanOrEqualTo(2);
     }
 
     private async Task CaptureAsync(string fileName)

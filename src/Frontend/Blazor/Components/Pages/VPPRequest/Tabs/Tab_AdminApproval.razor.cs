@@ -45,13 +45,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanApprove => PermissionState.HasPermission(Permissions.RequestApprove);
         private bool CanReject => PermissionState.HasPermission(Permissions.RequestReject);
 
-        private bool ShowReviewContent => CanShowSettlement && ActivePeriodTab == PeriodReviewTab;
-
-        private bool ShowDemandContent => CanShowSettlement && ActivePeriodTab == PeriodDemandTab;
-
-        private bool ShowSupplyContent => CanShowSettlement && ActivePeriodTab == PeriodSupplyTab;
-
-        private bool ShowSettlementContent => CanShowSettlement && ActivePeriodTab == PeriodSettleTab;
+        private bool ShowSettlementWorkspace => CanShowSettlement && ActivePeriodTab != PendingApprovalsTab;
 
         private bool ShowApprovalsContent => CanShowApprovals && ActivePeriodTab == PendingApprovalsTab;
 
@@ -111,21 +105,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 return;
             }
 
-            if (string.Equals(requested, PeriodDemandTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
+            if (CanShowSettlement && new[] { PeriodReviewTab, PeriodDemandTab, PeriodSupplyTab, PeriodSettleTab }
+                .Contains(requested, StringComparer.OrdinalIgnoreCase))
             {
-                ActivePeriodTab = PeriodDemandTab;
-                return;
-            }
-
-            if (string.Equals(requested, PeriodSupplyTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
-            {
-                ActivePeriodTab = PeriodSupplyTab;
-                return;
-            }
-
-            if (string.Equals(requested, PeriodSettleTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
-            {
-                ActivePeriodTab = PeriodSettleTab;
+                // URL cũ vẫn hoạt động nhưng toàn bộ workflow đã hợp nhất vào màn Chốt kỳ.
+                ActivePeriodTab = PeriodReviewTab;
                 return;
             }
 

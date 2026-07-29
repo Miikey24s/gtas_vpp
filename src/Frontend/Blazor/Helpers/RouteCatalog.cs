@@ -126,7 +126,7 @@ public static class RouteCatalog
             Title: "PeriodOperations",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
             AnyOfPermissions: [Permissions.RequestAdminApproval, Permissions.PeriodSettle],
-            Notes: "Internal sub-tabs: review, demand, supply, settle (PeriodSettle) and additional-approval queue (RequestAdminApproval). Render depends on which permissions the user has."),
+            Notes: "Unified period settlement workspace (PeriodSettle) plus additional-approval queue (RequestAdminApproval). Legacy review/demand/supply/settle query values resolve to the unified workspace."),
 
         new(
             Key: "dashboard.period.pending-approval",

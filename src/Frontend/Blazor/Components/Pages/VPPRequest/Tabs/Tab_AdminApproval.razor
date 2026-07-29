@@ -3,7 +3,7 @@
 
 @if (CanView)
 {
-    @if (ShowReviewContent || ShowDemandContent || ShowSupplyContent || ShowSettlementContent)
+    @if (ShowSettlementWorkspace)
     {
         <PeriodOperationsWorkspace Claims="@claims"
                                    ActiveStep="@ActivePeriodTab"

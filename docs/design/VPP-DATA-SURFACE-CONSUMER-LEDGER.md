@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **18 file / 23 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
+Source hiện có **15 file / 20 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -21,10 +21,7 @@ Source hiện có **18 file / 23 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor` | 1 | Dialog history | `Static` | `Compact` | Deferred dialog exception; không thuộc reference route DS2 |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Approval list; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `Compact` | Split list-detail retrofit |
-| `Components/Pages/VPPRequest/Components/PeriodDemandPanel.razor` | 1 | Demand collection | `Static` + client pager | `RichTwoLine` | DS3 |
-| `Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor` | 2 | Review + detail | `ServerPaging` + `Static` | `Compact` | DS3 workflow complete |
-| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 1 | Settlement quote snapshot | `Static` | `Compact` | DS3 period workflow retrofit |
-| `Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor` | 1 | Allocation comparison | `Static` + client pager | `RichTwoLine` | DS3 period workflow retrofit |
+| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 2 | Chốt kỳ theo đơn / theo phòng ban | `ServerPaging` + `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_AllOrdersSummary.razor` | 2 | Orders + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
@@ -37,7 +34,6 @@ Source hiện có **18 file / 23 DataGrid thật**. Generic type reference trong
 | `OrderCreateStep2` orderable catalog | Custom paged data surface | Nạp snapshot được phép đặt theo batch, lọc trên toàn snapshot rồi phân trang UI mặc định 100; body vẫn scroll nội bộ và không gọi API khi đổi trang |
 | `OrderCreateStep2` draft list | Static workflow list | Giữ action/quantity route-owned; chỉ nhận row rhythm/footer ở DS3 |
 | `Tab_PagePermission` permission matrix | Matrix exception | Không ép cột `#`, paging hoặc data-table motif thông thường |
-| `PeriodDemandPanel` nested detail table | Static nested detail | Giữ progressive disclosure; không biến thành grid server độc lập nếu chưa cần |
 | `VppColumnPicker` option list | Popover control | Thuộc toolbar control, không tính là data grid |
 | `NotificationCenter` list | Application feed | Ngoài data-surface migration; giữ state/accessibility contract riêng |
 
@@ -64,8 +60,7 @@ Source hiện có **18 file / 23 DataGrid thật**. Generic type reference trong
 
 - `OrderCreateStep2`: client snapshot theo batch, filter toàn bộ snapshot và pager mặc định 100; canonical toolbar/code popup, scroll/đổi trang không gọi lại API.
 - `Tab_DepartmentSummary`: tái sử dụng `HistoryOrderList` và toàn bộ History workspace; route chỉ truyền cột người đặt riêng, API và permission phòng ban.
-- `PeriodReviewPanel`: canonical search/type/status toolbar và server-paged frame; kỳ được sở hữu bởi workspace bốn bước, route giữ readiness và empty/error semantics.
-- `PeriodDemandPanel`, `PeriodSupplyAllocationPanel`, `PeriodSettlementPanel`: dùng cùng kỳ và cùng settlement preview; mỗi bước có typed frame, native scroll/paging và footer chuyển bước rõ ràng.
+- `PeriodSettlementPanel`: hợp nhất rà soát, supplier preview và confirm/correct trong một typed frame; legacy period URL vẫn mở cùng workspace nhưng không còn stepper bốn bước.
 
 ## DS4 admin group
 

@@ -39,8 +39,8 @@
                     }
                 </RadzenTabsItem>
             }
-            @* D2/D8: tab "Tổng hợp toàn công ty" đã gỡ — grid Theo đơn sống trong bước
-               Gom nhu cầu (tab=5&periodTab=demand); URL cũ managementTab=all được redirect. *@
+            @* D2/D8: tab "Tổng hợp toàn công ty" đã gỡ; URL cũ managementTab=all
+               được chuyển sang màn Chốt kỳ hợp nhất. *@
             @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary))
             {
                 <RadzenTabsItem Text="@Loc["DepartmentSummary"]">

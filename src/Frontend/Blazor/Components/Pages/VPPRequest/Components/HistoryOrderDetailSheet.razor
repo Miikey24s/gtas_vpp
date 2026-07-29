@@ -7,7 +7,7 @@
 {
     <button type="button" class="vpp-history-drawer-backdrop" aria-label="@Loc["Close"]" @onclick="CloseRequested"></button>
 }
-<aside class="vpp-history-drawer @(IsOpen ? "is-open" : null)"
+<aside class="vpp-history-drawer @(IsOpen ? "is-open" : null) @(IsFullscreen ? "is-fullscreen" : null)"
            @ref="DrawerElement"
            tabindex="-1"
            role="dialog"
@@ -46,6 +46,22 @@
                                   Title="@Loc["ExportExcel"]"
                                   aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedOrder.VppCode)"
                                   Disabled="@(IsDetailLoading || IsExporting)" />
+                    @if (FullscreenRequested.HasDelegate)
+                    {
+                        <RadzenButton Icon="@(IsFullscreen ? "close_fullscreen" : "open_in_full")"
+                                      Text="@(IsFullscreen ? Loc["ExitFullscreen"] : Loc["ViewFullscreen"])"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@FullscreenRequested"
+                                      aria-label="@(IsFullscreen ? Loc["ExitFullscreen"] : Loc["ViewFullscreen"])" />
+                    }
+                    <RadzenButton Icon="close"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Base"
+                                  Variant="Variant.Text"
+                                  Click="@CloseRequested"
+                                  aria-label="@Loc["Close"]" />
                 </div>
             }
         </header>
@@ -89,6 +105,14 @@
                     <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedOrder.RequesterName">@(string.IsNullOrWhiteSpace(SelectedOrder.RequesterName) ? "–" : SelectedOrder.RequesterName)</dd></div>
                     <div><dt>@Loc["Department"]</dt><dd title="@SelectedOrder.DepartmentCode">@(string.IsNullOrWhiteSpace(SelectedOrder.DepartmentCode) ? "–" : SelectedOrder.DepartmentCode)</dd></div>
                     <div><dt>@Loc["SubmittedAtLabel"]</dt><dd>@(SelectedOrder.SubmittedDate.HasValue ? DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate) : "–")</dd></div>
+                    @if (!string.IsNullOrWhiteSpace(SelectedSupplierName))
+                    {
+                        <div><dt>@Loc["SupplyPrimarySupplier"]</dt><dd title="@SelectedSupplierName">@SelectedSupplierName</dd></div>
+                    }
+                    @if (SelectedOrderAmount.HasValue)
+                    {
+                        <div><dt>@Loc["Amount"]</dt><dd class="vpp-history-order-amount">@SelectedOrderAmount.Value.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</dd></div>
+                    }
                 </dl>
                 <div class="vpp-history-order-note">
                     <span>@Loc["Note"]</span>
@@ -144,7 +168,10 @@
 
 @code {
     [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool IsFullscreen { get; set; }
     [Parameter] public VppRequestResDTO? SelectedOrder { get; set; }
+    [Parameter] public string? SelectedSupplierName { get; set; }
+    [Parameter] public long? SelectedOrderAmount { get; set; }
     [Parameter] public bool IsDetailLoading { get; set; }
     [Parameter] public bool HasDetailError { get; set; }
     [Parameter, EditorRequired] public IReadOnlyList<VppOrderDetailItem> DetailRows { get; set; } = [];
@@ -161,6 +188,7 @@
     [Parameter] public string UnitHeaderLabel { get; set; } = string.Empty;
     [Parameter] public bool IsExporting { get; set; }
     [Parameter] public EventCallback CloseRequested { get; set; }
+    [Parameter] public EventCallback FullscreenRequested { get; set; }
     [Parameter] public EventCallback<string> ExportRequested { get; set; }
     [Parameter] public EventCallback RetryRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> DetailSearchChanged { get; set; }

@@ -102,9 +102,9 @@ Luồng bốn bước: `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
 | 3-34 | `supplement-approval` | `/dashboard?tab=5&periodTab=pending` | `Tabs/Tab_AdminApproval.razor` (coordinator), `Components/PendingApprovalWorkspace.razor`, `Dialog_RejectSupplement.razor` | `GET additional-orders/pending`; `POST additional-orders/{id}/approve`, `/reject` | §2.3.1.4, §3.3.3.2 |
-| 3-35 | `period-review` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodOperationsWorkspace.razor`, `PeriodReviewPanel.razor` | `GET /api/PeriodSettlement/{y}/{m}` | §2.3.1.5, §3.3.3.3 |
-| — | `period-demand` | `/dashboard?tab=5&periodTab=demand` | `Components/PeriodDemandPanel.razor`; hấp thụ `Tab_AllOrdersSummary.razor` làm chế độ `Theo đơn` | `GET all-orders`; `GET period-demand` | §3.3.3.4 |
-| 3-36 | `supply-allocation` | `/dashboard?tab=5&periodTab=supply` | `Components/PeriodSupplyAllocationPanel.razor` | `GET item-prices`; `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
+| 3-35 | `period-review` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodOperationsWorkspace.razor`, `PeriodSettlementPanel.razor` | `GET all-orders`; `GET /api/PeriodSettlement/{y}/{m}`; `POST preview/confirm` | §2.3.1.5, §3.3.3.3 |
+| — | `period-demand` | `/dashboard?tab=5&periodTab=demand` | Legacy URL chuyển vào `PeriodSettlementPanel.razor`; dữ liệu gom được thể hiện qua selector `Theo đơn / Theo phòng ban` | `GET all-orders`; `GET period-demand` | §3.3.3.4 |
+| 3-36 | `supply-allocation` | `/dashboard?tab=5&periodTab=supply` | Legacy URL chuyển vào supplier decision/dialog của `PeriodSettlementPanel.razor` | `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
 | 3-37 | `settlement-flow` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
 
 ### M5A + M5B — Thư viện dữ liệu

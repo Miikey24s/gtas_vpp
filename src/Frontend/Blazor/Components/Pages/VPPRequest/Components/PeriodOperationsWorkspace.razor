@@ -1,5 +1,4 @@
 @using System.Security.Claims
-@using gtas_vpp_fe.Components.DesignSystem.Composites
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Res.VPP
 @inject IAPIServices ApiServices
@@ -7,122 +6,40 @@
 
 @if (isLoadingPeriod)
 {
-    <SkeletonPage Cards="1" Rows="8" Cols="6" />
+    <SkeletonPage Cards="0" Rows="8" Cols="8" />
 }
 else
 {
-    <VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
-                           Class="vpp-period-workspace"
-                           IsBusy="@isLoadingPeriod">
-        <Steps>
-            <div class="vpp-period-flowbar">
-                <VppWorkflowStepper Steps="@PeriodWorkflowSteps"
-                                    AriaLabel="@Loc["PeriodFlowAria"]"
-                                    StepSelected="@OnPeriodStepSelected" />
-                <div class="vpp-period-target" aria-label="@Loc["TargetPeriod"]">
-                    <VppIcon Name="@VppIcons.Calendar" />
-                    <span>@Loc["TargetPeriod"]</span>
-                    <VppFilterSelect TValue="int"
-                                     Value="@State.Year"
-                                     Options="@YearOptions"
-                                     ValueChanged="@OnYearChangedAsync"
-                                     Placeholder="@Loc["Year"]"
-                                     AriaLabel="@Loc["Year"]" />
-                    <VppFilterSelect TValue="int"
-                                     Value="@State.Month"
-                                     Options="@MonthOptions"
-                                     ValueChanged="@OnMonthChangedAsync"
-                                     Placeholder="@Loc["Month"]"
-                                     AriaLabel="@Loc["Month"]" />
-                </div>
-            </div>
-        </Steps>
-
-        <ChildContent>
-            <div class="vpp-period-step-content" @key="StepContentKey">
-                @switch (NormalizedStep)
-                {
-                    case PeriodDemandStep:
-                        <PeriodDemandPanel Claims="@Claims"
-                                           Year="@State.Year"
-                                           Month="@State.Month"
-                                           OnContinueToSupply="@(() => NavigateRequested.InvokeAsync(PeriodSupplyStep))" />
-                        break;
-                    case PeriodSupplyStep:
-                        <PeriodSupplyAllocationPanel Year="@State.Year"
-                                                     Month="@State.Month"
-                                                     OnContinueToSettle="@(() => NavigateRequested.InvokeAsync(PeriodSettleStep))" />
-                        break;
-                    case PeriodSettleStep:
-                        <PeriodSettlementPanel Year="@State.Year"
-                                               Month="@State.Month"
-                                               OnBackToSupply="@(() => NavigateRequested.InvokeAsync(PeriodSupplyStep))"
-                                               OnSettled="@Settled" />
-                        break;
-                    default:
-                        <PeriodReviewPanel Year="@State.Year"
-                                           Month="@State.Month"
-                                           OnContinueToDemand="@(() => NavigateRequested.InvokeAsync(PeriodDemandStep))" />
-                        break;
-                }
-            </div>
-        </ChildContent>
-    </VppOperationWorkspace>
+    <PeriodSettlementPanel Year="@State.Year"
+                           Month="@State.Month"
+                           DefaultYear="@defaultYear"
+                           DefaultMonth="@defaultMonth"
+                           PeriodChanged="@ChangePeriodAsync"
+                           OnSettled="@Settled" />
 }
 
 @code {
-    private const string PeriodReviewStep = "review";
-    private const string PeriodDemandStep = "demand";
-    private const string PeriodSupplyStep = "supply";
-    private const string PeriodSettleStep = "settle";
-
     [Parameter] public IEnumerable<Claim>? Claims { get; set; }
-    [Parameter] public string ActiveStep { get; set; } = PeriodReviewStep;
+    [Parameter] public string ActiveStep { get; set; } = "review";
     [Parameter] public EventCallback<string> NavigateRequested { get; set; }
     [Parameter] public EventCallback Settled { get; set; }
 
     private bool isLoadingPeriod = true;
-    private string NormalizedStep => ActiveStep switch
-    {
-        PeriodDemandStep => PeriodDemandStep,
-        PeriodSupplyStep => PeriodSupplyStep,
-        PeriodSettleStep => PeriodSettleStep,
-        _ => PeriodReviewStep
-    };
-    private string StepContentKey => $"{NormalizedStep}-{State.Year:D4}-{State.Month:D2}";
-    private int CurrentStepNumber => NormalizedStep switch
-    {
-        PeriodDemandStep => 2,
-        PeriodSupplyStep => 3,
-        PeriodSettleStep => 4,
-        _ => 1
-    };
-
-    private IReadOnlyList<VppFilterOption<int>> YearOptions => Enumerable.Range(2024, 7)
-        .Select(year => new VppFilterOption<int>(year, year.ToString()))
-        .ToArray();
-    private IReadOnlyList<VppFilterOption<int>> MonthOptions => Enumerable.Range(1, 12)
-        .Select(month => new VppFilterOption<int>(month, month.ToString("00")))
-        .ToArray();
-
-    private IReadOnlyList<VppWorkflowStep> PeriodWorkflowSteps =>
-    [
-        CreateStep(PeriodReviewStep, 1, Loc["PeriodReview"]),
-        CreateStep(PeriodDemandStep, 2, Loc["PeriodDemandStep"]),
-        CreateStep(PeriodSupplyStep, 3, Loc["PeriodSupplyStep"]),
-        CreateStep(PeriodSettleStep, 4, Loc["PeriodSettleStep"])
-    ];
+    private int defaultYear;
+    private int defaultMonth;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            if (!State.HasPeriod)
+            var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
+            if (period is not null)
             {
-                var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
-                if (period is not null)
+                defaultYear = period.PreviousPeriodYear;
+                defaultMonth = period.PreviousPeriodMonth;
+                if (!State.HasPeriod)
                 {
-                    State.SetPeriod(period.PreviousPeriodYear, period.PreviousPeriodMonth);
+                    State.SetPeriod(defaultYear, defaultMonth);
                 }
             }
         }
@@ -132,24 +49,9 @@ else
         }
     }
 
-    private VppWorkflowStep CreateStep(string key, int number, string label)
-        => new(key, number, label, number < CurrentStepNumber
-            ? VppWorkflowStepState.Complete
-            : number == CurrentStepNumber
-                ? VppWorkflowStepState.Active
-                : VppWorkflowStepState.Pending);
-
-    private Task OnPeriodStepSelected(string stepKey) => NavigateRequested.InvokeAsync(stepKey);
-
-    private Task OnYearChangedAsync(int year)
+    private Task ChangePeriodAsync(PeriodTargetSelection target)
     {
-        State.SetPeriod(year, State.Month);
-        return InvokeAsync(StateHasChanged);
-    }
-
-    private Task OnMonthChangedAsync(int month)
-    {
-        State.SetPeriod(State.Year, month);
+        State.SetPeriod(target.Year, target.Month);
         return InvokeAsync(StateHasChanged);
     }
 }

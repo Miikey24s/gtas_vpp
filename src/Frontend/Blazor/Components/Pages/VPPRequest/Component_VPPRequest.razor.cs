@@ -15,8 +15,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private sealed record DashboardTabDefinition(int QueryIndex, params string[] Permissions);
 
-        // D2/D8: tab 4 (Tổng hợp toàn công ty) đã gỡ — nội dung là chế độ "Theo đơn"
-        // của bước Gom nhu cầu (tab=5&periodTab=demand). URL cũ được redirect bên dưới.
+        // D2/D8: tab 4 (Tổng hợp toàn công ty) đã gỡ; URL cũ chuyển sang màn Chốt kỳ
+        // hợp nhất để bookmark/thông báo cũ không chết.
         private static readonly DashboardTabDefinition[] DashboardTabs =
         [
             new(0, Permissions.RequestOrder),
@@ -100,10 +100,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
 
             // Redirect URL cũ của tab "Tổng hợp toàn công ty" (tab=4 / managementTab=all)
-            // sang chế độ "Theo đơn" của bước Gom nhu cầu để bookmark/thông báo cũ không chết.
+            // sang màn Chốt kỳ hợp nhất để bookmark/thông báo cũ không chết.
             if (IsLegacyAllOrdersUri(location))
             {
-                NavigationManager.NavigateTo("/dashboard?tab=5&periodTab=demand", replace: true);
+                NavigationManager.NavigateTo("/dashboard?tab=5&periodTab=review", replace: true);
                 return;
             }
 
