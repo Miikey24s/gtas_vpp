@@ -47,7 +47,7 @@
                 <RadzenTabsItem Text="@Loc["Suppliers"]">
                     @if (IsActiveTab(3))
                     {
-                        <Component_ShareGrid TType=SupplierResDTO @bind-Data=@suppliers Add=@ApiAddAsync Update=@ApiUpdateAsync PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddSupplier"]" GridAriaLabel="@Loc["Suppliers"]" SearchPlaceholder="@Loc["LibrarySearchSuppliers"]" SearchFields="@(new[] { "SupplierShortName", "SupplierName" })" />
+                        <Tab_SupplierLibrary PagePermissionResDTO="@PagePermissionResDTO" />
                     }
                 </RadzenTabsItem>
             }

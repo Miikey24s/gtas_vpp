@@ -1,0 +1,61 @@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.Library
+@inject DialogService DialogService
+@inject IAPIServices ApiServices
+@inject IToastService ToastService
+@inject GlobalClass Global
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="supplier-editor">
+    <ChildContent>
+        <RadzenStack Gap="1rem">
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["SupplierShortName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.SupplierShortName" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["SupplierName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.SupplierName" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12"><RadzenFormField Text="@Loc["Address1"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Address1" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Ward"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Ward" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["City"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.City" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
+        </RadzenStack>
+    </ChildContent>
+    <Footer>
+        <div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["Save"]" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" /></div>
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter] public SupplierResDTO Model { get; set; } = new();
+    [Parameter] public bool IsCreate { get; set; }
+    private bool isBusy;
+    private async Task CancelAsync() => await DialogService.TryCloseAsync(null);
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Model.SupplierName) || string.IsNullOrWhiteSpace(Model.SupplierShortName))
+        {
+            ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["SupplierName"], 4000, false);
+            return;
+        }
+        isBusy = true;
+        try
+        {
+            Model.UpdatedAtUtc = DateTime.Now; Model.UpdatedByUserId = Global.UserInfo.UserID;
+            SupplierResDTO? result;
+            if (IsCreate)
+            {
+                Model.Id = Guid.NewGuid(); Model.CreatedAtUtc = DateTime.Now; Model.CreatedByUserId = Global.UserInfo.UserID;
+                result = await ApiServices.PostFromApiAsync<SupplierResDTO>(Config.LibraryApi.Suppliers, Model);
+            }
+            else result = await ApiServices.PatchFromApiAsync<SupplierResDTO>($"{Config.LibraryApi.Suppliers}/{Model.Id}", Model);
+            if (result is null) { ToastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["UpdateRecordFailed"], 5000, true); return; }
+            ToastService.Show(NotificationSeverity.Success, Loc["Success"], IsCreate ? Loc["RecordAddedSuccess"] : Loc["RecordUpdatedSuccess"], 4000, false);
+            DialogService.Close(result);
+        }
+        catch (Exception ex) { ToastService.Error(ex, Loc, IsCreate ? "CreateRecordFailed" : "UpdateRecordFailed"); }
+        finally { isBusy = false; }
+    }
+}
