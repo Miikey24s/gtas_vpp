@@ -23,19 +23,22 @@ namespace gtas_vpp_be.Controllers
     {
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IBusinessDataLocalizationService? _businessDataLocalizationService;
+        private readonly ILibraryIntegrityService _libraryIntegrityService;
 
         public LibraryController(
             IServiceProvider serviceProvider,
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
             IDateTimeProvider dateTimeProvider,
-            IBusinessDataLocalizationService? businessDataLocalizationService = null)
+            IBusinessDataLocalizationService? businessDataLocalizationService = null,
+            ILibraryIntegrityService? libraryIntegrityService = null)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             // P5/timezone: dùng provider chung để timestamp luôn theo Asia/Ho_Chi_Minh
             // ngay cả khi host chạy ở múi giờ khác (ví dụ cloud SGP hoặc UTC).
             _dateTimeProvider = dateTimeProvider;
             _businessDataLocalizationService = businessDataLocalizationService;
+            _libraryIntegrityService = libraryIntegrityService ?? new LibraryIntegrityService(unitOfWork);
         }
 
         [HttpGet("{tableCode}")]
@@ -772,29 +775,12 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.LibraryManage)]
         public async Task<IActionResult> GetDependencyImpact(string tableCode, Guid id)
         {
-            var normalizedTableCode = tableCode.Trim().ToLowerInvariant();
-            var context = _unitOfWork.VPPContext;
-            var (dependencyKind, count) = normalizedTableCode switch
-            {
-                "lookup-categories" => ("lookup-values", await context.LookupValues.CountAsync(x => x.LookupCategoryId == id && !x.IsDeleted)),
-                "lookup-values" => ("vpp-items", await context.VppItems.CountAsync(x => x.UomId == id && !x.IsDeleted)),
-                "vpp-categories" => ("vpp-items", await context.VppItems.CountAsync(x => x.VppCategoryId == id && !x.IsDeleted)),
-                _ => (string.Empty, -1)
-            };
-
-            if (count < 0)
+            var impact = await _libraryIntegrityService.GetDependencyImpactAsync(tableCode, id);
+            if (impact is null)
             {
                 return BadRequest(new { Message = $"Dependency impact for Table Code '{tableCode}' is not supported." });
             }
-
-            return Ok(new LibraryDependencyImpactResDTO
-            {
-                RecordId = id,
-                TableCode = normalizedTableCode,
-                DependencyKind = dependencyKind,
-                ActiveReferenceCount = count,
-                CanDeactivate = count == 0
-            });
+            return Ok(impact);
         }
 
         [HttpPost("{tableCode}")]
@@ -807,6 +793,11 @@ namespace gtas_vpp_be.Controllers
             }
 
             var json = payload.GetRawText();
+            if (tableCode.Equals("departments", StringComparison.OrdinalIgnoreCase))
+            {
+                var validation = await ValidateDepartmentPayloadAsync(payload, Guid.Empty);
+                if (validation is not null) return validation;
+            }
             return tableCode.ToLower() switch
             {
                 "lookup-categories" => await CreateAsync<LookupCategory, LookupCategoryResDTO>(json),
@@ -830,6 +821,13 @@ namespace gtas_vpp_be.Controllers
             }
 
             var json = payload.GetRawText();
+            if (tableCode.Equals("departments", StringComparison.OrdinalIgnoreCase))
+            {
+                var dto = JsonSerializer.Deserialize<DepartmentResDTO>(json, _jsonOptions);
+                if (dto is null) return BadRequest(new { Message = "Department payload is invalid." });
+                var validation = await ValidateDepartmentPayloadAsync(payload, dto.Id);
+                if (validation is not null) return validation;
+            }
             return tableCode.ToLower() switch
             {
                 "lookup-categories" => await UpdateAsync<LookupCategory, LookupCategoryResDTO>(json),
@@ -857,7 +855,31 @@ namespace gtas_vpp_be.Controllers
                 return BadRequest(new { Message = "Update payload must not be empty." });
             }
 
-            return tableCode.ToLower() switch
+            var normalizedTableCode = tableCode.Trim().ToLowerInvariant();
+            if (IsDeletionRequested(payload))
+            {
+                var impact = await _libraryIntegrityService.GetDependencyImpactAsync(normalizedTableCode, id);
+                if (impact is not null && !impact.CanDeactivate)
+                {
+                    return Conflict(new
+                    {
+                        Message = $"Cannot deactivate this record while {impact.ActiveReferenceCount} active reference(s) still exist.",
+                        impact.DependencyKind,
+                        impact.ActiveReferenceCount
+                    });
+                }
+            }
+
+            if (normalizedTableCode == "departments" && TryGetPropertyIgnoreCase(payload, nameof(Department.ParentDepartmentId), out var parentElement))
+            {
+                Guid? parentId;
+                try { parentId = JsonSerializer.Deserialize<Guid?>(parentElement.GetRawText(), _jsonOptions); }
+                catch (JsonException) { return BadRequest(new { Message = "Parent department id is invalid." }); }
+                var validation = await ValidateDepartmentParentAsync(id, parentId);
+                if (validation is not null) return validation;
+            }
+
+            return normalizedTableCode switch
             {
                 "lookup-categories" => await ApplyPatchAsync<LookupCategory, LookupCategoryResDTO>(id, payload),
                 "lookup-values" => await ApplyPatchAsync<LookupValue, LookupValueResDTO>(id, payload),
@@ -868,6 +890,38 @@ namespace gtas_vpp_be.Controllers
                 "departments" => await ApplyPatchAsync<Department, DepartmentResDTO>(id, payload),
                 _ => BadRequest(new { Message = $"Patch for Table Code '{tableCode}' is not supported." })
             };
+        }
+
+        private async Task<IActionResult?> ValidateDepartmentPayloadAsync(JsonElement payload, Guid departmentId)
+        {
+            var dto = JsonSerializer.Deserialize<DepartmentResDTO>(payload.GetRawText(), _jsonOptions);
+            if (dto is null) return BadRequest(new { Message = "Department payload is invalid." });
+            return await ValidateDepartmentParentAsync(departmentId, dto.ParentDepartmentId);
+        }
+
+        private async Task<IActionResult?> ValidateDepartmentParentAsync(Guid departmentId, Guid? parentDepartmentId)
+        {
+            var validation = await _libraryIntegrityService.ValidateDepartmentParentAsync(departmentId, parentDepartmentId);
+            return validation.IsValid ? null : BadRequest(new { Message = validation.Message });
+        }
+
+        private static bool IsDeletionRequested(JsonElement payload)
+            => TryGetPropertyIgnoreCase(payload, nameof(gtas_vpp_be.Model.Helpers.BaseModel.IsDeleted), out var value)
+               && value.ValueKind == JsonValueKind.True;
+
+        private static bool TryGetPropertyIgnoreCase(JsonElement payload, string propertyName, out JsonElement value)
+        {
+            foreach (var property in payload.EnumerateObject())
+            {
+                if (property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = property.Value;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
         }
 
         [HttpDelete("{tableCode}/{id:guid}")]

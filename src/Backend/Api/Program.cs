@@ -134,6 +134,7 @@ builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<IRequestLanguageProvider, RequestLanguageProvider>();
 builder.Services.AddScoped<IBusinessDataLocalizationService, BusinessDataLocalizationService>();
+builder.Services.AddScoped<ILibraryIntegrityService, LibraryIntegrityService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddReportInsights(Configuration);
 builder.Services.AddControllersWithViews();

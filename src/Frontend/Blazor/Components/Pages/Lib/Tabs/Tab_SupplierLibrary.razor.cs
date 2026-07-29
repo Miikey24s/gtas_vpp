@@ -93,6 +93,11 @@ public partial class Tab_SupplierLibrary : IDisposable
 
     private async Task ToggleDeletedAsync(SupplierResDTO row, bool value)
     {
+        if (value && !await CanDeactivateAsync(Config.LibraryApi.Suppliers, row.Id))
+        {
+            return;
+        }
+
         try
         {
             var result = await ApiServices.PatchFromApiAsync<SupplierResDTO>($"{Config.LibraryApi.Suppliers}/{row.Id}", new { IsDeleted = value, UpdatedAtUtc = DateTime.Now, UpdatedByUserId = Global.UserInfo.UserID });
@@ -110,6 +115,16 @@ public partial class Tab_SupplierLibrary : IDisposable
             row.IsDeleted = !value;
             ToastService.Error(ex, Loc, "ChangeRecordStatusFailed");
         }
+    }
+
+    private async Task<bool> CanDeactivateAsync(string endpoint, Guid id)
+    {
+        var impact = await ApiServices.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{endpoint}/{id}/dependency-impact");
+        if (impact is null || impact.CanDeactivate) return true;
+
+        ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"],
+            string.Format(Loc["DependencyDeactivateBlocked"].Value, impact.ActiveReferenceCount), 5000, false);
+        return false;
     }
 
     private async Task OnSearchInputAsync(ChangeEventArgs args)
