@@ -76,9 +76,17 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         (await grid.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
         var filterTrigger = Page.Locator(".vpp-filter-select-trigger").First;
         var pageSizeDropdown = grid.Locator(".rz-paginator .rz-dropdown, .rz-pager .rz-dropdown").Last;
-        var filterTriggerGeometry = await ReadControlGeometryAsync(filterTrigger);
-        var pageSizeGeometry = await ReadControlGeometryAsync(pageSizeDropdown);
-        pageSizeGeometry.Should().Be(filterTriggerGeometry, "page-size select must reuse canonical filter-select geometry");
+        var filterTriggerChrome = await ReadControlChromeAsync(filterTrigger);
+        var pageSizeChrome = await ReadControlChromeAsync(pageSizeDropdown);
+        pageSizeChrome.Should().Be(filterTriggerChrome, "default page-size select must reuse neutral canonical filter chrome");
+
+        await filterTrigger.HoverAsync();
+        await Page.WaitForTimeoutAsync(200);
+        var filterHoverChrome = await ReadControlChromeAsync(filterTrigger);
+        await pageSizeDropdown.HoverAsync();
+        await Page.WaitForTimeoutAsync(200);
+        var pageSizeHoverChrome = await ReadControlChromeAsync(pageSizeDropdown);
+        pageSizeHoverChrome.Should().Be(filterHoverChrome, "page-size hover must reuse canonical filter hover chrome");
 
         await filterTrigger.ClickAsync();
         var filterPanel = Page.Locator(".vpp-filter-select-popover:popover-open").First;
@@ -124,10 +132,10 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         await Page.Keyboard.PressAsync("Escape");
     }
 
-    private static Task<string> ReadControlGeometryAsync(ILocator control) => control.EvaluateAsync<string>("""
+    private static Task<string> ReadControlChromeAsync(ILocator control) => control.EvaluateAsync<string>("""
         element => {
             const style = getComputedStyle(element);
-            return `${style.height}|${style.borderRadius}`;
+            return `${style.height}|${style.borderRadius}|${style.backgroundColor}|${style.color}|${style.boxShadow}`;
         }
     """);
 

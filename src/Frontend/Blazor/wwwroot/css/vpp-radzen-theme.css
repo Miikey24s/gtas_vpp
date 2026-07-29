@@ -183,14 +183,16 @@
 .rz-pager .rz-dropdown {
     border: 0;
     border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-primary-500) 7%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-primary);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 26%, var(--vpp-border-default));
+    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-secondary);
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
 }
 
 .rz-paginator .rz-dropdown:not(.rz-state-disabled):hover,
 .rz-pager .rz-dropdown:not(.rz-state-disabled):hover {
-    background: color-mix(in srgb, var(--vpp-primary-500) 11%, var(--vpp-bg-elevated));
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-primary);
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
 }
 
 .rz-paginator .rz-dropdown.rz-dropdown-open,
@@ -198,6 +200,8 @@
 .rz-pager .rz-dropdown.rz-dropdown-open,
 .rz-pager .rz-dropdown:focus-visible {
     outline: 0;
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-primary);
     box-shadow: inset 0 0 0 1px var(--vpp-border-focus), var(--vpp-shadow-xs);
 }
 
