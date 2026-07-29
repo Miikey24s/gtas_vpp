@@ -8,47 +8,11 @@
                          TestId="prices-data-surface"
                          Class="vpp-admin-data-surface">
     <Toolbar>
-    <VppDataToolbar AriaLabel="@Loc["Prices"]" Class="vpp-admin-filterbar vpp-price-filterbar">
-        <RadzenFormField Text="@Loc["PriceList"]" Style="min-width:280px;">
-            <RadzenDropDown TValue="Guid?"
-                            Data="@priceLists"
-                            TextProperty="PriceListName"
-                            ValueProperty="Id"
-                            @bind-Value="selectedPriceListId"
-                            Change="@(async _ => await OnPriceListChangedAsync())"
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Disabled="@(!HasPriceLists)"
-                            Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="@Loc["Supplier"]" Style="min-width:320px;">
-            <RadzenDropDown TValue="Guid?"
-                            Data="@suppliers"
-                            TextProperty="SupplierName"
-                            ValueProperty="Id"
-                            @bind-Value="selectedSupplierId"
-                            Change="@(async _ => await OnSupplierChangedAsync())"
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Disabled="@(!HasPriceListSelected)"
-                            Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="@Loc["Search"]" Style="min-width:240px;">
-            <RadzenTextBox @bind-Value="searchText"
-                           @oninput="@(async args => await OnSearchInputAsync(args.Value?.ToString()))"
-                           Placeholder="@Loc["LibrarySearchPrices"]"
-                           aria-label="@Loc["LibrarySearchPrices"]"
-                           Style="width:100%" />
-        </RadzenFormField>
-        <RadzenButton Icon="refresh"
-                      Text="@Loc["Reload"]"
-                      Size="ButtonSize.Small"
-                      ButtonStyle="ButtonStyle.Light"
-                      class="vpp-library-refresh-action"
-                      Title="@Loc["Reload"]"
-                      aria-label="@Loc["Reload"]"
-                      Click="@LoadPricesAsync"
-                      Disabled="@(!HasPriceListSelected)" />
+    <VppDataToolbar AriaLabel="@Loc["Prices"]" Class="vpp-admin-grid-toolbar vpp-price-filterbar">
+        <VppFilterSelect TValue="Guid?" Value="@selectedPriceListId" Options="@PriceListFilterOptions" ValueChanged="@OnPriceListChangedAsync" Placeholder="@Loc["PriceList"]" AriaLabel="@Loc["PriceList"]" Disabled="@(!HasPriceLists)" />
+        <VppFilterSelect TValue="Guid?" Value="@selectedSupplierId" Options="@SupplierFilterOptions" ValueChanged="@OnSupplierChangedAsync" Placeholder="@Loc["Supplier"]" AriaLabel="@Loc["Supplier"]" Disabled="@(!HasPriceListSelected)" />
+        <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchPrices"]" AriaLabel="@Loc["LibrarySearchPrices"]" />
+        <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@(!string.IsNullOrWhiteSpace(searchText))" Clicked="@ClearSearchAsync" />
         <VppColumnPicker TItem="VppItemPriceResDTO" GridAccessor="@(() => grid)" />
     </VppDataToolbar>
     </Toolbar>

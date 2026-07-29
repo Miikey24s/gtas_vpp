@@ -1,63 +1,37 @@
+@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 
-<RadzenTemplateForm TItem="PriceListUpdateReqDTO" Data="@Model" Submit="@Save">
-    <RadzenStack Gap="1rem">
-        <RadzenFormField Text="@Loc["PriceListCode"]" class="w-100">
-            <RadzenTextBox Name="Code" @bind-Value="Model.Code" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="@Loc["PriceListName"]" class="w-100">
-            <RadzenTextBox Name="Name" @bind-Value="Model.Name" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="Supplier" class="w-100">
-            <RadzenDropDown TValue="Guid?" Data="@Suppliers" TextProperty="SupplierName" ValueProperty="Id" @bind-Value="Model.SupplierId" AllowFiltering="true" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="Version" class="vpp-price-term-field">
-                <RadzenNumeric TValue="int" @bind-Value="Model.Version" Min="1" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="Currency" class="vpp-price-term-field">
-                <RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Style="width:100%" />
-            </RadzenFormField>
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace" TestId="price-list-editor">
+    <ChildContent>
+        <RadzenStack Gap="1rem">
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListCode"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Code" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Name" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenFormField Text="Nhà cung cấp" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid?" Data="@Suppliers" TextProperty="SupplierName" ValueProperty="Id" @bind-Value="Model.SupplierId" AllowFiltering="true" Style="width:100%" /></RadzenFormField>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Phiên bản" Variant="Variant.Outlined"><RadzenNumeric TValue="int" @bind-Value="Model.Version" Min="1" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Tiền tệ" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Mã hợp đồng" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.ContractCode" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Có hiệu lực từ (UTC)" Variant="Variant.Outlined"><RadzenDatePicker TValue="DateTime?" @bind-Value="Model.EffectiveFromUtc" DateFormat="yyyy-MM-dd HH:mm" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Có hiệu lực đến (UTC)" Variant="Variant.Outlined"><RadzenDatePicker TValue="DateTime?" @bind-Value="Model.EffectiveToUtc" DateFormat="yyyy-MM-dd HH:mm" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Chiết khấu %" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.DiscountRate" Min="0" Max="100" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Rebate" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.RebateAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Phí" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.FeeAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Vận chuyển" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.ShippingAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            @if (!IsClone)
+            {
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["IsDefault"]" TextStyle="TextStyle.Body2" /></RadzenStack>
+            }
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
         </RadzenStack>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="Effective from (UTC)" class="vpp-price-term-field">
-                <RadzenDatePicker TValue="DateTime?" @bind-Value="Model.EffectiveFromUtc" DateFormat="yyyy-MM-dd HH:mm" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="Effective to (UTC)" class="vpp-price-term-field">
-                <RadzenDatePicker TValue="DateTime?" @bind-Value="Model.EffectiveToUtc" DateFormat="yyyy-MM-dd HH:mm" Style="width:100%" />
-            </RadzenFormField>
-        </RadzenStack>
-        <RadzenFormField Text="Contract code" class="w-100">
-            <RadzenTextBox @bind-Value="Model.ContractCode" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="Discount %" class="vpp-price-term-field">
-                <RadzenNumeric TValue="decimal" @bind-Value="Model.DiscountRate" Min="0" Max="100" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="Rebate" class="vpp-price-term-field">
-                <RadzenNumeric TValue="decimal" @bind-Value="Model.RebateAmount" Min="0" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="Fee" class="vpp-price-term-field">
-                <RadzenNumeric TValue="decimal" @bind-Value="Model.FeeAmount" Min="0" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="Shipping" class="vpp-price-term-field">
-                <RadzenNumeric TValue="decimal" @bind-Value="Model.ShippingAmount" Min="0" Style="width:100%" />
-            </RadzenFormField>
-        </RadzenStack>
-        @if (!IsClone)
-        {
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                <RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" />
-                <RadzenText Text="@Loc["IsDefault"]" TextStyle="TextStyle.Body2" />
-            </RadzenStack>
-        }
-        <RadzenFormField Text="@Loc["Description"]" class="w-100">
-            <RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
-            <RadzenButton Text="@Loc["Save"]" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary" />
-        </RadzenStack>
-    </RadzenStack>
-</RadzenTemplateForm>
+    </ChildContent>
+    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" /></div></Footer>
+</VppAdaptiveDialogShell>

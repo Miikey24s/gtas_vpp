@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -38,6 +39,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
         private bool IsSelectedPriceListDraft
             => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.Status == "Draft";
+        private IReadOnlyList<VppFilterOption<Guid?>> PriceListFilterOptions
+            => priceLists.Select(row => new VppFilterOption<Guid?>(row.Id, row.PriceListName ?? row.PriceListCode ?? "–")).ToList();
+        private IReadOnlyList<VppFilterOption<Guid?>> SupplierFilterOptions
+            => suppliers.Select(row => new VppFilterOption<Guid?>(row.Id, row.SupplierName ?? row.SupplierShortName ?? "–")).ToList();
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
             : selectedSupplierId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
@@ -169,13 +174,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task OnSearchInputAsync(string? value)
+        private async Task OnSearchInputAsync(ChangeEventArgs args)
         {
-            searchText = value ?? "";
+            searchText = args.Value?.ToString() ?? "";
             if (grid is not null)
             {
                 await grid.FirstPage(true);
             }
+        }
+
+        private async Task ClearSearchAsync()
+        {
+            searchText = string.Empty;
+            if (grid is not null) await grid.FirstPage(true);
         }
 
         private async Task EditPriceAsync(VppItemPriceResDTO row)
@@ -359,19 +370,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     [nameof(Dialog_PriceEditor.Model)] = model,
                     [nameof(Dialog_PriceEditor.Suppliers)] = suppliers
                 },
-                new DialogOptions { Width = "520px", Resizable = true, Draggable = true });
+                VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard, title, closeAriaLabel: Loc["Close"].Value));
 
             return result as SupplierProductPriceUpdateReqDTO;
         }
 
-        private async Task OnPriceListChangedAsync()
+        private async Task OnPriceListChangedAsync(Guid? value)
         {
+            selectedPriceListId = value;
             selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId ?? selectedSupplierId;
             await LoadPricesAsync();
         }
 
-        private async Task OnSupplierChangedAsync()
+        private async Task OnSupplierChangedAsync(Guid? value)
         {
+            selectedSupplierId = value;
             await LoadPricesAsync();
         }
 

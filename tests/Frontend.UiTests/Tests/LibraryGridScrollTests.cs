@@ -184,8 +184,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         var priceListSurface = Page.Locator("[data-testid='price-lists-data-surface']");
         var priceListGrid = priceListSurface.Locator(".vpp-admin-page-grid");
-        var secondaryTabs = Page.Locator(
-            ".vpp-secondary-tabs > .rz-tabview-nav-container, .vpp-secondary-tabs > .rz-tabview-nav");
+        var secondaryTabs = Page.Locator(".vpp-library-local-selector .vpp-segmented-selector");
         await priceListSurface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await priceListGrid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await secondaryTabs.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -201,7 +200,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var priceListMetrics = await priceListSurface.EvaluateAsync<double[]>("""
             element => {
                 const body = document.querySelector('.vpp-layout-body');
-                const tabs = document.querySelector('.vpp-secondary-tabs > .rz-tabview-nav-container, .vpp-secondary-tabs > .rz-tabview-nav');
+                const tabs = document.querySelector('.vpp-library-local-selector .vpp-segmented-selector');
                 const grid = element.querySelector('.vpp-admin-page-grid');
                 const pager = element.querySelector('.rz-paginator, .rz-pager');
                 if (!body || !tabs || !grid || !pager) {
@@ -224,6 +223,20 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         priceListMetrics[3].Should().Be(0);
         priceListMetrics[4].Should().BeLessThanOrEqualTo(1);
         priceListMetrics[5].Should().BeLessThanOrEqualTo(priceListMetrics[6] + 1);
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa4-price-list-collection.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
 
         await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices", new() { WaitUntil = WaitUntilState.Load });
         var priceSurface = Page.Locator("[data-testid='prices-data-surface']");
@@ -249,6 +262,37 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         priceMetrics[0].Should().BeLessThanOrEqualTo(1);
         priceMetrics[1].Should().BeLessThanOrEqualTo(priceMetrics[2] + 1);
         priceMetrics[3].Should().Be(0);
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa4-price-collection.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+    }
+
+    [Fact]
+    public async Task PriceList_Editor_UsesWorkspaceAdaptiveDialog()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists", new() { WaitUntil = WaitUntilState.Load });
+
+        var surface = Page.Locator("[data-testid='price-lists-data-surface']");
+        var createButton = surface.Locator(".vpp-library-primary-action");
+        await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await createButton.ClickAsync();
+
+        var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--workspace:visible");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await dialog.Locator("[data-testid='price-list-editor']").CountAsync()).Should().Be(1);
+        await Page.Keyboard.PressAsync("Escape");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }
 
     [Fact]

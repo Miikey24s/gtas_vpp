@@ -7,7 +7,6 @@ public sealed class AtlasWave1ArchitectureTests
 {
     [Theory]
     [InlineData("Components/Pages/Lib/Component_ShareGrid.razor")]
-    [InlineData("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor")]
     [InlineData("Components/Pages/Permission/Tabs/Tab_User.razor")]
     public void AdministrativeCollections_ExposeAResponsiveInspector(string relativePath)
     {
@@ -31,6 +30,24 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("DefaultSupplierName", source, StringComparison.Ordinal);
         Assert.Contains("typeof(TType) == typeof(SupplierResDTO)", source, StringComparison.Ordinal);
         Assert.Contains("nameof(SupplierResDTO.Address1)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PriceListAdminUsesFullWidthCollectionAndAdaptiveEditorContract()
+    {
+        var page = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
+        var editor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceListEditor.razor");
+        var priceEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceEditor.razor");
+        var priceCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor.cs");
+
+        Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("Component_RecordInspector", page, StringComparison.Ordinal);
+        Assert.Contains("<VppFilterSelect TValue=\"string\"", page, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", editor, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", priceEditor, StringComparison.Ordinal);
+        Assert.Contains("VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard", priceCode, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-admin-dialog-size=\"@SizeCssClass\"", ReadFrontendSource("Components/DesignSystem/Composites/VppAdaptiveDialogShell.razor"), StringComparison.Ordinal);
     }
 
     [Fact]

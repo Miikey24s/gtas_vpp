@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -21,7 +22,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         private List<PriceListResDTO> priceLists = [];
-        private IList<PriceListResDTO> selectedPriceLists = [];
         private List<SupplierResDTO> suppliers = [];
         private RadzenDataGrid<PriceListResDTO> grid = default!;
         private bool isLoading;
@@ -29,16 +29,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private int currentSkip;
         private string? currentFilterExpression;
         private string selectedStatus = string.Empty;
+        private string searchText = string.Empty;
+        private bool HasFilters => !string.IsNullOrWhiteSpace(selectedStatus) || !string.IsNullOrWhiteSpace(searchText);
+        private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
 
-        private IReadOnlyList<PriceListStatusOption> PriceListStatusOptions =>
+        private IReadOnlyList<VppFilterOption<string>> PriceListStatusOptions =>
         [
-            new(string.Empty, Loc["LibraryAllStatuses"]),
-            new("Draft", Loc["PriceListStatusDraft"]),
-            new("Published", Loc["PriceListStatusPublished"]),
-            new("Expired", Loc["PriceListStatusExpired"])
+            new(string.Empty, Loc["LibraryAllStatuses"].Value),
+            new("Draft", Loc["PriceListStatusDraft"].Value),
+            new("Published", Loc["PriceListStatusPublished"].Value),
+            new("Expired", Loc["PriceListStatusExpired"].Value)
         ];
-
-        private PriceListResDTO? SelectedPriceList => selectedPriceLists.FirstOrDefault();
 
         protected override async Task OnInitializedAsync()
         {
@@ -51,16 +52,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender && grid is not null)
-            {
-                await grid.Reload();
-            }
-
-            await base.OnAfterRenderAsync(firstRender);
         }
 
         private async Task LoadAsync()
@@ -82,14 +73,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
                 priceLists = result.Data ?? [];
                 count = result.TotalCount;
-                if (priceLists.Count > 0 && (SelectedPriceList is null || priceLists.All(row => row.Id != SelectedPriceList.Id)))
-                {
-                    selectedPriceLists = [priceLists[0]];
-                }
-                else if (priceLists.Count == 0)
-                {
-                    selectedPriceLists = [];
-                }
             }
             catch (Exception ex)
             {
@@ -229,10 +212,23 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task OnStatusChangedAsync(object? value)
+        private async Task OnStatusChangedAsync(string value)
         {
-            selectedStatus = value?.ToString() ?? string.Empty;
+            selectedStatus = value ?? string.Empty;
             await LoadAsync();
+        }
+
+        private async Task OnSearchInputAsync(ChangeEventArgs args)
+        {
+            searchText = args.Value?.ToString() ?? string.Empty;
+            await grid.FirstPage(true);
+        }
+
+        private async Task ClearFiltersAsync()
+        {
+            searchText = string.Empty;
+            selectedStatus = string.Empty;
+            await grid.FirstPage(true);
         }
 
         private string? CombineStatusFilter(string? gridFilter)
@@ -247,9 +243,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 ? statusFilter
                 : $"({gridFilter}) && {statusFilter}";
         }
-
-        private Task ToggleSelectedPriceListStatusAsync(PriceListResDTO row)
-            => SetDeletedAsync(row, !row.IsDeleted);
 
         private void OnRowRenderPriceList(RowRenderEventArgs<PriceListResDTO> args)
         {
@@ -271,14 +264,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             catch (Exception ex)
             {
                 _toastService.Error(ex, Loc, "UpdateRecordFailed");
-            }
-        }
-
-        private void OnPriceListSelected(PriceListResDTO row)
-        {
-            if (row is not null)
-            {
-                selectedPriceLists = [row];
             }
         }
 
@@ -384,7 +369,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     [nameof(Dialog_PriceListEditor.IsClone)] = isClone,
                     [nameof(Dialog_PriceListEditor.Suppliers)] = suppliers
                 },
-                new DialogOptions { Width = "520px", Resizable = true, Draggable = true });
+                VppAdminDialogProfiles.Create(VppAdminDialogSize.Workspace, title, closeAriaLabel: Loc["Close"].Value));
 
             return result as PriceListUpdateReqDTO;
         }
@@ -435,7 +420,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             return $"{fromText} – {to:dd/MM/yyyy}";
         }
 
-        private static string BuildPriceListEndpoint(
+        private string BuildPriceListEndpoint(
             string? filter = null,
             int? skip = null,
             int? top = null,
@@ -475,6 +460,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
             }
 
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query.Add($"search={Uri.EscapeDataString(searchText.Trim())}");
+            }
+
             return $"{Config.LibraryApi.PriceList}?{string.Join("&", query)}";
         }
 
@@ -489,6 +479,5 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             attributes["class"] = className;
         }
 
-        private sealed record PriceListStatusOption(string Value, string Label);
     }
 }

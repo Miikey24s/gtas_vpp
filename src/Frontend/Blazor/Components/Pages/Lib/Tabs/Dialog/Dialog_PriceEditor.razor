@@ -1,46 +1,22 @@
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 
-<RadzenTemplateForm TItem="SupplierProductPriceUpdateReqDTO" Data="@Model" Submit="@Save">
-    <RadzenStack Gap="1rem">
-        <RadzenFormField Text="@Loc["Supplier"]" class="w-100">
-            <RadzenDropDown Name="Supplier"
-                            TValue="Guid"
-                            Data="@Suppliers"
-                            TextProperty="SupplierName"
-                            ValueProperty="Id"
-                            @bind-Value="Model.SupplierId"
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Style="width:100%" />
-        </RadzenFormField>
-        <RadzenFormField Text="@Loc["Price"]" class="w-100">
-            <RadzenNumeric Name="Price" TValue="decimal" @bind-Value="Model.Price" Min="0" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Wrap="FlexWrap.Wrap">
-            <RadzenFormField Text="VAT %" class="vpp-price-term-field">
-                <RadzenNumeric TValue="decimal" @bind-Value="Model.VatRate" Min="0" Max="100" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="MOQ" class="vpp-price-term-field">
-                <RadzenNumeric TValue="decimal" @bind-Value="Model.MinimumOrderQuantity" Min="0" Style="width:100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="Lead days" class="vpp-price-term-field">
-                <RadzenNumeric TValue="int" @bind-Value="Model.LeadTimeDays" Min="0" Style="width:100%" />
-            </RadzenFormField>
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="price-editor">
+    <ChildContent>
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="@Loc["Supplier"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Suppliers" TextProperty="SupplierName" ValueProperty="Id" @bind-Value="Model.SupplierId" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" /></RadzenFormField>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Price"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.Price" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Supplier SKU" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.SupplierSku" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="VAT %" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.VatRate" Min="0" Max="100" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="MOQ" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.MinimumOrderQuantity" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Lead days" Variant="Variant.Outlined"><RadzenNumeric TValue="int" @bind-Value="Model.LeadTimeDays" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["DefaultPrice"]" TextStyle="TextStyle.Body2" /></RadzenStack>
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
         </RadzenStack>
-        <RadzenFormField Text="Supplier SKU" class="w-100">
-            <RadzenTextBox @bind-Value="Model.SupplierSku" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-            <RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" />
-            <RadzenText Text="@Loc["DefaultPrice"]" TextStyle="TextStyle.Body2" />
-        </RadzenStack>
-        <RadzenFormField Text="@Loc["Description"]" class="w-100">
-            <RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" />
-        </RadzenFormField>
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
-            <RadzenButton Text="@Loc["Save"]" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary" />
-        </RadzenStack>
-    </RadzenStack>
-</RadzenTemplateForm>
+    </ChildContent>
+    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" /></div></Footer>
+</VppAdaptiveDialogShell>
