@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **17 file / 23 DataGrid thật**. Generic type reference trong `VppColumnPicker` và Blazor `Virtualize` riêng của Create Order không được tính là grid instance.
+Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` và Blazor `Virtualize` riêng của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -23,7 +23,8 @@ Source hiện có **17 file / 23 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 2 | Approval + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
 | `Components/Pages/VPPRequest/Components/PeriodDemandPanel.razor` | 1 | Demand collection | `Static` + client pager | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor` | 2 | Review + detail | `ServerPaging` + `Static` | `Compact` | DS3 workflow complete |
-| `Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor` | 1 | Allocation comparison | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
+| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 1 | Settlement quote snapshot | `Static` | `Compact` | DS3 period workflow retrofit |
+| `Components/Pages/VPPRequest/Components/PeriodSupplyAllocationPanel.razor` | 1 | Allocation comparison | `Static` + client pager | `RichTwoLine` | DS3 period workflow retrofit |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_AllOrdersSummary.razor` | 2 | Orders + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
@@ -63,4 +64,5 @@ Source hiện có **17 file / 23 DataGrid thật**. Generic type reference trong
 
 - `OrderCreateStep2`: client snapshot theo batch, virtualized DOM thật, canonical toolbar/code popup/virtual footer; scroll không gọi lại API.
 - `Tab_DepartmentSummary`: tái sử dụng `HistoryOrderList` và toàn bộ History workspace; route chỉ truyền cột người đặt riêng, API và permission phòng ban.
-- `PeriodReviewPanel`: canonical year/month toolbar và server-paged frame; route giữ reload/readiness/settlement action, empty state vẫn có semantics.
+- `PeriodReviewPanel`: canonical search/type/status toolbar và server-paged frame; kỳ được sở hữu bởi workspace bốn bước, route giữ readiness và empty/error semantics.
+- `PeriodDemandPanel`, `PeriodSupplyAllocationPanel`, `PeriodSettlementPanel`: dùng cùng kỳ và cùng settlement preview; mỗi bước có typed frame, native scroll/paging và footer chuyển bước rõ ràng.

@@ -3,12 +3,10 @@
 
 @if (CanView)
 {
-    @if (ShowSettlementContent || ShowDemandContent || ShowSupplyContent)
+    @if (ShowReviewContent || ShowDemandContent || ShowSupplyContent || ShowSettlementContent)
     {
         <PeriodOperationsWorkspace Claims="@claims"
-                                   ShowReview="@ShowSettlementContent"
-                                   ShowDemand="@ShowDemandContent"
-                                   ShowSupply="@ShowSupplyContent"
+                                   ActiveStep="@ActivePeriodTab"
                                    NavigateRequested="@NavigateToPeriodTab"
                                    Settled="@OnSettledRefresh" />
     }

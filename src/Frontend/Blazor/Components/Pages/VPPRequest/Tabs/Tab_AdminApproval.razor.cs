@@ -16,6 +16,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private const string PeriodReviewTab = "review";
         private const string PeriodDemandTab = "demand";
         private const string PeriodSupplyTab = "supply";
+        private const string PeriodSettleTab = "settle";
         private const string PendingApprovalsTab = "pending";
 
         // Dialog service chỉ dành cho tab này, base không cần.
@@ -42,11 +43,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanApprove => PermissionState.HasPermission(Permissions.RequestApprove);
         private bool CanReject => PermissionState.HasPermission(Permissions.RequestReject);
 
-        private bool ShowSettlementContent => CanShowSettlement && ActivePeriodTab == PeriodReviewTab;
+        private bool ShowReviewContent => CanShowSettlement && ActivePeriodTab == PeriodReviewTab;
 
         private bool ShowDemandContent => CanShowSettlement && ActivePeriodTab == PeriodDemandTab;
 
         private bool ShowSupplyContent => CanShowSettlement && ActivePeriodTab == PeriodSupplyTab;
+
+        private bool ShowSettlementContent => CanShowSettlement && ActivePeriodTab == PeriodSettleTab;
 
         private bool ShowApprovalsContent => CanShowApprovals && ActivePeriodTab == PendingApprovalsTab;
 
@@ -115,6 +118,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (string.Equals(requested, PeriodSupplyTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
             {
                 ActivePeriodTab = PeriodSupplyTab;
+                return;
+            }
+
+            if (string.Equals(requested, PeriodSettleTab, StringComparison.OrdinalIgnoreCase) && CanShowSettlement)
+            {
+                ActivePeriodTab = PeriodSettleTab;
                 return;
             }
 

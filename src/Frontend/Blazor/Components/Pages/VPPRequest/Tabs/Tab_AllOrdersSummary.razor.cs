@@ -5,6 +5,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     public partial class Tab_AllOrdersSummary : BaseOrderTab
     {
+        [Microsoft.AspNetCore.Components.Parameter] public int? FixedYear { get; set; }
+        [Microsoft.AspNetCore.Components.Parameter] public int? FixedMonth { get; set; }
+
         public sealed class OptionItem
         {
             public int? Value { get; set; }
@@ -25,6 +28,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected override void OnInit()
         {
             var currentYear = DateTime.Now.Year;
+            YearFilter = FixedYear ?? currentYear;
+            MonthFilter = FixedMonth;
             YearOptions.Clear();
             YearOptions.Add(new OptionItem { Value = null, Text = Loc["All"] });
             for (var i = currentYear - 3; i <= currentYear + 1; i++)

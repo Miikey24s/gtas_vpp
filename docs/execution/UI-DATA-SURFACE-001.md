@@ -27,7 +27,7 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 | DS0 — Contract | `DONE — OWNER APPROVED 2026-07-29` | Khóa motif, density, footer mode và consumer ledger | Một board nhìn là hiểu toàn hệ thống | **Sol · XHigh** — quyết định kiến trúc dài hạn | Đã duyệt motif và hai density profile |
 | DS1 — Foundation | `DONE — OWNER APPROVED 2026-07-29` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Đã duyệt 2 route đại diện |
 | DS2 — Reference | `DONE — OWNER APPROVED 2026-07-29` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Đã duyệt và mở DS3 |
-| DS3 — Workflow | `IMPLEMENTED — OWNER REVIEW` | Create Order, Department Summary, Period Review | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt 4 route/state thật |
+| DS3 — Workflow | `IMPLEMENTED — OWNER REVIEW` | Create Order, Department Summary, 4 bước Vận hành kỳ | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Duyệt route/state thật và luồng 4 bước |
 | DS4 — Admin | `LOCKED` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Duyệt admin board |
 | R1 — Refactor | `LOCKED` | Xóa adapter/CSS/state hết consumer, tách file quá tải | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Before/after visual + behavior parity |
 
@@ -230,6 +230,9 @@ Gate: board 4 route thật, console/network sạch và không document-level scr
 - Evidence T001: frontend Release build `0 warning/error`; focused isolated Playwright Additional Order pass `1/1`, bao phủ mở form, nhập/lưu và xóa requirement warning; modal runtime đã kiểm bằng mắt tại `tmp/t001-supplement-reason-form/` (ignored). Full suite vẫn deferred.
 - Owner correction T001: segmented order selector + contextual CTA được tách khỏi card kỳ thành `vpp-orders-view-switchbar` riêng, nằm đúng thứ tự giữa period context và selected data table. Status line đi cùng switchbar; card kỳ chỉ còn calendar/period/deadline.
 - Evidence T001: build frontend `0 warning/error`; focused My Orders Playwright `1/1` khóa thứ tự geometry `period → switchbar → table`; ảnh runtime đã kiểm bằng mắt tại `tmp/t001-my-orders-switchbar/` (ignored). Full suite vẫn deferred.
+- Period Operations retrofit: bốn bước `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung → Chốt kỳ` dùng một flowbar compact và một bộ chọn kỳ chung. Review giữ server paging/detail-on-demand; Demand và Supply dùng data-surface có pager; Settlement chỉ được chốt bằng đúng preview/input hash tạo ở bước Supply, không tự tạo snapshot rời.
+- Motif dữ liệu của cả bốn bước thống nhất `heading → search/filter/clear → column/data → footer/action`; dùng native scroll, không document-level scroll và không custom scrollbar. Kỳ rỗng được đánh dấu blocked thay vì báo sẵn sàng chốt; action preview nằm ở footer để toolbar không xuống dòng, và Chốt kỳ chỉ có một nút quay lại nguồn cung.
+- Evidence retrofit: frontend Release build `0 warning / 0 error`; frontend unit/architecture `196/196`; isolated Playwright `Ds3WorkflowTests` pass `1/1` và đi tuần tự đủ bốn bước. Ảnh từng bước ở `tmp/period-operations-redesign/` được kiểm bằng mắt, output tạm không commit.
 
 #### Department Summary parity record — 2026-07-29
 

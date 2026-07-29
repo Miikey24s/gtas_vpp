@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -13,16 +14,37 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         [Inject] private IAPIServices ApiServices { get; set; } = default!;
         [Inject] private IToastService Toast { get; set; } = default!;
         [Inject] private PeriodSettlementState State { get; set; } = default!;
+        [Parameter] public int Year { get; set; }
+        [Parameter] public int Month { get; set; }
         [Parameter] public EventCallback OnContinueToSettle { get; set; }
 
         private List<SupplierResDTO> suppliers = [];
         private List<VppItemPriceResDTO> primaryItemPrices = [];
         private AggregatedVppResDTO? demand;
         private Guid? selectedSupplierId;
-        private int selectedYear = DateTime.Now.Year;
-        private int selectedMonth = DateTime.Now.Month;
         private bool isBusy;
         private bool isPriceComparisonLoading;
+        private int loadedYear;
+        private int loadedMonth;
+        private string searchText = string.Empty;
+        private SupplyPriceResult? selectedResult;
+
+        private bool HasTableFilters => !string.IsNullOrWhiteSpace(searchText) || selectedResult.HasValue;
+        private bool CanContinue => State.Preview is { PrimaryQuote: not null, Blockers.Count: 0 };
+        private List<SupplyPriceComparisonRow> FilteredPriceRows => PriceComparisonRows
+            .Where(row => string.IsNullOrWhiteSpace(searchText)
+                || (row.VppName?.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ?? false)
+                || (row.VppCode?.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ?? false))
+            .Where(row => !selectedResult.HasValue || row.Result == selectedResult.Value)
+            .ToList();
+
+        private IReadOnlyList<VppFilterOption<SupplyPriceResult?>> ResultOptions =>
+        [
+            new(null, Loc["All"]),
+            new(SupplyPriceResult.Available, Loc["SupplyPriceAvailable"]),
+            new(SupplyPriceResult.Exception, Loc["SupplyPriceException"]),
+            new(SupplyPriceResult.Missing, Loc["SupplyPriceMissing"])
+        ];
 
         private List<SupplyPriceComparisonRow> PriceComparisonRows => demand?.Items
             .Select(item =>
@@ -80,21 +102,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
         protected override async Task OnInitializedAsync()
         {
             State.Changed += OnStateChanged;
-
-            var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
-            if (period is not null)
-            {
-                selectedYear = period.PreviousPeriodYear;
-                selectedMonth = period.PreviousPeriodMonth;
-            }
-
             selectedSupplierId = State.SelectedSupplierId;
             await LoadSuppliersAsync();
+        }
+
+        protected override async Task OnParametersSetAsync()
+        {
+            if (Year < 2024 || Month is < 1 or > 12 || (loadedYear == Year && loadedMonth == Month)) return;
+            loadedYear = Year;
+            loadedMonth = Month;
+            selectedSupplierId = State.SelectedSupplierId;
             await LoadDemandNamesAsync();
-            if (State.Preview is not null)
-            {
-                await LoadPrimaryItemPricesAsync(State.Preview);
-            }
+            if (State.Preview is not null) await LoadPrimaryItemPricesAsync(State.Preview);
         }
 
         private void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
@@ -121,7 +140,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             try
             {
                 demand = await ApiServices.GetFromApiAsync<AggregatedVppResDTO>(
-                    $"{Config.VppApi.PeriodDemand}?year={selectedYear}&month={selectedMonth}");
+                    $"{Config.VppApi.PeriodDemand}?year={Year}&month={Month}");
             }
             catch
             {
@@ -179,8 +198,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                     Config.RequestApi.PeriodSettlement.Preview,
                     new SettlementPreviewReqDTO
                     {
-                        Year = selectedYear,
-                        Month = selectedMonth,
+                        Year = Year,
+                        Month = Month,
                         PrimarySupplierId = selectedSupplierId,
                         PriceAsOfUtc = DateTime.UtcNow,
                         Exceptions = exceptions
@@ -233,6 +252,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
                 isPriceComparisonLoading = false;
             }
         }
+
+        private void OnSearchInput(ChangeEventArgs args) => searchText = args.Value?.ToString() ?? string.Empty;
+        private Task OnResultChanged(SupplyPriceResult? value) { selectedResult = value; return Task.CompletedTask; }
+        private Task ClearTableFilters() { searchText = string.Empty; selectedResult = null; return Task.CompletedTask; }
 
         private string GetPriceResultText(SupplyPriceResult result) => result switch
         {

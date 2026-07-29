@@ -1,346 +1,290 @@
+using System.Globalization;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.Components.DesignSystem.Composites;
-using gtas_vpp_shared.DTOs.Req.VPP;
-using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
-using Radzen;
-using System.Globalization;
-using System.Text.Json;
 using Microsoft.JSInterop;
+using Radzen;
 
-namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
+namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
+
+public partial class PeriodReviewPanel : IDisposable
 {
-    public partial class PeriodReviewPanel
+    [Inject] private IAPIServices ApiServices { get; set; } = default!;
+    [Inject] private IToastService Toast { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Parameter] public int Year { get; set; }
+    [Parameter] public int Month { get; set; }
+    [Parameter] public EventCallback OnContinueToDemand { get; set; }
+
+    private readonly HashSet<Guid> loadedDetailOrderIds = [];
+    private readonly HashSet<Guid> loadingDetailOrderIds = [];
+    private CancellationTokenSource? searchDebounce;
+    private List<VppRequestResDTO> orders = [];
+    private PeriodSettlementResDTO? periodStatus;
+    private bool isLoading = true;
+    private bool isGridLoading;
+    private string? alertMessage;
+    private int totalCount;
+    private int totalLines;
+    private int totalQty;
+    private long totalAmount;
+    private int currentSkip;
+    private int pageSize = 20;
+    private string? currentOrderByExpression;
+    private string searchText = string.Empty;
+    private string selectedOrderType = string.Empty;
+    private int? selectedStatus;
+    private int loadedYear;
+    private int loadedMonth;
+    private Guid? activeCodeOrderId;
+    private Guid? activeNoteOrderId;
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
+        || !string.IsNullOrWhiteSpace(selectedOrderType)
+        || selectedStatus.HasValue;
+    private bool HasNoValidOrders => !isLoading && totalCount == 0;
+
+    private string HeroStateClass => periodStatus switch
     {
-        [Inject] private IAPIServices ApiServices { get; set; } = default!;
-        [Inject] private IToastService Toast { get; set; } = default!;
-        [Inject] private DialogService DialogService { get; set; } = default!;
-        [Inject] private Microsoft.JSInterop.IJSRuntime JSRuntime { get; set; } = default!;
-        [Parameter] public EventCallback OnSettled { get; set; }
+        null => string.Empty,
+        { IsSettled: true } => "is-settled",
+        { PendingAdditionalCount: > 0 } => "is-blocked",
+        _ when HasNoValidOrders => "is-blocked",
+        _ => "is-ready"
+    };
+    private string HeroTitle => periodStatus switch
+    {
+        null => string.Empty,
+        { IsSettled: true } => Loc["ReviewHeroSettled"].Value,
+        { PendingAdditionalCount: > 0 } => Loc["ReviewHeroBlocked"].Value,
+        _ when HasNoValidOrders => Loc["ReviewNoValidOrders"].Value,
+        _ => Loc["ReviewHeroReady"].Value
+    };
+    private string HeroMeta => periodStatus switch
+    {
+        null => string.Empty,
+        { IsSettled: true } => Loc["ReviewHeroSettledMeta"].Value,
+        { PendingAdditionalCount: > 0 } => Loc["ReviewHeroBlockedMeta"].Value,
+        _ when HasNoValidOrders => Loc["DemandEmptyDescription"].Value,
+        _ => Loc["ReviewHeroReadyMeta"].Value
+    };
 
-        private readonly List<int> months = Enumerable.Range(1, 12).ToList();
-        private IReadOnlyList<VppFilterOption<int>> ReviewYearOptions => Enumerable.Range(2024, 7)
-            .Select(year => new VppFilterOption<int>(year, year.ToString()))
-            .ToArray();
-        private IReadOnlyList<VppFilterOption<int>> ReviewMonthOptions => months
-            .Select(month => new VppFilterOption<int>(month, month.ToString("00")))
-            .ToArray();
-        private readonly HashSet<Guid> loadedDetailOrderIds = new();
-        private readonly HashSet<Guid> loadingDetailOrderIds = new();
-        private List<VppRequestResDTO> orders = [];
-        private PeriodSettlementResDTO? periodStatus;
-        private int selectedYear = 2024;
-        private int selectedMonth = 1;
-        private bool isLoading = true;
-        private bool isGridLoading;
-        private string? alertMessage;
-        private AlertStyle alertStyle = AlertStyle.Info;
+    private IReadOnlyList<VppFilterOption<string>> OrderTypeOptions =>
+    [
+        new(string.Empty, Loc["HistoryAllOrderTypes"]),
+        new("regular", Loc["Regular"]),
+        new("additional", Loc["AdditionalOrder"])
+    ];
+    private IReadOnlyList<VppFilterOption<int?>> StatusOptions =>
+    [
+        new(null, Loc["HistoryAllStatuses"]),
+        new(1, Loc["Submitted"]),
+        new(4, Loc["Cancelled"]),
+        new(6, Loc["Pending"]),
+        new(7, Loc["Approved"]),
+        new(8, Loc["Rejected"])
+    ];
 
-        [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-
-        private string HeroStateClass => periodStatus switch
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Year < 2024 || Month is < 1 or > 12 || (loadedYear == Year && loadedMonth == Month))
         {
-            null => string.Empty,
-            { IsSettled: true } => "is-settled",
-            { PendingAdditionalCount: > 0 } => "is-blocked",
-            _ => "is-ready"
-        };
-
-        private string HeroTitle => periodStatus switch
-        {
-            null => string.Empty,
-            { IsSettled: true } => Loc["ReviewHeroSettled"].Value,
-            { PendingAdditionalCount: > 0 } => Loc["ReviewHeroBlocked"].Value,
-            _ => Loc["ReviewHeroReady"].Value
-        };
-
-        private string HeroMeta => periodStatus switch
-        {
-            null => string.Empty,
-            { IsSettled: true } => Loc["ReviewHeroSettledMeta"].Value,
-            { PendingAdditionalCount: > 0 } => Loc["ReviewHeroBlockedMeta"].Value,
-            _ => Loc["ReviewHeroReadyMeta"].Value
-        };
-
-        private Task OpenApprovalsAsync()
-        {
-            NavigationManager.NavigateTo("/dashboard?tab=5&periodTab=pending");
-            return Task.CompletedTask;
-        }
-        private int totalCount;
-        private int totalLines;
-        private int totalQty;
-        private long totalAmount;
-        private int currentSkip;
-        private int pageSize = 20;
-        private string? currentFilterExpression;
-        private string? currentOrderByExpression;
-        private IReadOnlyList<FilterDescriptor> currentFilters = [];
-
-        protected override async Task OnInitializedAsync()
-        {
-            await LoadDefaultPeriodAsync();
-            await ReloadPeriodAsync();
+            return;
         }
 
-        private async Task LoadDefaultPeriodAsync()
-        {
-            var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
-            if (period is null)
-            {
-                return;
-            }
+        loadedYear = Year;
+        loadedMonth = Month;
+        await ReloadPeriodAsync();
+    }
 
-            selectedYear = period.PreviousPeriodYear;
-            selectedMonth = period.PreviousPeriodMonth;
+    private async Task ReloadPeriodAsync()
+    {
+        currentSkip = 0;
+        currentOrderByExpression = null;
+        alertMessage = null;
+        await LoadSettlementStatusAsync();
+        await LoadOrdersAsync(firstLoad: true);
+    }
+
+    private async Task LoadSettlementStatusAsync()
+    {
+        try
+        {
+            periodStatus = await ApiServices.GetFromApiAsync<PeriodSettlementResDTO>(
+                string.Format(Config.RequestApi.PeriodSettlement.Status, Year, Month));
         }
-
-        private async Task ReloadPeriodAsync()
+        catch (Exception ex)
         {
-            currentSkip = 0;
-            currentFilterExpression = null;
-            currentOrderByExpression = null;
-            await LoadSettlementStatusAsync();
-            await LoadOrdersAsync(firstLoad: true);
+            alertMessage = UiErrorMapper.GetMessage(ex, Loc);
         }
+    }
 
-        private async Task LoadSettlementStatusAsync()
+    private async Task LoadOrdersAsync(bool firstLoad)
+    {
+        isLoading = firstLoad;
+        isGridLoading = !firstLoad;
+        try
         {
-            try
-            {
-                var status = await ApiServices.GetFromApiAsync<PeriodSettlementResDTO>(
-                    string.Format(Config.RequestApi.PeriodSettlement.Status, selectedYear, selectedMonth));
-                ApplyStatus(status);
-            }
-            catch (Exception ex)
-            {
-                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
-            }
-        }
-
-        private void ApplyStatus(PeriodSettlementResDTO? status)
-        {
-            periodStatus = status;
-            if (status is null)
-            {
-                SetAlert(AlertStyle.Warning, Loc["Error"].Value);
-                return;
-            }
-
+            var (data, count, lines, qty, amount) = await ApiServices
+                .GetFromApiWithAmountStatsAsync<List<VppRequestResDTO>>(BuildOrdersEndpoint());
+            orders = data ?? [];
+            totalCount = count;
+            totalLines = lines;
+            totalQty = qty;
+            totalAmount = amount;
             alertMessage = null;
+            loadedDetailOrderIds.Clear();
+            loadingDetailOrderIds.Clear();
         }
-
-        private async Task LoadOrdersAsync(bool firstLoad)
+        catch (Exception ex)
         {
-            if (firstLoad)
-            {
-                isLoading = true;
-            }
-            else
-            {
-                isGridLoading = true;
-            }
-
-            try
-            {
-                var endpoint = BuildOrdersEndpoint();
-                var (data, count, lines, qty, amount) = await ApiServices.GetFromApiWithAmountStatsAsync<List<VppRequestResDTO>>(endpoint);
-                orders = data ?? [];
-                totalCount = count;
-                totalLines = lines;
-                totalQty = qty;
-                totalAmount = amount;
-                loadedDetailOrderIds.Clear();
-                loadingDetailOrderIds.Clear();
-            }
-            catch (Exception ex)
-            {
-                SetAlert(AlertStyle.Danger, UiErrorMapper.GetMessage(ex, Loc));
-                Toast.Error(ex, Loc);
-            }
-            finally
-            {
-                isLoading = false;
-                isGridLoading = false;
-                StateHasChanged();
-            }
+            alertMessage = UiErrorMapper.GetMessage(ex, Loc);
+            Toast.Error(ex, Loc);
         }
-
-        private string BuildOrdersEndpoint()
+        finally
         {
-            var query = new List<string>
-            {
-                $"year={selectedYear}",
-                $"month={selectedMonth}",
-                $"skip={currentSkip}",
-                $"top={pageSize}"
-            };
-
-            if (!string.IsNullOrWhiteSpace(currentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(currentFilterExpression)}");
-            if (!string.IsNullOrWhiteSpace(currentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(currentOrderByExpression)}");
-
-            return $"{Config.VppApi.AllOrders}?{string.Join("&", query)}";
+            isLoading = false;
+            isGridLoading = false;
         }
+    }
 
-        private async Task OnLoadData(LoadDataArgs args)
+    private string BuildOrdersEndpoint()
+    {
+        var query = new List<string>
         {
-            currentSkip = args.Skip ?? 0;
-            if (args.Top.HasValue && args.Top.Value > 0) pageSize = args.Top.Value;
-            currentFilterExpression = args.Filter;
-            currentOrderByExpression = args.OrderBy;
-            currentFilters = args.Filters?.ToList() ?? [];
+            $"year={Year}",
+            $"month={Month}",
+            $"skip={currentSkip}",
+            $"top={pageSize}"
+        };
+        if (selectedStatus.HasValue) query.Add($"status={selectedStatus.Value}");
+        var filter = BuildFilterExpression();
+        if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
+        if (!string.IsNullOrWhiteSpace(currentOrderByExpression)) query.Add($"orderby={Uri.EscapeDataString(currentOrderByExpression)}");
+        return $"{Config.VppApi.AllOrders}?{string.Join("&", query)}";
+    }
+
+    private string? BuildFilterExpression()
+    {
+        var clauses = new List<string>();
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            var value = EscapeDynamicString(searchText.Trim());
+            clauses.Add($"((VppCode != null && VppCode.ToLower().Contains(\"{value}\")) || (RequesterName != null && RequesterName.ToLower().Contains(\"{value}\")) || (Description != null && Description.ToLower().Contains(\"{value}\")))");
+        }
+        if (selectedOrderType == "regular") clauses.Add("IsAdditionalOrder == false");
+        if (selectedOrderType == "additional") clauses.Add("IsAdditionalOrder == true");
+        return clauses.Count == 0 ? null : string.Join(" && ", clauses);
+    }
+
+    private static string EscapeDynamicString(string value) => value
+        .ToLowerInvariant()
+        .Replace("\\", "\\\\", StringComparison.Ordinal)
+        .Replace("\"", "\\\"", StringComparison.Ordinal);
+
+    private async Task OnLoadData(LoadDataArgs args)
+    {
+        currentSkip = args.Skip ?? 0;
+        if (args.Top is > 0) pageSize = args.Top.Value;
+        currentOrderByExpression = args.OrderBy;
+        await LoadOrdersAsync(firstLoad: false);
+    }
+
+    private async Task OnSearchInputAsync(ChangeEventArgs args)
+    {
+        searchText = args.Value?.ToString() ?? string.Empty;
+        searchDebounce?.Cancel();
+        searchDebounce?.Dispose();
+        searchDebounce = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(280, searchDebounce.Token);
+            currentSkip = 0;
             await LoadOrdersAsync(firstLoad: false);
         }
-
-        private async Task OnLoadColumnFilterData(DataGridLoadColumnFilterDataEventArgs<VppRequestResDTO> args)
+        catch (TaskCanceledException)
         {
-            try
-            {
-                if (args.Column == null) return;
-
-                var property = args.Column.GetFilterProperty();
-                if (string.IsNullOrWhiteSpace(property)) return;
-
-                var query = new List<string>
-                {
-                    $"column={Uri.EscapeDataString(property)}",
-                    "scope=all",
-                    $"year={selectedYear}",
-                    $"month={selectedMonth}"
-                };
-
-                var scopedFilters = VppOrderGridFilterHelper.BuildColumnFilterScopes(currentFilters, property);
-
-                if (scopedFilters.Count > 0)
-                {
-                    query.Add($"filters={Uri.EscapeDataString(JsonSerializer.Serialize(scopedFilters))}");
-                }
-                else if (!string.IsNullOrWhiteSpace(currentFilterExpression))
-                {
-                    query.Add($"filter={Uri.EscapeDataString(currentFilterExpression)}");
-                }
-
-                if (!string.IsNullOrWhiteSpace(args.Filter))
-                {
-                    query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-                }
-
-                var apiUrl = $"/api/VPPRequest/order-filter-values?{string.Join("&", query)}";
-                var response = await ApiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
-
-                if (response != null)
-                {
-                    var distinctDtos = response
-                        .Select(VppOrderGridFilterHelper.BuildFilterValueDto)
-                        .ToList();
-
-                    args.Data = distinctDtos;
-                    args.Count = distinctDtos.Count;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[PeriodReviewPanel] LoadColumnFilterData failed: {ex.Message}");
-            }
         }
+    }
 
-        private async Task OnYearChangedAsync(int value)
+    private async Task OnOrderTypeChangedAsync(string value)
+    {
+        selectedOrderType = value;
+        currentSkip = 0;
+        await LoadOrdersAsync(firstLoad: false);
+    }
+
+    private async Task OnStatusChangedAsync(int? value)
+    {
+        selectedStatus = value;
+        currentSkip = 0;
+        await LoadOrdersAsync(firstLoad: false);
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        searchText = string.Empty;
+        selectedOrderType = string.Empty;
+        selectedStatus = null;
+        currentSkip = 0;
+        await LoadOrdersAsync(firstLoad: false);
+    }
+
+    private Task OpenApprovalsAsync()
+    {
+        NavigationManager.NavigateTo("/dashboard?tab=5&periodTab=pending");
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRowExpandAsync(VppRequestResDTO row)
+    {
+        if (row.Id == Guid.Empty || loadedDetailOrderIds.Contains(row.Id) || !loadingDetailOrderIds.Add(row.Id)) return;
+        try
         {
-            selectedYear = value;
-            await ReloadPeriodAsync();
+            var detail = await ApiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{row.Id}");
+            row.Items = detail?.Items ?? [];
+            loadedDetailOrderIds.Add(row.Id);
         }
-
-        private async Task OnMonthChangedAsync(int value)
+        catch (Exception ex)
         {
-            selectedMonth = value;
-            await ReloadPeriodAsync();
+            Toast.Error(ex, Loc);
         }
-
-        // D23: đường chốt kỳ cũ POST /settle (không snapshot, không InputHash/idempotency)
-        // đã gỡ khỏi màn rà soát — chốt kỳ chỉ đi qua PeriodSettlementPanel (bước 4, D4).
-
-        private async Task OnRowExpandAsync(VppRequestResDTO row)
+        finally
         {
-            if (row == null || row.Id == Guid.Empty
-                || loadedDetailOrderIds.Contains(row.Id)
-                || loadingDetailOrderIds.Contains(row.Id))
-            {
-                return;
-            }
-
-            loadingDetailOrderIds.Add(row.Id);
-            try
-            {
-                var detail = await ApiServices.GetFromApiAsync<VppRequestResDTO>(
-                    $"{Config.VppApi.Orders}/{row.Id}");
-                row.Items = detail?.Items ?? [];
-                loadedDetailOrderIds.Add(row.Id);
-            }
-            catch (Exception ex)
-            {
-                Toast.Error(ex, Loc);
-            }
-            finally
-            {
-                loadingDetailOrderIds.Remove(row.Id);
-                StateHasChanged();
-            }
+            loadingDetailOrderIds.Remove(row.Id);
         }
+    }
 
-        private bool IsRowDetailLoading(Guid orderId) => loadingDetailOrderIds.Contains(orderId);
+    private bool IsRowDetailLoading(Guid orderId) => loadingDetailOrderIds.Contains(orderId);
+    private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
 
-        private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
+    private void ToggleCode(Guid orderId)
+    {
+        activeNoteOrderId = null;
+        activeCodeOrderId = activeCodeOrderId == orderId ? null : orderId;
+    }
 
-        public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
+    private void ToggleNote(Guid orderId)
+    {
+        activeCodeOrderId = null;
+        activeNoteOrderId = activeNoteOrderId == orderId ? null : orderId;
+    }
 
-        public void ToggleOrderCode(Guid orderId)
+    private async Task CopyToClipboard(string? text)
+    {
+        if (!string.IsNullOrWhiteSpace(text))
         {
-            if (ExpandedOrderIds.Contains(orderId))
-                ExpandedOrderIds.Remove(orderId);
-            else
-                ExpandedOrderIds.Add(orderId);
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
         }
+    }
 
-        public string GetShortCode(VppRequestResDTO order)
-        {
-            var code = order.VppCode;
-            if (string.IsNullOrEmpty(code)) return "";
-            var parts = code.Split('-');
-            if (parts.Length >= 2)
-            {
-                if (order.IsAdditionalOrder)
-                {
-                    return $"{parts[0]}-ADD-{parts[1]}";
-                }
-                return $"{parts[0]}-{parts[1]}";
-            }
-            return code.Length > 10 ? code.Substring(0, 10) : code;
-        }
-
-        public async Task CopyToClipboard(string? text)
-        {
-            if (string.IsNullOrEmpty(text)) return;
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
-                var isVi = System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = isVi ? "Đã sao chép" : "Copied",
-                    Detail = isVi ? $"Đã sao chép mã đơn hàng: {text}!" : $"Copied order code: {text}!",
-                    Duration = 4000
-                });
-            }
-            catch (Exception) { }
-        }
-
-        private void SetAlert(AlertStyle style, string message)
-        {
-            alertStyle = style;
-            alertMessage = message;
-        }
+    public void Dispose()
+    {
+        searchDebounce?.Cancel();
+        searchDebounce?.Dispose();
     }
 }

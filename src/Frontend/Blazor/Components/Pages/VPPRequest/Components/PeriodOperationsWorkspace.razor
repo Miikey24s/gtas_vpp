@@ -1,60 +1,136 @@
 @using System.Security.Claims
+@using gtas_vpp_fe.Components.DesignSystem.Composites
+@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.VPP
+@inject IAPIServices ApiServices
+@inject PeriodSettlementState State
 
-<VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
-                       Class="vpp-period-workspace">
-    <Steps>
-        <VppWorkflowStepper Steps="@PeriodWorkflowSteps"
-                            AriaLabel="@Loc["PeriodFlowAria"]"
-                            StepSelected="@OnPeriodStepSelected" />
-    </Steps>
-
-    <ChildContent>
-    @if (ShowDemand)
-    {
-        <PeriodDemandPanel Claims="@Claims" />
-    }
-    else if (ShowSupply)
-    {
-        <PeriodSupplyAllocationPanel OnContinueToSettle="@(() => NavigateRequested.InvokeAsync("review"))" />
-    }
-    else
-    {
-        <section class="vpp-period-stage" aria-labelledby="period-review-title">
-            <div class="vpp-period-stage-heading">
-                <div><span>@Loc["PeriodStageStep1"]</span><h2 id="period-review-title">@Loc["PeriodStageReviewTitle"]</h2></div>
-                <p>@Loc["PeriodStageReviewHint"]</p>
+@if (isLoadingPeriod)
+{
+    <SkeletonPage Cards="1" Rows="8" Cols="6" />
+}
+else
+{
+    <VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
+                           Class="vpp-period-workspace"
+                           IsBusy="@isLoadingPeriod">
+        <Steps>
+            <div class="vpp-period-flowbar">
+                <VppWorkflowStepper Steps="@PeriodWorkflowSteps"
+                                    AriaLabel="@Loc["PeriodFlowAria"]"
+                                    StepSelected="@OnPeriodStepSelected" />
+                <div class="vpp-period-target" aria-label="@Loc["TargetPeriod"]">
+                    <VppIcon Name="@VppIcons.Calendar" />
+                    <span>@Loc["TargetPeriod"]</span>
+                    <VppFilterSelect TValue="int"
+                                     Value="@State.Year"
+                                     Options="@YearOptions"
+                                     ValueChanged="@OnYearChangedAsync"
+                                     Placeholder="@Loc["Year"]"
+                                     AriaLabel="@Loc["Year"]" />
+                    <VppFilterSelect TValue="int"
+                                     Value="@State.Month"
+                                     Options="@MonthOptions"
+                                     ValueChanged="@OnMonthChangedAsync"
+                                     Placeholder="@Loc["Month"]"
+                                     AriaLabel="@Loc["Month"]" />
+                </div>
             </div>
-            <PeriodReviewPanel OnSettled="@Settled" />
-        </section>
+        </Steps>
 
-        <section class="vpp-period-stage" aria-labelledby="period-settlement-title">
-            <div class="vpp-period-stage-heading">
-                <div><span>@Loc["PeriodStageStep4"]</span><h2 id="period-settlement-title">@Loc["PeriodStageSettleTitle"]</h2></div>
-                <p>@Loc["PeriodStageSettleHint"]</p>
+        <ChildContent>
+            <div class="vpp-period-step-content" @key="StepContentKey">
+                @switch (NormalizedStep)
+                {
+                    case PeriodDemandStep:
+                        <PeriodDemandPanel Claims="@Claims"
+                                           Year="@State.Year"
+                                           Month="@State.Month"
+                                           OnContinueToSupply="@(() => NavigateRequested.InvokeAsync(PeriodSupplyStep))" />
+                        break;
+                    case PeriodSupplyStep:
+                        <PeriodSupplyAllocationPanel Year="@State.Year"
+                                                     Month="@State.Month"
+                                                     OnContinueToSettle="@(() => NavigateRequested.InvokeAsync(PeriodSettleStep))" />
+                        break;
+                    case PeriodSettleStep:
+                        <PeriodSettlementPanel Year="@State.Year"
+                                               Month="@State.Month"
+                                               OnBackToSupply="@(() => NavigateRequested.InvokeAsync(PeriodSupplyStep))"
+                                               OnSettled="@Settled" />
+                        break;
+                    default:
+                        <PeriodReviewPanel Year="@State.Year"
+                                           Month="@State.Month"
+                                           OnContinueToDemand="@(() => NavigateRequested.InvokeAsync(PeriodDemandStep))" />
+                        break;
+                }
             </div>
-            <PeriodSettlementPanel OnSettled="@Settled" />
-        </section>
-    }
-    </ChildContent>
-</VppOperationWorkspace>
+        </ChildContent>
+    </VppOperationWorkspace>
+}
 
 @code {
+    private const string PeriodReviewStep = "review";
+    private const string PeriodDemandStep = "demand";
+    private const string PeriodSupplyStep = "supply";
+    private const string PeriodSettleStep = "settle";
+
     [Parameter] public IEnumerable<Claim>? Claims { get; set; }
-    [Parameter] public bool ShowReview { get; set; }
-    [Parameter] public bool ShowDemand { get; set; }
-    [Parameter] public bool ShowSupply { get; set; }
+    [Parameter] public string ActiveStep { get; set; } = PeriodReviewStep;
     [Parameter] public EventCallback<string> NavigateRequested { get; set; }
     [Parameter] public EventCallback Settled { get; set; }
 
-    private int CurrentStepNumber => ShowSupply ? 3 : ShowDemand ? 2 : 1;
+    private bool isLoadingPeriod = true;
+    private string NormalizedStep => ActiveStep switch
+    {
+        PeriodDemandStep => PeriodDemandStep,
+        PeriodSupplyStep => PeriodSupplyStep,
+        PeriodSettleStep => PeriodSettleStep,
+        _ => PeriodReviewStep
+    };
+    private string StepContentKey => $"{NormalizedStep}-{State.Year:D4}-{State.Month:D2}";
+    private int CurrentStepNumber => NormalizedStep switch
+    {
+        PeriodDemandStep => 2,
+        PeriodSupplyStep => 3,
+        PeriodSettleStep => 4,
+        _ => 1
+    };
+
+    private IReadOnlyList<VppFilterOption<int>> YearOptions => Enumerable.Range(2024, 7)
+        .Select(year => new VppFilterOption<int>(year, year.ToString()))
+        .ToArray();
+    private IReadOnlyList<VppFilterOption<int>> MonthOptions => Enumerable.Range(1, 12)
+        .Select(month => new VppFilterOption<int>(month, month.ToString("00")))
+        .ToArray();
 
     private IReadOnlyList<VppWorkflowStep> PeriodWorkflowSteps =>
     [
-        CreateStep("review", 1, Loc["PeriodReview"]),
-        CreateStep("demand", 2, Loc["PeriodDemandStep"]),
-        CreateStep("supply", 3, Loc["PeriodSupplyStep"]),
-        CreateStep("settle", 4, Loc["PeriodSettleStep"])
+        CreateStep(PeriodReviewStep, 1, Loc["PeriodReview"]),
+        CreateStep(PeriodDemandStep, 2, Loc["PeriodDemandStep"]),
+        CreateStep(PeriodSupplyStep, 3, Loc["PeriodSupplyStep"]),
+        CreateStep(PeriodSettleStep, 4, Loc["PeriodSettleStep"])
     ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!State.HasPeriod)
+            {
+                var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
+                if (period is not null)
+                {
+                    State.SetPeriod(period.PreviousPeriodYear, period.PreviousPeriodMonth);
+                }
+            }
+        }
+        finally
+        {
+            isLoadingPeriod = false;
+        }
+    }
 
     private VppWorkflowStep CreateStep(string key, int number, string label)
         => new(key, number, label, number < CurrentStepNumber
@@ -63,6 +139,17 @@
                 ? VppWorkflowStepState.Active
                 : VppWorkflowStepState.Pending);
 
-    private Task OnPeriodStepSelected(string stepKey)
-        => NavigateRequested.InvokeAsync(string.Equals(stepKey, "settle", StringComparison.Ordinal) ? "review" : stepKey);
+    private Task OnPeriodStepSelected(string stepKey) => NavigateRequested.InvokeAsync(stepKey);
+
+    private Task OnYearChangedAsync(int year)
+    {
+        State.SetPeriod(year, State.Month);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnMonthChangedAsync(int month)
+    {
+        State.SetPeriod(State.Year, month);
+        return InvokeAsync(StateHasChanged);
+    }
 }

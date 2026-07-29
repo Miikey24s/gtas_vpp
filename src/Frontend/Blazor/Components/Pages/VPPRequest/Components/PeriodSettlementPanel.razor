@@ -1,189 +1,120 @@
-@using gtas_vpp_shared.DTOs.Res.Library
-
-
-<div class="vpp-settle-container">
-    <!-- Khung trái: cấu hình tham số. -->
-    <div class="vpp-settle-params">
-        <h4 class="vpp-settle-sub-title">@Loc["Parameters"]</h4>
-        <RadzenStack Gap="1rem">
-            <RadzenFormField Text="@Loc["TargetPeriod"]" Style="width: 100%">
-                <RadzenTextBox Value="@($"{selectedMonth:D2}/{selectedYear}")"
-                               ReadOnly="true"
-                               Style="width:100%" />
-            </RadzenFormField>
-
-            <RadzenFormField Text="@Loc["PriceList"]" Style="width: 100%">
-                <RadzenDropDown TValue="Guid?"
-                                Data="@priceLists"
-                                TextProperty="PriceListName"
-                                ValueProperty="Id"
-                                Value="@selectedPriceListId"
-                                ValueChanged="@OnPriceListChangedAsync"
-                                AllowClear="true"
-                                AllowFiltering="true"
-                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                Placeholder="@Loc["PriceList_UseDefault"]"
-                                Disabled="@isLoading"
-                                Style="width:100%" />
-            </RadzenFormField>
-
-            @if (canCorrect)
-            {
-                @* Hiệu chỉnh theo nguyên tắc bốn mắt — luận văn §2.3.1.9. *@
-                <RadzenFormField Text="@Loc["CorrectionReasonLabel"]" Style="width: 100%">
-                    <RadzenTextArea @bind-Value="correctionReason"
-                                    Name="CorrectionReason"
-                                    Rows="3"
-                                    MaxLength="500"
-                                    Placeholder="@Loc["CorrectionReasonPlaceholder"]"
-                                    Disabled="@isLoading"
-                                    Style="width:100%" />
-                    <div class="vpp-settle-hint">@Loc["CorrectionFourEyesHint"]</div>
-                </RadzenFormField>
-            }
-
-            <div class="vpp-settle-hint">
-                <span class="rzi rzi-info"></span>
-                <span>@Loc["Hint_AutoTargetsClosedPeriod"]</span>
-            </div>
-        </RadzenStack>
-    </div>
-
-    <!-- Khung phải: trạng thái và hành động chốt kỳ. -->
-    <div class="vpp-settle-status-card @StatusCardClass">
-        <div class="vpp-settle-status-header">
-            <span class="vpp-settle-status-title">@Loc["PeriodStatus"]</span>
-            <span class="vpp-settle-period-badge">@selectedMonth.ToString("D2")/@selectedYear</span>
+<div class="vpp-period-panel">
+    <section class="vpp-period-settle-status @StatusCardClass" aria-labelledby="period-settle-status-title">
+        <div>
+            <span>@Loc["PeriodStatus"] · @Month.ToString("00")/@Year</span>
+            <h2 id="period-settle-status-title">@StatusTitle</h2>
+            <p>@StatusDescription</p>
         </div>
-        
-        <div class="vpp-settle-status-body">
+        <VppIcon Name="@(status?.IsSettled == true ? VppIcons.Lock : CanConfirm ? VppIcons.Check : VppIcons.Warning)" />
+    </section>
+
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.Static"
+                         Density="VppDataDensity.Compact"
+                         AriaLabel="@Loc["PeriodSettlement"]"
+                         TestId="period-settlement-data-surface"
+                         Class="vpp-period-data-frame">
+        <Toolbar>
+            <VppDataToolbar AriaLabel="@Loc["PeriodSettlement"]" Class="vpp-period-data-toolbar">
+                <div class="vpp-period-data-heading">
+                    <h2>@Loc["PeriodSettleStep"]</h2>
+                    <span>@(Preview is null ? Loc["SettleRunPreviewHint"] : $"{Preview.PrimaryQuote?.SupplierName} · {Preview.PrimaryQuote?.PriceListCode} v{Preview.PrimaryQuote?.Version}")</span>
+                </div>
+                @if (Preview is not null)
+                {
+                    <code class="vpp-settle-input-hash" title="@Loc["SettleInputHashTitle"]">@ShortInputHash</code>
+                }
+            </VppDataToolbar>
+        </Toolbar>
+        <ChildContent>
             @if (isLoading)
             {
-                <div class="vpp-settle-loading">
-                    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="height: 4px; width: 100%;" />
-                    <span class="vpp-settle-status-desc">@Loc["CheckingPeriodStatus"]</span>
-                </div>
+                <SkeletonPage Cards="2" Rows="6" Cols="5" />
+            }
+            else if (status?.PendingAdditionalCount > 0)
+            {
+                <VppContentState State="VppContentStateKind.Warning"
+                                 Icon="@VppIcons.Warning"
+                                 Title="@Loc["ReviewHeroBlocked"]"
+                                 Description="@string.Format(Loc["Warning_PendingAdditional"].Value, status.PendingAdditionalCount)" />
+            }
+            else if (Preview is null)
+            {
+                <VppContentState State="VppContentStateKind.Empty"
+                                 Icon="@VppIcons.Supplier"
+                                 Title="@Loc["SupplyRunPreview"]"
+                                 Description="@Loc["SupplySelectionOrderHint"]" />
             }
             else
             {
-                @if (!string.IsNullOrWhiteSpace(alertMessage))
+                <div class="vpp-settlement-preview-kpis">
+                    <article><span>@Loc["SettleRequestedItems"]</span><strong>@Preview.RequestedItemCount</strong></article>
+                    <article><span>@Loc["SettleRequestedLines"]</span><strong>@Preview.RequestedLineCount</strong></article>
+                    <article><span>@Loc["SupplyCoverageLabel"]</span><strong>@(Preview.PrimaryQuote is null ? "—" : $"{Preview.PrimaryQuote.CoveredItemCount}/{Preview.PrimaryQuote.RequestedItemCount}")</strong></article>
+                    <article><span>@Loc["SettleQuoteTotal"]</span><strong>@FormatMoney(Preview.PrimaryQuote?.GrandTotal ?? 0)</strong></article>
+                </div>
+
+                @if (Preview.Blockers.Count > 0)
                 {
-                    <div class="vpp-settle-alert vpp-alert-@alertStyle.ToString().ToLower()">
-                        <span class="vpp-settle-alert-icon rzi @(alertStyle == AlertStyle.Danger ? "rzi-error" : alertStyle == AlertStyle.Warning ? "rzi-warning" : "rzi-info")"></span>
-                        <div class="vpp-settle-alert-content">
-                            @alertMessage
-                        </div>
+                    <div class="vpp-settlement-blockers">
+                        <h3><VppIcon Name="@VppIcons.Warning" /> @Loc["SettleBlockersHeading"]</h3>
+                        <ul>@foreach (var blocker in Preview.Blockers) { <li>@PeriodSettlementSupport.DescribeBlocker(blocker)</li> }</ul>
                     </div>
                 }
                 else
                 {
-                    <div class="vpp-settle-status-ready">
-                        <span class="vpp-settle-ready-icon rzi rzi-check-circle"></span>
-                        <span class="vpp-settle-status-desc">@Loc["PeriodReadyToSettle"]</span>
+                    <div class="vpp-settle-readiness-board">
+                        <span><VppIcon Name="@VppIcons.Check" /> @string.Format(Loc["SettleReadinessOrders"].Value, Preview.RequestedItemCount, Preview.RequestedLineCount)</span>
+                        <span><VppIcon Name="@VppIcons.Check" /> @Loc["SettleReadinessCoverage"]</span>
+                        <span><VppIcon Name="@VppIcons.Lock" /> @Loc["SettleImmutableNote"]</span>
+                    </div>
+                }
+
+                <h3 class="vpp-period-section-title">@Loc["SettleQuotesHeading"]</h3>
+                <div class="vpp-period-grid-wrap">
+                    <RadzenDataGrid TItem="gtas_vpp_shared.DTOs.Res.Library.PriceBookQuoteResDTO"
+                                    Data="@Preview.Quotes.OrderBy(quote => quote.Rank)"
+                                    AllowPaging="false"
+                                    AllowFiltering="false"
+                                    AllowSorting="false"
+                                    AllowColumnResize="false"
+                                    AllowAlternatingRows="false"
+                                    Density="Density.Compact"
+                                    GridLines="DataGridGridLines.Horizontal"
+                                    class="vpp-order-grid vpp-data-grid vpp-data-density-compact">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.Library.PriceBookQuoteResDTO" Property="Rank" Title="@Loc["SettleQuoteRank"]" Width="80px" TextAlign="TextAlign.Center"><Template Context="quote">#@quote.Rank</Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.Library.PriceBookQuoteResDTO" Property="SupplierName" Title="@Loc["SettleQuoteSupplier"]"><Template Context="quote"><div class="vpp-order-product-cell"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></div></Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.Library.PriceBookQuoteResDTO" Title="@Loc["SettleQuoteCoverage"]" Width="170px" TextAlign="TextAlign.Center"><Template Context="quote">@quote.CoveredItemCount/@quote.RequestedItemCount (@quote.CoveragePercent.ToString("N0")%)</Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.Library.PriceBookQuoteResDTO" Property="GrandTotal" Title="@Loc["SettleQuoteTotal"]" Width="180px" TextAlign="TextAlign.Right"><Template Context="quote"><strong>@FormatMoney(quote.GrandTotal)</strong></Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="gtas_vpp_shared.DTOs.Res.Library.PriceBookQuoteResDTO" Property="MaximumLeadTimeDays" Title="@Loc["SettleQuoteLeadTime"]" Width="150px" TextAlign="TextAlign.Center"><Template Context="quote">@string.Format(Loc["SettleQuoteLeadTimeDays"].Value, quote.MaximumLeadTimeDays)</Template></RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
+
+                @if (canCorrect)
+                {
+                    <div class="vpp-settle-correction">
+                        <label for="period-correction-reason">@Loc["CorrectionReasonLabel"]</label>
+                        <RadzenTextArea id="period-correction-reason" @bind-Value="correctionReason" Rows="3" MaxLength="500" Placeholder="@Loc["CorrectionReasonPlaceholder"]" />
+                        <span>@Loc["CorrectionFourEyesHint"]</span>
                     </div>
                 }
             }
-        </div>
-        
-        @* Atlas settlement-flow: checklist điều kiện + cam kết bất biến snapshot trước nút chốt. *@
-        @if (preview is not null && canSettlePreview)
-        {
-            <ul class="vpp-settle-readiness" aria-label="@Loc["SettleReadinessAria"]">
-                <li><span class="rzi rzi-check-circle" aria-hidden="true"></span>@string.Format(Loc["SettleReadinessOrders"].Value, preview.RequestedItemCount, preview.RequestedLineCount)</li>
-                <li><span class="rzi rzi-check-circle" aria-hidden="true"></span>@Loc["SettleReadinessCoverage"]</li>
-                <li><span class="rzi rzi-check-circle" aria-hidden="true"></span>@Loc["SettleReadinessNoBlockers"]</li>
-            </ul>
-            <div class="vpp-settle-immutable-note">
-                <span class="rzi rzi-lock" aria-hidden="true"></span>
-                <span>@Loc["SettleImmutableNote"]</span>
+        </ChildContent>
+        <Footer>
+            <div class="vpp-period-action-footer">
+                <RadzenButton Icon="arrow_back" Text="@Loc["PeriodSupplyStep"]" ButtonStyle="ButtonStyle.Light" Click="@OnBackToSupply" />
+                <div class="vpp-settle-footer-actions">
+                    @if (canCorrect)
+                    {
+                        <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanConfirm || isCorrecting)" Click="@CorrectAsync" />
+                    }
+                    else
+                    {
+                        <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanConfirm || isSettling)" Click="@SettleAsync" />
+                    }
+                </div>
             </div>
-        }
-        <div class="vpp-settle-actions">
-            <RadzenButton Icon="fact_check"
-                          Text="@Loc["SettlePreviewAction"]"
-                          ButtonStyle="ButtonStyle.Light"
-                          Disabled="@(!canPreview || isLoading || isPreviewing || isSettling)"
-                          Click="@PreviewAsync"
-                          class="vpp-settle-btn" />
-            <span class="vpp-disabled-action-help vpp-settle-btn" title="@SettlePeriodTitle">
-                <RadzenButton Icon="lock"
-                              Text="@Loc["SettlePeriod"]"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Disabled="@(!canSettle || isLoading || isSettling)"
-                              Click="@SettleAsync"
-                              class="vpp-settle-btn" />
-            </span>
-            @if (canCorrect)
-            {
-                <RadzenButton Icon="edit_note"
-                              Text="@Loc["CreateCorrectionRevision"]"
-                              ButtonStyle="ButtonStyle.Warning"
-                              Disabled="@(!canCorrect || !canSettlePreview || isLoading || isCorrecting)"
-                              Click="@CorrectAsync"
-                              class="vpp-settle-btn" />
-            }
-        </div>
-    </div>
+        </Footer>
+    </VppDataSurfaceFrame>
 </div>
-
-@if (preview is not null)
-{
-    <section class="vpp-settlement-preview" aria-label="@Loc["SettlePreviewResultAria"]">
-        <div class="vpp-settlement-preview-heading">
-            <div>
-                <span>@Loc["SettlePreviewResultKicker"]</span>
-                <h3>@Loc["SettlePreviewResultTitle"]</h3>
-            </div>
-            <code title="@Loc["SettleInputHashTitle"]">@ShortInputHash</code>
-        </div>
-
-        <div class="vpp-settlement-preview-kpis">
-            <article><span>@Loc["SettleRequestedItems"]</span><strong>@preview.RequestedItemCount</strong></article>
-            <article><span>@Loc["SettleRequestedLines"]</span><strong>@preview.RequestedLineCount</strong></article>
-            <article><span>@Loc["SettlePendingAdditional"]</span><strong>@preview.PendingAdditionalCount</strong></article>
-            <article><span>@Loc["DemandBlockers"]</span><strong>@preview.Blockers.Count</strong></article>
-        </div>
-
-        @if (preview.Blockers.Count > 0)
-        {
-            <div class="vpp-settlement-blockers">
-                <h4><span class="rzi rzi-warning" aria-hidden="true"></span> @Loc["SettleBlockersHeading"]</h4>
-                <ul>
-                    @foreach (var blocker in preview.Blockers)
-                    {
-                        <li>@DescribeBlocker(blocker)</li>
-                    }
-                </ul>
-            </div>
-        }
-
-        @if (preview.Quotes.Count > 0)
-        {
-            <div class="vpp-settlement-quotes">
-                <div class="vpp-settlement-quotes-header">
-                    <h4>@Loc["SettleQuotesHeading"]</h4>
-                    <span>@Loc["SettleQuotesSubtitle"]</span>
-                </div>
-                <div class="vpp-settlement-quote-table" role="table" aria-label="@Loc["SettleQuotesHeading"]">
-                    <div class="vpp-settlement-quote-row is-header" role="row">
-                        <span role="columnheader">@Loc["SettleQuoteRank"]</span>
-                        <span role="columnheader">@Loc["SettleQuoteSupplier"]</span>
-                        <span role="columnheader">@Loc["SettleQuoteCoverage"]</span>
-                        <span role="columnheader">@Loc["SettleQuoteTotal"]</span>
-                        <span role="columnheader">@Loc["SettleQuoteLeadTime"]</span>
-                    </div>
-                    @foreach (var quote in preview.Quotes.OrderBy(item => item.Rank))
-                    {
-                        <div class="vpp-settlement-quote-row @(quote.PriceListId == preview.PrimaryPriceListId ? "is-primary" : null)" role="row">
-                            <span role="cell">#@quote.Rank</span>
-                            <span role="cell"><strong>@quote.SupplierName</strong><small>@quote.PriceListCode · v@quote.Version</small></span>
-                            <span role="cell">@quote.CoveredItemCount/@quote.RequestedItemCount (@quote.CoveragePercent.ToString("N0")%)</span>
-                            <span role="cell">@FormatMoney(quote.GrandTotal)</span>
-                            <span role="cell">@string.Format(Loc["SettleQuoteLeadTimeDays"].Value, quote.MaximumLeadTimeDays)</span>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    </section>
-}

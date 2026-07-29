@@ -27,11 +27,11 @@ public sealed class RouteCatalogConsistencyTests
             RouteCatalog.Authenticated,
             route => route.Key == "account.change-password" && route.Path == "/Account/ChangePassword");
         Assert.Equal(
-            ["pending", "review", "demand", "supply"],
+            ["pending", "review", "demand", "supply", "settle"],
             RouteCatalog.Authenticated
                 .Where(route => route.Key.StartsWith("dashboard.period.", StringComparison.Ordinal))
                 .Select(route => route.Path.Split("periodTab=").Last())
-                .OrderBy(value => Array.IndexOf(["pending", "review", "demand", "supply"], value))
+                .OrderBy(value => Array.IndexOf(["pending", "review", "demand", "supply", "settle"], value))
                 .ToArray());
     }
 

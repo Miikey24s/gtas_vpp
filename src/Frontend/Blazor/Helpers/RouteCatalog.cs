@@ -126,7 +126,7 @@ public static class RouteCatalog
             Title: "PeriodOperations",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
             AnyOfPermissions: [Permissions.RequestAdminApproval, Permissions.PeriodSettle],
-            Notes: "Internal sub-tabs: PeriodReviewPanel (PeriodSettle), additional-approval queue (RequestAdminApproval). Render depends on which permissions the user has."),
+            Notes: "Internal sub-tabs: review, demand, supply, settle (PeriodSettle) and additional-approval queue (RequestAdminApproval). Render depends on which permissions the user has."),
 
         new(
             Key: "dashboard.period.pending-approval",
@@ -153,6 +153,13 @@ public static class RouteCatalog
             Key: "dashboard.period.supply",
             Path: "/dashboard?tab=5&periodTab=supply",
             Title: "PeriodSupplyTitle",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.PeriodSettle]),
+
+        new(
+            Key: "dashboard.period.settle",
+            Path: "/dashboard?tab=5&periodTab=settle",
+            Title: "PeriodSettlement",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
             AnyOfPermissions: [Permissions.PeriodSettle]),
 

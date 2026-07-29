@@ -171,8 +171,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(17, consumers.Length);
-        Assert.Equal(23, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(18, consumers.Length);
+        Assert.Equal(24, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

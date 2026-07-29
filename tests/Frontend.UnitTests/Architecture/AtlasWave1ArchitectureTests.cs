@@ -70,6 +70,7 @@ public sealed class AtlasWave1ArchitectureTests
         var workspace = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodOperationsWorkspace.razor");
         var review = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor");
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
+        var settlementCode = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
@@ -78,7 +79,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("<h1", workspace, StringComparison.Ordinal);
         // Copy đã chuyển sang resx (W-D): khóa qua key SettleQuotesHeading thay vì chuỗi cứng.
         Assert.Contains("Loc[\"SettleQuotesHeading\"]", settlement, StringComparison.Ordinal);
-        Assert.Contains("preview.Blockers", settlement, StringComparison.Ordinal);
+        Assert.Contains("Preview.Blockers", settlement, StringComparison.Ordinal);
+        Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("InputHash = preview.InputHash", settlementCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Click=\"@SettleAsync\"", review, StringComparison.Ordinal);
     }
 

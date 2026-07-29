@@ -35,10 +35,10 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         new("catalog", "dashboard?tab=2", ".vpp-catalog-workspace"),
         new("department-summary", "dashboard?tab=3&managementTab=department", ".vpp-history-page"),
         new("supplement-approval", "dashboard?tab=5&periodTab=pending", ".vpp-section"),
-        new("period-review", "dashboard?tab=5&periodTab=review", "#period-review-title"),
-        new("period-demand", "dashboard?tab=5&periodTab=demand", ".vpp-demand-view-toggle"),
-        new("supply-allocation", "dashboard?tab=5&periodTab=supply", ".vpp-supply-pricelist-lock"),
-        new("settlement-flow", "dashboard?tab=5&periodTab=review", "#period-settlement-title"),
+        new("period-review", "dashboard?tab=5&periodTab=review", "[data-testid='period-review-data-surface']"),
+        new("period-demand", "dashboard?tab=5&periodTab=demand", "[data-testid='period-demand-data-surface']"),
+        new("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']"),
+        new("settlement-flow", "dashboard?tab=5&periodTab=settle", "[data-testid='period-settlement-data-surface']"),
         new("classes", "library?tab=0", ".vpp-admin-class-split"),
         new("categories", "library?tab=1", ".vpp-atlas-admin-workspace"),
         new("items", "library?tab=2", ".vpp-atlas-admin-workspace"),
@@ -115,7 +115,7 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         foreach (var screen in new[]
                  {
                      new AtlasRuntimeScreen("my-orders", "dashboard?tab=0", ".vpp-orders-workspace"),
-                     new AtlasRuntimeScreen("supply-allocation", "dashboard?tab=5&periodTab=supply", ".vpp-supply-pricelist-lock"),
+                     new AtlasRuntimeScreen("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']"),
                      new AtlasRuntimeScreen("items", "library?tab=2", ".vpp-atlas-admin-workspace"),
                      new AtlasRuntimeScreen("reports", "report", ".vpp-report-page")
                  })
