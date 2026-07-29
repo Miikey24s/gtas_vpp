@@ -21,6 +21,8 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await switchbar.WaitForAsync();
         var selector = switchbar.Locator(".vpp-orders-view-selector");
         (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(3);
+        (await selector.Locator(".vpp-segmented-badge").CountAsync()).Should().Be(0,
+            "My Orders uses label-only segments; counts remain in the data surface when needed");
         (await switchbar.Locator("[data-testid='create-supplement']").CountAsync()).Should().Be(0,
             "the supplement CTA belongs to the supplement segment instead of floating above the current order");
 

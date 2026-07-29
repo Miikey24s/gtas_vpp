@@ -93,9 +93,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected VppRequestResDTO? SelectedSupplementOrder => CurrentPeriodAdditionalOrders
             .FirstOrDefault(order => order.Id == _selectedSupplementOrderId)
             ?? CurrentPeriodAdditionalOrders.FirstOrDefault();
-        protected int CurrentRegularLineCount => GetLineCount(CurrentRegularOrder);
-        protected int SelectedSupplementLineCount => GetLineCount(SelectedSupplementOrder);
-        protected int PreviousOrderLineCount => GetLineCount(PreviousRegularOrder);
         public IEnumerable<VppRequestResDTO> CurrentPeriodOrders => ActiveOrders.Concat(CurrentPeriodAdditionalOrders);
         public int TotalOrders => CurrentPeriodOrders.Count();
         public int SupplementTotalLines => CurrentPeriodAdditionalOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
@@ -108,9 +105,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected IReadOnlyList<VppSegmentedOption<int>> OrderViewOptions =>
         [
-            new(CurrentOrderViewIndex, Loc["CurrentRegularOrder"], Badge: CurrentRegularLineCount.ToString()),
-            new(SupplementOrderViewIndex, Loc["AdditionalOrders"], Badge: SelectedSupplementLineCount.ToString()),
-            new(PreviousOrderViewIndex, Loc["PreviousOrderPeriod"], Badge: PreviousOrderLineCount.ToString())
+            new(CurrentOrderViewIndex, Loc["CurrentRegularOrder"]),
+            new(SupplementOrderViewIndex, Loc["AdditionalOrders"]),
+            new(PreviousOrderViewIndex, Loc["PreviousOrderPeriod"])
         ];
         public string OrdersStoryDescription
         {
@@ -194,9 +191,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             return Task.CompletedTask;
         }
-
-        private static int GetLineCount(VppRequestResDTO? order)
-            => order?.Items?.Count ?? order?.TotalLines ?? 0;
 
         private static string? GetBusinessNote(string? description)
         {

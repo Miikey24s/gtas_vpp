@@ -526,6 +526,10 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-selection-summary", source, StringComparison.Ordinal);
         Assert.DoesNotContain("SelectedOrderViewSummary", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("Badge:", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("CurrentRegularLineCount", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedSupplementLineCount", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("PreviousOrderLineCount", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-native-tab-list", source, StringComparison.Ordinal);
         Assert.Contains("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
         Assert.Contains("vpp-data-card-actions", orderPanel, StringComparison.Ordinal);
