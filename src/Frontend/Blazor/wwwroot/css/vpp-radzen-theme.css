@@ -177,6 +177,13 @@
     --rz-grid-border-color: var(--vpp-border-default);
 }
 
+/* Khung data surface sở hữu bo góc ngoài; grid ghép dưới toolbar phải giữ cạnh nối thẳng. */
+[data-vpp-data-surface="true"] .vpp-data-grid.rz-data-grid,
+[data-vpp-data-surface="true"] .vpp-data-grid.rz-datatable {
+    --rz-grid-border-radius: 0;
+    border-radius: 0;
+}
+
 .vpp-data-grid .rz-grid-table thead > tr > th {
     height: var(--vpp-data-header-height);
     max-height: var(--vpp-data-header-height);

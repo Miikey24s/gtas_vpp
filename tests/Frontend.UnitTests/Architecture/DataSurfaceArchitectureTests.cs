@@ -68,6 +68,8 @@ public sealed class DataSurfaceArchitectureTests
         }
 
         Assert.Contains(".vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
+        Assert.Contains("[data-vpp-data-surface=\"true\"] .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
+        Assert.Contains("--rz-grid-border-radius: 0;", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
         Assert.DoesNotContain("body .rz-data-grid", bridge, StringComparison.Ordinal);

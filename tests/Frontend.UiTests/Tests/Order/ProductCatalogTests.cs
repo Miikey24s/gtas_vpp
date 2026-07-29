@@ -31,6 +31,13 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator("[data-testid='catalog-data-surface']").GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
         (await grid.Locator("thead th").First.InnerTextAsync()).Trim().Should().Be("#");
         (await grid.Locator("tbody tr").First.Locator("td").First.InnerTextAsync()).Trim().Should().Be("1");
+        var gridCornerRadius = await grid.EvaluateAsync<string>("""
+            element => {
+                const style = getComputedStyle(element);
+                return `${style.borderTopLeftRadius}|${style.borderTopRightRadius}`;
+            }
+        """);
+        gridCornerRadius.Should().Be("0px|0px", "the grid header joins the toolbar inside one shared data surface");
         await grid.Locator(".rz-paginator, .rz-pager").WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await grid.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
         var catalogGeometry = await Page.EvaluateAsync<string>("""
