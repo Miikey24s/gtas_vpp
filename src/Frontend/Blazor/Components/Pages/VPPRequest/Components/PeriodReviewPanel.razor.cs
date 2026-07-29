@@ -33,7 +33,7 @@ public partial class PeriodReviewPanel : IDisposable
     private int totalQty;
     private long totalAmount;
     private int currentSkip;
-    private int pageSize = 20;
+    private int pageSize = VppPagingProfiles.SplitList.DefaultPageSize;
     private string? currentOrderByExpression;
     private string searchText = string.Empty;
     private string selectedOrderType = string.Empty;

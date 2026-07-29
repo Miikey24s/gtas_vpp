@@ -427,7 +427,7 @@
   <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Đã xóa bảng giá</value></data>
   <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
-  <data name="PeriodOperations" xml:space="preserve"><value>Vận hành kỳ</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Quản lý kỳ</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Chốt kỳ</value></data>
   <data name="PriceList" xml:space="preserve"><value>Bảng giá</value></data>
@@ -645,7 +645,7 @@
   <data name="HistoryAllOrderTypes" xml:space="preserve"><value>Tất cả loại đơn</value></data>
   <data name="HistoryClearFilters" xml:space="preserve"><value>Xóa bộ lọc</value></data>
   <data name="HistoryAdjustFilters" xml:space="preserve"><value>Hãy thay đổi hoặc xóa bớt điều kiện lọc.</value></data>
-  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Hiển thị {0}–{1} trên {2} đơn</value></data>
+  <data name="HistoryPagingSummaryFormat" xml:space="preserve"><value>Trang {0}/{1} · {2} đơn</value></data>
   <data name="HistorySearchItem" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
   <data name="HistoryAllCategories" xml:space="preserve"><value>Tất cả danh mục</value></data>
   <data name="HistoryItem" xml:space="preserve"><value>Mặt hàng</value></data>
@@ -665,7 +665,7 @@
   <data name="CatalogLoadFailed" xml:space="preserve"><value>Chưa tải được danh mục mặt hàng</value></data>
   <data name="CatalogLoadFailedDescription" xml:space="preserve"><value>Hệ thống chưa thể tải dữ liệu. Vui lòng thử lại.</value></data>
   <data name="AdjustCatalogFilters" xml:space="preserve"><value>Thử đổi từ khóa, danh mục hoặc đơn vị để xem kết quả khác.</value></data>
-  <data name="CatalogPagingSummary" xml:space="preserve"><value>Hiển thị {0}–{1} trên {2} mặt hàng</value></data>
+  <data name="CatalogPagingSummary" xml:space="preserve"><value>Trang {0}/{1} · {2} mặt hàng</value></data>
   <data name="InUse" xml:space="preserve"><value>Đang áp dụng</value></data>
   <data name="FeatureInDevelopment" xml:space="preserve"><value>Tính năng đang được hoàn thiện</value></data>
   <data name="CatalogDownloadComingSoon" xml:space="preserve"><value>Tải danh mục sẽ được bổ sung trong phiên bản sau.</value></data>

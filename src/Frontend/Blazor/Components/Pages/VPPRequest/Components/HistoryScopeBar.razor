@@ -2,14 +2,13 @@
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
 
 <div class="vpp-history-toolbar">
-    <div class="vpp-history-scope" role="group" aria-label="@Loc["HistoryTimeRange"]" @onclick:stopPropagation>
-        <span class="vpp-history-scope-indicator" aria-hidden="true"></span>
-        <button type="button" class="@ScopeButtonClass(AllScope)" aria-pressed="@(Scope == AllScope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(AllScope))">@Loc["HistoryAllPeriods"]</button>
-        <button type="button" class="@ScopeButtonClass(Last1Scope)" aria-pressed="@(Scope == Last1Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last1Scope))">@Loc["HistoryCurrentPeriod"]</button>
-        <button type="button" class="@ScopeButtonClass(Last3Scope)" aria-pressed="@(Scope == Last3Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last3Scope))">@Loc["HistoryLast3Periods"]</button>
-        <button type="button" class="@ScopeButtonClass(Last6Scope)" aria-pressed="@(Scope == Last6Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last6Scope))">@Loc["HistoryLast6Periods"]</button>
-        <button type="button" class="@ScopeButtonClass(Last12Scope)" aria-pressed="@(Scope == Last12Scope)" @onclick="@(() => PresetScopeSelected.InvokeAsync(Last12Scope))">@Loc["HistoryLast12Periods"]</button>
-        <button type="button" class="@ScopeButtonClass(CustomScope)" aria-pressed="@(Scope == CustomScope)" aria-expanded="@ShowCustomRange" @onclick="@(() => CustomScopeRequested.InvokeAsync())">@Loc["HistoryCustom"] <VppIcon Name="calendar_month" /></button>
+    <div class="vpp-history-scope-host" @onclick:stopPropagation>
+        <VppSegmentedSelector TValue="string"
+                              Value="@Scope"
+                              Options="@ScopeOptions"
+                              ValueChanged="@SelectScopeAsync"
+                              AriaLabel="@Loc["HistoryTimeRange"]"
+                              Class="vpp-history-scope-selector" />
         @if (ShowCustomRange)
         {
             <div class="vpp-history-range-popover vpp-transient-surface" role="dialog" aria-label="@Loc["HistoryCustomRange"]" @onclick:stopPropagation>
@@ -32,6 +31,18 @@
     [Parameter] public EventCallback<ChangeEventArgs> CustomToChanged { get; set; }
     [Parameter] public EventCallback CustomRangeApplied { get; set; }
 
-    // Trạng thái active của nút phạm vi suy ra từ tham số Scope.
-    private string ScopeButtonClass(string scope) => Scope == scope ? "is-active" : string.Empty;
+    private IReadOnlyList<VppSegmentedOption<string>> ScopeOptions =>
+    [
+        new(AllScope, Loc["HistoryAllPeriods"]),
+        new(Last1Scope, Loc["HistoryCurrentPeriod"]),
+        new(Last3Scope, Loc["HistoryLast3Periods"]),
+        new(Last6Scope, Loc["HistoryLast6Periods"]),
+        new(Last12Scope, Loc["HistoryLast12Periods"]),
+        new(CustomScope, Loc["HistoryCustom"], VppIcons.Calendar, IsExpanded: ShowCustomRange)
+    ];
+
+    private Task SelectScopeAsync(string scope)
+        => scope == CustomScope
+            ? CustomScopeRequested.InvokeAsync()
+            : PresetScopeSelected.InvokeAsync(scope);
 }

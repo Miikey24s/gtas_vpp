@@ -1,7 +1,7 @@
 @using System.Globalization
 
 <section class="vpp-order-items-surface @VariantClass" data-testid="@($"{TestId}-items")">
-    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotVirtualized"
+    <VppDataSurfaceFrame DataSourceMode="@DataSourceMode"
                          Density="VppDataDensity.RichTwoLine"
                          Bordered="false"
                          AriaLabel="@AriaLabel"
@@ -64,9 +64,13 @@
                         aria-label="@AriaLabel"
                         @ref="_grid"
                         Data="@Items"
-                        AllowPaging="false"
-                        AllowVirtualization="true"
-                        VirtualizationOverscanCount="@VirtualizationOverscanCount"
+                        AllowPaging="@UsePaging"
+                        PageSize="@VppPagingProfiles.SmallStatic.DefaultPageSize"
+                        PageSizeOptions="@VppPagingProfiles.SmallStatic.PageSizeOptions"
+                        PagerAlwaysVisible="@UsePaging"
+                        ShowPagingSummary="@UsePaging"
+                        PagerHorizontalAlign="HorizontalAlign.Right"
+                        AllowVirtualization="false"
                         AllowFiltering="false"
                         AllowSorting="false"
                         AllowColumnResize="false"
@@ -200,9 +204,9 @@
 </div>
     </ChildContent>
     <Footer>
-        @if (IsHistoryDrawer || TotalItemCount > 0)
+        @if (!UsePaging && (IsHistoryDrawer || TotalItemCount > 0))
         {
-            <VppDataSummaryFooter Mode="VppDataFooterMode.Virtualized"
+            <VppDataSummaryFooter Mode="VppDataFooterMode.Static"
                                   Summary="@Loc["HistoryDetailCount", Items.Count, TotalItemCount]"
                                   Class="@FooterClass" />
         }
@@ -251,7 +255,10 @@
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
     private bool ShowNoteColumn => true;
     private bool HasOpenTransientSurface => ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
-    private int VirtualizationOverscanCount => IsHistoryDrawer ? 4 : 10;
+    private bool UsePaging => Items.Count > VppPagingProfiles.SmallStatic.PagingThreshold;
+    private VppDataSourceMode DataSourceMode => UsePaging
+        ? VppDataSourceMode.ClientSnapshotPaged
+        : VppDataSourceMode.Static;
     private string VariantClass => IsHistoryDrawer ? "is-history" : "is-workspace";
     private string RegionClass => "vpp-history-detail-grid-region vpp-order-items-grid-region";
     private string GridClass => "vpp-history-detail-grid vpp-order-items-grid vpp-order-grid-scrollable vpp-data-grid vpp-data-density-rich-two-line";

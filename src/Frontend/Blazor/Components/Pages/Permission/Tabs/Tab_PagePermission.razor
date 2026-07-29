@@ -124,8 +124,8 @@
                         ColumnsPickerAllowFiltering="true"
                         ShowMultiColumnSortingIndex="true"
                         ShowPagingSummary="true"
-                        PageSize="20"
-                        PageSizeOptions="@(new[] { 20, 50, 100 })"
+                        PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
+                        PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
                         FilterMode="FilterMode.CheckBoxList"
                         FilterPopupRenderMode="PopupRenderMode.OnDemand"
                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -151,16 +151,18 @@
                     }
                     else
                     {
-                        <RadzenTabs RenderMode="TabRenderMode.Server"
-                                    class="vpp-secondary-tabs permission-component-tabs"
-                                    @bind-SelectedIndex="selectedTab">
-                            <Tabs>
-                                @foreach (var page in groupPermissions)
-                                {
-                                    var components = page.Components ?? [];
+                        <div class="permission-component-selector">
+                            <VppSegmentedSelector TValue="int"
+                                                  Value="@selectedTab"
+                                                  Options="@PermissionPageOptions"
+                                                  ValueChanged="@SelectPermissionPageAsync"
+                                                  AriaLabel="@Loc["Page"]" />
+                        </div>
 
-                                    <RadzenTabsItem Text="@(page.PageName + " (" + page.PageCode + ")")">
-                                        <RadzenStack Gap="0.75rem" class="permission-component-panel">
+                        @if (SelectedPermissionPage is { } page)
+                        {
+                            var components = page.Components ?? [];
+                            <RadzenStack Gap="0.75rem" class="permission-component-panel">
                                             <div class="permission-component-summary-row">
                                                 <div class="permission-page-description">
                                                     <span>@Loc["Description"]</span>
@@ -180,7 +182,7 @@
                                                             AllowColumnResize="true"
                                                             AllowMultiColumnSorting="true"
                                                             AllowSorting="true"
-                                                            AllowPaging="true"
+                                                            AllowPaging="@(components.Count > VppPagingProfiles.SmallStatic.PagingThreshold)"
                                                             AllowGrouping="false"
                                                             AllowVirtualization="false"
                                                             AllowColumnReorder="false"
@@ -188,15 +190,15 @@
                                                             AllowPickAllColumns="true"
                                                             ShowMultiColumnSortingIndex="true"
                                                             ShowPagingSummary="true"
-                                                            PageSize="20"
-                                                            PageSizeOptions="@(new[] { 20, 50, 100 })"
+                                                            PageSize="@VppPagingProfiles.SmallStatic.DefaultPageSize"
+                                                            PageSizeOptions="@VppPagingProfiles.SmallStatic.PageSizeOptions"
                                                             FilterMode="FilterMode.CheckBoxList"
                                                             FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                                             Density="Density.Compact"
                                                             GridLines="DataGridGridLines.Horizontal"
                                                             SelectionMode="DataGridSelectionMode.Single"
                                                             RowDoubleClick="@OnComponentRowDoubleClick"
-                                                            class="permission-component-grid vpp-admin-page-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
+                                                            class="@($"permission-component-grid vpp-admin-page-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact {(components.Count <= VppPagingProfiles.SmallStatic.PagingThreshold ? "vpp-admin-grid-single-page" : string.Empty)}")"
                                                             Style="--vpp-admin-grid-min-width: 980px;">
                                                 <Columns>
                                                     <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO"
@@ -268,11 +270,8 @@
                                                                           Pickable="true" />
                                                 </Columns>
                                             </RadzenDataGrid>
-                                        </RadzenStack>
-                                    </RadzenTabsItem>
-                                }
-                            </Tabs>
-                        </RadzenTabs>
+                            </RadzenStack>
+                        }
                     }
                 </div>
             </Template>

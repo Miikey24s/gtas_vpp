@@ -20,7 +20,7 @@ public sealed class DataSurfaceArchitectureTests
 
         foreach (var contract in new[]
                  {
-                     "VppDataSourceMode", "ServerPaging", "ClientSnapshotVirtualized",
+                     "VppDataSourceMode", "ServerPaging", "ClientSnapshotPaged", "ClientSnapshotVirtualized",
                      "ServerVirtualizedPrefetch", "VppDataDensity", "Compact", "RichTwoLine",
                      "VppDataFooterMode", "VppCellValueKind"
                  })
@@ -74,7 +74,7 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
-    public void RepresentativeConsumers_KeepPagedAndVirtualizedBehaviorDistinct()
+    public void RepresentativeConsumers_KeepServerAndClientPagingBehaviorDistinct()
     {
         var root = GetFrontendRoot();
         var history = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
@@ -87,11 +87,11 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("vpp-data-grid vpp-data-density-compact", history, StringComparison.Ordinal);
         Assert.Equal(2, Regex.Matches(history, "<VppCellValuePopover\\b").Count);
 
-        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", orderItems, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", orderItems, StringComparison.Ordinal);
         Assert.Contains("<Toolbar>", orderItems, StringComparison.Ordinal);
-        Assert.Contains("VppDataFooterMode.Virtualized", orderItems, StringComparison.Ordinal);
-        Assert.Contains("AllowVirtualization=\"true\"", orderItems, StringComparison.Ordinal);
-        Assert.Contains("VirtualizationOverscanCount=\"@VirtualizationOverscanCount\"", orderItems, StringComparison.Ordinal);
+        Assert.Contains("AllowPaging=\"@UsePaging\"", orderItems, StringComparison.Ordinal);
+        Assert.Contains("AllowVirtualization=\"false\"", orderItems, StringComparison.Ordinal);
+        Assert.Contains("VppPagingProfiles.SmallStatic", orderItems, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", orderItems, StringComparison.Ordinal);
         Assert.Contains("vpp-data-density-rich-two-line", orderItems, StringComparison.Ordinal);
         Assert.Equal(2, Regex.Matches(orderItems, "<VppCellValuePopover\\b").Count);
@@ -130,12 +130,12 @@ public sealed class DataSurfaceArchitectureTests
         var review = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "PeriodReviewPanel.razor"));
 
         Assert.Contains("TestId=\"order-create-catalog-data-surface\"", create, StringComparison.Ordinal);
-        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", create, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", create, StringComparison.Ordinal);
         Assert.Contains("<VppDataToolbar", create, StringComparison.Ordinal);
         Assert.Contains("<VppCellValuePopover", create, StringComparison.Ordinal);
-        Assert.Contains("VppDataFooterMode.Virtualized", create, StringComparison.Ordinal);
-        Assert.Contains("<Virtualize", create, StringComparison.Ordinal);
-        Assert.Contains("ItemSize=\"52\"", create, StringComparison.Ordinal);
+        Assert.Contains("<RadzenPager", create, StringComparison.Ordinal);
+        Assert.Contains("VppPagingProfiles.LargeWorkingSet", create, StringComparison.Ordinal);
+        Assert.Contains("VisibleProductOptions", create, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenDataGrid", create, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", create, StringComparison.Ordinal);
 
@@ -172,7 +172,7 @@ public sealed class DataSurfaceArchitectureTests
             .ToArray();
 
         Assert.Equal(18, consumers.Length);
-        Assert.Equal(24, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(23, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

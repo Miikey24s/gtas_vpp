@@ -174,7 +174,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                     return [
                         document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
                         document.querySelectorAll('.vpp-orders-story').length,
-                        document.querySelectorAll('.vpp-orders-summary-grid article').length,
+                        document.querySelectorAll('.vpp-orders-view-selector > button').length,
                         document.querySelectorAll('.vpp-orders-view-tabs').length,
                         [...document.querySelectorAll('.vpp-order-view-panel')].filter(visible).length,
                         orderPage
@@ -185,7 +185,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         document.querySelectorAll('.vpp-orders-empty .vpp-empty-state-actions').length,
                         createActions.length,
                         document.querySelectorAll('[data-testid$="coming-soon"]:disabled').length,
-                        document.querySelectorAll('.vpp-orders-summary-grid button[aria-pressed]').length,
+                        document.querySelectorAll('.vpp-orders-view-selector > button[aria-pressed]').length,
                         document.querySelectorAll('.vpp-orders-state').length,
                         document.querySelectorAll('.vpp-order-view-meta .vpp-order-card-kind').length,
                         exportActions.filter(button => !button.disabled).length
@@ -220,7 +220,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const contentRect = workspace?.parentElement?.getBoundingClientRect();
                         const storyTitle = document.querySelector('.vpp-orders-story-heading h2');
                         const summaryLabel = document.querySelector('.vpp-orders-summary-label');
-                        const summaryCard = document.querySelector('.vpp-orders-summary-grid');
+                        const summaryCard = document.querySelector('.vpp-orders-view-selector');
                         const exportAction = [...document.querySelectorAll('.order-page button')]
                             .find(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));
                         return [
@@ -537,8 +537,8 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 }
                 """);
             longListContract[4].Should().Be(500, "the long-list fixture must reach the requested 500 order lines");
-            longListContract[0].Should().BeLessThan(100,
-                "virtualization should keep the DOM row count bounded for a 500-line order");
+            longListContract[0].Should().BeLessThanOrEqualTo(100,
+                "bounded paging should keep at most 100 DOM rows for a 500-line order");
             longListContract[1].Should().BeGreaterThan(0, "the internal grid viewport must have a measurable height");
             longListContract[2].Should().BeGreaterThan(longListContract[1] * 4,
                 $"the 500-line order should scroll inside the grid rather than extending the page. DOM: {longListDiagnostics}");
@@ -561,26 +561,26 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                     ]
                     """);
                 soakContract[0].Should().BeLessThanOrEqualTo(2, "the document must remain viewport-locked during the soak test");
-                soakContract[1].Should().BeLessThan(100, "virtualized rows must remain bounded during the soak test");
+                soakContract[1].Should().BeLessThanOrEqualTo(100, "paged rows must remain bounded during the soak test");
                 soakContract[2].Should().BeLessThanOrEqualTo(1, "only the primary navigation tab indicator should remain mounted");
             }
         }
 
-        await Page.Locator(".vpp-orders-summary-grid article").Nth(1).Locator("button").ClickAsync();
+        await Page.Locator(".vpp-orders-view-selector > button").Nth(1).ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=supplement(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
         await Page.Locator("[data-testid='supplement-order-panel'] .vpp-order-grid-empty").WaitForAsync();
         (await Page.Locator("[data-testid='supplement-order-panel-empty-action']").CountAsync())
             .Should().BeLessThanOrEqualTo(1, "an available supplement flow should expose one empty-state CTA");
 
-        await Page.Locator(".vpp-orders-summary-grid article").Nth(2).Locator("button").ClickAsync();
+        await Page.Locator(".vpp-orders-view-selector > button").Nth(2).ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=previous(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.ReloadAsync();
         await Page.Locator("[data-testid='previous-order-panel']:visible").WaitForAsync();
-        (await Page.Locator(".vpp-orders-summary-grid article.is-selected button[aria-pressed='true']").InnerTextAsync())
+        (await Page.Locator(".vpp-orders-view-selector > button[aria-pressed='true']").InnerTextAsync())
             .Should().Contain("Kỳ trước", "reload should preserve the selected order summary from the URL");
 
-        await Page.Locator(".vpp-orders-summary-grid article").Nth(0).Locator("button").ClickAsync();
+        await Page.Locator(".vpp-orders-view-selector > button").Nth(0).ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=current(?:&.*)?$", RegexOptions.IgnoreCase));
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");

@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Models;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -77,6 +78,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         private bool CanShowPrices => CanViewLibraryTab(Permissions.LibraryPrice);
 
         private bool CanShowPricingTabs => AuthorizedPricingTabs.Count > 1;
+
+        private int SelectedPricingTabId => AuthorizedPricingTabs.ElementAtOrDefault(PricingSelectedIndex);
+
+        private IReadOnlyList<VppSegmentedOption<int>> PricingSelectorOptions => AuthorizedPricingTabs
+            .Select(tab => new VppSegmentedOption<int>(
+                tab,
+                tab == PriceTabIndex ? Loc["Prices"].Value : Loc["PriceLists"].Value))
+            .ToArray();
 
         public List<VppCategoryResDTO> operationCategories = new List<VppCategoryResDTO>();
         public List<VppItemResDTO> operations = new List<VppItemResDTO>();
@@ -439,6 +448,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 _toastService.Error(ex, Loc, "DeleteRecordFailed");
                 return false;
             }
+        }
+
+        private Task SelectPricingTabAsync(int tabId)
+        {
+            var index = AuthorizedPricingTabs.ToList().FindIndex(tab => tab == tabId);
+            if (index >= 0)
+            {
+                PricingTabOnChange(index);
+            }
+
+            return Task.CompletedTask;
         }
 
         async Task<T> ApiSetStatusAsync<T>(T data, bool isDeleted) where T : BaseResDTO, new()

@@ -1,0 +1,109 @@
+@typeparam TValue
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<div @ref="root"
+     class="vpp-segmented-selector @Class"
+     role="group"
+     aria-label="@AriaLabel"
+     aria-busy="@IsBusy"
+     @onclick:stopPropagation>
+    <span class="vpp-segmented-indicator" aria-hidden="true"></span>
+    @foreach (var option in Options)
+    {
+        var isSelected = IsSelected(option.Value);
+        <button type="button"
+                @key="option.Value"
+                class="@(isSelected ? "is-active" : null)"
+                aria-pressed="@isSelected.ToString().ToLowerInvariant()"
+                aria-expanded="@(option.IsExpanded?.ToString().ToLowerInvariant())"
+                disabled="@(!option.IsEnabled)"
+                data-vpp-segmented-active="@(isSelected ? "true" : "false")"
+                @onclick="@(() => SelectAsync(option))">
+            @if (option.Ordinal.HasValue)
+            {
+                <span class="vpp-segmented-ordinal" aria-hidden="true">@option.Ordinal.Value</span>
+            }
+            @if (!string.IsNullOrWhiteSpace(option.Icon))
+            {
+                <VppIcon Name="@option.Icon" Class="vpp-segmented-icon" />
+            }
+            <span class="vpp-segmented-label">@option.Label</span>
+            @if (!string.IsNullOrWhiteSpace(option.Badge))
+            {
+                <span class="vpp-segmented-badge">@option.Badge</span>
+            }
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<VppSegmentedOption<TValue>> Options { get; set; } = [];
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter, EditorRequired] public string AriaLabel { get; set; } = string.Empty;
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private ElementReference root;
+    private IJSObjectReference? module;
+    private TValue? previousValue;
+    private bool needsSync = true;
+
+    protected override void OnParametersSet()
+    {
+        if (!EqualityComparer<TValue?>.Default.Equals(previousValue, Value))
+        {
+            previousValue = Value;
+            needsSync = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!needsSync)
+        {
+            return;
+        }
+
+        try
+        {
+            module ??= await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/DesignSystem/Composites/VppSegmentedSelector.razor.js");
+            await module.InvokeVoidAsync("sync", root, !firstRender);
+            needsSync = false;
+        }
+        catch (InvalidOperationException)
+        {
+            // Prerender chưa có JS runtime; interactive render kế tiếp sẽ đồng bộ indicator.
+        }
+        catch (JSDisconnectedException)
+        {
+            // Circuit đã đóng nên không còn viewport để đồng bộ.
+        }
+    }
+
+    private bool IsSelected(TValue optionValue)
+        => EqualityComparer<TValue?>.Default.Equals(Value, optionValue);
+
+    private Task SelectAsync(VppSegmentedOption<TValue> option)
+        => option.IsEnabled ? ValueChanged.InvokeAsync(option.Value) : Task.CompletedTask;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // Browser sẽ thu hồi module cùng document.
+        }
+    }
+}

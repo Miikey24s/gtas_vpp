@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task PagedAndVirtualizedConsumers_ExposeTypedFoundationWithoutScrollRequests()
+    public async Task ServerAndClientPagedConsumers_ExposeTypedFoundationWithoutScrollRequests()
     {
         await LoginAsAsync(TestAccounts.Employee);
 
@@ -63,16 +63,14 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
             }
 
             await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
-            var virtualizedSurface = Page.GetByTestId("current-order-panel-data-surface");
-            await virtualizedSurface.WaitForAsync(new() { Timeout = 60_000 });
+            var clientSurface = Page.GetByTestId("current-order-panel-data-surface");
+            await clientSurface.WaitForAsync(new() { Timeout = 60_000 });
             await WaitForGridRowsAsync(".vpp-order-items-grid");
-            (await virtualizedSurface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-virtualized");
-            (await virtualizedSurface.GetAttributeAsync("data-vpp-data-density")).Should().Be("rich-two-line");
-            (await virtualizedSurface.Locator("[data-vpp-data-footer-mode='virtualized']").CountAsync()).Should().Be(1);
-            (await virtualizedSurface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().Be(0);
+            (await clientSurface.GetAttributeAsync("data-vpp-data-source-mode")).Should().BeOneOf("static", "client-snapshot-paged");
+            (await clientSurface.GetAttributeAsync("data-vpp-data-density")).Should().Be("rich-two-line");
 
-            var renderedRows = await virtualizedSurface.Locator("tbody tr").CountAsync();
-            renderedRows.Should().BeLessThanOrEqualTo(40, "virtualization must keep the mounted DOM bounded");
+            var renderedRows = await clientSurface.Locator("tbody tr").CountAsync();
+            renderedRows.Should().BeLessThanOrEqualTo(100, "client paging must keep the mounted DOM bounded");
 
             var apiRequests = new ConcurrentQueue<string>();
             void ObserveRequest(object? _, IRequest request)
@@ -84,18 +82,18 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
             }
 
             Page.Request += ObserveRequest;
-            await virtualizedSurface.Locator(".rz-data-grid-data").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
+            await clientSurface.Locator(".rz-data-grid-data").EvaluateAsync("element => element.scrollTop = element.scrollHeight");
             await WaitForRenderSettleAsync();
             Page.Request -= ObserveRequest;
 
-            apiRequests.Should().BeEmpty("client snapshot virtualization must not fetch another window while scrolling");
+            apiRequests.Should().BeEmpty("client snapshot paging must not fetch another window while scrolling");
             await AssertNoDocumentOverflowAsync(viewport.Width);
-            await CaptureAsync($"ds1-order-items-virtualized-{viewport.Width}x{viewport.Height}.png");
+            await CaptureAsync($"ds1-order-items-bounded-{viewport.Width}x{viewport.Height}.png");
 
             if (viewport.Width == 1366)
             {
                 await SetDarkModeAsync(true);
-                await CaptureAsync("ds1-order-items-virtualized-dark-1366x768.png");
+                await CaptureAsync("ds1-order-items-bounded-dark-1366x768.png");
                 await SetDarkModeAsync(false);
             }
         }

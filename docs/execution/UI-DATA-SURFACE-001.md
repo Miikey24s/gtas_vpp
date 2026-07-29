@@ -259,6 +259,16 @@ Gate: owner duyệt admin board và keyboard/accessibility trace.
 - Visual runtime đã được xem bằng mắt ở desktop `1920×1080` và tablet `768×1024` cho Lookup, Categories, Items, Suppliers, Departments, Price Lists, Prices, Users, Permission và Report; evidence thô ở `tmp/ui-system-f6a-final3/` (ignored).
 - Evidence checkpoint: Release build `0 warning/error`; frontend unit/architecture `199/199`; isolated DS4 route matrix + workspace/Library regression `5/5`; Permission mutation/restore `1/1`. Owner yêu cầu làm hết UI trước rồi review một lượt, nên DS4 không giữ gate duyệt riêng và được chuyển vào final F7 board.
 
+### Owner correction — selector, paging và Quản lý kỳ (2026-07-29)
+
+- `VppSegmentedSelector<TValue>` là selector ngang canonical cho toàn project: History scope, My Orders mode, Period Demand view, language, Pricing, record inspector và permission page. Global header-tab vẫn là navigation riêng; workflow stepper giữ state ordered nhưng dùng cùng ngôn ngữ hình học.
+- Sidebar rút gọn thành `Quản lý kỳ → Chốt kỳ / Duyệt đơn bổ sung`; các mục `Gom nhu cầu`, `Chọn nhà cung cấp` và thao tác chốt sẽ được tích hợp trong một workspace Chốt kỳ sau visual approval, không tiếp tục chia thành bốn page con.
+- `Duyệt đơn bổ sung` dùng `VppListDetailWorkspace`: danh sách đơn server-paged ở trái, detail + export + approve/reject ở phải. Route giữ API, permission và mutation; pattern chỉ sở hữu geometry.
+- Paging dùng profile typed: split list `20`, collection `50`, large working set `100`, small snapshot chỉ bật pager khi vượt `100`. Create Order nạp toàn bộ catalog được phép theo batch, filter trên toàn snapshot rồi mới cắt page UI `100`; đổi page/scroll không gọi lại API.
+- Grid pager nhận footer separator canonical; Catalog bỏ border dòng cuối để footer không tạo double-line khi cuộn tới đáy. Filter option của Catalog được tải đủ theo batch thay vì chỉ dựa vào page dữ liệu hiện tại.
+- **Approval gate:** Chốt kỳ mới chỉ được tạo ảnh concept; production implementation phải chờ owner duyệt ảnh.
+- Evidence hiện tại: frontend Release build `0 warning/error`; frontend unit/architecture `201/201`; 7 focused isolated browser tests pass, gồm selector/My Orders, server+client data surface 4 viewport, pattern expanded/collapsed, Create Order 547 item/page 100, DS4 route matrix và lifecycle tạo/duyệt/từ chối đơn bổ sung. Ảnh runtime đã được kiểm bằng mắt trong `tmp/selector-paging-review/` (ignored).
+
 ### R1 — Behavior-preserving UI refactor
 
 Tên chính xác cho việc “đổi code nhưng UI/tương tác không đổi” là **behavior-preserving refactor**; trong đợt này có thể gọi ngắn là **structural UI refactor**.

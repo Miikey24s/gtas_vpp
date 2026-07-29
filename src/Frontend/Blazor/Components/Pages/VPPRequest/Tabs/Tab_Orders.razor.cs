@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components.Shared;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
@@ -118,6 +119,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string PreviousCycleSummaryTitle => PreviousOrders.Count == 0
             ? Loc["NoPreviousOrderYet"].Value
             : string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count);
+
+        protected IReadOnlyList<VppSegmentedOption<int>> OrderViewOptions =>
+        [
+            new(CurrentOrderViewIndex, Loc["CurrentRegularOrder"], Badge: CurrentRegularLineCount.ToString()),
+            new(SupplementOrderViewIndex, Loc["AdditionalOrders"], Badge: SelectedSupplementLineCount.ToString()),
+            new(PreviousOrderViewIndex, Loc["PreviousOrderPeriod"], Badge: PreviousOrderLineCount.ToString())
+        ];
         public string SelectedOrderViewTitle => OrderViewSelectedIndex switch
         {
             SupplementOrderViewIndex => SupplementSummaryTitle,

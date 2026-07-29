@@ -2,10 +2,12 @@
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
 <div class="vpp-period-panel">
-    <div class="vpp-period-view-switchbar" role="tablist" aria-label="@Loc["DemandViewMode"]">
-        <button type="button" role="tab" aria-selected="@(viewMode == DemandViewMode.ByItem)" class="@(viewMode == DemandViewMode.ByItem ? "is-active" : null)" @onclick="() => SetViewMode(DemandViewMode.ByItem)">@Loc["DemandByItem"]</button>
-        <button type="button" role="tab" aria-selected="@(viewMode == DemandViewMode.ByOrder)" class="@(viewMode == DemandViewMode.ByOrder ? "is-active" : null)" @onclick="() => SetViewMode(DemandViewMode.ByOrder)">@Loc["DemandByOrder"]</button>
-    </div>
+    <VppSegmentedSelector TValue="DemandViewMode"
+                          Value="@viewMode"
+                          Options="@ViewModeOptions"
+                          ValueChanged="@SetViewMode"
+                          AriaLabel="@Loc["DemandViewMode"]"
+                          Class="vpp-period-view-selector" />
 
     @if (viewMode == DemandViewMode.ByOrder)
     {
@@ -64,7 +66,8 @@
                         <RadzenDataGrid TItem="AggregatedVppItemResDTO"
                                         Data="@FilteredItems"
                                         AllowPaging="true"
-                                        PageSize="20"
+                                        PageSize="@VppPagingProfiles.LargeWorkingSet.DefaultPageSize"
+                                        PageSizeOptions="@VppPagingProfiles.LargeWorkingSet.PageSizeOptions"
                                         PagerAlwaysVisible="true"
                                         ShowPagingSummary="true"
                                         PagerHorizontalAlign="HorizontalAlign.Right"

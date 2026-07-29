@@ -1,34 +1,33 @@
 @using System.Globalization
 @inject NavigationManager Navigation
 
-<button type="button"
-        class="@SwitchClass"
-        title="@ToggleTitle"
-        aria-label="@ToggleTitle"
-        aria-pressed="@IsEnglishUi"
-        aria-busy="@_isSwitching"
-        disabled="@_isSwitching"
-        @onclick="ToggleAsync">
-    <span class="vpp-lang-switch-thumb" aria-hidden="true"></span>
-    <span class="vpp-lang-option @(IsEnglishUi ? "is-active" : string.Empty)">EN</span>
-    <span class="vpp-lang-option @(!IsEnglishUi ? "is-active" : string.Empty)">VI</span>
-</button>
+<VppSegmentedSelector TValue="string"
+                      Value="@CurrentCulture"
+                      Options="@LanguageOptions"
+                      ValueChanged="@SetCultureAsync"
+                      AriaLabel="@ToggleTitle"
+                      IsBusy="@_isSwitching"
+                      Class="vpp-account-language-switch" />
 
 @code {
     private bool _isSwitching;
     private bool IsEnglishUi => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    private string CurrentCulture => IsEnglishUi ? "en" : "vi";
     private string ToggleTitle => IsEnglishUi ? Loc["SwitchToVietnamese"] : Loc["SwitchToEnglish"];
-    private string SwitchClass => $"vpp-lang-switch vpp-account-language-switch {(IsEnglishUi ? "is-en" : "is-vi")}";
+    private IReadOnlyList<VppSegmentedOption<string>> LanguageOptions =>
+    [
+        new("vi", "VI", IsEnabled: !_isSwitching),
+        new("en", "EN", IsEnabled: !_isSwitching)
+    ];
 
-    private Task ToggleAsync()
+    private Task SetCultureAsync(string culture)
     {
-        if (_isSwitching)
+        if (_isSwitching || string.Equals(culture, CurrentCulture, StringComparison.OrdinalIgnoreCase))
         {
             return Task.CompletedTask;
         }
 
         _isSwitching = true;
-        var culture = IsEnglishUi ? "vi" : "en";
         var returnUrl = $"/{Navigation.ToBaseRelativePath(Navigation.Uri)}";
         Navigation.NavigateTo(
             $"/set-language?culture={culture}&returnUrl={Uri.EscapeDataString(returnUrl)}",

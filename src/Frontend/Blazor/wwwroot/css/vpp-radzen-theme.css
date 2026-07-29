@@ -197,4 +197,6 @@
 .vpp-data-grid .rz-paginator,
 .vpp-data-grid .rz-pager {
     min-height: var(--vpp-data-footer-height);
+    border-top: var(--vpp-border-width) solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
 }

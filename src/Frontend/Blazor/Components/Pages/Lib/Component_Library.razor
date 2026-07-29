@@ -58,33 +58,24 @@
                     {
                         @if (CanShowPricingTabs)
                         {
-                            <RadzenTabs Change="@PricingTabOnChange"
-                                        RenderMode="TabRenderMode.Client"
-                                        class="vpp-secondary-tabs"
-                                        @bind-SelectedIndex="@PricingSelectedIndex">
-                                <Tabs>
-                                    @if (CanShowPriceLists)
-                                    {
-                                        <RadzenTabsItem Text="@Loc["PriceLists"]">
-                                            @if (IsActivePricingTab(6))
-                                            {
-                                                <Tab_PriceListLibrary claims="@claims"
-                                                                      PagePermissionResDTO="@PagePermissionResDTO" />
-                                            }
-                                        </RadzenTabsItem>
-                                    }
-                                    @if (CanShowPrices)
-                                    {
-                                        <RadzenTabsItem Text="@Loc["Prices"]">
-                                            @if (IsActivePricingTab(4))
-                                            {
-                                                <Tab_PriceLibrary claims="@claims"
-                                                                  PagePermissionResDTO="@PagePermissionResDTO" />
-                                            }
-                                        </RadzenTabsItem>
-                                    }
-                                </Tabs>
-                            </RadzenTabs>
+                            <div class="vpp-library-local-selector">
+                                <VppSegmentedSelector TValue="int"
+                                                      Value="@SelectedPricingTabId"
+                                                      Options="@PricingSelectorOptions"
+                                                      ValueChanged="@SelectPricingTabAsync"
+                                                      AriaLabel="@Loc["Pricing"]" />
+                            </div>
+
+                            @if (IsActivePricingTab(PriceListTabIndex))
+                            {
+                                <Tab_PriceListLibrary claims="@claims"
+                                                      PagePermissionResDTO="@PagePermissionResDTO" />
+                            }
+                            else if (IsActivePricingTab(PriceTabIndex))
+                            {
+                                <Tab_PriceLibrary claims="@claims"
+                                                  PagePermissionResDTO="@PagePermissionResDTO" />
+                            }
                         }
                         else if (CanShowPriceLists)
                         {

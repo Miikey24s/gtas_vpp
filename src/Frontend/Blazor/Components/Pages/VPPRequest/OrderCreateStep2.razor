@@ -14,7 +14,7 @@
                 </div>
             </header>
 
-            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotVirtualized"
+            <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                                  Density="VppDataDensity.RichTwoLine"
                                  Bordered="false"
                                  AriaLabelledBy="order-catalog-title"
@@ -62,12 +62,8 @@
                     </div>
 
                     <div class="vpp-order-builder-virtual-body" role="rowgroup">
-                        <Virtualize @key="ProductOptions"
-                                    Items="@ProductOptions"
-                                    Context="row"
-                                    ItemSize="52"
-                                    OverscanCount="10"
-                                    SpacerElement="div">
+                        @foreach (var row in VisibleProductOptions)
+                        {
                             <div @key="row.Id"
                                  class="vpp-order-builder-virtual-row @(IsSelected(row.Id) ? "vpp-wizard-row-selected" : string.Empty)"
                                  role="row">
@@ -110,16 +106,25 @@
                                     }
                                 </div>
                             </div>
-                        </Virtualize>
+                        }
                     </div>
                 </div>
             </div>
             </ChildContent>
             <Footer>
-                <VppDataSummaryFooter Mode="VppDataFooterMode.Virtualized"
-                                      Summary="@Loc["VirtualizedCatalogSummary", ProductCount]"
-                                      IsLoading="@IsLoadingProducts"
-                                      Class="vpp-order-builder-data-footer" />
+                <RadzenPager @key="_catalogPagerVersion"
+                             Count="@ProductCount"
+                             PageSize="@_catalogPageSize"
+                             PageSizeOptions="@VppPagingProfiles.LargeWorkingSet.PageSizeOptions"
+                             PageSizeText="@Loc["ItemsPerPage"]"
+                             ShowPagingSummary="true"
+                             PagingSummaryFormat="@Loc["CatalogPagingSummary"]"
+                             AlwaysVisible="@(ProductCount > 0)"
+                             Density="Density.Compact"
+                             HorizontalAlign="HorizontalAlign.Right"
+                             PageChanged="@OnCatalogPageChanged"
+                             PageSizeChanged="@OnCatalogPageSizeChanged"
+                             class="vpp-order-builder-pager" />
             </Footer>
             </VppDataSurfaceFrame>
         </section>
@@ -336,12 +341,19 @@
     public string? CategoryFilter { get; set; }
     public string? UnitFilter { get; set; }
     private const int SnapshotBatchSize = 100;
+    private int _catalogPageSize = VppPagingProfiles.LargeWorkingSet.DefaultPageSize;
+    private int _catalogSkip;
+    private int _catalogPagerVersion;
     private readonly List<ProductOption> _allProductOptions = [];
     private CancellationTokenSource? _searchDebounceCts;
     private Guid? _openProductCodeId;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
 
     private string OrderNotePopoverId => $"vpp-order-note-{_instanceId}";
+    private IReadOnlyList<ProductOption> VisibleProductOptions => ProductOptions
+        .Skip(_catalogSkip)
+        .Take(_catalogPageSize)
+        .ToList();
     private bool HasProductFilters => !string.IsNullOrWhiteSpace(SearchText)
         || !string.IsNullOrWhiteSpace(CategoryFilter)
         || !string.IsNullOrWhiteSpace(UnitFilter);
@@ -486,6 +498,26 @@
                 && (string.IsNullOrEmpty(UnitFilter) || string.Equals(item.UomName, UnitFilter, StringComparison.CurrentCultureIgnoreCase)))
             .ToList();
         ProductCount = ProductOptions.Count;
+        ResetCatalogPager();
+    }
+
+    private void OnCatalogPageChanged(PagerEventArgs args)
+    {
+        _catalogSkip = args.Skip;
+        CloseProductTransientSurfaces();
+    }
+
+    private void OnCatalogPageSizeChanged(int pageSize)
+    {
+        _catalogPageSize = pageSize;
+        ResetCatalogPager();
+    }
+
+    private void ResetCatalogPager()
+    {
+        _catalogSkip = 0;
+        _catalogPagerVersion++;
+        CloseProductTransientSurfaces();
     }
 
     private void ToggleProductCode(Guid id)

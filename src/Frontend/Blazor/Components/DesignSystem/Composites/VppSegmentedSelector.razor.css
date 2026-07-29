@@ -1,0 +1,135 @@
+.vpp-segmented-selector {
+    position: relative;
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    align-items: stretch;
+    gap: 2px;
+    padding: 2px;
+    overflow-x: auto;
+    scroll-padding-inline: var(--vpp-space-1);
+    border: var(--vpp-border-width) solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--vpp-border-default) 42%, var(--vpp-bg-elevated));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
+    white-space: nowrap;
+}
+
+.vpp-segmented-indicator {
+    position: absolute;
+    z-index: 0;
+    inset-block: 2px;
+    inset-inline-start: 0;
+    width: var(--vpp-segmented-indicator-width, 0);
+    border-radius: 7px;
+    background: var(--vpp-primary-500);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(255 255 255 / 10%);
+    transform: translateX(var(--vpp-segmented-indicator-x, 0));
+    transition: transform var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                width var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
+    pointer-events: none;
+}
+
+.vpp-segmented-selector button {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    min-height: 30px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
+    padding: 0 13px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: color-mix(in srgb, var(--vpp-text-primary) 84%, var(--vpp-bg-elevated));
+    font: inherit;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+    white-space: nowrap;
+    cursor: pointer;
+    scroll-margin-inline: var(--vpp-space-1);
+    transition: background-color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                color var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
+                box-shadow var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
+}
+
+.vpp-segmented-selector button:hover:not(:disabled):not(.is-active) {
+    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-segmented-selector button:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 24%, transparent);
+}
+
+.vpp-segmented-selector button:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.vpp-segmented-selector button.is-active {
+    background: var(--vpp-primary-500);
+    color: var(--vpp-text-inverse);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-segmented-selector[data-vpp-indicator-ready="true"] button.is-active {
+    background: transparent;
+}
+
+.vpp-segmented-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vpp-segmented-icon ::deep .vpp-icon,
+::deep .vpp-segmented-icon {
+    font-size: 16px;
+}
+
+.vpp-segmented-badge,
+.vpp-segmented-ordinal {
+    display: inline-grid;
+    min-width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    padding-inline: 5px;
+    place-items: center;
+    border-radius: var(--vpp-radius-full);
+    background: color-mix(in srgb, var(--vpp-text-primary) 7%, transparent);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.vpp-segmented-ordinal {
+    width: 20px;
+    padding-inline: 0;
+}
+
+.vpp-segmented-selector button.is-active .vpp-segmented-badge,
+.vpp-segmented-selector button.is-active .vpp-segmented-ordinal {
+    background: rgb(255 255 255 / 18%);
+    color: var(--vpp-text-inverse);
+}
+
+@media (max-width: 560px) {
+    .vpp-segmented-selector button {
+        padding-inline: 9px;
+        font-size: var(--vpp-text-xs);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-segmented-indicator,
+    .vpp-segmented-selector button {
+        transition-duration: .01ms;
+    }
+}

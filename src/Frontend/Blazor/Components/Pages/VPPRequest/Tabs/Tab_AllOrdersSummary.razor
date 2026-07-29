@@ -70,7 +70,7 @@
                 <RadzenDataGrid TItem="VppRequestResDTO" Data="@Orders"
                                 Count="@TotalCount" LoadData="@OnLoadData"
                                 AllowPaging="true" PageSize="@PageSize"
-                                PageSizeOptions="@(new int[] { 10, 20, 50, 100 })"
+                                PageSizeOptions="@VppPagingProfiles.SplitList.PageSizeOptions"
                                 PageSizeText="@Loc["ItemsPerPage"]"
                                 ShowPagingSummary="true"
                                 PagerHorizontalAlign="HorizontalAlign.Left"

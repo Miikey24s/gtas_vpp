@@ -403,6 +403,14 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Authored hex giảm `131 → 108`; F1 không thêm inline style và `!important` giữ nguyên `756`. Role badge dùng semantic foreground mạnh hơn để pass contrast trong Light mode.
 - Browser Theme Review chạy My Orders, History, Library/Departments và Permission ở `1366×768`, Light/Dark; xác nhận VPP token và Radzen variable resolve cùng giá trị, không overflow/console/network lỗi và representative axe không có violation critical/serious.
 
+### 7.3 — Owner correction sau F7: selector và Period Management
+
+- Selector ngang trong content dùng `VppSegmentedSelector<TValue>` typed; header-tab toàn cục là ngoại lệ navigation. Các adapter Radzen secondary-tab đã hết consumer được retire thay vì giữ hai implementation cùng visual.
+- Sidebar đổi nhãn `Vận hành kỳ` thành `Quản lý kỳ`, chỉ còn `Chốt kỳ` và `Duyệt đơn bổ sung`. Workspace Chốt kỳ tương lai tích hợp rà soát, gom nhu cầu, chọn nhà cung cấp và chốt; không nhân page theo từng bước.
+- Duyệt đơn bổ sung chuyển sang split list-detail có thao tác. Paging profile được đưa vào shared contract; Create Order dùng page `100` trên full authorized snapshot để tránh flicker virtualization nhưng vẫn giới hạn DOM.
+- Chốt kỳ đang ở `PENDING OWNER VISUAL APPROVAL`: tạo concept image trước, chưa thay production route cho tới khi owner duyệt.
+- Verification: frontend `201/201`, Release build sạch và 7 focused isolated browser tests pass; visual evidence selector/Create Order/pending split đã được kiểm bằng mắt, không điều khiển host `dotnet watch` của owner.
+
 ---
 
 ## 8. Rủi ro và recovery

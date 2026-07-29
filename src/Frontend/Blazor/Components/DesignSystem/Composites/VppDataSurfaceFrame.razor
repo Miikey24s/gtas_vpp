@@ -43,6 +43,7 @@
     private string SourceModeClass => DataSourceMode switch
     {
         VppDataSourceMode.ServerPaging => "vpp-data-source-server-paging",
+        VppDataSourceMode.ClientSnapshotPaged => "vpp-data-source-client-snapshot-paged",
         VppDataSourceMode.ClientSnapshotVirtualized => "vpp-data-source-client-snapshot-virtualized",
         VppDataSourceMode.ServerVirtualizedPrefetch => "vpp-data-source-server-virtualized-prefetch",
         _ => "vpp-data-source-static"
@@ -51,6 +52,7 @@
     private string SourceModeValue => DataSourceMode switch
     {
         VppDataSourceMode.ServerPaging => "server-paging",
+        VppDataSourceMode.ClientSnapshotPaged => "client-snapshot-paged",
         VppDataSourceMode.ClientSnapshotVirtualized => "client-snapshot-virtualized",
         VppDataSourceMode.ServerVirtualizedPrefetch => "server-virtualized-prefetch",
         _ => "static"

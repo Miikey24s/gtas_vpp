@@ -6,11 +6,11 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` và Blazor `Virtualize` riêng của Create Order không được tính là grid instance.
+Source hiện có **18 file / 23 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
-| `Components/DesignSystem/Composites/VppOrderItemsSurface.razor` | 1 | Detail items | `ClientSnapshotVirtualized` | `RichTwoLine` | DS2 reference complete |
+| `Components/DesignSystem/Composites/VppOrderItemsSurface.razor` | 1 | Detail items | `Static` hoặc `ClientSnapshotPaged` khi trên 100 dòng | `RichTwoLine` | DS2 reference + bounded paging retrofit |
 | `Components/Pages/Lib/Component_ShareGrid.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor` | 2 | Master/detail admin | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
@@ -20,7 +20,7 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Report.razor` | 2 | Static report | `Static` | `Compact` | DS4 static exception complete |
 | `Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor` | 1 | Dialog history | `Static` | `Compact` | Deferred dialog exception; không thuộc reference route DS2 |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
-| `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 2 | Approval + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
+| `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Approval list; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `Compact` | Split list-detail retrofit |
 | `Components/Pages/VPPRequest/Components/PeriodDemandPanel.razor` | 1 | Demand collection | `Static` + client pager | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Components/PeriodReviewPanel.razor` | 2 | Review + detail | `ServerPaging` + `Static` | `Compact` | DS3 workflow complete |
 | `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 1 | Settlement quote snapshot | `Static` | `Compact` | DS3 period workflow retrofit |
@@ -34,7 +34,7 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 | Consumer | Loại | Quyết định |
 |---|---|---|
 | `HistoryOrderList` mobile list | Responsive mirror | Dùng cùng data/filter/state với desktop; không tạo data-source mode riêng |
-| `OrderCreateStep2` orderable catalog | Blazor `Virtualize` data surface | Giữ snapshot client, bounded DOM và shared toolbar/footer; header tách khỏi virtual rows để không phụ thuộc table paint order của Radzen |
+| `OrderCreateStep2` orderable catalog | Custom paged data surface | Nạp snapshot được phép đặt theo batch, lọc trên toàn snapshot rồi phân trang UI mặc định 100; body vẫn scroll nội bộ và không gọi API khi đổi trang |
 | `OrderCreateStep2` draft list | Static workflow list | Giữ action/quantity route-owned; chỉ nhận row rhythm/footer ở DS3 |
 | `Tab_PagePermission` permission matrix | Matrix exception | Không ép cột `#`, paging hoặc data-table motif thông thường |
 | `PeriodDemandPanel` nested detail table | Static nested detail | Giữ progressive disclosure; không biến thành grid server độc lập nếu chưa cần |
@@ -46,7 +46,7 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 | Behavior | Consumer | Foundation dùng | Không thay đổi |
 |---|---|---|---|
 | Server paging | History order list | `VppDataSurfaceFrame`, `VppDataToolbar`, opt-in `vpp-data-grid`, `VppCellValuePopover` | API `skip/top`, pager, filter state, row selection |
-| Client snapshot + virtualized DOM | Order-items detail | `VppDataSurfaceFrame`, `VppDataToolbar`, `VppDataSummaryFooter`, opt-in `vpp-data-grid`, `VppCellValuePopover` | Input collection, filter orchestration, export/action, virtualization |
+| Client snapshot + bounded paging | Order-items detail | `VppDataSurfaceFrame`, `VppDataToolbar`, Radzen pager, opt-in `vpp-data-grid`, `VppCellValuePopover` | Input collection, filter orchestration và export/action |
 
 ## Consumer ledger rule
 
@@ -57,12 +57,12 @@ Source hiện có **18 file / 24 DataGrid thật**. Generic type reference trong
 ## DS2 reference group
 
 - `HistoryOrderList`: canonical search/select/clear, typed server-paged frame và compact density; không còn route-owned filter menu/CSS/state.
-- `VppOrderItemsSurface`: canonical filters, typed client-snapshot virtualized frame, rich two-line rows và virtual footer dùng chung cho History detail + My Orders.
+- `VppOrderItemsSurface`: canonical filters, rich two-line rows và paging 100 khi tập dữ liệu vượt ngưỡng; History detail + My Orders dùng cùng component.
 - `Tab_ProductCatalog`: canonical toolbar trong typed server-paged frame, rich two-line bridge và giữ API/paging/sort hiện hữu.
 
 ## DS3 workflow group
 
-- `OrderCreateStep2`: client snapshot theo batch, virtualized DOM thật, canonical toolbar/code popup/virtual footer; scroll không gọi lại API.
+- `OrderCreateStep2`: client snapshot theo batch, filter toàn bộ snapshot và pager mặc định 100; canonical toolbar/code popup, scroll/đổi trang không gọi lại API.
 - `Tab_DepartmentSummary`: tái sử dụng `HistoryOrderList` và toàn bộ History workspace; route chỉ truyền cột người đặt riêng, API và permission phòng ban.
 - `PeriodReviewPanel`: canonical search/type/status toolbar và server-paged frame; kỳ được sở hữu bởi workspace bốn bước, route giữ readiness và empty/error semantics.
 - `PeriodDemandPanel`, `PeriodSupplyAllocationPanel`, `PeriodSettlementPanel`: dùng cùng kỳ và cùng settlement preview; mỗi bước có typed frame, native scroll/paging và footer chuyển bước rõ ràng.

@@ -53,8 +53,8 @@
                     IsLoading="@isLoading"
                     AllowSorting="true"
                     AllowPaging="true"
-                    PageSize="20"
-                    PageSizeOptions="@(new int[] { 20, 50, 100 })"
+                    PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
+                    PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
                     Density="Density.Compact"
                     GridLines="DataGridGridLines.Horizontal"
                     EmptyText="@Loc["NoPriceListAvailable"]"
@@ -70,7 +70,7 @@
                     @bind-Value="selectedPriceLists"
                     SelectionMode="DataGridSelectionMode.Single"
                     RowSelect="OnPriceListSelected"
-                    class="@($"vpp-admin-grid vpp-admin-page-grid vpp-data-grid vpp-data-density-compact {(count <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                    class="@($"vpp-admin-grid vpp-admin-page-grid vpp-data-grid vpp-data-density-compact {(count <= VppPagingProfiles.Collection.DefaultPageSize ? "vpp-admin-grid-single-page" : string.Empty)}")"
                     ColumnWidth="150px"
                     Style="--vpp-admin-grid-min-width: 1160px;">
         <Columns>

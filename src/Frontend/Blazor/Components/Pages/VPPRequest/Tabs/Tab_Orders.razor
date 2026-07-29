@@ -45,38 +45,12 @@
 
             <section class="vpp-orders-view-switchbar" aria-label="@Loc["OrderCycleSummary"]">
                 <div class="vpp-orders-story-controls">
-                    <div class="vpp-orders-summary-grid" role="group" aria-label="@Loc["OrderCycleSummary"]">
-                        <article class="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "is-selected" : string.Empty)">
-                            <button type="button"
-                                    @onclick="() => SelectOrderViewAsync(CurrentOrderViewIndex)"
-                                    aria-pressed="@(OrderViewSelectedIndex == CurrentOrderViewIndex ? "true" : "false")">
-                                <span class="vpp-orders-summary-label">
-                                    <span>@Loc["CurrentRegularOrder"]</span>
-                                    <span class="vpp-orders-summary-count">@CurrentRegularLineCount</span>
-                                </span>
-                            </button>
-                        </article>
-                        <article class="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "is-selected" : string.Empty)">
-                            <button type="button"
-                                    @onclick="() => SelectOrderViewAsync(SupplementOrderViewIndex)"
-                                    aria-pressed="@(OrderViewSelectedIndex == SupplementOrderViewIndex ? "true" : "false")">
-                                <span class="vpp-orders-summary-label">
-                                    <span>@Loc["AdditionalOrders"]</span>
-                                    <span class="vpp-orders-summary-count">@SelectedSupplementLineCount</span>
-                                </span>
-                            </button>
-                        </article>
-                        <article class="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "is-selected" : string.Empty)">
-                            <button type="button"
-                                    @onclick="() => SelectOrderViewAsync(PreviousOrderViewIndex)"
-                                    aria-pressed="@(OrderViewSelectedIndex == PreviousOrderViewIndex ? "true" : "false")">
-                                <span class="vpp-orders-summary-label">
-                                    <span>@Loc["PreviousOrderPeriod"]</span>
-                                    <span class="vpp-orders-summary-count">@PreviousOrderLineCount</span>
-                                </span>
-                            </button>
-                        </article>
-                    </div>
+                    <VppSegmentedSelector TValue="int"
+                                          Value="@OrderViewSelectedIndex"
+                                          Options="@OrderViewOptions"
+                                          ValueChanged="@SelectOrderViewAsync"
+                                          AriaLabel="@Loc["OrderCycleSummary"]"
+                                          Class="vpp-orders-view-selector" />
 
                     <div class="vpp-orders-story-commands">
                         @if (OrderViewSelectedIndex == CurrentOrderViewIndex)

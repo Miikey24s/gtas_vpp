@@ -5,18 +5,19 @@ namespace gtas_vpp_fe.Tests.Architecture;
 public sealed class CatalogPagingUiTests
 {
     [Fact]
-    public void OrderWizard_UsesClientSnapshotWithVirtualizedDom()
+    public void OrderWizard_UsesFullClientSnapshotWithBoundedPaging()
     {
         var source = ReadSource("Components", "Pages", "VPPRequest", "OrderCreateStep2.razor");
 
-        Assert.Contains("VppDataSourceMode.ClientSnapshotVirtualized", source, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", source, StringComparison.Ordinal);
         Assert.Contains("SnapshotBatchSize = 100", source, StringComparison.Ordinal);
         Assert.Contains("LoadProductSnapshotAsync", source, StringComparison.Ordinal);
-        Assert.Contains("<Virtualize", source, StringComparison.Ordinal);
-        Assert.Contains("OverscanCount=\"10\"", source, StringComparison.Ordinal);
+        Assert.Contains("<RadzenPager", source, StringComparison.Ordinal);
+        Assert.Contains("VppPagingProfiles.LargeWorkingSet.DefaultPageSize", source, StringComparison.Ordinal);
+        Assert.Contains("VisibleProductOptions", source, StringComparison.Ordinal);
         Assert.Contains("vpp-order-builder-virtual-header", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenDataGrid", source, StringComparison.Ordinal);
-        Assert.Contains("VppDataFooterMode.Virtualized", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Virtualize", source, StringComparison.Ordinal);
         Assert.Contains("GetFromApiWithTotalCountAsync", source, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", source, StringComparison.Ordinal);
         Assert.DoesNotContain("products/lookup", source, StringComparison.OrdinalIgnoreCase);

@@ -140,40 +140,6 @@
     background: var(--vpp-bg-elevated);
 }
 
-::deep .vpp-period-view-switchbar {
-    display: flex;
-    width: max-content;
-    max-width: 100%;
-    gap: 2px;
-    padding: 2px;
-    border: var(--vpp-border-width) solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-border-default) 42%, var(--vpp-bg-elevated));
-}
-
-::deep .vpp-period-view-switchbar button {
-    min-height: 30px;
-    padding-inline: var(--vpp-space-3);
-    border: 0;
-    border-radius: calc(var(--vpp-radius-lg) - 3px);
-    background: transparent;
-    color: var(--vpp-text-secondary);
-    font: inherit;
-    font-size: var(--vpp-text-sm);
-    cursor: pointer;
-}
-
-::deep .vpp-period-view-switchbar button:hover:not(.is-active) {
-    background: var(--vpp-navigation-item-hover-bg);
-    color: var(--vpp-text-primary);
-}
-
-::deep .vpp-period-view-switchbar button.is-active {
-    background: var(--vpp-primary-500);
-    color: #fff;
-    box-shadow: var(--vpp-shadow-xs);
-}
-
 ::deep .vpp-period-orders-view {
     flex: 1 1 auto;
     min-height: 0;

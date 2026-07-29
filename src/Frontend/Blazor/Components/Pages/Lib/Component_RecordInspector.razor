@@ -13,61 +13,64 @@
         }
     </header>
 
-    <RadzenTabs RenderMode="TabRenderMode.Client" class="vpp-record-inspector-tabs">
-        <Tabs>
-            <RadzenTabsItem Text="Thông tin chung">
-                <div class="vpp-record-inspector-body">
-                    @if (CoreProperties.Count == 0)
+    <div class="vpp-record-inspector-selector">
+        <VppSegmentedSelector TValue="int"
+                              Value="@SelectedInspectorView"
+                              Options="@InspectorViewOptions"
+                              ValueChanged="@(value => SelectedInspectorView = value)"
+                              AriaLabel="Chọn nhóm thông tin bản ghi" />
+    </div>
+
+    <div class="vpp-record-inspector-body">
+        @if (SelectedInspectorView == 0)
+        {
+            @if (CoreProperties.Count == 0)
+            {
+                <VppContentState State="VppContentStateKind.Empty" Icon="info" Title="Chưa có thông tin mô tả" />
+            }
+            else
+            {
+                <dl class="vpp-record-property-list">
+                    @foreach (var prop in CoreProperties)
                     {
-                        <VppContentState State="VppContentStateKind.Empty" Icon="info" Title="Chưa có thông tin mô tả" />
+                        @RenderProperty(prop)
                     }
-                    else
+                </dl>
+            }
+        }
+        else if (SelectedInspectorView == 1)
+        {
+            @if (AuditProperties.Count == 0)
+            {
+                <VppContentState State="VppContentStateKind.Empty" Icon="history" Title="Chưa có dữ liệu nhật ký" />
+            }
+            else
+            {
+                <dl class="vpp-record-property-list">
+                    @foreach (var prop in AuditProperties)
                     {
-                        <dl class="vpp-record-property-list">
-                            @foreach (var prop in CoreProperties)
-                            {
-                                @RenderProperty(prop)
-                            }
-                        </dl>
+                        @RenderProperty(prop)
                     }
-                </div>
-            </RadzenTabsItem>
-            <RadzenTabsItem Text="Nhật ký">
-                <div class="vpp-record-inspector-body">
-                    @if (AuditProperties.Count == 0)
+                </dl>
+            }
+        }
+        else
+        {
+            @if (SystemProperties.Count == 0)
+            {
+                <VppContentState State="VppContentStateKind.Empty" Icon="key" Title="Không có định danh kỹ thuật" />
+            }
+            else
+            {
+                <dl class="vpp-record-property-list is-technical">
+                    @foreach (var prop in SystemProperties)
                     {
-                        <VppContentState State="VppContentStateKind.Empty" Icon="history" Title="Chưa có dữ liệu nhật ký" />
+                        @RenderProperty(prop)
                     }
-                    else
-                    {
-                        <dl class="vpp-record-property-list">
-                            @foreach (var prop in AuditProperties)
-                            {
-                                @RenderProperty(prop)
-                            }
-                        </dl>
-                    }
-                </div>
-            </RadzenTabsItem>
-            <RadzenTabsItem Text="Kỹ thuật">
-                <div class="vpp-record-inspector-body">
-                    @if (SystemProperties.Count == 0)
-                    {
-                        <VppContentState State="VppContentStateKind.Empty" Icon="key" Title="Không có định danh kỹ thuật" />
-                    }
-                    else
-                    {
-                        <dl class="vpp-record-property-list is-technical">
-                            @foreach (var prop in SystemProperties)
-                            {
-                                @RenderProperty(prop)
-                            }
-                        </dl>
-                    }
-                </div>
-            </RadzenTabsItem>
-        </Tabs>
-    </RadzenTabs>
+                </dl>
+            }
+        }
+    </div>
 
     @if (CanEdit || CanToggleStatus)
     {
@@ -101,6 +104,13 @@
     private readonly List<PropertyInfo> CoreProperties = [];
     private readonly List<PropertyInfo> AuditProperties = [];
     private readonly List<PropertyInfo> SystemProperties = [];
+    private int SelectedInspectorView { get; set; }
+    private static IReadOnlyList<VppSegmentedOption<int>> InspectorViewOptions { get; } =
+    [
+        new(0, "Thông tin chung"),
+        new(1, "Nhật ký"),
+        new(2, "Kỹ thuật")
+    ];
 
     private string RecordTitle => GetFirstValue(
         "VppName", "VppCategoryName", "PriceListName", "SupplierName", "DepartmentName", "FullName", "GroupName", "Name")

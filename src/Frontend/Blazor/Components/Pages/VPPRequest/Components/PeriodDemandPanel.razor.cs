@@ -46,6 +46,11 @@ public partial class PeriodDemandPanel
         BuildOptions(demand?.Items.Select(item => item.CategoryName), Loc["HistoryAllCategories"]);
     private IReadOnlyList<VppFilterOption<string>> UomOptions =>
         BuildOptions(demand?.Items.Select(item => item.UomName), Loc["HistoryAllUnits"]);
+    private IReadOnlyList<VppSegmentedOption<DemandViewMode>> ViewModeOptions =>
+    [
+        new(DemandViewMode.ByItem, Loc["DemandByItem"]),
+        new(DemandViewMode.ByOrder, Loc["DemandByOrder"])
+    ];
 
     protected override async Task OnParametersSetAsync()
     {

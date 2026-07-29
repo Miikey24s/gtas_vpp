@@ -29,6 +29,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool _pendingOrdersLoaded;
         private bool _initialized;
         private VppRequestResDTO? SelectedPendingOrder { get; set; }
+        private string PendingSearchText { get; set; } = string.Empty;
+        private bool PendingHasFilters => !string.IsNullOrWhiteSpace(PendingSearchText);
 
         // Alias tiện ích để template Razor giữ tên PendingOrders hiện có.
         public List<VppRequestResDTO> PendingOrders => Orders;
@@ -247,6 +249,34 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             SelectedPendingOrder = order;
             await OnRowExpandAsync(order);
+        }
+
+        private Task OnPendingSearchChangedAsync(ChangeEventArgs args)
+        {
+            PendingSearchText = args.Value?.ToString() ?? string.Empty;
+            return ApplyManualFilterAsync(BuildPendingSearchFilter(PendingSearchText));
+        }
+
+        private Task ClearPendingFiltersAsync()
+        {
+            PendingSearchText = string.Empty;
+            return ApplyManualFilterAsync(null, debounceMilliseconds: 0);
+        }
+
+        private static string? BuildPendingSearchFilter(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            var escaped = value.Trim().ToLowerInvariant()
+                .Replace("\\", "\\\\", StringComparison.Ordinal)
+                .Replace("\"", "\\\"", StringComparison.Ordinal);
+            return $"((VppCode != null && VppCode.ToLower().Contains(\"{escaped}\")) || "
+                + $"(RequesterName != null && RequesterName.ToLower().Contains(\"{escaped}\")) || "
+                + $"(DepartmentCode != null && DepartmentCode.ToLower().Contains(\"{escaped}\")) || "
+                + $"(Description != null && Description.ToLower().Contains(\"{escaped}\")))";
         }
 
         private bool IsProcessing(Guid orderId) => _processingOrderIds.Contains(orderId);

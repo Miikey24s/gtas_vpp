@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
@@ -49,7 +50,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public int TotalCount { get; set; }
         public int TotalLines { get; set; }
         public int TotalQty { get; set; }
-        public int PageSize { get; set; } = 20;
+        public int PageSize { get; set; } = VppPagingProfiles.SplitList.DefaultPageSize;
         public int CurrentSkip { get; set; }
         protected bool HasGridLoadError { get; private set; }
         protected string? CurrentFilterExpression { get; private set; }
@@ -109,6 +110,39 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 }
             }
             catch (TaskCanceledException) { }
+        }
+
+        /// <summary>
+        /// Áp dụng filter do toolbar canonical sở hữu thay vì filter row của DataGrid.
+        /// Filter vẫn được gửi server trước Count/Skip/Take.
+        /// </summary>
+        protected async Task ApplyManualFilterAsync(string? filterExpression, int debounceMilliseconds = 300)
+        {
+            _filterDebounce?.Cancel();
+            _filterDebounce?.Dispose();
+            _filterDebounce = new CancellationTokenSource();
+            var token = _filterDebounce.Token;
+
+            try
+            {
+                if (debounceMilliseconds > 0)
+                {
+                    await Task.Delay(debounceMilliseconds, token);
+                }
+
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                CurrentFilterExpression = filterExpression;
+                CurrentFilters = Array.Empty<FilterDescriptor>();
+                CurrentSkip = 0;
+                await LoadAsync();
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
 
         /// <summary>Handler LoadData của grid, nối paging Radzen với skip/top.</summary>

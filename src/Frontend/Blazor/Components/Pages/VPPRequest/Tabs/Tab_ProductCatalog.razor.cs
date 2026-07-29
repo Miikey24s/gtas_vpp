@@ -54,7 +54,7 @@ public partial class Tab_ProductCatalog : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await Task.WhenAll(LoadCategoriesAsync(), LoadUnitsAsync());
-        await LoadProductsAsync(new LoadDataArgs { Skip = 0, Top = 20 });
+        await LoadProductsAsync(new LoadDataArgs { Skip = 0, Top = VppPagingProfiles.Collection.DefaultPageSize });
     }
 
     private async Task LoadCategoriesAsync()
@@ -77,8 +77,20 @@ public partial class Tab_ProductCatalog : IDisposable
     {
         try
         {
-            var data = await ApiServices.GetFromApiAsync<List<ProductItem>>(
-                "/api/VPPRequest/products?distinct=UomName&top=1000") ?? [];
+            const int batchSize = 100;
+            var data = new List<ProductItem>();
+            for (var skip = 0; ; skip += batchSize)
+            {
+                var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(
+                    $"/api/VPPRequest/products?distinct=UomName&skip={skip}&top={batchSize}");
+                var batch = result.Data ?? [];
+                data.AddRange(batch);
+                if (data.Count >= result.TotalCount || batch.Count == 0)
+                {
+                    break;
+                }
+            }
+
             UnitOptions = [new(string.Empty, Loc["AllUnits"])];
             UnitOptions.AddRange(data
                 .Where(item => !string.IsNullOrWhiteSpace(item.UomName))
@@ -187,7 +199,7 @@ public partial class Tab_ProductCatalog : IDisposable
         if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
         if (!string.IsNullOrWhiteSpace(UnitFilter)) query.Add($"filter={Uri.EscapeDataString(BuildUnitFilter(UnitFilter))}");
         query.Add($"skip={args.Skip ?? 0}");
-        query.Add($"top={args.Top ?? 20}");
+        query.Add($"top={args.Top ?? VppPagingProfiles.Collection.DefaultPageSize}");
         if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
         return $"/api/VPPRequest/products?{string.Join("&", query)}";
     }

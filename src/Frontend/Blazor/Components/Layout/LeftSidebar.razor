@@ -85,30 +85,23 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Catalog" title="@Loc["Catalog"]" />
                 }
-                @* D2/D8: mục "Tổng hợp toàn công ty" đã gỡ — nội dung trở thành chế độ
-                   "Theo đơn" của bước Gom nhu cầu trong Vận hành kỳ. *@
+                @* Tổng hợp toàn công ty nằm trong dữ liệu quản lý kỳ, không tạo thêm mục điều hướng. *@
                 @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
                 {
                     <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Department" title="@Loc["DepartmentSummary"]" />
                 }
                 @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
                 {
-                    @if (CanViewDashboardItem(Permissions.RequestAdminApproval) && CanViewDashboardItem(Permissions.PeriodSettle))
-                    {
-                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]">
-                            <RadzenPanelMenuItem Text="@Loc["PeriodReview"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.Review" title="@Loc["PeriodReview"]" />
-                            <RadzenPanelMenuItem Text="@Loc["PeriodDemandStep"]" Path="/dashboard?tab=5&periodTab=demand" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavAllOrders" title="@Loc["PeriodDemandStep"]" />
+                    <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]">
+                        @if (CanViewDashboardItem(Permissions.PeriodSettle))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc["PeriodSettleStep"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.Review" title="@Loc["PeriodSettleStep"]" />
+                        }
+                        @if (CanViewDashboardItem(Permissions.RequestAdminApproval))
+                        {
                             <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavApproval" title="@Loc["AdminApproval"]" />
-                        </RadzenPanelMenuItem>
-                    }
-                    else if (CanViewDashboardItem(Permissions.PeriodSettle))
-                    {
-                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]" />
-                    }
-                    else
-                    {
-                        <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]" />
-                    }
+                        }
+                    </RadzenPanelMenuItem>
                 }
             </RadzenPanelMenuItem>
         }

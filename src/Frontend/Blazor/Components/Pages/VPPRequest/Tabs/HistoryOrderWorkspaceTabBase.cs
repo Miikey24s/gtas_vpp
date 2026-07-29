@@ -70,7 +70,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
     protected HistoryOrderWorkspaceTabBase()
     {
-        PageSize = 6;
+        PageSize = VppPagingProfiles.SplitList.DefaultPageSize;
     }
 
     protected override async Task OnInitializedAsync()
@@ -124,7 +124,6 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
         if (_module is not null)
         {
-            await _module.InvokeVoidAsync("updateHistoryScopeIndicator", HistoryRoot);
             var periods = _summary?.Periods ?? [];
             await _module.InvokeVoidAsync(
                 "renderHistoryChartLabels",
@@ -736,20 +735,6 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
         period = (date.Year * 100) + date.Month;
         return true;
-    }
-
-    [JSInvokable]
-    public async Task SetHistoryViewport(int pageSize)
-    {
-        var normalized = Math.Clamp(pageSize, 3, 20);
-        if (PageSize == normalized)
-        {
-            return;
-        }
-
-        PageSize = normalized;
-        CurrentSkip = 0;
-        await LoadOrdersAndSelectAsync();
     }
 
     public async ValueTask DisposeAsync()

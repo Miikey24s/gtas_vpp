@@ -7,6 +7,7 @@ public enum VppDataSourceMode
 {
     Static,
     ServerPaging,
+    ClientSnapshotPaged,
     ClientSnapshotVirtualized,
     ServerVirtualizedPrefetch
 }
@@ -29,6 +30,38 @@ public enum VppDataFooterMode
     Virtualized,
     Static,
     UnknownTotal
+}
+
+/// <summary>
+/// Profile điều hướng dữ liệu đã được owner duyệt cho từng archetype màn hình.
+/// </summary>
+public enum VppPagingProfile
+{
+    SplitList,
+    Collection,
+    LargeWorkingSet,
+    SmallStatic
+}
+
+public sealed record VppPagingProfileDefinition(
+    int DefaultPageSize,
+    IReadOnlyList<int> PageSizeOptions,
+    int PagingThreshold);
+
+public static class VppPagingProfiles
+{
+    public static VppPagingProfileDefinition SplitList { get; } = new(20, [10, 20, 50], 0);
+    public static VppPagingProfileDefinition Collection { get; } = new(50, [20, 50, 100], 0);
+    public static VppPagingProfileDefinition LargeWorkingSet { get; } = new(100, [25, 50, 100], 0);
+    public static VppPagingProfileDefinition SmallStatic { get; } = new(100, [25, 50, 100], 100);
+
+    public static VppPagingProfileDefinition Get(VppPagingProfile profile) => profile switch
+    {
+        VppPagingProfile.SplitList => SplitList,
+        VppPagingProfile.Collection => Collection,
+        VppPagingProfile.LargeWorkingSet => LargeWorkingSet,
+        _ => SmallStatic
+    };
 }
 
 /// <summary>

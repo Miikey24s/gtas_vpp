@@ -125,51 +125,13 @@ function positionHistoryTransientSurfaces(root) {
     });
 }
 
-function getPageSize(root) {
-    const height = window.innerHeight;
-    const width = window.innerWidth;
-
-    if (width < 768) return 4;
-    if (width < 1280) {
-        if (height >= 1100) return 8;
-        if (height >= 800) return 6;
-        if (height >= 680) return 4;
-        return 3;
-    }
-
-    const card = root?.querySelector('.vpp-history-orders-card');
-    if (!(card instanceof HTMLElement)) return 6;
-
-    const style = getComputedStyle(card);
-    const readSize = (name, fallback) => {
-        const value = Number.parseFloat(style.getPropertyValue(name));
-        return Number.isFinite(value) && value > 0 ? value : fallback;
-    };
-    const toolbar = card.querySelector('.vpp-history-orders-toolbar');
-    const toolbarHeight = toolbar?.getBoundingClientRect().height ?? 42;
-    const headerHeight = readSize('--vpp-history-grid-header-height', 40);
-    const pagerHeight = readSize('--vpp-history-grid-pager-height', 42);
-    const rowHeight = readSize('--vpp-history-grid-row-height', 40);
-    const availableHeight = card.clientHeight - toolbarHeight - headerHeight - pagerHeight - 2;
-
-    return Math.max(3, Math.min(20, Math.floor(availableHeight / rowHeight)));
-}
-
 export function observeHistoryViewport(root, dotNetReference) {
     if (!root || historyViewportObservers.has(root)) return;
 
-    let lastPageSize = 0;
     let debounceId = 0;
-    const notify = () => {
-        const pageSize = getPageSize(root);
-        if (pageSize === lastPageSize) return;
-        lastPageSize = pageSize;
-        dotNetReference.invokeMethodAsync('SetHistoryViewport', pageSize).catch(() => {});
-    };
     const onResize = () => {
         window.clearTimeout(debounceId);
         debounceId = window.setTimeout(() => {
-            notify();
             positionHistoryTransientSurfaces(root);
             scheduleHistoryChartLabels(root);
         }, 140);
@@ -177,7 +139,7 @@ export function observeHistoryViewport(root, dotNetReference) {
     const onScroll = () => positionHistoryTransientSurfaces(root);
     const onDocumentPointerDown = event => {
         const target = event.target;
-        if (target instanceof Element && target.closest('.vpp-history-scope, .vpp-history-kpi-card, .vpp-cell-value-popover')) return;
+        if (target instanceof Element && target.closest('.vpp-segmented-selector, .vpp-history-range-popover, .vpp-history-kpi-card, .vpp-cell-value-popover')) return;
         dotNetReference.invokeMethodAsync('CloseHistoryFilterMenuAsync').catch(() => {});
     };
     const onDocumentKeyDown = event => {
@@ -193,14 +155,6 @@ export function observeHistoryViewport(root, dotNetReference) {
         positionHistoryTransientSurfaces(root);
     });
     surfaceObserver.observe(root, { childList: true, subtree: true });
-    const ordersCard = root.querySelector('.vpp-history-orders-card');
-    const sizeObserver = ordersCard instanceof HTMLElement
-        ? new ResizeObserver(() => {
-            notify();
-        })
-        : null;
-    sizeObserver?.observe(ordersCard);
-    updateHistoryScopeIndicator(root);
     positionHistoryTransientSurfaces(root);
     historyViewportObservers.set(root, () => {
         window.clearTimeout(debounceId);
@@ -209,21 +163,7 @@ export function observeHistoryViewport(root, dotNetReference) {
         document.removeEventListener('pointerdown', onDocumentPointerDown, true);
         document.removeEventListener('keydown', onDocumentKeyDown, true);
         surfaceObserver.disconnect();
-        sizeObserver?.disconnect();
     });
-    notify();
-}
-
-export function updateHistoryScopeIndicator(root) {
-    const scope = root?.querySelector('.vpp-history-scope');
-    const active = scope?.querySelector('button.is-active');
-    const indicator = scope?.querySelector('.vpp-history-scope-indicator');
-    if (!scope || !active || !indicator) return;
-
-    const scopeRect = scope.getBoundingClientRect();
-    const activeRect = active.getBoundingClientRect();
-    scope.style.setProperty('--vpp-history-scope-indicator-x', `${activeRect.left - scopeRect.left}px`);
-    scope.style.setProperty('--vpp-history-scope-indicator-width', `${activeRect.width}px`);
 }
 
 export function disposeHistoryViewport(root) {

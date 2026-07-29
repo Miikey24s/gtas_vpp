@@ -1,0 +1,180 @@
+::deep .vpp-approval-operation-workspace,
+::deep .vpp-approval-workspace {
+    height: 100%;
+    min-height: 0;
+}
+
+::deep .vpp-approval-workspace {
+    box-shadow: none;
+}
+
+::deep .vpp-approval-list-surface,
+::deep .vpp-approval-list-grid {
+    height: 100%;
+    min-height: 0;
+}
+
+::deep .vpp-approval-toolbar .vpp-filter-search {
+    max-width: none;
+}
+
+::deep .vpp-approval-list-grid {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 0;
+}
+
+::deep .vpp-approval-list-grid .rz-data-grid-data {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.vpp-approval-order-identity {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vpp-approval-order-identity strong,
+.vpp-approval-order-identity small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-approval-order-identity small {
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-approval-detail-empty {
+    display: grid;
+    height: 100%;
+    min-height: 18rem;
+    place-content: center;
+    justify-items: center;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-6);
+    color: var(--vpp-text-secondary);
+    text-align: center;
+}
+
+.vpp-approval-detail-empty ::deep .vpp-icon {
+    color: var(--vpp-text-tertiary);
+    font-size: 2rem;
+}
+
+.vpp-approval-detail {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border-inline-start: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-approval-detail-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-approval-detail-header span,
+.vpp-approval-detail-header p {
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-approval-detail-header h2,
+.vpp-approval-detail-header p {
+    margin: 0;
+}
+
+.vpp-approval-detail-header h2 {
+    margin-block: 2px;
+    font-size: var(--vpp-text-lg);
+}
+
+.vpp-approval-detail-exports {
+    display: flex;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-approval-detail-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-approval-detail-facts > div {
+    display: grid;
+    gap: 2px;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+}
+
+.vpp-approval-detail-facts dt {
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-approval-detail-facts dd {
+    margin: 0;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-approval-reason {
+    display: grid;
+    gap: 2px;
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-approval-reason span {
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-approval-reason p {
+    margin: 0;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+}
+
+::deep .vpp-approval-detail .vpp-order-items-surface {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.vpp-approval-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--vpp-space-2);
+    min-height: var(--vpp-data-footer-height);
+    padding: var(--vpp-space-2) var(--vpp-space-4);
+    border-top: var(--vpp-border-width) solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+}
+
+@media (max-width: 1100px) {
+    .vpp-approval-detail {
+        min-height: 38rem;
+        border-block-start: var(--vpp-border-width) solid var(--vpp-border-default);
+        border-inline-start: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .vpp-approval-detail-facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

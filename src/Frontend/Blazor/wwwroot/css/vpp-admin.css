@@ -1030,12 +1030,17 @@
     font-size: var(--vpp-text-sm);
 }
 
-.vpp-record-inspector-tabs {
-    min-width: 0;
+.vpp-record-inspector-selector {
+    padding: var(--vpp-space-3) var(--vpp-space-4) 0;
 }
 
-.vpp-record-inspector-tabs > .rz-tabview-nav {
-    padding-inline: var(--vpp-space-4);
+.vpp-library-local-selector {
+    flex: 0 0 auto;
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+}
+
+.permission-component-selector {
+    padding-block-end: var(--vpp-space-3);
 }
 
 .vpp-record-inspector-body {

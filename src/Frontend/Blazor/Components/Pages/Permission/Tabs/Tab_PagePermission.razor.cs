@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Components.Pages.Lib;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -43,6 +44,22 @@ public partial class Tab_PagePermission
     private int currentGroupSkip;
     private string? currentGroupFilterExpression;
     private bool hasRequestedInitialGroupGridLoad;
+
+    private PermissionPageComponentResDTO? SelectedPermissionPage =>
+        groupPermissions.ElementAtOrDefault(selectedTab);
+
+    private IReadOnlyList<VppSegmentedOption<int>> PermissionPageOptions => groupPermissions
+        .Select((page, index) => new VppSegmentedOption<int>(
+            index,
+            $"{page.PageName} ({page.PageCode})"))
+        .ToArray();
+
+    private Task SelectPermissionPageAsync(int index)
+    {
+        selectedTab = index;
+        selectedComponents = [];
+        return Task.CompletedTask;
+    }
 
     protected override async Task OnInitializedAsync()
     {

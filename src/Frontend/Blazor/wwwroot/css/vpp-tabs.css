@@ -178,7 +178,6 @@
 }
 
 .vpp-admin-tabs > .rz-tabview-panels,
-.vpp-secondary-tabs > .rz-tabview-panels,
 .librariestab > .rz-tabview-panels {
     overflow: visible;
     border: 0 !important;
@@ -306,93 +305,6 @@
 .vpp-admin-tabs > .rz-tabview-nav > li > button[role="tab"][aria-selected="true"]:hover {
     background: var(--vpp-navigation-item-hover-bg) !important;
     color: var(--vpp-text-primary) !important;
-}
-
-.vpp-secondary-tabs {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-}
-
-.vpp-secondary-tabs > .rz-tabview-panels,
-.vpp-secondary-tabs > .rz-tabview-panels > .rz-tabview-panel {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-}
-
-/* Tab bar lồng nhau là navigation, không phải content panel thông thường. */
-.vpp-admin-tabs .rz-tabview-panel:has(.vpp-secondary-tabs) {
-    padding-top: 0;
-}
-
-.vpp-secondary-tabs > .rz-tabview-nav-container,
-.vpp-secondary-tabs > .rz-tabview-nav {
-    position: relative !important;
-    top: auto;
-    z-index: calc(var(--vpp-z-sticky) - 1);
-    height: var(--vpp-library-secondary-tabs-height);
-    min-height: var(--vpp-library-secondary-tabs-height);
-    border: 0;
-    border-bottom: 1px solid var(--vpp-border-default);
-    background: var(--vpp-navigation-chrome-bg);
-    border-radius: 0;
-    box-shadow: 0 1px 0 var(--vpp-border-default);
-    isolation: isolate;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-}
-
-.vpp-secondary-tabs > .rz-tabview-nav-container > .rz-tabview-nav {
-    position: static !important;
-    width: 100%;
-    height: 100%;
-    min-height: 100%;
-    align-items: stretch;
-    gap: var(--vpp-space-1) !important;
-    padding: 2px var(--vpp-space-1) !important;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-}
-
-.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link,
-.vpp-secondary-tabs .rz-tabs-item,
-.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"] {
-    height: var(--vpp-navigation-row-height) !important;
-    min-height: var(--vpp-navigation-row-height) !important;
-    padding: 0 var(--vpp-space-4) !important;
-    border-radius: var(--vpp-radius-md) !important;
-}
-
-.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:hover,
-.vpp-secondary-tabs .rz-tabs-item:hover,
-.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"]:hover,
-.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link:focus-visible,
-.vpp-secondary-tabs .rz-tabs-item:focus-visible,
-.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"]:focus-visible {
-    background: var(--vpp-navigation-item-hover-bg) !important;
-}
-
-.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-selected .rz-tabview-nav-link,
-.vpp-secondary-tabs .rz-tabs-item.rz-state-active,
-.vpp-secondary-tabs .rz-tabview-nav .rz-tabview-nav-link.rz-state-active,
-.vpp-secondary-tabs .rz-tabview-nav > li.rz-tabview-selected > button[role="tab"],
-.vpp-secondary-tabs .rz-tabview-nav > li > button[role="tab"][aria-selected="true"] {
-    background: var(--vpp-navigation-item-active-bg) !important;
-    border-radius: var(--vpp-radius-md) !important;
-    box-shadow: none;
-}
-
-.vpp-secondary-tabs .rz-tabview-panel {
-    padding-top: var(--vpp-space-3);
 }
 
 /* ── Dấu hiệu mờ khi cuộn (gợi ý trực quan tùy chọn) ────────── */

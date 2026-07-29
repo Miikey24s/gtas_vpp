@@ -238,14 +238,14 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             Animations = ScreenshotAnimations.Disabled
         });
 
-        var scopeLabels = await Page.Locator(".vpp-history-scope > button").AllTextContentsAsync();
+        var scopeLabels = await Page.Locator(".vpp-history-scope-selector > button").AllTextContentsAsync();
         var normalizedScopeLabels = scopeLabels.Select(label => label.Trim()).ToArray();
         normalizedScopeLabels.Take(5).Should().Equal("Tất cả kỳ", "Kỳ này", "3 tháng", "6 tháng", "12 tháng");
         normalizedScopeLabels[5].Should().StartWith("Tùy chọn");
-        (await Page.Locator(".vpp-history-scope > button").Nth(1).GetAttributeAsync("class")).Should().Contain("is-active");
-        (await Page.Locator(".vpp-history-scope > button").First.GetAttributeAsync("class")).Should().NotContain("is-active");
+        (await Page.Locator(".vpp-history-scope-selector > button").Nth(1).GetAttributeAsync("class")).Should().Contain("is-active");
+        (await Page.Locator(".vpp-history-scope-selector > button").First.GetAttributeAsync("class")).Should().NotContain("is-active");
         (await Page.Locator(".vpp-history-drawer-close").CountAsync()).Should().Be(0);
-        await Page.Locator(".vpp-history-scope > button").Nth(1).ClickAsync();
+        await Page.Locator(".vpp-history-scope-selector > button").Nth(1).ClickAsync();
         // Cửa sổ im lặng có chủ đích: chờ cố định để chứng minh loading-line KHÔNG xuất hiện ở assertion ngay dưới.
         await Page.WaitForTimeoutAsync(60);
         (await Page.Locator(".vpp-history-loading-line").CountAsync()).Should().Be(0, "period changes must preserve content without rendering a global progress line");
@@ -1142,14 +1142,14 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                             const footerMatches = pagerRect.height >= 40
                                 && Math.abs(pagerRect.height - detailFooterRect.height) <= 1;
                             const summaryText = pager.textContent?.replace(/\s+/g, ' ').trim() ?? '';
-                            const summaryMatches = summaryText.includes('Hiển thị')
+                            const summaryMatches = summaryText.includes('Trang')
                                 && summaryText.includes('đơn');
                             const visible = pager.getClientRects().length > 0
                                 && detailFooter.getClientRects().length > 0;
                             return `${clearMatches && footerMatches && summaryMatches && visible}|clear=${Math.round(listClearRect.width)}x${Math.round(listClearRect.height)}/${Math.round(detailClearRect.width)}x${Math.round(detailClearRect.height)}|footer=${Math.round(pagerRect.height)}/${Math.round(detailFooterRect.height)}|summary=${summaryText}`;
                         }
                     """);
-                    sharedDataChrome.Should().StartWith("true", "order list and detail must share clear-filter geometry and footer rhythm while retaining paging versus virtualization behavior");
+                    sharedDataChrome.Should().StartWith("true", "order list and detail must share clear-filter geometry and footer rhythm while retaining server versus client data behavior");
 
                     var layoutGeometry = await Page.EvaluateAsync<string>("""
                         () => {

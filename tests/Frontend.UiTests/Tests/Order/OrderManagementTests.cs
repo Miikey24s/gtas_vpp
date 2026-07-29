@@ -65,24 +65,35 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         await CreateSupplementAsync(RejectionReason, verifyRequiredReason: false);
 
         await SwitchUserAsync(TestAccounts.Manager);
+        await Page.SetViewportSizeAsync(1366, 768);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=pending");
-        var approvalGrid = Page.Locator(".vpp-data-card.vpp-datagrid:visible");
+        var approvalGrid = Page.GetByTestId("pending-approval-list");
         await approvalGrid.WaitForAsync(new LocatorWaitForOptions
         {
             State = WaitForSelectorState.Visible
         });
 
-        var approveRow = FindQueueRow(approvalGrid, ApprovalReason);
-        await approveRow.WaitForAsync();
-        await (await GetInteractiveButtonAsync(approveRow, new Regex("^Duyệt đơn "))).ClickAsync();
+        await SelectQueueOrderByReasonAsync(approvalGrid, ApprovalReason);
+        var approvalDetail = Page.Locator(".vpp-approval-detail:visible");
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "pending-approval-split-populated-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+        await approvalDetail.GetByRole(AriaRole.Button, new() { Name = "Duyệt", Exact = true }).ClickAsync();
         var approveDialog = Page.Locator(".rz-dialog:visible").Last;
         await approveDialog.GetByText("Duyệt đơn", new() { Exact = true }).WaitForAsync();
         await approveDialog.GetByRole(AriaRole.Button, new() { Name = "Có", Exact = true }).ClickAsync();
         await Page.GetByText("Đã duyệt đơn thành công.", new() { Exact = false }).WaitForAsync();
 
-        var rejectRow = FindQueueRow(approvalGrid, RejectionReason);
-        await rejectRow.WaitForAsync();
-        await (await GetInteractiveButtonAsync(rejectRow, new Regex("^Từ chối đơn "))).ClickAsync();
+        await SelectQueueOrderByReasonAsync(approvalGrid, RejectionReason);
+        await approvalDetail.GetByRole(AriaRole.Button, new() { Name = "Từ chối", Exact = true }).ClickAsync();
         var rejectDialog = Page.Locator(".rz-dialog:visible").Last;
         await rejectDialog.GetByText("Từ chối đơn", new() { Exact = true }).WaitForAsync();
         await rejectDialog.GetByRole(AriaRole.Button, new() { Name = "Từ chối", Exact = true }).ClickAsync();
@@ -111,6 +122,10 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
             await orderPage.WaitForAsync();
             try
             {
+                await orderPage.Locator(".vpp-orders-view-selector")
+                    .GetByRole(AriaRole.Button, new() { NameRegex = new Regex("Đơn bổ sung") })
+                    .ClickAsync();
+                await orderPage.GetByTestId("create-supplement").WaitForAsync();
                 var createSupplementButton = await GetInteractiveButtonAsync(
                     orderPage,
                     "Tạo đơn bổ sung");
@@ -186,8 +201,27 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         await supplementCard.GetByText("Chờ duyệt", new() { Exact = true }).WaitForAsync();
     }
 
-    private ILocator FindQueueRow(ILocator grid, string reason)
-        => grid.Locator("tbody tr", new LocatorLocatorOptions { HasText = reason });
+    private async Task SelectQueueOrderByReasonAsync(ILocator grid, string reason)
+    {
+        var rows = grid.Locator("tbody tr");
+        var count = await rows.CountAsync();
+        for (var index = 0; index < count; index++)
+        {
+            await rows.Nth(index).ClickAsync();
+            var detail = Page.Locator(".vpp-approval-detail:visible");
+            await detail.WaitForAsync();
+            await Page.GetByTestId("pending-approval-detail-data-surface").WaitForAsync();
+            await Page.WaitForFunctionAsync(
+                "() => !document.querySelector('.vpp-approval-detail .vpp-skeleton-page')");
+            var detailText = await detail.Locator(".vpp-approval-reason").InnerTextAsync();
+            if (detailText.Contains(reason, StringComparison.Ordinal))
+            {
+                return;
+            }
+        }
+
+        throw new InvalidOperationException($"Không tìm thấy đơn bổ sung có lý do '{reason}' trong hàng chờ.");
+    }
 
     private async Task WaitForUrlMatchAsync(Regex expectedUrl, TimeSpan timeout)
     {

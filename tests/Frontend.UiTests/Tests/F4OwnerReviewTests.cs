@@ -19,7 +19,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         var switchbar = Page.Locator(".vpp-orders-view-switchbar");
         await story.WaitForAsync();
         await switchbar.WaitForAsync();
-        var selector = switchbar.Locator(".vpp-orders-summary-grid");
+        var selector = switchbar.Locator(".vpp-orders-view-selector");
         (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(3);
         (await switchbar.Locator("[data-testid='create-supplement']").CountAsync()).Should().Be(0,
             "the supplement CTA belongs to the supplement segment instead of floating above the current order");
@@ -29,7 +29,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const story = root.querySelector('.vpp-orders-story');
                 const switchbar = root.querySelector('.vpp-orders-view-switchbar');
                 const selectedView = root.querySelector('.vpp-orders-selected-view');
-                const selector = switchbar?.querySelector('.vpp-orders-summary-grid');
+                const selector = switchbar?.querySelector('.vpp-orders-view-selector');
                 if (!story || !switchbar || !selectedView || !selector) return 'missing';
                 const selectorRect = selector.getBoundingClientRect();
                 const storyRect = story.getBoundingClientRect();
@@ -44,7 +44,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
             """);
         compactGeometry.Should().StartWith("true", "the segmented selector must be a separate surface between period context and the data table");
 
-        await selector.Locator("article").Nth(1).Locator("button").ClickAsync();
+        await selector.Locator("button").Nth(1).ClickAsync();
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
         await switchbar.Locator("[data-testid='create-supplement']").WaitForAsync();
         (await switchbar.Locator(".vpp-orders-selection-summary").InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
@@ -285,10 +285,10 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                     + `|hit=${topElement?.tagName ?? 'none'}|overlap=${overlappingCodes.length}|overlapHit=${firstOverlapHit?.tagName ?? 'none'}`;
             }
             """);
-        productRequestsDuringScroll.Should().BeEmpty("client-snapshot virtualization must not call the product API while scrolling");
-        mountedRowsBeforeScroll.Should().BeLessThanOrEqualTo(40, virtualizationGeometry);
-        mountedRowsAfterScroll.Should().BeLessThanOrEqualTo(40, virtualizationGeometry);
-        headerAndViewportChrome.Should().StartWith("true", "virtual rows must stay visually below an opaque header and the inner scroll viewport must join the footer without rounded corners");
+        productRequestsDuringScroll.Should().BeEmpty("client-snapshot paging must not call the product API while scrolling");
+        mountedRowsBeforeScroll.Should().BeLessThanOrEqualTo(100, virtualizationGeometry);
+        mountedRowsAfterScroll.Should().BeLessThanOrEqualTo(100, virtualizationGeometry);
+        headerAndViewportChrome.Should().StartWith("true", "paged rows must stay visually below an opaque header and the inner scroll viewport must join the footer without rounded corners");
         await CaptureAsync("f4-review-order-create-1920x1080.png");
     }
 
