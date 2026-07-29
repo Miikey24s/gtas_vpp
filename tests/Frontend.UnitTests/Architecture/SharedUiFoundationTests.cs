@@ -524,7 +524,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("orderView", codeBehind, StringComparison.Ordinal);
         Assert.Contains("GetUriWithQueryParameter(\"orderView\"", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
-        Assert.Contains("PreviousCycleSummaryTitle", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-orders-selection-summary", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedOrderViewSummary", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-native-tab-list", source, StringComparison.Ordinal);
         Assert.Contains("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
         Assert.Contains("vpp-data-card-actions", orderPanel, StringComparison.Ordinal);

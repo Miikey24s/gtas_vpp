@@ -35,9 +35,13 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const storyRect = story.getBoundingClientRect();
                 const switchbarRect = switchbar.getBoundingClientRect();
                 const selectedRect = selectedView.getBoundingClientRect();
+                const switchbarStyle = getComputedStyle(switchbar);
                 const ordered = storyRect.bottom <= switchbarRect.top + .5
                     && switchbarRect.bottom <= selectedRect.top + .5;
-                return `${selectorRect.height >= 34 && selectorRect.height <= 42 && ordered}`
+                const unboxed = parseFloat(switchbarStyle.borderTopWidth) === 0
+                    && parseFloat(switchbarStyle.paddingTop) === 0
+                    && switchbarStyle.backgroundColor === 'rgba(0, 0, 0, 0)';
+                return `${selectorRect.height >= 34 && selectorRect.height <= 42 && ordered && unboxed}`
                     + `|selector=${selectorRect.height}|storyBottom=${storyRect.bottom}`
                     + `|switch=${switchbarRect.top}-${switchbarRect.bottom}|tableTop=${selectedRect.top}`;
             }
@@ -47,7 +51,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await selector.Locator("button").Nth(1).ClickAsync();
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
         await switchbar.Locator("[data-testid='create-supplement']").WaitForAsync();
-        (await switchbar.Locator(".vpp-orders-selection-summary").InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
+        (await switchbar.Locator(".vpp-orders-selection-summary").CountAsync()).Should().Be(0);
         await CaptureAsync("my-orders-segmented-selector-1920x1080.png");
     }
 

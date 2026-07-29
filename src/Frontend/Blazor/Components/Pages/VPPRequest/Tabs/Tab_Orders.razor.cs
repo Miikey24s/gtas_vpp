@@ -98,27 +98,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected int PreviousOrderLineCount => GetLineCount(PreviousRegularOrder);
         public IEnumerable<VppRequestResDTO> CurrentPeriodOrders => ActiveOrders.Concat(CurrentPeriodAdditionalOrders);
         public int TotalOrders => CurrentPeriodOrders.Count();
-        public int RegularTotalLines => ActiveOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
-        public int RegularTotalQty => ActiveOrders.Sum(order => order.Items?.Sum(item => item.Qty) ?? order.TotalQty);
         public int SupplementTotalLines => CurrentPeriodAdditionalOrders.Sum(order => order.Items?.Count ?? order.TotalLines);
         public int SupplementTotalQty => CurrentPeriodAdditionalOrders.Sum(order => order.Items?.Sum(item => item.Qty) ?? order.TotalQty);
-        public string OrdersStoryTitle => TotalOrders == 0
-            ? Loc["OrdersStoryEmptyTitle"].Value
-            : Loc["OrdersStoryActiveTitle"].Value;
-        public string CurrentOrderSummaryText => ActiveOrders.Count == 0
-            ? Loc["NoOrdersSubmittedCurrentPeriod"].Value
-            : string.Format(Loc["OrderItemsSummaryFormat"].Value, RegularTotalLines, RegularTotalQty);
-        public string SupplementSummaryTitle => CurrentPeriodAdditionalOrders.Count == 0
-            ? Loc["NoAdditionalOrdersYet"].Value
-            : string.Format(Loc["PreviousOrderCountFormat"].Value, CurrentPeriodAdditionalOrders.Count);
         public string SupplementSectionDescription => CurrentPeriodAdditionalOrders.Count > 0
             ? string.Format(Loc["OrderItemsSummaryFormat"].Value, SupplementTotalLines, SupplementTotalQty)
             : CanCreateSupplement
                 ? Loc["SupplementAvailableDescription"].Value
                 : Loc["SupplementUnavailable"].Value;
-        public string PreviousCycleSummaryTitle => PreviousOrders.Count == 0
-            ? Loc["NoPreviousOrderYet"].Value
-            : string.Format(Loc["PreviousOrderCountFormat"].Value, PreviousOrders.Count);
 
         protected IReadOnlyList<VppSegmentedOption<int>> OrderViewOptions =>
         [
@@ -126,18 +112,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             new(SupplementOrderViewIndex, Loc["AdditionalOrders"], Badge: SelectedSupplementLineCount.ToString()),
             new(PreviousOrderViewIndex, Loc["PreviousOrderPeriod"], Badge: PreviousOrderLineCount.ToString())
         ];
-        public string SelectedOrderViewTitle => OrderViewSelectedIndex switch
-        {
-            SupplementOrderViewIndex => SupplementSummaryTitle,
-            PreviousOrderViewIndex => PreviousCycleSummaryTitle,
-            _ => OrdersStoryTitle
-        };
-        public string SelectedOrderViewSummary => OrderViewSelectedIndex switch
-        {
-            SupplementOrderViewIndex => SupplementSectionDescription,
-            PreviousOrderViewIndex => $"{PreviousOrderPeriodText} · {Loc["PreviousCycleReadOnly"].Value}",
-            _ => CurrentOrderSummaryText
-        };
         public string OrdersStoryDescription
         {
             get

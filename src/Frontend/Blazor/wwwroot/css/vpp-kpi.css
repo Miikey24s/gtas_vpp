@@ -245,10 +245,10 @@
 .vpp-orders-view-switchbar {
     flex: 0 0 auto;
     min-width: 0;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-card);
-    background: var(--vpp-bg-elevated);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .vpp-orders-story-actions .rz-button,
@@ -289,31 +289,6 @@
     background: var(--vpp-bg-surface);
     border-color: var(--vpp-border-strong);
     opacity: 0.82;
-}
-
-.vpp-orders-selection-summary {
-    display: flex;
-    align-items: center;
-    gap: var(--vpp-space-2);
-    min-height: 24px;
-    margin-top: var(--vpp-space-2);
-    padding-inline: 4px;
-    overflow: hidden;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-    white-space: nowrap;
-}
-
-.vpp-orders-selection-summary strong,
-.vpp-orders-selection-summary span:last-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.vpp-orders-selection-summary strong {
-    flex: 0 0 auto;
-    color: var(--vpp-text-primary);
-    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-orders-selected-view {
@@ -752,16 +727,6 @@
     .vpp-orders-story-controls {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
-    }
-
-    .vpp-orders-view-switchbar {
-        padding: var(--vpp-space-2);
-    }
-
-    .vpp-orders-selection-summary {
-        align-items: flex-start;
-        flex-wrap: wrap;
-        white-space: normal;
     }
 
     .vpp-order-view-meta {
